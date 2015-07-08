@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+</head>
+<body>
+<script type="text/javascript">
+    Hammerhead.get('./settings').set({
+        CROSS_DOMAIN_PROXY_PORT : 1335
+    });
+
+    var UrlUtil = Hammerhead.get('./util/url');
+
+    UrlUtil.OriginLocation.get = function () {
+        return 'http://origin_iframe_host';
+    };
+
+    Hammerhead.init();
+    Hammerhead.ShadowUI.getRoot();
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+var get = window.Hammerhead.get;
+
+get('./settings').set({
+    COOKIE                   : '{{{cookie}}}',
+    JOB_UID                  : '{{{jobUid}}}',
+    JOB_OWNER_TOKEN          : '{{{jobOwnerToken}}}',
+    SERVICE_MSG_URL          : '{{{serviceMsgUrl}}}',
+    IE9_FILE_READER_SHIM_URL : '{{{ie9FileReaderShimUrl}}}',
+    CROSS_DOMAIN_PROXY_PORT  : '{{{crossDomainPort}}}',
+    REFERER                  : '{{{referer}}}'
+});
+
+window.Hammerhead.init();
+
+(function () {
+    var IFrameSandbox = get('./sandboxes/iframe');
+    var DOMSandbox    = get('./sandboxes/dom/dom');
+    var ShadowUI      = get('./sandboxes/shadow-ui');
+    var Const         = get('../const');
+    var Browser       = get('./util/browser');
+    var Document      = get('./sandboxes/dom/document');
+
+    // T174435
+    if (Browser.isWebKit) {
+        var styleLink  = null;
+        var shadowRoot = null;
+
+        Document.on(Document.BEFORE_DOCUMENT_CLEANED, function (e) {
+            styleLink = ShadowUI.select('link.' + Const.SHADOW_UI_STYLESHEET_CLASSNAME)[0];
+
+            if (window.top === window.self)
+                if (ShadowUI.select('.root').length){
+                    shadowRoot = ShadowUI.getRoot();
+                    shadowRoot.parentNode.removeChild(shadowRoot);
+                }
+
+                else
+                    shadowRoot = null;
+        });
+
+        function restoreStyle (e) {
+            if (!ShadowUI.select('link.' + Const.SHADOW_UI_STYLESHEET_CLASSNAME).length) {
+                if(!styleLink)
+                    return;
+
+                styleLink = styleLink.cloneNode(true);
+                var headElemenet = e.document.head;
+                headElemenet.insertBefore(styleLink, headElemenet.firstChild);
+
+                if (window.top === window.self && shadowRoot)
+                    e.document.body.appendChild(shadowRoot);
+            }
+        }
+
+        DOMSandbox.on(DOMSandbox.DOCUMENT_CLEANED, restoreStyle);
+        Document.on(Document.DOCUMENT_CLOSED, restoreStyle);
+    }
+
+    var handler = function (e) {
+        var style = ShadowUI.select('link.' + Const.SHADOW_UI_STYLESHEET_CLASSNAME)[0];
+        if(!style)
+            return;
+
+        style = style.cloneNode(true);
+        var iframeDocumentHead = e.iframe.contentDocument.head;
+
+        iframeDocumentHead.insertBefore(style, iframeDocumentHead.firstChild);
+    };
+
+    IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, handler);
+
+    {{{payloadScript}}}
+})();

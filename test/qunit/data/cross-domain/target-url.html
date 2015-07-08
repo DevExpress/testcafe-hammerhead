@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var Settings = Hammerhead.get('./settings');
+    Settings.set({
+        CROSS_DOMAIN_PROXY_PORT : 1335
+    });
+
+    var UrlUtil = Hammerhead.get('./util/url');
+
+    UrlUtil.OriginLocation.get = function () {
+        return 'http://target_url';
+    };
+
+    var scriptProcessor = Hammerhead.get('../processing/script');
+
+    Hammerhead.init();
+
+    eval(scriptProcessor.process("top.postMessage('1', 'https://example.com');"));
+    eval(scriptProcessor.process("top.postMessage('1');"));
+    eval(scriptProcessor.process("top.postMessage('0', 'http://example.com');"));
+    eval(scriptProcessor.process("top.postMessage('1', 'https://sub.example.com');"));
+    eval(scriptProcessor.process("top.postMessage('1', '*');"));
+</script>
+</body>
+</html>

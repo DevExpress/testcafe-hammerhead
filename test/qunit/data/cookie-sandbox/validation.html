@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+    <script>
+        Hammerhead.init();
+        Hammerhead.get('./transport').queuedAsyncServiceMsg = function () {
+        };
+
+        var cookieSandbox = Hammerhead.get('./sandboxes/cookie');
+
+        function setCookie (cookie) {
+            cookieSandbox.setCookie(document, cookie);
+        }
+
+        window.runTest = function () {
+            var uniq           = Math.floor(Math.random() * 1e10);
+            var validCookies   = [
+                'Valid1=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT;',
+                'Valid2=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/ ',
+                'Valid3=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/data',
+                'Valid4=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /data',
+                'Valid5=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /data ',
+                'Valid6=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /data/ ',
+                'Valid7=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/data/cookie-sandbox'
+            ];
+            var invalidCookies = [
+                'Invalid1=' + uniq + '; expires=Wed, 13-Jan-2000 22:23:01 GMT; path=/',
+                'Invalid2=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /path',
+                'Invalid3=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /path ',
+                'Invalid4=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /path/ '
+            ];
+
+            for (var i = 0; i < validCookies.length; i++)
+                setCookie(validCookies[i]);
+
+            for (var i = 0; i < invalidCookies.length; i++)
+                setCookie(invalidCookies[i]);
+
+            var cookie = cookieSandbox.getCookie();
+
+            for (var i = 1; i < validCookies.length + 1; i++) {
+                if (cookie.indexOf('Valid' + i) === -1)
+                    return false;
+            }
+
+            for (var i = 1; i < invalidCookies.length + 1; i++) {
+                if (cookie.indexOf('Invalid' + i) !== -1)
+                    return false;
+            }
+
+            if (document.cookie.indexOf(uniq) !== -1)
+                return false;
+
+            return true;
+        }
+    </script>
+
+</head>
+<body></body>
+</html>

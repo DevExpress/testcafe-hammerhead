@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+</head>
+<body>
+<script type="text/javascript">
+    Hammerhead.get('./settings').set({
+        CROSS_DOMAIN_PROXY_PORT : 1335
+    });
+
+    var UrlUtil = Hammerhead.get('./util/url');
+
+    UrlUtil.OriginLocation.get = function () {
+        return 'https://example.com';
+    };
+
+    Hammerhead.init();
+    Hammerhead.ShadowUI.getRoot();
+</script>
+<script>
+    eval(window[Hammerhead.JSProcessor.PROCESS_SCRIPT_METH_NAME]([
+        'var childs = [\'hello\', \'testcafe\', \'!!!\'];',
+        'document.write(\'<div id="parent">\');',
+        'for (var i = 0; i < childs.length; i++) {',
+        '    document.write("<p>");',
+        '    document.write(childs[i]);',
+        '    document.write("</p>");',
+        '}',
+        'document.write("</div>");'
+    ].join('\n')));
+</script>
+</body>
+</html>

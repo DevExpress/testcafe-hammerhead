@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title></title>
+</head>
+<body>
+    <h1>Results:</h1>
+    <h2><a href="/<%= encodeURIComponent(path) %>"><%= path %></a></h2>
+
+    <b>Total files: </b> <%- total %> <br/>
+    <b>Completed: </b> <%- completed %> <br/>
+    <b>Success: </b> <%- success %> <br/>
+
+    <% if(failed.length) { %>
+        <h2>Failed:</h2>
+        <% for(var i = 0; i < failed.length; i++) { %>
+            <a href="<%= failed[i].testPath %>" target="_blank"><b><%- failed[i].testPath %></b></a><br/>
+            <b>Test name:</b> <%- failed[i].testName %><br/>
+
+            <% if(failed[i].customMessage) { %>
+                <b>Message:</b> <%- failed[i].customMessage %><br/>
+            <% } %>
+
+            <% if(failed[i].diff) { %>
+                <b>Expected:</b> <%- failed[i].diff.expected %><br/>
+                <b>Actual:</b> <%- failed[i].diff.actual %><br/>
+            <% } %>
+            <br/><br/>
+        <% } %>
+    <% } %>
+
+    <h2><a href="/run-dir?dir=<%= encodeURIComponent(path) %>">Restart</a></h2>
+
+    <script type="text/javascript">
+        var passedCount = <%- success %>,
+            totalCount = <%- total %>,
+            failedCount = totalCount - passedCount;
+
+        var res = {
+            passed: passedCount,
+            failed: failedCount,
+            total: totalCount,
+            errors: []
+        };
+
+        var failedTest = null;
+
+        <% for(var i = 0; i < failed.length; i++) { %>
+            failedTest = {
+                testPath: '<%- failed[i].testPath %>',
+                testName: <%- JSON.stringify(failed[i].testName) %>
+            };
+
+            <% if(failed[i].customMessage) { %>
+                failedTest.customMessage = <%- JSON.stringify(failed[i].customMessage) %>;
+            <% } %>
+
+            <% if(failed[i].diff) { %>
+                failedTest.expected = '<%- failed[i].diff.expected %>';
+                failedTest.actual = '<%- failed[i].diff.actual %>';
+            <% } %>
+            res.errors.push(failedTest);
+        <% } %>
+
+        window.global_test_results = res;
+    </script>
+
+</body>
+</html>

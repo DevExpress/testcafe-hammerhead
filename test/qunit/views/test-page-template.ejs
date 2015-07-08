@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link type="text/css" rel=stylesheet href=/vendor/qunit.css class="ui-stylesheet-TC2b9a6d">
+    <script type="text/javascript" src=/vendor/jquery-1.7.2.js class="script-TC2b9a6d"></script>
+    <script type="text/javascript" src=/vendor/qunit.js class="script-TC2b9a6d"></script>
+    <script type="text/javascript" src="/vendor/async.js" class="script-TC2b9a6d"></script>
+
+    <script>
+        (function () {
+            <%- testPageSetup %>
+        })();
+    </script>
+
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+
+
+    <script type="text/javascript">
+        (function () {
+            <%- customTestPageSetup %>
+        })();
+    </script>
+    <script> window[TASK_UID_PROPERTY] = '<%- taskUid %>'; </script>
+</head>
+<body>
+    <ol id=qunit-tests></ol>
+
+    <script type="text/javascript">
+        (function () {
+            <%- testFixture %>
+        })();
+    </script>
+</body>
+</html>
