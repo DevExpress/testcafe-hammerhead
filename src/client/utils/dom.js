@@ -336,7 +336,7 @@ export function matches (el, selector) {
     if (!el)
         return false;
 
-    var matchesSelector = el.matches || el.msMatchesSelector;
+    var matchesSelector = el.matches || el.webkitMatchesSelector || el.msMatchesSelector;
 
     if (!matchesSelector)
         return false;

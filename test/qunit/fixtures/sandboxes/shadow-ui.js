@@ -272,7 +272,11 @@ test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function
     strictEqual(wrappedChildren.item(0), children[0]);
     ok(!wrappedChildren.item(-1));
     ok(!wrappedChildren.item(10000));
-    strictEqual(wrappedChildren.namedItem('testInput'), input);
+
+    //Safari returns NodeList instead HTMLCollection
+    if (wrappedChildren.namedItem) {
+        strictEqual(wrappedChildren.namedItem('testInput'), input);
+    }
 
     input.parentNode.removeChild(input);
 });

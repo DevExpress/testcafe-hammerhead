@@ -1,3 +1,4 @@
+var Browser       = Hammerhead.get('./utils/browser');
 var DomProcessor  = Hammerhead.get('./dom-processor/dom-processor');
 var Html          = Hammerhead.get('./utils/html');
 var IFrameSandbox = Hammerhead.get('./sandboxes/iframe');
@@ -203,6 +204,11 @@ test('iframe javascript src', function () {
         testContainer.setAttribute('src', src);
 
         var processedSrc = testContainer.src;
+
+        //Safari returns encoded value for iframe.src with javascript protocol value
+        if (Browser.isSafari) {
+            processedSrc = decodeURI(processedSrc);
+        }
 
         strictEqual(processedSrc.indexOf('javascript:' + testData[i].quote), 0);
         strictEqual(processedSrc[processedSrc.length - 1], testData[i].quote);

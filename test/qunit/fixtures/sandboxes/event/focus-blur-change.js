@@ -774,10 +774,10 @@ asyncTest('blur() must not raise event if element is already blured', function (
 });
 
 if (window.HTMLInputElement.prototype.setSelectionRange) {
-    asyncTest('setSelectionRange() must raise focus in IE only', function () {
+    asyncTest('focus after calling setSelectionRange()', function () {
         runAsyncTest(
             function () {
-                var needFocus   = Browser.isIE;
+                var needFocus   = Browser.isIE || Browser.isSafari;
                 var focusRaised = false;
 
                 input2.onfocus = function () {
@@ -800,7 +800,7 @@ if (window.HTMLInputElement.prototype.setSelectionRange) {
     asyncTest('setSelectionRange() called by some event handler when browser window is on background', function () {
         runAsyncTest(
             function () {
-                var needFocus  = Browser.isIE;
+                var needFocus  = Browser.isIE || Browser.isSafari;
                 var focusCount = 0;
 
                 input2.onfocus = function () {
