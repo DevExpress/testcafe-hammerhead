@@ -2,8 +2,8 @@
 import * as JSON from './json';
 import NativeMethods from './sandboxes/native-methods';
 import ServiceCommands from '../service-msg-cmd';
-import * as Browser from './util/browser';
-import * as Service from './util/service';
+import * as Browser from './utils/browser';
+import * as Service from './utils/service';
 import Settings from './settings';
 
 /*eslint-enable no-native-reassign*/

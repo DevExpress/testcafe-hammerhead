@@ -1,5 +1,5 @@
-import * as Browser from '../../util/browser';
-import * as DOM from '../../util/dom';
+import * as Browser from '../../utils/browser';
+import * as DOM from '../../utils/dom';
 import * as EventSimulator from './simulator';
 import * as FocusBlur from './focus-blur';
 import * as Listeners from './listeners';

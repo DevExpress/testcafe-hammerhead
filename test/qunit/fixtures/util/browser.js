@@ -1,4 +1,4 @@
-var Browser = Hammerhead.get('./util/browser');
+var Browser = Hammerhead.get('./utils/browser');
 
 var createWindowMock = function (userAgent) {
     var windowMock = {

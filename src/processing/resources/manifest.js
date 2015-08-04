@@ -1,5 +1,5 @@
 import ResourceProcessorBase from './resource-processor-base';
-import { trim } from '../../utils/util';
+import trim from '../../utils/string-trim';
 
 class ManifestProcessor extends ResourceProcessorBase {
     processResource (manifest, ctx, charset, urlReplacer) {

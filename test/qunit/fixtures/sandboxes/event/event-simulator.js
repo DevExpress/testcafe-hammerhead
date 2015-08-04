@@ -1,5 +1,5 @@
-var Browser        = Hammerhead.get('./util/browser');
-var Event          = Hammerhead.get('./util/event');
+var Browser        = Hammerhead.get('./utils/browser');
+var Event          = Hammerhead.get('./utils/event');
 var EventSimulator = Hammerhead.get('./sandboxes/event/simulator');
 
 var $domElement = null;

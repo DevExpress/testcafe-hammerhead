@@ -1,12 +1,12 @@
-import * as Browser from '../util/browser';
-import * as DOM from '../util/dom';
+import * as Browser from '../utils/browser';
+import * as DOM from '../utils/dom';
 import NativeMethods from './native-methods';
 import Const from '../../const';
-import * as Service from '../util/service';
+import * as Service from '../utils/service';
 import ServiceCommands from '../../service-msg-cmd';
 import Settings from '../settings';
 import Transport from '../transport';
-import UrlUtil from '../util/url';
+import UrlUtil from '../utils/url';
 
 const IFRAME_READY_TO_INIT          = 'iframeReadyToInit';
 const IFRAME_READY_TO_INIT_INTERNAL = 'iframeReadyToInitInternal';

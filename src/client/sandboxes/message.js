@@ -1,11 +1,11 @@
 /*eslint-disable no-native-reassign */
-import * as Browser from '../util/browser';
-import * as DOM from '../util/dom';
+import * as Browser from '../utils/browser';
+import * as DOM from '../utils/dom';
 import * as JSON from '../json';
 import * as Listeners from './event/listeners';
 import NativeMethods from './native-methods';
-import * as Service from '../util/service';
-import UrlUtil from '../util/url';
+import * as Service from '../utils/service';
+import UrlUtil from '../utils/url';
 /*eslint-enable no-native-reassign */
 
 const messageType = {

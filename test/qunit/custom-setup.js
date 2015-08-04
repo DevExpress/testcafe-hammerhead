@@ -6,7 +6,7 @@
         JOB_UID:         'jobUid'
     });
 
-    var UrlUtil     = Hammerhead.get('./util/url');
+    var UrlUtil     = Hammerhead.get('./utils/url');
     var JSProcessor = Hammerhead.get('../processing/js/index');
     var Const       = Hammerhead.get('../const');
 

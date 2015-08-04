@@ -1,16 +1,16 @@
-import * as DOM from '../../util/dom';
-import { stopPropagation } from '../../util/event';
+import * as DOM from '../../utils/dom';
+import { stopPropagation } from '../../utils/event';
 import * as HiddenInfo from '../upload/hidden-info';
 import IFrameSandbox from '../iframe';
 import * as InfoManager from '../upload/info-manager';
 import NativeMethods from '../native-methods';
 import DomProcessor from '../../dom-processor/dom-processor';
 import ScriptProcessor from '../../../processing/script';
-import { isPageHtml, processHtml } from '../../util/html';
-import { EventEmitter } from '../../util/service';
+import { isPageHtml, processHtml } from '../../utils/html';
+import { EventEmitter } from '../../utils/service';
 import { onBodyElementMutation } from '../shadow-ui';
 import { waitCookieMsg } from '../../transport';
-import UrlUtil from '../../util/url';
+import UrlUtil from '../../utils/url';
 
 export const IFRAME_ADDED = 'iframeAdded';
 

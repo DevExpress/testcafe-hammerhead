@@ -1,7 +1,7 @@
-var DOM           = Hammerhead.get('./util/dom');
+var DOM           = Hammerhead.get('./utils/dom');
 var IFrameSandbox = Hammerhead.get('./sandboxes/iframe');
 var Const         = Hammerhead.get('../const');
-var UrlUtil       = Hammerhead.get('./util/url');
+var UrlUtil       = Hammerhead.get('./utils/url');
 
 QUnit.testStart = function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);

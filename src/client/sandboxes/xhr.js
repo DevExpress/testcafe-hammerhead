@@ -1,7 +1,7 @@
 import NativeMethods from './native-methods';
 import Const from '../../const';
-import UrlUtil from '../util/url';
-import * as Service from '../util/service';
+import UrlUtil from '../utils/url';
+import * as Service from '../utils/service';
 import Settings from '../settings';
 
 const SERVICE_MSG_REQUEST_FLAG  = 'is_tc_req-c8f5bd4f';

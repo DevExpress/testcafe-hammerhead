@@ -1,7 +1,7 @@
-import * as Browser from '../../util/browser';
+import * as Browser from '../../utils/browser';
 import * as Listeners from './listeners';
 import NativeMethods from '../native-methods';
-import * as Service from '../../util/service';
+import * as Service from '../../utils/service';
 
 export const BEFORE_UNLOAD_EVENT        = 'beforeUnload';
 export const BEFORE_BEFORE_UNLOAD_EVENT = 'beforeBeforeUnload';

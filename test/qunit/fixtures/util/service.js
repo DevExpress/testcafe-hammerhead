@@ -1,4 +1,4 @@
-var Service = Hammerhead.get('./util/service');
+var Service = Hammerhead.get('./utils/service');
 
 module('extend');
 test('simple two objects', function () {

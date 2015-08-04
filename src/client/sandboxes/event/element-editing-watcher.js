@@ -1,4 +1,4 @@
-import * as DOM from '../../util/dom';
+import * as DOM from '../../utils/dom';
 import * as EventSimulator from './simulator';
 import NativeMethods from '../native-methods';
 import Const from '../../../const';

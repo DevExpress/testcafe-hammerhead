@@ -1,10 +1,10 @@
-import { isMozilla, isIE } from '../../util/browser';
+import { isMozilla, isIE } from '../../utils/browser';
 import IFrameSandbox from '../iframe';
 import JSProcessor from '../../../processing/js/index';
 import NativeMethods from '../native-methods';
-import * as Html from '../../util/html';
-import { EventEmitter } from '../../util/service';
-import { isIframeWithoutSrc } from '../../util/url';
+import * as Html from '../../utils/html';
+import { EventEmitter } from '../../utils/service';
+import { isIframeWithoutSrc } from '../../utils/url';
 
 // Consts
 export const BEFORE_DOCUMENT_CLEANED = 'beforeDocumentCleaned';

@@ -1,10 +1,10 @@
 /*eslint-disable no-native-reassign*/
-import * as Browser from './util/browser';
-import * as DOM from './util/dom';
+import * as Browser from './utils/browser';
+import * as DOM from './utils/dom';
 import { getAttributesProperty } from './sandboxes/dom-accessor-wrappers';
 import * as DOMSandbox from './sandboxes/dom/dom';
 import * as ElementEditingWatcher from './sandboxes/event/element-editing-watcher';
-import * as Event from './util/event';
+import * as Event from './utils/event';
 import * as EventSimulator from './sandboxes/event/simulator';
 import * as FocusBlur from './sandboxes/event/focus-blur';
 import * as IFrameSandbox from './sandboxes/iframe';
@@ -14,11 +14,11 @@ import JSProcessor from '../processing/js/index';
 import * as Listeners from './sandboxes/event/listeners';
 import * as MessageSandbox from './sandboxes/message';
 import NativeMethods from './sandboxes/native-methods';
-import * as Position from './util/position';
+import * as Position from './utils/position';
 import * as Selection from './sandboxes/event/selection';
-import * as Service from './util/service';
+import * as Service from './utils/service';
 import * as ShadowUI from './sandboxes/shadow-ui';
-import * as Style from './util/style';
+import * as Style from './utils/style';
 import * as Transport from './transport';
 import * as Unload from './sandboxes/event/unload';
 import * as UploadSandbox from './sandboxes/upload/upload';

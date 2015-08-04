@@ -1,4 +1,4 @@
-var Browser       = Hammerhead.get('./util/browser');
+var Browser       = Hammerhead.get('./utils/browser');
 var CMD           = Hammerhead.get('../service-msg-cmd');
 var HiddenInfo    = Hammerhead.get('./sandboxes/upload/hidden-info');
 var InfoManager   = Hammerhead.get('./sandboxes/upload/info-manager');

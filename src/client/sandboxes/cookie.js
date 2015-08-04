@@ -1,9 +1,9 @@
-import * as Cookie from '../util/cookie';
-import * as DOM from '../util/dom';
-import Util from '../../utils/util';
+import * as Cookie from '../utils/cookie';
+import * as DOM from '../utils/dom';
+import trim from '../../utils/string-trim';
 import ServiceCommands from '../../service-msg-cmd';
 import Transport from '../transport';
-import UrlUtil from '../util/url';
+import UrlUtil from '../utils/url';
 import Settings from '../settings';
 
 var getSettings = function () {
@@ -79,7 +79,7 @@ export function setCookie (document, value) {
 
         //NOTE: replace cookie if it's already exists
         for (var i = 0; i < cookies.length; i++) {
-            cookies[i] = Util.trim(cookies[i]);
+            cookies[i] = trim(cookies[i]);
 
             if (cookies[i].indexOf(cookieKey + '=') === 0 || cookies[i] === cookieKey) {
                 //NOTE: delete or update cookie string

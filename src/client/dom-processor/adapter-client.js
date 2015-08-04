@@ -1,10 +1,10 @@
-import { isIE9 } from '../util/browser';
-import { findDocument } from '../util/dom';
+import { isIE9 } from '../utils/browser';
+import { findDocument } from '../utils/dom';
 import NativeMethods from '../sandboxes/native-methods';
-import { EventEmitter } from '../util/service';
+import { EventEmitter } from '../utils/service';
 import DomAdapterBase from '../../processing/dom/adapter-base';
 import Settings from '../settings';
-import UrlUtil from '../util/url';
+import UrlUtil from '../utils/url';
 import Const from '../../const';
 
 export default class ClientDomAdapter extends DomAdapterBase {

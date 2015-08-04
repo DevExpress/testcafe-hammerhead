@@ -1,10 +1,10 @@
 var CookieSandbox = Hammerhead.get('./sandboxes/cookie');
-var CookieUtil    = Hammerhead.get('./util/cookie');
+var CookieUtil    = Hammerhead.get('./utils/cookie');
 var NativeMethods = Hammerhead.get('./sandboxes/native-methods');
 var Settings      = Hammerhead.get('./settings');
 var SharedUrlUtil = Hammerhead.get('../utils/url');
 var Transport     = Hammerhead.get('./transport');
-var UrlUtil       = Hammerhead.get('./util/url');
+var UrlUtil       = Hammerhead.get('./utils/url');
 
 function setCookie (value) {
     return setProperty(document, 'cookie', value);

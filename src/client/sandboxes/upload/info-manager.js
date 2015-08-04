@@ -1,5 +1,5 @@
 /*global atob, Blob, FileReader*/
-import * as Browser from '../../util/browser';
+import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 import NativeMethods from '../native-methods';
 import ServiceCommands from '../../../service-msg-cmd';

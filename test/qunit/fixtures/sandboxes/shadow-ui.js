@@ -1,4 +1,4 @@
-var DOM           = Hammerhead.get('./util/dom');
+var DOM           = Hammerhead.get('./utils/dom');
 var IFrameSandbox = Hammerhead.get('./sandboxes/iframe');
 var NativeMethods = Hammerhead.get('./sandboxes/native-methods');
 var Settings      = Hammerhead.get('./settings');

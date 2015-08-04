@@ -1,4 +1,4 @@
-var Browser        = Hammerhead.get('./util/browser');
+var Browser        = Hammerhead.get('./utils/browser');
 var EventSandbox   = Hammerhead.get('./sandboxes/event/event');
 var EventSimulator = Hammerhead.get('./sandboxes/event/simulator');
 var FocusBlur      = Hammerhead.get('./sandboxes/event/focus-blur');

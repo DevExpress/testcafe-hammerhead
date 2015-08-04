@@ -1,13 +1,13 @@
 ﻿var DomProcessor    = Hammerhead.get('./dom-processor/dom-processor');
 var ScriptProcessor = Hammerhead.get('../processing/script');
-var Html            = Hammerhead.get('./util/html');
+var Html            = Hammerhead.get('./utils/html');
 var IFrameSandbox   = Hammerhead.get('./sandboxes/iframe');
 var NativeMethods   = Hammerhead.get('./sandboxes/native-methods');
 var ScriptProcessor = Hammerhead.get('../processing/script');
 var ShadowUI        = Hammerhead.get('./sandboxes/shadow-ui');
 var Const           = Hammerhead.get('../const');
 var SharedUrlUtil   = Hammerhead.get('../utils/url');
-var UrlUtil         = Hammerhead.get('./util/url');
+var UrlUtil         = Hammerhead.get('./utils/url');
 
 QUnit.testStart = function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);

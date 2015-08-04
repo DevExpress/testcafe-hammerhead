@@ -1,4 +1,4 @@
-var Style = Hammerhead.get('./util/style');
+var Style = Hammerhead.get('./utils/style');
 
 test('getBordersWidth', function () {
     var $el = $('<div>')

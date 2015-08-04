@@ -1,5 +1,5 @@
-var Browser   = Hammerhead.get('./util/browser');
-var DOM       = Hammerhead.get('./util/dom');
+var Browser   = Hammerhead.get('./utils/browser');
+var DOM       = Hammerhead.get('./utils/dom');
 var Listeners = Hammerhead.get('./sandboxes/event/listeners');
 
 Hammerhead.init(window, document);

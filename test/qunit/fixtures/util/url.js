@@ -1,6 +1,6 @@
 var Settings      = Hammerhead.get('./settings');
 var SharedUrlUtil = Hammerhead.get('../utils/url');
-var UrlUtil       = Hammerhead.get('./util/url');
+var UrlUtil       = Hammerhead.get('./utils/url');
 
 var PROXY_PORT     = 1337;
 var PROXY_HOSTNAME = '127.0.0.1';

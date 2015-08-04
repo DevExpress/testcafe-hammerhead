@@ -1,6 +1,6 @@
-import { isIE, isWebKit, isMozilla } from '../../util/browser';
+import { isIE, isWebKit, isMozilla } from '../../utils/browser';
 import * as Document from './document';
-import { getTopSameDomainWindow } from '../../util/dom';
+import { getTopSameDomainWindow } from '../../utils/dom';
 import * as DomAccessorWrappers from '../dom-accessor-wrappers';
 import * as Element from './element';
 import * as EventSandbox from '../event/event';
@@ -8,7 +8,7 @@ import IFrameSandbox from '../iframe';
 import * as Listeners from '../event/listeners';
 import * as MessageSandbox from '../message';
 import NativeMethods from '../native-methods';
-import * as Service from '../../util/service';
+import * as Service from '../../utils/service';
 import * as ShadowUI from '../shadow-ui';
 import Const from '../../../const';
 import * as UploadSandbox from '../upload/upload';

@@ -1,4 +1,4 @@
-import * as Browser from '../../util/browser';
+import * as Browser from '../../utils/browser';
 import NativeMethods from '../native-methods';
 
 // NOTE: when you call focus/blur function of some element in IE, handlers of the event are executed it async manner,

@@ -1,10 +1,10 @@
-import * as DOM from '../util/dom';
+import * as DOM from '../utils/dom';
 import NativeMethods from './native-methods';
 import DomProcessor from '../dom-processor/dom-processor';
-import * as Position from '../util/position';
+import * as Position from '../utils/position';
 import Const from '../../const';
-import * as Style from '../util/style';
-import * as Event from '../util/event';
+import * as Style from '../utils/style';
+import * as Event from '../utils/event';
 
 // Const
 const CLASSNAME_REGEX = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;

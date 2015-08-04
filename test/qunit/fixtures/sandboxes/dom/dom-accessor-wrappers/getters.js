@@ -1,8 +1,8 @@
-var Browser       = Hammerhead.get('./util/browser');
+var Browser       = Hammerhead.get('./utils/browser');
 var IFrameSandbox = Hammerhead.get('./sandboxes/iframe');
 var NativeMethods = Hammerhead.get('./sandboxes/native-methods');
 var ShadowUI      = Hammerhead.get('./sandboxes/shadow-ui');
-var UrlUtil       = Hammerhead.get('./util/url');
+var UrlUtil       = Hammerhead.get('./utils/url');
 
 QUnit.testStart = function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);

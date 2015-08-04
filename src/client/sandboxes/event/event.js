@@ -1,7 +1,7 @@
-import * as Browser from '../../util/browser';
-import * as DOM from '../../util/dom';
-import * as Event from '../../util/event';
-import * as Service from '../../util/service';
+import * as Browser from '../../utils/browser';
+import * as DOM from '../../utils/dom';
+import * as Event from '../../utils/event';
+import * as Service from '../../utils/service';
 import * as EventSimulator from './simulator';
 import * as FocusBlur from './focus-blur';
 import * as Listeners from './listeners';

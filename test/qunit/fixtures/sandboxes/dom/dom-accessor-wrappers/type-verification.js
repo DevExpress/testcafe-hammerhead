@@ -1,6 +1,6 @@
 var DomAccessorWrappers = Hammerhead.get('./sandboxes/dom-accessor-wrappers');
 var IFrameSandbox       = Hammerhead.get('./sandboxes/iframe');
-var UrlUtil             = Hammerhead.get('./util/url');
+var UrlUtil             = Hammerhead.get('./utils/url');
 
 var accessors = DomAccessorWrappers.elementPropertyAccessors;
 

@@ -1,5 +1,5 @@
 // for internal using Listeners
-import * as Browser from '../../util/browser';
+import * as Browser from '../../utils/browser';
 
 const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'tc_eles_bef23a16';
 

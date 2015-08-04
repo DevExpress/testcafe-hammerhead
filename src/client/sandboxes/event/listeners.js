@@ -1,8 +1,8 @@
-import * as DOM from '../../util/dom';
-import * as Event from '../../util/event';
+import * as DOM from '../../utils/dom';
+import * as Event from '../../utils/event';
 import * as ListeningCtx from './listening-context';
 import NativeMethods from '../native-methods';
-import * as Service from '../../util/service';
+import * as Service from '../../utils/service';
 
 export const EVENT_LISTENER_ATTACHED_EVENT = 'eventListenerAttached';
 

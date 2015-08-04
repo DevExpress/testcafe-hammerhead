@@ -1,4 +1,4 @@
-import * as Service from './util/service';
+import * as Service from './utils/service';
 
 //NOTE: json2.js uses fallbacks to existing JSON implementations. So we can't rely on it in our client code.
 //This is an isolated implementation of JSON that is not rely on any external stuff (prototypes, existing JSON

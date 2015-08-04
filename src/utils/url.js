@@ -1,4 +1,4 @@
-import { trim } from './util';
+import trim from './string-trim';
 
 var UrlUtil = {};
 

@@ -1,6 +1,6 @@
 import * as CookieSandbox from './cookie';
-import * as DOM from '../util/dom';
-import * as Html from '../util/html';
+import * as DOM from '../utils/dom';
+import * as Html from '../utils/html';
 import * as ElementEditingWatcher from './event/element-editing-watcher';
 import JSProcessor from '../../processing/js/index';
 import * as MessageSandbox from './message';
@@ -8,12 +8,12 @@ import NativeMethods from './native-methods';
 import DomProcessor from '../dom-processor/dom-processor';
 import StyleProcessor from '../../processing/style';
 import ScriptProcessor from '../../processing/script';
-import * as Service from '../util/service';
+import * as Service from '../utils/service';
 import * as ShadowUI from './shadow-ui';
 import Const from '../../const';
 import * as UploadSandbox from './upload/upload';
 import * as Unload from './event/unload';
-import UrlUtil from '../util/url';
+import UrlUtil from '../utils/url';
 
 export const LOCATION_WRAPPER = 'location_1b082a6cec';
 

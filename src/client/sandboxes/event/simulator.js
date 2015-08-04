@@ -1,11 +1,11 @@
-import * as Browser from '../../util/browser';
-import * as DOM from '../../util/dom';
-import * as Event from '../../util/event';
-import * as Service from '../../util/service';
+import * as Browser from '../../utils/browser';
+import * as DOM from '../../utils/dom';
+import * as Event from '../../utils/event';
+import * as Service from '../../utils/service';
 import NativeMethods from '../native-methods';
-import * as Position from '../../util/position';
+import * as Position from '../../utils/position';
 import Const from '../../../const';
-import * as Style from '../../util/style';
+import * as Style from '../../utils/style';
 
 export const DISPATCHED_EVENT_FLAG = Const.PROPERTY_PREFIX + 'def';
 

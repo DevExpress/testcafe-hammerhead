@@ -1,5 +1,5 @@
-import * as Browser from '../../util/browser';
-import * as DOM from '../../util/dom';
+import * as Browser from '../../utils/browser';
+import * as DOM from '../../utils/dom';
 import * as ElementEditingWatcher from './element-editing-watcher';
 import * as EventSimulator from './simulator';
 import * as Listeners from './listeners';
@@ -7,7 +7,7 @@ import NativeMethods from '../native-methods';
 import * as Timeout from './timeout';
 import * as ShadowUI from '../shadow-ui';
 import Const from '../../../const';
-import * as Style from '../../util/style';
+import * as Style from '../../utils/style';
 
 const INTERNAL_FOCUS_FLAG = Const.PROPERTY_PREFIX + 'iff';
 const INTERNAL_BLUR_FLAG  = Const.PROPERTY_PREFIX + 'ibf';

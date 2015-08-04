@@ -1,4 +1,4 @@
-var Browser         = Hammerhead.get('./util/browser');
+var Browser         = Hammerhead.get('./utils/browser');
 var ScriptProcessor = Hammerhead.get('../processing/script');
 var IFrameSandbox   = Hammerhead.get('./sandboxes/iframe');
 var MessageSandbox  = Hammerhead.get('./sandboxes/message');

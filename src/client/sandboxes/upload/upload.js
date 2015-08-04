@@ -1,8 +1,8 @@
-import * as Browser from '../../util/browser';
-import * as DOM from '../../util/dom';
-import * as Event from '../../util/event';
+import * as Browser from '../../utils/browser';
+import * as DOM from '../../utils/dom';
+import * as Event from '../../utils/event';
 import * as EventSimulator from '../event/simulator';
-import * as Service from '../../util/service';
+import * as Service from '../../utils/service';
 import * as Listeners from '../event/listeners';
 import Const from '../../../const';
 

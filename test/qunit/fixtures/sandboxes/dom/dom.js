@@ -1,9 +1,9 @@
-var Browser        = Hammerhead.get('./util/browser');
+var Browser        = Hammerhead.get('./utils/browser');
 var Element        = Hammerhead.get('./sandboxes/dom/element');
 var EventSimulator = Hammerhead.get('./sandboxes/event/simulator');
 var IFrameSandbox  = Hammerhead.get('./sandboxes/iframe');
 var NativeMethods  = Hammerhead.get('./sandboxes/native-methods');
-var UrlUtil        = Hammerhead.get('./util/url');
+var UrlUtil        = Hammerhead.get('./utils/url');
 
 QUnit.testStart = function () {
     // 'window.open' method uses in the QUnit

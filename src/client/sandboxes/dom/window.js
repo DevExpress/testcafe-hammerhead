@@ -1,13 +1,13 @@
 /*global history, navigator*/
-import { isMozilla } from '../../util/browser';
-import { isCrossDomainWindows } from '../../util/dom';
+import { isMozilla } from '../../utils/browser';
+import { isCrossDomainWindows } from '../../utils/dom';
 import { ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY } from '../dom-accessor-wrappers';
 import * as MessageSandbox from '../message';
 import NativeMethods from '../native-methods';
 import ScriptProcessor from '../../../processing/script';
-import { EventEmitter } from '../../util/service';
+import { EventEmitter } from '../../utils/service';
 import { isShadowUIMutation } from '../shadow-ui';
-import UrlUtil from '../../util/url';
+import UrlUtil from '../../utils/url';
 
 // Const
 export const UNCAUGHT_JS_ERROR = 'uncaughtJSError';
