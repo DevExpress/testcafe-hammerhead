@@ -7,7 +7,7 @@ import Settings from '../settings';
 import UrlUtil from '../util/url';
 import Const from '../../const';
 
-export default class ClientAdapter extends DomAdapterBase {
+export default class ClientDomAdapter extends DomAdapterBase {
     getAttr (el, attr) {
         return NativeMethods.getAttribute.call(el, attr);
     }

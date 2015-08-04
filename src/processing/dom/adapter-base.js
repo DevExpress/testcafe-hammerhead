@@ -1,4 +1,4 @@
-export default class DomProcessorStrategy {
+export default class DomAdapterBase {
     constructor () {
         this.EVENTS = ['onblur', 'onchange', 'onclick', 'oncontextmenu', 'oncopy', 'oncut',
             'ondblclick', 'onerror', 'onfocus', 'onfocusin', 'onfocusout', 'onhashchange', 'onkeydown',
