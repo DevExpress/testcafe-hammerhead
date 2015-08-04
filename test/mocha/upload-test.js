@@ -176,6 +176,7 @@ describe('Upload', function () {
 
             cases.forEach(function (testCase) {
                 var formData = initFormData(testCase.src);
+
                 expect(formData.toBuffer().toString()).eql(testCase.expected);
             });
         });

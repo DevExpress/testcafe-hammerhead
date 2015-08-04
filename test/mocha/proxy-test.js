@@ -100,8 +100,8 @@ describe('Proxy', function () {
             var authHeader = req.headers['authorization'];
 
             if (authHeader) {
-                var expectedAuthCredentials = 'testUsername:testPassword',
-                    expectedAuthHeader      = 'Basic ' + new Buffer(expectedAuthCredentials).toString('base64');
+                var expectedAuthCredentials = 'testUsername:testPassword';
+                var expectedAuthHeader      = 'Basic ' + new Buffer(expectedAuthCredentials).toString('base64');
 
                 if (authHeader === expectedAuthHeader) {
                     res.end('42');
@@ -126,6 +126,7 @@ describe('Proxy', function () {
 
         app.get('/T232505/is-cookie-header-sent', function (req, res) {
             var headerSent = req.headers['cookie'] !== void 0;
+
             res.end(headerSent.toString());
         });
 
@@ -399,6 +400,7 @@ describe('Proxy', function () {
 
             request(options, function (err, res, body) {
                 var expected = fs.readFileSync('test/mocha/data/page/expected.html').toString();
+
                 compareCode(body, expected);
                 done();
             });
@@ -417,6 +419,7 @@ describe('Proxy', function () {
 
             request(options, function (err, res, body) {
                 var expected = fs.readFileSync('test/mocha/data/page/src.html').toString();
+
                 compareCode(body, expected);
                 done();
             });
@@ -428,6 +431,7 @@ describe('Proxy', function () {
 
             request(proxy.openSession('http://127.0.0.1:1335/script', session), function (err, res, body) {
                 var expected = fs.readFileSync('test/mocha/data/script/expected.js').toString();
+
                 compareCode(body, expected);
                 done();
             });
@@ -438,6 +442,7 @@ describe('Proxy', function () {
 
             request(proxy.openSession('http://127.0.0.1:1335/manifest', session), function (err, res, body) {
                 var expected = fs.readFileSync('test/mocha/data/manifest/expected.manifest').toString();
+
                 compareCode(body, expected);
                 done();
             });
@@ -455,6 +460,7 @@ describe('Proxy', function () {
 
             request(options, function (err, res, body) {
                 var expected = fs.readFileSync('test/mocha/data/stylesheet/expected.css').toString();
+
                 compareCode(body, expected);
                 done();
             });
@@ -564,6 +570,7 @@ describe('Proxy', function () {
 
             request(options, function (err, res, body) {
                 var expected = fs.readFileSync('test/mocha/data/empty-page/expected.html').toString();
+
                 compareCode(body, expected);
                 done();
             });

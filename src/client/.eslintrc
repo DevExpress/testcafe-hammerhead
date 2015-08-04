@@ -1,10 +1,9 @@
 {
   "globals": {
-    "window": true,
     "isIFrameWithoutSrc": true,
-    "location": true,
-    "document": true,
-    "XMLHttpRequest": true,
     "initHammerheadClient": true
+  },
+  "env": {
+    "browser": true
   }
 }

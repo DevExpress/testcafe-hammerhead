@@ -294,7 +294,7 @@ asyncTest('window.postMessage', function () {
             e.stopPropagation();
             ok(true);
         }
-        catch (e) {
+        catch (error) {
             ok(false);
         }
         finally {

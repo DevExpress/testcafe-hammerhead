@@ -216,9 +216,10 @@ describe('Script processor', function () {
             },
 
             {
-                src:      'location-=value;location*=value;location/=value;' +
-                          'location>>=value;location<<=value;location>>>=value;' +
-                          'location&=value;location|=value;location^=value',
+                src: 'location-=value;location*=value;location/=value;' +
+                     'location>>=value;location<<=value;location>>>=value;' +
+                     'location&=value;location|=value;location^=value',
+
                 expected: 'location-=value;location*=value;location/=value;' +
                           'location>>=value;location<<=value;location>>>=value;' +
                           'location&=value;location|=value;location^=value'
@@ -277,10 +278,12 @@ describe('Script processor', function () {
             },
             { src: 'result = $el[0].{0}', expected: 'result = __get$($el[0], "{0}")' },
             { src: 'obj.{0} = value, obj1 = value', expected: '__set$(obj,"{0}",value), obj1 = value' },
+
             {
-                src:      'obj.{0}-=value;obj.{0}*=value;obj.{0}/=value;' +
-                          'obj.{0}>>=value;obj.{0}<<=value;obj.{0}>>>=value;' +
-                          'obj.{0}&=value;obj.{0}|=value;obj.{0}^=value',
+                src: 'obj.{0}-=value;obj.{0}*=value;obj.{0}/=value;' +
+                     'obj.{0}>>=value;obj.{0}<<=value;obj.{0}>>>=value;' +
+                     'obj.{0}&=value;obj.{0}|=value;obj.{0}^=value',
+
                 expected: 'obj.{0}-=value;obj.{0}*=value;obj.{0}/=value;' +
                           'obj.{0}>>=value;obj.{0}<<=value;obj.{0}>>>=value;' +
                           'obj.{0}&=value;obj.{0}|=value;obj.{0}^=value'
@@ -304,10 +307,12 @@ describe('Script processor', function () {
             { src: 'obj[0]++', expected: 'obj[0]++' },
             { src: '++obj[0]', expected: '++obj[0]' },
             { src: 'obj[someProperty](1,2,3)', expected: '__call$(obj,someProperty,[1,2,3])' },
+
             {
-                src:      'obj[{0}]-=value;obj[{0}]*=value;obj[{0}]/=value;' +
-                          'obj[{0}]>>=value;obj[{0}]<<=value;obj[{0}]>>>=value;' +
-                          'obj[{0}]&=value;obj[{0}]|=value;obj[{0}]^=value',
+                src: 'obj[{0}]-=value;obj[{0}]*=value;obj[{0}]/=value;' +
+                     'obj[{0}]>>=value;obj[{0}]<<=value;obj[{0}]>>>=value;' +
+                     'obj[{0}]&=value;obj[{0}]|=value;obj[{0}]^=value',
+
                 expected: 'obj[{0}]-=value;obj[{0}]*=value;obj[{0}]/=value;' +
                           'obj[{0}]>>=value;obj[{0}]<<=value;obj[{0}]>>>=value;' +
                           'obj[{0}]&=value;obj[{0}]|=value;obj[{0}]^=value'
@@ -320,7 +325,7 @@ describe('Script processor', function () {
             src:                     '{ location: value, value: location, src: src }',
             expected:                '{ location: value, value: __get$Loc(location), src: src }',
             additionalAssertionText: ACORN_PROPERTY_NODES_PATCH_WARNING
-        })
+        });
     });
 
     it('Should keep raw literals', function () {
@@ -328,7 +333,7 @@ describe('Script processor', function () {
             src:      'obj["\\u003c/script>"]=location',
             expected: 'obj["\\u003c/script>"]=__get$Loc(location)',
             msg:      ESOTOPE_RAW_LITERAL_PATCH_WARNING
-        })
+        });
     });
 
     it('Should process eval()', function () {
@@ -527,7 +532,7 @@ describe('Script processor', function () {
                 src:      'var t = "<!-- comment1 -->\\n";\na[i];',
                 expected: 'var t = "<!-- comment1 -->\\n";\n__get$(a, i);'
             }
-        ])
+        ]);
     });
 
     describe('Regression', function () {
@@ -548,19 +553,20 @@ describe('Script processor', function () {
 
         it('Should keep script content inside HTML comments (T226589)', function () {
             testProcessing({
-                src:      'document.writeln("<!--test123-->");\n' +
-                          '<!--Begin -->\n' +
-                          '<!--\n' +
-                          'client = "42";\n' +
-                          '/* yo yo */\n' +
-                          'slot = "43";\n' +
-                          'width = 300;\n' +
-                          'height = 250;\n' +
-                          '//-->\n\n' +
-                          '<!--End -->\n' +
-                          'document.writeln("var t = 1;");\n' +
-                          'document.writeln("t = 2;");\n' +
-                          'document.close();\n',
+                src: 'document.writeln("<!--test123-->");\n' +
+                     '<!--Begin -->\n' +
+                     '<!--\n' +
+                     'client = "42";\n' +
+                     '/* yo yo */\n' +
+                     'slot = "43";\n' +
+                     'width = 300;\n' +
+                     'height = 250;\n' +
+                     '//-->\n\n' +
+                     '<!--End -->\n' +
+                     'document.writeln("var t = 1;");\n' +
+                     'document.writeln("t = 2;");\n' +
+                     'document.close();\n',
+
                 expected: '__call$(document, "writeln", ["<!--test123-->", \'__begin$\']);' +
                           'client = "42";' +
                           'slot = "43";' +
@@ -575,25 +581,27 @@ describe('Script processor', function () {
         it('Should collect document.write() and document.writeln() to get valid HTML for processing (T232454)',
             function () {
                 testProcessing({
-                    src:      'if(true) {\n' +
-                              'document.write("<html>");\n' +
-                              'document.writeln("</html>");\n' +
-                              '}\n',
+                    src: 'if(true) {\n' +
+                         'document.write("<html>");\n' +
+                         'document.writeln("</html>");\n' +
+                         '}\n',
+
                     expected: 'if (true) {\n' +
                               '__call$(document, "write", ["<html>", \'__begin$\']);\n' +
                               '__call$(document, "writeln", ["</html>", \'__end$\']);\n' +
                               '}'
-                })
+                });
             });
 
         it('Should handle malformed HTML comments (T239244)', function () {
             testProcessing({
-                src:      '<!-- rai_mm_tools -->\n' +
-                          '<!--\n' +
-                          'function test(theURL,winName,features) { //v2.0\n' +
-                          '   a[i];\n' +
-                          '}\n' +
-                          '//-->',
+                src: '<!-- rai_mm_tools -->\n' +
+                     '<!--\n' +
+                     'function test(theURL,winName,features) { //v2.0\n' +
+                     '   a[i];\n' +
+                     '}\n' +
+                     '//-->',
+
                 expected: 'function test(theURL,winName,features) {\n' +
                           '   __get$(a, i);\n' +
                           '}'
@@ -615,11 +623,12 @@ describe('Script processor', function () {
 
         it('Should keep line after open HTML comments (health monitor)', function () {
             testProcessing({
-                src:      '<!--\n' +
-                          'var rdm0 = "";\n' +
-                          'var rdm1 = "";\n' +
-                          'a[i];' +
-                          '//-->',
+                src: '<!--\n' +
+                     'var rdm0 = "";\n' +
+                     'var rdm1 = "";\n' +
+                     'a[i];' +
+                     '//-->',
+
                 expected: 'var rdm0 = "";\n' +
                           'var rdm1 = "";\n' +
                           '__get$(a, i)'
