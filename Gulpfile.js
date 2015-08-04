@@ -17,22 +17,13 @@ var mocha      = require('gulp-mocha');
 var mustache   = require('gulp-mustache');
 var rename     = require('gulp-rename');
 var sourcemaps = require('gulp-sourcemaps');
-//var uglify     = require('gulp-uglify');
 var webmake    = require('gulp-webmake');
 var chalk      = require('chalk');
 var Promise    = require('promise');
 
-function makePromise (fn) {
-    return { then: fn };
-}
-
-var HangPromise = makePromise(function () {
-    //Never resolves =)
-});
-
 gulp.task('clean', function () {
-    return makePromise(function (done) {
-        del(['./lib'], done);
+    return new Promise(function (resolve) {
+        del(['./lib'], resolve);
     });
 });
 
@@ -111,13 +102,15 @@ gulp.task('qunit', ['build'], function () {
 
     require('./test/qunit/server.js').start();
 
-    return HangPromise;
+    return new Promise(function () {
+    });
 });
 
 gulp.task('playground', ['build'], function () {
     require('./test/playground/server.js').start();
 
-    return HangPromise;
+    return new Promise(function () {
+    });
 });
 
 gulp.task('travis', [process.env.GULP_TASK || '']);
@@ -127,7 +120,7 @@ gulp.task('travis', [process.env.GULP_TASK || '']);
     var QUnitRunner = require('./test/qunit/sauce-labs-runner');
     var qunitServer = require('./test/qunit/server.js');
 
-    var SAUCE_USERNAME = process.env.SAUCE_USERNAME || '';
+    var SAUCE_USERNAME   = process.env.SAUCE_USERNAME || '';
     var SAUCE_ACCESS_KEY = process.env.SAUCE_ACCESS_KEY || '';
 
     var RUN_TESTS_URL = '/run-dir?dir=fixtures';
