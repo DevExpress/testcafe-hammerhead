@@ -67,9 +67,11 @@ function filterNodeList (nodeList) {
         return index >= filteredList.length ? null : filteredList[index];
     };
 
-    filteredList.namedItem = function (name) {
-        return nodeList.namedItem(name);
-    };
+    if (nodeList.namedItem) {
+        filteredList.namedItem = function (name) {
+            return nodeList.namedItem(name);
+        };
+    }
 
     return filteredList.length === nlLength ? nodeList : filteredList;
 }

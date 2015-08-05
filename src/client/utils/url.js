@@ -93,7 +93,12 @@ UrlUtil.resolveUrl = function (url, doc) {
         //NOTE: it looks like a chrome bug: in nested iframe without src (when iframe is placed in another iframe) you
         //cannot set relative link href for some time while the iframe loading is not completed. So, we'll do it with
         //parent's urlResolver
-        if (url && !urlResolver.href && isIFrameWithoutSrc && window.parent && window.parent.document)
+        //In Safari presents equal behaviour,
+        // but urlResolver.href has relative url value
+        var needUseParentResolver = url && isIFrameWithoutSrc && window.parent && window.parent.document &&
+                                    (!urlResolver.href || urlResolver.href.indexOf('/') === 0);
+
+        if (needUseParentResolver)
             return UrlUtil.resolveUrl(url, window.parent.document);
     }
 

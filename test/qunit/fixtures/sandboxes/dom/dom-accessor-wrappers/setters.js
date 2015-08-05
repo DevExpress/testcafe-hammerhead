@@ -124,7 +124,7 @@ test('anchor', function () {
     strictEqual(execScript('anchor.protocol'), etalonAnchor.protocol);
 
 
-    if (!Browser.isIOS) {
+    if (!Browser.isSafari) {
         execScript('emptyAnchor.protocol="https:";');
         etalonEmptyAnchor.protocol = 'https:';
         strictEqual(execScript('emptyAnchor.protocol'), etalonEmptyAnchor.protocol);
