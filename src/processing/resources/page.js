@@ -1,5 +1,5 @@
 import DomProcessor from '../dom';
-import DomAdapter from '../dom/adapter-server';
+import DomAdapter from '../dom/server-dom-adapter';
 import * as Const from '../../const';
 import * as contentUtils from '../../utils/content';
 import whacko from 'whacko';

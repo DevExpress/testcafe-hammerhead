@@ -1,4 +1,4 @@
-export default class DomAdapterBase {
+export default class BaseDomAdapter {
     constructor () {
         this.EVENTS = ['onblur', 'onchange', 'onclick', 'oncontextmenu', 'oncopy', 'oncut',
             'ondblclick', 'onerror', 'onfocus', 'onfocusin', 'onfocusout', 'onhashchange', 'onkeydown',

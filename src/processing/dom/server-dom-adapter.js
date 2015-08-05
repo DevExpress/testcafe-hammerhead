@@ -1,8 +1,8 @@
-import DomAdapterBase from './adapter-base';
+import BaseDomAdapter from './base-dom-adapter';
 import events from 'events';
 import urlUtils from '../../utils/url.js';
 
-export default class ServerDomAdapter extends DomAdapterBase {
+export default class ServerDomAdapter extends BaseDomAdapter {
     constructor (isIframe, crossDomainPort) {
         super();
 
