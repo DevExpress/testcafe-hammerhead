@@ -21,8 +21,8 @@ var webmake    = require('gulp-webmake');
 var chalk      = require('chalk');
 var Promise    = require('promise');
 
-function hang() {
-    return new Promise(function() {
+function hang () {
+    return new Promise(function () {
         // NOTE: hang forever
     });
 }
