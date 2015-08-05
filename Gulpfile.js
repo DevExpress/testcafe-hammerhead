@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Useful tasks:
 //
-//      $ gulp mocha                        - run mocha tests
-//      $ gulp qunit                        - run qunit test page
-//      $ gulp playground                   - run Hammerhead playground page
+//      $ gulp server-tests                        - run mocha tests
+//      $ gulp client-tests                        - run qunit test page
+//      $ gulp playground                          - run playground page
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -80,8 +80,8 @@ gulp.task('lint', function () {
     return gulp
         .src([
             './src/**/*.js',
-            './test/mocha/*.js',
-            './test/qunit/fixtures/**/*.js',
+            './test/server/*.js',
+            './test/client/fixtures/**/*.js',
             'Gulpfile.js'
         ])
         .pipe(eslint())
@@ -91,8 +91,8 @@ gulp.task('lint', function () {
 
 gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
 
-gulp.task('mocha', ['build'], function () {
-    return gulp.src('./test/mocha/*-test.js', { read: false })
+gulp.task('server-tests', ['build'], function () {
+    return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
             ui:       'bdd',
             reporter: 'spec',
@@ -101,10 +101,10 @@ gulp.task('mocha', ['build'], function () {
         }));
 });
 
-gulp.task('qunit', ['build'], function () {
-    gulp.watch(['./src/**', './test/qunit/fixtures/**'], ['build']);
+gulp.task('client-tests', ['build'], function () {
+    gulp.watch(['./src/**', './test/client/fixtures/**'], ['build']);
 
-    require('./test/qunit/server.js').start();
+    require('./test/client/server.js').start();
 
     return hang();
 });
@@ -119,8 +119,8 @@ gulp.task('travis', [process.env.GULP_TASK || '']);
 
 (function SAUCE_LABS_QUNIT_TESTING () {
     var SauceTunnel = require('sauce-tunnel');
-    var QUnitRunner = require('./test/qunit/sauce-labs-runner');
-    var qunitServer = require('./test/qunit/server.js');
+    var QUnitRunner = require('./test/client/sauce-labs-runner');
+    var qunitServer = require('./test/client/server.js');
 
     var SAUCE_USERNAME   = process.env.SAUCE_USERNAME || '';
     var SAUCE_ACCESS_KEY = process.env.SAUCE_ACCESS_KEY || '';
@@ -220,7 +220,7 @@ gulp.task('travis', [process.env.GULP_TASK || '']);
         });
     }
 
-    gulp.task('qunit-travis', ['build'], function (done) {
+    gulp.task('client-tests-travis', ['build'], function (done) {
         var qunitAppUrl   = qunitServer.start(true);
         var sauceTunnelId = Math.floor((new Date()).getTime() / 1000 - 1230768000).toString();
         var sauceTunnel   = null;
