@@ -80,8 +80,6 @@ gulp.task('lint', function () {
     return gulp
         .src([
             './src/**/*.js',
-            '!./src/client/json.js',
-            '!./src/processing/js/parsing-tools.js',
             './test/mocha/*.js',
             './test/qunit/fixtures/**/*.js',
             'Gulpfile.js'
