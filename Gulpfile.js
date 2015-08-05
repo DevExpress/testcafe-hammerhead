@@ -21,6 +21,12 @@ var webmake    = require('gulp-webmake');
 var chalk      = require('chalk');
 var Promise    = require('promise');
 
+function hang() {
+    return new Promise(function() {
+        // NOTE: hang forever
+    });
+}
+
 gulp.task('clean', function () {
     return new Promise(function (resolve) {
         del(['./lib'], resolve);
@@ -102,15 +108,13 @@ gulp.task('qunit', ['build'], function () {
 
     require('./test/qunit/server.js').start();
 
-    return new Promise(function () {
-    });
+    return hang();
 });
 
 gulp.task('playground', ['build'], function () {
     require('./test/playground/server.js').start();
 
-    return new Promise(function () {
-    });
+    return hang();
 });
 
 gulp.task('travis', [process.env.GULP_TASK || '']);
