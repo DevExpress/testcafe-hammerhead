@@ -1,4 +1,4 @@
-var json = Hammerhead.get('./json');
+var JSON = Hammerhead.get('./json');
 
 test('JSON.isSerializable', function () {
     $('<div id="testDiv">').appendTo('body');
@@ -35,8 +35,8 @@ test('JSON.isSerializable', function () {
         }
     };
 
-    ok(!json.isSerializable(obj1));
-    ok(!json.isSerializable(obj2));
-    ok(!json.isSerializable(obj3));
-    ok(json.isSerializable(obj4));
+    ok(!JSON.isSerializable(obj1));
+    ok(!JSON.isSerializable(obj2));
+    ok(!JSON.isSerializable(obj3));
+    ok(JSON.isSerializable(obj4));
 });

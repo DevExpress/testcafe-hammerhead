@@ -1,6 +1,7 @@
 {
   "parser": "babel-eslint",
   "rules": {
+    "no-native-reassign": [2, {"exceptions": ["JSON"]}],
     "brace-style": [2, "stroustrup", { "allowSingleLine": false }],
     "eol-last": 2,
     "indent": 2,
