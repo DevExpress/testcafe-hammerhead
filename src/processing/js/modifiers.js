@@ -1,7 +1,7 @@
-// -----------------------------------------------------
-// WARNING: this file is used both by client and server.
-// Do not use any browser or node specific API!
-// -----------------------------------------------------
+// -------------------------------------------------------------
+// WARNING: this file is used by both the client and the server.
+// Do not use any browser or node-specific API!
+// -------------------------------------------------------------
 
 import { Syntax } from './parsing-tools';
 import * as templates from './templates';
