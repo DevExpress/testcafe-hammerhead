@@ -1,3 +1,8 @@
+// -----------------------------------------------------
+// WARNING: this file is used both by client and server.
+// Do not use any browser or node specific API!
+// -----------------------------------------------------
+
 // NOTE: Some web-sites override String.prototype.trim method:
 //
 //      String.prototype.trim = function() {

@@ -1,3 +1,8 @@
+// -----------------------------------------------------
+// WARNING: this file is used both by client and server.
+// Do not use any browser or node specific API!
+// -----------------------------------------------------
+
 import { Syntax } from './parsing-tools';
 import * as templates from './templates';
 import * as instructs from './instructions';

@@ -1,3 +1,8 @@
+// -----------------------------------------------------
+// WARNING: this file is used both by client and server.
+// Do not use any browser or node specific API!
+// -----------------------------------------------------
+
 import jsProcessor from './js';
 import Const from '../const';
 

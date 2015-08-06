@@ -1,3 +1,8 @@
+// -----------------------------------------------------
+// WARNING: this file is used both by client and server.
+// Do not use any browser or node specific API!
+// -----------------------------------------------------
+
 import Const from '../const';
 
 const IS_STYLESHEET_PROCESSED_REG_EX = new RegExp('^\\s*' + Const.IS_STYLESHEET_PROCESSED_COMMENT
