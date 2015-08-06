@@ -58,16 +58,10 @@ QUnitTestRunner.prototype.runTests = function () {
                 });
 
                 return Promise.all(completeTaskPromises);
-            })
-            .then(function (result) {
-                return result;
             });
     });
 
     return Promise.all(runTaskPromises)
-        .then(function (results) {
-            return results;
-        })
         .catch(function (err) {
             throw 'RUN TESTS ERROR: ' + err;
         });
@@ -103,10 +97,7 @@ QUnitTestRunner.prototype._startTask = function (browsers, url) {
 };
 
 QUnitTestRunner.prototype._completeTask = function (taskId) {
-    return this._waitForTaskCompleted(taskId)
-        .then(function (result) {
-            return result;
-        });
+    return this._waitForTaskCompleted(taskId);
 };
 
 QUnitTestRunner.prototype._waitForTaskCompleted = function (taskId) {
@@ -130,10 +121,7 @@ QUnitTestRunner.prototype._waitForTaskCompleted = function (taskId) {
                     }
 
                     resolve(result);
-                })
-                .catch(function (err) {
-                    reject(err);
-                })
+                });
         }
 
         checkResult();
