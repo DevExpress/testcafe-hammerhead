@@ -97,7 +97,7 @@ gulp.task('rebuild', function (callback) {
 });
 
 gulp.task('server-tests', ['rebuild'], function () {
-    return gulp.src('./test/server/*-test.js', { read: false })
+    return gulp.src('./test/server/fixtures/**/*.js', { read: false })
         .pipe(mocha({
             ui:       'bdd',
             reporter: 'spec',

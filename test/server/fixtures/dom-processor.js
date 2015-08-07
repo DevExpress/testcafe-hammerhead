@@ -1,8 +1,8 @@
 var expect       = require('chai').expect;
 var whacko       = require('whacko');
-var DomProcessor = require('../../lib/processing/dom');
-var DomAdapter   = require('../../lib/processing/dom/server-dom-adapter');
-var urlUtil      = require('../../lib/utils/url');
+var DomProcessor = require('../../../lib/processing/dom');
+var DomAdapter   = require('../../../lib/processing/dom/server-dom-adapter');
+var urlUtil      = require('../../../lib/utils/url');
 
 var domProcessor = new DomProcessor(new DomAdapter());
 

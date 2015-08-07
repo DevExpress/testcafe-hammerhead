@@ -4,7 +4,7 @@ import SERVICE_CMD from './service-msg-cmd';
 import Cookies from './cookies';
 import read from './utils/read-file-relative';
 import { parseProxyUrl } from './utils/url';
-
+import UploadStorage from './upload/storage';
 
 // Const
 const TASK_TEMPLATE = read('./client/task.js.mustache');
@@ -16,8 +16,10 @@ var instanceCount = 0;
 
 // Session
 export default class Session extends EventEmitter {
-    constructor () {
+    constructor (uploadPath) {
         super();
+
+        this.uploadStorage = new UploadStorage(uploadPath);
 
         this.id         = ++instanceCount;
         this.cookies    = new Cookies();
@@ -63,11 +65,7 @@ export default class Session extends EventEmitter {
         throw new Error('Not implemented');
     }
 
-    async _storeUploads (/* fileNames, data */) {
-        throw new Error('Not implemented');
-    }
-
-    async _getUploads (/* paths */) {
+    _getUploadStorageFolder () {
         throw new Error('Not implemented');
     }
 
@@ -83,7 +81,6 @@ export default class Session extends EventEmitter {
         throw new Error('Not implemented');
     }
 }
-
 
 // Service message handlers
 var ServiceMessages = Session.prototype;
@@ -106,11 +103,11 @@ ServiceMessages[SERVICE_CMD.GET_IFRAME_TASK_SCRIPT] = function (msg, serverInfo)
 };
 
 ServiceMessages[SERVICE_CMD.UPLOAD_FILES] = async function (msg) {
-    return await this._storeUploads(msg.fileNames, msg.data);
+    return await this.uploadStorage.store(msg.fileNames, msg.data);
 };
 
 ServiceMessages[SERVICE_CMD.GET_UPLOADED_FILES] = async function (msg) {
-    return await this._loadUploads(msg.filePaths);
+    return await this.uploadStorage.get(msg.filePaths);
 };
 
 

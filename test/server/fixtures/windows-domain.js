@@ -1,6 +1,6 @@
 var platform      = require('os').platform;
 var expect        = require('chai').expect;
-var windowsDomain = require('../../lib/pipeline/windows-domain');
+var windowsDomain = require('../../../lib/pipeline/windows-domain');
 
 var IS_WINDOWS = /^win/.test(platform());
 

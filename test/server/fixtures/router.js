@@ -1,6 +1,6 @@
 var expect = require('chai').expect;
-var Router = require('../../lib/router');
-var hash   = require('../../lib/utils/hash');
+var Router = require('../../../lib/router');
+var hash   = require('../../../lib/utils/hash');
 
 describe('Router', function () {
     it('Should route requests', function () {

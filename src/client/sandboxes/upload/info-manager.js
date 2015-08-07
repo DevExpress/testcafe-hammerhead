@@ -252,7 +252,7 @@ export function prepareFileListWrapper (filesInfo, callback) {
     var validFilesInfo = [];
 
     for (var i = 0; i < filesInfo.length; i++)
-        (filesInfo[i].code ? errs : validFilesInfo).push(filesInfo[i]);
+        (filesInfo[i].err ? errs : validFilesInfo).push(filesInfo[i]);
 
     callback(errs, createFileListWrapper(validFilesInfo));
 }

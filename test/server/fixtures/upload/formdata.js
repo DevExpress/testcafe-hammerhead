@@ -2,8 +2,8 @@ var fs       = require('fs');
 var express  = require('express');
 var request  = require('request');
 var expect   = require('chai').expect;
-var upload   = require('../../lib/upload');
-var FormData = require('../../lib/upload/form-data');
+var upload   = require('../../../../lib/upload');
+var FormData = require('../../../../lib/upload/form-data');
 
 var BOUNDARY     = 'separator';
 var CONTENT_TYPE = 'multipart/form-data; boundary=' + BOUNDARY;
@@ -45,7 +45,6 @@ function initFormData (name) {
 }
 
 describe('Upload', function () {
-
     describe('Form data parsing', function () {
         it('Should parse empty form data', function () {
             var cases = [
@@ -257,3 +256,4 @@ describe('Upload', function () {
         expect(actual.toString()).eql(expected.toString());
     });
 });
+

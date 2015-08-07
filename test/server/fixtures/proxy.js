@@ -3,13 +3,13 @@ var request            = require('request');
 var expect             = require('chai').expect;
 var express            = require('express');
 var Promise            = require('promise');
-var Proxy              = require('../../lib/proxy');
-var Session            = require('../../lib/session');
-var DestinationRequest = require('../../lib/pipeline/destination-request');
-var requestAgent       = require('../../lib/pipeline/request-agent');
-var ERR                = require('../../lib/errs');
-var SERVICE_CMD        = require('../../lib/service-msg-cmd');
-var SHARED_CONST       = require('../../lib/const');
+var Proxy              = require('../../../lib/proxy');
+var Session            = require('../../../lib/session');
+var DestinationRequest = require('../../../lib/pipeline/destination-request');
+var requestAgent       = require('../../../lib/pipeline/request-agent');
+var ERR                = require('../../../lib/errs');
+var SERVICE_CMD        = require('../../../lib/service-msg-cmd');
+var SHARED_CONST       = require('../../../lib/const');
 
 function normalizeCode (code) {
     return code

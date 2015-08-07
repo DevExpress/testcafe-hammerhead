@@ -1,6 +1,6 @@
 var expect       = require('chai').expect;
 var Promise      = require('promise');
-var contentUtils = require('../../lib/utils/content');
+var contentUtils = require('../../../lib/utils/content');
 
 describe('Content utils', function () {
 
