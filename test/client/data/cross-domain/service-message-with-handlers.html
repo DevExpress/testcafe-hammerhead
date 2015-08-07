@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+
+
+</head>
+<body>
+<script type="text/javascript">
+    Hammerhead.get('./settings').set({
+        CROSS_DOMAIN_PROXY_PORT : 1335
+    });
+
+    var UrlUtil = Hammerhead.get('./utils/url');
+
+    UrlUtil.OriginLocation.get = function () {
+        return 'http://origin_iframe_host';
+    };
+
+    var scriptProcessor = Hammerhead.get('../processing/script');
+    var MessageSandbox = Hammerhead.get('./sandboxes/message');
+
+    Hammerhead.init();
+
+    var windowHandlerExecuted = false;
+
+    var windowMessageHandler = function (evt) {
+        windowHandlerExecuted = true;
+    };
+
+    var serviceMsgHandler = function (evt) {
+        window.setTimeout(function () {
+            MessageSandbox.sendServiceMsg(windowHandlerExecuted ? 'failed' : 'successfully', window.top);
+        }, 100);
+    };
+
+    eval(scriptProcessor.process("window.onmessage = windowMessageHandler;"));
+    window.addEventListener("message", windowMessageHandler);
+    MessageSandbox.on(MessageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+
+
+</head>
+<body>
+<script type="text/javascript">
+    var settings = Hammerhead.get('./settings');
+    settings.set({
+            CROSS_DOMAIN_PROXY_PORT : 1335
+    });
+
+    var UrlUtil = Hammerhead.get('./utils/url');
+
+    UrlUtil.OriginLocation.get = function () {
+        return 'http://origin_iframe_host';
+    };
+
+    var scriptProcessor = Hammerhead.get('../processing/script');
+
+    Hammerhead.init();
+
+    var onMessageHandler = function (evt) {
+        eval(scriptProcessor.process("top.postMessage({ msg: evt.origin + (evt.data ? ' failed' : '') }, '*');"));
+    };
+
+    eval(scriptProcessor.process("window.onmessage = onMessageHandler;"));
+</script>
+</body>
+</html>

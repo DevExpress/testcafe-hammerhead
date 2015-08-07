@@ -1,0 +1,38 @@
+<body style="font: 15px sans-serif">
+
+    <h1><%= currentUrl %></h1>
+    <% if(currentUrl.indexOf('fixtures') > -1) { %>
+    <a href="/">Back to Top</a>
+    <% } %>
+
+    <br />
+    <% if(currentUrl.indexOf('fixtures') > -1) { %>
+    <a href="/sandbox">Go to Sandbox</a><br/>
+    <% } else { %>
+    <a href="/fixtures">Go to Fixtures</a><br/>
+    <% } %>
+
+    <h3>Dirs</h3>
+    <ul style="list-style-type: none">
+        <% dirs.forEach(function(item) { %>
+            <li>
+                <b><a style='color: green; margin-right: 10px;' href="/run-dir?dir=<%= encodeURIComponent(currentUrl + '/' + item) %>">Run</a></b> <a href="<%= currentUrl %>/<%= item %>"><%= item %></a>
+            </li>
+        <% }) %>
+    </ul>
+
+    <h3>Tests</h3>
+    <ul>
+    <% files.forEach(function(item) { %>
+        <li>
+            <a href="<%= currentUrl %>/<%= item %>"><%= item %></a>
+        </li>
+    <% }) %>
+    </ul>
+
+    <br/><br/>
+
+    <% if(currentUrl.indexOf('fixtures') > -1) { %>
+    <h2><a style="color: green" href="/run-dir?dir=<%= encodeURIComponent(currentUrl) %>">Run all</a></h2>
+    <% } %>
+</body>

@@ -1,0 +1,9 @@
+{
+  "globals": {
+    "isIFrameWithoutSrc": true,
+    "initHammerheadClient": true
+  },
+  "env": {
+    "browser": true
+  }
+}

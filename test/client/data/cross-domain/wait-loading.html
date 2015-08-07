@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+</head>
+<body>
+<script type="text/javascript">
+    Hammerhead.get('./settings').set({
+        CROSS_DOMAIN_PROXY_PORT : 1335
+    });
+
+    var UrlUtil = Hammerhead.get('./utils/url');
+
+    UrlUtil.OriginLocation.get = function () {
+        return 'http://origin_iframe_host';
+    };
+
+    var scriptProcessor = Hammerhead.get('../processing/script');
+    var MessageSandbox = Hammerhead.MessageSandbox;
+
+    Hammerhead.init();
+
+    document.addEventListener('DOMContentLoaded', function(){
+        MessageSandbox.on(MessageSandbox.SERVICE_MSG_RECEIVED, function (e) {
+            if (e.message.cmd === 'pingCmd' && e.message.isPingRequest) {
+                MessageSandbox.sendServiceMsg({
+                    cmd:            e.message.cmd,
+                    isPingResponse: true
+                }, window.top);
+            }
+        });
+
+        window.setTimeout(function () {
+            eval(scriptProcessor.process("top.postMessage('ready');"));
+        }, 300);
+    });
+</script>
+</body>
+</html>

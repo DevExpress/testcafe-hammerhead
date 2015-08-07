@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+</head>
+<body>
+<script type="text/javascript">
+    Hammerhead.get('./settings').set({
+        CROSS_DOMAIN_PROXY_PORT : 1335
+    });
+
+    var UrlUtil = Hammerhead.get('./utils/url');
+    var scriptProcessor = Hammerhead.get('../processing/script');
+
+    UrlUtil.OriginLocation.get = function () {
+        return 'https://example.com';
+    };
+
+    Hammerhead.init();
+</script>
+
+<script>
+    eval(scriptProcessor.process([
+        'var input = window.top.document.querySelector("#uploadTestIFrame"),',
+        '    files = input.files;',
+        '',
+        'try {',
+        '    window.top.postMessage({',
+        '        filesLength: files && files.length,',
+        '        fileName: files && files[0].name,',
+        '        fileType: files && files[0].type,',
+        '        value: input.value',
+        '    }, "*");',
+        '} catch(e) {',
+        '    window.top.postMessage(e, "*");',
+        '}'
+    ].join('')));
+</script>
+</body>
+</html>
