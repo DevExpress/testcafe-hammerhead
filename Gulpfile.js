@@ -7,19 +7,20 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-var babel      = require('babel');
-var gulpBabel  = require('gulp-babel');
-var del        = require('del');
-var eslint     = require('gulp-eslint');
-var fs         = require('fs');
-var gulp       = require('gulp');
-var mocha      = require('gulp-mocha');
-var mustache   = require('gulp-mustache');
-var rename     = require('gulp-rename');
-var sourcemaps = require('gulp-sourcemaps');
-var webmake    = require('gulp-webmake');
-var chalk      = require('chalk');
-var Promise    = require('promise');
+var babel       = require('babel');
+var gulpBabel   = require('gulp-babel');
+var del         = require('del');
+var eslint      = require('gulp-eslint');
+var fs          = require('fs');
+var gulp        = require('gulp');
+var mocha       = require('gulp-mocha');
+var mustache    = require('gulp-mustache');
+var rename      = require('gulp-rename');
+var sourcemaps  = require('gulp-sourcemaps');
+var webmake     = require('gulp-webmake');
+var chalk       = require('chalk');
+var Promise     = require('promise');
+var runSequence = require('run-sequence');
 
 function hang () {
     return new Promise(function () {
@@ -91,7 +92,11 @@ gulp.task('lint', function () {
 
 gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
 
-gulp.task('server-tests', ['build'], function () {
+gulp.task('rebuild', function (callback) {
+    runSequence('clean', 'build', callback);
+});
+
+gulp.task('server-tests', ['rebuild'], function () {
     return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
             ui:       'bdd',
@@ -101,15 +106,15 @@ gulp.task('server-tests', ['build'], function () {
         }));
 });
 
-gulp.task('client-tests', ['build'], function () {
-    gulp.watch(['./src/**', './test/client/fixtures/**'], ['build']);
+gulp.task('client-tests', ['rebuild'], function () {
+    gulp.watch(['./src/**', './test/client/fixtures/**'], ['rebuild']);
 
     require('./test/client/server.js').start();
 
     return hang();
 });
 
-gulp.task('playground', ['build'], function () {
+gulp.task('playground', ['rebuild'], function () {
     require('./test/playground/server.js').start();
 
     return hang();
@@ -220,7 +225,7 @@ gulp.task('travis', [process.env.GULP_TASK || '']);
         });
     }
 
-    gulp.task('client-tests-travis', ['build'], function (done) {
+    gulp.task('client-tests-travis', ['rebuild'], function (done) {
         var qunitAppUrl   = qunitServer.start(true);
         var sauceTunnelId = Math.floor((new Date()).getTime() / 1000 - 1230768000).toString();
         var sauceTunnel   = null;
