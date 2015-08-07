@@ -1,9 +1,13 @@
-var fs       = require('fs');
-var express  = require('express');
-var request  = require('request');
-var expect   = require('chai').expect;
-var upload   = require('../../lib/upload');
-var FormData = require('../../lib/upload/form-data');
+var fs            = require('fs');
+var express       = require('express');
+var request       = require('request');
+var expect        = require('chai').expect;
+var tmp           = require('tmp');
+var mime          = require('mime');
+var path          = require('path');
+var upload        = require('../../lib/upload');
+var FormData      = require('../../lib/upload/form-data');
+var UploadStorage = require('../../lib/upload/storage');
 
 var BOUNDARY     = 'separator';
 var CONTENT_TYPE = 'multipart/form-data; boundary=' + BOUNDARY;
@@ -45,7 +49,6 @@ function initFormData (name) {
 }
 
 describe('Upload', function () {
-
     describe('Form data parsing', function () {
         it('Should parse empty form data', function () {
             var cases = [
@@ -249,6 +252,129 @@ describe('Upload', function () {
         });
     });
 
+    describe('Upload storage', function () {
+        var SRC_PATH = 'test/server/data/upload/';
+
+        var tmpDirObj = null;
+
+        before(function () {
+            tmpDirObj = tmp.dirSync();
+        });
+
+        after(function () {
+            tmpDirObj.removeCallback();
+        });
+
+        function getStoredFilePath (fileName) {
+            return path.resolve(path.join(tmpDirObj.name, fileName));
+        }
+
+        function getSrcFilePath (fileName) {
+            return path.resolve(path.join(SRC_PATH, fileName));
+        }
+
+        function assertFileContentsIdentical (path1, path2) {
+            expect(fs.readFileSync(path1).toString()).eql(fs.readFileSync(path2).toString());
+        }
+
+        function assertFileExistence (filePath) {
+            expect(fs.existsSync(filePath)).to.be.true;
+        }
+
+        function assertCorrectErr (errMsg, filePath) {
+            expect(errMsg.err.indexOf('ENOENT')).not.eql(-1);
+            expect(errMsg.path).eql(filePath);
+        }
+
+        function assetCorrectFileInfo (fileInfo, fileName, filePath) {
+            expect(fileInfo.data).eql(fs.readFileSync(filePath).toString('base64'));
+            expect(fileInfo.info.name).eql(fileName);
+            expect(fileInfo.info.type).eql(mime.lookup(filePath));
+            expect(fileInfo.info.lastModifiedDate).eql(fs.statSync(filePath).mtime);
+        }
+
+        it('Should store and get file', function (done) {
+            var storage = new UploadStorage(tmpDirObj.name);
+
+            var srcFilePath    = getSrcFilePath('file-to-upload.txt');
+            var storedFilePath = getStoredFilePath('file-to-upload.txt');
+
+            storage
+                .store(['file-to-upload.txt'], [fs.readFileSync(srcFilePath)])
+                .then(function (result) {
+                    expect(result).to.be.null;
+                    assertFileExistence(storedFilePath);
+                    assertFileContentsIdentical(storedFilePath, srcFilePath);
+
+                    return storage.get(['file-to-upload.txt']);
+                }).then(function (result) {
+                    expect(result.length).eql(1);
+                    assetCorrectFileInfo(result[0], 'file-to-upload.txt', storedFilePath);
+
+                    fs.unlinkSync(storedFilePath);
+
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('Should return an error if storing or getting is impossible', function (done) {
+            var storage        = new UploadStorage('this/path/will/not/exist/ever/');
+            var storedFilePath = path.resolve(path.join('this/path/will/not/exist/ever/', 'file-to-upload.txt'));
+            var filePath       = getSrcFilePath('file-to-upload.txt');
+
+            storage
+                .store(['file-to-upload.txt'], [filePath])
+                .then(function (result) {
+                    expect(result.length).eql(1);
+                    assertCorrectErr(result[0], storedFilePath);
+
+                    return storage.get(['file-to-upload.txt']);
+                })
+                .then(function (result) {
+                    expect(result.length).eql(1);
+                    assertCorrectErr(result[0], storedFilePath);
+
+                    done();
+                })
+                .catch(done);
+        });
+
+        it('Should store and get multiple files', function (done) {
+            var storage = new UploadStorage(tmpDirObj.name);
+
+            var file1Path        = getSrcFilePath('expected.formdata');
+            var file2Path        = getSrcFilePath('src.formdata');
+            var fakeFilePath     = getStoredFilePath('fake-file.txt');
+            var file1StoragePath = getStoredFilePath('expected.formdata');
+            var file2StoragePath = getStoredFilePath('src.formdata');
+
+            storage
+                .store(['expected.formdata', 'src.formdata'], [fs.readFileSync(file1Path), fs.readFileSync(file2Path)])
+                .then(function (result) {
+                    expect(result).to.be.null;
+                    assertFileExistence(file1StoragePath);
+                    assertFileExistence(file2StoragePath);
+                    assertFileContentsIdentical(file1StoragePath, file1Path);
+                    assertFileContentsIdentical(file2StoragePath, file2Path);
+
+                    return storage.get(['expected.formdata', 'src.formdata', 'fake-file.txt']);
+                })
+                .then(function (result) {
+                    expect(result.length).eql(3);
+                    assetCorrectFileInfo(result[0], 'expected.formdata', file1StoragePath);
+                    assetCorrectFileInfo(result[1], 'src.formdata', file2StoragePath);
+                    assertCorrectErr(result[2], fakeFilePath);
+
+                    fs.unlinkSync(file1StoragePath);
+                    fs.unlinkSync(file2StoragePath);
+
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
     it('Should inject uploads', function () {
         var src      = newLineReplacer(fs.readFileSync('test/server/data/upload/src.formdata'));
         var expected = newLineReplacer(fs.readFileSync('test/server/data/upload/expected.formdata'));
@@ -257,3 +383,4 @@ describe('Upload', function () {
         expect(actual.toString()).eql(expected.toString());
     });
 });
+
