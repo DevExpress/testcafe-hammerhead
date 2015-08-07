@@ -1,7 +1,7 @@
 # testcafe-hammerhead
 
 Travic CI
-[![Build Status](https://travis-ci.org/churkin/testcafe-hammerhead.svg)](https://travis-ci.org/churkin/testcafe-hammerhead)
+[![Build Status](https://travis-ci.org/superroma/testcafe-hammerhead.svg)](https://travis-ci.org/superroma/testcafe-hammerhead)
 
 SauceLabs
 [![Sauce Test Status](https://saucelabs.com/buildstatus/testcafebot)](https://saucelabs.com/u/testcafebot)
