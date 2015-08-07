@@ -154,6 +154,18 @@ gulp.task('travis', [process.env.GULP_TASK || '']);
             platform:    'Windows 7',
             browserName: 'internet explorer',
             version:     '9.0'
+        },
+        {
+            browserName: 'iphone',
+            platform:    'OS X 10.10',
+            version:     '7.1',
+            deviceName:  'iPhone Simulator'
+        },
+        {
+            browserName: 'android',
+            platform:    'Linux',
+            version:     '5.1',
+            deviceName:  'Android Emulator'
         }
     ];
 
