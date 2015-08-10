@@ -89,11 +89,28 @@ asyncTest('head.appendChild for script', function () {
     ok(!window.top.testField);
     head.appendChild(script);
 
-    window.setTimeout(function () {
-        ok(window.top.testField);
+    var maxIterationCount = 10;
+    var iterationCount = 0;
+    var clearCheckingInterval = function (id) {
+        window.clearInterval(id);
         $(script).remove();
         start();
+    };
+
+    var intervalId = window.setInterval(function () {
+        iterationCount++;
+
+        if (window.top.testField) {
+            ok(true);
+            clearCheckingInterval(intervalId);
+        }
+
+        if (iterationCount > maxIterationCount) {
+            ok(false);
+            clearCheckingInterval(intervalId);
+        }
     }, 500);
+
 });
 
 //(B234291)
