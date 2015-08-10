@@ -9,8 +9,8 @@ var http         = require('http');
 var Promise      = require('promise');
 
 //Const
-var PORT              = 1335;
-var CROSS_DOMAIN_PORT = 1336;
+var PORT              = 2000;
+var CROSS_DOMAIN_PORT = 2001;
 
 var BASE_PATH         = __dirname;
 var FIXTURES_PATH     = Path.join(BASE_PATH, '/fixtures');

@@ -243,7 +243,7 @@ test('isShadowContainerCollection', function () {
 asyncTest('isShadowContainerCollection for iframe contentWindow', function () {
     var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 1336;
+    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
 
     var crossDomainIframe = document.createElement('iframe');
 

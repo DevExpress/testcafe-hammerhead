@@ -268,10 +268,10 @@ test('autocomplete attribute', function () {
 
 test('crossdomain src', function () {
     var url                   = 'http://cross.domain.com/';
-    var proxyUrl              = UrlUtil.getProxyUrl(url, location.hostname, 1336, null, null, 'iframe');
+    var proxyUrl              = UrlUtil.getProxyUrl(url, location.hostname, 2001, null, null, 'iframe');
     var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 1336;
+    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
 
     var processed = Html.processHtml('<iframe src="' + url + '"></iframe>');
 
