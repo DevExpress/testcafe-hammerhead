@@ -1,6 +1,7 @@
 var Browser        = Hammerhead.get('./utils/browser');
 var EventSimulator = Hammerhead.get('./sandboxes/event/simulator');
 var FocusBlur      = Hammerhead.get('./sandboxes/event/focus-blur');
+var Service        = Hammerhead.get('./utils/service');
 
 var input1                             = null;
 var input2                             = null;
@@ -143,7 +144,7 @@ function testFocusing (numberOfHandlers, testCanceled, testCallback) {
         callback();
     };
 
-    async.series({
+    Service.asyncSeries({
             firstInput1Focus: function (callback) {
                 focus(input1, callback);
             },
@@ -227,7 +228,7 @@ function testChanging (numberOfHandlers, testCanceled, testCallback) {
         });
     };
 
-    async.series({
+    Service.asyncSeries({
             firstInput1Focus: function (callback) {
                 clearExecutedHandlersCounter();
                 focusAndType(input1, callback);

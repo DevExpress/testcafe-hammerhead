@@ -212,28 +212,6 @@ Transport.asyncServiceMsg = function (msg, callback) {
     sendMsg();
 };
 
-/*eslint-disable no-loop-func*/
-function asyncForeach (arr, iterator, callback) {
-    var completed = 0;
-
-    for (var i = 0; i < arr.length; i++) {
-        iterator(arr[i], function (err) {
-            if (err) {
-                callback(err);
-                callback = function () {
-                };
-            }
-            else {
-                completed++;
-
-                if (completed === arr.length)
-                    callback();
-            }
-        });
-    }
-}
-/*eslint-enable no-loop-func*/
-
 Transport.batchUpdate = function (updateCallback) {
     var storedMessages = getStoredMessages();
 
@@ -241,7 +219,7 @@ Transport.batchUpdate = function (updateCallback) {
     if (storedMessages.length) {
         window.localStorage.removeItem(Settings.get().JOB_UID);
 
-        asyncForeach(storedMessages, Transport.queuedAsyncServiceMsg, updateCallback);
+        Service.asyncForEach(storedMessages, Transport.queuedAsyncServiceMsg, updateCallback);
     }
     else
         updateCallback();

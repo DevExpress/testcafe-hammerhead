@@ -26,6 +26,81 @@ export function extend () {
     return target;
 }
 
+/*eslint-disable no-loop-func*/
+
+export function asyncForEach (arr, iterator, callback) {
+    var completed = 0;
+
+    for (var i = 0; i < arr.length; i++) {
+        iterator(arr[i], function (err) {
+            if (err) {
+                callback(err);
+                callback = function () {
+                };
+            }
+            else {
+                completed++;
+
+                if (completed === arr.length)
+                    callback();
+            }
+        });
+    }
+}
+
+/*eslint-disable no-loop-func*/
+
+export function asyncForEachSeries (arr, iterator, callback) {
+    callback = callback || function () {};
+
+    if (!arr.length) {
+        return callback();
+    }
+
+    var completed = 0;
+    var iterate = function () {
+        iterator(arr[completed], function (err) {
+            if (err) {
+                callback(err);
+                callback = function () {
+                };
+            }
+            else {
+                completed += 1;
+                if (completed === arr.length) {
+                    callback();
+                }
+                else {
+                    iterate();
+                }
+            }
+        });
+    };
+
+    iterate();
+}
+
+export function asyncSeries (tasks, callback) {
+    callback = callback || function () {
+        };
+
+    var results = {};
+
+    asyncForEachSeries(Object.keys(tasks), function (k, callback) {
+        tasks[k](function (err) {
+            var args = Array.prototype.slice.call(arguments, 1);
+
+            if (args.length <= 1) {
+                args = args[0];
+            }
+            results[k] = args;
+            callback(err);
+        });
+    }, function (err) {
+        callback(err, results);
+    });
+}
+
 // Event Emitter
 export var EventEmitter = function () {
     this.eventsListeners = [];

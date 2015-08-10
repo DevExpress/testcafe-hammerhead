@@ -8,6 +8,7 @@ var JSProcessor           = Hammerhead.get('../processing/js/index');
 var NativeMethods         = Hammerhead.get('./sandboxes/native-methods');
 var Const                 = Hammerhead.get('../const');
 var UrlUtil               = Hammerhead.get('./utils/url');
+var Service               = Hammerhead.get('./utils/service');
 
 QUnit.testStart = function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
@@ -376,8 +377,8 @@ asyncTest('input.value for special cases', function () {
 
     expect(2);
 
-    async.series([
-        function (callback) {
+    Service.asyncSeries({
+        setValue: function (callback) {
             ElementEditingWatcher.watchElementEditing($input[0]);
 
             $input[0].value = '123';
@@ -385,7 +386,7 @@ asyncTest('input.value for special cases', function () {
 
             setTimeout(callback, 0);
         },
-        function (callback) {
+        setValueAgain: function (callback) {
             ElementEditingWatcher.watchElementEditing($input[0]);
 
             $input[0].value = '423';
@@ -394,7 +395,7 @@ asyncTest('input.value for special cases', function () {
 
             setTimeout(callback, 0);
         }
-    ], function (error) {
+    }, function (error) {
         ok(!error);
         strictEqual(firedCount, 1);
         $input.remove();
