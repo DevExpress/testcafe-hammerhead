@@ -8,6 +8,7 @@ var JSProcessor           = Hammerhead.get('../processing/js/index');
 var NativeMethods         = Hammerhead.get('./sandboxes/native-methods');
 var Const                 = Hammerhead.get('../const');
 var UrlUtil               = Hammerhead.get('./utils/url');
+var Promise               = Hammerhead.get('es6-promise').Promise;
 
 QUnit.testStart = function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
@@ -148,7 +149,7 @@ test('anchor', function () {
         etalonAnchor.origin = 'http://yandex.ru:2000';
         strictEqual(execScript('anchor.origin'), etalonAnchor.origin);
 
-        execScript('emptyAnchor.origin="http://yandex.ru:2000";'); // TODO: iOS!!!
+        execScript('emptyAnchor.origin="http://yandex.ru:2000";');
         etalonEmptyAnchor.origin = 'http://yandex.ru:2000';
         strictEqual(execScript('emptyAnchor.origin'), etalonEmptyAnchor.origin);
     }
@@ -158,7 +159,7 @@ test('anchor', function () {
     etalonAnchor.search        = '?test=temp';
     strictEqual(execScript('anchor.search'), etalonAnchor.search);
 
-    execScript('emptyAnchor.search="?test=temp"'); // TODO: iOS!!!
+    execScript('emptyAnchor.search="?test=temp"');
     etalonEmptyAnchor.search = '?test=temp';
     strictEqual(execScript('emptyAnchor.search'), etalonEmptyAnchor.search);
 
@@ -374,31 +375,32 @@ asyncTest('input.value for special cases', function () {
         firedCount++;
     });
 
-    expect(2);
+    expect(1);
 
-    async.series([
-        function (callback) {
-            ElementEditingWatcher.watchElementEditing($input[0]);
+    function nextTick () {
+        return new Promise(function (resolve) {
+            setTimeout(resolve, 0);
+        });
+    }
 
-            $input[0].value = '123';
-            EventSimulator.blur($input[0]);
+    ElementEditingWatcher.watchElementEditing($input[0]);
 
-            setTimeout(callback, 0);
-        },
-        function (callback) {
+    $input[0].value = '123';
+    EventSimulator.blur($input[0]);
+
+    nextTick()
+        .then(function () {
             ElementEditingWatcher.watchElementEditing($input[0]);
 
             $input[0].value = '423';
             eval(processScript('$input[0].value = 42'));
             EventSimulator.blur($input[0]);
-
-            setTimeout(callback, 0);
-        }
-    ], function (error) {
-        ok(!error);
-        strictEqual(firedCount, 1);
-        $input.remove();
-        start();
-    });
+        })
+        .then(nextTick)
+        .then(function () {
+            strictEqual(firedCount, 1);
+            $input.remove();
+            start();
+        });
 });
 /* eslint-enable no-implied-eval */

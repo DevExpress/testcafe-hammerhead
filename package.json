@@ -18,6 +18,7 @@
     "lru-cache": "2.6.3",
     "mustache": "^2.1.1",
     "promise": "^7.0.1",
+    "es6-promise": "3.0.2",
     "tough-cookie": "1.1.0",
     "webauth": "0.1.1",
     "whacko": "0.17.4",
