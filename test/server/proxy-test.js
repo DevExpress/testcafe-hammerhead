@@ -140,12 +140,12 @@ describe('Proxy', function () {
         });
 
         app.get('/T239167/send-location', function (req, res) {
-            res.writeHead(200, { 'location': 'http://127.0.0.1:1335/\u0410\u0411' });
+            res.writeHead(200, { 'location': 'http://127.0.0.1:2000/\u0410\u0411' });
             res._send('');
             res.end();
         });
 
-        destServer = app.listen(1335);
+        destServer = app.listen(2000);
     });
 
     after(function () {
@@ -283,7 +283,7 @@ describe('Proxy', function () {
 
         it('Should handle "Cookie" and "Set-Cookie" headers', function (done) {
             var options = {
-                url:            proxy.openSession('http://127.0.0.1:1335/cookie/set-and-redirect', session),
+                url:            proxy.openSession('http://127.0.0.1:2000/cookie/set-and-redirect', session),
                 followRedirect: true
             };
 
@@ -297,7 +297,7 @@ describe('Proxy', function () {
     describe('XHR same-origin policy', function () {
         it('Should restrict requests from other domain', function (done) {
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/page/plain-text', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
                 }
@@ -315,7 +315,7 @@ describe('Proxy', function () {
         it('Should restrict preflight requests from other domain', function (done) {
             var options = {
                 method:  'OPTIONS',
-                url:     proxy.openSession('http://127.0.0.1:1335/preflight', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/preflight', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
                 }
@@ -333,7 +333,7 @@ describe('Proxy', function () {
         it('Should allow preflight requests from other domain if CORS is enabled', function (done) {
             var options = {
                 method:  'OPTIONS',
-                url:     proxy.openSession('http://127.0.0.1:1335/preflight', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/preflight', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
                 }
@@ -350,7 +350,7 @@ describe('Proxy', function () {
 
         it('Should allow requests from other domain if CORS is enabled and allowed origin is wildcard ', function (done) {
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/xhr-origin/allow-any', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/xhr-origin/allow-any', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
                 }
@@ -367,7 +367,7 @@ describe('Proxy', function () {
 
         it('Should allow requests from other domain if CORS is enabled and origin is allowed', function (done) {
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/xhr-origin/allow-provided', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/xhr-origin/allow-provided', session),
                 headers: {
                     referer:          proxy.openSession('http://example.com', session),
                     'x-allow-origin': 'http://example.com'
@@ -392,7 +392,7 @@ describe('Proxy', function () {
             session.injectable.styles.push('/styles.css');
 
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/page', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
@@ -408,10 +408,10 @@ describe('Proxy', function () {
 
         it('Should not process XHR page requests', function (done) {
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/page', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
                     accept:  'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
-                    referer: proxy.openSession('http://127.0.0.1:1335/', session)
+                    referer: proxy.openSession('http://127.0.0.1:2000/', session)
                 }
             };
 
@@ -429,7 +429,7 @@ describe('Proxy', function () {
         it('Should process scripts', function (done) {
             session.id = 1337;
 
-            request(proxy.openSession('http://127.0.0.1:1335/script', session), function (err, res, body) {
+            request(proxy.openSession('http://127.0.0.1:2000/script', session), function (err, res, body) {
                 var expected = fs.readFileSync('test/server/data/script/expected.js').toString();
 
                 compareCode(body, expected);
@@ -440,7 +440,7 @@ describe('Proxy', function () {
         it('Should process manifests', function (done) {
             session.id = 1337;
 
-            request(proxy.openSession('http://127.0.0.1:1335/manifest', session), function (err, res, body) {
+            request(proxy.openSession('http://127.0.0.1:2000/manifest', session), function (err, res, body) {
                 var expected = fs.readFileSync('test/server/data/manifest/expected.manifest').toString();
 
                 compareCode(body, expected);
@@ -452,7 +452,7 @@ describe('Proxy', function () {
             session.id = 1337;
 
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/stylesheet', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/stylesheet', session),
                 headers: {
                     accept: 'text/css'
                 }
@@ -476,7 +476,7 @@ describe('Proxy', function () {
                 };
             };
 
-            request(proxy.openSession('http://127.0.0.1:1335/with-auth', session), function (err, res, body) {
+            request(proxy.openSession('http://127.0.0.1:2000/with-auth', session), function (err, res, body) {
                 expect(res.statusCode).eql(200);
                 expect(body).eql('42');
                 done();
@@ -491,7 +491,7 @@ describe('Proxy', function () {
                 };
             };
 
-            request(proxy.openSession('http://127.0.0.1:1335/with-auth', session), function (err, res, body) {
+            request(proxy.openSession('http://127.0.0.1:2000/with-auth', session), function (err, res, body) {
                 expect(res.statusCode).eql(401);
                 expect(body).to.be.empty;
                 done();
@@ -502,7 +502,7 @@ describe('Proxy', function () {
     describe('Regression', function () {
         it('Should force "Origin" header for the same-domain requests (B234325)', function (done) {
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/B234325/reply-with-origin', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/B234325/reply-with-origin', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
                 }
@@ -517,7 +517,7 @@ describe('Proxy', function () {
         });
 
         it('Should not send "Cookie" header if there are no cookies for the given URL (T232505)', function (done) {
-            var url = proxy.openSession('http://127.0.0.1:1335/T232505/is-cookie-header-sent', session);
+            var url = proxy.openSession('http://127.0.0.1:2000/T232505/is-cookie-header-sent', session);
 
             request(url, function (err, res, body) {
                 expect(JSON.parse(body)).to.be.false;
@@ -532,7 +532,7 @@ describe('Proxy', function () {
 
             session.handlePageError = function (ctx, err) {
                 expect(err.code).eql(ERR.PROXY_ORIGIN_SERVER_REQUEST_TIMEOUT);
-                expect(err.destUrl).eql('http://127.0.0.1:1335/T224541/hang-forever');
+                expect(err.destUrl).eql('http://127.0.0.1:2000/T224541/hang-forever');
                 ctx.res.end();
                 DestinationRequest.TIMEOUT = savedReqTimeout;
                 done();
@@ -540,7 +540,7 @@ describe('Proxy', function () {
             };
 
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/T224541/hang-forever', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
@@ -551,8 +551,8 @@ describe('Proxy', function () {
 
         // NOTE: requires fix in node.js
         it.skip('Should not encode cyrillic symbols in header (T239167, GH-nodejs/io.js#1693)', function (done) {
-            var url              = proxy.openSession('http://127.0.0.1:1335/T239167/send-location', session);
-            var expectedLocation = proxy.openSession('http://127.0.0.1:1335/\u0410\u0411', session);
+            var url              = proxy.openSession('http://127.0.0.1:2000/T239167/send-location', session);
+            var expectedLocation = proxy.openSession('http://127.0.0.1:2000/\u0410\u0411', session);
 
             request(url, function (err, res) {
                 expect(res.headers['location']).eql(expectedLocation);
@@ -562,7 +562,7 @@ describe('Proxy', function () {
 
         it('Should process empty pages (B239430)', function (done) {
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:1335/B239430/empty-page', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/B239430/empty-page', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }

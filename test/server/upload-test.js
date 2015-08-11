@@ -217,7 +217,7 @@ describe('Upload', function () {
 
             app.post('/ie9-file-reader-shim', upload.ie9FileReaderShim);
 
-            server = app.listen(1335);
+            server = app.listen(2000);
         });
 
         after(function () {
@@ -227,7 +227,7 @@ describe('Upload', function () {
         it('Should provide file information', function (done) {
             var options = {
                 method:  'POST',
-                url:     'http://localhost:1335/ie9-file-reader-shim?filename=plain.txt&input-name=upload',
+                url:     'http://localhost:2000/ie9-file-reader-shim?filename=plain.txt&input-name=upload',
                 body:    data['epilogue-string'],
                 headers: {
                     'Content-Type': CONTENT_TYPE

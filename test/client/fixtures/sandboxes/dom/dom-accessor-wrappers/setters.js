@@ -144,12 +144,12 @@ test('anchor', function () {
     // Origin
     // IE has no origin property
     if ('origin' in etalonEmptyAnchor) {
-        execScript('anchor.origin="http://yandex.ru:1335"');
-        etalonAnchor.origin = 'http://yandex.ru:1335';
+        execScript('anchor.origin="http://yandex.ru:2000"');
+        etalonAnchor.origin = 'http://yandex.ru:2000';
         strictEqual(execScript('anchor.origin'), etalonAnchor.origin);
 
-        execScript('emptyAnchor.origin="http://yandex.ru:1335";'); // TODO: iOS!!!
-        etalonEmptyAnchor.origin = 'http://yandex.ru:1335';
+        execScript('emptyAnchor.origin="http://yandex.ru:2000";'); // TODO: iOS!!!
+        etalonEmptyAnchor.origin = 'http://yandex.ru:2000';
         strictEqual(execScript('emptyAnchor.origin'), etalonEmptyAnchor.origin);
     }
 

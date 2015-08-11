@@ -2,7 +2,7 @@ window.TASK_UID_PROPERTY = '364dfb2b';
 
 (function ($) {
     window.getCrossDomainPageUrl = function (page) {
-        return location.protocol + '//' + location.hostname + ':1336/' + page;
+        return location.protocol + '//' + location.hostname + ':2001/' + page;
     };
 
     var pageErrorMessage     = null;

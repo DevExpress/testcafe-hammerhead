@@ -18,7 +18,7 @@ asyncTest('onmessage event', function () {
     var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
     var count                 = 0;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 1336;
+    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
 
     $iframe[0].src = window.getCrossDomainPageUrl('get-message.html');
     $iframe.appendTo('body');
@@ -151,7 +151,7 @@ asyncTest('crossdomain', function () {
     var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
     var serviceMsgReceived    = false;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 1336;
+    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
 
     var serviceMsgHandler = function () {
         serviceMsgReceived = true;
@@ -180,7 +180,7 @@ asyncTest('service message handler should not call other handlers', function () 
     var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
     var windowHandlerExecuted = false;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 1336;
+    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
 
     var windowMessageHandler = function () {
         windowHandlerExecuted = true;

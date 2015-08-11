@@ -162,6 +162,17 @@ gulp.task('travis', [process.env.GULP_TASK || '']);
             deviceName:  'iPhone Simulator'
         },
         {
+            browserName: 'safari',
+            platform:    'OS X 10.10',
+            version:     '8.0'
+        },
+        {
+            browserName: 'iphone',
+            platform:    'OS X 10.10',
+            version:     '8.1',
+            deviceName:  'iPad Simulator'
+        },
+        {
             browserName: 'android',
             platform:    'Linux',
             version:     '5.1',

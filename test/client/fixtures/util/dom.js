@@ -202,7 +202,7 @@ asyncTest('crossdomain src', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id  = 'test8';
-    iframe.src = 'http://' + location.hostname + ':1336/hammerhead/simple_page.html';
+    iframe.src = 'http://' + location.hostname + ':2001/hammerhead/simple_page.html';
     iframe.addEventListener('load', function () {
         this[Const.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
         ok(!UrlUtil.isIframeWithoutSrc(this));
@@ -274,7 +274,7 @@ asyncTest('location is changed to cross-domain', function () {
             ok(!DOM.isCrossDomainIframe(this));
             ok(!DOM.isCrossDomainIframe(this, true));
 
-            this.contentDocument.location.href = 'http://' + location.hostname + ':1336/hammerhead/simple_page.html';
+            this.contentDocument.location.href = 'http://' + location.hostname + ':2001/hammerhead/simple_page.html';
             iteration++;
         }
         else {
