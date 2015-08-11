@@ -278,12 +278,16 @@ test('init script for iframe template', function () {
 });
 
 //T226655: 15.1 Testing - Hammerhead DomSandboxUtil.processHtml function does not process body/head/html attributes
-test('body attributes', function () {
-    var attrValue         = 'var js = document.createElement(\'script\');js.src = \'http://google.com\'; document.body.appendChild(js);';
-    var expectedAttrValue = ScriptProcessor.process(attrValue, true).replace(/\s/g, '');
-    var html              = '<body onload="' + attrValue + '">';
+test('html and body attributes', function () {
+    var attrValue           = 'var js = document.createElement(\'script\');js.src = \'http://google.com\'; document.body.appendChild(js);';
+    var expectedAttrValue   = ScriptProcessor.process(attrValue, true).replace(/\s/g, '');
+    var htmlWithBody        = '<body onload="' + attrValue + '">';
+    var htmlWithHeadAndBody = '<head></head><body onload="' + attrValue + '"></body>';
+    var htmlWithHtmlTag     = '<html onload="' + attrValue + '">';
 
-    ok(Html.processHtml(html).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
+    ok(Html.processHtml(htmlWithBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
+    ok(Html.processHtml(htmlWithHeadAndBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
+    ok(Html.processHtml(htmlWithHtmlTag).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
 });
 
 module('is well formatted tag');

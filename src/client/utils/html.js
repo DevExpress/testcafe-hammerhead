@@ -55,7 +55,7 @@ function processPageTag (pageTagHtml, process) {
 function processPageHtml (html, process) {
     var doctypeRegEx     = /^(\s*<\s*!doctype[^>]*>)([\s\S]*)$/i;
     var headBodyRegEx    = /^(\s*<\s*(head|body)[^>]*>)([\s\S]*?)(<\s*\/(head|body)\s*>\s*)?$/i;
-    var htmlContentRegEx = /^(\s*<\s*head[^>]*>)([\s\S]*?)(<\s*\/head\s*>\s*<\s*body[^>]*>)([\s\S]*?)(<\s*\/body\s*>\s*)?$/i;
+    var htmlContentRegEx = /^(\s*<\s*head[^>]*>)([\s\S]*?)(<\s*\/head\s*>\s*)(<\s*body[^>]*>)([\s\S]*?)(<\s*\/body\s*>\s*)?$/i;
     var htmlRegEx        = /^(\s*<\s*html[^>]*>)([\s\S]*?)(<\s*\/html\s*>\s*)?$/i;
 
     var doctypeMatches = html.match(doctypeRegEx);
@@ -65,20 +65,30 @@ function processPageHtml (html, process) {
 
     var htmlMatches = html.match(htmlRegEx);
 
-    if (htmlMatches)
-        return [processPageTag(htmlMatches[1], process), process(htmlMatches[2], 'html'), htmlMatches[3]].join('');
+    if (htmlMatches) {
+        return processPageTag(htmlMatches[1], process) +
+               process(htmlMatches[2], 'html') +
+               (htmlMatches[3] || '');
+    }
 
     var htmlContentMatches = html.match(htmlContentRegEx);
 
     if (htmlContentMatches) {
-        return [htmlContentMatches[1], process(htmlContentMatches[2], 'head'), htmlContentMatches[3],
-            process(htmlContentMatches[4], 'body'), htmlContentMatches[5]].join('');
+        return processPageTag(htmlContentMatches[1], process) +
+               process(htmlContentMatches[2], 'head') +
+               (htmlContentMatches[3] || '') +
+               processPageTag(htmlContentMatches[4], process) +
+               process(htmlContentMatches[5], 'body') +
+               (htmlContentMatches[6] || '');
     }
 
     var headBodyMatches = html.match(headBodyRegEx);
 
-    if (headBodyMatches)
-        return [processPageTag(headBodyMatches[1], process), process(headBodyMatches[3], headBodyMatches[2]), headBodyMatches[4]].join('');
+    if (headBodyMatches) {
+        return processPageTag(headBodyMatches[1], process) +
+               process(headBodyMatches[3], headBodyMatches[2]) +
+               (headBodyMatches[4] || '');
+    }
 }
 
 function wrapTextNodes (html) {
