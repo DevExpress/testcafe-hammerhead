@@ -8,7 +8,8 @@ import Const from '../../../const';
 
 var eventEmitter = new Service.EventEmitter();
 
-export const FILE_UPLOADING_EVENT = 'fileUploading';
+export const START_FILE_UPLOADING_EVENT = 'startFileUploading';
+export const END_FILE_UPLOADING_EVENT = 'endFileUploading';
 
 export var on  = eventEmitter.on.bind(eventEmitter);
 export var off = eventEmitter.off.bind(eventEmitter);
@@ -36,15 +37,17 @@ export function init (window) {
             if (!!input.value || !!currentInfoManager.getValue(input)) {
                 var fileNames = currentInfoManager.getFileNames(input.files, input.value);
 
-                eventEmitter.emit(FILE_UPLOADING_EVENT, fileNames, input, function (complete) {
-                    currentInfoManager.loadFileListData(input, input.files, function (fileList) {
-                        currentInfoManager.setUploadInfo(input, fileList, input.value);
-                        currentInfoManager.sendFilesInfoToServer(fileList, fileNames, function (errs) {
-                            riseChangeEvent(input);
-                            complete(errs);
-                        });
+                eventEmitter.emit(START_FILE_UPLOADING_EVENT, fileNames, input);
+
+                currentInfoManager.loadFileListData(input, input.files, function (fileList) {
+                    currentInfoManager.setUploadInfo(input, fileList, input.value);
+                    currentInfoManager.sendFilesInfoToServer(fileList, fileNames, function (errs) {
+                        riseChangeEvent(input);
+                        eventEmitter.emit(END_FILE_UPLOADING_EVENT, errs);
                     });
                 });
+
+
             }
         }
     });

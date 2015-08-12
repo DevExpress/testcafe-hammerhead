@@ -117,7 +117,8 @@ function loadFileListDataForIE9 (input, callback) {
 
         uploadIFrame.addEventListener('load', loadHandler);
 
-        form.action = Settings.get().IE9_FILE_READER_SHIM_URL + '?input-name=' + input.name + '&filename=' + input.value;
+        form.action = Settings.get().IE9_FILE_READER_SHIM_URL + '?input-name=' + input.name + '&filename=' +
+                      input.value;
         form.target = UPLOAD_IFRAME_FOR_IE9_ID;
         form.method = 'post';
 
@@ -251,8 +252,12 @@ export function prepareFileListWrapper (filesInfo, callback) {
     var errs           = [];
     var validFilesInfo = [];
 
-    for (var i = 0; i < filesInfo.length; i++)
-        (filesInfo[i].code ? errs : validFilesInfo).push(filesInfo[i]);
+    for (var i = 0; i < filesInfo.length; i++) {
+        if (filesInfo[i].err)
+            errs.push(filesInfo[i]);
+        else
+            validFilesInfo.push(filesInfo[i]);
+    }
 
     callback(errs, createFileListWrapper(validFilesInfo));
 }

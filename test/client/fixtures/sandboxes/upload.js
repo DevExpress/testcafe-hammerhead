@@ -65,7 +65,7 @@ function uploadFiles (data, filePaths) {
 
     for (var i = 0; i < filePaths.length; i++) {
         if (filePaths[i] === 'error')
-            result.push({ code: 34 });
+            result.push({ err: 34 });
         else {
             result.push({
                 paths: [filePaths[i]],
@@ -90,7 +90,7 @@ function getFilesInfo (filePaths) {
                 res = files[j].file;
         }
 
-        result.push(res || { code: 34 });
+        result.push(res || { err: 34 });
     }
 
     return result;
@@ -357,12 +357,12 @@ asyncTest('upload error', function () {
 
     UploadSandbox.upload(input, './err_file.txt', function (errs) {
         strictEqual(errs.length, 1);
-        strictEqual(errs[0].code, 34);
+        strictEqual(errs[0].err, 34);
 
         UploadSandbox.upload(input, ['./err_file1.txt', './file.txt', './err_file2.txt'], function (errs) {
             strictEqual(errs.length, 2);
-            strictEqual(errs[0].code, 34);
-            strictEqual(errs[1].code, 34);
+            strictEqual(errs[0].err, 34);
+            strictEqual(errs[1].err, 34);
 
             start();
         });
@@ -375,20 +375,18 @@ if (!Browser.isIE && !Browser.isIOS) {
         var inputWrapper = getInputWrapper(['error']);
         var ev           = document.createEvent('Events');
 
-        var eventHandler = function (fileNames, input, callback) {
-            callback(function (err) {
-                strictEqual(err.length, 1);
-                strictEqual(err[0].code, 34);
+        var eventHandler = function (err) {
+            strictEqual(err.length, 1);
+            strictEqual(err[0].err, 34);
 
-                $(inputWrapper).remove();
-                UploadSandbox.off(UploadSandbox.FILE_UPLOADING_EVENT, eventHandler);
-                files = stFiles;
+            $(inputWrapper).remove();
+            UploadSandbox.off(UploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
+            files = stFiles;
 
-                start();
-            });
+            start();
         };
 
-        UploadSandbox.on(UploadSandbox.FILE_UPLOADING_EVENT, eventHandler);
+        UploadSandbox.on(UploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
 
         ev.initEvent('change', true, true);
         NativeMethods.dispatchEvent.call(inputWrapper, ev);
@@ -399,22 +397,20 @@ if (!Browser.isIE && !Browser.isIOS) {
         var inputWrapper = getInputWrapper(['file1.txt', 'error', 'file2.txt']);
         var ev           = document.createEvent('Events');
 
-        var eventHandler = function (fileNames, input, callback) {
-            callback(function (err) {
-                strictEqual(err.length, 3);
-                strictEqual(err[1].code, 34);
-                ok(!err[0].code);
-                ok(!err[2].code);
+        var eventHandler = function (err) {
+            strictEqual(err.length, 3);
+            strictEqual(err[1].err, 34);
+            ok(!err[0].err);
+            ok(!err[2].err);
 
-                $(inputWrapper).remove();
-                UploadSandbox.off(UploadSandbox.FILE_UPLOADING_EVENT, eventHandler);
-                files = stFiles;
+            $(inputWrapper).remove();
+            UploadSandbox.off(UploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
+            files = stFiles;
 
-                start();
-            });
+            start();
         };
 
-        UploadSandbox.on(UploadSandbox.FILE_UPLOADING_EVENT, eventHandler);
+        UploadSandbox.on(UploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
 
         ev.initEvent('change', true, true);
         NativeMethods.dispatchEvent.call(inputWrapper, ev);
