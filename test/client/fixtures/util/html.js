@@ -334,7 +334,7 @@ test('special cases', function () {
     strictEqual(Html.isWellFormattedHtml('<input id="id" class="some class"'), false);
 });
 
-asyncTest('real big page - https://mail.ru page', function () {
+asyncTest('real big page', function () {
     function checkNode (node) {
         var innerHTML = node.innerHTML;
         var outerHTML = node.outerHTML;
