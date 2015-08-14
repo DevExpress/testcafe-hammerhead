@@ -1,7 +1,6 @@
 import * as Browser from '../../utils/browser';
 import * as DOM from '../../utils/dom';
 import * as Event from '../../utils/event';
-import * as Service from '../../utils/service';
 import * as EventSimulator from './simulator';
 import * as FocusBlur from './focus-blur';
 import * as Listeners from './listeners';
@@ -10,6 +9,7 @@ import NativeMethods from '../native-methods';
 import * as Selection from './selection';
 import * as ShadowUI from '../shadow-ui';
 import * as Unload from './unload';
+import extend from '../../utils/extend';
 
 const ELEMENT_HAS_ADDITIONAL_EVENT_METHODS = Browser.isIE && Browser.version < 11;
 
@@ -42,7 +42,7 @@ function overridedFireEvent (eventName, ev) {
             createEventType = 'Events';
 
         if (ev) {
-            ev = Service.extend(document.createEvent(createEventType), ev);
+            ev = extend(document.createEvent(createEventType), ev);
             ev.initEvent(eventType, typeof ev.cancelBubble !== 'undefined' ? ev.cancelBubble : false, true);
         }
         else {

@@ -8,12 +8,12 @@ import IFrameSandbox from '../iframe';
 import * as Listeners from '../event/listeners';
 import * as MessageSandbox from '../message';
 import NativeMethods from '../native-methods';
-import * as Service from '../../utils/service';
 import * as ShadowUI from '../shadow-ui';
 import Const from '../../../const';
 import * as UploadSandbox from '../upload/upload';
 import * as Window from './window';
 import * as XhrSandbox from '../xhr';
+import EventEmitter from '../../utils/event-emitter';
 
 // Consts
 export const BODY_CREATED = 'bodyCreated';
@@ -23,7 +23,7 @@ const DOCUMENT_CLEANED     = 'documentCleaned';
 
 const IFRAME_DOM_SANDBOXES_STORE = 'dom_sandboxes_store_5d9138e9';
 
-var eventEmitter = new Service.EventEmitter();
+var eventEmitter = new EventEmitter();
 
 export var on  = eventEmitter.on.bind(eventEmitter);
 export var off = eventEmitter.off.bind(eventEmitter);

@@ -3,7 +3,7 @@ import * as JSON from './json';
 import NativeMethods from './sandboxes/native-methods';
 import ServiceCommands from '../service-msg-cmd';
 import * as Browser from './utils/browser';
-import * as Service from './utils/service';
+import EventEmitter from './utils/event-emitter';
 import Settings from './settings';
 
 /*eslint-enable no-native-reassign*/
@@ -14,7 +14,7 @@ var SERVICE_MESSAGES_WAITING_INTERVAL = 50;
 var MSG_RECEIVED                      = 'received';
 
 //Globals
-var eventEmitter                 = new Service.EventEmitter();
+var eventEmitter                 = new EventEmitter();
 var msgQueue                     = {};
 var useAsyncXhr                  = true;
 var activeServiceMessagesCounter = 0;

@@ -1,4 +1,4 @@
-import * as Service from './utils/service';
+import isJQueryObj from './utils/is-jquery-object';
 
 //NOTE: json2.js uses fallbacks to existing JSON implementations. So we can't rely on it in our client code.
 //This is an isolated implementation of JSON that is not rely on any external stuff (prototypes, existing JSON
@@ -169,7 +169,7 @@ function isDOMNode (obj) {
 function isSerializable (value) {
     if (value) {
         //NOTE: jquery object, DOM nodes and functions are disallowed obj types because we can't serialize them correctly
-        if (typeof value === 'function' || Service.isJQueryObj(value) || isDOMNode(value))
+        if (typeof value === 'function' || isJQueryObj(value) || isDOMNode(value))
             return false;
 
         if (typeof value === 'object') {

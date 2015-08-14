@@ -3,7 +3,7 @@ import IFrameSandbox from '../iframe';
 import JSProcessor from '../../../processing/js/index';
 import NativeMethods from '../native-methods';
 import * as Html from '../../utils/html';
-import { EventEmitter } from '../../utils/service';
+import EventEmitter from '../../utils/event-emitter';
 import { isIframeWithoutSrc } from '../../utils/url';
 
 // Consts

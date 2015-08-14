@@ -16,7 +16,6 @@ import * as MessageSandbox from './sandboxes/message';
 import NativeMethods from './sandboxes/native-methods';
 import * as Position from './utils/position';
 import * as Selection from './sandboxes/event/selection';
-import * as Service from './utils/service';
 import * as ShadowUI from './sandboxes/shadow-ui';
 import * as Style from './utils/style';
 import * as Transport from './transport';
@@ -107,7 +106,6 @@ exports.Util           = {
     DOM:      DOM,
     Event:    Event,
     Position: Position,
-    Service:  Service,
     Style:    Style
 };
 exports.EventSandbox   = {

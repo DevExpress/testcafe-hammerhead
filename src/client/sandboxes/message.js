@@ -4,8 +4,8 @@ import * as DOM from '../utils/dom';
 import * as JSON from '../json';
 import * as Listeners from './event/listeners';
 import NativeMethods from './native-methods';
-import * as Service from '../utils/service';
 import UrlUtil from '../utils/url';
+import EventEmitter from '../utils/event-emitter';
 /*eslint-enable no-native-reassign */
 
 const messageType = {
@@ -25,7 +25,7 @@ export function setPingIFrameTimeout (value) {
 
 const RECEIVE_MSG_FN = 'tc_rmf_375fb9e7';
 
-var eventEmitter = new Service.EventEmitter();
+var eventEmitter = new EventEmitter();
 var pingCallback = null;
 var pingCmd      = null;
 

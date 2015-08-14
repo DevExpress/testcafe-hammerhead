@@ -1,7 +1,8 @@
 import * as Browser from '../../utils/browser';
 import * as Listeners from './listeners';
 import NativeMethods from '../native-methods';
-import * as Service from '../../utils/service';
+import createPropertyDesc from '../../utils/create-property-desc.js';
+import EventEmitter from '../../utils/event-emitter';
 
 export const BEFORE_UNLOAD_EVENT        = 'beforeUnload';
 export const BEFORE_BEFORE_UNLOAD_EVENT = 'beforeBeforeUnload';
@@ -10,7 +11,7 @@ export const UNLOAD_EVENT               = 'unload';
 var isFakeIEBeforeUnloadEvent     = false;
 var storedBeforeUnloadReturnValue = '';
 var prevented                     = false;
-var eventEmitter                  = new Service.EventEmitter();
+var eventEmitter                  = new EventEmitter();
 
 //NOTE: this handler should be called after the others
 function emitBeforeUnloadEvent () {
@@ -25,7 +26,7 @@ function emitBeforeUnloadEvent () {
 
 function onBeforeUnloadHandler (e, originListener) {
     //NOTE: overriding the returnValue property to prevent native dialog
-    Object.defineProperty(e, 'returnValue', Service.createPropertyDesc({
+    Object.defineProperty(e, 'returnValue', createPropertyDesc({
         get: function () {
             return storedBeforeUnloadReturnValue;
         },
@@ -38,7 +39,7 @@ function onBeforeUnloadHandler (e, originListener) {
         }
     }));
 
-    Object.defineProperty(e, 'preventDefault', Service.createPropertyDesc({
+    Object.defineProperty(e, 'preventDefault', createPropertyDesc({
         get: function () {
             return function () {
                 prevented = true;

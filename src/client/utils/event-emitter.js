@@ -1,33 +1,4 @@
-// We can't use 'obj instanceof $' check because it depends on instance of the jQuery.
-export function isJQueryObj (obj) {
-    return obj && !!obj.jquery;
-}
-
-export function createPropertyDesc (descBase) {
-    descBase.configurable = true;
-    descBase.enumerable   = true;
-
-    return descBase;
-}
-
-export function extend () {
-    var target = arguments[0] || {};
-
-    if (typeof target !== 'object' && target.toString() !== '[object Function]')
-        target = {};
-
-    for (var i = 1; i < arguments.length; i++) {
-        for (var key in arguments[i]) {
-            if (arguments[i].hasOwnProperty(key))
-                target[key] = arguments[i][key];
-        }
-    }
-
-    return target;
-}
-
-// Event Emitter
-export var EventEmitter = function () {
+var EventEmitter = function () {
     this.eventsListeners = [];
 };
 
@@ -69,3 +40,5 @@ EventEmitter.prototype.on = function (evt, listener) {
 
     this.eventsListeners[evt].push(listener);
 };
+
+export default EventEmitter;
