@@ -1,8 +1,8 @@
 import NativeMethods from './native-methods';
 import Const from '../../const';
 import UrlUtil from '../utils/url';
-import * as Service from '../utils/service';
 import Settings from '../settings';
+import EventEmitter from '../utils/event-emitter';
 
 const SERVICE_MSG_REQUEST_FLAG  = 'is_tc_req-c8f5bd4f';
 const XHR_PROPERTY_ACCESS_ERROR = 'INVALID_STATE_ERR';
@@ -14,7 +14,7 @@ export const XHR_COMPLETED = 'xhrCompleted';
 export const XHR_ERROR     = 'xhrError';
 export const XHR_SEND      = 'xhrSend';
 
-var eventEmitter = new Service.EventEmitter();
+var eventEmitter = new EventEmitter();
 
 export var on = eventEmitter.on.bind(eventEmitter);
 

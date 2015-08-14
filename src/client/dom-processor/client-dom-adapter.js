@@ -1,7 +1,7 @@
 import { isIE9 } from '../utils/browser';
 import { findDocument } from '../utils/dom';
 import NativeMethods from '../sandboxes/native-methods';
-import { EventEmitter } from '../utils/service';
+import EventEmitter from '../utils/event-emitter';
 import BaseDomAdapter from '../../processing/dom/base-dom-adapter';
 import Settings from '../settings';
 import UrlUtil from '../utils/url';

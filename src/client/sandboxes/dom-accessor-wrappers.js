@@ -8,12 +8,13 @@ import NativeMethods from './native-methods';
 import DomProcessor from '../dom-processor/dom-processor';
 import StyleProcessor from '../../processing/style';
 import ScriptProcessor from '../../processing/script';
-import * as Service from '../utils/service';
 import * as ShadowUI from './shadow-ui';
 import Const from '../../const';
 import * as UploadSandbox from './upload/upload';
 import * as Unload from './event/unload';
 import UrlUtil from '../utils/url';
+import createPropertyDesc from '../utils/create-property-desc.js';
+import EventEmitter from '../utils/event-emitter';
 
 export const LOCATION_WRAPPER = 'location_1b082a6cec';
 
@@ -26,7 +27,7 @@ export const WINDOW_ON_ERROR_SET                  = 'windowOnErrorSet';
 var anchor      = document.createElement('A');
 var emptyAnchor = document.createElement('A');
 
-var eventEmitter = new Service.EventEmitter();
+var eventEmitter = new EventEmitter();
 
 export var on = eventEmitter.on.bind(eventEmitter);
 
@@ -112,7 +113,7 @@ function createLocWrapper (window) {
                UrlUtil.OriginLocation.get();
     };
 
-    Object.defineProperty(result, 'href', Service.createPropertyDesc({
+    Object.defineProperty(result, 'href', createPropertyDesc({
         get: function () {
             return getHref();
         },
@@ -123,7 +124,7 @@ function createLocWrapper (window) {
         }
     }));
 
-    Object.defineProperty(result, 'search', Service.createPropertyDesc({
+    Object.defineProperty(result, 'search', createPropertyDesc({
         get: function () {
             return window.location.search;
         },
@@ -134,7 +135,7 @@ function createLocWrapper (window) {
         }
     }));
 
-    Object.defineProperty(result, 'origin', Service.createPropertyDesc({
+    Object.defineProperty(result, 'origin', createPropertyDesc({
         get: function () {
             var parsedOriginLocation = UrlUtil.OriginLocation.getParsed();
 
@@ -145,7 +146,7 @@ function createLocWrapper (window) {
         }
     }));
 
-    Object.defineProperty(result, 'hash', Service.createPropertyDesc({
+    Object.defineProperty(result, 'hash', createPropertyDesc({
         get: function () {
             return window.location.hash;
         },
@@ -157,7 +158,7 @@ function createLocWrapper (window) {
     }));
 
     var overrideLocationProp = function (prop) {
-        Object.defineProperty(result, prop, Service.createPropertyDesc({
+        Object.defineProperty(result, prop, createPropertyDesc({
             get: function () {
                 return UrlUtil.OriginLocation.getParsed()[prop];
             },

@@ -2,7 +2,7 @@ import * as DOM from '../../utils/dom';
 import * as Event from '../../utils/event';
 import * as ListeningCtx from './listening-context';
 import NativeMethods from '../native-methods';
-import * as Service from '../../utils/service';
+import EventEmitter from '../../utils/event-emitter';
 
 export const EVENT_LISTENER_ATTACHED_EVENT = 'eventListenerAttached';
 
@@ -17,7 +17,7 @@ const LISTENED_EVENTS = [
 
 const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'tc-sdef-310efb6b';
 
-var eventEmitter = new Service.EventEmitter();
+var eventEmitter = new EventEmitter();
 
 function eventHandler (e) {
     //NOTE: fix for the bug in firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1161548).

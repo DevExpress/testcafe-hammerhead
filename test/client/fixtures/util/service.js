@@ -1,4 +1,4 @@
-var Service = Hammerhead.get('./utils/service');
+var extend = Hammerhead.get('./utils/extend');
 
 module('extend');
 test('simple two objects', function () {
@@ -14,7 +14,7 @@ test('simple two objects', function () {
         property4: '123'
     };
 
-    obj1 = Service.extend(obj1, obj2);
+    obj1 = extend(obj1, obj2);
 
     strictEqual(obj1.property1, 1);
     strictEqual(obj1.property2, 'test');
@@ -31,7 +31,7 @@ test('several objects', function () {
         }
     };
     var obj4   = { property4: '4' };
-    var result = Service.extend({}, obj1, obj2, obj3, obj4);
+    var result = extend({}, obj1, obj2, obj3, obj4);
 
     strictEqual(result.property1, obj1.property1);
     strictEqual(result.property2, obj2.property2);
@@ -55,7 +55,7 @@ test('deep coping', function () {
         property1: 2
     };
 
-    var result = Service.extend(obj1, obj2);
+    var result = extend(obj1, obj2);
 
     strictEqual(result.property1, 2);
     strictEqual(result.property2, obj1.property2);
@@ -64,19 +64,19 @@ test('deep coping', function () {
 
 test('null target', function () {
     var obj2   = { property1: 1 };
-    var result = Service.extend(null, obj2);
+    var result = extend(null, obj2);
 
     strictEqual(result.property1, obj2.property1);
 });
 
 test('target is build-in type', function () {
     var obj2   = { property1: 1 };
-    var result = Service.extend(123, obj2);
+    var result = extend(123, obj2);
 
     strictEqual(result.property1, obj2.property1);
     strictEqual(Object.keys(result).length, 1);
 
-    result = Service.extend(function () {
+    result = extend(function () {
     }, obj2);
 
     strictEqual(result.property1, obj2.property1);

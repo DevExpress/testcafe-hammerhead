@@ -7,7 +7,7 @@ import NativeMethods from '../native-methods';
 import DomProcessor from '../../dom-processor/dom-processor';
 import ScriptProcessor from '../../../processing/script';
 import { isPageHtml, processHtml } from '../../utils/html';
-import { EventEmitter } from '../../utils/service';
+import EventEmitter from '../../utils/event-emitter';
 import { onBodyElementMutation } from '../shadow-ui';
 import { waitCookieMsg } from '../../transport';
 import UrlUtil from '../../utils/url';

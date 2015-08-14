@@ -1,7 +1,7 @@
 import * as Browser from '../../utils/browser';
 import * as DOM from '../../utils/dom';
 import * as Event from '../../utils/event';
-import * as Service from '../../utils/service';
+import extend from '../../utils/extend';
 import NativeMethods from '../native-methods';
 import * as Position from '../../utils/position';
 import Const from '../../../const';
@@ -37,7 +37,7 @@ function simulateEvent (el, event, userOptions, options) {
     // NOTE: we don't emulate click on link with modifiers (ctrl, shift, ctrl+shift, alt),
     // because it causes the opening of additional tabs and window in browser or loading files
     var isClickOnLink = event === 'click' && el.tagName && el.tagName.toLocaleLowerCase() === 'a';
-    var opts          = Service.extend(
+    var opts          = extend(
         userOptions ? {
             clientX:       userOptions.clientX,
             clientY:       userOptions.clientY,
@@ -57,7 +57,7 @@ function simulateEvent (el, event, userOptions, options) {
 
     if (MOUSE_EVENT_NAME_RE.test(event)) {
         if (userOptions && typeof userOptions.button !== 'undefined')
-            opts = Service.extend(opts, { button: userOptions.button });
+            opts = extend(opts, { button: userOptions.button });
 
         args     = getMouseEventArgs(event, opts);
         dispatch = dispatchMouseEvent;
@@ -66,7 +66,7 @@ function simulateEvent (el, event, userOptions, options) {
     else if (KEY_EVENT_NAME_RE.test(event)) {
         if (userOptions &&
             (typeof userOptions.keyCode !== 'undefined' || typeof userOptions.charCode !== 'undefined')) {
-            opts = Service.extend(opts, {
+            opts = extend(opts, {
                 keyCode:  userOptions.keyCode || 0,
                 charCode: userOptions.charCode || 0
             });
@@ -77,7 +77,7 @@ function simulateEvent (el, event, userOptions, options) {
     }
 
     else if (TOUCH_EVENT_NAME_RE.test(event)) {
-        args     = getTouchEventArgs(event, Service.extend(opts, { target: el }));
+        args     = getTouchEventArgs(event, extend(opts, { target: el }));
         dispatch = dispatchTouchEvent;
     }
 
@@ -87,7 +87,7 @@ function simulateEvent (el, event, userOptions, options) {
 function getMouseEventArgs (type, options) {
     var opts = options || {};
 
-    return Service.extend(getUIEventArgs(type, options), {
+    return extend(getUIEventArgs(type, options), {
         screenX:       opts.screenX || 0,
         screenY:       opts.screenY || 0,
         clientX:       opts.clientX || 0,
@@ -102,7 +102,7 @@ function getMouseEventArgs (type, options) {
 function getKeyEventArgs (type, options) {
     var opts = options || {};
 
-    return Service.extend(getUIEventArgs(type, options), {
+    return extend(getUIEventArgs(type, options), {
         keyCode:  opts.keyCode || 0,
         charCode: opts.charCode || 0,
         which:    type === 'press' ? opts.charCode : opts.keyCode
@@ -111,7 +111,7 @@ function getKeyEventArgs (type, options) {
 
 function getTouchEventArgs (type, options) {
     var opts = options || {};
-    var args = Service.extend(getUIEventArgs(type, opts), {
+    var args = extend(getUIEventArgs(type, opts), {
         screenX: opts.screenX || 0,
         screenY: opts.screenY || 0,
         clientX: opts.clientX || 0,
@@ -230,7 +230,7 @@ function dispatchMouseEvent (el, args) {
             y: elPosition.top + elBorders.top
         });
         var eventShortType   = args.type.replace('mouse', '');
-        var pArgs            = Service.extend({
+        var pArgs            = extend({
             widthArg:       Browser.version > 10 ? 1 : 0,
             heightArg:      Browser.version > 10 ? 1 : 0,
             pressure:       0,
@@ -373,7 +373,7 @@ function raiseDispatchEvent (el, ev, args) {
             el[onEvent] = saveWindowEventObject;
             args.button = IE_BUTTONS_MAP[button];
 
-            NativeMethods.fireEvent.call(el, onEvent, Service.extend(DOM.findDocument(el).createEventObject(), args));
+            NativeMethods.fireEvent.call(el, onEvent, extend(DOM.findDocument(el).createEventObject(), args));
 
             el[onEvent] = inlineHandler;
             args.button = button;
@@ -466,7 +466,7 @@ function dispatchKeyEvent (el, args) {
     if (document.createEvent) {
         ev = document.createEvent('Events');
         ev.initEvent(args.type, args.canBubble, args.cancelable);
-        ev = Service.extend(ev, {
+        ev = extend(ev, {
             view:     args.view,
             detail:   args.detail,
             ctrlKey:  args.ctrlKey,

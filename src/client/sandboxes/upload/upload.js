@@ -2,11 +2,11 @@ import * as Browser from '../../utils/browser';
 import * as DOM from '../../utils/dom';
 import * as Event from '../../utils/event';
 import * as EventSimulator from '../event/simulator';
-import * as Service from '../../utils/service';
+import EventEmitter from '../../utils/event-emitter';
 import * as Listeners from '../event/listeners';
 import Const from '../../../const';
 
-var eventEmitter = new Service.EventEmitter();
+var eventEmitter = new EventEmitter();
 
 export const START_FILE_UPLOADING_EVENT = 'startFileUploading';
 export const END_FILE_UPLOADING_EVENT = 'endFileUploading';

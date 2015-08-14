@@ -5,7 +5,7 @@ import { ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY } from '../dom-accessor-wrappers';
 import * as MessageSandbox from '../message';
 import NativeMethods from '../native-methods';
 import ScriptProcessor from '../../../processing/script';
-import { EventEmitter } from '../../utils/service';
+import EventEmitter from '../../utils/event-emitter';
 import { isShadowUIMutation } from '../shadow-ui';
 import UrlUtil from '../../utils/url';
 

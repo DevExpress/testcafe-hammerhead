@@ -2,11 +2,11 @@ import * as Browser from '../utils/browser';
 import * as DOM from '../utils/dom';
 import NativeMethods from './native-methods';
 import Const from '../../const';
-import * as Service from '../utils/service';
 import ServiceCommands from '../../service-msg-cmd';
 import Settings from '../settings';
 import Transport from '../transport';
 import UrlUtil from '../utils/url';
+import EventEmitter from '../utils/event-emitter';
 
 const IFRAME_READY_TO_INIT          = 'iframeReadyToInit';
 const IFRAME_READY_TO_INIT_INTERNAL = 'iframeReadyToInitInternal';
@@ -15,7 +15,7 @@ const IFRAME_DOCUMENT_RECREATED     = 'iframeDocumentRecreated';
 
 const IFRAME_WINDOW_INITED = 'hh_iwi_5d9138e9';
 
-var eventEmitter = new Service.EventEmitter();
+var eventEmitter = new EventEmitter();
 var IFrameSandbox = {};
 
 // For iframes without src only!
