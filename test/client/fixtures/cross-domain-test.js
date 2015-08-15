@@ -5,7 +5,7 @@ asyncTest('cross domain messaging between windows', function () {
 
     var iframe = document.createElement('iframe');
 
-    iframe.src = window.getCrossDomainPageUrl('target-url.html');
+    iframe.src = window.getCrossDomainPageUrl('../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
 
     var result      = 0;

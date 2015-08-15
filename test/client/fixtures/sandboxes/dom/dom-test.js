@@ -5,23 +5,23 @@ var IFrameSandbox  = Hammerhead.get('./sandboxes/iframe');
 var NativeMethods  = Hammerhead.get('./sandboxes/native-methods');
 var UrlUtil        = Hammerhead.get('./utils/url');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
     window.open       = NativeMethods.windowOpen;
     window.setTimeout = NativeMethods.setTimeout;
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 asyncTest('prevent "error" event during image reloading', function () {
     var storedGetOriginUrlObj    = UrlUtil.getProxyUrl;
     var storedResolveUrlAsOrigin = UrlUtil.resolveUrlAsOrigin;
     var errorEventRised          = false;
-    var realImageUrl             = '/data/dom-sandbox/image.png';
+    var realImageUrl             = window.QUnitGlobals.getResourceUrl('../../../data/dom-sandbox/image.png');
     var fakeIamgeUrl             = 'fakeIamge.gif';
 
     UrlUtil.getProxyUrl = function () {
@@ -54,7 +54,7 @@ asyncTest('prevent "error" event during image reloading', function () {
 });
 
 asyncTest('reload image through the proxy', function () {
-    var realImageUrl  = '/data/dom-sandbox/image.png';
+    var realImageUrl  = window.QUnitGlobals.getResourceUrl('../../../data/dom-sandbox/image.png');
     var fakeIamgeUrl  = 'fakeIamge.gif';
     var proxyIamgeUrl = UrlUtil.getProxyUrl(fakeIamgeUrl);
 
@@ -173,7 +173,7 @@ test('iframe added to dom event', function () {
 asyncTest('body created event', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.src = '/data/dom-sandbox/body-created-event.html';
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-sandbox/body-created-event.html');
 
     iframe.addEventListener('load', function () {
         ok(this.contentWindow.testOk);

@@ -82,9 +82,10 @@ test('get/set', function () {
 });
 
 asyncTest('path validation', function () {
-    var iframe = document.createElement('iframe');
+    var iframe    = document.createElement('iframe');
+    var src = window.QUnitGlobals.getResourceUrl('../../data/cookie-sandbox/validation.html', 'cookie-sandbox/validation.html');
 
-    iframe.src = UrlUtil.getProxyUrl('/data/cookie-sandbox/validation.html');
+    iframe.src = UrlUtil.getProxyUrl(src);
     iframe.addEventListener('load', function () {
         ok(this.contentWindow.runTest());
         this.parentNode.removeChild(this);

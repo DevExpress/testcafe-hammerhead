@@ -3,14 +3,14 @@ var DomAccessorWrappers = Hammerhead.get('./sandboxes/dom-accessor-wrappers');
 var IFrameSandbox       = Hammerhead.get('./sandboxes/iframe');
 var UrlUtil             = Hammerhead.get('./utils/url');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 asyncTest('iframe with empty src', function () {
     var $iframe1 = $('<iframe id="test1">');

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="/hammerhead/hammerhead.js" class="script-TC2b9a6d"></script>
+    <script src="/hammerhead.js" class="script-TC2b9a6d"></script>
     <script>
         Hammerhead.init();
         Hammerhead.get('./transport').queuedAsyncServiceMsg = function () {
@@ -18,11 +18,11 @@
             var validCookies   = [
                 'Valid1=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT;',
                 'Valid2=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/ ',
-                'Valid3=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/data',
-                'Valid4=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /data',
-                'Valid5=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /data ',
-                'Valid6=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /data/ ',
-                'Valid7=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/data/cookie-sandbox'
+                'Valid3=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/test-resource',
+                'Valid4=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /test-resource',
+                'Valid5=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /test-resource ',
+                'Valid6=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /test-resource/ ',
+                'Valid7=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/test-resource/cookie-sandbox'
             ];
             var invalidCookies = [
                 'Invalid1=' + uniq + '; expires=Wed, 13-Jan-2000 22:23:01 GMT; path=/',

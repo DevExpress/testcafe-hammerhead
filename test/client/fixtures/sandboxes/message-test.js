@@ -4,14 +4,14 @@ var IFrameSandbox   = Hammerhead.get('./sandboxes/iframe');
 var MessageSandbox  = Hammerhead.get('./sandboxes/message');
 var Settings        = Hammerhead.get('./settings');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 asyncTest('onmessage event', function () {
     var $iframe               = $('<iframe>');
@@ -20,7 +20,7 @@ asyncTest('onmessage event', function () {
 
     Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
 
-    $iframe[0].src = window.getCrossDomainPageUrl('get-message.html');
+    $iframe[0].src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
     $iframe.appendTo('body');
 
     var onMessageHandler = function (evt) {
@@ -51,7 +51,7 @@ asyncTest('crossdomain post messages between diffferen windows', function () {
 
     var iframe = document.createElement('iframe');
 
-    iframe.src = window.getCrossDomainPageUrl('target-url.html');
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
 
     var result = 0;
@@ -157,7 +157,7 @@ asyncTest('crossdomain', function () {
         serviceMsgReceived = true;
     };
 
-    iframe.src = window.getCrossDomainPageUrl('service-message.html');
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/service-message.html');
     iframe.addEventListener('load', function () {
         MessageSandbox.on(MessageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
         MessageSandbox.sendServiceMsg('service_msg', this.contentWindow);
@@ -201,7 +201,7 @@ asyncTest('service message handler should not call other handlers', function () 
         }, 100);
     };
 
-    iframe.src = window.getCrossDomainPageUrl('service-message-with-handlers.html');
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/service-message-with-handlers.html');
     iframe.addEventListener('load', function () {
         eval(ScriptProcessor.process('window.onmessage = windowMessageHandler;'));
         window.addEventListener('message', windowMessageHandler);
@@ -233,7 +233,7 @@ asyncTest('iframe', function () {
         iFrameResponseReceived = true;
     });
 
-    iframe.src = window.getCrossDomainPageUrl('wait-loading.html');
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/wait-loading.html');
     document.body.appendChild(iframe);
 });
 

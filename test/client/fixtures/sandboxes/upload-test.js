@@ -39,13 +39,13 @@ var files = [
 
 var storedAsyncServiceMsg = Transport.asyncServiceMsg;
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     Transport.asyncServiceMsg = overridedAsyncServiceMsg;
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     Transport.asyncServiceMsg = storedAsyncServiceMsg;
-};
+});
 
 function overridedAsyncServiceMsg (msg, callback) {
     switch (msg.cmd) {
@@ -586,7 +586,7 @@ asyncTest('get file info from iframe', function () {
             start();
         });
 
-        iframe.src = '/data/upload/iframe.html';
+        iframe.src = window.QUnitGlobals.getResourceUrl('../../data/upload/iframe.html');
         document.body.appendChild(iframe);
     });
 });

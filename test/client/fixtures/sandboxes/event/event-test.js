@@ -7,14 +7,14 @@ var Listeners      = Hammerhead.get('./sandboxes/event/listeners');
 var NativeMethods  = Hammerhead.get('./sandboxes/native-methods');
 var Const          = Hammerhead.get('../const');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 var lastHovered = null;
 

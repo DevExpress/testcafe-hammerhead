@@ -178,6 +178,7 @@ test('getOffset', function () {
     document.documentElement.style.border = '15px solid black';
     offset                                = Style.getOffset($div[0]);
     $offset                               = $div.offset();
+
     strictEqual(offset.left, $offset.left);
     strictEqual(offset.top, $offset.top);
 

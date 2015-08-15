@@ -9,14 +9,14 @@ var Const           = Hammerhead.get('../const');
 var SharedUrlUtil   = Hammerhead.get('../utils/url');
 var UrlUtil         = Hammerhead.get('./utils/url');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 module('clean up html');
 
@@ -357,7 +357,9 @@ asyncTest('real big page', function () {
         });
     }
 
-    $('<iframe src="/data/dom-sandbox/is-well-formatted-html.html">').load(function () {
+    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../data/dom-sandbox/is-well-formatted-html.html');
+
+    $('<iframe></iframe>').attr('src', iframeSrc).load(function () {
         checkNode(this.contentDocument.documentElement);
         $(this).remove();
 

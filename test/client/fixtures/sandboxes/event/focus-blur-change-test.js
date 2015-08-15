@@ -267,14 +267,11 @@ function removeTestElements () {
 }
 
 //tests
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     input1 = $('<input type="text" id="input1"/>').addClass(TEST_ELEMENT_CLASS).appendTo('body').get(0);
     input2 = $('<input type="text" id="input2"/>').addClass(TEST_ELEMENT_CLASS).appendTo('body').get(0);
     clearExecutedHandlersCounter();
-};
-
-QUnit.testDone = function () {
-};
+});
 
 module('focus');
 

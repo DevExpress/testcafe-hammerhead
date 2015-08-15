@@ -5,7 +5,7 @@ var Settings      = Hammerhead.get('./settings');
 var ShadowUI      = Hammerhead.get('./sandboxes/shadow-ui');
 var Const         = Hammerhead.get('../const');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     if (!$('#testDiv').length)
         $('<div id="testDiv">').appendTo('body');
 
@@ -14,11 +14,11 @@ QUnit.testStart = function () {
     $('.test-class').remove();
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 test('add UI class and get UI element with selector', function () {
     var uiElem = document.createElement('div');
@@ -247,7 +247,7 @@ asyncTest('isShadowContainerCollection for iframe contentWindow', function () {
 
     var crossDomainIframe = document.createElement('iframe');
 
-    crossDomainIframe.src = window.getCrossDomainPageUrl('get-message.html');
+    crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
     crossDomainIframe.addEventListener('load', function () {
         ok(!ShadowUI.isShadowContainerCollection([this.contentWindow]));
 
