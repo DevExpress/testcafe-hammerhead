@@ -8,6 +8,8 @@ import Settings from './settings';
 
 /*eslint-enable no-native-reassign*/
 
+var Promise = require('es6-promise').Promise;
+
 //Const
 var SWITCH_BACK_TO_ASYNC_XHR_DELAY    = 2000;
 var SERVICE_MESSAGES_WAITING_INTERVAL = 50;
@@ -212,28 +214,6 @@ Transport.asyncServiceMsg = function (msg, callback) {
     sendMsg();
 };
 
-/*eslint-disable no-loop-func*/
-function asyncForeach (arr, iterator, callback) {
-    var completed = 0;
-
-    for (var i = 0; i < arr.length; i++) {
-        iterator(arr[i], function (err) {
-            if (err) {
-                callback(err);
-                callback = function () {
-                };
-            }
-            else {
-                completed++;
-
-                if (completed === arr.length)
-                    callback();
-            }
-        });
-    }
-}
-/*eslint-enable no-loop-func*/
-
 Transport.batchUpdate = function (updateCallback) {
     var storedMessages = getStoredMessages();
 
@@ -241,7 +221,13 @@ Transport.batchUpdate = function (updateCallback) {
     if (storedMessages.length) {
         window.localStorage.removeItem(Settings.get().JOB_UID);
 
-        asyncForeach(storedMessages, Transport.queuedAsyncServiceMsg, updateCallback);
+        var tasks = storedMessages.map(function (item) {
+            return new Promise(function (resolve) {
+                Transport.queuedAsyncServiceMsg(item, resolve);
+            });
+        });
+
+        Promise.all(tasks).then(updateCallback);
     }
     else
         updateCallback();

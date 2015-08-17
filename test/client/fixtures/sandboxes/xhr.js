@@ -14,6 +14,10 @@ asyncTest('correct pass paremeters into xhr event handlers', function () {
         start();
     }, true);
 
+    request.addEventListener('error', function () {
+        ok(false);
+    });
+
     request.open('GET', '/xhr-large-response', true);
     request.send(null);
 });

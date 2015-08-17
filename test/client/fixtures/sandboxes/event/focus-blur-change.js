@@ -1,6 +1,7 @@
 var Browser        = Hammerhead.get('./utils/browser');
 var EventSimulator = Hammerhead.get('./sandboxes/event/simulator');
 var FocusBlur      = Hammerhead.get('./sandboxes/event/focus-blur');
+var Promise        = Hammerhead.get('es6-promise').Promise;
 
 var input1                             = null;
 var input2                             = null;
@@ -111,27 +112,29 @@ function testFocusing (numberOfHandlers, testCanceled, testCallback) {
     var input2FocusedCount = 0;
     var input2BlurredCount = 0;
 
-    var focus = function (element, callback) {
-        if (testCanceled())
-            return;
+    var focus = function (element) {
+        return new Promise(function (resolve) {
+            if (testCanceled())
+                return;
 
-        if (element === input1) {
-            input2BlurredCount += numberOfHandlers;
-            input1FocusedCount += numberOfHandlers;
-        }
-        else if (element === input2) {
-            input1BlurredCount += numberOfHandlers;
-            input2FocusedCount += numberOfHandlers;
-        }
+            if (element === input1) {
+                input2BlurredCount += numberOfHandlers;
+                input1FocusedCount += numberOfHandlers;
+            }
+            else if (element === input2) {
+                input1BlurredCount += numberOfHandlers;
+                input2FocusedCount += numberOfHandlers;
+            }
 
-        logMessage(' before focusing ' + element.id);
-        FocusBlur.focus(element, function () {
-            logMessage(' focus function callback called for ' + element.id);
-            callback();
+            logMessage(' before focusing ' + element.id);
+            FocusBlur.focus(element, function () {
+                logMessage(' focus function callback called for ' + element.id);
+                resolve();
+            });
         });
     };
 
-    var assertFocusing = function (element, callback) {
+    var assertFocusing = function (element) {
         if (testCanceled())
             return;
 
@@ -140,66 +143,50 @@ function testFocusing (numberOfHandlers, testCanceled, testCallback) {
         strictEqual(input2FocusHandlersExecutedAmount, input2FocusedCount, 'input2FocusHandlersExecutedAmount checked');
         strictEqual(input1BlurHandlersExecutedAmount, input1BlurredCount, 'input1BlurHandlersExecutedAmount checked');
         strictEqual(input2BlurHandlersExecutedAmount, input2BlurredCount, 'input2BlurHandlersExecutedAmount checked');
-        callback();
     };
 
-    async.series({
-            firstInput1Focus: function (callback) {
-                focus(input1, callback);
-            },
+    focus(input1)
+        .then(function () {
+            clearExecutedHandlersCounter();
+            input1FocusedCount = input1BlurredCount = input2FocusedCount = input2BlurredCount = 0;
 
-            assertFirstInput1Focus: function (callback) {
-                clearExecutedHandlersCounter();
-                input1FocusedCount = input1BlurredCount = input2FocusedCount = input2BlurredCount = 0;
-                assertFocusing(input1, callback);
-            },
+            assertFocusing(input1);
+        })
+        .then(function () {
+            return focus(input2);
+        })
+        .then(function () {
+            assertFocusing(input2);
+        })
+        .then(function () {
+            return focus(input1);
+        })
+        .then(function () {
+            assertFocusing(input1);
+        })
+        .then(function () {
+            return focus(input2);
+        })
+        .then(function () {
+            assertFocusing(input2);
+        })
+        .then(function () {
+            return focus(input1);
+        })
+        .then(function () {
+            assertFocusing(input1);
+        })
+        .then(function () {
+            return focus(input2);
+        })
+        .then(function () {
+            assertFocusing(input2);
 
-            firstInput2Focus: function (callback) {
-                focus(input2, callback);
-            },
+            if (testCanceled())
+                return;
 
-            assertFirstInput2Focus: function (callback) {
-                assertFocusing(input2, callback);
-            },
-
-            secondInput1Focus: function (callback) {
-                focus(input1, callback);
-            },
-
-            assertSecondInput1Focus: function (callback) {
-                assertFocusing(input1, callback);
-            },
-
-            secondInput2Focus: function (callback) {
-                focus(input2, callback);
-            },
-
-            assertSecondInput2Focus: function (callback) {
-                assertFocusing(input2, callback);
-            },
-
-            thirdInput1Focus: function (callback) {
-                focus(input1, callback);
-            },
-
-            assertThirdInput1Focus: function (callback) {
-                assertFocusing(input1, callback);
-            },
-
-            thirdInput2Focus: function (callback) {
-                focus(input2, callback);
-            },
-
-            assertThirdInput2Focus: function (callback) {
-                assertFocusing(input2, callback);
-            },
-
-            actionCallback: function () {
-                if (testCanceled()) return;
-                testCallback();
-            }
-        }
-    );
+            testCallback();
+        });
 }
 
 function testChanging (numberOfHandlers, testCanceled, testCallback) {
@@ -211,54 +198,50 @@ function testChanging (numberOfHandlers, testCanceled, testCallback) {
         strictEqual(input2ChangeHandlersExecutedAmount, input2ChangedCount, 'input2ChangeHandlersExecutedAmount checked');
     };
 
-    var focusAndType = function (element, callback) {
-        if (testCanceled())
-            return;
+    var focusAndType = function (element) {
+        return new Promise(function (resolve) {
+            if (testCanceled())
+                return;
 
-        FocusBlur.focus(element, function () {
-            assertChanging();
-            if (element === input1)
-                input1ChangedCount += numberOfHandlers;
-            else if (element === input2)
-                input2ChangedCount += numberOfHandlers;
+            FocusBlur.focus(element, function () {
+                assertChanging();
+                if (element === input1)
+                    input1ChangedCount += numberOfHandlers;
+                else if (element === input2)
+                    input2ChangedCount += numberOfHandlers;
 
-            element.value += 'a';
-            callback();
+                element.value += 'a';
+                resolve();
+            });
         });
     };
 
-    async.series({
-            firstInput1Focus: function (callback) {
-                clearExecutedHandlersCounter();
-                focusAndType(input1, callback);
-            },
+    (function () {
+        clearExecutedHandlersCounter();
 
-            firstInput2Focus: function (callback) {
-                focusAndType(input2, callback);
-            },
+        return focusAndType(input1);
+    })()
+        .then(function () {
+            return focusAndType(input2);
+        })
+        .then(function () {
+            return focusAndType(input1);
+        })
+        .then(function () {
+            return focusAndType(input2);
+        })
+        .then(function () {
+            return focusAndType(input1);
+        })
+        .then(function () {
+            return focusAndType(input2);
+        })
+        .then(function () {
+            if (testCanceled())
+                return;
 
-            secondInput1Focus: function (callback) {
-                focusAndType(input1, callback);
-            },
-
-            secondInput2Focus: function (callback) {
-                focusAndType(input2, callback);
-            },
-
-            thirdInput1Focus: function (callback) {
-                focusAndType(input1, callback);
-            },
-
-            thirdInput2Focus: function (callback) {
-                focusAndType(input2, callback);
-            },
-
-            actionCallback: function () {
-                if (testCanceled()) return;
-                testCallback();
-            }
-        }
-    );
+            testCallback();
+        });
 }
 
 function runAsyncTest (actions, timeout) {
