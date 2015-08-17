@@ -19,7 +19,7 @@ var mustache     = require('gulp-mustache');
 var rename       = require('gulp-rename');
 var sourcemaps   = require('gulp-sourcemaps');
 var webmake      = require('gulp-webmake');
-var Promise      = require('promise');
+var Promise      = require('es6-promise').Promise;
 var runSequence  = require('run-sequence');
 
 
@@ -94,13 +94,11 @@ var SAUCELABS_SETTINGS = {
     timeout:   300
 };
 
-
 function hang () {
     return new Promise(function () {
         // NOTE: hang forever
     });
 }
-
 
 gulp.task('clean', function () {
     return new Promise(function (resolve) {

@@ -1,11 +1,12 @@
 import fs from 'fs';
 import mime from 'mime';
 import path from 'path';
-import Promise from 'promise';
+import { Promise } from 'es6-promise';
+import promisify from '../utils/promisify';
 
-var readFile  = Promise.denodeify(fs.readFile);
-var stat      = Promise.denodeify(fs.stat);
-var writeFile = Promise.denodeify(fs.writeFile);
+var readFile  = promisify(fs.readFile);
+var stat      = promisify(fs.stat);
+var writeFile = promisify(fs.writeFile);
 
 export default class UploadStorage {
     constructor (storagePath) {
