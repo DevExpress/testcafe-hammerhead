@@ -1,12 +1,12 @@
 import charsetEncoder from 'iconv-lite';
-import Promise from 'promise';
+import promisify from './promisify';
 import zlib from 'zlib';
 
-var gzip       = Promise.denodeify(zlib.gzip);
-var deflate    = Promise.denodeify(zlib.deflate);
-var gunzip     = Promise.denodeify(zlib.gunzip);
-var inflate    = Promise.denodeify(zlib.inflate);
-var inflateRaw = Promise.denodeify(zlib.inflateRaw);
+var gzip       = promisify(zlib.gzip);
+var deflate    = promisify(zlib.deflate);
+var gunzip     = promisify(zlib.gunzip);
+var inflate    = promisify(zlib.inflate);
+var inflateRaw = promisify(zlib.inflateRaw);
 
 // Const
 const CHARSET_RE      = /(?:^|;)\s*charset=(.+)(?:;|$)/i;

@@ -1,5 +1,5 @@
 var expect       = require('chai').expect;
-var Promise      = require('promise');
+var Promise      = require('es6-promise').Promise;
 var contentUtils = require('../../lib/utils/content');
 
 describe('Content utils', function () {

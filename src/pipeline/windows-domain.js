@@ -1,7 +1,7 @@
 import childProcess from 'child_process';
-import Promise from 'promise';
+import promisify from '../utils/promisify';
 
-var exec   = Promise.denodeify(childProcess.exec);
+var exec   = promisify(childProcess.exec);
 var cached = null;
 
 async function queryOSForCredential (cmd) {
