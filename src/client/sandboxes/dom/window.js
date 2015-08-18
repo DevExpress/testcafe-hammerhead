@@ -113,14 +113,24 @@ export function override (window, overrideNewElement) {
 
     if (window.Blob) {
         window.Blob = function (parts, opts) {
-            var type = opts && opts.type && opts.type.toString().toLowerCase();
+            // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
+            // If the overridden function is called with one parameter,
+            // then we need to call the original function with one parameter as well.
+            switch (arguments.length) {
+                case 0:
+                    return new NativeMethods.Blob();
+                case 1:
+                    return new NativeMethods.Blob(parts);
+                default:
+                    var type = opts && opts.type && opts.type.toString().toLowerCase();
 
-            if (type === 'text/javascript' || type === 'application/javascript' ||
-                type === 'application/x-javascript') {
-                parts = [ScriptProcessor.process(parts.join(''))];
+                    if (type === 'text/javascript' || type === 'application/javascript' ||
+                        type === 'application/x-javascript') {
+                        parts = [ScriptProcessor.process(parts.join(''))];
+                    }
+
+                    return new NativeMethods.Blob(parts, opts);
             }
-
-            return new NativeMethods.Blob(parts, opts);
         };
     }
 
