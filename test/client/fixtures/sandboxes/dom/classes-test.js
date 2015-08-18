@@ -82,3 +82,39 @@ if (navigator.registerProtocolHandler) {
         UrlUtil.OriginLocation.get = savedGetOriginLocation;
     });
 }
+
+module('Regression');
+
+if (window.Blob) {
+    test('window.Blob with a different number of parameters (GH-44)', function () {
+        var testCases = [
+            {
+                description: 'without parameters',
+                newBlobFunc: function () {
+                    return new window.Blob();
+                }
+            },
+            {
+                description: 'only "parts" parameter',
+                newBlobFunc: function () {
+                    return new window.Blob(['text']);
+                }
+            },
+            {
+                description: '"parts" and "opts" parameters',
+                newBlobFunc: function () {
+                    return new window.Blob(['text'], { type: 'text/plain' });
+                }
+            }
+        ];
+
+        testCases.forEach(function (testCase) {
+            try {
+                ok(!!testCase.newBlobFunc(), testCase.description);
+            }
+            catch (e) {
+                ok(false, testCase.description);
+            }
+        });
+    });
+}
