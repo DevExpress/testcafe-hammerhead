@@ -9,16 +9,16 @@ var UrlUtil         = Hammerhead.get('./utils/url');
 var NativeMethods   = Hammerhead.get('./sandboxes/native-methods');
 
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
     window.open = NativeMethods.windowOpen;
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 test('iframe', function () {
     var iframe         = $('<iframe sandbox="allow-forms">')[0];
@@ -59,7 +59,7 @@ asyncTest('a.href in iframe', function () {
     var storedAttrName = DomProcessor.getStoredAttrName('href');
 
     iframe.id  = 'test';
-    iframe.src = '/data/dom-processor/iframe.html';
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
 
     iframe.addEventListener('load', function () {
         var link = NativeMethods.getElementById.call(this.contentDocument, 'link');

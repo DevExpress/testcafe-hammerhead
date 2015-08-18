@@ -4,23 +4,25 @@ var IFrameSandbox   = Hammerhead.get('./sandboxes/iframe');
 var JSProcessor     = Hammerhead.get('../processing/js/index');
 var NativeMethods   = Hammerhead.get('./sandboxes/native-methods');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
     window.open       = NativeMethods.windowOpen;
     window.setTimeout = NativeMethods.setTimeout;
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 //T215136 - Not overrided all cases of "document.write" function (kakaku.com)
 asyncTest('document.write in iframe', function () {
     expect(2);
 
-    $('<iframe src="/data/dom-sandbox/iframe-with-doc-write.html">').appendTo('body').load(function () {
+    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/dom-sandbox/iframe-with-doc-write.html');
+
+    $('<iframe></iframe>').attr('src', iframeSrc).appendTo('body').load(function () {
         var iframe = this;
         var div    = iframe.contentDocument.querySelector('#parent');
 

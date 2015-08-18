@@ -9,7 +9,7 @@
 <script type="text/javascript">
     var Settings = Hammerhead.get('./settings');
     Settings.set({
-        CROSS_DOMAIN_PROXY_PORT : 2000
+        CROSS_DOMAIN_PROXY_PORT: 2000
     });
 
     var UrlUtil = Hammerhead.get('./utils/url');
@@ -21,12 +21,10 @@
     var scriptProcessor = Hammerhead.get('../processing/script');
 
     Hammerhead.init();
-
-    eval(scriptProcessor.process("top.postMessage('1', 'https://example.com');"));
-    eval(scriptProcessor.process("top.postMessage('1');"));
-    eval(scriptProcessor.process("top.postMessage('0', 'http://example.com');"));
-    eval(scriptProcessor.process("top.postMessage('1', 'https://sub.example.com');"));
-    eval(scriptProcessor.process("top.postMessage('1', '*');"));
 </script>
+
+<div id="testDiv">This is a div element with id "testDiv" in cross-domain iFrame</div>
+<div id="secondTestDiv" style="margin-top: 300px">This is a div element with id "secondTestDiv" in cross-domain iFrame
+</div>
 </body>
 </html>

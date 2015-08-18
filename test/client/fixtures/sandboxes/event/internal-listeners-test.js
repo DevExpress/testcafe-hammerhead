@@ -69,7 +69,7 @@ $(document).ready(function () {
         el.dispatchEvent(pointEvent);
     };
 
-    QUnit.testStart = function () {
+    QUnit.testStart(function () {
         containerCaptureEventRaised = false;
         containerBubbleEventRaised  = false;
         elementCaptureEventRaised   = false;
@@ -83,13 +83,13 @@ $(document).ready(function () {
         input      = $input[0];
         $uiElement = $('<div>').appendTo($container);
         uiElement  = $uiElement[0];
-    };
+    });
 
-    QUnit.testDone = function () {
+    QUnit.testDone(function () {
         $container.remove();
         $input.remove();
         $uiElement.remove();
-    };
+    });
 
     test('initElementListening', function () {
         var event                = 'click';

@@ -8,16 +8,16 @@ var raised      = false;
 
 var lastTouchIdentifier = null;
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     $domElement         = $('<input type="text">').attr('id', 'domElement').appendTo('body');
     domElement          = $domElement[0];
     raised              = false;
     lastTouchIdentifier = null;
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     $domElement.remove();
-};
+});
 
 var bindMouseEvent = function (eventType, btn) {
     var button = typeof btn === 'undefined' ? 0 : btn;

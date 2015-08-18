@@ -4,14 +4,14 @@ var UrlUtil             = Hammerhead.get('./utils/url');
 
 var accessors = DomAccessorWrappers.elementPropertyAccessors;
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 test('Is anchor instance', function () {
     var anchor = document.createElement('a');

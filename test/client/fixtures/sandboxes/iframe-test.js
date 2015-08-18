@@ -4,17 +4,17 @@ var NativeMethods = Hammerhead.get('./sandboxes/native-methods');
 var Const         = Hammerhead.get('../const');
 var UrlUtil       = Hammerhead.get('./utils/url');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
     window.open       = NativeMethods.windowOpen;
     window.setTimeout = NativeMethods.setTimeout;
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 test('event should not raise before iframe is appended to DOM', function () {
     var eventRaised = false;

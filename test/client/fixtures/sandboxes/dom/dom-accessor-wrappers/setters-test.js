@@ -10,14 +10,14 @@ var Const                 = Hammerhead.get('../const');
 var UrlUtil               = Hammerhead.get('./utils/url');
 var Promise               = Hammerhead.get('es6-promise').Promise;
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 /* eslint-disable no-implied-eval */
 test('script.textContent', function () {
@@ -246,20 +246,23 @@ test('iframe', function () {
 asyncTest('body.innerHTML in iframe', function () {
     expect(2);
 
-    $('<iframe src="/data/dom-accessor-wrappers/iframe.html">').appendTo(document.body).load(function () {
-        var iframe         = this;
-        var iframeDocument = iframe.contentWindow.document;
+    $('<iframe></iframe>')
+        .attr('src', window.QUnitGlobals.getResourceUrl('../../../../data/dom-accessor-wrappers/iframe.html'))
+        .appendTo(document.body)
+        .load(function () {
+            var iframe         = this;
+            var iframeDocument = iframe.contentWindow.document;
 
-        ok(NativeMethods.querySelector.call(iframeDocument, 'body [id^="root"]') !== null);
-
-        eval(processScript('iframeDocument.body.innerHTML = "";'));
-
-        window.setTimeout(function () {
             ok(NativeMethods.querySelector.call(iframeDocument, 'body [id^="root"]') !== null);
-            iframe.parentNode.removeChild(iframe);
-            start();
-        }, 100);
-    });
+
+            eval(processScript('iframeDocument.body.innerHTML = "";'));
+
+            window.setTimeout(function () {
+                ok(NativeMethods.querySelector.call(iframeDocument, 'body [id^="root"]') !== null);
+                iframe.parentNode.removeChild(iframe);
+                start();
+            }, 100);
+        });
 });
 
 //Q527555 - Can not click on button in DIV

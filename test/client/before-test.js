@@ -1,4 +1,11 @@
 (function () {
+    //NOTE: Prohibit Hammerhead from processing testing environment resources.
+    // There are only testing environment resources on the page when this script is being executed. So, we can add
+    // the hammerhead class to all script and link elements on the page.
+    $('script').addClass('script-TC2b9a6d');
+    $('link').addClass('ui-stylesheet-TC2b9a6d');
+    
+
     var Settings = Hammerhead.get('./settings');
 
     Settings.set({
@@ -43,4 +50,11 @@
     window.setProperty   = window[JSProcessor.SET_PROPERTY_METH_NAME];
     window.callMethod    = window[JSProcessor.CALL_METHOD_METH_NAME];
     window.getLocation   = window[JSProcessor.GET_LOCATION_METH_NAME];
+
+
+    var globals = window.QUnitGlobals;
+
+    window.getCrossDomainPageUrl = function (filePath) {
+        return window.QUnitGlobals.crossDomainHostname + globals.getResourceUrl(filePath);
+    };
 })();

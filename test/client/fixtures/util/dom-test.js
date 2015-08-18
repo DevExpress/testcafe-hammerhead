@@ -3,14 +3,14 @@ var IFrameSandbox = Hammerhead.get('./sandboxes/iframe');
 var Const         = Hammerhead.get('../const');
 var UrlUtil       = Hammerhead.get('./utils/url');
 
-QUnit.testStart = function () {
+QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
-};
+});
 
-QUnit.testDone = function () {
+QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-};
+});
 
 asyncTest('isCrossDomainWindows', function () {
     var crossDomainIframe = document.createElement('iframe');
@@ -37,7 +37,7 @@ asyncTest('isCrossDomainWindows', function () {
 
     ok(!DOM.isCrossDomainWindows(window, iframeAboutBlank.contentWindow));
 
-    crossDomainIframe.src = window.getCrossDomainPageUrl('get-message.html');
+    crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
     document.body.appendChild(crossDomainIframe);
 
     crossDomainIframe.addEventListener('load', function () {
@@ -202,7 +202,7 @@ asyncTest('crossdomain src', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id  = 'test8';
-    iframe.src = 'http://' + location.hostname + ':2001/hammerhead/simple_page.html';
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
     iframe.addEventListener('load', function () {
         this[Const.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
         ok(!UrlUtil.isIframeWithoutSrc(this));
@@ -273,8 +273,7 @@ asyncTest('location is changed to cross-domain', function () {
         if (!iteration) {
             ok(!DOM.isCrossDomainIframe(this));
             ok(!DOM.isCrossDomainIframe(this, true));
-
-            this.contentDocument.location.href = 'http://' + location.hostname + ':2001/hammerhead/simple_page.html';
+            this.contentDocument.location.href = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
             iteration++;
         }
         else {
