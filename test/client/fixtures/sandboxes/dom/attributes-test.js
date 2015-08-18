@@ -428,8 +428,9 @@ test('anchor with target attribute', function () {
     strictEqual(UrlUtil.parseProxyUrl(nativeHref).resourceType, 'iframe');
 });
 
-//T230764: TD15.1 - Firefox - value.replace is not a function, js errors on lastfm.ru
-test('setAttribute as function', function () {
+module('regression');
+
+test('setting function to the link.href attribute value (T230764)', function () {
     var a     = document.createElement('a');
     var error = false;
 
@@ -443,27 +444,4 @@ test('setAttribute as function', function () {
     finally {
         ok(!error);
     }
-});
-
-//B239854 - Google Images - reload page after first mouse click on image
-asyncTest('form.submit', function () {
-    var form = document.createElement('form');
-    var url  = 'http://example.com';
-
-    expect(2);
-
-    notEqual(form.submit, NativeMethods.formSubmit);
-
-    form.action = url + '/?key=value';
-
-    form.addEventListener('submit', function (event) {
-        strictEqual(this['key'], this[this.length - 1]);
-        event.preventDefault();
-        start();
-    }, false);
-
-    var ev = document.createEvent('Events');
-
-    ev.initEvent('submit', true, true);
-    form.dispatchEvent(ev);
 });

@@ -89,9 +89,22 @@ if (!Browser.hasTouchEvents) {
     });
 }
 
+if (!Browser.isIE9) {
+    //T203986 - TestCafe - A test failed in IE9, IE11 and Safari with different error messages
+    asyncTest('override setTimeout error', function () {
+        var str = 'success';
+
+        setTimeout(function (msg) {
+            strictEqual(msg, str);
+            start();
+        }, 10, str);
+    });
+}
+
+module('regression');
+
 if (document.attachEvent) {
-    //Q532574 - TestCafe cannot proceed a third-party drop-down menu in IE
-    test('document.attachEvent', function () {
+    test('document.attachEvent must be overriden (Q532574)', function () {
         var $div                = $('<div>').appendTo('body');
         var clickRaisedCount    = 0;
         var docClickRaisedCount = 0;
@@ -113,8 +126,7 @@ if (document.attachEvent) {
     });
 }
 
-//'B253685 - Google Disk - page is crashed when a text document is opening
-asyncTest('focus blur in iframe', function () {
+asyncTest('focus / blur events in iframe (B253685)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test1';
@@ -141,8 +153,7 @@ asyncTest('focus blur in iframe', function () {
     }, 500);
 });
 
-//Q532574 - Check document addEventListener overriding
-test('document.addEventListener', function () {
+test('document.addEventListener (Q532574)', function () {
     var docClickRaisedCount = 0;
 
     document.addEventListener('mousedown', function () {
@@ -154,8 +165,7 @@ test('document.addEventListener', function () {
     strictEqual(docClickRaisedCount, 1);
 });
 
-//Q532574 - Fire and dispatch events from code, events created by different ways
-test('combination of attachEvent and addEventListener', function () {
+test('firing and dispatching the events created in different ways (Q532574)', function () {
     var $div                      = $('<div>').appendTo('body');
     var div                       = $div[0];
     var attachedHandlerCount      = 0;
@@ -239,8 +249,7 @@ test('combination of attachEvent and addEventListener', function () {
 });
 
 if (!Browser.hasTouchEvents) {
-    //B254111 - Recorder - hover does not freeze
-    test('focusBlur.fixHoveredElement, focusBlur.freeHoveredElement', function () {
+    test('focusBlur.fixHoveredElement, focusBlur.freeHoveredElement (B254111)', function () {
         var $parent = $('<div style="width:100px; height:100px; background-color: Red" class="parent">').appendTo($('body'));
         var $child  = $('<div style="width:50px; height:50px; background-color: Blue" class="child">').appendTo($parent);
 
@@ -268,8 +277,7 @@ if (!Browser.hasTouchEvents) {
     });
 }
 
-//T239606 - TD15.1 - Errors raise on page http://demos111.mootools.net/Drag.Absolutely
-test('attachEvent, fireEvent, detachEvent', function () {
+test('attachEvent, fireEvent, detachEvent must be overriden (T239606)', function () {
     var el = NativeMethods.createElement.call(document, 'A');
 
     var attachEventExist = !!el.attachEvent;
@@ -287,8 +295,7 @@ test('attachEvent, fireEvent, detachEvent', function () {
     }
 });
 
-//T137892 - Health monitor - incorrectly makes copy message event (taobao.com)
-asyncTest('window.postMessage', function () {
+asyncTest('calling function from handler parameter for window.onmessage event (T137892)', function () {
     window.addEventListener('message', function (e) {
         try {
             e.stopPropagation();
@@ -305,20 +312,7 @@ asyncTest('window.postMessage', function () {
     eval(processScript('window.postMessage("hello", "*")'));
 });
 
-if (!Browser.isIE9) {
-    //T203986 - TestCafe - A test failed in IE9, IE11 and Safari with different error messages
-    asyncTest('override setTimeout error', function () {
-        var str = 'success';
-
-        setTimeout(function (msg) {
-            strictEqual(msg, str);
-            start();
-        }, 10, str);
-    });
-}
-
-//T261234 - All cases of the listener parameter aren\'t overrided in addEventListener function
-asyncTest('special parameters for addEventListener', function () {
+asyncTest('handler not the function for addEventListener (T261234)', function () {
     var divEl = document.body.appendChild(document.createElement('div'));
 
     var eventObjOrigin = {

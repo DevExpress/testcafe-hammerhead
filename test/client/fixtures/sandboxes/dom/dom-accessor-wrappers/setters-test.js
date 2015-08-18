@@ -30,19 +30,6 @@ test('script.textContent', function () {
     strictEqual(script.textContent.replace(/\s/g, ''), ScriptProcessor.process(scriptCode).replace(/\s/g, ''));
 });
 
-//B237015 - Some tests fail in IE9 with unexpected alert message
-test('innerHtml + script', function () {
-    var testPropertyName = 'testProperty';
-    var el               = document.createElement('div');
-    var body             = document.getElementsByTagName('body')[0];
-    var script           = '<script>window.' + testPropertyName + ' = true;\<\/script>';
-
-    body.appendChild(el);
-    el.innerHTML         = script;
-
-    ok(!window[testPropertyName]);
-});
-
 test('unsupported protocol', function () {
     var img = document.createElement('img');
 
@@ -193,30 +180,6 @@ test('location as a local var', function () {
     strictEqual(location, '');
 });
 
-if (!Browser.isIE) {
-    //T260697 - TestCafe does not record actions in the mobile simulator
-    asyncTest('iframe.contentWindow.location', function () {
-        var iframe = document.createElement('iframe');
-
-        iframe.id = 'testT260697';
-
-        var loadHandler = function () {
-            iframe.removeEventListener('load', loadHandler);
-
-            iframe.addEventListener('load', function () {
-                strictEqual(UrlUtil.parseProxyUrl(iframe.contentWindow.location).resourceType, 'iframe');
-                iframe.parentNode.removeChild(iframe);
-                start();
-            });
-
-            eval(processScript('iframe.contentWindow.location = "/test.html";'));
-        };
-
-        iframe.addEventListener('load', loadHandler);
-        document.body.appendChild(iframe);
-    });
-}
-
 test('simple type', function () {
     strictEqual(setProperty(1, 'prop_name', 2), 2);
 });
@@ -265,78 +228,6 @@ asyncTest('body.innerHTML in iframe', function () {
         });
 });
 
-//Q527555 - Can not click on button in DIV
-asyncTest('body.innerHtml in iframe (with a.href)', function () {
-    var $iframe = $('<iframe id="test">').appendTo('body');
-
-    window.setTimeout(function () {
-        var iframeBody = $iframe[0].contentWindow.document.body;
-        var html       = '<a href="url" ' + DomProcessor.getStoredAttrName('src') + '="url1" />';
-
-        iframeBody.innerHTML = html;
-
-        ok(getProperty(iframeBody, 'innerHTML') !== html);
-        $iframe.remove();
-        start();
-    }, 100);
-});
-
-//T198784: Javascript error on the http://automated-testing.info/ page
-test('object with properties equal "a" tag', function () {
-    /* eslint-disable no-unused-vars */
-    var obj = {
-        target:  'ok',
-        tagName: -1
-    };
-
-    strictEqual(eval(processScript('obj.target')), 'ok');
-    /* eslint-enable no-unused-vars */
-});
-
-//T230802: TD15.1 - Page content is not loaded on the nest.com page after hammerhead processing
-test('object with properties equal "input" tag', function () {
-    /* eslint-disable no-unused-vars */
-    var obj = {
-        size:    null,
-        tagName: 'input',
-        type:    'text',
-        value:   ''
-    };
-
-    strictEqual(eval(processScript('obj.value')), '');
-    /* eslint-enable no-unused-vars */
-});
-
-//T228218: Page script can\'t set the href attribute with \'malito\' to an element in an iFrame
-test('href attribute with \'malito\' value to an iframe element', function () {
-    var storedGetProxyUrl = UrlUtil.getProxyUrl;
-    var link              = document.createElement('a');
-
-    UrlUtil.getProxyUrl = function () {
-        return 'http://replaced';
-    };
-
-    eval(processScript('link.href="http://host.com/"'));
-    ok(link.href.indexOf('http://replaced') === 0);
-
-    eval(processScript('link.href="mailto:test@mail.com"'));
-    strictEqual(link.href, 'mailto:test@mail.com');
-    strictEqual(eval(processScript('link.href')), 'mailto:test@mail.com');
-    strictEqual(link.getAttribute('href'), 'mailto:test@mail.com');
-
-    UrlUtil.getProxyUrl = storedGetProxyUrl;
-});
-
-//B238838 - TestCafe cant switch ASPxPageControl tabs in AutoPostBack mode
-test('a.href', function () {
-    var url             = 'http://www.test.com/';
-    var linkWithHref    = $('<a href="' + url + '">')[0];
-    var linkWithoutHref = $('<a>')[0];
-
-    strictEqual(getProperty(linkWithHref, 'href'), url);
-    strictEqual(getProperty(linkWithoutHref, 'href'), '');
-});
-
 // IE does not allow to override postMessage method
 if (!Browser.isIE) {
     asyncTest('postMessage', function () {
@@ -358,8 +249,87 @@ if (!Browser.isIE) {
     });
 }
 
-//T232468: TD15.1 - Cannot record test for http://showcase.sproutcore.com/#demos/Transition%20Animation%20Plugins page
-test('event.which', function () {
+module('regression');
+
+test('script block inserted via element.innerHtml must not be executed (B237015)', function () {
+    var testPropertyName = 'testProperty';
+    var el               = document.createElement('div');
+    var body             = document.getElementsByTagName('body')[0];
+    var script           = '<script>window.' + testPropertyName + ' = true;\<\/script>';
+
+    body.appendChild(el);
+    el.innerHTML         = script;
+
+    ok(!window[testPropertyName]);
+});
+
+if (!Browser.isIE) {
+    asyncTest('valid resource type for iframe.contentWindow.location must be calculated', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.id = 'testT260697';
+
+        var loadHandler = function () {
+            iframe.removeEventListener('load', loadHandler);
+
+            iframe.addEventListener('load', function () {
+                strictEqual(UrlUtil.parseProxyUrl(iframe.contentWindow.location).resourceType, 'iframe');
+                iframe.parentNode.removeChild(iframe);
+                start();
+            });
+
+            eval(processScript('iframe.contentWindow.location = "/test.html";'));
+        };
+
+        iframe.addEventListener('load', loadHandler);
+        document.body.appendChild(iframe);
+    });
+}
+
+asyncTest('iframe.body.innerHtml must be overriden (Q527555)', function () {
+    var $iframe = $('<iframe id="test">').appendTo('body');
+
+    window.setTimeout(function () {
+        var iframeBody = $iframe[0].contentWindow.document.body;
+        var html       = '<a href="url" ' + DomProcessor.getStoredAttrName('src') + '="url1" />';
+
+        iframeBody.innerHTML = html;
+
+        ok(getProperty(iframeBody, 'innerHTML') !== html);
+        $iframe.remove();
+        start();
+    }, 100);
+});
+
+test('setting the link.href attribute to \'mailto\' in iframe (T228218)', function () {
+    var storedGetProxyUrl = UrlUtil.getProxyUrl;
+    var link              = document.createElement('a');
+
+    UrlUtil.getProxyUrl = function () {
+        return 'http://replaced';
+    };
+
+    eval(processScript('link.href="http://host.com/"'));
+    ok(link.href.indexOf('http://replaced') === 0);
+
+    eval(processScript('link.href="mailto:test@mail.com"'));
+    strictEqual(link.href, 'mailto:test@mail.com');
+    strictEqual(eval(processScript('link.href')), 'mailto:test@mail.com');
+    strictEqual(link.getAttribute('href'), 'mailto:test@mail.com');
+
+    UrlUtil.getProxyUrl = storedGetProxyUrl;
+});
+
+test('link without the href attrubute must return an empty value for href (B238838)', function () {
+    var url             = 'http://www.test.com/';
+    var linkWithHref    = $('<a href="' + url + '">')[0];
+    var linkWithoutHref = $('<a>')[0];
+
+    strictEqual(getProperty(linkWithHref, 'href'), url);
+    strictEqual(getProperty(linkWithoutHref, 'href'), '');
+});
+
+test('event.which must return undefined if originalEvent is null (T232468)', function () {
     /* eslint-disable no-unused-vars */
     var evtObj = {
         originalEvent: null
@@ -369,8 +339,7 @@ test('event.which', function () {
     /* eslint-enable no-unused-vars */
 });
 
-//T221375: Inconsistent behavior OnChange event in TestCafe and browsers(Chrome, IE)
-asyncTest('input.value for special cases', function () {
+asyncTest('input\'s onchange event must not be raise after press Tab key (T221375)', function () {
     var $input     = $('<input value="0">');
     var firedCount = 0;
 
@@ -406,4 +375,5 @@ asyncTest('input.value for special cases', function () {
             start();
         });
 });
+
 /* eslint-enable no-implied-eval */

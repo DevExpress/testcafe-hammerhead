@@ -250,10 +250,11 @@ if (Browser.isIE) {
     });
 }
 
+module('regression');
+
 if (Browser.isIE) {
     if (!Browser.isIE11) {
-        //B237144 - IE9, IE10 - Unexpected postback occurs when call DoClick() method of the ASPxButton client instance with disabled AutoPostBack property
-        test('nativeClick', function () {
+        test('window.event save/restore for сlick (B237144)', function () {
             var $textInput = $('<input type="text">').appendTo('body');
 
             var $checkBox1 = $('<input type="checkbox">')
@@ -288,7 +289,7 @@ if (Browser.isIE) {
         });
     }
 
-    test('B237405 - window.event contains toElement and fromElement properties for mouseout and mouseover events', function () {
+    test('window.event must contain toElement and fromElement properties for mouseout and mouseover events (B237405)', function () {
         var mouseoutChecked  = false;
         var mouseoverChecked = false;
 

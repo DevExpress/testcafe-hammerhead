@@ -72,35 +72,6 @@ test('form', function () {
     UrlUtil.getProxyUrl = storedGetProxyUrl;
 });
 
-//T226885: Hammerhead breaks Xenarius Designer
-test('script', function () {
-    var code    = 'var t = 1;';
-    var $script = $('<script>' + code + '<\/script>');
-
-    notEqual($script[0].innerHTML.replace(/^\s*|\s*$/g, ''), code);
-    strictEqual(eval(processScript('$script[0].innerHTML')).replace(/^\s*|\s*$/g, ''), code);
-
-    $script.remove();
-});
-
-//T112153 - Click (Touch) events being swallowed when using a combination of TestCafé 14.1.1 + KendoUI Mobile + iOS
-test('attributes', function () {
-    var html =
-            // <script type="script/x-kendo-template" id="inboxItem">
-            '<h3 class="time">#: Time#</h3><h3>#: From #</h3>\n' +
-            '<a class="reply"\n' +
-            'data-role="button"\n' +
-            'data-rel="actionsheet"\n' +
-            'href="\\\\#inboxActions"\n' +
-            'data-actionsheet-context="#:ID#">Reply</a>\n' +
-            '<h2>#: Subject#</h2>\n' +
-            '<p>#: Text#</p>';
-
-    // </script\>
-
-    strictEqual(Html.cleanUpHtml(html).replace(/\s/g, ''), html.replace(/\s/g, ''));
-});
-
 module('process html');
 
 test('iframe', function () {
@@ -277,19 +248,6 @@ test('init script for iframe template', function () {
         check(pageHtmlTemplates[i]);
 });
 
-//T226655: 15.1 Testing - Hammerhead DomSandboxUtil.processHtml function does not process body/head/html attributes
-test('html and body attributes', function () {
-    var attrValue           = 'var js = document.createElement(\'script\');js.src = \'http://google.com\'; document.body.appendChild(js);';
-    var expectedAttrValue   = ScriptProcessor.process(attrValue, true).replace(/\s/g, '');
-    var htmlWithBody        = '<body onload="' + attrValue + '">';
-    var htmlWithHeadAndBody = '<head></head><body onload="' + attrValue + '"></body>';
-    var htmlWithHtmlTag     = '<html onload="' + attrValue + '">';
-
-    ok(Html.processHtml(htmlWithBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
-    ok(Html.processHtml(htmlWithHeadAndBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
-    ok(Html.processHtml(htmlWithHtmlTag).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
-});
-
 module('is well formatted tag');
 
 test('special cases', function () {
@@ -365,5 +323,47 @@ asyncTest('real big page', function () {
 
         start();
     }).appendTo('body');
+});
+
+
+module('regression');
+
+test('script.innerHtml must be cleaned up (T226885)', function () {
+    var code    = 'var t = 1;';
+    var $script = $('<script>' + code + '<\/script>');
+
+    notEqual($script[0].innerHTML.replace(/^\s*|\s*$/g, ''), code);
+    strictEqual(eval(processScript('$script[0].innerHTML')).replace(/^\s*|\s*$/g, ''), code);
+
+    $script.remove();
+});
+
+test('markup with special characters must be cleaned up (T112153)', function () {
+    var html =
+            // <script type="script/x-kendo-template" id="inboxItem">
+            '<h3 class="time">#: Time#</h3><h3>#: From #</h3>\n' +
+            '<a class="reply"\n' +
+            'data-role="button"\n' +
+            'data-rel="actionsheet"\n' +
+            'href="\\\\#inboxActions"\n' +
+            'data-actionsheet-context="#:ID#">Reply</a>\n' +
+            '<h2>#: Subject#</h2>\n' +
+            '<p>#: Text#</p>';
+
+    // </script\>
+
+    strictEqual(Html.cleanUpHtml(html).replace(/\s/g, ''), html.replace(/\s/g, ''));
+});
+
+test('html and body attributes must be processed (T226655)', function () {
+    var attrValue           = 'var js = document.createElement(\'script\');js.src = \'http://google.com\'; document.body.appendChild(js);';
+    var expectedAttrValue   = ScriptProcessor.process(attrValue, true).replace(/\s/g, '');
+    var htmlWithBody        = '<body onload="' + attrValue + '">';
+    var htmlWithHeadAndBody = '<head></head><body onload="' + attrValue + '"></body>';
+    var htmlWithHtmlTag     = '<html onload="' + attrValue + '">';
+
+    ok(Html.processHtml(htmlWithBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
+    ok(Html.processHtml(htmlWithHeadAndBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
+    ok(Html.processHtml(htmlWithHtmlTag).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
 });
 

@@ -68,39 +68,6 @@ test('get root', function () {
     root.parentNode.removeChild(root);
 });
 
-//T225944: 15.1 Testing - Recorder: JavaScriptExecutor can not be initialized (http://brumm.github.io/react-flexbox-playground/
-asyncTest('iframe get root', function () {
-    var $iframe = $('<iframe id="test001">');
-
-    $iframe.load(function () {
-        var $root = $(this.contentWindow.Hammerhead.ShadowUI.getRoot());
-
-        strictEqual($root.parent().parent().parent()[0], this.contentDocument);
-
-        this.contentDocument.body.innerHTMl = '';
-
-        $root = $(this.contentWindow.Hammerhead.ShadowUI.getRoot());
-
-        strictEqual($root.parent().parent().parent()[0], this.contentDocument);
-
-        $iframe.remove();
-        start();
-    });
-
-    $iframe.appendTo('body');
-});
-
-//T195358 - CSS selector is working too slow from jquery 1.9
-test('getElementsByClassName, querySelectorAll should not override', function () {
-    var doc             = {};
-    var nativeMethRegEx = /^[^{]+\{\s*\[native \w/;
-
-    ShadowUI.init(null, doc);
-
-    ok(nativeMethRegEx.test(doc.getElementsByClassName));
-    ok(nativeMethRegEx.test(doc.querySelectorAll));
-});
-
 module('childNodes');
 
 test('body.childNodes', function () {
@@ -133,24 +100,6 @@ test('body.children', function () {
     }
 
     ok(!found);
-});
-
-//T239689 - TD 15.1 - TestCafe recorder toolbar is not top most for images popup (http://moscow.auto.ru)
-test('body.children - change collection', function () {
-    var root              = ShadowUI.getRoot();
-    var bodyChildrenCount = document.body.children.length;
-
-    strictEqual(document.body.children[bodyChildrenCount - 1], root);
-
-    var $newElement = $('<div>');
-
-    document.body.appendChild($newElement[0]);
-
-    strictEqual(document.body.children.length, bodyChildrenCount + 1);
-    strictEqual(document.body.children[bodyChildrenCount - 1], $newElement[0]);
-    strictEqual(document.body.children[bodyChildrenCount], root);
-
-    $newElement.remove();
 });
 
 test('head.children', function () {
@@ -237,26 +186,6 @@ test('isShadowContainerCollection', function () {
 
     strictEqual(collection[0], el);
     ok(!ShadowUI.isShadowContainerCollection(collection));
-});
-
-//T212476: Cross-domain error in Hammerhead when an array contains cross-domain iframes
-asyncTest('isShadowContainerCollection for iframe contentWindow', function () {
-    var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
-
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
-
-    var crossDomainIframe = document.createElement('iframe');
-
-    crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
-    crossDomainIframe.addEventListener('load', function () {
-        ok(!ShadowUI.isShadowContainerCollection([this.contentWindow]));
-
-        crossDomainIframe.parentNode.removeChild(crossDomainIframe);
-        Settings.get().CROSS_DOMAIN_PROXY_PORT = storedCrossDomainPort;
-        start();
-    });
-
-    document.body.appendChild(crossDomainIframe);
 });
 
 test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function () {
@@ -478,4 +407,73 @@ test('querySelectorAll', function () {
 
     strictEqual(elems.length, 1);
     strictEqual(elems[0].id, 'pageElem');
+});
+
+module('regression');
+
+asyncTest('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
+    var $iframe = $('<iframe id="test001">');
+
+    $iframe.load(function () {
+        var $root = $(this.contentWindow.Hammerhead.ShadowUI.getRoot());
+
+        strictEqual($root.parent().parent().parent()[0], this.contentDocument);
+
+        this.contentDocument.body.innerHTMl = '';
+
+        $root = $(this.contentWindow.Hammerhead.ShadowUI.getRoot());
+
+        strictEqual($root.parent().parent().parent()[0], this.contentDocument);
+
+        $iframe.remove();
+        start();
+    });
+
+    $iframe.appendTo('body');
+});
+
+test('getElementsByClassName, querySelectorAll must not be overriden (T195358)', function () {
+    var doc             = {};
+    var nativeMethRegEx = /^[^{]+\{\s*\[native \w/;
+
+    ShadowUI.init(null, doc);
+
+    ok(nativeMethRegEx.test(doc.getElementsByClassName));
+    ok(nativeMethRegEx.test(doc.querySelectorAll));
+});
+
+test('ShadowUI\'s root must be the last child after adding a new element (T239689)', function () {
+    var root              = ShadowUI.getRoot();
+    var bodyChildrenCount = document.body.children.length;
+
+    strictEqual(document.body.children[bodyChildrenCount - 1], root);
+
+    var $newElement = $('<div>');
+
+    document.body.appendChild($newElement[0]);
+
+    strictEqual(document.body.children.length, bodyChildrenCount + 1);
+    strictEqual(document.body.children[bodyChildrenCount - 1], $newElement[0]);
+    strictEqual(document.body.children[bodyChildrenCount], root);
+
+    $newElement.remove();
+});
+
+asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
+    var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
+
+    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
+
+    var crossDomainIframe = document.createElement('iframe');
+
+    crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
+    crossDomainIframe.addEventListener('load', function () {
+        ok(!ShadowUI.isShadowContainerCollection([this.contentWindow]));
+
+        crossDomainIframe.parentNode.removeChild(crossDomainIframe);
+        Settings.get().CROSS_DOMAIN_PROXY_PORT = storedCrossDomainPort;
+        start();
+    });
+
+    document.body.appendChild(crossDomainIframe);
 });

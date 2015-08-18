@@ -119,8 +119,9 @@ test('remove real cookie after browser processing', function () {
     Transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
 
-//B239496 - Overwrite cookie
-test('overwrite', function () {
+module('regression');
+
+test('overwrite (B239496)', function () {
     Settings.get().COOKIE = '';
 
     var savedQueuedAsyncServiceMsg = Transport.queuedAsyncServiceMsg;
@@ -152,8 +153,7 @@ test('overwrite', function () {
     UrlUtil.parseProxyUrl           = savedUrlUtilParseProxyUrl;
 });
 
-//B239496 - Delete cookie
-test('delete', function () {
+test('delete (B239496)', function () {
     Settings.get().COOKIE = '';
 
     var savedQueuedAsyncServiceMsg = Transport.queuedAsyncServiceMsg;

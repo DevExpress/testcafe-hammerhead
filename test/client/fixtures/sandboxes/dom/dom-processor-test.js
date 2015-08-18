@@ -53,26 +53,6 @@ test('link in iframe', function () {
     $link.remove();
 });
 
-//T216999 - TestCafe playback - act.click doesn\'t work in an iframe
-asyncTest('a.href in iframe', function () {
-    var iframe         = document.createElement('iframe');
-    var storedAttrName = DomProcessor.getStoredAttrName('href');
-
-    iframe.id  = 'test';
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
-
-    iframe.addEventListener('load', function () {
-        var link = NativeMethods.getElementById.call(this.contentDocument, 'link');
-
-        strictEqual(NativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
-
-        this.parentNode.removeChild(this);
-        start();
-    });
-
-    document.body.appendChild(iframe);
-});
-
 test('script text', function () {
     var $div            = $('<div>').appendTo($('body'));
     var script          = 'var host = location.host';
@@ -200,26 +180,6 @@ test('javascript protocol', function () {
     strictEqual(NativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('href')), attrValue);
 });
 
-//T135513 - Html code like as <iframe src="javascript:\'<html>....</html>\'"> not processed (http://www.tripadvisor.com/).
-test('javascript protocol for iframe.src', function () {
-    var iframe = NativeMethods.createElement.call(document, 'iframe');
-    var src    = 'javascript:"<html><body><a id=\'test\' data-attr=\"123\">link</a></body></html>"';
-
-    NativeMethods.setAttribute.call(iframe, 'src', src);
-
-    DomProcessor.processElement(iframe, function (url) {
-        return url;
-    });
-
-    var srcAttr       = NativeMethods.getAttribute.call(iframe, 'src');
-    var storedSrcAttr = NativeMethods.getAttribute.call(iframe, DomProcessor.getStoredAttrName('src'));
-
-    notEqual(srcAttr, src);
-    strictEqual(srcAttr, 'javascript:\'' +
-                         Html.processHtml('<html><body><a id=\'test\' data-attr="123">link</a></body></html>') + '\'');
-    strictEqual(storedSrcAttr, src);
-});
-
 test('anchor with target attribute', function () {
     var anchor   = NativeMethods.createElement.call(document, 'a');
     var url      = 'http://url.com/';
@@ -344,4 +304,44 @@ test('stylesheet after innerHTML', function () {
 
     eval(processScript('style.innerHTML = style.innerHTML;'));
     check(style.innerHTML);
+});
+
+module('regression');
+
+asyncTest('link with target=\'_parent\' in iframe (T216999)', function () {
+    var iframe         = document.createElement('iframe');
+    var storedAttrName = DomProcessor.getStoredAttrName('href');
+
+    iframe.id  = 'test';
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
+
+    iframe.addEventListener('load', function () {
+        var link = NativeMethods.getElementById.call(this.contentDocument, 'link');
+
+        strictEqual(NativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
+
+        this.parentNode.removeChild(this);
+        start();
+    });
+
+    document.body.appendChild(iframe);
+});
+
+test('iframe with javascript protocol in \'src\' attribute value must be processed (T135513)', function () {
+    var iframe = NativeMethods.createElement.call(document, 'iframe');
+    var src    = 'javascript:"<html><body><a id=\'test\' data-attr=\"123\">link</a></body></html>"';
+
+    NativeMethods.setAttribute.call(iframe, 'src', src);
+
+    DomProcessor.processElement(iframe, function (url) {
+        return url;
+    });
+
+    var srcAttr       = NativeMethods.getAttribute.call(iframe, 'src');
+    var storedSrcAttr = NativeMethods.getAttribute.call(iframe, DomProcessor.getStoredAttrName('src'));
+
+    notEqual(srcAttr, src);
+    strictEqual(srcAttr, 'javascript:\'' +
+                         Html.processHtml('<html><body><a id=\'test\' data-attr="123">link</a></body></html>') + '\'');
+    strictEqual(storedSrcAttr, src);
 });

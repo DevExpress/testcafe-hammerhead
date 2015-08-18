@@ -89,17 +89,6 @@ asyncTest('isDomElement for iframe Element.prototype chain', function () {
     document.body.appendChild(iframe);
 });
 
-//B252941 - TestCafe - act.click throws an error in FF when click on <object> tag
-test('IsDomElement for <object> tag', function () {
-    var objectElement = document.createElement('object');
-
-    document.body.appendChild(objectElement);
-
-    ok(DOM.isDomElement(objectElement));
-
-    objectElement.parentNode.removeChild(objectElement);
-});
-
 asyncTest('getTopSameDomainWindow', function () {
     var iframe = document.createElement('iframe');
 
@@ -373,4 +362,40 @@ test('hasClass', function () {
     ok(DOM.hasClass(div, 'test3'));
 
     div.parentNode.removeChild(div);
+});
+
+module('regression');
+
+test('IsDomElement for <object> tag (B252941)', function () {
+    var objectElement = document.createElement('object');
+
+    document.body.appendChild(objectElement);
+
+    ok(DOM.isDomElement(objectElement));
+
+    objectElement.parentNode.removeChild(objectElement);
+});
+
+test('IsDomElement for object that simulate HTMLInputElement (T230802)', function () {
+    /* eslint-disable no-unused-vars */
+    var obj = {
+        size:    null,
+        tagName: 'input',
+        type:    'text',
+        value:   ''
+    };
+
+    strictEqual(eval(processScript('obj.value')), '');
+    /* eslint-enable no-unused-vars */
+});
+
+test('IsDomElement for plain object (T198784)', function () {
+    /* eslint-disable no-unused-vars */
+    var obj = {
+        target:  'ok',
+        tagName: -1
+    };
+
+    strictEqual(eval(processScript('obj.target')), 'ok');
+    /* eslint-enable no-unused-vars */
 });

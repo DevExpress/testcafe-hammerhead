@@ -22,7 +22,6 @@ var webmake      = require('gulp-webmake');
 var Promise      = require('es6-promise').Promise;
 var runSequence  = require('run-sequence');
 
-
 var CLIENT_TESTS_SETTINGS = {
     basePath:        './test/client/fixtures',
     port:            2000,

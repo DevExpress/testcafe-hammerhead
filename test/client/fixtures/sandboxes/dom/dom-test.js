@@ -184,8 +184,9 @@ asyncTest('body created event', function () {
     document.body.appendChild(iframe);
 });
 
-//B237402 - overrideEventListeners: one listener for several events
-test('overrideEventListeners: one listener for several events', function () {
+module('resgression');
+
+test('one handler for several events must be overriden correctly (B237402)', function () {
     var div        = document.body.appendChild(document.createElement('div'));
     var mousemoved = false;
     var mouseuped  = false;

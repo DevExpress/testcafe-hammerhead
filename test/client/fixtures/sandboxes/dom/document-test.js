@@ -16,74 +16,6 @@ QUnit.testDone(function () {
     IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
 });
 
-//T215136 - Not overrided all cases of "document.write" function (kakaku.com)
-asyncTest('document.write in iframe', function () {
-    expect(2);
-
-    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/dom-sandbox/iframe-with-doc-write.html');
-
-    $('<iframe></iframe>').attr('src', iframeSrc).appendTo('body').load(function () {
-        var iframe = this;
-        var div    = iframe.contentDocument.querySelector('#parent');
-
-        strictEqual(div.children.length, 3);
-        strictEqual(div.parentNode.lastElementChild, div);
-
-        iframe.parentNode.removeChild(iframe);
-        start();
-    });
-});
-
-if (!Browser.isMozilla) {
-    //T239131 - TD15.1 - error on image click (wikipedia.org)
-    asyncTest('document.write([]) in iframe', function () {
-        var iframe = document.createElement('iframe');
-
-        iframe.id = 'test04';
-
-        var loadHandler = function () {
-            iframe.removeEventListener('load', loadHandler);
-
-            // Some browsers remove they documentElement after "write([])" calling.
-            // Previously, if the documentElement was null, "overrideDomMethods""
-            // failed with the 'Maximum call stack size exceeded' error
-            iframe.contentDocument.write([]);
-            ok(true);
-            iframe.contentDocument.close();
-            iframe.parentNode.removeChild(iframe);
-            start();
-        };
-
-        iframe.addEventListener('load', loadHandler);
-        document.body.appendChild(iframe);
-    });
-}
-
-//T190753 - A JavaScript error occurs during test running on msn.com
-test('document.write for page html', function () {
-    var $div            = $('<div>').appendTo('body');
-    var $iframe         = $('<iframe id="test5">');
-    var script          = 'var a = [1,2], b = 0; window.test = a[b];';
-    var processedScript = ScriptProcessor.process(script).replace(/\s*/g, '');
-
-    overrideDomMeth($div[0]);
-    $div[0].appendChild($iframe[0]);
-
-    ok(script.replace(/\s*/g, '') !== processedScript);
-
-    $iframe[0].contentDocument.write('<html><head><script>' + script + '<\/script><head><body></body></html>');
-
-    strictEqual($iframe[0].contentWindow.test, 1);
-
-    var scripts = $iframe[0].contentDocument.getElementsByTagName('script');
-
-    strictEqual(scripts.length, 1);
-    strictEqual(scripts[0].text.replace(/\s*/g, ''), processedScript);
-
-    $iframe.remove();
-    $div.remove();
-});
-
 test('document.write for iframe.src with javascript protocol', function () {
     var $div = $('<div>').appendTo('body');
 
@@ -190,9 +122,51 @@ if (!Browser.isMozilla) {
     });
 }
 
+module('resgression');
+
+asyncTest('document.write for several tags in iframe (T215136)', function () {
+    expect(2);
+
+    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/dom-sandbox/iframe-with-doc-write.html');
+
+    $('<iframe></iframe>').attr('src', iframeSrc).appendTo('body').load(function () {
+        var iframe = this;
+        var div    = iframe.contentDocument.querySelector('#parent');
+
+        strictEqual(div.children.length, 3);
+        strictEqual(div.parentNode.lastElementChild, div);
+
+        iframe.parentNode.removeChild(iframe);
+        start();
+    });
+});
+
+test('document.write for page html (T190753)', function () {
+    var $div            = $('<div>').appendTo('body');
+    var $iframe         = $('<iframe id="test5">');
+    var script          = 'var a = [1,2], b = 0; window.test = a[b];';
+    var processedScript = ScriptProcessor.process(script).replace(/\s*/g, '');
+
+    overrideDomMeth($div[0]);
+    $div[0].appendChild($iframe[0]);
+
+    ok(script.replace(/\s*/g, '') !== processedScript);
+
+    $iframe[0].contentDocument.write('<html><head><script>' + script + '<\/script><head><body></body></html>');
+
+    strictEqual($iframe[0].contentWindow.test, 1);
+
+    var scripts = $iframe[0].contentDocument.getElementsByTagName('script');
+
+    strictEqual(scripts.length, 1);
+    strictEqual(scripts[0].text.replace(/\s*/g, ''), processedScript);
+
+    $iframe.remove();
+    $div.remove();
+});
+
 if (Browser.isMozilla || Browser.isIE11) {
-    //T239109 - TD 15.1 - Hummerhead script error after perform search on http://livejournal.com page
-    asyncTest('override window methods after document.write', function () {
+    asyncTest('override window methods after document.write call (T239109)', function () {
         var $iframe = $('<iframe id="test_wrapper">');
 
         window.top.onIframeInited = function (window) {
@@ -227,8 +201,31 @@ if (Browser.isMozilla || Browser.isIE11) {
     });
 }
 
-//T232454: TD15.1 - Error on loading page https://openui5.hana.ondemand.com/test-resources/sap/m/demokit/cart/index.html?responderOn=true
-test('document.write __begin$, __end$ parameters', function () {
+if (!Browser.isMozilla) {
+    asyncTest('document.write([]) in iframe (T239131)', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.id = 'test04';
+
+        var loadHandler = function () {
+            iframe.removeEventListener('load', loadHandler);
+
+            // Some browsers remove their documentElement after "write([])" call.
+            // Previously, if the documentElement was null, "overrideDomMethods""
+            // failed with the 'Maximum call stack size exceeded' error
+            iframe.contentDocument.write([]);
+            ok(true);
+            iframe.contentDocument.close();
+            iframe.parentNode.removeChild(iframe);
+            start();
+        };
+
+        iframe.addEventListener('load', loadHandler);
+        document.body.appendChild(iframe);
+    });
+}
+
+test('document.write with __begin$, __end$ parameters (T232454)', function () {
     var result = '';
 
     /* eslint-disable no-unused-vars */
