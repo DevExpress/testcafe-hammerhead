@@ -59,22 +59,6 @@ test('url', function () {
     /* eslint-enable no-unused-vars */
 });
 
-//T123960: Health monitor - change url properties of link not changed stored attribute(xda-developers.com)
-test('stored attribute changing after change url', function () {
-    var link     = $('<a>')[0];
-    var url      = '/path?param=value';
-    var proxyUrl = UrlUtil.getProxyUrl(url);
-
-    setProperty(link, 'href', url);
-    strictEqual(link.href, proxyUrl);
-    strictEqual(getProperty(link, 'href'), UrlUtil.parseProxyUrl(proxyUrl).originUrl);
-
-    eval(processScript('link.pathname="newPath"'));
-    ok(/newPath$/.test(getProperty(link, 'pathname')));
-    strictEqual(link.href, UrlUtil.getProxyUrl('/newPath?param=value'));
-    ok(/\/newPath\?param=value$/.test(getProperty(link, 'href')));
-});
-
 test('attributes', function () {
     var link       = $('<a href="http://some.com/" rel="x">')[0];
     var attributes = null;
@@ -159,4 +143,21 @@ if (Browser.isWebKit) {
         strictEqual(el.style.cursor, 'url(' + proxyUrl + '), auto', 'cursor');
     });
 }
+
+module('regression');
+
+test('changing the link.href property must affect the stored attribute value (T123960)', function () {
+    var link     = $('<a>')[0];
+    var url      = '/path?param=value';
+    var proxyUrl = UrlUtil.getProxyUrl(url);
+
+    setProperty(link, 'href', url);
+    strictEqual(link.href, proxyUrl);
+    strictEqual(getProperty(link, 'href'), UrlUtil.parseProxyUrl(proxyUrl).originUrl);
+
+    eval(processScript('link.pathname="newPath"'));
+    ok(/newPath$/.test(getProperty(link, 'pathname')));
+    strictEqual(link.href, UrlUtil.getProxyUrl('/newPath?param=value'));
+    ok(/\/newPath\?param=value$/.test(getProperty(link, 'href')));
+});
 

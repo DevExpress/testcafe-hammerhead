@@ -1,5 +1,19 @@
-//B238830 - Js error occurs on the http://www.tripadvisor.ru/ website.
-test('overrride window.onerror', function () {
+test('window.onerror setter/getter', function () {
+    strictEqual(getProperty(window, 'onerror'), null);
+
+    setProperty(window, 'onerror', 123);
+    strictEqual(getProperty(window, 'onerror'), null);
+
+    var handler = function () {
+    };
+
+    setProperty(window, 'onerror', handler);
+    strictEqual(getProperty(window, 'onerror'), handler);
+});
+
+module('regression');
+
+test('window.onerror must be overriden (B238830)', function () {
     var error     = false;
     var windowObj = window.Window;
 
@@ -18,16 +32,3 @@ test('overrride window.onerror', function () {
     ok(!error);
 });
 
-
-test('window.onerror setter/getter', function () {
-    strictEqual(getProperty(window, 'onerror'), null);
-
-    setProperty(window, 'onerror', 123);
-    strictEqual(getProperty(window, 'onerror'), null);
-
-    var handler = function () {
-    };
-
-    setProperty(window, 'onerror', handler);
-    strictEqual(getProperty(window, 'onerror'), handler);
-});

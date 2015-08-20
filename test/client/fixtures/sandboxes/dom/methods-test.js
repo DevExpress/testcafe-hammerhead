@@ -78,50 +78,6 @@ test('element.appendChild', function () {
     checkInnerHtmlOverrided(child);
 });
 
-//B237231 - Scripts are not executed when added into a header in IE9
-asyncTest('head.appendChild for script', function () {
-    var scriptText = 'window.top.testField = true;';
-    var head       = document.getElementsByTagName('head')[0];
-    var script     = document.createElement('script');
-
-    script.src = '/get-script/' + scriptText;
-
-    ok(!window.top.testField);
-    head.appendChild(script);
-
-    var maxIterationCount = 10;
-    var iterationCount = 0;
-    var clearCheckingInterval = function (id) {
-        window.clearInterval(id);
-        $(script).remove();
-        start();
-    };
-
-    var intervalId = window.setInterval(function () {
-        iterationCount++;
-
-        if (window.top.testField) {
-            ok(true);
-            clearCheckingInterval(intervalId);
-        }
-
-        if (iterationCount > maxIterationCount) {
-            ok(false);
-            clearCheckingInterval(intervalId);
-        }
-    }, 500);
-
-});
-
-//(B234291)
-test('element.cloneNode', function () {
-    var el    = document.createElement('div');
-    var clone = el.cloneNode();
-
-    notEqual(clone.appendChild, NativeMethods.appendChild);
-    checkInnerHtmlOverrided(clone);
-});
-
 test('element.removeAttribute, element.removeAttributeNS', function () {
     var el         = document.createElement('a');
     var attr       = 'href';
@@ -181,27 +137,6 @@ test('table.insertRow, table.insertCell', function () {
     notEqual(tableRow.appendChild, NativeMethods.appendChild);
     notEqual(tbodyRow.appendChild, NativeMethods.appendChild);
     notEqual(cell.appendChild, NativeMethods.appendChild);
-});
-
-//Q519748 - TestCafe breaks jQuery Tabs widget
-test('link.href', function () {
-    var link        = $('<a href="">').appendTo('body');
-    var resolvedUrl = getProperty(link[0], 'href');
-
-    strictEqual(resolvedUrl, 'https://example.com');
-    link.remove();
-});
-
-//(B237717)
-test('document.createDocumentFragment', function () {
-    var fragment = document.createDocumentFragment();
-
-    fragment.appendChild(document.createElement('div'));
-
-    var clone = fragment.cloneNode(true);
-
-    notEqual(fragment.firstChild.getAttribute, NativeMethods.getAttribute);
-    notEqual(clone.firstChild.getAttribute, NativeMethods.getAttribute);
 });
 
 test('setAttribute: img src', function () {
@@ -274,3 +209,66 @@ if (!Browser.isMozilla) {
         $iframe.remove();
     });
 }
+
+module('regression');
+
+asyncTest('script must be executed after it is added to head tag (B237231)', function () {
+    var scriptText = 'window.top.testField = true;';
+    var head       = document.getElementsByTagName('head')[0];
+    var script     = document.createElement('script');
+
+    script.src = '/get-script/' + scriptText;
+
+    ok(!window.top.testField);
+    head.appendChild(script);
+
+    var maxIterationCount = 10;
+    var iterationCount = 0;
+    var clearCheckingInterval = function (id) {
+        window.clearInterval(id);
+        $(script).remove();
+        start();
+    };
+
+    var intervalId = window.setInterval(function () {
+        iterationCount++;
+
+        if (window.top.testField) {
+            ok(true);
+            clearCheckingInterval(intervalId);
+        }
+
+        if (iterationCount > maxIterationCount) {
+            ok(false);
+            clearCheckingInterval(intervalId);
+        }
+    }, 500);
+
+});
+
+test('element.cloneNode must be overridden (B234291)', function () {
+    var el    = document.createElement('div');
+    var clone = el.cloneNode();
+
+    notEqual(clone.appendChild, NativeMethods.appendChild);
+    checkInnerHtmlOverrided(clone);
+});
+
+test('link.href with an empty value must return root site url (Q519748)', function () {
+    var link        = $('<a href="">').appendTo('body');
+    var resolvedUrl = getProperty(link[0], 'href');
+
+    strictEqual(resolvedUrl, 'https://example.com');
+    link.remove();
+});
+
+test('document.createDocumentFragment must be overriden (B237717)', function () {
+    var fragment = document.createDocumentFragment();
+
+    fragment.appendChild(document.createElement('div'));
+
+    var clone = fragment.cloneNode(true);
+
+    notEqual(fragment.firstChild.getAttribute, NativeMethods.getAttribute);
+    notEqual(clone.firstChild.getAttribute, NativeMethods.getAttribute);
+});

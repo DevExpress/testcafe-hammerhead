@@ -1,6 +1,5 @@
 var extend = Hammerhead.get('./utils/extend');
 
-module('extend');
 test('simple two objects', function () {
     var obj1 = {
         property1: 1,

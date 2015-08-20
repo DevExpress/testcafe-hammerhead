@@ -345,8 +345,9 @@ $(document).ready(function () {
         Listeners.removeInternalEventListener(container, [event], cancelHandlers);
     });
 
-    //T233158 - Wrong test run for mouse click in IE
-    test('special case for mourse click in IE(document handlers)', function () {
+    module('regression');
+
+    test('only one of several handlers must be called (document handlers) (T233158)', function () {
         var event               = 'click';
         var clickHandlerCounter = 0;
 
@@ -407,8 +408,7 @@ $(document).ready(function () {
         document.removeEventListener(event, clickHandler, false);
     });
 
-    //T233158 - Wrong test run for mouse click in IE
-    test('special case for mourse click in IE (body handlers)', function () {
+    test('only one of several handlers must be called (body handlers) (T233158)', function () {
         var event               = 'click';
         var clickHandlerCounter = 0;
 
@@ -441,8 +441,7 @@ $(document).ready(function () {
         $body.off('click', clickHandler);
     });
 
-    //T233158 - Wrong test run for mouse click in IE
-    test('special case for mourse click in IE (element handlers)', function () {
+    test('only one of several handlers must be called (element handlers) (T233158)', function () {
         var event               = 'click';
         var clickHandlerCounter = 0;
 
@@ -473,8 +472,7 @@ $(document).ready(function () {
     });
 
     if (Browser.isIE && Browser.version >= 10) {
-        //T233158 - Wrong test run for mouse click in IE (document pointer event handlers)
-        test('MSPointerDown, pointerdown', function () {
+        test('only one of several handlers must be called (MSPointerDown, pointerdown combination) (T233158)', function () {
             var events              = Browser.isMSEdge ? 'pointerdown MSPointerDown' : 'pointerdown';
             var eventHandlerCounter = 0;
 

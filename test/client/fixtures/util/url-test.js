@@ -32,11 +32,6 @@ test('sameOriginCheck', function () {
     ok(!UrlUtil.sameOriginCheck('http://proxy/token!uid/http://origin.com:111/index.html', 'http://origin2.com:111/index.php'));
 });
 
-//T106172 - Health monitor - cross-domain errors
-test('sameOriginCheck for third-level domain', function () {
-    ok(UrlUtil.sameOriginCheck('http://www.example.com', 'http://money.example.com'));
-});
-
 test('resolveUrl', function () {
     strictEqual(UrlUtil.resolveUrl('//domain.com/index.php'), 'https://domain.com/index.php');
     strictEqual(UrlUtil.resolveUrl('//dom\n\tain.com/index.php'), 'https://domain.com/index.php');
@@ -51,20 +46,6 @@ test('resolveUrlAsOrigin', function () {
     strictEqual(UrlUtil.resolveUrlAsOrigin('//twitter.com/index.html?param=value#hash'), 'https://twitter.com/index.html?param=value#hash');
     strictEqual(UrlUtil.resolveUrlAsOrigin('http://g.tbcdn.cn/??kissy/k/1.4.2/seed-min.js'), 'http://g.tbcdn.cn/??kissy/k/1.4.2/seed-min.js');
 });
-
-//T262593: location.port returns incorrect value null instead empty string (att.com)
-test('location.port returns incorrect value null instead empty string', function () {
-    /* eslint-disable no-undef */
-    eval(processScript([
-        // code from att.com, iframesrc === https://att.com:null/?IFRAME
-        'var port = (document.location.port == "") ? "" : (":" + document.location.port);',
-        'var iframesrc = document.location.protocol + "//" + document.location.hostname + port + "/" + "?IFRAME";'
-    ].join('\n')));
-
-    strictEqual(iframesrc, 'https://example.com/?IFRAME');
-    /* eslint-enable no-undef */
-});
-
 
 module('parse url');
 
@@ -299,3 +280,20 @@ test('origin URL part', function () {
     strictEqual(changed, 'http://localhost:1337/ownerToken!MyUID/http://test.example.com:53/?hl=ru&tab=wn#testHash');
 });
 
+module('regression');
+
+test('sameOriginCheck for third-level domain (T106172)', function () {
+    ok(UrlUtil.sameOriginCheck('http://www.example.com', 'http://money.example.com'));
+});
+
+test('location.port must return the empty string (T262593)', function () {
+    /* eslint-disable no-undef */
+    eval(processScript([
+        // code from att.com, iframesrc === https://att.com:null/?IFRAME
+        'var port = (document.location.port == "") ? "" : (":" + document.location.port);',
+        'var iframesrc = document.location.protocol + "//" + document.location.hostname + port + "/" + "?IFRAME";'
+    ].join('\n')));
+
+    strictEqual(iframesrc, 'https://example.com/?IFRAME');
+    /* eslint-enable no-undef */
+});

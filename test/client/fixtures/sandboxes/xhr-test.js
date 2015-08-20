@@ -1,5 +1,6 @@
-//T239198: TD15.1 - web page doesnt display correctly (hellomonday.com)
-asyncTest('correct pass paremeters into xhr event handlers', function () {
+module('regression');
+
+asyncTest('parameters must pass correctly in xhr event handlers (T239198)', function () {
     var request = new XMLHttpRequest();
 
     // NOTE: check XHR is wrapped
