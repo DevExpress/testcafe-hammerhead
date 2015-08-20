@@ -21,6 +21,10 @@ var sourcemaps   = require('gulp-sourcemaps');
 var webmake      = require('gulp-webmake');
 var Promise      = require('es6-promise').Promise;
 var runSequence  = require('run-sequence');
+var uglify       = require('gulp-uglify');
+var gulpif       = require('gulp-if');
+var util         = require('gulp-util');
+
 
 var CLIENT_TESTS_SETTINGS = {
     basePath:        './test/client/fixtures',
@@ -118,6 +122,7 @@ gulp.task('client-scripts', ['client-scripts-bundle'], function () {
             sourceMap: ''
         }))
         .pipe(rename('hammerhead.js'))
+        .pipe(gulpif(util.env.release, uglify()))
         .pipe(gulp.dest('./lib/client'));
 });
 
