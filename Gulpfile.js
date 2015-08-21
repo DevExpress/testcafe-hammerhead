@@ -20,11 +20,9 @@ var rename       = require('gulp-rename');
 var sourcemaps   = require('gulp-sourcemaps');
 var webmake      = require('gulp-webmake');
 var Promise      = require('es6-promise').Promise;
-var runSequence  = require('run-sequence');
 var uglify       = require('gulp-uglify');
 var gulpif       = require('gulp-if');
 var util         = require('gulp-util');
-
 
 var CLIENT_TESTS_SETTINGS = {
     basePath:        './test/client/fixtures',
@@ -103,13 +101,11 @@ function hang () {
     });
 }
 
-gulp.task('clean', function () {
-    return new Promise(function (resolve) {
-        del(['./lib'], resolve);
-    });
+gulp.task('clean', function (cb) {
+    del(['./lib'], cb);
 });
 
-gulp.task('templates', function () {
+gulp.task('templates', ['clean'], function () {
     return gulp
         .src('./src/client/templates/task.js.mustache', { silent: false })
         .pipe(gulp.dest('./lib/client'));
@@ -126,7 +122,7 @@ gulp.task('client-scripts', ['client-scripts-bundle'], function () {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.task('client-scripts-bundle', function () {
+gulp.task('client-scripts-bundle', ['clean'], function () {
     return gulp.src('./src/client/hammerhead.js')
         .pipe(webmake({
             sourceMap: false,
@@ -150,7 +146,7 @@ gulp.task('client-scripts-bundle', function () {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.task('server-scripts', function () {
+gulp.task('server-scripts', ['clean'], function () {
     return gulp.src(['./src/**/*.js', '!./src/client/**/*.js'])
         .pipe(sourcemaps.init())
         .pipe(gulpBabel())
@@ -176,11 +172,7 @@ gulp.task('lint', function () {
 
 gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
 
-gulp.task('rebuild', function (callback) {
-    runSequence('clean', 'build', callback);
-});
-
-gulp.task('server-tests', ['rebuild'], function () {
+gulp.task('server-tests', ['build'], function () {
     return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
             ui:       'bdd',
@@ -190,21 +182,21 @@ gulp.task('server-tests', ['rebuild'], function () {
         }));
 });
 
-gulp.task('client-tests', ['rebuild'], function () {
-    gulp.watch('./src/**', ['rebuild']);
+gulp.task('client-tests', ['build'], function () {
+    gulp.watch('./src/**', ['build']);
 
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS));
 });
 
-gulp.task('client-tests-travis', ['rebuild'], function () {
+gulp.task('client-tests-travis', ['build'], function () {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
 });
 
-gulp.task('playground', ['rebuild'], function () {
+gulp.task('playground', ['build'], function () {
     require('./test/playground/server.js').start();
 
     return hang();
