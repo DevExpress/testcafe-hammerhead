@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-TC2b9a6d"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window.Hammerhead;
+    var urlUtil = hammerhead.get('./utils/url');
+    var activeWindowTracker = hammerhead.get('./sandboxes/event/active-window-tracker');
+
+    hammerhead.get('./settings').set({
+        CROSS_DOMAIN_PROXY_PORT : 2000
+    });
+
+    urlUtil.OriginLocation.get = function () {
+        return 'https://example.com';
+    };
+
+    Hammerhead.init();
+    window.activeWindowTracker = activeWindowTracker;
+</script>
+<div></div>
+</body>
+</html>

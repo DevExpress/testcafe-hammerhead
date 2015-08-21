@@ -1,7 +1,9 @@
-var Browser        = Hammerhead.get('./utils/browser');
-var EventSimulator = Hammerhead.get('./sandboxes/event/simulator');
-var FocusBlur      = Hammerhead.get('./sandboxes/event/focus-blur');
-var Promise        = Hammerhead.get('es6-promise').Promise;
+var Browser             = Hammerhead.get('./utils/browser');
+var EventSimulator      = Hammerhead.get('./sandboxes/event/simulator');
+var FocusBlur           = Hammerhead.get('./sandboxes/event/focus-blur');
+var activeWindowTracker = Hammerhead.get('./sandboxes/event/active-window-tracker');
+var Const               = Hammerhead.get('./../const');
+var Promise             = Hammerhead.get('es6-promise').Promise;
 
 var input1                             = null;
 var input2                             = null;
@@ -884,3 +886,26 @@ if (window.HTMLInputElement.prototype.createTextRange) {
         );
     });
 }
+
+asyncTest('active window doesn\'t change after focusing ShadowUI element in iFrame', function () {
+    var $iFrame      = $('<iframe>');
+    var iFrameWindow = null;
+    var divElement   = null;
+
+    $iFrame[0].src = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    $iFrame.appendTo('body');
+
+    $iFrame.bind('load', function () {
+        iFrameWindow = this.contentWindow;
+        divElement   = iFrameWindow.document.body.getElementsByTagName('div')[0];
+        divElement.setAttribute('class', Const.SHADOW_UI_CLASSNAME_POSTFIX);
+
+        FocusBlur.focus(divElement, function () {
+            ok(activeWindowTracker.isCurrentWindowActive());
+            notOk(iFrameWindow.activeWindowTracker.isCurrentWindowActive());
+
+            $iFrame.remove();
+            start();
+        });
+    });
+});
