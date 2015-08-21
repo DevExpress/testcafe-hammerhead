@@ -8,15 +8,16 @@ import * as Timeout from './timeout';
 import * as ShadowUI from '../shadow-ui';
 import Const from '../../../const';
 import * as Style from '../../utils/style';
+import activeWindowTracker from '../event/active-window-tracker';
 
 const INTERNAL_FOCUS_FLAG = Const.PROPERTY_PREFIX + 'iff';
 const INTERNAL_BLUR_FLAG  = Const.PROPERTY_PREFIX + 'ibf';
 
 var shouldDisableOuterFocusHandlers = false;
-var currentWindow             = null;
-var topWindow                 = null;
-var hoverElementFixed         = false;
-var lastHoveredElement        = null;
+var currentWindow                   = null;
+var topWindow                       = null;
+var hoverElementFixed               = false;
+var lastHoveredElement              = null;
 
 function callFocusCallback (callback, el) {
     //NOTE:in MSEdge event 'selectionchange' doesn't occur immediately (with some delay)
@@ -200,16 +201,34 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
     if (shouldDisableOuterFocusHandlers && !DOM.isShadowUIElement(element))
         return null;
 
-    var isCurrentElementInIFrame = DOM.isElementInIframe(element);
-    var iFrameElement            = isCurrentElementInIFrame ? DOM.getIFrameByElement(element) : null;
-    var curDocument              = DOM.findDocument(element);
-    var withoutHandlers          = element === curDocument.body && !Browser.isIE;
+    var isElementInIFrame = DOM.isElementInIframe(element);
+    var iFrameElement     = isElementInIFrame ? DOM.getIFrameByElement(element) : null;
+    var curDocument       = DOM.findDocument(element);
+    var isBodyElement     = element === curDocument.body;
+
+    var activeElement         = DOM.getActiveElement();
+    var activeElementDocument = DOM.findDocument(activeElement);
+
+    var withoutHandlers = false;
+    var needBlur        = false;
+    var needBlurIFrame  = false;
+
+    var isContentEditable     = DOM.isContentEditableElement(element);
+    var isCurrentWindowActive = activeWindowTracker.isCurrentWindowActive();
+
+    if (activeElement === element)
+        withoutHandlers = !(isBodyElement && isContentEditable && !isCurrentWindowActive);
+    else
+        withoutHandlers = isBodyElement && !(isContentEditable || Browser.isIE);
 
     // NOTE: in IE if you call focus() or blur() methods from script, active element is changed immediately
     // but events are raised asynchronously after some timeout
     var isAsync = false;
 
     var raiseFocusEvent = function () {
+        if (!isCurrentWindowActive && !DOM.isShadowUIElement(element))
+            activeWindowTracker.makeCurrentWindowActive();
+
         raiseEvent(element, 'focus', function () {
             if (!silent)
                 ElementEditingWatcher.watchElementEditing(element);
@@ -217,7 +236,7 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
             // NOTE: If we call focus for unfocusable element (like 'div' or 'image') in iframe we should make
             // document.active this iframe manually, so we call focus without handlers
             /*eslint-disable indent */
-            if (isCurrentElementInIFrame && iFrameElement &&
+            if (isElementInIFrame && iFrameElement &&
                 topWindow.document.activeElement !== iFrameElement) {
                 raiseEvent(iFrameElement, 'focus', function () {
                     callFocusCallback(callback, element);
@@ -244,31 +263,26 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
             isAsync = true;
     }
 
-    var activeElement         = DOM.getActiveElement();
-    var activeElementDocument = DOM.findDocument(activeElement);
-    var needBlur              = false;
-    var needBlurIFrame        = false;
-
     if (activeElement && activeElement.tagName) {
         /*eslint-disable indent */
-        if (activeElement === element)
-            withoutHandlers = true;
-        else if (curDocument !== activeElementDocument && activeElement === activeElementDocument.body)  //B253685
-            needBlur = false;
-        else if (activeElement === curDocument.body) {
-            //Blur event raised for body only in IE. In addition, we must not call blur function for body because
-            //this leads to browser window moving to background
-            if (!silent && Browser.isIE) {
-                var simulateBodyBlur = EventSimulator.blur.bind(EventSimulator, activeElement);
+        if (activeElement !== element) {
+            if (curDocument !== activeElementDocument && activeElement === activeElementDocument.body)  //B253685
+                needBlur = false;
+            else if (activeElement === curDocument.body) {
+                //Blur event raised for body only in IE. In addition, we must not call blur function for body because
+                //this leads to browser window moving to background
+                if (!silent && Browser.isIE) {
+                    var simulateBodyBlur = EventSimulator.blur.bind(EventSimulator, activeElement);
 
-                if (isAsync)
-                    Timeout.internalSetTimeout.call(currentWindow, simulateBodyBlur, 0);
-                else
-                    simulateBodyBlur();
+                    if (isAsync)
+                        Timeout.internalSetTimeout.call(currentWindow, simulateBodyBlur, 0);
+                    else
+                        simulateBodyBlur();
+                }
             }
+            else
+                needBlur = true;
         }
-        else
-            needBlur = true;
         /*eslint-enable indent */
 
         //B254260
