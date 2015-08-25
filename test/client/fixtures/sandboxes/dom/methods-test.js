@@ -152,28 +152,57 @@ test('setAttribute: img src', function () {
 
 test('canvasRenderingContext2D.drawImage', function () {
     var storedNativeMethod = NativeMethods.canvasContextDrawImage;
-    var url1               = 'http://crossdomain.com/image.png';
-    var url2               = 'http://' + location.host + '/';
+    var crossDomainUrl     = 'http://crossdomain.com/image.png';
+    var localUrl           = 'http://' + location.host + '/';
+    var crossDomainImg     = NativeMethods.createElement.call(document, 'img');
+    var localImg           = NativeMethods.createElement.call(document, 'img');
+    var canvasContext      = $('<canvas>')[0].getContext('2d');
+    var otherCanvas        = $('<canvas>')[0];
+    var otherCanvasContext = otherCanvas.getContext('2d');
+    var slice              = Array.prototype.slice;
+    var testCases          = [
+        {
+            description: 'image with cross-domain url',
+            args:        [crossDomainImg, 1, 2],
+            testImgFn:   function (img) {
+                return img.src === crossDomainUrl;
+            }
+        },
+        {
+            description: 'image with local url',
+            args:        [localImg, 4, 3, 2, 1],
+            testImgFn:   function (img) {
+                return img.src === UrlUtil.getProxyUrl(localUrl);
+            }
+        },
+        {
+            description: 'canvas element',
+            args:        [otherCanvas, 1, 3, 5, 7, 2, 4, 6, 8],
+            testImgFn:   function (img) {
+                return img === otherCanvas;
+            }
+        },
+        {
+            description: 'canvas context',
+            args:        [otherCanvasContext, 11, 12],
+            testImgFn:   function (img) {
+                return img === otherCanvasContext;
+            }
+        }
+    ];
 
-    expect(4);
+    crossDomainImg.src = crossDomainUrl;
+    localImg.src       = localUrl;
 
-    var img           = NativeMethods.createElement.call(document, 'img');
-    var convasContext = $('<canvas>')[0].getContext('2d');
+    testCases.forEach(function (testCase) {
+        NativeMethods.canvasContextDrawImage = function (img) {
+            ok(testCase.testImgFn(img), testCase.description);
+            strictEqual(slice.call(arguments, 1).join(','), slice.call(testCase.args, 1).join(','),
+                testCase.description + ' (other arguments)');
+        };
 
-    NativeMethods.canvasContextDrawImage = function (img, p1, p2) {
-        ok(p1 === 2 && p2 === 3);
-        strictEqual(img.src, url1);
-    };
-
-    img.src = url1;
-    convasContext.drawImage(img, 2, 3);
-
-    NativeMethods.canvasContextDrawImage = function (img, p1, p2) {
-        ok(p1 === 4 && p2 === 5);
-        strictEqual(img.src, UrlUtil.getProxyUrl(url2));
-    };
-    img.src                              = url2;
-    convasContext.drawImage(img, 4, 5);
+        canvasContext.drawImage.apply(canvasContext, testCase.args);
+    });
 
     NativeMethods.canvasContextDrawImage = storedNativeMethod;
 });
@@ -222,8 +251,8 @@ asyncTest('script must be executed after it is added to head tag (B237231)', fun
     ok(!window.top.testField);
     head.appendChild(script);
 
-    var maxIterationCount = 10;
-    var iterationCount = 0;
+    var maxIterationCount     = 10;
+    var iterationCount        = 0;
     var clearCheckingInterval = function (id) {
         window.clearInterval(id);
         $(script).remove();
