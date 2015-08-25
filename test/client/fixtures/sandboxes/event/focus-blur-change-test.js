@@ -4,6 +4,7 @@ var FocusBlur           = Hammerhead.get('./sandboxes/event/focus-blur');
 var activeWindowTracker = Hammerhead.get('./sandboxes/event/active-window-tracker');
 var Const               = Hammerhead.get('./../const');
 var Promise             = Hammerhead.get('es6-promise').Promise;
+var styleUtil           = Hammerhead.get('./utils/style');
 
 var input1                             = null;
 var input2                             = null;
@@ -908,4 +909,54 @@ asyncTest('active window doesn\'t change after focusing ShadowUI element in iFra
             start();
         });
     });
+});
+
+asyncTest('check that scrolling does not happen when focus is set (after mouse events)', function () {
+    var parentDiv = document.createElement('div');
+    var childDiv  = document.createElement('div');
+
+    $(parentDiv)
+        .css({
+            backgroundColor: 'grey',
+            width:           '110%',
+            height:          '500px',
+            overflow:        'scroll',
+            marginBottom:    '500px'
+        })
+        .attr('tabIndex', 1);
+
+    $(childDiv)
+        .css({
+            backgroundColor: 'green',
+            marginTop:       '1000px',
+            marginLeft:      '110%',
+            width:           '100px',
+            height:          '100px'
+        })
+        .attr('innerHTML', 'Child');
+
+    parentDiv.appendChild(childDiv);
+    document.body.appendChild(parentDiv);
+
+    var divOffset = styleUtil.getOffset(parentDiv);
+
+    styleUtil.setScrollLeft(window, divOffset.left + document.documentElement.clientWidth / 10);
+    styleUtil.setScrollTop(window, divOffset.top + 250);
+
+    parentDiv.scrollLeft = parentDiv.scrollWidth;
+    parentDiv.scrollTop  = parentDiv.scrollHeight;
+
+    var oldWindowScroll    = styleUtil.getElementScroll(window);
+    var oldParentDivScroll = styleUtil.getElementScroll(parentDiv);
+
+    FocusBlur.focus(childDiv, function () {
+        var currentWindowScroll    = styleUtil.getElementScroll(window);
+        var currentParentDivScroll = styleUtil.getElementScroll(parentDiv);
+
+        deepEqual(currentWindowScroll, oldWindowScroll);
+        deepEqual(currentParentDivScroll, oldParentDivScroll);
+
+        document.body.removeChild(parentDiv);
+        start();
+    }, false, true);
 });

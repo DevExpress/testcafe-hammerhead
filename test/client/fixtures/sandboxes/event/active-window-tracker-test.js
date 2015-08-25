@@ -5,7 +5,7 @@ var Promise             = Hammerhead.get('es6-promise').Promise;
 
 function nextTick () {
     return new Promise(function (resolve) {
-        setTimeout(resolve, 20);
+        setTimeout(resolve, 50);
     });
 }
 

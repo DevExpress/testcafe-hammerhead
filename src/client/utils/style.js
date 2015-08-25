@@ -187,21 +187,35 @@ export function getScrollTop (el) {
 }
 
 export function setScrollLeft (el, value) {
-    if (el) {
+    if (!el)
+        return;
+
+    /*eslint-disable indent */
+    if (DOM.isWindowInstance(el) || DOM.isDocumentInstance(el)) {
         var win       = DOM.findDocument(el).defaultView;
         var scrollTop = getScrollTop(el);
 
         win.scrollTo(value, scrollTop);
     }
+    else
+        el.scrollLeft = value;
+    /*eslint-enable indent */
 }
 
 export function setScrollTop (el, value) {
-    if (el) {
-        var win        = DOM.findDocument(el).defaultView;
+    if (!el)
+        return;
+
+    /*eslint-disable indent */
+    if (DOM.isWindowInstance(el) || DOM.isDocumentInstance(el)) {
+        var win       = DOM.findDocument(el).defaultView;
         var scrollLeft = getScrollLeft(el);
 
         win.scrollTo(scrollLeft, value);
     }
+    else
+        el.scrollTop = value;
+    /*eslint-enable indent */
 }
 
 export function getOffsetParent (el) {
