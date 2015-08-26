@@ -99,21 +99,23 @@ function raiseEvent (element, type, callback, withoutHandlers, isAsync, forMouse
                 Style.setScrollLeft(currentWindow, windowScroll.left);
 
             if (newWindowScroll.top !== windowScroll.top)
-                Style.setScrollTop(windowScroll.top);
+                Style.setScrollTop(currentWindow, windowScroll.top);
         }
 
         var curDocument   = DOM.findDocument(element);
         var activeElement = DOM.getActiveElement(curDocument);
 
         //if element was not focused and it has parent with tabindex, we focus this parent
-        var parent = element.parentNode;
+        var parent             = element.parentNode;
+        var parentWithTabIndex = DOM.closest(parent, '[tabindex]');
 
         if (type === 'focus' && activeElement !== element && parent !== document &&
-            DOM.closest(parent, '[tabindex]') && forMouseEvent) {
-            //NOTE: in WebKit calling of native focus for parent element raised page scrolling, we can't prevent it,
+            parentWithTabIndex && forMouseEvent) {
+            //NOTE: in WebKit,Safari and MS Edge calling of native focus for parent element raised page scrolling, we can't prevent it,
             // therefore we need to restore page scrolling value
-            raiseEvent(DOM.closest(parent, '[tabindex]'), 'focus', simulateEvent, false, false, forMouseEvent, forMouseEvent &&
-                                                                                                               Browser.isWebKit);
+            var needPreventScrolling = forMouseEvent && (Browser.isWebKit || Browser.isSafari || Browser.isMSEdge);
+
+            raiseEvent(parentWithTabIndex, 'focus', simulateEvent, false, false, forMouseEvent, needPreventScrolling);
         }
         // NOTE: some browsers doesn't change document.activeElement after element.blur() if browser window is on background.
         // That's why we call body.focus() without handlers. It should be called synchronously because client scripts may
