@@ -1,5 +1,5 @@
 import { process as processResource } from '../processing/resources';
-import * as ERR from '../errs';
+import { MESSAGE, getText } from './messages';
 import DestinationRequest from './destination-request';
 import PipelineContext from './pipeline-context';
 import * as headerTransforms from './header-transforms';
@@ -58,10 +58,7 @@ var stages = {
         // But if we have response body we can still process
         // such requests. (See: B234324)
         if (ctx.hasDestReqErr && isDestResBodyMalformed(ctx)) {
-            error({
-                code:    ERR.PROXY_ORIGIN_SERVER_CONNECTION_TERMINATED,
-                destUrl: ctx.dest.url
-            });
+            error(getText(MESSAGE.destServerConnectionTerminated, ctx.dest.url));
 
             return;
         }
@@ -119,7 +116,7 @@ function error (ctx, err) {
     if (ctx.isPage && !ctx.isIFrame)
         ctx.session.handlePageError(ctx, err);
     else
-        ctx.closeWithError(500, err.toString());
+        ctx.closeWithError(500, err);
 }
 
 function isDestResBodyMalformed (ctx) {

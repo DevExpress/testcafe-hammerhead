@@ -7,7 +7,6 @@ var Proxy              = require('../../lib/proxy');
 var Session            = require('../../lib/session');
 var DestinationRequest = require('../../lib/pipeline/destination-request');
 var requestAgent       = require('../../lib/pipeline/request-agent');
-var ERR                = require('../../lib/errs');
 var SERVICE_CMD        = require('../../lib/service-msg-cmd');
 var SHARED_CONST       = require('../../lib/const');
 
@@ -174,7 +173,7 @@ describe('Proxy', function () {
     describe('Session', function () {
         it('Should pass DNS errors to session', function (done) {
             session.handlePageError = function (ctx, err) {
-                expect(err.code).eql(ERR.PROXY_CANT_RESOLVE_ORIGIN_URL);
+                expect(err).eql('Failed to find a DNS-record for the resource at "http://www.some-unresolvable.url".');
                 ctx.res.end();
                 done();
                 return true;
@@ -531,8 +530,7 @@ describe('Proxy', function () {
             DestinationRequest.TIMEOUT = 200;
 
             session.handlePageError = function (ctx, err) {
-                expect(err.code).eql(ERR.PROXY_ORIGIN_SERVER_REQUEST_TIMEOUT);
-                expect(err.destUrl).eql('http://127.0.0.1:2000/T224541/hang-forever');
+                expect(err).eql('The server that hosts the tested page at "http://127.0.0.1:2000/T224541/hang-forever" did not respond to a connection request within the timeout period. The problem may be related to local machine\'s network or firewall settings, server outage, or network problems that make the server inaccessible.');
                 ctx.res.end();
                 DestinationRequest.TIMEOUT = savedReqTimeout;
                 done();

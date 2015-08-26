@@ -6,7 +6,7 @@ import { auth as requestWithAuth } from 'webauth';
 import { assign as assignWindowsDomain } from './windows-domain';
 import { handle as handleConnectionReset } from './connection-reset';
 import * as requestAgent from './request-agent';
-import * as ERR from '../errs';
+import { MESSAGE, getText } from './messages';
 
 const IS_WINDOWS = /^win/.test(platform());
 
@@ -82,10 +82,7 @@ export default class DestinationRequest extends EventEmitter {
         if (!this.hasResponse) {
             this.req.abort();
 
-            this.emit('fatalError', {
-                code:    ERR.PROXY_ORIGIN_SERVER_REQUEST_TIMEOUT,
-                destUrl: this.opts.url
-            });
+            this.emit('fatalError', getText(MESSAGE.destServerRequestTimeout, this.opts.url));
         }
     }
 
@@ -96,12 +93,8 @@ export default class DestinationRequest extends EventEmitter {
             this._send();
         }
 
-        else if (isDNSErr(err)) {
-            this.emit('fatalError', {
-                code:    ERR.PROXY_CANT_RESOLVE_ORIGIN_URL,
-                destUrl: this.opts.url
-            });
-        }
+        else if (isDNSErr(err))
+            this.emit('fatalError', getText(MESSAGE.cantResolveUrl, this.opts.url));
         else
             this.emit('error');
         /*eslint-enable indent*/

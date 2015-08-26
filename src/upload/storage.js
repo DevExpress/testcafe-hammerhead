@@ -43,8 +43,7 @@ export default class UploadStorage {
 
     async _processFiles (fileNames, processor) {
         var processTasks = fileNames.map(fileName => this._runFileProcessingTask(fileName, processor));
-
-        var result = await Promise.all(processTasks);
+        var result       = await Promise.all(processTasks);
 
         result = result.filter(value => !!value);
 
