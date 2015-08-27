@@ -61,7 +61,7 @@ describe('Proxy', function () {
         });
 
         app.get('/page', function (req, res) {
-            res.set('content-type', 'text/html; charset=utf-8');
+            res.set('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/page/src.html').toString());
         });
 

@@ -7,15 +7,16 @@ import stylesheetProcessor from './stylesheet';
 import * as contentUtils from '../../utils/content';
 
 function getResourceUrlReplacer (ctx) {
-    return function (resourceUrl, resourceType, baseUrl) {
+    return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
         // NOTE: resolve base url without a protocol ('//google.com/path' for example)
         baseUrl     = baseUrl ? url.resolve(ctx.dest.url, baseUrl) : '';
         resourceUrl = urlUtil.prepareUrl(resourceUrl);
 
         var resolvedUrl = url.resolve(baseUrl || ctx.dest.url, resourceUrl);
+        var charsetStr  = charsetAttrValue || resourceType === urlUtil.SCRIPT && ctx.contentInfo.charset.get();
 
         try {
-            return ctx.toProxyUrl(resolvedUrl, false, resourceType);
+            return ctx.toProxyUrl(resolvedUrl, false, resourceType, charsetStr);
         }
         catch (err) {
             return resourceUrl;
@@ -23,12 +24,12 @@ function getResourceUrlReplacer (ctx) {
     };
 }
 
-export async function process (ctx, customCharset) {
+export async function process (ctx) {
     var processors  = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
     var body        = ctx.destResBody;
     var contentInfo = ctx.contentInfo;
     var encoding    = contentInfo.encoding;
-    var charset     = customCharset || contentInfo.charset;
+    var charset     = contentInfo.charset;
 
     var decoded = await contentUtils.decodeContent(body, encoding, charset);
 
@@ -37,8 +38,8 @@ export async function process (ctx, customCharset) {
             var urlReplacer = getResourceUrlReplacer(ctx);
             var processed   = processors[i].processResource(decoded, ctx, charset, urlReplacer);
 
-            if (processed === null)
-                return null;
+            if (processed === pageProcessor.RESTART_PROCESSING)
+                return await process(ctx);
 
             return await contentUtils.encodeContent(processed, encoding, charset);
         }

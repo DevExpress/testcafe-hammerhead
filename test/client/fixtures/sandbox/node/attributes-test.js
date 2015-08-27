@@ -2,6 +2,7 @@ var Browser       = Hammerhead.get('./utils/browser');
 var DomProcessor  = Hammerhead.get('./dom-processor/dom-processor');
 var Html          = Hammerhead.get('./utils/html');
 var NativeMethods = Hammerhead.get('./sandbox/native-methods');
+var Const         = Hammerhead.get('../const');
 var Settings      = Hammerhead.get('./settings');
 var UrlUtil       = Hammerhead.get('./utils/url');
 
@@ -94,9 +95,14 @@ test('script src', function () {
 
     overrideDomMeth(script);
 
+    document[Const.DOCUMENT_CHARSET] = 'utf-8';
+
     script.setAttribute('src', 'http://google.com');
 
     strictEqual(UrlUtil.parseProxyUrl(script.src).resourceType, UrlUtil.SCRIPT);
+    strictEqual(UrlUtil.parseProxyUrl(script.src).charset, 'utf-8');
+
+    document[Const.DOCUMENT_CHARSET] = null;
 
     Settings.get().sessionId = storedSessionId;
 });

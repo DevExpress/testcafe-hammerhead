@@ -1,6 +1,7 @@
 var expect       = require('chai').expect;
 var Promise      = require('es6-promise').Promise;
 var contentUtils = require('../../lib/utils/content');
+var Charset      = require('../../lib/pipeline/charset');
 
 describe('Content utils', function () {
 
@@ -8,12 +9,18 @@ describe('Content utils', function () {
         var src = new Buffer('Answer to the Ultimate Question of Life, the Universe, and Everything.');
 
         it('Should encode and decode content', function (done) {
-            function testConfiguration (encoding, charset) {
-                return contentUtils.encodeContent(src, encoding, charset).then(function (encoded) {
-                    return contentUtils.decodeContent(encoded, encoding, charset).then(function (decoded) {
-                        expect(decoded.toString()).eql(src.toString());
+            function testConfiguration (encoding, charsetStr) {
+                var charset = new Charset();
+
+                charset.set(charsetStr, 2);
+
+                return contentUtils.encodeContent(src, encoding, charset)
+                    .then(function (encoded) {
+                        return contentUtils.decodeContent(encoded, encoding, charset);
+                    })
+                    .then(function (decoded) {
+                        expect(decoded).eql(src.toString());
                     });
-                });
             }
 
             Promise

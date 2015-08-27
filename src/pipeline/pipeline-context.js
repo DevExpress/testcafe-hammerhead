@@ -1,6 +1,7 @@
 import * as urlUtils from '../utils/url';
 import * as contentUtils from '../utils/content';
 import { XHR_REQUEST_MARKER_HEADER } from '../const';
+import Charset from './charset';
 
 //TODO rewrite parseProxyUrl instead
 function flattenParsedProxyUrl (parsed) {
@@ -13,7 +14,8 @@ function flattenParsedProxyUrl (parsed) {
                 hostname:      parsed.originResourceInfo.hostname,
                 port:          parsed.originResourceInfo.port,
                 partAfterHost: parsed.originResourceInfo.partAfterHost,
-                resourceType:  parsed.resourceType
+                resourceType:  parsed.resourceType,
+                charset:       parsed.charset
             },
 
             sessionId: parsed.sessionId
@@ -140,6 +142,7 @@ export default class PipelineContext {
     buildContentInfo () {
         var contentType = this.destRes.headers['content-type'] || '';
         var accept      = this.req.headers['accept'] || '';
+        var encoding    = this.destRes.headers['content-encoding'];
 
         var isCSS      = contentUtils.isCSSResource(contentType, accept);
         var isManifest = contentUtils.isManifest(contentType);
@@ -152,19 +155,25 @@ export default class PipelineContext {
 
         var isIFrameWithImageSrc = this.isIFrame && !this.isPage && /^\s*image\//.test(contentType);
 
+        var charset             = new Charset();
+        var contentTypeUrlToken = getContentTypeUrlToken(isScript, this.isIFrame);
+
+        if (!charset.fromContentType(contentType))
+            charset.fromUrl(this.dest.charset);
+
         if (this._isFileDownload())
             this.session.handleFileDownload();
 
         this.contentInfo = {
-            encoding:             this.destRes.headers['content-encoding'],
-            charset:              contentUtils.parseCharset(contentType),
-            requireProcessing:    requireProcessing,
-            isIFrameWithImageSrc: isIFrameWithImageSrc,
-            isCSS:                isCSS,
-            isScript:             isScript,
-            isManifest:           isManifest,
-            isJSON:               isJSON,
-            contentTypeUrlToken:  getContentTypeUrlToken(isScript, this.isIFrame)
+            charset,
+            requireProcessing,
+            isIFrameWithImageSrc,
+            isCSS,
+            isScript,
+            isManifest,
+            isJSON,
+            encoding,
+            contentTypeUrlToken
         };
     }
 
@@ -196,9 +205,9 @@ export default class PipelineContext {
             this.res.end();
     }
 
-    toProxyUrl (url, isCrossDomain, resourceType) {
+    toProxyUrl (url, isCrossDomain, resourceType, charsetAttrValue) {
         var port = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
 
-        return urlUtils.getProxyUrl(url, this.serverInfo.hostname, port, this.session.id, resourceType);
+        return urlUtils.getProxyUrl(url, this.serverInfo.hostname, port, this.session.id, resourceType, charsetAttrValue);
     }
 }

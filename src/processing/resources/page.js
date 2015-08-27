@@ -5,7 +5,6 @@ import whacko from 'whacko';
 import dedent from 'dedent';
 import scriptProcessor from '../script';
 import * as Const from '../../const';
-import * as contentUtils from '../../utils/content';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent`
     <script type="text/javascript" class="${ Const.SHADOW_UI_SCRIPT_CLASSNAME }">
@@ -21,6 +20,8 @@ class PageProcessor extends ResourceProcessorBase {
     constructor () {
         super();
 
+        this.RESTART_PROCESSING = Symbol();
+
         this.domProcessor = new DomProcessor(new DomAdapter());
     }
 
@@ -35,24 +36,10 @@ class PageProcessor extends ResourceProcessorBase {
         };
     }
 
-    _getRightCharset ($, defaultCharset, actualCharset) {
-        if (!defaultCharset) {
-            // NOTE: if the charset doesn't set in server's header and if the charset sets in page's meta tag
-            // and isn't equal to the default charset, we restart processing with the new charset.
-            // We returns null if need to restart procession.
-            var pageCharset = this._getPageCharset($);
-
-            if (pageCharset && pageCharset !== actualCharset)
-                return pageCharset;
-        }
-
-        return '';
-    }
-
-    _getPageCharset ($) {
+    _getPageMetas ($) {
         var metas = [];
 
-        $('meta').each(function (meta) {
+        $('meta').each((index, meta) => {
             var $meta = $(meta);
 
             metas.push({
@@ -62,7 +49,7 @@ class PageProcessor extends ResourceProcessorBase {
             });
         });
 
-        return contentUtils.parseCharsetFromMeta(metas);
+        return metas;
     }
 
     _addPageResources ($, processingOptions) {
@@ -88,6 +75,11 @@ class PageProcessor extends ResourceProcessorBase {
             $('head').prepend(resources.join(''));
     }
 
+    _addCharsetInfo ($, charset) {
+        $($(`.${Const.SHADOW_UI_SCRIPT_CLASSNAME}`)[0])
+            .before(`<meta class="${Const.SHADOW_UI_CHARSET_CLASSNAME}" charset="${charset}">`);
+    }
+
     _changeMetas ($) {
         // TODO: figure out how to emulate the behavior of the tag
         $('meta[name="referrer"][content="origin"]').remove();
@@ -111,10 +103,8 @@ class PageProcessor extends ResourceProcessorBase {
         return ctx.isPage || ctx.contentInfo.isIFrameWithImageSrc;
     }
 
-    processResource (html, ctx, actualCharset, urlReplacer, processingOpts) {
+    processResource (html, ctx, charset, urlReplacer, processingOpts) {
         processingOpts = processingOpts || this._getPageProcessingOptions(ctx, urlReplacer);
-
-        var defaultCharset = ctx.contentInfo.charset;
 
         var bom = scriptProcessor.getBOM(html);
 
@@ -124,40 +114,35 @@ class PageProcessor extends ResourceProcessorBase {
 
         var $ = whacko.load(html);
 
-        actualCharset = actualCharset || defaultCharset;
+        if (charset.fromMeta(this._getPageMetas($)))
+            return this.RESTART_PROCESSING;
 
-        var rightCharset = this._getRightCharset($, defaultCharset, actualCharset);
+        var pageProcessor = this;
 
-        // Restart processing with page charset
-        if (rightCharset)
-            this.processResource(html, ctx, rightCharset, urlReplacer, processingOpts); // TODO: investigate and fix
-        else {
-            var pageProcessor = this;
+        var iframeHtmlProcessor = function (iframeHtml, callback) {
+            var storedIsIframe = processingOpts.isIFrame;
 
-            var iframeHtmlProcessor = function (iframeHtml, callback) {
-                var storedIsIframe = processingOpts.isIFrame;
+            processingOpts.isIFrame = true;
 
-                processingOpts.isIFrame = true;
+            var result = pageProcessor.processResource(iframeHtml, ctx, charset, urlReplacer, processingOpts);
 
-                var result = pageProcessor.processResource(iframeHtml, ctx, actualCharset, urlReplacer, processingOpts);
+            processingOpts.isIFrame = storedIsIframe;
 
-                processingOpts.isIFrame = storedIsIframe;
+            callback(result);
+        };
 
-                callback(result);
-            };
+        var domProcessor = new DomProcessor(new DomAdapter(processingOpts.isIFrame, processingOpts.crossDomainProxyPort));
 
-            var domProcessor = new DomProcessor(new DomAdapter(processingOpts.isIFrame, processingOpts.crossDomainProxyPort));
+        domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED, iframeHtmlProcessor);
+        domProcessor.processPage($, processingOpts.urlReplacer);
+        domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED, iframeHtmlProcessor);
 
-            domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED, iframeHtmlProcessor);
-            domProcessor.processPage($, processingOpts.urlReplacer);
-            domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED, iframeHtmlProcessor);
+        this._addPageResources($, processingOpts);
+        this._addBodyCreatedEventScript($);
+        this._changeMetas($);
+        this._addCharsetInfo($, charset.get());
 
-            this._addPageResources($, processingOpts);
-            this._addBodyCreatedEventScript($);
-            this._changeMetas($);
-
-            return (bom || '') + $.html();
-        }
+        return (bom || '') + $.html();
     }
 }
 

@@ -84,13 +84,16 @@ UrlUtil.convertHostToLowerCase = function (url) {
     return (parsedUrl.protocol + '//' + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
 };
 
-UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType) {
+UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType, charset) {
     validateOriginUrl(url);
 
     var params = [sessionId];
 
     if (resourceType)
         params.push(resourceType);
+
+    if (charset)
+        params.push(charset);
 
     params = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
@@ -135,7 +138,8 @@ UrlUtil.parseProxyUrl = function (proxyUrl) {
         },
 
         sessionId:    params[0],
-        resourceType: params[1] || null
+        resourceType: params[1] || null,
+        charset:      params[2] || null
     };
 };
 

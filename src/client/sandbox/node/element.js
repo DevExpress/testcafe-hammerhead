@@ -94,6 +94,7 @@ export default class ElementSandbox extends SandboxBase {
                     var isScript         = tagName === 'script';
                     var isCrossDomainUrl = isSupportedProtocol && !urlUtils.sameOriginCheck(location.toString(), value);
                     var resourceType     = null;
+                    var elCharset        = isScript && el.charset;
 
                     if (isScript)
                         resourceType = urlUtils.SCRIPT;
@@ -101,7 +102,7 @@ export default class ElementSandbox extends SandboxBase {
                         resourceType = urlUtils.IFRAME;
 
                     value = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
-                            urlUtils.getProxyUrl(value, null, null, null, resourceType);
+                            urlUtils.getProxyUrl(value, null, null, null, resourceType, elCharset);
                 }
             }
             else if (value && !urlUtils.parseProxyUrl(value))
