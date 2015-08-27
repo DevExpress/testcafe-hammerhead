@@ -126,9 +126,8 @@ export function override (window, overrideNewElement) {
                     var type = opts && opts.type && opts.type.toString().toLowerCase();
 
                     if (type === 'text/javascript' || type === 'application/javascript' ||
-                        type === 'application/x-javascript') {
+                        type === 'application/x-javascript')
                         parts = [ScriptProcessor.process(parts.join(''))];
-                    }
 
                     return new NativeMethods.Blob(parts, opts);
             }

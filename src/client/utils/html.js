@@ -261,7 +261,6 @@ export function isWellFormattedHtml (html) {
     var parseEndTag = function (tag, tagName) {
         tagName = tagName.toLowerCase();
 
-        /*eslint-disable indent */
         if (tagName === lastItem(tagStack))
             tagStack.pop();
         else if (contains(selfClosedTags, lastItem(tagStack))) {
@@ -272,7 +271,6 @@ export function isWellFormattedHtml (html) {
             throw new Error('Empty tags cannot have end-closed tag part');
         else
             throw new Error('Cannot find open tag for ' + lastItem(tagStack));
-        /*eslint-enable indent */
     };
 
     var startTagReg = /^<(\w+)([\s\S]*?)(\/?)>/;
@@ -345,14 +343,12 @@ export function isWellFormattedHtml (html) {
 
                 match = html.match(tagContentReg);
 
-                /*eslint-disable indent */
                 if (match) {
                     html = html.substring(match[0].length);
                     parseEndTag('', lastItem(tagStack));
                 }
                 else
                     throw new Error('Cannot process rawTextElement content');
-                /*eslint-enable indent */
             }
 
             if (html === previousStepHtml)

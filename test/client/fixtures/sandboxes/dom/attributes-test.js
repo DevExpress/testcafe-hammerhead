@@ -206,9 +206,8 @@ test('iframe javascript src', function () {
         var processedSrc = testContainer.src;
 
         //Safari returns encoded value for iframe.src with javascript protocol value
-        if (Browser.isSafari) {
+        if (Browser.isSafari)
             processedSrc = decodeURI(processedSrc);
-        }
 
         strictEqual(processedSrc.indexOf('javascript:' + testData[i].quote), 0);
         strictEqual(processedSrc[processedSrc.length - 1], testData[i].quote);

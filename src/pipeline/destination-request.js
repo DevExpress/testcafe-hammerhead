@@ -87,7 +87,6 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _onError (err) {
-        /*eslint-disable indent*/
         if (requestAgent.shouldRegressHttps(err, this.opts)) {
             requestAgent.regressHttps(this.opts);
             this._send();
@@ -97,6 +96,5 @@ export default class DestinationRequest extends EventEmitter {
             this.emit('fatalError', getText(MESSAGE.cantResolveUrl, this.opts.url));
         else
             this.emit('error');
-        /*eslint-enable indent*/
     }
 }

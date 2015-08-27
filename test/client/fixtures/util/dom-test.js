@@ -62,9 +62,9 @@ test('isDomElement', function () {
     var p = Element.prototype;
 
     /* eslint-disable no-extra-parens */
-    do {
+    do
         ok(!DOM.isDomElement(p));
-    } while ((p = Object.getPrototypeOf(p)));
+    while ((p = Object.getPrototypeOf(p)));
     /* eslint-enable no-extra-parens */
 });
 
@@ -77,9 +77,9 @@ asyncTest('isDomElement for iframe Element.prototype chain', function () {
         var p = this.contentWindow.Element.prototype;
 
         /* eslint-disable no-extra-parens */
-        do {
+        do
             ok(!DOM.isDomElement(p));
-        } while ((p = Object.getPrototypeOf(p)));
+        while ((p = Object.getPrototypeOf(p)));
         /* eslint-enable no-extra-parens */
 
         this.parentNode.removeChild(this);

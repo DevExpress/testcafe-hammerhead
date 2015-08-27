@@ -108,7 +108,6 @@ export function setCookie (document, value) {
 
             var clientCookieStr = getBrowserProcessedCookie(parsedCookie);
 
-            /*eslint-disable indent*/
             if (!clientCookieStr) {
                 //NOTE: we have two options here:
                 //1)cookie was invalid, so it was ignored
@@ -123,7 +122,6 @@ export function setCookie (document, value) {
             }
             else
                 updateClientCookieStr(parsedCookie.key, clientCookieStr);
-            /*eslint-enable indent*/
         }
     }
 

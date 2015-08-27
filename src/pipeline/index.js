@@ -128,7 +128,6 @@ function isDestResBodyMalformed (ctx) {
 export function runPipeline (req, res, serverInfo, openSessions) {
     var ctx = new PipelineContext(req, res, serverInfo);
 
-    /*eslint-disable indent*/
     if (ctx.dispatch(openSessions)) {
         var stageIdx = 0;
         var next     = () => stages[++stageIdx](ctx, next);
@@ -137,5 +136,4 @@ export function runPipeline (req, res, serverInfo, openSessions) {
     }
     else
         respond404(res);
-    /*eslint-enable indent*/
 }

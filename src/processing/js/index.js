@@ -76,14 +76,12 @@ class JsProcessor {
             if (ast.hasOwnProperty(astKey)) {
                 var childNode = ast[astKey];
 
-                /*eslint-disable indent*/
                 if (Object.prototype.toString.call(childNode) === '[object Array]') {
                     for (var j = 0; j < childNode.length; j++)
                         modified = this._modify(childNode[j], ast, astKey) || modified;
                 }
                 else
                     modified = this._modify(childNode, ast, astKey) || modified;
-                /*eslint-enable indent*/
             }
         }
 
@@ -144,14 +142,12 @@ class JsProcessor {
         }
         catch (e) {
             try {
-                /*eslint-disable indent*/
                 if (isObject && !isJSON) {
                     ast      = parse('function temp(){\n' + result + '\n}');
                     isObject = false;
                 }
                 else
                     return code;
-                /*eslint-enable indent*/
             }
             catch (err) {
                 return code;

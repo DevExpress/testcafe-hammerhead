@@ -64,7 +64,6 @@ function XMLHttpRequestWrapper (xhr) {
                 return xhr[propName];
             },
             set: function (value) {
-                /*eslint-disable indent */
                 if (propName.indexOf('on') === 0) {
                     xhr[propName] = typeof value !== 'function' ? value : (function (func) {
                         return function () {
@@ -74,7 +73,6 @@ function XMLHttpRequestWrapper (xhr) {
                 }
                 else
                     xhr[propName] = value;
-                /*eslint-enable indent */
 
                 return xhr[propName];
             }
@@ -161,7 +159,6 @@ function proxyXhrMethods (xhr) {
                 //Because e.g. jQuery assigns handler after send() was called.
                 NativeMethods.setTimeout.call(window, function () {
                     //NOTE: if state already changed we just call handler without onreadystatechange proxying
-                    /*eslint-disable indent */
                     if (xhr.readyState === 4)
                         orscHandler();
 
@@ -175,7 +172,6 @@ function proxyXhrMethods (xhr) {
                     }
                     else
                         xhr.addEventListener('readystatechange', orscHandler, false);
-                    /*eslint-enable indent */
                 }, 0);
             }
         }
