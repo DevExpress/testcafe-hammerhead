@@ -256,6 +256,10 @@ export function isIframe (el) {
     return isDomElement(el) && el.tagName.toLowerCase() === 'iframe';
 }
 
+export function isImgElement (el) {
+    return isDomElement(el) && el.tagName.toLowerCase() === 'img';
+}
+
 export function isInputElement (el) {
     return isDomElement(el) && el.tagName.toLowerCase() === 'input';
 }

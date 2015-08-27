@@ -1,6 +1,6 @@
 /*global history, navigator*/
 import { isMozilla } from '../../utils/browser';
-import { isCrossDomainWindows } from '../../utils/dom';
+import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
 import { ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY } from '../dom-accessor-wrappers';
 import * as MessageSandbox from '../message';
 import NativeMethods from '../native-methods';
@@ -58,18 +58,19 @@ export function init () {
 
 export function override (window, overrideNewElement) {
     window.CanvasRenderingContext2D.prototype.drawImage = function () {
-        var args = Array.prototype.slice.call(arguments, 0);
-        var img  = args.shift();
-        var src  = img.src;
+        var image = arguments[0];
 
-        if (UrlUtil.sameOriginCheck(location.toString(), src)) {
-            img     = NativeMethods.createElement.call(window.document, 'img');
-            img.src = UrlUtil.getProxyUrl(src);
+        if (isImgElement(image)) {
+            var changedArgs = Array.prototype.slice.call(arguments, 0);
+            var src         = image.src;
+
+            if (UrlUtil.sameOriginCheck(location.toString(), src)) {
+                changedArgs[0]     = NativeMethods.createElement.call(window.document, 'img');
+                changedArgs[0].src = UrlUtil.getProxyUrl(src);
+            }
         }
 
-        args.unshift(img);
-
-        return NativeMethods.canvasContextDrawImage.apply(this, args);
+        return NativeMethods.canvasContextDrawImage.apply(this, changedArgs || arguments);
     };
 
     // Override uncaught error handling
