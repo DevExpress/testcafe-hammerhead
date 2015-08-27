@@ -51,7 +51,6 @@ function createFileListWrapper (fileList) {
 function createFileWrapper (fileInfo) {
     var wrapper = null;
 
-    /*eslint-disable indent */
     if (!window.Blob) {
         wrapper = {
             size: fileInfo.info.size,
@@ -62,7 +61,6 @@ function createFileWrapper (fileInfo) {
         wrapper = new Blob([fileInfo.blob], { type: fileInfo.info.type });
     else
         wrapper = base64ToBlob(fileInfo.data, fileInfo.info.type);
-    /*eslint-enable indent*/
 
     wrapper.name             = fileInfo.info.name;
     wrapper.lastModifiedDate = new Date(fileInfo.info.lastModifiedDate);
@@ -100,7 +98,6 @@ function getUploadIFrameForIE9 () {
 function loadFileListDataForIE9 (input, callback) {
     var form = input.form;
 
-    /*eslint-disable indent */
     if (form && input.value) {
         var sourceTarget       = form.target;
         var sourceActionString = form.action;
@@ -130,7 +127,6 @@ function loadFileListDataForIE9 (input, callback) {
     }
     else
         callback(new FileListWrapper(0));
-    /*eslint-enable indent */
 }
 
 
@@ -151,7 +147,6 @@ export function formatValue (fileNames) {
     fileNames = typeof fileNames === 'string' ? [fileNames] : fileNames;
 
     if (fileNames && fileNames.length) {
-        /*eslint-disable indent */
         if (Browser.isWebKit)
             value = FAKE_PATH_STRING + fileNames[0].split('/').pop();
         else if (Browser.isIE9 || Browser.isIE10) {
@@ -164,7 +159,6 @@ export function formatValue (fileNames) {
         }
         else
             return fileNames[0].split('/').pop();
-        /*eslint-enable indent */
     }
 
     return value;
@@ -173,14 +167,12 @@ export function formatValue (fileNames) {
 export function getFileNames (fileList, value) {
     var result = [];
 
-    /*eslint-disable indent */
     if (fileList) {
         for (var i = 0; i < fileList.length; i++)
             result.push(fileList[i].name);
     }
     else if (value.lastIndexOf('\\') !== -1)
         result.push(value.substr(value.lastIndexOf('\\') + 1));
-    /*eslint-enable indent */
 
     return result;
 }
@@ -228,14 +220,12 @@ export function loadFileListData (input, fileList, callback) {
                 }
             });
 
-            /*eslint-disable indent */
             if (fileList[++index]) {
                 file = fileList[index];
                 fileReader.readAsDataURL(file);
             }
             else
                 callback(fileListWrapper);
-            /*eslint-enable indent */
         });
         fileReader.readAsDataURL(file);
     }

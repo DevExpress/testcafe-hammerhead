@@ -12,7 +12,6 @@ class ActiveWindowTracker {
         this.isActive       = !this.isIFrameWindow;
 
         MessageSandbox.on(MessageSandbox.SERVICE_MSG_RECEIVED, (e) => {
-            /*eslint-disable indent */
             if (e.message.cmd === WINDOW_ACTIVATED_EVENT) {
                 if (this.activeWindow !== this.activeWindow.top)
                     this._notifyPrevActiveWindow();
@@ -22,7 +21,6 @@ class ActiveWindowTracker {
             }
             else if (e.message.cmd === WINDOW_DEACTIVATED_EVENT)
                 this.isActive = false;
-            /*eslint-enable indent */
         });
     }
 

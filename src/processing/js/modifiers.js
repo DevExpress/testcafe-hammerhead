@@ -8,7 +8,6 @@ import * as templates from './templates';
 import * as instructs from './instructions';
 
 function updateAstNode (node, newNode, parent, key) {
-    /*eslint-disable indent*/
     if (key === 'arguments' || key === 'elements' || key === 'expressions') {
         var index = parent[key].indexOf(node);
 
@@ -16,7 +15,6 @@ function updateAstNode (node, newNode, parent, key) {
     }
     else
         parent[key] = newNode;
-    /*eslint-enable indent*/
 }
 
 // for(obj[i++] in src), for(obj['href'] in src), for(obj.href in src)
@@ -169,7 +167,6 @@ function memberGet (astNode, parent, key) {
 function callMethod (astNode, parent, key) {
     var meth = null;
 
-    /*eslint-disable indent*/
     if (!astNode.callee.computed) {
         meth = {
             type:  Syntax.Literal,
@@ -179,7 +176,6 @@ function callMethod (astNode, parent, key) {
     }
     else
         meth = astNode.callee.property;
-    /*eslint-enable indent*/
 
     // [object].[method]([args]) --> _call$([object], [method], [args])
     // [object][[method]]([args]) --> _call$([object], [method], [args])

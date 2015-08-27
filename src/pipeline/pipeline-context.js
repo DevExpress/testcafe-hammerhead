@@ -186,14 +186,12 @@ export default class PipelineContext {
     closeWithError (statusCode, resBody) {
         this.res.statusCode = statusCode;
 
-        /*eslint-disable indent*/
         if (resBody) {
             this.res.setHeader('content-type', 'text/html');
             this.res.end(resBody);
         }
         else
             this.res.end();
-        /*eslint-enable indent*/
     }
 
     toProxyUrl (url, isCrossDomain, resourceType) {

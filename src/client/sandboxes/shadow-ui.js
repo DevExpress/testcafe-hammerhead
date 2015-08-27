@@ -80,7 +80,6 @@ export function getRoot () {
     if (!root || /* T225944 */ !document.body.contains(root)) {
         overrideElement(document.body);
 
-        /*eslint-disable indent */
         if (!root) {
             //B254893
             root = document.createElement('div');
@@ -100,7 +99,6 @@ export function getRoot () {
         }
         else
             document.body.appendChild(root);
-        /*eslint-enable indent */
     }
 
     return root;

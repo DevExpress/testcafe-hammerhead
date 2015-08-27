@@ -190,7 +190,6 @@ export function setScrollLeft (el, value) {
     if (!el)
         return;
 
-    /*eslint-disable indent */
     if (DOM.isWindowInstance(el) || DOM.isDocumentInstance(el)) {
         var win       = DOM.findDocument(el).defaultView;
         var scrollTop = getScrollTop(el);
@@ -199,14 +198,12 @@ export function setScrollLeft (el, value) {
     }
     else
         el.scrollLeft = value;
-    /*eslint-enable indent */
 }
 
 export function setScrollTop (el, value) {
     if (!el)
         return;
 
-    /*eslint-disable indent */
     if (DOM.isWindowInstance(el) || DOM.isDocumentInstance(el)) {
         var win       = DOM.findDocument(el).defaultView;
         var scrollLeft = getScrollLeft(el);
@@ -215,7 +212,6 @@ export function setScrollTop (el, value) {
     }
     else
         el.scrollTop = value;
-    /*eslint-enable indent */
 }
 
 export function getOffsetParent (el) {
@@ -223,9 +219,8 @@ export function getOffsetParent (el) {
         var offsetParent = el.offsetParent || document.body;
 
         while (offsetParent && (!/^(?:body|html)$/i.test(offsetParent.nodeName) &&
-               get(offsetParent, 'position') === 'static')) {
+               get(offsetParent, 'position') === 'static'))
             offsetParent = offsetParent.offsetParent;
-        }
 
         return offsetParent;
     }

@@ -33,7 +33,6 @@ function raiseEvent (element, type, callback, withoutHandlers, isAsync, forMouse
     //NOTE: focus and blur events should be raised after the activeElement changed (B237489)
     //in MSEdge focus/blur is sync
     var simulateEvent = function () {
-        /*eslint-disable indent */
         if (Browser.isIE && Browser.version < 12) {
             currentWindow.setTimeout(function () {
                 currentWindow.setTimeout(function () {
@@ -44,10 +43,8 @@ function raiseEvent (element, type, callback, withoutHandlers, isAsync, forMouse
         }
         else if (element[getInternalEventFlag(type)])
             delete element[getInternalEventFlag(type)];
-        /*eslint-enable indent */
 
         if (!withoutHandlers) {
-            /*eslint-disable indent */
             if (isAsync) {
                 Timeout.deferFunction(function () {
                     EventSimulator[type](element);
@@ -55,7 +52,6 @@ function raiseEvent (element, type, callback, withoutHandlers, isAsync, forMouse
             }
             else
                 EventSimulator[type](element);
-            /*eslint-enable indent */
         }
 
         callback();
@@ -65,7 +61,6 @@ function raiseEvent (element, type, callback, withoutHandlers, isAsync, forMouse
     if (Browser.isIE9 && ShadowUI.getRoot() === element && (type === 'focus' || type === 'blur'))
         callback();
 
-    /*eslint-disable indent */
     if (element[type]) {
         //NOTE: we should guarantee that activeElement will be changed, therefore we should call native focus/blur
         // event. To guarantee all focus/blur events raising we should raise it manually too.
@@ -127,7 +122,6 @@ function raiseEvent (element, type, callback, withoutHandlers, isAsync, forMouse
     }
     else
         simulateEvent();
-    /*eslint-enable indent */
 }
 
 function onMouseOverHandler (e) {
@@ -145,14 +139,12 @@ function onMouseOverHandler (e) {
 
             while (el && el.tagName) {
                 // Check that the current element is a joint parent for the hovered elements.
-                /*eslint-disable indent */
                 if (el.contains && !el.contains(newHoveredElement)) {
                     NativeMethods.removeAttribute.call(el, Const.HOVER_PSEUDO_CLASS_ATTR);
                     el = el.parentNode;
                 }
                 else
                     break;
-                /*eslint-enable indent */
             }
 
             jointParent = el;
@@ -169,7 +161,6 @@ function onMouseOverHandler (e) {
             NativeMethods.setAttribute.call(jointParent, Const.HOVER_PSEUDO_CLASS_ATTR, '');
 
         while (newHoveredElement && newHoveredElement.tagName) {
-            /*eslint-disable indent */
             // Assign pseudo-class marker up to joint parent.
             if (newHoveredElement !== jointParent) {
                 NativeMethods.setAttribute.call(newHoveredElement, Const.HOVER_PSEUDO_CLASS_ATTR, '');
@@ -177,7 +168,6 @@ function onMouseOverHandler (e) {
             }
             else
                 break;
-            /*eslint-enable indent */
         }
     };
 
@@ -237,7 +227,6 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
 
             // NOTE: If we call focus for unfocusable element (like 'div' or 'image') in iframe we should make
             // document.active this iframe manually, so we call focus without handlers
-            /*eslint-disable indent */
             if (isElementInIFrame && iFrameElement &&
                 topWindow.document.activeElement !== iFrameElement) {
                 raiseEvent(iFrameElement, 'focus', function () {
@@ -246,7 +235,6 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
             }
             else
                 callFocusCallback(callback, element);
-            /*eslint-enable indent */
 
         }, withoutHandlers || silent, isAsync, forMouseEvent);
     };
@@ -266,7 +254,6 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
     }
 
     if (activeElement && activeElement.tagName) {
-        /*eslint-disable indent */
         if (activeElement !== element) {
             if (curDocument !== activeElementDocument && activeElement === activeElementDocument.body)  //B253685
                 needBlur = false;
@@ -285,7 +272,6 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
             else
                 needBlur = true;
         }
-        /*eslint-enable indent */
 
         //B254260
         needBlurIFrame = curDocument !== activeElementDocument &&
@@ -293,7 +279,6 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
     }
 
     //NOTE: we always call blur for iframe manually without handlers (B254260)
-    /*eslint-disable indent */
     if (needBlurIFrame && !needBlur) {
         if (Browser.isIE) {
             //NOTE: We should call blur for iframe with handlers in IE
@@ -314,7 +299,6 @@ export function focus (element, callback, silent, forMouseEvent, isNativeFocus) 
     }
     else
         raiseFocusEvent();
-    /*eslint-enable indent */
 }
 
 export function blur (element, callback, withoutHandlers, isNativeBlur) {

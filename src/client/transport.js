@@ -90,7 +90,6 @@ function cookieMsgInProgress () {
 }
 
 Transport.waitCookieMsg = function (callback) {
-    /*eslint-disable indent*/
     if (cookieMsgInProgress()) {
         var handler = function () {
             if (!cookieMsgInProgress()) {
@@ -104,7 +103,6 @@ Transport.waitCookieMsg = function (callback) {
     }
     else
         callback();
-    /*eslint-enable indent*/
 };
 
 //NOTE: use sync method for most important things only
@@ -163,23 +161,22 @@ Transport.asyncServiceMsg = function (msg, callback) {
                 callback(this.responseText && JSON.parse(this.responseText));
         };
         var errorHandler = function () {
-            /*eslint-disable indent*/
             if (Browser.isWebKit) {
                 storeMessage(msg);
                 msgCallback();
             }
             else
                 sendMsg(true);
-            /*eslint-enable indent*/
         };
 
-        if (forced)
+        if (forced) {
             request.addEventListener('readystatechange', function () {
                 if (this.readyState !== 4)
                     return;
 
                 msgCallback();
             });
+        }
         else if (Browser.isIE9) {
             //aborted ajax request in IE9 not raise error, abort or timeout events
             //also getting status code raise error c00c023f
@@ -217,7 +214,6 @@ Transport.asyncServiceMsg = function (msg, callback) {
 Transport.batchUpdate = function (updateCallback) {
     var storedMessages = getStoredMessages();
 
-    /*eslint-disable indent*/
     if (storedMessages.length) {
         window.localStorage.removeItem(Settings.get().JOB_UID);
 
@@ -231,7 +227,6 @@ Transport.batchUpdate = function (updateCallback) {
     }
     else
         updateCallback();
-    /*eslint-enable indent*/
 };
 
 Transport.queuedAsyncServiceMsg = function (msg, callback) {

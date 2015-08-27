@@ -13,7 +13,6 @@ class ManifestProcessor extends ResourceProcessorBase {
 
                 var isFallbackItem = line.indexOf(' ') !== -1;
 
-                /*eslint-disable indent*/
                 if (isFallbackItem) {
                     var urls = line.split(' ');
 
@@ -21,7 +20,6 @@ class ManifestProcessor extends ResourceProcessorBase {
                 }
                 else
                     lines[i] = urlReplacer(line);
-                /*eslint-enable indent*/
             }
         }
 

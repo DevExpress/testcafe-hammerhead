@@ -74,7 +74,6 @@ function overridedAppendChild (child) {
 
     var result = null;
 
-    /*eslint-disable indent */
     if (this.tagName && this.tagName.toLowerCase() === 'body' && this.children.length) {
         // NOTE: We should to append element before shadow ui root
         var lastChild = this.children[this.children.length - 1];
@@ -83,7 +82,6 @@ function overridedAppendChild (child) {
     }
     else
         result = NativeMethods.appendChild.call(this, child);
-    /*eslint-enable indent */
 
     onElementAdded(child);
 
@@ -159,7 +157,6 @@ function overridedSetAttributeCore (el, attr, value, ns) {
         var isJsProtocol = DomProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(value);
         var storedJsAttr = DomProcessor.getStoredAttrName(attr);
 
-        /*eslint-disable indent */
         if (urlAttr && isJsProtocol || isEventAttr) {
             var valueWithoutProtocol = value.replace(DomProcessor.JAVASCRIPT_PROTOCOL_REG_EX, '');
             var matches              = valueWithoutProtocol.match(DomProcessor.HTML_STRING_REG_EX);
@@ -180,11 +177,12 @@ function overridedSetAttributeCore (el, attr, value, ns) {
                 processedValue = 'javascript:' + stringQuote + html + stringQuote;
                 /*eslint-enable no-script-url */
             }
-            else
-            /*eslint-disable no-script-url */
+            else {
+                /*eslint-disable no-script-url */
                 processedValue = (isJsProtocol ? 'javascript:' : '') +
                                  ScriptProcessor.process(valueWithoutProtocol, true);
-            /*eslint-enable no-script-url */
+                /*eslint-enable no-script-url */
+            }
 
             if (processedValue !== value) {
                 setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
@@ -193,14 +191,12 @@ function overridedSetAttributeCore (el, attr, value, ns) {
         }
         else
             setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-        /*eslint-enable indent */
     }
     else if (urlAttr && isSupportedProtocol) {
         var storedUrlAttr = DomProcessor.getStoredAttrName(attr);
 
         setAttrMeth.apply(el, ns ? [ns, storedUrlAttr, value] : [storedUrlAttr, value]);
 
-        /*eslint-disable indent */
         if (tagName !== 'img') {
             if (value !== '') {
                 var isIframe         = tagName === 'iframe';
@@ -219,7 +215,6 @@ function overridedSetAttributeCore (el, attr, value, ns) {
         }
         else if (value && !UrlUtil.parseProxyUrl(value))
             value = UrlUtil.resolveUrlAsOrigin(value);
-        /*eslint-enable indent */
 
     }
     else if (attr === 'autocomplete') {
@@ -281,14 +276,12 @@ function onElementAdded (el) {
     if ((el.nodeType === 1 || el.nodeType === 9) && DOM.isElementInDocument(el)) {
         var iframes = getIframes(el);
 
-        /*eslint-disable indent */
         if (iframes.length) {
             for (var i = 0; i < iframes.length; i++)
                 onIFrameAddedToDOM(iframes[i]);
         }
         else if (el.tagName && el.tagName.toLowerCase() === 'body')
             onBodyElementMutation();
-        /*eslint-enable indent */
     }
 
     if (DOM.isDomElement(el)) {

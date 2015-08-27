@@ -281,10 +281,9 @@ export function getOffsetPosition (el) {
     }
     else {
         clientPosition = offsetToClientCoords({
-                x: offsetPosition.left + borders.left,
-                y: offsetPosition.top + borders.top
-            },
-            doc);
+            x: offsetPosition.left + borders.left,
+            y: offsetPosition.top + borders.top
+        }, doc);
     }
 
     return {

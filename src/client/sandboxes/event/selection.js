@@ -153,7 +153,7 @@ export function wrapSetterSelection (element, selectionSetter, needFocus, isCont
         }
 
         //in MSEdge focus/blur is sync
-        if (Browser.isIE && Browser.version < 12)
+        if (Browser.isIE && Browser.version < 12) {
             Timeout.internalSetTimeout.call(window, function () {
                 Timeout.internalSetTimeout.call(window, function () {
                     Listeners.removeInternalEventListener(document, ['focus'], focusHandler);
@@ -162,6 +162,7 @@ export function wrapSetterSelection (element, selectionSetter, needFocus, isCont
                         EventSimulator.focus(element);
                 }, 0);
             }, 0);
+        }
         else {
             Listeners.removeInternalEventListener(document, ['focus'], focusHandler);
 

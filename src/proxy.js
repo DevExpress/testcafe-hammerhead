@@ -67,7 +67,6 @@ export default class Proxy extends Router {
         var msg     = parseServiceMsg(body);
         var session = msg && this.openSessions[msg.jobUid];
 
-        /*eslint-disable indent*/
         if (session) {
             try {
                 var result = await session.handleServiceMessage(msg, serverInfo);
@@ -80,7 +79,6 @@ export default class Proxy extends Router {
         }
         else
             respond500(res, 'Session is not opened in proxy');
-        /*eslint-enable indent*/
     }
 
     _onTaskScriptRequest (req, res, serverInfo, isIFrame) {
@@ -88,7 +86,6 @@ export default class Proxy extends Router {
         var refererDest = referer && urlUtils.parseProxyUrl(referer);
         var session     = refererDest && this.openSessions[refererDest.jobInfo.uid];
 
-        /*eslint-disable indent*/
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');
             res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
@@ -97,7 +94,6 @@ export default class Proxy extends Router {
         }
         else
             respond500(res);
-        /*eslint-enable indent*/
     }
 
     _onRequest (req, res, serverInfo) {

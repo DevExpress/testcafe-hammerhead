@@ -211,13 +211,14 @@ function dispatchMouseEvent (el, args) {
     //NOTE: in IE submit doesn't work if a click is emulated for some submit button's children (for example img, B236676)
     //In addition, if a test is being recorded in IE, the target of a click event is always a button, not a child, so child does not receive click event at all
     if (Browser.isIE) {
-        if (args.type === 'click' || args.type === 'mouseup' || args.type === 'mousedown')
+        if (args.type === 'click' || args.type === 'mouseup' || args.type === 'mousedown') {
             if (el.parentNode && DOM.closest(el.parentNode, 'button')) {
                 var closestButton = DOM.closest(el.parentNode, 'button');
 
                 if (NativeMethods.getAttribute.call(closestButton, 'type') === 'submit')
                     el = closestButton;
             }
+        }
     }
 
     if (pointerRegExp.test(args.type) && (window.PointerEvent || window.MSPointerEvent)) {

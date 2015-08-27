@@ -89,7 +89,6 @@ export default class FormData {
         var currentEntry = null;
 
         for (var line of lines) {
-            /*eslint-disable indent*/
             if (this._isBoundary(line)) {
                 if (currentEntry)
                     this.entries.push(currentEntry);
@@ -121,7 +120,6 @@ export default class FormData {
 
             else if (state === PARSER_STATE.IN_BODY)
                 bufferUtils.appendLine(currentEntry.body, line);
-            /*eslint-enable indent*/
         }
     }
 

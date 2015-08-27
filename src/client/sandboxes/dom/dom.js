@@ -206,7 +206,6 @@ export function init (window, document) {
     DomAccessorWrappers.on(DomAccessorWrappers.BODY_CONTENT_CHANGED, function (el) {
         var elContextWindow = el[Const.DOM_SANDBOX_PROCESSED_CONTEXT];
 
-        /*eslint-disable indent */
         if (elContextWindow !== window) {
             MessageSandbox.sendServiceMsg({
                 cmd: BODY_CONTENT_CHANGED
@@ -214,7 +213,6 @@ export function init (window, document) {
         }
         else
             ShadowUI.onBodyContentChanged();
-        /*eslint-enable indent */
     });
 
     window[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] = overrideDomMethods;
@@ -252,7 +250,6 @@ export function init (window, document) {
 function updateSandboxStore (window) {
     var topSameDomainWindow = getTopSameDomainWindow(window);
 
-    /*eslint-disable indent */
     if (isIFrameWithoutSrc) {
         topSameDomainWindow[IFRAME_DOM_SANDBOXES_STORE].push({
             iframe:     window.frameElement,
@@ -261,5 +258,4 @@ function updateSandboxStore (window) {
     }
     else if (window === topSameDomainWindow)
         window[IFRAME_DOM_SANDBOXES_STORE] = [];
-    /*eslint-enable indent */
 }

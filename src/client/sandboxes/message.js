@@ -40,7 +40,6 @@ export function init (window) {
         var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
 
         if (data.type === messageType.SERVICE && e.source) {
-            /*eslint-disable indent */
             if (pingCmd && data.message.cmd === pingCmd && data.message.isPingResponse) {
                 pingCallback();
                 pingCallback = null;
@@ -48,7 +47,6 @@ export function init (window) {
             }
             else
                 eventEmitter.emit(SERVICE_MSG_RECEIVED, { message: data.message, source: e.source });
-            /*eslint-enable indent */
         }
     }
 

@@ -243,9 +243,8 @@ export function getDocumentWriteStatementIndices (statements) {
         var statement = statements[i];
 
         if (isExpressionStatement(statement) && isCallStatement(statement) && isMember(statement) &&
-            isDocumentWrite(statement)) {
+            isDocumentWrite(statement))
             indices.push(i);
-        }
     }
 
     return indices;
