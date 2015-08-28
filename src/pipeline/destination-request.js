@@ -6,7 +6,7 @@ import { auth as requestWithAuth } from 'webauth';
 import { assign as assignWindowsDomain } from './windows-domain';
 import { handle as handleConnectionReset } from './connection-reset';
 import * as requestAgent from './request-agent';
-import { MESSAGE, getText } from './messages';
+import { MESSAGE, getText } from '../messages';
 
 const IS_WINDOWS = /^win/.test(platform());
 
@@ -82,7 +82,7 @@ export default class DestinationRequest extends EventEmitter {
         if (!this.hasResponse) {
             this.req.abort();
 
-            this.emit('fatalError', getText(MESSAGE.destServerRequestTimeout, this.opts.url));
+            this.emit('fatalError', getText(MESSAGE.destRequestTimeout, this.opts.url));
         }
     }
 
