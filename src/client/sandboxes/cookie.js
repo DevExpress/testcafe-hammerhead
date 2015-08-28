@@ -68,7 +68,7 @@ export function setCookie (document, value) {
         //NOTE: add protocol portion to the domain, so we can use urlUtil for same origin check
         var domain = parsedCookie.domain && 'http://' + parsedCookie.domain;
 
-        //NOTE: all TestCafe jobs has same domain, so we should validate Domain attribute manually
+        //NOTE: all TestCafe sessions has same domain, so we should validate Domain attribute manually
         //according to test url
         return !domain || UrlUtil.sameOriginCheck(document.location.toString(), domain);
     }

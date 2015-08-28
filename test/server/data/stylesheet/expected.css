@@ -1,5 +1,5 @@
 span {
-    background: url('http://127.0.0.1:1836/!1337/http://some.url/') no-repeat -6px -52px;
+    background: url('http://127.0.0.1:1836/sessionId/http://some.url/') no-repeat -6px -52px;
     width: 18px;
     height: 14px;
     float: left;

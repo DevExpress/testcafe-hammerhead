@@ -126,11 +126,9 @@ test('attribute value', function () {
 });
 
 test('script src', function () {
-    var storedJobUid     = Settings.get().JOB_UID;
-    var storedOwnerToken = Settings.get().JOB_OWNER_TOKEN;
+    var storedSessionId = Settings.get().SESSION_ID;
 
-    Settings.get().JOB_UID         = 'uid';
-    Settings.get().JOB_OWNER_TOKEN = 'token';
+    Settings.get().SESSION_ID = 'uid';
 
     var script = document.createElement('script');
 
@@ -140,8 +138,7 @@ test('script src', function () {
 
     strictEqual(UrlUtil.parseProxyUrl(script.src).resourceType, UrlUtil.SCRIPT);
 
-    Settings.get().JOB_UID         = storedJobUid;
-    Settings.get().JOB_OWNER_TOKEN = storedOwnerToken;
+    Settings.get().SESSION_ID = storedSessionId;
 });
 
 test('event attributes', function () {
@@ -183,13 +180,13 @@ test('javascript protocol', function () {
 test('anchor with target attribute', function () {
     var anchor   = NativeMethods.createElement.call(document, 'a');
     var url      = 'http://url.com/';
-    var proxyUrl = UrlUtil.getProxyUrl(url, null, null, null, null, 'iframe');
+    var proxyUrl = UrlUtil.getProxyUrl(url, null, null, null, 'iframe');
 
     NativeMethods.setAttribute.call(anchor, 'href', url);
     NativeMethods.setAttribute.call(anchor, 'target', 'iframeName');
 
     DomProcessor.processElement(anchor, function (url, resourceType) {
-        return UrlUtil.getProxyUrl(url, null, null, null, null, resourceType);
+        return UrlUtil.getProxyUrl(url, null, null, null, resourceType);
     });
 
     strictEqual(NativeMethods.getAttribute.call(anchor, 'href'), proxyUrl);
@@ -228,7 +225,7 @@ test('autocomplete attribute', function () {
 
 test('crossdomain src', function () {
     var url                   = 'http://cross.domain.com/';
-    var proxyUrl              = UrlUtil.getProxyUrl(url, location.hostname, 2001, null, null, 'iframe');
+    var proxyUrl              = UrlUtil.getProxyUrl(url, location.hostname, 2001, null, 'iframe');
     var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
 
     Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;

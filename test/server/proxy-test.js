@@ -194,9 +194,9 @@ describe('Proxy', function () {
                 method: 'POST',
                 url:    'http://localhost:1836/messaging',
                 body:   JSON.stringify({
-                    cmd:    'ServiceTestCmd',
-                    data:   '42',
-                    jobUid: session.id
+                    cmd:       'ServiceTestCmd',
+                    data:      '42',
+                    sessionId: session.id
                 })
             };
 
@@ -267,10 +267,10 @@ describe('Proxy', function () {
                 method: 'POST',
                 url:    'http://localhost:1836/messaging',
                 body:   JSON.stringify({
-                    cmd:    SERVICE_CMD.SET_COOKIE,
-                    url:    proxy.openSession('http://example.com', session),
-                    cookie: 'Test=Data',
-                    jobUid: session.id
+                    cmd:       SERVICE_CMD.SET_COOKIE,
+                    url:       proxy.openSession('http://example.com', session),
+                    cookie:    'Test=Data',
+                    sessionId: session.id
                 })
             };
 
@@ -385,7 +385,7 @@ describe('Proxy', function () {
 
     describe('Content processing', function () {
         it('Should process pages', function (done) {
-            session.id = 1337;
+            session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
             session.injectable.scripts.push('/script2.js');
             session.injectable.styles.push('/styles.css');
@@ -437,7 +437,7 @@ describe('Proxy', function () {
         });
 
         it('Should process manifests', function (done) {
-            session.id = 1337;
+            session.id = 'sessionId';
 
             request(proxy.openSession('http://127.0.0.1:2000/manifest', session), function (err, res, body) {
                 var expected = fs.readFileSync('test/server/data/manifest/expected.manifest').toString();
@@ -448,7 +448,7 @@ describe('Proxy', function () {
         });
 
         it('Should process stylesheets', function (done) {
-            session.id = 1337;
+            session.id = 'sessionId';
 
             var options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/stylesheet', session),

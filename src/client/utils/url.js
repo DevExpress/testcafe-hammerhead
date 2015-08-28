@@ -22,7 +22,7 @@ function getResolver (doc) {
     return doc[UrlUtil.DOCUMENT_URL_RESOLVER];
 }
 
-UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, jobUid, jobOwnerToken, resourceType) {
+UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType) {
     if (!UrlUtil.isSupportedProtocol(url))
         return url;
 
@@ -41,13 +41,12 @@ UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, jobUid, jobOwnerT
         // NOTE: we need to change proxy url resource type
         var destUrl = SharedUrlUtil.formatUrl(parsedAsProxy.originResourceInfo);
 
-        return UrlUtil.getProxyUrl(destUrl, proxyHostname, proxyPort, jobUid, jobOwnerToken, resourceType);
+        return UrlUtil.getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType);
     }
 
     proxyHostname = proxyHostname || location.hostname;
     proxyPort     = proxyPort || location.port.toString();
-    jobUid        = jobUid || Settings.get().JOB_UID;
-    jobOwnerToken = jobOwnerToken || Settings.get().JOB_OWNER_TOKEN;
+    sessionId     = sessionId || Settings.get().SESSION_ID;
 
     var parsedUrl = SharedUrlUtil.parseUrl(url);
 
@@ -66,11 +65,11 @@ UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, jobUid, jobOwnerT
     }
 
 
-    return SharedUrlUtil.getProxyUrl(url, proxyHostname, proxyPort, jobUid, jobOwnerToken, resourceType);
+    return SharedUrlUtil.getProxyUrl(url, proxyHostname, proxyPort, sessionId, resourceType);
 };
 
 UrlUtil.getCrossDomainIframeProxyUrl = function (url) {
-    return UrlUtil.getProxyUrl(url, null, Settings.get().CROSS_DOMAIN_PROXY_PORT, null, null, UrlUtil.IFRAME);
+    return UrlUtil.getProxyUrl(url, null, Settings.get().CROSS_DOMAIN_PROXY_PORT, null, UrlUtil.IFRAME);
 };
 
 UrlUtil.getCrossDomainProxyUrl = function () {
@@ -122,21 +121,21 @@ UrlUtil.parseUrl = function (url) {
 };
 
 UrlUtil.convertToProxyUrl = function (url, resourceType) {
-    return UrlUtil.getProxyUrl(url, null, null, null, null, resourceType);
+    return UrlUtil.getProxyUrl(url, null, null, null, resourceType);
 };
 
 UrlUtil.changeOriginUrlPart = function (proxyUrl, prop, value, resourceType) {
     var parsed = SharedUrlUtil.parseProxyUrl(proxyUrl);
 
     if (parsed) {
-        var resolver = getResolver(document);
-        var job      = parsed.jobInfo;
-        var proxy    = parsed.proxy;
+        var resolver  = getResolver(document);
+        var sessionId = parsed.sessionId;
+        var proxy     = parsed.proxy;
 
         resolver.href  = parsed.originUrl;
         resolver[prop] = value;
 
-        return UrlUtil.getProxyUrl(resolver.href, proxy.hostname, proxy.port, job.uid, job.ownerToken, resourceType);
+        return UrlUtil.getProxyUrl(resolver.href, proxy.hostname, proxy.port, sessionId, resourceType);
     }
 
     return proxyUrl;

@@ -210,7 +210,7 @@ function overridedSetAttributeCore (el, attr, value, ns) {
                     resourceType = UrlUtil.IFRAME;
 
                 value = isIframe && isCrossDomainUrl ? UrlUtil.getCrossDomainIframeProxyUrl(value) :
-                        UrlUtil.getProxyUrl(value, null, null, null, null, resourceType);
+                        UrlUtil.getProxyUrl(value, null, null, null, resourceType);
             }
         }
         else if (value && !UrlUtil.parseProxyUrl(value))

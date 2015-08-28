@@ -39,7 +39,7 @@ test('url', function () {
         var emptyAttrValue = el[attr];
         var origin         = 'http://origin.com/';
         var resourceType   = tagName === 'script' ? 'script' : null;
-        var proxy          = UrlUtil.getProxyUrl(origin, null, null, null, null, resourceType);
+        var proxy          = UrlUtil.getProxyUrl(origin, null, null, null, resourceType);
 
         setProperty(el, attr, origin);
         strictEqual(el[attr], proxy);
@@ -48,7 +48,7 @@ test('url', function () {
         strictEqual(getWrapAttr(), origin);
 
         var newUrl      = '/image';
-        var proxyNewUrl = UrlUtil.getProxyUrl('/image', null, null, null, null, resourceType);
+        var proxyNewUrl = UrlUtil.getProxyUrl('/image', null, null, null, resourceType);
 
         el.setAttribute(attr, newUrl);
         strictEqual(el[attr], proxyNewUrl);
@@ -85,11 +85,9 @@ test('url', function () {
 });
 
 test('script src', function () {
-    var storedJobUid     = Settings.get().JOB_UID;
-    var storedOwnerToken = Settings.get().JOB_OWNER_TOKEN;
+    var storedSessionId = Settings.get().SESSION_ID;
 
-    Settings.get().JOB_UID         = 'uid';
-    Settings.get().JOB_OWNER_TOKEN = 'token';
+    Settings.get().SESSION_ID = 'sessionId';
 
     var script = document.createElement('script');
 
@@ -99,8 +97,7 @@ test('script src', function () {
 
     strictEqual(UrlUtil.parseProxyUrl(script.src).resourceType, UrlUtil.SCRIPT);
 
-    Settings.get().JOB_UID         = storedJobUid;
-    Settings.get().JOB_OWNER_TOKEN = storedOwnerToken;
+    Settings.get().SESSION_ID = storedSessionId;
 });
 
 asyncTest('iframe with "javascript: <html>...</html>" src', function () {
@@ -382,13 +379,12 @@ test('window.onbeforeunload', function () {
 });
 
 test('element.innerHTML', function () {
-    Settings.get().JOB_UID         = 'job';
-    Settings.get().JOB_OWNER_TOKEN = 'token';
+    Settings.get().SESSION_ID = 'sessionId';
 
     var $container   = $('<div>');
     var checkElement = function (el, attr, resourceType) {
         var storedAttr     = DomProcessor.getStoredAttrName(attr);
-        var exprectedValue = 'http://' + location.host + '/token!job' + resourceType +
+        var exprectedValue = 'http://' + location.host + '/sessionId' + resourceType +
                              '/https://example.com/Images/1.png';
 
         strictEqual(NativeMethods.getAttribute.call(el, storedAttr), '/Images/1.png', 'original url stored');
@@ -411,7 +407,7 @@ test('element.innerHTML', function () {
 test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
     var url      = 'http://url.com/';
-    var proxyUrl = UrlUtil.getProxyUrl(url, null, null, null, null, 'iframe');
+    var proxyUrl = UrlUtil.getProxyUrl(url, null, null, null, 'iframe');
 
     anchor.setAttribute('target', 'iframeName');
 

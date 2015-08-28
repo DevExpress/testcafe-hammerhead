@@ -84,10 +84,10 @@ UrlUtil.convertHostToLowerCase = function (url) {
     return (parsedUrl.protocol + '//' + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
 };
 
-UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, jobUid, jobOwnerToken, resourceType) {
+UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType) {
     validateOriginUrl(url);
 
-    var params = [jobOwnerToken, jobUid];
+    var params = [sessionId];
 
     if (resourceType)
         params.push(resourceType);
@@ -121,7 +121,7 @@ UrlUtil.parseProxyUrl = function (proxyUrl) {
     var params = match[1].split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
     // NOTE: we should have at least job uid and owner token
-    if (params.length < 2)
+    if (!params.length)
         return null;
 
     return {
@@ -134,12 +134,8 @@ UrlUtil.parseProxyUrl = function (proxyUrl) {
             port:     parsedUrl.port
         },
 
-        jobInfo: {
-            ownerToken: params[0],
-            uid:        params[1]
-        },
-
-        resourceType: params[2] || null
+        sessionId:    params[0],
+        resourceType: params[1] || null
     };
 };
 

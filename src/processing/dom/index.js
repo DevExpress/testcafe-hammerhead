@@ -437,8 +437,7 @@ export default class DomProcessor {
                             var proxyHostname = UrlUtil.parseUrl(location).hostname;
 
                             proxyUrl = resourceUrl ? this.adapter.getProxyUrl(resourceUrl, proxyHostname,
-                                this.adapter.getCrossDomainPort(), proxyUrlObj.jobInfo.uid,
-                                proxyUrlObj.jobInfo.ownerToken, UrlUtil.IFRAME) : '';
+                                this.adapter.getCrossDomainPort(), proxyUrlObj.sessionId, UrlUtil.IFRAME) : '';
                         }
 
                     }

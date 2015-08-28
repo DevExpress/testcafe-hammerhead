@@ -118,7 +118,7 @@ function createLocWrapper (window) {
             return getHref();
         },
         set: function (href) {
-            window.location.href = UrlUtil.getProxyUrl(href, null, null, null, null, resourceType);
+            window.location.href = UrlUtil.getProxyUrl(href, null, null, null, resourceType);
 
             return href;
         }
@@ -175,7 +175,7 @@ function createLocWrapper (window) {
     });
 
     result.assign = function (url) {
-        return window.location.assign(UrlUtil.getProxyUrl(url, null, null, null, null, resourceType));
+        return window.location.assign(UrlUtil.getProxyUrl(url, null, null, null, resourceType));
     };
 
     result.reload = function (forceget) {
@@ -183,7 +183,7 @@ function createLocWrapper (window) {
     };
 
     result.replace = function (url) {
-        return window.location.replace(UrlUtil.getProxyUrl(url, null, null, null, null, resourceType));
+        return window.location.replace(UrlUtil.getProxyUrl(url, null, null, null, resourceType));
     };
 
     result.toString = function () {
@@ -593,7 +593,7 @@ export function init (window, document) {
 
                     var resourceType = owner !== window.top ? UrlUtil.IFRAME : null;
 
-                    owner.location = UrlUtil.getProxyUrl(location, null, null, null, null, resourceType);
+                    owner.location = UrlUtil.getProxyUrl(location, null, null, null, resourceType);
 
                     return location;
                 }
