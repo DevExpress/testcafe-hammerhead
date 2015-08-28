@@ -1,8 +1,8 @@
-var DomAccessorWrappers = Hammerhead.get('./sandboxes/dom-accessor-wrappers');
+var CodeInstrumentation = Hammerhead.get('./sandboxes/code-instrumentation');
 var IFrameSandbox       = Hammerhead.get('./sandboxes/iframe');
 var UrlUtil             = Hammerhead.get('./utils/url');
 
-var accessors = DomAccessorWrappers.elementPropertyAccessors;
+var accessors = CodeInstrumentation.elementPropertyAccessors;
 
 QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);

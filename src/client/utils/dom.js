@@ -202,15 +202,6 @@ export function isCrossDomainWindows (window1, window2) {
     }
 }
 
-export function isDocumentInstance (instance) {
-    if (instance instanceof NativeMethods.documentClass)
-        return true;
-
-    return instance && typeof instance === 'object' && typeof instance.referrer !== 'undefined' &&
-           instance.toString &&
-           (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
-}
-
 export function isDomElement (el) {
     // T184805
     if (el && typeof el.toString === 'function' && el.toString.toString().indexOf('[native code]') !== -1 &&
@@ -322,18 +313,8 @@ export function isTextNode (node) {
     return node && typeof node === 'object' && node.nodeType === 3 && typeof node.nodeName === 'string';
 }
 
-export function isWindowInstance (instance) {
-    if (instance instanceof NativeMethods.windowClass)
-        return true;
-
-    var result = instance && typeof instance === 'object' && typeof instance.top !== 'undefined' &&
-                 (Browser.isMozilla ? true : instance.toString && (instance.toString() === '[object Window]' ||
-                                                                   instance.toString() === '[object global]'));
-
-    if (result && instance.top !== instance)
-        return isWindowInstance(instance.top);
-
-    return result;
+export function isAnchor (el) {
+    return isDomElement(el) && el.tagName.toLowerCase() === 'a';
 }
 
 export function matches (el, selector) {

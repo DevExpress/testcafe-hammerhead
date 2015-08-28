@@ -1,5 +1,6 @@
 import * as Browser from './browser';
 import * as DOM from './dom';
+import { isWindow, isDocument } from './types';
 
 //NOTE: for Chrome
 var MIN_SELECT_SIZE_VALUE = 4;
@@ -111,10 +112,10 @@ export function getInnerWidth (el) {
     if (!el)
         return null;
 
-    if (DOM.isWindowInstance(el))
+    if (isWindow(el))
         return el.document.documentElement.clientWidth;
 
-    if (DOM.isDocumentInstance(el))
+    if (isDocument(el))
         return el.documentElement.clientWidth;
 
     var value = el.offsetWidth;
@@ -164,10 +165,10 @@ export function getScrollLeft (el) {
     if (!el)
         return null;
 
-    if (DOM.isWindowInstance(el))
+    if (isWindow(el))
         return el.pageXOffset;
 
-    if (DOM.isDocumentInstance(el))
+    if (isDocument(el))
         return el.defaultView.pageXOffset;
 
     return el.scrollLeft;
@@ -177,10 +178,10 @@ export function getScrollTop (el) {
     if (!el)
         return null;
 
-    if (DOM.isWindowInstance(el))
+    if (isWindow(el))
         return el.pageYOffset;
 
-    if (DOM.isDocumentInstance(el))
+    if (isDocument(el))
         return el.defaultView.pageYOffset;
 
     return el.scrollTop;
@@ -190,7 +191,7 @@ export function setScrollLeft (el, value) {
     if (!el)
         return;
 
-    if (DOM.isWindowInstance(el) || DOM.isDocumentInstance(el)) {
+    if (isWindow(el) || isDocument(el)) {
         var win       = DOM.findDocument(el).defaultView;
         var scrollTop = getScrollTop(el);
 
@@ -204,7 +205,7 @@ export function setScrollTop (el, value) {
     if (!el)
         return;
 
-    if (DOM.isWindowInstance(el) || DOM.isDocumentInstance(el)) {
+    if (isWindow(el) || isDocument(el)) {
         var win       = DOM.findDocument(el).defaultView;
         var scrollLeft = getScrollLeft(el);
 
@@ -227,7 +228,7 @@ export function getOffsetParent (el) {
 }
 
 export function getOffset (el) {
-    if (!el || DOM.isWindowInstance(el) || DOM.isDocumentInstance(el))
+    if (!el || isWindow(el) || isDocument(el))
         return null;
 
     var clientRect = el.getBoundingClientRect();

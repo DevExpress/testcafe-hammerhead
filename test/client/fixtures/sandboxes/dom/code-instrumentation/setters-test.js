@@ -209,8 +209,8 @@ test('iframe', function () {
 asyncTest('body.innerHTML in iframe', function () {
     expect(2);
 
-    $('<iframe></iframe>')
-        .attr('src', window.QUnitGlobals.getResourceUrl('../../../../data/dom-accessor-wrappers/iframe.html'))
+    $('<iframe>')
+        .attr('src', window.QUnitGlobals.getResourceUrl('../../../../data/code-instrumentation/iframe.html'))
         .appendTo(document.body)
         .load(function () {
             var iframe         = this;

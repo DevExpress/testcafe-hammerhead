@@ -1,4 +1,5 @@
 import * as DOM from '../../utils/dom';
+import { isWindow } from '../../utils/types';
 import * as Event from '../../utils/event';
 import * as ListeningCtx from './listening-context';
 import NativeMethods from '../native-methods';
@@ -91,14 +92,14 @@ function getBodyEventListenerWrapper (documentEventCtx, listener) {
 }
 
 function getNativeAddEventListener (el) {
-    if (DOM.isWindowInstance(el))
+    if (isWindow(el))
         return NativeMethods.windowAddEventListener;
 
     return typeof el.body !== 'undefined' ? NativeMethods.documentAddEventListener : NativeMethods.addEventListener;
 }
 
 function getNativeRemoveEventListener (el) {
-    if (DOM.isWindowInstance(el))
+    if (isWindow(el))
         return NativeMethods.windowRemoveEventListener;
 
     return typeof el.body !==

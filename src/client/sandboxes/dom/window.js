@@ -1,7 +1,7 @@
 /*global history, navigator*/
 import { isMozilla } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
-import { ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY } from '../dom-accessor-wrappers';
+import { getOriginalErrorHandler } from '../code-instrumentation';
 import * as MessageSandbox from '../message';
 import NativeMethods from '../native-methods';
 import ScriptProcessor from '../../../processing/script';
@@ -79,10 +79,9 @@ export function override (window, overrideNewElement) {
         if (msg.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
             return true;
 
-        var originalOnErrorHandler = window[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY];
-
-        var caught = originalOnErrorHandler &&
-                     originalOnErrorHandler.call(window, msg, url, line, col, errObj) === true;
+        var originalOnErrorHandler = getOriginalErrorHandler(window);
+        var caught                 = originalOnErrorHandler &&
+                                     originalOnErrorHandler.call(window, msg, url, line, col, errObj) === true;
 
         if (caught)
             return true;
