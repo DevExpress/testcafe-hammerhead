@@ -1,5 +1,5 @@
 import { process as processResource } from '../processing/resources';
-import { MESSAGE, getText } from './messages';
+import { MESSAGE, getText } from '../messages';
 import DestinationRequest from './destination-request';
 import PipelineContext from './pipeline-context';
 import * as headerTransforms from './header-transforms';
@@ -58,7 +58,7 @@ var stages = {
         // But if we have response body we can still process
         // such requests. (See: B234324)
         if (ctx.hasDestReqErr && isDestResBodyMalformed(ctx)) {
-            error(getText(MESSAGE.destServerConnectionTerminated, ctx.dest.url));
+            error(getText(MESSAGE.destConnectionTerminated, ctx.dest.url));
 
             return;
         }

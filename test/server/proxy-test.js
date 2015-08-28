@@ -173,7 +173,7 @@ describe('Proxy', function () {
     describe('Session', function () {
         it('Should pass DNS errors to session', function (done) {
             session.handlePageError = function (ctx, err) {
-                expect(err).eql('Failed to find a DNS-record for the resource at "http://www.some-unresolvable.url".');
+                expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url">http://www.some-unresolvable.url</a>.');
                 ctx.res.end();
                 done();
                 return true;
@@ -530,7 +530,7 @@ describe('Proxy', function () {
             DestinationRequest.TIMEOUT = 200;
 
             session.handlePageError = function (ctx, err) {
-                expect(err).eql('The server that hosts the tested page at "http://127.0.0.1:2000/T224541/hang-forever" did not respond to a connection request within the timeout period. The problem may be related to local machine\'s network or firewall settings, server outage, or network problems that make the server inaccessible.');
+                expect(err).eql('Failed to complete a request to <a href="http://127.0.0.1:2000/T224541/hang-forever">http://127.0.0.1:2000/T224541/hang-forever</a> within the timeout period. The problem may be related to local machine\'s network or firewall settings, server outage, or network problems that make the server inaccessible.');
                 ctx.res.end();
                 DestinationRequest.TIMEOUT = savedReqTimeout;
                 done();
