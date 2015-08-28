@@ -8,11 +8,12 @@ import scriptProcessor from '../script';
 
 const BODY_CREATED_EVENT_SCRIPT =
           `<script type="text/javascript" class="${Const.SHADOW_UI_SCRIPT_CLASSNAME}">
-        if (window.Hammerhead)
-           window.Hammerhead._raiseBodyCreatedEvent();
-        var script = document.currentScript || document.scripts[document.scripts.length - 1];
-        script.parentNode.removeChild(script);
-    </script>`;
+               if (window.Hammerhead)
+                   window.Hammerhead._raiseBodyCreatedEvent();
+
+               var script = document.currentScript || document.scripts[document.scripts.length - 1];
+               script.parentNode.removeChild(script);
+          </script>`;
 
 class PageProcessor extends ResourceProcessorBase {
     constructor () {
@@ -66,21 +67,14 @@ class PageProcessor extends ResourceProcessorBase {
         var resources = [];
 
         if (processingOptions.styleUrl) {
-            resources.push('<link rel="stylesheet" type="text/css" class="');
-            resources.push(Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME);
-            resources.push('"href = "');
-            resources.push(processingOptions.styleUrl);
-            resources.push('">');
+            resources.push(`<link rel="stylesheet" type="text/css" class="${Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME}"
+                                  href="${processingOptions.styleUrl}">`);
         }
 
         if (processingOptions.scripts) {
             processingOptions.scripts.forEach(function (scriptUrl) {
-                resources.push('<script type="text/javascript" class="');
-                resources.push(Const.SHADOW_UI_SCRIPT_CLASSNAME);
-                resources.push('" charset="UTF-8" src="');
-                resources.push(scriptUrl);
-                resources.push('">');
-                resources.push('</script>');
+                resources.push(`<script type="text/javascript" class="${Const.SHADOW_UI_SCRIPT_CLASSNAME}"
+                                        charset="UTF-8" src="${scriptUrl}"></script>`);
             });
         }
 
