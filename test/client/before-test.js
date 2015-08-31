@@ -4,13 +4,12 @@
     // the hammerhead class to all script and link elements on the page.
     $('script').addClass('script-TC2b9a6d');
     $('link').addClass('ui-stylesheet-TC2b9a6d');
-    
+
 
     var Settings = Hammerhead.get('./settings');
 
     Settings.set({
-        JOB_OWNER_TOKEN: 'ownerToken',
-        JOB_UID:         'jobUid'
+        SESSION_ID: 'sessionId'
     });
 
     var UrlUtil     = Hammerhead.get('./utils/url');
@@ -26,10 +25,9 @@
             e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
                 'var Settings = Hammerhead.get(\'./settings\');',
                 'Settings.set({',
-                '    REFERER : "http://localhost/ownerToken!jobUid/https://example.com",',
-                '    JOB_OWNER_TOKEN : "ownerToken",',
+                '    REFERER : "http://localhost/sessionId/https://example.com",',
                 '    SERVICE_MSG_URL : "/service-msg/100",',
-                '    JOB_UID : "jobUid"',
+                '    SESSION_ID : "sessionId"',
                 '});',
                 'Hammerhead.init();'
             ].join(''));

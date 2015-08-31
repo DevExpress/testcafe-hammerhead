@@ -17,7 +17,7 @@ function process (html, isIFrame) {
     domProcessor.processPage($, function (url, resourceType) {
         url = url.indexOf('/') === 0 ? 'http://example.com' + url : url;
 
-        return urlUtil.getProxyUrl(url, 'localhost', '80', 1337, '', resourceType);
+        return urlUtil.getProxyUrl(url, 'localhost', '80', 'sessionId', resourceType);
     }, 1338, isIFrame);
 
     return $;
@@ -27,7 +27,7 @@ describe('DOM processor', function () {
     it('Should process elements outside <html></html>', function () {
         var $ = process('<html></html><script src="http://example.com/script.js"></script>');
 
-        expect($('script')[0].attribs.src).eql('http://localhost:80/!1337!script/http://example.com/script.js');
+        expect($('script')[0].attribs.src).eql('http://localhost:80/sessionId!script/http://example.com/script.js');
     });
 
     it('Should process sandboxed <iframe>', function () {
@@ -41,13 +41,13 @@ describe('DOM processor', function () {
         var $ = process('<div style="background: url(\'http://example.com/style.css\')"></div>');
 
         expect($.html()).eql('<html><head></head><body><div style="background: ' +
-                             'url(\'http://localhost:80/!1337/http://example.com/style.css\')"></div></body></html>');
+                             'url(\'http://localhost:80/sessionId/http://example.com/style.css\')"></div></body></html>');
     });
 
     it('Should process <script> src', function () {
         var $ = process('<script src="http://example.com/script.js"></script>');
 
-        expect($('script')[0].attribs.src).eql('http://localhost:80/!1337!script/http://example.com/script.js');
+        expect($('script')[0].attribs.src).eql('http://localhost:80/sessionId!script/http://example.com/script.js');
     });
 
     it('Should process <img> src', function () {
@@ -123,9 +123,9 @@ describe('DOM processor', function () {
     it('Should process <iframe> with src without protocol', function () {
         var $                    = process('<iframe src="//cross.domain.com/"></iframe><iframe src="//example.com/"></iframe>');
         var crossDomainIframeSrc = $('iframe')[0].attribs.src;
-        var crossDomainProxyUrl  = urlUtil.getProxyUrl('http://cross.domain.com/', testProxyHostName, testCrossDomainPort, 1337, '', 'iframe');
+        var crossDomainProxyUrl  = urlUtil.getProxyUrl('http://cross.domain.com/', testProxyHostName, testCrossDomainPort, 'sessionId', 'iframe');
         var iframeSrc            = $('iframe')[1].attribs.src;
-        var proxyUrl             = urlUtil.getProxyUrl('http://example.com/', testProxyHostName, testProxyPort, 1337, '', 'iframe');
+        var proxyUrl             = urlUtil.getProxyUrl('http://example.com/', testProxyHostName, testProxyPort, 'sessionId', 'iframe');
 
         expect(crossDomainIframeSrc).eql(crossDomainProxyUrl);
         expect(iframeSrc).eql(proxyUrl);

@@ -53,11 +53,11 @@ function storeMessage (msg) {
 
     storedMessages.push(msg);
 
-    window.localStorage.setItem(Settings.get().JOB_UID, JSON.stringify(storedMessages));
+    window.localStorage.setItem(Settings.get().SESSION_ID, JSON.stringify(storedMessages));
 }
 
 function getStoredMessages () {
-    var storedMessagesStr = window.localStorage.getItem(Settings.get().JOB_UID);
+    var storedMessagesStr = window.localStorage.getItem(Settings.get().SESSION_ID);
 
     return storedMessagesStr ? JSON.parse(storedMessagesStr) : [];
 }
@@ -73,7 +73,7 @@ function removeMessageFromStore (cmd) {
         }
     }
 
-    window.localStorage.setItem(Settings.get().JOB_UID, JSON.stringify(messages));
+    window.localStorage.setItem(Settings.get().SESSION_ID, JSON.stringify(messages));
 }
 
 function createXMLHttpRequest (async) {
@@ -139,8 +139,7 @@ Transport.waitForServiceMessagesCompleted = function (callback, timeout) {
 };
 
 Transport.asyncServiceMsg = function (msg, callback) {
-    msg.jobUid        = Settings.get().JOB_UID;
-    msg.jobOwnerToken = Settings.get().JOB_OWNER_TOKEN;
+    msg.sessionId = Settings.get().SESSION_ID;
 
     if (isIFrameWithoutSrc)
         msg.referer = Settings.get().REFERER;
@@ -215,7 +214,7 @@ Transport.batchUpdate = function (updateCallback) {
     var storedMessages = getStoredMessages();
 
     if (storedMessages.length) {
-        window.localStorage.removeItem(Settings.get().JOB_UID);
+        window.localStorage.removeItem(Settings.get().SESSION_ID);
 
         var tasks = storedMessages.map(function (item) {
             return new Promise(function (resolve) {

@@ -65,7 +65,7 @@ export default class Proxy extends Router {
     async _onServiceMessage (req, res, serverInfo) {
         var body    = await fetchBody(req);
         var msg     = parseServiceMsg(body);
-        var session = msg && this.openSessions[msg.jobUid];
+        var session = msg && this.openSessions[msg.sessionId];
 
         if (session) {
             try {
@@ -84,7 +84,7 @@ export default class Proxy extends Router {
     _onTaskScriptRequest (req, res, serverInfo, isIFrame) {
         var referer     = req.headers['referer'];
         var refererDest = referer && urlUtils.parseProxyUrl(referer);
-        var session     = refererDest && this.openSessions[refererDest.jobInfo.uid];
+        var session     = refererDest && this.openSessions[refererDest.sessionId];
 
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');

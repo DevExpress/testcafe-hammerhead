@@ -127,7 +127,7 @@ asyncTest('batchUpdate - with stored messages', function () {
         callback();
     };
 
-    window.localStorage.setItem(Settings.get().JOB_UID, JSON.stringify(messages));
+    window.localStorage.setItem(Settings.get().SESSION_ID, JSON.stringify(messages));
     Transport.batchUpdate(updateCallback);
 });
 
@@ -164,13 +164,13 @@ if (!Browser.isWebKit) {
 }
 else {
     asyncTest('Resend aborted async service msg (WebKit)', function () {
-        Settings.get().JOB_UID = '%%%testUid%%%';
+        Settings.get().SESSION_ID = '%%%testUid%%%';
 
         var xhrCount      = 0;
         var callbackCount = 0;
         var value         = 'testValue';
 
-        ok(!window.localStorage.getItem(Settings.get().JOB_UID));
+        ok(!window.localStorage.getItem(Settings.get().SESSION_ID));
 
         var onAjaxSend = function (xhr) {
             xhrCount++;
@@ -191,7 +191,7 @@ else {
             strictEqual(callbackCount, 1);
             strictEqual(xhrCount, 1);
 
-            var storedMsgStr = window.localStorage.getItem(Settings.get().JOB_UID);
+            var storedMsgStr = window.localStorage.getItem(Settings.get().SESSION_ID);
             var storedMsg    = JSON.parse(storedMsgStr)[0];
 
             ok(storedMsgStr);
@@ -199,18 +199,18 @@ else {
 
             unregisterAfterAjaxSendHook();
 
-            window.localStorage.removeItem(Settings.get().JOB_UID);
+            window.localStorage.removeItem(Settings.get().SESSION_ID);
             start();
         }, 200);
     });
 
     asyncTest('Do not dublicate messages in store (WebKit)', function () {
-        Settings.get().JOB_UID = '%%%testUid%%%';
+        Settings.get().SESSION_ID = '%%%testUid%%%';
 
         var callbackCount = 0;
         var value         = 'testValue';
 
-        ok(!window.localStorage.getItem(Settings.JOB_UID));
+        ok(!window.localStorage.getItem(Settings.SESSION_ID));
 
         var onAjaxSend = function (xhr) {
             xhr.abort();
@@ -235,12 +235,12 @@ else {
         window.setTimeout(function () {
             strictEqual(callbackCount, 2);
 
-            var storedMsgStr = window.localStorage.getItem(Settings.get().JOB_UID);
+            var storedMsgStr = window.localStorage.getItem(Settings.get().SESSION_ID);
             var storedMsgArr = JSON.parse(storedMsgStr);
 
             strictEqual(storedMsgArr.length, 1);
 
-            window.localStorage.removeItem(Settings.get().JOB_UID);
+            window.localStorage.removeItem(Settings.get().SESSION_ID);
             start();
         }, 200);
     });

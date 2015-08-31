@@ -15,7 +15,8 @@ function flattenParsedProxyUrl (parsed) {
                 partAfterHost: parsed.originResourceInfo.partAfterHost,
                 resourceType:  parsed.resourceType
             },
-            jobInfo: parsed.jobInfo
+
+            sessionId: parsed.sessionId
         };
     }
 }
@@ -74,8 +75,8 @@ export default class PipelineContext {
         dest.url = urlUtils.formatUrl(dest);
 
         return {
-            dest:    dest,
-            jobInfo: parsedReferer.jobInfo
+            dest:      dest,
+            sessionId: parsedReferer.sessionId
         };
     }
 
@@ -114,7 +115,7 @@ export default class PipelineContext {
             parsedReqUrl = this._getDestFromReferer(parsedReferer);
 
         if (parsedReqUrl) {
-            this.session = openSessions[parsedReqUrl.jobInfo.uid];
+            this.session = openSessions[parsedReqUrl.sessionId];
 
             if (!this.session)
                 return false;
@@ -197,6 +198,6 @@ export default class PipelineContext {
     toProxyUrl (url, isCrossDomain, resourceType) {
         var port = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
 
-        return urlUtils.getProxyUrl(url, this.serverInfo.hostname, port, this.session.id, '', resourceType);
+        return urlUtils.getProxyUrl(url, this.serverInfo.hostname, port, this.session.id, resourceType);
     }
 }

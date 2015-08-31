@@ -93,8 +93,8 @@ module('get proxy url');
 
 test('already proxied', function () {
     var originUrl = 'http://test.example.com/';
-    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken');
-    var newUrl    = UrlUtil.getProxyUrl(proxyUrl, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken', 'iframe');
+    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+    var newUrl    = UrlUtil.getProxyUrl(proxyUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId', 'iframe');
 
     strictEqual(UrlUtil.parseProxyUrl(newUrl).resourceType, 'iframe');
 
@@ -102,23 +102,23 @@ test('already proxied', function () {
 
 test('origin with query, path, hash and host', function () {
     var originUrl = 'http://test.example.com/pa/th/Page?param1=value&param2=&param3#testHash';
-    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken');
+    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/ownerToken!MyUID/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
 });
 
 test('origin with host only', function () {
     var originUrl = 'http://test.example.com/';
-    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken');
+    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/ownerToken!MyUID/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
 });
 
 test('origin with https protocol', function () {
     var originUrl = 'https://test.example.com:53/';
-    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken');
+    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/ownerToken!MyUID/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
 });
 
 test('origin with non http or https protocol', function () {
@@ -139,7 +139,7 @@ test('relative path', function () {
     var originUrl = '/Image1.jpg';
     var proxyUrl  = UrlUtil.getProxyUrl(originUrl);
 
-    strictEqual(proxyUrl, 'http://' + location.host + '/ownerToken!jobUid/https://example.com/Image1.jpg');
+    strictEqual(proxyUrl, 'http://' + location.host + '/sessionId/https://example.com/Image1.jpg');
 
     var relativeUrl = 'share?id=1kjQMWh7IcHdTBbTv6otRvCGYr-p02q206M7aR7dmog0';
     var parsedUrl   = UrlUtil.parseUrl(relativeUrl);
@@ -154,37 +154,37 @@ test('relative path', function () {
 
 test('contains successive question marks in query', function () {
     var originUrl = 'http://test.example.com/??dirs/???files/';
-    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, '127.0.0.1', PROXY_PORT, 'MyUID', 'ownerToken');
+    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, '127.0.0.1', PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/ownerToken!MyUID/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
 });
 
 test('origin with port', function () {
     var originUrl = 'http://test.example.com:53/';
-    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken');
+    var proxyUrl  = UrlUtil.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/ownerToken!MyUID/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
 });
 
 test('undefined or null', function () {
     var a        = document.createElement('a');
-    var proxyUrl = UrlUtil.getProxyUrl(null, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken');
+    var proxyUrl = UrlUtil.getProxyUrl(null, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
     //In Safari a.href = null will equal the current url instead <current_url>/null
     if (!Browser.isSafari) {
         a.href = null;
-        strictEqual(proxyUrl, UrlUtil.getProxyUrl(a.href, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken'), 'null');
+        strictEqual(proxyUrl, UrlUtil.getProxyUrl(a.href, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'), 'null');
     }
 
-    proxyUrl = UrlUtil.getProxyUrl(void 0, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken');
+    proxyUrl = UrlUtil.getProxyUrl(void 0, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
     a.href   = void 0;
-    strictEqual(proxyUrl, UrlUtil.getProxyUrl(a.href, PROXY_HOSTNAME, PROXY_PORT, 'MyUID', 'ownerToken'), 'undefined');
+    strictEqual(proxyUrl, UrlUtil.getProxyUrl(a.href, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'), 'undefined');
 });
 
 test('remove unnecessary slashes form the begin of the url', function () {
-    var proxy = UrlUtil.getProxyUrl('/////example.com', 'localhost', '5555', 'u', 't');
+    var proxy = UrlUtil.getProxyUrl('/////example.com', 'localhost', '5555', 'sessionId', 'resourceType');
 
-    strictEqual(proxy, 'http://localhost:5555/t!u/https://example.com/');
+    strictEqual(proxy, 'http://localhost:5555/sessionId!resourceType/https://example.com/');
 });
 
 test('convert origin host and protocol to lower case', function () {
@@ -197,7 +197,7 @@ test('convert origin host and protocol to lower case', function () {
 module('parse proxy url');
 
 test('http', function () {
-    var proxyUrl      = 'http://' + PROXY_HOST + '/ownerToken!MyUID/http://test.example.com:53/PA/TH/?#testHash';
+    var proxyUrl      = 'http://' + PROXY_HOST + '/sessionId/http://test.example.com:53/PA/TH/?#testHash';
     var parsingResult = UrlUtil.parseProxyUrl(proxyUrl);
 
     strictEqual(parsingResult.originUrl, 'http://test.example.com:53/PA/TH/?#testHash');
@@ -206,12 +206,11 @@ test('http', function () {
     strictEqual(parsingResult.originResourceInfo.hostname, 'test.example.com');
     strictEqual(parsingResult.originResourceInfo.port, '53');
     strictEqual(parsingResult.originResourceInfo.partAfterHost, '/PA/TH/?#testHash');
-    strictEqual(parsingResult.jobInfo.uid, 'MyUID');
-    strictEqual(parsingResult.jobInfo.ownerToken, 'ownerToken');
+    strictEqual(parsingResult.sessionId, 'sessionId');
 });
 
 test('https', function () {
-    var proxyUrl      = 'http://' + PROXY_HOST + '/ownerToken!MyUID/https://test.example.com:53/PA/TH/?#testHash';
+    var proxyUrl      = 'http://' + PROXY_HOST + '/sessionId/https://test.example.com:53/PA/TH/?#testHash';
     var parsingResult = UrlUtil.parseProxyUrl(proxyUrl);
 
     strictEqual(parsingResult.originUrl, 'https://test.example.com:53/PA/TH/?#testHash');
@@ -220,8 +219,7 @@ test('https', function () {
     strictEqual(parsingResult.originResourceInfo.hostname, 'test.example.com');
     strictEqual(parsingResult.originResourceInfo.port, '53');
     strictEqual(parsingResult.originResourceInfo.partAfterHost, '/PA/TH/?#testHash');
-    strictEqual(parsingResult.jobInfo.uid, 'MyUID');
-    strictEqual(parsingResult.jobInfo.ownerToken, 'ownerToken');
+    strictEqual(parsingResult.sessionId, 'sessionId');
 });
 
 test('non-proxy URL', function () {
@@ -233,7 +231,7 @@ test('non-proxy URL', function () {
 
 test('successive question marks', function () {
     var proxyUrl      = 'http://' + PROXY_HOST +
-                        '/ownerToken!MyUID/http://test.example.com:53??dirs/???files/&#testHash';
+                        '/sessionId/http://test.example.com:53??dirs/???files/&#testHash';
     var parsingResult = UrlUtil.parseProxyUrl(proxyUrl);
 
     strictEqual(parsingResult.originUrl, 'http://test.example.com:53??dirs/???files/&#testHash');
@@ -242,13 +240,12 @@ test('successive question marks', function () {
     strictEqual(parsingResult.originResourceInfo.hostname, 'test.example.com');
     strictEqual(parsingResult.originResourceInfo.port, '53');
     strictEqual(parsingResult.originResourceInfo.partAfterHost, '??dirs/???files/&#testHash');
-    strictEqual(parsingResult.jobInfo.uid, 'MyUID');
-    strictEqual(parsingResult.jobInfo.ownerToken, 'ownerToken');
+    strictEqual(parsingResult.sessionId, 'sessionId');
 });
 
 test('single question mark', function () {
     var url       = 'http://ac-gb.marketgid.com/p/j/2865/11?';
-    var proxyUtrl = UrlUtil.getProxyUrl(url, 'hostname', 1111, 'MyUID', 'ownerToken');
+    var proxyUtrl = UrlUtil.getProxyUrl(url, 'hostname', 1111, 'sessionId');
 
     strictEqual(url, UrlUtil.formatUrl(UrlUtil.parseProxyUrl(proxyUtrl).originResourceInfo));
 });
@@ -256,28 +253,28 @@ test('single question mark', function () {
 module('change proxy url');
 
 test('origin URL part', function () {
-    var proxyUrl = 'http://localhost:1337/ownerToken!MyUID/http://test.example.com:53/#testHash';
+    var proxyUrl = 'http://localhost:1337/sessionId/http://test.example.com:53/#testHash';
     var changed  = UrlUtil.changeOriginUrlPart(proxyUrl, 'port', '34');
 
-    strictEqual(changed, 'http://localhost:1337/ownerToken!MyUID/http://test.example.com:34/#testHash');
+    strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:34/#testHash');
 
     changed = UrlUtil.changeOriginUrlPart(proxyUrl, 'host', 'newhost:99');
-    strictEqual(changed, 'http://localhost:1337/ownerToken!MyUID/http://newhost:99/#testHash');
+    strictEqual(changed, 'http://localhost:1337/sessionId/http://newhost:99/#testHash');
 
     changed = UrlUtil.changeOriginUrlPart(proxyUrl, 'hostname', 'newhostname');
-    strictEqual(changed, 'http://localhost:1337/ownerToken!MyUID/http://newhostname:53/#testHash');
+    strictEqual(changed, 'http://localhost:1337/sessionId/http://newhostname:53/#testHash');
 
     changed = UrlUtil.changeOriginUrlPart(proxyUrl, 'protocol', 'https:');
-    strictEqual(changed, 'http://localhost:1337/ownerToken!MyUID/https://test.example.com:53/#testHash');
+    strictEqual(changed, 'http://localhost:1337/sessionId/https://test.example.com:53/#testHash');
 
     changed = UrlUtil.changeOriginUrlPart(proxyUrl, 'pathname', 'test1.html');
-    strictEqual(changed, 'http://localhost:1337/ownerToken!MyUID/http://test.example.com:53/test1.html#testHash');
+    strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/test1.html#testHash');
 
     changed = UrlUtil.changeOriginUrlPart(proxyUrl, 'hash', 'newHash');
-    strictEqual(changed, 'http://localhost:1337/ownerToken!MyUID/http://test.example.com:53/#newHash');
+    strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/#newHash');
 
     changed = UrlUtil.changeOriginUrlPart(proxyUrl, 'search', '?hl=ru&tab=wn');
-    strictEqual(changed, 'http://localhost:1337/ownerToken!MyUID/http://test.example.com:53/?hl=ru&tab=wn#testHash');
+    strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/?hl=ru&tab=wn#testHash');
 });
 
 module('regression');
