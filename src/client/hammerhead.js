@@ -1,7 +1,7 @@
 /*eslint-disable no-native-reassign*/
 import * as Browser from './utils/browser';
 import * as DOM from './utils/dom';
-import { getAttributesProperty } from './sandboxes/dom-accessor-wrappers';
+import { getAttributesProperty } from './sandboxes/code-instrumentation';
 import * as DOMSandbox from './sandboxes/dom/dom';
 import * as ElementEditingWatcher from './sandboxes/event/element-editing-watcher';
 import * as Event from './utils/event';

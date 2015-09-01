@@ -1,7 +1,7 @@
 import { isIE, isWebKit, isMozilla } from '../../utils/browser';
 import * as Document from './document';
 import { getTopSameDomainWindow } from '../../utils/dom';
-import * as DomAccessorWrappers from '../dom-accessor-wrappers';
+import CodeInstrumentation from '../code-instrumentation';
 import * as Element from './element';
 import * as EventSandbox from '../event/event';
 import IFrameSandbox from '../iframe';
@@ -180,7 +180,7 @@ function onDocumentCleaned (window, document) {
         Listeners.restartElementListening(window);
 
     ShadowUI.init(window, document);
-    DomAccessorWrappers.init(window, document); // T182337
+    CodeInstrumentation.init(window, document); // T182337
 
     eventEmitter.emit(DOCUMENT_CLEANED, {
         document:           document,
@@ -201,9 +201,9 @@ export function init (window, document) {
     XhrSandbox.init(window, document);
     MessageSandbox.init(window, document);
     UploadSandbox.init(window, document);
-    DomAccessorWrappers.init(window, document);
+    CodeInstrumentation.init(window, document);
 
-    DomAccessorWrappers.on(DomAccessorWrappers.BODY_CONTENT_CHANGED, function (el) {
+    CodeInstrumentation.on(CodeInstrumentation.BODY_CONTENT_CHANGED, function (el) {
         var elContextWindow = el[Const.DOM_SANDBOX_PROCESSED_CONTEXT];
 
         if (elContextWindow !== window) {

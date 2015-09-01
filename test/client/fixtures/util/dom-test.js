@@ -1,4 +1,5 @@
 var DOM           = Hammerhead.get('./utils/dom');
+var Types         = Hammerhead.get('./utils/types');
 var IFrameSandbox = Hammerhead.get('./sandboxes/iframe');
 var Const         = Hammerhead.get('../const');
 var UrlUtil       = Hammerhead.get('./utils/url');
@@ -103,9 +104,9 @@ asyncTest('getTopSameDomainWindow', function () {
     document.body.appendChild(iframe);
 });
 
-test('isWindowInstance', function () {
-    ok(DOM.isWindowInstance(window));
-    ok(!DOM.isWindowInstance({ top: '' }));
+test('isWindow', function () {
+    ok(Types.isWindow(window));
+    ok(!Types.isWindow({ top: '' }));
 
     var storedToString = window.toString;
 
@@ -113,7 +114,7 @@ test('isWindowInstance', function () {
         throw 'eid library overrides window.toString() method';
     };
 
-    ok(DOM.isWindowInstance(window));
+    ok(Types.isWindow(window));
 
     window.toString = storedToString;
 });

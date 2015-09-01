@@ -1,7 +1,8 @@
-var Browser             = Hammerhead.get('./utils/browser');
-var DomAccessorWrappers = Hammerhead.get('./sandboxes/dom-accessor-wrappers');
-var IFrameSandbox       = Hammerhead.get('./sandboxes/iframe');
-var UrlUtil             = Hammerhead.get('./utils/url');
+var Browser                 = Hammerhead.get('./utils/browser');
+var CodeInstrumentation     = Hammerhead.get('./sandboxes/code-instrumentation');
+var LocationInstrumentation = Hammerhead.get('./sandboxes/code-instrumentation/location');
+var IFrameSandbox           = Hammerhead.get('./sandboxes/iframe');
+var UrlUtil                 = Hammerhead.get('./utils/url');
 
 QUnit.testStart(function () {
     IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
@@ -19,7 +20,7 @@ asyncTest('iframe with empty src', function () {
 
     function assert ($iframe, callback) {
         $iframe.bind('load', function () {
-            DomAccessorWrappers.init(this.contentWindow, this.contentDocument);
+            CodeInstrumentation.init(this.contentWindow, this.contentDocument);
 
             var hyperlink = this.contentDocument.createElement('a');
 
@@ -60,7 +61,7 @@ if (Browser.isWebKit) {
         var $iframe = $('<iframe id="test3" src="javascript:void(0);">');
 
         $iframe.bind('load', function () {
-            DomAccessorWrappers.init(this.contentWindow, this.contentDocument);
+            CodeInstrumentation.init(this.contentWindow, this.contentDocument);
 
             var hyperlink = this.contentDocument.createElement('a');
 
@@ -80,7 +81,7 @@ if (Browser.isWebKit) {
 
 test('iframe', function () {
     var checkProp = function (prop, value) {
-        var windowMock                                         = {
+        var windowMock                       = {
             location: UrlUtil.getProxyUrl('http://google.net:90/'),
 
             top: {
@@ -88,8 +89,8 @@ test('iframe', function () {
             }
         };
 
-        DomAccessorWrappers.init(windowMock, {});
-        windowMock[DomAccessorWrappers.LOCATION_WRAPPER][prop] = value;
+        CodeInstrumentation.init(windowMock, {});
+        LocationInstrumentation.getLocationWrapper(windowMock)[prop] = value;
         strictEqual(UrlUtil.getProxyUrl(windowMock.location).resourceType, UrlUtil.Iframe);
     };
 
@@ -112,8 +113,8 @@ test('iframe', function () {
             top: { document: document }
         };
 
-        DomAccessorWrappers.init(windowMock, {});
-        windowMock[DomAccessorWrappers.LOCATION_WRAPPER][func](value);
+        CodeInstrumentation.init(windowMock, {});
+        LocationInstrumentation.getLocationWrapper(windowMock)[func](value);
         strictEqual(UrlUtil.getProxyUrl(windowMock.location[func + 'Value']).resourceType, UrlUtil.Iframe);
     };
 

@@ -1,4 +1,5 @@
 import * as DOM from '../utils/dom';
+import { isWindow } from '../utils/types';
 import NativeMethods from './native-methods';
 import DomProcessor from '../dom-processor/dom-processor';
 import * as Position from '../utils/position';
@@ -262,7 +263,7 @@ export function isShadowContainerCollection (collection) {
     var parent = null;
 
     try {
-        if (collection.length && !DOM.isWindowInstance(collection) && collection[0] && collection[0].nodeType) {
+        if (collection.length && !isWindow(collection) && collection[0] && collection[0].nodeType) {
             parent = collection[0].parentNode || collection[0].parentElement;
 
             if (parent && (parent.childNodes === collection || parent.children === collection))
