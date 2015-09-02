@@ -18,14 +18,14 @@
     };
 
     var scriptProcessor = Hammerhead.get('../processing/script');
-    var MessageSandbox = Hammerhead.MessageSandbox;
+    var messageSandbox = Hammerhead.MessageSandbox;
 
     Hammerhead.init();
 
     document.addEventListener('DOMContentLoaded', function(){
-        MessageSandbox.on(MessageSandbox.SERVICE_MSG_RECEIVED, function (e) {
+        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, function (e) {
             if (e.message.cmd === 'pingCmd' && e.message.isPingRequest) {
-                MessageSandbox.sendServiceMsg({
+                messageSandbox.sendServiceMsg({
                     cmd:            e.message.cmd,
                     isPingResponse: true
                 }, window.top);

@@ -9,7 +9,7 @@ import scriptProcessor from '../script';
 const BODY_CREATED_EVENT_SCRIPT =
           `<script type="text/javascript" class="${Const.SHADOW_UI_SCRIPT_CLASSNAME}">
                if (window.Hammerhead)
-                   window.Hammerhead._raiseBodyCreatedEvent();
+                   window.Hammerhead.sandbox.node.raiseBodyCreatedEvent();
 
                var script = document.currentScript || document.scripts[document.scripts.length - 1];
                script.parentNode.removeChild(script);

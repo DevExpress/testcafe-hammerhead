@@ -1,4 +1,4 @@
-import NativeMethods from '../sandboxes/native-methods';
+import NativeMethods from '../sandbox/native-methods';
 import * as Browser from './browser';
 
 export function inaccessibleTypeToStr (obj) {

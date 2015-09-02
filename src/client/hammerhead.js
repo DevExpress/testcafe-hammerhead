@@ -1,69 +1,63 @@
 /*eslint-disable no-native-reassign*/
 import * as Browser from './utils/browser';
 import * as DOM from './utils/dom';
-import { getAttributesProperty } from './sandboxes/code-instrumentation';
-import * as DOMSandbox from './sandboxes/dom/dom';
-import * as ElementEditingWatcher from './sandboxes/event/element-editing-watcher';
 import * as Event from './utils/event';
 import * as Types from './utils/types';
-import * as EventSimulator from './sandboxes/event/simulator';
-import * as FocusBlur from './sandboxes/event/focus-blur';
-import * as IFrameSandbox from './sandboxes/iframe';
-import * as InfoManager from './sandboxes/upload/info-manager';
 import * as JSON from './json';
-import JSProcessor from '../processing/js/index';
-import * as Listeners from './sandboxes/event/listeners';
-import * as MessageSandbox from './sandboxes/message';
-import NativeMethods from './sandboxes/native-methods';
 import * as Position from './utils/position';
-import * as Selection from './sandboxes/event/selection';
-import * as ShadowUI from './sandboxes/shadow-ui';
 import * as Style from './utils/style';
 import * as Transport from './transport';
-import * as Unload from './sandboxes/event/unload';
-import * as UploadSandbox from './sandboxes/upload/upload';
-import * as Window from './sandboxes/dom/window';
-import * as XhrSandbox from './sandboxes/xhr';
+import JSProcessor from '../processing/js/index';
+import Sandbox from './sandbox';
 /*eslint-enable no-native-reassign*/
 
+var sandbox = new Sandbox();
+
+var eventSandbox  = sandbox.event;
+var nodeSandbox   = sandbox.node;
+var uploadSandbox = sandbox.upload;
+var iframeSandbox = sandbox.iframe;
+var xhrSandbox    = sandbox.xhr;
+
 // Events
-export const BEFORE_BEFORE_UNLOAD_EVENT = Unload.BEFORE_BEFORE_UNLOAD_EVENT;
-export const BEFORE_UNLOAD_EVENT        = Unload.BEFORE_UNLOAD_EVENT;
-export const BODY_CREATED               = DOMSandbox.BODY_CREATED;
-export const DOCUMENT_CLEANED           = DOMSandbox.DOCUMENT_CLEANED;
-export const START_FILE_UPLOADING_EVENT = UploadSandbox.START_FILE_UPLOADING_EVENT;
-export const END_FILE_UPLOADING_EVENT   = UploadSandbox.END_FILE_UPLOADING_EVENT;
-export const IFRAME_READY_TO_INIT       = IFrameSandbox.IFRAME_READY_TO_INIT;
-export const UNCAUGHT_JS_ERROR          = Window.UNCAUGHT_JS_ERROR;
-export const UNLOAD_EVENT               = Unload.UNLOAD_EVENT;
-export const XHR_COMPLETED              = XhrSandbox.XHR_COMPLETED;
-export const XHR_ERROR                  = XhrSandbox.XHR_ERROR;
-export const XHR_SEND                   = XhrSandbox.XHR_SEND;
+export const BEFORE_BEFORE_UNLOAD_EVENT = eventSandbox.unload.BEFORE_BEFORE_UNLOAD_EVENT;
+export const BEFORE_UNLOAD_EVENT        = eventSandbox.unload.BEFORE_UNLOAD_EVENT;
+export const UNLOAD_EVENT               = eventSandbox.unload.UNLOAD_EVENT;
+export const BODY_CREATED               = nodeSandbox.BODY_CREATED;
+export const DOCUMENT_CLEANED           = nodeSandbox.DOCUMENT_CLEANED;
+export const UNCAUGHT_JS_ERROR          = nodeSandbox.win.UNCAUGHT_JS_ERROR;
+export const START_FILE_UPLOADING_EVENT = uploadSandbox.START_FILE_UPLOADING_EVENT;
+export const END_FILE_UPLOADING_EVENT   = uploadSandbox.END_FILE_UPLOADING_EVENT;
+export const IFRAME_READY_TO_INIT       = iframeSandbox.IFRAME_READY_TO_INIT;
+export const XHR_COMPLETED              = xhrSandbox.XHR_COMPLETED;
+export const XHR_ERROR                  = xhrSandbox.XHR_ERROR;
+export const XHR_SEND                   = xhrSandbox.XHR_SEND;
 
 var getEventOwner = function (evtName) {
     switch (evtName) {
-        case Unload.BEFORE_UNLOAD_EVENT:
-        case Unload.BEFORE_BEFORE_UNLOAD_EVENT:
-        case Unload.UNLOAD_EVENT:
-            return Unload;
+        case eventSandbox.unload.BEFORE_UNLOAD_EVENT:
+        case eventSandbox.unload.BEFORE_BEFORE_UNLOAD_EVENT:
+        case eventSandbox.unload.UNLOAD_EVENT:
+            return eventSandbox.unload;
 
-        case DOMSandbox.BODY_CREATED:
-        case DOMSandbox.DOCUMENT_CLEANED:
-            return DOMSandbox;
+        case nodeSandbox.BODY_CREATED:
+        case nodeSandbox.DOCUMENT_CLEANED:
+            return nodeSandbox;
 
-        case Window.UNCAUGHT_JS_ERROR:
-            return Window;
+        case nodeSandbox.win.UNCAUGHT_JS_ERROR:
+            return nodeSandbox.win;
 
-        case UploadSandbox.FILE_UPLOADING_EVENT:
-            return UploadSandbox;
+        case uploadSandbox.START_FILE_UPLOADING_EVENT:
+        case uploadSandbox.END_FILE_UPLOADING_EVENT:
+            return uploadSandbox;
 
-        case IFrameSandbox.IFRAME_READY_TO_INIT:
-            return IFrameSandbox;
+        case iframeSandbox.IFRAME_READY_TO_INIT:
+            return iframeSandbox;
 
-        case XhrSandbox.XHR_COMPLETED:
-        case XhrSandbox.XHR_ERROR:
-        case XhrSandbox.XHR_SEND:
-            return XhrSandbox;
+        case xhrSandbox.XHR_COMPLETED:
+        case xhrSandbox.XHR_ERROR:
+        case xhrSandbox.XHR_SEND:
+            return xhrSandbox;
 
         default:
             return null;
@@ -85,24 +79,17 @@ export function off (evtName, handler) {
 }
 
 // Methods
-export var getOriginElementAttributes = getAttributesProperty;
-export var upload                     = UploadSandbox.upload;
-
-// Private members
-export var _raiseBodyCreatedEvent    = DOMSandbox.raiseBodyCreatedEvent;
-export var _rebindDomSandboxToIframe = DOMSandbox.rebindDomSandboxToIframe;
-export var _UploadManager            = InfoManager;
-
-var exports = module.exports;
+export var getOriginElementAttributes = sandbox.codeInstrumentation.getAttributesProperty;
+export var upload                     = uploadSandbox.upload;
 
 // Modules
-exports.JSON           = JSON;
-exports.JSProcessor    = JSProcessor;
-exports.MessageSandbox = MessageSandbox;
-exports.NativeMethods  = NativeMethods;
-exports.ShadowUI       = ShadowUI;
-exports.Transport      = Transport;
-exports.Util           = {
+export { JSON, JSProcessor, Transport };
+export var MessageSandbox = sandbox.message;
+
+export var NativeMethods = sandbox.nativeMethods;
+export var ShadowUI      = sandbox.shadowUI;
+
+export var Util = {
     Browser:  Browser,
     DOM:      DOM,
     Event:    Event,
@@ -110,18 +97,20 @@ exports.Util           = {
     Style:    Style,
     Types:    Types
 };
-exports.EventSandbox   = {
-    Listeners:             Listeners,
-    FocusBlur:             FocusBlur,
-    ElementEditingWatcher: ElementEditingWatcher,
-    EventSimulator:        EventSimulator,
-    Selection:             Selection
+
+export var EventSandbox = {
+    Listeners:             eventSandbox.listeners,
+    FocusBlur:             eventSandbox.focusBlur,
+    ElementEditingWatcher: eventSandbox.elementEditingWatcher,
+    EventSimulator:        eventSandbox.eventSimulator,
+    Selection:             eventSandbox.selection
 };
 
-exports.init = function () {
-    DOMSandbox.init(window, document);
-};
+export function init () {
+    sandbox.attach(window);
+}
 
-exports.get = require;
+export var get     = require;
+export var sandbox = sandbox;
 
 window.Hammerhead = exports;

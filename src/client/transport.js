@@ -1,6 +1,6 @@
 /*eslint-disable no-native-reassign*/
 import * as JSON from './json';
-import NativeMethods from './sandboxes/native-methods';
+import NativeMethods from './sandbox/native-methods';
 import ServiceCommands from '../service-msg-cmd';
 import * as Browser from './utils/browser';
 import EventEmitter from './utils/event-emitter';

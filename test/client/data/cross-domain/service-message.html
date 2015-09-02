@@ -19,15 +19,15 @@
         return 'http://origin_iframe_host';
     };
 
-    var MessageSandbox = Hammerhead.get('./sandboxes/message');
+    var messageSandbox = Hammerhead.MessageSandbox;
 
     Hammerhead.init();
 
     var serviceMsgHandler = function (evt) {
-        MessageSandbox.sendServiceMsg('', window.top);
+        messageSandbox.sendServiceMsg('', window.top);
     };
 
-    MessageSandbox.on(MessageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
+    messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
 </script>
 </body>
 </html>

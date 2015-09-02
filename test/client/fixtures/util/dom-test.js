@@ -1,16 +1,17 @@
 var DOM           = Hammerhead.get('./utils/dom');
 var Types         = Hammerhead.get('./utils/types');
-var IFrameSandbox = Hammerhead.get('./sandboxes/iframe');
 var Const         = Hammerhead.get('../const');
 var UrlUtil       = Hammerhead.get('./utils/url');
 
+var iframeSandbox = Hammerhead.sandbox.iframe;
+
 QUnit.testStart(function () {
-    IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
 });
 
 asyncTest('isCrossDomainWindows', function () {
