@@ -23,6 +23,7 @@
     "space-before-blocks": [2, "always"],
     "prefer-const": 2,
     "no-path-concat": 2,
+    "no-undef": 2,
     "no-undefined": 2,
     "strict": 0,
     "curly": [2, "multi-or-nest"],

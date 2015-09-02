@@ -4,6 +4,7 @@ import EventEmitter from '../../../utils/event-emitter';
 import locationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import * as DOM from '../../../utils/dom';
+import * as ElementEditingWatcher from '../../event/element-editing-watcher'
 import * as Types from '../../../utils/types';
 import * as ShadowUI from '../../shadow-ui';
 import * as UploadSandbox from '../../upload/upload';
@@ -392,7 +393,7 @@ class PropertyAccessorsInstrumentation {
 
             URL: {
                 condition: doc => Types.isDocument(doc),
-                get:       () => locationWrapper.href,
+                get:       doc => locationAccessorsInstrumentation.getLocationWrapper(doc).href,
                 set:       () => void 0
             },
 
