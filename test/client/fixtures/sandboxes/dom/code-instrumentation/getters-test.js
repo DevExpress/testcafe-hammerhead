@@ -109,6 +109,12 @@ asyncTest('document properties', function () {
     }, 0);
 });
 
+test('document.URL', function () {
+    var url = eval(processScript('document.URL'));
+
+    strictEqual(url, UrlUtil.OriginLocation.get());
+});
+
 if (Browser.isWebKit) {
     test('url in stylesheet properties', function () {
         var el       = document.createElement('div');
