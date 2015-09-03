@@ -39,6 +39,11 @@ var CLIENT_TESTS_SETTINGS = {
 var CLIENT_TESTS_BROWSERS = [
     {
         platform:    'Windows 10',
+        browserName: 'microsoftedge',
+        version:     '20.10240'
+    },
+    {
+        platform:    'Windows 10',
         browserName: 'chrome'
     },
     {
