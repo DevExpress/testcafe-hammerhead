@@ -5,6 +5,7 @@ import { getAttributesProperty } from './sandboxes/code-instrumentation';
 import * as DOMSandbox from './sandboxes/dom/dom';
 import * as ElementEditingWatcher from './sandboxes/event/element-editing-watcher';
 import * as Event from './utils/event';
+import * as Types from './utils/types';
 import * as EventSimulator from './sandboxes/event/simulator';
 import * as FocusBlur from './sandboxes/event/focus-blur';
 import * as IFrameSandbox from './sandboxes/iframe';
@@ -106,7 +107,8 @@ exports.Util           = {
     DOM:      DOM,
     Event:    Event,
     Position: Position,
-    Style:    Style
+    Style:    Style,
+    Types:    Types
 };
 exports.EventSandbox   = {
     Listeners:             Listeners,
