@@ -56,7 +56,7 @@ class MethodCallInstrumentation {
 
             return this.methodWrappers[methName].condition(owner) ?
                    this.methodWrappers[methName].method(owner, args) : owner[methName].apply(owner, args);
-        }
+        };
     }
 }
 

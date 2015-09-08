@@ -1,4 +1,3 @@
-import * as DOM from '../../utils/dom';
 import { isWindow } from '../../utils/types';
 import * as Event from '../../utils/event';
 import * as ListeningCtx from './listening-context';
