@@ -31,7 +31,9 @@ class NativeMethods {
         this.documentRemoveEventListener = doc.removeEventListener || Document.prototype.removeEventListener;
     }
 
-    refreshElementMeths (doc) {
+    refreshElementMeths (doc, win) {
+        win = win || window;
+
         var createElement = (tagName) => this.createElement.call(doc || document, tagName);
         var nativeElement = createElement('div');
 
@@ -68,6 +70,9 @@ class NativeMethods {
         this.select                    = window.TextRange ? createElement('body').createTextRange().select : null;
         this.setSelectionRange         = createElement('input').setSelectionRange;
         this.textAreaSetSelectionRange = createElement('textarea').setSelectionRange;
+
+        this.svgFocus = win.SVGElement ? win.SVGElement.prototype.focus : this.focus;
+        this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;
     }
 
     refreshWindowMeths (win) {

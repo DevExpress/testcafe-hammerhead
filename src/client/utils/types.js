@@ -26,6 +26,10 @@ export function isNullOrUndefined (obj) {
     return !obj && (obj === null || typeof obj === 'undefined');
 }
 
+export function isSVGElement (obj) {
+    return window.SVGElement && obj instanceof window.SVGElement;
+}
+
 export function isStyle (instance) {
     if (instance instanceof NativeMethods.styleClass)
         return true;

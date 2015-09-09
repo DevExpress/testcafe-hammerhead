@@ -9,6 +9,7 @@ import * as ShadowUI from '../shadow-ui';
 import Const from '../../../const';
 import * as Style from '../../utils/style';
 import activeWindowTracker from '../event/active-window-tracker';
+import { isSVGElement } from '../../utils/types';
 
 const INTERNAL_FOCUS_FLAG = Const.PROPERTY_PREFIX + 'iff';
 const INTERNAL_BLUR_FLAG  = Const.PROPERTY_PREFIX + 'ibf';
@@ -27,6 +28,17 @@ function callFocusCallback (callback, el) {
 
     if (typeof callback === 'function')
         callback();
+}
+
+function getNativeMeth (el, event) {
+    if (isSVGElement(el)) {
+        if (event === 'focus')
+            return NativeMethods.svgFocus;
+        else if (event === 'blur')
+            return NativeMethods.svgBlur;
+    }
+
+    return NativeMethods[event];
 }
 
 function raiseEvent (element, type, callback, withoutHandlers, isAsync, forMouseEvent, preventScrolling) {
@@ -85,7 +97,7 @@ function raiseEvent (element, type, callback, withoutHandlers, isAsync, forMouse
 
         element[getInternalEventFlag(type)] = true;
 
-        NativeMethods[type].call(element);
+        getNativeMeth(element, type).call(element);
 
         if (preventScrolling) {
             var newWindowScroll = Style.getElementScroll(currentWindow);
