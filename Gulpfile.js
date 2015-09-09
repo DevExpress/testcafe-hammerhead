@@ -66,12 +66,6 @@ var CLIENT_TESTS_BROWSERS = [
         version:     '9.0'
     },
     {
-        browserName: 'iphone',
-        platform:    'OS X 10.10',
-        version:     '7.1',
-        deviceName:  'iPhone Simulator'
-    },
-    {
         browserName: 'safari',
         platform:    'OS X 10.10',
         version:     '8.0'
@@ -81,6 +75,12 @@ var CLIENT_TESTS_BROWSERS = [
         platform:    'OS X 10.10',
         version:     '8.1',
         deviceName:  'iPad Simulator'
+    },
+    {
+        browserName: 'iphone',
+        platform:    'OS X 10.10',
+        version:     '9.0',
+        deviceName:  'iPhone 6 Plus'
     },
     {
         browserName: 'android',
