@@ -167,7 +167,7 @@ function onDocumentCleaned (window, document) {
             NativeMethods.refreshDocumentMeths(document);
 
         if (needToUpdateNativeElementMeths)
-            NativeMethods.refreshElementMeths(document);
+            NativeMethods.refreshElementMeths(document, window);
 
         // T239109
         if (needToUpdateNativeWindowMeths)
