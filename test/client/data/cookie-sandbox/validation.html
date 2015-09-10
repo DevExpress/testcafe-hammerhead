@@ -7,7 +7,7 @@
         Hammerhead.get('./transport').queuedAsyncServiceMsg = function () {
         };
 
-        var cookieSandbox = Hammerhead.get('./sandboxes/cookie');
+        var cookieSandbox = Hammerhead.sandbox.cookie;
 
         function setCookie (cookie) {
             cookieSandbox.setCookie(document, cookie);

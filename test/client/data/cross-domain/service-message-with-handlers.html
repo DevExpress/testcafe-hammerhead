@@ -20,7 +20,7 @@
     };
 
     var scriptProcessor = Hammerhead.get('../processing/script');
-    var MessageSandbox = Hammerhead.get('./sandboxes/message');
+    var messageSandbox = Hammerhead.MessageSandbox;
 
     Hammerhead.init();
 
@@ -32,13 +32,13 @@
 
     var serviceMsgHandler = function (evt) {
         window.setTimeout(function () {
-            MessageSandbox.sendServiceMsg(windowHandlerExecuted ? 'failed' : 'successfully', window.top);
+            messageSandbox.sendServiceMsg(windowHandlerExecuted ? 'failed' : 'successfully', window.top);
         }, 100);
     };
 
     eval(scriptProcessor.process("window.onmessage = windowMessageHandler;"));
     window.addEventListener("message", windowMessageHandler);
-    MessageSandbox.on(MessageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
+    messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
 </script>
 </body>
 </html>

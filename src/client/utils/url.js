@@ -1,4 +1,5 @@
-import NativeMethods from '../sandboxes/native-methods';
+import { isCrossDomainWindows } from '../utils/dom';
+import NativeMethods from '../sandbox/native-methods';
 import Const from '../../const';
 import SharedUrlUtil from '../../utils/url';
 import Settings from '../settings';
@@ -156,6 +157,21 @@ UrlUtil.isSupportedProtocol = function (url) {
     return SharedUrlUtil.isSupportedProtocol(url);
 };
 
+function getParentWindowWithSrc (window) {
+    var parent = window.parent;
+
+    if (window === window.top)
+        return window;
+
+    if (isCrossDomainWindows(window, parent))
+        return parent;
+
+    if (parent === window.top || !UrlUtil.isIframeWithoutSrc(parent.frameElement))
+        return parent;
+
+    return getParentWindowWithSrc(parent);
+}
+
 UrlUtil.isIframeWithoutSrc = function (iframe) {
     var iFrameLocation         = UrlUtil.getIframeLocation(iframe);
     var iFrameSrcLocation      = iFrameLocation.srcLocation;
@@ -164,14 +180,6 @@ UrlUtil.isIframeWithoutSrc = function (iframe) {
     if (iFrameDocumentLocation === null) // is a cross-domain iframe
         return false;
 
-    var window               = iframe[Const.DOM_SANDBOX_PROCESSED_CONTEXT] || iframe.contentWindow.parent;
-    var windowLocation       = window.location.toString();
-    var parsedWindowLocation = SharedUrlUtil.parseProxyUrl(windowLocation);
-
-    if (iFrameDocumentLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation) ||
-        iFrameSrcLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation))
-        return true;
-
     var iFrameDocumentLocationHaveSupportedProtocol = UrlUtil.isSupportedProtocol(iFrameDocumentLocation);
 
     //NOTE: when an iFrame have empty src attribute (<iframe src></iframe>) the iframe.src property doesn't empty but it has different values
@@ -179,7 +187,16 @@ UrlUtil.isIframeWithoutSrc = function (iframe) {
     if (!iFrameDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
         return true;
 
-    //NOTE: is Chrome an iFrame with src has documentLocation 'about:blank' when it is just created. So, we should check
+    var parentWindowWithSrc  = getParentWindowWithSrc(iframe.contentWindow);
+    var windowLocation       = parentWindowWithSrc.location.toString();
+    var parsedWindowLocation = SharedUrlUtil.parseProxyUrl(windowLocation);
+
+    if (iFrameDocumentLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation) ||
+        iFrameSrcLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation))
+        return true;
+
+
+    // NOTE: in Chrome an iFrame with src has documentLocation 'about:blank' when it is just created. So, we should check
     // srcLocation in this case.
     if (iFrameSrcLocation && UrlUtil.isSupportedProtocol(iFrameSrcLocation))
         return false;

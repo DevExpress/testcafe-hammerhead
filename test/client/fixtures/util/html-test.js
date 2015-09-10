@@ -1,21 +1,21 @@
 ﻿var DomProcessor    = Hammerhead.get('./dom-processor/dom-processor');
-var ScriptProcessor = Hammerhead.get('../processing/script');
 var Html            = Hammerhead.get('./utils/html');
-var IFrameSandbox   = Hammerhead.get('./sandboxes/iframe');
-var NativeMethods   = Hammerhead.get('./sandboxes/native-methods');
+var NativeMethods   = Hammerhead.get('./sandbox/native-methods');
 var ScriptProcessor = Hammerhead.get('../processing/script');
-var ShadowUI        = Hammerhead.get('./sandboxes/shadow-ui');
 var Const           = Hammerhead.get('../const');
 var SharedUrlUtil   = Hammerhead.get('../utils/url');
 var UrlUtil         = Hammerhead.get('./utils/url');
 
+var shadowUI      = Hammerhead.sandbox.shadowUI;
+var iframeSandbox = Hammerhead.sandbox.iframe;
+
 QUnit.testStart(function () {
-    IFrameSandbox.on(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, IFrameSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    IFrameSandbox.off(IFrameSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
 });
 
 module('clean up html');
@@ -44,7 +44,7 @@ test('shadow ui elements', function () {
 
     uiElem.id = 'uiElem';
 
-    ShadowUI.addClass(uiElem, 'ui-elem-class');
+    shadowUI.addClass(uiElem, 'ui-elem-class');
 
     var el = document.createElement('div');
 
@@ -315,7 +315,7 @@ asyncTest('real big page', function () {
         });
     }
 
-    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../data/dom-sandbox/is-well-formatted-html.html');
+    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../data/node-sandbox/is-well-formatted-html.html');
 
     $('<iframe></iframe>').attr('src', iframeSrc).load(function () {
         checkNode(this.contentDocument.documentElement);
@@ -363,7 +363,8 @@ test('html and body attributes must be processed (T226655)', function () {
     var htmlWithHtmlTag     = '<html onload="' + attrValue + '">';
 
     ok(Html.processHtml(htmlWithBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
-    ok(Html.processHtml(htmlWithHeadAndBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
+    ok(Html.processHtml(htmlWithHeadAndBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
+       -1);
     ok(Html.processHtml(htmlWithHtmlTag).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
 });
 

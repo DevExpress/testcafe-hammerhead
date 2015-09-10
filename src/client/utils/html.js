@@ -1,4 +1,4 @@
-import NativeMethods from '../sandboxes/native-methods';
+import NativeMethods from '../sandbox/native-methods';
 import * as DOM from './dom';
 import DomProcessor from '../dom-processor/dom-processor';
 import ScriptProcessor from '../../processing/script';
@@ -13,7 +13,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE =
     'try {' +
     '   parentHammerhead = window.parent.Hammerhead;' +
     '} catch(e) {}' +
-    'if (parentHammerhead) parentHammerhead._rebindDomSandboxToIframe(window.frameElement);' +
+    'if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);' +
     'var script = document.currentScript || document.scripts[document.scripts.length - 1];' +
     'script.parentNode.removeChild(script);' +
     '<\/script>';

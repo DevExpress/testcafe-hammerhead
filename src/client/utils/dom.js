@@ -1,6 +1,6 @@
 import trim from '../../utils/string-trim';
 import * as Browser from './browser';
-import NativeMethods from '../sandboxes/native-methods';
+import NativeMethods from '../sandbox/native-methods';
 import Const from '../../const';
 import UrlUtil from '../utils/url';
 
@@ -192,7 +192,7 @@ export function isCrossDomainWindows (window1, window2) {
         var window1Location = window1.location.toString();
         var window2Location = window2.location.toString();
 
-        if (window1Location === 'about:blank' || window2Location === 'about:blank')
+        if (!UrlUtil.isSupportedProtocol(window1Location) || !UrlUtil.isSupportedProtocol(window2Location))
             return false;
 
         return !UrlUtil.sameOriginCheck(window1Location, window2Location);

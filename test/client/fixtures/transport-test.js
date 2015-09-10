@@ -1,6 +1,6 @@
 var Browser       = Hammerhead.get('./utils/browser');
 var Transport     = Hammerhead.get('./transport');
-var NativeMethods = Hammerhead.get('./sandboxes/native-methods');
+var NativeMethods = Hammerhead.get('./sandbox/native-methods');
 var Settings      = Hammerhead.get('./settings');
 
 var savedAjaxOpenMethod = NativeMethods.XMLHttpRequest.prototype.open;

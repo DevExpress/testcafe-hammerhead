@@ -10,11 +10,15 @@ var requestAgent       = require('../../lib/pipeline/request-agent');
 var SERVICE_CMD        = require('../../lib/service-msg-cmd');
 var SHARED_CONST       = require('../../lib/const');
 
+function trim (str) {
+    return str.replace(/^\s+|\s+$/g, '');
+}
+
 function normalizeCode (code) {
-    return code
+    return trim(code
         .replace(/(\r\n|\n|\r)/gm, ' ')
         .replace(/'/gm, '"')
-        .replace(/\s+/gm, ' ');
+        .replace(/\s+/gm, ' '));
 }
 
 function compareCode (code1, code2) {

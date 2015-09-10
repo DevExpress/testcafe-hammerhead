@@ -7,12 +7,10 @@
 </head>
 <body>
 <script type="text/javascript">
-    var hammerhead = window.Hammerhead;
-    var urlUtil = hammerhead.get('./utils/url');
-    var activeWindowTracker = hammerhead.get('./sandboxes/event/active-window-tracker');
+    var urlUtil = Hammerhead.get('./utils/url');
 
-    hammerhead.get('./settings').set({
-        CROSS_DOMAIN_PROXY_PORT : 2000
+    Hammerhead.get('./settings').set({
+        CROSS_DOMAIN_PROXY_PORT: 2000
     });
 
     urlUtil.OriginLocation.get = function () {
@@ -20,7 +18,7 @@
     };
 
     Hammerhead.init();
-    window.activeWindowTracker = activeWindowTracker;
+    window.activeWindowTracker = Hammerhead.sandbox.activeWindowTracker;
 </script>
 <div></div>
 </body>

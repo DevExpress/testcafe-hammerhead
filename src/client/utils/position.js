@@ -1,7 +1,7 @@
 import * as Browser from './browser';
 import * as DOM from './dom';
 import * as Style from './style';
-import NativeMethods from '../sandboxes/native-methods';
+import NativeMethods from '../sandbox/native-methods';
 
 function getAreaElementRectangle (el, mapContainer) {
     var shape  = el.getAttribute('shape');
