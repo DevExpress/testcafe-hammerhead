@@ -1,10 +1,10 @@
+import Router from './router';
 import http from 'http';
 import urlUtils from './utils/url';
+import read from './utils/read-file-relative';
 import { respond404, respond500, respondWithJSON, fetchBody } from './utils/http';
 import { ie9FileReaderShim } from './upload';
 import { runPipeline } from './pipeline';
-import read from './utils/read-file-relative';
-import Router from './router';
 
 // Const
 const CLIENT_SCRIPT = read('./client/hammerhead.js');

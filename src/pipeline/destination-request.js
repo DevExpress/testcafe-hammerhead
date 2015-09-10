@@ -1,11 +1,11 @@
 import http from 'http';
 import https from 'https';
+import * as requestAgent from './request-agent';
 import { platform } from 'os';
 import { EventEmitter } from 'events';
 import { auth as requestWithAuth } from 'webauth';
 import { assign as assignWindowsDomain } from './windows-domain';
 import { handle as handleConnectionReset } from './connection-reset';
-import * as requestAgent from './request-agent';
 import { MESSAGE, getText } from '../messages';
 
 const IS_WINDOWS = /^win/.test(platform());

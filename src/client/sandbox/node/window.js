@@ -1,8 +1,9 @@
 /*global history, navigator*/
 import SandboxBase from '../base';
-import NativeMethods from '../native-methods';
-import ScriptProcessor from '../../../processing/script';
-import UrlUtil from '../../utils/url';
+import nativeMethods from '../native-methods';
+import scriptProcessor from '../../../processing/script';
+import urlUtils from '../../utils/url';
+import CodeInstrumentation from '../code-instrumentation';
 import { isMozilla } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
 
@@ -10,7 +11,7 @@ export default class WindowSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.UNCAUGHT_JS_ERROR = 'uncaughtJSError';
+        this.UNCAUGHT_JS_ERROR_EVENT = 'uncaughtJSError';
     }
 
     _raiseUncaughtJsErrorEvent (msg, window, pageUrl) {
@@ -18,23 +19,23 @@ export default class WindowSandbox extends SandboxBase {
             var sendToTopWindow = window !== window.top;
 
             if (!pageUrl)
-                pageUrl = UrlUtil.OriginLocation.get();
+                pageUrl = urlUtils.OriginLocation.get();
 
             if (sendToTopWindow) {
-                this._emit(this.UNCAUGHT_JS_ERROR, {
+                this._emit(this.UNCAUGHT_JS_ERROR_EVENT, {
                     msg:      msg,
                     pageUrl:  pageUrl,
                     inIFrame: true
                 });
 
                 this.sandbox.message.sendServiceMsg({
-                    cmd:     this.UNCAUGHT_JS_ERROR,
+                    cmd:     this.UNCAUGHT_JS_ERROR_EVENT,
                     pageUrl: pageUrl,
                     msg:     msg
                 }, window.top);
             }
             else {
-                this._emit(this.UNCAUGHT_JS_ERROR, {
+                this._emit(this.UNCAUGHT_JS_ERROR_EVENT, {
                     msg:     msg,
                     pageUrl: pageUrl
                 });
@@ -45,15 +46,14 @@ export default class WindowSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var messageSandbox      = this.sandbox.message;
-        var nodeSandbox         = this.sandbox.node;
-        var codeInstrumentation = this.sandbox.codeInstrumentation;
-        var shadowUI            = this.sandbox.shadowUI;
+        var messageSandbox = this.sandbox.message;
+        var nodeSandbox    = this.sandbox.node;
+        var shadowUI       = this.sandbox.shadowUI;
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, e => {
             var message = e.message;
 
-            if (message.cmd === this.UNCAUGHT_JS_ERROR)
+            if (message.cmd === this.UNCAUGHT_JS_ERROR_EVENT)
                 this._raiseUncaughtJsErrorEvent(message.msg, window, message.pageUrl);
         });
 
@@ -64,13 +64,13 @@ export default class WindowSandbox extends SandboxBase {
                 var changedArgs = Array.prototype.slice.call(arguments, 0);
                 var src         = image.src;
 
-                if (UrlUtil.sameOriginCheck(location.toString(), src)) {
-                    changedArgs[0]     = NativeMethods.createElement.call(window.document, 'img');
-                    changedArgs[0].src = UrlUtil.getProxyUrl(src);
+                if (urlUtils.sameOriginCheck(location.toString(), src)) {
+                    changedArgs[0]     = nativeMethods.createElement.call(window.document, 'img');
+                    changedArgs[0].src = urlUtils.getProxyUrl(src);
                 }
             }
 
-            return NativeMethods.canvasContextDrawImage.apply(this, changedArgs || arguments);
+            return nativeMethods.canvasContextDrawImage.apply(this, changedArgs || arguments);
         };
 
         // Override uncaught error handling
@@ -79,7 +79,7 @@ export default class WindowSandbox extends SandboxBase {
             if (msg.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
                 return true;
 
-            var originalOnErrorHandler = codeInstrumentation.getOriginalErrorHandler(window);
+            var originalOnErrorHandler = CodeInstrumentation.getOriginalErrorHandler(window);
             var caught                 = originalOnErrorHandler &&
                                          originalOnErrorHandler.call(window, msg, url, line, col, errObj) === true;
 
@@ -94,7 +94,7 @@ export default class WindowSandbox extends SandboxBase {
         window.open = function () {
             var newArgs = [];
 
-            newArgs.push(UrlUtil.getProxyUrl(arguments[0]));
+            newArgs.push(urlUtils.getProxyUrl(arguments[0]));
             newArgs.push('_self');
 
             if (arguments.length > 2)
@@ -102,13 +102,13 @@ export default class WindowSandbox extends SandboxBase {
             if (arguments.length > 3)
                 newArgs.push(arguments[3]);
 
-            return NativeMethods.windowOpen.apply(window, newArgs);
+            return nativeMethods.windowOpen.apply(window, newArgs);
         };
 
         window.Worker = scriptURL => {
-            scriptURL = UrlUtil.getProxyUrl(scriptURL);
+            scriptURL = urlUtils.getProxyUrl(scriptURL);
 
-            return new NativeMethods.Worker(scriptURL);
+            return new nativeMethods.Worker(scriptURL);
         };
 
         if (window.Blob) {
@@ -118,22 +118,22 @@ export default class WindowSandbox extends SandboxBase {
                 // then we need to call the original function with one parameter as well.
                 switch (arguments.length) {
                     case 0:
-                        return new NativeMethods.Blob();
+                        return new nativeMethods.Blob();
                     case 1:
-                        return new NativeMethods.Blob(parts);
+                        return new nativeMethods.Blob(parts);
                     default:
                         var type = opts && opts.type && opts.type.toString().toLowerCase();
 
                         if (type === 'text/javascript' || type === 'application/javascript' ||
                             type === 'application/x-javascript')
-                            parts = [ScriptProcessor.process(parts.join(''))];
+                            parts = [scriptProcessor.process(parts.join(''))];
 
-                        return new NativeMethods.Blob(parts, opts);
+                        return new nativeMethods.Blob(parts, opts);
                 }
             };
         }
 
-        window.EventSource = url => new NativeMethods.EventSource(UrlUtil.getProxyUrl(url));
+        window.EventSource = url => new nativeMethods.EventSource(urlUtils.getProxyUrl(url));
 
         if (window.MutationObserver) {
             window.MutationObserver = callback => {
@@ -149,15 +149,15 @@ export default class WindowSandbox extends SandboxBase {
                         callback(result);
                 };
 
-                return new NativeMethods.MutationObserver(wrapper);
+                return new nativeMethods.MutationObserver(wrapper);
             };
         }
 
         if (window.navigator && window.navigator.serviceWorker) {
             window.navigator.serviceWorker.register = url => {
-                url = UrlUtil.getProxyUrl(url);
+                url = urlUtils.getProxyUrl(url);
 
-                return NativeMethods.registerServiceWorker.call(window.navigator.serviceWorker, url);
+                return nativeMethods.registerServiceWorker.call(window.navigator.serviceWorker, url);
             };
         }
 
@@ -165,11 +165,11 @@ export default class WindowSandbox extends SandboxBase {
             var image = null;
 
             if (!arguments.length)
-                image = new NativeMethods.Image();
+                image = new nativeMethods.Image();
             else if (arguments.length === 1)
-                image = new NativeMethods.Image(arguments[0]);
+                image = new nativeMethods.Image(arguments[0]);
             else
-                image = new NativeMethods.Image(arguments[0], arguments[1]);
+                image = new nativeMethods.Image(arguments[0], arguments[1]);
 
             nodeSandbox.overrideDomMethods(image);
 
@@ -181,18 +181,18 @@ export default class WindowSandbox extends SandboxBase {
                 var args = [data, title];
 
                 if (arguments.length > 2)
-                    args.push(url ? UrlUtil.getProxyUrl(url) : url);
+                    args.push(url ? urlUtils.getProxyUrl(url) : url);
 
-                return NativeMethods.historyPushState.apply(history, args);
+                return nativeMethods.historyPushState.apply(history, args);
             };
 
             window.history.replaceState = function (data, title, url) {
                 var args = [data, title];
 
                 if (arguments.length > 2)
-                    args.push(url ? UrlUtil.getProxyUrl(url) : url);
+                    args.push(url ? urlUtils.getProxyUrl(url) : url);
 
-                return NativeMethods.historyReplaceState.apply(history, args);
+                return nativeMethods.historyReplaceState.apply(history, args);
             };
         }
 
@@ -200,14 +200,14 @@ export default class WindowSandbox extends SandboxBase {
             window.navigator.registerProtocolHandler = function () {
                 var args           = Array.prototype.slice.call(arguments);
                 var urlIndex       = 1;
-                var originHostname = UrlUtil.OriginLocation.getParsed().hostname;
-                var isOriginUrl    = isMozilla ? UrlUtil.isSubDomain(originHostname, UrlUtil.parseUrl(args[urlIndex]).hostname) :
-                                     UrlUtil.sameOriginCheck(UrlUtil.OriginLocation.get(), args[urlIndex]);
+                var originHostname = urlUtils.OriginLocation.getParsed().hostname;
+                var isOriginUrl    = isMozilla ? urlUtils.isSubDomain(originHostname, urlUtils.parseUrl(args[urlIndex]).hostname) :
+                                     urlUtils.sameOriginCheck(urlUtils.OriginLocation.get(), args[urlIndex]);
 
                 if (isOriginUrl)
-                    args[urlIndex] = UrlUtil.getProxyUrl(args[urlIndex]);
+                    args[urlIndex] = urlUtils.getProxyUrl(args[urlIndex]);
 
-                return NativeMethods.registerProtocolHandler.apply(navigator, args);
+                return nativeMethods.registerProtocolHandler.apply(navigator, args);
             };
         }
     }

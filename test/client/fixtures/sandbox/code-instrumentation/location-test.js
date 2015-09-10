@@ -6,12 +6,12 @@ var UrlUtil                 = Hammerhead.get('./utils/url');
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
 asyncTest('iframe with empty src', function () {
@@ -82,7 +82,7 @@ if (Browser.isWebKit) {
 
 test('iframe', function () {
     var checkProp = function (prop, value) {
-        var windowMock                                                     = {
+        var windowMock                                               = {
             location: UrlUtil.getProxyUrl('http://google.net:90/'),
 
             top: {
@@ -93,7 +93,7 @@ test('iframe', function () {
         };
 
         new CodeInstrumentation().attach(windowMock);
-        new LocationInstrumentation().getLocationWrapper(windowMock)[prop] = value;
+        LocationInstrumentation.getLocationWrapper(windowMock)[prop] = value;
         strictEqual(UrlUtil.getProxyUrl(windowMock.location).resourceType, UrlUtil.Iframe);
     };
 
@@ -118,7 +118,7 @@ test('iframe', function () {
         };
 
         new CodeInstrumentation().attach(windowMock);
-        new LocationInstrumentation().getLocationWrapper(windowMock)[func](value);
+        LocationInstrumentation.getLocationWrapper(windowMock)[func](value);
         strictEqual(UrlUtil.getProxyUrl(windowMock.location[func + 'Value']).resourceType, UrlUtil.Iframe);
     };
 

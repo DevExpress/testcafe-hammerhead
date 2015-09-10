@@ -1,7 +1,7 @@
-import * as Browser from './browser';
-import * as DOM from './dom';
-import * as Style from './style';
-import NativeMethods from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods';
+import * as domUtils from './dom';
+import * as styleUtils from './style';
+import { isMozilla, isIE } from './browser';
 
 function getAreaElementRectangle (el, mapContainer) {
     var shape  = el.getAttribute('shape');
@@ -87,7 +87,7 @@ function getAreaElementRectangle (el, mapContainer) {
 }
 
 function getMapElementRectangle (el) {
-    var mapContainer = DOM.getMapContainer(el);
+    var mapContainer = domUtils.getMapContainer(el);
 
     if (mapContainer) {
         if (/^map$/i.test(el.tagName))
@@ -109,20 +109,20 @@ function getMapElementRectangle (el) {
 }
 
 function getSelectChildRectangle (el) {
-    var select = DOM.getSelectParent(el);
+    var select = domUtils.getSelectParent(el);
 
     if (select) {
         var selectRectangle      = getElementRectangle(select);
-        var selectBorders        = Style.getBordersWidth(select);
-        var selectRightScrollbar = Style.getInnerWidth(select) === select.clientWidth ? 0 : DOM.getScrollbarSize();
-        var optionHeight         = Style.getOptionHeight(select);
-        var optionRealIndex      = DOM.getChildVisibleIndex(select, el);
-        var optionVisibleIndex   = Math.max(optionRealIndex - Style.getScrollTop(select) / optionHeight, 0);
+        var selectBorders        = styleUtils.getBordersWidth(select);
+        var selectRightScrollbar = styleUtils.getInnerWidth(select) === select.clientWidth ? 0 : domUtils.getScrollbarSize();
+        var optionHeight         = styleUtils.getOptionHeight(select);
+        var optionRealIndex      = domUtils.getChildVisibleIndex(select, el);
+        var optionVisibleIndex   = Math.max(optionRealIndex - styleUtils.getScrollTop(select) / optionHeight, 0);
 
         return {
             height: optionHeight,
             left:   selectRectangle.left + selectBorders.left,
-            top:    selectRectangle.top + selectBorders.top + Style.getElementPadding(select).top +
+            top:    selectRectangle.top + selectBorders.top + styleUtils.getElementPadding(select).top +
                     optionVisibleIndex * optionHeight,
 
             width: selectRectangle.width - (selectBorders.left + selectBorders.right) - selectRightScrollbar
@@ -133,7 +133,7 @@ function getSelectChildRectangle (el) {
 }
 
 function getSvgElementRelativeRectangle (el) {
-    var isSvgTextElement   = DOM.matches(el, 'tspan') || DOM.matches(el, 'tref') ||
+    var isSvgTextElement   = domUtils.matches(el, 'tspan') || domUtils.matches(el, 'tref') ||
                              el.tagName && el.tagName.toLowerCase() === 'textpath';
     var boundingClientRect = el.getBoundingClientRect();
     var elementRect        = {
@@ -144,10 +144,10 @@ function getSvgElementRelativeRectangle (el) {
     };
 
     if (isSvgTextElement) {
-        var offsetParent       = Style.getOffsetParent(el);
-        var elOffset           = Style.getOffset(el);
-        var offsetParentOffset = Style.getOffset(offsetParent);
-        var offsetParentIsBody = DOM.matches(offsetParent, 'body');
+        var offsetParent       = styleUtils.getOffsetParent(el);
+        var elOffset           = styleUtils.getOffset(el);
+        var offsetParentOffset = styleUtils.getOffset(offsetParent);
+        var offsetParentIsBody = domUtils.matches(offsetParent, 'body');
 
         return {
             height: elementRect.height || boundingClientRect.height,
@@ -158,10 +158,10 @@ function getSvgElementRelativeRectangle (el) {
     }
 
 
-    if (Browser.isMozilla || Browser.isIE)
+    if (isMozilla || isIE)
         return elementRect;
 
-    var strokeWidth = NativeMethods.getAttribute.call(el, 'stroke-width') || Style.get(el, 'stroke-width');
+    var strokeWidth = nativeMethods.getAttribute.call(el, 'stroke-width') || styleUtils.get(el, 'stroke-width');
 
     //NOTE: we think that 'stroke-width' attribute can only be set in pixels
     strokeWidth = strokeWidth ? +strokeWidth.replace(/px|em|ex|pt|pc|cm|mm|in/, '') : 1;
@@ -169,8 +169,8 @@ function getSvgElementRelativeRectangle (el) {
     if (strokeWidth && +strokeWidth % 2 !== 0)
         strokeWidth = +strokeWidth + 1;
 
-    if ((DOM.matches(el, 'line') || DOM.matches(el, 'polyline') || DOM.matches(el, 'polygon') ||
-         DOM.matches(el, 'path')) &&
+    if ((domUtils.matches(el, 'line') || domUtils.matches(el, 'polyline') || domUtils.matches(el, 'polygon') ||
+         domUtils.matches(el, 'path')) &&
         (!elementRect.width || !elementRect.height)) {
         if (!elementRect.width && elementRect.height) {
             elementRect.left -= strokeWidth / 2;
@@ -182,7 +182,7 @@ function getSvgElementRelativeRectangle (el) {
         }
     }
     else {
-        if (DOM.matches(el, 'polygon')) {
+        if (domUtils.matches(el, 'polygon')) {
             elementRect.height += 2 * strokeWidth;
             elementRect.left -= strokeWidth;
             elementRect.top -= strokeWidth;
@@ -201,13 +201,13 @@ function getSvgElementRelativeRectangle (el) {
 export function getElementRectangle (el) {
     var rectangle = {};
 
-    if (DOM.isMapElement(el))
+    if (domUtils.isMapElement(el))
         rectangle = getMapElementRectangle(el);
-    else if (Style.isVisibleChild(el))
+    else if (styleUtils.isVisibleChild(el))
         rectangle = getSelectChildRectangle(el);
     else {
         var elementOffset     = getOffsetPosition(el);
-        var relativeRectangle = DOM.isSvgElement(el) ? getSvgElementRelativeRectangle(el) : el.getBoundingClientRect();
+        var relativeRectangle = domUtils.isSvgElement(el) ? getSvgElementRelativeRectangle(el) : el.getBoundingClientRect();
 
         rectangle = {
             height: relativeRectangle.height,
@@ -226,7 +226,7 @@ export function getElementRectangle (el) {
 }
 
 export function getOffsetPosition (el) {
-    if (DOM.isMapElement(el)) {
+    if (domUtils.isMapElement(el)) {
         var rectangle = getMapElementRectangle(el);
 
         return {
@@ -235,23 +235,23 @@ export function getOffsetPosition (el) {
         };
     }
 
-    var doc               = DOM.findDocument(el);
-    var isInIFrame        = DOM.isElementInIframe(el, doc);
-    var currentIFrame     = isInIFrame ? DOM.getIFrameByElement(doc) : null;
-    var offsetPosition    = doc === el ? Style.getOffset(doc.documentElement) : Style.getOffset(el);
+    var doc               = domUtils.findDocument(el);
+    var isInIFrame        = domUtils.isElementInIframe(el, doc);
+    var currentIFrame     = isInIFrame ? domUtils.getIFrameByElement(doc) : null;
+    var offsetPosition    = doc === el ? styleUtils.getOffset(doc.documentElement) : styleUtils.getOffset(el);
     var relativeRectangle = null;
 
     // NOTE: jquery .offset() function doesn't take body's border into account (except IE7)
     // http://bugs.jquery.com/ticket/7948
 
     //NOTE: Sometimes in IE method getElementFromPoint returns cross-domain iframe's documentElement, but we can't get his body
-    var borders = doc.body ? Style.getBordersWidth(doc.body) : {
+    var borders = doc.body ? styleUtils.getBordersWidth(doc.body) : {
         left: 0,
         top:  0
     };
 
     if (!isInIFrame || !currentIFrame) {
-        var isSvg = DOM.isSvgElement(el);
+        var isSvg = domUtils.isSvgElement(el);
 
         relativeRectangle = isSvg ? getSvgElementRelativeRectangle(el) : null;
 
@@ -261,16 +261,16 @@ export function getOffsetPosition (el) {
         };
     }
 
-    var iframeBorders = Style.getBordersWidth(currentIFrame);
+    var iframeBorders = styleUtils.getBordersWidth(currentIFrame);
 
     borders.left += iframeBorders.left;
     borders.top += iframeBorders.top;
 
     var iframeOffset   = getOffsetPosition(currentIFrame);
-    var iframePadding  = Style.getElementPadding(currentIFrame);
+    var iframePadding  = styleUtils.getElementPadding(currentIFrame);
     var clientPosition = null;
 
-    if (DOM.isSvgElement(el)) {
+    if (domUtils.isSvgElement(el)) {
         relativeRectangle = getSvgElementRelativeRectangle(el);
 
         clientPosition = {
@@ -296,7 +296,7 @@ export function offsetToClientCoords (coords, currentDocument) {
     var doc = currentDocument || document;
 
     return {
-        x: coords.x - Style.getScrollLeft(doc),
-        y: coords.y - Style.getScrollTop(doc)
+        x: coords.x - styleUtils.getScrollLeft(doc),
+        y: coords.y - styleUtils.getScrollTop(doc)
     };
 }

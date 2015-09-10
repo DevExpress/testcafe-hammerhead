@@ -112,12 +112,12 @@ gulp.task('clean', function (cb) {
 
 gulp.task('templates', ['clean'], function () {
     return gulp
-        .src('./src/client/templates/task.js.mustache', { silent: false })
+        .src('./src/client/task.js.mustache', { silent: false })
         .pipe(gulp.dest('./lib/client'));
 });
 
 gulp.task('client-scripts', ['client-scripts-bundle'], function () {
-    return gulp.src('./src/client/templates/hammerhead.js.mustache')
+    return gulp.src('./src/client/index.js.wrapper.mustache')
         .pipe(mustache({
             source:    fs.readFileSync('./lib/client/hammerhead.js').toString(),
             sourceMap: ''
@@ -128,7 +128,7 @@ gulp.task('client-scripts', ['client-scripts-bundle'], function () {
 });
 
 gulp.task('client-scripts-bundle', ['clean'], function () {
-    return gulp.src('./src/client/hammerhead.js')
+    return gulp.src('./src/client/index.js')
         .pipe(webmake({
             sourceMap: false,
             transform: function (filename, code) {
@@ -140,7 +140,11 @@ gulp.task('client-scripts-bundle', ['clean'], function () {
                 }
                 ///////////////////////////////////////////////////////////////
 
-                var transformed = babel.transform(code, { sourceMap: false, filename: filename, blacklist: ['runtime'] });
+                var transformed = babel.transform(code, {
+                    sourceMap: false,
+                    filename:  filename,
+                    blacklist: ['runtime']
+                });
 
                 return {
                     code:      transformed.code,
@@ -148,6 +152,7 @@ gulp.task('client-scripts-bundle', ['clean'], function () {
                 };
             }
         }))
+        .pipe(rename('hammerhead.js'))
         .pipe(gulp.dest('./lib/client'));
 });
 

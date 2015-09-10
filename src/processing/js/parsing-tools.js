@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-var JSParsingTools = {};
+var jsParsingTools = {};
 
 // ---------------- Acorn -------------------
 var acornExports = {};
@@ -1918,7 +1918,7 @@ var acornExports = {};
     });
 }).call(acornExports);
 
-JSParsingTools.parse = acornExports.parse || acornExports.acorn.parse;
+jsParsingTools.parse = acornExports.parse || acornExports.acorn.parse;
 // ------------------------------------------
 
 // --------------- Code Gen -----------------
@@ -4384,8 +4384,8 @@ var codeGetExports = {};
 
 })(codeGetExports);
 
-JSParsingTools.generate = codeGetExports.generate;
-JSParsingTools.Syntax = codeGetExports.Syntax;
+jsParsingTools.generate = codeGetExports.generate;
+jsParsingTools.Syntax = codeGetExports.Syntax;
 // ------------------------------------------
 
-export default JSParsingTools;
+export default jsParsingTools;

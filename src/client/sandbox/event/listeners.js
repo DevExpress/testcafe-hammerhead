@@ -1,10 +1,8 @@
-import { isWindow } from '../../utils/types';
-import * as Event from '../../utils/event';
-import * as ListeningCtx from './listening-context';
-import NativeMethods from '../native-methods';
+import nativeMethods from '../native-methods';
 import EventEmitter from '../../utils/event-emitter';
-
-export const EVENT_LISTENER_ATTACHED_EVENT = 'eventListenerAttached';
+import * as listeningCtx from './listening-context';
+import { preventDefault, stopPropagation, DOM_EVENTS } from '../../utils/event';
+import { isWindow } from '../../utils/types';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
@@ -17,240 +15,269 @@ const LISTENED_EVENTS = [
 
 const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'tc-sdef-310efb6b';
 
-var eventEmitter = new EventEmitter();
+export default class Listeners {
+    constructor () {
+        this.EVENT_LISTENER_ATTACHED_EVENT = 'eventListenerAttached';
 
-function eventHandler (e) {
-    //NOTE: fix for the bug in firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1161548).
-    //An exception is raised when try to get any property from the event object in some cases.
-    var type = '';
+        this.listeningCtx = listeningCtx;
 
-    try {
-        type = e.type;
+        this.addInternalEventListener    = this.listeningCtx.addInternalHandler;
+        this.addFirstInternalHandler     = this.listeningCtx.addFirstInternalHandler;
+        this.removeInternalEventListener = this.listeningCtx.removeInternalHandler;
+
+        this.eventEmitter = new EventEmitter();
     }
-    catch (err) {
-        return;
+
+    static _getBodyEventListenerWrapper (documentEventCtx, listener) {
+        return function (e) {
+            if (documentEventCtx.cancelOuterHandlers)
+                return null;
+
+            return listener.call(this, e);
+        };
     }
 
-    var el                    = this;
-    var eventPrevented        = false;
-    var handlersCancelled     = false;
-    var stopPropagationCalled = false;
-    var eventCtx              = ListeningCtx.getEventCtx(el, type);
-    var internalHandlers      = eventCtx ? eventCtx.internalHandlers : [];
+    static _getNativeAddEventListener (el) {
+        if (isWindow(el))
+            return nativeMethods.windowAddEventListener;
 
-    eventCtx.cancelOuterHandlers = false;
+        return typeof el.body !== 'undefined' ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
+    }
 
-    var preventEvent = function () {
-        eventPrevented = true;
-        Event.preventDefault(e);
-    };
+    static _getNativeRemoveEventListener (el) {
+        if (isWindow(el))
+            return nativeMethods.windowRemoveEventListener;
 
-    var cancelHandlers = function () {
-        if (!handlersCancelled)
-            eventCtx.cancelOuterHandlers = true;
+        return typeof el.body !==
+               'undefined' ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
+    }
 
-        handlersCancelled = true;
-    };
+    static _getEventListenerWrapper (eventCtx, listener) {
+        return function (e) {
+            if (eventCtx.cancelOuterHandlers)
+                return null;
 
-    var stopPropagation = function () {
-        stopPropagationCalled = true;
+            if (typeof eventCtx.outerHandlersWrapper === 'function')
+                return eventCtx.outerHandlersWrapper.call(this, e, listener);
 
-        Event.stopPropagation(e);
-    };
+            if (typeof listener === 'object' && typeof listener.handleEvent === 'function')
+                return listener.handleEvent.call(listener, e);
 
-    for (var i = 0; i < internalHandlers.length; i++) {
-        internalHandlers[i].call(el, e, !!window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG], preventEvent, cancelHandlers, stopPropagation);
+            return listener.call(this, e);
+        };
+    }
 
-        if (eventPrevented || stopPropagationCalled)
-            break;
+    _createEventHandler = function () {
+        var listeningCtx = this.listeningCtx;
+
+        return function (e) {
+            //NOTE: fix for the bug in firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1161548).
+            //An exception is raised when try to get any property from the event object in some cases.
+            var type = '';
+
+            try {
+                type = e.type;
+            }
+            catch (err) {
+                return;
+            }
+
+            var el                    = this;
+            var eventPrevented        = false;
+            var handlersCancelled     = false;
+            var stopPropagationCalled = false;
+            var eventCtx              = listeningCtx.getEventCtx(el, type);
+            var internalHandlers      = eventCtx ? eventCtx.internalHandlers : [];
+
+            eventCtx.cancelOuterHandlers = false;
+
+            var preventEvent = () => {
+                eventPrevented = true;
+                preventDefault(e);
+            };
+
+            var cancelHandlers = () => {
+                if (!handlersCancelled)
+                    eventCtx.cancelOuterHandlers = true;
+
+                handlersCancelled = true;
+            };
+
+            var stopEventPropagation = () => {
+                stopPropagationCalled = true;
+
+                stopPropagation(e);
+            };
+
+            for (var i = 0; i < internalHandlers.length; i++) {
+                internalHandlers[i].call(el, e, !!window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG], preventEvent, cancelHandlers, stopEventPropagation);
+
+                if (eventPrevented || stopPropagationCalled)
+                    break;
+            }
+        };
+    }
+
+    _createElementOverridedMethods (el) {
+        var listeners                 = this;
+        var nativeAddEventListener    = Listeners._getNativeAddEventListener(el);
+        var nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
+
+        return {
+            addEventListener: function (type, listener, useCapture) {
+                var eventListeningInfo = listeningCtx.getEventCtx(el, type);
+
+                if (!eventListeningInfo)
+                    return nativeAddEventListener.call(this, type, listener, useCapture);
+
+                //T233158 - Wrong test run for mouse click in IE
+                var isDifferentHandler = eventListeningInfo.outerHandlers.every(value => value.fn !== listener ||
+                                                                                         value.useCapture !==
+                                                                                         useCapture);
+
+                if (!isDifferentHandler)
+                    return null;
+
+                var wrapper = Listeners._getEventListenerWrapper(eventListeningInfo, listener);
+
+                listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
+
+                var res = nativeAddEventListener.call(this, type, wrapper, useCapture);
+
+                listeners.eventEmitter.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
+                    el:        this,
+                    eventType: type,
+                    listener:  listener
+                });
+
+                return res;
+            },
+
+            removeEventListener: function (type, listener, useCapture) {
+                var eventCtx = listeningCtx.getEventCtx(this, type);
+
+                if (!eventCtx)
+                    return nativeRemoveEventListener.call(this, type, listener, useCapture);
+
+                return nativeRemoveEventListener.call(this, type, listeningCtx.getWrapper(eventCtx, listener, useCapture), useCapture);
+            }
+        };
+    }
+
+    _createDocumentBodyOverridedMethods (doc) {
+        var listeners                 = this;
+        var nativeAddEventListener    = (() => doc.body.addEventListener)();
+        var nativeRemoveEventListener = (() => doc.body.removeEventListener)();
+
+        return {
+            addEventListener: function (type, listener, useCapture) {
+                var docEventListeningInfo = listeningCtx.getEventCtx(doc, type);
+                var eventListeningInfo    = listeningCtx.getEventCtx(this, type);
+
+                if (!docEventListeningInfo)
+                    return nativeAddEventListener.call(this, type, listener, useCapture);
+
+                //T233158 - Wrong test run for mouse click in IE
+                var isDifferentHandler = eventListeningInfo.outerHandlers.every(value => value.fn !== listener ||
+                                                                                         value.useCapture !==
+                                                                                         useCapture);
+
+                if (!isDifferentHandler)
+                    return null;
+
+                var wrapper = Listeners._getBodyEventListenerWrapper(docEventListeningInfo, listener);
+
+                listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
+
+                var res = nativeAddEventListener.call(this, type, wrapper, useCapture);
+
+                listeners.eventEmitter.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
+                    el:        this,
+                    eventType: type,
+                    listener:  listener
+                });
+
+                return res;
+            },
+
+            removeEventListener: function (type, listener, useCapture) {
+                var eventListeningInfo = listeningCtx.getEventCtx(this, type);
+
+                if (!eventListeningInfo)
+                    return nativeRemoveEventListener.call(this, type, listener, useCapture);
+
+                return nativeRemoveEventListener.call(this, type, listeningCtx.getWrapper(eventListeningInfo, listener, useCapture), useCapture);
+            }
+        };
+    }
+
+    on (event, handler) {
+        return this.eventEmitter.on(event, handler);
+    }
+
+    off (event, handler) {
+        return this.eventEmitter.off(event, handler);
+    }
+
+    initElementListening (el, events) {
+        var nativeAddEventListener = Listeners._getNativeAddEventListener(el);
+
+        events = events || LISTENED_EVENTS;
+
+        this.listeningCtx.addListeningElement(el, events);
+
+        for (var i = 0; i < events.length; i++)
+            nativeAddEventListener.call(el, events[i], this._createEventHandler(), true);
+
+        var overridedMethods = this._createElementOverridedMethods(el);
+
+        el.addEventListener    = overridedMethods.addEventListener;
+        el.removeEventListener = overridedMethods.removeEventListener;
+    }
+
+    initDocumentBodyListening (doc) {
+        listeningCtx.addListeningElement(doc.body, DOM_EVENTS);
+
+        var overridedMethods = this._createDocumentBodyOverridedMethods(doc);
+
+        doc.body.addEventListener    = overridedMethods.addEventListener;
+        doc.body.removeEventListener = overridedMethods.removeEventListener;
+    }
+
+    restartElementListening (el) {
+        var nativeAddEventListener = Listeners._getNativeAddEventListener(el);
+        var elementCtx             = this.listeningCtx.getElementCtx(el);
+
+        if (elementCtx)
+            Object.keys(elementCtx).forEach(event => nativeAddEventListener.call(el, event, this._createEventHandler(), true));
+    }
+
+    cancelElementListening (el) {
+        this.listeningCtx.removeListeningElement(el);
+
+        if (el.body)
+            this.listeningCtx.removeListeningElement(el.body);
+    }
+
+    beforeDispatchEvent () {
+        window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] = (window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] || 0) + 1;
+    }
+
+    afterDispatchEvent () {
+        window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG]--;
+
+        if (!window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG])
+            delete window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG];
+    }
+
+    setEventListenerWrapper (el, events, wrapper) {
+        if (!this.listeningCtx.isElementListening(el))
+            this.initElementListening(el, events);
+
+        for (var i = 0; i < events.length; i++) {
+            var eventListeningInfo = this.listeningCtx.getEventCtx(el, events[i]);
+
+            eventListeningInfo.outerHandlersWrapper = wrapper;
+        }
     }
 }
-
-function getEventListenerWrapper (eventCtx, listener) {
-    return function (e) {
-        if (eventCtx.cancelOuterHandlers)
-            return null;
-
-        if (typeof eventCtx.outerHandlersWrapper === 'function')
-            return eventCtx.outerHandlersWrapper.call(this, e, listener);
-
-        if (typeof listener === 'object' && typeof listener.handleEvent === 'function')
-            return listener.handleEvent.call(listener, e);
-
-        return listener.call(this, e);
-    };
-}
-
-function getBodyEventListenerWrapper (documentEventCtx, listener) {
-    return function (e) {
-        if (documentEventCtx.cancelOuterHandlers)
-            return null;
-
-        return listener.call(this, e);
-    };
-}
-
-function getNativeAddEventListener (el) {
-    if (isWindow(el))
-        return NativeMethods.windowAddEventListener;
-
-    return typeof el.body !== 'undefined' ? NativeMethods.documentAddEventListener : NativeMethods.addEventListener;
-}
-
-function getNativeRemoveEventListener (el) {
-    if (isWindow(el))
-        return NativeMethods.windowRemoveEventListener;
-
-    return typeof el.body !==
-           'undefined' ? NativeMethods.documentRemoveEventListener : NativeMethods.removeEventListener;
-}
-
-export var on  = eventEmitter.on.bind(eventEmitter);
-export var off = eventEmitter.off.bind(eventEmitter);
-
-export function initElementListening (el, events) {
-    var nativeAddEventListener    = getNativeAddEventListener(el);
-    var nativeRemoveEventListener = getNativeRemoveEventListener(el);
-
-    events = events || LISTENED_EVENTS;
-
-    ListeningCtx.addListeningElement(el, events);
-
-    for (var i = 0; i < events.length; i++)
-        nativeAddEventListener.call(el, events[i], eventHandler, true);
-
-    el.addEventListener = function (type, listener, useCapture) {
-        var eventListeningInfo = ListeningCtx.getEventCtx(el, type);
-
-        if (!eventListeningInfo)
-            return nativeAddEventListener.call(this, type, listener, useCapture);
-
-        //T233158 - Wrong test run for mouse click in IE
-        var isDifferentHandler = eventListeningInfo.outerHandlers.every(function (value) {
-            return value.fn !== listener || value.useCapture !== useCapture;
-        });
-
-        if (!isDifferentHandler)
-            return null;
-
-        var wrapper = getEventListenerWrapper(eventListeningInfo, listener);
-
-        ListeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
-
-        var res = nativeAddEventListener.call(this, type, wrapper, useCapture);
-
-        eventEmitter.emit(EVENT_LISTENER_ATTACHED_EVENT, {
-            el:        this,
-            eventType: type,
-            listener:  listener
-        });
-
-        return res;
-    };
-
-    el.removeEventListener = function (type, listener, useCapture) {
-        var eventCtx = ListeningCtx.getEventCtx(this, type);
-
-        if (!eventCtx)
-            return nativeRemoveEventListener.call(this, type, listener, useCapture);
-
-        return nativeRemoveEventListener.call(this, type, ListeningCtx.getWrapper(eventCtx, listener, useCapture), useCapture);
-    };
-}
-
-export function restartElementListening (el) {
-    var nativeAddEventListener = getNativeAddEventListener(el);
-    var elementCtx             = ListeningCtx.getElementCtx(el);
-
-    if (elementCtx) {
-        Object.keys(elementCtx).forEach(function (event) {
-            nativeAddEventListener.call(el, event, eventHandler, true);
-        });
-    }
-}
-
-export function initDocumentBodyListening (doc) {
-    var events = Event.DOM_EVENTS;
-
-    var nativeAddEventListener = (function () {
-        return doc.body.addEventListener;
-    })();
-
-    var nativeRemoveEventListener = (function () {
-        return doc.body.removeEventListener;
-    })();
-
-    ListeningCtx.addListeningElement(doc.body, events);
-
-    doc.body.addEventListener = function (type, listener, useCapture) {
-        var docEventListeningInfo = ListeningCtx.getEventCtx(doc, type);
-        var eventListeningInfo    = ListeningCtx.getEventCtx(this, type);
-
-        if (!docEventListeningInfo)
-            return nativeAddEventListener.call(this, type, listener, useCapture);
-
-        //T233158 - Wrong test run for mouse click in IE
-        var isDifferentHandler = eventListeningInfo.outerHandlers.every(function (value) {
-            return value.fn !== listener || value.useCapture !== useCapture;
-        });
-
-        if (!isDifferentHandler)
-            return null;
-
-        var wrapper = getBodyEventListenerWrapper(docEventListeningInfo, listener);
-
-        ListeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
-
-        var res = nativeAddEventListener.call(this, type, wrapper, useCapture);
-
-        eventEmitter.emit(EVENT_LISTENER_ATTACHED_EVENT, {
-            el:        this,
-            eventType: type,
-            listener:  listener
-        });
-
-        return res;
-    };
-
-    doc.body.removeEventListener = function (type, listener, useCapture) {
-        var eventListeningInfo = ListeningCtx.getEventCtx(this, type);
-
-        if (!eventListeningInfo)
-            return nativeRemoveEventListener.call(this, type, listener, useCapture);
-
-        return nativeRemoveEventListener.call(this, type, ListeningCtx.getWrapper(eventListeningInfo, listener, useCapture), useCapture);
-    };
-}
-
-export function cancelElementListening (el) {
-    ListeningCtx.removeListeningElement(el);
-
-    if (el.body)
-        ListeningCtx.removeListeningElement(el.body);
-}
-
-export function beforeDispatchEvent () {
-    window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] = (window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] || 0) + 1;
-}
-
-export function afterDispatchEvent () {
-    window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG]--;
-
-    if (!window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG])
-        delete window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG];
-}
-
-export function setEventListenerWrapper (el, events, wrapper) {
-    if (!ListeningCtx.isElementListening(el))
-        initElementListening(el, events);
-
-    for (var i = 0; i < events.length; i++) {
-        var eventListeningInfo = ListeningCtx.getEventCtx(el, events[i]);
-
-        eventListeningInfo.outerHandlersWrapper = wrapper;
-    }
-}
-
-export var addInternalEventListener    = ListeningCtx.addInternalHandler;
-export var addFirstInternalHandler     = ListeningCtx.addFirstInternalHandler;
-export var removeInternalEventListener = ListeningCtx.removeInternalHandler;

@@ -1,12 +1,12 @@
-import NativeMethods from '../sandbox/native-methods';
-import * as Browser from './browser';
+import nativeMethods from '../sandbox/native-methods';
+import { isMozilla } from './browser';
 
 export function inaccessibleTypeToStr (obj) {
     return obj === null ? 'null' : 'undefined';
 }
 
 export function isDocument (instance) {
-    if (instance instanceof NativeMethods.documentClass)
+    if (instance instanceof nativeMethods.documentClass)
         return true;
 
     return instance && typeof instance === 'object' && typeof instance.referrer !== 'undefined' &&
@@ -15,7 +15,7 @@ export function isDocument (instance) {
 }
 
 export function isLocation (instance) {
-    if (instance instanceof NativeMethods.locationClass)
+    if (instance instanceof nativeMethods.locationClass)
         return true;
 
     return instance && typeof instance === 'object' && typeof instance.href !== 'undefined' &&
@@ -31,7 +31,7 @@ export function isSVGElement (obj) {
 }
 
 export function isStyle (instance) {
-    if (instance instanceof NativeMethods.styleClass)
+    if (instance instanceof nativeMethods.styleClass)
         return true;
 
     if (instance && typeof instance === 'object' && typeof instance.border !== 'undefined') {
@@ -45,12 +45,12 @@ export function isStyle (instance) {
 }
 
 export function isWindow (instance) {
-    if (instance instanceof NativeMethods.windowClass)
+    if (instance instanceof nativeMethods.windowClass)
         return true;
 
     var result = instance && typeof instance === 'object' && typeof instance.top !== 'undefined' &&
-                 (Browser.isMozilla ? true : instance.toString && (instance.toString() === '[object Window]' ||
-                                                                   instance.toString() === '[object global]'));
+                 (isMozilla ? true : instance.toString && (instance.toString() === '[object Window]' ||
+                                                           instance.toString() === '[object global]'));
 
     if (result && instance.top !== instance)
         return isWindow(instance.top);

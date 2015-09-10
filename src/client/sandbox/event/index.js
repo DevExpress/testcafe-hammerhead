@@ -1,210 +1,229 @@
+import EventSimulator from './simulator';
+import FocusBlurSandbox from './focus-blur';
+import Listeners from './listeners';
+import TimersSandbox from './timers';
+import Selection from './selection';
+import ElementEditingWatcher from './element-editing-watcher';
 import SandboxBase from '../base';
-import NativeMethods from '../native-methods';
-import Unload from './unload';
+import UnloadSandbox from './unload';
 import extend from '../../utils/extend';
-import * as Browser from '../../utils/browser';
-import * as DOM from '../../utils/dom';
-import * as Event from '../../utils/event';
-import * as EventSimulator from './simulator';
-import * as FocusBlur from './focus-blur';
-import * as Listeners from './listeners';
-import * as Timeout from './timeout';
-import * as Selection from './selection';
-import * as ElementEditingWatcher from './element-editing-watcher';
-import { getSandboxFromStorage } from '../../sandbox/storage';
+import nativeMethods from '../native-methods';
+import * as domUtils from '../../utils/dom';
+import { isIE, version as browserVersion } from '../../utils/browser';
+import { preventDefault, DOM_EVENTS } from '../../utils/event';
+
+const ELEMENT_HAS_ADDITIONAL_EVENT_METHODS = isIE && browserVersion < 11;
 
 export default class EventSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.ELEMENT_HAS_ADDITIONAL_EVENT_METHODS = Browser.isIE && Browser.version < 11;
+        this.listeners             = new Listeners();
+        this.unload                = new UnloadSandbox(sandbox);
+        this.timers                = new TimersSandbox(sandbox);
+        this.eventSimulator        = new EventSimulator();
+        this.selection             = new Selection(this);
+        this.elementEditingWatcher = new ElementEditingWatcher(this.eventSimulator);
+        this.focusBlur             = new FocusBlurSandbox(sandbox, this.eventSimulator);
 
-        this.listeners             = Listeners;             // TODO:
-        this.unload                = new Unload(sandbox);
-        this.selection             = Selection;             // TODO:
-        this.eventSimulator        = EventSimulator;        // TODO:
-        this.elementEditingWatcher = ElementEditingWatcher; // TODO:
-        this.focusBlur             = FocusBlur;             // TODO:
+        this.overridedMethods = null;
+
+        this.onFocus              = null;
+        this.cancelInternalEvents = null;
+
+        this._createOverridedMethods();
+        this._createInternalHandlers();
     }
 
-    //wrappers
-    _overridedDispatchEvent (ev) {
-        Listeners.beforeDispatchEvent();
+    _createOverridedMethods () {
+        var selection        = this.selection;
+        var focusBlurSandbox = this.focusBlur;
+        var listeners        = this.listeners;
+        var eventSimulator   = this.eventSimulator;
 
-        var res = NativeMethods.dispatchEvent.call(this, ev);
+        this.overridedMethods = {
+            dispatchEvent: function (ev) {
+                listeners.beforeDispatchEvent();
 
-        Listeners.afterDispatchEvent();
+                var res = nativeMethods.dispatchEvent.call(this, ev);
 
-        return res;
-    }
+                listeners.afterDispatchEvent();
 
-    _overridedFireEvent (eventName, ev) {
-        var eventType = eventName.substring(0, 2) === 'on' ? eventName.substring(2) : eventName;
-        var createEventType;
-        var res;
+                return res;
+            },
 
-        Listeners.beforeDispatchEvent();
+            fireEvent: function (eventName, ev) {
+                var eventType = eventName.substring(0, 2) === 'on' ? eventName.substring(2) : eventName;
+                var createEventType;
+                var res;
 
-        //event is 'MSEventObj'
-        if (!ev || !ev.target) {
-            if (/(^mouse\w+$)|^(dbl)?click$|^contextmenu$/.test(eventType))
-                createEventType = 'MouseEvents';
-            else if (/^key\w+$/.test(eventType))
-                createEventType = 'Events';
-            else if (/^touch\w+$/.test(eventType))
-                createEventType = 'TouchEvent';
-            else
-                createEventType = 'Events';
+                listeners.beforeDispatchEvent();
 
-            if (ev) {
-                ev = extend(document.createEvent(createEventType), ev);
-                ev.initEvent(eventType, typeof ev.cancelBubble !== 'undefined' ? ev.cancelBubble : false, true);
+                //event is 'MSEventObj'
+                if (!ev || !ev.target) {
+                    if (/(^mouse\w+$)|^(dbl)?click$|^contextmenu$/.test(eventType))
+                        createEventType = 'MouseEvents';
+                    else if (/^key\w+$/.test(eventType))
+                        createEventType = 'Events';
+                    else if (/^touch\w+$/.test(eventType))
+                        createEventType = 'TouchEvent';
+                    else
+                        createEventType = 'Events';
+
+                    if (ev) {
+                        ev = extend(document.createEvent(createEventType), ev);
+                        ev.initEvent(eventType, typeof ev.cancelBubble !== 'undefined' ? ev.cancelBubble : false, true);
+                    }
+                    else {
+                        //NOTE: fire event method can be called with no arguments
+                        ev = document.createEvent(createEventType);
+                        ev.initEvent(eventType, true, true);
+                    }
+                }
+
+                res = nativeMethods.dispatchEvent.call(this, ev);
+                listeners.afterDispatchEvent();
+
+                return res;
+            },
+
+            attachEvent: function (eventName, handler) {
+                nativeMethods.addEventListener.call(this, eventName.substring(2), handler);
+            },
+
+            detachEvent: function (eventName, handler) {
+                nativeMethods.removeEventListener.call(this, eventName.substring(2), handler);
+            },
+
+            click: function () {
+                listeners.beforeDispatchEvent();
+
+                if (domUtils.isFileInput(this))
+                    eventSimulator.setClickedFileInput(this);
+
+                var res = eventSimulator.nativeClick(this, nativeMethods.click);
+
+                listeners.afterDispatchEvent();
+
+                return res;
+            },
+
+            setSelectionRange: function () {
+                return selection.setSelectionRangeWrapper.apply(this, arguments);
+            },
+
+            select: function () {
+                return selection.selectWrapper.call(this);
+            },
+
+            focus: function () {
+                return focusBlurSandbox.focus(this, null, false, false, true);
+            },
+
+            blur: function () {
+                return focusBlurSandbox.blur(this, null, false, true);
             }
-            else {
-                //NOTE: fire event method can be called with no arguments
-                ev = document.createEvent(createEventType);
-                ev.initEvent(eventType, true, true);
-            }
-        }
-
-        res = NativeMethods.dispatchEvent.call(this, ev);
-        Listeners.afterDispatchEvent();
-
-        return res;
+        };
     }
 
-    _overridedAttachEvent (eventName, handler) {
-        NativeMethods.addEventListener.call(this, eventName.substring(2), handler);
-    }
+    _createInternalHandlers () {
+        var shadowUI         = this.sandbox.shadowUI;
+        var focusBlurSandbox = this.focusBlur;
+        var document         = this.document;
+        var eventSimulator   = this.eventSimulator;
 
-    _overridedDetachEvent (eventName, handler) {
-        NativeMethods.removeEventListener.call(this, eventName.substring(2), handler);
-    }
+        this.onFocus = function (e) {
+            var focusedEl = e.target;
+            var activeEl  = domUtils.getActiveElement(document);
 
-    _overridedClick () {
-        Listeners.beforeDispatchEvent();
+            if (!domUtils.isShadowUIElement(focusedEl) && !domUtils.isShadowUIElement(activeEl))
+                shadowUI.setLastActiveElement(activeEl);
+        };
 
-        if (DOM.isFileInput(this))
-            EventSimulator.setClickedFileInput(this);
+        this.cancelInternalEvents = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
+            // NOTE: we should cancel events raised by native function calling (focus, blur) only if the element has the flag.
+            // If event is dispatched, we shouldn't cancel it.
+            var target            = e.target || e.srcElement;
+            var internalEventFlag = focusBlurSandbox.getInternalEventFlag(e.type);
 
-        var res = EventSimulator.nativeClick(this, NativeMethods.click);
-
-        Listeners.afterDispatchEvent();
-
-        return res;
-    }
-
-    _overridedSetSelectionRange () {
-        return Selection.setSelectionRangeWrapper.apply(this, arguments);
-    }
-
-    _overridedSelect () {
-        return Selection.selectWrapper.call(this);
-    }
-
-    _overridedFocus () {
-        return FocusBlur.focus(this, null, false, false, true);
-    }
-
-    _overridedBlur () {
-        return FocusBlur.blur(this, null, false, true);
+            if (target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])
+                stopPropagation();
+        };
     }
 
     _overrideElementOrHTMLElementMethod (methodName, overridedMethod) {
-        if (window.Element && methodName in window.Element.prototype)
-            window.Element.prototype[methodName] = overridedMethod;
-        else if (window.HTMLElement && methodName in window.HTMLElement.prototype)
-            window.HTMLElement.prototype[methodName] = overridedMethod;
+        if (this.window.Element && methodName in this.window.Element.prototype)
+            this.window.Element.prototype[methodName] = overridedMethod;
+        else if (this.window.HTMLElement && methodName in this.window.HTMLElement.prototype)
+            this.window.HTMLElement.prototype[methodName] = overridedMethod;
 
-        if (window.Document && methodName in window.Document.prototype)
-            window.Document.prototype[methodName] = overridedMethod;
-    }
-
-    // internal handlers
-    _onFocus (e) {
-        var focusedEl = e.target;
-        var activeEl  = DOM.getActiveElement(document);
-
-        if (!DOM.isShadowUIElement(focusedEl) && !DOM.isShadowUIElement(activeEl)) {
-            var sandbox = getSandboxFromStorage(window);
-
-            sandbox.shadowUI.setLastActiveElement(activeEl);
-        }
-    }
-
-    _cancelInternalEvents (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
-        // NOTE: we should cancel events raised by native function calling (focus, blur) only if the element has the flag.
-        // If event is dispatched, we shouldn't cancel it.
-        var target            = e.target || e.srcElement;
-        var internalEventFlag = FocusBlur.getInternalEventFlag(e.type);
-
-        if (target[internalEventFlag] && !e[EventSimulator.DISPATCHED_EVENT_FLAG])
-            stopPropagation();
+        if (this.window.Document && methodName in this.window.Document.prototype)
+            this.window.Document.prototype[methodName] = overridedMethod;
     }
 
     attach (window) {
         super.attach(window);
 
-        window.HTMLInputElement.prototype.setSelectionRange    = this._overridedSetSelectionRange;
-        window.HTMLTextAreaElement.prototype.setSelectionRange = this._overridedSetSelectionRange;
+        window.HTMLInputElement.prototype.setSelectionRange    = this.overridedMethods.setSelectionRange;
+        window.HTMLTextAreaElement.prototype.setSelectionRange = this.overridedMethods.setSelectionRange;
 
-        this._overrideElementOrHTMLElementMethod('focus', this._overridedFocus);
-        this._overrideElementOrHTMLElementMethod('blur', this._overridedBlur);
-        this._overrideElementOrHTMLElementMethod('dispatchEvent', this._overridedDispatchEvent);
+        this._overrideElementOrHTMLElementMethod('focus', this.overridedMethods.focus);
+        this._overrideElementOrHTMLElementMethod('blur', this.overridedMethods.blur);
+        this._overrideElementOrHTMLElementMethod('dispatchEvent', this.overridedMethods.dispatchEvent);
 
-        if (this.ELEMENT_HAS_ADDITIONAL_EVENT_METHODS) {
-            this._overrideElementOrHTMLElementMethod('fireEvent', this._overridedFireEvent);
-            this._overrideElementOrHTMLElementMethod('attachEvent', this._overridedAttachEvent);
-            this._overrideElementOrHTMLElementMethod('detachEvent', this._overridedDetachEvent);
+        if (ELEMENT_HAS_ADDITIONAL_EVENT_METHODS) {
+            this._overrideElementOrHTMLElementMethod('fireEvent', this.overridedMethods.fireEvent);
+            this._overrideElementOrHTMLElementMethod('attachEvent', this.overridedMethods.attachEvent);
+            this._overrideElementOrHTMLElementMethod('detachEvent', this.overridedMethods.detachEvent);
         }
 
         if (window.TextRange && window.TextRange.prototype.select)
-            window.TextRange.prototype.select = this._overridedSelect;
+            window.TextRange.prototype.select = this.overridedMethods.select;
 
 
         this.initDocumentListening();
 
-        Listeners.initElementListening(window, Event.DOM_EVENTS.concat(['beforeunload', 'unload', 'message']));
+        this.listeners.initElementListening(window, DOM_EVENTS.concat(['beforeunload', 'unload', 'message']));
 
-        Listeners.addInternalEventListener(window, ['focus'], this._onFocus);
-        Listeners.addInternalEventListener(window, ['focus', 'blur', 'change'], this._cancelInternalEvents);
+        this.listeners.addInternalEventListener(window, ['focus'], this.onFocus);
+        this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change'], this.cancelInternalEvents);
 
         this.unload.attach(window);
-        Timeout.init(window);
-        FocusBlur.init(window);
+        this.timers.attach(window);
+        this.focusBlur.attach(window);
     }
 
     overrideElement (el, overridePrototypeMeths) {
         if ('click' in el)
-            el.click = this._overridedClick;
+            el.click = this.overridedMethods.click;
 
         if (overridePrototypeMeths) {
-            el.dispatchEvent = this._overridedDispatchEvent;
+            el.dispatchEvent = this.overridedMethods.dispatchEvent;
 
             if ('focus' in el) {
-                el.focus = this._overridedFocus;
-                el.blur  = this._overridedBlur;
+                el.focus = this.overridedMethods.focus;
+                el.blur  = this.overridedMethods.blur;
             }
 
             if ('setSelectionRange' in el)
-                el.setSelectionRange = this._overridedSetSelectionRange;
+                el.setSelectionRange = this.overridedMethods.setSelectionRange;
 
-            if (this.ELEMENT_HAS_ADDITIONAL_EVENT_METHODS) {
-                el.fireEvent   = this._overridedFireEvent;
-                el.attachEvent = this._overridedAttachEvent;
-                el.detachEvent = this._overridedDetachEvent;
+            if (ELEMENT_HAS_ADDITIONAL_EVENT_METHODS) {
+                el.fireEvent   = this.overridedMethods.fireEvent;
+                el.attachEvent = this.overridedMethods.attachEvent;
+                el.detachEvent = this.overridedMethods.detachEvent;
             }
         }
 
-        if (DOM.isInputElement(el)) {
-            if (Browser.isIE) {
+        if (domUtils.isInputElement(el)) {
+            if (isIE) {
                 // Prevent browser's open file dialog
-                NativeMethods.addEventListener.call(el, 'click', function (e) {
-                    if (DOM.isFileInput(el)) {
-                        if (EventSimulator.getClickedFileInput() === el) {
-                            EventSimulator.setClickedFileInput(null);
+                nativeMethods.addEventListener.call(el, 'click', e => {
+                    if (domUtils.isFileInput(el)) {
+                        if (this.eventSimulator.getClickedFileInput() === el) {
+                            this.eventSimulator.setClickedFileInput(null);
 
-                            return Event.preventDefault(e, true);
+                            return preventDefault(e, true);
                         }
                     }
                 }, true);
@@ -213,7 +232,7 @@ export default class EventSandbox extends SandboxBase {
     }
 
     initDocumentListening () {
-        Listeners.initElementListening(document, Event.DOM_EVENTS);
+        this.listeners.initElementListening(document, DOM_EVENTS);
     }
 }
 

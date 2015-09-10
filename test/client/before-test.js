@@ -9,7 +9,7 @@
     var Settings = Hammerhead.get('./settings');
 
     Settings.set({
-        SESSION_ID: 'sessionId'
+        sessionId: 'sessionId'
     });
 
     var UrlUtil     = Hammerhead.get('./utils/url');
@@ -23,18 +23,16 @@
     window.initIFrameTestHandler = function (e) {
         if (e.iframe.id.indexOf('test') !== -1) {
             e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
-                'var Settings = Hammerhead.get(\'./settings\');',
-                'Settings.set({',
-                '    REFERER : "http://localhost/sessionId/https://example.com",',
-                '    SERVICE_MSG_URL : "/service-msg/100",',
-                '    SESSION_ID : "sessionId"',
-                '});',
-                'Hammerhead.init();'
+                'Hammerhead.start({',
+                '    referer : "http://localhost/sessionId/https://example.com",',
+                '    serviceMsgUrl : "/service-msg/100",',
+                '    sessionId : "sessionId"',
+                '});'
             ].join(''));
         }
     };
 
-    Hammerhead.init();
+    Hammerhead.start();
 
     window.overrideDomMeth = window[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME];
 

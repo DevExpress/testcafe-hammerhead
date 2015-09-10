@@ -1,38 +1,38 @@
+import sharedUrlUtil from '../../utils/url';
 import { isCrossDomainWindows } from '../utils/dom';
-import NativeMethods from '../sandbox/native-methods';
-import Const from '../../const';
-import SharedUrlUtil from '../../utils/url';
-import Settings from '../settings';
+import { getAttribute as nativeGetAttribute } from '../sandbox/native-methods';
+import { DOM_SANDBOX_STORED_ATTR_POSTFIX } from '../../const';
+import { get as getSettings } from '../settings';
 
-var UrlUtil = {};
+var urlUtil = {};
 
 //URL processing funcs
-UrlUtil.DOCUMENT_URL_RESOLVER               = 'doc_url_resolver_8ff20d5e';
-UrlUtil.REQUEST_DESCRIPTOR_VALUES_SEPARATOR = SharedUrlUtil.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
+urlUtil.DOCUMENT_URL_RESOLVER               = 'doc_url_resolver_8ff20d5e';
+urlUtil.REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtil.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
-UrlUtil.IFRAME = SharedUrlUtil.IFRAME;
-UrlUtil.SCRIPT = SharedUrlUtil.SCRIPT;
+urlUtil.IFRAME = sharedUrlUtil.IFRAME;
+urlUtil.SCRIPT = sharedUrlUtil.SCRIPT;
 
-document[UrlUtil.DOCUMENT_URL_RESOLVER] = document.createElement('a');
+document[urlUtil.DOCUMENT_URL_RESOLVER] = document.createElement('a');
 
 function getResolver (doc) {
     // IE clean up document after document.open call
-    if (!doc[UrlUtil.DOCUMENT_URL_RESOLVER])
-        doc[UrlUtil.DOCUMENT_URL_RESOLVER] = doc.createElement('a');
+    if (!doc[urlUtil.DOCUMENT_URL_RESOLVER])
+        doc[urlUtil.DOCUMENT_URL_RESOLVER] = doc.createElement('a');
 
-    return doc[UrlUtil.DOCUMENT_URL_RESOLVER];
+    return doc[urlUtil.DOCUMENT_URL_RESOLVER];
 }
 
-UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType) {
-    if (!UrlUtil.isSupportedProtocol(url))
+urlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType) {
+    if (!urlUtil.isSupportedProtocol(url))
         return url;
 
     // NOTE: resolve relative URLs
-    url = UrlUtil.resolveUrl(url);
+    url = urlUtil.resolveUrl(url);
 
     // NOTE: if we have a relative URL without slash (e.g. 'img123') resolver will keep
     // original proxy information, so we can return such URL as is. TODO: implement is proxy URL func
-    var parsedAsProxy   = SharedUrlUtil.parseProxyUrl(url);
+    var parsedAsProxy   = sharedUrlUtil.parseProxyUrl(url);
     var isValidProxyUrl = !!parsedAsProxy;
 
     if (isValidProxyUrl) {
@@ -40,48 +40,48 @@ UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resour
             return url;
 
         // NOTE: we need to change proxy url resource type
-        var destUrl = SharedUrlUtil.formatUrl(parsedAsProxy.originResourceInfo);
+        var destUrl = sharedUrlUtil.formatUrl(parsedAsProxy.originResourceInfo);
 
-        return UrlUtil.getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType);
+        return urlUtil.getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType);
     }
 
     proxyHostname = proxyHostname || location.hostname;
     proxyPort     = proxyPort || location.port.toString();
-    sessionId     = sessionId || Settings.get().SESSION_ID;
+    sessionId     = sessionId || getSettings().sessionId;
 
-    var parsedUrl = SharedUrlUtil.parseUrl(url);
+    var parsedUrl = sharedUrlUtil.parseUrl(url);
 
     // NOTE: seems like we've had a relative URL with leading slash or dots,
     // so our proxy info path part was removed by resolver and we have an origin URL,
     // but with incorrect host and protocol.
     if (parsedUrl.protocol === 'http:' && parsedUrl.hostname === proxyHostname && parsedUrl.port === proxyPort) {
-        var parsedOriginLocation = UrlUtil.OriginLocation.getParsed();
+        var parsedOriginLocation = urlUtil.OriginLocation.getParsed();
 
         parsedUrl.protocol = parsedOriginLocation.protocol;
         parsedUrl.host     = parsedOriginLocation.host;
         parsedUrl.hostname = parsedOriginLocation.hostname;
         parsedUrl.port     = parsedOriginLocation.port || '';
 
-        url = SharedUrlUtil.formatUrl(parsedUrl);
+        url = sharedUrlUtil.formatUrl(parsedUrl);
     }
 
 
-    return SharedUrlUtil.getProxyUrl(url, proxyHostname, proxyPort, sessionId, resourceType);
+    return sharedUrlUtil.getProxyUrl(url, proxyHostname, proxyPort, sessionId, resourceType);
 };
 
-UrlUtil.getCrossDomainIframeProxyUrl = function (url) {
-    return UrlUtil.getProxyUrl(url, null, Settings.get().CROSS_DOMAIN_PROXY_PORT, null, UrlUtil.IFRAME);
+urlUtil.getCrossDomainIframeProxyUrl = function (url) {
+    return urlUtil.getProxyUrl(url, null, getSettings().crossDomainProxyPort, null, urlUtil.IFRAME);
 };
 
-UrlUtil.getCrossDomainProxyUrl = function () {
-    return location.protocol + '//' + location.hostname + ':' + Settings.get().CROSS_DOMAIN_PROXY_PORT + '/';
+urlUtil.getCrossDomainProxyUrl = function () {
+    return location.protocol + '//' + location.hostname + ':' + getSettings().crossDomainProxyPort + '/';
 };
 
-UrlUtil.resolveUrl = function (url, doc) {
-    url = SharedUrlUtil.prepareUrl(url);
+urlUtil.resolveUrl = function (url, doc) {
+    url = sharedUrlUtil.prepareUrl(url);
 
     if (url && url.indexOf('//') === 0)
-        url = UrlUtil.OriginLocation.getParsed().protocol + url;
+        url = urlUtil.OriginLocation.getParsed().protocol + url;
 
     var urlResolver = getResolver(doc || document);
 
@@ -99,34 +99,34 @@ UrlUtil.resolveUrl = function (url, doc) {
                                     (!urlResolver.href || urlResolver.href.indexOf('/') === 0);
 
         if (needUseParentResolver)
-            return UrlUtil.resolveUrl(url, window.parent.document);
+            return urlUtil.resolveUrl(url, window.parent.document);
     }
 
     return urlResolver.href;
 };
 
-UrlUtil.resolveUrlAsOrigin = function (url) {
-    return SharedUrlUtil.resolveUrlAsOrigin(url, UrlUtil.getProxyUrl);
+urlUtil.resolveUrlAsOrigin = function (url) {
+    return sharedUrlUtil.resolveUrlAsOrigin(url, urlUtil.getProxyUrl);
 };
 
-UrlUtil.formatUrl = function (parsedUrl) {
-    return SharedUrlUtil.formatUrl(parsedUrl);
+urlUtil.formatUrl = function (parsedUrl) {
+    return sharedUrlUtil.formatUrl(parsedUrl);
 };
 
-UrlUtil.parseProxyUrl = function (proxyUrl) {
-    return SharedUrlUtil.parseProxyUrl(proxyUrl);
+urlUtil.parseProxyUrl = function (proxyUrl) {
+    return sharedUrlUtil.parseProxyUrl(proxyUrl);
 };
 
-UrlUtil.parseUrl = function (url) {
-    return SharedUrlUtil.parseUrl(url);
+urlUtil.parseUrl = function (url) {
+    return sharedUrlUtil.parseUrl(url);
 };
 
-UrlUtil.convertToProxyUrl = function (url, resourceType) {
-    return UrlUtil.getProxyUrl(url, null, null, null, resourceType);
+urlUtil.convertToProxyUrl = function (url, resourceType) {
+    return urlUtil.getProxyUrl(url, null, null, null, resourceType);
 };
 
-UrlUtil.changeOriginUrlPart = function (proxyUrl, prop, value, resourceType) {
-    var parsed = SharedUrlUtil.parseProxyUrl(proxyUrl);
+urlUtil.changeOriginUrlPart = function (proxyUrl, prop, value, resourceType) {
+    var parsed = sharedUrlUtil.parseProxyUrl(proxyUrl);
 
     if (parsed) {
         var resolver  = getResolver(document);
@@ -136,25 +136,25 @@ UrlUtil.changeOriginUrlPart = function (proxyUrl, prop, value, resourceType) {
         resolver.href  = parsed.originUrl;
         resolver[prop] = value;
 
-        return UrlUtil.getProxyUrl(resolver.href, proxy.hostname, proxy.port, sessionId, resourceType);
+        return urlUtil.getProxyUrl(resolver.href, proxy.hostname, proxy.port, sessionId, resourceType);
     }
 
     return proxyUrl;
 };
 
-UrlUtil.isSubDomain = function (domain, subDomain) {
-    return SharedUrlUtil.isSubDomain(domain, subDomain);
+urlUtil.isSubDomain = function (domain, subDomain) {
+    return sharedUrlUtil.isSubDomain(domain, subDomain);
 };
 
-UrlUtil.sameOriginCheck = function (location, checkedUrl) {
+urlUtil.sameOriginCheck = function (location, checkedUrl) {
     if (checkedUrl)
-        checkedUrl = UrlUtil.resolveUrl(checkedUrl);
+        checkedUrl = urlUtil.resolveUrl(checkedUrl);
 
-    return SharedUrlUtil.sameOriginCheck(location, checkedUrl);
+    return sharedUrlUtil.sameOriginCheck(location, checkedUrl);
 };
 
-UrlUtil.isSupportedProtocol = function (url) {
-    return SharedUrlUtil.isSupportedProtocol(url);
+urlUtil.isSupportedProtocol = function (url) {
+    return sharedUrlUtil.isSupportedProtocol(url);
 };
 
 function getParentWindowWithSrc (window) {
@@ -166,21 +166,21 @@ function getParentWindowWithSrc (window) {
     if (isCrossDomainWindows(window, parent))
         return parent;
 
-    if (parent === window.top || !UrlUtil.isIframeWithoutSrc(parent.frameElement))
+    if (parent === window.top || !urlUtil.isIframeWithoutSrc(parent.frameElement))
         return parent;
 
     return getParentWindowWithSrc(parent);
 }
 
-UrlUtil.isIframeWithoutSrc = function (iframe) {
-    var iFrameLocation         = UrlUtil.getIframeLocation(iframe);
+urlUtil.isIframeWithoutSrc = function (iframe) {
+    var iFrameLocation         = urlUtil.getIframeLocation(iframe);
     var iFrameSrcLocation      = iFrameLocation.srcLocation;
     var iFrameDocumentLocation = iFrameLocation.documentLocation;
 
     if (iFrameDocumentLocation === null) // is a cross-domain iframe
         return false;
 
-    var iFrameDocumentLocationHaveSupportedProtocol = UrlUtil.isSupportedProtocol(iFrameDocumentLocation);
+    var iFrameDocumentLocationHaveSupportedProtocol = urlUtil.isSupportedProtocol(iFrameDocumentLocation);
 
     //NOTE: when an iFrame have empty src attribute (<iframe src></iframe>) the iframe.src property doesn't empty but it has different values
     //in different browsers. Its document location is 'about:blank'. Therefore we should check the src attribute.
@@ -189,7 +189,7 @@ UrlUtil.isIframeWithoutSrc = function (iframe) {
 
     var parentWindowWithSrc  = getParentWindowWithSrc(iframe.contentWindow);
     var windowLocation       = parentWindowWithSrc.location.toString();
-    var parsedWindowLocation = SharedUrlUtil.parseProxyUrl(windowLocation);
+    var parsedWindowLocation = sharedUrlUtil.parseProxyUrl(windowLocation);
 
     if (iFrameDocumentLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation) ||
         iFrameSrcLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation))
@@ -198,13 +198,13 @@ UrlUtil.isIframeWithoutSrc = function (iframe) {
 
     // NOTE: in Chrome an iFrame with src has documentLocation 'about:blank' when it is just created. So, we should check
     // srcLocation in this case.
-    if (iFrameSrcLocation && UrlUtil.isSupportedProtocol(iFrameSrcLocation))
+    if (iFrameSrcLocation && urlUtil.isSupportedProtocol(iFrameSrcLocation))
         return false;
 
     return !iFrameDocumentLocationHaveSupportedProtocol;
 };
 
-UrlUtil.getIframeLocation = function (iframe) {
+urlUtil.getIframeLocation = function (iframe) {
     var documentLocation = null;
 
     try {
@@ -214,14 +214,13 @@ UrlUtil.getIframeLocation = function (iframe) {
         documentLocation = null;
     }
 
-    var srcLocation = NativeMethods.getAttribute.call(iframe, 'src' +
-                                                              Const.DOM_SANDBOX_STORED_ATTR_POSTFIX) ||
-                      NativeMethods.getAttribute.call(iframe, 'src') || iframe.src;
+    var srcLocation = nativeGetAttribute.call(iframe, 'src' + DOM_SANDBOX_STORED_ATTR_POSTFIX) ||
+                      nativeGetAttribute.call(iframe, 'src') || iframe.src;
 
-    var parsedProxyDocumentLocation = documentLocation && UrlUtil.isSupportedProtocol(documentLocation) &&
-                                      SharedUrlUtil.parseProxyUrl(documentLocation);
-    var parsedProxySrcLocation      = srcLocation && UrlUtil.isSupportedProtocol(srcLocation) &&
-                                      SharedUrlUtil.parseProxyUrl(srcLocation);
+    var parsedProxyDocumentLocation = documentLocation && urlUtil.isSupportedProtocol(documentLocation) &&
+                                      sharedUrlUtil.parseProxyUrl(documentLocation);
+    var parsedProxySrcLocation      = srcLocation && urlUtil.isSupportedProtocol(srcLocation) &&
+                                      sharedUrlUtil.parseProxyUrl(srcLocation);
 
     return {
         documentLocation: parsedProxyDocumentLocation ? parsedProxyDocumentLocation.originUrl : documentLocation,
@@ -232,8 +231,8 @@ UrlUtil.getIframeLocation = function (iframe) {
 function getLocation () {
     try {
         // NOTE: fallback to the owner page's URL if we are in the iFrame without src
-        if (window.frameElement && UrlUtil.isIframeWithoutSrc(window.frameElement))
-            return Settings.get().REFERER;
+        if (window.frameElement && urlUtil.isIframeWithoutSrc(window.frameElement))
+            return getSettings().referer;
     }
         /*eslint-disable no-empty */
     catch (e) {
@@ -244,11 +243,11 @@ function getLocation () {
     return window.location.toString();
 }
 
-UrlUtil.OriginLocation = {
+urlUtil.OriginLocation = {
     get: function () {
         var location = getLocation();
 
-        return SharedUrlUtil.parseProxyUrl(location).originUrl;
+        return sharedUrlUtil.parseProxyUrl(location).originUrl;
     },
 
     withHash: function (hash) {
@@ -261,7 +260,7 @@ UrlUtil.OriginLocation = {
     },
 
     getCookiePathPrefix: function () {
-        var parsedLocation = SharedUrlUtil.parseProxyUrl(getLocation());
+        var parsedLocation = sharedUrlUtil.parseProxyUrl(getLocation());
 
         return parsedLocation.partAfterHost.replace(parsedLocation.originResourceInfo.partAfterHost, '');
     },
@@ -269,7 +268,7 @@ UrlUtil.OriginLocation = {
     getParsed: function () {
         var resolver     = getResolver(document);
         var origin       = this.get();
-        var parsedOrigin = SharedUrlUtil.parseUrl(origin);
+        var parsedOrigin = sharedUrlUtil.parseUrl(origin);
 
         // NOTE: IE "browser" adds default port for the https protocol while resolving
         resolver.href = this.get();
@@ -292,4 +291,4 @@ UrlUtil.OriginLocation = {
     }
 };
 
-export default UrlUtil;
+export default urlUtil;

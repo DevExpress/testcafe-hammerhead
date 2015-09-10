@@ -9,18 +9,18 @@ QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
     window.open       = NativeMethods.windowOpen;
     window.setTimeout = NativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
 test('event should not raise before iframe is appended to DOM', function () {
     var eventRaised = false;
 
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, function () {
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, function () {
         eventRaised = true;
     });
 
@@ -32,7 +32,7 @@ test('event should not raise before iframe is appended to DOM', function () {
 test('event should not raise if a cross-domain iframe is appended', function () {
     var eventRaised = false;
 
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, function () {
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, function () {
         eventRaised = true;
     });
 
@@ -131,7 +131,7 @@ asyncTest('ready to init event must not raise for added iframe(B239643)', functi
 
     //iframe loading waiting
     window.setTimeout(function () {
-        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, function () {
+        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, function () {
             iframeLoadingEventRaised = true;
         });
 

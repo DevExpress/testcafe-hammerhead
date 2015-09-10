@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 import jsProcessor from './js';
-import Const from '../const';
+import { DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME } from '../const';
 
 // Byte Order Mark
 const BOM_REGEX = new RegExp(
@@ -26,12 +26,12 @@ const BOM_REGEX = new RegExp(
 
 class ScriptProcessor {
     constructor () {
-        this.OVERRIDE_DOM_METH_SCRIPT = 'window["' + Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME + '"]';
+        this.OVERRIDE_DOM_METH_SCRIPT = 'window["' + DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME + '"]';
 
         this.SCRIPT_HEADER = '\r\ntypeof window !== "undefined" && ' + this.OVERRIDE_DOM_METH_SCRIPT + ' && ' +
                              this.OVERRIDE_DOM_METH_SCRIPT + '();\r\n' + jsProcessor.MOCK_ACCESSORS;
 
-        this.SCRIPT_HEADER_REG_EX = new RegExp('^\\s*typeof[^\\n]+' + Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME +
+        this.SCRIPT_HEADER_REG_EX = new RegExp('^\\s*typeof[^\\n]+' + DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME +
                                                '[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+__proc\\$Script;', 'i');
     }
 
@@ -45,7 +45,7 @@ class ScriptProcessor {
 
         // Overriding methods that work with the DOM.
         if (!jsProcessor.isDataScript(text) && !withoutHeader &&
-            text.indexOf(Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME) === -1)
+            text.indexOf(DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME) === -1)
             text = this.SCRIPT_HEADER + text;
 
         return bom ? bom + text : text;

@@ -8,7 +8,7 @@ import CookieSandbox from './cookie';
 import IframeSandbox from './iframe';
 import CodeInstrumentation from './code-instrumentation';
 import EventSandbox from './event';
-import NativeMethods from './native-methods';
+import nativeMethods from './native-methods';
 import { isIE, isWebKit } from '../utils/browser';
 import { addSandboxToStorage, getSandboxFromStorage } from './storage';
 
@@ -28,7 +28,7 @@ export default class Sandbox extends SandboxBase {
         this.event               = new EventSandbox(this);
         this.node                = new NodeSandbox(this);
 
-        this.nativeMethods = NativeMethods;
+        this.nativeMethods = nativeMethods;
     }
 
     _refreshNativeMethods (window, document) {
@@ -43,31 +43,31 @@ export default class Sandbox extends SandboxBase {
 
         var needToUpdateNativeDomMeths = tryToExecuteCode(
             () => !document.createElement ||
-                  NativeMethods.createElement.toString() === document.createElement.toString()
+                  nativeMethods.createElement.toString() === document.createElement.toString()
         );
 
         var needToUpdateNativeElementMeths = tryToExecuteCode(() => {
-            var nativeElement = NativeMethods.createElement.call(document, 'div');
+            var nativeElement = nativeMethods.createElement.call(document, 'div');
 
-            return nativeElement.getAttribute.toString() === NativeMethods.getAttribute.toString();
+            return nativeElement.getAttribute.toString() === nativeMethods.getAttribute.toString();
         });
 
         var needToUpdateNativeWindowMeths = tryToExecuteCode(() => {
-            NativeMethods.setTimeout.call(window, () => void 0, 0);
+            nativeMethods.setTimeout.call(window, () => void 0, 0);
 
-            return window.XMLHttpRequest.toString() === NativeMethods.XMLHttpRequest.toString();
+            return window.XMLHttpRequest.toString() === nativeMethods.XMLHttpRequest.toString();
         });
 
         // T173709
         if (needToUpdateNativeDomMeths)
-            NativeMethods.refreshDocumentMeths(document);
+            nativeMethods.refreshDocumentMeths(document);
 
         if (needToUpdateNativeElementMeths)
-            NativeMethods.refreshElementMeths(document);
+            nativeMethods.refreshElementMeths(document);
 
         // T239109
         if (needToUpdateNativeWindowMeths)
-            NativeMethods.refreshWindowMeths(window);
+            nativeMethods.refreshWindowMeths(window);
     }
 
     onIframeDocumentRecreated (iframe) {
@@ -76,14 +76,14 @@ export default class Sandbox extends SandboxBase {
             var sandbox = getSandboxFromStorage(iframe.contentWindow);
 
             if (sandbox)
-            // Inform the sandbox so that it restore communication with the recreated document
+                // Inform the sandbox so that it restore communication with the recreated document
                 sandbox.reattach(iframe.contentWindow, iframe.contentDocument);
             else {
                 // If the iframe sandbox is not found, this means that iframe not initialized,
                 // in this case we should inject Hammerhead
 
                 // Hack: IE10 clean up overrided methods after document.write calling
-                NativeMethods.restoreNativeDocumentMeth(iframe.contentDocument);
+                nativeMethods.restoreNativeDocumentMeth(iframe.contentDocument);
 
                 // Sandbox for this iframe not found (iframe not yet initialized).
                 // Inform the IFrameSandbox about it, and it inject Hammerhead
@@ -111,10 +111,10 @@ export default class Sandbox extends SandboxBase {
         super.attach(window);
 
         // Eval Hammerhead code script
-        this.iframe.on(this.iframe.IFRAME_READY_TO_INIT_INTERNAL, e => initHammerheadClient(e.iframe.contentWindow, true));
+        this.iframe.on(this.iframe.IFRAME_READY_TO_INIT_INTERNAL_EVENT, e => initHammerheadClient(e.iframe.contentWindow, true));
 
         // We should reattach sandbox to the recreated iframe document
-        this.node.doc.on(this.node.doc.DOCUMENT_CLEANED, e =>
+        this.node.doc.on(this.node.doc.DOCUMENT_CLEANED_EVENT, e =>
                 this.reattach(e.window, e.document)
         );
 

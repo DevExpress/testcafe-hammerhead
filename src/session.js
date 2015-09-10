@@ -1,10 +1,10 @@
-import { EventEmitter } from 'events';
-import Mustache from 'mustache';
-import SERVICE_CMD from './service-msg-cmd';
 import Cookies from './cookies';
-import read from './utils/read-file-relative';
-import { parseProxyUrl } from './utils/url';
 import UploadStorage from './upload/storage';
+import COMMAND from './command';
+import mustache from 'mustache';
+import read from './utils/read-file-relative';
+import { EventEmitter } from 'events';
+import { parseProxyUrl } from './utils/url';
 
 // Const
 const TASK_TEMPLATE = read('./client/task.js.mustache');
@@ -45,7 +45,7 @@ export default class Session extends EventEmitter {
         if (withPayload)
             payloadScript = isIFrame ? this._getIFramePayloadScript() : this._getPayloadScript();
 
-        return Mustache.render(TASK_TEMPLATE, {
+        return mustache.render(TASK_TEMPLATE, {
             cookie:               cookies.replace(/'/g, "\\'"),
             sessionId:            this.id,
             serviceMsgUrl:        serverInfo.domain + '/messaging',
@@ -80,7 +80,7 @@ export default class Session extends EventEmitter {
 // Service message handlers
 var ServiceMessages = Session.prototype;
 
-ServiceMessages[SERVICE_CMD.SET_COOKIE] = function (msg) {
+ServiceMessages[COMMAND.setCookie] = function (msg) {
     var parsedUrl = parseProxyUrl(msg.url);
     var cookieUrl = parsedUrl ? parsedUrl.originUrl : msg.url;
 
@@ -89,7 +89,7 @@ ServiceMessages[SERVICE_CMD.SET_COOKIE] = function (msg) {
     return this.cookies.getClientString(cookieUrl);
 };
 
-ServiceMessages[SERVICE_CMD.GET_IFRAME_TASK_SCRIPT] = function (msg, serverInfo) {
+ServiceMessages[COMMAND.getIframeTaskScript] = function (msg, serverInfo) {
     var referer     = msg.referer || '';
     var refererDest = referer && parseProxyUrl(referer);
     var cookieUrl   = refererDest && refererDest.originUrl;
@@ -97,11 +97,11 @@ ServiceMessages[SERVICE_CMD.GET_IFRAME_TASK_SCRIPT] = function (msg, serverInfo)
     return this.getTaskScript(referer, cookieUrl, serverInfo, true, false);
 };
 
-ServiceMessages[SERVICE_CMD.UPLOAD_FILES] = async function (msg) {
+ServiceMessages[COMMAND.uploadFiles] = async function (msg) {
     return await this.uploadStorage.store(msg.fileNames, msg.data);
 };
 
-ServiceMessages[SERVICE_CMD.GET_UPLOADED_FILES] = async function (msg) {
+ServiceMessages[COMMAND.getUploadedFiles] = async function (msg) {
     return await this.uploadStorage.get(msg.filePaths);
 };
 

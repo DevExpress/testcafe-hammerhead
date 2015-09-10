@@ -7,22 +7,18 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./settings').set({
-        CROSS_DOMAIN_PROXY_PORT : 2000
-    });
-
-    var UrlUtil = Hammerhead.get('./utils/url');
-
-    UrlUtil.OriginLocation.get = function () {
+    Hammerhead.get('./utils/url').OriginLocation.get = function () {
         return 'http://origin_iframe_host';
     };
 
     var scriptProcessor = Hammerhead.get('../processing/script');
     var messageSandbox = Hammerhead.MessageSandbox;
 
-    Hammerhead.init();
+    Hammerhead.start({
+        crossDomainProxyPort: 2000
+    });
 
-    document.addEventListener('DOMContentLoaded', function(){
+    document.addEventListener('DOMContentLoaded', function () {
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, function (e) {
             if (e.message.cmd === 'pingCmd' && e.message.isPingRequest) {
                 messageSandbox.sendServiceMsg({

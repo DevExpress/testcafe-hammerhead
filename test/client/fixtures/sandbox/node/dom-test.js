@@ -10,12 +10,12 @@ QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
     window.open       = NativeMethods.windowOpen;
     window.setTimeout = NativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
 asyncTest('prevent "error" event during image reloading', function () {
@@ -146,7 +146,7 @@ test('iframe added to dom event', function () {
     var secondIframe = null;
     var count        = 0;
 
-    elementSandbox.on(elementSandbox.IFRAME_ADDED, function (e) {
+    elementSandbox.on(elementSandbox.IFRAME_ADDED_EVENT, function (e) {
         if (e.iframe === firstIframe || e.iframe === secondIframe)
             count++;
     });

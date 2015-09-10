@@ -1,4 +1,4 @@
-var Settings = {
+var settings = {
     settings: {},
 
     set: function (value) {
@@ -10,4 +10,4 @@ var Settings = {
     }
 };
 
-export default Settings;
+export default settings;

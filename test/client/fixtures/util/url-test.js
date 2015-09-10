@@ -8,13 +8,13 @@ var PROXY_HOSTNAME = '127.0.0.1';
 var PROXY_HOST     = PROXY_HOSTNAME + ':' + PROXY_PORT;
 
 test('getCrossDomainProxyUrl', function () {
-    var storedCrossDomainport = Settings.get().CROSS_DOMAIN_PROXY_PORT;
+    var storedCrossDomainport = Settings.get().crossDomainProxyPort;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = '5555';
+    Settings.get().crossDomainProxyPort = '5555';
 
     strictEqual(UrlUtil.getCrossDomainProxyUrl(), 'http://' + location.hostname + ':5555/');
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = storedCrossDomainport;
+    Settings.get().crossDomainProxyPort = storedCrossDomainport;
 });
 
 test('sameOriginCheck', function () {

@@ -41,52 +41,52 @@ var bindKeyEvent = function (eventType, keyCode) {
 };
 
 test('mouse left button click', function () {
-    bindMouseEvent('click', Event.BUTTON.LEFT);
+    bindMouseEvent('click', Event.BUTTON.left);
     eventSimulator.click(domElement);
     ok(raised);
 });
 
 test('mouse double click', function () {
-    bindMouseEvent('dblclick', Event.BUTTON.LEFT);
+    bindMouseEvent('dblclick', Event.BUTTON.left);
     eventSimulator.dblclick(domElement);
     ok(raised);
 });
 
 test('mouse right click', function () {
-    bindMouseEvent('click', Event.BUTTON.RIGHT);
-    bindMouseEvent('mousedown', Event.BUTTON.RIGHT);
-    bindMouseEvent('mouseup', Event.BUTTON.RIGHT);
+    bindMouseEvent('click', Event.BUTTON.right);
+    bindMouseEvent('mousedown', Event.BUTTON.right);
+    bindMouseEvent('mouseup', Event.BUTTON.right);
     eventSimulator.rightclick(domElement);
     ok(raised);
 });
 
 test('mouse down', function () {
-    bindMouseEvent('mousedown', Event.BUTTON.LEFT);
+    bindMouseEvent('mousedown', Event.BUTTON.left);
     eventSimulator.mousedown(domElement);
     ok(raised);
 });
 
 test('mouse up', function () {
-    bindMouseEvent('mouseup', Event.BUTTON.LEFT);
+    bindMouseEvent('mouseup', Event.BUTTON.left);
     eventSimulator.mouseup(domElement);
     ok(raised);
 });
 
 test('mouse down right', function () {
-    bindMouseEvent('mousedown', Event.BUTTON.RIGHT);
-    eventSimulator.mousedown(domElement, { button: Event.BUTTON.RIGHT });
+    bindMouseEvent('mousedown', Event.BUTTON.right);
+    eventSimulator.mousedown(domElement, { button: Event.BUTTON.right });
     ok(raised);
 });
 
 test('mouse up  right', function () {
-    bindMouseEvent('mouseup', Event.BUTTON.RIGHT);
-    eventSimulator.mouseup(domElement, { button: Event.BUTTON.RIGHT });
+    bindMouseEvent('mouseup', Event.BUTTON.right);
+    eventSimulator.mouseup(domElement, { button: Event.BUTTON.right });
     ok(raised);
 });
 
 test('context menu', function () {
-    bindMouseEvent('contextmenu', Event.BUTTON.RIGHT);
-    eventSimulator.contextmenu(domElement, { button: Event.BUTTON.RIGHT });
+    bindMouseEvent('contextmenu', Event.BUTTON.right);
+    eventSimulator.contextmenu(domElement, { button: Event.BUTTON.right });
     ok(raised);
 });
 
@@ -144,7 +144,7 @@ test('event with coords (clientX, clientY)', function () {
     domElement['onmousedown'] = function (e) {
         var ev = e || window.event;
 
-        if (ev.clientX === clientX && ev.clientY === clientY && ev.button === Event.BUTTON.LEFT)
+        if (ev.clientX === clientX && ev.clientY === clientY && ev.button === Event.BUTTON.left)
             raised = true;
     };
     eventSimulator.mousedown(domElement, { clientX: clientX, clientY: clientY });

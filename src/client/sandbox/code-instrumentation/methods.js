@@ -46,7 +46,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
     }
 
     attach (window) {
-        super(window);
+        super.attach(window);
 
         window[CALL_METHOD_METH_NAME] = (owner, methName, args) => {
             if (isNullOrUndefined(owner))

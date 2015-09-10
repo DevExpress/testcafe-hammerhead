@@ -1,15 +1,15 @@
 import FormDataEntry from './form-data-entry';
 import * as bufferUtils from '../utils/buffer';
-import Const from '../const';
+import { UPLOAD_SANDBOX_HIDDEN_INPUT_NAME } from '../const';
 
 // Const
 const BOUNDARY_RE = /;\s*boundary=([^;]*)/i;
 
 const PARSER_STATE = {
-    IN_PREAMBLE: 'IN_PREAMBLE',
-    IN_HEADERS:  'IN_HEADERS',
-    IN_BODY:     'IN_BODY',
-    IN_EPILOGUE: 'IN_EPILOGUE'
+    inPreamble: 'IN_PREAMBLE',
+    inHeaders:  'IN_HEADERS',
+    inBody:     'IN_BODY',
+    inEpilogue: 'IN_EPILOGUE'
 };
 
 
@@ -58,13 +58,13 @@ export default class FormData {
     }
 
     expandUploads () {
-        var uploadsEntry = this.getEntriesByName(Const.UPLOAD_SANDBOX_HIDDEN_INPUT_NAME)[0];
+        var uploadsEntry = this.getEntriesByName(UPLOAD_SANDBOX_HIDDEN_INPUT_NAME)[0];
 
         if (uploadsEntry) {
             var body  = Buffer.concat(uploadsEntry.body).toString();
             var files = JSON.parse(body);
 
-            this._removeEntry(Const.UPLOAD_SANDBOX_HIDDEN_INPUT_NAME);
+            this._removeEntry(UPLOAD_SANDBOX_HIDDEN_INPUT_NAME);
             files.forEach((fileInfo) => this._injectFileInfo(fileInfo));
         }
     }
@@ -84,7 +84,7 @@ export default class FormData {
     }
 
     parseBody (body) {
-        var state        = PARSER_STATE.IN_PREAMBLE;
+        var state        = PARSER_STATE.inPreamble;
         var lines        = bufferUtils.createLineIterator(body);
         var currentEntry = null;
 
@@ -93,7 +93,7 @@ export default class FormData {
                 if (currentEntry)
                     this.entries.push(currentEntry);
 
-                state        = PARSER_STATE.IN_HEADERS;
+                state        = PARSER_STATE.inHeaders;
                 currentEntry = new FormDataEntry();
             }
 
@@ -101,24 +101,24 @@ export default class FormData {
                 if (currentEntry)
                     this.entries.push(currentEntry);
 
-                state = PARSER_STATE.IN_EPILOGUE;
+                state = PARSER_STATE.inEpilogue;
             }
 
-            else if (state === PARSER_STATE.IN_PREAMBLE)
+            else if (state === PARSER_STATE.inPreamble)
                 bufferUtils.appendLine(this.preamble, line);
 
-            else if (state === PARSER_STATE.IN_HEADERS) {
+            else if (state === PARSER_STATE.inHeaders) {
                 if (line.length)
                     currentEntry.setHeader(line.toString());
 
                 else
-                    state = PARSER_STATE.IN_BODY;
+                    state = PARSER_STATE.inBody;
             }
 
-            else if (state === PARSER_STATE.IN_EPILOGUE)
+            else if (state === PARSER_STATE.inEpilogue)
                 bufferUtils.appendLine(this.epilogue, line);
 
-            else if (state === PARSER_STATE.IN_BODY)
+            else if (state === PARSER_STATE.inBody)
                 bufferUtils.appendLine(currentEntry.body, line);
         }
     }

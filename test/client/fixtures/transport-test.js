@@ -8,7 +8,7 @@ var savedAjaxSendMethod = NativeMethods.XMLHttpRequest.prototype.send;
 
 var requestIsAsync = false;
 
-Settings.get().SERVICE_MSG_URL = '/service-msg/100';
+Settings.get().serviceMsgUrl = '/service-msg/100';
 
 function reqisterAfterAjaxSendHook (callback) {
     callback = callback || function () {};
@@ -127,7 +127,7 @@ asyncTest('batchUpdate - with stored messages', function () {
         callback();
     };
 
-    window.localStorage.setItem(Settings.get().SESSION_ID, JSON.stringify(messages));
+    window.localStorage.setItem(Settings.get().sessionId, JSON.stringify(messages));
     Transport.batchUpdate(updateCallback);
 });
 
@@ -164,13 +164,13 @@ if (!Browser.isWebKit) {
 }
 else {
     asyncTest('Resend aborted async service msg (WebKit)', function () {
-        Settings.get().SESSION_ID = '%%%testUid%%%';
+        Settings.get().sessionId = '%%%testUid%%%';
 
         var xhrCount      = 0;
         var callbackCount = 0;
         var value         = 'testValue';
 
-        ok(!window.localStorage.getItem(Settings.get().SESSION_ID));
+        ok(!window.localStorage.getItem(Settings.get().sessionId));
 
         var onAjaxSend = function (xhr) {
             xhrCount++;
@@ -191,7 +191,7 @@ else {
             strictEqual(callbackCount, 1);
             strictEqual(xhrCount, 1);
 
-            var storedMsgStr = window.localStorage.getItem(Settings.get().SESSION_ID);
+            var storedMsgStr = window.localStorage.getItem(Settings.get().sessionId);
             var storedMsg    = JSON.parse(storedMsgStr)[0];
 
             ok(storedMsgStr);
@@ -199,18 +199,18 @@ else {
 
             unregisterAfterAjaxSendHook();
 
-            window.localStorage.removeItem(Settings.get().SESSION_ID);
+            window.localStorage.removeItem(Settings.get().sessionId);
             start();
         }, 200);
     });
 
     asyncTest('Do not dublicate messages in store (WebKit)', function () {
-        Settings.get().SESSION_ID = '%%%testUid%%%';
+        Settings.get().sessionId = '%%%testUid%%%';
 
         var callbackCount = 0;
         var value         = 'testValue';
 
-        ok(!window.localStorage.getItem(Settings.SESSION_ID));
+        ok(!window.localStorage.getItem(Settings.sessionId));
 
         var onAjaxSend = function (xhr) {
             xhr.abort();
@@ -235,12 +235,12 @@ else {
         window.setTimeout(function () {
             strictEqual(callbackCount, 2);
 
-            var storedMsgStr = window.localStorage.getItem(Settings.get().SESSION_ID);
+            var storedMsgStr = window.localStorage.getItem(Settings.get().sessionId);
             var storedMsgArr = JSON.parse(storedMsgStr);
 
             strictEqual(storedMsgArr.length, 1);
 
-            window.localStorage.removeItem(Settings.get().SESSION_ID);
+            window.localStorage.removeItem(Settings.get().sessionId);
             start();
         }, 200);
     });

@@ -7,16 +7,16 @@ export default class SandboxBase {
         this.window       = null;
     }
 
+    _emit (event, arg) {
+        return this.eventEmitter.emit(event, arg);
+    }
+
     on (event, handler) {
         return this.eventEmitter.on(event, handler);
     }
 
     off (event, handler) {
         return this.eventEmitter.off(event, handler);
-    }
-
-    _emit (event, arg) {
-        return this.eventEmitter.emit(event, arg);
     }
 
     attach (window, document) {

@@ -1,11 +1,10 @@
-import Const from '../../../../const';
-import UrlUtil from '../../../utils/url';
+import CONST from '../../../../const';
+import urlUtils from '../../../utils/url';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
-import * as DOM from '../../../utils/dom';
-import * as ElementEditingWatcher from '../../event/element-editing-watcher';
-import * as Types from '../../../utils/types';
+import * as domUtils from '../../../utils/dom';
+import * as typeUtils from '../../../utils/types';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAnchorProperty, setAnchorProperty } from './anchor';
 import { getAttributesProperty } from './attributes';
@@ -15,12 +14,13 @@ import { process as processScript } from '../../../../processing/script';
 import { GET_PROPERTY_METH_NAME, SET_PROPERTY_METH_NAME } from '../../../../processing/js';
 import { setTimeout as nativeSetTimeout } from '../../native-methods';
 
+const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'onerror_23ad9304921s';
+
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'onerror_23ad9304921s';
-        this.BODY_CONTENT_CHANGED                 = 'bodyContentChanged';
+        this.BODY_CONTENT_CHANGED_EVENT = 'bodyContentChanged';
     }
 
     //NOTE: isolate throw statement into separate function because JS engines doesn't optimize such functions.
@@ -35,23 +35,22 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             return '';
 
         else if (attrValue === '')
-            return UrlUtil.OriginLocation.get();
+            return urlUtils.OriginLocation.get();
 
         else if (/^#/.test(attrValue))
-            return UrlUtil.OriginLocation.withHash(attrValue);
+            return urlUtils.OriginLocation.withHash(attrValue);
 
 
-        return UrlUtil.resolveUrlAsOrigin(attrValue);
+        return urlUtils.resolveUrlAsOrigin(attrValue);
     }
 
     _createPropertyAccessors (window, document) {
-        var storedDomain                     = '';
-        var locationAccessorsInstrumentation = new LocationAccessorsInstrumentation();
+        var storedDomain = '';
 
         return {
             action: {
                 condition: el => {
-                    if (DOM.isDomElement(el))
+                    if (domUtils.isDomElement(el))
                         return URL_ATTR_TAGS['action'].indexOf(el.tagName.toLowerCase()) !== -1;
 
                     return false;
@@ -62,10 +61,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             activeElement: {
-                condition: el => Types.isDocument(el),
+                condition: el => typeUtils.isDocument(el),
 
                 get: el => {
-                    if (DOM.isShadowUIElement(el.activeElement))
+                    if (domUtils.isShadowUIElement(el.activeElement))
                         return this.sandbox.shadowUI.getLastActiveElement() || el.body;
 
                     return el.activeElement;
@@ -86,20 +85,20 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             autocomplete: {
-                condition: el => DOM.isInputElement(el),
+                condition: el => domUtils.isInputElement(el),
                 get:       input => input.getAttribute('autocomplete') || '',
                 set:       (input, value) => input.setAttribute('autocomplete', value)
             },
 
             cookie: {
-                condition: doc => Types.isDocument(doc),
+                condition: doc => typeUtils.isDocument(doc),
                 get:       () => this.sandbox.cookie.getCookie(),
                 set:       (doc, cookie) => this.sandbox.cookie.setCookie(doc, cookie)
             },
 
             data: {
                 condition: el => {
-                    if (DOM.isDomElement(el))
+                    if (domUtils.isDomElement(el))
                         return URL_ATTR_TAGS['data'].indexOf(el.tagName.toLowerCase()) !== -1;
 
                     return false;
@@ -110,13 +109,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             domain: {
-                condition: doc => Types.isDocument(doc),
-                get:       () => storedDomain ? storedDomain : locationAccessorsInstrumentation.getLocationWrapper(window).hostname,
+                condition: doc => typeUtils.isDocument(doc),
+                get:       () => storedDomain ? storedDomain : LocationAccessorsInstrumentation.getLocationWrapper(window).hostname,
                 set:       (doc, domain) => storedDomain = domain
             },
 
             files: {
-                condition: el => DOM.isFileInput(el),
+                condition: el => domUtils.isFileInput(el),
                 get:       el => this.sandbox.upload.getFiles(el),
                 set:       (el, value) => value
             },
@@ -134,20 +133,20 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             host: {
-                condition: el => DOM.isAnchor(el),
+                condition: el => domUtils.isAnchor(el),
                 get:       el => getAnchorProperty(el, 'host'),
                 set:       (el, port) => setAnchorProperty(el, 'host', port)
             },
 
             hostname: {
-                condition: el => DOM.isAnchor(el),
+                condition: el => domUtils.isAnchor(el),
                 get:       el => getAnchorProperty(el, 'hostname'),
                 set:       (el, port) => setAnchorProperty(el, 'hostname', port)
             },
 
             href: {
                 condition: (el) => {
-                    if (DOM.isDomElement(el))
+                    if (domUtils.isDomElement(el))
                         return URL_ATTR_TAGS['href'].indexOf(el.tagName.toLowerCase()) !== -1;
 
                     return LocationAccessorsInstrumentation.isLocationWrapper(el);
@@ -155,7 +154,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => LocationAccessorsInstrumentation.isLocationWrapper(el) ? el.href : this._getUrlAttr(el, 'href'),
                 set: (el, value) => LocationAccessorsInstrumentation.isLocationWrapper(el) ?
-                                    el.href = UrlUtil.resolveUrl(value, document) : el.setAttribute('href', value)
+                                    el.href = urlUtils.resolveUrl(value, document) : el.setAttribute('href', value)
             },
 
             innerHTML: {
@@ -164,21 +163,21 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 set: (el, value) => {
                     if (el.tagName && el.tagName.toLowerCase() === 'style')
-                        value = processStyle('' + value, UrlUtil.getProxyUrl, true);
+                        value = processStyle('' + value, urlUtils.getProxyUrl, true);
                     else if (value !== null)
                         value = processHtml('' + value, el.tagName);
 
                     el.innerHTML = value;
 
-                    var parentDocument = DOM.findDocument(el);
+                    var parentDocument = domUtils.findDocument(el);
                     var parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
                     //NOTE: for iframe with empty src
                     if (parentWindow && parentWindow !== window &&
-                        parentWindow[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME])
-                        parentWindow[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](el, parentDocument);
-                    else if (window[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME])
-                        window[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](el);
+                        parentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME])
+                        parentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](el, parentDocument);
+                    else if (window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME])
+                        window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](el);
 
 
                     //NOTE: fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
@@ -190,7 +189,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (window.self) {
                         //NOTE: use timeout, so changes take effect
                         if (containerTagName === 'html' || containerTagName === 'body')
-                            nativeSetTimeout.call(window, () => this._emit(this.BODY_CONTENT_CHANGED, el), 0);
+                            nativeSetTimeout.call(window, () => this._emit(this.BODY_CONTENT_CHANGED_EVENT, el), 0);
                     }
 
                     return value;
@@ -198,12 +197,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             onerror: {
-                condition: owner => Types.isWindow(owner),
-                get:       owner => owner[this.ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] || null,
+                condition: owner => typeUtils.isWindow(owner),
+                get:       owner => owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] || null,
 
                 set: (owner, handler) => {
                     if (typeof handler === 'function')
-                        owner[this.ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] = handler;
+                        owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] = handler;
 
                     return handler;
                 }
@@ -229,7 +228,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     for (var i = 0; i < collection.length; i++) {
                         if (collection[i].className &&
-                            collection[i].className.indexOf(Const.SHADOW_UI_CLASSNAME_POSTFIX) !== -1)
+                            collection[i].className.indexOf(CONST.SHADOW_UI_CLASSNAME_POSTFIX) !== -1)
                             elementCount++;
                     }
 
@@ -243,15 +242,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             location: {
-                condition: owner => Types.isDocument(owner) || Types.isWindow(owner),
+                condition: owner => typeUtils.isDocument(owner) || typeUtils.isWindow(owner),
 
                 get: owner => {
-                    var locationWrapper = locationAccessorsInstrumentation.getLocationWrapper(owner);
+                    var locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(owner);
 
                     if (locationWrapper)
                         return locationWrapper;
 
-                    var window = Types.isWindow(owner) ? owner : owner.defaultView;
+                    var window = typeUtils.isWindow(owner) ? owner : owner.defaultView;
 
                     return new LocationWrapper(window);
                 },
@@ -259,11 +258,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (owner, location) => {
                     if (typeof location === 'string') {
                         if (window.self !== window.top)
-                            location = UrlUtil.resolveUrl(location, window.top.document);
+                            location = urlUtils.resolveUrl(location, window.top.document);
 
-                        var resourceType = owner !== window.top ? UrlUtil.IFRAME : null;
+                        var resourceType = owner !== window.top ? urlUtils.IFRAME : null;
 
-                        owner.location = UrlUtil.getProxyUrl(location, null, null, null, resourceType);
+                        owner.location = urlUtils.getProxyUrl(location, null, null, null, resourceType);
 
                         return location;
                     }
@@ -274,7 +273,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             manifest: {
                 condition: el => {
-                    if (DOM.isDomElement(el))
+                    if (domUtils.isDomElement(el))
                         return URL_ATTR_TAGS['manifest'].indexOf(el.tagName.toLowerCase()) !== -1;
 
                     return false;
@@ -285,60 +284,60 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             origin: {
-                condition: el => DOM.isAnchor(el),
+                condition: el => domUtils.isAnchor(el),
                 get:       el => typeof el.origin !== 'undefined' ? getAnchorProperty(el, 'origin') : el.origin,
                 set:       (el, origin) => el.origin = origin
             },
 
             pathname: {
-                condition: el => DOM.isAnchor(el),
+                condition: el => domUtils.isAnchor(el),
                 get:       el => getAnchorProperty(el, 'pathname'),
                 set:       (el, pathname) => setAnchorProperty(el, 'pathname', pathname)
             },
 
             port: {
-                condition: el => DOM.isAnchor(el),
+                condition: el => domUtils.isAnchor(el),
                 get:       el => getAnchorProperty(el, 'port'),
                 set:       (el, port) => setAnchorProperty(el, 'port', port)
             },
 
             protocol: {
-                condition: el => DOM.isAnchor(el),
+                condition: el => domUtils.isAnchor(el),
                 get:       el => getAnchorProperty(el, 'protocol'),
                 set:       (el, port) => setAnchorProperty(el, 'protocol', port)
             },
 
             referrer: {
-                condition: doc => Types.isDocument(doc),
+                condition: doc => typeUtils.isDocument(doc),
 
                 get: doc => {
-                    var proxyUrl = UrlUtil.parseProxyUrl(doc.referrer);
+                    var proxyUrl = urlUtils.parseProxyUrl(doc.referrer);
 
                     return proxyUrl ? proxyUrl.originUrl : '';
                 },
 
                 set: (doc, value) => {
-                    doc.referrer = UrlUtil.getProxyUrl(value);
+                    doc.referrer = urlUtils.getProxyUrl(value);
 
                     return value;
                 }
             },
 
             sandbox: {
-                condition: el => DOM.isIframe(el),
+                condition: el => domUtils.isIframe(el),
                 get:       el => el.getAttribute('sandbox'),
                 set:       (el, value) => el.setAttribute('sandbox', value)
             },
 
             search: {
-                condition: el => DOM.isAnchor(el),
+                condition: el => domUtils.isAnchor(el),
                 get:       el => getAnchorProperty(el, 'search'),
                 set:       (el, search) => setAnchorProperty(el, 'search', search)
             },
 
             src: {
                 condition: el => {
-                    if (DOM.isDomElement(el))
+                    if (domUtils.isDomElement(el))
                         return URL_ATTR_TAGS['src'].indexOf(el.tagName.toLowerCase()) !== -1;
 
                     return false;
@@ -349,7 +348,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             target: {
-                condition: el => DOM.isDomElement(el) && TARGET_ATTR_TAGS[el.tagName.toLowerCase()],
+                condition: el => domUtils.isDomElement(el) && TARGET_ATTR_TAGS[el.tagName.toLowerCase()],
                 get:       el => el.target,
 
                 set: (el, value) => {
@@ -389,30 +388,30 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             URL: {
-                condition: doc => Types.isDocument(doc),
-                get:       doc => locationAccessorsInstrumentation.getLocationWrapper(doc).href,
+                condition: doc => typeUtils.isDocument(doc),
+                get:       doc => LocationAccessorsInstrumentation.getLocationWrapper(doc).href,
                 set:       () => void 0
             },
 
             value: {
-                condition: el => DOM.isDomElement(el) && (DOM.isFileInput(el) ||
-                                                          DOM.isTextEditableElementAndEditingAllowed(el) &&
-                                                          !DOM.isShadowUIElement(el)),
+                condition: el => domUtils.isDomElement(el) && (domUtils.isFileInput(el) ||
+                                                               domUtils.isTextEditableElementAndEditingAllowed(el) &&
+                                                               !domUtils.isShadowUIElement(el)),
 
                 get: el => {
-                    if (DOM.isFileInput(el))
+                    if (domUtils.isFileInput(el))
                         return this.sandbox.upload.getUploadElementValue(el);
 
                     return el.value;
                 },
 
                 set: (el, value) => {
-                    if (DOM.isFileInput(el))
+                    if (domUtils.isFileInput(el))
                         return this.sandbox.upload.setUploadElementValue(el, value);
 
                     el.value = value;
 
-                    ElementEditingWatcher.restartWatchingElementEditing(el);
+                    this.sandbox.event.elementEditingWatcher.restartWatchingElementEditing(el);
 
                     return value;
                 }
@@ -420,108 +419,108 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             // Event
             onbeforeunload: {
-                condition: window => Types.isWindow(window),
+                condition: window => typeUtils.isWindow(window),
                 get:       () => this.sandbox.event.unload.getOnBeforeUnload(),
                 set:       (window, handler) => this.sandbox.event.unload.setOnBeforeUnload(window, handler)
             },
 
             onmessage: {
-                condition: window => Types.isWindow(window),
+                condition: window => typeUtils.isWindow(window),
                 get:       () => this.sandbox.message.getOnMessage(),
                 set:       (window, handler) => this.sandbox.message.setOnMessage(window, handler)
             },
 
             which: {
-                condition: ev => typeof ev[Const.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] !== 'undefined' ||
+                condition: ev => typeof ev[CONST.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] !== 'undefined' ||
                                  ev.originalEvent &&
-                                 typeof ev.originalEvent[Const.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] !== 'undefined',
+                                 typeof ev.originalEvent[CONST.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] !== 'undefined',
 
-                get: ev => ev.originalEvent ? ev.originalEvent[Const.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] :
-                           ev[Const.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER],
+                get: ev => ev.originalEvent ? ev.originalEvent[CONST.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] :
+                           ev[CONST.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER],
 
                 set: () => void 0
             },
 
             // Style
             background: {
-                condition: style => Types.isStyle(style),
-                get:       style => cleanUpStyle(style.background, UrlUtil.parseProxyUrl, UrlUtil.formatUrl),
+                condition: style => typeUtils.isStyle(style),
+                get:       style => cleanUpStyle(style.background, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
-                        style.background = processStyle(value, UrlUtil.getProxyUrl);
+                        style.background = processStyle(value, urlUtils.getProxyUrl);
 
                     return style.background;
                 }
             },
 
             backgroundImage: {
-                condition: style => Types.isStyle(style),
-                get:       style => cleanUpStyle(style.backgroundImage, UrlUtil.parseProxyUrl, UrlUtil.formatUrl),
+                condition: style => typeUtils.isStyle(style),
+                get:       style => cleanUpStyle(style.backgroundImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
-                        style.backgroundImage = processStyle(value, UrlUtil.getProxyUrl);
+                        style.backgroundImage = processStyle(value, urlUtils.getProxyUrl);
 
                     return style.backgroundImage;
                 }
             },
 
             borderImage: {
-                condition: style => Types.isStyle(style),
-                get:       style => cleanUpStyle(style.borderImage, UrlUtil.parseProxyUrl, UrlUtil.formatUrl),
+                condition: style => typeUtils.isStyle(style),
+                get:       style => cleanUpStyle(style.borderImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
-                        style.borderImage = processStyle(value, UrlUtil.getProxyUrl);
+                        style.borderImage = processStyle(value, urlUtils.getProxyUrl);
 
                     return style.borderImage;
                 }
             },
 
             cssText: {
-                condition: style => Types.isStyle(style),
-                get:       style => cleanUpStyle(style.cssText, UrlUtil.parseProxyUrl, UrlUtil.formatUrl),
+                condition: style => typeUtils.isStyle(style),
+                get:       style => cleanUpStyle(style.cssText, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
-                        style.cssText = processStyle(value, UrlUtil.getProxyUrl);
+                        style.cssText = processStyle(value, urlUtils.getProxyUrl);
 
                     return style.cssText;
                 }
             },
 
             cursor: {
-                condition: style => Types.isStyle(style),
-                get:       style => cleanUpStyle(style.cursor, UrlUtil.parseProxyUrl, UrlUtil.formatUrl),
+                condition: style => typeUtils.isStyle(style),
+                get:       style => cleanUpStyle(style.cursor, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
-                        style.cursor = processStyle(value, UrlUtil.getProxyUrl);
+                        style.cursor = processStyle(value, urlUtils.getProxyUrl);
 
                     return style.cursor;
                 }
             },
 
             listStyle: {
-                condition: style => Types.isStyle(style),
-                get:       style => cleanUpStyle(style.listStyle, UrlUtil.parseProxyUrl, UrlUtil.formatUrl),
+                condition: style => typeUtils.isStyle(style),
+                get:       style => cleanUpStyle(style.listStyle, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
-                        style.listStyle = processStyle(value, UrlUtil.getProxyUrl);
+                        style.listStyle = processStyle(value, urlUtils.getProxyUrl);
 
                     return style.listStyle;
                 }
             },
 
             listStyleImage: {
-                condition: style => Types.isStyle(style),
-                get:       style => cleanUpStyle(style.listStyleImage, UrlUtil.parseProxyUrl, UrlUtil.formatUrl),
+                condition: style => typeUtils.isStyle(style),
+                get:       style => cleanUpStyle(style.listStyleImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
-                        style.listStyleImage = processStyle(value, UrlUtil.getProxyUrl);
+                        style.listStyleImage = processStyle(value, urlUtils.getProxyUrl);
 
                     return style.listStyleImage;
                 }
@@ -529,8 +528,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         };
     }
 
-    getOriginalErrorHandler (window) {
-        return window[this.ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY];
+    static getOriginalErrorHandler (window) {
+        return window[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY];
     }
 
     attach (window) {
@@ -539,8 +538,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         var propertyAccessors = this._createPropertyAccessors(window, window.document);
 
         window[GET_PROPERTY_METH_NAME] = (owner, propName) => {
-            if (Types.isNullOrUndefined(owner))
-                this._error('Cannot read property \'' + propName + '\' of ' + Types.inaccessibleTypeToStr(owner));
+            if (typeUtils.isNullOrUndefined(owner))
+                this._error('Cannot read property \'' + propName + '\' of ' + typeUtils.inaccessibleTypeToStr(owner));
 
             if (typeof propName !== 'string' || !propertyAccessors.hasOwnProperty(propName))
                 return owner[propName];
@@ -549,8 +548,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         };
 
         window[SET_PROPERTY_METH_NAME] = (owner, propName, value) => {
-            if (Types.isNullOrUndefined(owner))
-                this._error('Cannot set property \'' + propName + '\' of ' + Types.inaccessibleTypeToStr(owner));
+            if (typeUtils.isNullOrUndefined(owner))
+                this._error('Cannot set property \'' + propName + '\' of ' + typeUtils.inaccessibleTypeToStr(owner));
 
             var returnValue = null;
 

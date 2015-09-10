@@ -1,9 +1,9 @@
-import * as Browser from './browser';
-import * as DOM from './dom';
+import * as domUtils from './dom';
+import { isIE, isMozilla } from './browser';
 import { isWindow, isDocument } from './types';
 
 //NOTE: for Chrome
-var MIN_SELECT_SIZE_VALUE = 4;
+const MIN_SELECT_SIZE_VALUE = 4;
 
 function getIntValue (value) {
     value = value || '';
@@ -63,8 +63,8 @@ export function getElementScroll (el) {
     var isHtmlElement = /html/i.test(el.tagName);
     var currentWindow = window;
 
-    if (isHtmlElement && DOM.isElementInIframe(el)) {
-        var currentIFrame = DOM.getIFrameByElement(el);
+    if (isHtmlElement && domUtils.isElementInIframe(el)) {
+        var currentIFrame = domUtils.getIFrameByElement(el);
 
         if (currentIFrame)
             currentWindow = currentIFrame.contentWindow;
@@ -130,12 +130,12 @@ export function getOptionHeight (select) {
     var realSizeValue      = getSelectElementSize(select);
     var selectPadding      = getElementPadding(select);
     var selectScrollHeight = select.scrollHeight - (selectPadding.top + selectPadding.bottom);
-    var childrenCount      = DOM.getSelectVisibleChildren(select).length;
+    var childrenCount      = domUtils.getSelectVisibleChildren(select).length;
 
     if (realSizeValue === 1)
         return getHeight(select);
 
-    return Browser.isIE && realSizeValue > childrenCount ?
+    return isIE && realSizeValue > childrenCount ?
            Math.round(selectScrollHeight / childrenCount) :
            Math.round(selectScrollHeight / Math.max(childrenCount, realSizeValue));
 }
@@ -152,13 +152,13 @@ export function getSelectElementSize (select) {
 }
 
 export function isVisibleChild (el) {
-    var select  = DOM.getSelectParent(el);
+    var select  = domUtils.getSelectParent(el);
     var tagName = el.tagName.toLowerCase();
 
     return select && select.tagName.toLowerCase() === 'select' && getSelectElementSize(select) > 1 &&
            (tagName === 'option' || tagName === 'optgroup') &&
            //NOTE: Mozilla does not display group without label and with empty label
-           (!Browser.isMozilla || el.label);
+           (!isMozilla || el.label);
 }
 
 export function getScrollLeft (el) {
@@ -192,7 +192,7 @@ export function setScrollLeft (el, value) {
         return;
 
     if (isWindow(el) || isDocument(el)) {
-        var win       = DOM.findDocument(el).defaultView;
+        var win       = domUtils.findDocument(el).defaultView;
         var scrollTop = getScrollTop(el);
 
         win.scrollTo(value, scrollTop);
@@ -206,7 +206,7 @@ export function setScrollTop (el, value) {
         return;
 
     if (isWindow(el) || isDocument(el)) {
-        var win       = DOM.findDocument(el).defaultView;
+        var win       = domUtils.findDocument(el).defaultView;
         var scrollLeft = getScrollLeft(el);
 
         win.scrollTo(scrollLeft, value);

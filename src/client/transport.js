@@ -1,245 +1,240 @@
 /*eslint-disable no-native-reassign*/
-import * as JSON from './json';
-import NativeMethods from './sandbox/native-methods';
-import ServiceCommands from '../service-msg-cmd';
-import * as Browser from './utils/browser';
 import EventEmitter from './utils/event-emitter';
-import Settings from './settings';
+import COMMAND from '../command';
+import nativeMethods from './sandbox/native-methods';
+import settings from './settings';
+import { stringify as stringifyJSON, parse as parseJSON } from './json';
+import { isWebKit, isIE9 } from './utils/browser';
+import { Promise } from 'es6-promise';
 
 /*eslint-enable no-native-reassign*/
 
-var Promise = require('es6-promise').Promise;
+class Transport {
+    constructor () {
+        this.SWITCH_BACK_TO_ASYNC_XHR_DELAY    = 2000;
+        this.SERVICE_MESSAGES_WAITING_INTERVAL = 50;
+        this.MSG_RECEIVED                      = 'received';
 
-//Const
-var SWITCH_BACK_TO_ASYNC_XHR_DELAY    = 2000;
-var SERVICE_MESSAGES_WAITING_INTERVAL = 50;
-var MSG_RECEIVED                      = 'received';
+        this.eventEmitter                 = new EventEmitter();
+        this.msgQueue                     = {};
+        this.useAsyncXhr                  = true;
+        this.activeServiceMessagesCounter = 0;
 
-//Globals
-var eventEmitter                 = new EventEmitter();
-var msgQueue                     = {};
-var useAsyncXhr                  = true;
-var activeServiceMessagesCounter = 0;
-var Transport                    = {};
+        //NOTE: if we are unloading we should switch to sync XHR to be sure that we will not lost any service msgs
+        window.addEventListener('beforeunload', () => {
+            this.useAsyncXhr = false;
 
-//NOTE: if we are unloading we should switch to sync XHR to be sure that we will not lost any service msgs
-window.addEventListener('beforeunload', function () {
-    useAsyncXhr = false;
-
-    //NOTE: if unloading was canceled switch back to async XHR
-    NativeMethods.setTimeout.call(window, function () {
-        useAsyncXhr = true;
-    }, SWITCH_BACK_TO_ASYNC_XHR_DELAY);
-}, true);
-
-Transport.sendNextQueuedMsg = function (queueId) {
-    var queueItem = msgQueue[queueId][0];
-
-    Transport.asyncServiceMsg(queueItem.msg, function (res) {
-        if (queueItem.callback)
-            queueItem.callback(res);
-
-        msgQueue[queueId].shift();
-
-        eventEmitter.emit(MSG_RECEIVED, {});
-
-        if (msgQueue[queueId].length)
-            Transport.sendNextQueuedMsg(queueId);
-    });
-};
-
-function storeMessage (msg) {
-    var storedMessages = getStoredMessages();
-
-    storedMessages.push(msg);
-
-    window.localStorage.setItem(Settings.get().SESSION_ID, JSON.stringify(storedMessages));
-}
-
-function getStoredMessages () {
-    var storedMessagesStr = window.localStorage.getItem(Settings.get().SESSION_ID);
-
-    return storedMessagesStr ? JSON.parse(storedMessagesStr) : [];
-}
-
-function removeMessageFromStore (cmd) {
-    var messages = getStoredMessages();
-
-    for (var i = 0; i < messages.length; i++) {
-        if (messages[i].cmd === cmd) {
-            messages.splice(i, 1);
-
-            break;
-        }
+            //NOTE: if unloading was canceled switch back to async XHR
+            nativeMethods.setTimeout.call(window, () => this.useAsyncXhr = true, this.SWITCH_BACK_TO_ASYNC_XHR_DELAY);
+        }, true);
     }
 
-    window.localStorage.setItem(Settings.get().SESSION_ID, JSON.stringify(messages));
-}
+    static _createXMLHttpRequest (async) {
+        var xhr = new nativeMethods.XMLHttpRequest();
 
-function createXMLHttpRequest (async) {
-    var xhr = new NativeMethods.XMLHttpRequest();
+        xhr.open('POST', settings.get().serviceMsgUrl, async);
+        xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
 
-    xhr.open('POST', Settings.get().SERVICE_MSG_URL, async);
-    xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        return xhr;
+    }
 
-    return xhr;
-}
+    static _storeMessage (msg) {
+        var storedMessages = Transport._getStoredMessages();
 
-function cookieMsgInProgress () {
-    return msgQueue[ServiceCommands.SET_COOKIE] && !!msgQueue[ServiceCommands.SET_COOKIE].length;
-}
+        storedMessages.push(msg);
 
-Transport.waitCookieMsg = function (callback) {
-    if (cookieMsgInProgress()) {
-        var handler = function () {
-            if (!cookieMsgInProgress()) {
-                eventEmitter.off(MSG_RECEIVED, handler);
+        window.localStorage.setItem(settings.get().sessionId, stringifyJSON(storedMessages));
+    }
 
+    static _getStoredMessages () {
+        var storedMessagesStr = window.localStorage.getItem(settings.get().sessionId);
+
+        return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
+    }
+
+    static _removeMessageFromStore (cmd) {
+        var messages = Transport._getStoredMessages();
+
+        for (var i = 0; i < messages.length; i++) {
+            if (messages[i].cmd === cmd) {
+                messages.splice(i, 1);
+
+                break;
+            }
+        }
+
+        window.localStorage.setItem(settings.get().sessionId, stringifyJSON(messages));
+    }
+
+    _cookieMsgInProgress () {
+        return this.msgQueue[COMMAND.setCookie] && !!this.msgQueue[COMMAND.setCookie].length;
+    }
+
+    sendNextQueuedMsg (queueId) {
+        var queueItem = this.msgQueue[queueId][0];
+
+        this.asyncServiceMsg(queueItem.msg, res => {
+            if (queueItem.callback)
+                queueItem.callback(res);
+
+            this.msgQueue[queueId].shift();
+
+            this.eventEmitter.emit(this.MSG_RECEIVED, {});
+
+            if (this.msgQueue[queueId].length)
+                this.sendNextQueuedMsg(queueId);
+        });
+    }
+
+    waitCookieMsg (callback) {
+        if (this._cookieMsgInProgress()) {
+            var handler = () => {
+                if (!this._cookieMsgInProgress()) {
+                    this.eventEmitter.off(this.MSG_RECEIVED, handler);
+
+                    callback();
+                }
+            };
+
+            this.eventEmitter.on(this.MSG_RECEIVED, handler);
+        }
+        else
+            callback();
+    }
+
+    //NOTE: use sync method for most important things only
+    syncServiceMsg (msg, callback) {
+        var storedSync = this.useAsyncXhr;
+
+        this.useAsyncXhr = false;
+
+        this.asyncServiceMsg(msg, res => {
+            this.useAsyncXhr = storedSync;
+            callback(res);
+        });
+    }
+
+    waitForServiceMessagesCompleted (callback, timeout) {
+        if (!this.activeServiceMessagesCounter) {
+            callback();
+            return;
+        }
+
+        var intervalId = null;
+        var timeoutId  = window.setTimeout(() => {
+            window.clearInterval(intervalId);
+            callback();
+        }, timeout);
+
+        intervalId = window.setInterval(() => {
+            if (!this.activeServiceMessagesCounter) {
+                window.clearInterval(intervalId);
+                window.clearTimeout(timeoutId);
                 callback();
             }
-        };
-
-        eventEmitter.on(MSG_RECEIVED, handler);
-    }
-    else
-        callback();
-};
-
-//NOTE: use sync method for most important things only
-Transport.syncServiceMsg = function (msg, callback) {
-    var storedSync = useAsyncXhr;
-
-    useAsyncXhr = false;
-
-    Transport.asyncServiceMsg(msg, function (res) {
-        useAsyncXhr = storedSync;
-        callback(res);
-    });
-};
-
-Transport.waitForServiceMessagesCompleted = function (callback, timeout) {
-    if (!activeServiceMessagesCounter) {
-        callback();
-        return;
+        }, this.SERVICE_MESSAGES_WAITING_INTERVAL);
     }
 
-    var intervalId = null;
-    var timeoutId  = window.setTimeout(function () {
-        window.clearInterval(intervalId);
-        callback();
-    }, timeout);
+    asyncServiceMsg (msg, callback) {
+        msg.sessionId = settings.get().sessionId;
 
-    intervalId = window.setInterval(function () {
-        if (!activeServiceMessagesCounter) {
-            window.clearInterval(intervalId);
-            window.clearTimeout(timeoutId);
-            callback();
-        }
-    }, SERVICE_MESSAGES_WAITING_INTERVAL);
-};
+        if (isIFrameWithoutSrc)
+            msg.referer = settings.get().referer;
 
-Transport.asyncServiceMsg = function (msg, callback) {
-    msg.sessionId = Settings.get().SESSION_ID;
+        var sendMsg = forced => {
+            this.activeServiceMessagesCounter++;
 
-    if (isIFrameWithoutSrc)
-        msg.referer = Settings.get().REFERER;
+            var requestIsAsync = this.useAsyncXhr;
 
-    var sendMsg = function (forced) {
-        activeServiceMessagesCounter++;
+            if (forced)
+                requestIsAsync = false;
 
-        var requestIsAsync = useAsyncXhr;
+            var transport    = this;
+            var request      = Transport._createXMLHttpRequest(requestIsAsync);
+            var msgCallback  = function () {
+                transport.activeServiceMessagesCounter--;
 
-        if (forced)
-            requestIsAsync = false;
+                if (callback)
+                    callback(this.responseText && parseJSON(this.responseText));
+            };
+            var errorHandler = function () {
+                if (isWebKit) {
+                    Transport._storeMessage(msg);
+                    msgCallback();
+                }
+                else
+                    sendMsg(true);
+            };
 
-        var request      = createXMLHttpRequest(requestIsAsync);
-        var msgCallback  = function () {
-            activeServiceMessagesCounter--;
+            if (forced) {
+                request.addEventListener('readystatechange', function () {
+                    if (this.readyState !== 4)
+                        return;
 
-            if (callback)
-                callback(this.responseText && JSON.parse(this.responseText));
-        };
-        var errorHandler = function () {
-            if (Browser.isWebKit) {
-                storeMessage(msg);
-                msgCallback();
+                    msgCallback();
+                });
             }
-            else
-                sendMsg(true);
+            else if (isIE9) {
+                //aborted ajax request in IE9 not raise error, abort or timeout events
+                //also getting status code raise error c00c023f
+                request.addEventListener('readystatechange', function () {
+                    if (this.readyState !== 4)
+                        return;
+
+                    var status = 0;
+
+                    try {
+                        status = this.status;
+                    }
+                    catch (e) {
+                        errorHandler();
+                    }
+
+                    if (status === 200)
+                        msgCallback.call(this);
+                });
+            }
+            else {
+                request.addEventListener('load', msgCallback);
+                request.addEventListener('abort', errorHandler);
+                request.addEventListener('error', errorHandler);
+                request.addEventListener('timeout', errorHandler);
+            }
+
+            request.send(stringifyJSON(msg));
         };
 
-        if (forced) {
-            request.addEventListener('readystatechange', function () {
-                if (this.readyState !== 4)
-                    return;
+        Transport._removeMessageFromStore(msg.cmd);
+        sendMsg();
+    }
 
-                msgCallback();
-            });
+    batchUpdate (updateCallback) {
+        var storedMessages = Transport._getStoredMessages();
+
+        if (storedMessages.length) {
+            window.localStorage.removeItem(settings.get().sessionId);
+
+            var tasks = storedMessages.map(item => new Promise(resolve => this.queuedAsyncServiceMsg(item, resolve)));
+
+            Promise.all(tasks).then(updateCallback);
         }
-        else if (Browser.isIE9) {
-            //aborted ajax request in IE9 not raise error, abort or timeout events
-            //also getting status code raise error c00c023f
-            request.addEventListener('readystatechange', function () {
-                if (this.readyState !== 4)
-                    return;
+        else
+            updateCallback();
+    }
 
-                var status = 0;
+    queuedAsyncServiceMsg (msg, callback) {
+        if (!this.msgQueue[msg.cmd])
+            this.msgQueue[msg.cmd] = [];
 
-                try {
-                    status = this.status;
-                }
-                catch (e) {
-                    errorHandler();
-                }
-
-                if (status === 200)
-                    msgCallback.call(this);
-            });
-        }
-        else {
-            request.addEventListener('load', msgCallback);
-            request.addEventListener('abort', errorHandler);
-            request.addEventListener('error', errorHandler);
-            request.addEventListener('timeout', errorHandler);
-        }
-
-        request.send(JSON.stringify(msg));
-    };
-
-    removeMessageFromStore(msg.cmd);
-    sendMsg();
-};
-
-Transport.batchUpdate = function (updateCallback) {
-    var storedMessages = getStoredMessages();
-
-    if (storedMessages.length) {
-        window.localStorage.removeItem(Settings.get().SESSION_ID);
-
-        var tasks = storedMessages.map(function (item) {
-            return new Promise(function (resolve) {
-                Transport.queuedAsyncServiceMsg(item, resolve);
-            });
+        this.msgQueue[msg.cmd].push({
+            msg:      msg,
+            callback: callback
         });
 
-        Promise.all(tasks).then(updateCallback);
+        //NOTE: if we don't have pending msgs except this one then send it immediately
+        if (this.msgQueue[msg.cmd].length === 1)
+            this.sendNextQueuedMsg(msg.cmd);
     }
-    else
-        updateCallback();
-};
+}
 
-Transport.queuedAsyncServiceMsg = function (msg, callback) {
-    if (!msgQueue[msg.cmd])
-        msgQueue[msg.cmd] = [];
-
-    msgQueue[msg.cmd].push({
-        msg:      msg,
-        callback: callback
-    });
-
-    //NOTE: if we don't have pending msgs except this one then send it immediately
-    if (msgQueue[msg.cmd].length === 1)
-        Transport.sendNextQueuedMsg(msg.cmd);
-};
-
-export default Transport;
+export default new Transport();

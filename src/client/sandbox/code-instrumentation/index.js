@@ -9,22 +9,22 @@ export default class CodeInstrumentation extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BODY_CONTENT_CHANGED = 'bodyContentChanged';
+        this.BODY_CONTENT_CHANGED_EVENT = 'bodyContentChanged';
 
         this.methodCallInstrumentation        = new MethodCallInstrumentation(sandbox);
         this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation(sandbox);
         this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(sandbox);
 
-        this.propertyAccessorsInstrumentation.on(this.propertyAccessorsInstrumentation.BODY_CONTENT_CHANGED,
-                el => this._emit(this.BODY_CONTENT_CHANGED, el));
+        this.propertyAccessorsInstrumentation.on(this.propertyAccessorsInstrumentation.BODY_CONTENT_CHANGED_EVENT,
+                el => this._emit(this.BODY_CONTENT_CHANGED_EVENT, el));
     }
 
     getAttributesProperty (el) {
         return getAttributeProperty(el);
     }
 
-    getOriginalErrorHandler (window) {
-        return this.propertyAccessorsInstrumentation.getOriginalErrorHandler(window);
+    static getOriginalErrorHandler (window) {
+        return PropertyAccessorsInstrumentation.getOriginalErrorHandler(window);
     }
 
     attach (window) {

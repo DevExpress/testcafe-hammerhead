@@ -1,13 +1,13 @@
 import DomProcessor from '../dom';
 import DomAdapter from '../dom/server-dom-adapter';
+import ResourceProcessorBase from './resource-processor-base';
+import whacko from 'whacko';
+import scriptProcessor from '../script';
 import * as Const from '../../const';
 import * as contentUtils from '../../utils/content';
-import whacko from 'whacko';
-import ResourceProcessorBase from './resource-processor-base';
-import scriptProcessor from '../script';
 
 const BODY_CREATED_EVENT_SCRIPT =
-          `<script type="text/javascript" class="${Const.SHADOW_UI_SCRIPT_CLASSNAME}">
+          `<script type="text/javascript" class="${ Const.SHADOW_UI_SCRIPT_CLASSNAME }">
                if (window.Hammerhead)
                    window.Hammerhead.sandbox.node.raiseBodyCreatedEvent();
 

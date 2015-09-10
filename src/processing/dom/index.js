@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import UrlUtil from '../../utils/url';
-import Const from '../../const';
+import CONST from '../../const';
+import urlUtils from '../../utils/url';
 import jsProcessor from '../js/index';
 import scriptProcessor from '../../processing/script';
 import styleProcessor from '../../processing/style';
@@ -172,7 +172,7 @@ export default class DomProcessor {
             $all.filter(function () {
                 return pattern.selector(this);
             }).each(function () {
-                if (!this[Const.ELEMENT_PROCESSED_FLAG]) {
+                if (!this[CONST.ELEMENT_PROCESSED_FLAG]) {
                     for (var j = 0; j < pattern.elementProcessors.length; j++)
                         pattern.elementProcessors[j].call(domProc, this, replacer, pattern);
                 }
@@ -201,7 +201,7 @@ export default class DomProcessor {
     // Utils
 
     getStoredAttrName (attr) {
-        return attr + Const.DOM_SANDBOX_STORED_ATTR_POSTFIX;
+        return attr + CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX;
     }
 
     isOpenLinkInIFrame (el) {
@@ -223,7 +223,7 @@ export default class DomProcessor {
     }
 
     _isShadowElement (el) {
-        return typeof el.className === 'string' && el.className.indexOf(Const.SHADOW_UI_CLASSNAME_POSTFIX) > -1;
+        return typeof el.className === 'string' && el.className.indexOf(CONST.SHADOW_UI_CLASSNAME_POSTFIX) > -1;
     }
 
     // Element processors
@@ -402,7 +402,7 @@ export default class DomProcessor {
 
             // NOTE: page resource URL with proxy URL
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
-                if (UrlUtil.isSupportedProtocol(resourceUrl) && !EMPTY_URL_REG_EX.test(resourceUrl)) {
+                if (urlUtils.isSupportedProtocol(resourceUrl) && !EMPTY_URL_REG_EX.test(resourceUrl)) {
                     var elTagName    = this.adapter.getTagName(el).toLowerCase();
                     var isIframe     = elTagName === 'iframe';
                     var isScript     = elTagName === 'script';
@@ -415,29 +415,29 @@ export default class DomProcessor {
                         return;
 
                     if (isIframe || this.isOpenLinkInIFrame(el))
-                        resourceType = UrlUtil.IFRAME;
+                        resourceType = urlUtils.IFRAME;
                     else if (isScript)
-                        resourceType = UrlUtil.SCRIPT;
+                        resourceType = urlUtils.SCRIPT;
 
-                    var parsedResourceUrl = UrlUtil.parseUrl(resourceUrl);
+                    var parsedResourceUrl = urlUtils.parseUrl(resourceUrl);
                     var isRelativePath    = !parsedResourceUrl.host;
                     var proxyUrl          = '';
 
                     // NOTE: Only non relative iframe src can be cross-domain
                     if (isIframe && !isRelativePath) {
                         var location    = urlReplacer('/');
-                        var proxyUrlObj = UrlUtil.parseProxyUrl(location);
+                        var proxyUrlObj = urlUtils.parseProxyUrl(location);
                         var originUrl   = proxyUrlObj.originUrl;
 
                         if (!parsedResourceUrl.protocol)
                             resourceUrl = proxyUrlObj.originResourceInfo.protocol + resourceUrl;
 
                         // Cross-domain iframe
-                        if (!UrlUtil.sameOriginCheck(originUrl, resourceUrl)) {
-                            var proxyHostname = UrlUtil.parseUrl(location).hostname;
+                        if (!urlUtils.sameOriginCheck(originUrl, resourceUrl)) {
+                            var proxyHostname = urlUtils.parseUrl(location).hostname;
 
                             proxyUrl = resourceUrl ? this.adapter.getProxyUrl(resourceUrl, proxyHostname,
-                                this.adapter.getCrossDomainPort(), proxyUrlObj.sessionId, UrlUtil.IFRAME) : '';
+                                this.adapter.getCrossDomainPort(), proxyUrlObj.sessionId, urlUtils.IFRAME) : '';
                         }
 
                     }
@@ -446,7 +446,7 @@ export default class DomProcessor {
                     this.adapter.setAttr(el, storedUrlAttr, resourceUrl);
 
                     if (elTagName === 'img' && proxyUrl !== '')
-                        this.adapter.setAttr(el, pattern.urlAttr, UrlUtil.resolveUrlAsOrigin(resourceUrl, urlReplacer));
+                        this.adapter.setAttr(el, pattern.urlAttr, urlUtils.resolveUrlAsOrigin(resourceUrl, urlReplacer));
                     else
                         this.adapter.setAttr(el, pattern.urlAttr, proxyUrl);
                 }

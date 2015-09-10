@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { Syntax } from './parsing-tools';
 import * as instructs from './instructions';
+import { Syntax } from './parsing-tools';
 
 export function getProcessScriptMethAst (args) {
     return {

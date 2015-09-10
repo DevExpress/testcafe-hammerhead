@@ -1,5 +1,5 @@
-import URL from 'url';
 import FormData from './form-data';
+import url from 'url';
 import { fetchBody, respondWithJSON } from '../utils/http';
 
 // Utils
@@ -43,7 +43,7 @@ export function inject (contentTypeHeader, body) {
 
 export async function ie9FileReaderShim (req, res) {
     var body              = await fetchBody(req);
-    var parsedUrl         = URL.parse(req.url, true);
+    var parsedUrl         = url.parse(req.url, true);
     var contentTypeHeader = req.headers['content-type'];
     var inputName         = parsedUrl.query['input-name'];
     var filename          = parsedUrl.query['filename'];

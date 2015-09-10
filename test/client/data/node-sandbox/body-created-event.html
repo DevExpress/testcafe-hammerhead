@@ -5,14 +5,12 @@
     <meta charset="utf-8">
     <script src="/hammerhead.js" class="script-TC2b9a6d"></script>
     <script type="text/javascript">
-        var UrlUtil = Hammerhead.get('./utils/url');
-
-        UrlUtil.OriginLocation.get = function () {
+        Hammerhead.get('./utils/url').OriginLocation.get = function () {
             return 'https://example.com';
         };
 
-        Hammerhead.init();
-        Hammerhead.on(Hammerhead.BODY_CREATED, function (e) {
+        Hammerhead.start();
+        Hammerhead.on(Hammerhead.EVENTS.bodyCreated, function (e) {
             if (e.body === document.body && !window.bodyExecutingStarted)
                 window.testOk = true;
         });

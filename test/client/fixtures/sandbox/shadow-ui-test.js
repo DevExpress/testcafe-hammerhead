@@ -13,12 +13,12 @@ QUnit.testStart(function () {
     $('#testDiv').empty();
     $(shadowUI.getRoot()).empty();
     $('.test-class').remove();
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
 test('add UI class and get UI element with selector', function () {
@@ -477,9 +477,9 @@ test('ShadowUI\'s root must be the last child after adding a new element (T23968
 });
 
 asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
-    var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
+    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
+    Settings.get().crossDomainProxyPort = 2001;
 
     var crossDomainIframe = document.createElement('iframe');
 
@@ -488,7 +488,7 @@ asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow mus
         ok(!shadowUI.isShadowContainerCollection([this.contentWindow]));
 
         crossDomainIframe.parentNode.removeChild(crossDomainIframe);
-        Settings.get().CROSS_DOMAIN_PROXY_PORT = storedCrossDomainPort;
+        Settings.get().crossDomainProxyPort = storedCrossDomainPort;
         start();
     });
 

@@ -1,22 +1,39 @@
-import { getSandboxFromStorage } from '../storage';
+import SandboxBase from '../base';
 
 const WINDOW_ACTIVATED_EVENT   = 'windowActivated';
 const WINDOW_DEACTIVATED_EVENT = 'windowDeactivated';
 
-export default class ActiveWindowTracker {
-    constructor (window) {
-        this.currentWindow  = window;
-        this.isIFrameWindow = this.currentWindow !== this.currentWindow.top;
-        this.activeWindow   = !this.isIFrameWindow ? this.currentWindow.top : null;
+export default class ActiveWindowTracker extends SandboxBase {
+    constructor (sandbox) {
+        super(sandbox);
+
+        this.isIFrameWindow = null;
+        this.activeWindow   = null;
+        this.isActive       = null;
+    }
+
+    _notifyPrevActiveWindow () {
+        if (this.activeWindow.top) {
+            try {
+                this.sandbox.message.sendServiceMsg({
+                    cmd: WINDOW_DEACTIVATED_EVENT
+                }, this.activeWindow);
+            }
+            catch (err) {
+                //NOTE: the error appears in IE when the corresponding iframe is removed
+                return void 0;
+            }
+        }
+    }
+
+    attach (window) {
+        super.attach(window);
+
+        this.isIFrameWindow = window !== window.top;
+        this.activeWindow   = !this.isIFrameWindow ? window.top : null;
         this.isActive       = !this.isIFrameWindow;
 
-        var sandboxStorage = getSandboxFromStorage(window);
-
-        sandboxStorage.activeWindowTracker = this;
-
-        this.message = sandboxStorage.message;
-
-        this.message.on(this.message.SERVICE_MSG_RECEIVED, (e) => {
+        this.sandbox.message.on(this.sandbox.message.SERVICE_MSG_RECEIVED, e => {
             if (e.message.cmd === WINDOW_ACTIVATED_EVENT) {
                 if (this.activeWindow !== this.activeWindow.top)
                     this._notifyPrevActiveWindow();
@@ -29,20 +46,6 @@ export default class ActiveWindowTracker {
         });
     }
 
-    _notifyPrevActiveWindow () {
-        if (this.activeWindow.top) {
-            try {
-                this.message.sendServiceMsg({
-                    cmd: WINDOW_DEACTIVATED_EVENT
-                }, this.activeWindow);
-            }
-            catch (err) {
-                //NOTE: the error appears in IE when the corresponding iframe is removed
-                return void 0;
-            }
-        }
-    }
-
     isCurrentWindowActive () {
         return this.isActive;
     }
@@ -53,12 +56,12 @@ export default class ActiveWindowTracker {
         if (!this.isIFrameWindow) {
             this._notifyPrevActiveWindow();
 
-            this.activeWindow = this.currentWindow;
+            this.activeWindow = this.window;
         }
         else {
-            this.message.sendServiceMsg({
+            this.sandbox.message.sendServiceMsg({
                 cmd: WINDOW_ACTIVATED_EVENT
-            }, this.currentWindow.top);
+            }, this.window.top);
         }
     }
 }

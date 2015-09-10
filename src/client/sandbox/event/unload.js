@@ -1,9 +1,9 @@
 import SandboxBase from '../base';
-import * as Browser from '../../utils/browser';
-import NativeMethods from '../native-methods';
+import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
+import { isMozilla, isIE9, isIE10 } from '../../utils/browser';
 
-export default class Unload extends SandboxBase {
+export default class UnloadSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
@@ -37,7 +37,7 @@ export default class Unload extends SandboxBase {
                 // is an empty string it does not do it.
                 this.storedBeforeUnloadReturnValue = value;
 
-                this.prevented = Browser.isMozilla ? value !== '' : true;
+                this.prevented = isMozilla ? value !== '' : true;
             }
         }));
 
@@ -63,17 +63,17 @@ export default class Unload extends SandboxBase {
         listeners.setEventListenerWrapper(window, ['beforeunload'], () => this._onBeforeUnloadHandler);
         listeners.addInternalEventListener(window, ['unload'], () => this._emit(this.UNLOAD_EVENT));
 
-        NativeMethods.addEventListener.call(document, 'click', e => {
+        nativeMethods.addEventListener.call(document, 'click', e => {
             var target = e.target || e.srcElement;
 
-            if ((Browser.isIE9 || Browser.isIE10) && target.tagName && target.tagName.toLowerCase() === 'a') {
-                var href = NativeMethods.getAttribute.call(target, 'href');
+            if ((isIE9 || isIE10) && target.tagName && target.tagName.toLowerCase() === 'a') {
+                var href = nativeMethods.getAttribute.call(target, 'href');
 
                 this.isFakeIEBeforeUnloadEvent = /(^javascript:)|(^mailto:)|(^tel:)|(^#)/.test(href);
             }
         });
 
-        NativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
+        nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
 
         listeners.addInternalEventListener(window, ['beforeunload'], () =>
                 this._emit(this.BEFORE_BEFORE_UNLOAD_EVENT, {
@@ -84,8 +84,8 @@ export default class Unload extends SandboxBase {
         listeners.on(listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
             if (e.el === window && e.eventType === 'beforeunload') {
                 //NOTE: reattach listener and it'll be the last in the queue
-                NativeMethods.windowRemoveEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
-                NativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
+                nativeMethods.windowRemoveEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
+                nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
             }
         });
     }
@@ -98,8 +98,8 @@ export default class Unload extends SandboxBase {
             window.onbeforeunload = e => this._onBeforeUnloadHandler(e, value);
 
             //NOTE: reattach listener and it'll be the last in the queue
-            NativeMethods.windowRemoveEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
-            NativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
+            nativeMethods.windowRemoveEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
+            nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
         }
         else {
             this.storedBeforeUnloadHandler = null;
