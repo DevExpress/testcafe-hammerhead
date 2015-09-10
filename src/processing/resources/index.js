@@ -5,7 +5,6 @@ import pageProcessor from './page';
 import manifestProcessor from './manifest';
 import scriptProcessor from './script';
 import stylesheetProcessor from './stylesheet';
-import jsonProcessor from './json';
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, baseUrl) {
@@ -25,7 +24,7 @@ function getResourceUrlReplacer (ctx) {
 }
 
 export async function process (ctx, customCharset) {
-    var processors  = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor, jsonProcessor];
+    var processors  = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
     var body        = ctx.destResBody;
     var contentInfo = ctx.contentInfo;
     var encoding    = contentInfo.encoding;
