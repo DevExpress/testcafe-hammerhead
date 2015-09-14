@@ -6,7 +6,7 @@ export default class LocationWrapper {
         var resourceType   = window !== window.top ? UrlUtil.IFRAME : null;
         var getHref        = () => window.location.href ===
                                    'about:blank' ? 'about:blank' : UrlUtil.OriginLocation.get();
-        var getProxiedHref = href => UrlUtil.getProxyUrl(href, null, null, null, null, resourceType);
+        var getProxiedHref = href => UrlUtil.getProxyUrl(href, null, null, null, resourceType);
 
         Object.defineProperty(this, 'href', createPropertyDesc({
             get: getHref,
