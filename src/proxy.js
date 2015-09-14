@@ -9,7 +9,6 @@ import Router from './router';
 // Const
 const CLIENT_SCRIPT = read('./client/hammerhead.js');
 
-
 // Static
 function parseServiceMsg (body) {
     body = body.toString();
@@ -31,7 +30,6 @@ function createServerInfo (hostname, port, crossDomainPort) {
     };
 }
 
-
 // Proxy
 export default class Proxy extends Router {
     constructor (hostname, port1, port2) {
@@ -47,7 +45,25 @@ export default class Proxy extends Router {
         this.server1.listen(port1);
         this.server2.listen(port2);
 
+        this.sockets = [];
+
+        // BUG: https://github.com/superroma/testcafe-hammerhead/issues/89
+        this._startSocketsCollecting();
         this._registerServiceRoutes();
+    }
+
+    _closeSockets () {
+        this.sockets.forEach(socket => socket.destroy());
+    }
+
+    _startSocketsCollecting () {
+        var handler = socket => {
+            this.sockets.push(socket);
+            socket.on('close', () => this.sockets.splice(this.sockets.indexOf(socket), 1));
+        };
+
+        this.server1.on('connection', handler);
+        this.server2.on('connection', handler);
     }
 
     _registerServiceRoutes () {
@@ -110,6 +126,7 @@ export default class Proxy extends Router {
     close () {
         this.server1.close();
         this.server2.close();
+        this._closeSockets();
     }
 
     openSession (url, session) {
