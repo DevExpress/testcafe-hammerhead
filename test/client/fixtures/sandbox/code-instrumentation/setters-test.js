@@ -208,24 +208,28 @@ test('iframe', function () {
 });
 
 asyncTest('body.innerHTML in iframe', function () {
-    expect(2);
-
     $('<iframe>')
         .attr('src', window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html'))
         .appendTo(document.body)
         .load(function () {
-            var iframe         = this;
-            var iframeDocument = iframe.contentWindow.document;
+            var iframe           = this;
+            var haveShadowUIRoot = function () {
+                var root = iframe.contentDocument.body.children[0];
 
-            ok(NativeMethods.querySelector.call(iframeDocument, 'body [id^="root"]') !== null);
+                return root && root.id.indexOf('root-') === 0;
+            };
 
-            eval(processScript('iframeDocument.body.innerHTML = "";'));
+            ok(haveShadowUIRoot());
 
-            window.setTimeout(function () {
-                ok(NativeMethods.querySelector.call(iframeDocument, 'body [id^="root"]') !== null);
+            eval(processScript('iframe.contentDocument.body.innerHTML = "";'));
+
+            var id = window.setInterval(function () {
+                ok(haveShadowUIRoot());
                 iframe.parentNode.removeChild(iframe);
+                clearInterval(id);
                 start();
             }, 100);
+
         });
 });
 

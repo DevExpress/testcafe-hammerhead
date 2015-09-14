@@ -21,9 +21,10 @@ export default class XhrSandbox extends SandboxBase {
 
     //Barrier
     _proxyXhrMethods (xhr) {
-        var open  = xhr.open;
-        var send  = xhr.send;
-        var abort = xhr.abort;
+        var open       = xhr.open;
+        var send       = xhr.send;
+        var abort      = xhr.abort;
+        var xhrSandbox = this;
 
         xhr.abort = () => {
             abort.call(xhr);
@@ -34,15 +35,15 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         //NOTE: redirect all requests to TestCafe proxy and ensure that request don't violate Same Origin Policy
-        xhr.open = (method, url, async, user, password) => {
+        xhr.open = function (method, url, async, user, password) {
             if (url === Settings.get().SERVICE_MSG_URL)
-                xhr[this.SERVICE_MSG_REQUEST_FLAG] = true;
+                xhr[xhrSandbox.SERVICE_MSG_REQUEST_FLAG] = true;
             else {
                 try {
                     url = getProxyUrl(url);
                 }
                 catch (err) {
-                    this._emit(this.XHR_ERROR, {
+                    this._emit(xhrSandbox.XHR_ERROR, {
                         err: err,
                         xhr: xhr
                     });
@@ -59,13 +60,13 @@ export default class XhrSandbox extends SandboxBase {
                 open.call(xhr, method, url, async, user, password);
         };
 
-        xhr.send = () => {
-            if (!xhr[this.SERVICE_MSG_REQUEST_FLAG]) {
-                this._emit(this.XHR_SEND, { xhr: xhr });
+        xhr.send = function () {
+            if (!xhr[xhrSandbox.SERVICE_MSG_REQUEST_FLAG]) {
+                xhrSandbox._emit(xhrSandbox.XHR_SEND, { xhr: xhr });
 
                 var orscHandler = () => {
                     if (xhr.readyState === 4)
-                        this._emit(this.XHR_COMPLETED, { xhr: xhr });
+                        xhrSandbox._emit(xhrSandbox.XHR_COMPLETED, { xhr: xhr });
                 };
 
                 //NOTE: if we're in sync mode or it's in cache and has been retrieved directly (IE6 & IE7)
@@ -75,7 +76,7 @@ export default class XhrSandbox extends SandboxBase {
                 else {
                     //NOTE: get out of current execution tick and when proxy onreadystatechange.
                     //Because e.g. jQuery assigns handler after send() was called.
-                    NativeMethods.setTimeout.call(this.window, () => {
+                    NativeMethods.setTimeout.call(xhrSandbox.window, () => {
                         //NOTE: if state already changed we just call handler without onreadystatechange proxying
                         if (xhr.readyState === 4)
                             orscHandler();
@@ -94,16 +95,14 @@ export default class XhrSandbox extends SandboxBase {
                 }
             }
 
-            /*jshint bitwise: false*/
             //NOTE: add XHR request mark, so proxy can recognize it as XHR request.
             //Due to the fact that all requests are passed to the proxy we need to perform all Same Origin Policy
             //compliance checks on server side. So we pass CORS support flag as well to inform proxy that it can
             //analyze Access-Control_Allow_Origin flag and skip "preflight" requests.
             xhr.setRequestHeader(XHR_REQUEST_MARKER_HEADER,
-                (this.corsSupported ? XHR_CORS_SUPPORTED_FLAG : 0) |
+                (xhrSandbox.corsSupported ? XHR_CORS_SUPPORTED_FLAG : 0) |
                 (xhr.withCredentials ? XHR_WITH_CREDENTIALS_FLAG : 0)
             );
-            /*jshint bitwise: true*/
 
             send.apply(xhr, arguments);
         };
