@@ -20,6 +20,7 @@ function urlRewriteProxyRequest (req, res, next) {
         parsedUrl.slashes  = false;
         req.url            = Url.format(parsedUrl);
     }
+
     next();
 }
 
@@ -43,6 +44,14 @@ module.exports = function (app) {
 
         setTimeout(function () {
             res.send(delay);
+        }, delay);
+    });
+
+    app.get('/xhr-test/:delay', function (req, res) {
+        var delay = req.params.delay || 0;
+
+        setTimeout(function () {
+            res.send({});
         }, delay);
     });
 };
