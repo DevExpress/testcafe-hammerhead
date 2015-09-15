@@ -6,7 +6,6 @@ import NativeMethods from '../native-methods';
 import DomProcessor from '../../dom-processor/dom-processor';
 import ScriptProcessor from '../../../processing/script';
 import { isPageHtml, processHtml } from '../../utils/html';
-import { onBodyElementMutation } from '../shadow-ui';
 import { waitCookieMsg } from '../../transport';
 import UrlUtil from '../../utils/url';
 
@@ -291,7 +290,7 @@ export default class ElementSandbox extends SandboxBase {
                     this.onIFrameAddedToDOM(iframes[i]);
             }
             else if (el.tagName && el.tagName.toLowerCase() === 'body')
-                onBodyElementMutation();
+                this.sandbox.shadowUI.onBodyElementMutation();
         }
 
         if (DOM.isDomElement(el)) {
@@ -304,7 +303,7 @@ export default class ElementSandbox extends SandboxBase {
 
     onElementRemoved (el) {
         if (el.nodeType === 1 && el.tagName && el.tagName.toLowerCase() === 'body')
-            onBodyElementMutation();
+            this.sandbox.shadowUI.onBodyElementMutation();
     }
 
     getIframes (el) {
