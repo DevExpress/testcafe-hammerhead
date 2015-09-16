@@ -5,5 +5,5 @@ import jsProcessor from './processing/js';
 export default {
     Proxy:            Proxy,
     Session:          Session,
-    wrapDomAccessors: jsProcessor.process
+    wrapDomAccessors: (code, beautify) => jsProcessor.process(code, beautify)
 };
