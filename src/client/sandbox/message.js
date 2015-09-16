@@ -199,11 +199,11 @@ export default class MessageSandbox extends SandboxBase {
 
             this.pingCallback = null;
             this.pingCmd      = null;
-            this.pingInterval = null;
-            this.pingTimeout  = null;
+            pingInterval = null;
+            pingTimeout  = null;
         };
 
-        this.pingTimeout = NativeMethods.setTimeout.call(this.window, () => {
+        pingTimeout = NativeMethods.setTimeout.call(this.window, () => {
             cleanTimeouts();
             callback(true);
         }, shortWaiting ? this.PING_IFRAME_MIN_TIMEOUT : this.PING_IFRAME_TIMEOUT);
