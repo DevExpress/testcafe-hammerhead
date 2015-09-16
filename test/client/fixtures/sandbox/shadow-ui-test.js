@@ -69,6 +69,33 @@ test('get root', function () {
     root.parentNode.removeChild(root);
 });
 
+asyncTest('get root after body recreation', function () {
+    $('<iframe id="test_unique_lsjisujf" />')
+        .load(function () {
+            var document = this.contentDocument;
+            var window   = this.contentWindow;
+            var getRoot  = function () {
+                return window.Hammerhead.ShadowUI.getRoot();
+            };
+
+            ok(getRoot());
+
+            var html = document.documentElement;
+
+            html.removeChild(document.body);
+            html.appendChild(document.createElement('body'));
+            ok(getRoot());
+
+            html.removeChild(document.body);
+            html.insertBefore(document.createElement('body'), null);
+            ok(getRoot());
+
+            $(this).remove();
+            start();
+        })
+        .appendTo('body');
+});
+
 module('childNodes');
 
 test('body.childNodes', function () {

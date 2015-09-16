@@ -236,7 +236,7 @@ export default class ShadowUI extends SandboxBase {
     //There were an issue then document.body was replaced, so we need to reattach UI to new body manually
     onBodyElementMutation () {
         if (this.root) {
-            if (this.root.parentNode !== this.document.body) {
+            if (this.document.body && this.root.parentNode !== this.document.body) {
                 this.overrideElement(this.document.body);
                 this.document.body.appendChild(this.root);
             }
