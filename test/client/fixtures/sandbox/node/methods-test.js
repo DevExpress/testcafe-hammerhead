@@ -233,13 +233,15 @@ if (!Browser.isMozilla) {
             'iframe.contentDocument.write("<script>window.test = true;<\/script>");'
         ].join('')));
 
-        window.setTimeout(function () {
-            ok(iframe.contentWindow.test);
-            ok(iframe.contentDocument.getElementById('div1'));
-
-            $iframe.remove();
-            start();
+        var intervalId = window.setInterval(function () {
+            if (iframe.contentWindow.test && iframe.contentDocument.getElementById('div1')) {
+                ok(true);
+                $iframe.remove();
+                clearInterval(intervalId);
+                start();
+            }
         }, 100);
+
     });
 }
 
