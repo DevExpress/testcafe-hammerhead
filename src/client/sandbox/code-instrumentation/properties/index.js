@@ -314,7 +314,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: doc => {
                     var proxyUrl = UrlUtil.parseProxyUrl(doc.referrer);
 
-                    return proxyUrl ? proxyUrl.originResourceInfo.originUrl : '';
+                    return proxyUrl ? proxyUrl.originUrl : '';
                 },
 
                 set: (doc, value) => {

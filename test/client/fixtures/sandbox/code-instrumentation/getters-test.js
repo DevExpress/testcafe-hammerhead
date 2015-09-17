@@ -116,6 +116,18 @@ test('document.URL', function () {
     strictEqual(url, UrlUtil.OriginLocation.get());
 });
 
+test('document.referrer', function () {
+    var url          = 'http://google.com/index.html';
+    var documentMock = {
+        referrer: UrlUtil.getProxyUrl(url),
+        toString: function () {
+            return '[object HTMLDocument]';
+        }
+    };
+
+    strictEqual(getProperty(documentMock, 'referrer'), url);
+});
+
 if (Browser.isWebKit) {
     test('url in stylesheet properties', function () {
         var el       = document.createElement('div');
