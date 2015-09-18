@@ -1,6 +1,6 @@
 var Promise = Hammerhead.get('es6-promise').Promise;
 
-var activeWindowTracker = Hammerhead.sandbox.activeWindowTracker;
+var activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var iframeSandbox       = Hammerhead.sandbox.iframe;
 
 function nextTick () {
@@ -10,12 +10,12 @@ function nextTick () {
 }
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
 asyncTest('check changing active window', function () {

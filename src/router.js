@@ -1,11 +1,9 @@
-import { getPathname } from './utils/url';
 import hash from './utils/hash';
+import { getPathname } from './utils/url';
 import { respondStatic } from './utils/http';
-
 
 // Const
 const PARAM_RE = /^{(\S+)}$/;
-
 
 // Static
 function buildRouteParamsMap (routeMatch, paramNames) {
@@ -46,7 +44,7 @@ export default class Router {
 
     _registerRouteWithParams (tokens, method, handler) {
         var paramNames = [];
-        var reParts = tokens.map((token) => {
+        var reParts    = tokens.map((token) => {
             var paramMatch = token.match(PARAM_RE);
 
             if (paramMatch) {

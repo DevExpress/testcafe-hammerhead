@@ -1,20 +1,20 @@
 export const BUTTON = {
-    LEFT:   0,
-    MIDDLE: 1,
-    RIGHT:  2
+    left:   0,
+    middle: 1,
+    right:  2
 };
 
 export const BUTTONS_PARAMETER = {
-    NO_BUTTON:    0,
-    LEFT_BUTTON:  1,
-    RIGHT_BUTTON: 2
+    noButton:    0,
+    leftButton:  1,
+    rightButton: 2
 };
 
 export const WHICH_PARAMETER = {
-    NO_BUTTON:     0,
-    LEFT_BUTTON:   1,
-    MIDDLE_BUTTON: 2,
-    RIGHT_BUTTON:  3
+    noButton:     0,
+    leftButton:   1,
+    middleButton: 2,
+    rightButton:  3
 };
 
 export const DOM_EVENTS = ['click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover',

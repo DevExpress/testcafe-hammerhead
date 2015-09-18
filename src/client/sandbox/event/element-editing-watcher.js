@@ -1,65 +1,65 @@
-import * as DOM from '../../utils/dom';
-import * as EventSimulator from './simulator';
-import NativeMethods from '../native-methods';
-import Const from '../../../const';
+import nativeMethods from '../native-methods';
+import { PROPERTY_PREFIX } from '../../../const';
+import { isTextEditableElementAndEditingAllowed, isShadowUIElement } from '../../utils/dom';
 
-const ELEMENT_EDITING_OBSERVED_FLAG = Const.PROPERTY_PREFIX + 'elementEditingObserved';
-const OLD_VALUE_PROPERTY            = Const.PROPERTY_PREFIX + 'oldValue';
+const ELEMENT_EDITING_OBSERVED_FLAG = PROPERTY_PREFIX + 'elementEditingObserved';
+const OLD_VALUE_PROPERTY            = PROPERTY_PREFIX + 'oldValue';
 
-function onBlur (e) {
-    var target = e.target || e.srcElement;
-
-    if (!checkElementChanged(target))
-        stopWatching(target);
-}
-
-function onChange (e) {
-    stopWatching(e.target || e.srcElement);
-}
-
-function watchElement (element) {
-    if (element && !element[ELEMENT_EDITING_OBSERVED_FLAG] &&
-        DOM.isTextEditableElementAndEditingAllowed(element) && !DOM.isShadowUIElement(element)) {
-
-        element[ELEMENT_EDITING_OBSERVED_FLAG] = true;
-        element[OLD_VALUE_PROPERTY]            = element.value;
-
-
-        NativeMethods.addEventListener.call(element, 'blur', onBlur);
-        NativeMethods.addEventListener.call(element, 'change', onChange);
-    }
-}
-
-function restartWatching (element) {
-    if (element && element[ELEMENT_EDITING_OBSERVED_FLAG])
-        element[OLD_VALUE_PROPERTY] = element.value;
-}
-
-function checkElementChanged (element) {
-    if (element && element[ELEMENT_EDITING_OBSERVED_FLAG] && element.value !== element[OLD_VALUE_PROPERTY]) {
-        EventSimulator.change(element);
-        restartWatching(element);
-
-        return true;
+export default class ElementEditingWatcher {
+    constructor (eventSimulator) {
+        this.eventSimulator = eventSimulator;
     }
 
-    return false;
-}
+    _onBlur (e) {
+        var target = e.target || e.srcElement;
 
-export function stopWatching (element) {
-    if (element) {
+        if (!this.processElementChanging(target))
+            this.stopWatching(target);
+    }
 
-        NativeMethods.removeEventListener.call(element, 'blur', onBlur);
-        NativeMethods.removeEventListener.call(element, 'change', onChange);
+    _onChange (e) {
+        this.stopWatching(e.target || e.srcElement);
+    }
 
-        if (element[ELEMENT_EDITING_OBSERVED_FLAG])
-            delete element[ELEMENT_EDITING_OBSERVED_FLAG];
+    stopWatching (el) {
+        if (el) {
+            nativeMethods.removeEventListener.call(el, 'blur', e => this._onBlur(e));
+            nativeMethods.removeEventListener.call(el, 'change', e => this._onChange(e));
 
-        if (element[OLD_VALUE_PROPERTY])
-            delete element[OLD_VALUE_PROPERTY];
+            if (el[ELEMENT_EDITING_OBSERVED_FLAG])
+                delete el[ELEMENT_EDITING_OBSERVED_FLAG];
+
+            if (el[OLD_VALUE_PROPERTY])
+                delete el[OLD_VALUE_PROPERTY];
+        }
+    }
+
+    watchElementEditing (el) {
+        if (el && !el[ELEMENT_EDITING_OBSERVED_FLAG] &&
+            isTextEditableElementAndEditingAllowed(el) && !isShadowUIElement(el)) {
+
+            el[ELEMENT_EDITING_OBSERVED_FLAG] = true;
+            el[OLD_VALUE_PROPERTY]            = el.value;
+
+
+            nativeMethods.addEventListener.call(el, 'blur', e => this._onBlur(e));
+            nativeMethods.addEventListener.call(el, 'change', e => this._onChange(e));
+        }
+    }
+
+    restartWatchingElementEditing (el) {
+        if (el && el[ELEMENT_EDITING_OBSERVED_FLAG])
+            el[OLD_VALUE_PROPERTY] = el.value;
+    }
+
+    processElementChanging (el) {
+        if (el && el[ELEMENT_EDITING_OBSERVED_FLAG] && el.value !== el[OLD_VALUE_PROPERTY]) {
+            this.eventSimulator.change(el);
+            this.restartWatchingElementEditing(el);
+
+            return true;
+        }
+
+        return false;
     }
 }
-
-export var watchElementEditing           = watchElement;
-export var restartWatchingElementEditing = restartWatching;
-export var processElementChanging        = checkElementChanged;

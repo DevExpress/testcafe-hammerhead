@@ -1,7 +1,7 @@
 import SandboxBase from '../base';
-import JSProcessor from '../../../processing/js/index';
-import NativeMethods from '../native-methods';
-import * as Html from '../../utils/html';
+import jsProcessor from '../../../processing/js/index';
+import nativeMethods from '../native-methods';
+import * as htmlUtils from '../../utils/html';
 import { isMozilla, isIE } from '../../utils/browser';
 import { isIframeWithoutSrc } from '../../utils/url';
 
@@ -9,9 +9,9 @@ export default class DocumentSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BEFORE_DOCUMENT_CLEANED = 'beforeDocumentCleaned';
-        this.DOCUMENT_CLOSED         = 'documentClosed';
-        this.DOCUMENT_CLEANED        = 'documentCleaned';
+        this.BEFORE_DOCUMENT_CLEANED_EVENT = 'beforeDocumentCleaned';
+        this.DOCUMENT_CLOSED_EVENT         = 'documentClosed';
+        this.DOCUMENT_CLEANED_EVENT        = 'documentCleaned';
 
         this.storedDocumentWriteContent = '';
         this.writeBlockCounter          = 0;
@@ -28,14 +28,14 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _beforeDocumentCleaned () {
-        this._emit(this.BEFORE_DOCUMENT_CLEANED, {
+        this._emit(this.BEFORE_DOCUMENT_CLEANED_EVENT, {
             document:           this.document,
             isIFrameWithoutSrc: isIFrameWithoutSrc
         });
     }
 
     _onDocumentClosed () {
-        this._emit(this.DOCUMENT_CLOSED, {
+        this._emit(this.DOCUMENT_CLOSED_EVENT, {
             document:           this.document,
             isIFrameWithoutSrc: isIFrameWithoutSrc
         });
@@ -46,8 +46,8 @@ export default class DocumentSandbox extends SandboxBase {
 
         var separator = ln ? '\n' : '';
         var lastArg   = args.length ? args[args.length - 1] : '';
-        var isBegin   = lastArg === JSProcessor.DOCUMENT_WRITE_BEGIN_PARAM;
-        var isEnd     = lastArg === JSProcessor.DOCUMENT_WRITE_END_PARAM;
+        var isBegin   = lastArg === jsProcessor.DOCUMENT_WRITE_BEGIN_PARAM;
+        var isEnd     = lastArg === jsProcessor.DOCUMENT_WRITE_END_PARAM;
 
         if (isBegin)
             this.writeBlockCounter++;
@@ -61,8 +61,8 @@ export default class DocumentSandbox extends SandboxBase {
 
         var needWriteOnEndMarker = isEnd && !this.writeBlockCounter;
 
-        if (needWriteOnEndMarker || Html.isPageHtml(str) ||
-            Html.isWellFormattedHtml(str) && !this.storedDocumentWriteContent) {
+        if (needWriteOnEndMarker || htmlUtils.isPageHtml(str) ||
+            htmlUtils.isWellFormattedHtml(str) && !this.storedDocumentWriteContent) {
             this.writeBlockCounter          = 0;
             str                             = this.storedDocumentWriteContent + str;
             this.storedDocumentWriteContent = '';
@@ -75,19 +75,19 @@ export default class DocumentSandbox extends SandboxBase {
 
         var isUninitializedIframe = this._isUninitializedIframeWithoutSrc(this.window);
 
-        str = Html.processHtml('' + str);
+        str = htmlUtils.processHtml('' + str);
 
         if (!isUninitializedIframe)
             this._beforeDocumentCleaned();
 
         // FireFox, IE recreate window instance during the document.write function execution T213930
-        if ((isMozilla || isIE) && !Html.isPageHtml(str))
-            str = Html.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + str;
+        if ((isMozilla || isIE) && !htmlUtils.isPageHtml(str))
+            str = htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + str;
 
-        var result = NativeMethods.documentWrite.call(this.document, str);
+        var result = nativeMethods.documentWrite.call(this.document, str);
 
         if (!isUninitializedIframe) {
-            this._emit(this.DOCUMENT_CLEANED, { window: this.window, document: this.document });
+            this._emit(this.DOCUMENT_CLEANED_EVENT, { window: this.window, document: this.document });
             this.sandbox.node.overrideDomMethods(null, this.document); // B234357
         }
 
@@ -105,10 +105,10 @@ export default class DocumentSandbox extends SandboxBase {
             if (!isUninitializedIframe)
                 this._beforeDocumentCleaned();
 
-            var result = NativeMethods.documentOpen.call(document);
+            var result = nativeMethods.documentOpen.call(document);
 
             if (!isUninitializedIframe)
-                this._emit(this.DOCUMENT_CLEANED, { window: window, document: document });
+                this._emit(this.DOCUMENT_CLEANED_EVENT, { window: window, document: document });
             else
             // If iframe initialization in progress, we should once again override document.write and document.open meths
             // because they were cleaned after native document.open meth calling
@@ -122,9 +122,9 @@ export default class DocumentSandbox extends SandboxBase {
             // We should restore overrided document.open and document.write meths before Hammerhead injection
             // if window not initialized
             if (isIE && !this.sandbox.iframe.isWindowInited(window))
-                NativeMethods.restoreNativeDocumentMeth(document);
+                nativeMethods.restoreNativeDocumentMeth(document);
 
-            var result = NativeMethods.documentClose.call(document);
+            var result = nativeMethods.documentClose.call(document);
 
             if (!this._isUninitializedIframeWithoutSrc(window))
                 this._onDocumentClosed();
@@ -133,7 +133,7 @@ export default class DocumentSandbox extends SandboxBase {
         };
 
         document.createElement = tagName => {
-            var el = NativeMethods.createElement.call(document, tagName);
+            var el = nativeMethods.createElement.call(document, tagName);
 
             this.sandbox.node.overrideDomMethods(el);
 
@@ -141,7 +141,7 @@ export default class DocumentSandbox extends SandboxBase {
         };
 
         document.createElementNS = (ns, tagName) => {
-            var el = NativeMethods.createElementNS.call(document, ns, tagName);
+            var el = nativeMethods.createElementNS.call(document, ns, tagName);
 
             this.sandbox.node.overrideDomMethods(el);
 
@@ -157,7 +157,7 @@ export default class DocumentSandbox extends SandboxBase {
         };
 
         document.createDocumentFragment = function () {
-            var fragment = NativeMethods.createDocumentFragment.apply(document, arguments);
+            var fragment = nativeMethods.createDocumentFragment.apply(document, arguments);
 
             documentSandbox.sandbox.node.overrideDomMethods(fragment);
 

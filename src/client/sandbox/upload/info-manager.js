@@ -1,18 +1,18 @@
 /*global atob, Blob, FileReader*/
+import COMMAND from '../../../command';
+import FileListWrapper from './file-list-wrapper';
+import nativeMethods from '../native-methods';
+import transport from '../../transport';
+import settings from '../../settings';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
-import NativeMethods from '../native-methods';
-import ServiceCommands from '../../../service-msg-cmd';
 import { SHADOW_UI_CLASSNAME_POSTFIX } from '../../../const';
-import Transport from '../../transport';
-import Settings from '../../settings';
-import FileListWrapper from './file-list-wrapper';
+
+const FAKE_PATH_STRING         = 'C:\\fakepath\\';
+const UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIFrameForIE9' + SHADOW_UI_CLASSNAME_POSTFIX;
 
 export default class UploadInfoManager {
     constructor () {
-        this.FAKE_PATH_STRING         = 'C:\\fakepath\\';
-        this.UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIFrameForIE9' + SHADOW_UI_CLASSNAME_POSTFIX;
-
         this.uploadInfo = [];
     }
 
@@ -26,16 +26,16 @@ export default class UploadInfoManager {
     }
 
     _getUploadIFrameForIE9 () {
-        var uploadIFrame = NativeMethods.querySelector.call(document, '#' + this.UPLOAD_IFRAME_FOR_IE9_ID);
+        var uploadIFrame = nativeMethods.querySelector.call(document, '#' + UPLOAD_IFRAME_FOR_IE9_ID);
 
         if (!uploadIFrame) {
-            uploadIFrame               = NativeMethods.createElement.call(document, 'iframe');
+            uploadIFrame               = nativeMethods.createElement.call(document, 'iframe');
 
-            NativeMethods.setAttribute.call(uploadIFrame, 'id', this.UPLOAD_IFRAME_FOR_IE9_ID);
-            NativeMethods.setAttribute.call(uploadIFrame, 'name', this.UPLOAD_IFRAME_FOR_IE9_ID);
+            nativeMethods.setAttribute.call(uploadIFrame, 'id', UPLOAD_IFRAME_FOR_IE9_ID);
+            nativeMethods.setAttribute.call(uploadIFrame, 'name', UPLOAD_IFRAME_FOR_IE9_ID);
             uploadIFrame.style.display = 'none';
 
-            NativeMethods.querySelector.call(document, '#root' + SHADOW_UI_CLASSNAME_POSTFIX).appendChild(uploadIFrame);
+            nativeMethods.querySelector.call(document, '#root' + SHADOW_UI_CLASSNAME_POSTFIX).appendChild(uploadIFrame);
         }
 
         return uploadIFrame;
@@ -59,9 +59,9 @@ export default class UploadInfoManager {
 
             uploadIFrame.addEventListener('load', loadHandler);
 
-            form.action = Settings.get().IE9_FILE_READER_SHIM_URL + '?input-name=' + input.name + '&filename=' +
+            form.action = settings.get().ie9FileReaderShimUrl + '?input-name=' + input.name + '&filename=' +
                           input.value;
-            form.target = this.UPLOAD_IFRAME_FOR_IE9_ID;
+            form.target = UPLOAD_IFRAME_FOR_IE9_ID;
             form.method = 'post';
 
             form.submit();
@@ -92,12 +92,12 @@ export default class UploadInfoManager {
 
         if (fileNames && fileNames.length) {
             if (Browser.isWebKit)
-                value = this.FAKE_PATH_STRING + fileNames[0].split('/').pop();
+                value = FAKE_PATH_STRING + fileNames[0].split('/').pop();
             else if (Browser.isIE9 || Browser.isIE10) {
                 var filePaths = [];
 
                 for (var i = 0; i < fileNames.length; i++)
-                    filePaths.push(this.FAKE_PATH_STRING + fileNames[i].split('/').pop());
+                    filePaths.push(FAKE_PATH_STRING + fileNames[i].split('/').pop());
 
                 value = filePaths.join(', ');
             }
@@ -148,10 +148,10 @@ export default class UploadInfoManager {
         else if (!fileList.length)
             callback(new FileListWrapper([]));
         else {
-            var index           = 0;
-            var fileReader      = new FileReader();
-            var file            = fileList[index];
-            var readedFiles     = [];
+            var index       = 0;
+            var fileReader  = new FileReader();
+            var file        = fileList[index];
+            var readedFiles = [];
 
             fileReader.addEventListener('load', e => {
                 readedFiles.push({
@@ -176,8 +176,8 @@ export default class UploadInfoManager {
     }
 
     loadFilesInfoFromServer (filePaths, callback) {
-        Transport.asyncServiceMsg({
-            cmd:       ServiceCommands.GET_UPLOADED_FILES,
+        transport.asyncServiceMsg({
+            cmd:       COMMAND.getUploadedFiles,
             filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
         }, callback);
     }
@@ -211,8 +211,8 @@ export default class UploadInfoManager {
     }
 
     sendFilesInfoToServer (fileList, fileNames, callback) {
-        Transport.asyncServiceMsg({
-            cmd:       ServiceCommands.UPLOAD_FILES,
+        transport.asyncServiceMsg({
+            cmd:       COMMAND.uploadFiles,
             data:      this._getFileListData(fileList),
             fileNames: fileNames
         }, callback);

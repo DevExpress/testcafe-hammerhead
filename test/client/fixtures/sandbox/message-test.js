@@ -6,20 +6,20 @@ var iframeSandbox = Hammerhead.sandbox.iframe;
 var messageSandbox = Hammerhead.sandbox.message;
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
 asyncTest('onmessage event', function () {
     var $iframe               = $('<iframe>');
-    var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
+    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
     var count                 = 0;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
+    Settings.get().crossDomainProxyPort = 2001;
 
     $iframe[0].src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
     $iframe.appendTo('body');
@@ -33,7 +33,7 @@ asyncTest('onmessage event', function () {
         count++;
 
         if (count === 2) {
-            Settings.get().CROSS_DOMAIN_PROXY_PORT = storedCrossDomainPort;
+            Settings.get().crossDomainProxyPort = storedCrossDomainPort;
             $iframe.remove();
             window.removeEventListener('message', onMessageHandler);
             start();
@@ -149,10 +149,10 @@ asyncTest('cloning arguments', function () {
 
 asyncTest('crossdomain', function () {
     var iframe                = document.createElement('iframe');
-    var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
+    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
     var serviceMsgReceived    = false;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
+    Settings.get().crossDomainProxyPort = 2001;
 
     var serviceMsgHandler = function () {
         serviceMsgReceived = true;
@@ -166,7 +166,7 @@ asyncTest('crossdomain', function () {
         window.setTimeout(function () {
             ok(serviceMsgReceived);
 
-            Settings.get().CROSS_DOMAIN_PROXY_PORT = storedCrossDomainPort;
+            Settings.get().crossDomainProxyPort = storedCrossDomainPort;
             iframe.parentNode.removeChild(iframe);
             messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
             start();
@@ -178,10 +178,10 @@ asyncTest('crossdomain', function () {
 
 asyncTest('service message handler should not call other handlers', function () {
     var iframe                = document.createElement('iframe');
-    var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
+    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
     var windowHandlerExecuted = false;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
+    Settings.get().crossDomainProxyPort = 2001;
 
     var windowMessageHandler = function () {
         windowHandlerExecuted = true;
@@ -192,7 +192,7 @@ asyncTest('service message handler should not call other handlers', function () 
             ok(!windowHandlerExecuted);
             strictEqual(evt.message, 'successfully');
 
-            Settings.get().CROSS_DOMAIN_PROXY_PORT = storedCrossDomainPort;
+            Settings.get().crossDomainProxyPort = storedCrossDomainPort;
             iframe.parentNode.removeChild(iframe);
 
             window.removeEventListener('message', windowMessageHandler);

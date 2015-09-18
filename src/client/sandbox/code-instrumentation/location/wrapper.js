@@ -1,12 +1,12 @@
-import UrlUtil from '../../../utils/url';
+import urlUtils from '../../../utils/url';
 import createPropertyDesc from '../../../utils/create-property-desc';
 
 export default class LocationWrapper {
     constructor (window) {
-        var resourceType   = window !== window.top ? UrlUtil.IFRAME : null;
+        var resourceType   = window !== window.top ? urlUtils.IFRAME : null;
         var getHref        = () => window.location.href ===
-                                   'about:blank' ? 'about:blank' : UrlUtil.OriginLocation.get();
-        var getProxiedHref = href => UrlUtil.getProxyUrl(href, null, null, null, resourceType);
+                                   'about:blank' ? 'about:blank' : urlUtils.OriginLocation.get();
+        var getProxiedHref = href => urlUtils.getProxyUrl(href, null, null, null, resourceType);
 
         Object.defineProperty(this, 'href', createPropertyDesc({
             get: getHref,
@@ -20,7 +20,7 @@ export default class LocationWrapper {
         Object.defineProperty(this, 'search', createPropertyDesc({
             get: () => window.location.search,
             set: search => {
-                window.location = UrlUtil.changeOriginUrlPart(window.location.toString(), 'search', search, resourceType);
+                window.location = urlUtils.changeOriginUrlPart(window.location.toString(), 'search', search, resourceType);
 
                 return search;
             }
@@ -28,7 +28,7 @@ export default class LocationWrapper {
 
         Object.defineProperty(this, 'origin', createPropertyDesc({
             get: () => {
-                var parsedOriginLocation = UrlUtil.OriginLocation.getParsed();
+                var parsedOriginLocation = urlUtils.OriginLocation.getParsed();
 
                 return parsedOriginLocation.protocol + '//' + parsedOriginLocation.host;
             },
@@ -42,9 +42,9 @@ export default class LocationWrapper {
 
         ['port', 'host', 'hostname', 'pathname', 'protocol'].forEach(prop => {
             Object.defineProperty(this, prop, createPropertyDesc({
-                get: () => UrlUtil.OriginLocation.getParsed()[prop],
+                get: () => urlUtils.OriginLocation.getParsed()[prop],
                 set: value => {
-                    window.location = UrlUtil.changeOriginUrlPart(window.location.toString(), prop, value, resourceType);
+                    window.location = urlUtils.changeOriginUrlPart(window.location.toString(), prop, value, resourceType);
 
                     return value;
                 }

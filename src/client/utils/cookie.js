@@ -1,8 +1,8 @@
 import trim from '../../utils/string-trim';
 
 //NOTE: The name/key cannot be empty but the value can
-var COOKIE_PAIR_REGEX        = /^([^=;]+)\s*=\s*(("?)[^\n\r\0]*\3)/;
-var TRAILING_SEMICOLON_REGEX = /;+$/;
+const COOKIE_PAIR_REGEX        = /^([^=;]+)\s*=\s*(("?)[^\n\r\0]*\3)/;
+const TRAILING_SEMICOLON_REGEX = /;+$/;
 
 
 //Exports

@@ -7,18 +7,15 @@
 </head>
 <body>
 <script type="text/javascript">
-    var urlUtil = Hammerhead.get('./utils/url');
-
-    Hammerhead.get('./settings').set({
-        CROSS_DOMAIN_PROXY_PORT: 2000
-    });
-
-    urlUtil.OriginLocation.get = function () {
+    Hammerhead.get('./utils/url').OriginLocation.get = function () {
         return 'https://example.com';
     };
 
-    Hammerhead.init();
-    window.activeWindowTracker = Hammerhead.sandbox.activeWindowTracker;
+    Hammerhead.start({
+        crossDomainProxyPort: 2000
+    });
+
+    window.activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 </script>
 <div></div>
 </body>

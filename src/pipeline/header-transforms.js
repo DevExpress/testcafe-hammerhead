@@ -1,12 +1,11 @@
-import { parse as parseUrl, resolve as resolveUrl } from 'url';
-import Const from '../const';
 import * as urlUtils from '../utils/url';
+import { XHR_REQUEST_MARKER_HEADER } from '../const';
+import { parse as parseUrl, resolve as resolveUrl } from 'url';
 
 // Skipping transform
 function skip () {
     return void 0;
 }
-
 
 // Request headers
 var requestTransforms = {
@@ -16,7 +15,7 @@ var requestTransforms = {
     'content-length': (src, ctx) => ctx.reqBody.length,
     'cookie':         skip,
 
-    [Const.XHR_REQUEST_MARKER_HEADER]: skip
+    [XHR_REQUEST_MARKER_HEADER]: skip
 };
 
 var requestForced = {

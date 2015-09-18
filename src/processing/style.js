@@ -3,9 +3,9 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import Const from '../const';
+import { IS_STYLESHEET_PROCESSED_COMMENT, HOVER_PSEUDO_CLASS_ATTR } from '../const';
 
-const IS_STYLESHEET_PROCESSED_REG_EX = new RegExp('^\\s*' + Const.IS_STYLESHEET_PROCESSED_COMMENT
+const IS_STYLESHEET_PROCESSED_REG_EX = new RegExp('^\\s*' + IS_STYLESHEET_PROCESSED_COMMENT
         .replace(/\/|\*/g, '\\$&'));
 
 const SOURCE_MAP_REG_EX              = /#\s*sourceMappingURL\s*=\s*[^\s]+(\s|\*\/)/i;
@@ -16,10 +16,10 @@ class StyleProcessor {
         var isStylesheetProcessed = IS_STYLESHEET_PROCESSED_REG_EX.test(css);
 
         if (typeof css === 'string' && !isStylesheetProcessed) {
-            var prefix = isStylesheetTable ? Const.IS_STYLESHEET_PROCESSED_COMMENT + '\n' : '';
+            var prefix = isStylesheetTable ? IS_STYLESHEET_PROCESSED_COMMENT + '\n' : '';
 
             // Replace :hover pseudo class
-            css = css.replace(/\s*:\s*hover(\W)/gi, '[' + Const.HOVER_PSEUDO_CLASS_ATTR + ']$1');
+            css = css.replace(/\s*:\s*hover(\W)/gi, '[' + HOVER_PSEUDO_CLASS_ATTR + ']$1');
 
             // Remove source map directive
             css = css.replace(SOURCE_MAP_REG_EX, '$1');
@@ -33,7 +33,7 @@ class StyleProcessor {
 
     cleanUp (css, parseProxyUrl, formatUrl) {
         if (typeof css === 'string') {
-            css = css.replace(new RegExp('\\[' + Const.HOVER_PSEUDO_CLASS_ATTR + '\\](\\W)', 'ig'), ':hover$1');
+            css = css.replace(new RegExp('\\[' + HOVER_PSEUDO_CLASS_ATTR + '\\](\\W)', 'ig'), ':hover$1');
 
             return this._replaceStylsheetUrls(css, function (url) {
                 var originUrlObj = parseProxyUrl(url);

@@ -9,19 +9,15 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./settings').set({
-        CROSS_DOMAIN_PROXY_PORT : 2000
-    });
-
-    var UrlUtil = Hammerhead.get('./utils/url');
-
-    UrlUtil.OriginLocation.get = function () {
+    Hammerhead.get('./utils/url').OriginLocation.get = function () {
         return 'http://origin_iframe_host';
     };
 
     var messageSandbox = Hammerhead.MessageSandbox;
 
-    Hammerhead.init();
+    Hammerhead.start({
+        crossDomainProxyPort: 2000
+    });
 
     var serviceMsgHandler = function (evt) {
         messageSandbox.sendServiceMsg('', window.top);

@@ -1,14 +1,14 @@
-import NativeMethods from '../sandbox/native-methods';
-import * as DOM from './dom';
-import DomProcessor from '../dom-processor/dom-processor';
-import ScriptProcessor from '../../processing/script';
-import * as Const from '../../const';
-import UrlUtil from '../utils/url';
+import CONST from '../../const';
+import nativeMethods from '../sandbox/native-methods';
+import domProcessor from '../dom-processor/dom-processor';
+import scriptProcessor from '../../processing/script';
+import { find } from './dom';
+import { convertToProxyUrl } from '../utils/url';
 
 const TEXT_NODE_COMMENT_MARKER = '16c959db8754';
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE =
-    '<script class="' + Const.SHADOW_UI_SCRIPT_CLASSNAME + '" type="text/javascript">' +
+    '<script class="' + CONST.SHADOW_UI_SCRIPT_CLASSNAME + '" type="text/javascript">' +
     'var parentHammerhead = null;' +
     'try {' +
     '   parentHammerhead = window.parent.Hammerhead;' +
@@ -21,7 +21,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE =
 var htmlDocument = document.implementation.createHTMLDocument('title');
 var htmlParser   = htmlDocument.createDocumentFragment();
 
-DomProcessor.on(DomProcessor.HTML_PROCESSING_REQUIRED, function (html, callback) {
+domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED, (html, callback) => {
     if (!isPageHtml(html))
         html = '<html><body>' + html + '</body></html>';
 
@@ -95,7 +95,7 @@ function wrapTextNodes (html) {
     var textNodeRegEx = /(<\s*(table|tbody|\/tbody|\/tfoot|\/thead|\/tr|tfoot|thead|tr|\/td)[^>]*>)(\s*[^<\s]+[^<]*)(?=<)/ig;
     var index         = 0;
 
-    return html.replace(textNodeRegEx, function (str, p1, p2, p3) {
+    return html.replace(textNodeRegEx, (str, p1, p2, p3) => {
         var marker = TEXT_NODE_COMMENT_MARKER + (index++).toString();
 
         return p1 + '<!--' + marker + p3 + marker + '-->';
@@ -120,7 +120,7 @@ function processHtmlInternal (html, parentTag, process) {
     var container = getHtmlDocument().createElement('div');
 
     htmlParser.innerHTML = '';
-    NativeMethods.appendChild.call(htmlParser, container);
+    nativeMethods.appendChild.call(htmlParser, container);
 
     parentTag = parentTag ? parentTag.toLowerCase() : '';
 
@@ -158,14 +158,14 @@ export function cleanUpHtml (html, parentTag) {
         var changed = false;
 
         /*eslint-disable no-loop-func */
-        for (var i = 0; i < DomProcessor.URL_ATTRS.length; i++) {
-            var attr       = DomProcessor.URL_ATTRS[i];
-            var storedAttr = DomProcessor.getStoredAttrName(attr);
+        for (var i = 0; i < domProcessor.URL_ATTRS.length; i++) {
+            var attr       = domProcessor.URL_ATTRS[i];
+            var storedAttr = domProcessor.getStoredAttrName(attr);
 
-            DOM.find(container, '[' + storedAttr + ']', function (el) {
+            find(container, '[' + storedAttr + ']', el => {
                 if (el.hasAttribute(attr)) {
-                    NativeMethods.setAttribute.call(el, attr, NativeMethods.getAttribute.call(el, storedAttr));
-                    NativeMethods.removeAttribute.call(el, storedAttr);
+                    nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
+                    nativeMethods.removeAttribute.call(el, storedAttr);
 
                     changed = true;
                 }
@@ -173,25 +173,25 @@ export function cleanUpHtml (html, parentTag) {
         }
         /*eslint-disable no-loop-func */
 
-        DOM.find(container, '[class*="' + Const.SHADOW_UI_CLASSNAME_POSTFIX + '"]', function (el) {
+        find(container, '[class*="' + CONST.SHADOW_UI_CLASSNAME_POSTFIX + '"]', el => {
             if (el.parentNode) {
                 el.parentNode.removeChild(el);
                 changed = true;
             }
         });
 
-        DOM.find(container, 'script', function (el) {
+        find(container, 'script', function (el) {
             var innerHTML = el.innerHTML;
 
-            if (ScriptProcessor.SCRIPT_HEADER_REG_EX.test(innerHTML)) {
-                el.innerHTML = innerHTML.replace(ScriptProcessor.SCRIPT_HEADER_REG_EX, '');
+            if (scriptProcessor.SCRIPT_HEADER_REG_EX.test(innerHTML)) {
+                el.innerHTML = innerHTML.replace(scriptProcessor.SCRIPT_HEADER_REG_EX, '');
 
                 changed = true;
             }
         });
 
-        DOM.find(container, '[' + Const.HOVER_PSEUDO_CLASS_ATTR + ']', function (el) {
-            NativeMethods.removeAttribute.call(el, Const.HOVER_PSEUDO_CLASS_ATTR);
+        find(container, '[' + CONST.HOVER_PSEUDO_CLASS_ATTR + ']', function (el) {
+            nativeMethods.removeAttribute.call(el, CONST.HOVER_PSEUDO_CLASS_ATTR);
 
             changed = true;
         });
@@ -215,12 +215,12 @@ export function processHtml (html, parentTag) {
     return processHtmlInternal(html, parentTag, function (container) {
         //NOTE: we check this condition to avoid unnecessary calling the querySelectorAll function
         if (container.children.length === 1 && container.children[0].children && !container.children[0].children.length)
-            DomProcessor.processElement(container.children[0], UrlUtil.convertToProxyUrl);
+            domProcessor.processElement(container.children[0], convertToProxyUrl);
         else {
             var children = container.querySelectorAll('*');
 
             for (var i = 0; i < children.length; i++)
-                DomProcessor.processElement(children[i], UrlUtil.convertToProxyUrl);
+                domProcessor.processElement(children[i], convertToProxyUrl);
         }
 
         if (parentTag === 'head' || parentTag === 'body')
@@ -241,15 +241,9 @@ export function isWellFormattedHtml (html) {
     //Also not check self-closed elements for SVG(http://www.w3.org/TR/SVG/struct.html) and MathML(http://www.w3.org/wiki/MathML/Elements)
     var selfClosedTags = ['colgroup', 'dd', 'dt', 'li', 'options', 'p', 'td', 'tfoot', 'th', 'thead', 'tr'];
 
-    var lastItem = function (arr) {
-        return arr[arr.length - 1];
-    };
-
-    var contains = function (arr, item) {
-        return arr.indexOf(item) !== -1;
-    };
-
-    var parseStartTag = function (tag, tagName, attributes, unary) {
+    var lastItem      = arr => arr[arr.length - 1];
+    var contains      = (arr, item) => arr.indexOf(item) !== -1;
+    var parseStartTag = (tag, tagName, attributes, unary) => {
         if (!contains(voidElements, tagName)) {
             if (!unary) {
                 tagName = tagName.toLowerCase();
@@ -258,7 +252,7 @@ export function isWellFormattedHtml (html) {
         }
     };
 
-    var parseEndTag = function (tag, tagName) {
+    var parseEndTag = (tag, tagName) => {
         tagName = tagName.toLowerCase();
 
         if (tagName === lastItem(tagStack))

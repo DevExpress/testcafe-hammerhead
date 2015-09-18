@@ -1,8 +1,8 @@
+import CONST from '../../const';
 import trim from '../../utils/string-trim';
-import * as Browser from './browser';
-import NativeMethods from '../sandbox/native-methods';
-import Const from '../../const';
-import UrlUtil from '../utils/url';
+import nativeMethods from '../sandbox/native-methods';
+import urlUtils from '../utils/url';
+import { isMozilla } from './browser';
 
 var scrollbarSize = null;
 
@@ -58,15 +58,15 @@ export function getIFrameByWindow (win) {
 
 export function getMapContainer (el) {
     var closestMap        = closest(el, 'map');
-    var closestMapName    = NativeMethods.getAttribute.call(closestMap, 'name');
+    var closestMapName    = nativeMethods.getAttribute.call(closestMap, 'name');
     var containerSelector = '[usemap=#' + closestMapName + ']';
 
-    return NativeMethods.querySelector.call(findDocument(el), containerSelector);
+    return nativeMethods.querySelector.call(findDocument(el), containerSelector);
 }
 
 export function getScrollbarSize () {
     if (!scrollbarSize) {
-        var scrollDiv = NativeMethods.createElement.call(document, 'div');
+        var scrollDiv = nativeMethods.createElement.call(document, 'div');
 
         scrollDiv.style.height   = '100px';
         scrollDiv.style.overflow = 'scroll';
@@ -97,23 +97,20 @@ export function getSelectParent (child) {
 }
 
 export function getSelectVisibleChildren (select) {
-    var children = NativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
+    var children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
 
     children = Array.prototype.slice.call(children);
 
-    if (Browser.isMozilla) {
-        //NOTE: Mozilla does not display group without label and with empty label
-        children = children.filter(function (item) {
-            return item.tagName.toLowerCase() !== 'optgroup' || !!item.label;
-        });
-    }
+    //NOTE: Mozilla does not display group without label and with empty label
+    if (isMozilla)
+        children = children.filter(item => item.tagName.toLowerCase() !== 'optgroup' || !!item.label);
 
     return children;
 }
 
 export function getTopSameDomainWindow (window) {
     try {
-        if (window !== window.top && UrlUtil.isIframeWithoutSrc(window.frameElement))
+        if (window !== window.top && urlUtils.isIframeWithoutSrc(window.frameElement))
             return getTopSameDomainWindow(window.parent);
     }
         /*eslint-disable no-empty */
@@ -125,7 +122,7 @@ export function getTopSameDomainWindow (window) {
 }
 
 export function find (parent, selector, handler) {
-    var elms = NativeMethods.elementQuerySelectorAll.call(parent, selector);
+    var elms = nativeMethods.elementQuerySelectorAll.call(parent, selector);
 
     if (handler) {
         for (var i = 0; i < elms.length; i++)
@@ -171,15 +168,15 @@ export function isContentEditableElement (el) {
 }
 
 export function isCrossDomainIframe (iframe, bySrc) {
-    var iframeLocation = UrlUtil.getIframeLocation(iframe);
+    var iframeLocation = urlUtils.getIframeLocation(iframe);
 
     if (!bySrc && iframeLocation.documentLocation === null)
         return true;
 
     var currentLocation = bySrc ? iframeLocation.srcLocation : iframeLocation.documentLocation;
 
-    if (currentLocation && UrlUtil.isSupportedProtocol(currentLocation))
-        return !UrlUtil.sameOriginCheck(location.toString(), currentLocation);
+    if (currentLocation && urlUtils.isSupportedProtocol(currentLocation))
+        return !urlUtils.sameOriginCheck(location.toString(), currentLocation);
 
     return false;
 }
@@ -192,10 +189,10 @@ export function isCrossDomainWindows (window1, window2) {
         var window1Location = window1.location.toString();
         var window2Location = window2.location.toString();
 
-        if (!UrlUtil.isSupportedProtocol(window1Location) || !UrlUtil.isSupportedProtocol(window2Location))
+        if (!urlUtils.isSupportedProtocol(window1Location) || !urlUtils.isSupportedProtocol(window2Location))
             return false;
 
-        return !UrlUtil.sameOriginCheck(window1Location, window2Location);
+        return !urlUtils.sameOriginCheck(window1Location, window2Location);
     }
     catch (e) {
         return true;
@@ -210,7 +207,7 @@ export function isDomElement (el) {
         return false;
 
     //B252941
-    return el && (typeof el === 'object' || Browser.isMozilla && typeof el === 'function') &&
+    return el && (typeof el === 'object' || isMozilla && typeof el === 'function') &&
            el.nodeType !== 11 && typeof el.nodeName === 'string' && el.tagName;
 }
 
@@ -239,8 +236,7 @@ export function isFileInput (el) {
 }
 
 export function isHammerheadAttr (attr) {
-    return attr === Const.HOVER_PSEUDO_CLASS_ATTR ||
-           attr.indexOf(Const.DOM_SANDBOX_STORED_ATTR_POSTFIX) !== -1;
+    return attr === CONST.HOVER_PSEUDO_CLASS_ATTR || attr.indexOf(CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX) !== -1;
 }
 
 export function isIframe (el) {
@@ -257,7 +253,7 @@ export function isInputElement (el) {
 
 export function isInputWithoutSelectionPropertiesInMozilla (el) {
     //T101195, T133144, T101195
-    return Browser.isMozilla && matches(el, 'input[type=number]');
+    return isMozilla && matches(el, 'input[type=number]');
 }
 
 export function isMapElement (el) {
@@ -275,7 +271,7 @@ export function isShadowUIElement (element) {
 
         //NOTE: check className type to avoid issues with SVG elements className property
         if (typeof element.className === 'string' &&
-            element.className.indexOf(Const.SHADOW_UI_CLASSNAME_POSTFIX) > -1)
+            element.className.indexOf(CONST.SHADOW_UI_CLASSNAME_POSTFIX) > -1)
             return true;
 
         element = element.parentNode;
@@ -302,9 +298,7 @@ export function isTextEditableElement (el) {
 }
 
 export function isTextEditableElementAndEditingAllowed (el) {
-    var isElementEditingAllowed = function () {
-        return !el.readOnly && el.getAttribute('readonly') !== 'readonly';
-    };
+    var isElementEditingAllowed = () => !el.readOnly && el.getAttribute('readonly') !== 'readonly';
 
     return isTextEditableElement(el) && isElementEditingAllowed();
 }
@@ -333,7 +327,7 @@ export function closest (el, selector) {
     if (el && el.closest)
         return el.closest(selector);
 
-    var closestFallback = function (el, selector) {
+    var closestFallback = (el, selector) => {
         while (el) {
             if (matches(el, selector))
                 return el;
@@ -355,12 +349,10 @@ export function addClass (el, className) {
     if (el && el.classList) {
         var classNames = className.split(/\s+/);
 
-        classNames.forEach(function (item) {
-            el.classList.add(item);
-        });
+        classNames.forEach(item => el.classList.add(item));
     }
     else {
-        var addClassFallback = function (el, className) {
+        var addClassFallback = (el, className) => {
             if (className) {
                 var classNames = className.split(/\s+/);
                 var setClass   = ' ' + el.className + ' ';
@@ -386,9 +378,7 @@ export function removeClass (el, className) {
     if (el.classList) {
         var classNames = className.split(/\s+/);
 
-        classNames.forEach(function (item) {
-            el.classList.remove(item);
-        });
+        classNames.forEach(item => el.classList.remove(item));
     }
     else {
         var removeClassFallback = function (el, className) {
@@ -416,7 +406,7 @@ export function hasClass (el, className) {
     if (el.classList)
         return el.classList.contains(className);
 
-    var hasClassFallback = function (el, className) {
+    var hasClassFallback = (el, className) => {
         var preparedElementClassName = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
 
         className = ' ' + className + ' ';

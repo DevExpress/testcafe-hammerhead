@@ -1,21 +1,21 @@
 /*eslint-disable no-native-reassign */
 import SandboxBase from './base';
-import NativeMethods from './native-methods';
-import UrlUtil from '../utils/url';
-import * as JSON from '../json';
+import nativeMethods from './native-methods';
+import urlUtils from '../utils/url';
+import { parse as parseJSON, stringify as stringifyJSON } from '../json';
 import { isIE9 } from '../utils/browser';
 import { isCrossDomainWindows } from '../utils/dom';
-import { addInternalEventListener, setEventListenerWrapper } from './event/listeners';
+
 /*eslint-enable no-native-reassign */
+
+const MESSAGE_TYPE = {
+    service: '5Gtrb',
+    user:    'qWip2'
+};
 
 export default class MessageSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
-
-        this.messageType = {
-            SERVICE: '5Gtrb',
-            USER:    'qWip2'
-        };
 
         this.PING_DELAY              = 200;
         this.PING_IFRAME_TIMEOUT     = 7000;
@@ -34,9 +34,9 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onMessage (e) {
-        var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
-        if (data.type === this.messageType.SERVICE && e.source) {
+        if (data.type === MESSAGE_TYPE.service && e.source) {
             if (this.pingCmd && data.message.cmd === this.pingCmd && data.message.isPingResponse) {
                 this.pingCallback();
                 this.pingCallback = null;
@@ -55,18 +55,18 @@ export default class MessageSandbox extends SandboxBase {
             resultEvt[key] = typeof e[key] === 'function' ? e[key].bind(e) : e[key];
         /* jshint ignore:end */
 
-        var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
-        if (data.type !== this.messageType.SERVICE) {
-            var originUrl = UrlUtil.OriginLocation.get();
+        if (data.type !== MESSAGE_TYPE.service) {
+            var originUrl = urlUtils.OriginLocation.get();
 
-            if (data.targetUrl === '*' || UrlUtil.sameOriginCheck(originUrl, data.targetUrl)) {
+            if (data.targetUrl === '*' || urlUtils.sameOriginCheck(originUrl, data.targetUrl)) {
                 resultEvt.origin = data.originUrl;
 
                 // IE9 can send only string values
                 var needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
 
-                resultEvt.data = needToStringify ? JSON.stringify(data.message) : data.message;
+                resultEvt.data = needToStringify ? stringifyJSON(data.message) : data.message;
 
                 return originListener.call(this.window, resultEvt);
             }
@@ -74,8 +74,8 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _wrapMessage (type, message, targetUrl) {
-        var parsedOrigin = UrlUtil.OriginLocation.getParsed();
-        var originUrl    = UrlUtil.formatUrl({
+        var parsedOrigin = urlUtils.OriginLocation.getParsed();
+        var originUrl    = urlUtils.formatUrl({
             protocol: parsedOrigin.protocol,
             host:     parsedOrigin.host
         });
@@ -89,7 +89,7 @@ export default class MessageSandbox extends SandboxBase {
         };
 
         // IE9 can send only string values
-        return isIE9 ? JSON.stringify(result) : result;
+        return isIE9 ? stringifyJSON(result) : result;
     }
 
     //NOTE: in IE after an iFrame is removed from DOM the window.top property is equal to window.self
@@ -105,8 +105,8 @@ export default class MessageSandbox extends SandboxBase {
         var onMessageHandler        = this._onMessage.bind(this);
         var onWindowMessageHandler  = this._onWindowMessage.bind(this);
 
-        addInternalEventListener(window, ['message'], onMessageHandler);
-        setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
+        this.sandbox.event.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
+        this.sandbox.event.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
         window[this.RECEIVE_MSG_FN] = isIFrameWithoutSrc || this.topWindow === window.self ? onMessageHandler : null;
     }
 
@@ -133,17 +133,17 @@ export default class MessageSandbox extends SandboxBase {
         var targetUrl = args[1];
 
         if (isCrossDomainWindows(this.window, contentWindow))
-            args[1] = UrlUtil.getCrossDomainProxyUrl();
-        else if (!UrlUtil.isSupportedProtocol(contentWindow.location))
+            args[1] = urlUtils.getCrossDomainProxyUrl();
+        else if (!urlUtils.isSupportedProtocol(contentWindow.location))
             args[1] = '*';
         else {
-            args[1] = UrlUtil.formatUrl({
+            args[1] = urlUtils.formatUrl({
                 protocol: this.window.location.protocol,
                 host:     this.window.location.host
             });
         }
 
-        args[0] = this._wrapMessage(this.messageType.USER, args[0], targetUrl);
+        args[0] = this._wrapMessage(MESSAGE_TYPE.user, args[0], targetUrl);
 
         if (isIFrameWithoutSrc) {
             /*eslint-disable camelcase */
@@ -158,15 +158,15 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     sendServiceMsg (msg, targetWindow) {
-        var message = this._wrapMessage(this.messageType.SERVICE, msg);
+        var message = this._wrapMessage(MESSAGE_TYPE.service, msg);
 
         //NOTE: for iframes without src
         if (!this._isIFrameRemoved() && (isIFrameWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
                                                                targetWindow[this.RECEIVE_MSG_FN])) {
             //NOTE: postMessage delay imitation
-            NativeMethods.setTimeout.call(this.topWindow, () =>
+            nativeMethods.setTimeout.call(this.topWindow, () =>
                     targetWindow[this.RECEIVE_MSG_FN]({
-                        data:   JSON.parse(JSON.stringify(message)), // Cloning message to prevent this modification
+                        data:   parseJSON(stringifyJSON(message)), // Cloning message to prevent this modification
                         source: this.window
                     })
                 , 10);
@@ -203,7 +203,7 @@ export default class MessageSandbox extends SandboxBase {
             pingTimeout  = null;
         };
 
-        pingTimeout = NativeMethods.setTimeout.call(this.window, () => {
+        pingTimeout = nativeMethods.setTimeout.call(this.window, () => {
             cleanTimeouts();
             callback(true);
         }, shortWaiting ? this.PING_IFRAME_MIN_TIMEOUT : this.PING_IFRAME_TIMEOUT);
@@ -217,7 +217,7 @@ export default class MessageSandbox extends SandboxBase {
             this.pingCmd = pingMessageCommand;
 
             sendPingRequest();
-            pingInterval = NativeMethods.setInterval.call(this.window, sendPingRequest, this.PING_DELAY);
+            pingInterval = nativeMethods.setInterval.call(this.window, sendPingRequest, this.PING_DELAY);
         }
     }
 }

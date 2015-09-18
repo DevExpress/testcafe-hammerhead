@@ -1,6 +1,6 @@
 import SandboxBase from './base';
-import NativeMethods from './native-methods';
-import * as DOM from '../utils/dom';
+import nativeMethods from './native-methods';
+import * as domUtils from '../utils/dom';
 import { isWebKit } from '../utils/browser';
 import { isWindow } from '../utils/types';
 import { EVENTS } from '../dom-processor/dom-processor';
@@ -14,7 +14,7 @@ export default class ShadowUI extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BODY_CONTENT_CHANGED = 'bodyContentChanged';
+        this.BODY_CONTENT_CHANGED_CMD = 'bodyContentChanged';
 
         this.CLASSNAME_REGEX = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
         this.ROOT_CLASS      = 'root';
@@ -56,7 +56,7 @@ export default class ShadowUI extends SandboxBase {
         if (!el || el === this.document || el === this.window)
             return el;
 
-        return DOM.isShadowUIElement(el) ? null : el;
+        return domUtils.isShadowUIElement(el) ? null : el;
     }
 
     _filterNodeList (nodeList) {
@@ -85,7 +85,7 @@ export default class ShadowUI extends SandboxBase {
             //T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-            var res = shadowUI._filterElement(NativeMethods.elementFromPoint.apply(document, arguments));
+            var res = shadowUI._filterElement(nativeMethods.elementFromPoint.apply(document, arguments));
 
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
@@ -93,32 +93,32 @@ export default class ShadowUI extends SandboxBase {
         };
 
         document.getElementById = function () {
-            return shadowUI._filterElement(NativeMethods.getElementById.apply(document, arguments));
+            return shadowUI._filterElement(nativeMethods.getElementById.apply(document, arguments));
         };
 
         document.getElementsByClassName = function () {
-            return shadowUI._filterNodeList(NativeMethods.getElementsByClassName.apply(document, arguments));
+            return shadowUI._filterNodeList(nativeMethods.getElementsByClassName.apply(document, arguments));
         };
 
         document.getElementsByName = function () {
-            return shadowUI._filterNodeList(NativeMethods.getElementsByName.apply(document, arguments));
+            return shadowUI._filterNodeList(nativeMethods.getElementsByName.apply(document, arguments));
         };
 
         document.getElementsByTagName = function () {
-            return shadowUI._filterNodeList(NativeMethods.getElementsByTagName.apply(document, arguments));
+            return shadowUI._filterNodeList(nativeMethods.getElementsByTagName.apply(document, arguments));
         };
 
         document.querySelector = function () {
-            return shadowUI._filterElement(NativeMethods.querySelector.apply(document, arguments));
+            return shadowUI._filterElement(nativeMethods.querySelector.apply(document, arguments));
         };
 
         document.querySelectorAll = function () {
-            return shadowUI._filterNodeList(NativeMethods.querySelectorAll.apply(document, arguments));
+            return shadowUI._filterNodeList(nativeMethods.querySelectorAll.apply(document, arguments));
         };
 
         // T195358
-        document.querySelectorAll.toString       = () => NativeMethods.querySelectorAll.toString();
-        document.getElementsByClassName.toString = () => NativeMethods.getElementsByClassName.toString();
+        document.querySelectorAll.toString       = () => nativeMethods.querySelectorAll.toString();
+        document.getElementsByClassName.toString = () => nativeMethods.getElementsByClassName.toString();
     }
 
     getRoot () {
@@ -128,11 +128,11 @@ export default class ShadowUI extends SandboxBase {
             if (!this.root) {
                 //B254893
                 this.root = this.document.createElement('div');
-                NativeMethods.setAttribute.call(this.root, 'id', this.ROOT_ID);
-                NativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
+                nativeMethods.setAttribute.call(this.root, 'id', this.ROOT_ID);
+                nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
                 this.document.body.appendChild(this.root);
 
-                NativeMethods.setAttribute.call(this.root, 'id', this.patchClassNames(this.ROOT_ID));
+                nativeMethods.setAttribute.call(this.root, 'id', this.patchClassNames(this.ROOT_ID));
 
                 this.addClass(this.root, this.ROOT_CLASS);
 
@@ -140,7 +140,7 @@ export default class ShadowUI extends SandboxBase {
                     this.root.addEventListener(EVENTS[i], stopPropagation);
 
                 this._bringRootToWindowTopLeft();
-                NativeMethods.documentAddEventListener.call(this.document, 'DOMContentLoaded', () => this._bringRootToWindowTopLeft);
+                nativeMethods.documentAddEventListener.call(this.document, 'DOMContentLoaded', () => this._bringRootToWindowTopLeft);
             }
             else
                 this.document.body.appendChild(this.root);
@@ -159,7 +159,7 @@ export default class ShadowUI extends SandboxBase {
 
         this._overrideDocumentMethods(window.document);
 
-        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, e => {
+        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, e => {
             var style = this.select('link.' + SHADOW_UI_STYLESHEET_CLASSNAME)[0];
 
             if (style) {
@@ -176,7 +176,7 @@ export default class ShadowUI extends SandboxBase {
             var styleLink  = null;
             var shadowRoot = null;
 
-            nodeSandbox.doc.on(nodeSandbox.doc.BEFORE_DOCUMENT_CLEANED, () => {
+            nodeSandbox.doc.on(nodeSandbox.doc.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
                 styleLink = this.select('link.' + SHADOW_UI_STYLESHEET_CLASSNAME)[0];
 
                 if (window.top === window.self) {
@@ -203,16 +203,16 @@ export default class ShadowUI extends SandboxBase {
                 }
             };
 
-            nodeSandbox.on(nodeSandbox.DOCUMENT_CLEANED, restoreStyle);
-            nodeSandbox.doc.on(nodeSandbox.doc.DOCUMENT_CLOSED, restoreStyle);
+            nodeSandbox.on(nodeSandbox.DOCUMENT_CLEANED_EVENT, restoreStyle);
+            nodeSandbox.doc.on(nodeSandbox.doc.DOCUMENT_CLOSED_EVENT, restoreStyle);
         }
 
-        codeInstrumentation.on(codeInstrumentation.BODY_CONTENT_CHANGED, el => {
+        codeInstrumentation.on(codeInstrumentation.BODY_CONTENT_CHANGED_EVENT, el => {
             var elContextWindow = el[DOM_SANDBOX_PROCESSED_CONTEXT];
 
             if (elContextWindow !== window) {
                 messageSandbox.sendServiceMsg({
-                    cmd: this.BODY_CONTENT_CHANGED
+                    cmd: this.BODY_CONTENT_CHANGED_CMD
                 }, elContextWindow);
             }
             else
@@ -220,14 +220,14 @@ export default class ShadowUI extends SandboxBase {
         });
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, e => {
-            if (e.message.cmd === this.BODY_CONTENT_CHANGED)
+            if (e.message.cmd === this.BODY_CONTENT_CHANGED_CMD)
                 this.onBodyContentChanged();
         });
     }
 
     onBodyContentChanged () {
         if (this.root) {
-            if (!DOM.closest(this.root, 'html'))
+            if (!domUtils.closest(this.root, 'html'))
                 this.document.body.appendChild(this.root);
         }
     }
@@ -249,19 +249,19 @@ export default class ShadowUI extends SandboxBase {
 
         if (tagName && (tagName === 'body' || tagName === 'head')) {
             el.getElementsByClassName = function () {
-                return shadowUI._filterNodeList(NativeMethods.elementGetElementsByClassName.apply(el, arguments));
+                return shadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.apply(el, arguments));
             };
 
             el.getElementsByTagName = function () {
-                return shadowUI._filterNodeList(NativeMethods.elementGetElementsByTagName.apply(el, arguments));
+                return shadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.apply(el, arguments));
             };
 
             el.querySelector = function () {
-                return shadowUI._filterElement(NativeMethods.elementQuerySelector.apply(el, arguments));
+                return shadowUI._filterElement(nativeMethods.elementQuerySelector.apply(el, arguments));
             };
 
             el.querySelectorAll = function () {
-                return shadowUI._filterNodeList(NativeMethods.elementQuerySelectorAll.apply(el, arguments));
+                return shadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.apply(el, arguments));
             };
         }
     }
@@ -312,18 +312,18 @@ export default class ShadowUI extends SandboxBase {
 
             if (parent) {
                 for (var i = 0; i < collection.length; i++) {
-                    if (DOM.isShadowUIElement(collection[i]))
+                    if (domUtils.isShadowUIElement(collection[i]))
                         shadowUIElements.push(collection[i]);
                 }
 
                 for (var j = 0; j < shadowUIElements.length; j++)
-                    NativeMethods.appendChild.call(parent, shadowUIElements[j]);
+                    nativeMethods.appendChild.call(parent, shadowUIElements[j]);
             }
         }
     }
 
     isShadowContainer (el) {
-        if (DOM.isDomElement(el)) {
+        if (domUtils.isDomElement(el)) {
             var tagName = el.tagName.toLowerCase();
 
             return tagName === 'head' || tagName === 'body';
@@ -353,12 +353,12 @@ export default class ShadowUI extends SandboxBase {
 
     isShadowUIMutation (mutation) {
         if (mutation.removedNodes && mutation.removedNodes.length === 1) {
-            if (DOM.isShadowUIElement(mutation.removedNodes[0]))
+            if (domUtils.isShadowUIElement(mutation.removedNodes[0]))
                 return true;
         }
 
         if (mutation.addedNodes && mutation.addedNodes.length === 1) {
-            if (DOM.isShadowUIElement(mutation.addedNodes[0]))
+            if (domUtils.isShadowUIElement(mutation.addedNodes[0]))
                 return true;
         }
 
@@ -369,13 +369,13 @@ export default class ShadowUI extends SandboxBase {
     addClass (el, value) {
         var patchedClass = this.patchClassNames(value);
 
-        DOM.addClass(el, patchedClass);
+        domUtils.addClass(el, patchedClass);
     }
 
     hasClass (el, value) {
         var patchedClass = this.patchClassNames(value);
 
-        return DOM.hasClass(el, patchedClass);
+        return domUtils.hasClass(el, patchedClass);
     }
 
     patchClassNames (value) {
@@ -390,15 +390,15 @@ export default class ShadowUI extends SandboxBase {
     removeClass (elem, value) {
         var patchedClass = this.patchClassNames(value);
 
-        DOM.removeClass(elem, patchedClass);
+        domUtils.removeClass(elem, patchedClass);
     }
 
     select (selector, context) {
         var patchedSelector = selector.replace(this.CLASSNAME_REGEX, className => className +
                                                                                   SHADOW_UI_CLASSNAME_POSTFIX);
 
-        return context ? NativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
-               NativeMethods.querySelectorAll.call(this.document, patchedSelector);
+        return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
+               nativeMethods.querySelectorAll.call(this.document, patchedSelector);
     }
 
     setBlind (value) {

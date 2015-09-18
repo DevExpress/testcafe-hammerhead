@@ -1,13 +1,11 @@
-var Browser             = Hammerhead.get('./utils/browser');
-var ActiveWindowTracker = Hammerhead.get('./sandbox/event/active-window-tracker');
-var Const               = Hammerhead.get('./../const');
-var Promise             = Hammerhead.get('es6-promise').Promise;
-var styleUtil           = Hammerhead.get('./utils/style');
+var Browser   = Hammerhead.get('./utils/browser');
+var Const     = Hammerhead.get('./../const');
+var Promise   = Hammerhead.get('es6-promise').Promise;
+var styleUtil = Hammerhead.get('./utils/style');
 
-var activeWindowTracker = new ActiveWindowTracker(window);
+var activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var eventSimulator      = Hammerhead.sandbox.event.eventSimulator;
 var focusBlur           = Hammerhead.sandbox.event.focusBlur;
-
 
 var input1                             = null;
 var input2                             = null;
@@ -118,23 +116,23 @@ function testFocusing (numberOfHandlers, testCanceled, testCallback) {
     var input2FocusedCount = 0;
     var input2BlurredCount = 0;
 
-    var focus = function (element) {
+    var focus = function (el) {
         return new Promise(function (resolve) {
             if (testCanceled())
                 return;
 
-            if (element === input1) {
+            if (el === input1) {
                 input2BlurredCount += numberOfHandlers;
                 input1FocusedCount += numberOfHandlers;
             }
-            else if (element === input2) {
+            else if (el === input2) {
                 input1BlurredCount += numberOfHandlers;
                 input2FocusedCount += numberOfHandlers;
             }
 
-            logMessage(' before focusing ' + element.id);
-            focusBlur.focus(element, function () {
-                logMessage(' focus function callback called for ' + element.id);
+            logMessage(' before focusing ' + el.id);
+            focusBlur.focus(el, function () {
+                logMessage(' focus function callback called for ' + el.id);
                 resolve();
             });
         });

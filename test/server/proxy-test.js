@@ -7,7 +7,7 @@ var Proxy              = require('../../lib/proxy');
 var Session            = require('../../lib/session');
 var DestinationRequest = require('../../lib/pipeline/destination-request');
 var requestAgent       = require('../../lib/pipeline/request-agent');
-var SERVICE_CMD        = require('../../lib/service-msg-cmd');
+var COMMAND            = require('../../lib/command');
 var SHARED_CONST       = require('../../lib/const');
 
 function trim (str) {
@@ -271,7 +271,7 @@ describe('Proxy', function () {
                 method: 'POST',
                 url:    'http://localhost:1836/messaging',
                 body:   JSON.stringify({
-                    cmd:       SERVICE_CMD.SET_COOKIE,
+                    cmd:       COMMAND.setCookie,
                     url:       proxy.openSession('http://example.com', session),
                     cookie:    'Test=Data',
                     sessionId: session.id

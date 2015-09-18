@@ -48,7 +48,7 @@ asyncTest('form submit', function () {
 });
 
 test('get/set', function () {
-    Settings.get().COOKIE = '';
+    Settings.get().cookie = '';
 
     var savedQueuedAsyncServiceMsg = Transport.queuedAsyncServiceMsg;
     var savedUrlUtilParseProxyUrl  = SharedUrlUtil.parseProxyUrl;
@@ -97,7 +97,7 @@ asyncTest('path validation', function () {
 });
 
 test('remove real cookie after browser processing', function () {
-    Settings.get().COOKIE = '';
+    Settings.get().cookie = '';
 
     var savedQueuedAsyncServiceMsg = Transport.queuedAsyncServiceMsg;
 
@@ -114,7 +114,7 @@ test('remove real cookie after browser processing', function () {
 
     setCookie(cookieStr);
 
-    strictEqual(Settings.get().COOKIE, uniqKey + '=value');
+    strictEqual(Settings.get().cookie, uniqKey + '=value');
     ok(document.cookie.indexOf(uniqKey) === -1);
 
     Transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
@@ -123,7 +123,7 @@ test('remove real cookie after browser processing', function () {
 module('regression');
 
 test('overwrite (B239496)', function () {
-    Settings.get().COOKIE = '';
+    Settings.get().cookie = '';
 
     var savedQueuedAsyncServiceMsg = Transport.queuedAsyncServiceMsg;
     var savedUrlUtilParseProxyUrl  = UrlUtil.parseProxyUrl;
@@ -155,7 +155,7 @@ test('overwrite (B239496)', function () {
 });
 
 test('delete (B239496)', function () {
-    Settings.get().COOKIE = '';
+    Settings.get().cookie = '';
 
     var savedQueuedAsyncServiceMsg = Transport.queuedAsyncServiceMsg;
     var savedUrlUtilParseProxyUrl  = UrlUtil.parseProxyUrl;

@@ -3,8 +3,6 @@ import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
 import { isIE, version as browserVersion } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
-import { change as simulateChangeEvent } from '../event/simulator';
-import { addInternalEventListener } from '../event/listeners';
 import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../../const';
 import { getSandboxFromStorage } from '../storage';
 
@@ -19,7 +17,7 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     _riseChangeEvent (input) {
-        simulateChangeEvent(input);
+        this.sandbox.event.eventSimulator.change(input);
     }
 
     _getCurrentInfoManager (input) {
@@ -32,7 +30,7 @@ export default class UploadSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        addInternalEventListener(window, ['change'], (e, dispatched) => {
+        this.sandbox.event.listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
             var input              = e.target || e.srcElement;
             var currentInfoManager = this._getCurrentInfoManager(input);
 

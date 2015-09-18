@@ -1,15 +1,15 @@
-import { isIE9 } from '../utils/browser';
-import { findDocument } from '../utils/dom';
-import NativeMethods from '../sandbox/native-methods';
 import EventEmitter from '../utils/event-emitter';
 import BaseDomAdapter from '../../processing/dom/base-dom-adapter';
-import Settings from '../settings';
-import UrlUtil from '../utils/url';
-import Const from '../../const';
+import nativeMethods from '../sandbox/native-methods';
+import settings from '../settings';
+import urlUtils from '../utils/url';
+import { isIE9 } from '../utils/browser';
+import { findDocument } from '../utils/dom';
+import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../const';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
     getAttr (el, attr) {
-        return NativeMethods.getAttribute.call(el, attr);
+        return nativeMethods.getAttribute.call(el, attr);
     }
 
     hasAttr (el, attr) {
@@ -37,7 +37,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     setAttr (el, attr, value) {
-        return NativeMethods.setAttribute.call(el, attr, value);
+        return nativeMethods.setAttribute.call(el, attr, value);
     }
 
     setScriptContent (script, content) {
@@ -58,7 +58,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     getElementForSelectorCheck (el) {
         if (isIE9 && el.tagName.toLowerCase() === 'script') {
-            var clone = NativeMethods.cloneNode.call(el, false);
+            var clone = nativeMethods.cloneNode.call(el, false);
 
             clone.src = clone.innerHTML = '';
 
@@ -90,15 +90,15 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     getCrossDomainPort () {
-        return Settings.get().CROSS_DOMAIN_PROXY_PORT;
+        return settings.get().crossDomainProxyPort;
     }
 
     getProxyUrl () {
-        return UrlUtil.getProxyUrl.apply(UrlUtil, arguments);
+        return urlUtils.getProxyUrl.apply(urlUtils, arguments);
     }
 
     isTopParentIFrame (el) {
-        var elWindow = el[Const.DOM_SANDBOX_PROCESSED_CONTEXT];
+        var elWindow = el[DOM_SANDBOX_PROCESSED_CONTEXT];
 
         return elWindow && window.top === elWindow.parent;
     }

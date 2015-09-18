@@ -1,18 +1,18 @@
 import SandboxBase from './base';
+import COMMAND from '../../command';
 import trim from '../../utils/string-trim';
-import UrlUtil from '../utils/url';
-import Settings from '../settings';
-import * as Cookie from '../utils/cookie';
+import urlUtils from '../utils/url';
+import settings from '../settings';
+import * as cookieUtils from '../utils/cookie';
 import { isCrossDomainWindows } from '../utils/dom';
-import { SET_COOKIE as SET_COOKIE_CMD } from '../../service-msg-cmd';
 import { queuedAsyncServiceMsg } from '../transport';
 
 export default class CookieSandbox extends SandboxBase {
     _getSettings () {
-        var settings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
-                       this.window.top.Hammerhead.get('./settings') : Settings;
+        var windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
+                             this.window.top.Hammerhead.get('./settings') : settings;
 
-        return settings.get();
+        return windowSettings.get();
     }
 
     //NOTE: let browser validate other stuff (e.g. Path attribute), so we add unique prefix
@@ -32,13 +32,13 @@ export default class CookieSandbox extends SandboxBase {
         // NOTE: We must add cookie path prefix to the path because the proxied location path defferent from the
         // destination location path
         if (parsedCookieCopy.path && parsedCookieCopy.path !== '/')
-            parsedCookieCopy.path = UrlUtil.OriginLocation.getCookiePathPrefix() + parsedCookieCopy.path;
+            parsedCookieCopy.path = urlUtils.OriginLocation.getCookiePathPrefix() + parsedCookieCopy.path;
 
-        document.cookie = Cookie.format(parsedCookieCopy);
+        document.cookie = cookieUtils.format(parsedCookieCopy);
 
-        var processedByBrowserCookieStr = Cookie.get(document, parsedCookieCopy.key);
+        var processedByBrowserCookieStr = cookieUtils.get(document, parsedCookieCopy.key);
 
-        Cookie.del(document, parsedCookieCopy);
+        cookieUtils.del(document, parsedCookieCopy);
 
         if (processedByBrowserCookieStr)
             return processedByBrowserCookieStr.substr(uniquePrefix.length);
@@ -55,7 +55,7 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookie.httponly)
             return false;
 
-        var parsedOrigin   = UrlUtil.OriginLocation.getParsed();
+        var parsedOrigin   = urlUtils.OriginLocation.getParsed();
         var originProtocol = parsedOrigin.protocol;
 
         //NOTE: TestCafe tunnels HTTPS requests via HTTP so we should validate Secure attribute manually
@@ -67,11 +67,11 @@ export default class CookieSandbox extends SandboxBase {
 
         //NOTE: all TestCafe sessions has same domain, so we should validate Domain attribute manually
         //according to test url
-        return !domain || UrlUtil.sameOriginCheck(document.location.toString(), domain);
+        return !domain || urlUtils.sameOriginCheck(document.location.toString(), domain);
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
-        var cookies  = this._getSettings().COOKIE ? this._getSettings().COOKIE.split(';') : [];
+        var cookies  = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
         var replaced = false;
 
         //NOTE: replace cookie if it's already exists
@@ -92,17 +92,17 @@ export default class CookieSandbox extends SandboxBase {
         if (!replaced && newCookieStr !== null)
             cookies.push(newCookieStr);
 
-        this._getSettings().COOKIE = cookies.join('; ');
+        this._getSettings().cookie = cookies.join('; ');
     }
 
     getCookie () {
-        return this._getSettings().COOKIE;
+        return this._getSettings().cookie;
     }
 
     setCookie (document, value) {
         //NOTE: at first try to update our client cookie cache with client-validated cookie string,
         //so sync code can immediately access cookie
-        var parsedCookie = Cookie.parse(value);
+        var parsedCookie = cookieUtils.parse(value);
 
         if (this._isValidCookie(parsedCookie, document)) {
             //NOTE: this attributes shouldn't be processed by browser
@@ -128,7 +128,7 @@ export default class CookieSandbox extends SandboxBase {
         }
 
         var setCookieMsg = {
-            cmd:    SET_COOKIE_CMD,
+            cmd:    COMMAND.setCookie,
             cookie: value,
             url:    document.location.href
         };

@@ -1,5 +1,5 @@
 // for internal using Listeners
-import * as Browser from '../../utils/browser';
+import { isIE, version as browserVersion } from '../../utils/browser';
 
 const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'tc_eles_bef23a16';
 
@@ -8,8 +8,7 @@ export function getElementCtx (el) {
 }
 
 export function getEventCtx (el, event) {
-    event = Browser.isIE && Browser.version > 10 &&
-            /MSPointer/.test(event) ? event.replace('MS', '').toLowerCase() : event;
+    event = isIE && browserVersion > 10 && /MSPointer/.test(event) ? event.replace('MS', '').toLowerCase() : event;
 
     return getElementCtx(el)[event] || null;
 }

@@ -3,9 +3,9 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { Syntax } from './parsing-tools';
 import * as templates from './templates';
 import * as instructs from './instructions';
+import { Syntax } from './parsing-tools';
 
 function updateAstNode (node, newNode, parent, key) {
     if (key === 'arguments' || key === 'elements' || key === 'expressions') {

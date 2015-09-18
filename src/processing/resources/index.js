@@ -1,10 +1,10 @@
 import url from 'url';
 import urlUtil from '../../utils/url';
-import * as contentUtils from '../../utils/content';
 import pageProcessor from './page';
 import manifestProcessor from './manifest';
 import scriptProcessor from './script';
 import stylesheetProcessor from './stylesheet';
+import * as contentUtils from '../../utils/content';
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, baseUrl) {

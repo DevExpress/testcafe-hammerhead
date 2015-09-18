@@ -12,12 +12,12 @@ var iframeSandbox = Hammerhead.sandbox.iframe;
 QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
     window.open       = NativeMethods.windowOpen;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
 test('iframe', function () {
@@ -126,9 +126,9 @@ test('attribute value', function () {
 });
 
 test('script src', function () {
-    var storedSessionId = Settings.get().SESSION_ID;
+    var storedSessionId = Settings.get().sessionId;
 
-    Settings.get().SESSION_ID = 'uid';
+    Settings.get().sessionId = 'uid';
 
     var script = document.createElement('script');
 
@@ -138,7 +138,7 @@ test('script src', function () {
 
     strictEqual(UrlUtil.parseProxyUrl(script.src).resourceType, UrlUtil.SCRIPT);
 
-    Settings.get().SESSION_ID = storedSessionId;
+    Settings.get().sessionId = storedSessionId;
 });
 
 test('event attributes', function () {
@@ -226,16 +226,16 @@ test('autocomplete attribute', function () {
 test('crossdomain src', function () {
     var url                   = 'http://cross.domain.com/';
     var proxyUrl              = UrlUtil.getProxyUrl(url, location.hostname, 2001, null, 'iframe');
-    var storedCrossDomainPort = Settings.get().CROSS_DOMAIN_PROXY_PORT;
+    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = 2001;
+    Settings.get().crossDomainProxyPort = 2001;
 
     var processed = Html.processHtml('<iframe src="' + url + '"></iframe>');
 
     ok(processed.indexOf('src="' + proxyUrl) !== -1);
     ok(processed.indexOf(DomProcessor.getStoredAttrName('src') + '="' + url + '"') !== -1);
 
-    Settings.get().CROSS_DOMAIN_PROXY_PORT = storedCrossDomainPort;
+    Settings.get().crossDomainProxyPort = storedCrossDomainPort;
 });
 
 test('stylesheet', function () {

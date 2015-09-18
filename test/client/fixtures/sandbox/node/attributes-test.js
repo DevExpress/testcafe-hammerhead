@@ -11,12 +11,12 @@ QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
     window.open       = NativeMethods.windowOpen;
     window.setTimeout = NativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
 test('url', function () {
@@ -86,9 +86,9 @@ test('url', function () {
 });
 
 test('script src', function () {
-    var storedSessionId = Settings.get().SESSION_ID;
+    var storedSessionId = Settings.get().sessionId;
 
-    Settings.get().SESSION_ID = 'sessionId';
+    Settings.get().sessionId = 'sessionId';
 
     var script = document.createElement('script');
 
@@ -98,7 +98,7 @@ test('script src', function () {
 
     strictEqual(UrlUtil.parseProxyUrl(script.src).resourceType, UrlUtil.SCRIPT);
 
-    Settings.get().SESSION_ID = storedSessionId;
+    Settings.get().sessionId = storedSessionId;
 });
 
 asyncTest('iframe with "javascript: <html>...</html>" src', function () {
@@ -380,7 +380,7 @@ test('window.onbeforeunload', function () {
 });
 
 test('element.innerHTML', function () {
-    Settings.get().SESSION_ID = 'sessionId';
+    Settings.get().sessionId = 'sessionId';
 
     var $container   = $('<div>');
     var checkElement = function (el, attr, resourceType) {

@@ -1,43 +1,42 @@
 import SandboxBase from './base';
-import NativeMethods from './native-methods';
-import Settings from '../settings';
-import * as DOM from '../utils/dom';
+import COMMAND from '../../command';
+import nativeMethods from './native-methods';
+import settings from '../settings';
+import { isShadowUIElement, isCrossDomainIframe, isElementInDocument } from '../utils/dom';
 import { syncServiceMsg } from '../transport';
-import { isMozilla, isIE, isWebKit } from '../utils/browser';
+import { isMozilla, isWebKit } from '../utils/browser';
 import { DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME } from '../../const';
-import { GET_IFRAME_TASK_SCRIPT as GET_IFRAME_TASK_SCRIPT_CMD } from '../../service-msg-cmd';
 import { isSupportedProtocol, isIframeWithoutSrc } from '../utils/url';
+
+const IFRAME_WINDOW_INITED = 'hh_iwi_5d9138e9';
 
 export default class IframeSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.IFRAME_READY_TO_INIT          = 'iframeReadyToInit';
-        this.IFRAME_READY_TO_INIT_INTERNAL = 'iframeReadyToInitInternal';
-        this.IFRAME_DOCUMENT_CREATED       = 'iframeDocumentCreated';
-        this.IFRAME_DOCUMENT_RECREATED     = 'iframeDocumentRecreated';
+        this.IFRAME_READY_TO_INIT_EVENT          = 'iframeReadyToInit';
+        this.IFRAME_READY_TO_INIT_INTERNAL_EVENT = 'iframeReadyToInitInternal';
+        this.IFRAME_DOCUMENT_CREATED_EVENT       = 'iframeDocumentCreated';
 
-        this.IFRAME_WINDOW_INITED = 'hh_iwi_5d9138e9';
-
-        this.on(this.IFRAME_READY_TO_INIT, this.iframeReadyToInitHandler);
+        this.on(this.IFRAME_READY_TO_INIT_EVENT, this.iframeReadyToInitHandler);
     }
 
     _raiseReadyToInitEvent (iframe) {
         if (isIframeWithoutSrc(iframe)) {
             var iframeInitialized       = this.isIframeInitialized(iframe);
-            var iframeWindowInitialized = iframe.contentWindow[this.IFRAME_WINDOW_INITED];
+            var iframeWindowInitialized = iframe.contentWindow[IFRAME_WINDOW_INITED];
 
             if (iframeInitialized && !iframeWindowInitialized) {
                 // Ok, iframe fully loaded now, but Hammerhead not injected
-                iframe.contentWindow[this.IFRAME_WINDOW_INITED] = true;
+                iframe.contentWindow[IFRAME_WINDOW_INITED] = true;
 
                 // Rise this internal event to eval Hammerhead code script
-                this._emit(this.IFRAME_READY_TO_INIT_INTERNAL, {
+                this._emit(this.IFRAME_READY_TO_INIT_INTERNAL_EVENT, {
                     iframe: iframe
                 });
 
                 // Rise this event to eval "task" script and to call Hammerhead initialization method after
-                this._emit(this.IFRAME_READY_TO_INIT, {
+                this._emit(this.IFRAME_READY_TO_INIT_EVENT, {
                     iframe: iframe
                 });
 
@@ -47,23 +46,12 @@ export default class IframeSandbox extends SandboxBase {
                 // Even if iframe is not loaded (iframe.contentDocument.documentElement not exist) we should still
                 // override document.write method, without Hammerhead initializing. This method can be called
                 // before iframe fully loading, we are obliged to override it now
-                if (iframe.contentDocument.write.toString() === NativeMethods.documentWrite.toString()) {
-                    this._emit(this.IFRAME_DOCUMENT_CREATED, {
+                if (iframe.contentDocument.write.toString() === nativeMethods.documentWrite.toString()) {
+                    this._emit(this.IFRAME_DOCUMENT_CREATED_EVENT, {
                         iframe: iframe
                     });
                 }
             }
-            /*eslint-disable no-empty */
-            else if (iframeWindowInitialized && (isMozilla || isIE)) {
-                // IE recreates iframe document after document.write calling.
-                // FireFox recreates iframe document during loading
-//                if (iframe.contentDocument.write.toString() === NativeMethods.documentWrite.toString()) {
-//                    eventEmitter.emit(IFRAME_DOCUMENT_RECREATED, {
-//                        iframe: iframe
-//                    });
-//                }
-            }
-            /*eslint-enable no-empty */
         }
     }
 
@@ -74,14 +62,14 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     isWindowInited (window) {
-        return window[this.IFRAME_WINDOW_INITED];
+        return window[IFRAME_WINDOW_INITED];
     }
 
     iframeReadyToInitHandler (e) {
         // Get and evaluate iframe task script
         var msg = {
-            cmd:     GET_IFRAME_TASK_SCRIPT_CMD,
-            referer: Settings.get().REFERER || this.window.location.toString()
+            cmd:     COMMAND.getIframeTaskScript,
+            referer: settings.get().referer || this.window.location.toString()
         };
 
         syncServiceMsg(msg, function (iFrameTaskScript) {
@@ -90,11 +78,11 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     iframeAddedToDom (el) {
-        if (!DOM.isShadowUIElement(el)) {
+        if (!isShadowUIElement(el)) {
             this._raiseReadyToInitEvent(el);
 
             if (!isWebKit && el.contentDocument) {
-                NativeMethods.documentAddEventListener.call(el.contentDocument, 'DOMContentLoaded', () => {
+                nativeMethods.documentAddEventListener.call(el.contentDocument, 'DOMContentLoaded', () => {
                     this._raiseReadyToInitEvent(el);
                 });
             }
@@ -106,10 +94,10 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     overrideIframe (el) {
-        if (DOM.isShadowUIElement(el))
+        if (isShadowUIElement(el))
             return;
 
-        var src = NativeMethods.getAttribute.call(el, 'src');
+        var src = nativeMethods.getAttribute.call(el, 'src');
 
         if (!src || !isSupportedProtocol(src)) {
             if (el.contentWindow) {
@@ -120,32 +108,32 @@ export default class IframeSandbox extends SandboxBase {
                         this._raiseReadyToInitEvent(el);
                 };
 
-                NativeMethods.addEventListener.call(el, 'load', readyHandler);
+                nativeMethods.addEventListener.call(el, 'load', readyHandler);
 
                 if (isMozilla)
-                    NativeMethods.documentAddEventListener.call(el.contentDocument, 'ready', readyHandler);
+                    nativeMethods.documentAddEventListener.call(el.contentDocument, 'ready', readyHandler);
             }
             else {
                 var handler = () => {
-                    if (!DOM.isShadowUIElement(el)) {
-                        if (DOM.isCrossDomainIframe(el))
-                            NativeMethods.removeEventListener.call(el, 'load', handler);
+                    if (!isShadowUIElement(el)) {
+                        if (isCrossDomainIframe(el))
+                            nativeMethods.removeEventListener.call(el, 'load', handler);
                         else
                             this._raiseReadyToInitEvent(el);
                     }
                 };
 
-                if (DOM.isElementInDocument(el))
+                if (isElementInDocument(el))
                     this._raiseReadyToInitEvent(el);
 
-                NativeMethods.addEventListener.call(el, 'load', handler);
+                nativeMethods.addEventListener.call(el, 'load', handler);
             }
         }
         else {
-            if (DOM.isElementInDocument(el))
+            if (isElementInDocument(el))
                 this._raiseReadyToInitEvent(el);
 
-            NativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
+            nativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
         }
     }
 }

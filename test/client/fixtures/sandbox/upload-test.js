@@ -1,5 +1,5 @@
 var Browser       = Hammerhead.get('./utils/browser');
-var CMD           = Hammerhead.get('../service-msg-cmd');
+var COMMAND       = Hammerhead.get('../command');
 var HiddenInfo    = Hammerhead.get('./sandbox/upload/hidden-info');
 var NativeMethods = Hammerhead.get('./sandbox/native-methods');
 var Transport     = Hammerhead.get('./transport');
@@ -50,10 +50,10 @@ QUnit.testDone(function () {
 
 function overridedAsyncServiceMsg (msg, callback) {
     switch (msg.cmd) {
-        case CMD.GET_UPLOADED_FILES:
+        case COMMAND.getUploadedFiles:
             callback(getFilesInfo(msg.filePaths));
             break;
-        case CMD.UPLOAD_FILES:
+        case COMMAND.uploadFiles:
             callback(uploadFiles(msg.data, msg.fileNames));
             break;
         default:
