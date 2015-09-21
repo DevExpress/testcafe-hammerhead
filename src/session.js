@@ -3,16 +3,12 @@ import UploadStorage from './upload/storage';
 import COMMAND from './command';
 import mustache from 'mustache';
 import read from './utils/read-file-relative';
+import uuid from 'node-uuid';
 import { EventEmitter } from 'events';
 import { parseProxyUrl } from './utils/url';
 
 // Const
 const TASK_TEMPLATE = read('./client/task.js.mustache');
-
-
-// Global instance counter used to generate ID's
-var instanceCount = 0;
-
 
 // Session
 export default class Session extends EventEmitter {
@@ -21,13 +17,18 @@ export default class Session extends EventEmitter {
 
         this.uploadStorage = new UploadStorage(uploadStoragePath);
 
-        this.id         = ++instanceCount;
+        this.id         = Session._generateSessionId();
         this.cookies    = new Cookies();
         this.proxy      = null;
         this.injectable = {
             scripts: ['/hammerhead.js'],
             styles:  []
         };
+    }
+
+    static _generateSessionId () {
+        // NOTE: #116 (https://github.com/superroma/testcafe-hammerhead/issues/116)
+        return uuid.v4().substr(0, 3);
     }
 
     async handleServiceMessage (msg, serverInfo) {
