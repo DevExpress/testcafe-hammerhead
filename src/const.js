@@ -15,6 +15,7 @@ CONST.IS_STYLESHEET_PROCESSED_COMMENT = '/* stylesheet processed via hammerhead 
 CONST.UPLOAD_SANDBOX_HIDDEN_INPUT_NAME = 'hammerhead|upload-info-hidden-input';
 
 CONST.HOVER_PSEUDO_CLASS_ATTR = 'data-hammerhead-hovered';
+CONST.FOCUS_PSEUDO_CLASS_ATTR = 'data-hammerhead-focused';
 
 CONST.DOCUMENT_CHARSET = 'hammerhead|document-charset';
 

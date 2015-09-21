@@ -10,6 +10,6 @@ export default class SandboxBase extends EventEmitter {
 
     attach (window, document) {
         this.window   = window;
-        this.document = document;
+        this.document = document || window.document;
     }
 }

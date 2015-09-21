@@ -1,6 +1,6 @@
 import * as domUtils from './dom';
 import { isIE, isMozilla } from './browser';
-import { isWindow, isDocument } from './types';
+import { styleClass } from '../sandbox/native-methods';
 
 //NOTE: for Chrome
 const MIN_SELECT_SIZE_VALUE = 4;
@@ -11,6 +11,20 @@ function getIntValue (value) {
     var parsedValue = parseInt(value.replace('px', ''), 10);
 
     return isNaN(parsedValue) ? 0 : parsedValue;
+}
+
+export function isStyle (instance) {
+    if (instance instanceof styleClass)
+        return true;
+
+    if (instance && typeof instance === 'object' && typeof instance.border !== 'undefined') {
+        instance = instance.toString();
+
+        return instance === '[object CSSStyleDeclaration]' || instance === '[object CSS2Properties]' ||
+               instance === '[object MSStyleCSSProperties]';
+    }
+
+    return false;
 }
 
 export function get (el, property) {
@@ -112,10 +126,10 @@ export function getInnerWidth (el) {
     if (!el)
         return null;
 
-    if (isWindow(el))
+    if (domUtils.isWindow(el))
         return el.document.documentElement.clientWidth;
 
-    if (isDocument(el))
+    if (domUtils.isDocument(el))
         return el.documentElement.clientWidth;
 
     var value = el.offsetWidth;
@@ -165,10 +179,10 @@ export function getScrollLeft (el) {
     if (!el)
         return null;
 
-    if (isWindow(el))
+    if (domUtils.isWindow(el))
         return el.pageXOffset;
 
-    if (isDocument(el))
+    if (domUtils.isDocument(el))
         return el.defaultView.pageXOffset;
 
     return el.scrollLeft;
@@ -178,10 +192,10 @@ export function getScrollTop (el) {
     if (!el)
         return null;
 
-    if (isWindow(el))
+    if (domUtils.isWindow(el))
         return el.pageYOffset;
 
-    if (isDocument(el))
+    if (domUtils.isDocument(el))
         return el.defaultView.pageYOffset;
 
     return el.scrollTop;
@@ -191,7 +205,7 @@ export function setScrollLeft (el, value) {
     if (!el)
         return;
 
-    if (isWindow(el) || isDocument(el)) {
+    if (domUtils.isWindow(el) || domUtils.isDocument(el)) {
         var win       = domUtils.findDocument(el).defaultView;
         var scrollTop = getScrollTop(el);
 
@@ -205,7 +219,7 @@ export function setScrollTop (el, value) {
     if (!el)
         return;
 
-    if (isWindow(el) || isDocument(el)) {
+    if (domUtils.isWindow(el) || domUtils.isDocument(el)) {
         var win       = domUtils.findDocument(el).defaultView;
         var scrollLeft = getScrollLeft(el);
 
@@ -228,7 +242,7 @@ export function getOffsetParent (el) {
 }
 
 export function getOffset (el) {
-    if (!el || isWindow(el) || isDocument(el))
+    if (!el || domUtils.isWindow(el) || domUtils.isDocument(el))
         return null;
 
     var clientRect = el.getBoundingClientRect();

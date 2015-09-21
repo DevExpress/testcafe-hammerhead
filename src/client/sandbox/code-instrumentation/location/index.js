@@ -1,6 +1,6 @@
 import LocationWrapper from './wrapper';
 import SandboxBase from '../../base';
-import { isLocation } from '../../../utils/types';
+import { isLocation } from '../../../utils/dom';
 import { GET_LOCATION_METH_NAME, SET_LOCATION_METH_NAME } from '../../../../processing/js';
 
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';

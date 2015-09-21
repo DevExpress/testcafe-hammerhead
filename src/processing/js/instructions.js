@@ -4,9 +4,11 @@
 // -------------------------------------------------------------
 
 export const wrappedMethods = {
-    postMessage: true,
-    write:       true,
-    writeln:     true
+    querySelector:    true,
+    querySelectorAll: true,
+    postMessage:      true,
+    write:            true,
+    writeln:          true
 };
 
 export const wrappedProperties = {

@@ -2,9 +2,27 @@ import CONST from '../../const';
 import trim from '../../utils/string-trim';
 import nativeMethods from '../sandbox/native-methods';
 import urlUtils from '../utils/url';
-import { isMozilla } from './browser';
+import { isMozilla, isWebKit, isIE, isOpera } from './browser';
 
 var scrollbarSize = null;
+
+function getFocusableSelector () {
+    //NOTE: We don't take into account the case of embedded contentEditable elements and
+    // specify the contentEditable attribute for focusable elements
+    var selectorPostfix = 'input, select, textarea, button, [contenteditable="true"], [contenteditable=""], [tabIndex]';
+
+    if (isIE)
+        return 'a[href]:not([href = ""]), iframe, ' + selectorPostfix;
+
+    if (isOpera)
+        return selectorPostfix;
+
+    return 'a[href], iframe, ' + selectorPostfix;
+}
+
+function isHidden (el) {
+    return el.offsetWidth <= 0 && el.offsetHeight <= 0;
+}
 
 export function getActiveElement (currentDocument) {
     var doc           = currentDocument || document;
@@ -264,6 +282,30 @@ export function isRenderedNode (node) {
     return !(node.nodeType === 7 || node.nodeType === 8 || /^(script|style)$/i.test(node.nodeName));
 }
 
+export function isElementFocusable (el) {
+    if (!el)
+        return false;
+
+    var isAnchorWithoutHref = el.tagName &&
+                              el.tagName.toLowerCase() === 'a' &&
+                              el.getAttribute('href') === '' &&
+                              !el.getAttribute('tabIndex');
+
+    var isFocusable         = !isAnchorWithoutHref &&
+                              matches(el, getFocusableSelector() + ', body') &&
+                              !matches(el, ':disabled') &&
+                              el.getAttribute('tabIndex') !== -1 &&
+                              getComputedStyle(el)['visibility'] !== 'hidden';
+
+    if (!isFocusable)
+        return false;
+
+    if (isWebKit || isOpera)
+        return !isHidden(el) || el.tagName && el.tagName.toLowerCase() === 'option';
+
+    return !isHidden(el);
+}
+
 export function isShadowUIElement (element) {
     while (element) {
         if (element.tagName === 'BODY' || element.tagName === 'HEAD')
@@ -280,7 +322,44 @@ export function isShadowUIElement (element) {
     return false;
 }
 
-export function isSvgElement (el) {
+export function isWindow (instance) {
+    if (instance instanceof nativeMethods.windowClass)
+        return true;
+
+    var result = instance && typeof instance === 'object' && typeof instance.top !== 'undefined' &&
+                 (isMozilla ? true : instance.toString && (instance.toString() === '[object Window]' ||
+                                                           instance.toString() === '[object global]'));
+
+    if (result && instance.top !== instance)
+        return isWindow(instance.top);
+
+    return result;
+}
+
+
+export function isDocument (instance) {
+    if (instance instanceof nativeMethods.documentClass)
+        return true;
+
+    return instance && typeof instance === 'object' && typeof instance.referrer !== 'undefined' &&
+           instance.toString &&
+           (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
+}
+
+
+export function isLocation (instance) {
+    if (instance instanceof nativeMethods.locationClass)
+        return true;
+
+    return instance && typeof instance === 'object' && typeof instance.href !== 'undefined' &&
+           typeof instance.assign !== 'undefined';
+}
+
+export function isSVGElement (obj) {
+    return window.SVGElement && obj instanceof window.SVGElement;
+}
+
+export function isSVGElementOrChild (el) {
     return !!closest(el, 'svg');
 }
 

@@ -207,7 +207,7 @@ export function getElementRectangle (el) {
         rectangle = getSelectChildRectangle(el);
     else {
         var elementOffset     = getOffsetPosition(el);
-        var relativeRectangle = domUtils.isSvgElement(el) ? getSvgElementRelativeRectangle(el) : el.getBoundingClientRect();
+        var relativeRectangle = domUtils.isSVGElementOrChild(el) ? getSvgElementRelativeRectangle(el) : el.getBoundingClientRect();
 
         rectangle = {
             height: relativeRectangle.height,
@@ -251,7 +251,7 @@ export function getOffsetPosition (el) {
     };
 
     if (!isInIFrame || !currentIFrame) {
-        var isSvg = domUtils.isSvgElement(el);
+        var isSvg = domUtils.isSVGElementOrChild(el);
 
         relativeRectangle = isSvg ? getSvgElementRelativeRectangle(el) : null;
 
@@ -270,7 +270,7 @@ export function getOffsetPosition (el) {
     var iframePadding  = styleUtils.getElementPadding(currentIFrame);
     var clientPosition = null;
 
-    if (domUtils.isSvgElement(el)) {
+    if (domUtils.isSVGElementOrChild(el)) {
         relativeRectangle = getSvgElementRelativeRectangle(el);
 
         clientPosition = {

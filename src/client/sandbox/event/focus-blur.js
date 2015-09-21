@@ -4,8 +4,7 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import { getElementScroll, setScrollLeft, setScrollTop } from '../../utils/style';
-import { HOVER_PSEUDO_CLASS_ATTR } from '../../../const';
-import { isSVGElement } from '../../utils/types';
+import { HOVER_PSEUDO_CLASS_ATTR, FOCUS_PSEUDO_CLASS_ATTR } from '../../../const';
 
 const INTERNAL_FOCUS_FLAG = 'hammerhead|internal-focus';
 const INTERNAL_BLUR_FLAG  = 'hammerhead|internal-blur';
@@ -18,13 +17,14 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.topWindow                       = null;
         this.hoverElementFixed               = false;
         this.lastHoveredElement              = null;
+        this.lastFocusedElement              = null;
 
         this.eventSimulator      = eventSimulator;
         this.activeWindowTracker = new ActiveWindowTracker(sandbox);
     }
 
     static _getNativeMeth (el, event) {
-        if (isSVGElement(el)) {
+        if (domUtils.isSVGElement(el)) {
             if (event === 'focus')
                 return nativeMethods.svgFocus;
             else if (event === 'blur')
@@ -88,6 +88,24 @@ export default class FocusBlurSandbox extends SandboxBase {
     _onMouseOut (e) {
         if (!domUtils.isShadowUIElement(e.target))
             this.lastHoveredElement = e.target;
+    }
+
+    _onChangeActiveElement (activeElement) {
+        if (this.lastFocusedElement === activeElement)
+            return;
+
+        if (this.lastFocusedElement &&
+            nativeMethods.getAttribute.call(this.lastFocusedElement, FOCUS_PSEUDO_CLASS_ATTR))
+            nativeMethods.removeAttribute.call(this.lastFocusedElement, FOCUS_PSEUDO_CLASS_ATTR);
+
+        if (domUtils.isElementFocusable(activeElement) &&
+            !(activeElement.tagName && activeElement.tagName.toLowerCase() === 'body' &&
+            activeElement.getAttribute('tabIndex') === null)) {
+            this.lastFocusedElement = activeElement;
+            nativeMethods.setAttribute.call(activeElement, FOCUS_PSEUDO_CLASS_ATTR, true);
+        }
+        else
+            this.lastFocusedElement = null;
     }
 
     _callFocusCallback (callback, el) {
@@ -203,8 +221,11 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.activeWindowTracker.attach(window);
         this.topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
 
-        this.sandbox.event.listeners.addInternalEventListener(window, ['mouseover'], e => this._onMouseOverHandler(e));
-        this.sandbox.event.listeners.addInternalEventListener(window, ['mouseout'], e => this._onMouseOut(e));
+        var listeners = this.sandbox.event.listeners;
+
+        listeners.addInternalEventListener(window, ['mouseover'], e => this._onMouseOverHandler(e));
+        listeners.addInternalEventListener(window, ['mouseout'], e => this._onMouseOut(e));
+        listeners.addInternalEventListener(window, ['focus', 'blur'], () => this._onChangeActiveElement(this.document.activeElement));
     }
 
     focus (el, callback, silent, forMouseEvent, isNativeFocus) {
