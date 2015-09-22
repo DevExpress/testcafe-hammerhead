@@ -10,8 +10,8 @@ export default class UploadSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.START_FILE_UPLOADING_EVENT = 'startFileUploading';
-        this.END_FILE_UPLOADING_EVENT   = 'endFileUploading';
+        this.START_FILE_UPLOADING_EVENT = 'hammerhead|event|start-file-uploading';
+        this.END_FILE_UPLOADING_EVENT   = 'hammerhead|event|end-file-uploading';
 
         this.infoManager = new UploadInfoManager();
     }
@@ -20,7 +20,7 @@ export default class UploadSandbox extends SandboxBase {
         this.sandbox.event.eventSimulator.change(input);
     }
 
-    _getCurrentInfoManager (input) {
+    static _getCurrentInfoManager (input) {
         var contextWindow = input[DOM_SANDBOX_PROCESSED_CONTEXT];
 
         return getSandboxFromStorage(contextWindow).upload.infoManager;
@@ -32,20 +32,20 @@ export default class UploadSandbox extends SandboxBase {
 
         this.sandbox.event.listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
             var input              = e.target || e.srcElement;
-            var currentInfoManager = this._getCurrentInfoManager(input);
+            var currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
             if (isFileInput(input) && !dispatched) {
                 stopPropagation(e);
                 preventDefault(e);
 
                 if (!!input.value || !!currentInfoManager.getValue(input)) {
-                    var fileNames = currentInfoManager.getFileNames(input.files, input.value);
+                    var fileNames = UploadInfoManager.getFileNames(input.files, input.value);
 
                     this._emit(this.START_FILE_UPLOADING_EVENT, fileNames, input);
 
                     currentInfoManager.loadFileListData(input, input.files, fileList => {
                         currentInfoManager.setUploadInfo(input, fileList, input.value);
-                        currentInfoManager.sendFilesInfoToServer(fileList, fileNames, errs => {
+                        UploadInfoManager.sendFilesInfoToServer(fileList, fileNames, errs => {
                             this._riseChangeEvent(input);
                             this._emit(this.END_FILE_UPLOADING_EVENT, errs);
                         });
@@ -57,17 +57,17 @@ export default class UploadSandbox extends SandboxBase {
 
     /*eslint-enable max-nested-callbacks */
 
-    getFiles (input) {
-        return input.files !== void 0 ? this._getCurrentInfoManager(input).getFiles(input) : void 0;
+    static getFiles (input) {
+        return input.files !== void 0 ? UploadSandbox._getCurrentInfoManager(input).getFiles(input) : void 0;
     }
 
-    getUploadElementValue (input) {
-        return this._getCurrentInfoManager(input).getValue(input);
+    static getUploadElementValue (input) {
+        return UploadSandbox._getCurrentInfoManager(input).getValue(input);
     }
 
     setUploadElementValue (input, value) {
         if (value === '') {
-            if (this._getCurrentInfoManager(input).clearUploadInfo(input) && isIE && browserVersion > 10)
+            if (UploadSandbox._getCurrentInfoManager(input).clearUploadInfo(input) && isIE && browserVersion > 10)
                 this._riseChangeEvent(input);
         }
 
@@ -75,14 +75,14 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     upload (input, filePaths, callback) {
-        var currentInfoManager = this._getCurrentInfoManager(input);
+        var currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
         filePaths = filePaths || [];
 
-        currentInfoManager.loadFilesInfoFromServer(filePaths, filesInfo => {
-            currentInfoManager.prepareFileListWrapper(filesInfo, (errs, fileList) => {
+        UploadInfoManager.loadFilesInfoFromServer(filePaths, filesInfo => {
+            UploadInfoManager.prepareFileListWrapper(filesInfo, (errs, fileList) => {
                 if (!errs.length) {
-                    var value = currentInfoManager.formatValue(filePaths);
+                    var value = UploadInfoManager.formatValue(filePaths);
 
                     currentInfoManager.setUploadInfo(input, fileList, value);
                     this._riseChangeEvent(input);

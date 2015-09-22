@@ -1,9 +1,10 @@
 /*global history, navigator*/
 import SandboxBase from '../base';
+import ShadowUI from '../shadow-ui';
+import CodeInstrumentation from '../code-instrumentation';
 import nativeMethods from '../native-methods';
 import scriptProcessor from '../../../processing/script';
 import urlUtils from '../../utils/url';
-import CodeInstrumentation from '../code-instrumentation';
 import { isMozilla } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
 
@@ -11,7 +12,7 @@ export default class WindowSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.UNCAUGHT_JS_ERROR_EVENT = 'uncaughtJSError';
+        this.UNCAUGHT_JS_ERROR_EVENT = 'hammerhead|event|uncaught-js-error';
     }
 
     _raiseUncaughtJsErrorEvent (msg, window, pageUrl) {
@@ -48,9 +49,8 @@ export default class WindowSandbox extends SandboxBase {
 
         var messageSandbox = this.sandbox.message;
         var nodeSandbox    = this.sandbox.node;
-        var shadowUI       = this.sandbox.shadowUI;
 
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, e => {
+        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             var message = e.message;
 
             if (message.cmd === this.UNCAUGHT_JS_ERROR_EVENT)
@@ -141,7 +141,7 @@ export default class WindowSandbox extends SandboxBase {
                     var result = [];
 
                     for (var i = 0; i < mutations.length; i++) {
-                        if (!shadowUI.isShadowUIMutation(mutations[i]))
+                        if (!ShadowUI.isShadowUIMutation(mutations[i]))
                             result.push(mutations[i]);
                     }
 

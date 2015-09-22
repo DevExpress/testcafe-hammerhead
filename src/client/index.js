@@ -1,5 +1,6 @@
 /*eslint-disable no-native-reassign*/
 import Sandbox from './sandbox';
+import CodeInstrumentation from './sandbox/code-instrumentation';
 import settings from './settings';
 import transport from './transport';
 import jsProcessor from '../processing/js/index';
@@ -32,7 +33,7 @@ class Hammerhead {
         };
 
         // Methods
-        this.getOriginElementAttributes = this.sandbox.codeInstrumentation.getAttributesProperty;
+        this.getOriginElementAttributes = CodeInstrumentation.getAttributesProperty;
         this.upload                     = this.sandbox.upload.upload;
         this.get                        = require;
 

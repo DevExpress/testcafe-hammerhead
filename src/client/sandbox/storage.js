@@ -1,6 +1,6 @@
 import { getTopSameDomainWindow } from '../utils/dom';
 
-const SANDBOXES_STORAGE = 'sandboxes_storage_5d9138e9';
+const SANDBOXES_STORAGE = 'hammerhead|sandboxes-storage';
 
 export function addSandboxToStorage (window, sandbox) {
     var topSameDomainWindow = getTopSameDomainWindow(window);

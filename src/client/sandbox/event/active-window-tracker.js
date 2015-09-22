@@ -1,7 +1,7 @@
 import SandboxBase from '../base';
 
-const WINDOW_ACTIVATED_EVENT   = 'windowActivated';
-const WINDOW_DEACTIVATED_EVENT = 'windowDeactivated';
+const WINDOW_ACTIVATED_EVENT   = 'hammerhead|event|window-activated';
+const WINDOW_DEACTIVATED_EVENT = 'hammerhead|event|window-deactivated';
 
 export default class ActiveWindowTracker extends SandboxBase {
     constructor (sandbox) {
@@ -33,7 +33,7 @@ export default class ActiveWindowTracker extends SandboxBase {
         this.activeWindow   = !this.isIFrameWindow ? window.top : null;
         this.isActive       = !this.isIFrameWindow;
 
-        this.sandbox.message.on(this.sandbox.message.SERVICE_MSG_RECEIVED, e => {
+        this.sandbox.message.on(this.sandbox.message.SERVICE_MSG_RECEIVED_EVENT, e => {
             if (e.message.cmd === WINDOW_ACTIVATED_EVENT) {
                 if (this.activeWindow !== this.activeWindow.top)
                     this._notifyPrevActiveWindow();

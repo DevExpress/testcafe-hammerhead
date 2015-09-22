@@ -13,7 +13,7 @@ export default class UploadStorage {
         this.storagePath = storagePath;
     }
 
-    async _loadFile (filePath) {
+    static async _loadFile (filePath) {
         var fileContent = await readFile(filePath);
         var stats       = await stat(filePath);
 
@@ -60,7 +60,7 @@ export default class UploadStorage {
 
     async get (paths) {
         return await this._processFiles(paths, async (resolvedPath) => {
-            return await this._loadFile(resolvedPath);
+            return await UploadStorage._loadFile(resolvedPath);
         });
     }
 }

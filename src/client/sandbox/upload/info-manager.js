@@ -18,7 +18,7 @@ export default class UploadInfoManager {
         this.uploadInfo = [];
     }
 
-    _getFileListData (fileList) {
+    static _getFileListData (fileList) {
         var data = [];
 
         for (var i = 0; i < fileList.length; i++)
@@ -27,7 +27,7 @@ export default class UploadInfoManager {
         return data;
     }
 
-    _getUploadIFrameForIE9 () {
+    static _getUploadIFrameForIE9 () {
         var uploadIFrame = nativeMethods.querySelector.call(document, '#' + UPLOAD_IFRAME_FOR_IE9_ID);
 
         if (!uploadIFrame) {
@@ -50,7 +50,7 @@ export default class UploadInfoManager {
             var sourceTarget       = form.target;
             var sourceActionString = form.action;
             var sourceMethod       = form.method;
-            var uploadIFrame       = this._getUploadIFrameForIE9();
+            var uploadIFrame       = UploadInfoManager._getUploadIFrameForIE9();
 
             var loadHandler = () => {
                 var fileListWrapper = new FileListWrapper([JSON.parse(uploadIFrame.contentWindow.document.body.innerHTML)]);
@@ -76,18 +76,7 @@ export default class UploadInfoManager {
             callback(new FileListWrapper([]));
     }
 
-    clearUploadInfo (input) {
-        var inputInfo = this.getUploadInfo(input);
-
-        if (inputInfo) {
-            inputInfo.files = new FileListWrapper([]);
-            inputInfo.value = '';
-
-            return HiddenInfo.removeInputInfo(input);
-        }
-    }
-
-    formatValue (fileNames) {
+    static formatValue (fileNames) {
         var value = '';
 
         fileNames = typeof fileNames === 'string' ? [fileNames] : fileNames;
@@ -110,7 +99,7 @@ export default class UploadInfoManager {
         return value;
     }
 
-    getFileNames (fileList, value) {
+    static getFileNames (fileList, value) {
         var result = [];
 
         if (fileList) {
@@ -121,6 +110,46 @@ export default class UploadInfoManager {
             result.push(value.substr(value.lastIndexOf('\\') + 1));
 
         return result;
+    }
+
+    static loadFilesInfoFromServer (filePaths, callback) {
+        transport.asyncServiceMsg({
+            cmd:       COMMAND.getUploadedFiles,
+            filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
+        }, callback);
+    }
+
+    static prepareFileListWrapper (filesInfo, callback) {
+        var errs           = [];
+        var validFilesInfo = [];
+
+        for (var i = 0; i < filesInfo.length; i++) {
+            if (filesInfo[i].err)
+                errs.push(filesInfo[i]);
+            else
+                validFilesInfo.push(filesInfo[i]);
+        }
+
+        callback(errs, new FileListWrapper(validFilesInfo));
+    }
+
+    static sendFilesInfoToServer (fileList, fileNames, callback) {
+        transport.asyncServiceMsg({
+            cmd:       COMMAND.uploadFiles,
+            data:      UploadInfoManager._getFileListData(fileList),
+            fileNames: fileNames
+        }, callback);
+    }
+
+    clearUploadInfo (input) {
+        var inputInfo = this.getUploadInfo(input);
+
+        if (inputInfo) {
+            inputInfo.files = new FileListWrapper([]);
+            inputInfo.value = '';
+
+            return HiddenInfo.removeInputInfo(input);
+        }
     }
 
     getFiles (input) {
@@ -177,27 +206,6 @@ export default class UploadInfoManager {
         }
     }
 
-    loadFilesInfoFromServer (filePaths, callback) {
-        transport.asyncServiceMsg({
-            cmd:       COMMAND.getUploadedFiles,
-            filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
-        }, callback);
-    }
-
-    prepareFileListWrapper (filesInfo, callback) {
-        var errs           = [];
-        var validFilesInfo = [];
-
-        for (var i = 0; i < filesInfo.length; i++) {
-            if (filesInfo[i].err)
-                errs.push(filesInfo[i]);
-            else
-                validFilesInfo.push(filesInfo[i]);
-        }
-
-        callback(errs, new FileListWrapper(validFilesInfo));
-    }
-
     setUploadInfo (input, fileList, value) {
         var inputInfo = this.getUploadInfo(input);
 
@@ -210,13 +218,5 @@ export default class UploadInfoManager {
         inputInfo.value = value;
 
         HiddenInfo.addInputInfo(input, fileList, value);
-    }
-
-    sendFilesInfoToServer (fileList, fileNames, callback) {
-        transport.asyncServiceMsg({
-            cmd:       COMMAND.uploadFiles,
-            data:      this._getFileListData(fileList),
-            fileNames: fileNames
-        }, callback);
     }
 }

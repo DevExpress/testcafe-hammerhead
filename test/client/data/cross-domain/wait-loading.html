@@ -3,7 +3,7 @@
 <head>
     <title></title>
     <meta charset="utf-8">
-    <script src="/hammerhead.js" class="script-TC2b9a6d"></script>
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
 </head>
 <body>
 <script type="text/javascript">
@@ -19,7 +19,7 @@
     });
 
     document.addEventListener('DOMContentLoaded', function () {
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, function (e) {
+        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
             if (e.message.cmd === 'pingCmd' && e.message.isPingRequest) {
                 messageSandbox.sendServiceMsg({
                     cmd:            e.message.cmd,

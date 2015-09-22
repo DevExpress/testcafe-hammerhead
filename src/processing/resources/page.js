@@ -1,13 +1,13 @@
+import CONST from '../../const';
 import DomProcessor from '../dom';
 import DomAdapter from '../dom/server-dom-adapter';
 import ResourceProcessorBase from './resource-processor-base';
 import whacko from 'whacko';
 import dedent from 'dedent';
 import scriptProcessor from '../script';
-import * as Const from '../../const';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent`
-    <script type="text/javascript" class="${ Const.SHADOW_UI_SCRIPT_CLASSNAME }">
+    <script type="text/javascript" class="${ CONST.SHADOW_UI_SCRIPT_CLASSNAME }">
         if (window.Hammerhead)
             window.Hammerhead.sandbox.node.raiseBodyCreatedEvent();
 
@@ -25,7 +25,7 @@ class PageProcessor extends ResourceProcessorBase {
         this.domProcessor = new DomProcessor(new DomAdapter());
     }
 
-    _getPageProcessingOptions (ctx, urlReplacer) {
+    static _getPageProcessingOptions (ctx, urlReplacer) {
         return {
             crossDomainProxyPort: ctx.serverInfo.crossDomainPort,
             isIFrame:             ctx.isIFrame,
@@ -57,7 +57,7 @@ class PageProcessor extends ResourceProcessorBase {
 
         if (processingOptions.styleUrl) {
             resources.push(
-                `<link rel="stylesheet" type="text/css" class="${Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME}"` +
+                `<link rel="stylesheet" type="text/css" class="${CONST.SHADOW_UI_STYLESHEET_FULL_CLASSNAME}"` +
                 `href="${processingOptions.styleUrl}">`
             );
         }
@@ -65,7 +65,7 @@ class PageProcessor extends ResourceProcessorBase {
         if (processingOptions.scripts) {
             processingOptions.scripts.forEach(scriptUrl => {
                 resources.push(
-                    `<script type="text/javascript" class="${Const.SHADOW_UI_SCRIPT_CLASSNAME}"` +
+                    `<script type="text/javascript" class="${CONST.SHADOW_UI_SCRIPT_CLASSNAME}"` +
                     `charset="UTF-8" src="${scriptUrl}"></script>`
                 );
             });
@@ -75,12 +75,12 @@ class PageProcessor extends ResourceProcessorBase {
             $('head').prepend(resources.join(''));
     }
 
-    _addCharsetInfo ($, charset) {
-        $($(`.${Const.SHADOW_UI_SCRIPT_CLASSNAME}`)[0])
-            .before(`<meta class="${Const.SHADOW_UI_CHARSET_CLASSNAME}" charset="${charset}">`);
+    static _addCharsetInfo ($, charset) {
+        $($(`.${ CONST.SHADOW_UI_SCRIPT_CLASSNAME }`)[0])
+            .before(`<meta class="${ CONST.SHADOW_UI_CHARSET_CLASSNAME }" charset="${charset}">`);
     }
 
-    _changeMetas ($) {
+    static _changeMetas ($) {
         // TODO: figure out how to emulate the behavior of the tag
         $('meta[name="referrer"][content="origin"]').remove();
         // NOTE: Remove existing compatible meta tag and add a new at the beginning of the head
@@ -88,14 +88,14 @@ class PageProcessor extends ResourceProcessorBase {
         $('head').prepend('<meta http-equiv="X-UA-Compatible" content="IE=edge" />');
     }
 
-    _prepareHtml (html, processingOpts) {
+    static _prepareHtml (html, processingOpts) {
         if (processingOpts && processingOpts.iframeImageSrc)
             return `<html><body><img src="${processingOpts.iframeImageSrc}" /></body></html>`;
 
         return html;
     }
 
-    _addBodyCreatedEventScript ($) {
+    static _addBodyCreatedEventScript ($) {
         $('body').prepend(BODY_CREATED_EVENT_SCRIPT);
     }
 
@@ -104,13 +104,13 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     processResource (html, ctx, charset, urlReplacer, processingOpts) {
-        processingOpts = processingOpts || this._getPageProcessingOptions(ctx, urlReplacer);
+        processingOpts = processingOpts || PageProcessor._getPageProcessingOptions(ctx, urlReplacer);
 
         var bom = scriptProcessor.getBOM(html);
 
         html = bom ? html.replace(bom, '') : html;
 
-        this._prepareHtml(html, processingOpts);
+        PageProcessor._prepareHtml(html, processingOpts);
 
         var $ = whacko.load(html);
 
@@ -133,14 +133,14 @@ class PageProcessor extends ResourceProcessorBase {
 
         var domProcessor = new DomProcessor(new DomAdapter(processingOpts.isIFrame, processingOpts.crossDomainProxyPort));
 
-        domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED, iframeHtmlProcessor);
+        domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
         domProcessor.processPage($, processingOpts.urlReplacer);
-        domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED, iframeHtmlProcessor);
+        domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
 
         this._addPageResources($, processingOpts);
-        this._addBodyCreatedEventScript($);
-        this._changeMetas($);
-        this._addCharsetInfo($, charset.get());
+        PageProcessor._addBodyCreatedEventScript($);
+        PageProcessor._changeMetas($);
+        PageProcessor._addCharsetInfo($, charset.get());
 
         return (bom || '') + $.html();
     }

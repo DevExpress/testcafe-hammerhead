@@ -9,19 +9,19 @@ import { isCrossDomainWindows } from '../utils/dom';
 /*eslint-enable no-native-reassign */
 
 const MESSAGE_TYPE = {
-    service: '5Gtrb',
-    user:    'qWip2'
+    service: 'hammerhead|service-msg',
+    user:    'hammerhead|user-msg'
 };
 
 export default class MessageSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.PING_DELAY              = 200;
-        this.PING_IFRAME_TIMEOUT     = 7000;
-        this.PING_IFRAME_MIN_TIMEOUT = 100;
-        this.SERVICE_MSG_RECEIVED    = 'received';
-        this.RECEIVE_MSG_FN          = 'tc_rmf_375fb9e7';
+        this.PING_DELAY                 = 200;
+        this.PING_IFRAME_TIMEOUT        = 7000;
+        this.PING_IFRAME_MIN_TIMEOUT    = 100;
+        this.SERVICE_MSG_RECEIVED_EVENT = 'hammerhead|event|service-msg-received';
+        this.RECEIVE_MSG_FN             = 'hammerhead|receive-msg-function';
 
         this.pingCallback = null;
         this.pingCmd      = null;
@@ -43,7 +43,7 @@ export default class MessageSandbox extends SandboxBase {
                 this.pingCmd      = null;
             }
             else
-                this._emit(this.SERVICE_MSG_RECEIVED, { message: data.message, source: e.source });
+                this._emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source });
         }
     }
 
@@ -76,7 +76,7 @@ export default class MessageSandbox extends SandboxBase {
         }
     }
 
-    _wrapMessage (type, message, targetUrl) {
+    static _wrapMessage (type, message, targetUrl) {
         var parsedOrigin = urlUtils.OriginLocation.getParsed();
         var originUrl    = urlUtils.formatUrl({
             protocol: parsedOrigin.protocol,
@@ -146,7 +146,7 @@ export default class MessageSandbox extends SandboxBase {
             });
         }
 
-        args[0] = this._wrapMessage(MESSAGE_TYPE.user, args[0], targetUrl);
+        args[0] = MessageSandbox._wrapMessage(MESSAGE_TYPE.user, args[0], targetUrl);
 
         if (isIFrameWithoutSrc) {
             /*eslint-disable camelcase */
@@ -161,7 +161,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     sendServiceMsg (msg, targetWindow) {
-        var message = this._wrapMessage(MESSAGE_TYPE.service, msg);
+        var message = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
 
         //NOTE: for iframes without src
         if (!this._isIFrameRemoved() && (isIFrameWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
@@ -202,8 +202,8 @@ export default class MessageSandbox extends SandboxBase {
 
             this.pingCallback = null;
             this.pingCmd      = null;
-            pingInterval = null;
-            pingTimeout  = null;
+            pingInterval      = null;
+            pingTimeout       = null;
         };
 
         pingTimeout = nativeMethods.setTimeout.call(this.window, () => {

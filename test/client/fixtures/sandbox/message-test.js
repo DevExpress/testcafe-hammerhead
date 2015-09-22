@@ -148,7 +148,7 @@ asyncTest('cloning arguments', function () {
     iframe.addEventListener('load', function () {
         var sourceObj = { testObject: true };
 
-        this.contentWindow.Hammerhead.MessageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, function (e) {
+        this.contentWindow.Hammerhead.MessageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
             ok(e.message.testObject);
             e.message.modified = true;
             ok(!sourceObj.modified);
@@ -176,7 +176,7 @@ asyncTest('crossdomain', function () {
 
     iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/service-message.html');
     iframe.addEventListener('load', function () {
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
+        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
         messageSandbox.sendServiceMsg('service_msg', this.contentWindow);
 
         window.setTimeout(function () {
@@ -184,7 +184,7 @@ asyncTest('crossdomain', function () {
 
             Settings.get().crossDomainProxyPort = storedCrossDomainPort;
             iframe.parentNode.removeChild(iframe);
-            messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
+            messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             start();
         }, 200);
     });
@@ -212,7 +212,7 @@ asyncTest('service message handler should not call other handlers', function () 
             iframe.parentNode.removeChild(iframe);
 
             window.removeEventListener('message', windowMessageHandler);
-            messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
+            messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
 
             start();
         }, 100);
@@ -222,7 +222,7 @@ asyncTest('service message handler should not call other handlers', function () 
     iframe.addEventListener('load', function () {
         eval(ScriptProcessor.process('window.onmessage = windowMessageHandler;'));
         window.addEventListener('message', windowMessageHandler);
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, serviceMsgHandler);
+        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
         messageSandbox.sendServiceMsg('service_msg', this.contentWindow);
     });
     document.body.appendChild(iframe);

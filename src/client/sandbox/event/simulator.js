@@ -5,7 +5,7 @@ import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
 import { getOffsetPosition, offsetToClientCoords } from '../../utils/position';
 import { getBordersWidth, getElementScroll } from '../../utils/style';
-import { EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER, PROPERTY_PREFIX } from '../../../const';
+import { EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER } from '../../../const';
 
 const IE_BUTTONS_MAP = {
     0: 1,
@@ -25,7 +25,7 @@ const TOUCH_EVENT_NAME_RE = /^touch\w+$/;
 
 export default class EventSimulator {
     constructor () {
-        this.DISPATCHED_EVENT_FLAG = PROPERTY_PREFIX + 'def';
+        this.DISPATCHED_EVENT_FLAG = 'hammerhead|dispatched-event';
 
         this.touchIdentifier  = Date.now();
         this.clickedFileInput = null;

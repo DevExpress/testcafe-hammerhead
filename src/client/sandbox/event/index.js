@@ -38,16 +38,15 @@ export default class EventSandbox extends SandboxBase {
     _createOverridedMethods () {
         var selection        = this.selection;
         var focusBlurSandbox = this.focusBlur;
-        var listeners        = this.listeners;
         var eventSimulator   = this.eventSimulator;
 
         this.overridedMethods = {
             dispatchEvent: function (ev) {
-                listeners.beforeDispatchEvent();
+                Listeners.beforeDispatchEvent();
 
                 var res = nativeMethods.dispatchEvent.call(this, ev);
 
-                listeners.afterDispatchEvent();
+                Listeners.afterDispatchEvent();
 
                 return res;
             },
@@ -57,7 +56,7 @@ export default class EventSandbox extends SandboxBase {
                 var createEventType;
                 var res;
 
-                listeners.beforeDispatchEvent();
+                Listeners.beforeDispatchEvent();
 
                 //event is 'MSEventObj'
                 if (!ev || !ev.target) {
@@ -82,7 +81,7 @@ export default class EventSandbox extends SandboxBase {
                 }
 
                 res = nativeMethods.dispatchEvent.call(this, ev);
-                listeners.afterDispatchEvent();
+                Listeners.afterDispatchEvent();
 
                 return res;
             },
@@ -96,14 +95,14 @@ export default class EventSandbox extends SandboxBase {
             },
 
             click: function () {
-                listeners.beforeDispatchEvent();
+                Listeners.beforeDispatchEvent();
 
                 if (domUtils.isFileInput(this))
                     eventSimulator.setClickedFileInput(this);
 
                 var res = eventSimulator.nativeClick(this, nativeMethods.click);
 
-                listeners.afterDispatchEvent();
+                Listeners.afterDispatchEvent();
 
                 return res;
             },
@@ -128,7 +127,6 @@ export default class EventSandbox extends SandboxBase {
 
     _createInternalHandlers () {
         var shadowUI         = this.sandbox.shadowUI;
-        var focusBlurSandbox = this.focusBlur;
         var document         = this.document;
         var eventSimulator   = this.eventSimulator;
 
@@ -144,7 +142,7 @@ export default class EventSandbox extends SandboxBase {
             // NOTE: we should cancel events raised by native function calling (focus, blur) only if the element has the flag.
             // If event is dispatched, we shouldn't cancel it.
             var target            = e.target || e.srcElement;
-            var internalEventFlag = focusBlurSandbox.getInternalEventFlag(e.type);
+            var internalEventFlag = FocusBlurSandbox.getInternalEventFlag(e.type);
 
             if (target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])
                 stopPropagation();

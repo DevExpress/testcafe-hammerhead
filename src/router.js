@@ -14,7 +14,6 @@ function buildRouteParamsMap (routeMatch, paramNames) {
 
 }
 
-
 // Router
 export default class Router {
     constructor () {

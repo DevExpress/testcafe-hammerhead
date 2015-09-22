@@ -5,15 +5,15 @@ import nativeMethods from '../native-methods';
 import { getProxyUrl } from '../../utils/url';
 import { XHR_REQUEST_MARKER_HEADER, XHR_CORS_SUPPORTED_FLAG, XHR_WITH_CREDENTIALS_FLAG } from '../../../const';
 
-const SERVICE_MSG_REQUEST_FLAG = 'is_tc_req-c8f5bd4f';
+const SERVICE_MSG_REQUEST_FLAG = 'hammerhead|service-msg-request-flag';
 
 export default class XhrSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.XHR_COMPLETED_EVENT = 'xhrCompleted';
-        this.XHR_ERROR_EVENT     = 'xhrError';
-        this.XHR_SEND_EVENT      = 'xhrSend';
+        this.XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
+        this.XHR_ERROR_EVENT     = 'hammerhead|event|xhr-error';
+        this.XHR_SEND_EVENT      = 'hammerhead|event|xhr-send';
 
         this.corsSupported = false;
     }

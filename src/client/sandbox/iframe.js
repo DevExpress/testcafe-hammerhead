@@ -8,22 +8,22 @@ import { isMozilla, isWebKit } from '../utils/browser';
 import { DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME } from '../../const';
 import { isSupportedProtocol, isIframeWithoutSrc } from '../utils/url';
 
-const IFRAME_WINDOW_INITED = 'hh_iwi_5d9138e9';
+const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
 export default class IframeSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.IFRAME_READY_TO_INIT_EVENT          = 'iframeReadyToInit';
-        this.IFRAME_READY_TO_INIT_INTERNAL_EVENT = 'iframeReadyToInitInternal';
-        this.IFRAME_DOCUMENT_CREATED_EVENT       = 'iframeDocumentCreated';
+        this.IFRAME_READY_TO_INIT_EVENT          = 'hammerhead|event|iframe-ready-to-init';
+        this.IFRAME_READY_TO_INIT_INTERNAL_EVENT = 'hammerhead|event|iframe-ready-to-init-internal';
+        this.IFRAME_DOCUMENT_CREATED_EVENT       = 'hammerhead|event|iframe-document-created';
 
         this.on(this.IFRAME_READY_TO_INIT_EVENT, this.iframeReadyToInitHandler);
     }
 
     _raiseReadyToInitEvent (iframe) {
         if (isIframeWithoutSrc(iframe)) {
-            var iframeInitialized       = this.isIframeInitialized(iframe);
+            var iframeInitialized       = IframeSandbox.isIframeInitialized(iframe);
             var iframeWindowInitialized = iframe.contentWindow[IFRAME_WINDOW_INITED];
 
             if (iframeInitialized && !iframeWindowInitialized) {
@@ -55,13 +55,13 @@ export default class IframeSandbox extends SandboxBase {
         }
     }
 
-    isIframeInitialized (iframe) {
+    static isIframeInitialized (iframe) {
         var isFFIframeUninitialized = isMozilla && iframe.contentWindow.document.readyState === 'uninitialized';
 
         return !isFFIframeUninitialized && !!iframe.contentDocument.documentElement;
     }
 
-    isWindowInited (window) {
+    static isWindowInited (window) {
         return window[IFRAME_WINDOW_INITED];
     }
 
