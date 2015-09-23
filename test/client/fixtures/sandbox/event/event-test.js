@@ -1,6 +1,6 @@
-var Browser        = Hammerhead.get('./utils/browser');
-var NativeMethods  = Hammerhead.get('./sandbox/native-methods');
-var Const          = Hammerhead.get('../const');
+var browserUtils  = Hammerhead.get('./utils/browser');
+var nativeMethods = Hammerhead.get('./sandbox/native-methods');
+var CONST         = Hammerhead.get('../const');
 
 var iframeSandbox  = Hammerhead.sandbox.iframe;
 var eventSandbox   = Hammerhead.sandbox.event;
@@ -54,18 +54,18 @@ function dispatchMouseEvent (el, type) {
     }
 
     if (el.dispatchEvent)
-        NativeMethods.dispatchEvent.call(el, evt);
+        nativeMethods.dispatchEvent.call(el, evt);
     else if (el.fireEvent)
-        NativeMethods.fireEvent.call(el, 'on' + type, evt);
+        nativeMethods.fireEvent.call(el, 'on' + type, evt);
 
     lastHovered = el;
 }
 
 function isHovered (el) {
-    return el.getAttribute(Const.HOVER_PSEUDO_CLASS_ATTR) === '';
+    return el.getAttribute(CONST.HOVER_PSEUDO_CLASS_ATTR) === '';
 }
 
-if (!Browser.hasTouchEvents) {
+if (!browserUtils.hasTouchEvents) {
     test('hover pseudo class', function () {
         var $parent = $('<div style="width:100px; height:100px; background-color: Red" class="parent">').appendTo($('body'));
         var $child  = $('<div style="width:50px; height:50px; background-color: Blue" class="child">').appendTo($parent);
@@ -90,7 +90,7 @@ if (!Browser.hasTouchEvents) {
     });
 }
 
-if (!Browser.isIE9) {
+if (!browserUtils.isIE9) {
     //T203986 - TestCafe - A test failed in IE9, IE11 and Safari with different error messages
     asyncTest('override setTimeout error', function () {
         var str = 'success';
@@ -198,7 +198,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
     event.initEvent('click', true, false);
 
     div.dispatchEvent(event);
-    strictEqual(attachedHandlerCount, Browser.isIE && Browser.version < 11 ? 1 : 0);
+    strictEqual(attachedHandlerCount, browserUtils.isIE && browserUtils.version < 11 ? 1 : 0);
     strictEqual(addedHandlerCount, 1);
     strictEqual(inlineHandlerClickedCount, 1);
     strictEqual(jQueryHandlerClickedCount, 1);
@@ -225,7 +225,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
     //new MouseEvent (this way not for IE and fireEvent)
     var error = false;
 
-    if (!Browser.isIE) {
+    if (!browserUtils.isIE) {
         try {
             event = new MouseEvent('click', {
                 'view':       window,
@@ -249,7 +249,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
     $div.remove();
 });
 
-if (!Browser.hasTouchEvents) {
+if (!browserUtils.hasTouchEvents) {
     test('focusBlur.fixHoveredElement, focusBlur.freeHoveredElement (B254111)', function () {
         var $parent = $('<div style="width:100px; height:100px; background-color: Red" class="parent">').appendTo($('body'));
         var $child  = $('<div style="width:50px; height:50px; background-color: Blue" class="child">').appendTo($parent);
@@ -279,14 +279,14 @@ if (!Browser.hasTouchEvents) {
 }
 
 test('attachEvent, fireEvent, detachEvent must be overriden (T239606)', function () {
-    var el = NativeMethods.createElement.call(document, 'A');
+    var el = nativeMethods.createElement.call(document, 'A');
 
     var attachEventExist = !!el.attachEvent;
     var fireEventExist   = !!el.fireEvent;
     var detachEventExist = !!el.detachEvent;
 
     if (attachEventExist || fireEventExist || detachEventExist)
-        ok(NativeMethods.attachEvent && NativeMethods.fireEvent && NativeMethods.detachEvent);
+        ok(nativeMethods.attachEvent && nativeMethods.fireEvent && nativeMethods.detachEvent);
     else {
         eventSandbox.overrideElement(el);
 
@@ -342,12 +342,12 @@ asyncTest('handler not the function for addEventListener (T261234)', function ()
 
     listeners.initElementListening(divEl);
 
-    NativeMethods.addEventListener.call(divEl, 'click', eventObjOrigin);
+    nativeMethods.addEventListener.call(divEl, 'click', eventObjOrigin);
     divEl.addEventListener('click', eventObjWrap);
     divEl.click();
 });
 
-if (Browser.isWebKit) {
+if (browserUtils.isWebKit) {
     asyncTest('The "Illegal invocation" error after svg element focused (#82)', function () {
         var $svgElement = $(
             '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">' +
@@ -370,3 +370,21 @@ if (Browser.isWebKit) {
     });
 }
 
+test('The click event handler for the svg element must be overridden correctly (B238956)', function () {
+    var $svg       = $('<svg xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>');
+    var clickCount = 0;
+
+    $svg
+        .width(500)
+        .height(300)
+        .appendTo('body')
+        .click(function () {
+            clickCount++;
+        });
+
+    eventSimulator.click($svg[0]);
+
+    strictEqual(clickCount, 1);
+
+    $svg.remove();
+});
