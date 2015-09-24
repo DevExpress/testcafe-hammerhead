@@ -2,18 +2,20 @@ import DomProcessor from '../dom';
 import DomAdapter from '../dom/server-dom-adapter';
 import ResourceProcessorBase from './resource-processor-base';
 import whacko from 'whacko';
+import dedent from 'dedent';
 import scriptProcessor from '../script';
 import * as Const from '../../const';
 import * as contentUtils from '../../utils/content';
 
-const BODY_CREATED_EVENT_SCRIPT =
-          `<script type="text/javascript" class="${ Const.SHADOW_UI_SCRIPT_CLASSNAME }">
-               if (window.Hammerhead)
-                   window.Hammerhead.sandbox.node.raiseBodyCreatedEvent();
+const BODY_CREATED_EVENT_SCRIPT = dedent`
+    <script type="text/javascript" class="${ Const.SHADOW_UI_SCRIPT_CLASSNAME }">
+        if (window.Hammerhead)
+            window.Hammerhead.sandbox.node.raiseBodyCreatedEvent();
 
-               var script = document.currentScript || document.scripts[document.scripts.length - 1];
-               script.parentNode.removeChild(script);
-          </script>`;
+        var script = document.currentScript || document.scripts[document.scripts.length - 1];
+        script.parentNode.removeChild(script);
+    </script>
+`;
 
 class PageProcessor extends ResourceProcessorBase {
     constructor () {
@@ -67,14 +69,18 @@ class PageProcessor extends ResourceProcessorBase {
         var resources = [];
 
         if (processingOptions.styleUrl) {
-            resources.push(`<link rel="stylesheet" type="text/css" class="${Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME}"
-                                  href="${processingOptions.styleUrl}">`);
+            resources.push(
+                `<link rel="stylesheet" type="text/css" class="${Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME}"` +
+                `href="${processingOptions.styleUrl}">`
+            );
         }
 
         if (processingOptions.scripts) {
-            processingOptions.scripts.forEach(function (scriptUrl) {
-                resources.push(`<script type="text/javascript" class="${Const.SHADOW_UI_SCRIPT_CLASSNAME}"
-                                        charset="UTF-8" src="${scriptUrl}"></script>`);
+            processingOptions.scripts.forEach(scriptUrl => {
+                resources.push(
+                    `<script type="text/javascript" class="${Const.SHADOW_UI_SCRIPT_CLASSNAME}"` +
+                    `charset="UTF-8" src="${scriptUrl}"></script>`
+                );
             });
         }
 
@@ -92,7 +98,7 @@ class PageProcessor extends ResourceProcessorBase {
 
     _prepareHtml (html, processingOpts) {
         if (processingOpts && processingOpts.iframeImageSrc)
-            return '<html><body><img src="' + processingOpts.iframeImageSrc + '" /></body></html>';
+            return `<html><body><img src="${processingOpts.iframeImageSrc}" /></body></html>`;
 
         return html;
     }
