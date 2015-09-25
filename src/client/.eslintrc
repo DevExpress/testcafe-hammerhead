@@ -4,6 +4,7 @@
     "initHammerheadClient": true
   },
   "env": {
-    "browser": true
+    "browser": true,
+    "node": false
   }
 }

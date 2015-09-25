@@ -1,0 +1,8 @@
+{
+  "blacklist": [
+    "es6.forOf",
+    "es7.asyncFunctions",
+    "regenerator",
+    "runtime"
+  ]
+}
