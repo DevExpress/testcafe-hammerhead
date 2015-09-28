@@ -4,6 +4,7 @@ import DocumentSandbox from './document';
 import ElementSandbox from './element';
 import CONST from '../../../const';
 import { isMozilla } from '../../utils/browser';
+import { parseDocumentCharset } from '../../utils/dom';
 
 export default class NodeSandbox extends SandboxBase {
     constructor (sandbox) {
@@ -12,7 +13,8 @@ export default class NodeSandbox extends SandboxBase {
         this.BODY_CREATED_EVENT     = 'bodyCreated';
         this.DOCUMENT_CLEANED_EVENT = 'documentCleaned';
 
-        this.raiseBodyCreatedEvent = this._onBodyCreated;
+        this.raiseBodyCreatedEvent       = this._onBodyCreated;
+        document[CONST.DOCUMENT_CHARSET] = parseDocumentCharset();
 
         this.doc     = new DocumentSandbox(sandbox);
         this.win     = new WindowSandbox(sandbox);

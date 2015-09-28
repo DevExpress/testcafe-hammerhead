@@ -162,7 +162,7 @@ export default class DomProcessor {
         var baseUrl = $base.length ? this.adapter.getAttr($base[0], 'href') : '';
         var domProc = this;
 
-        var replacer = (resourceUrl, resourceType) => urlReplacer(resourceUrl, resourceType, baseUrl);
+        var replacer = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
         var $all     = $('*');
 
         for (var i = 0; i < this.elementProcessorPatterns.length; i++) {
@@ -422,6 +422,7 @@ export default class DomProcessor {
                     var parsedResourceUrl = urlUtils.parseUrl(resourceUrl);
                     var isRelativePath    = !parsedResourceUrl.host;
                     var proxyUrl          = '';
+                    var charsetAttrValue  = isScript && this.adapter.getAttr(el, 'charset');
 
                     // NOTE: Only non relative iframe src can be cross-domain
                     if (isIframe && !isRelativePath) {
@@ -441,7 +442,9 @@ export default class DomProcessor {
                         }
 
                     }
-                    proxyUrl = proxyUrl === '' && resourceUrl ? urlReplacer(resourceUrl, resourceType) : proxyUrl;
+
+                    proxyUrl = proxyUrl === '' &&
+                               resourceUrl ? urlReplacer(resourceUrl, resourceType, charsetAttrValue) : proxyUrl;
 
                     this.adapter.setAttr(el, storedUrlAttr, resourceUrl);
 

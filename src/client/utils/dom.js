@@ -416,3 +416,9 @@ export function hasClass (el, className) {
 
     return hasClassFallback(el, className);
 }
+
+export function parseDocumentCharset () {
+    var metaCharset = nativeMethods.querySelector.call(document, '.' + CONST.SHADOW_UI_CHARSET_CLASSNAME);
+
+    return metaCharset && metaCharset.getAttribute('charset');
+}

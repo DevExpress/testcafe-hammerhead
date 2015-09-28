@@ -11,6 +11,7 @@ var iframeSandbox         = Hammerhead.sandbox.iframe;
 var elementEditingWatcher = Hammerhead.sandbox.event.elementEditingWatcher;
 var eventSimulator        = Hammerhead.sandbox.event.eventSimulator;
 
+
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
@@ -205,6 +206,22 @@ test('iframe', function () {
 
     eval(processScript('result = iframe.sandbox'));
     strictEqual(result, 'allow-forms');
+});
+
+test('innerHTML', function () {
+    var div       = document.createElement('div');
+    var scriptUrl = 'http://some.com/script.js';
+    var linkUrl   = 'http://some.com/page';
+
+    document[Const.DOCUMENT_CHARSET] = 'utf-8';
+
+    eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><\/script><a href=\\"" + linkUrl + "\\"></a>";'));
+
+    strictEqual(div.children.length, 2);
+    strictEqual(div.children[0].src, UrlUtil.getProxyUrl(scriptUrl, null, null, null, UrlUtil.SCRIPT, 'utf-8'));
+    strictEqual(div.children[1].href, UrlUtil.getProxyUrl(linkUrl));
+
+    document[Const.DOCUMENT_CHARSET] = null;
 });
 
 asyncTest('body.innerHTML in iframe', function () {

@@ -1,7 +1,7 @@
 import sharedUrlUtil from '../../utils/url';
 import { isCrossDomainWindows } from '../utils/dom';
 import { getAttribute as nativeGetAttribute } from '../sandbox/native-methods';
-import { DOM_SANDBOX_STORED_ATTR_POSTFIX } from '../../const';
+import { DOM_SANDBOX_STORED_ATTR_POSTFIX, DOCUMENT_CHARSET } from '../../const';
 import { get as getSettings } from '../settings';
 
 var urlUtil = {};
@@ -23,7 +23,8 @@ function getResolver (doc) {
     return doc[urlUtil.DOCUMENT_URL_RESOLVER];
 }
 
-urlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType) {
+
+urlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue) {
     if (!urlUtil.isSupportedProtocol(url))
         return url;
 
@@ -42,14 +43,16 @@ urlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resour
         // NOTE: we need to change proxy url resource type
         var destUrl = sharedUrlUtil.formatUrl(parsedAsProxy.originResourceInfo);
 
-        return urlUtil.getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType);
+        return urlUtil.getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue);
     }
 
     proxyHostname = proxyHostname || location.hostname;
     proxyPort     = proxyPort || location.port.toString();
     sessionId     = sessionId || getSettings().sessionId;
 
+
     var parsedUrl = sharedUrlUtil.parseUrl(url);
+    var charset   = charsetAttrValue || resourceType === urlUtil.SCRIPT && document[DOCUMENT_CHARSET];
 
     // NOTE: seems like we've had a relative URL with leading slash or dots,
     // so our proxy info path part was removed by resolver and we have an origin URL,
@@ -65,8 +68,7 @@ urlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resour
         url = sharedUrlUtil.formatUrl(parsedUrl);
     }
 
-
-    return sharedUrlUtil.getProxyUrl(url, proxyHostname, proxyPort, sessionId, resourceType);
+    return sharedUrlUtil.getProxyUrl(url, proxyHostname, proxyPort, sessionId, resourceType, charset);
 };
 
 urlUtil.getCrossDomainIframeProxyUrl = function (url) {
@@ -121,8 +123,9 @@ urlUtil.parseUrl = function (url) {
     return sharedUrlUtil.parseUrl(url);
 };
 
-urlUtil.convertToProxyUrl = function (url, resourceType) {
-    return urlUtil.getProxyUrl(url, null, null, null, resourceType);
+
+urlUtil.convertToProxyUrl = function (url, resourceType, charsetAttrValue) {
+    return urlUtil.getProxyUrl(url, null, null, null, resourceType, charsetAttrValue);
 };
 
 urlUtil.changeOriginUrlPart = function (proxyUrl, prop, value, resourceType) {
