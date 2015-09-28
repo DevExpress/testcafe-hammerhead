@@ -224,10 +224,12 @@ asyncTest('body.innerHTML in iframe', function () {
             eval(processScript('iframe.contentDocument.body.innerHTML = "";'));
 
             var id = window.setInterval(function () {
-                ok(haveShadowUIRoot());
-                iframe.parentNode.removeChild(iframe);
-                clearInterval(id);
-                start();
+                if (haveShadowUIRoot()) {
+                    ok(true);
+                    iframe.parentNode.removeChild(iframe);
+                    window.clearInterval(id);
+                    start();
+                }
             }, 100);
 
         });
