@@ -8,7 +8,9 @@ import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 import { SHADOW_UI_CLASSNAME_POSTFIX } from '../../../const';
 
-const FAKE_PATH_STRING         = 'C:\\fakepath\\';
+// NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly
+const FAKE_PATH_STRING = 'C:\\fakepath\\';
+
 const UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIFrameForIE9' + SHADOW_UI_CLASSNAME_POSTFIX;
 
 export default class UploadInfoManager {
