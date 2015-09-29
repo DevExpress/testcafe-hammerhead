@@ -68,6 +68,9 @@ export default class MessageSandbox extends SandboxBase {
 
                 resultEvt.data = needToStringify ? stringifyJSON(data.message) : data.message;
 
+                if (typeof originListener === 'object' && typeof originListener.handleEvent === 'function')
+                    return originListener.handleEvent.call(originListener, resultEvt);
+
                 return originListener.call(this.window, resultEvt);
             }
         }

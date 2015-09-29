@@ -14,6 +14,22 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
 });
 
+asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
+    var testMessage = 'test';
+
+    var eventHandlerObject = {
+        handleEvent: function (e) {
+            strictEqual(e.data, testMessage);
+            strictEqual(this, eventHandlerObject);
+            window.removeEventListener('message', eventHandlerObject);
+            start();
+        }
+    };
+
+    window.addEventListener('message', eventHandlerObject);
+    eval(ScriptProcessor.process('window.postMessage(testMessage, "*");'));
+});
+
 asyncTest('onmessage event', function () {
     var $iframe               = $('<iframe>');
     var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
@@ -265,4 +281,3 @@ asyncTest('timeout', function () {
 
     document.body.appendChild(iframe);
 });
-
