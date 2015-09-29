@@ -38,26 +38,26 @@ class Hammerhead {
         this.get                        = require;
 
         // Modules
-        this.JSON           = JSON;
-        this.JSProcessor    = jsProcessor;
-        this.Transport      = transport;
-        this.MessageSandbox = this.sandbox.message;
-        this.NativeMethods  = this.sandbox.nativeMethods;
-        this.ShadowUI       = this.sandbox.shadowUI;
-        this.EventSandbox   = {
-            Listeners:             this.sandbox.event.listeners,
-            FocusBlur:             this.sandbox.event.focusBlur,
-            ElementEditingWatcher: this.sandbox.event.elementEditingWatcher,
-            EventSimulator:        this.sandbox.event.eventSimulator,
-            Selection:             this.sandbox.event.selection
+        this.json           = JSON;
+        this.jsProcessor    = jsProcessor;
+        this.transport      = transport;
+        this.messageSandbox = this.sandbox.message;
+        this.nativeMethods  = this.sandbox.nativeMethods;
+        this.shadowUI       = this.sandbox.shadowUI;
+        this.eventSandbox   = {
+            listeners:             this.sandbox.event.listeners,
+            focusBlur:             this.sandbox.event.focusBlur,
+            elementEditingWatcher: this.sandbox.event.elementEditingWatcher,
+            eventSimulator:        this.sandbox.event.eventSimulator,
+            selection:             this.sandbox.event.selection
         };
-        this.Util           = {
-            Browser:  browserUtils,
-            DOM:      domUtils,
-            Event:    eventUtils,
-            Position: positionUtils,
-            Style:    styleUtils,
-            Types:    typeUtils
+        this.utils          = {
+            browser:  browserUtils,
+            dom:      domUtils,
+            event:    eventUtils,
+            position: positionUtils,
+            style:    styleUtils,
+            types:    typeUtils
         };
     }
 

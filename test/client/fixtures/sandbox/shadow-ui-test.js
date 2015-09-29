@@ -76,7 +76,7 @@ asyncTest('get root after body recreation', function () {
             var document = this.contentDocument;
             var window   = this.contentWindow;
             var getRoot  = function () {
-                return window.Hammerhead.ShadowUI.getRoot();
+                return window.Hammerhead.shadowUI.getRoot();
             };
 
             ok(getRoot());
@@ -443,13 +443,13 @@ asyncTest('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T22
     var $iframe = $('<iframe id="test001">');
 
     $iframe.load(function () {
-        var $root = $(this.contentWindow.Hammerhead.ShadowUI.getRoot());
+        var $root = $(this.contentWindow.Hammerhead.shadowUI.getRoot());
 
         strictEqual($root.parent().parent().parent()[0], this.contentDocument);
 
         this.contentDocument.body.innerHTMl = '';
 
-        $root = $(this.contentWindow.Hammerhead.ShadowUI.getRoot());
+        $root = $(this.contentWindow.Hammerhead.shadowUI.getRoot());
 
         strictEqual($root.parent().parent().parent()[0], this.contentDocument);
 

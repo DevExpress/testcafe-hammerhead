@@ -2,7 +2,7 @@ var Browser         = Hammerhead.get('./utils/browser');
 var ScriptProcessor = Hammerhead.get('../processing/script');
 var Settings        = Hammerhead.get('./settings');
 
-var iframeSandbox = Hammerhead.sandbox.iframe;
+var iframeSandbox  = Hammerhead.sandbox.iframe;
 var messageSandbox = Hammerhead.sandbox.message;
 
 QUnit.testStart(function () {
@@ -148,7 +148,7 @@ asyncTest('cloning arguments', function () {
     iframe.addEventListener('load', function () {
         var sourceObj = { testObject: true };
 
-        this.contentWindow.Hammerhead.MessageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+        this.contentWindow.Hammerhead.messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
             ok(e.message.testObject);
             e.message.modified = true;
             ok(!sourceObj.modified);
