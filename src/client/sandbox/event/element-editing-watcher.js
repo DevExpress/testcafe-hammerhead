@@ -1,9 +1,8 @@
 import nativeMethods from '../native-methods';
-import { PROPERTY_PREFIX } from '../../../const';
 import { isTextEditableElementAndEditingAllowed, isShadowUIElement } from '../../utils/dom';
 
-const ELEMENT_EDITING_OBSERVED_FLAG = PROPERTY_PREFIX + 'elementEditingObserved';
-const OLD_VALUE_PROPERTY            = PROPERTY_PREFIX + 'oldValue';
+const ELEMENT_EDITING_OBSERVED_FLAG = 'hammerhead|element-editing-observed';
+const OLD_VALUE_PROPERTY            = 'hammerhead|old-value';
 
 export default class ElementEditingWatcher {
     constructor (eventSimulator) {

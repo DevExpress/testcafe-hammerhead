@@ -17,7 +17,7 @@ export default class CookieSandbox extends SandboxBase {
 
     //NOTE: let browser validate other stuff (e.g. Path attribute), so we add unique prefix
     //to the cookie key, pass cookie to the browser then clean up and return result.
-    _getBrowserProcessedCookie (parsedCookie, document) {
+    static _getBrowserProcessedCookie (parsedCookie, document) {
         var parsedCookieCopy = {};
 
         for (var prop in parsedCookie) {
@@ -47,7 +47,7 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     //NOTE: perform validations which can't be processed by browser due to proxying
-    _isValidCookie (parsedCookie, document) {
+    static _isValidCookie (parsedCookie, document) {
         if (!parsedCookie)
             return false;
 
@@ -104,12 +104,12 @@ export default class CookieSandbox extends SandboxBase {
         //so sync code can immediately access cookie
         var parsedCookie = cookieUtils.parse(value);
 
-        if (this._isValidCookie(parsedCookie, document)) {
+        if (CookieSandbox._isValidCookie(parsedCookie, document)) {
             //NOTE: this attributes shouldn't be processed by browser
             delete parsedCookie.secure;
             delete parsedCookie.domain;
 
-            var clientCookieStr = this._getBrowserProcessedCookie(parsedCookie, document);
+            var clientCookieStr = CookieSandbox._getBrowserProcessedCookie(parsedCookie, document);
 
             if (!clientCookieStr) {
                 //NOTE: we have two options here:
@@ -119,7 +119,7 @@ export default class CookieSandbox extends SandboxBase {
                 delete parsedCookie.expires;
 
                 //NOTE: we should delete cookie
-                if (this._getBrowserProcessedCookie(parsedCookie, document))
+                if (CookieSandbox._getBrowserProcessedCookie(parsedCookie, document))
                     this._updateClientCookieStr(parsedCookie.key, null);
 
             }

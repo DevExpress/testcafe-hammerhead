@@ -14,22 +14,22 @@ export default class MethodCallInstrumentation extends SandboxBase {
 
             write: {
                 condition: document => !isDocument(document),
-                method:    (document, args) => document.write.apply(document, this._removeOurWriteMethArgs(args))
+                method:    (document, args) => document.write.apply(document, MethodCallInstrumentation._removeOurWriteMethArgs(args))
             },
 
             writeln: {
                 condition: document => !isDocument(document),
-                method:    (document, args) => document.writeln.apply(document, this._removeOurWriteMethArgs(args))
+                method:    (document, args) => document.writeln.apply(document, MethodCallInstrumentation._removeOurWriteMethArgs(args))
             }
         };
     }
 
     //NOTE: isolate throw statement into separate function because JS engines doesn't optimize such functions.
-    _error (msg) {
+    static _error (msg) {
         throw new Error(msg);
     }
 
-    _removeOurWriteMethArgs (args) {
+    static _removeOurWriteMethArgs (args) {
         if (args.length) {
             var lastArg = args[args.length - 1];
 
@@ -49,11 +49,13 @@ export default class MethodCallInstrumentation extends SandboxBase {
         super.attach(window);
 
         window[CALL_METHOD_METH_NAME] = (owner, methName, args) => {
-            if (isNullOrUndefined(owner))
-                this._error('Cannot call method \'' + methName + '\' of ' + inaccessibleTypeToStr(owner));
+            if (isNullOrUndefined(owner)) {
+                MethodCallInstrumentation._error('Cannot call method \'' + methName + '\' of ' +
+                                                 inaccessibleTypeToStr(owner));
+            }
 
             if (typeof owner[methName] !== 'function')
-                this._error('\'' + methName + '\' is not a function');
+                MethodCallInstrumentation._error('\'' + methName + '\' is not a function');
 
             if (typeof methName !== 'string' || !this.methodWrappers.hasOwnProperty(methName))
                 return owner[methName].apply(owner, args);

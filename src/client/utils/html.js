@@ -5,7 +5,7 @@ import scriptProcessor from '../../processing/script';
 import { find } from './dom';
 import { convertToProxyUrl } from '../utils/url';
 
-const TEXT_NODE_COMMENT_MARKER = '16c959db8754';
+const TEXT_NODE_COMMENT_MARKER = 'hammerhead|text-node-comment-marker';
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE =
     '<script class="' + CONST.SHADOW_UI_SCRIPT_CLASSNAME + '" type="text/javascript">' +
@@ -21,7 +21,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE =
 var htmlDocument = document.implementation.createHTMLDocument('title');
 var htmlParser   = htmlDocument.createDocumentFragment();
 
-domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED, (html, callback) => {
+domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, (html, callback) => {
     if (!isPageHtml(html))
         html = '<html><body>' + html + '</body></html>';
 

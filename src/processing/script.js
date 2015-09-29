@@ -31,7 +31,8 @@ class ScriptProcessor {
         this.SCRIPT_HEADER = '\r\ntypeof window !== "undefined" && ' + this.OVERRIDE_DOM_METH_SCRIPT + ' && ' +
                              this.OVERRIDE_DOM_METH_SCRIPT + '();\r\n' + jsProcessor.MOCK_ACCESSORS;
 
-        this.SCRIPT_HEADER_REG_EX = new RegExp('^\\s*typeof[^\\n]+' + DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME +
+        this.SCRIPT_HEADER_REG_EX = new RegExp('^\\s*typeof[^\\n]+' +
+                                               DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME.replace('|', '\\|') +
                                                '[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+__proc\\$Script;', 'i');
     }
 

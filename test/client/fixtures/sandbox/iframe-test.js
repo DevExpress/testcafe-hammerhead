@@ -1,14 +1,14 @@
-var Browser       = Hammerhead.get('./utils/browser');
-var NativeMethods = Hammerhead.get('./sandbox/native-methods');
-var Const         = Hammerhead.get('../const');
-var UrlUtil       = Hammerhead.get('./utils/url');
+var CONST         = Hammerhead.get('../const');
+var browserUtils  = Hammerhead.get('./utils/browser');
+var nativeMethods = Hammerhead.get('./sandbox/native-methods');
+var urlUtils      = Hammerhead.get('./utils/url');
 
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
-    window.open       = NativeMethods.windowOpen;
-    window.setTimeout = NativeMethods.setTimeout;
+    window.open       = nativeMethods.windowOpen;
+    window.setTimeout = nativeMethods.setTimeout;
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
@@ -57,7 +57,7 @@ test('document.write', function () {
 
 // NOTE: This test must be last (IE11 hack)
 asyncTest('element.setAttribute', function () {
-    var src = Browser.isMozilla ? ' src="javascript:&quot;<html><body></body></html>&quot;"' : '';
+    var src = browserUtils.isMozilla ? ' src="javascript:&quot;<html><body></body></html>&quot;"' : '';
 
     expect(12);
 
@@ -67,11 +67,12 @@ asyncTest('element.setAttribute', function () {
 
         // IE hack part1: catch hammerhead initialization exception
         var iframeSandbox = this.contentWindow.Hammerhead.sandbox.iframe;
-        var storedMeth    = iframeSandbox.isIframeInitialized;
+        var storedMeth    = iframeSandbox.constructor.isIframeInitialized;
 
-        iframeSandbox.isIframeInitialized = function (iframe) {
-            iframe.contentWindow[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] =
-                iframe.contentWindow[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] || function () {
+        iframeSandbox.constructor.isIframeInitialized = function (iframe) {
+            iframe.contentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] =
+                iframe.contentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] || function () {
+
                 };
 
             return storedMeth.call(iframeSandbox, iframe);
@@ -109,7 +110,7 @@ asyncTest('element.setAttribute', function () {
                     element.setAttribute('target', target);
                 element.setAttribute(urlAttr, '/index.html');
 
-                strictEqual(UrlUtil.parseProxyUrl(element[urlAttr]).resourceType, resultFlag);
+                strictEqual(urlUtils.parseProxyUrl(element[urlAttr]).resourceType, resultFlag);
 
                 body.removeChild(element);
             };

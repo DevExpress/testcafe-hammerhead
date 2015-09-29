@@ -13,7 +13,7 @@ class Transport {
     constructor () {
         this.SWITCH_BACK_TO_ASYNC_XHR_DELAY    = 2000;
         this.SERVICE_MESSAGES_WAITING_INTERVAL = 50;
-        this.MSG_RECEIVED                      = 'received';
+        this.MSG_RECEIVED_EVENT                = 'hammerhead|event|message-received';
 
         this.eventEmitter                 = new EventEmitter();
         this.msgQueue                     = {};
@@ -79,7 +79,7 @@ class Transport {
 
             this.msgQueue[queueId].shift();
 
-            this.eventEmitter.emit(this.MSG_RECEIVED, {});
+            this.eventEmitter.emit(this.MSG_RECEIVED_EVENT, {});
 
             if (this.msgQueue[queueId].length)
                 this.sendNextQueuedMsg(queueId);
@@ -90,13 +90,13 @@ class Transport {
         if (this._cookieMsgInProgress()) {
             var handler = () => {
                 if (!this._cookieMsgInProgress()) {
-                    this.eventEmitter.off(this.MSG_RECEIVED, handler);
+                    this.eventEmitter.off(this.MSG_RECEIVED_EVENT, handler);
 
                     callback();
                 }
             };
 
-            this.eventEmitter.on(this.MSG_RECEIVED, handler);
+            this.eventEmitter.on(this.MSG_RECEIVED_EVENT, handler);
         }
         else
             callback();

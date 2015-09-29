@@ -10,8 +10,8 @@ export default class NodeSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BODY_CREATED_EVENT     = 'bodyCreated';
-        this.DOCUMENT_CLEANED_EVENT = 'documentCleaned';
+        this.BODY_CREATED_EVENT     = 'hammerhead|event|body-created';
+        this.DOCUMENT_CLEANED_EVENT = 'hammerhead|event|document-cleaned';
 
         this.raiseBodyCreatedEvent       = this._onBodyCreated;
         document[CONST.DOCUMENT_CHARSET] = parseDocumentCharset();

@@ -7,9 +7,9 @@ export default class UnloadSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BEFORE_UNLOAD_EVENT        = 'beforeUnload';
-        this.BEFORE_BEFORE_UNLOAD_EVENT = 'beforeBeforeUnload';
-        this.UNLOAD_EVENT               = 'unload';
+        this.BEFORE_UNLOAD_EVENT        = 'hammerhead|event|before-unload';
+        this.BEFORE_BEFORE_UNLOAD_EVENT = 'hammerhead|event|before-before-unload';
+        this.UNLOAD_EVENT               = 'hammerhead|event|unload';
 
         this.isFakeIEBeforeUnloadEvent     = false;
         this.storedBeforeUnloadReturnValue = '';

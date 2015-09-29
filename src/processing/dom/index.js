@@ -34,8 +34,6 @@ const TARGET_ATTR_TAGS = {
     base: true
 };
 
-const HTML_PROCESSING_REQUIRED = 'HTML_PROCESSING_REQUIRED';
-
 export default class DomProcessor {
     constructor (adapter) {
         this.adapter = adapter;
@@ -46,7 +44,8 @@ export default class DomProcessor {
         this.TARGET_ATTR_TAGS           = TARGET_ATTR_TAGS;
         this.URL_ATTR_TAGS              = URL_ATTR_TAGS;
         this.URL_ATTRS                  = URL_ATTRS;
-        this.HTML_PROCESSING_REQUIRED   = HTML_PROCESSING_REQUIRED;
+
+        this.HTML_PROCESSING_REQUIRED_EVENT = 'hammerhead|event|html-processing-required';
 
         this.EVENTS = this.adapter.EVENTS;
 
@@ -191,7 +190,7 @@ export default class DomProcessor {
         for (var i = 0; i < this.elementProcessorPatterns.length; i++) {
             var pattern = this.elementProcessorPatterns[i];
 
-            if (pattern.selector(elementForSelectorCheck) && !this._isShadowElement(el)) {
+            if (pattern.selector(elementForSelectorCheck) && !DomProcessor._isShadowElement(el)) {
                 for (var j = 0; j < pattern.elementProcessors.length; j++)
                     pattern.elementProcessors[j].call(this, el, urlReplacer, pattern);
             }
@@ -222,7 +221,7 @@ export default class DomProcessor {
         return false;
     }
 
-    _isShadowElement (el) {
+    static _isShadowElement (el) {
         return typeof el.className === 'string' && el.className.indexOf(CONST.SHADOW_UI_CLASSNAME_POSTFIX) > -1;
     }
 
@@ -260,7 +259,7 @@ export default class DomProcessor {
         if (matches && jsProtocol) {
             var html = matches[2];
 
-            this.emit(this.HTML_PROCESSING_REQUIRED, html, function (processedHTML) {
+            this.emit(this.HTML_PROCESSING_REQUIRED_EVENT, html, function (processedHTML) {
                 /*eslint-disable no-script-url*/
                 var processedAttrValue = 'javascript:\'' + processedHTML.replace(/'/g, "\\'") + '\'';
 

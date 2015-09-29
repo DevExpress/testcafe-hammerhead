@@ -4,11 +4,11 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import { getElementScroll, setScrollLeft, setScrollTop } from '../../utils/style';
-import { HOVER_PSEUDO_CLASS_ATTR, PROPERTY_PREFIX } from '../../../const';
+import { HOVER_PSEUDO_CLASS_ATTR } from '../../../const';
 import { isSVGElement } from '../../utils/types';
 
-const INTERNAL_FOCUS_FLAG = PROPERTY_PREFIX + 'iff';
-const INTERNAL_BLUR_FLAG  = PROPERTY_PREFIX + 'ibf';
+const INTERNAL_FOCUS_FLAG = 'hammerhead|internal-focus';
+const INTERNAL_BLUR_FLAG  = 'hammerhead|internal-blur';
 
 export default class FocusBlurSandbox extends SandboxBase {
     constructor (sandbox, eventSimulator) {
@@ -107,13 +107,13 @@ export default class FocusBlurSandbox extends SandboxBase {
             if (browserUtils.isIE && browserUtils.version < 12) {
                 this.window.setTimeout(() => {
                     this.window.setTimeout(() => {
-                        if (el[this.getInternalEventFlag(type)])
-                            delete el[this.getInternalEventFlag(type)];
+                        if (el[FocusBlurSandbox.getInternalEventFlag(type)])
+                            delete el[FocusBlurSandbox.getInternalEventFlag(type)];
                     }, 0);
                 }, 0);
             }
-            else if (el[this.getInternalEventFlag(type)])
-                delete el[this.getInternalEventFlag(type)];
+            else if (el[FocusBlurSandbox.getInternalEventFlag(type)])
+                delete el[FocusBlurSandbox.getInternalEventFlag(type)];
 
             if (!withoutHandlers) {
                 if (isAsync)
@@ -151,7 +151,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                 }
             }
 
-            el[this.getInternalEventFlag(type)] = true;
+            el[FocusBlurSandbox.getInternalEventFlag(type)] = true;
 
             FocusBlurSandbox._getNativeMeth(el, type).call(el);
 
@@ -191,6 +191,10 @@ export default class FocusBlurSandbox extends SandboxBase {
         }
         else
             simulateEvent();
+    }
+
+    static getInternalEventFlag (type) {
+        return type === 'focus' ? INTERNAL_FOCUS_FLAG : INTERNAL_BLUR_FLAG;
     }
 
     attach (window) {
@@ -316,10 +320,6 @@ export default class FocusBlurSandbox extends SandboxBase {
 
     enableOuterFocusHandlers () {
         this.shouldDisableOuterFocusHandlers = false;
-    }
-
-    getInternalEventFlag (type) {
-        return type === 'focus' ? INTERNAL_FOCUS_FLAG : INTERNAL_BLUR_FLAG;
     }
 
     fixHoveredElement () {

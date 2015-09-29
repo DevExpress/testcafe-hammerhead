@@ -1,7 +1,7 @@
 // NOTE: We should wrap xhr response (B236741)
 export default class XMLHttpRequestWrapper {
     constructor (xhr) {
-        const XHR_PROPERTY_ACCESS_ERROR = 'INVALID_STATE_ERR';
+        const XHR_PROPERTY_ACCESS_ERROR = 'hammerhead|xhr-property-access-error';
 
         var eventHandlers = [];
 

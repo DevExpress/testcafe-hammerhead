@@ -1,7 +1,7 @@
 // for internal using Listeners
 import { isIE, version as browserVersion } from '../../utils/browser';
 
-const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'tc_eles_bef23a16';
+const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'hammerhead|element-listening-events-storage-prop';
 
 export function getElementCtx (el) {
     return el[ELEMENT_LISTENING_EVENTS_STORAGE_PROP];

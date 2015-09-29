@@ -1,5 +1,5 @@
 --separator
-Content-Disposition: form-data; name="upload-89fc3-info"
+Content-Disposition: form-data; name="hammerhead|upload-info-hidden-input"
 
 [{"name":"inputUpload","files":[{"name":"text.txt","type":"text/plain","data":"dGV4dA=="},{"name":"1","type":"text/plain","data":"MTIz"}]}]
 --separator

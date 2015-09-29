@@ -1,4 +1,5 @@
 import SandboxBase from '../base';
+import IframeSandbox from '../iframe';
 import jsProcessor from '../../../processing/js/index';
 import nativeMethods from '../native-methods';
 import * as htmlUtils from '../../utils/html';
@@ -9,9 +10,9 @@ export default class DocumentSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BEFORE_DOCUMENT_CLEANED_EVENT = 'beforeDocumentCleaned';
-        this.DOCUMENT_CLOSED_EVENT         = 'documentClosed';
-        this.DOCUMENT_CLEANED_EVENT        = 'documentCleaned';
+        this.BEFORE_DOCUMENT_CLEANED_EVENT = 'hammerhead|event|before-document-cleaned';
+        this.DOCUMENT_CLOSED_EVENT         = 'hammerhead|event|document-closed';
+        this.DOCUMENT_CLEANED_EVENT        = 'hammerhead|event|document-cleaned';
 
         this.storedDocumentWriteContent = '';
         this.writeBlockCounter          = 0;
@@ -20,7 +21,7 @@ export default class DocumentSandbox extends SandboxBase {
     _isUninitializedIframeWithoutSrc (window) {
         try {
             return window !== window.top && isIframeWithoutSrc(window.frameElement) &&
-                   !this.sandbox.iframe.isIframeInitialized(window.frameElement);
+                   !IframeSandbox.isIframeInitialized(window.frameElement);
         }
         catch (e) {
             return false;
@@ -121,7 +122,7 @@ export default class DocumentSandbox extends SandboxBase {
             // IE10 and IE9 rise "load" event only when document.close meth called.
             // We should restore overrided document.open and document.write meths before Hammerhead injection
             // if window not initialized
-            if (isIE && !this.sandbox.iframe.isWindowInited(window))
+            if (isIE && !IframeSandbox.isWindowInited(window))
                 nativeMethods.restoreNativeDocumentMeth(document);
 
             var result = nativeMethods.documentClose.call(document);

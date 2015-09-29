@@ -1,3 +1,5 @@
+import FocusBlurSandbox from './focus-blur';
+import Listeners from './listeners';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import { getActiveElement, findDocument, isInputWithoutSelectionPropertiesInMozilla } from '../../utils/dom';
@@ -172,21 +174,21 @@ export default class Selection {
             this.listeners.addInternalEventListener(document, ['focus'], focusHandler);
 
         //focus and blur events
-        this.listeners.beforeDispatchEvent();
-        this.listeners.beforeDispatchEvent();
+        Listeners.beforeDispatchEvent();
+        Listeners.beforeDispatchEvent();
 
         result = selectionSetter();
 
         //focus and blur events
-        this.listeners.afterDispatchEvent();
-        this.listeners.afterDispatchEvent();
+        Listeners.afterDispatchEvent();
+        Listeners.afterDispatchEvent();
 
         if (needFocus) {
             activeElement = getActiveElement(curDocument);
 
             if (browserUtils.isWebKit && activeElement !== el) {
                 if (focusRaised)
-                    el[this.focusBlurSandbox.getInternalEventFlag('focus')] = true;
+                    el[FocusBlurSandbox.getInternalEventFlag('focus')] = true;
 
                 el.focus();
             }

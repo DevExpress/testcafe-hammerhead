@@ -7,7 +7,7 @@ import { get as getSettings } from '../settings';
 var urlUtil = {};
 
 //URL processing funcs
-urlUtil.DOCUMENT_URL_RESOLVER               = 'doc_url_resolver_8ff20d5e';
+urlUtil.DOCUMENT_URL_RESOLVER               = 'hammerhead|document-url-resolver';
 urlUtil.REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtil.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
 urlUtil.IFRAME = sharedUrlUtil.IFRAME;

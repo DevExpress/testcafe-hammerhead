@@ -13,7 +13,7 @@ export default class ElementSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.IFRAME_ADDED_EVENT = 'iframeAdded';
+        this.IFRAME_ADDED_EVENT = 'hammerhead|event|iframe-added';
 
         this.overridedMethods = null;
     }
@@ -22,7 +22,7 @@ export default class ElementSandbox extends SandboxBase {
         var getAttrMeth = ns ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
 
         // Optimization: hasAttribute meth is very slow
-        if (this._isUrlAttr(el, attr) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
+        if (ElementSandbox._isUrlAttr(el, attr) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
             attr === 'autocomplete') {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
@@ -39,7 +39,7 @@ export default class ElementSandbox extends SandboxBase {
         var setAttrMeth         = ns ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
         var tagName             = el.tagName.toLowerCase();
         var isSupportedProtocol = urlUtils.isSupportedProtocol(value);
-        var urlAttr             = this._isUrlAttr(el, attr);
+        var urlAttr             = ElementSandbox._isUrlAttr(el, attr);
         var isEventAttr         = domProcessor.EVENTS.indexOf(attr) !== -1;
 
         value += '';
@@ -132,7 +132,7 @@ export default class ElementSandbox extends SandboxBase {
         var attr           = ns ? arg[1] : arg[0];
         var removeAttrFunc = ns ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
 
-        if (this._isUrlAttr(el, attr) || attr === 'sandbox' || attr === 'autocomplete' ||
+        if (ElementSandbox._isUrlAttr(el, attr) || attr === 'sandbox' || attr === 'autocomplete' ||
             domProcessor.EVENTS.indexOf(attr) !== -1) {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
@@ -150,7 +150,7 @@ export default class ElementSandbox extends SandboxBase {
         var overrideNewElement           = el => this.sandbox.node.overrideDomMethods(el);
         var onElementAdded               = el => this._onElementAdded(el);
         var onElementRemoved             = el => this.onElementRemoved(el);
-        var removeFileInputInfo          = el => this._removeFileInputInfo(el);
+        var removeFileInputInfo          = el => ElementSandbox._removeFileInputInfo(el);
         var overridedGetAttributeCore    = (el, attr, ns) => this._overridedGetAttributeCore(el, attr, ns);
         var overridedSetAttributeCore    = (el, attr, value, ns) => this._overridedSetAttributeCore(el, attr, value, ns);
         var overridedRemoveAttributeCore = (el, ns, arg) => this._overridedRemoveAttributeCore(el, ns, arg);
@@ -272,19 +272,19 @@ export default class ElementSandbox extends SandboxBase {
         };
     }
 
-    _isUrlAttr (el, attr) {
+    static _isUrlAttr (el, attr) {
         var tagName = el.tagName.toLowerCase();
 
         return domProcessor.URL_ATTR_TAGS[attr] && domProcessor.URL_ATTR_TAGS[attr].indexOf(tagName) !== -1;
     }
 
-    _removeFileInputInfo (el) {
+    static _removeFileInputInfo (el) {
         hiddenInfo.removeInputInfo(el);
     }
 
     _onElementAdded (el) {
         if ((el.nodeType === 1 || el.nodeType === 9) && domUtils.isElementInDocument(el)) {
-            var iframes = this.getIframes(el);
+            var iframes = ElementSandbox.getIframes(el);
 
             if (iframes.length) {
                 for (var i = 0; i < iframes.length; i++)
@@ -307,7 +307,7 @@ export default class ElementSandbox extends SandboxBase {
             this.sandbox.shadowUI.onBodyElementMutation();
     }
 
-    getIframes (el) {
+    static getIframes (el) {
         var isIframe = el.tagName && el.tagName.toLowerCase() === 'iframe';
 
         return isIframe ? [el] : el.querySelectorAll('iframe');

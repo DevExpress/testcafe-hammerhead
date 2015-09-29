@@ -4,10 +4,10 @@
 // -------------------------------------------------------------
 
 var ServiceCommands = {
-    getUploadedFiles:    'GET_UPLOADED_FILES',
-    setCookie:           'SET_COOKIE',
-    uploadFiles:         'UPLOAD_FILES',
-    getIframeTaskScript: 'GET_IFRAME_TASK_SCRIPT'
+    getUploadedFiles:    'hammerhead|command|get-uploaded-files',
+    setCookie:           'hammerhead|command|set-cookie',
+    uploadFiles:         'hammerhead|command|upload-files',
+    getIframeTaskScript: 'hammerhead|command|get-iframe-task-script'
 };
 
 export default ServiceCommands;

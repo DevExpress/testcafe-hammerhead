@@ -13,11 +13,11 @@ const LISTENED_EVENTS = [
     'change', 'focus', 'blur', 'focusin', 'focusout'
 ];
 
-const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'tc-sdef-310efb6b';
+const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'hammerhead|event-sandbox-dispatch-event-flag';
 
 export default class Listeners {
     constructor () {
-        this.EVENT_LISTENER_ATTACHED_EVENT = 'eventListenerAttached';
+        this.EVENT_LISTENER_ATTACHED_EVENT = 'hammerhead|event|event-listener-attached';
 
         this.listeningCtx = listeningCtx;
 
@@ -259,11 +259,11 @@ export default class Listeners {
             this.listeningCtx.removeListeningElement(el.body);
     }
 
-    beforeDispatchEvent () {
+    static beforeDispatchEvent () {
         window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] = (window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] || 0) + 1;
     }
 
-    afterDispatchEvent () {
+    static afterDispatchEvent () {
         window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG]--;
 
         if (!window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG])

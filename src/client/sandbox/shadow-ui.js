@@ -14,7 +14,7 @@ export default class ShadowUI extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BODY_CONTENT_CHANGED_CMD = 'bodyContentChanged';
+        this.BODY_CONTENT_CHANGED_COMMAND = 'hammerhead|command|body-content-changed';
 
         this.CLASSNAME_REGEX = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
         this.ROOT_CLASS      = 'root';
@@ -83,11 +83,11 @@ export default class ShadowUI extends SandboxBase {
 
         document.elementFromPoint = function () {
             //T212974
-            shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
+            ShadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             var res = shadowUI._filterElement(nativeMethods.elementFromPoint.apply(document, arguments));
 
-            shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
+            ShadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             return res;
         };
@@ -132,9 +132,9 @@ export default class ShadowUI extends SandboxBase {
                 nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
                 this.document.body.appendChild(this.root);
 
-                nativeMethods.setAttribute.call(this.root, 'id', this.patchClassNames(this.ROOT_ID));
+                nativeMethods.setAttribute.call(this.root, 'id', ShadowUI.patchClassNames(this.ROOT_ID));
 
-                this.addClass(this.root, this.ROOT_CLASS);
+                ShadowUI.addClass(this.root, this.ROOT_CLASS);
 
                 for (var i = 0; i < EVENTS.length; i++)
                     this.root.addEventListener(EVENTS[i], stopPropagation);
@@ -191,9 +191,9 @@ export default class ShadowUI extends SandboxBase {
 
             var restoreStyle = e => {
                 if (!this.select('link.' + SHADOW_UI_STYLESHEET_CLASSNAME).length) {
-                    if (styleLink) {
-                        var headElemenet = e.document.head;
+                    var headElemenet = e.document.head;
 
+                    if (styleLink && headElemenet) {
                         styleLink = styleLink.cloneNode(true);
                         headElemenet.insertBefore(styleLink, headElemenet.firstChild);
 
@@ -212,15 +212,15 @@ export default class ShadowUI extends SandboxBase {
 
             if (elContextWindow !== window) {
                 messageSandbox.sendServiceMsg({
-                    cmd: this.BODY_CONTENT_CHANGED_CMD
+                    cmd: this.BODY_CONTENT_CHANGED_COMMAND
                 }, elContextWindow);
             }
             else
                 this.onBodyContentChanged();
         });
 
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED, e => {
-            if (e.message.cmd === this.BODY_CONTENT_CHANGED_CMD)
+        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
+            if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
                 this.onBodyContentChanged();
         });
     }
@@ -305,7 +305,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // Utils
-    checkElementsPosition (collection) {
+    static checkElementsPosition (collection) {
         if (collection.length) {
             var parent           = collection[0].parentNode || collection[0].parentElement;
             var shadowUIElements = [];
@@ -322,7 +322,7 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
-    isShadowContainer (el) {
+    static isShadowContainer (el) {
         if (domUtils.isDomElement(el)) {
             var tagName = el.tagName.toLowerCase();
 
@@ -332,7 +332,7 @@ export default class ShadowUI extends SandboxBase {
         return false;
     }
 
-    isShadowContainerCollection (collection) {
+    static isShadowContainerCollection (collection) {
         var parent = null;
 
         try {
@@ -340,7 +340,7 @@ export default class ShadowUI extends SandboxBase {
                 parent = collection[0].parentNode || collection[0].parentElement;
 
                 if (parent && (parent.childNodes === collection || parent.children === collection))
-                    return this.isShadowContainer(parent);
+                    return ShadowUI.isShadowContainer(parent);
             }
         }
             /*eslint-disable no-empty */
@@ -351,7 +351,7 @@ export default class ShadowUI extends SandboxBase {
         return false;
     }
 
-    isShadowUIMutation (mutation) {
+    static isShadowUIMutation (mutation) {
         if (mutation.removedNodes && mutation.removedNodes.length === 1) {
             if (domUtils.isShadowUIElement(mutation.removedNodes[0]))
                 return true;
@@ -366,19 +366,19 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // API
-    addClass (el, value) {
-        var patchedClass = this.patchClassNames(value);
+    static addClass (el, value) {
+        var patchedClass = ShadowUI.patchClassNames(value);
 
         domUtils.addClass(el, patchedClass);
     }
 
-    hasClass (el, value) {
-        var patchedClass = this.patchClassNames(value);
+    static hasClass (el, value) {
+        var patchedClass = ShadowUI.patchClassNames(value);
 
         return domUtils.hasClass(el, patchedClass);
     }
 
-    patchClassNames (value) {
+    static patchClassNames (value) {
         var names = value.split(/\s+/);
 
         for (var i = 0; i < names.length; i++)
@@ -387,8 +387,8 @@ export default class ShadowUI extends SandboxBase {
         return names.join(' ');
     }
 
-    removeClass (elem, value) {
-        var patchedClass = this.patchClassNames(value);
+    static removeClass (elem, value) {
+        var patchedClass = ShadowUI.patchClassNames(value);
 
         domUtils.removeClass(elem, patchedClass);
     }
@@ -403,9 +403,9 @@ export default class ShadowUI extends SandboxBase {
 
     setBlind (value) {
         if (value)
-            this.addClass(this.getRoot(), this.BLIND_CLASS);
+            ShadowUI.addClass(this.getRoot(), this.BLIND_CLASS);
         else
-            this.removeClass(this.getRoot(), this.BLIND_CLASS);
+            ShadowUI.removeClass(this.getRoot(), this.BLIND_CLASS);
     }
 
     getLastActiveElement () {

@@ -9,7 +9,7 @@ export default class CodeInstrumentation extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BODY_CONTENT_CHANGED_EVENT = 'bodyContentChanged';
+        this.BODY_CONTENT_CHANGED_EVENT = 'hammerhead|event|body-content-changed';
 
         this.methodCallInstrumentation        = new MethodCallInstrumentation(sandbox);
         this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation(sandbox);
@@ -19,7 +19,7 @@ export default class CodeInstrumentation extends SandboxBase {
                 el => this._emit(this.BODY_CONTENT_CHANGED_EVENT, el));
     }
 
-    getAttributesProperty (el) {
+    static getAttributesProperty (el) {
         return getAttributeProperty(el);
     }
 

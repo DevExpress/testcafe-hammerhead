@@ -3,6 +3,8 @@ import urlUtils from '../../../utils/url';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
+import UploadSandbox from '../../upload';
+import ShadowUI from '../../shadow-ui';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
@@ -14,21 +16,21 @@ import { process as processScript } from '../../../../processing/script';
 import { GET_PROPERTY_METH_NAME, SET_PROPERTY_METH_NAME } from '../../../../processing/js';
 import { setTimeout as nativeSetTimeout } from '../../native-methods';
 
-const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'onerror_23ad9304921s';
+const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
 
-        this.BODY_CONTENT_CHANGED_EVENT = 'bodyContentChanged';
+        this.BODY_CONTENT_CHANGED_EVENT = 'hammerhead|event|body-content-changed';
     }
 
     //NOTE: isolate throw statement into separate function because JS engines doesn't optimize such functions.
-    _error (msg) {
+    static _error (msg) {
         throw new Error(msg);
     }
 
-    _getUrlAttr (el, attr) {
+    static _getUrlAttr (el, attr) {
         var attrValue = el.getAttribute(attr);
 
         if (attrValue === null)
@@ -56,7 +58,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     return false;
                 },
 
-                get: el => this._getUrlAttr(el, 'action'),
+                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'action'),
                 set: (el, value) => el.setAttribute('action', value)
             },
 
@@ -104,7 +106,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     return false;
                 },
 
-                get: el => this._getUrlAttr(el, 'data'),
+                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'data'),
                 set: (el, value) => el.setAttribute('data', value)
             },
 
@@ -116,18 +118,18 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             files: {
                 condition: el => domUtils.isFileInput(el),
-                get:       el => this.sandbox.upload.getFiles(el),
+                get:       el => UploadSandbox.getFiles(el),
                 set:       (el, value) => value
             },
 
             firstChild: {
-                condition: el => this.sandbox.shadowUI.isShadowContainer(el),
+                condition: el => ShadowUI.isShadowContainer(el),
                 get:       el => this.sandbox.shadowUI.getFirstChild(el),
                 set:       () => void 0
             },
 
             firstElementChild: {
-                condition: el => this.sandbox.shadowUI.isShadowContainer(el),
+                condition: el => ShadowUI.isShadowContainer(el),
                 get:       el => this.sandbox.shadowUI.getFirstElementChild(el),
                 set:       () => void 0
             },
@@ -152,7 +154,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     return LocationAccessorsInstrumentation.isLocationWrapper(el);
                 },
 
-                get: el => LocationAccessorsInstrumentation.isLocationWrapper(el) ? el.href : this._getUrlAttr(el, 'href'),
+                get: el => LocationAccessorsInstrumentation.isLocationWrapper(el) ? el.href : PropertyAccessorsInstrumentation._getUrlAttr(el, 'href'),
                 set: (el, value) => LocationAccessorsInstrumentation.isLocationWrapper(el) ?
                                     el.href = urlUtils.resolveUrl(value, document) : el.setAttribute('href', value)
             },
@@ -209,19 +211,19 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             lastChild: {
-                condition: el => this.sandbox.shadowUI.isShadowContainer(el),
+                condition: el => ShadowUI.isShadowContainer(el),
                 get:       el => this.sandbox.shadowUI.getLastChild(el),
                 set:       () => void 0
             },
 
             lastElementChild: {
-                condition: el => this.sandbox.shadowUI.isShadowContainer(el),
+                condition: el => ShadowUI.isShadowContainer(el),
                 get:       el => this.sandbox.shadowUI.getLastElementChild(el),
                 set:       () => void 0
             },
 
             length: {
-                condition: collection => this.sandbox.shadowUI.isShadowContainerCollection(collection),
+                condition: collection => ShadowUI.isShadowContainerCollection(collection),
 
                 get: collection => {
                     var elementCount = 0;
@@ -233,7 +235,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     }
 
                     if (elementCount !== 0)
-                        this.sandbox.shadowUI.checkElementsPosition(collection);
+                        ShadowUI.checkElementsPosition(collection);
 
                     return collection.length - elementCount;
                 },
@@ -279,7 +281,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     return false;
                 },
 
-                get: el => this._getUrlAttr(el, 'manifest'),
+                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'manifest'),
                 set: (el, value) => el.setAttribute('manifest', value)
             },
 
@@ -343,7 +345,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     return false;
                 },
 
-                get: el => this._getUrlAttr(el, 'src'),
+                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'src'),
                 set: (el, value) => el.setAttribute('src', value)
             },
 
@@ -400,7 +402,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => {
                     if (domUtils.isFileInput(el))
-                        return this.sandbox.upload.getUploadElementValue(el);
+                        return UploadSandbox.getUploadElementValue(el);
 
                     return el.value;
                 },
@@ -538,8 +540,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         var propertyAccessors = this._createPropertyAccessors(window, window.document);
 
         window[GET_PROPERTY_METH_NAME] = (owner, propName) => {
-            if (typeUtils.isNullOrUndefined(owner))
-                this._error('Cannot read property \'' + propName + '\' of ' + typeUtils.inaccessibleTypeToStr(owner));
+            if (typeUtils.isNullOrUndefined(owner)) {
+                PropertyAccessorsInstrumentation._error('Cannot read property \'' + propName + '\' of ' +
+                                                        typeUtils.inaccessibleTypeToStr(owner));
+            }
 
             if (typeof propName !== 'string' || !propertyAccessors.hasOwnProperty(propName))
                 return owner[propName];
@@ -548,8 +552,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         };
 
         window[SET_PROPERTY_METH_NAME] = (owner, propName, value) => {
-            if (typeUtils.isNullOrUndefined(owner))
-                this._error('Cannot set property \'' + propName + '\' of ' + typeUtils.inaccessibleTypeToStr(owner));
+            if (typeUtils.isNullOrUndefined(owner)) {
+                PropertyAccessorsInstrumentation._error('Cannot set property \'' + propName + '\' of ' +
+                                                        typeUtils.inaccessibleTypeToStr(owner));
+            }
 
             var returnValue = null;
 

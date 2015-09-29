@@ -5,8 +5,8 @@ var ScriptProcessor = Hammerhead.get('../processing/script');
 var Const           = Hammerhead.get('../const');
 var SharedUrlUtil   = Hammerhead.get('../utils/url');
 var UrlUtil         = Hammerhead.get('./utils/url');
+var ShadowUI        = Hammerhead.get('./sandbox/shadow-ui');
 
-var shadowUI      = Hammerhead.sandbox.shadowUI;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
@@ -44,7 +44,7 @@ test('shadow ui elements', function () {
 
     uiElem.id = 'uiElem';
 
-    shadowUI.addClass(uiElem, 'ui-elem-class');
+    ShadowUI.addClass(uiElem, 'ui-elem-class');
 
     var el = document.createElement('div');
 

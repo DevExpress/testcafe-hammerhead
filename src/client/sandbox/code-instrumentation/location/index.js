@@ -3,13 +3,9 @@ import SandboxBase from '../../base';
 import { isLocation } from '../../../utils/types';
 import { GET_LOCATION_METH_NAME, SET_LOCATION_METH_NAME } from '../../../../processing/js';
 
-const LOCATION_WRAPPER = 'location_1b082a6cec';
+const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 
 export default class LocationAccessorsInstrumentation extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
-    }
-
     static isLocationWrapper (obj) {
         return obj instanceof LocationWrapper;
     }

@@ -1,8 +1,9 @@
-var Browser       = Hammerhead.get('./utils/browser');
-var COMMAND       = Hammerhead.get('../command');
-var HiddenInfo    = Hammerhead.get('./sandbox/upload/hidden-info');
-var NativeMethods = Hammerhead.get('./sandbox/native-methods');
-var Transport     = Hammerhead.get('./transport');
+var Browser           = Hammerhead.get('./utils/browser');
+var COMMAND           = Hammerhead.get('../command');
+var HiddenInfo        = Hammerhead.get('./sandbox/upload/hidden-info');
+var UploadInfoManager = Hammerhead.get('./sandbox/upload/info-manager');
+var NativeMethods     = Hammerhead.get('./sandbox/native-methods');
+var Transport         = Hammerhead.get('./transport');
 
 var uploadSandbox = Hammerhead.sandbox.upload;
 var infoManager   = uploadSandbox.infoManager;
@@ -335,8 +336,8 @@ test('set/clear info', function () {
 });
 
 test('format value', function () {
-    var formatValueOnceFile  = infoManager.formatValue(['text.pdf']);
-    var formatValueMultiFile = infoManager.formatValue(['text.txt', 'doc.doc']);
+    var formatValueOnceFile  = UploadInfoManager.formatValue(['text.pdf']);
+    var formatValueMultiFile = UploadInfoManager.formatValue(['text.txt', 'doc.doc']);
 
     if (Browser.isIE9 || Browser.isIE10 || Browser.isWebKit)
         strictEqual(formatValueOnceFile, 'C:\\fakepath\\text.pdf');

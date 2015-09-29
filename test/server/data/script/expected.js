@@ -1,5 +1,5 @@
 
-typeof window !== "undefined" && window["tc_odm_e01a2ff5"] && window["tc_odm_e01a2ff5"]();
+typeof window !== "undefined" && window["hammerhead|override-dom-method"] && window["hammerhead|override-dom-method"]();
 var __w$undef_ = typeof window === "undefined",
 __get$Loc=__w$undef_?function(l){return l}:window.__get$Loc,
 __set$Loc=__w$undef_?function(l,v){return l = v}:window.__set$Loc,
