@@ -30,12 +30,6 @@ var acornExports = {};
 //
 // [dammit]: acorn_loose.js
 // [walk]: util/walk.js
-
-    (function (root, mod) {
-        if (typeof exports == "object" && typeof module == "object") return mod(exports); // CommonJS
-        if (typeof define == "function" && define.amd) return define(["exports"], mod); // AMD
-        mod(root.acorn || (root.acorn = {})); // Plain browser env
-    })(this, function (exports) {
         "use strict";
 
         exports.version = "0.4.1";
@@ -1915,10 +1909,9 @@ var acornExports = {};
             return finishNode(node, "Identifier");
         }
 
-    });
-}).call(acornExports);
+    })(acornExports);
 
-jsParsingTools.parse = acornExports.parse || acornExports.acorn.parse;
+jsParsingTools.parse = acornExports.parse;
 // ------------------------------------------
 
 // --------------- Code Gen -----------------
