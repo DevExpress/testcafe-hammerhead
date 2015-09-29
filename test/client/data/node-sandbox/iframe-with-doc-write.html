@@ -15,10 +15,10 @@
         crossDomainProxyPort: 2000
     });
 
-    Hammerhead.ShadowUI.getRoot();
+    Hammerhead.shadowUI.getRoot();
 </script>
 <script>
-    eval(window[Hammerhead.JSProcessor.PROCESS_SCRIPT_METH_NAME]([
+    eval(window[Hammerhead.jsProcessor.PROCESS_SCRIPT_METH_NAME]([
         'var childs = [\'hello\', \'testcafe\', \'!!!\'];',
         'document.write(\'<div id="parent">\');',
         'for (var i = 0; i < childs.length; i++) {',
