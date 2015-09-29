@@ -145,3 +145,20 @@ asyncTest('ready to init event must not raise for added iframe(B239643)', functi
     }, 100);
 });
 
+asyncTest('the AMD module loader damages proxing an iframe without src (GH-127)', function () {
+    var amdModuleLoaderMock = function () {};
+
+    amdModuleLoaderMock.amd = {};
+    window.define = amdModuleLoaderMock;
+
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test_iframe_unique_id_jlsuie56598o';
+    iframe.addEventListener('load', function () {
+        ok(this.contentWindow.Hammerhead);
+        delete window.define;
+        iframe.parentNode.removeChild(iframe);
+        start();
+    });
+    document.body.appendChild(iframe);
+});
