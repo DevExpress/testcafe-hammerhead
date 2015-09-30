@@ -1,7 +1,7 @@
 import nativeMethods from '../sandbox/native-methods';
 import * as domUtils from './dom';
 import * as styleUtils from './style';
-import { isMozilla, isIE } from './browser';
+import { isFirefox, isIE } from './browser';
 
 function getAreaElementRectangle (el, mapContainer) {
     var shape  = el.getAttribute('shape');
@@ -158,7 +158,7 @@ function getSvgElementRelativeRectangle (el) {
     }
 
 
-    if (isMozilla || isIE)
+    if (isFirefox || isIE)
         return elementRect;
 
     var strokeWidth = nativeMethods.getAttribute.call(el, 'stroke-width') || styleUtils.get(el, 'stroke-width');

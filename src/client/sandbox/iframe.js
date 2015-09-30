@@ -4,7 +4,7 @@ import nativeMethods from './native-methods';
 import settings from '../settings';
 import { isShadowUIElement, isCrossDomainIframe, isElementInDocument } from '../utils/dom';
 import { syncServiceMsg } from '../transport';
-import { isMozilla, isWebKit } from '../utils/browser';
+import { isFirefox, isWebKit } from '../utils/browser';
 import { DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME } from '../../const';
 import { isSupportedProtocol, isIframeWithoutSrc } from '../utils/url';
 
@@ -56,7 +56,7 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     static isIframeInitialized (iframe) {
-        var isFFIframeUninitialized = isMozilla && iframe.contentWindow.document.readyState === 'uninitialized';
+        var isFFIframeUninitialized = isFirefox && iframe.contentWindow.document.readyState === 'uninitialized';
 
         return !isFFIframeUninitialized && !!iframe.contentDocument.documentElement;
     }
@@ -110,7 +110,7 @@ export default class IframeSandbox extends SandboxBase {
 
                 nativeMethods.addEventListener.call(el, 'load', readyHandler);
 
-                if (isMozilla)
+                if (isFirefox)
                     nativeMethods.documentAddEventListener.call(el.contentDocument, 'ready', readyHandler);
             }
             else {

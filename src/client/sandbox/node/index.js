@@ -3,7 +3,7 @@ import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
 import CONST from '../../../const';
-import { isMozilla } from '../../utils/browser';
+import { isFirefox } from '../../utils/browser';
 import { parseDocumentCharset } from '../../utils/dom';
 
 export default class NodeSandbox extends SandboxBase {
@@ -87,7 +87,7 @@ export default class NodeSandbox extends SandboxBase {
         window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] = this.overrideDomMethods.bind(this);
 
         // NOTE: Iframe loses its contentWindow after reinserting in the DOM (in the FF).
-        if (isMozilla)
+        if (isFirefox)
             this.element.on(this.element.IFRAME_ADDED_EVENT, e => this.sandbox.iframe.overrideIframe(e.iframe));
 
         // NOTE: in some browsers (for example Firefox) 'window.document' are different objects when iframe is created

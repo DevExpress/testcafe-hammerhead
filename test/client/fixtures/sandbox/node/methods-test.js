@@ -223,7 +223,7 @@ if (window.navigator.serviceWorker) {
     });
 }
 
-if (!Browser.isMozilla) {
+if (!Browser.isFirefox) {
     asyncTest('document.write exception', function () {
         var $iframe = $('<iframe id="test10">').appendTo('body');
         var iframe  = $iframe[0];

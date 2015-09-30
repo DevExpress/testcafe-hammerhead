@@ -318,7 +318,7 @@ export default class EventSimulator {
             args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey,
             args.button, args.relatedTarget);
 
-        if (browserUtils.isMozilla || browserUtils.isIE) {
+        if (browserUtils.isFirefox || browserUtils.isIE) {
             Object.defineProperty(ev, 'buttons', {
                 get: () => args.buttons
             });

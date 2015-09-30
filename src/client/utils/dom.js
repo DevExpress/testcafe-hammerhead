@@ -3,7 +3,7 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import trim from '../../utils/string-trim';
 import nativeMethods from '../sandbox/native-methods';
 import urlUtils from '../utils/url';
-import { isMozilla, isWebKit, isIE, isOpera } from './browser';
+import { isFirefox, isWebKit, isIE, isOpera } from './browser';
 
 var scrollbarSize = null;
 
@@ -120,8 +120,8 @@ export function getSelectVisibleChildren (select) {
 
     children = Array.prototype.slice.call(children);
 
-    //NOTE: Mozilla does not display group without label and with empty label
-    if (isMozilla)
+    //NOTE: Firefox does not display group without label and with empty label
+    if (isFirefox)
         children = children.filter(item => item.tagName.toLowerCase() !== 'optgroup' || !!item.label);
 
     return children;
@@ -226,7 +226,7 @@ export function isDomElement (el) {
         return false;
 
     //B252941
-    return el && (typeof el === 'object' || isMozilla && typeof el === 'function') &&
+    return el && (typeof el === 'object' || isFirefox && typeof el === 'function') &&
            el.nodeType !== 11 && typeof el.nodeName === 'string' && el.tagName;
 }
 
@@ -270,9 +270,9 @@ export function isInputElement (el) {
     return isDomElement(el) && el.tagName.toLowerCase() === 'input';
 }
 
-export function isInputWithoutSelectionPropertiesInMozilla (el) {
+export function isInputWithoutSelectionPropertiesInFirefox (el) {
     //T101195, T133144, T101195
-    return isMozilla && matches(el, 'input[type=number]');
+    return isFirefox && matches(el, 'input[type=number]');
 }
 
 export function isMapElement (el) {
@@ -327,7 +327,7 @@ export function isWindow (instance) {
         return true;
 
     var result = instance && typeof instance === 'object' && typeof instance.top !== 'undefined' &&
-                 (isMozilla ? true : instance.toString && (instance.toString() === '[object Window]' ||
+                 (isFirefox ? true : instance.toString && (instance.toString() === '[object Window]' ||
                                                            instance.toString() === '[object global]'));
 
     if (result && instance.top !== instance)

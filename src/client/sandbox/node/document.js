@@ -3,7 +3,7 @@ import IframeSandbox from '../iframe';
 import jsProcessor from '../../../processing/js/index';
 import nativeMethods from '../native-methods';
 import * as htmlUtils from '../../utils/html';
-import { isMozilla, isIE } from '../../utils/browser';
+import { isFirefox, isIE } from '../../utils/browser';
 import { isIframeWithoutSrc } from '../../utils/url';
 
 export default class DocumentSandbox extends SandboxBase {
@@ -82,7 +82,7 @@ export default class DocumentSandbox extends SandboxBase {
             this._beforeDocumentCleaned();
 
         // FireFox, IE recreate window instance during the document.write function execution T213930
-        if ((isMozilla || isIE) && !htmlUtils.isPageHtml(str))
+        if ((isFirefox || isIE) && !htmlUtils.isPageHtml(str))
             str = htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + str;
 
         var result = nativeMethods.documentWrite.call(this.document, str);

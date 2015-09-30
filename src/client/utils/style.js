@@ -1,5 +1,5 @@
 import * as domUtils from './dom';
-import { isIE, isMozilla } from './browser';
+import { isIE, isFirefox } from './browser';
 import { styleClass } from '../sandbox/native-methods';
 
 //NOTE: for Chrome
@@ -171,8 +171,8 @@ export function isVisibleChild (el) {
 
     return select && select.tagName.toLowerCase() === 'select' && getSelectElementSize(select) > 1 &&
            (tagName === 'option' || tagName === 'optgroup') &&
-           //NOTE: Mozilla does not display group without label and with empty label
-           (!isMozilla || el.label);
+           //NOTE: Firefox does not display group without label and with empty label
+           (!isFirefox || el.label);
 }
 
 export function getScrollLeft (el) {

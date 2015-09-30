@@ -66,7 +66,7 @@ asyncTest('document.write for iframe with empty url', function () {
     cheked    = true;
 });
 
-if (!Browser.isMozilla) {
+if (!Browser.isFirefox) {
     test('override document after document.write calling', function () {
         var $div    = $('<div>').appendTo('body');
         var $sdiv   = $('<div>').appendTo('body');
@@ -166,7 +166,7 @@ test('document.write for page html (T190753)', function () {
     $div.remove();
 });
 
-if (Browser.isMozilla || Browser.isIE11) {
+if (Browser.isFirefox || Browser.isIE11) {
     asyncTest('override window methods after document.write call (T239109)', function () {
         var $iframe = $('<iframe id="test_wrapper">');
 
@@ -202,7 +202,7 @@ if (Browser.isMozilla || Browser.isIE11) {
     });
 }
 
-if (!Browser.isMozilla) {
+if (!Browser.isFirefox) {
     asyncTest('document.write([]) in iframe (T239131)', function () {
         var iframe = document.createElement('iframe');
 
