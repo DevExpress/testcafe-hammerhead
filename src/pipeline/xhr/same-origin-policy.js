@@ -1,4 +1,4 @@
-import { XHR_REQUEST_MARKER_HEADER, XHR_CORS_SUPPORTED_FLAG, XHR_WITH_CREDENTIALS_FLAG } from '../const';
+import XHR_HEADERS from './headers';
 
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 export function check (ctx) {
@@ -9,8 +9,7 @@ export function check (ctx) {
         return true;
 
     // Ok, we have a cross-origin request
-    var xhrHeader     = ctx.req.headers[XHR_REQUEST_MARKER_HEADER];
-    var corsSupported = !!(xhrHeader & XHR_CORS_SUPPORTED_FLAG);
+    var corsSupported = !!ctx.req.headers[XHR_HEADERS.corsSupported];
 
     // FAILED: CORS not supported
     if (!corsSupported)
@@ -20,7 +19,7 @@ export function check (ctx) {
     if (ctx.req.method === 'OPTIONS')
         return true;
 
-    var withCredentials        = xhrHeader & XHR_WITH_CREDENTIALS_FLAG;
+    var withCredentials        = !!ctx.req.headers[XHR_HEADERS.withCredentials];
     var allowOriginHeader      = ctx.destRes.headers['access-control-allow-origin'];
     var allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
     var allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';

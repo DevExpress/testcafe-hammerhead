@@ -4,7 +4,7 @@ import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';
 import { handle as handleConnectionReset } from './connection-reset';
-import { check as checkSameOriginPolicy } from './same-origin-policy';
+import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 
