@@ -15,8 +15,10 @@ const LISTENED_EVENTS = [
 
 const EVENT_SANDBOX_DISPATCH_EVENT_FLAG = 'hammerhead|event-sandbox-dispatch-event-flag';
 
-export default class Listeners {
+export default class Listeners extends EventEmitter {
     constructor () {
+        super();
+
         this.EVENT_LISTENER_ATTACHED_EVENT = 'hammerhead|event|event-listener-attached';
 
         this.listeningCtx = listeningCtx;
@@ -24,8 +26,6 @@ export default class Listeners {
         this.addInternalEventListener    = this.listeningCtx.addInternalHandler;
         this.addFirstInternalHandler     = this.listeningCtx.addFirstInternalHandler;
         this.removeInternalEventListener = this.listeningCtx.removeInternalHandler;
-
-        this.eventEmitter = new EventEmitter();
     }
 
     static _getBodyEventListenerWrapper (documentEventCtx, listener) {
@@ -144,7 +144,7 @@ export default class Listeners {
 
                 var res = nativeAddEventListener.call(this, type, wrapper, useCapture);
 
-                listeners.eventEmitter.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
+                listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
                     el:        this,
                     eventType: type,
                     listener:  listener
@@ -191,7 +191,7 @@ export default class Listeners {
 
                 var res = nativeAddEventListener.call(this, type, wrapper, useCapture);
 
-                listeners.eventEmitter.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
+                listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
                     el:        this,
                     eventType: type,
                     listener:  listener
@@ -209,14 +209,6 @@ export default class Listeners {
                 return nativeRemoveEventListener.call(this, type, listeningCtx.getWrapper(eventListeningInfo, listener, useCapture), useCapture);
             }
         };
-    }
-
-    on (event, handler) {
-        return this.eventEmitter.on(event, handler);
-    }
-
-    off (event, handler) {
-        return this.eventEmitter.off(event, handler);
     }
 
     initElementListening (el, events) {

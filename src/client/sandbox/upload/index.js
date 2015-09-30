@@ -41,13 +41,13 @@ export default class UploadSandbox extends SandboxBase {
                 if (!!input.value || !!currentInfoManager.getValue(input)) {
                     var fileNames = UploadInfoManager.getFileNames(input.files, input.value);
 
-                    this._emit(this.START_FILE_UPLOADING_EVENT, fileNames, input);
+                    this.emit(this.START_FILE_UPLOADING_EVENT, fileNames, input);
 
                     currentInfoManager.loadFileListData(input, input.files, fileList => {
                         currentInfoManager.setUploadInfo(input, fileList, input.value);
                         UploadInfoManager.sendFilesInfoToServer(fileList, fileNames, errs => {
                             this._riseChangeEvent(input);
-                            this._emit(this.END_FILE_UPLOADING_EVENT, errs);
+                            this.emit(this.END_FILE_UPLOADING_EVENT, errs);
                         });
                     });
                 }

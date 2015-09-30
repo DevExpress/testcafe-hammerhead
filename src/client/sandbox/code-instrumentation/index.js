@@ -16,7 +16,7 @@ export default class CodeInstrumentation extends SandboxBase {
         this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(sandbox);
 
         this.propertyAccessorsInstrumentation.on(this.propertyAccessorsInstrumentation.BODY_CONTENT_CHANGED_EVENT,
-                el => this._emit(this.BODY_CONTENT_CHANGED_EVENT, el));
+                el => this.emit(this.BODY_CONTENT_CHANGED_EVENT, el));
     }
 
     static getAttributesProperty (el) {

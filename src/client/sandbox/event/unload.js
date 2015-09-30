@@ -19,7 +19,7 @@ export default class UnloadSandbox extends SandboxBase {
 
     //NOTE: this handler should be called after the others
     _emitBeforeUnloadEvent () {
-        this._emit(this.BEFORE_UNLOAD_EVENT, {
+        this.emit(this.BEFORE_UNLOAD_EVENT, {
             returnValue:   this.storedBeforeUnloadReturnValue,
             prevented:     this.prevented,
             isFakeIEEvent: this.isFakeIEBeforeUnloadEvent
@@ -61,7 +61,7 @@ export default class UnloadSandbox extends SandboxBase {
         var listeners = this.sandbox.event.listeners;
 
         listeners.setEventListenerWrapper(window, ['beforeunload'], () => this._onBeforeUnloadHandler);
-        listeners.addInternalEventListener(window, ['unload'], () => this._emit(this.UNLOAD_EVENT));
+        listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
 
         nativeMethods.addEventListener.call(document, 'click', e => {
             var target = e.target || e.srcElement;
@@ -76,7 +76,7 @@ export default class UnloadSandbox extends SandboxBase {
         nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
 
         listeners.addInternalEventListener(window, ['beforeunload'], () =>
-                this._emit(this.BEFORE_BEFORE_UNLOAD_EVENT, {
+                this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT, {
                     isFakeIEEvent: this.isFakeIEBeforeUnloadEvent
                 })
         );

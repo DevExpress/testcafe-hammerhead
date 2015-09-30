@@ -23,7 +23,7 @@ export default class WindowSandbox extends SandboxBase {
                 pageUrl = urlUtils.OriginLocation.get();
 
             if (sendToTopWindow) {
-                this._emit(this.UNCAUGHT_JS_ERROR_EVENT, {
+                this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
                     msg:      msg,
                     pageUrl:  pageUrl,
                     inIFrame: true
@@ -36,7 +36,7 @@ export default class WindowSandbox extends SandboxBase {
                 }, window.top);
             }
             else {
-                this._emit(this.UNCAUGHT_JS_ERROR_EVENT, {
+                this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
                     msg:     msg,
                     pageUrl: pageUrl
                 });

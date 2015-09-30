@@ -24,7 +24,7 @@ export default class NodeSandbox extends SandboxBase {
     _onBodyCreated () {
         this.sandbox.event.listeners.initDocumentBodyListening(this.document);
 
-        this._emit(this.BODY_CREATED_EVENT, {
+        this.emit(this.BODY_CREATED_EVENT, {
             body: this.document.body
         });
     }
@@ -94,7 +94,7 @@ export default class NodeSandbox extends SandboxBase {
         // just now and on document ready event. Therefore we should update 'document' object to override its methods (Q527555).
         document.addEventListener('DOMContentLoaded', () => this.overrideDomMethods(null, document), false);
 
-        this.doc.on(this.doc.DOCUMENT_CLEANED_EVENT, e => this._emit(this.DOCUMENT_CLEANED_EVENT, {
+        this.doc.on(this.doc.DOCUMENT_CLEANED_EVENT, e => this.emit(this.DOCUMENT_CLEANED_EVENT, {
             document:           e.document,
             isIFrameWithoutSrc: isIFrameWithoutSrc
         }));
