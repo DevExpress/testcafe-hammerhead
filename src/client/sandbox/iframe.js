@@ -31,12 +31,12 @@ export default class IframeSandbox extends SandboxBase {
                 iframe.contentWindow[IFRAME_WINDOW_INITED] = true;
 
                 // Rise this internal event to eval Hammerhead code script
-                this._emit(this.IFRAME_READY_TO_INIT_INTERNAL_EVENT, {
+                this.emit(this.IFRAME_READY_TO_INIT_INTERNAL_EVENT, {
                     iframe: iframe
                 });
 
                 // Rise this event to eval "task" script and to call Hammerhead initialization method after
-                this._emit(this.IFRAME_READY_TO_INIT_EVENT, {
+                this.emit(this.IFRAME_READY_TO_INIT_EVENT, {
                     iframe: iframe
                 });
 
@@ -47,7 +47,7 @@ export default class IframeSandbox extends SandboxBase {
                 // override document.write method, without Hammerhead initializing. This method can be called
                 // before iframe fully loading, we are obliged to override it now
                 if (iframe.contentDocument.write.toString() === nativeMethods.documentWrite.toString()) {
-                    this._emit(this.IFRAME_DOCUMENT_CREATED_EVENT, {
+                    this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, {
                         iframe: iframe
                     });
                 }

@@ -191,7 +191,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (window.self) {
                         //NOTE: use timeout, so changes take effect
                         if (containerTagName === 'html' || containerTagName === 'body')
-                            nativeSetTimeout.call(window, () => this._emit(this.BODY_CONTENT_CHANGED_EVENT, el), 0);
+                            nativeSetTimeout.call(window, () => this.emit(this.BODY_CONTENT_CHANGED_EVENT, el), 0);
                     }
 
                     return value;

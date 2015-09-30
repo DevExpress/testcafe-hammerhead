@@ -321,7 +321,7 @@ export default class ElementSandbox extends SandboxBase {
 
     onIFrameAddedToDOM (iframe) {
         if (!domUtils.isCrossDomainIframe(iframe, true)) {
-            this._emit(this.IFRAME_ADDED_EVENT, {
+            this.emit(this.IFRAME_ADDED_EVENT, {
                 iframe: iframe
             });
 

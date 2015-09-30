@@ -29,14 +29,14 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _beforeDocumentCleaned () {
-        this._emit(this.BEFORE_DOCUMENT_CLEANED_EVENT, {
+        this.emit(this.BEFORE_DOCUMENT_CLEANED_EVENT, {
             document:           this.document,
             isIFrameWithoutSrc: isIFrameWithoutSrc
         });
     }
 
     _onDocumentClosed () {
-        this._emit(this.DOCUMENT_CLOSED_EVENT, {
+        this.emit(this.DOCUMENT_CLOSED_EVENT, {
             document:           this.document,
             isIFrameWithoutSrc: isIFrameWithoutSrc
         });
@@ -88,7 +88,7 @@ export default class DocumentSandbox extends SandboxBase {
         var result = nativeMethods.documentWrite.call(this.document, str);
 
         if (!isUninitializedIframe) {
-            this._emit(this.DOCUMENT_CLEANED_EVENT, { window: this.window, document: this.document });
+            this.emit(this.DOCUMENT_CLEANED_EVENT, { window: this.window, document: this.document });
             this.sandbox.node.overrideDomMethods(null, this.document); // B234357
         }
 
@@ -109,7 +109,7 @@ export default class DocumentSandbox extends SandboxBase {
             var result = nativeMethods.documentOpen.call(document);
 
             if (!isUninitializedIframe)
-                this._emit(this.DOCUMENT_CLEANED_EVENT, { window: window, document: document });
+                this.emit(this.DOCUMENT_CLEANED_EVENT, { window: window, document: document });
             else
             // If iframe initialization in progress, we should once again override document.write and document.open meths
             // because they were cleaned after native document.open meth calling

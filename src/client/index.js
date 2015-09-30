@@ -1,6 +1,7 @@
 /*eslint-disable no-native-reassign*/
 import Sandbox from './sandbox';
 import CodeInstrumentation from './sandbox/code-instrumentation';
+import EventEmitter from './utils/event-emitter';
 import settings from './settings';
 import transport from './transport';
 import jsProcessor from '../processing/js/index';
@@ -31,6 +32,8 @@ class Hammerhead {
             xhrError:           this.sandbox.xhr.XHR_ERROR_EVENT,
             xhrSend:            this.sandbox.xhr.XHR_SEND_EVENT
         };
+
+        this.EventEmitter = EventEmitter;
 
         // Methods
         this.getOriginElementAttributes = CodeInstrumentation.getAttributesProperty;

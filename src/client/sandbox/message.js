@@ -43,7 +43,7 @@ export default class MessageSandbox extends SandboxBase {
                 this.pingCmd      = null;
             }
             else
-                this._emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source });
+                this.emit(this.SERVICE_MSG_RECEIVED_EVENT, { message: data.message, source: e.source });
         }
     }
 

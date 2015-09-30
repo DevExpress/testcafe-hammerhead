@@ -27,7 +27,7 @@ export default class XhrSandbox extends SandboxBase {
 
         xhr.abort = () => {
             abort.call(xhr);
-            this._emit(this.XHR_ERROR_EVENT, {
+            this.emit(this.XHR_ERROR_EVENT, {
                 err: new Error('XHR aborted'),
                 xhr: xhr
             });
@@ -42,7 +42,7 @@ export default class XhrSandbox extends SandboxBase {
                     url = getProxyUrl(url);
                 }
                 catch (err) {
-                    xhrSandbox._emit(xhrSandbox.XHR_ERROR_EVENT, {
+                    xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
                         err: err,
                         xhr: xhr
                     });
@@ -61,11 +61,11 @@ export default class XhrSandbox extends SandboxBase {
 
         xhr.send = function () {
             if (!xhr[SERVICE_MSG_REQUEST_FLAG]) {
-                xhrSandbox._emit(xhrSandbox.XHR_SEND_EVENT, { xhr: xhr });
+                xhrSandbox.emit(xhrSandbox.XHR_SEND_EVENT, { xhr: xhr });
 
                 var orscHandler = () => {
                     if (xhr.readyState === 4)
-                        xhrSandbox._emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: xhr });
+                        xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: xhr });
                 };
 
                 //NOTE: if we're in sync mode or it's in cache and has been retrieved directly (IE6 & IE7)
