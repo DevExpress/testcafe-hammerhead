@@ -81,6 +81,7 @@ asyncTest('queuedAsyncServiceMsg', function () {
             var expectedCompleteMsgReqs = [10, 500, 200, 300, 200];
 
             deepEqual(completeMsgReqs, expectedCompleteMsgReqs);
+
             Transport.asyncServiceMsg = savedAsyncServiceMsgFunc;
 
             start();
@@ -245,4 +246,22 @@ else {
         }, 200);
     });
 }
+
+module('regression');
+
+test('Hammerhead should remove service data from local storage on the first session page load (GH-100)', function () {
+    var sessionId = Settings.get().sessionId;
+
+    // First page loading
+    Settings.get().isFirstPageLoad = true;
+
+    // Add service data
+    window.localStorage.setItem(sessionId, 'some-serive-data');
+
+    var hammerhead = new Hammerhead.constructor(window);
+
+    hammerhead.start(Settings.get(), window);
+
+    ok(!window.localStorage.getItem(sessionId));
+});
 
