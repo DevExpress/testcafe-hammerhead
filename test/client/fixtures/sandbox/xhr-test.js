@@ -1,3 +1,58 @@
+var CONST         = Hammerhead.get('../const');
+var settings      = Hammerhead.get('./settings');
+var sharedUrlUtil = Hammerhead.get('../utils/url');
+
+var xhrSandbox = Hammerhead.sandbox.xhr;
+
+test('redirect requests to proxy', function () {
+    jQuery.ajaxSetup({ async: false });
+
+    $.get('/xhr-test/100', function (url) {
+        strictEqual(url, '/sessionId/https://example.com/xhr-test/100');
+    });
+
+    $.get('http://' + window.location.host + '/xhr-test/200', function (url) {
+        strictEqual(url, '/sessionId/https://example.com/xhr-test/200');
+    });
+
+    $.get('https://example.com/xhr-test/300', function (url) {
+        strictEqual(url, '/sessionId/https://example.com/xhr-test/300');
+    });
+
+    jQuery.ajaxSetup({ async: true });
+});
+
+asyncTest('unsupported protocol', function () {
+    var unsupportedUrl = 'gopher://test.domain/';
+
+    var handler = function (e) {
+        strictEqual(e.err.code, sharedUrlUtil.URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED);
+        strictEqual(e.err.originUrl, unsupportedUrl);
+        xhrSandbox.off(xhrSandbox.XHR_ERROR_EVENT, handler);
+        start();
+    };
+
+    xhrSandbox.on(xhrSandbox.XHR_ERROR_EVENT, handler);
+
+    var request = new XMLHttpRequest();
+
+    request.open('GET', unsupportedUrl, true);
+});
+
+asyncTest('service message is not processed by a page processor', function () {
+    var storedServiceUrl = settings.get().serviceMsgUrl;
+
+    settings.get().serviceMsgUrl = '/service-msg/100';
+
+    var handler = function (data) {
+        ok(data.indexOf(CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX) === -1);
+        settings.get().serviceMsgUrl = storedServiceUrl;
+        start();
+    };
+
+    $.post(settings.get().serviceMsgUrl, handler);
+});
+
 module('regression');
 
 asyncTest('B238528 - Unexpected text modifying during typing text in the search input on the http://www.google.co.uk', function () {

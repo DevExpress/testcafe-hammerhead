@@ -51,7 +51,7 @@ module.exports = function (app) {
         var delay = req.params.delay || 0;
 
         setTimeout(function () {
-            res.send({});
+            res.send(req.originalUrl || req.url);
         }, delay);
     });
 };
