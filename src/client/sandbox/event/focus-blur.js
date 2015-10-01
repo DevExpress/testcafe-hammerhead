@@ -303,7 +303,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                 this.blur(domUtils.getIFrameByElement(activeElement), raiseFocusEvent, true, isNativeFocus);
         }
         else if (needBlur) {
-            this.blur(activeElement, function () {
+            this.blur(activeElement, () => {
                 if (needBlurIFrame)
                     this.blur(domUtils.getIFrameByElement(activeElement), raiseFocusEvent, true, isNativeFocus);
                 else
