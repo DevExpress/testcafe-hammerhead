@@ -82,11 +82,11 @@ export default class ShadowUI extends SandboxBase {
 
         document.elementFromPoint = function () {
             //T212974
-            ShadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
+            shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             var res = shadowUI._filterElement(nativeMethods.elementFromPoint.apply(document, arguments));
 
-            ShadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
+            shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             return res;
         };
@@ -133,7 +133,7 @@ export default class ShadowUI extends SandboxBase {
 
                 nativeMethods.setAttribute.call(this.root, 'id', ShadowUI.patchClassNames(this.ROOT_ID));
 
-                ShadowUI.addClass(this.root, this.ROOT_CLASS);
+                this.addClass(this.root, this.ROOT_CLASS);
 
                 for (var i = 0; i < EVENTS.length; i++)
                     this.root.addEventListener(EVENTS[i], stopPropagation);
@@ -365,10 +365,18 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // API
-    static addClass (el, value) {
+    // NOTE: this method cannot be static because it is a part of the public API
+    addClass (el, value) {
         var patchedClass = ShadowUI.patchClassNames(value);
 
         domUtils.addClass(el, patchedClass);
+    }
+
+    // NOTE: this method cannot be static because it is a part of the public API
+    removeClass (elem, value) {
+        var patchedClass = ShadowUI.patchClassNames(value);
+
+        domUtils.removeClass(elem, patchedClass);
     }
 
     static hasClass (el, value) {
@@ -386,12 +394,6 @@ export default class ShadowUI extends SandboxBase {
         return names.join(' ');
     }
 
-    static removeClass (elem, value) {
-        var patchedClass = ShadowUI.patchClassNames(value);
-
-        domUtils.removeClass(elem, patchedClass);
-    }
-
     select (selector, context) {
         var patchedSelector = selector.replace(this.CLASSNAME_REGEX, className => className +
                                                                                   SHADOW_UI_CLASSNAME_POSTFIX);
@@ -402,9 +404,9 @@ export default class ShadowUI extends SandboxBase {
 
     setBlind (value) {
         if (value)
-            ShadowUI.addClass(this.getRoot(), this.BLIND_CLASS);
+            this.addClass(this.getRoot(), this.BLIND_CLASS);
         else
-            ShadowUI.removeClass(this.getRoot(), this.BLIND_CLASS);
+            this.removeClass(this.getRoot(), this.BLIND_CLASS);
     }
 
     getLastActiveElement () {

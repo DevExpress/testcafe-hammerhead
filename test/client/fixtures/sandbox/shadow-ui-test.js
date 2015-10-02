@@ -28,7 +28,7 @@ test('add UI class and get UI element with selector', function () {
     uiElem.id = 'uiElem';
     document.body.appendChild(uiElem);
 
-    ShadowUI.addClass(uiElem, 'ui-elem-class');
+    shadowUI.addClass(uiElem, 'ui-elem-class');
     $('#testDiv').append(uiElem);
     uiElem    = shadowUI.select('div.ui-elem-class')[0];
 
@@ -42,7 +42,7 @@ if (window.MutationObserver) {
         var uiEl = document.createElement('div');
         var el   = NativeMethods.createElement.call(document, 'div');
 
-        ShadowUI.addClass(uiEl, 'ui-elem-class');
+        shadowUI.addClass(uiEl, 'ui-elem-class');
         NativeMethods.insertBefore.call(document.body, uiEl, document.body.children[0]);
 
         var observer = new window.MutationObserver(function (mutations) {
@@ -351,7 +351,7 @@ test('getElementById', function () {
     $('<div>').attr('id', 'uiChild').appendTo($uiRoot);
     $('<div>').attr('id', 'pageElem').appendTo($testDiv);
 
-    ShadowUI.addClass($uiRoot[0], 'root');
+    shadowUI.addClass($uiRoot[0], 'root');
 
     var uiElem   = document.getElementById('uiChild');
     var pageElem = document.getElementById('pageElem');
@@ -367,7 +367,7 @@ test('getElementsByName', function () {
     $('<input>').attr('id', 'uiChild').attr('name', 'test-name').appendTo($uiRoot);
     $('<input>').attr('id', 'pageElem').attr('name', 'test-name').appendTo($testDiv);
 
-    ShadowUI.addClass($uiRoot[0], 'root');
+    shadowUI.addClass($uiRoot[0], 'root');
 
     var elems = document.getElementsByName('test-name');
 
@@ -382,7 +382,7 @@ test('getElementsByTagName', function () {
     $('<div>').attr('id', 'uiChild').appendTo($uiRoot);
     $('<div>').attr('id', 'pageElem').appendTo($testDiv);
 
-    ShadowUI.addClass($uiRoot[0], 'root');
+    shadowUI.addClass($uiRoot[0], 'root');
 
     var elems = document.getElementsByTagName('DIV');
 
@@ -398,7 +398,7 @@ test('getElementsByClassName', function () {
     $('<div>').attr('id', 'uiChild').addClass('test-class').appendTo($uiRoot);
     $('<div>').attr('id', 'pageElem').addClass('test-class').appendTo($testDiv);
 
-    ShadowUI.addClass($uiRoot[0], 'root');
+    shadowUI.addClass($uiRoot[0], 'root');
 
     var elems = document.getElementsByClassName('test-class');
 
@@ -413,7 +413,7 @@ test('querySelector', function () {
     $('<div>').attr('id', 'uiChild').addClass('ui-class').appendTo($uiRoot);
     $('<div>').attr('id', 'pageElem').addClass('page-class').appendTo($testDiv);
 
-    ShadowUI.addClass($uiRoot[0], 'root');
+    shadowUI.addClass($uiRoot[0], 'root');
 
     var uiElem   = document.querySelector('.ui-class');
     var pageElem = document.querySelector('.page-class');
@@ -429,7 +429,7 @@ test('querySelectorAll', function () {
     $('<div>').attr('id', 'uiChild').addClass('test-class').appendTo($uiRoot);
     $('<div>').attr('id', 'pageElem').addClass('test-class').appendTo($testDiv);
 
-    ShadowUI.addClass($uiRoot[0], 'root');
+    shadowUI.addClass($uiRoot[0], 'root');
 
     var elems = document.querySelectorAll('.test-class');
 
