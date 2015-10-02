@@ -188,14 +188,12 @@ export default class FocusBlurSandbox extends SandboxBase {
 
             //if element was not focused and it has parent with tabindex, we focus this parent
             var parent             = el.parentNode;
-            var parentWithTabIndex = domUtils.closest(parent, '[tabindex]');
+            var parentWithTabIndex = parent === document ? null : domUtils.closest(parent, '[tabindex]');
 
-            if (type === 'focus' && activeElement !== el && parent !== document &&
-                parentWithTabIndex && forMouseEvent) {
-                //NOTE: in WebKit,Safari and MS Edge calling of native focus for parent element raised page scrolling, we can't prevent it,
+            if (type === 'focus' && activeElement !== el && parentWithTabIndex && forMouseEvent) {
+                //NOTE: in WebKit,Safari and IE calling of native focus for parent element raised page scrolling, we can't prevent it,
                 // therefore we need to restore page scrolling value
-                var needPreventScrolling = forMouseEvent &&
-                                           (browserUtils.isWebKit || browserUtils.isSafari || browserUtils.isMSEdge);
+                var needPreventScrolling = browserUtils.isWebKit || browserUtils.isSafari || browserUtils.isIE;
 
                 this._raiseEvent(parentWithTabIndex, 'focus', simulateEvent, false, false, forMouseEvent, needPreventScrolling);
             }
