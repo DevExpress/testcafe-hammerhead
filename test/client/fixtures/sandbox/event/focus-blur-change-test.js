@@ -923,16 +923,15 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
             height:          '500px',
             overflow:        'scroll',
             marginBottom:    '500px'
+
         })
         .attr('tabIndex', 1);
 
+    //NOTE:we should use unfocusable element in IE (T292365)
     $(childDiv)
         .css({
-            backgroundColor: 'green',
-            marginTop:       '1000px',
-            marginLeft:      '110%',
-            width:           '100px',
-            height:          '100px'
+            marginLeft: '110%',
+            marginTop:  '110%'
         })
         .attr('innerHTML', 'Child');
 
