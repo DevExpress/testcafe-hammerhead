@@ -1,4 +1,5 @@
 import CONST from '../../const';
+import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import domProcessor from '../dom-processor/dom-processor';
 import scriptProcessor from '../../processing/script';
@@ -8,7 +9,7 @@ import { convertToProxyUrl } from '../utils/url';
 const TEXT_NODE_COMMENT_MARKER = 'hammerhead|text-node-comment-marker';
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE =
-    '<script class="' + CONST.SHADOW_UI_SCRIPT_CLASSNAME + '" type="text/javascript">' +
+    '<script class="' + SHADOW_UI_CLASSNAME.script + '" type="text/javascript">' +
     'var parentHammerhead = null;' +
     'try {' +
     '   parentHammerhead = window.parent.Hammerhead;' +
@@ -173,7 +174,7 @@ export function cleanUpHtml (html, parentTag) {
         }
         /*eslint-disable no-loop-func */
 
-        find(container, '[class*="' + CONST.SHADOW_UI_CLASSNAME_POSTFIX + '"]', el => {
+        find(container, '[class*="' + SHADOW_UI_CLASSNAME.postfix + '"]', el => {
             if (el.parentNode) {
                 el.parentNode.removeChild(el);
                 changed = true;

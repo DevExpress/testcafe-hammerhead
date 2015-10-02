@@ -1,5 +1,5 @@
 import SandboxBase from './base';
-import COMMAND from '../../command';
+import COMMAND from '../../session/command';
 import nativeMethods from './native-methods';
 import settings from '../settings';
 import { isShadowUIElement, isCrossDomainIframe, isElementInDocument } from '../utils/dom';

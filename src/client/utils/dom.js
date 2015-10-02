@@ -1,4 +1,5 @@
 import CONST from '../../const';
+import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import trim from '../../utils/string-trim';
 import nativeMethods from '../sandbox/native-methods';
 import urlUtils from '../utils/url';
@@ -312,8 +313,7 @@ export function isShadowUIElement (element) {
             return false;
 
         //NOTE: check className type to avoid issues with SVG elements className property
-        if (typeof element.className === 'string' &&
-            element.className.indexOf(CONST.SHADOW_UI_CLASSNAME_POSTFIX) > -1)
+        if (typeof element.className === 'string' && element.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1)
             return true;
 
         element = element.parentNode;
@@ -497,7 +497,7 @@ export function hasClass (el, className) {
 }
 
 export function parseDocumentCharset () {
-    var metaCharset = nativeMethods.querySelector.call(document, '.' + CONST.SHADOW_UI_CHARSET_CLASSNAME);
+    var metaCharset = nativeMethods.querySelector.call(document, '.' + SHADOW_UI_CLASSNAME.charset);
 
     return metaCharset && metaCharset.getAttribute('charset');
 }

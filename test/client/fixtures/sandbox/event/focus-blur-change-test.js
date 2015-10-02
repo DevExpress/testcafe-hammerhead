@@ -1,7 +1,7 @@
-var Browser   = Hammerhead.get('./utils/browser');
-var Const     = Hammerhead.get('./../const');
-var Promise   = Hammerhead.get('es6-promise').Promise;
-var styleUtil = Hammerhead.get('./utils/style');
+var Browser             = Hammerhead.get('./utils/browser');
+var Promise             = Hammerhead.get('es6-promise').Promise;
+var styleUtil           = Hammerhead.get('./utils/style');
+var SHADOW_UI_CLASSNAME = Hammerhead.get('./../shadow-ui/class-name');
 
 var activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var eventSimulator      = Hammerhead.sandbox.event.eventSimulator;
@@ -900,7 +900,7 @@ asyncTest('active window doesn\'t change after focusing ShadowUI element in iFra
     $iFrame.bind('load', function () {
         iFrameWindow = this.contentWindow;
         divElement   = iFrameWindow.document.body.getElementsByTagName('div')[0];
-        divElement.setAttribute('class', Const.SHADOW_UI_CLASSNAME_POSTFIX);
+        divElement.setAttribute('class', SHADOW_UI_CLASSNAME.postfix);
 
         focusBlur.focus(divElement, function () {
             ok(activeWindowTracker.isCurrentWindowActive());
