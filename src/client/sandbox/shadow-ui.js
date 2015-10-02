@@ -2,7 +2,6 @@ import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import * as domUtils from '../utils/dom';
 import { isWebKit } from '../utils/browser';
-import { isWindow } from '../utils/types';
 import { EVENTS } from '../dom-processor/dom-processor';
 import { getOffsetPosition } from '../utils/position';
 import { SHADOW_UI_CLASSNAME_POSTFIX, SHADOW_UI_STYLESHEET_CLASSNAME } from '../../const';
@@ -336,7 +335,7 @@ export default class ShadowUI extends SandboxBase {
         var parent = null;
 
         try {
-            if (collection.length && !isWindow(collection) && collection[0] && collection[0].nodeType) {
+            if (collection.length && !domUtils.isWindow(collection) && collection[0] && collection[0].nodeType) {
                 parent = collection[0].parentNode || collection[0].parentElement;
 
                 if (parent && (parent.childNodes === collection || parent.children === collection))

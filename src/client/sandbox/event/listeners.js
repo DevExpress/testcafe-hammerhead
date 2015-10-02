@@ -2,7 +2,7 @@ import nativeMethods from '../native-methods';
 import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS } from '../../utils/event';
-import { isWindow } from '../../utils/types';
+import { isWindow } from '../../utils/dom';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',

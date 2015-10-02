@@ -1,5 +1,4 @@
 var DOM           = Hammerhead.get('./utils/dom');
-var Types         = Hammerhead.get('./utils/types');
 var Const         = Hammerhead.get('../const');
 var UrlUtil       = Hammerhead.get('./utils/url');
 
@@ -106,8 +105,8 @@ asyncTest('getTopSameDomainWindow', function () {
 });
 
 test('isWindow', function () {
-    ok(Types.isWindow(window));
-    ok(!Types.isWindow({ top: '' }));
+    ok(DOM.isWindow(window));
+    ok(!DOM.isWindow({ top: '' }));
 
     var storedToString = window.toString;
 
@@ -115,7 +114,7 @@ test('isWindow', function () {
         throw 'eid library overrides window.toString() method';
     };
 
-    ok(Types.isWindow(window));
+    ok(DOM.isWindow(window));
 
     window.toString = storedToString;
 });
