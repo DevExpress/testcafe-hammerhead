@@ -10,10 +10,13 @@ import { isPageHtml, processHtml } from '../../utils/html';
 import { waitCookieMsg } from '../../transport';
 
 export default class ElementSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
+        super();
 
-        this.IFRAME_ADDED_EVENT = 'hammerhead|event|iframe-added';
+        this.nodeSandbox   = nodeSandbox;
+        this.shadowUI      = shadowUI;
+        this.uploadSandbox = uploadSandbox;
+        this.iframeSandbox = iframeSandbox;
 
         this.overridedMethods = null;
     }
@@ -147,7 +150,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _createOverridedMethods () {
-        var overrideNewElement           = el => this.sandbox.node.overrideDomMethods(el);
+        var overrideNewElement           = el => this.nodeSandbox.overrideDomMethods(el);
         var onElementAdded               = el => this._onElementAdded(el);
         var onElementRemoved             = el => this.onElementRemoved(el);
         var removeFileInputInfo          = el => ElementSandbox._removeFileInputInfo(el);
@@ -291,7 +294,7 @@ export default class ElementSandbox extends SandboxBase {
                     this.onIFrameAddedToDOM(iframes[i]);
             }
             else if (el.tagName && el.tagName.toLowerCase() === 'body')
-                this.sandbox.shadowUI.onBodyElementMutation();
+                this.shadowUI.onBodyElementMutation();
         }
 
         if (domUtils.isDomElement(el)) {
@@ -304,7 +307,7 @@ export default class ElementSandbox extends SandboxBase {
 
     onElementRemoved (el) {
         if (el.nodeType === 1 && el.tagName && el.tagName.toLowerCase() === 'body')
-            this.sandbox.shadowUI.onBodyElementMutation();
+            this.shadowUI.onBodyElementMutation();
     }
 
     static getIframes (el) {
@@ -314,18 +317,16 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     addFileInputInfo (el) {
-        var infoManager = this.sandbox.upload.infoManager;
+        var infoManager = this.uploadSandbox.infoManager;
 
         hiddenInfo.addInputInfo(el, infoManager.getFiles(el), infoManager.getValue(el));
     }
 
     onIFrameAddedToDOM (iframe) {
         if (!domUtils.isCrossDomainIframe(iframe, true)) {
-            this.emit(this.IFRAME_ADDED_EVENT, {
+            this.nodeSandbox.mutation.onIFrameAddedToDOM({
                 iframe: iframe
             });
-
-            this.sandbox.iframe.iframeAddedToDom(iframe);
         }
     }
 
@@ -375,7 +376,7 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (isIframe && !domUtils.isCrossDomainIframe(el, true))
-            this.sandbox.iframe.overrideIframe(el);
+            this.iframeSandbox.overrideIframe(el);
 
         if ('insertAdjacentHTML' in el)
             el.insertAdjacentHTML = this.overridedMethods.insertAdjacentHTML;

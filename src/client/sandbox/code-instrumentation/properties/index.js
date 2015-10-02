@@ -21,10 +21,16 @@ import { setTimeout as nativeSetTimeout } from '../../native-methods';
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI) {
+        super();
 
-        this.BODY_CONTENT_CHANGED_EVENT = 'hammerhead|event|body-content-changed';
+        this.nodeMutation          = nodeMutation;
+        this.messageSandbox        = eventSandbox.message;
+        this.cookieSandbox         = cookieSandbox;
+        this.uploadSandbox         = uploadSandbox;
+        this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
+        this.unloadSandbox         = eventSandbox.unload;
+        this.shadowUI              = shadowUI;
     }
 
     //NOTE: isolate throw statement into separate function because JS engines doesn't optimize such functions.
@@ -69,7 +75,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => {
                     if (domUtils.isShadowUIElement(el.activeElement))
-                        return this.sandbox.shadowUI.getLastActiveElement() || el.body;
+                        return this.shadowUI.getLastActiveElement() || el.body;
 
                     return el.activeElement;
                 },
@@ -96,8 +102,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             cookie: {
                 condition: doc => domUtils.isDocument(doc),
-                get:       () => this.sandbox.cookie.getCookie(),
-                set:       (doc, cookie) => this.sandbox.cookie.setCookie(doc, cookie)
+                get:       () => this.cookieSandbox.getCookie(),
+                set:       (doc, cookie) => this.cookieSandbox.setCookie(doc, cookie)
             },
 
             data: {
@@ -126,13 +132,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             firstChild: {
                 condition: el => ShadowUI.isShadowContainer(el),
-                get:       el => this.sandbox.shadowUI.getFirstChild(el),
+                get:       el => this.shadowUI.getFirstChild(el),
                 set:       () => void 0
             },
 
             firstElementChild: {
                 condition: el => ShadowUI.isShadowContainer(el),
-                get:       el => this.sandbox.shadowUI.getFirstElementChild(el),
+                get:       el => this.shadowUI.getFirstElementChild(el),
                 set:       () => void 0
             },
 
@@ -193,7 +199,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (window.self) {
                         //NOTE: use timeout, so changes take effect
                         if (containerTagName === 'html' || containerTagName === 'body')
-                            nativeSetTimeout.call(window, () => this.emit(this.BODY_CONTENT_CHANGED_EVENT, el), 0);
+                            nativeSetTimeout.call(window, () => this.nodeMutation.onBodyContentChanged(el), 0);
                     }
 
                     return value;
@@ -214,13 +220,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             lastChild: {
                 condition: el => ShadowUI.isShadowContainer(el),
-                get:       el => this.sandbox.shadowUI.getLastChild(el),
+                get:       el => this.shadowUI.getLastChild(el),
                 set:       () => void 0
             },
 
             lastElementChild: {
                 condition: el => ShadowUI.isShadowContainer(el),
-                get:       el => this.sandbox.shadowUI.getLastElementChild(el),
+                get:       el => this.shadowUI.getLastElementChild(el),
                 set:       () => void 0
             },
 
@@ -411,11 +417,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 set: (el, value) => {
                     if (domUtils.isFileInput(el))
-                        return this.sandbox.upload.setUploadElementValue(el, value);
+                        return this.uploadSandbox.setUploadElementValue(el, value);
 
                     el.value = value;
 
-                    this.sandbox.event.elementEditingWatcher.restartWatchingElementEditing(el);
+                    this.elementEditingWatcher.restartWatchingElementEditing(el);
 
                     return value;
                 }
@@ -424,14 +430,14 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             // Event
             onbeforeunload: {
                 condition: window => domUtils.isWindow(window),
-                get:       () => this.sandbox.event.unload.getOnBeforeUnload(),
-                set:       (window, handler) => this.sandbox.event.unload.setOnBeforeUnload(window, handler)
+                get:       () => this.unloadSandbox.getOnBeforeUnload(),
+                set:       (window, handler) => this.unloadSandbox.setOnBeforeUnload(window, handler)
             },
 
             onmessage: {
                 condition: window => domUtils.isWindow(window),
-                get:       () => this.sandbox.message.getOnMessage(),
-                set:       (window, handler) => this.sandbox.message.setOnMessage(window, handler)
+                get:       () => this.messageSandbox.getOnMessage(),
+                set:       (window, handler) => this.messageSandbox.setOnMessage(window, handler)
             },
 
             which: {

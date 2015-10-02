@@ -10,8 +10,8 @@ const INTERNAL_FOCUS_FLAG = 'hammerhead|internal-focus';
 const INTERNAL_BLUR_FLAG  = 'hammerhead|internal-blur';
 
 export default class FocusBlurSandbox extends SandboxBase {
-    constructor (sandbox, eventSimulator) {
-        super(sandbox);
+    constructor (listeners, eventSimulator, messageSandbox, shadowUI, timersSandbox, elementEditingWatcher) {
+        super();
 
         this.shouldDisableOuterFocusHandlers = false;
         this.topWindow                       = null;
@@ -19,8 +19,12 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.lastHoveredElement              = null;
         this.lastFocusedElement              = null;
 
-        this.eventSimulator      = eventSimulator;
-        this.activeWindowTracker = new ActiveWindowTracker(sandbox);
+        this.eventSimulator        = eventSimulator;
+        this.activeWindowTracker   = new ActiveWindowTracker(messageSandbox);
+        this.shadowUI              = shadowUI;
+        this.listeners             = listeners;
+        this.elementEditingWatcher = elementEditingWatcher;
+        this.timersSandbox         = timersSandbox;
     }
 
     static _getNativeMeth (el, event) {
@@ -135,7 +139,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
             if (!withoutHandlers) {
                 if (isAsync)
-                    this.sandbox.event.timers.deferFunction(() => this.eventSimulator[type](el));
+                    this.timersSandbox.deferFunction(() => this.eventSimulator[type](el));
                 else
                     this.eventSimulator[type](el);
             }
@@ -144,7 +148,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         };
 
         //T239149 - TD15.1? - Error occurs during assertion creation on http://knockoutjs.com/examples/helloWorld.html in IE9
-        if (browserUtils.isIE9 && this.sandbox.shadowUI.getRoot() === el && (type === 'focus' || type === 'blur'))
+        if (browserUtils.isIE9 && this.shadowUI.getRoot() === el && (type === 'focus' || type === 'blur'))
             callback();
 
         if (el[type]) {
@@ -219,11 +223,9 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.activeWindowTracker.attach(window);
         this.topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
 
-        var listeners = this.sandbox.event.listeners;
-
-        listeners.addInternalEventListener(window, ['mouseover'], e => this._onMouseOverHandler(e));
-        listeners.addInternalEventListener(window, ['mouseout'], e => this._onMouseOut(e));
-        listeners.addInternalEventListener(window, ['focus', 'blur'], () => this._onChangeActiveElement(this.document.activeElement));
+        this.listeners.addInternalEventListener(window, ['mouseover'], e => this._onMouseOverHandler(e));
+        this.listeners.addInternalEventListener(window, ['mouseout'], e => this._onMouseOut(e));
+        this.listeners.addInternalEventListener(window, ['focus', 'blur'], () => this._onChangeActiveElement(this.document.activeElement));
     }
 
     focus (el, callback, silent, forMouseEvent, isNativeFocus) {
@@ -260,7 +262,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
             this._raiseEvent(el, 'focus', () => {
                 if (!silent)
-                    this.sandbox.event.elementEditingWatcher.watchElementEditing(el);
+                    this.elementEditingWatcher.watchElementEditing(el);
 
                 // NOTE: If we call focus for unfocusable element (like 'div' or 'image') in iframe we should make
                 // document.active this iframe manually, so we call focus without handlers
@@ -297,7 +299,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                         var simulateBodyBlur = this.eventSimulator.blur.bind(this.eventSimulator, activeElement);
 
                         if (isAsync)
-                            this.sandbox.event.timers.internalSetTimeout.call(this.window, simulateBodyBlur, 0);
+                            this.timersSandbox.internalSetTimeout.call(this.window, simulateBodyBlur, 0);
                         else
                             simulateBodyBlur();
                     }
@@ -359,8 +361,8 @@ export default class FocusBlurSandbox extends SandboxBase {
             withoutHandlers = true;
 
         if (!withoutHandlers) {
-            this.sandbox.event.elementEditingWatcher.processElementChanging(el);
-            this.sandbox.event.elementEditingWatcher.stopWatching(el);
+            this.elementEditingWatcher.processElementChanging(el);
+            this.elementEditingWatcher.stopWatching(el);
         }
 
         this._raiseEvent(el, 'blur', function () {

@@ -10,8 +10,8 @@ import { stopPropagation } from '../utils/event';
 import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../const';
 
 export default class ShadowUI extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (nodeMutation, messageSandbox, iframeSandbox) {
+        super();
 
         this.BODY_CONTENT_CHANGED_COMMAND = 'hammerhead|command|body-content-changed';
 
@@ -20,6 +20,10 @@ export default class ShadowUI extends SandboxBase {
         this.ROOT_ID         = 'root';
         this.HIDDEN_CLASS    = 'hidden';
         this.BLIND_CLASS     = 'blind';
+
+        this.nodeMutation   = nodeMutation;
+        this.messageSandbox = messageSandbox;
+        this.iframeSandbox  = iframeSandbox;
 
         this.root              = null;
         this.lastActiveElement = null;
@@ -151,14 +155,9 @@ export default class ShadowUI extends SandboxBase {
     attach (window) {
         super.attach(window, window.document);
 
-        var iframeSandbox       = this.sandbox.iframe;
-        var messageSandbox      = this.sandbox.message;
-        var nodeSandbox         = this.sandbox.node;
-        var codeInstrumentation = this.sandbox.codeInstrumentation;
-
         this._overrideDocumentMethods(window.document);
 
-        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, e => {
+        this.iframeSandbox.on(this.iframeSandbox.IFRAME_READY_TO_INIT_EVENT, e => {
             var style = this.getUIStylesheet();
 
             if (style) {
@@ -175,7 +174,7 @@ export default class ShadowUI extends SandboxBase {
             var styleLink  = null;
             var shadowRoot = null;
 
-            nodeSandbox.doc.on(nodeSandbox.doc.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
+            this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
                 styleLink = this.getUIStylesheet();
 
                 if (window.top === window.self) {
@@ -202,15 +201,15 @@ export default class ShadowUI extends SandboxBase {
                 }
             };
 
-            nodeSandbox.on(nodeSandbox.DOCUMENT_CLEANED_EVENT, restoreStyle);
-            nodeSandbox.doc.on(nodeSandbox.doc.DOCUMENT_CLOSED_EVENT, restoreStyle);
+            this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLEANED_EVENT, restoreStyle);
+            this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, restoreStyle);
         }
 
-        codeInstrumentation.on(codeInstrumentation.BODY_CONTENT_CHANGED_EVENT, el => {
+        this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, el => {
             var elContextWindow = el[DOM_SANDBOX_PROCESSED_CONTEXT];
 
             if (elContextWindow !== window) {
-                messageSandbox.sendServiceMsg({
+                this.messageSandbox.sendServiceMsg({
                     cmd: this.BODY_CONTENT_CHANGED_COMMAND
                 }, elContextWindow);
             }
@@ -218,7 +217,7 @@ export default class ShadowUI extends SandboxBase {
                 this.onBodyContentChanged();
         });
 
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
+        this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
                 this.onBodyContentChanged();
         });

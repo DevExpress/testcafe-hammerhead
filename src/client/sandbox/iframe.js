@@ -1,6 +1,5 @@
-import SandboxBase from './base';
 import COMMAND from '../../session/command';
-import nativeMethods from './native-methods';
+import SandboxBase from './base';
 import settings from '../settings';
 import { isShadowUIElement, isCrossDomainIframe, isElementInDocument } from '../utils/dom';
 import { syncServiceMsg } from '../transport';
@@ -11,14 +10,15 @@ import { isSupportedProtocol, isIframeWithoutSrc } from '../utils/url';
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
 export default class IframeSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (nodeMutation) {
+        super();
 
         this.IFRAME_READY_TO_INIT_EVENT          = 'hammerhead|event|iframe-ready-to-init';
         this.IFRAME_READY_TO_INIT_INTERNAL_EVENT = 'hammerhead|event|iframe-ready-to-init-internal';
         this.IFRAME_DOCUMENT_CREATED_EVENT       = 'hammerhead|event|iframe-document-created';
 
         this.on(this.IFRAME_READY_TO_INIT_EVENT, this.iframeReadyToInitHandler);
+        nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, e => this.iframeAddedToDom(e.iframe));
     }
 
     _raiseReadyToInitEvent (iframe) {
@@ -46,7 +46,7 @@ export default class IframeSandbox extends SandboxBase {
                 // Even if iframe is not loaded (iframe.contentDocument.documentElement not exist) we should still
                 // override document.write method, without Hammerhead initializing. This method can be called
                 // before iframe fully loading, we are obliged to override it now
-                if (iframe.contentDocument.write.toString() === nativeMethods.documentWrite.toString()) {
+                if (iframe.contentDocument.write.toString() === this.nativeMethods.documentWrite.toString()) {
                     this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, {
                         iframe: iframe
                     });
@@ -78,11 +78,13 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     iframeAddedToDom (el) {
+        this.overrideIframe(el);
+
         if (!isShadowUIElement(el)) {
             this._raiseReadyToInitEvent(el);
 
             if (!isWebKit && el.contentDocument) {
-                nativeMethods.documentAddEventListener.call(el.contentDocument, 'DOMContentLoaded', () => {
+                this.nativeMethods.documentAddEventListener.call(el.contentDocument, 'DOMContentLoaded', () => {
                     this._raiseReadyToInitEvent(el);
                 });
             }
@@ -97,7 +99,7 @@ export default class IframeSandbox extends SandboxBase {
         if (isShadowUIElement(el))
             return;
 
-        var src = nativeMethods.getAttribute.call(el, 'src');
+        var src = this.nativeMethods.getAttribute.call(el, 'src');
 
         if (!src || !isSupportedProtocol(src)) {
             if (el.contentWindow) {
@@ -108,16 +110,16 @@ export default class IframeSandbox extends SandboxBase {
                         this._raiseReadyToInitEvent(el);
                 };
 
-                nativeMethods.addEventListener.call(el, 'load', readyHandler);
+                this.nativeMethods.addEventListener.call(el, 'load', readyHandler);
 
                 if (isFirefox)
-                    nativeMethods.documentAddEventListener.call(el.contentDocument, 'ready', readyHandler);
+                    this.nativeMethods.documentAddEventListener.call(el.contentDocument, 'ready', readyHandler);
             }
             else {
                 var handler = () => {
                     if (!isShadowUIElement(el)) {
                         if (isCrossDomainIframe(el))
-                            nativeMethods.removeEventListener.call(el, 'load', handler);
+                            this.nativeMethods.removeEventListener.call(el, 'load', handler);
                         else
                             this._raiseReadyToInitEvent(el);
                     }
@@ -126,14 +128,14 @@ export default class IframeSandbox extends SandboxBase {
                 if (isElementInDocument(el))
                     this._raiseReadyToInitEvent(el);
 
-                nativeMethods.addEventListener.call(el, 'load', handler);
+                this.nativeMethods.addEventListener.call(el, 'load', handler);
             }
         }
         else {
             if (isElementInDocument(el))
                 this._raiseReadyToInitEvent(el);
 
-            nativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
+            this.nativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
         }
     }
 }

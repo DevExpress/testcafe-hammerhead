@@ -1,11 +1,12 @@
 import EventEmitter from '../utils/event-emitter';
+import nativeMethods from './native-methods';
 
 export default class SandboxBase extends EventEmitter {
-    constructor (sandbox) {
+    constructor () {
         super();
 
-        this.sandbox      = sandbox;
-        this.window       = null;
+        this.window        = null;
+        this.nativeMethods = nativeMethods;
     }
 
     attach (window, document) {

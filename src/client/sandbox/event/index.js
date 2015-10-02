@@ -1,11 +1,8 @@
-import EventSimulator from './simulator';
 import FocusBlurSandbox from './focus-blur';
 import Listeners from './listeners';
 import TimersSandbox from './timers';
 import Selection from './selection';
-import ElementEditingWatcher from './element-editing-watcher';
 import SandboxBase from '../base';
-import UnloadSandbox from './unload';
 import extend from '../../utils/extend';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
@@ -15,16 +12,19 @@ import { preventDefault, DOM_EVENTS } from '../../utils/event';
 const ELEMENT_HAS_ADDITIONAL_EVENT_METHODS = isIE && browserVersion < 11;
 
 export default class EventSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI) {
+        super();
 
-        this.listeners             = new Listeners();
-        this.unload                = new UnloadSandbox(sandbox);
-        this.timers                = new TimersSandbox(sandbox);
-        this.eventSimulator        = new EventSimulator();
-        this.focusBlur             = new FocusBlurSandbox(sandbox, this.eventSimulator);
-        this.elementEditingWatcher = new ElementEditingWatcher(this.eventSimulator);
+        this.listeners             = listeners;
+        this.eventSimulator        = eventSimulator;
+        this.elementEditingWatcher = elementEditingWatcher;
+        this.unload                = unloadSandbox;
+        this.timers                = new TimersSandbox();
+        this.eventSimulator        = eventSimulator;
+        this.focusBlur             = new FocusBlurSandbox(listeners, eventSimulator, messageSandbox, shadowUI, this.timers, elementEditingWatcher);
         this.selection             = new Selection(this);
+        this.shadowUI              = shadowUI;
+        this.message               = messageSandbox;
 
         this.overridedMethods = null;
 
@@ -126,7 +126,7 @@ export default class EventSandbox extends SandboxBase {
     }
 
     _createInternalHandlers () {
-        var shadowUI       = this.sandbox.shadowUI;
+        var shadowUI       = this.shadowUI;
         var document       = this.document;
         var eventSimulator = this.eventSimulator;
 
@@ -189,6 +189,7 @@ export default class EventSandbox extends SandboxBase {
         this.unload.attach(window);
         this.timers.attach(window);
         this.focusBlur.attach(window);
+        this.message.attach(window);
     }
 
     overrideElement (el, overridePrototypeMeths) {

@@ -4,8 +4,6 @@
     <title></title>
     <meta charset="utf-8">
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
-
-
 </head>
 <body>
 <script type="text/javascript">
@@ -13,13 +11,13 @@
         return 'http://origin_iframe_host';
     };
 
-    var messageSandbox = Hammerhead.messageSandbox;
+    var messageSandbox = Hammerhead.eventSandbox.message;
 
     Hammerhead.start({
         crossDomainProxyPort: 2000
     });
 
-    var serviceMsgHandler = function (evt) {
+    var serviceMsgHandler = function () {
         messageSandbox.sendServiceMsg('', window.top);
     };
 

@@ -7,17 +7,20 @@ import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../../const';
 import { getSandboxFromStorage } from '../storage';
 
 export default class UploadSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (listeners, eventSimulator, shadowUI) {
+        super();
 
         this.START_FILE_UPLOADING_EVENT = 'hammerhead|event|start-file-uploading';
         this.END_FILE_UPLOADING_EVENT   = 'hammerhead|event|end-file-uploading';
 
-        this.infoManager = new UploadInfoManager(sandbox.shadowUI);
+        this.infoManager = new UploadInfoManager(shadowUI);
+
+        this.listeners = listeners;
+        this.eventSimulator = eventSimulator;
     }
 
     _riseChangeEvent (input) {
-        this.sandbox.event.eventSimulator.change(input);
+        this.eventSimulator.change(input);
     }
 
     static _getCurrentInfoManager (input) {
@@ -30,7 +33,7 @@ export default class UploadSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        this.sandbox.event.listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
+        this.listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
             var input              = e.target || e.srcElement;
             var currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 

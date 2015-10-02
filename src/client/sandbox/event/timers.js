@@ -6,8 +6,8 @@ import { setTimeout as nativeSetTimeout, setInterval as nativeSetInterval } from
 // but before any function that is called with the window.setTimeout function. So, we should raise handlers with
 // timeout but we should do it before other async functions calling
 export default class TimersSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor () {
+        super();
 
         this.timeouts           = [];
         this.deferredFunctions  = [];
