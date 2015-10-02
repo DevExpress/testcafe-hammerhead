@@ -1,5 +1,5 @@
+import XHR_HEADERS from './xhr/headers';
 import * as urlUtils from '../utils/url';
-import { XHR_REQUEST_MARKER_HEADER } from '../const';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 
 // Skipping transform
@@ -15,7 +15,7 @@ var requestTransforms = {
     'content-length': (src, ctx) => ctx.reqBody.length,
     'cookie':         skip,
 
-    [XHR_REQUEST_MARKER_HEADER]: skip
+    [XHR_HEADERS.requestMarker]: skip
 };
 
 var requestForced = {

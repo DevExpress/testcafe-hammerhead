@@ -1,7 +1,7 @@
+import XHR_HEADERS from './xhr/headers';
+import Charset from './charset';
 import * as urlUtils from '../utils/url';
 import * as contentUtils from '../utils/content';
-import { XHR_REQUEST_MARKER_HEADER } from '../const';
-import Charset from './charset';
 
 //TODO rewrite parseProxyUrl instead
 function flattenParsedProxyUrl (parsed) {
@@ -52,7 +52,7 @@ export default class PipelineContext {
 
         var acceptHeader = req.headers['accept'];
 
-        this.isXhr  = !!req.headers[XHR_REQUEST_MARKER_HEADER];
+        this.isXhr  = !!req.headers[XHR_HEADERS.requestMarker];
         this.isPage = !this.isXhr && acceptHeader && contentUtils.isPage(acceptHeader);
     }
 
@@ -98,7 +98,7 @@ export default class PipelineContext {
     _initRequestNatureInfo () {
         var acceptHeader = this.req.headers['accept'];
 
-        this.isXhr    = !!this.req.headers[XHR_REQUEST_MARKER_HEADER];
+        this.isXhr    = !!this.req.headers[XHR_HEADERS.requestMarker];
         this.isPage   = !this.isXhr && acceptHeader && contentUtils.isPage(acceptHeader);
         this.isIFrame = this.dest.resourceType === urlUtils.IFRAME;
     }

@@ -7,8 +7,8 @@ var Proxy              = require('../../lib/proxy');
 var Session            = require('../../lib/session');
 var DestinationRequest = require('../../lib/pipeline/destination-request');
 var requestAgent       = require('../../lib/pipeline/request-agent');
+var XHR_HEADERS         = require('../../lib/pipeline/xhr/headers');
 var COMMAND            = require('../../lib/command');
-var SHARED_CONST       = require('../../lib/const');
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
@@ -306,7 +306,7 @@ describe('Proxy', function () {
                 }
             };
 
-            options.headers[SHARED_CONST.XHR_REQUEST_MARKER_HEADER] = 0x00.toString();
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
 
             request(options, function (err, res, body) {
                 expect(res.statusCode).eql(0);
@@ -324,7 +324,7 @@ describe('Proxy', function () {
                 }
             };
 
-            options.headers[SHARED_CONST.XHR_REQUEST_MARKER_HEADER] = 0x00.toString();
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
 
             request(options, function (err, res, body) {
                 expect(res.statusCode).eql(0);
@@ -342,7 +342,8 @@ describe('Proxy', function () {
                 }
             };
 
-            options.headers[SHARED_CONST.XHR_REQUEST_MARKER_HEADER] = SHARED_CONST.XHR_CORS_SUPPORTED_FLAG;
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
 
             request(options, function (err, res, body) {
                 expect(res.statusCode).eql(200);
@@ -359,7 +360,8 @@ describe('Proxy', function () {
                 }
             };
 
-            options.headers[SHARED_CONST.XHR_REQUEST_MARKER_HEADER] = SHARED_CONST.XHR_CORS_SUPPORTED_FLAG;
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
 
             request(options, function (err, res, body) {
                 expect(res.statusCode).eql(200);
@@ -377,7 +379,8 @@ describe('Proxy', function () {
                 }
             };
 
-            options.headers[SHARED_CONST.XHR_REQUEST_MARKER_HEADER] = SHARED_CONST.XHR_CORS_SUPPORTED_FLAG;
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
 
             request(options, function (err, res, body) {
                 expect(res.statusCode).eql(200);
@@ -418,7 +421,7 @@ describe('Proxy', function () {
                 }
             };
 
-            options.headers[SHARED_CONST.XHR_REQUEST_MARKER_HEADER] = 0x00.toString();
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
 
             request(options, function (err, res, body) {
                 var expected = fs.readFileSync('test/server/data/page/src.html').toString();
@@ -511,7 +514,8 @@ describe('Proxy', function () {
                 }
             };
 
-            options.headers[SHARED_CONST.XHR_REQUEST_MARKER_HEADER] = SHARED_CONST.XHR_CORS_SUPPORTED_FLAG;
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
 
             request(options, function (err, res, body) {
                 expect(body).eql('http://example.com');

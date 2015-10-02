@@ -3,7 +3,7 @@ import XMLHttpRequestWrapper from './xml-http-request-wrapper';
 import settings from '../../settings';
 import nativeMethods from '../native-methods';
 import { getProxyUrl } from '../../utils/url';
-import { XHR_REQUEST_MARKER_HEADER, XHR_CORS_SUPPORTED_FLAG, XHR_WITH_CREDENTIALS_FLAG } from '../../../const';
+import XHR_HEADERS from '../../../pipeline/xhr/headers';
 
 const SERVICE_MSG_REQUEST_FLAG = 'hammerhead|service-msg-request-flag';
 
@@ -98,10 +98,13 @@ export default class XhrSandbox extends SandboxBase {
             //Due to the fact that all requests are passed to the proxy we need to perform all Same Origin Policy
             //compliance checks on server side. So we pass CORS support flag as well to inform proxy that it can
             //analyze Access-Control_Allow_Origin flag and skip "preflight" requests.
-            xhr.setRequestHeader(XHR_REQUEST_MARKER_HEADER,
-                (xhrSandbox.corsSupported ? XHR_CORS_SUPPORTED_FLAG : 0) |
-                (xhr.withCredentials ? XHR_WITH_CREDENTIALS_FLAG : 0)
-            );
+            xhr.setRequestHeader(XHR_HEADERS.requestMarker, 'true');
+
+            if (xhrSandbox.corsSupported)
+                xhr.setRequestHeader(XHR_HEADERS.corsSupported, 'true');
+
+            if (xhr.withCredentials)
+                xhr.setRequestHeader(XHR_HEADERS.withCredentials, 'true');
 
             send.apply(xhr, arguments);
         };
