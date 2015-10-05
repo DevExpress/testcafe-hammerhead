@@ -342,3 +342,17 @@ test('iframe with javascript protocol in \'src\' attribute value must be process
                          Html.processHtml('<html><body><a id=\'test\' data-attr="123">link</a></body></html>') + '\'');
     strictEqual(storedSrcAttr, src);
 });
+
+test('The URL attribute must be set to an empty string on the server only once (T295078) (GH-159)', function () {
+    var iframe = NativeMethods.createElement.call(document, 'iframe');
+
+    NativeMethods.setAttribute.call(iframe, 'src', '/should_not_be_changed');
+    // NOTE: Simulating that iframe was processed on the server
+    NativeMethods.setAttribute.call(iframe, DomProcessor.getStoredAttrName('src'), '');
+
+    DomProcessor.processElement(iframe, function () {
+        return 'fail';
+    });
+
+    strictEqual(NativeMethods.getAttribute.call(iframe, 'src'), '/should_not_be_changed');
+});

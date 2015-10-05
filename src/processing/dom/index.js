@@ -397,7 +397,7 @@ export default class DomProcessor {
         if (urlReplacer && pattern.urlAttr) {
             var storedUrlAttr     = this.getStoredAttrName(pattern.urlAttr);
             var resourceUrl       = this.adapter.getAttr(el, pattern.urlAttr);
-            var processedOnServer = !!this.adapter.getAttr(el, storedUrlAttr);
+            var processedOnServer = this.adapter.hasAttr(el, storedUrlAttr);
 
             // NOTE: page resource URL with proxy URL
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
