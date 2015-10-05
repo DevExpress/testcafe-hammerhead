@@ -4,6 +4,7 @@ var HiddenInfo        = Hammerhead.get('./sandbox/upload/hidden-info');
 var UploadInfoManager = Hammerhead.get('./sandbox/upload/info-manager');
 var NativeMethods     = Hammerhead.get('./sandbox/native-methods');
 var Transport         = Hammerhead.get('./transport');
+var Promise           = Hammerhead.get('es6-promise').Promise;
 
 var uploadSandbox = Hammerhead.sandbox.upload;
 var infoManager   = uploadSandbox.infoManager;
@@ -49,17 +50,19 @@ QUnit.testDone(function () {
     Transport.asyncServiceMsg = storedAsyncServiceMsg;
 });
 
-function overridedAsyncServiceMsg (msg, callback) {
-    switch (msg.cmd) {
-        case COMMAND.getUploadedFiles:
-            callback(getFilesInfo(msg.filePaths));
-            break;
-        case COMMAND.uploadFiles:
-            callback(uploadFiles(msg.data, msg.fileNames));
-            break;
-        default:
-            return storedAsyncServiceMsg.call(Transport, msg, callback);
-    }
+function overridedAsyncServiceMsg (msg) {
+    return new Promise(function (resolve) {
+        switch (msg.cmd) {
+            case COMMAND.getUploadedFiles:
+                resolve(getFilesInfo(msg.filePaths));
+                break;
+            case COMMAND.uploadFiles:
+                resolve(uploadFiles(msg.data, msg.fileNames));
+                break;
+            default:
+                return storedAsyncServiceMsg.call(Transport, msg);
+        }
+    });
 }
 
 function uploadFiles (data, filePaths) {
@@ -254,46 +257,47 @@ asyncTest('transfer input element between forms', function () {
     strictEqual(formEl1.children.length, 2, 'Hidden input in form1 is present');
     strictEqual(formEl2.children.length, 0, 'Hidden input in form2 is missing');
 
-    uploadSandbox.upload(inputEl, ['./file.txt'], function () {
-        hiddenInfo       = formEl1.children[1].value;
-        parsedHiddenInfo = JSON.parse(hiddenInfo);
+    uploadSandbox.upload(inputEl, ['./file.txt'])
+        .then(function () {
+            hiddenInfo       = formEl1.children[1].value;
+            parsedHiddenInfo = JSON.parse(hiddenInfo);
 
-        strictEqual(parsedHiddenInfo[0].files.length, 1, 'Hidden info contains 1 file');
-        strictEqual(parsedHiddenInfo[0].files[0].name, 'file.txt', 'File name is "file.txt"');
-        strictEqual(parsedHiddenInfo[0].files[0].type, 'text/plain', 'File type is "text/plain"');
-        strictEqual(formEl2.children.length, 0, 'Hidden input in form2 is missing');
+            strictEqual(parsedHiddenInfo[0].files.length, 1, 'Hidden info contains 1 file');
+            strictEqual(parsedHiddenInfo[0].files[0].name, 'file.txt', 'File name is "file.txt"');
+            strictEqual(parsedHiddenInfo[0].files[0].type, 'text/plain', 'File type is "text/plain"');
+            strictEqual(formEl2.children.length, 0, 'Hidden input in form2 is missing');
 
-        formEl1.removeChild(inputEl);
-        strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
-        strictEqual(formEl2.children.length, 0, 'Hidden input in form2 is missing');
+            formEl1.removeChild(inputEl);
+            strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
+            strictEqual(formEl2.children.length, 0, 'Hidden input in form2 is missing');
 
-        formEl2.appendChild(inputEl);
-        strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
-        strictEqual(formEl2.children[1].value, hiddenInfo, 'Hidden input in form2 contains file info');
+            formEl2.appendChild(inputEl);
+            strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
+            strictEqual(formEl2.children[1].value, hiddenInfo, 'Hidden input in form2 contains file info');
 
-        formEl2.removeChild(inputEl);
-        strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
-        strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
+            formEl2.removeChild(inputEl);
+            strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
+            strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
-        formEl1.insertBefore(inputEl, formEl1.firstChild);
-        strictEqual(formEl1.children[1].value, hiddenInfo, 'Hidden input in form1 contains file info');
-        strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
+            formEl1.insertBefore(inputEl, formEl1.firstChild);
+            strictEqual(formEl1.children[1].value, hiddenInfo, 'Hidden input in form1 contains file info');
+            strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
-        formEl1.removeChild(inputEl);
-        div.appendChild(inputEl);
-        strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
-        strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
+            formEl1.removeChild(inputEl);
+            div.appendChild(inputEl);
+            strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
+            strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
-        formEl1.insertBefore(div, formEl1.firstChild);
-        strictEqual(formEl1.children[1].value, hiddenInfo, 'Hidden input in form1 contains file info');
-        strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
+            formEl1.insertBefore(div, formEl1.firstChild);
+            strictEqual(formEl1.children[1].value, hiddenInfo, 'Hidden input in form1 contains file info');
+            strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
-        formEl1.removeChild(div);
-        strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
-        strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
+            formEl1.removeChild(div);
+            strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
+            strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
-        start();
-    });
+            start();
+        });
 });
 
 module('info manager');
@@ -357,18 +361,20 @@ module('server errs');
 asyncTest('upload error', function () {
     var input = $('<input type="file">')[0];
 
-    uploadSandbox.upload(input, './err_file.txt', function (errs) {
-        strictEqual(errs.length, 1);
-        strictEqual(errs[0].err, 34);
-
-        uploadSandbox.upload(input, ['./err_file1.txt', './file.txt', './err_file2.txt'], function (errs) {
-            strictEqual(errs.length, 2);
+    uploadSandbox.upload(input, './err_file.txt')
+        .then(function (errs) {
+            strictEqual(errs.length, 1);
             strictEqual(errs[0].err, 34);
-            strictEqual(errs[1].err, 34);
 
-            start();
+            uploadSandbox.upload(input, ['./err_file1.txt', './file.txt', './err_file2.txt'])
+                .then(function (errs) {
+                    strictEqual(errs.length, 2);
+                    strictEqual(errs[0].err, 34);
+                    strictEqual(errs[1].err, 34);
+
+                    start();
+                });
         });
-    });
 });
 
 if (!Browser.isIE && !Browser.isIOS) {
@@ -445,30 +451,31 @@ asyncTest('set empty value', function () {
     else
         strictEqual(files.length, 0);
 
-    uploadSandbox.upload(fileInput, ['./file.txt'], function () {
-        eval(processScript('value = fileInput.value; files = fileInput.files'));
+    uploadSandbox.upload(fileInput, ['./file.txt'])
+        .then(function () {
+            eval(processScript('value = fileInput.value; files = fileInput.files'));
 
-        if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
-            strictEqual(value, 'C:\\fakepath\\file.txt');
-        else
-            strictEqual(value, 'file.txt');
+            if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
+                strictEqual(value, 'C:\\fakepath\\file.txt');
+            else
+                strictEqual(value, 'file.txt');
 
-        if (Browser.isIE9)
-            strictEqual(typeof files, 'undefined');
-        else
-            strictEqual(files.length, 1);
+            if (Browser.isIE9)
+                strictEqual(typeof files, 'undefined');
+            else
+                strictEqual(files.length, 1);
 
-        eval(processScript('fileInput.value = "";value = fileInput.value; files = fileInput.files'));
+            eval(processScript('fileInput.value = "";value = fileInput.value; files = fileInput.files'));
 
-        strictEqual(value, '');
+            strictEqual(value, '');
 
-        if (Browser.isIE9)
-            strictEqual(typeof files, 'undefined');
-        else
-            strictEqual(files.length, 0);
+            if (Browser.isIE9)
+                strictEqual(typeof files, 'undefined');
+            else
+                strictEqual(files.length, 0);
 
-        start();
-    });
+            start();
+        });
 });
 
 asyncTest('repeated select file', function () {
@@ -476,35 +483,37 @@ asyncTest('repeated select file', function () {
     var value     = '';
     var files     = null;
 
-    uploadSandbox.upload(fileInput, './file.txt', function () {
-        eval(processScript('value = fileInput.value; files = fileInput.files'));
-
-        if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
-            strictEqual(value, 'C:\\fakepath\\file.txt');
-        else
-            strictEqual(value, 'file.txt');
-
-        if (Browser.isIE9)
-            strictEqual(typeof files, 'undefined');
-        else
-            strictEqual(files[0].name, 'file.txt');
-
-        uploadSandbox.upload(fileInput, 'folder/file.png', function () {
+    uploadSandbox.upload(fileInput, './file.txt')
+        .then(function () {
             eval(processScript('value = fileInput.value; files = fileInput.files'));
 
             if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
-                strictEqual(value, 'C:\\fakepath\\file.png');
+                strictEqual(value, 'C:\\fakepath\\file.txt');
             else
-                strictEqual(value, 'file.png');
+                strictEqual(value, 'file.txt');
 
             if (Browser.isIE9)
                 strictEqual(typeof files, 'undefined');
             else
-                strictEqual(files[0].name, 'file.png');
+                strictEqual(files[0].name, 'file.txt');
 
-            start();
+            uploadSandbox.upload(fileInput, 'folder/file.png')
+                .then(function () {
+                    eval(processScript('value = fileInput.value; files = fileInput.files'));
+
+                    if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
+                        strictEqual(value, 'C:\\fakepath\\file.png');
+                    else
+                        strictEqual(value, 'file.png');
+
+                    if (Browser.isIE9)
+                        strictEqual(typeof files, 'undefined');
+                    else
+                        strictEqual(files[0].name, 'file.png');
+
+                    start();
+                });
         });
-    });
 });
 
 asyncTest('change event', function () {
@@ -529,8 +538,7 @@ asyncTest('change event', function () {
         start();
     };
 
-    uploadSandbox.upload(fileInput, './file.txt', function () {
-    });
+    uploadSandbox.upload(fileInput, './file.txt').then(function () { });
 });
 
 asyncTest('multi-select files', function () {
@@ -538,23 +546,24 @@ asyncTest('multi-select files', function () {
     var value     = '';
     var files     = null;
 
-    uploadSandbox.upload(fileInput, ['./file.txt', 'folder/file.png'], function () {
-        eval(processScript('value = fileInput.value; files = fileInput.files'));
+    uploadSandbox.upload(fileInput, ['./file.txt', 'folder/file.png'])
+        .then(function () {
+            eval(processScript('value = fileInput.value; files = fileInput.files'));
 
-        if (Browser.isIE9 || Browser.isIE10)
-            strictEqual(value, 'C:\\fakepath\\file.txt, C:\\fakepath\\file.png');
-        else if (Browser.isWebKit)
-            strictEqual(value, 'C:\\fakepath\\file.txt');
-        else
-            strictEqual(value, 'file.txt');
+            if (Browser.isIE9 || Browser.isIE10)
+                strictEqual(value, 'C:\\fakepath\\file.txt, C:\\fakepath\\file.png');
+            else if (Browser.isWebKit)
+                strictEqual(value, 'C:\\fakepath\\file.txt');
+            else
+                strictEqual(value, 'file.txt');
 
-        if (Browser.isIE9)
-            strictEqual(typeof files, 'undefined');
-        else
-            strictEqual(files.length, 2);
+            if (Browser.isIE9)
+                strictEqual(typeof files, 'undefined');
+            else
+                strictEqual(files.length, 2);
 
-        start();
-    });
+            start();
+        });
 });
 
 asyncTest('get file info from iframe', function () {
@@ -565,43 +574,45 @@ asyncTest('get file info from iframe', function () {
     fileInput.name = 'test';
     document.body.appendChild(fileInput);
 
-    uploadSandbox.upload(fileInput, './file.txt', function () {
-        var iframe = document.createElement('iframe');
+    uploadSandbox.upload(fileInput, './file.txt')
+        .then(function () {
+            var iframe = document.createElement('iframe');
 
-        window.addEventListener('message', function (e) {
-            var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+            window.addEventListener('message', function (e) {
+                var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
 
-            if (!Browser.isIE9) {
-                strictEqual(data.filesLength, 1);
-                strictEqual(data.fileName, 'file.txt');
-                strictEqual(data.fileType, 'text/plain');
-            }
+                if (!Browser.isIE9) {
+                    strictEqual(data.filesLength, 1);
+                    strictEqual(data.fileName, 'file.txt');
+                    strictEqual(data.fileType, 'text/plain');
+                }
 
-            if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
-                strictEqual(data.value, 'C:\\fakepath\\file.txt');
-            else
-                strictEqual(data.value, 'file.txt');
+                if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
+                    strictEqual(data.value, 'C:\\fakepath\\file.txt');
+                else
+                    strictEqual(data.value, 'file.txt');
 
-            fileInput.parentNode.removeChild(fileInput);
-            iframe.parentNode.removeChild(iframe);
+                fileInput.parentNode.removeChild(fileInput);
+                iframe.parentNode.removeChild(iframe);
 
-            start();
+                start();
+            });
+
+            iframe.src = window.QUnitGlobals.getResourceUrl('../../data/upload/iframe.html');
+            document.body.appendChild(iframe);
         });
-
-        iframe.src = window.QUnitGlobals.getResourceUrl('../../data/upload/iframe.html');
-        document.body.appendChild(iframe);
-    });
 });
 
 asyncTest('input.value getter', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
 
-    uploadSandbox.upload(fileInput, ['./file.txt'], function () {
-        var fileInputValue = getProperty(fileInput, 'value');
+    uploadSandbox.upload(fileInput, ['./file.txt'])
+        .then(function () {
+            var fileInputValue = getProperty(fileInput, 'value');
 
-        ok(fileInputValue.indexOf('file.txt') !== -1);
-        start();
-    });
+            ok(fileInputValue.indexOf('file.txt') !== -1);
+            start();
+        });
 });
 
 

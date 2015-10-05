@@ -74,167 +74,177 @@ class Transport extends EventEmitter {
     sendNextQueuedMsg (queueId) {
         var queueItem = this.msgQueue[queueId][0];
 
-        this.asyncServiceMsg(queueItem.msg, res => {
-            if (queueItem.callback)
-                queueItem.callback(res);
+        this.asyncServiceMsg(queueItem.msg)
+            .then(res => {
+                if (queueItem.callback)
+                    queueItem.callback(res);
 
-            this.msgQueue[queueId].shift();
+                this.msgQueue[queueId].shift();
 
-            this.emit(this.MSG_RECEIVED_EVENT, {});
+                this.emit(this.MSG_RECEIVED_EVENT, {});
 
-            if (this.msgQueue[queueId].length)
-                this.sendNextQueuedMsg(queueId);
-        });
+                if (this.msgQueue[queueId].length)
+                    this.sendNextQueuedMsg(queueId);
+            });
     }
 
-    waitCookieMsg (callback) {
-        if (this._cookieMsgInProgress()) {
-            var handler = () => {
-                if (!this._cookieMsgInProgress()) {
-                    this.off(this.MSG_RECEIVED_EVENT, handler);
+    waitCookieMsg () {
+        return new Promise(resolve => {
+            if (this._cookieMsgInProgress()) {
+                var handler = () => {
+                    if (!this._cookieMsgInProgress()) {
+                        this.off(this.MSG_RECEIVED_EVENT, handler);
 
-                    callback();
-                }
-            };
+                        resolve();
+                    }
+                };
 
-            this.on(this.MSG_RECEIVED_EVENT, handler);
-        }
-        else
-            callback();
+                this.on(this.MSG_RECEIVED_EVENT, handler);
+            }
+            else
+                resolve();
+        });
     }
 
     //NOTE: use sync method for most important things only
-    syncServiceMsg (msg, callback) {
-        var storedSync = this.useAsyncXhr;
+    syncServiceMsg (msg) {
+        return new Promise(resolve => {
+            var storedSync = this.useAsyncXhr;
 
-        this.useAsyncXhr = false;
+            this.useAsyncXhr = false;
 
-        this.asyncServiceMsg(msg, res => {
-            this.useAsyncXhr = storedSync;
-            callback(res);
+            this.asyncServiceMsg(msg)
+                .then(res => {
+                    this.useAsyncXhr = storedSync;
+                    resolve(res);
+                });
         });
     }
 
-    waitForServiceMessagesCompleted (callback, timeout) {
-        if (!this.activeServiceMessagesCounter) {
-            callback();
-            return;
-        }
-
-        var intervalId = null;
-        var timeoutId  = window.setTimeout(() => {
-            window.clearInterval(intervalId);
-            callback();
-        }, timeout);
-
-        intervalId = window.setInterval(() => {
+    waitForServiceMessagesCompleted (timeout) {
+        return new Promise(resolve => {
             if (!this.activeServiceMessagesCounter) {
+                resolve();
+                return;
+            }
+
+            var intervalId = null;
+            var timeoutId  = window.setTimeout(() => {
                 window.clearInterval(intervalId);
-                window.clearTimeout(timeoutId);
-                callback();
-            }
-        }, this.SERVICE_MESSAGES_WAITING_INTERVAL);
-    }
+                resolve();
+            }, timeout);
 
-    asyncServiceMsg (msg, callback) {
-        msg.sessionId = settings.get().sessionId;
-
-        if (isIFrameWithoutSrc)
-            msg.referer = settings.get().referer;
-
-        var sendMsg = forced => {
-            this.activeServiceMessagesCounter++;
-
-            var requestIsAsync = this.useAsyncXhr;
-
-            if (forced)
-                requestIsAsync = false;
-
-            var transport    = this;
-            var request      = Transport._createXMLHttpRequest(requestIsAsync);
-            var msgCallback  = function () {
-                transport.activeServiceMessagesCounter--;
-
-                if (callback)
-                    callback(this.responseText && parseJSON(this.responseText));
-            };
-            var errorHandler = function () {
-                if (isWebKit) {
-                    Transport._storeMessage(msg);
-                    msgCallback();
+            intervalId = window.setInterval(() => {
+                if (!this.activeServiceMessagesCounter) {
+                    window.clearInterval(intervalId);
+                    window.clearTimeout(timeoutId);
+                    resolve();
                 }
-                else
-                    sendMsg(true);
-            };
-
-            if (forced) {
-                request.addEventListener('readystatechange', function () {
-                    if (this.readyState !== 4)
-                        return;
-
-                    msgCallback();
-                });
-            }
-            else if (isIE9) {
-                //aborted ajax request in IE9 not raise error, abort or timeout events
-                //also getting status code raise error c00c023f
-                request.addEventListener('readystatechange', function () {
-                    if (this.readyState !== 4)
-                        return;
-
-                    var status = 0;
-
-                    try {
-                        status = this.status;
-                    }
-                    catch (e) {
-                        errorHandler();
-                    }
-
-                    if (status === 200)
-                        msgCallback.call(this);
-                });
-            }
-            else {
-                request.addEventListener('load', msgCallback);
-                request.addEventListener('abort', errorHandler);
-                request.addEventListener('error', errorHandler);
-                request.addEventListener('timeout', errorHandler);
-            }
-
-            request.send(stringifyJSON(msg));
-        };
-
-        Transport._removeMessageFromStore(msg.cmd);
-        sendMsg();
+            }, this.SERVICE_MESSAGES_WAITING_INTERVAL);
+        });
     }
 
-    batchUpdate (updateCallback) {
+    asyncServiceMsg (msg) {
+        return new Promise(resolve => {
+            msg.sessionId = settings.get().sessionId;
+
+            if (isIFrameWithoutSrc)
+                msg.referer = settings.get().referer;
+
+            var sendMsg = forced => {
+                this.activeServiceMessagesCounter++;
+
+                var requestIsAsync = this.useAsyncXhr;
+
+                if (forced)
+                    requestIsAsync = false;
+
+                var transport    = this;
+                var request      = Transport._createXMLHttpRequest(requestIsAsync);
+                var msgCallback  = function () {
+                    transport.activeServiceMessagesCounter--;
+
+                    resolve(this.responseText && parseJSON(this.responseText));
+                };
+                var errorHandler = function () {
+                    if (isWebKit) {
+                        Transport._storeMessage(msg);
+                        msgCallback();
+                    }
+                    else
+                        sendMsg(true);
+                };
+
+                if (forced) {
+                    request.addEventListener('readystatechange', function () {
+                        if (this.readyState !== 4)
+                            return;
+
+                        msgCallback();
+                    });
+                }
+                else if (isIE9) {
+                    //aborted ajax request in IE9 not raise error, abort or timeout events
+                    //also getting status code raise error c00c023f
+                    request.addEventListener('readystatechange', function () {
+                        if (this.readyState !== 4)
+                            return;
+
+                        var status = 0;
+
+                        try {
+                            status = this.status;
+                        }
+                        catch (e) {
+                            errorHandler();
+                        }
+
+                        if (status === 200)
+                            msgCallback.call(this);
+                    });
+                }
+                else {
+                    request.addEventListener('load', msgCallback);
+                    request.addEventListener('abort', errorHandler);
+                    request.addEventListener('error', errorHandler);
+                    request.addEventListener('timeout', errorHandler);
+                }
+
+                request.send(stringifyJSON(msg));
+            };
+
+            Transport._removeMessageFromStore(msg.cmd);
+            sendMsg();
+        });
+    }
+
+    batchUpdate () {
         var storedMessages = Transport._getStoredMessages();
 
         if (storedMessages.length) {
             window.localStorage.removeItem(settings.get().sessionId);
 
-            var tasks = storedMessages.map(item => new Promise(resolve => this.queuedAsyncServiceMsg(item, resolve)));
+            var tasks = storedMessages.map(item => this.queuedAsyncServiceMsg(item));
 
-            Promise.all(tasks).then(updateCallback);
+            return Promise.all(tasks);
         }
-        else
-            updateCallback();
+        return Promise.resolve();
     }
 
-    queuedAsyncServiceMsg (msg, callback) {
-        if (!this.msgQueue[msg.cmd])
-            this.msgQueue[msg.cmd] = [];
+    queuedAsyncServiceMsg (msg) {
+        return new Promise(resolve => {
+            if (!this.msgQueue[msg.cmd])
+                this.msgQueue[msg.cmd] = [];
 
-        this.msgQueue[msg.cmd].push({
-            msg:      msg,
-            callback: callback
+            this.msgQueue[msg.cmd].push({
+                msg:      msg,
+                callback: resolve
+            });
+
+            //NOTE: if we don't have pending msgs except this one then send it immediately
+            if (this.msgQueue[msg.cmd].length === 1)
+                this.sendNextQueuedMsg(msg.cmd);
         });
-
-        //NOTE: if we don't have pending msgs except this one then send it immediately
-        if (this.msgQueue[msg.cmd].length === 1)
-            this.sendNextQueuedMsg(msg.cmd);
     }
 }
 

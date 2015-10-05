@@ -1,7 +1,7 @@
 import nativeMethods from '../native-methods';
 import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
-import { preventDefault, stopPropagation, DOM_EVENTS } from '../../utils/event';
+import { preventDefault, stopPropagation, DOM_EVENTS, isObjectEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
 
 const LISTENED_EVENTS = [
@@ -60,7 +60,7 @@ export default class Listeners extends EventEmitter {
             if (typeof eventCtx.outerHandlersWrapper === 'function')
                 return eventCtx.outerHandlersWrapper.call(this, e, listener);
 
-            if (typeof listener === 'object' && typeof listener.handleEvent === 'function')
+            if (isObjectEventListener(listener))
                 return listener.handleEvent.call(listener, e);
 
             return listener.call(this, e);

@@ -4,6 +4,7 @@ var Settings      = Hammerhead.get('./settings');
 var SharedUrlUtil = Hammerhead.get('../utils/url');
 var Transport     = Hammerhead.get('./transport');
 var UrlUtil       = Hammerhead.get('./utils/url');
+var Promise       = Hammerhead.get('es6-promise').Promise;
 
 var cookieSandbox = Hammerhead.sandbox.cookie;
 
@@ -15,15 +16,17 @@ function getCookie () {
     return getProperty(document, 'cookie');
 }
 
-asyncTest('form submit', function () {
-    var form                    = document.body.appendChild(document.createElement('form'));
-    var storedAsyncServiceMsg   = Transport.asyncServiceMsg;
-    var asyncServiceMsgCallback = null;
-    var storedNativeSubmit      = NativeMethods.formSubmit;
-    var msgReceived             = false;
+asyncTest('cookie must be to send to a server before form.submit', function () {
+    var form                          = document.body.appendChild(document.createElement('form'));
+    var storedAsyncServiceMsg         = Transport.asyncServiceMsg;
+    var resolveAsyncServiceMsgPromise = null;
+    var storedNativeSubmit            = NativeMethods.formSubmit;
+    var msgReceived                   = false;
 
-    Transport.asyncServiceMsg = function (msg, callback) {
-        asyncServiceMsgCallback = callback;
+    Transport.asyncServiceMsg = function () {
+        return new Promise(function (resolve) {
+            resolveAsyncServiceMsgPromise = resolve;
+        });
     };
 
     NativeMethods.formSubmit = function () {
@@ -43,7 +46,7 @@ asyncTest('form submit', function () {
 
     window.setTimeout(function () {
         msgReceived = true;
-        asyncServiceMsgCallback();
+        resolveAsyncServiceMsgPromise();
     }, 500);
 });
 

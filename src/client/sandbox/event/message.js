@@ -5,6 +5,8 @@ import urlUtils from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows } from '../../utils/dom';
+import { isObjectEventListener } from '../../utils/event';
+import { Promise } from 'es6-promise';
 
 /*eslint-enable no-native-reassign */
 
@@ -70,7 +72,7 @@ export default class MessageSandbox extends SandboxBase {
 
                 resultEvt.data = needToStringify ? stringifyJSON(data.message) : data.message;
 
-                if (typeof originListener === 'object' && typeof originListener.handleEvent === 'function')
+                if (isObjectEventListener(originListener))
                     return originListener.handleEvent.call(originListener, resultEvt);
 
                 return originListener.call(this.window, resultEvt);
@@ -182,47 +184,47 @@ export default class MessageSandbox extends SandboxBase {
         return targetWindow.postMessage(message, '*');
     }
 
-    pingIFrame (targetIFrame, pingMessageCommand, callback, shortWaiting) {
-        var pingInterval = null;
-        var pingTimeout  = null;
-        var targetWindow = null;
+    pingIFrame (targetIFrame, pingMessageCommand, shortWaiting) {
+        return new Promise(resolve => {
+            var pingInterval = null;
+            var pingTimeout  = null;
+            var targetWindow = null;
 
-        var sendPingRequest = () => {
-            if (targetIFrame.contentWindow) {
-                targetWindow = targetIFrame.contentWindow;
+            var sendPingRequest = () => {
+                if (targetIFrame.contentWindow) {
+                    targetWindow = targetIFrame.contentWindow;
 
-                this.sendServiceMsg({
-                    cmd:           this.pingCmd,
-                    isPingRequest: true
-                }, targetWindow);
-            }
-        };
+                    this.sendServiceMsg({
+                        cmd:           this.pingCmd,
+                        isPingRequest: true
+                    }, targetWindow);
+                }
+            };
 
-        var cleanTimeouts = () => {
-            this.window.clearInterval(pingInterval);
-            this.window.clearTimeout(pingTimeout);
+            var cleanTimeouts = () => {
+                this.window.clearInterval(pingInterval);
+                this.window.clearTimeout(pingTimeout);
 
-            this.pingCallback = null;
-            this.pingCmd      = null;
-            pingInterval      = null;
-            pingTimeout       = null;
-        };
+                this.pingCallback = null;
+                this.pingCmd      = null;
+                pingInterval      = null;
+                pingTimeout       = null;
+            };
 
-        pingTimeout = nativeMethods.setTimeout.call(this.window, () => {
-            cleanTimeouts();
-            callback(true);
-        }, shortWaiting ? this.PING_IFRAME_MIN_TIMEOUT : this.PING_IFRAME_TIMEOUT);
+            pingTimeout = nativeMethods.setTimeout.call(this.window, () => {
+                cleanTimeouts();
+                resolve(true);
+            }, shortWaiting ? this.PING_IFRAME_MIN_TIMEOUT : this.PING_IFRAME_TIMEOUT);
 
-        if (typeof callback === 'function') {
             this.pingCallback = () => {
                 cleanTimeouts();
-                callback();
+                resolve();
             };
 
             this.pingCmd = pingMessageCommand;
 
             sendPingRequest();
             pingInterval = nativeMethods.setInterval.call(this.window, sendPingRequest, this.PING_DELAY);
-        }
+        });
     }
 }

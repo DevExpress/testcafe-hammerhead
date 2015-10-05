@@ -1,6 +1,7 @@
 var Browser         = Hammerhead.get('./utils/browser');
 var ScriptProcessor = Hammerhead.get('../processing/script');
 var Settings        = Hammerhead.get('./settings');
+var Promise         = Hammerhead.get('es6-promise').Promise;
 
 var iframeSandbox  = Hammerhead.sandbox.iframe;
 var messageSandbox = Hammerhead.eventSandbox.message;
@@ -92,50 +93,55 @@ asyncTest('crossdomain post messages between diffferen windows', function () {
 });
 
 asyncTest('message types', function () {
-    var checkValue = function (value, callback, test) {
-        /* eslint-disable no-unused-vars*/
-        var onMessageHandler = function (e) {
-            if (test)
-                ok(test(e.data));
-            else
-                strictEqual(e.data, value);
+    var checkValue = function (value, test) {
+        return new Promise(function (resove) {
+           /* eslint-disable no-unused-vars*/
+            var onMessageHandler = function (e) {
+                if (test)
+                    ok(test(e.data));
+                else
+                    strictEqual(e.data, value);
 
-            callback();
-        };
+                resove();
+            };
 
-        /* eslint-enable no-unused-vars*/
+           /* eslint-enable no-unused-vars*/
 
-        eval(ScriptProcessor.process('window.onmessage = onMessageHandler;'));
-        eval(ScriptProcessor.process('window.postMessage(value, "*");'));
+            eval(ScriptProcessor.process('window.onmessage = onMessageHandler;'));
+            eval(ScriptProcessor.process('window.postMessage(value, "*");'));
+        });
     };
 
-    if (Browser.isIE9) {
-        checkValue('test', function () {
-            start();
-        });
-    }
+    if (Browser.isIE9)
+        checkValue('test').then(start);
     else {
-        checkValue(true, function () {
-            checkValue(0, function () {
-                checkValue('', function () {
-                    checkValue([0], function () {
-                        checkValue({ a: 0 }, function () {
-                            checkValue(null, function () {
-                                checkValue(void 0, function () {
-                                    checkValue('{a:0}', function () {
-                                        start();
-                                    });
-                                });
-                            });
-                        }, function (a) {
-                            return a.a === 0;
-                        });
-                    }, function (a) {
-                        return a.length === 1 && a[0] === 0;
-                    });
+        checkValue(true)
+            .then(function () {
+                return checkValue(0);
+            })
+            .then(function () {
+                return checkValue('');
+            })
+            .then(function () {
+                return checkValue([0], function (a) {
+                    return a.length === 1 && a[0] === 0;
                 });
-            });
-        });
+            })
+            .then(function () {
+                return checkValue({ a: 0 }, function (a) {
+                    return a.a === 0;
+                });
+            })
+            .then(function () {
+                return checkValue(null);
+            })
+            .then(function () {
+                return checkValue(void 0);
+            })
+            .then(function () {
+                return checkValue('{a:0}');
+            })
+            .then(start);
     }
 });
 
@@ -246,9 +252,10 @@ asyncTest('iframe', function () {
 
     window.addEventListener('message', onMessageHandler);
 
-    messageSandbox.pingIFrame(iframe, 'pingCmd', function () {
-        iFrameResponseReceived = true;
-    });
+    messageSandbox.pingIFrame(iframe, 'pingCmd')
+        .then(function () {
+            iFrameResponseReceived = true;
+        });
 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/wait-loading.html');
     document.body.appendChild(iframe);
@@ -259,25 +266,26 @@ asyncTest('timeout', function () {
     var timeoutExceededError = false;
     var storedDelay          = messageSandbox.PING_IFRAME_TIMEOUT;
 
+    //MutationObserver (used in the es6-promise library) works slowly in IE
+    var timeout              = Browser.isIE ? 200 : 20;
+
     messageSandbox.setPingIFrameTimeout(5);
 
     iframe.src = 'http://cross.domain.com/';
 
-    messageSandbox.pingIFrame(iframe, 'pingCmd', function (timeoutExceeded) {
-        timeoutExceededError = timeoutExceeded;
-    });
+    messageSandbox.pingIFrame(iframe, 'pingCmd')
+        .then(function (timeoutExceeded) {
+            timeoutExceededError = timeoutExceeded;
+        });
 
     window.setTimeout(function () {
         ok(timeoutExceededError);
-
-        iframe.addEventListener('load', function () {
-            iframe.parentNode.removeChild(iframe);
-        });
+        iframe.parentNode.removeChild(iframe);
 
         messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
 
         start();
-    }, 20);
+    }, timeout);
 
     document.body.appendChild(iframe);
 });

@@ -7,6 +7,7 @@ import settings from '../../settings';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 import SHADOW_UI_CLASSNAME from '../../../shadow-ui/class-name';
+import { Promise } from 'es6-promise';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
@@ -44,37 +45,39 @@ export default class UploadInfoManager {
         return uploadIFrame;
     }
 
-    _loadFileListDataForIE9 (input, callback) {
-        var form = input.form;
+    _loadFileListDataForIE9 (input) {
+        return Promise(resolve => {
+            var form = input.form;
 
-        if (form && input.value) {
-            var sourceTarget       = form.target;
-            var sourceActionString = form.action;
-            var sourceMethod       = form.method;
-            var uploadIFrame       = UploadInfoManager._getUploadIFrameForIE9();
+            if (form && input.value) {
+                var sourceTarget       = form.target;
+                var sourceActionString = form.action;
+                var sourceMethod       = form.method;
+                var uploadIFrame       = UploadInfoManager._getUploadIFrameForIE9();
 
-            var loadHandler = () => {
-                var fileListWrapper = new FileListWrapper([JSON.parse(uploadIFrame.contentWindow.document.body.innerHTML)]);
+                var loadHandler = () => {
+                    var fileListWrapper = new FileListWrapper([JSON.parse(uploadIFrame.contentWindow.document.body.innerHTML)]);
 
-                uploadIFrame.removeEventListener('load', loadHandler);
-                callback(fileListWrapper);
-            };
+                    uploadIFrame.removeEventListener('load', loadHandler);
+                    resolve(fileListWrapper);
+                };
 
-            uploadIFrame.addEventListener('load', loadHandler);
+                uploadIFrame.addEventListener('load', loadHandler);
 
-            form.action = settings.get().ie9FileReaderShimUrl + '?input-name=' + input.name + '&filename=' +
-                          input.value;
-            form.target = UPLOAD_IFRAME_FOR_IE9_ID;
-            form.method = 'post';
+                form.action = settings.get().ie9FileReaderShimUrl + '?input-name=' + input.name + '&filename=' +
+                              input.value;
+                form.target = UPLOAD_IFRAME_FOR_IE9_ID;
+                form.method = 'post';
 
-            form.submit();
+                form.submit();
 
-            form.action = sourceActionString;
-            form.target = sourceTarget;
-            form.method = sourceMethod;
-        }
-        else
-            callback(new FileListWrapper([]));
+                form.action = sourceActionString;
+                form.target = sourceTarget;
+                form.method = sourceMethod;
+            }
+            else
+                resolve(new FileListWrapper([]));
+        });
     }
 
     static formatValue (fileNames) {
@@ -113,14 +116,14 @@ export default class UploadInfoManager {
         return result;
     }
 
-    static loadFilesInfoFromServer (filePaths, callback) {
-        transport.asyncServiceMsg({
+    static loadFilesInfoFromServer (filePaths) {
+        return transport.asyncServiceMsg({
             cmd:       COMMAND.getUploadedFiles,
             filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
-        }, callback);
+        });
     }
 
-    static prepareFileListWrapper (filesInfo, callback) {
+    static prepareFileListWrapper (filesInfo) {
         var errs           = [];
         var validFilesInfo = [];
 
@@ -131,15 +134,18 @@ export default class UploadInfoManager {
                 validFilesInfo.push(filesInfo[i]);
         }
 
-        callback(errs, new FileListWrapper(validFilesInfo));
+        return {
+            errs:     errs,
+            fileList: new FileListWrapper(validFilesInfo)
+        };
     }
 
-    static sendFilesInfoToServer (fileList, fileNames, callback) {
-        transport.asyncServiceMsg({
+    static sendFilesInfoToServer (fileList, fileNames) {
+        return transport.asyncServiceMsg({
             cmd:       COMMAND.uploadFiles,
             data:      UploadInfoManager._getFileListData(fileList),
             fileNames: fileNames
-        }, callback);
+        });
     }
 
     clearUploadInfo (input) {
@@ -174,37 +180,41 @@ export default class UploadInfoManager {
         return inputInfo ? inputInfo.value : '';
     }
 
-    loadFileListData (input, fileList, callback) {
+    loadFileListData (input, fileList) {
+        /*eslint-disable no-else-return */
         if (Browser.isIE9)
-            this._loadFileListDataForIE9(input, callback);
+            return this._loadFileListDataForIE9(input);
         else if (!fileList.length)
-            callback(new FileListWrapper([]));
+            return Promise.resolve(new FileListWrapper([]));
         else {
-            var index       = 0;
-            var fileReader  = new FileReader();
-            var file        = fileList[index];
-            var readedFiles = [];
+            return new Promise(resolve => {
+                var index       = 0;
+                var fileReader  = new FileReader();
+                var file        = fileList[index];
+                var readedFiles = [];
 
-            fileReader.addEventListener('load', e => {
-                readedFiles.push({
-                    data: e.target.result.substr(e.target.result.indexOf(',') + 1),
-                    blob: file.slice(0, file.size),
-                    info: {
-                        type:             file.type,
-                        name:             file.name,
-                        lastModifiedDate: file.lastModifiedDate
+                fileReader.addEventListener('load', e => {
+                    readedFiles.push({
+                        data: e.target.result.substr(e.target.result.indexOf(',') + 1),
+                        blob: file.slice(0, file.size),
+                        info: {
+                            type:             file.type,
+                            name:             file.name,
+                            lastModifiedDate: file.lastModifiedDate
+                        }
+                    });
+
+                    if (fileList[++index]) {
+                        file = fileList[index];
+                        fileReader.readAsDataURL(file);
                     }
+                    else
+                        resolve(new FileListWrapper(readedFiles));
                 });
-
-                if (fileList[++index]) {
-                    file = fileList[index];
-                    fileReader.readAsDataURL(file);
-                }
-                else
-                    callback(new FileListWrapper(readedFiles));
+                fileReader.readAsDataURL(file);
             });
-            fileReader.readAsDataURL(file);
         }
+        /*eslint-enable no-else-return */
     }
 
     setUploadInfo (input, fileList, value) {
