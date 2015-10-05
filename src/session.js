@@ -17,10 +17,11 @@ export default class Session extends EventEmitter {
 
         this.uploadStorage = new UploadStorage(uploadStoragePath);
 
-        this.id         = Session._generateSessionId();
-        this.cookies    = new Cookies();
-        this.proxy      = null;
-        this.injectable = {
+        this.id            = Session._generateSessionId();
+        this.cookies       = new Cookies();
+        this.proxy         = null;
+        this.pageLoadCount = 0;
+        this.injectable    = {
             scripts: ['/hammerhead.js'],
             styles:  []
         };
@@ -46,15 +47,20 @@ export default class Session extends EventEmitter {
         if (withPayload)
             payloadScript = isIFrame ? this._getIFramePayloadScript() : this._getPayloadScript();
 
-        return mustache.render(TASK_TEMPLATE, {
+        var taskScript = mustache.render(TASK_TEMPLATE, {
             cookie:               cookies.replace(/'/g, "\\'"),
             sessionId:            this.id,
+            isFirstPageLoad:      this.pageLoadCount === 0,
             serviceMsgUrl:        serverInfo.domain + '/messaging',
             ie9FileReaderShimUrl: serverInfo.domain + '/ie9-file-reader-shim',
             crossDomainPort:      serverInfo.crossDomainPort,
             payloadScript:        payloadScript,
             referer:              referer
         });
+
+        this.pageLoadCount++;
+
+        return taskScript;
     }
 
     _getIFramePayloadScript () {

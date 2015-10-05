@@ -95,6 +95,10 @@ class Hammerhead {
         }
     }
 
+    static _cleanLocalStorageServiceData (sessionId, window) {
+        window.localStorage.removeItem(sessionId);
+    }
+
     on (evtName, handler) {
         var eventOwner = this._getEventOwner(evtName);
 
@@ -110,10 +114,16 @@ class Hammerhead {
     }
 
     start (initSettings, win) {
-        if (initSettings)
+        win = win || window;
+
+        if (initSettings) {
             settings.set(initSettings);
 
-        this.sandbox.attach(win || window);
+            if (initSettings.isFirstPageLoad)
+                Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, win);
+        }
+
+        this.sandbox.attach(win);
     }
 }
 
