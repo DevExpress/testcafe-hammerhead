@@ -53,4 +53,6 @@
     window.getCrossDomainPageUrl = function (filePath) {
         return window.QUnitGlobals.crossDomainHostname + globals.getResourceUrl(filePath);
     };
+
+    QUnit.config.testTimeout = 30000;
 })();
