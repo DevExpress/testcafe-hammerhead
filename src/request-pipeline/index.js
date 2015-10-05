@@ -1,9 +1,9 @@
 import DestinationRequest from './destination-request';
-import PipelineContext from './pipeline-context';
+import RequestPipelineContext from './context';
 import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';
-import { handle as handleConnectionReset } from './connection-reset';
+import connectionResetGuard from './connection-reset-guard';
 import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
@@ -78,7 +78,7 @@ var stages = {
     6: function sendProxyResponse (ctx) {
         sendResponseHeaders(ctx);
 
-        handleConnectionReset(() => {
+        connectionResetGuard(() => {
             ctx.res.write(ctx.destResBody);
             ctx.res.end();
         });
@@ -124,8 +124,8 @@ function isDestResBodyMalformed (ctx) {
 
 
 // API
-export function runPipeline (req, res, serverInfo, openSessions) {
-    var ctx = new PipelineContext(req, res, serverInfo);
+export function run (req, res, serverInfo, openSessions) {
+    var ctx = new RequestPipelineContext(req, res, serverInfo);
 
     if (ctx.dispatch(openSessions)) {
         var stageIdx = 0;

@@ -1,13 +1,13 @@
-import Router from './router';
 import http from 'http';
-import urlUtils from './utils/url';
-import read from './utils/read-file-relative';
-import { respond404, respond500, respondWithJSON, fetchBody } from './utils/http';
-import { ie9FileReaderShim } from './upload';
-import { runPipeline } from './pipeline';
+import Router from './router';
+import urlUtils from '../utils/url';
+import read from '../utils/read-file-relative';
+import { respond404, respond500, respondWithJSON, fetchBody } from '../utils/http';
+import { ie9FileReaderShim } from '../upload';
+import { run as runRequestPipeline } from '../request-pipeline';
 
 // Const
-const CLIENT_SCRIPT = read('./client/hammerhead.js');
+const CLIENT_SCRIPT = read('../client/hammerhead.js');
 
 // Static
 function parseServiceMsg (body) {
@@ -117,9 +117,9 @@ export default class Proxy extends Router {
         if (req.url === '/favicon.ico')
             respond404(res);
 
-        // NOTE: not a service request, execute proxy pipeline
+        // NOTE: not a service request, execute proxy request pipeline
         else if (!this._route(req, res, serverInfo))
-            runPipeline(req, res, serverInfo, this.openSessions);
+            runRequestPipeline(req, res, serverInfo, this.openSessions);
     }
 
     // API

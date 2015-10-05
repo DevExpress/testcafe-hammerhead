@@ -9,6 +9,6 @@ connectionResetDomain.on('error', (err) => {
     }
 });
 
-export function handle (fn) {
+export default function (fn) {
     connectionResetDomain.run(fn);
 }

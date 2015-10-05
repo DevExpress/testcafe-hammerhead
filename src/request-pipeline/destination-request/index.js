@@ -1,12 +1,12 @@
 import http from 'http';
 import https from 'https';
-import * as requestAgent from './request-agent';
+import * as requestAgent from './agent';
 import { platform } from 'os';
 import { EventEmitter } from 'events';
 import { auth as requestWithAuth } from 'webauth';
 import { assign as assignWindowsDomain } from './windows-domain';
-import { handle as handleConnectionReset } from './connection-reset';
-import { MESSAGE, getText } from '../messages';
+import connectionResetGuard from '../connection-reset-guard';
+import { MESSAGE, getText } from '../../messages';
 
 const IS_WINDOWS = /^win/.test(platform());
 
@@ -41,7 +41,7 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _send () {
-        handleConnectionReset(() => {
+        connectionResetGuard(() => {
             this.req = this.protocolInterface.request(this.opts);
 
             this.req.on('response', (res) => this._onResponse(res));

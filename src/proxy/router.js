@@ -1,6 +1,6 @@
-import hash from './utils/hash';
-import { getPathname } from './utils/url';
-import { respondStatic } from './utils/http';
+import hash from '../utils/hash';
+import { getPathname } from '../utils/url';
+import { respondStatic } from '../utils/http';
 
 // Const
 const PARAM_RE = /^{(\S+)}$/;

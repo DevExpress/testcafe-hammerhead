@@ -6,9 +6,9 @@ var Promise            = require('es6-promise').Promise;
 var Proxy              = require('../../lib/proxy');
 var Session            = require('../../lib/session');
 var COMMAND            = require('../../lib/session/command');
-var DestinationRequest = require('../../lib/pipeline/destination-request');
-var requestAgent       = require('../../lib/pipeline/request-agent');
-var XHR_HEADERS        = require('../../lib/pipeline/xhr/headers');
+var DestinationRequest = require('../../lib/request-pipeline/destination-request');
+var requestAgent       = require('../../lib/request-pipeline/destination-request/agent');
+var XHR_HEADERS        = require('../../lib/request-pipeline/xhr/headers');
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
