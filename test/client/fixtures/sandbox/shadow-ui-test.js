@@ -1,8 +1,8 @@
-var DOM           = Hammerhead.get('./utils/dom');
-var NativeMethods = Hammerhead.get('./sandbox/native-methods');
-var Settings      = Hammerhead.get('./settings');
-var Const         = Hammerhead.get('../const');
-var ShadowUI      = Hammerhead.get('./sandbox/shadow-ui');
+var DOM                 = Hammerhead.get('./utils/dom');
+var NativeMethods       = Hammerhead.get('./sandbox/native-methods');
+var Settings            = Hammerhead.get('./settings');
+var ShadowUI            = Hammerhead.get('./sandbox/shadow-ui');
+var SHADOW_UI_CLASSNAME = Hammerhead.get('./../shadow-ui/class-name');
 
 var shadowUI      = Hammerhead.sandbox.shadowUI;
 var iframeSandbox = Hammerhead.sandbox.iframe;
@@ -143,7 +143,7 @@ test('head.children', function () {
     link1.rel       = 'stylesheet';
     link1.href      = '/test.css';
     link1.type      = 'text/css';
-    link1.className = Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME;
+    link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     document.head.insertBefore(link1, document.head.firstChild);
 
     var link2 = document.createElement('link');
@@ -151,7 +151,7 @@ test('head.children', function () {
     link2.rel       = 'stylesheet';
     link2.href      = '/test.css';
     link2.type      = 'text/css';
-    link2.className = Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME;
+    link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     document.head.insertBefore(link2, document.head.firstChild);
 
     var children       = document.head.children;
@@ -182,7 +182,7 @@ test('head.childNodes', function () {
     link1.rel       = 'stylesheet';
     link1.href      = '/test.css';
     link1.type      = 'text/css';
-    link1.className = Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME;
+    link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     document.head.insertBefore(link1, document.head.firstChild);
 
     var link2 = document.createElement('link');
@@ -190,7 +190,7 @@ test('head.childNodes', function () {
     link2.rel       = 'stylesheet';
     link2.href      = '/test.css';
     link2.type      = 'text/css';
-    link2.className = Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME;
+    link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     document.head.insertBefore(link2, document.head.firstChild);
 
     var childNodes       = document.head.childNodes;
@@ -287,7 +287,7 @@ test('head.getElementsByTagName', function () {
     link.rel       = 'stylesheet';
     link.href      = '/test.css';
     link.type      = 'text/css';
-    link.className = Const.SHADOW_UI_STYLESHEET_FULL_CLASSNAME;
+    link.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     document.head.appendChild(link);
 
     var children = document.head.getElementsByTagName('link');

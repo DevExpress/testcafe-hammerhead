@@ -1,5 +1,5 @@
 import SandboxBase from './base';
-import COMMAND from '../../command';
+import COMMAND from '../../session/command';
 import trim from '../../utils/string-trim';
 import urlUtils from '../utils/url';
 import settings from '../settings';

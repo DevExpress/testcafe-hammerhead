@@ -1,14 +1,14 @@
-import Cookies from './cookies';
-import UploadStorage from './upload/storage';
-import COMMAND from './command';
 import mustache from 'mustache';
-import read from './utils/read-file-relative';
 import uuid from 'node-uuid';
 import { EventEmitter } from 'events';
-import { parseProxyUrl } from './utils/url';
+import Cookies from './cookies';
+import UploadStorage from '../upload/storage';
+import COMMAND from './command';
+import read from '../utils/read-file-relative';
+import { parseProxyUrl } from '../utils/url';
 
 // Const
-const TASK_TEMPLATE = read('./client/task.js.mustache');
+const TASK_TEMPLATE = read('../client/task.js.mustache');
 
 // Session
 export default class Session extends EventEmitter {

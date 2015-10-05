@@ -4,7 +4,7 @@ import * as domUtils from '../utils/dom';
 import { isWebKit } from '../utils/browser';
 import { EVENTS } from '../dom-processor/dom-processor';
 import { getOffsetPosition } from '../utils/position';
-import { SHADOW_UI_CLASSNAME_POSTFIX, SHADOW_UI_STYLESHEET_CLASSNAME } from '../../const';
+import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
 import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
 import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../const';
@@ -159,7 +159,7 @@ export default class ShadowUI extends SandboxBase {
         this._overrideDocumentMethods(window.document);
 
         iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, e => {
-            var style = this.select('link.' + SHADOW_UI_STYLESHEET_CLASSNAME)[0];
+            var style = this.getUIStylesheet();
 
             if (style) {
                 style = style.cloneNode(true);
@@ -176,7 +176,7 @@ export default class ShadowUI extends SandboxBase {
             var shadowRoot = null;
 
             nodeSandbox.doc.on(nodeSandbox.doc.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
-                styleLink = this.select('link.' + SHADOW_UI_STYLESHEET_CLASSNAME)[0];
+                styleLink = this.getUIStylesheet();
 
                 if (window.top === window.self) {
                     if (this.select('.root').length) {
@@ -189,7 +189,7 @@ export default class ShadowUI extends SandboxBase {
             });
 
             var restoreStyle = e => {
-                if (!this.select('link.' + SHADOW_UI_STYLESHEET_CLASSNAME).length) {
+                if (!this.getUIStylesheet()) {
                     var headElemenet = e.document.head;
 
                     if (styleLink && headElemenet) {
@@ -389,14 +389,18 @@ export default class ShadowUI extends SandboxBase {
         var names = value.split(/\s+/);
 
         for (var i = 0; i < names.length; i++)
-            names[i] += SHADOW_UI_CLASSNAME_POSTFIX;
+            names[i] += SHADOW_UI_CLASS_NAME.postfix;
 
         return names.join(' ');
     }
 
+    getUIStylesheet () {
+        return nativeMethods.querySelector.call(this.document, 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet);
+    }
+
     select (selector, context) {
-        var patchedSelector = selector.replace(this.CLASSNAME_REGEX, className => className +
-                                                                                  SHADOW_UI_CLASSNAME_POSTFIX);
+        var patchedSelector = selector.replace(this.CLASSNAME_REGEX,
+                className => className + SHADOW_UI_CLASS_NAME.postfix);
 
         return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
                nativeMethods.querySelectorAll.call(this.document, patchedSelector);

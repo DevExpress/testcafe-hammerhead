@@ -1,4 +1,4 @@
-import CONST from '../../const';
+import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import DomProcessor from '../dom';
 import DomAdapter from '../dom/server-dom-adapter';
 import ResourceProcessorBase from './resource-processor-base';
@@ -7,7 +7,7 @@ import dedent from 'dedent';
 import scriptProcessor from '../script';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent`
-    <script type="text/javascript" class="${ CONST.SHADOW_UI_SCRIPT_CLASSNAME }">
+    <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.script }">
         if (window.Hammerhead)
             window.Hammerhead.sandbox.node.raiseBodyCreatedEvent();
 
@@ -21,8 +21,6 @@ class PageProcessor extends ResourceProcessorBase {
         super();
 
         this.RESTART_PROCESSING = Symbol();
-
-        this.domProcessor = new DomProcessor(new DomAdapter());
     }
 
     static _getPageProcessingOptions (ctx, urlReplacer) {
@@ -57,7 +55,7 @@ class PageProcessor extends ResourceProcessorBase {
 
         if (processingOptions.styleUrl) {
             resources.push(
-                `<link rel="stylesheet" type="text/css" class="${CONST.SHADOW_UI_STYLESHEET_FULL_CLASSNAME}"` +
+                `<link rel="stylesheet" type="text/css" class="${SHADOW_UI_CLASSNAME.uiStylesheet}"` +
                 `href="${processingOptions.styleUrl}">`
             );
         }
@@ -65,7 +63,7 @@ class PageProcessor extends ResourceProcessorBase {
         if (processingOptions.scripts) {
             processingOptions.scripts.forEach(scriptUrl => {
                 resources.push(
-                    `<script type="text/javascript" class="${CONST.SHADOW_UI_SCRIPT_CLASSNAME}"` +
+                    `<script type="text/javascript" class="${SHADOW_UI_CLASSNAME.script}"` +
                     `charset="UTF-8" src="${scriptUrl}"></script>`
                 );
             });
@@ -76,8 +74,8 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     static _addCharsetInfo ($, charset) {
-        $($(`.${ CONST.SHADOW_UI_SCRIPT_CLASSNAME }`)[0])
-            .before(`<meta class="${ CONST.SHADOW_UI_CHARSET_CLASSNAME }" charset="${charset}">`);
+        $($('.' + SHADOW_UI_CLASSNAME.script)[0])
+            .before(`<meta class="${ SHADOW_UI_CLASSNAME.charset }" charset="${charset}">`);
     }
 
     static _changeMetas ($) {

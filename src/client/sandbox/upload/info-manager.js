@@ -1,20 +1,21 @@
 /*global atob, Blob, FileReader*/
-import COMMAND from '../../../command';
+import COMMAND from '../../../session/command';
 import FileListWrapper from './file-list-wrapper';
 import nativeMethods from '../native-methods';
 import transport from '../../transport';
 import settings from '../../settings';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
-import { SHADOW_UI_CLASSNAME_POSTFIX } from '../../../const';
+import SHADOW_UI_CLASSNAME from '../../../shadow-ui/class-name';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
 
-const UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIFrameForIE9' + SHADOW_UI_CLASSNAME_POSTFIX;
+const UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIFrameForIE9' + SHADOW_UI_CLASSNAME.postfix;
 
 export default class UploadInfoManager {
-    constructor () {
+    constructor (shadowUI) {
+        this.shadowUI = shadowUI;
         this.uploadInfo = [];
     }
 
@@ -37,7 +38,7 @@ export default class UploadInfoManager {
             nativeMethods.setAttribute.call(uploadIFrame, 'name', UPLOAD_IFRAME_FOR_IE9_ID);
             uploadIFrame.style.display = 'none';
 
-            nativeMethods.querySelector.call(document, '#root' + SHADOW_UI_CLASSNAME_POSTFIX).appendChild(uploadIFrame);
+            this.shadowUI.getRoot().appendChild(uploadIFrame);
         }
 
         return uploadIFrame;

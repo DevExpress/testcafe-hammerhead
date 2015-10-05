@@ -1,4 +1,5 @@
 import CONST from '../../../../const';
+import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
 import urlUtils from '../../../utils/url';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
@@ -231,7 +232,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     for (var i = 0; i < collection.length; i++) {
                         if (collection[i].className &&
-                            collection[i].className.indexOf(CONST.SHADOW_UI_CLASSNAME_POSTFIX) !== -1)
+                            collection[i].className.indexOf(SHADOW_UI_CLASSNAME.postfix) !== -1)
                             elementCount++;
                     }
 

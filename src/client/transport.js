@@ -1,6 +1,6 @@
 /*eslint-disable no-native-reassign*/
 import EventEmitter from './utils/event-emitter';
-import COMMAND from '../command';
+import COMMAND from '../session/command';
 import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
 import { stringify as stringifyJSON, parse as parseJSON } from './json';

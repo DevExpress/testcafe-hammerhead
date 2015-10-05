@@ -4,6 +4,7 @@
 // -------------------------------------------------------------
 
 import CONST from '../../const';
+import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import urlUtils from '../../utils/url';
 import jsProcessor from '../js/index';
 import scriptProcessor from '../../processing/script';
@@ -222,7 +223,7 @@ export default class DomProcessor {
     }
 
     static _isShadowElement (el) {
-        return typeof el.className === 'string' && el.className.indexOf(CONST.SHADOW_UI_CLASSNAME_POSTFIX) > -1;
+        return typeof el.className === 'string' && el.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
     }
 
     // Element processors
