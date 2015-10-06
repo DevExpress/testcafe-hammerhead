@@ -1,7 +1,7 @@
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
-import { isMozilla, isIE9, isIE10 } from '../../utils/browser';
+import { isFirefox, isIE9, isIE10 } from '../../utils/browser';
 
 export default class UnloadSandbox extends SandboxBase {
     constructor (sandbox) {
@@ -33,11 +33,11 @@ export default class UnloadSandbox extends SandboxBase {
         Object.defineProperty(e, 'returnValue', createPropertyDesc({
             get: () => this.storedBeforeUnloadReturnValue,
             set: value => {
-                //NOTE: in all browsers if any value is set it leads to preventing unload. In Mozilla only if value
+                //NOTE: in all browsers if any value is set it leads to preventing unload. In Firefox only if value
                 // is an empty string it does not do it.
                 this.storedBeforeUnloadReturnValue = value;
 
-                this.prevented = isMozilla ? value !== '' : true;
+                this.prevented = isFirefox ? value !== '' : true;
             }
         }));
 

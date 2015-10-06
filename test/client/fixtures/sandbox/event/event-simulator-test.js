@@ -161,7 +161,7 @@ test('blur', function () {
     ok(blured);
 });
 
-if (!Browser.isMozilla) {
+if (!Browser.isFirefox) {
     test('window.event is not null', function () {
         var ev = null;
 

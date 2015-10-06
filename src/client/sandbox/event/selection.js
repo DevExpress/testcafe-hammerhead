@@ -2,7 +2,7 @@ import FocusBlurSandbox from './focus-blur';
 import Listeners from './listeners';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
-import { getActiveElement, findDocument, isInputWithoutSelectionPropertiesInMozilla } from '../../utils/dom';
+import { getActiveElement, findDocument, isInputWithoutSelectionPropertiesInFirefox } from '../../utils/dom';
 
 export default class Selection {
     constructor (eventSandbox) {
@@ -134,7 +134,7 @@ export default class Selection {
             el.type = 'text';
         }
 
-        if (isInputWithoutSelectionPropertiesInMozilla(el)) {
+        if (isInputWithoutSelectionPropertiesInFirefox(el)) {
             selection = {
                 start:     0,
                 end:       0,
@@ -208,9 +208,9 @@ export default class Selection {
                 this.listeners.removeInternalEventListener(document, ['focus'], focusHandler);
 
                 if (!focusRaised) {
-                    //NOTE: in Mozilla calling dispatchEvent 'focus' does active element.
+                    //NOTE: in Firefox calling dispatchEvent 'focus' does active element.
                     // We should call native focus method.
-                    if (isContentEditable && browserUtils.isMozilla)
+                    if (isContentEditable && browserUtils.isFirefox)
                         this.focusBlurSandbox.focus(el, null, true, false, true);
                     else
                         this.eventSimulator.focus(el);

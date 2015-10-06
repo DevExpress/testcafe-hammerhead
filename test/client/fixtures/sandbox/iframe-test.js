@@ -57,7 +57,7 @@ test('document.write', function () {
 
 // NOTE: This test must be last (IE11 hack)
 asyncTest('element.setAttribute', function () {
-    var src = browserUtils.isMozilla ? ' src="javascript:&quot;<html><body></body></html>&quot;"' : '';
+    var src = browserUtils.isFirefox ? ' src="javascript:&quot;<html><body></body></html>&quot;"' : '';
 
     expect(12);
 

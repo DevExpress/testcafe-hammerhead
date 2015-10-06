@@ -5,7 +5,7 @@ import CodeInstrumentation from '../code-instrumentation';
 import nativeMethods from '../native-methods';
 import scriptProcessor from '../../../processing/script';
 import urlUtils from '../../utils/url';
-import { isMozilla } from '../../utils/browser';
+import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
 
 export default class WindowSandbox extends SandboxBase {
@@ -201,7 +201,7 @@ export default class WindowSandbox extends SandboxBase {
                 var args           = Array.prototype.slice.call(arguments);
                 var urlIndex       = 1;
                 var originHostname = urlUtils.OriginLocation.getParsed().hostname;
-                var isOriginUrl    = isMozilla ? urlUtils.isSubDomain(originHostname, urlUtils.parseUrl(args[urlIndex]).hostname) :
+                var isOriginUrl    = isFirefox ? urlUtils.isSubDomain(originHostname, urlUtils.parseUrl(args[urlIndex]).hostname) :
                                      urlUtils.sameOriginCheck(urlUtils.OriginLocation.get(), args[urlIndex]);
 
                 if (isOriginUrl)

@@ -107,9 +107,9 @@ if (navigator.registerProtocolHandler) {
         };
 
         testUrl('https://example.com:233/?url=%s', false, 'Origin url');
-        testUrl('http://example.com:233/?url=%s', !Browser.isMozilla, 'Another protocol');
+        testUrl('http://example.com:233/?url=%s', !Browser.isFirefox, 'Another protocol');
         testUrl('https://xample.com:233/?url=%s', true, 'Another hostname');
-        testUrl('https://example.com:934/?url=%s', !Browser.isMozilla, 'Another port');
+        testUrl('https://example.com:934/?url=%s', !Browser.isFirefox, 'Another port');
         testUrl('https://subdomain.example.com:233/?url=%s', false, 'Sub domain');
 
         UrlUtil.OriginLocation.get = savedGetOriginLocation;
