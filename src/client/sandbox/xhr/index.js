@@ -3,7 +3,7 @@ import XMLHttpRequestWrapper from './xml-http-request-wrapper';
 import settings from '../../settings';
 import nativeMethods from '../native-methods';
 import { getProxyUrl } from '../../utils/url';
-import XHR_HEADERS from '../../../pipeline/xhr/headers';
+import XHR_HEADERS from '../../../request-pipeline/xhr/headers';
 
 const SERVICE_MSG_REQUEST_FLAG = 'hammerhead|service-msg-request-flag';
 

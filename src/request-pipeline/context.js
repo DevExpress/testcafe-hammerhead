@@ -1,7 +1,7 @@
 import XHR_HEADERS from './xhr/headers';
-import Charset from './charset';
+import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
-import * as contentUtils from '../utils/content';
+import * as contentTypeUtils from '../utils/content-type';
 
 //TODO rewrite parseProxyUrl instead
 function flattenParsedProxyUrl (parsed) {
@@ -31,7 +31,7 @@ function getContentTypeUrlToken (isScript, isIFrame) {
 }
 
 
-export default class PipelineContext {
+export default class RequestPipelineContext {
     constructor (req, res, serverInfo) {
         this.serverInfo = serverInfo;
         this.session    = null;
@@ -53,7 +53,7 @@ export default class PipelineContext {
         var acceptHeader = req.headers['accept'];
 
         this.isXhr  = !!req.headers[XHR_HEADERS.requestMarker];
-        this.isPage = !this.isXhr && acceptHeader && contentUtils.isPage(acceptHeader);
+        this.isPage = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader);
     }
 
     _getDestFromReferer (parsedReferer) {
@@ -99,7 +99,7 @@ export default class PipelineContext {
         var acceptHeader = this.req.headers['accept'];
 
         this.isXhr    = !!this.req.headers[XHR_HEADERS.requestMarker];
-        this.isPage   = !this.isXhr && acceptHeader && contentUtils.isPage(acceptHeader);
+        this.isPage   = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader);
         this.isIFrame = this.dest.resourceType === urlUtils.IFRAME;
     }
 
@@ -144,22 +144,27 @@ export default class PipelineContext {
         var accept      = this.req.headers['accept'] || '';
         var encoding    = this.destRes.headers['content-encoding'];
 
-        var isCSS      = contentUtils.isCSSResource(contentType, accept);
-        var isManifest = contentUtils.isManifest(contentType);
-        var isJSON     = contentUtils.isJSON(contentType);
+        var isCSS      = contentTypeUtils.isCSSResource(contentType, accept);
+        var isManifest = contentTypeUtils.isManifest(contentType);
+        var isJSON     = contentTypeUtils.isJSON(contentType);
         var isScript   = this.dest.resourceType === urlUtils.SCRIPT ||
-                         contentUtils.isScriptResource(contentType, accept);
+                         contentTypeUtils.isScriptResource(contentType, accept);
 
         var requireProcessing = !this.isXhr &&
                                 (this.isPage || this.isIFrame || isCSS || isScript || isManifest || isJSON);
 
         var isIFrameWithImageSrc = this.isIFrame && !this.isPage && /^\s*image\//.test(contentType);
 
-        var charset             = new Charset();
+        var charset             = null;
         var contentTypeUrlToken = getContentTypeUrlToken(isScript, this.isIFrame);
 
-        if (!charset.fromContentType(contentType))
-            charset.fromUrl(this.dest.charset);
+        // NOTE: we need charset information if we are going to process resource
+        if (requireProcessing) {
+            charset = new Charset();
+
+            if (!charset.fromContentType(contentType))
+                charset.fromUrl(this.dest.charset);
+        }
 
         if (this._isFileDownload())
             this.session.handleFileDownload();

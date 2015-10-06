@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var Router = require('../../lib/router');
+var Router = require('../../lib/proxy/router');
 var hash   = require('../../lib/utils/hash');
 
 describe('Router', function () {

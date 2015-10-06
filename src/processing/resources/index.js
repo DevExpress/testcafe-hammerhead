@@ -4,7 +4,7 @@ import pageProcessor from './page';
 import manifestProcessor from './manifest';
 import scriptProcessor from './script';
 import stylesheetProcessor from './stylesheet';
-import * as contentUtils from '../../utils/content';
+import { encodeContent, decodeContent } from '../encoding';
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
@@ -31,7 +31,7 @@ export async function process (ctx) {
     var encoding    = contentInfo.encoding;
     var charset     = contentInfo.charset;
 
-    var decoded = await contentUtils.decodeContent(body, encoding, charset);
+    var decoded = await decodeContent(body, encoding, charset);
 
     for (var i = 0; i < processors.length; i++) {
         if (processors[i].shouldProcessResource(ctx)) {
@@ -41,7 +41,7 @@ export async function process (ctx) {
             if (processed === pageProcessor.RESTART_PROCESSING)
                 return await process(ctx);
 
-            return await contentUtils.encodeContent(processed, encoding, charset);
+            return await encodeContent(processed, encoding, charset);
         }
     }
 

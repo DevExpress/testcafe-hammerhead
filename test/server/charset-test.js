@@ -5,9 +5,10 @@ var express             = require('express');
 var iconv               = require('iconv-lite');
 var Proxy               = require('../../lib/proxy');
 var Session             = require('../../lib/session');
-var requestAgent        = require('../../lib/pipeline/request-agent');
-var Charset             = require('../../lib/pipeline/charset');
-var contentUtils        = require('../../lib/utils/content');
+var requestAgent        = require('../../lib/request-pipeline/destination-request/agent');
+var Charset             = require('../../lib/processing/encoding/charset');
+var encodeContent       = require('../../lib/processing/encoding').encodeContent;
+var decodeContent       = require('../../lib/processing/encoding').decodeContent;
 var urlUtil             = require('../../lib/utils/url');
 var scriptProcessor     = require('../../lib/processing/resources/script');
 var pageProcessor       = require('../../lib/processing/resources/page');
@@ -26,6 +27,7 @@ function compareCode (code1, code2) {
 }
 
 function noop () {
+    // Do nothing =)
 }
 
 function getProxyUrl (url, type, charset) {
@@ -294,13 +296,13 @@ describe('Content charset', function () {
 
             charset.fromContentType(contentTypeHeader);
 
-            return contentUtils.decodeContent(inputData, '', charset)
+            return decodeContent(inputData, '', charset)
                 .then(function (decoded) {
                     expect(decoded).eql(pageWithoutMetaSrc);
                     expect(charset.get()).eql(bomCharset);
                     expect(charset.isFromBOM()).to.be.true;
 
-                    return contentUtils.encodeContent(pageWithoutMetaSrc, '', charset);
+                    return encodeContent(pageWithoutMetaSrc, '', charset);
                 })
                 .then(function (encoded) {
                     expect(encoded).to.deep.equal(inputData);
