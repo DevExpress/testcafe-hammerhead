@@ -1,4 +1,4 @@
-import hash from '../utils/hash';
+import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 import { respondStatic } from '../utils/http';
 
@@ -32,7 +32,7 @@ export default class Router {
             var isStatic = typeof handler !== 'function';
 
             if (isStatic)
-                handler.etag = hash(handler.content);
+                handler.etag = md5(handler.content);
 
             this.routes[`${method} ${route}`] = {
                 handler:  handler,

@@ -1,6 +1,6 @@
 var expect = require('chai').expect;
 var Router = require('../../lib/proxy/router');
-var hash   = require('../../lib/utils/hash');
+var md5    = require('crypto-md5');
 
 describe('Router', function () {
     it('Should route requests', function () {
@@ -126,7 +126,7 @@ describe('Router', function () {
             url:     '/some/static/js',
             method:  'GET',
             headers: {
-                'if-none-match': hash('some content')
+                'if-none-match': md5('some content')
             }
         };
 
