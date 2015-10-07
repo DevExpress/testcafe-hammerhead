@@ -31,7 +31,7 @@ export function addInputInfo (input, fileList, value) {
     if (formInfo) {
         var files = [];
 
-        Array.prototype.slice.call(fileList).forEach(function (file) {
+        Array.prototype.slice.call(fileList).forEach(file => {
             files.push({
                 name: file.name,
                 type: file.type,

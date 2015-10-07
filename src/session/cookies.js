@@ -8,7 +8,7 @@ export default class Cookies {
     _set (url, cookies, isClient) {
         cookies = Array.isArray(cookies) ? cookies : [cookies];
 
-        cookies.forEach((cookieStr) => {
+        cookies.forEach(cookieStr => {
             this.cookieJar.setCookieSync(cookieStr, url, {
                 http:        !isClient,
                 ignoreError: true

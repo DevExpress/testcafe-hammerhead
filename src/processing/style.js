@@ -35,7 +35,7 @@ class StyleProcessor {
         if (typeof css === 'string') {
             css = css.replace(new RegExp('\\[' + HOVER_PSEUDO_CLASS_ATTR + '\\](\\W)', 'ig'), ':hover$1');
 
-            return this._replaceStylsheetUrls(css, function (url) {
+            return this._replaceStylsheetUrls(css, url => {
                 var originUrlObj = parseProxyUrl(url);
 
                 if (originUrlObj)
@@ -49,15 +49,20 @@ class StyleProcessor {
     }
 
     _replaceStylsheetUrls (css, processor) {
-        return css.replace(CSS_URL_PROPERTY_VALUE_PATTERN, function () {
-            var prefix     = arguments[1] || arguments[10];
-            var openQuote  = arguments[2] || arguments[5] || arguments[11] || arguments[14] || '';
-            var url        = arguments[3] || arguments[6] || arguments[8] || arguments[12] || arguments[15];
-            var closeQuote = arguments[4] || arguments[7] || arguments[13] || arguments[16] || '';
-            var postfix    = arguments[9] || '';
+        return css.replace(
+            CSS_URL_PROPERTY_VALUE_PATTERN,
+            (match, prefix1, openQuote1, url1, closeQuote1, openQuote2, url2, closeQuote2, url3, postfix,
+             prefix2, openQuote3, url4, closeQuote3, openQuote4, url5, closeQuote4) => {
+                var prefix     = prefix1 || prefix2;
+                var openQuote  = openQuote1 || openQuote2 || openQuote3 || openQuote4 || '';
+                var url        = url1 || url2 || url3 || url4 || url5;
+                var closeQuote = closeQuote1 || closeQuote2 || closeQuote3 || closeQuote4 || '';
 
-            return url ? prefix + openQuote + processor(url) + closeQuote + postfix : arguments[0];
-        });
+                postfix = postfix || '';
+
+                return url ? prefix + openQuote + processor(url) + closeQuote + postfix : match;
+            }
+        );
     }
 }
 

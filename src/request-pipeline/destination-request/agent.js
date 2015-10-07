@@ -87,7 +87,7 @@ export function regressHttps (reqOpts) {
 // NOTE: since our agents are keep-alive, we need to manually
 // reset connections when we switch servers in tests
 export function resetKeepAliveConnections () {
-    Object.keys(agents).forEach(function (type) {
+    Object.keys(agents).forEach(type => {
         var agent = agents[type];
 
         if (agent.instance)

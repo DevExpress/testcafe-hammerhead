@@ -34,7 +34,7 @@ class NativeMethods {
     refreshElementMeths (doc, win) {
         win = win || window;
 
-        var createElement = (tagName) => this.createElement.call(doc || document, tagName);
+        var createElement = tagName => this.createElement.call(doc || document, tagName);
         var nativeElement = createElement('div');
 
         // Dom

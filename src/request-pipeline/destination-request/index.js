@@ -42,8 +42,8 @@ export default class DestinationRequest extends EventEmitter {
         connectionResetGuard(() => {
             this.req = this.protocolInterface.request(this.opts);
 
-            this.req.on('response', (res) => this._onResponse(res));
-            this.req.on('error', (err) => this._onError(err));
+            this.req.on('response', res => this._onResponse(res));
+            this.req.on('error', err => this._onError(err));
             this.req.setTimeout(DestinationRequest.TIMEOUT, () => this._onTimeout());
 
             this.req.write(this.opts.body);
@@ -67,7 +67,7 @@ export default class DestinationRequest extends EventEmitter {
                 await assignWindowsDomain(this.opts.credentials);
 
             //TODO !!!
-            requestWithAuth(this.opts, this.opts.credentials, [this.opts.body], (response) => {
+            requestWithAuth(this.opts, this.opts.credentials, [this.opts.body], response => {
                 this.emit('response', response);
             }, this.isHttps, res);
         }

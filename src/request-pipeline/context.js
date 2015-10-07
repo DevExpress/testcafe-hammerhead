@@ -92,7 +92,7 @@ export default class RequestPipelineContext {
     }
 
     _getInjectable (injectable) {
-        return injectable.map((url) => this.serverInfo.domain + url);
+        return injectable.map(url => this.serverInfo.domain + url);
     }
 
     _initRequestNatureInfo () {

@@ -233,11 +233,11 @@ export function getDocumentWriteArgAst (arg) {
 export function getDocumentWriteStatementIndices (statements) {
     var indices = [];
 
-    var isExpressionStatement = (statement) => statement.type === Syntax.ExpressionStatement;
-    var isCallStatement       = (statement) => statement.expression.type === Syntax.CallExpression;
-    var isMember              = (statement) => statement.expression.callee.type === Syntax.MemberExpression;
-    var isDocumentWrite       = (statement) => statement.expression.callee.property.name === 'write' ||
-                                               statement.expression.callee.property.name === 'writeln';
+    var isExpressionStatement = statement => statement.type === Syntax.ExpressionStatement;
+    var isCallStatement       = statement => statement.expression.type === Syntax.CallExpression;
+    var isMember              = statement => statement.expression.callee.type === Syntax.MemberExpression;
+    var isDocumentWrite       = statement => statement.expression.callee.property.name === 'write' ||
+                                             statement.expression.callee.property.name === 'writeln';
 
     for (var i = 0; i < statements.length; i++) {
         var statement = statements[i];

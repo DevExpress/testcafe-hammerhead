@@ -32,10 +32,10 @@ export function respondStatic (req, res, resource) {
 }
 
 export function fetchBody (r) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         var chunks = [];
 
-        r.on('data', (chunk) => chunks.push(chunk));
+        r.on('data', chunk => chunks.push(chunk));
         r.on('end', () => resolve(Buffer.concat(chunks)));
     });
 }

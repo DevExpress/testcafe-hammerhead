@@ -59,8 +59,6 @@ export default class UploadStorage {
     }
 
     async get (paths) {
-        return await this._processFiles(paths, async (resolvedPath) => {
-            return await UploadStorage._loadFile(resolvedPath);
-        });
+        return await this._processFiles(paths, async resolvedPath => await UploadStorage._loadFile(resolvedPath));
     }
 }

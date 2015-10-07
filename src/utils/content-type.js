@@ -21,7 +21,7 @@ const SCRIPT_MIMES = [
 export function isPage (header) {
     header = header.toLowerCase();
 
-    return PAGE_MIMES.some((mime) => header.indexOf(mime) > -1);
+    return PAGE_MIMES.some(mime => header.indexOf(mime) > -1);
 }
 
 export function isCSSResource (contentTypeHeader, acceptHeader) {
@@ -33,7 +33,7 @@ export function isScriptResource (contentTypeHeader, acceptHeader) {
     contentTypeHeader = contentTypeHeader.toLowerCase();
     acceptHeader      = acceptHeader.toLowerCase();
 
-    return SCRIPT_MIMES.some((mime) => contentTypeHeader.indexOf(mime) > -1) ||
+    return SCRIPT_MIMES.some(mime => contentTypeHeader.indexOf(mime) > -1) ||
            SCRIPT_MIMES.indexOf(acceptHeader) > -1;
 }
 
