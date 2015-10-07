@@ -17,7 +17,6 @@ var qunitHarness = require('gulp-qunit-harness');
 var mocha        = require('gulp-mocha');
 var mustache     = require('gulp-mustache');
 var rename       = require('gulp-rename');
-var sourcemaps   = require('gulp-sourcemaps');
 var webmake      = require('gulp-webmake');
 var Promise      = require('es6-promise').Promise;
 var uglify       = require('gulp-uglify');
@@ -158,12 +157,7 @@ gulp.task('client-scripts-bundle', ['clean'], function () {
 
 gulp.task('server-scripts', ['clean'], function () {
     return gulp.src(['./src/**/*.js', '!./src/client/**/*.js'])
-        .pipe(sourcemaps.init())
         .pipe(gulpBabel())
-        .pipe(sourcemaps.write('.', {
-            includeContent: true,
-            sourceRoot:     '../src'
-        }))
         .pipe(gulp.dest('lib/'));
 });
 
