@@ -1,10 +1,10 @@
 import mustache from 'mustache';
 import uuid from 'node-uuid';
+import { readSync as read } from 'read-file-relative';
 import { EventEmitter } from 'events';
 import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
-import read from '../utils/read-file-relative';
 import { parseProxyUrl } from '../utils/url';
 
 // Const

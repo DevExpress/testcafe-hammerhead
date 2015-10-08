@@ -1,14 +1,12 @@
 import http from 'http';
 import https from 'https';
+import OS from 'os-family';
 import * as requestAgent from './agent';
-import { platform } from 'os';
 import { EventEmitter } from 'events';
 import { auth as requestWithAuth } from 'webauth';
 import { assign as assignWindowsDomain } from './windows-domain';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
-
-const IS_WINDOWS = /^win/.test(platform());
 
 // HACK: Ignore SSL auth. rejectUnauthorized https.request
 // option doesn't work(see:  https://github.com/mikeal/request/issues/418)
@@ -65,7 +63,7 @@ export default class DestinationRequest extends EventEmitter {
 
     async _sendWithCredentials (res) {
         if (this.opts.credentials) {
-            if (IS_WINDOWS)
+            if (OS.win)
                 await assignWindowsDomain(this.opts.credentials);
 
             //TODO !!!

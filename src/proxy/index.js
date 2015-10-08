@@ -1,7 +1,7 @@
 import http from 'http';
+import { readSync as read } from 'read-file-relative';
 import Router from './router';
 import urlUtils from '../utils/url';
-import read from '../utils/read-file-relative';
 import { respond404, respond500, respondWithJSON, fetchBody } from '../utils/http';
 import { ie9FileReaderShim } from '../upload';
 import { run as runRequestPipeline } from '../request-pipeline';

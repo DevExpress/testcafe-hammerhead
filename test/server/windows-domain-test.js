@@ -1,11 +1,9 @@
-var platform      = require('os').platform;
+var OS            = require('os-family');
 var expect        = require('chai').expect;
 var windowsDomain = require('../../lib/request-pipeline/destination-request/windows-domain');
 
-var IS_WINDOWS = /^win/.test(platform());
-
 describe('Windows domain', function () {
-    if (IS_WINDOWS) {
+    if (OS.win) {
         it('Should assign windows domain and workstation to credentials', function (done) {
             var credentials = {};
 
