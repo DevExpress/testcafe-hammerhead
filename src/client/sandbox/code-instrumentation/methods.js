@@ -6,8 +6,8 @@ import { isWindow, isDocument, isDomElement } from '../../utils/dom';
 import { isIE } from '../../utils/browser';
 
 export default class MethodCallInstrumentation extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (messageSandbox) {
+        super();
 
         this.methodWrappers = {
             // NOTE: When a selector that contains the ':focus' pseudo-class is used in the querySelector and
@@ -41,7 +41,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
 
             postMessage: {
                 condition: window => isWindow(window),
-                method:    (contentWindow, args) => this.sandbox.message.postMessage(contentWindow, args)
+                method:    (contentWindow, args) => messageSandbox.postMessage(contentWindow, args)
             },
 
             write: {

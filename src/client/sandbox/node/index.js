@@ -3,28 +3,28 @@ import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
 import CONST from '../../../const';
-import { isFirefox } from '../../utils/browser';
 import { parseDocumentCharset } from '../../utils/dom';
 
 export default class NodeSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
-
-        this.BODY_CREATED_EVENT     = 'hammerhead|event|body-created';
-        this.DOCUMENT_CLEANED_EVENT = 'hammerhead|event|document-cleaned';
+    constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
+        super();
 
         this.raiseBodyCreatedEvent       = this._onBodyCreated;
         document[CONST.DOCUMENT_CHARSET] = parseDocumentCharset();
 
-        this.doc     = new DocumentSandbox(sandbox);
-        this.win     = new WindowSandbox(sandbox);
-        this.element = new ElementSandbox(sandbox);
+        this.eventSandbox  = eventSandbox;
+        this.iframeSandbox = iframeSandbox;
+        this.shadowUI      = shadowUI;
+        this.mutation      = nodeMutation;
+
+        this.doc     = new DocumentSandbox(this);
+        this.win     = new WindowSandbox(this, eventSandbox.message);
+        this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI);
     }
 
     _onBodyCreated () {
-        this.sandbox.event.listeners.initDocumentBodyListening(this.document);
-
-        this.emit(this.BODY_CREATED_EVENT, {
+        this.eventSandbox.listeners.initDocumentBodyListening(this.document);
+        this.mutation.onBodyCreated({
             body: this.document.body
         });
     }
@@ -34,8 +34,8 @@ export default class NodeSandbox extends SandboxBase {
             el[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] = this.window;
 
             this.element.overrideElement(el);
-            this.sandbox.event.overrideElement(el, true);
-            this.sandbox.shadowUI.overrideElement(el, true);
+            this.eventSandbox.overrideElement(el, true);
+            this.shadowUI.overrideElement(el, true);
         }
     }
 
@@ -43,7 +43,7 @@ export default class NodeSandbox extends SandboxBase {
         if (!el) {
             doc = doc || this.document;
 
-            this.sandbox.event.overrideElement(doc);
+            this.eventSandbox.overrideElement(doc);
 
             if (doc.documentElement)
                 this.overrideDomMethods(doc.documentElement);
@@ -79,25 +79,16 @@ export default class NodeSandbox extends SandboxBase {
 
         super.attach(window, document);
 
-        this.sandbox.iframe.on(this.sandbox.iframe.IFRAME_DOCUMENT_CREATED_EVENT, e =>
+        this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, e =>
                 // Override only document (In fact, we only need 'write' and 'writeln' methods)
                 this.doc.attach(e.iframe.contentWindow, e.iframe.contentDocument)
         );
 
         window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] = this.overrideDomMethods.bind(this);
 
-        // NOTE: Iframe loses its contentWindow after reinserting in the DOM (in the FF).
-        if (isFirefox)
-            this.element.on(this.element.IFRAME_ADDED_EVENT, e => this.sandbox.iframe.overrideIframe(e.iframe));
-
         // NOTE: in some browsers (for example Firefox) 'window.document' are different objects when iframe is created
         // just now and on document ready event. Therefore we should update 'document' object to override its methods (Q527555).
         document.addEventListener('DOMContentLoaded', () => this.overrideDomMethods(null, document), false);
-
-        this.doc.on(this.doc.DOCUMENT_CLEANED_EVENT, e => this.emit(this.DOCUMENT_CLEANED_EVENT, {
-            document:           e.document,
-            isIFrameWithoutSrc: isIFrameWithoutSrc
-        }));
 
         this.doc.attach(window, document);
         this.win.attach(window);

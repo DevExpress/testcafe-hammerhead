@@ -3,7 +3,7 @@ var ScriptProcessor = Hammerhead.get('../processing/script');
 var Settings        = Hammerhead.get('./settings');
 
 var iframeSandbox  = Hammerhead.sandbox.iframe;
-var messageSandbox = Hammerhead.sandbox.message;
+var messageSandbox = Hammerhead.eventSandbox.message;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
@@ -37,7 +37,7 @@ asyncTest('onmessage event', function () {
 
     Settings.get().crossDomainProxyPort = 2001;
 
-    $iframe[0].src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
+    $iframe[0].src = window.getCrossDomainPageUrl('../../../data/cross-domain/get-message.html');
     $iframe.appendTo('body');
 
     var onMessageHandler = function (evt) {
@@ -68,7 +68,7 @@ asyncTest('crossdomain post messages between diffferen windows', function () {
 
     var iframe = document.createElement('iframe');
 
-    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/target-url.html');
+    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
 
     var result = 0;
@@ -148,7 +148,7 @@ asyncTest('cloning arguments', function () {
     iframe.addEventListener('load', function () {
         var sourceObj = { testObject: true };
 
-        this.contentWindow.Hammerhead.messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+        this.contentWindow.Hammerhead.eventSandbox.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
             ok(e.message.testObject);
             e.message.modified = true;
             ok(!sourceObj.modified);
@@ -174,7 +174,7 @@ asyncTest('crossdomain', function () {
         serviceMsgReceived = true;
     };
 
-    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/service-message.html');
+    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message.html');
     iframe.addEventListener('load', function () {
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
         messageSandbox.sendServiceMsg('service_msg', this.contentWindow);
@@ -218,7 +218,7 @@ asyncTest('service message handler should not call other handlers', function () 
         }, 100);
     };
 
-    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/service-message-with-handlers.html');
+    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
     iframe.addEventListener('load', function () {
         eval(ScriptProcessor.process('window.onmessage = windowMessageHandler;'));
         window.addEventListener('message', windowMessageHandler);
@@ -250,7 +250,7 @@ asyncTest('iframe', function () {
         iFrameResponseReceived = true;
     });
 
-    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/wait-loading.html');
+    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/wait-loading.html');
     document.body.appendChild(iframe);
 });
 

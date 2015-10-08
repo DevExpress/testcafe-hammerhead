@@ -6,17 +6,13 @@ import { getAttributeProperty } from './properties/attributes';
 import { PROCESS_SCRIPT_METH_NAME, process as processScript } from '../../../processing/js';
 
 export default class CodeInstrumentation extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI) {
+        super();
 
-        this.BODY_CONTENT_CHANGED_EVENT = 'hammerhead|event|body-content-changed';
-
-        this.methodCallInstrumentation        = new MethodCallInstrumentation(sandbox);
-        this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation(sandbox);
-        this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(sandbox);
-
-        this.propertyAccessorsInstrumentation.on(this.propertyAccessorsInstrumentation.BODY_CONTENT_CHANGED_EVENT,
-                el => this.emit(this.BODY_CONTENT_CHANGED_EVENT, el));
+        this.methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
+        this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation();
+        this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(nodeMutation, eventSandbox,
+            cookieSandbox, uploadSandbox, shadowUI);
     }
 
     static getAttributesProperty (el) {

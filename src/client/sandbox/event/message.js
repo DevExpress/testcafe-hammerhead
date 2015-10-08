@@ -1,10 +1,10 @@
 /*eslint-disable no-native-reassign */
-import SandboxBase from './base';
-import nativeMethods from './native-methods';
-import urlUtils from '../utils/url';
-import { parse as parseJSON, stringify as stringifyJSON } from '../json';
-import { isIE9 } from '../utils/browser';
-import { isCrossDomainWindows } from '../utils/dom';
+import SandboxBase from '../base';
+import nativeMethods from '../native-methods';
+import urlUtils from '../../utils/url';
+import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
+import { isIE9 } from '../../utils/browser';
+import { isCrossDomainWindows } from '../../utils/dom';
 
 /*eslint-enable no-native-reassign */
 
@@ -14,8 +14,8 @@ const MESSAGE_TYPE = {
 };
 
 export default class MessageSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (listeners) {
+        super();
 
         this.PING_DELAY                 = 200;
         this.PING_IFRAME_TIMEOUT        = 7000;
@@ -29,6 +29,8 @@ export default class MessageSandbox extends SandboxBase {
         //NOTE: the window.top property may be changed after an iFrame is removed from DOM in IE, so we save it on script initializing
         this.topWindow = null;
         this.window    = null;
+
+        this.listeners = listeners;
 
         this.storedOnMessageHandler = null;
     }
@@ -108,8 +110,8 @@ export default class MessageSandbox extends SandboxBase {
         var onMessageHandler        = this._onMessage.bind(this);
         var onWindowMessageHandler  = this._onWindowMessage.bind(this);
 
-        this.sandbox.event.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
-        this.sandbox.event.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
+        this.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
+        this.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
         window[this.RECEIVE_MSG_FN] = isIFrameWithoutSrc || this.topWindow === window.self ? onMessageHandler : null;
     }
 

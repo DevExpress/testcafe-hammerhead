@@ -21,7 +21,7 @@ asyncTest('iframe with empty src', function () {
 
     function assert ($iframe, callback) {
         $iframe.bind('load', function () {
-            new CodeInstrumentation().attach(this.contentWindow);
+            new CodeInstrumentation({}, {}).attach(this.contentWindow);
 
             var hyperlink = this.contentDocument.createElement('a');
 
@@ -62,7 +62,7 @@ if (Browser.isWebKit) {
         var $iframe = $('<iframe id="test3" src="javascript:void(0);">');
 
         $iframe.bind('load', function () {
-            new CodeInstrumentation().attach(this.contentWindow);
+            new CodeInstrumentation({}, {}).attach(this.contentWindow);
 
             var hyperlink = this.contentDocument.createElement('a');
 
@@ -92,7 +92,7 @@ test('iframe', function () {
             document: {}
         };
 
-        new CodeInstrumentation().attach(windowMock);
+        new CodeInstrumentation({}, {}).attach(windowMock);
         LocationInstrumentation.getLocationWrapper(windowMock)[prop] = value;
         strictEqual(UrlUtil.getProxyUrl(windowMock.location).resourceType, UrlUtil.Iframe);
     };
@@ -117,7 +117,7 @@ test('iframe', function () {
             top:      { document: document }
         };
 
-        new CodeInstrumentation().attach(windowMock);
+        new CodeInstrumentation({}, {}).attach(windowMock);
         LocationInstrumentation.getLocationWrapper(windowMock)[func](value);
         strictEqual(UrlUtil.getProxyUrl(windowMock.location[func + 'Value']).resourceType, UrlUtil.Iframe);
     };

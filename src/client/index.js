@@ -22,8 +22,8 @@ class Hammerhead {
             beforeBeforeUnload: this.sandbox.event.unload.BEFORE_BEFORE_UNLOAD_EVENT,
             beforeUnload:       this.sandbox.event.unload.BEFORE_UNLOAD_EVENT,
             upload:             this.sandbox.event.unload.UNLOAD_EVENT,
-            bodyCreated:        this.sandbox.node.BODY_CREATED_EVENT,
-            documentCleaned:    this.sandbox.node.DOCUMENT_CLEANED_EVENT,
+            bodyCreated:        this.sandbox.node.mutation.BODY_CREATED_EVENT,
+            documentCleaned:    this.sandbox.node.mutation.DOCUMENT_CLEANED_EVENT,
             uncaughtJsError:    this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
             startFileUploading: this.sandbox.upload.START_FILE_UPLOADING_EVENT,
             endFileUploading:   this.sandbox.upload.END_FILE_UPLOADING_EVENT,
@@ -44,20 +44,20 @@ class Hammerhead {
         this.get = require;
 
         // Modules
-        this.json           = JSON;
-        this.jsProcessor    = jsProcessor;
-        this.transport      = transport;
-        this.messageSandbox = this.sandbox.message;
-        this.nativeMethods  = this.sandbox.nativeMethods;
-        this.shadowUI       = this.sandbox.shadowUI;
-        this.eventSandbox   = {
+        this.json          = JSON;
+        this.jsProcessor   = jsProcessor;
+        this.transport     = transport;
+        this.nativeMethods = this.sandbox.nativeMethods;
+        this.shadowUI      = this.sandbox.shadowUI;
+        this.eventSandbox  = {
             listeners:             this.sandbox.event.listeners,
             focusBlur:             this.sandbox.event.focusBlur,
             elementEditingWatcher: this.sandbox.event.elementEditingWatcher,
             eventSimulator:        this.sandbox.event.eventSimulator,
-            selection:             this.sandbox.event.selection
+            selection:             this.sandbox.event.selection,
+            message:               this.sandbox.event.message
         };
-        this.utils          = {
+        this.utils         = {
             browser:  browserUtils,
             dom:      domUtils,
             event:    eventUtils,
@@ -76,7 +76,7 @@ class Hammerhead {
 
             case this.EVENTS.bodyCreated:
             case this.EVENTS.documentCleaned:
-                return this.sandbox.node;
+                return this.sandbox.node.mutation;
 
             case this.EVENTS.uncaughtJsError:
                 return this.sandbox.node.win;

@@ -7,15 +7,13 @@ import { isFirefox, isIE } from '../../utils/browser';
 import { isIframeWithoutSrc } from '../../utils/url';
 
 export default class DocumentSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
-
-        this.BEFORE_DOCUMENT_CLEANED_EVENT = 'hammerhead|event|before-document-cleaned';
-        this.DOCUMENT_CLOSED_EVENT         = 'hammerhead|event|document-closed';
-        this.DOCUMENT_CLEANED_EVENT        = 'hammerhead|event|document-cleaned';
+    constructor (nodeSandbox) {
+        super();
 
         this.storedDocumentWriteContent = '';
         this.writeBlockCounter          = 0;
+
+        this.nodeSandbox = nodeSandbox;
     }
 
     _isUninitializedIframeWithoutSrc (window) {
@@ -29,14 +27,14 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _beforeDocumentCleaned () {
-        this.emit(this.BEFORE_DOCUMENT_CLEANED_EVENT, {
+        this.nodeSandbox.mutation.onBeforeDocumentCleaned({
             document:           this.document,
             isIFrameWithoutSrc: isIFrameWithoutSrc
         });
     }
 
     _onDocumentClosed () {
-        this.emit(this.DOCUMENT_CLOSED_EVENT, {
+        this.nodeSandbox.mutation.onDocumentClosed({
             document:           this.document,
             isIFrameWithoutSrc: isIFrameWithoutSrc
         });
@@ -88,8 +86,13 @@ export default class DocumentSandbox extends SandboxBase {
         var result = nativeMethods.documentWrite.call(this.document, str);
 
         if (!isUninitializedIframe) {
-            this.emit(this.DOCUMENT_CLEANED_EVENT, { window: this.window, document: this.document });
-            this.sandbox.node.overrideDomMethods(null, this.document); // B234357
+            this.nodeSandbox.mutation.onDocumentCleaned({
+                window:             this.window,
+                document:           this.document,
+                isIFrameWithoutSrc: isIFrameWithoutSrc
+            });
+
+            this.nodeSandbox.overrideDomMethods(null, this.document); // B234357
         }
 
         return result;
@@ -109,7 +112,7 @@ export default class DocumentSandbox extends SandboxBase {
             var result = nativeMethods.documentOpen.call(document);
 
             if (!isUninitializedIframe)
-                this.emit(this.DOCUMENT_CLEANED_EVENT, { window: window, document: document });
+                this.nodeSandbox.mutation.onDocumentCleaned({ window: window, document: document });
             else
             // If iframe initialization in progress, we should once again override document.write and document.open meths
             // because they were cleaned after native document.open meth calling
@@ -136,7 +139,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createElement = tagName => {
             var el = nativeMethods.createElement.call(document, tagName);
 
-            this.sandbox.node.overrideDomMethods(el);
+            this.nodeSandbox.overrideDomMethods(el);
 
             return el;
         };
@@ -144,7 +147,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createElementNS = (ns, tagName) => {
             var el = nativeMethods.createElementNS.call(document, ns, tagName);
 
-            this.sandbox.node.overrideDomMethods(el);
+            this.nodeSandbox.overrideDomMethods(el);
 
             return el;
         };
@@ -160,7 +163,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createDocumentFragment = function () {
             var fragment = nativeMethods.createDocumentFragment.apply(document, arguments);
 
-            documentSandbox.sandbox.node.overrideDomMethods(fragment);
+            documentSandbox.nodeSandbox.overrideDomMethods(fragment);
 
             return fragment;
         };

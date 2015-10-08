@@ -4,12 +4,14 @@ import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIE9, isIE10 } from '../../utils/browser';
 
 export default class UnloadSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (listeners) {
+        super();
 
         this.BEFORE_UNLOAD_EVENT        = 'hammerhead|event|before-unload';
         this.BEFORE_BEFORE_UNLOAD_EVENT = 'hammerhead|event|before-before-unload';
         this.UNLOAD_EVENT               = 'hammerhead|event|unload';
+
+        this.listeners = listeners;
 
         this.isFakeIEBeforeUnloadEvent     = false;
         this.storedBeforeUnloadReturnValue = '';
@@ -58,7 +60,7 @@ export default class UnloadSandbox extends SandboxBase {
         super.attach(window);
 
         var document  = window.document;
-        var listeners = this.sandbox.event.listeners;
+        var listeners = this.listeners;
 
         listeners.setEventListenerWrapper(window, ['beforeunload'], () => this._onBeforeUnloadHandler);
         listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));

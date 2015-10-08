@@ -1,34 +1,43 @@
-import SandboxBase from './base';
-import XhrSandbox from './xhr';
-import NodeSandbox from './node';
-import MessageSandbox from './message';
-import UploadSandbox from './upload';
-import ShadowUI from './shadow-ui';
-import CookieSandbox from './cookie';
-import IframeSandbox from './iframe';
 import CodeInstrumentation from './code-instrumentation';
+import CookieSandbox from './cookie';
+import ElementEditingWatcher from './event/element-editing-watcher';
 import EventSandbox from './event';
-import nativeMethods from './native-methods';
+import EventSimulator from './event/simulator';
+import IframeSandbox from './iframe';
+import Listeners from './event/listeners';
+import MessageSandbox from './event/message';
+import NodeMutation from './node/mutation';
+import NodeSandbox from './node';
+import SandboxBase from './base';
+import ShadowUI from './shadow-ui';
+import UnloadSandbox from './event/unload';
+import UploadSandbox from './upload';
+import XhrSandbox from './xhr';
 import { isIE, isWebKit } from '../utils/browser';
 import { addSandboxToStorage, getSandboxFromStorage } from './storage';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
-        super(null);
+        super();
 
         addSandboxToStorage(window, this);
 
-        this.codeInstrumentation = new CodeInstrumentation(this);
-        this.xhr                 = new XhrSandbox(this);
-        this.shadowUI            = new ShadowUI(this);
-        this.upload              = new UploadSandbox(this);
-        this.cookie              = new CookieSandbox(this);
-        this.iframe              = new IframeSandbox(this);
-        this.message             = new MessageSandbox(this);
-        this.event               = new EventSandbox(this);
-        this.node                = new NodeSandbox(this);
+        var listeners             = new Listeners();
+        var nodeMutation          = new NodeMutation();
+        var unloadSandbox         = new UnloadSandbox(listeners);
+        var messageSandbox        = new MessageSandbox(listeners);
+        var eventSimulator        = new EventSimulator();
+        var elementEditingWatcher = new ElementEditingWatcher(eventSimulator);
 
-        this.nativeMethods = nativeMethods;
+        // API
+        this.iframe              = new IframeSandbox(nodeMutation);
+        this.xhr                 = new XhrSandbox();
+        this.cookie              = new CookieSandbox();
+        this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe);
+        this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
+        this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI);
+        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI);
+        this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
     }
 
     _refreshNativeMethods (window, document) {
@@ -43,31 +52,31 @@ export default class Sandbox extends SandboxBase {
 
         var needToUpdateNativeDomMeths = tryToExecuteCode(
             () => !document.createElement ||
-                  nativeMethods.createElement.toString() === document.createElement.toString()
+                  this.nativeMethods.createElement.toString() === document.createElement.toString()
         );
 
         var needToUpdateNativeElementMeths = tryToExecuteCode(() => {
-            var nativeElement = nativeMethods.createElement.call(document, 'div');
+            var nativeElement = this.nativeMethods.createElement.call(document, 'div');
 
-            return nativeElement.getAttribute.toString() === nativeMethods.getAttribute.toString();
+            return nativeElement.getAttribute.toString() === this.nativeMethods.getAttribute.toString();
         });
 
         var needToUpdateNativeWindowMeths = tryToExecuteCode(() => {
-            nativeMethods.setTimeout.call(window, () => void 0, 0);
+            this.nativeMethods.setTimeout.call(window, () => void 0, 0);
 
-            return window.XMLHttpRequest.toString() === nativeMethods.XMLHttpRequest.toString();
+            return window.XMLHttpRequest.toString() === this.nativeMethods.XMLHttpRequest.toString();
         });
 
         // T173709
         if (needToUpdateNativeDomMeths)
-            nativeMethods.refreshDocumentMeths(document);
+            this.nativeMethods.refreshDocumentMeths(document);
 
         if (needToUpdateNativeElementMeths)
-            nativeMethods.refreshElementMeths(document);
+            this.nativeMethods.refreshElementMeths(document);
 
         // T239109
         if (needToUpdateNativeWindowMeths)
-            nativeMethods.refreshWindowMeths(window);
+            this.nativeMethods.refreshWindowMeths(window);
     }
 
     onIframeDocumentRecreated (iframe) {
@@ -76,14 +85,14 @@ export default class Sandbox extends SandboxBase {
             var sandbox = getSandboxFromStorage(iframe.contentWindow);
 
             if (sandbox)
-                // Inform the sandbox so that it restore communication with the recreated document
+            // Inform the sandbox so that it restore communication with the recreated document
                 sandbox.reattach(iframe.contentWindow, iframe.contentDocument);
             else {
                 // If the iframe sandbox is not found, this means that iframe not initialized,
                 // in this case we should inject Hammerhead
 
                 // Hack: IE10 clean up overrided methods after document.write calling
-                nativeMethods.restoreNativeDocumentMeth(iframe.contentDocument);
+                this.nativeMethods.restoreNativeDocumentMeth(iframe.contentDocument);
 
                 // Sandbox for this iframe not found (iframe not yet initialized).
                 // Inform the IFrameSandbox about it, and it inject Hammerhead
@@ -114,9 +123,7 @@ export default class Sandbox extends SandboxBase {
         this.iframe.on(this.iframe.IFRAME_READY_TO_INIT_INTERNAL_EVENT, e => initHammerheadClient(e.iframe.contentWindow, true));
 
         // We should reattach sandbox to the recreated iframe document
-        this.node.doc.on(this.node.doc.DOCUMENT_CLEANED_EVENT, e =>
-                this.reattach(e.window, e.document)
-        );
+        this.node.mutation.on(this.node.mutation.DOCUMENT_CLEANED_EVENT, e => this.reattach(e.window, e.document));
 
         this.iframe.attach(window);
         this.xhr.attach(window);
@@ -125,7 +132,6 @@ export default class Sandbox extends SandboxBase {
         this.event.attach(window);
         this.node.attach(window);
         this.upload.attach(window);
-        this.message.attach(window);
         this.cookie.attach(window);
     }
 }

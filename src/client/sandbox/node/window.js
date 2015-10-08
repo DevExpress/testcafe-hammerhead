@@ -9,8 +9,11 @@ import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
 
 export default class WindowSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (nodeSandbox, messageSandbox) {
+        super();
+
+        this.nodeSandbox = nodeSandbox;
+        this.messageSandbox = messageSandbox;
 
         this.UNCAUGHT_JS_ERROR_EVENT = 'hammerhead|event|uncaught-js-error';
     }
@@ -29,7 +32,7 @@ export default class WindowSandbox extends SandboxBase {
                     inIFrame: true
                 });
 
-                this.sandbox.message.sendServiceMsg({
+                this.messageSandbox.sendServiceMsg({
                     cmd:     this.UNCAUGHT_JS_ERROR_EVENT,
                     pageUrl: pageUrl,
                     msg:     msg
@@ -47,8 +50,8 @@ export default class WindowSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var messageSandbox = this.sandbox.message;
-        var nodeSandbox    = this.sandbox.node;
+        var messageSandbox = this.messageSandbox;
+        var nodeSandbox    = this.nodeSandbox;
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             var message = e.message;
