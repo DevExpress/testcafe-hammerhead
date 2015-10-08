@@ -1,13 +1,14 @@
 import CONST from '../../../../const';
 import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
-import urlUtils from '../../../utils/url';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
 import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
+import * as originLocation from '../../../utils/origin-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
+import * as urlUtils from '../../../utils/url';
 import { isStyle } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAnchorProperty, setAnchorProperty } from './anchor';
@@ -45,10 +46,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             return '';
 
         else if (attrValue === '')
-            return urlUtils.OriginLocation.get();
+            return originLocation.get();
 
         else if (/^#/.test(attrValue))
-            return urlUtils.OriginLocation.withHash(attrValue);
+            return originLocation.withHash(attrValue);
 
 
         return urlUtils.resolveUrlAsOrigin(attrValue);
@@ -164,7 +165,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => LocationAccessorsInstrumentation.isLocationWrapper(el) ? el.href : PropertyAccessorsInstrumentation._getUrlAttr(el, 'href'),
                 set: (el, value) => LocationAccessorsInstrumentation.isLocationWrapper(el) ?
-                                    el.href = urlUtils.resolveUrl(value, document) : el.setAttribute('href', value)
+                                    el.href = originLocation.resolveUrl(value, document) : el.setAttribute('href', value)
             },
 
             innerHTML: {
@@ -281,7 +282,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (owner, location) => {
                     if (typeof location === 'string') {
                         if (window.self !== window.top)
-                            location = urlUtils.resolveUrl(location, window.top.document);
+                            location = originLocation.resolveUrl(location, window.top.document);
 
                         var resourceType = owner !== window.top ? urlUtils.IFRAME : null;
 

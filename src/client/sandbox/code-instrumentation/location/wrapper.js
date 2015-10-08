@@ -1,12 +1,12 @@
-import urlUtils from '../../../utils/url';
 import createPropertyDesc from '../../../utils/create-property-desc';
+import { get as getOriginLocation, getParsed as getParsedOriginLocation } from '../../../utils/origin-location';
+import { IFRAME, getProxyUrl, changeOriginUrlPart } from '../../../utils/url';
 
 export default class LocationWrapper {
     constructor (window) {
-        var resourceType   = window !== window.top ? urlUtils.IFRAME : null;
-        var getHref        = () => window.location.href ===
-                                   'about:blank' ? 'about:blank' : urlUtils.OriginLocation.get();
-        var getProxiedHref = href => urlUtils.getProxyUrl(href, null, null, null, resourceType);
+        var resourceType   = window !== window.top ? IFRAME : null;
+        var getHref        = () => window.location.href === 'about:blank' ? 'about:blank' : getOriginLocation();
+        var getProxiedHref = href => getProxyUrl(href, null, null, null, resourceType);
 
         Object.defineProperty(this, 'href', createPropertyDesc({
             get: getHref,
@@ -20,7 +20,7 @@ export default class LocationWrapper {
         Object.defineProperty(this, 'search', createPropertyDesc({
             get: () => window.location.search,
             set: search => {
-                window.location = urlUtils.changeOriginUrlPart(window.location.toString(), 'search', search, resourceType);
+                window.location = changeOriginUrlPart(window.location.toString(), 'search', search, resourceType);
 
                 return search;
             }
@@ -28,7 +28,7 @@ export default class LocationWrapper {
 
         Object.defineProperty(this, 'origin', createPropertyDesc({
             get: () => {
-                var parsedOriginLocation = urlUtils.OriginLocation.getParsed();
+                var parsedOriginLocation = getParsedOriginLocation();
 
                 return parsedOriginLocation.protocol + '//' + parsedOriginLocation.host;
             },
@@ -42,9 +42,9 @@ export default class LocationWrapper {
 
         ['port', 'host', 'hostname', 'pathname', 'protocol'].forEach(prop => {
             Object.defineProperty(this, prop, createPropertyDesc({
-                get: () => urlUtils.OriginLocation.getParsed()[prop],
+                get: () => getParsedOriginLocation()[prop],
                 set: value => {
-                    window.location = urlUtils.changeOriginUrlPart(window.location.toString(), prop, value, resourceType);
+                    window.location = changeOriginUrlPart(window.location.toString(), prop, value, resourceType);
 
                     return value;
                 }

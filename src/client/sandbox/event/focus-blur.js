@@ -225,8 +225,8 @@ export default class FocusBlurSandbox extends SandboxBase {
         if (this.shouldDisableOuterFocusHandlers && !domUtils.isShadowUIElement(el))
             return null;
 
-        var isElementInIFrame = domUtils.isElementInIframe(el);
-        var iFrameElement     = isElementInIFrame ? domUtils.getIFrameByElement(el) : null;
+        var isElementInIframe = domUtils.isElementInIframe(el);
+        var iframeElement     = isElementInIframe ? domUtils.getIframeByElement(el) : null;
         var curDocument       = domUtils.findDocument(el);
         var isBodyElement     = el === curDocument.body;
 
@@ -235,7 +235,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         var withoutHandlers = false;
         var needBlur        = false;
-        var needBlurIFrame  = false;
+        var needBlurIframe  = false;
 
         var isContentEditable     = domUtils.isContentEditableElement(el);
         var isCurrentWindowActive = this.activeWindowTracker.isCurrentWindowActive();
@@ -269,8 +269,8 @@ export default class FocusBlurSandbox extends SandboxBase {
 
                 // NOTE: If we call focus for unfocusable element (like 'div' or 'image') in iframe we should make
                 // document.active this iframe manually, so we call focus without handlers
-                if (isElementInIFrame && iFrameElement && this.topWindow.document.activeElement !== iFrameElement)
-                    this._raiseEvent(iFrameElement, 'focus', () => callFocusCallback(callback, el), true, isAsync);
+                if (isElementInIframe && iframeElement && this.topWindow.document.activeElement !== iframeElement)
+                    this._raiseEvent(iframeElement, 'focus', () => callFocusCallback(callback, el), true, isAsync);
                 else
                     callFocusCallback(callback, el);
 
@@ -312,24 +312,24 @@ export default class FocusBlurSandbox extends SandboxBase {
             }
 
             //B254260
-            needBlurIFrame = curDocument !== activeElementDocument &&
+            needBlurIframe = curDocument !== activeElementDocument &&
                              domUtils.isElementInIframe(activeElement, activeElementDocument);
         }
         //NOTE: we always call blur for iframe manually without handlers (B254260)
-        if (needBlurIFrame && !needBlur) {
+        if (needBlurIframe && !needBlur) {
             if (browserUtils.isIE) {
                 //NOTE: We should call blur for iframe with handlers in IE
                 //but we can't call method 'blur' because activeElement !== element and handlers will not be called
-                this.eventSimulator.blur(domUtils.getIFrameByElement(activeElement));
+                this.eventSimulator.blur(domUtils.getIframeByElement(activeElement));
                 raiseFocusEvent();
             }
             else
-                this.blur(domUtils.getIFrameByElement(activeElement), raiseFocusEvent, true, isNativeFocus);
+                this.blur(domUtils.getIframeByElement(activeElement), raiseFocusEvent, true, isNativeFocus);
         }
         else if (needBlur) {
             this.blur(activeElement, () => {
-                if (needBlurIFrame)
-                    this.blur(domUtils.getIFrameByElement(activeElement), raiseFocusEvent, true, isNativeFocus);
+                if (needBlurIframe)
+                    this.blur(domUtils.getIframeByElement(activeElement), raiseFocusEvent, true, isNativeFocus);
                 else
                     raiseFocusEvent();
             }, silent, isNativeFocus);

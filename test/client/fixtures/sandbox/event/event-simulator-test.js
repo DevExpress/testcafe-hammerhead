@@ -1,6 +1,5 @@
-var Browser = Hammerhead.get('./utils/browser');
-var Event   = Hammerhead.get('./utils/event');
-
+var browserUtils   = Hammerhead.utils.browser;
+var eventUtils     = Hammerhead.utils.event;
 var eventSimulator = Hammerhead.sandbox.event.eventSimulator;
 
 var $domElement = null;
@@ -41,52 +40,52 @@ var bindKeyEvent = function (eventType, keyCode) {
 };
 
 test('mouse left button click', function () {
-    bindMouseEvent('click', Event.BUTTON.left);
+    bindMouseEvent('click', eventUtils.BUTTON.left);
     eventSimulator.click(domElement);
     ok(raised);
 });
 
 test('mouse double click', function () {
-    bindMouseEvent('dblclick', Event.BUTTON.left);
+    bindMouseEvent('dblclick', eventUtils.BUTTON.left);
     eventSimulator.dblclick(domElement);
     ok(raised);
 });
 
 test('mouse right click', function () {
-    bindMouseEvent('click', Event.BUTTON.right);
-    bindMouseEvent('mousedown', Event.BUTTON.right);
-    bindMouseEvent('mouseup', Event.BUTTON.right);
+    bindMouseEvent('click', eventUtils.BUTTON.right);
+    bindMouseEvent('mousedown', eventUtils.BUTTON.right);
+    bindMouseEvent('mouseup', eventUtils.BUTTON.right);
     eventSimulator.rightclick(domElement);
     ok(raised);
 });
 
 test('mouse down', function () {
-    bindMouseEvent('mousedown', Event.BUTTON.left);
+    bindMouseEvent('mousedown', eventUtils.BUTTON.left);
     eventSimulator.mousedown(domElement);
     ok(raised);
 });
 
 test('mouse up', function () {
-    bindMouseEvent('mouseup', Event.BUTTON.left);
+    bindMouseEvent('mouseup', eventUtils.BUTTON.left);
     eventSimulator.mouseup(domElement);
     ok(raised);
 });
 
 test('mouse down right', function () {
-    bindMouseEvent('mousedown', Event.BUTTON.right);
-    eventSimulator.mousedown(domElement, { button: Event.BUTTON.right });
+    bindMouseEvent('mousedown', eventUtils.BUTTON.right);
+    eventSimulator.mousedown(domElement, { button: eventUtils.BUTTON.right });
     ok(raised);
 });
 
 test('mouse up  right', function () {
-    bindMouseEvent('mouseup', Event.BUTTON.right);
-    eventSimulator.mouseup(domElement, { button: Event.BUTTON.right });
+    bindMouseEvent('mouseup', eventUtils.BUTTON.right);
+    eventSimulator.mouseup(domElement, { button: eventUtils.BUTTON.right });
     ok(raised);
 });
 
 test('context menu', function () {
-    bindMouseEvent('contextmenu', Event.BUTTON.right);
-    eventSimulator.contextmenu(domElement, { button: Event.BUTTON.right });
+    bindMouseEvent('contextmenu', eventUtils.BUTTON.right);
+    eventSimulator.contextmenu(domElement, { button: eventUtils.BUTTON.right });
     ok(raised);
 });
 
@@ -144,7 +143,7 @@ test('event with coords (clientX, clientY)', function () {
     domElement['onmousedown'] = function (e) {
         var ev = e || window.event;
 
-        if (ev.clientX === clientX && ev.clientY === clientY && ev.button === Event.BUTTON.left)
+        if (ev.clientX === clientX && ev.clientY === clientY && ev.button === eventUtils.BUTTON.left)
             raised = true;
     };
     eventSimulator.mousedown(domElement, { clientX: clientX, clientY: clientY });
@@ -161,7 +160,7 @@ test('blur', function () {
     ok(blured);
 });
 
-if (!Browser.isFirefox) {
+if (!browserUtils.isFirefox) {
     test('window.event is not null', function () {
         var ev = null;
 
@@ -174,7 +173,7 @@ if (!Browser.isFirefox) {
 }
 
 // NOTE: for touch devices
-if (Browser.hasTouchEvents) {
+if (browserUtils.hasTouchEvents) {
     var bindTouchEvent = function (eventType) {
         domElement['on' + eventType] = function (e) {
             var touchIdentifier = e.changedTouches[0].identifier;
@@ -213,8 +212,8 @@ if (Browser.hasTouchEvents) {
     });
 }
 
-if (Browser.isIE) {
-    if (!Browser.isIE11) {
+if (browserUtils.isIE) {
+    if (!browserUtils.isIE11) {
         test('preventing via the window.event property', function () {
             var $checkBox = $('<input type="checkbox">')
                 .click(function () {
@@ -253,8 +252,8 @@ if (Browser.isIE) {
 
 module('regression');
 
-if (Browser.isIE) {
-    if (!Browser.isIE11) {
+if (browserUtils.isIE) {
+    if (!browserUtils.isIE11) {
         test('window.event save/restore for сlick (B237144)', function () {
             var $textInput = $('<input type="text">').appendTo('body');
 

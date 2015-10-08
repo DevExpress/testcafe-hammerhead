@@ -1,8 +1,8 @@
-var Browser             = Hammerhead.get('./utils/browser');
-var Promise             = Hammerhead.get('es6-promise').Promise;
-var styleUtil           = Hammerhead.get('./utils/style');
 var SHADOW_UI_CLASSNAME = Hammerhead.get('./../shadow-ui/class-name');
+var Promise             = Hammerhead.get('es6-promise').Promise;
 
+var browserUtils        = Hammerhead.utils.browser;
+var styleUtil           = Hammerhead.utils.style;
 var activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var eventSimulator      = Hammerhead.sandbox.event.eventSimulator;
 var focusBlur           = Hammerhead.sandbox.event.focusBlur;
@@ -38,7 +38,8 @@ function logMessage (text) {
 function startNext () {
     focusBlur.focus(document.body, function () {
         removeTestElements();
-        if (Browser.isIE)
+
+        if (browserUtils.isIE)
             setDoubleTimeout(testEndDelay).then(start);
         else start();
     });
@@ -265,7 +266,7 @@ asyncTest('ontype handlers', function () {
         input2.onblur  = null;
         testFocusing(0, startNext);
     };
-    var bindHandlersAndTest = function () {
+    var bindHandlersAndTest   = function () {
         input1.onfocus = onFocus;
         input2.onfocus = onFocus;
         input1.onblur  = onBlur;
@@ -287,7 +288,7 @@ asyncTest('jQuery handlers one per element', function () {
         $input2.unbind('blur', onBlur);
         testFocusing(0, startNext);
     };
-    var bindHandlersAndTest = function () {
+    var bindHandlersAndTest   = function () {
         var $input1 = $(input1);
         var $input2 = $(input2);
 
@@ -312,7 +313,7 @@ asyncTest('jQuery handlers three per element', function () {
         $input2.unbind('blur', onBlur);
         testFocusing(0, startNext);
     };
-    var bindHandlersAndTest = function () {
+    var bindHandlersAndTest   = function () {
         var $input1 = $(input1);
         var $input2 = $(input2);
 
@@ -407,7 +408,7 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         }
         testFocusing(0, startNext);
     };
-    var bindHandlersAndTest = function () {
+    var bindHandlersAndTest   = function () {
         var listenerCount = 0;
         var $input1       = $(input1);
         var $input2       = $(input2);
@@ -466,7 +467,7 @@ asyncTest('jQuery handlers three per element', function () {
         $(input2).unbind('change', onChange);
         testChanging(0, startNext);
     };
-    var bindHandlersAndTest = function () {
+    var bindHandlersAndTest   = function () {
         var $input1 = $(input1);
         var $input2 = $(input2);
 
@@ -501,7 +502,7 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         }
         testChanging(0, startNext);
     };
-    var bindHandlersAndTest = function () {
+    var bindHandlersAndTest   = function () {
         var listenerCount = 0;
         var $input1       = $(input1);
         var $input2       = $(input2);
@@ -537,10 +538,10 @@ asyncTest('focus without handlers', function () {
     var blured  = false;
     var focused = false;
 
-    var onblur  = function () {
+    var onblur     = function () {
         blured = true;
     };
-    var onfocus = function () {
+    var onfocus    = function () {
         focused = true;
     };
 
@@ -564,10 +565,11 @@ asyncTest('blurring body with blur handler', function () {
     $('body').blur(function () {
         blurCount++;
     });
+
     focusBlur.focus(document.body, function () {
         focusBlur.focus(input1, function () {
             //body blur handler is raised only is IE
-            strictEqual(blurCount, Browser.isIE ? 1 : 0, 'check amount of body blur handlers called');
+            strictEqual(blurCount, browserUtils.isIE ? 1 : 0, 'check amount of body blur handlers called');
             startNext();
         });
     });
@@ -581,9 +583,11 @@ asyncTest('focus() called by client script when browser window is on background'
     input2.onfocus = function () {
         focusCount++;
     };
+
     input2.onclick = function () {
         input2.focus();
     };
+
     eventSimulator.click(input2);
     strictEqual(document.activeElement, input2);
     setDoubleTimeout()
@@ -596,13 +600,15 @@ asyncTest('focus() called by client script when browser window is on background'
 asyncTest('blur() called by client script when browser window is on background', function () {
     var blurCount = 0;
 
-    input2.onblur  = function () {
+    input2.onblur = function () {
         blurCount++;
     };
+
     input2.onclick = function () {
         input2.focus();
         input2.blur();
     };
+
     eventSimulator.click(input2);
     notEqual(document.activeElement, input2);
     setDoubleTimeout()
@@ -650,7 +656,7 @@ asyncTest('blur() must not raise event if element is already blured', function (
 
 if (window.HTMLInputElement.prototype.setSelectionRange) {
     asyncTest('focus after calling setSelectionRange()', function () {
-        var needFocus   = Browser.isIE || Browser.isSafari;
+        var needFocus   = browserUtils.isIE || browserUtils.isSafari;
         var focusRaised = false;
 
         input2.onfocus = function () {
@@ -668,7 +674,7 @@ if (window.HTMLInputElement.prototype.setSelectionRange) {
     });
 
     asyncTest('setSelectionRange() called by some event handler when browser window is on background', function () {
-        var needFocus  = Browser.isIE || Browser.isSafari;
+        var needFocus  = browserUtils.isIE || browserUtils.isSafari;
         var focusCount = 0;
 
         input2.onfocus = function () {
@@ -705,7 +711,6 @@ if (window.HTMLInputElement.prototype.setSelectionRange) {
                     startNext();
                 });
         });
-
     });
 }
 
@@ -742,7 +747,7 @@ if (window.HTMLInputElement.prototype.createTextRange) {
             input2.onfocus = function () {
                 focusCount++;
             };
-            input2.value = 'text';
+            input2.value   = 'text';
 
             var textRange = input2.createTextRange();
 
@@ -760,24 +765,24 @@ if (window.HTMLInputElement.prototype.createTextRange) {
     });
 }
 
-asyncTest('active window doesn\'t change after focusing ShadowUI element in iFrame', function () {
-    var $iFrame      = $('<iframe>');
-    var iFrameWindow = null;
+asyncTest('active window doesn\'t change after focusing ShadowUI element in iframe', function () {
+    var $iframe      = $('<iframe>');
+    var iframeWindow = null;
     var divElement   = null;
 
-    $iFrame[0].src = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-    $iFrame.appendTo('body');
+    $iframe[0].src = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    $iframe.appendTo('body');
 
-    $iFrame.bind('load', function () {
-        iFrameWindow = this.contentWindow;
-        divElement   = iFrameWindow.document.body.getElementsByTagName('div')[0];
+    $iframe.bind('load', function () {
+        iframeWindow = this.contentWindow;
+        divElement   = iframeWindow.document.body.getElementsByTagName('div')[0];
         divElement.setAttribute('class', SHADOW_UI_CLASSNAME.postfix);
 
         focusBlur.focus(divElement, function () {
             ok(activeWindowTracker.isCurrentWindowActive());
-            notOk(iFrameWindow.activeWindowTracker.isCurrentWindowActive());
+            notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
 
-            $iFrame.remove();
+            $iframe.remove();
             start();
         });
     });
@@ -846,7 +851,7 @@ test('querySelector must return active element even when browser is not focused 
 
     result = eval(processScript('document.querySelectorAll(":focus")'));
 
-    if (Browser.isIE && !Browser.isMSEdge) {
+    if (browserUtils.isIE && !browserUtils.isMSEdge) {
         strictEqual(result.length, 1);
         strictEqual(result[0], document.body);
     }

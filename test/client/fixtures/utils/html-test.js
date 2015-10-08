@@ -1,42 +1,41 @@
-﻿var DomProcessor    = Hammerhead.get('./dom-processor/dom-processor');
-var Html            = Hammerhead.get('./utils/html');
-var NativeMethods   = Hammerhead.get('./sandbox/native-methods');
-var ScriptProcessor = Hammerhead.get('../processing/script');
-var Const           = Hammerhead.get('../const');
-var SharedUrlUtil   = Hammerhead.get('../utils/url');
-var UrlUtil         = Hammerhead.get('./utils/url');
+﻿var CONST           = Hammerhead.get('../const');
+var domProcessor    = Hammerhead.get('./dom-processor/dom-processor');
+var htmlUtils       = Hammerhead.get('./utils/html');
+var scriptProcessor = Hammerhead.get('../processing/script');
+var urlUtils        = Hammerhead.get('./utils/url');
 
+var nativeMethods = Hammerhead.nativeMethods;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 var shadowUI      = Hammerhead.sandbox.shadowUI;
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 module('clean up html');
 
 test('hover marker', function () {
-    var storedGetProxyUrl = UrlUtil.getProxyUrl;
+    var storedGetProxyUrl = urlUtils.getProxyUrl;
 
-    UrlUtil.getProxyUrl = function (url) {
+    urlUtils.getProxyUrl = function (url) {
         return url + '_proxy';
     };
 
     var html = '<a href="http://domain.com"></a>' +
-               '<div ' + Const.HOVER_PSEUDO_CLASS_ATTR + '></div>' +
-               '<div ' + Const.HOVER_PSEUDO_CLASS_ATTR + '=""></div>';
+               '<div ' + CONST.HOVER_PSEUDO_CLASS_ATTR + '></div>' +
+               '<div ' + CONST.HOVER_PSEUDO_CLASS_ATTR + '=""></div>';
 
     var expexted     = '<a href="http://domain.com"></a><div></div><div></div>';
-    var pocessedHtml = Html.processHtml(html);
+    var pocessedHtml = htmlUtils.processHtml(html);
 
-    strictEqual(Html.cleanUpHtml(pocessedHtml), expexted);
+    strictEqual(htmlUtils.cleanUpHtml(pocessedHtml), expexted);
 
-    UrlUtil.getProxyUrl = storedGetProxyUrl;
+    urlUtils.getProxyUrl = storedGetProxyUrl;
 });
 
 test('shadow ui elements', function () {
@@ -52,49 +51,32 @@ test('shadow ui elements', function () {
 
     var html = '<head>' + el.innerHTML + '</head><body>' + el.innerHTML + '</body>';
 
-    strictEqual(Html.cleanUpHtml(html), '<head></head><body></body>');
+    strictEqual(htmlUtils.cleanUpHtml(html), '<head></head><body></body>');
 });
 
 test('form', function () {
-    var storedGetProxyUrl = UrlUtil.getProxyUrl;
+    var storedGetProxyUrl = urlUtils.getProxyUrl;
 
-    UrlUtil.getProxyUrl = function (url) {
+    urlUtils.getProxyUrl = function (url) {
         return url + '_proxy';
     };
 
     var url          = 'http://domain.com';
-    var pocessedHtml = '<form action="' + UrlUtil.getProxyUrl(url) + '" ' +
-                       DomProcessor.getStoredAttrName('action') + '="' + url + '"></form>';
+    var pocessedHtml = '<form action="' + urlUtils.getProxyUrl(url) + '" ' +
+                       domProcessor.getStoredAttrName('action') + '="' + url + '"></form>';
     var expexted     = '<form action="http://domain.com"></form>';
 
-    strictEqual(Html.cleanUpHtml(pocessedHtml), expexted);
+    strictEqual(htmlUtils.cleanUpHtml(pocessedHtml), expexted);
 
-    UrlUtil.getProxyUrl = storedGetProxyUrl;
+    urlUtils.getProxyUrl = storedGetProxyUrl;
 });
 
 module('process html');
 
 test('iframe', function () {
-    var originConvertToProxyUrl = UrlUtil.convertToProxyUrl;
-    var originParseProxyUrl     = SharedUrlUtil.parseProxyUrl;
+    var processedHtml = htmlUtils.processHtml('<iframe src="http://example.com/">');
 
-    UrlUtil.convertToProxyUrl = function (url, isIFrame) {
-        return 'http://example.proxy.com/' + (isIFrame ? 'iframe' : '');
-    };
-
-    SharedUrlUtil.parseProxyUrl = function () {
-        var result = {};
-
-        result.originResourceInfo = UrlUtil.parseUrl('http://example.com/');
-
-        return result;
-    };
-
-    ok(Html.processHtml('<iframe src="http://example.com/">')
-           .indexOf('http://example.proxy.com/iframe') !== -1);
-
-    UrlUtil.convertToProxyUrl   = originConvertToProxyUrl;
-    SharedUrlUtil.parseProxyUrl = originParseProxyUrl;
+    ok(processedHtml.indexOf('sessionId!iframe/http://example.com/"') !== -1);
 });
 
 test('element with error in attribute', function () {
@@ -102,7 +84,7 @@ test('element with error in attribute', function () {
     var src          = '<script data-src="' + originalUrl + '"></script\>';
     var processedSrc = src;
 
-    src = Html.processHtml(src);
+    src = htmlUtils.processHtml(src);
 
     strictEqual(src, processedSrc);
 });
@@ -111,22 +93,22 @@ test('encoded symbols', function () {
     var div            = document.createElement('div');
     var tag            = 'a';
     var attr           = 'href';
-    var storedAttr     = DomProcessor.getStoredAttrName(attr);
+    var storedAttr     = domProcessor.getStoredAttrName(attr);
     var urlEncoded     = 'http://example.com/?x=&lt;&y=5';
     var urlDecoded     = 'http://example.com/?x=<&y=5';
     var divForEncoding = document.createElement('div');
 
-    divForEncoding.textContent = UrlUtil.getProxyUrl(urlDecoded);
+    divForEncoding.textContent = urlUtils.getProxyUrl(urlDecoded);
 
     var proxyEncoded  = divForEncoding.innerHTML;
     var html          = '<' + tag + ' ' + attr + '="' + urlEncoded + '"></' + tag + '>';
     var processedHTML = '<' + tag + ' ' + attr + '="' + proxyEncoded + '" ' + storedAttr + '="' + urlEncoded + '"></' +
                         tag + '>';
 
-    div.innerHTML = Html.processHtml(html) + processedHTML;
+    div.innerHTML = htmlUtils.processHtml(html) + processedHTML;
 
-    strictEqual(NativeMethods.getAttribute.call(div.firstChild, attr), NativeMethods.getAttribute.call(div.lastChild, attr));
-    strictEqual(NativeMethods.getAttribute.call(div.firstChild, storedAttr), NativeMethods.getAttribute.call(div.lastChild, storedAttr));
+    strictEqual(nativeMethods.getAttribute.call(div.firstChild, attr), nativeMethods.getAttribute.call(div.lastChild, attr));
+    strictEqual(nativeMethods.getAttribute.call(div.firstChild, storedAttr), nativeMethods.getAttribute.call(div.lastChild, storedAttr));
 });
 
 test('text node', function () {
@@ -136,24 +118,24 @@ test('text node', function () {
         error = true;
     };
 
-    Html.processHtml('some text', 'div');
+    htmlUtils.processHtml('some text', 'div');
 
     ok(!error);
 });
 
 test('script inner html', function () {
-    var html = Html.processHtml('var v = a && b;', 'script');
+    var html = htmlUtils.processHtml('var v = a && b;', 'script');
 
-    strictEqual(html.replace(/\s/g, ''), (ScriptProcessor.SCRIPT_HEADER + 'var v = a && b;').replace(/\s/g, ''));
+    strictEqual(html.replace(/\s/g, ''), (scriptProcessor.SCRIPT_HEADER + 'var v = a && b;').replace(/\s/g, ''));
 });
 
 test('html fragment', function () {
-    var storedGetProxyUrl = UrlUtil.getProxyUrl;
+    var storedGetProxyUrl = urlUtils.getProxyUrl;
     var htmlToProcess     = $('<a href="www.google.com">Link</a>')[0].innerHTML;
-    var processedHTML     = $('<a href="replaced" ' + DomProcessor.getStoredAttrName('href') +
+    var processedHTML     = $('<a href="replaced" ' + domProcessor.getStoredAttrName('href') +
                               '="www.google.com">Link</a>')[0].innerHTML;
 
-    UrlUtil.getProxyUrl = function () {
+    urlUtils.getProxyUrl = function () {
         return 'replaced';
     };
 
@@ -161,7 +143,7 @@ test('html fragment', function () {
         var src      = html.replace('%s', htmlToProcess);
         var expected = html.replace('%s', processedHTML);
 
-        strictEqual(Html.processHtml(src, parentTag).replace(/\s/g, ''), expected.replace(/\s/g, ''));
+        strictEqual(htmlUtils.processHtml(src, parentTag).replace(/\s/g, ''), expected.replace(/\s/g, ''));
     };
 
     checkFragment('<td>%s</td><td>Content</td>', 'tr');
@@ -171,14 +153,14 @@ test('html fragment', function () {
     checkFragment('%s', 'html');
     checkFragment('<div>Content</div>', 'html');
 
-    UrlUtil.getProxyUrl = storedGetProxyUrl;
+    urlUtils.getProxyUrl = storedGetProxyUrl;
 });
 
 test('text nodes', function () {
-    var hoverAttr = Const.HOVER_PSEUDO_CLASS_ATTR;
+    var hoverAttr = CONST.HOVER_PSEUDO_CLASS_ATTR;
 
     var check = function (html) {
-        var processedHtml = Html.cleanUpHtml('<div ' + hoverAttr + '="">' + html + '</div>');
+        var processedHtml = htmlUtils.cleanUpHtml('<div ' + hoverAttr + '="">' + html + '</div>');
 
         strictEqual(processedHtml, '<div>' + html + '</div>');
     };
@@ -196,18 +178,18 @@ test('text nodes', function () {
 });
 
 test('page html', function () {
-    var storedGetProxyUrl = UrlUtil.getProxyUrl;
+    var storedConvertToProxyUrl = urlUtils.convertToProxyUrl;
 
-    UrlUtil.getProxyUrl = function (url) {
+    urlUtils.convertToProxyUrl = function (url) {
         return 'replaced' + url;
     };
 
     var check = function (html) {
-        var processedHtml = Html.processHtml(html);
+        var processedHtml = htmlUtils.processHtml(html);
 
         ok(processedHtml.indexOf('replacedBodyScript.js') !== -1);
         ok(processedHtml.indexOf('replacedHeadScript.js') !== -1);
-        strictEqual(html, Html.cleanUpHtml(processedHtml));
+        strictEqual(html, htmlUtils.cleanUpHtml(processedHtml));
     };
 
     check('<!DOCTYPE html><html><head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script></body></html>');
@@ -224,7 +206,7 @@ test('page html', function () {
     check('<!DOCTYPE html><html><head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script>');
     check('<html><head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script>');
 
-    UrlUtil.getProxyUrl = storedGetProxyUrl;
+    urlUtils.convertToProxyUrl = storedConvertToProxyUrl;
 });
 
 test('init script for iframe template', function () {
@@ -237,11 +219,11 @@ test('init script for iframe template', function () {
 
     var check = function (template) {
         var html                  = template.replace(/\{0\}/g, '');
-        var expectedProcessedHtml = template.replace(/\{0\}/g, Html.INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
-        var processedHtml         = Html.processHtml(html);
+        var expectedProcessedHtml = template.replace(/\{0\}/g, htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
+        var processedHtml         = htmlUtils.processHtml(html);
 
         strictEqual(processedHtml, expectedProcessedHtml);
-        strictEqual(Html.cleanUpHtml(processedHtml), html);
+        strictEqual(htmlUtils.cleanUpHtml(processedHtml), html);
     };
 
     for (var i = 0; i < pageHtmlTemplates.length; i++)
@@ -252,48 +234,48 @@ module('is well formatted tag');
 
 test('special cases', function () {
     //single tags with plain text
-    strictEqual(Html.isWellFormattedHtml(''), true);
-    strictEqual(Html.isWellFormattedHtml('test<div />blablabla'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml(''), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('test<div />blablabla'), true);
 
     //script, style
-    strictEqual(Html.isWellFormattedHtml('<script type="text/javascript" src="URL">alert("hello");<\/script>'), true);
-    strictEqual(Html.isWellFormattedHtml('<div><style type="text/css">div > h1 { font-size: 120%; }<\/style></div>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<script type="text/javascript" src="URL">alert("hello");<\/script>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div><style type="text/css">div > h1 { font-size: 120%; }<\/style></div>'), true);
 
     //html comments and ie-specific comments
-    strictEqual(Html.isWellFormattedHtml('test<!--Html comment-->blablabla'), true);
-    strictEqual(Html.isWellFormattedHtml('<head><style type="text/css">P { color: green; }</style><!--[if IE 7]><style type="text/css"> P { color: red; }</style><![endif]--></head>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('test<!--Html comment-->blablabla'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<head><style type="text/css">P { color: green; }</style><!--[if IE 7]><style type="text/css"> P { color: red; }</style><![endif]--></head>'), true);
 
     //doctype
-    strictEqual(Html.isWellFormattedHtml('<!DOCTYPE html> '), true);
-    strictEqual(Html.isWellFormattedHtml('<!DOCTYPE HTML PUBLIC \n "-//W3C//DTD HTML 4.01//EN" \n "http://www.w3.org/TR/html4/strict.dtd">'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<!DOCTYPE html> '), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<!DOCTYPE HTML PUBLIC \n "-//W3C//DTD HTML 4.01//EN" \n "http://www.w3.org/TR/html4/strict.dtd">'), true);
 
     //empty tags
-    strictEqual(Html.isWellFormattedHtml('<div><br></div>'), true);
-    strictEqual(Html.isWellFormattedHtml('<div><br /></div>'), true);
-    strictEqual(Html.isWellFormattedHtml('<div><input></input></div>'), false);
-    strictEqual(Html.isWellFormattedHtml('<div><input><img></input></div>'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div><br></div>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div><br /></div>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div><input></input></div>'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div><input><img></input></div>'), false);
 
     //self closed
-    strictEqual(Html.isWellFormattedHtml('<table><colgroup width="1"><tr><td></td></tr></table>'), true);
-    strictEqual(Html.isWellFormattedHtml('<table><colgroup width="1"><col span="1"><col span="1"></colgroup><tr><td></td></tr></table>'), true);
-    strictEqual(Html.isWellFormattedHtml('<table><colgroup width="150"><colgroup><col span="1"><col span="2"></colgroup><tr><td></td></tr></table>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="1"><tr><td></td></tr></table>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="1"><col span="1"><col span="1"></colgroup><tr><td></td></tr></table>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="150"><colgroup><col span="1"><col span="2"></colgroup><tr><td></td></tr></table>'), true);
 
     //upper case, new line
-    strictEqual(Html.isWellFormattedHtml(' \n <div ></DIV>'), true);
-    strictEqual(Html.isWellFormattedHtml('<div id="test">\n <div class="inner">\n blablabla </div> \n </div>'), true);
-    strictEqual(Html.isWellFormattedHtml('<script>if (mr.slidotype_on) \n {mr.logoTrigger = document.getElementById("logo"); \n mr.logoTrigger.onclick = "mr.slidotypeClicked = true;"; \n }<\/script>'), true);
-    strictEqual(Html.isWellFormattedHtml('<div \n id="test" \n />'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml(' \n <div ></DIV>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div id="test">\n <div class="inner">\n blablabla </div> \n </div>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<script>if (mr.slidotype_on) \n {mr.logoTrigger = document.getElementById("logo"); \n mr.logoTrigger.onclick = "mr.slidotypeClicked = true;"; \n }<\/script>'), true);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div \n id="test" \n />'), true);
 
     //negative scenarious
-    strictEqual(Html.isWellFormattedHtml('test<div>blablabla'), false);
-    strictEqual(Html.isWellFormattedHtml('<div>'), false);
-    strictEqual(Html.isWellFormattedHtml('<div><span id="test"></span>'), false);
-    strictEqual(Html.isWellFormattedHtml('<div id="test"><span id="test">'), false);
-    strictEqual(Html.isWellFormattedHtml('<div /><span>'), false);
-    strictEqual(Html.isWellFormattedHtml('<div><span><input>'), false);
-    strictEqual(Html.isWellFormattedHtml('<div id="test"></span>'), false);
-    strictEqual(Html.isWellFormattedHtml('<div class="some class" id="my_id"><span id="test"><input'), false);
-    strictEqual(Html.isWellFormattedHtml('<input id="id" class="some class"'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('test<div>blablabla'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div>'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div><span id="test"></span>'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div id="test"><span id="test">'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div /><span>'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div><span><input>'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div id="test"></span>'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<div class="some class" id="my_id"><span id="test"><input'), false);
+    strictEqual(htmlUtils.isWellFormattedHtml('<input id="id" class="some class"'), false);
 });
 
 asyncTest('real big page', function () {
@@ -301,13 +283,13 @@ asyncTest('real big page', function () {
         var innerHTML = node.innerHTML;
         var outerHTML = node.outerHTML;
 
-        ok(Html.isWellFormattedHtml(outerHTML));
+        ok(htmlUtils.isWellFormattedHtml(outerHTML));
 
         if (innerHTML) {
             var parts = outerHTML.split(innerHTML);
 
-            ok(!Html.isWellFormattedHtml(parts[0] + innerHTML));
-            ok(!Html.isWellFormattedHtml(innerHTML + parts[1]));
+            ok(!htmlUtils.isWellFormattedHtml(parts[0] + innerHTML));
+            ok(!htmlUtils.isWellFormattedHtml(innerHTML + parts[1]));
         }
 
         $(node).contents().each(function () {
@@ -352,19 +334,21 @@ test('markup with special characters must be cleaned up (T112153)', function () 
 
     // </script\>
 
-    strictEqual(Html.cleanUpHtml(html).replace(/\s/g, ''), html.replace(/\s/g, ''));
+    strictEqual(htmlUtils.cleanUpHtml(html).replace(/\s/g, ''), html.replace(/\s/g, ''));
 });
 
 test('html and body attributes must be processed (T226655)', function () {
     var attrValue           = 'var js = document.createElement(\'script\');js.src = \'http://google.com\'; document.body.appendChild(js);';
-    var expectedAttrValue   = ScriptProcessor.process(attrValue, true).replace(/\s/g, '');
+    var expectedAttrValue   = scriptProcessor.process(attrValue, true).replace(/\s/g, '');
     var htmlWithBody        = '<body onload="' + attrValue + '">';
     var htmlWithHeadAndBody = '<head></head><body onload="' + attrValue + '"></body>';
     var htmlWithHtmlTag     = '<html onload="' + attrValue + '">';
 
-    ok(Html.processHtml(htmlWithBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
-    ok(Html.processHtml(htmlWithHeadAndBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
+    ok(htmlUtils.processHtml(htmlWithBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
        -1);
-    ok(Html.processHtml(htmlWithHtmlTag).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !== -1);
+    ok(htmlUtils.processHtml(htmlWithHeadAndBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
+       -1);
+    ok(htmlUtils.processHtml(htmlWithHtmlTag).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
+       -1);
 });
 

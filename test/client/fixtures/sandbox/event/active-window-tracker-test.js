@@ -10,84 +10,84 @@ function nextTick () {
 }
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 asyncTest('check changing active window', function () {
-    var $iFrame      = $('<iframe>');
-    var iFrameWindow = null;
+    var $iframe      = $('<iframe>');
+    var iframeWindow = null;
 
-    $iFrame[0].src = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-    $iFrame.appendTo('body');
+    $iframe[0].src = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    $iframe.appendTo('body');
 
-    $iFrame.bind('load', function () {
-        iFrameWindow = this.contentWindow;
+    $iframe.bind('load', function () {
+        iframeWindow = this.contentWindow;
 
         nextTick()
             .then(function () {
                 ok(activeWindowTracker.isCurrentWindowActive());
-                notOk(iFrameWindow.activeWindowTracker.isCurrentWindowActive());
+                notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
 
-                iFrameWindow.document.body.focus();
+                iframeWindow.document.body.focus();
             })
             .then(nextTick)
             .then(function () {
                 notOk(activeWindowTracker.isCurrentWindowActive());
-                ok(iFrameWindow.activeWindowTracker.isCurrentWindowActive());
+                ok(iframeWindow.activeWindowTracker.isCurrentWindowActive());
 
                 document.body.focus();
             })
             .then(nextTick)
             .then(function () {
                 ok(activeWindowTracker.isCurrentWindowActive());
-                notOk(iFrameWindow.activeWindowTracker.isCurrentWindowActive());
+                notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
 
-                $iFrame.remove();
+                $iframe.remove();
                 start();
             });
     });
 });
 
-asyncTest('check switching active window (between two iFrames)', function () {
-    var $firstIFrame       = $('<iframe>');
-    var $secondIFrame      = $('<iframe>');
-    var firstIFrameWindow  = null;
-    var secondIFrameWindow = null;
+asyncTest('check switching active window (between two iframes)', function () {
+    var $firstIframe       = $('<iframe>');
+    var $secondIframe      = $('<iframe>');
+    var firstIframeWindow  = null;
+    var secondIframeWindow = null;
 
-    $firstIFrame[0].src  = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-    $firstIFrame.appendTo('body');
-    $secondIFrame[0].src = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-    $secondIFrame.appendTo('body');
+    $firstIframe[0].src  = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    $firstIframe.appendTo('body');
+    $secondIframe[0].src = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    $secondIframe.appendTo('body');
 
-    $secondIFrame.bind('load', function () {
-        firstIFrameWindow  = $firstIFrame[0].contentWindow;
-        secondIFrameWindow = $secondIFrame[0].contentWindow;
+    $secondIframe.bind('load', function () {
+        firstIframeWindow  = $firstIframe[0].contentWindow;
+        secondIframeWindow = $secondIframe[0].contentWindow;
 
         nextTick()
             .then(function () {
-                firstIFrameWindow.document.body.focus();
+                firstIframeWindow.document.body.focus();
             })
             .then(nextTick)
             .then(function () {
                 notOk(activeWindowTracker.isCurrentWindowActive());
-                ok(firstIFrameWindow.activeWindowTracker.isCurrentWindowActive());
-                notOk(secondIFrameWindow.activeWindowTracker.isCurrentWindowActive());
+                ok(firstIframeWindow.activeWindowTracker.isCurrentWindowActive());
+                notOk(secondIframeWindow.activeWindowTracker.isCurrentWindowActive());
 
-                secondIFrameWindow.document.body.focus();
+                secondIframeWindow.document.body.focus();
             })
             .then(nextTick)
             .then(function () {
                 notOk(activeWindowTracker.isCurrentWindowActive());
-                notOk(firstIFrameWindow.activeWindowTracker.isCurrentWindowActive());
-                ok(secondIFrameWindow.activeWindowTracker.isCurrentWindowActive());
+                notOk(firstIframeWindow.activeWindowTracker.isCurrentWindowActive());
+                ok(secondIframeWindow.activeWindowTracker.isCurrentWindowActive());
 
-                $firstIFrame.remove();
-                $secondIFrame.remove();
+                $firstIframe.remove();
+                $secondIframe.remove();
                 start();
             });
     });

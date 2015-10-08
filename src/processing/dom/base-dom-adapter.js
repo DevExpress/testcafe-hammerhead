@@ -67,7 +67,7 @@ export default class BaseDomAdapter {
         throw new Error('Not implemented');
     }
 
-    hasIFrameParent () {
+    hasIframeParent () {
         throw new Error('Not implemented');
     }
 
@@ -79,7 +79,11 @@ export default class BaseDomAdapter {
         throw new Error('Not implemented');
     }
 
-    isTopParentIFrame () {
+    isTopParentIframe () {
+        throw new Error('Not implemented');
+    }
+
+    sameOriginCheck () {
         throw new Error('Not implemented');
     }
 }

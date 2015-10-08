@@ -4,29 +4,21 @@
     <title></title>
     <meta charset="utf-8">
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
-
-
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./utils/url').OriginLocation.get = function () {
-        return 'http://origin_iframe_host';
-    };
+    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    Hammerhead.start({ crossDomainProxyPort: 2000 });
 
     var scriptProcessor = Hammerhead.get('../processing/script');
-    var messageSandbox = Hammerhead.eventSandbox.message;
-
-    Hammerhead.start({
-        crossDomainProxyPort: 2000
-    });
-
+    var messageSandbox = Hammerhead.sandbox.event.message;
     var windowHandlerExecuted = false;
 
-    var windowMessageHandler = function (evt) {
+    var windowMessageHandler = function () {
         windowHandlerExecuted = true;
     };
 
-    var serviceMsgHandler = function (evt) {
+    var serviceMsgHandler = function () {
         window.setTimeout(function () {
             messageSandbox.sendServiceMsg(windowHandlerExecuted ? 'failed' : 'successfully', window.top);
         }, 100);

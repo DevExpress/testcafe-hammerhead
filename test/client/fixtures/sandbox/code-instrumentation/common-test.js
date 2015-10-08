@@ -1,12 +1,11 @@
-var JSProcessor         = Hammerhead.get('../processing/js/index');
-
+var jsProcessor         = Hammerhead.jsProcessor;
 var codeInstrumentation = Hammerhead.sandbox.codeInstrumentation;
 
 test('wrapped properties equals with accessors properties', function () {
     codeInstrumentation.attach(window);
 
     var elementPropertyAccessorsKeys = Object.keys(codeInstrumentation.elementPropertyAccessors);
-    var wrappedProperties            = Object.keys(JSProcessor.wrappedProperties);
+    var wrappedProperties            = Object.keys(jsProcessor.wrappedProperties);
 
     strictEqual(elementPropertyAccessorsKeys.length, wrappedProperties.length);
 

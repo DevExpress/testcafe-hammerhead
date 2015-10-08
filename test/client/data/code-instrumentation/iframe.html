@@ -7,15 +7,9 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./utils/url').OriginLocation.get = function () {
-        return 'http://origin_iframe_host';
-    };
-
-    Hammerhead.start({
-        crossDomainProxyPort: 2000
-    });
-
-    Hammerhead.shadowUI.getRoot();
+    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    Hammerhead.start({ crossDomainProxyPort: 2000 });
+    Hammerhead.sandbox.shadowUI.getRoot();
 </script>
 </body>
 </html>

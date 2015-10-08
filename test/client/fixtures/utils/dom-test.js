@@ -1,16 +1,15 @@
-var DOM           = Hammerhead.get('./utils/dom');
-var Const         = Hammerhead.get('../const');
-var UrlUtil       = Hammerhead.get('./utils/url');
+var CONST   = Hammerhead.get('../const');
 
+var domUtils      = Hammerhead.utils.dom;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 asyncTest('isCrossDomainWindows', function () {
@@ -26,23 +25,23 @@ asyncTest('isCrossDomainWindows', function () {
 
     iframeAboutBlank.id = 'test3';
 
-    ok(!DOM.isCrossDomainWindows(window, window));
+    ok(!domUtils.isCrossDomainWindows(window, window));
 
     iframeWithEmptySrc.src = '';
     document.body.appendChild(iframeWithEmptySrc);
 
-    ok(!DOM.isCrossDomainWindows(window, iframeWithEmptySrc.contentWindow));
+    ok(!domUtils.isCrossDomainWindows(window, iframeWithEmptySrc.contentWindow));
 
     iframeAboutBlank.src = 'about:blank';
     document.body.appendChild(iframeAboutBlank);
 
-    ok(!DOM.isCrossDomainWindows(window, iframeAboutBlank.contentWindow));
+    ok(!domUtils.isCrossDomainWindows(window, iframeAboutBlank.contentWindow));
 
     crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
     document.body.appendChild(crossDomainIframe);
 
     crossDomainIframe.addEventListener('load', function () {
-        ok(DOM.isCrossDomainWindows(window, crossDomainIframe.contentWindow));
+        ok(domUtils.isCrossDomainWindows(window, crossDomainIframe.contentWindow));
 
         crossDomainIframe.parentNode.removeChild(crossDomainIframe);
         iframeWithEmptySrc.parentNode.removeChild(iframeWithEmptySrc);
@@ -53,18 +52,18 @@ asyncTest('isCrossDomainWindows', function () {
 });
 
 test('isDomElement', function () {
-    ok(DOM.isDomElement(document.body));
-    ok(DOM.isDomElement(document.createElement('span')));
-    ok(DOM.isDomElement(document.createElement('strong')));
-    ok(DOM.isDomElement(document.createElement('a')));
-    ok(!DOM.isDomElement(null));
+    ok(domUtils.isDomElement(document.body));
+    ok(domUtils.isDomElement(document.createElement('span')));
+    ok(domUtils.isDomElement(document.createElement('strong')));
+    ok(domUtils.isDomElement(document.createElement('a')));
+    ok(!domUtils.isDomElement(null));
 
     //T184805
     var p = Element.prototype;
 
     /* eslint-disable no-extra-parens */
     do
-        ok(!DOM.isDomElement(p));
+        ok(!domUtils.isDomElement(p));
     while ((p = Object.getPrototypeOf(p)));
     /* eslint-enable no-extra-parens */
 });
@@ -79,7 +78,7 @@ asyncTest('isDomElement for iframe Element.prototype chain', function () {
 
         /* eslint-disable no-extra-parens */
         do
-            ok(!DOM.isDomElement(p));
+            ok(!domUtils.isDomElement(p));
         while ((p = Object.getPrototypeOf(p)));
         /* eslint-enable no-extra-parens */
 
@@ -95,8 +94,8 @@ asyncTest('getTopSameDomainWindow', function () {
 
     iframe.id = 'test5';
     iframe.addEventListener('load', function () {
-        strictEqual(DOM.getTopSameDomainWindow(window.top), window.top);
-        strictEqual(DOM.getTopSameDomainWindow(this.contentWindow), window.top);
+        strictEqual(domUtils.getTopSameDomainWindow(window.top), window.top);
+        strictEqual(domUtils.getTopSameDomainWindow(this.contentWindow), window.top);
 
         iframe.parentNode.removeChild(iframe);
         start();
@@ -105,8 +104,8 @@ asyncTest('getTopSameDomainWindow', function () {
 });
 
 test('isWindow', function () {
-    ok(DOM.isWindow(window));
-    ok(!DOM.isWindow({ top: '' }));
+    ok(domUtils.isWindow(window));
+    ok(!domUtils.isWindow({ top: '' }));
 
     var storedToString = window.toString;
 
@@ -114,7 +113,7 @@ test('isWindow', function () {
         throw 'eid library overrides window.toString() method';
     };
 
-    ok(DOM.isWindow(window));
+    ok(domUtils.isWindow(window));
 
     window.toString = storedToString;
 });
@@ -130,9 +129,9 @@ test('closest element', function () {
     innerDiv.className = 'child';
     div.appendChild(innerDiv);
 
-    ok(!DOM.closest(null, '.test'));
-    strictEqual(DOM.closest(innerDiv, '.parent'), div);
-    strictEqual(DOM.closest(div, 'html'), document.documentElement);
+    ok(!domUtils.closest(null, '.test'));
+    strictEqual(domUtils.closest(innerDiv, '.parent'), div);
+    strictEqual(domUtils.closest(div, 'html'), document.documentElement);
 
     var iframe = document.createElement('iframe');
 
@@ -157,8 +156,8 @@ test('closest element', function () {
     innerIframeDiv.className = 'child';
     iframeDiv.appendChild(innerIframeDiv);
 
-    strictEqual(DOM.closest(innerIframeDiv, '.parent'), iframeDiv);
-    strictEqual(DOM.closest(iframeDiv, 'body'), iframe.contentDocument.body);
+    strictEqual(domUtils.closest(innerIframeDiv, '.parent'), iframeDiv);
+    strictEqual(domUtils.closest(iframeDiv, 'body'), iframe.contentDocument.body);
 
     iframe.parentNode.removeChild(iframe);
     div.parentNode.removeChild(div);
@@ -170,9 +169,9 @@ asyncTest('changed location 2', function () {
     var handler = function () {
         this.removeEventListener('load', handler);
         this.addEventListener('load', function () {
-            this[Const.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
-            ok(!UrlUtil.isIframeWithoutSrc(this));
-            ok(!DOM.isCrossDomainIframe(this));
+            this[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
+            ok(!domUtils.isIframeWithoutSrc(this));
+            ok(!domUtils.isCrossDomainIframe(this));
             this.parentNode.removeChild(this);
             start();
         });
@@ -194,9 +193,9 @@ asyncTest('crossdomain src', function () {
     iframe.id  = 'test8';
     iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
     iframe.addEventListener('load', function () {
-        this[Const.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
-        ok(!UrlUtil.isIframeWithoutSrc(this));
-        ok(DOM.isCrossDomainIframe(this));
+        this[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
+        ok(!domUtils.isIframeWithoutSrc(this));
+        ok(domUtils.isCrossDomainIframe(this));
         this.parentNode.removeChild(this);
 
         start();
@@ -210,9 +209,9 @@ asyncTest('samedomain src', function () {
     iframe.id  = 'test9';
     iframe.src = 'http://' + location.host + '/';
     iframe.addEventListener('load', function () {
-        this[Const.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
-        ok(!UrlUtil.isIframeWithoutSrc(this));
-        ok(!DOM.isCrossDomainIframe(this));
+        this[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
+        ok(!domUtils.isIframeWithoutSrc(this));
+        ok(!domUtils.isCrossDomainIframe(this));
         this.parentNode.removeChild(this);
 
         start();
@@ -225,9 +224,9 @@ asyncTest('without src attribute', function () {
 
     iframe.id = 'test10';
     iframe.addEventListener('load', function () {
-        this[Const.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
-        ok(UrlUtil.isIframeWithoutSrc(this));
-        ok(!DOM.isCrossDomainIframe(this));
+        this[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
+        ok(domUtils.isIframeWithoutSrc(this));
+        ok(!domUtils.isCrossDomainIframe(this));
         this.parentNode.removeChild(this);
         start();
     });
@@ -240,16 +239,16 @@ asyncTest('about:blank', function () {
     iframe.id  = 'test11';
     iframe.src = 'about:blank';
     iframe.addEventListener('load', function () {
-        this[Const.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
-        ok(UrlUtil.isIframeWithoutSrc(this));
-        ok(!DOM.isCrossDomainIframe(this));
+        this[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
+        ok(domUtils.isIframeWithoutSrc(this));
+        ok(!domUtils.isCrossDomainIframe(this));
         this.parentNode.removeChild(this);
         start();
     });
     document.body.appendChild(iframe);
 });
 
-module('isCrossDomainIFrame');
+module('isCrossDomainIframe');
 
 asyncTest('location is changed to cross-domain', function () {
     expect(4);
@@ -261,14 +260,14 @@ asyncTest('location is changed to cross-domain', function () {
     iframe.src = 'http://' + location.host + '/';
     iframe.addEventListener('load', function () {
         if (!iteration) {
-            ok(!DOM.isCrossDomainIframe(this));
-            ok(!DOM.isCrossDomainIframe(this, true));
+            ok(!domUtils.isCrossDomainIframe(this));
+            ok(!domUtils.isCrossDomainIframe(this, true));
             this.contentDocument.location.href = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
             iteration++;
         }
         else {
-            ok(DOM.isCrossDomainIframe(this));
-            ok(!DOM.isCrossDomainIframe(this, true));
+            ok(domUtils.isCrossDomainIframe(this));
+            ok(!domUtils.isCrossDomainIframe(this, true));
             this.parentNode.removeChild(this);
             start();
         }
@@ -282,9 +281,9 @@ asyncTest('empty src attribute', function () {
     iframe.id  = 'test13';
     iframe.src = '';
     iframe.addEventListener('load', function () {
-        this[Const.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
-        ok(UrlUtil.isIframeWithoutSrc(this));
-        ok(!DOM.isCrossDomainIframe(this));
+        this[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] = window;
+        ok(domUtils.isIframeWithoutSrc(this));
+        ok(!domUtils.isCrossDomainIframe(this));
         this.parentNode.removeChild(this);
         start();
     });
@@ -298,18 +297,18 @@ test('addClass', function () {
 
     document.body.appendChild(div);
 
-    DOM.addClass(null, 'test');
+    domUtils.addClass(null, 'test');
     strictEqual(div.className, '');
 
-    DOM.addClass(div, 'test');
+    domUtils.addClass(div, 'test');
     strictEqual(div.className, 'test');
 
     div.className = 'test1';
-    DOM.addClass(div, 'test2 test3');
+    domUtils.addClass(div, 'test2 test3');
     strictEqual(div.className, 'test1 test2 test3');
 
     div.className = 'test1 test2';
-    DOM.addClass(div, 'test2 test3');
+    domUtils.addClass(div, 'test2 test3');
     strictEqual(div.className, 'test1 test2 test3');
 
     div.parentNode.removeChild(div);
@@ -320,28 +319,28 @@ test('removeClass', function () {
 
     document.body.appendChild(div);
 
-    DOM.removeClass(null, 'test');
-    DOM.removeClass(div, 'test');
+    domUtils.removeClass(null, 'test');
+    domUtils.removeClass(div, 'test');
     strictEqual(div.className, '');
 
     div.className = 'test';
-    DOM.removeClass(div, 'test');
+    domUtils.removeClass(div, 'test');
     strictEqual(div.className, '');
 
     div.className = 'test1 test2 test3';
-    DOM.removeClass(div, 'test1');
+    domUtils.removeClass(div, 'test1');
     strictEqual(div.className, 'test2 test3');
 
     div.className = 'test1 test2 test3';
-    DOM.removeClass(div, 'test2');
+    domUtils.removeClass(div, 'test2');
     strictEqual(div.className, 'test1 test3');
 
     div.className = 'test1 test2 test3';
-    DOM.removeClass(div, 'test3');
+    domUtils.removeClass(div, 'test3');
     strictEqual(div.className, 'test1 test2');
 
     div.className = 'test1 test2 test3';
-    DOM.removeClass(div, 'test1 test3');
+    domUtils.removeClass(div, 'test1 test3');
     strictEqual(div.className, 'test2');
 
     div.parentNode.removeChild(div);
@@ -352,15 +351,15 @@ test('hasClass', function () {
 
     document.body.appendChild(div);
 
-    ok(!DOM.hasClass(null, 'test'));
+    ok(!domUtils.hasClass(null, 'test'));
 
     div.className = 'test';
-    ok(DOM.hasClass(div, 'test'));
+    ok(domUtils.hasClass(div, 'test'));
 
     div.className = 'test1 test2 test3';
-    ok(DOM.hasClass(div, 'test1'));
-    ok(DOM.hasClass(div, 'test2'));
-    ok(DOM.hasClass(div, 'test3'));
+    ok(domUtils.hasClass(div, 'test1'));
+    ok(domUtils.hasClass(div, 'test2'));
+    ok(domUtils.hasClass(div, 'test3'));
 
     div.parentNode.removeChild(div);
 });
@@ -372,7 +371,7 @@ test('IsDomElement for <object> tag (B252941)', function () {
 
     document.body.appendChild(objectElement);
 
-    ok(DOM.isDomElement(objectElement));
+    ok(domUtils.isDomElement(objectElement));
 
     objectElement.parentNode.removeChild(objectElement);
 });

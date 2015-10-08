@@ -112,7 +112,7 @@ function sendResponseHeaders (ctx) {
 }
 
 function error (ctx, err) {
-    if (ctx.isPage && !ctx.isIFrame)
+    if (ctx.isPage && !ctx.isIframe)
         ctx.session.handlePageError(ctx, err);
     else
         ctx.closeWithError(500, err);

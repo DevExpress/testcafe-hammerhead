@@ -1,18 +1,20 @@
-var Browser       = Hammerhead.get('./utils/browser');
-var DomProcessor  = Hammerhead.get('./dom-processor/dom-processor');
-var NativeMethods = Hammerhead.get('./sandbox/native-methods');
-var UrlUtil       = Hammerhead.get('./utils/url');
+var domProcessor   = Hammerhead.get('./dom-processor/dom-processor');
+var originLocation = Hammerhead.get('./utils/origin-location');
+var urlUtils       = Hammerhead.get('./utils/url');
+
+var browserUtils  = Hammerhead.utils.browser;
+var nativeMethods = Hammerhead.nativeMethods;
 
 test('window.Image', function () {
-    notEqual(window.Image, NativeMethods.Image);
+    notEqual(window.Image, nativeMethods.Image);
 });
 
 test('window.Worker', function () {
-    notEqual(window.Worker, NativeMethods.Worker);
+    notEqual(window.Worker, nativeMethods.Worker);
 });
 
 test('window.EventSource', function () {
-    notEqual(window.EventSource, NativeMethods.EventSource);
+    notEqual(window.EventSource, nativeMethods.EventSource);
 });
 
 module('regression');
@@ -56,10 +58,10 @@ test('window.Image must be overriden (B234340)', function () {
 
     setProperty(img, 'src', 'data/image.png');
 
-    strictEqual(NativeMethods.getAttribute.call(img, 'src'), UrlUtil.resolveUrlAsOrigin('data/image.png'));
-    strictEqual(NativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src')), 'data/image.png');
+    strictEqual(nativeMethods.getAttribute.call(img, 'src'), urlUtils.resolveUrlAsOrigin('data/image.png'));
+    strictEqual(nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src')), 'data/image.png');
 
-    var NativeImage = NativeMethods.Image;
+    var NativeImage = nativeMethods.Image;
 
     strictEqual((new Image()).outerHTML, new NativeImage().outerHTML);
     strictEqual((new Image(15)).outerHTML, new NativeImage(15).outerHTML);
@@ -68,7 +70,7 @@ test('window.Image must be overriden (B234340)', function () {
     strictEqual((new Image(void 0, void 0)).outerHTML, new NativeImage(void 0, void 0).outerHTML);
 });
 
-if (!Browser.isIE || Browser.isIE11) {
+if (!browserUtils.isIE || browserUtils.isIE11) {
     asyncTest('window.Blob with type=javascript must be overriden (T259367)', function () {
         var script = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", true); postMessage(t.blobTest); };'];
         var blob   = new window.Blob(script, { type: 'texT/javascript' });
@@ -86,7 +88,7 @@ if (!Browser.isIE || Browser.isIE11) {
 
 if (navigator.registerProtocolHandler) {
     test('navigator.registerProtocolHandler must be overriden (T185853)', function () {
-        var savedGetOriginLocation = UrlUtil.OriginLocation.get;
+        var savedGetOriginLocation = originLocation.get;
 
         var testUrl = function (url, result, description) {
             var exception = false;
@@ -102,17 +104,17 @@ if (navigator.registerProtocolHandler) {
             }
         };
 
-        UrlUtil.OriginLocation.get = function () {
+        originLocation.get = function () {
             return 'https://example.com:233';
         };
 
         testUrl('https://example.com:233/?url=%s', false, 'Origin url');
-        testUrl('http://example.com:233/?url=%s', !Browser.isFirefox, 'Another protocol');
+        testUrl('http://example.com:233/?url=%s', !browserUtils.isFirefox, 'Another protocol');
         testUrl('https://xample.com:233/?url=%s', true, 'Another hostname');
-        testUrl('https://example.com:934/?url=%s', !Browser.isFirefox, 'Another port');
+        testUrl('https://example.com:934/?url=%s', !browserUtils.isFirefox, 'Another port');
         testUrl('https://subdomain.example.com:233/?url=%s', false, 'Sub domain');
 
-        UrlUtil.OriginLocation.get = savedGetOriginLocation;
+        originLocation.get = savedGetOriginLocation;
     });
 }
 

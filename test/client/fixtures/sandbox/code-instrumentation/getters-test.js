@@ -1,19 +1,20 @@
-var browserUtils    = Hammerhead.get('./utils/browser');
-var nativeMethods   = Hammerhead.get('./sandbox/native-methods');
+var CONST           = Hammerhead.get('../const');
 var urlUtils        = Hammerhead.get('./utils/url');
 var scriptProcessor = Hammerhead.get('../processing/script');
-var Const           = Hammerhead.get('../const');
+var originLocation  = Hammerhead.get('./utils/origin-location');
 
+var browserUtils  = Hammerhead.utils.browser;
+var nativeMethods = Hammerhead.nativeMethods;
 var shadowUI      = Hammerhead.sandbox.shadowUI;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 if (!browserUtils.isIE || browserUtils.version > 9) {
@@ -53,7 +54,7 @@ test('url', function () {
     var $scriptWithoutSrc   = $('<script>');
     var $linkWithOnlyHash   = $('<a href="#hash">');
 
-    var proxyLocation = urlUtils.OriginLocation.get();
+    var proxyLocation = originLocation.get();
 
     strictEqual(eval(processScript('$scriptWithSrc[0].src')), 'http://some.com/script.js');
     strictEqual(eval(processScript('$scriptWithEmptySrc[0].src')), proxyLocation);
@@ -115,7 +116,7 @@ asyncTest('document properties', function () {
 test('document.URL', function () {
     var url = eval(processScript('document.URL'));
 
-    strictEqual(url, urlUtils.OriginLocation.get());
+    strictEqual(url, originLocation.get());
 });
 
 test('document.referrer', function () {
@@ -192,7 +193,7 @@ test('get script body (T296958) (GH-183)', function () {
 
     notEqual(script.textContent, scriptCode);
     strictEqual(script.textContent.replace(/\s/g, ''), processedScriptCode.replace(/\s/g, ''));
-    strictEqual(cleanedScriptCode.indexOf(Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME), -1);
+    strictEqual(cleanedScriptCode.indexOf(CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME), -1);
     strictEqual(eval(scriptProcessor.process('script.text')), cleanedScriptCode);
     strictEqual(eval(scriptProcessor.process('script.textContent')), cleanedScriptCode);
     strictEqual(eval(scriptProcessor.process('script.innerHTML')), cleanedScriptCode);

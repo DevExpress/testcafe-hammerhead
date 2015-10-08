@@ -1,6 +1,6 @@
-var CONST         = Hammerhead.get('../const');
-var settings      = Hammerhead.get('./settings');
-var sharedUrlUtil = Hammerhead.get('../utils/url');
+var CONST          = Hammerhead.get('../const');
+var settings       = Hammerhead.get('./settings');
+var sharedUrlUtils = Hammerhead.get('../utils/url');
 
 var xhrSandbox = Hammerhead.sandbox.xhr;
 
@@ -26,7 +26,7 @@ asyncTest('unsupported protocol', function () {
     var unsupportedUrl = 'gopher://test.domain/';
 
     var handler = function (e) {
-        strictEqual(e.err.code, sharedUrlUtil.URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED);
+        strictEqual(e.err.code, sharedUrlUtils.URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED);
         strictEqual(e.err.originUrl, unsupportedUrl);
         xhrSandbox.off(xhrSandbox.XHR_ERROR_EVENT, handler);
         start();

@@ -7,19 +7,12 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./utils/url').OriginLocation.get = function () {
-        return 'http://target_url';
-    };
-
-    var scriptProcessor = Hammerhead.get('../processing/script');
-
-    Hammerhead.start({
-        crossDomainProxyPort: 2000
-    });
+    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/http://target_url');
+    Hammerhead.start({ crossDomainProxyPort: 2000 });
 </script>
 
-<div id="testDiv">This is a div element with id "testDiv" in cross-domain iFrame</div>
-<div id="secondTestDiv" style="margin-top: 300px">This is a div element with id "secondTestDiv" in cross-domain iFrame
+<div id="testDiv">This is a div element with id "testDiv" in cross-domain iframe</div>
+<div id="secondTestDiv" style="margin-top: 300px">This is a div element with id "secondTestDiv" in cross-domain iframe
 </div>
 </body>
 </html>

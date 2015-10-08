@@ -9,7 +9,7 @@ export default class ActiveWindowTracker extends SandboxBase {
 
         this.messageSandbox = messageSandbox;
 
-        this.isIFrameWindow = null;
+        this.isIframeWindow = null;
         this.activeWindow   = null;
         this.isActive       = null;
     }
@@ -31,9 +31,9 @@ export default class ActiveWindowTracker extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        this.isIFrameWindow = window !== window.top;
-        this.activeWindow   = !this.isIFrameWindow ? window.top : null;
-        this.isActive       = !this.isIFrameWindow;
+        this.isIframeWindow = window !== window.top;
+        this.activeWindow   = !this.isIframeWindow ? window.top : null;
+        this.isActive       = !this.isIframeWindow;
 
         this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             if (e.message.cmd === WINDOW_ACTIVATED_EVENT) {
@@ -55,7 +55,7 @@ export default class ActiveWindowTracker extends SandboxBase {
     makeCurrentWindowActive () {
         this.isActive = true;
 
-        if (!this.isIFrameWindow) {
+        if (!this.isIframeWindow) {
             this._notifyPrevActiveWindow();
 
             this.activeWindow = this.window;

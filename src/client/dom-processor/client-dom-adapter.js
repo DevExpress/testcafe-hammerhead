@@ -2,7 +2,8 @@ import EventEmitter from '../utils/event-emitter';
 import BaseDomAdapter from '../../processing/dom/base-dom-adapter';
 import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
-import urlUtils from '../utils/url';
+import { sameOriginCheck } from '../utils/origin-location';
+import { getProxyUrl } from '../utils/url';
 import { isIE9 } from '../utils/browser';
 import { findDocument } from '../utils/dom';
 import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../const';
@@ -72,7 +73,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         return true;
     }
 
-    hasIFrameParent (el) {
+    hasIframeParent (el) {
         try {
             return window.top.document !== findDocument(el);
         }
@@ -94,12 +95,16 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     getProxyUrl () {
-        return urlUtils.getProxyUrl.apply(urlUtils, arguments);
+        return getProxyUrl.apply(null, arguments);
     }
 
-    isTopParentIFrame (el) {
+    isTopParentIframe (el) {
         var elWindow = el[DOM_SANDBOX_PROCESSED_CONTEXT];
 
         return elWindow && window.top === elWindow.parent;
+    }
+
+    sameOriginCheck (location, checkedUrl) {
+        return sameOriginCheck(location, checkedUrl);
     }
 }

@@ -241,14 +241,14 @@ describe('Proxy', function () {
                 return 'PayloadScript';
             };
 
-            session._getIFramePayloadScript = function () {
-                return 'IFramePayloadScript';
+            session._getIframePayloadScript = function () {
+                return 'IframePayloadScript';
             };
 
             Promise
                 .all([
                     testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
-                    testTaskScriptRequest('http://localhost:1836/iframe-task.js', 'IFramePayloadScript')
+                    testTaskScriptRequest('http://localhost:1836/iframe-task.js', 'IframePayloadScript')
                 ])
                 .then(function () {
                     done();

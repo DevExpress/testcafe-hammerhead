@@ -4,7 +4,8 @@ import ShadowUI from '../shadow-ui';
 import CodeInstrumentation from '../code-instrumentation';
 import nativeMethods from '../native-methods';
 import scriptProcessor from '../../../processing/script';
-import urlUtils from '../../utils/url';
+import * as originLocation from '../../utils/origin-location';
+import { isSubDomain, parseUrl, getProxyUrl } from '../../utils/url';
 import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
 
@@ -23,13 +24,13 @@ export default class WindowSandbox extends SandboxBase {
             var sendToTopWindow = window !== window.top;
 
             if (!pageUrl)
-                pageUrl = urlUtils.OriginLocation.get();
+                pageUrl = originLocation.get();
 
             if (sendToTopWindow) {
                 this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
                     msg:      msg,
                     pageUrl:  pageUrl,
-                    inIFrame: true
+                    inIframe: true
                 });
 
                 this.messageSandbox.sendServiceMsg({
@@ -67,9 +68,9 @@ export default class WindowSandbox extends SandboxBase {
                 var changedArgs = Array.prototype.slice.call(arguments, 0);
                 var src         = image.src;
 
-                if (urlUtils.sameOriginCheck(location.toString(), src)) {
+                if (originLocation.sameOriginCheck(location.toString(), src)) {
                     changedArgs[0]     = nativeMethods.createElement.call(window.document, 'img');
-                    changedArgs[0].src = urlUtils.getProxyUrl(src);
+                    changedArgs[0].src = getProxyUrl(src);
                 }
             }
 
@@ -97,7 +98,7 @@ export default class WindowSandbox extends SandboxBase {
         window.open = function () {
             var newArgs = [];
 
-            newArgs.push(urlUtils.getProxyUrl(arguments[0]));
+            newArgs.push(getProxyUrl(arguments[0]));
             newArgs.push('_self');
 
             if (arguments.length > 2)
@@ -109,7 +110,7 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         window.Worker = scriptURL => {
-            scriptURL = urlUtils.getProxyUrl(scriptURL);
+            scriptURL = getProxyUrl(scriptURL);
 
             return new nativeMethods.Worker(scriptURL);
         };
@@ -136,7 +137,7 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
-        window.EventSource = url => new nativeMethods.EventSource(urlUtils.getProxyUrl(url));
+        window.EventSource = url => new nativeMethods.EventSource(getProxyUrl(url));
 
         if (window.MutationObserver) {
             window.MutationObserver = callback => {
@@ -158,7 +159,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.navigator && window.navigator.serviceWorker) {
             window.navigator.serviceWorker.register = url => {
-                url = urlUtils.getProxyUrl(url);
+                url = getProxyUrl(url);
 
                 return nativeMethods.registerServiceWorker.call(window.navigator.serviceWorker, url);
             };
@@ -184,7 +185,7 @@ export default class WindowSandbox extends SandboxBase {
                 var args = [data, title];
 
                 if (arguments.length > 2)
-                    args.push(url ? urlUtils.getProxyUrl(url) : url);
+                    args.push(url ? getProxyUrl(url) : url);
 
                 return nativeMethods.historyPushState.apply(history, args);
             };
@@ -193,7 +194,7 @@ export default class WindowSandbox extends SandboxBase {
                 var args = [data, title];
 
                 if (arguments.length > 2)
-                    args.push(url ? urlUtils.getProxyUrl(url) : url);
+                    args.push(url ? getProxyUrl(url) : url);
 
                 return nativeMethods.historyReplaceState.apply(history, args);
             };
@@ -203,12 +204,12 @@ export default class WindowSandbox extends SandboxBase {
             window.navigator.registerProtocolHandler = function () {
                 var args           = Array.prototype.slice.call(arguments);
                 var urlIndex       = 1;
-                var originHostname = urlUtils.OriginLocation.getParsed().hostname;
-                var isOriginUrl    = isFirefox ? urlUtils.isSubDomain(originHostname, urlUtils.parseUrl(args[urlIndex]).hostname) :
-                                     urlUtils.sameOriginCheck(urlUtils.OriginLocation.get(), args[urlIndex]);
+                var originHostname = originLocation.getParsed().hostname;
+                var isOriginUrl    = isFirefox ? isSubDomain(originHostname, parseUrl(args[urlIndex]).hostname) :
+                                     originLocation.sameOriginCheck(originLocation.get(), args[urlIndex]);
 
                 if (isOriginUrl)
-                    args[urlIndex] = urlUtils.getProxyUrl(args[urlIndex]);
+                    args[urlIndex] = getProxyUrl(args[urlIndex]);
 
                 return nativeMethods.registerProtocolHandler.apply(navigator, args);
             };

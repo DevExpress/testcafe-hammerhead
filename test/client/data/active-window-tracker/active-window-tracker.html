@@ -7,13 +7,8 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./utils/url').OriginLocation.get = function () {
-        return 'https://example.com';
-    };
-
-    Hammerhead.start({
-        crossDomainProxyPort: 2000
-    });
+    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
+    Hammerhead.start({ crossDomainProxyPort: 2000 });
 
     window.activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 </script>

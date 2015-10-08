@@ -2,7 +2,8 @@ import CONST from '../../const';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import trim from '../../utils/string-trim';
 import nativeMethods from '../sandbox/native-methods';
-import urlUtils from '../utils/url';
+import * as urlUtils from './url';
+import { sameOriginCheck } from './origin-location';
 import { isFirefox, isWebKit, isIE, isOpera } from './browser';
 
 var scrollbarSize = null;
@@ -49,12 +50,10 @@ export function getChildVisibleIndex (select, child) {
     return childrenArray.indexOf(child);
 }
 
-export function getIFrameByElement (el) {
+export function getIframeByElement (el) {
     var currentDocument = el.documentElement ? el : findDocument(el);
-    var currentWindow   = window !== window.top &&
-                          isCrossDomainWindows(window.top, window) ? window : window.top;
-
-    var iframes = currentWindow.document.getElementsByTagName('iframe');
+    var currentWindow   = window !== window.top && isCrossDomainWindows(window.top, window) ? window : window.top;
+    var iframes         = currentWindow.document.getElementsByTagName('iframe');
 
     for (var i = 0; i < iframes.length; i++) {
         if (iframes[i].contentDocument === currentDocument)
@@ -64,7 +63,7 @@ export function getIFrameByElement (el) {
     return null;
 }
 
-export function getIFrameByWindow (win) {
+export function getIframeByWindow (win) {
     var iframes = window.top.document.getElementsByTagName('iframe');
 
     for (var i = 0; i < iframes.length; i++) {
@@ -75,12 +74,51 @@ export function getIFrameByWindow (win) {
     return null;
 }
 
+export function getIframeLocation (iframe) {
+    var documentLocation = null;
+
+    try {
+        documentLocation = iframe.contentDocument.location.href;
+    }
+    catch (e) {
+        documentLocation = null;
+    }
+
+    var srcLocation = nativeMethods.getAttribute.call(iframe, 'src' + CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX) ||
+                      nativeMethods.getAttribute.call(iframe, 'src') || iframe.src;
+
+    var parsedProxyDocumentLocation = documentLocation && urlUtils.isSupportedProtocol(documentLocation) &&
+                                      urlUtils.parseProxyUrl(documentLocation);
+    var parsedProxySrcLocation      = srcLocation && urlUtils.isSupportedProtocol(srcLocation) &&
+                                      urlUtils.parseProxyUrl(srcLocation);
+
+    return {
+        documentLocation: parsedProxyDocumentLocation ? parsedProxyDocumentLocation.originUrl : documentLocation,
+        srcLocation:      parsedProxySrcLocation ? parsedProxySrcLocation.originUrl : srcLocation
+    };
+}
+
 export function getMapContainer (el) {
     var closestMap        = closest(el, 'map');
     var closestMapName    = nativeMethods.getAttribute.call(closestMap, 'name');
     var containerSelector = '[usemap=#' + closestMapName + ']';
 
     return nativeMethods.querySelector.call(findDocument(el), containerSelector);
+}
+
+export function getParentWindowWithSrc (window) {
+    var parent = window.parent;
+
+    if (window === window.top)
+        return window;
+
+    if (isCrossDomainWindows(window, parent))
+        return parent;
+
+    if (parent === window.top || !isIframeWithoutSrc(parent.frameElement))
+        return parent;
+
+    return getParentWindowWithSrc(parent);
 }
 
 export function getScrollbarSize () {
@@ -129,7 +167,7 @@ export function getSelectVisibleChildren (select) {
 
 export function getTopSameDomainWindow (window) {
     try {
-        if (window !== window.top && urlUtils.isIframeWithoutSrc(window.frameElement))
+        if (window !== window.top && isIframeWithoutSrc(window.frameElement))
             return getTopSameDomainWindow(window.parent);
     }
         /*eslint-disable no-empty */
@@ -187,7 +225,7 @@ export function isContentEditableElement (el) {
 }
 
 export function isCrossDomainIframe (iframe, bySrc) {
-    var iframeLocation = urlUtils.getIframeLocation(iframe);
+    var iframeLocation = getIframeLocation(iframe);
 
     if (!bySrc && iframeLocation.documentLocation === null)
         return true;
@@ -195,7 +233,7 @@ export function isCrossDomainIframe (iframe, bySrc) {
     var currentLocation = bySrc ? iframeLocation.srcLocation : iframeLocation.documentLocation;
 
     if (currentLocation && urlUtils.isSupportedProtocol(currentLocation))
-        return !urlUtils.sameOriginCheck(location.toString(), currentLocation);
+        return !sameOriginCheck(location.toString(), currentLocation);
 
     return false;
 }
@@ -211,7 +249,7 @@ export function isCrossDomainWindows (window1, window2) {
         if (!urlUtils.isSupportedProtocol(window1Location) || !urlUtils.isSupportedProtocol(window2Location))
             return false;
 
-        return !urlUtils.sameOriginCheck(window1Location, window2Location);
+        return !sameOriginCheck(window1Location, window2Location);
     }
     catch (e) {
         return true;
@@ -262,6 +300,38 @@ export function isIframe (el) {
     return isDomElement(el) && el.tagName.toLowerCase() === 'iframe';
 }
 
+export function isIframeWithoutSrc (iframe) {
+    var iframeLocation         = getIframeLocation(iframe);
+    var iframeSrcLocation      = iframeLocation.srcLocation;
+    var iframeDocumentLocation = iframeLocation.documentLocation;
+
+    if (iframeDocumentLocation === null) // is a cross-domain iframe
+        return false;
+
+    var iframeDocumentLocationHaveSupportedProtocol = urlUtils.isSupportedProtocol(iframeDocumentLocation);
+
+    //NOTE: when an iframe have empty src attribute (<iframe src></iframe>) the iframe.src property doesn't empty but it has different values
+    //in different browsers. Its document location is 'about:blank'. Therefore we should check the src attribute.
+    if (!iframeDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
+        return true;
+
+    var parentWindowWithSrc  = getParentWindowWithSrc(iframe.contentWindow);
+    var windowLocation       = parentWindowWithSrc.location.toString();
+    var parsedWindowLocation = urlUtils.parseProxyUrl(windowLocation);
+
+    if (iframeDocumentLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation) ||
+        iframeSrcLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation))
+        return true;
+
+
+    // NOTE: in Chrome an iframe with src has documentLocation 'about:blank' when it is just created. So, we should check
+    // srcLocation in this case.
+    if (iframeSrcLocation && urlUtils.isSupportedProtocol(iframeSrcLocation))
+        return false;
+
+    return !iframeDocumentLocationHaveSupportedProtocol;
+}
+
 export function isImgElement (el) {
     return isDomElement(el) && el.tagName.toLowerCase() === 'img';
 }
@@ -289,14 +359,12 @@ export function isElementFocusable (el) {
 
     var isAnchorWithoutHref = el.tagName &&
                               el.tagName.toLowerCase() === 'a' &&
-                              el.getAttribute('href') === '' &&
-                              !el.getAttribute('tabIndex');
+                              el.getAttribute('href') === '' && !el.getAttribute('tabIndex');
 
-    var isFocusable         = !isAnchorWithoutHref &&
-                              matches(el, getFocusableSelector() + ', body') &&
-                              !matches(el, ':disabled') &&
-                              el.getAttribute('tabIndex') !== -1 &&
-                              getComputedStyle(el)['visibility'] !== 'hidden';
+    var isFocusable = !isAnchorWithoutHref &&
+                      matches(el, getFocusableSelector() + ', body') && !matches(el, ':disabled') &&
+                      el.getAttribute('tabIndex') !== -1 &&
+                      getComputedStyle(el)['visibility'] !== 'hidden';
 
     if (!isFocusable)
         return false;
@@ -336,7 +404,6 @@ export function isWindow (instance) {
     return result;
 }
 
-
 export function isDocument (instance) {
     if (instance instanceof nativeMethods.documentClass)
         return true;
@@ -345,7 +412,6 @@ export function isDocument (instance) {
            instance.toString &&
            (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
 }
-
 
 export function isLocation (instance) {
     if (instance instanceof nativeMethods.locationClass)

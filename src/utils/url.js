@@ -5,8 +5,6 @@
 
 import trim from './string-trim';
 
-var UrlUtil = {};
-
 //Const
 const PROTOCOL_RE        = /(^(\w+?\:))/;
 const LEADING_SLASHES_RE = /^(\/\/)/;
@@ -14,16 +12,10 @@ const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
 const PORT_RE            = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 
-const URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED  = 'CLIENT_URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED';
-const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
-
-const IFRAME = 'iframe';
-const SCRIPT = 'script';
-
-UrlUtil.URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED  = URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED;
-UrlUtil.REQUEST_DESCRIPTOR_VALUES_SEPARATOR = REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
-UrlUtil.IFRAME                              = IFRAME;
-UrlUtil.SCRIPT                              = SCRIPT;
+export const URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED  = 'CLIENT_URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED';
+export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
+export const IFRAME                              = 'iframe';
+export const SCRIPT                              = 'script';
 
 function validateOriginUrl (url) {
     if (!/^https?:/.test(url)) {
@@ -34,7 +26,7 @@ function validateOriginUrl (url) {
     }
 }
 
-UrlUtil.isSubDomain = function (domain, subDomain) {
+export function isSubDomain (domain, subDomain) {
     domain    = domain.replace(/^www./i, '');
     subDomain = subDomain.replace(/^www./i, '');
 
@@ -44,15 +36,15 @@ UrlUtil.isSubDomain = function (domain, subDomain) {
     var index = subDomain.lastIndexOf(domain);
 
     return subDomain[index - 1] === '.' && subDomain.length === index + domain.length;
-};
+}
 
-UrlUtil.sameOriginCheck = function (location, checkedUrl) {
+export function sameOriginCheck (location, checkedUrl) {
     if (!checkedUrl)
         return true;
 
-    var parsedLocation      = UrlUtil.parseUrl(location);
-    var parsedCheckedUrl    = UrlUtil.parseUrl(checkedUrl);
-    var parsedProxyLocation = UrlUtil.parseProxyUrl(location);
+    var parsedLocation      = parseUrl(location);
+    var parsedCheckedUrl    = parseUrl(checkedUrl);
+    var parsedProxyLocation = parseProxyUrl(location);
     var parsedOriginUrl     = parsedProxyLocation ? parsedProxyLocation.originResourceInfo : parsedLocation;
     var isRelative          = !parsedCheckedUrl.host;
 
@@ -68,23 +60,23 @@ UrlUtil.sameOriginCheck = function (location, checkedUrl) {
             if (parsedOriginUrl.hostname === parsedCheckedUrl.hostname)
                 return true;
 
-            return UrlUtil.isSubDomain(parsedOriginUrl.hostname, parsedCheckedUrl.hostname) ||
-                   UrlUtil.isSubDomain(parsedCheckedUrl.hostname, parsedOriginUrl.hostname);
+            return isSubDomain(parsedOriginUrl.hostname, parsedCheckedUrl.hostname) ||
+                   isSubDomain(parsedCheckedUrl.hostname, parsedOriginUrl.hostname);
         }
     }
 
     return false;
-};
+}
 
 // NOTE: Convert origin protocol and hostname to lower case
 // (https://github.com/superroma/testcafe-hammerhead/issues/1)
-UrlUtil.convertHostToLowerCase = function (url) {
-    var parsedUrl = UrlUtil.parseUrl(url);
+export function convertHostToLowerCase (url) {
+    var parsedUrl = parseUrl(url);
 
     return (parsedUrl.protocol + '//' + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
-};
+}
 
-UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resourceType, charset) {
+export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charset) {
     validateOriginUrl(url);
 
     var params = [sessionId];
@@ -97,21 +89,21 @@ UrlUtil.getProxyUrl = function (url, proxyHostname, proxyPort, sessionId, resour
 
     params = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
-    return 'http://' + proxyHostname + ':' + proxyPort + '/' + params + '/' + UrlUtil.convertHostToLowerCase(url);
-};
+    return 'http://' + proxyHostname + ':' + proxyPort + '/' + params + '/' + convertHostToLowerCase(url);
+}
 
-UrlUtil.getDomain = function (parsed) {
-    return UrlUtil.formatUrl({
+export function getDomain (parsed) {
+    return formatUrl({
         protocol: parsed.protocol,
         host:     parsed.host,
         hostname: parsed.hostname,
         port:     parsed.port
     });
-};
+}
 
-UrlUtil.parseProxyUrl = function (proxyUrl) {
+export function parseProxyUrl (proxyUrl) {
     //TODO remove it
-    var parsedUrl = UrlUtil.parseUrl(proxyUrl);
+    var parsedUrl = parseUrl(proxyUrl);
 
     if (!parsedUrl.partAfterHost)
         return null;
@@ -129,7 +121,7 @@ UrlUtil.parseProxyUrl = function (proxyUrl) {
 
     return {
         originUrl:          match[2],
-        originResourceInfo: UrlUtil.parseUrl(match[2]),
+        originResourceInfo: parseUrl(match[2]),
         partAfterHost:      parsedUrl.partAfterHost,
 
         proxy: {
@@ -141,16 +133,16 @@ UrlUtil.parseProxyUrl = function (proxyUrl) {
         resourceType: params[1] || null,
         charset:      params[2] || null
     };
-};
+}
 
-UrlUtil.getPathname = function (path) {
+export function getPathname (path) {
     return path.replace(QUERY_AND_HASH_RE, '');
-};
+}
 
-UrlUtil.parseUrl = function (url) {
+export function parseUrl (url) {
     var parsed = {};
 
-    url = UrlUtil.prepareUrl(url);
+    url = prepareUrl(url);
 
     if (!url)
         return parsed;
@@ -190,26 +182,26 @@ UrlUtil.parseUrl = function (url) {
     }
 
     return parsed;
-};
+}
 
-UrlUtil.isSupportedProtocol = function (url) {
+export function isSupportedProtocol (url) {
     return !/^\s*(chrome-extension:|blob:|javascript:|about:|mailto:|tel:|data:|skype:|skypec2c:|file:|#)/i.test(url);
-};
+}
 
-UrlUtil.resolveUrlAsOrigin = function (url, getProxyUrl) {
-    getProxyUrl = getProxyUrl || UrlUtil.getProxyUrl;
+export function resolveUrlAsOrigin (url, getProxyUrlMeth) {
+    getProxyUrlMeth = getProxyUrlMeth || getProxyUrl;
 
-    if (UrlUtil.isSupportedProtocol(url)) {
-        var proxyUrl       = getProxyUrl(url);
-        var parsedProxyUrl = UrlUtil.parseProxyUrl(proxyUrl);
+    if (isSupportedProtocol(url)) {
+        var proxyUrl       = getProxyUrlMeth(url);
+        var parsedProxyUrl = parseProxyUrl(proxyUrl);
 
-        return UrlUtil.formatUrl(parsedProxyUrl.originResourceInfo);
+        return formatUrl(parsedProxyUrl.originResourceInfo);
     }
 
     return url;
-};
+}
 
-UrlUtil.formatUrl = function (parsedUrl) {
+export function formatUrl (parsedUrl) {
     // NOTE: URL is relative
     if (!parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost;
@@ -235,9 +227,9 @@ UrlUtil.formatUrl = function (parsedUrl) {
         url += parsedUrl.partAfterHost;
 
     return url;
-};
+}
 
-UrlUtil.prepareUrl = function (url) {
+export function prepareUrl (url) {
     // TODO: fix it
     /* eslint-disable no-undef */
     if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
@@ -249,6 +241,4 @@ UrlUtil.prepareUrl = function (url) {
     // NOTE: Remove unnecessary slashes form the begin of the url.
     // For example, "//////google.com" url is equal to "//google.com"
     return url.replace(/^\/+(\/\/.*$)/, '$1');
-};
-
-export default UrlUtil;
+}

@@ -1,4 +1,4 @@
-var Url = require('url');
+var urlParser = require('url');
 
 //NOTE: Url rewrite proxied requests (e.g. for iframes), so they will hit our server
 function urlRewriteProxyRequest (req, res, next) {
@@ -11,14 +11,14 @@ function urlRewriteProxyRequest (req, res, next) {
         var url = req.url.replace(proxiedUrlPartRegExp, '$1');
 
         //NOTE: create host-relative URL
-        var parsedUrl = Url.parse(url);
+        var parsedUrl = urlParser.parse(url);
 
         parsedUrl.host     = null;
         parsedUrl.hostname = null;
         parsedUrl.port     = null;
         parsedUrl.protocol = null;
         parsedUrl.slashes  = false;
-        req.url            = Url.format(parsedUrl);
+        req.url            = urlParser.format(parsedUrl);
     }
 
     next();

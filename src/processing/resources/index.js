@@ -1,9 +1,9 @@
 import url from 'url';
-import urlUtil from '../../utils/url';
 import pageProcessor from './page';
 import manifestProcessor from './manifest';
 import scriptProcessor from './script';
 import stylesheetProcessor from './stylesheet';
+import * as urlUtil from '../../utils/url';
 import { encodeContent, decodeContent } from '../encoding';
 
 function getResourceUrlReplacer (ctx) {

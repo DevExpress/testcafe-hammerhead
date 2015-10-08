@@ -1,13 +1,13 @@
-var Browser           = Hammerhead.get('./utils/browser');
 var COMMAND           = Hammerhead.get('../session/command');
-var HiddenInfo        = Hammerhead.get('./sandbox/upload/hidden-info');
 var UploadInfoManager = Hammerhead.get('./sandbox/upload/info-manager');
-var NativeMethods     = Hammerhead.get('./sandbox/native-methods');
-var Transport         = Hammerhead.get('./transport');
 var Promise           = Hammerhead.get('es6-promise').Promise;
+var hiddenInfo        = Hammerhead.get('./sandbox/upload/hidden-info');
 
+var nativeMethods = Hammerhead.nativeMethods;
+var transport     = Hammerhead.transport;
+var browserUtils  = Hammerhead.utils.browser;
 var uploadSandbox = Hammerhead.sandbox.upload;
-var infoManager   = uploadSandbox.infoManager;
+var infoManager   = Hammerhead.sandbox.upload.infoManager;
 
 // ----- Server api mock ---------
 // virtual file system:
@@ -40,14 +40,14 @@ var files = [
     }
 ];
 
-var storedAsyncServiceMsg = Transport.asyncServiceMsg;
+var storedAsyncServiceMsg = transport.asyncServiceMsg;
 
 QUnit.testStart(function () {
-    Transport.asyncServiceMsg = overridedAsyncServiceMsg;
+    transport.asyncServiceMsg = overridedAsyncServiceMsg;
 });
 
 QUnit.testDone(function () {
-    Transport.asyncServiceMsg = storedAsyncServiceMsg;
+    transport.asyncServiceMsg = storedAsyncServiceMsg;
 });
 
 function overridedAsyncServiceMsg (msg) {
@@ -60,7 +60,7 @@ function overridedAsyncServiceMsg (msg) {
                 resolve(uploadFiles(msg.data, msg.fileNames));
                 break;
             default:
-                return storedAsyncServiceMsg.call(Transport, msg);
+                return storedAsyncServiceMsg.call(transport, msg);
         }
     });
 }
@@ -167,28 +167,28 @@ test('get/set upload info', function () {
     var fileInputWithForm    = $('<form><input type="file"></form>').children()[0];
     var form                 = fileInputWithForm.parentNode;
 
-    HiddenInfo.setFormInfo(fileInputWithoutForm, [
+    hiddenInfo.setFormInfo(fileInputWithoutForm, [
         { fileProperties: 'value' }
     ]);
 
-    HiddenInfo.setFormInfo(fileInputWithForm, [
+    hiddenInfo.setFormInfo(fileInputWithForm, [
         { otherFileProperties1: 'otherValue1' },
         { otherFileProperties2: 'otherValue2' }
     ]);
 
-    var uploadInfoWithoutForm = HiddenInfo.getFormInfo(fileInputWithoutForm);
-    var uploadInfoWithForm    = HiddenInfo.getFormInfo(fileInputWithForm);
+    var uploadInfoWithoutForm = hiddenInfo.getFormInfo(fileInputWithoutForm);
+    var uploadInfoWithForm    = hiddenInfo.getFormInfo(fileInputWithForm);
 
     strictEqual(uploadInfoWithoutForm, null);
     strictEqual(uploadInfoWithForm.length, 2);
     strictEqual(uploadInfoWithForm[0].otherFileProperties1, 'otherValue1');
     strictEqual(uploadInfoWithForm[1].otherFileProperties2, 'otherValue2');
 
-    HiddenInfo.setFormInfo($('<input type="file">').appendTo(form)[0], [
+    hiddenInfo.setFormInfo($('<input type="file">').appendTo(form)[0], [
         { otherFileProperties3: 'otherValue3' }
     ]);
 
-    uploadInfoWithForm = HiddenInfo.getFormInfo(fileInputWithForm);
+    uploadInfoWithForm = hiddenInfo.getFormInfo(fileInputWithForm);
 
     strictEqual(uploadInfoWithForm.length, 1);
     strictEqual(uploadInfoWithForm[0].otherFileProperties3, 'otherValue3');
@@ -207,16 +207,16 @@ test('add/remove input info', function () {
 
     var fileInput1 = form.children()[0];
     var fileInput2 = form.children()[1];
-    var formInfo   = HiddenInfo.getFormInfo(fileInput1);
+    var formInfo   = hiddenInfo.getFormInfo(fileInput1);
 
     strictEqual(formInfo.length, 2);
     strictEqual(formInfo[0].files.length, 0);
     strictEqual(formInfo[1].files.length, 0);
 
-    HiddenInfo.addInputInfo(fileInput1, getFiles(getFilesInfo(['file.txt', 'folder/file.png'])), 'file.txt');
-    HiddenInfo.addInputInfo(fileInput2, getFiles(getFilesInfo(['folder/file.png'])), 'file.png');
+    hiddenInfo.addInputInfo(fileInput1, getFiles(getFilesInfo(['file.txt', 'folder/file.png'])), 'file.txt');
+    hiddenInfo.addInputInfo(fileInput2, getFiles(getFilesInfo(['folder/file.png'])), 'file.png');
 
-    formInfo = HiddenInfo.getFormInfo(fileInput1);
+    formInfo = hiddenInfo.getFormInfo(fileInput1);
 
     strictEqual(formInfo.length, 2);
     strictEqual(formInfo[0].value, 'file.txt');
@@ -229,9 +229,9 @@ test('add/remove input info', function () {
     strictEqual(formInfo[1].files.length, 1);
     strictEqual(formInfo[1].files[0].name, 'file.png');
 
-    HiddenInfo.removeInputInfo(fileInput1);
+    hiddenInfo.removeInputInfo(fileInput1);
 
-    formInfo = HiddenInfo.getFormInfo(fileInput1);
+    formInfo = hiddenInfo.getFormInfo(fileInput1);
 
     strictEqual(formInfo.length, 1);
     strictEqual(formInfo[0].value, 'file.png');
@@ -239,9 +239,9 @@ test('add/remove input info', function () {
     strictEqual(formInfo[0].files.length, 1);
     strictEqual(formInfo[0].files[0].name, 'file.png');
 
-    HiddenInfo.removeInputInfo(fileInput2);
+    hiddenInfo.removeInputInfo(fileInput2);
 
-    formInfo = HiddenInfo.getFormInfo(fileInput1);
+    formInfo = hiddenInfo.getFormInfo(fileInput1);
 
     strictEqual(formInfo.length, 0);
 });
@@ -340,17 +340,17 @@ test('set/clear info', function () {
 });
 
 test('format value', function () {
-    var formatValueOneFile  = UploadInfoManager.formatValue(['text.pdf']);
+    var formatValueOneFile   = UploadInfoManager.formatValue(['text.pdf']);
     var formatValueMultiFile = UploadInfoManager.formatValue(['text.txt', 'doc.doc']);
 
-    if (Browser.isIE9 || Browser.isIE10 || Browser.isWebKit)
+    if (browserUtils.isIE9 || browserUtils.isIE10 || browserUtils.isWebKit)
         strictEqual(formatValueOneFile, 'C:\\fakepath\\text.pdf');
     else
         strictEqual(formatValueOneFile, 'text.pdf');
 
-    if (Browser.isIE9 || Browser.isIE10)
+    if (browserUtils.isIE9 || browserUtils.isIE10)
         strictEqual(formatValueMultiFile, 'C:\\fakepath\\text.txt, C:\\fakepath\\doc.doc');
-    else if (Browser.isWebKit)
+    else if (browserUtils.isWebKit)
         strictEqual(formatValueMultiFile, 'C:\\fakepath\\text.txt');
     else
         strictEqual(formatValueMultiFile, 'text.txt');
@@ -377,7 +377,7 @@ asyncTest('upload error', function () {
         });
 });
 
-if (!Browser.isIE && !Browser.isIOS) {
+if (!browserUtils.isIE && !browserUtils.isIOS) {
     asyncTest('get uploaded file error: single file', function () {
         var stFiles      = files;
         var inputWrapper = getInputWrapper(['error']);
@@ -397,7 +397,7 @@ if (!Browser.isIE && !Browser.isIOS) {
         uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
 
         ev.initEvent('change', true, true);
-        NativeMethods.dispatchEvent.call(inputWrapper, ev);
+        nativeMethods.dispatchEvent.call(inputWrapper, ev);
     });
 
     asyncTest('get uploaded file error: multi file', function () {
@@ -421,7 +421,7 @@ if (!Browser.isIE && !Browser.isIOS) {
         uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
 
         ev.initEvent('change', true, true);
-        NativeMethods.dispatchEvent.call(inputWrapper, ev);
+        nativeMethods.dispatchEvent.call(inputWrapper, ev);
     });
 }
 
@@ -446,7 +446,7 @@ asyncTest('set empty value', function () {
 
     strictEqual(value, '');
 
-    if (Browser.isIE9)
+    if (browserUtils.isIE9)
         strictEqual(typeof files, 'undefined');
     else
         strictEqual(files.length, 0);
@@ -455,12 +455,12 @@ asyncTest('set empty value', function () {
         .then(function () {
             eval(processScript('value = fileInput.value; files = fileInput.files'));
 
-            if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
+            if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
                 strictEqual(value, 'C:\\fakepath\\file.txt');
             else
                 strictEqual(value, 'file.txt');
 
-            if (Browser.isIE9)
+            if (browserUtils.isIE9)
                 strictEqual(typeof files, 'undefined');
             else
                 strictEqual(files.length, 1);
@@ -469,7 +469,7 @@ asyncTest('set empty value', function () {
 
             strictEqual(value, '');
 
-            if (Browser.isIE9)
+            if (browserUtils.isIE9)
                 strictEqual(typeof files, 'undefined');
             else
                 strictEqual(files.length, 0);
@@ -487,12 +487,12 @@ asyncTest('repeated select file', function () {
         .then(function () {
             eval(processScript('value = fileInput.value; files = fileInput.files'));
 
-            if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
+            if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
                 strictEqual(value, 'C:\\fakepath\\file.txt');
             else
                 strictEqual(value, 'file.txt');
 
-            if (Browser.isIE9)
+            if (browserUtils.isIE9)
                 strictEqual(typeof files, 'undefined');
             else
                 strictEqual(files[0].name, 'file.txt');
@@ -501,12 +501,12 @@ asyncTest('repeated select file', function () {
                 .then(function () {
                     eval(processScript('value = fileInput.value; files = fileInput.files'));
 
-                    if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
+                    if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
                         strictEqual(value, 'C:\\fakepath\\file.png');
                     else
                         strictEqual(value, 'file.png');
 
-                    if (Browser.isIE9)
+                    if (browserUtils.isIE9)
                         strictEqual(typeof files, 'undefined');
                     else
                         strictEqual(files[0].name, 'file.png');
@@ -525,12 +525,12 @@ asyncTest('change event', function () {
 
         eval(processScript('value = fileInput.value; files = fileInput.files'));
 
-        if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
+        if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
             strictEqual(value, 'C:\\fakepath\\file.txt');
         else
             strictEqual(value, 'file.txt');
 
-        if (Browser.isIE9)
+        if (browserUtils.isIE9)
             strictEqual(typeof files, 'undefined');
         else
             strictEqual(files.length, 1);
@@ -538,7 +538,8 @@ asyncTest('change event', function () {
         start();
     };
 
-    uploadSandbox.upload(fileInput, './file.txt').then(function () { });
+    uploadSandbox.upload(fileInput, './file.txt').then(function () {
+    });
 });
 
 asyncTest('multi-select files', function () {
@@ -550,14 +551,14 @@ asyncTest('multi-select files', function () {
         .then(function () {
             eval(processScript('value = fileInput.value; files = fileInput.files'));
 
-            if (Browser.isIE9 || Browser.isIE10)
+            if (browserUtils.isIE9 || browserUtils.isIE10)
                 strictEqual(value, 'C:\\fakepath\\file.txt, C:\\fakepath\\file.png');
-            else if (Browser.isWebKit)
+            else if (browserUtils.isWebKit)
                 strictEqual(value, 'C:\\fakepath\\file.txt');
             else
                 strictEqual(value, 'file.txt');
 
-            if (Browser.isIE9)
+            if (browserUtils.isIE9)
                 strictEqual(typeof files, 'undefined');
             else
                 strictEqual(files.length, 2);
@@ -569,7 +570,7 @@ asyncTest('multi-select files', function () {
 asyncTest('get file info from iframe', function () {
     var fileInput = document.createElement('input');
 
-    fileInput.id   = 'uploadTestIFrame';
+    fileInput.id   = 'uploadTestIframe';
     fileInput.type = 'file';
     fileInput.name = 'test';
     document.body.appendChild(fileInput);
@@ -581,13 +582,13 @@ asyncTest('get file info from iframe', function () {
             window.addEventListener('message', function (e) {
                 var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
 
-                if (!Browser.isIE9) {
+                if (!browserUtils.isIE9) {
                     strictEqual(data.filesLength, 1);
                     strictEqual(data.fileName, 'file.txt');
                     strictEqual(data.fileType, 'text/plain');
                 }
 
-                if (Browser.isWebKit || Browser.isIE9 || Browser.isIE10)
+                if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
                     strictEqual(data.value, 'C:\\fakepath\\file.txt');
                 else
                     strictEqual(data.value, 'file.txt');

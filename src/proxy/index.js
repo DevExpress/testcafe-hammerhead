@@ -1,7 +1,7 @@
-import http from 'http';
-import { readSync as read } from 'read-file-relative';
 import Router from './router';
-import urlUtils from '../utils/url';
+import http from 'http';
+import * as urlUtils from '../utils/url';
+import { readSync as read } from 'read-file-relative';
 import { respond404, respond500, respondWithJSON, fetchBody } from '../utils/http';
 import { ie9FileReaderShim } from '../upload';
 import { run as runRequestPipeline } from '../request-pipeline';
@@ -97,7 +97,7 @@ export default class Proxy extends Router {
             respond500(res, 'Session is not opened in proxy');
     }
 
-    _onTaskScriptRequest (req, res, serverInfo, isIFrame) {
+    _onTaskScriptRequest (req, res, serverInfo, isIframe) {
         var referer     = req.headers['referer'];
         var refererDest = referer && urlUtils.parseProxyUrl(referer);
         var session     = refererDest && this.openSessions[refererDest.sessionId];
@@ -106,7 +106,7 @@ export default class Proxy extends Router {
             res.setHeader('content-type', 'application/x-javascript');
             res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
             res.setHeader('pragma', 'no-cache');
-            res.end(session.getTaskScript(referer, refererDest.originUrl, serverInfo, isIFrame, true));
+            res.end(session.getTaskScript(referer, refererDest.originUrl, serverInfo, isIframe, true));
         }
         else
             respond500(res);

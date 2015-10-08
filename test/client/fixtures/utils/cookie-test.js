@@ -1,4 +1,4 @@
-var CookieUtil = Hammerhead.get('./utils/cookie');
+var cookieUtil = Hammerhead.get('./utils/cookie');
 
 test('parse', function () {
     var cookieStrs = [
@@ -52,7 +52,7 @@ test('parse', function () {
     ];
 
     for (var i = 0; i < cookieStrs.length; i++) {
-        var parsedCookie = CookieUtil.parse(cookieStrs[i]);
+        var parsedCookie = cookieUtil.parse(cookieStrs[i]);
 
         deepEqual(parsedCookie, expectedResults[i]);
     }
@@ -104,9 +104,9 @@ test('format-parse', function () {
     ];
 
     for (var i = 0; i < parsedCookies.length; i++) {
-        var formattedCookie = CookieUtil.format(parsedCookies[i]);
+        var formattedCookie = cookieUtil.format(parsedCookies[i]);
 
-        deepEqual(CookieUtil.parse(formattedCookie), parsedCookies[i]);
+        deepEqual(cookieUtil.parse(formattedCookie), parsedCookies[i]);
     }
 });
 
@@ -116,9 +116,9 @@ test('get cookie string and delete cookie', function () {
 
     document.cookie = cookieStr;
 
-    strictEqual(CookieUtil.get(document, cookieName), cookieStr);
+    strictEqual(cookieUtil.get(document, cookieName), cookieStr);
 
-    CookieUtil.del(document, CookieUtil.parse(cookieStr));
-    ok(!CookieUtil.get(document, cookieName));
+    cookieUtil.del(document, cookieUtil.parse(cookieStr));
+    ok(!cookieUtil.get(document, cookieName));
 });
 

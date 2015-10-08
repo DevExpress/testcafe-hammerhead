@@ -1,18 +1,18 @@
-var Browser         = Hammerhead.get('./utils/browser');
-var ScriptProcessor = Hammerhead.get('../processing/script');
-var Settings        = Hammerhead.get('./settings');
 var Promise         = Hammerhead.get('es6-promise').Promise;
+var scriptProcessor = Hammerhead.get('../processing/script');
+var settings        = Hammerhead.get('./settings');
 
+var browserUtils   = Hammerhead.utils.browser;
 var iframeSandbox  = Hammerhead.sandbox.iframe;
-var messageSandbox = Hammerhead.eventSandbox.message;
+var messageSandbox = Hammerhead.sandbox.event.message;
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
@@ -28,15 +28,15 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
     };
 
     window.addEventListener('message', eventHandlerObject);
-    eval(ScriptProcessor.process('window.postMessage(testMessage, "*");'));
+    eval(scriptProcessor.process('window.postMessage(testMessage, "*");'));
 });
 
 asyncTest('onmessage event', function () {
     var $iframe               = $('<iframe>');
-    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
+    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var count                 = 0;
 
-    Settings.get().crossDomainProxyPort = 2001;
+    settings.get().crossDomainProxyPort = 2001;
 
     $iframe[0].src = window.getCrossDomainPageUrl('../../../data/cross-domain/get-message.html');
     $iframe.appendTo('body');
@@ -50,7 +50,7 @@ asyncTest('onmessage event', function () {
         count++;
 
         if (count === 2) {
-            Settings.get().crossDomainProxyPort = storedCrossDomainPort;
+            settings.get().crossDomainProxyPort = storedCrossDomainPort;
             $iframe.remove();
             window.removeEventListener('message', onMessageHandler);
             start();
@@ -58,9 +58,9 @@ asyncTest('onmessage event', function () {
     };
 
     $iframe.bind('load', function () {
-        eval(ScriptProcessor.process('window.onmessage = onMessageHandler;'));
+        eval(scriptProcessor.process('window.onmessage = onMessageHandler;'));
         window.addEventListener('message', onMessageHandler);
-        eval(ScriptProcessor.process('this.contentWindow.postMessage(\'\', \'*\')'));
+        eval(scriptProcessor.process('this.contentWindow.postMessage(\'\', \'*\')'));
     });
 });
 
@@ -89,13 +89,13 @@ asyncTest('crossdomain post messages between diffferen windows', function () {
         checkResult();
     };
 
-    eval(ScriptProcessor.process('window.onmessage = onMessageHandler;'));
+    eval(scriptProcessor.process('window.onmessage = onMessageHandler;'));
 });
 
 asyncTest('message types', function () {
     var checkValue = function (value, test) {
         return new Promise(function (resove) {
-           /* eslint-disable no-unused-vars*/
+            /* eslint-disable no-unused-vars*/
             var onMessageHandler = function (e) {
                 if (test)
                     ok(test(e.data));
@@ -105,14 +105,14 @@ asyncTest('message types', function () {
                 resove();
             };
 
-           /* eslint-enable no-unused-vars*/
+            /* eslint-enable no-unused-vars*/
 
-            eval(ScriptProcessor.process('window.onmessage = onMessageHandler;'));
-            eval(ScriptProcessor.process('window.postMessage(value, "*");'));
+            eval(scriptProcessor.process('window.onmessage = onMessageHandler;'));
+            eval(scriptProcessor.process('window.postMessage(value, "*");'));
         });
     };
 
-    if (Browser.isIE9)
+    if (browserUtils.isIE9)
         checkValue('test').then(start);
     else {
         checkValue(true)
@@ -154,7 +154,7 @@ asyncTest('cloning arguments', function () {
     iframe.addEventListener('load', function () {
         var sourceObj = { testObject: true };
 
-        this.contentWindow.Hammerhead.eventSandbox.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+        this.contentWindow.Hammerhead.sandbox.event.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
             ok(e.message.testObject);
             e.message.modified = true;
             ok(!sourceObj.modified);
@@ -171,10 +171,10 @@ asyncTest('cloning arguments', function () {
 
 asyncTest('crossdomain', function () {
     var iframe                = document.createElement('iframe');
-    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
+    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var serviceMsgReceived    = false;
 
-    Settings.get().crossDomainProxyPort = 2001;
+    settings.get().crossDomainProxyPort = 2001;
 
     var serviceMsgHandler = function () {
         serviceMsgReceived = true;
@@ -188,7 +188,7 @@ asyncTest('crossdomain', function () {
         window.setTimeout(function () {
             ok(serviceMsgReceived);
 
-            Settings.get().crossDomainProxyPort = storedCrossDomainPort;
+            settings.get().crossDomainProxyPort = storedCrossDomainPort;
             iframe.parentNode.removeChild(iframe);
             messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             start();
@@ -200,10 +200,10 @@ asyncTest('crossdomain', function () {
 
 asyncTest('service message handler should not call other handlers', function () {
     var iframe                = document.createElement('iframe');
-    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
+    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var windowHandlerExecuted = false;
 
-    Settings.get().crossDomainProxyPort = 2001;
+    settings.get().crossDomainProxyPort = 2001;
 
     var windowMessageHandler = function () {
         windowHandlerExecuted = true;
@@ -214,7 +214,7 @@ asyncTest('service message handler should not call other handlers', function () 
             ok(!windowHandlerExecuted);
             strictEqual(evt.message, 'successfully');
 
-            Settings.get().crossDomainProxyPort = storedCrossDomainPort;
+            settings.get().crossDomainProxyPort = storedCrossDomainPort;
             iframe.parentNode.removeChild(iframe);
 
             window.removeEventListener('message', windowMessageHandler);
@@ -226,7 +226,7 @@ asyncTest('service message handler should not call other handlers', function () 
 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
     iframe.addEventListener('load', function () {
-        eval(ScriptProcessor.process('window.onmessage = windowMessageHandler;'));
+        eval(scriptProcessor.process('window.onmessage = windowMessageHandler;'));
         window.addEventListener('message', windowMessageHandler);
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
         messageSandbox.sendServiceMsg('service_msg', this.contentWindow);
@@ -238,11 +238,11 @@ module('ping window');
 
 asyncTest('iframe', function () {
     var iframe                 = document.createElement('iframe');
-    var iFrameResponseReceived = false;
+    var iframeResponseReceived = false;
 
     var onMessageHandler = function (evt) {
         if (evt.data === 'ready') {
-            ok(iFrameResponseReceived);
+            ok(iframeResponseReceived);
 
             window.removeEventListener('message', onMessageHandler);
             iframe.parentNode.removeChild(iframe);
@@ -252,9 +252,9 @@ asyncTest('iframe', function () {
 
     window.addEventListener('message', onMessageHandler);
 
-    messageSandbox.pingIFrame(iframe, 'pingCmd')
+    messageSandbox.pingIframe(iframe, 'pingCmd')
         .then(function () {
-            iFrameResponseReceived = true;
+            iframeResponseReceived = true;
         });
 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/wait-loading.html');
@@ -267,13 +267,13 @@ asyncTest('timeout', function () {
     var storedDelay          = messageSandbox.PING_IFRAME_TIMEOUT;
 
     //MutationObserver (used in the es6-promise library) works slowly in IE
-    var timeout              = Browser.isIE ? 200 : 20;
+    var timeout = browserUtils.isIE ? 200 : 20;
 
-    messageSandbox.setPingIFrameTimeout(5);
+    messageSandbox.setPingIframeTimeout(5);
 
     iframe.src = 'http://cross.domain.com/';
 
-    messageSandbox.pingIFrame(iframe, 'pingCmd')
+    messageSandbox.pingIframe(iframe, 'pingCmd')
         .then(function (timeoutExceeded) {
             timeoutExceededError = timeoutExceeded;
         });

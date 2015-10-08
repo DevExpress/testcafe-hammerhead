@@ -1,11 +1,12 @@
-var DOM                 = Hammerhead.get('./utils/dom');
-var NativeMethods       = Hammerhead.get('./sandbox/native-methods');
-var Settings            = Hammerhead.get('./settings');
-var ShadowUI            = Hammerhead.get('./sandbox/shadow-ui');
 var SHADOW_UI_CLASSNAME = Hammerhead.get('./../shadow-ui/class-name');
+var ShadowUI            = Hammerhead.get('./sandbox/shadow-ui');
+var settings            = Hammerhead.get('./settings');
 
 var shadowUI      = Hammerhead.sandbox.shadowUI;
 var iframeSandbox = Hammerhead.sandbox.iframe;
+var domUtils      = Hammerhead.utils.dom;
+var nativeMethods = Hammerhead.nativeMethods;
+
 
 QUnit.testStart(function () {
     if (!$('#testDiv').length)
@@ -14,12 +15,12 @@ QUnit.testStart(function () {
     $('#testDiv').empty();
     $(shadowUI.getRoot()).empty();
     $('.test-class').remove();
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 test('add UI class and get UI element with selector', function () {
@@ -40,10 +41,10 @@ test('add UI class and get UI element with selector', function () {
 if (window.MutationObserver) {
     asyncTest('shadow MutationObserver', function () {
         var uiEl = document.createElement('div');
-        var el   = NativeMethods.createElement.call(document, 'div');
+        var el   = nativeMethods.createElement.call(document, 'div');
 
         shadowUI.addClass(uiEl, 'ui-elem-class');
-        NativeMethods.insertBefore.call(document.body, uiEl, document.body.children[0]);
+        nativeMethods.insertBefore.call(document.body, uiEl, document.body.children[0]);
 
         var observer = new window.MutationObserver(function (mutations) {
             strictEqual(mutations.length, 1);
@@ -56,8 +57,8 @@ if (window.MutationObserver) {
 
         observer.observe(document.body, { childList: true });
 
-        NativeMethods.appendChild.call(document.body, uiEl);
-        NativeMethods.appendChild.call(document.body, el);
+        nativeMethods.appendChild.call(document.body, uiEl);
+        nativeMethods.appendChild.call(document.body, el);
     });
 }
 
@@ -135,7 +136,7 @@ test('head.children', function () {
     var shadowUIElementsCount = 0;
 
     for (var i = 0; i < document.head.children.length; i++)
-        shadowUIElementsCount += DOM.isShadowUIElement(document.head.children[i]) ? 1 : 0;
+        shadowUIElementsCount += domUtils.isShadowUIElement(document.head.children[i]) ? 1 : 0;
 
     var found = false;
     var link1 = document.createElement('link');
@@ -174,7 +175,7 @@ test('head.childNodes', function () {
     var shadowUIElementsCount = 0;
 
     for (var i = 0; i < document.head.childNodes.length; i++)
-        shadowUIElementsCount += DOM.isShadowUIElement(document.head.childNodes[i]) ? 1 : 0;
+        shadowUIElementsCount += domUtils.isShadowUIElement(document.head.childNodes[i]) ? 1 : 0;
 
     var found = false;
     var link1 = document.createElement('link');
@@ -223,7 +224,7 @@ test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function
     input.name = 'testInput';
     document.body.appendChild(input);
 
-    var children        = NativeMethods.elementGetElementsByTagName.call(document.body, '*');
+    var children        = nativeMethods.elementGetElementsByTagName.call(document.body, '*');
     var wrappedChildren = document.body.getElementsByTagName('*');
 
     strictEqual(wrappedChildren.length, children.length - 1);
@@ -478,9 +479,9 @@ test('ShadowUI\'s root must be the last child after adding a new element (T23968
 });
 
 asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
-    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
+    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
 
-    Settings.get().crossDomainProxyPort = 2001;
+    settings.get().crossDomainProxyPort = 2001;
 
     var crossDomainIframe = document.createElement('iframe');
 
@@ -489,7 +490,7 @@ asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow mus
         ok(!ShadowUI.isShadowContainerCollection([this.contentWindow]));
 
         crossDomainIframe.parentNode.removeChild(crossDomainIframe);
-        Settings.get().crossDomainProxyPort = storedCrossDomainPort;
+        settings.get().crossDomainProxyPort = storedCrossDomainPort;
         start();
     });
 
