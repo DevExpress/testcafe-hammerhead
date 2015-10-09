@@ -14,8 +14,7 @@
     "es6.forOf",
     "regenerator",
     "runtime",
-    "es7.asyncFunctions",
-    "es7.classProperties"
+    "es7.asyncFunctions"
   ],
   "loose": [
     "es6.arrowFunctions",
