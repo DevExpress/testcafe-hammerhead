@@ -112,17 +112,10 @@ export default class FocusBlurSandbox extends SandboxBase {
             this.lastFocusedElement = null;
     }
 
-    _callFocusCallback (callback, el) {
-        //NOTE:in MSEdge event 'selectionchange' doesn't occur immediately (with some delay)
-        //so we should raise it right after 'focus' event
-        if (browserUtils.isIE && browserUtils.version > 11 && el && domUtils.isTextEditableElement(el))
-            this.eventSimulator.selectionchange(el);
-
-        if (typeof callback === 'function')
-            callback();
-    }
 
     _raiseEvent (el, type, callback, withoutHandlers, isAsync, forMouseEvent, preventScrolling) {
+        //We can not use Promise from the es6-promise library because in IE9, IE10 'resolve' method is called from the setTimeout(1)
+
         //NOTE: focus and blur events should be raised after the activeElement changed (B237489)
         //in MSEdge focus/blur is sync
         var simulateEvent = () => {
@@ -256,6 +249,16 @@ export default class FocusBlurSandbox extends SandboxBase {
         // but events are raised asynchronously after some timeout
         var isAsync = false;
 
+        var callFocusCallback = (callback, el) => {
+            //NOTE:in MSEdge event 'selectionchange' doesn't occur immediately (with some delay)
+            //so we should raise it right after 'focus' event
+            if (browserUtils.isIE && browserUtils.version > 11 && el && domUtils.isTextEditableElement(el))
+                this.eventSimulator.selectionchange(el);
+
+            if (typeof callback === 'function')
+                callback();
+        };
+
         var raiseFocusEvent = () => {
             if (!isCurrentWindowActive && !domUtils.isShadowUIElement(el))
                 this.activeWindowTracker.makeCurrentWindowActive();
@@ -267,9 +270,9 @@ export default class FocusBlurSandbox extends SandboxBase {
                 // NOTE: If we call focus for unfocusable element (like 'div' or 'image') in iframe we should make
                 // document.active this iframe manually, so we call focus without handlers
                 if (isElementInIFrame && iFrameElement && this.topWindow.document.activeElement !== iFrameElement)
-                    this._raiseEvent(iFrameElement, 'focus', () => this._callFocusCallback(callback, el), true, isAsync);
+                    this._raiseEvent(iFrameElement, 'focus', () => callFocusCallback(callback, el), true, isAsync);
                 else
-                    this._callFocusCallback(callback, el);
+                    callFocusCallback(callback, el);
 
             }, withoutHandlers || silent, isAsync, forMouseEvent);
         };
@@ -279,7 +282,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             if ((this.eventSimulator.isSavedWindowsEventsExists() || browserUtils.isIE && browserUtils.version > 10) &&
                 this.window.event &&
                 this.window.event.type === 'focus' && this.window.event.srcElement === el) {
-                this._callFocusCallback(callback);
+                callFocusCallback(callback);
 
                 return null;
             }

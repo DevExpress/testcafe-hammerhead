@@ -42,3 +42,7 @@ export function stopPropagation (ev) {
     ev.cancelBubble = true;
 }
 
+export function isObjectEventListener (listener) {
+    return typeof listener === 'object' && typeof listener.handleEvent === 'function';
+}
+

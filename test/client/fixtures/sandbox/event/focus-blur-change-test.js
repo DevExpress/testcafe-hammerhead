@@ -16,19 +16,18 @@ var input2BlurHandlersExecutedAmount   = null;
 var input1ChangeHandlersExecutedAmount = null;
 var input2ChangeHandlersExecutedAmount = null;
 var TEST_ELEMENT_CLASS                 = 'testElement';
-var testStartDelay                     = 25;
 var testEndDelay                       = 25;
-
-var testTimeoutIds = [];
 
 var enableLogging = false;
 
-function setDoubleTimeout (callback, timeout) {
-    if (!timeout)
-        timeout = 0;
-    window.setTimeout(function () {
-        window.setTimeout(callback, timeout);
-    }, 50);
+function setDoubleTimeout (timeout) {
+    return new Promise(function (resolve) {
+        if (!timeout)
+            timeout = 0;
+        window.setTimeout(function () {
+            window.setTimeout(resolve, timeout);
+        }, timeout);
+    });
 }
 
 function logMessage (text) {
@@ -37,12 +36,10 @@ function logMessage (text) {
 }
 
 function startNext () {
-    while (testTimeoutIds.length)
-        clearTimeout(testTimeoutIds.pop());
-    focusBlur.focus($('body')[0], function () {
+    focusBlur.focus(document.body, function () {
         removeTestElements();
         if (Browser.isIE)
-            setDoubleTimeout(start, testEndDelay);
+            setDoubleTimeout(testEndDelay).then(start);
         else start();
     });
 }
@@ -105,12 +102,16 @@ var onChange       = getChangeHandler();
 var changeListener = getChangeHandler();
 var changeAttached = getChangeHandler();
 
+var defaultTestTimeout         = QUnit.config.testTimeout;
+var smallTestTimeout           = 2000;
+var modulesForSmallTestTimeout = ['focus', 'change', 'native methods replacing'];
+
 function clearExecutedHandlersCounter () {
     input1FocusHandlersExecutedAmount = input2FocusHandlersExecutedAmount = input1BlurHandlersExecutedAmount =
         input2BlurHandlersExecutedAmount = input1ChangeHandlersExecutedAmount = input2ChangeHandlersExecutedAmount = 0;
 }
 
-function testFocusing (numberOfHandlers, testCanceled, testCallback) {
+function testFocusing (numberOfHandlers, startNext) {
     var input1FocusedCount = 0;
     var input1BlurredCount = 0;
     var input2FocusedCount = 0;
@@ -118,9 +119,6 @@ function testFocusing (numberOfHandlers, testCanceled, testCallback) {
 
     var focus = function (el) {
         return new Promise(function (resolve) {
-            if (testCanceled())
-                return;
-
             if (el === input1) {
                 input2BlurredCount += numberOfHandlers;
                 input1FocusedCount += numberOfHandlers;
@@ -139,9 +137,6 @@ function testFocusing (numberOfHandlers, testCanceled, testCallback) {
     };
 
     var assertFocusing = function (element) {
-        if (testCanceled())
-            return;
-
         strictEqual(document.activeElement, element, 'document.ActiveElement checked');
         strictEqual(input1FocusHandlersExecutedAmount, input1FocusedCount, 'input1FocusHandlersExecutedAmount checked');
         strictEqual(input2FocusHandlersExecutedAmount, input2FocusedCount, 'input2FocusHandlersExecutedAmount checked');
@@ -185,15 +180,11 @@ function testFocusing (numberOfHandlers, testCanceled, testCallback) {
         })
         .then(function () {
             assertFocusing(input2);
-
-            if (testCanceled())
-                return;
-
-            testCallback();
+            startNext();
         });
 }
 
-function testChanging (numberOfHandlers, testCanceled, testCallback) {
+function testChanging (numberOfHandlers, startNext) {
     var input1ChangedCount = 0;
     var input2ChangedCount = 0;
 
@@ -204,9 +195,6 @@ function testChanging (numberOfHandlers, testCanceled, testCallback) {
 
     var focusAndType = function (element) {
         return new Promise(function (resolve) {
-            if (testCanceled())
-                return;
-
             focusBlur.focus(element, function () {
                 assertChanging();
                 if (element === input1)
@@ -241,29 +229,8 @@ function testChanging (numberOfHandlers, testCanceled, testCallback) {
             return focusAndType(input2);
         })
         .then(function () {
-            if (testCanceled())
-                return;
-
-            testCallback();
-        });
-}
-
-function runAsyncTest (actions, timeout) {
-    var testCanceled = null;
-
-    window.setTimeout(function () {
-        actions(function () {
-            return testCanceled;
-        });
-    }, testStartDelay);
-
-    testTimeoutIds.push(
-        setTimeout(function () {
-            testCanceled = true;
-            ok(false, 'Timeout is exceeded');
             startNext();
-        }, timeout)
-    );
+        });
 }
 
 function removeTestElements () {
@@ -271,621 +238,525 @@ function removeTestElements () {
 }
 
 //tests
-QUnit.testStart(function () {
+QUnit.testStart(function (e) {
     input1 = $('<input type="text" id="input1"/>').addClass(TEST_ELEMENT_CLASS).appendTo('body').get(0);
     input2 = $('<input type="text" id="input2"/>').addClass(TEST_ELEMENT_CLASS).appendTo('body').get(0);
     clearExecutedHandlersCounter();
+
+    if (modulesForSmallTestTimeout.indexOf(e.module) !== -1)
+        QUnit.config.testTimeout = smallTestTimeout;
+});
+
+QUnit.testDone(function () {
+    QUnit.config.testTimeout = defaultTestTimeout;
 });
 
 module('focus');
 
 asyncTest('without handlers', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            testFocusing(0, testCanceled, startNext);
-        },
-        2000
-    );
+    testFocusing(0, startNext);
 });
 
 asyncTest('ontype handlers', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            var unbindHandlersAndTest = function () {
-                input1.onfocus = null;
-                input2.onfocus = null;
-                input1.onblur  = null;
-                input2.onblur  = null;
-                testFocusing(0, testCanceled, startNext);
-            };
+    var unbindHandlersAndTest = function () {
+        input1.onfocus = null;
+        input2.onfocus = null;
+        input1.onblur  = null;
+        input2.onblur  = null;
+        testFocusing(0, startNext);
+    };
+    var bindHandlersAndTest = function () {
+        input1.onfocus = onFocus;
+        input2.onfocus = onFocus;
+        input1.onblur  = onBlur;
+        input2.onblur  = onBlur;
+        testFocusing(1, unbindHandlersAndTest);
+    };
 
-            var bindHandlersAndTest = function () {
-                input1.onfocus = onFocus;
-                input2.onfocus = onFocus;
-                input1.onblur  = onBlur;
-                input2.onblur  = onBlur;
-                testFocusing(1, testCanceled, unbindHandlersAndTest);
-            };
-
-            bindHandlersAndTest();
-        },
-        2000
-    );
+    bindHandlersAndTest();
 });
 
 asyncTest('jQuery handlers one per element', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            var unbindHandlersAndTest = function () {
-                var $input1 = $(input1);
-                var $input2 = $(input2);
+    var unbindHandlersAndTest = function () {
+        var $input1 = $(input1);
+        var $input2 = $(input2);
 
-                $input1.unbind('focus', onFocus);
-                $input2.unbind('focus', onFocus);
-                $input1.unbind('blur', onBlur);
-                $input2.unbind('blur', onBlur);
-                testFocusing(0, testCanceled, startNext);
-            };
+        $input1.unbind('focus', onFocus);
+        $input2.unbind('focus', onFocus);
+        $input1.unbind('blur', onBlur);
+        $input2.unbind('blur', onBlur);
+        testFocusing(0, startNext);
+    };
+    var bindHandlersAndTest = function () {
+        var $input1 = $(input1);
+        var $input2 = $(input2);
 
-            var bindHandlersAndTest = function () {
-                var $input1 = $(input1);
-                var $input2 = $(input2);
+        $input1.focus(onFocus);
+        $input2.focus(onFocus);
+        $input1.blur(onBlur);
+        $input2.blur(onBlur);
+        testFocusing(1, unbindHandlersAndTest);
+    };
 
-                $input1.focus(onFocus);
-                $input2.focus(onFocus);
-                $input1.blur(onBlur);
-                $input2.blur(onBlur);
-                testFocusing(1, testCanceled, unbindHandlersAndTest);
-            };
-
-            bindHandlersAndTest();
-        },
-        2000
-    );
+    bindHandlersAndTest();
 });
 
 asyncTest('jQuery handlers three per element', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            var unbindHandlersAndTest = function () {
-                var $input1 = $(input1);
-                var $input2 = $(input2);
+    var unbindHandlersAndTest = function () {
+        var $input1 = $(input1);
+        var $input2 = $(input2);
 
-                $input1.unbind('focus', onFocus);
-                $input2.unbind('focus', onFocus);
-                $input1.unbind('blur', onBlur);
-                $input2.unbind('blur', onBlur);
-                testFocusing(0, testCanceled, startNext);
-            };
+        $input1.unbind('focus', onFocus);
+        $input2.unbind('focus', onFocus);
+        $input1.unbind('blur', onBlur);
+        $input2.unbind('blur', onBlur);
+        testFocusing(0, startNext);
+    };
+    var bindHandlersAndTest = function () {
+        var $input1 = $(input1);
+        var $input2 = $(input2);
 
-            var bindHandlersAndTest = function () {
-                var $input1 = $(input1);
-                var $input2 = $(input2);
+        $input1.focus(onFocus);
+        $input2.focus(onFocus);
+        $input1.blur(onBlur);
+        $input2.blur(onBlur);
+        $input1.focus(onFocus);
+        $input2.focus(onFocus);
+        $input1.blur(onBlur);
+        $input2.blur(onBlur);
+        $input1.focus(onFocus);
+        $input2.focus(onFocus);
+        $input1.blur(onBlur);
+        $input2.blur(onBlur);
+        testFocusing(3, unbindHandlersAndTest);
+    };
 
-                $input1.focus(onFocus);
-                $input2.focus(onFocus);
-                $input1.blur(onBlur);
-                $input2.blur(onBlur);
-                $input1.focus(onFocus);
-                $input2.focus(onFocus);
-                $input1.blur(onBlur);
-                $input2.blur(onBlur);
-                $input1.focus(onFocus);
-                $input2.focus(onFocus);
-                $input1.blur(onBlur);
-                $input2.blur(onBlur);
-                testFocusing(3, testCanceled, unbindHandlersAndTest);
-            };
-
-            bindHandlersAndTest();
-        },
-        2000
-    );
+    bindHandlersAndTest();
 });
 
 asyncTest('addEventListener one per element', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            if (input1.addEventListener) {
-                var unbindHandlersAndTest = function () {
-                    input1.removeEventListener('focus', onFocus, false);
-                    input1.removeEventListener('blur', onBlur, false);
-                    input2.removeEventListener('focus', onFocus, false);
-                    input2.removeEventListener('blur', onBlur, false);
-                    testFocusing(0, testCanceled, startNext);
-                };
+    var unbindHandlersAndTest = function () {
+        input1.removeEventListener('focus', onFocus, false);
+        input1.removeEventListener('blur', onBlur, false);
+        input2.removeEventListener('focus', onFocus, false);
+        input2.removeEventListener('blur', onBlur, false);
+        testFocusing(0, startNext);
+    };
 
-                var bindHandlersAndTest = function () {
-                    input1.addEventListener('focus', onFocus, false);
-                    input1.addEventListener('blur', onBlur, false);
-                    input2.addEventListener('focus', onFocus, false);
-                    input2.addEventListener('blur', onBlur, false);
-                    testFocusing(1, testCanceled, unbindHandlersAndTest);
-                };
+    var bindHandlersAndTest = function () {
+        input1.addEventListener('focus', onFocus, false);
+        input1.addEventListener('blur', onBlur, false);
+        input2.addEventListener('focus', onFocus, false);
+        input2.addEventListener('blur', onBlur, false);
+        testFocusing(1, unbindHandlersAndTest);
+    };
 
-                bindHandlersAndTest();
-            }
-            else startNext();
-        },
-        2000
-    );
+    bindHandlersAndTest();
 });
 
 asyncTest('attachEvent one per element', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            if (input1.attachEvent) {
-                var unbindHandlersAndTest = function () {
-                    input1.detachEvent('onfocus', onFocus);
-                    input1.detachEvent('onblur', onBlur);
-                    input2.detachEvent('onfocus', onFocus);
-                    input2.detachEvent('onblur', onBlur);
-                    testFocusing(0, testCanceled, startNext);
-                };
+    if (input1.attachEvent) {
+        var unbindHandlersAndTest = function () {
+            input1.detachEvent('onfocus', onFocus);
+            input1.detachEvent('onblur', onBlur);
+            input2.detachEvent('onfocus', onFocus);
+            input2.detachEvent('onblur', onBlur);
+            testFocusing(0, startNext);
+        };
 
-                var bindHandlersAndTest = function () {
-                    input1.attachEvent('onfocus', onFocus);
-                    input1.attachEvent('onblur', onBlur);
-                    input2.attachEvent('onfocus', onFocus);
-                    input2.attachEvent('onblur', onBlur);
-                    testFocusing(1, testCanceled, unbindHandlersAndTest);
-                };
+        var bindHandlersAndTest = function () {
+            input1.attachEvent('onfocus', onFocus);
+            input1.attachEvent('onblur', onBlur);
+            input2.attachEvent('onfocus', onFocus);
+            input2.attachEvent('onblur', onBlur);
+            testFocusing(1, unbindHandlersAndTest);
+        };
 
-                bindHandlersAndTest();
-            }
-            else {
-                expect(0);
-                startNext();
-            }
-        },
-        2000
-    );
+        bindHandlersAndTest();
+    }
+    else {
+        expect(0);
+        start();
+    }
 });
 
 asyncTest('handlers binded by ontype property, jQuery and addEventListener\\attachEvent together', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            var unbindHandlersAndTest = function () {
-                var $input1    = $(input1);
-                var $input2    = $(input2);
+    var unbindHandlersAndTest = function () {
+        var $input1    = $(input1);
+        var $input2    = $(input2);
 
-                $input1.unbind('focus', onFocus);
-                $input2.unbind('focus', onFocus);
-                $input1.unbind('blur', onBlur);
-                $input2.unbind('blur', onBlur);
-                input1.onfocus = null;
-                input2.onfocus = null;
-                input1.onblur  = null;
-                input2.onblur  = null;
-                if (input1.detachEvent) {
-                    input1.detachEvent('onfocus', focusAttached);
-                    input1.detachEvent('onblur', blurAttached);
-                    input2.detachEvent('onfocus', focusAttached);
-                    input2.detachEvent('onblur', blurAttached);
-                }
-                if (input1.removeEventListener) {
-                    input1.removeEventListener('focus', focusListener, false);
-                    input1.removeEventListener('blur', blurListener, false);
-                    input2.removeEventListener('focus', focusListener, false);
-                    input2.removeEventListener('blur', blurListener, false);
-                }
-                testFocusing(0, testCanceled, startNext);
-            };
+        $input1.unbind('focus', onFocus);
+        $input2.unbind('focus', onFocus);
+        $input1.unbind('blur', onBlur);
+        $input2.unbind('blur', onBlur);
+        input1.onfocus = null;
+        input2.onfocus = null;
+        input1.onblur  = null;
+        input2.onblur  = null;
+        if (input1.detachEvent) {
+            input1.detachEvent('onfocus', focusAttached);
+            input1.detachEvent('onblur', blurAttached);
+            input2.detachEvent('onfocus', focusAttached);
+            input2.detachEvent('onblur', blurAttached);
+        }
+        if (input1.removeEventListener) {
+            input1.removeEventListener('focus', focusListener, false);
+            input1.removeEventListener('blur', blurListener, false);
+            input2.removeEventListener('focus', focusListener, false);
+            input2.removeEventListener('blur', blurListener, false);
+        }
+        testFocusing(0, startNext);
+    };
+    var bindHandlersAndTest = function () {
+        var listenerCount = 0;
+        var $input1       = $(input1);
+        var $input2       = $(input2);
 
-            var bindHandlersAndTest = function () {
-                var listenerCount = 0;
-                var $input1       = $(input1);
-                var $input2       = $(input2);
+        $input1.focus(onFocus);
+        $input2.focus(onFocus);
+        $input1.blur(onBlur);
+        $input2.blur(onBlur);
+        listenerCount++;
+        input1.onfocus    = onFocus;
+        input2.onfocus    = onFocus;
+        input1.onblur     = onBlur;
+        input2.onblur     = onBlur;
+        listenerCount++;
+        if (input1.attachEvent) {
+            input1.attachEvent('onfocus', focusAttached);
+            input1.attachEvent('onblur', blurAttached);
+            input2.attachEvent('onfocus', focusAttached);
+            input2.attachEvent('onblur', blurAttached);
+            listenerCount++;
+        }
+        if (input1.addEventListener) {
+            input1.addEventListener('focus', focusListener, false);
+            input1.addEventListener('blur', blurListener, false);
+            input2.addEventListener('focus', focusListener, false);
+            input2.addEventListener('blur', blurListener, false);
+            listenerCount++;
+        }
+        testFocusing(listenerCount, unbindHandlersAndTest);
+    };
 
-                $input1.focus(onFocus);
-                $input2.focus(onFocus);
-                $input1.blur(onBlur);
-                $input2.blur(onBlur);
-                listenerCount++;
-                input1.onfocus    = onFocus;
-                input2.onfocus    = onFocus;
-                input1.onblur     = onBlur;
-                input2.onblur     = onBlur;
-                listenerCount++;
-                if (input1.attachEvent) {
-                    input1.attachEvent('onfocus', focusAttached);
-                    input1.attachEvent('onblur', blurAttached);
-                    input2.attachEvent('onfocus', focusAttached);
-                    input2.attachEvent('onblur', blurAttached);
-                    listenerCount++;
-                }
-                if (input1.addEventListener) {
-                    input1.addEventListener('focus', focusListener, false);
-                    input1.addEventListener('blur', blurListener, false);
-                    input2.addEventListener('focus', focusListener, false);
-                    input2.addEventListener('blur', blurListener, false);
-                    listenerCount++;
-                }
-                testFocusing(listenerCount, testCanceled, unbindHandlersAndTest);
-            };
-
-            bindHandlersAndTest();
-        },
-        2000
-    );
+    bindHandlersAndTest();
 });
 
 module('change');
 
 asyncTest('ontype handlers', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            var unbindHandlersAndTest = function () {
-                input1.onchange = null;
-                input2.onchange = null;
-                testChanging(0, testCanceled, startNext);
-            };
+    var unbindHandlersAndTest = function () {
+        input1.onchange = null;
+        input2.onchange = null;
+        testChanging(0, startNext);
+    };
 
-            var bindHandlersAndTest = function () {
-                input1.onchange = onChange;
-                input2.onchange = onChange;
-                testChanging(1, testCanceled, unbindHandlersAndTest);
-            };
+    var bindHandlersAndTest = function () {
+        input1.onchange = onChange;
+        input2.onchange = onChange;
+        testChanging(1, unbindHandlersAndTest);
+    };
 
-            bindHandlersAndTest();
-        },
-        2000
-    );
+    bindHandlersAndTest();
 });
 
 asyncTest('jQuery handlers three per element', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            var unbindHandlersAndTest = function () {
-                $(input1).unbind('change', onChange);
-                $(input2).unbind('change', onChange);
-                testChanging(0, testCanceled, startNext);
-            };
+    var unbindHandlersAndTest = function () {
+        $(input1).unbind('change', onChange);
+        $(input2).unbind('change', onChange);
+        testChanging(0, startNext);
+    };
+    var bindHandlersAndTest = function () {
+        var $input1 = $(input1);
+        var $input2 = $(input2);
 
-            var bindHandlersAndTest = function () {
-                var $input1 = $(input1);
-                var $input2 = $(input2);
+        $input1.change(onChange);
+        $input2.change(onChange);
+        $input1.change(onChange);
+        $input2.change(onChange);
+        $input1.change(onChange);
+        $input2.change(onChange);
+        testChanging(3, unbindHandlersAndTest);
+    };
 
-                $input1.change(onChange);
-                $input2.change(onChange);
-                $input1.change(onChange);
-                $input2.change(onChange);
-                $input1.change(onChange);
-                $input2.change(onChange);
-                testChanging(3, testCanceled, unbindHandlersAndTest);
-            };
-
-            bindHandlersAndTest();
-        },
-        2000
-    );
+    bindHandlersAndTest();
 });
 
 asyncTest('handlers binded by ontype property, jQuery and addEventListener\\attachEvent together', function () {
-    runAsyncTest(
-        function (testCanceled) {
-            var unbindHandlersAndTest = function () {
-                var $input1     = $(input1);
-                var $input2     = $(input2);
+    var unbindHandlersAndTest = function () {
+        var $input1     = $(input1);
+        var $input2     = $(input2);
 
-                $input1.unbind('change', onChange);
-                $input2.unbind('change', onChange);
-                input1.onchange = null;
-                input2.onchange = null;
-                if (input1.detachEvent) {
-                    input1.detachEvent('onchange', changeAttached);
-                    input2.detachEvent('onchange', changeAttached);
-                }
-                if (input1.removeEventListener) {
-                    input1.removeEventListener('change', changeListener, false);
-                    input2.removeEventListener('change', changeListener, false);
-                }
-                testChanging(0, testCanceled, startNext);
-            };
+        $input1.unbind('change', onChange);
+        $input2.unbind('change', onChange);
+        input1.onchange = null;
+        input2.onchange = null;
+        if (input1.detachEvent) {
+            input1.detachEvent('onchange', changeAttached);
+            input2.detachEvent('onchange', changeAttached);
+        }
+        if (input1.removeEventListener) {
+            input1.removeEventListener('change', changeListener, false);
+            input2.removeEventListener('change', changeListener, false);
+        }
+        testChanging(0, startNext);
+    };
+    var bindHandlersAndTest = function () {
+        var listenerCount = 0;
+        var $input1       = $(input1);
+        var $input2       = $(input2);
 
-            var bindHandlersAndTest = function () {
-                var listenerCount = 0;
-                var $input1       = $(input1);
-                var $input2       = $(input2);
+        $input1.change(onChange);
+        $input2.change(onChange);
+        listenerCount++;
+        input1.onchange   = onChange;
+        input2.onchange   = onChange;
+        listenerCount++;
+        if (input1.attachEvent) {
+            input1.attachEvent('onchange', changeAttached);
+            input2.attachEvent('onchange', changeAttached);
+            listenerCount++;
+        }
+        if (input1.addEventListener) {
+            input1.addEventListener('change', changeListener, false);
+            input2.addEventListener('change', changeListener, false);
+            listenerCount++;
+        }
+        testChanging(listenerCount, unbindHandlersAndTest);
+    };
 
-                $input1.change(onChange);
-                $input2.change(onChange);
-                listenerCount++;
-                input1.onchange   = onChange;
-                input2.onchange   = onChange;
-                listenerCount++;
-                if (input1.attachEvent) {
-                    input1.attachEvent('onchange', changeAttached);
-                    input2.attachEvent('onchange', changeAttached);
-                    listenerCount++;
-                }
-                if (input1.addEventListener) {
-                    input1.addEventListener('change', changeListener, false);
-                    input2.addEventListener('change', changeListener, false);
-                    listenerCount++;
-                }
-                testChanging(listenerCount, testCanceled, unbindHandlersAndTest);
-            };
-
-            bindHandlersAndTest();
-        },
-        2000
-    );
+    bindHandlersAndTest();
 });
 
 asyncTest('focus without handlers', function () {
-    runAsyncTest(
-        function () {
-            input1.focus();
+    input1.focus();
 
-            var $input1 = $(input1);
-            var $input2 = $(input2);
+    var $input1 = $(input1);
+    var $input2 = $(input2);
 
-            var blured  = false;
-            var focused = false;
+    var blured  = false;
+    var focused = false;
 
-            var onblur = function () {
-                blured = true;
-            };
+    var onblur  = function () {
+        blured = true;
+    };
+    var onfocus = function () {
+        focused = true;
+    };
 
-            var onfocus    = function () {
-                focused = true;
-            };
+    $input1.bind('blur', onblur);
+    input1.onblur  = onblur;
 
-            $input1.bind('blur', onblur);
-            input1.onblur  = onblur;
+    $input2.bind('focus', onfocus);
+    input2.onfocus = onfocus;
 
-            $input2.bind('focus', onfocus);
-            input2.onfocus = onfocus;
-
-            focusBlur.focus(input2, function () {
-                ok(!blured);
-                ok(!focused);
-                strictEqual(document.activeElement, input2);
-                startNext();
-            }, true);
-        },
-        2000
-    );
+    focusBlur.focus(input2, function () {
+        ok(!blured);
+        ok(!focused);
+        strictEqual(document.activeElement, input2);
+        startNext();
+    }, true);
 });
 
 asyncTest('blurring body with blur handler', function () {
-    runAsyncTest(function () {
-        var blurCount = 0;
+    var blurCount = 0;
 
-        $('body').blur(function () {
-            blurCount++;
+    $('body').blur(function () {
+        blurCount++;
+    });
+    focusBlur.focus(document.body, function () {
+        focusBlur.focus(input1, function () {
+            //body blur handler is raised only is IE
+            strictEqual(blurCount, Browser.isIE ? 1 : 0, 'check amount of body blur handlers called');
+            startNext();
         });
-        focusBlur.focus(document.body, function () {
-            focusBlur.focus(input1, function () {
-                //body blur handler is raised only is IE
-                strictEqual(blurCount, Browser.isIE ? 1 : 0, 'check amount of body blur handlers called');
-                startNext();
-            });
-        });
-    }, 2000);
+    });
 });
 
 module('native methods replacing');
 
 asyncTest('focus() called by client script when browser window is on background', function () {
-    runAsyncTest(
-        function () {
+    var focusCount = 0;
+
+    input2.onfocus = function () {
+        focusCount++;
+    };
+    input2.onclick = function () {
+        input2.focus();
+    };
+    eventSimulator.click(input2);
+    strictEqual(document.activeElement, input2);
+    setDoubleTimeout()
+        .then(function () {
+            strictEqual(focusCount, 1);
+            startNext();
+        });
+});
+
+asyncTest('blur() called by client script when browser window is on background', function () {
+    var blurCount = 0;
+
+    input2.onblur  = function () {
+        blurCount++;
+    };
+    input2.onclick = function () {
+        input2.focus();
+        input2.blur();
+    };
+    eventSimulator.click(input2);
+    notEqual(document.activeElement, input2);
+    setDoubleTimeout()
+        .then(function () {
+            strictEqual(blurCount, 1);
+            startNext();
+        });
+});
+
+asyncTest('focus() must not raise event if element is already focused (B237541)', function () {
+    focusBlur.focus(input2, function () {
+        var focusCount = 0;
+
+        input2.onfocus = function () {
+            focusCount++;
+        };
+        focusBlur.focus(input2, function () {
+            input2.focus();
+            setDoubleTimeout()
+                .then(function () {
+                    strictEqual(focusCount, 0);
+                    strictEqual(document.activeElement, input2);
+                    startNext();
+                });
+        });
+    });
+});
+
+asyncTest('blur() must not raise event if element is already blured', function () {
+    var blurCount = 0;
+
+    input2.onblur = function () {
+        blurCount++;
+    };
+    input2.blur();
+    setDoubleTimeout()
+        .then(function () {
+            focusBlur.blur(input2, function () {
+                strictEqual(blurCount, 0);
+                notEqual(document.activeElement, input2);
+                startNext();
+            });
+        });
+});
+
+if (window.HTMLInputElement.prototype.setSelectionRange) {
+    asyncTest('focus after calling setSelectionRange()', function () {
+        var needFocus   = Browser.isIE || Browser.isSafari;
+        var focusRaised = false;
+
+        input2.onfocus = function () {
+            focusRaised = true;
+        };
+
+        input2.setSelectionRange(0, 0);
+
+        window.setTimeout(function () {
+            strictEqual(focusRaised, needFocus);
+            strictEqual(document.activeElement === input2, needFocus);
+
+            startNext();
+        }, 200);
+    });
+
+    asyncTest('setSelectionRange() called by some event handler when browser window is on background', function () {
+        var needFocus  = Browser.isIE || Browser.isSafari;
+        var focusCount = 0;
+
+        input2.onfocus = function () {
+            focusCount++;
+        };
+        input2.onclick = function () {
+            input2.value = 'text';
+            input2.setSelectionRange(1, 2);
+        };
+
+        eventSimulator.click(input2);
+        setDoubleTimeout()
+            .then(function () {
+                strictEqual(focusCount, needFocus ? 1 : 0);
+                strictEqual(document.activeElement === input2, needFocus);
+
+                startNext();
+            });
+    });
+
+    asyncTest('setSelectionRange() must not raise focus if element is already focused', function () {
+        focusBlur.focus(input2, function () {
             var focusCount = 0;
 
             input2.onfocus = function () {
                 focusCount++;
             };
-            input2.onclick = function () {
-                input2.focus();
-            };
-            eventSimulator.click(input2);
-            strictEqual(document.activeElement, input2);
-            setDoubleTimeout(function () {
-                strictEqual(focusCount, 1);
-                startNext();
-            });
-        },
-        2000
-    );
-});
-
-asyncTest('blur() called by client script when browser window is on background', function () {
-    runAsyncTest(
-        function () {
-            var blurCount = 0;
-
-            input2.onblur  = function () {
-                blurCount++;
-            };
-            input2.onclick = function () {
-                input2.focus();
-                input2.blur();
-            };
-            eventSimulator.click(input2);
-            notEqual(document.activeElement, input2);
-            setDoubleTimeout(function () {
-                strictEqual(blurCount, 1);
-                startNext();
-            });
-        },
-        2000
-    );
-});
-
-asyncTest('focus() must not raise event if element is already focused (B237541)', function () {
-    runAsyncTest(
-        function () {
-            focusBlur.focus(input2, function () {
-                var focusCount = 0;
-
-                input2.onfocus = function () {
-                    focusCount++;
-                };
-                focusBlur.focus(input2, function () {
-                    input2.focus();
-                    setDoubleTimeout(function () {
-                        strictEqual(focusCount, 0);
-                        strictEqual(document.activeElement, input2);
-                        startNext();
-                    });
-                });
-            });
-        },
-        2000
-    );
-});
-
-asyncTest('blur() must not raise event if element is already blured', function () {
-    runAsyncTest(
-        function () {
-            var blurCount = 0;
-
-            input2.onblur = function () {
-                blurCount++;
-            };
-            input2.blur();
-            setDoubleTimeout(function () {
-                focusBlur.blur(input2, function () {
-                    strictEqual(blurCount, 0);
-                    notEqual(document.activeElement, input2);
+            input2.value   = 'text';
+            input2.setSelectionRange(1, 2);
+            setDoubleTimeout()
+                .then(function () {
+                    strictEqual(focusCount, 0);
+                    strictEqual(document.activeElement, input2);
                     startNext();
                 });
-            });
-        },
-        2000
-    );
-});
+        });
 
-if (window.HTMLInputElement.prototype.setSelectionRange) {
-    asyncTest('focus after calling setSelectionRange()', function () {
-        runAsyncTest(
-            function () {
-                var needFocus   = Browser.isIE || Browser.isSafari;
-                var focusRaised = false;
-
-                input2.onfocus = function () {
-                    focusRaised = true;
-                };
-
-                input2.setSelectionRange(0, 0);
-
-                window.setTimeout(function () {
-                    strictEqual(focusRaised, needFocus);
-                    strictEqual(document.activeElement === input2, needFocus);
-
-                    startNext();
-                }, 200);
-            },
-            2000
-        );
-    });
-
-    asyncTest('setSelectionRange() called by some event handler when browser window is on background', function () {
-        runAsyncTest(
-            function () {
-                var needFocus  = Browser.isIE || Browser.isSafari;
-                var focusCount = 0;
-
-                input2.onfocus = function () {
-                    focusCount++;
-                };
-                input2.onclick = function () {
-                    input2.value = 'text';
-                    input2.setSelectionRange(1, 2);
-                };
-
-                eventSimulator.click(input2);
-                setDoubleTimeout(function () {
-                    strictEqual(focusCount, needFocus ? 1 : 0);
-                    strictEqual(document.activeElement === input2, needFocus);
-
-                    startNext();
-                });
-            },
-            2000
-        );
-    });
-
-    asyncTest('setSelectionRange() must not raise focus if element is already focused', function () {
-        runAsyncTest(
-            function () {
-                focusBlur.focus(input2, function () {
-                    var focusCount = 0;
-
-                    input2.onfocus = function () {
-                        focusCount++;
-                    };
-                    input2.value   = 'text';
-                    input2.setSelectionRange(1, 2);
-                    setDoubleTimeout(function () {
-                        strictEqual(focusCount, 0);
-                        strictEqual(document.activeElement, input2);
-                        startNext();
-                    });
-                });
-            },
-            2000
-        );
     });
 }
 
 if (window.HTMLInputElement.prototype.createTextRange) {
     asyncTest('textRange.select() called by some event handler when browser window is on background', function () {
-        runAsyncTest(
-            function () {
-                var focusCount = 0;
+        var focusCount = 0;
 
-                input2.onfocus = function () {
-                    focusCount++;
-                };
-                input2.onclick = function () {
-                    input2.value = 'text';
+        input2.onfocus = function () {
+            focusCount++;
+        };
+        input2.onclick = function () {
+            input2.value = 'text';
 
-                    var textRange = input2.createTextRange();
+            var textRange = input2.createTextRange();
 
-                    textRange.collapse(true);
-                    textRange.moveStart('character', 1);
-                    textRange.moveEnd('character', 2);
-                    textRange.select();
-                };
-                eventSimulator.click(input2);
-                setDoubleTimeout(function () {
-                    strictEqual(focusCount, 1);
-                    strictEqual(document.activeElement, input2);
-                    startNext();
-                });
-            },
-            2000
-        );
+            textRange.collapse(true);
+            textRange.moveStart('character', 1);
+            textRange.moveEnd('character', 2);
+            textRange.select();
+        };
+        eventSimulator.click(input2);
+        setDoubleTimeout()
+            .then(function () {
+                strictEqual(focusCount, 1);
+                strictEqual(document.activeElement, input2);
+                startNext();
+            });
     });
 
     asyncTest('TextRange.select() must not raise focus if element is already focused (B237487)', function () {
-        runAsyncTest(
-            function () {
-                focusBlur.focus(input2, function () {
-                    var focusCount = 0;
+        focusBlur.focus(input2, function () {
+            var focusCount = 0;
 
-                    input2.onfocus = function () {
-                        focusCount++;
-                    };
-                    input2.value   = 'text';
+            input2.onfocus = function () {
+                focusCount++;
+            };
+            input2.value = 'text';
 
-                    var textRange = input2.createTextRange();
+            var textRange = input2.createTextRange();
 
-                    textRange.collapse(true);
-                    textRange.moveStart('character', 1);
-                    textRange.moveEnd('character', 2);
-                    textRange.select();
-                    setDoubleTimeout(function () {
-                        strictEqual(focusCount, 0);
-                        strictEqual(document.activeElement, input2);
-                        startNext();
-                    });
+            textRange.collapse(true);
+            textRange.moveStart('character', 1);
+            textRange.moveEnd('character', 2);
+            textRange.select();
+            setDoubleTimeout()
+                .then(function () {
+                    strictEqual(focusCount, 0);
+                    strictEqual(document.activeElement, input2);
+                    startNext();
                 });
-            },
-            2000
-        );
+        });
     });
 }
 

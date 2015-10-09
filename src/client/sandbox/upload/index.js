@@ -46,13 +46,15 @@ export default class UploadSandbox extends SandboxBase {
 
                     this.emit(this.START_FILE_UPLOADING_EVENT, fileNames, input);
 
-                    currentInfoManager.loadFileListData(input, input.files, fileList => {
-                        currentInfoManager.setUploadInfo(input, fileList, input.value);
-                        UploadInfoManager.sendFilesInfoToServer(fileList, fileNames, errs => {
+                    currentInfoManager.loadFileListData(input, input.files)
+                        .then(fileList => {
+                            currentInfoManager.setUploadInfo(input, fileList, input.value);
+                            return UploadInfoManager.sendFilesInfoToServer(fileList, fileNames);
+                        })
+                        .then(errs => {
                             this._riseChangeEvent(input);
                             this.emit(this.END_FILE_UPLOADING_EVENT, errs);
                         });
-                    });
                 }
             }
         });
@@ -77,22 +79,22 @@ export default class UploadSandbox extends SandboxBase {
         return value;
     }
 
-    upload (input, filePaths, callback) {
+    upload (input, filePaths) {
         var currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
         filePaths = filePaths || [];
 
-        UploadInfoManager.loadFilesInfoFromServer(filePaths, filesInfo => {
-            UploadInfoManager.prepareFileListWrapper(filesInfo, (errs, fileList) => {
-                if (!errs.length) {
+        return UploadInfoManager.loadFilesInfoFromServer(filePaths)
+            .then(filesInfo => UploadInfoManager.prepareFileListWrapper(filesInfo))
+            .then(data => {
+                if (!data.errs.length) {
                     var value = UploadInfoManager.formatValue(filePaths);
 
-                    currentInfoManager.setUploadInfo(input, fileList, value);
+                    currentInfoManager.setUploadInfo(input, data.fileList, value);
                     this._riseChangeEvent(input);
                 }
 
-                callback(errs);
+                return data.errs;
             });
-        });
     }
 }

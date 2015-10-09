@@ -2,6 +2,7 @@ var Browser                 = Hammerhead.get('./utils/browser');
 var CodeInstrumentation     = Hammerhead.get('./sandbox/code-instrumentation');
 var LocationInstrumentation = Hammerhead.get('./sandbox/code-instrumentation/location');
 var UrlUtil                 = Hammerhead.get('./utils/url');
+var Promise                 = Hammerhead.get('es6-promise').Promise;
 
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
@@ -19,41 +20,46 @@ asyncTest('iframe with empty src', function () {
     var $iframe2 = $('<iframe id="test2" src="">');
     var $iframe3 = $('<iframe id="test3" src="about:blank">');
 
-    function assert ($iframe, callback) {
-        $iframe.bind('load', function () {
-            new CodeInstrumentation({}, {}).attach(this.contentWindow);
+    function assert ($iframe) {
+        return new Promise(function (resolve) {
+            $iframe.bind('load', function () {
+                new CodeInstrumentation({}, {}).attach(this.contentWindow);
 
-            var hyperlink = this.contentDocument.createElement('a');
+                var hyperlink = this.contentDocument.createElement('a');
 
-            hyperlink.setAttribute('href', '/test');
-            this.contentDocument.body.appendChild(hyperlink);
+                hyperlink.setAttribute('href', '/test');
+                this.contentDocument.body.appendChild(hyperlink);
 
-            strictEqual(
-                eval(processScript('hyperlink.href')),
-                'https://example.com/test'
-            );
+                strictEqual(
+                    eval(processScript('hyperlink.href')),
+                    'https://example.com/test'
+                );
 
-            strictEqual(
-                eval(processScript('this.contentDocument.location.href')),
-                'about:blank'
-            );
+                strictEqual(
+                    eval(processScript('this.contentDocument.location.href')),
+                    'about:blank'
+                );
 
-            callback();
+                resolve();
+            });
+            $iframe.appendTo('body');
         });
-        $iframe.appendTo('body');
     }
 
-    assert($iframe1, function () {
-        assert($iframe2, function () {
-            assert($iframe3, function () {
-                $iframe1.remove();
-                $iframe2.remove();
-                $iframe3.remove();
+    assert($iframe1)
+        .then(function () {
+            return assert($iframe2);
+        })
+        .then(function () {
+            return assert($iframe3);
+        })
+        .then(function () {
+            $iframe1.remove();
+            $iframe2.remove();
+            $iframe3.remove();
 
-                start();
-            });
+            start();
         });
-    });
 });
 
 //// Only Chrome raises 'load' event for iframes with 'javascript:' src and creates window instance

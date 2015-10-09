@@ -55,7 +55,7 @@ asyncTest('service message is not processed by a page processor', function () {
 
 module('regression');
 
-asyncTest('B238528 - Unexpected text modifying during typing text in the search input on the http://www.google.co.uk', function () {
+asyncTest('Unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
     var timeout = 100;
 
     var ready = function () {

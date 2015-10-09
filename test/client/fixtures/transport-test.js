@@ -2,6 +2,7 @@ var Browser       = Hammerhead.get('./utils/browser');
 var Transport     = Hammerhead.get('./transport');
 var NativeMethods = Hammerhead.get('./sandbox/native-methods');
 var Settings      = Hammerhead.get('./settings');
+var Promise       = Hammerhead.get('es6-promise').Promise;
 
 var savedAjaxOpenMethod = NativeMethods.XMLHttpRequest.prototype.open;
 var savedAjaxSendMethod = NativeMethods.XMLHttpRequest.prototype.send;
@@ -30,46 +31,55 @@ function unregisterAfterAjaxSendHook () {
     NativeMethods.XMLHttpRequest.prototype.send = savedAjaxSendMethod;
 }
 
-test('sendServiceMsg', function () {
+asyncTest('sendServiceMsg', function () {
+    expect(3);
+
     var msg = {
         test: 'testValue'
     };
 
     reqisterAfterAjaxSendHook();
 
-    Transport.syncServiceMsg(msg, function (responseText, parsedResponceText) {
-        strictEqual(responseText, 100);
-        strictEqual(typeof parsedResponceText, 'undefined');
-    });
+    Transport.syncServiceMsg(msg)
+        .then(function (responseText, parsedResponceText) {
+            strictEqual(responseText, 100);
+            strictEqual(typeof parsedResponceText, 'undefined');
 
-    ok(!requestIsAsync);
-    unregisterAfterAjaxSendHook();
+            ok(!requestIsAsync);
+            unregisterAfterAjaxSendHook();
+            start();
+        });
 });
 
 asyncTest('sendAsyncServiceMsg', function () {
+    expect(3);
+
     var msg = {
         test: 'testValue'
     };
 
     reqisterAfterAjaxSendHook();
 
-    Transport.asyncServiceMsg(msg, function (responseText, parsedResponceText) {
-        strictEqual(responseText, 100);
-        strictEqual(typeof parsedResponceText, 'undefined');
-        ok(requestIsAsync);
+    Transport.asyncServiceMsg(msg)
+        .then(function (responseText, parsedResponceText) {
+            strictEqual(responseText, 100);
+            strictEqual(typeof parsedResponceText, 'undefined');
+            ok(requestIsAsync);
 
-        unregisterAfterAjaxSendHook();
-        start();
-    });
+            unregisterAfterAjaxSendHook();
+            start();
+        });
 });
 
 asyncTest('queuedAsyncServiceMsg', function () {
     var savedAsyncServiceMsgFunc = Transport.asyncServiceMsg;
 
-    Transport.asyncServiceMsg = function (msg, callback) {
-        window.setTimeout(function () {
-            callback(msg.duration);
-        }, msg.duration);
+    Transport.asyncServiceMsg = function (msg) {
+        return new Promise(function (resolve) {
+            window.setTimeout(function () {
+                resolve(msg.duration);
+            }, msg.duration);
+        });
     };
 
     var completeMsgReqs = [];
@@ -90,21 +100,26 @@ asyncTest('queuedAsyncServiceMsg', function () {
 
     expect(1);
 
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 500 }, msgCallback);
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type2', duration: 10 }, msgCallback);
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }, msgCallback);
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 300 }, msgCallback);
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }, msgCallback);
+    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 500 }).then(msgCallback);
+    Transport.queuedAsyncServiceMsg({ cmd: 'Type2', duration: 10 }).then(msgCallback);
+    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }).then(msgCallback);
+    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 300 }).then(msgCallback);
+    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }).then(msgCallback);
 
 });
 
-test('batchUpdate - without stored messages', function () {
-    Transport.batchUpdate(function () {
+asyncTest('batchUpdate - without stored messages', function () {
+    expect(1);
+
+    Transport.batchUpdate().then(function () {
         ok(true);
+        start();
     });
 });
 
 asyncTest('batchUpdate - with stored messages', function () {
+    expect(2);
+
     var savedQueuedAsyncServiceMsg = Transport.queuedAsyncServiceMsg;
 
     var result = 0;
@@ -123,13 +138,15 @@ asyncTest('batchUpdate - with stored messages', function () {
         { cmd: 'Type3', duration: 30 }
     ];
 
-    Transport.queuedAsyncServiceMsg = function (item, callback) {
-        result += item.duration;
-        callback();
+    Transport.queuedAsyncServiceMsg = function (item) {
+        return new Promise(function (resolve) {
+            result += item.duration;
+            resolve();
+        });
     };
 
     window.localStorage.setItem(Settings.get().sessionId, JSON.stringify(messages));
-    Transport.batchUpdate(updateCallback);
+    Transport.batchUpdate().then(updateCallback);
 });
 
 if (!Browser.isWebKit) {
@@ -149,9 +166,10 @@ if (!Browser.isWebKit) {
 
         reqisterAfterAjaxSendHook(onAjaxSend);
 
-        Transport.asyncServiceMsg({}, function () {
-            callbackCount++;
-        });
+        Transport.asyncServiceMsg({})
+            .then(function () {
+                callbackCount++;
+            });
 
         expect(3);
 
@@ -184,9 +202,10 @@ else {
             test: value
         };
 
-        Transport.asyncServiceMsg(msg, function () {
-            callbackCount++;
-        });
+        Transport.asyncServiceMsg(msg)
+            .then(function () {
+                callbackCount++;
+            });
 
         window.setTimeout(function () {
             strictEqual(callbackCount, 1);
@@ -223,13 +242,15 @@ else {
             test: value
         };
 
-        Transport.asyncServiceMsg(msg, function () {
-            callbackCount++;
-        });
+        Transport.asyncServiceMsg(msg)
+            .then(function () {
+                callbackCount++;
+            });
 
-        Transport.asyncServiceMsg(msg, function () {
-            callbackCount++;
-        });
+        Transport.asyncServiceMsg(msg)
+            .then(function () {
+                callbackCount++;
+            });
 
         unregisterAfterAjaxSendHook();
 

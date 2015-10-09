@@ -91,8 +91,7 @@ if (!browserUtils.hasTouchEvents) {
 }
 
 if (!browserUtils.isIE9) {
-    //T203986 - TestCafe - A test failed in IE9, IE11 and Safari with different error messages
-    asyncTest('override setTimeout error', function () {
+    asyncTest('override setTimeout error (T203986)', function () {
         var str = 'success';
 
         setTimeout(function (msg) {

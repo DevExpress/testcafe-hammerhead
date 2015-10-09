@@ -188,9 +188,8 @@ export default class ElementSandbox extends SandboxBase {
             formSubmit () {
                 var form = this;
 
-                waitCookieMsg(function () {
-                    nativeMethods.formSubmit.apply(form, arguments);
-                });
+                waitCookieMsg()
+                    .then(() => nativeMethods.formSubmit.apply(form, arguments));
             },
 
             insertBefore (newNode, refNode) {
