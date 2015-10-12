@@ -38,7 +38,7 @@ var responseTransforms = {
         if (src) {
             var cookies = Array.isArray(src) ? src : [src];
 
-            cookies = cookies.filter((cookieStr) => !!cookieStr);
+            cookies = cookies.filter(cookieStr => !!cookieStr);
             ctx.session.cookies.setByServer(ctx.dest.url, cookies);
         }
 
@@ -90,10 +90,10 @@ function transformHeaders (srcHeaders, ctx, transformList, forced) {
             destHeaders[headerName] = dest;
     };
 
-    Object.keys(srcHeaders).forEach((headerName) => applyTransform(headerName, srcHeaders, transformList));
+    Object.keys(srcHeaders).forEach(headerName => applyTransform(headerName, srcHeaders, transformList));
 
     if (forced)
-        Object.keys(forced).forEach((headerName) => applyTransform(headerName, destHeaders, forced));
+        Object.keys(forced).forEach(headerName => applyTransform(headerName, destHeaders, forced));
 
     return destHeaders;
 }

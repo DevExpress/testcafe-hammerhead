@@ -19,13 +19,13 @@ var stages = {
         var opts = createReqOpts(ctx);
         var req  = new DestinationRequest(opts);
 
-        req.on('response', (res) => {
+        req.on('response', res => {
             ctx.destRes = res;
             next();
         });
 
         req.on('error', () => ctx.hasDestReqErr = true);
-        req.on('fatalError', (err) => error(ctx, err));
+        req.on('fatalError', err => error(ctx, err));
     },
 
     2: function checkSameOriginPolicyCompliance (ctx, next) {

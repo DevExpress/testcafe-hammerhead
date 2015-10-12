@@ -31,14 +31,10 @@ export default class IframeSandbox extends SandboxBase {
                 iframe.contentWindow[IFRAME_WINDOW_INITED] = true;
 
                 // Rise this internal event to eval Hammerhead code script
-                this.emit(this.IFRAME_READY_TO_INIT_INTERNAL_EVENT, {
-                    iframe: iframe
-                });
+                this.emit(this.IFRAME_READY_TO_INIT_INTERNAL_EVENT, { iframe });
 
                 // Rise this event to eval "task" script and to call Hammerhead initialization method after
-                this.emit(this.IFRAME_READY_TO_INIT_EVENT, {
-                    iframe: iframe
-                });
+                this.emit(this.IFRAME_READY_TO_INIT_EVENT, { iframe });
 
                 iframe.contentWindow[DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME]();
             }
@@ -46,11 +42,9 @@ export default class IframeSandbox extends SandboxBase {
                 // Even if iframe is not loaded (iframe.contentDocument.documentElement not exist) we should still
                 // override document.write method, without Hammerhead initializing. This method can be called
                 // before iframe fully loading, we are obliged to override it now
-                if (iframe.contentDocument.write.toString() === this.nativeMethods.documentWrite.toString()) {
-                    this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, {
-                        iframe: iframe
-                    });
-                }
+
+                if (iframe.contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
+                    this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
             }
         }
     }
@@ -72,7 +66,7 @@ export default class IframeSandbox extends SandboxBase {
             referer: settings.get().referer || this.window.location.toString()
         };
 
-        syncServiceMsg(msg, function (iFrameTaskScript) {
+        syncServiceMsg(msg, iFrameTaskScript => {
             e.iframe.contentWindow.eval.apply(e.iframe.contentWindow, [iFrameTaskScript]);
         });
     }

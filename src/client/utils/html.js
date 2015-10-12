@@ -155,7 +155,7 @@ export function cleanUpHtml (html, parentTag) {
     if (isPageHtml(html))
         return processPageHtml(html, cleanUpHtml);
 
-    return processHtmlInternal(html, parentTag, function (container) {
+    return processHtmlInternal(html, parentTag, container => {
         var changed = false;
 
         /*eslint-disable no-loop-func */
@@ -181,7 +181,7 @@ export function cleanUpHtml (html, parentTag) {
             }
         });
 
-        find(container, 'script', function (el) {
+        find(container, 'script', el => {
             var innerHTML = el.innerHTML;
 
             if (scriptProcessor.SCRIPT_HEADER_REG_EX.test(innerHTML)) {
@@ -191,7 +191,7 @@ export function cleanUpHtml (html, parentTag) {
             }
         });
 
-        find(container, '[' + CONST.HOVER_PSEUDO_CLASS_ATTR + ']', function (el) {
+        find(container, '[' + CONST.HOVER_PSEUDO_CLASS_ATTR + ']', el => {
             nativeMethods.removeAttribute.call(el, CONST.HOVER_PSEUDO_CLASS_ATTR);
 
             changed = true;
@@ -213,7 +213,7 @@ export function processHtml (html, parentTag) {
     if (isPageHtml(html))
         return processPageHtml(html, processHtml);
 
-    return processHtmlInternal(html, parentTag, function (container) {
+    return processHtmlInternal(html, parentTag, container => {
         //NOTE: we check this condition to avoid unnecessary calling the querySelectorAll function
         if (container.children.length === 1 && container.children[0].children && !container.children[0].children.length)
             domProcessor.processElement(container.children[0], convertToProxyUrl);

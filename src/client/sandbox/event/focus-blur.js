@@ -44,7 +44,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         // NOTE: In this method, we are looking for a joint parent for the previous and the new hovered element.
         // Processes need only to that parent. This we are trying to reduce the number of dom calls.
-        var clearHoverMarkerUntilJointParent = (newHoveredElement) => {
+        var clearHoverMarkerUntilJointParent = newHoveredElement => {
             var jointParent = null;
 
             if (this.lastHoveredElement) {
@@ -368,7 +368,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             this.elementEditingWatcher.stopWatching(el);
         }
 
-        this._raiseEvent(el, 'blur', function () {
+        this._raiseEvent(el, 'blur', () => {
             if (typeof callback === 'function')
                 callback();
         }, withoutHandlers, isAsync);

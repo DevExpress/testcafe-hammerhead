@@ -24,7 +24,7 @@ export default class FormData {
     }
 
     _removeEntry (name) {
-        this.entries = this.entries.filter((entry) => entry.name !== name);
+        this.entries = this.entries.filter(entry => entry.name !== name);
     }
 
     _injectFileInfo (fileInfo) {
@@ -65,7 +65,7 @@ export default class FormData {
             var files = JSON.parse(body);
 
             this._removeEntry(UPLOAD_SANDBOX_HIDDEN_INPUT_NAME);
-            files.forEach((fileInfo) => this._injectFileInfo(fileInfo));
+            files.forEach(fileInfo => this._injectFileInfo(fileInfo));
         }
     }
 
@@ -129,7 +129,7 @@ export default class FormData {
         if (chunks.length)
             chunks.push(bufferUtils.CRLF);
 
-        this.entries.forEach((entry) => {
+        this.entries.forEach(entry => {
             chunks.push(
                 this.boundary,
                 bufferUtils.CRLF,

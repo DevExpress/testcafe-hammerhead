@@ -23,7 +23,7 @@ export default class Router {
 
     _registerRoute (route, method, handler) {
         var tokens            = route.split('/');
-        var isRouteWithParams = tokens.some((token) => PARAM_RE.test(token));
+        var isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
 
         if (isRouteWithParams)
             this._registerRouteWithParams(tokens, method, handler);
@@ -43,7 +43,7 @@ export default class Router {
 
     _registerRouteWithParams (tokens, method, handler) {
         var paramNames = [];
-        var reParts    = tokens.map((token) => {
+        var reParts    = tokens.map(token => {
             var paramMatch = token.match(PARAM_RE);
 
             if (paramMatch) {

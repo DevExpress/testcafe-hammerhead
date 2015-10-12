@@ -55,65 +55,53 @@ export default class DomProcessor {
 
     _createProcessorPatterns (adapter) {
         var selectors = {
-            HAS_HREF_ATTR: (el) => {
+            HAS_HREF_ATTR: el => {
                 var tagName = adapter.getTagName(el).toLowerCase();
 
                 return URL_ATTR_TAGS.href.indexOf(tagName) !== -1;
             },
 
-            HAS_SRC_ATTR: (el) => {
+            HAS_SRC_ATTR: el => {
                 var tagName = adapter.getTagName(el).toLowerCase();
 
                 return URL_ATTR_TAGS.src.indexOf(tagName) !== -1;
             },
 
-            HAS_ACTION_ATTR: (el) => {
+            HAS_ACTION_ATTR: el => {
                 var tagName = adapter.getTagName(el).toLowerCase();
 
                 return URL_ATTR_TAGS.action.indexOf(tagName) !== -1;
             },
 
-            HAS_MANIFEST_ATTR: (el) => {
+            HAS_MANIFEST_ATTR: el => {
                 var tagName = adapter.getTagName(el).toLowerCase();
 
                 return URL_ATTR_TAGS.manifest.indexOf(tagName) !== -1;
             },
 
-            HAS_DATA_ATTR: (el) => {
+            HAS_DATA_ATTR: el => {
                 var tagName = adapter.getTagName(el).toLowerCase();
 
                 return URL_ATTR_TAGS.data.indexOf(tagName) !== -1;
             },
 
-            HTTP_EQUIV_META: (el) => {
+            HTTP_EQUIV_META: el => {
                 var tagName = adapter.getTagName(el).toLowerCase();
 
                 return tagName === 'meta' && adapter.hasAttr(el, 'http-equiv');
             },
 
-            ALL: () => {
-                return true;
-            },
+            ALL: () => true,
 
-            IS_SCRIPT: (el) => {
-                return adapter.getTagName(el).toLowerCase() === 'script';
-            },
+            IS_SCRIPT: el => adapter.getTagName(el).toLowerCase() === 'script',
 
-            IS_INPUT: (el) => {
-                return adapter.getTagName(el).toLowerCase() === 'input';
-            },
+            IS_INPUT: el => adapter.getTagName(el).toLowerCase() === 'input',
 
-            IS_STYLE: (el) => {
-                return adapter.getTagName(el).toLowerCase() === 'style';
-            },
+            IS_STYLE: el => adapter.getTagName(el).toLowerCase() === 'style',
 
-            HAS_EVENT_HANDLER: (el) => {
-                return adapter.hasEventHandler(el);
-            },
+            HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
 
-            IS_SANDBOXED_IFRAME: (el) => {
-                return adapter.getTagName(el).toLowerCase() === 'iframe' && adapter.hasAttr(el, 'sandbox');
-            }
+            IS_SANDBOXED_IFRAME: el => adapter.getTagName(el).toLowerCase() === 'iframe' && adapter.hasAttr(el, 'sandbox')
         };
 
         return [
@@ -260,7 +248,7 @@ export default class DomProcessor {
         if (matches && jsProtocol) {
             var html = matches[2];
 
-            this.emit(this.HTML_PROCESSING_REQUIRED_EVENT, html, function (processedHTML) {
+            this.emit(this.HTML_PROCESSING_REQUIRED_EVENT, html, processedHTML => {
                 /*eslint-disable no-script-url*/
                 var processedAttrValue = 'javascript:\'' + processedHTML.replace(/'/g, "\\'") + '\'';
 
@@ -297,9 +285,7 @@ export default class DomProcessor {
         if (this.adapter.getAttr(el, 'http-equiv').toLowerCase() === 'refresh') {
             var attr = this.adapter.getAttr(el, pattern.urlAttr);
 
-            attr = attr.replace(/(url=)(.*)$/i, function () {
-                return arguments[1] + urlReplacer(arguments[2]);
-            });
+            attr = attr.replace(/(url=)(.*)$/i, (match, prefix, url) => prefix + urlReplacer(url));
 
             this.adapter.setAttr(el, pattern.urlAttr, attr);
         }

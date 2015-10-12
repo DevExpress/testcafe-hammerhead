@@ -160,11 +160,11 @@ UrlUtil.parseUrl = function (url) {
     // Protocol
     var hasImplicitProtocol = false;
     var remainder           = url
-        .replace(PROTOCOL_RE, function (str, protocol) {
+        .replace(PROTOCOL_RE, (str, protocol) => {
             parsed.protocol = protocol;
             return '';
         })
-        .replace(LEADING_SLASHES_RE, function () {
+        .replace(LEADING_SLASHES_RE, () => {
             hasImplicitProtocol = true;
             return '';
         });
@@ -177,13 +177,13 @@ UrlUtil.parseUrl = function (url) {
 
     // Host
     parsed.partAfterHost = remainder
-        .replace(HOST_RE, function (str, host, restPartSeparator) {
+        .replace(HOST_RE, (str, host, restPartSeparator) => {
             parsed.host = host;
             return restPartSeparator;
         });
 
     if (parsed.host) {
-        parsed.hostname = parsed.host.replace(PORT_RE, function (str, port) {
+        parsed.hostname = parsed.host.replace(PORT_RE, (str, port) => {
             parsed.port = port;
             return '';
         });

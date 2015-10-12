@@ -54,7 +54,7 @@ export default class FormDataEntry {
     toBuffer () {
         var chunks = [];
 
-        Object.keys(this.headers).forEach((name) => {
+        Object.keys(this.headers).forEach(name => {
             var value = this.headers[name];
 
             chunks.push(new Buffer(`${name}: ${value}`));

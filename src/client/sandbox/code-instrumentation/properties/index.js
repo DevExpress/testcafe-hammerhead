@@ -155,7 +155,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             href: {
-                condition: (el) => {
+                condition: el => {
                     if (domUtils.isDomElement(el))
                         return URL_ATTR_TAGS['href'].indexOf(el.tagName.toLowerCase()) !== -1;
 

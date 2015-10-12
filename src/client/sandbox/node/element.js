@@ -297,7 +297,7 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (domUtils.isDomElement(el)) {
-            domUtils.find(el, 'input[type=file]', (el) => this.addFileInputInfo(el));
+            domUtils.find(el, 'input[type=file]', el => this.addFileInputInfo(el));
 
             if (domUtils.isFileInput(el))
                 this.addFileInputInfo(el);
@@ -322,11 +322,8 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     onIFrameAddedToDOM (iframe) {
-        if (!domUtils.isCrossDomainIframe(iframe, true)) {
-            this.nodeSandbox.mutation.onIFrameAddedToDOM({
-                iframe: iframe
-            });
-        }
+        if (!domUtils.isCrossDomainIframe(iframe, true))
+            this.nodeSandbox.mutation.onIFrameAddedToDOM({ iframe });
     }
 
     attach (window) {
@@ -364,7 +361,7 @@ export default class ElementSandbox extends SandboxBase {
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
 
         if (elTagName === 'img') {
-            el.addEventListener('error', function (e) {
+            el.addEventListener('error', e => {
                 var storedAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('src'));
 
                 if (storedAttr && !urlUtils.parseProxyUrl(el.src) && urlUtils.isSupportedProtocol(el.src)) {
