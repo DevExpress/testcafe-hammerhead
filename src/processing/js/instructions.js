@@ -31,6 +31,7 @@ export const wrappedProperties = {
     hostname:          true,
     href:              true,
     innerHTML:         true,
+    innerText:         true,
     lastChild:         true,
     lastElementChild:  true,
     length:            true,

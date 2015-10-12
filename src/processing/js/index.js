@@ -3,6 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+import dedent from 'dedent';
 import modifiers from './modifiers';
 import * as instructs from './instructions';
 import { parse, generate } from './parsing-tools';
@@ -17,14 +18,15 @@ const codegenOpts = {
     }
 };
 
-const MOCK_ACCESSORS = `var __w$undef_ = typeof window === "undefined",
+const MOCK_ACCESSORS = dedent`
+    var __w$undef_ = typeof window === "undefined",
     ${ instructs.GET_LOCATION_METH_NAME }=__w$undef_?function(l){return l}:window.${ instructs.GET_LOCATION_METH_NAME },
     ${ instructs.SET_LOCATION_METH_NAME }=__w$undef_?function(l,v){return l = v}:window.${ instructs.SET_LOCATION_METH_NAME },
     ${ instructs.SET_PROPERTY_METH_NAME }=__w$undef_?function(o,p,v){return o[p] = v}:window.${ instructs.SET_PROPERTY_METH_NAME },
     ${ instructs.GET_PROPERTY_METH_NAME }=__w$undef_?function(o,p){return o[p]}:window.${ instructs.GET_PROPERTY_METH_NAME },
     ${ instructs.CALL_METHOD_METH_NAME }=__w$undef_?function(o,p,a){return o[p].apply(o,a)}:window.${ instructs.CALL_METHOD_METH_NAME },
     ${ instructs.PROCESS_SCRIPT_METH_NAME }=__w$undef_?function(s){return s}:window.${ instructs.PROCESS_SCRIPT_METH_NAME };
-    `;
+`;
 
 class JsProcessor {
     constructor () {
