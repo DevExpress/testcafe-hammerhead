@@ -31,7 +31,7 @@ function unregisterAfterAjaxSendHook () {
     NativeMethods.XMLHttpRequest.prototype.send = savedAjaxSendMethod;
 }
 
-asyncTest('sendServiceMsg', function () {
+test('sendServiceMsg', function () {
     expect(3);
 
     var msg = {
@@ -40,15 +40,13 @@ asyncTest('sendServiceMsg', function () {
 
     reqisterAfterAjaxSendHook();
 
-    Transport.syncServiceMsg(msg)
-        .then(function (responseText, parsedResponceText) {
-            strictEqual(responseText, 100);
-            strictEqual(typeof parsedResponceText, 'undefined');
+    Transport.syncServiceMsg(msg, function (responseText, parsedResponceText) {
+        strictEqual(responseText, 100);
+        strictEqual(typeof parsedResponceText, 'undefined');
 
-            ok(!requestIsAsync);
-            unregisterAfterAjaxSendHook();
-            start();
-        });
+        ok(!requestIsAsync);
+        unregisterAfterAjaxSendHook();
+    });
 });
 
 asyncTest('sendAsyncServiceMsg', function () {

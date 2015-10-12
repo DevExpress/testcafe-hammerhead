@@ -33,7 +33,7 @@ module.exports = function (app) {
         res.send(data);
     });
 
-    app.get('/get-script/:script', function (req, res) {
+    app.all('/get-script/:script', function (req, res) {
         var script = req.params.script || '';
 
         res.send(script);

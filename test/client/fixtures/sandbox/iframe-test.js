@@ -2,6 +2,7 @@ var CONST         = Hammerhead.get('../const');
 var browserUtils  = Hammerhead.get('./utils/browser');
 var nativeMethods = Hammerhead.get('./sandbox/native-methods');
 var urlUtils      = Hammerhead.get('./utils/url');
+var settings      = Hammerhead.get('./settings');
 
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
@@ -20,26 +21,31 @@ QUnit.testDone(function () {
 test('event should not raise before iframe is appended to DOM', function () {
     var eventRaised = false;
 
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, function () {
+    var handler = function () {
         eventRaised = true;
-    });
+    };
+
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
 
     document.createElement('iframe');
 
     ok(!eventRaised);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
 });
 
 test('event should not raise if a cross-domain iframe is appended', function () {
     var eventRaised = false;
 
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, function () {
+    var handler = function () {
         eventRaised = true;
-    });
+    };
+
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
 
     var $iframe = $('<iframe id="test7" src="http://cross.domain.com">').appendTo('body');
 
     ok(!eventRaised);
-
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
     $iframe.remove();
 });
 
@@ -132,15 +138,18 @@ asyncTest('ready to init event must not raise for added iframe(B239643)', functi
 
     //iframe loading waiting
     window.setTimeout(function () {
-        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, function () {
+        var handler = function () {
             iframeLoadingEventRaised = true;
-        });
+        };
+
+        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
 
         /* eslint-disable no-unused-vars */
         var dummy = $container[0].innerHTML;
 
         /* eslint-enable no-unused-vars */
         ok(!iframeLoadingEventRaised);
+        iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
         $container.remove();
         start();
     }, 100);
@@ -159,6 +168,35 @@ asyncTest('the AMD module loader damages proxing an iframe without src (GH-127)'
         ok(this.contentWindow.Hammerhead);
         delete window.define;
         iframe.parentNode.removeChild(iframe);
+        start();
+    });
+    document.body.appendChild(iframe);
+});
+
+asyncTest('iframe initialization must be synchronous (for iframes with an empty src) (GH-184)', function () {
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+
+    var storedServiceMsgUrl = settings.get().serviceMsgUrl;
+    var testIframeTaskScript = [
+        '"window[\'' + CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME + '\'] = function () {',
+        '    window.isIframeInitialized = true;',
+        '};"'
+    ].join('');
+
+    settings.get().serviceMsgUrl = '/get-script/' + testIframeTaskScript;
+
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test_unique_id_96sfs8d69ba';
+    iframe.addEventListener('load', function () {
+        ok(this.contentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME]);
+        ok(this.contentWindow.isIframeInitialized);
+
+        this.parentNode.removeChild(this);
+        settings.get().serviceMsgUrl = storedServiceMsgUrl;
+        iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
         start();
     });
     document.body.appendChild(iframe);

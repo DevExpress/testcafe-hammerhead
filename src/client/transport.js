@@ -107,17 +107,14 @@ class Transport extends EventEmitter {
     }
 
     //NOTE: use sync method for most important things only
-    syncServiceMsg (msg) {
-        return new Promise(resolve => {
-            var storedSync = this.useAsyncXhr;
+    syncServiceMsg (msg, callback) {
+        var storedSync = this.useAsyncXhr;
 
-            this.useAsyncXhr = false;
+        this.useAsyncXhr = false;
 
-            this.asyncServiceMsg(msg)
-                .then(res => {
-                    this.useAsyncXhr = storedSync;
-                    resolve(res);
-                });
+        this.performRequest(msg, res => {
+            this.useAsyncXhr = storedSync;
+            callback(res);
         });
     }
 
@@ -144,77 +141,82 @@ class Transport extends EventEmitter {
         });
     }
 
-    asyncServiceMsg (msg) {
-        return new Promise(resolve => {
-            msg.sessionId = settings.get().sessionId;
+    //TODO: rewrite this using Promise after getting rid of syncServiceMsg
+    performRequest (msg, callback) {
+        msg.sessionId = settings.get().sessionId;
 
-            if (isIFrameWithoutSrc)
-                msg.referer = settings.get().referer;
+        if (isIFrameWithoutSrc)
+            msg.referer = settings.get().referer;
 
-            var sendMsg = forced => {
-                this.activeServiceMessagesCounter++;
+        var sendMsg = forced => {
+            this.activeServiceMessagesCounter++;
 
-                var requestIsAsync = this.useAsyncXhr;
+            var requestIsAsync = this.useAsyncXhr;
 
-                if (forced)
-                    requestIsAsync = false;
+            if (forced)
+                requestIsAsync = false;
 
-                var transport    = this;
-                var request      = Transport._createXMLHttpRequest(requestIsAsync);
-                var msgCallback  = function () {
-                    transport.activeServiceMessagesCounter--;
+            var transport    = this;
+            var request      = Transport._createXMLHttpRequest(requestIsAsync);
+            var msgCallback  = function () {
+                transport.activeServiceMessagesCounter--;
 
-                    resolve(this.responseText && parseJSON(this.responseText));
-                };
-                var errorHandler = function () {
-                    if (isWebKit) {
-                        Transport._storeMessage(msg);
-                        msgCallback();
-                    }
-                    else
-                        sendMsg(true);
-                };
-
-                if (forced) {
-                    request.addEventListener('readystatechange', function () {
-                        if (this.readyState !== 4)
-                            return;
-
-                        msgCallback();
-                    });
+                callback(this.responseText && parseJSON(this.responseText));
+            };
+            var errorHandler = function () {
+                if (isWebKit) {
+                    Transport._storeMessage(msg);
+                    msgCallback();
                 }
-                else if (isIE9) {
-                    //aborted ajax request in IE9 not raise error, abort or timeout events
-                    //also getting status code raise error c00c023f
-                    request.addEventListener('readystatechange', function () {
-                        if (this.readyState !== 4)
-                            return;
-
-                        var status = 0;
-
-                        try {
-                            status = this.status;
-                        }
-                        catch (e) {
-                            errorHandler();
-                        }
-
-                        if (status === 200)
-                            msgCallback.call(this);
-                    });
-                }
-                else {
-                    request.addEventListener('load', msgCallback);
-                    request.addEventListener('abort', errorHandler);
-                    request.addEventListener('error', errorHandler);
-                    request.addEventListener('timeout', errorHandler);
-                }
-
-                request.send(stringifyJSON(msg));
+                else
+                    sendMsg(true);
             };
 
-            Transport._removeMessageFromStore(msg.cmd);
-            sendMsg();
+            if (forced) {
+                request.addEventListener('readystatechange', function () {
+                    if (this.readyState !== 4)
+                        return;
+
+                    msgCallback();
+                });
+            }
+            else if (isIE9) {
+                // Aborted ajax requests do not raise the error, abort or timeout events in IE9.
+                // Getting a status code raises the c00c023f error.
+                request.addEventListener('readystatechange', function () {
+                    if (this.readyState !== 4)
+                        return;
+
+                    var status = 0;
+
+                    try {
+                        status = this.status;
+                    }
+                    catch (e) {
+                        errorHandler();
+                    }
+
+                    if (status === 200)
+                        msgCallback.call(this);
+                });
+            }
+            else {
+                request.addEventListener('load', msgCallback);
+                request.addEventListener('abort', errorHandler);
+                request.addEventListener('error', errorHandler);
+                request.addEventListener('timeout', errorHandler);
+            }
+
+            request.send(stringifyJSON(msg));
+        };
+
+        Transport._removeMessageFromStore(msg.cmd);
+        sendMsg();
+    }
+
+    asyncServiceMsg (msg) {
+        return new Promise(resolve => {
+            this.performRequest(msg, data => resolve(data));
         });
     }
 
