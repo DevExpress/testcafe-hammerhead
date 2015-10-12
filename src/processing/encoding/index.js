@@ -1,6 +1,6 @@
 import zlib from 'zlib';
 import charsetEncoder from 'iconv-lite';
-import promisify from '../../utils/promisify';
+import promisify from 'es6-promisify';
 
 var gzip       = promisify(zlib.gzip);
 var deflate    = promisify(zlib.deflate);
