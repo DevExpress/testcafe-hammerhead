@@ -538,7 +538,10 @@ describe('Proxy', function () {
             DestinationRequest.TIMEOUT = 200;
 
             session.handlePageError = function (ctx, err) {
-                expect(err).eql('Failed to complete a request to <a href="http://127.0.0.1:2000/T224541/hang-forever">http://127.0.0.1:2000/T224541/hang-forever</a> within the timeout period. The problem may be related to local machine\'s network or firewall settings, server outage, or network problems that make the server inaccessible.');
+                expect(err).eql('Failed to complete a request to <a href="http://127.0.0.1:2000/T224541/hang-forever">' +
+                                'http://127.0.0.1:2000/T224541/hang-forever</a> within the timeout period. ' +
+                                'The problem may be related to local machine\'s network or firewall settings, server outage, ' +
+                                'or network problems that make the server inaccessible.');
                 ctx.res.end();
                 DestinationRequest.TIMEOUT = savedReqTimeout;
                 done();

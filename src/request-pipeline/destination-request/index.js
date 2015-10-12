@@ -19,8 +19,6 @@ function isDNSErr (err) {
 
 // DestinationRequest
 export default class DestinationRequest extends EventEmitter {
-    static TIMEOUT = 25 * 1000;
-
     constructor (opts) {
         super();
 
@@ -96,3 +94,6 @@ export default class DestinationRequest extends EventEmitter {
             this.emit('error');
     }
 }
+
+// NOTE: exposed for the testing purposes
+DestinationRequest.TIMEOUT = 25 * 1000;

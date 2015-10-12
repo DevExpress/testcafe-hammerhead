@@ -42,29 +42,34 @@ const CHARSETS = [
     'shift-jis', 'x-euc', 'big5', 'euc-kr'
 ];
 
+// Normalized charset map
+var normalizedCharsetMap = {
+    map: {},
 
+    _getNormalizedCharsetMapKey (charset) {
+        return charset.replace(/-/g, '').toLowerCase();
+    },
+
+    add (charset) {
+        this.map[this._getNormalizedCharsetMapKey(charset)] = charset;
+    },
+
+    'get' (charset) {
+        return this.map[charset && this._getNormalizedCharsetMapKey(charset)];
+    }
+};
+
+CHARSETS.forEach(charset => normalizedCharsetMap.add(charset));
+
+
+// Charset
 export default class Charset {
     constructor () {
         this.charset  = DEFAULT_CHARSET;
         this.priority = PRIORITY_LIST.DEFAULT;
     }
 
-    static getNormalizedCharsetMapKey (charset) {
-        return charset.replace(/-/g, '').toLowerCase();
-    }
-
-    static normalizeCharset (charset) {
-        var key = charset && Charset.getNormalizedCharsetMapKey(charset);
-
-        return Charset.normalizedCharsetsMap[key] || null;
-    }
-
-    static normalizedCharsetsMap = CHARSETS.reduce((charsetMap, charset) => {
-        charsetMap[Charset.getNormalizedCharsetMapKey(charset)] = charset;
-        return charsetMap;
-    }, {});
-
-    static bufferStartsWithBOM (resBuf, bom) {
+    static _bufferStartsWithBOM (resBuf, bom) {
         if (resBuf.length < bom.length)
             return false;
 
@@ -97,7 +102,7 @@ export default class Charset {
 
     fromBOM (resBuf) {
         for (var i = 0; i < CHARSET_BOM_LIST.length; i++) {
-            if (Charset.bufferStartsWithBOM(resBuf, CHARSET_BOM_LIST[i].bom))
+            if (Charset._bufferStartsWithBOM(resBuf, CHARSET_BOM_LIST[i].bom))
                 return this.set(CHARSET_BOM_LIST[i].charset, PRIORITY_LIST.BOM);
         }
 
@@ -109,7 +114,7 @@ export default class Charset {
             var charsetMatch = contentTypeHeader && contentTypeHeader.match(CHARSET_RE);
             var charset      = charsetMatch && charsetMatch[1];
 
-            return this.set(Charset.normalizeCharset(charset), PRIORITY_LIST.CONTENT_TYPE);
+            return this.set(normalizedCharsetMap.get(charset), PRIORITY_LIST.CONTENT_TYPE);
         }
 
         return false;
@@ -117,7 +122,7 @@ export default class Charset {
 
     fromUrl (charsetFromUrl) {
         if (charsetFromUrl && this.priority <= PRIORITY_LIST.URL)
-            return this.set(Charset.normalizeCharset(charsetFromUrl), PRIORITY_LIST.URL);
+            return this.set(normalizedCharsetMap.get(charsetFromUrl), PRIORITY_LIST.URL);
 
         return false;
     }
@@ -151,7 +156,7 @@ export default class Charset {
                 }
             });
 
-            return this.set(Charset.normalizeCharset(charsetStr), PRIORITY_LIST.META);
+            return this.set(normalizedCharsetMap.get(charsetStr), PRIORITY_LIST.META);
         }
 
         return false;

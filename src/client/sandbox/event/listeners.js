@@ -67,7 +67,7 @@ export default class Listeners extends EventEmitter {
         };
     }
 
-    _createEventHandler = function () {
+    _createEventHandler () {
         var listeningCtx = this.listeningCtx;
 
         return function (e) {
