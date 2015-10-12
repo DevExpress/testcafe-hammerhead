@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    Hammerhead.start({ crossDomainProxyPort: 2000 });
+
+    window.focusInput = function () {
+        document.getElementById('input').focus();
+    };
+</script>
+
+<input id="input"/>
+</body>
+</html>

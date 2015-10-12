@@ -4,7 +4,7 @@ import nativeMethods from '../native-methods';
 import * as originLocation from '../../utils/origin-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
-import { isIE9 } from '../../utils/browser';
+import { isIE9, isSafari } from '../../utils/browser';
 import { isCrossDomainWindows } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import { Promise } from 'es6-promise';
@@ -172,12 +172,19 @@ export default class MessageSandbox extends SandboxBase {
         if (!this._isIframeRemoved() && (isIframeWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
                                                                targetWindow[this.RECEIVE_MSG_FN])) {
             //NOTE: postMessage delay imitation
-            nativeMethods.setTimeout.call(this.topWindow, () =>
+            nativeMethods.setTimeout.call(this.topWindow, () => {
+                // NOTE: We leave the capability to communicate with a removed frame. Unfortunately, this
+                // cannot be done in Safari, because it restricts operations with removed windows (GH-171).
+                var isUnreachableIframe = isSafari && !this.window.top;
+
+                if (!isUnreachableIframe) {
                     targetWindow[this.RECEIVE_MSG_FN]({
-                        data:   parseJSON(stringifyJSON(message)), // Cloning message to prevent this modification
+                        // NOTE: Cloning message to prevent this modification
+                        data:   parseJSON(stringifyJSON(message)),
                         source: this.window
-                    })
-                , 10);
+                    });
+                }
+            }, 10);
 
             return null;
         }

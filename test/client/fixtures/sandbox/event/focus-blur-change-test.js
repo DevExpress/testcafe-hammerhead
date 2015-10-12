@@ -858,3 +858,26 @@ test('querySelector must return active element even when browser is not focused 
     else
         strictEqual(result.length, 0);
 });
+
+asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=3 page (B237723)', function () {
+    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/focus-blur-sandbox.html');
+    var $iframe   = $('<iframe>')
+        .addClass(TEST_ELEMENT_CLASS)
+        .attr('src', iframeSrc)
+        .appendTo('body');
+
+    var errorRaised = false;
+
+    $iframe.load(function () {
+        try {
+            $iframe[0].contentWindow.focusInput();
+        }
+        catch (e) {
+            errorRaised = true;
+        }
+
+        ok(!errorRaised, 'error is not raised');
+        $iframe.remove();
+        startNext();
+    });
+});
