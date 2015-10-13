@@ -61,6 +61,7 @@ export default class IframeSandbox extends SandboxBase {
 
     iframeReadyToInitHandler (e) {
         // Get and evaluate iframe task script
+        // Iframe's task script evaluation must be synchronous
         var msg = {
             cmd:     COMMAND.getIframeTaskScript,
             referer: settings.get().referer || this.window.location.toString()
