@@ -14,7 +14,7 @@ import { getAnchorProperty, setAnchorProperty } from './anchor';
 import { getAttributesProperty } from './attributes';
 import { URL_ATTR_TAGS, TARGET_ATTR_TAGS } from '../../../dom-processor/dom-processor';
 import { process as processStyle, cleanUp as cleanUpStyle } from '../../../../processing/style';
-import { process as processScript } from '../../../../processing/script';
+import { process as processScript, cleanUpHeader as cleanUpScriptHeader } from '../../../../processing/script';
 import { GET_PROPERTY_METH_NAME, SET_PROPERTY_METH_NAME } from '../../../../processing/js';
 import { setTimeout as nativeSetTimeout } from '../../native-methods';
 
@@ -206,6 +206,19 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
+            innerText: {
+                condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script' &&
+                                 typeof el.innerText === 'string',
+
+                get: el => typeof el.innerText === 'string' ? cleanUpScriptHeader(el.innerText) : el.innerText,
+
+                set: function (el, script) {
+                    el.innerText = script ? processScript(script) : script;
+
+                    return script;
+                }
+            },
+
             onerror: {
                 condition: owner => domUtils.isWindow(owner),
                 get:       owner => owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] || null,
@@ -374,7 +387,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 //may be function.
                 //See: T175340: TD_14_2 - Uncaught JS error on angular getting started site
                 condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script',
-                get:       el => el.text,
+                get:       el => typeof el.text === 'string' ? cleanUpScriptHeader(el.text) : el.text,
 
                 set: (el, script) => {
                     el.text = script ? processScript(script) : script;
@@ -388,7 +401,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 //may be function.
                 //See: T175340: TD_14_2 - Uncaught JS error on angular getting started site
                 condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script',
-                get:       el => el.textContent,
+                get:       el => typeof el.textContent === 'string' ?
+                                 cleanUpScriptHeader(el.textContent) : el.textContent,
 
                 set: (el, script) => {
                     el.textContent = script ? processScript(script) : script;

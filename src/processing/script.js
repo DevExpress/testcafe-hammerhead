@@ -3,6 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+import dedent from 'dedent';
 import jsProcessor from './js';
 import { DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME } from '../const';
 
@@ -26,14 +27,18 @@ const BOM_REGEX = new RegExp(
 
 class ScriptProcessor {
     constructor () {
-        this.OVERRIDE_DOM_METH_SCRIPT = 'window["' + DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME + '"]';
+        var overrideDomMethScript = `window["${DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME}"]`;
+        var scriptHeaderPrefix    = '/*hammerhead|script-processing-header|start*/';
+        var scriptHeaderPostfix   = '/*hammerhead|script-processing-header|end*/';
 
-        this.SCRIPT_HEADER = '\r\ntypeof window !== "undefined" && ' + this.OVERRIDE_DOM_METH_SCRIPT + ' && ' +
-                             this.OVERRIDE_DOM_METH_SCRIPT + '();\r\n' + jsProcessor.MOCK_ACCESSORS;
+        this.SCRIPT_HEADER = dedent`
+            ${scriptHeaderPrefix}
+            typeof window !== "undefined" && ${overrideDomMethScript} && ${overrideDomMethScript}();
+            ${jsProcessor.MOCK_ACCESSORS}
+            ${scriptHeaderPostfix}
+        `;
 
-        this.SCRIPT_HEADER_REG_EX = new RegExp('^\\s*typeof[^\\n]+' +
-                                               DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME.replace('|', '\\|') +
-                                               '[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+\\n[^\\n]+__proc\\$Script;', 'i');
+        this.SCRIPT_HEADER_REG_EX = new RegExp(`${scriptHeaderPrefix}[\\S\\s]+?${scriptHeaderPostfix}`.replace(/\/|\*|\|/g, '\\$&'), 'i');
     }
 
     process (text, withoutHeader) {
@@ -50,6 +55,10 @@ class ScriptProcessor {
             text = this.SCRIPT_HEADER + text;
 
         return bom ? bom + text : text;
+    }
+
+    cleanUpHeader (text) {
+        return text.replace(this.SCRIPT_HEADER_REG_EX, '');
     }
 
     getBOM (text) {
