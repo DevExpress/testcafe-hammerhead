@@ -1,20 +1,20 @@
-var browserUtils  = Hammerhead.get('./utils/browser');
-var nativeMethods = Hammerhead.get('./sandbox/native-methods');
-var CONST         = Hammerhead.get('../const');
+var CONST = Hammerhead.get('../const');
 
+var browserUtils   = Hammerhead.utils.browser;
+var nativeMethods  = Hammerhead.nativeMethods;
 var iframeSandbox  = Hammerhead.sandbox.iframe;
 var eventSandbox   = Hammerhead.sandbox.event;
-var listeners      = eventSandbox.listeners;
-var focusBlur      = eventSandbox.focusBlur;
-var eventSimulator = eventSandbox.eventSimulator;
+var listeners      = Hammerhead.sandbox.event.listeners;
+var focusBlur      = Hammerhead.sandbox.event.focusBlur;
+var eventSimulator = Hammerhead.sandbox.event.eventSimulator;
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 var lastHovered = null;

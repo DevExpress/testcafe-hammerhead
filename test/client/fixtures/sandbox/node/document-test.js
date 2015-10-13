@@ -1,20 +1,20 @@
-var Browser         = Hammerhead.get('./utils/browser');
-var ScriptProcessor = Hammerhead.get('../processing/script');
-var JSProcessor     = Hammerhead.get('../processing/js/index');
-var NativeMethods   = Hammerhead.get('./sandbox/native-methods');
+var scriptProcessor = Hammerhead.get('../processing/script');
 
+var browserUtils  = Hammerhead.utils.browser;
+var jsProcessor   = Hammerhead.jsProcessor;
+var nativeMethods = Hammerhead.nativeMethods;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
-    window.open       = NativeMethods.windowOpen;
-    window.setTimeout = NativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    window.open       = nativeMethods.windowOpen;
+    window.setTimeout = nativeMethods.setTimeout;
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 test('document.write for iframe.src with javascript protocol', function () {
@@ -25,7 +25,7 @@ test('document.write for iframe.src with javascript protocol', function () {
     var $iframe = $('<iframe id="test4" src="javascript:&quot;<html><body><a id=\'link\' href=\'http://google.com/\'></body></html>&quot;"></iframe>"');
 
     $div[0].appendChild($iframe[0]);
-    ok($iframe[0].contentDocument.write.toString() !== NativeMethods.documentWrite.toString());
+    ok($iframe[0].contentDocument.write.toString() !== nativeMethods.documentWrite.toString());
 
     $iframe.remove();
 });
@@ -42,7 +42,7 @@ asyncTest('document.write for iframe with empty url', function () {
         var document = $iframe[0].contentDocument;
 
         if (document)
-            ok(document.write.toString() !== NativeMethods.documentWrite.toString());
+            ok(document.write.toString() !== nativeMethods.documentWrite.toString());
     };
 
     check();
@@ -66,7 +66,7 @@ asyncTest('document.write for iframe with empty url', function () {
     cheked    = true;
 });
 
-if (!Browser.isFirefox) {
+if (!browserUtils.isFirefox) {
     test('override document after document.write calling', function () {
         var $div    = $('<div>').appendTo('body');
         var $sdiv   = $('<div>').appendTo('body');
@@ -78,7 +78,7 @@ if (!Browser.isFirefox) {
             var result   = true;
 
             if (document) {
-                if (document.write.toString() === NativeMethods.documentWrite.toString())
+                if (document.write.toString() === nativeMethods.documentWrite.toString())
                     result = false;
             }
 
@@ -146,7 +146,7 @@ test('document.write for page html (T190753)', function () {
     var $div            = $('<div>').appendTo('body');
     var $iframe         = $('<iframe id="test5">');
     var script          = 'var a = [1,2], b = 0; window.test = a[b];';
-    var processedScript = ScriptProcessor.process(script).replace(/\s*/g, '');
+    var processedScript = scriptProcessor.process(script).replace(/\s*/g, '');
 
     overrideDomMeth($div[0]);
     $div[0].appendChild($iframe[0]);
@@ -166,14 +166,14 @@ test('document.write for page html (T190753)', function () {
     $div.remove();
 });
 
-if (Browser.isFirefox || Browser.isIE11) {
+if (browserUtils.isFirefox || browserUtils.isIE11) {
     asyncTest('override window methods after document.write call (T239109)', function () {
         var $iframe = $('<iframe id="test_wrapper">');
 
         window.top.onIframeInited = function (window) {
             var iframeSandbox = window.Hammerhead.sandbox.iframe;
 
-            iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+            iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
             iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
         };
 
@@ -202,7 +202,7 @@ if (Browser.isFirefox || Browser.isIE11) {
     });
 }
 
-if (!Browser.isFirefox) {
+if (!browserUtils.isFirefox) {
     asyncTest('document.write([]) in iframe (T239131)', function () {
         var iframe = document.createElement('iframe');
 
@@ -252,8 +252,8 @@ test('document.write with __begin$, __end$ parameters (T232454)', function () {
 
     eval(processedScript);
 
-    ok(processedScript.indexOf(JSProcessor.DOCUMENT_WRITE_BEGIN_PARAM) !== -1 &&
-       processedScript.indexOf(JSProcessor.DOCUMENT_WRITE_END_PARAM) !== -1);
+    ok(processedScript.indexOf(jsProcessor.DOCUMENT_WRITE_BEGIN_PARAM) !== -1 &&
+       processedScript.indexOf(jsProcessor.DOCUMENT_WRITE_END_PARAM) !== -1);
 
     strictEqual(result, 'w1w2w3wl1wl2wl3');
 });

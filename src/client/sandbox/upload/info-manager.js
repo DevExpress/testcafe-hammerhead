@@ -12,7 +12,7 @@ import { Promise } from 'es6-promise';
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
 
-const UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIFrameForIE9' + SHADOW_UI_CLASSNAME.postfix;
+const UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIframeForIE9' + SHADOW_UI_CLASSNAME.postfix;
 
 export default class UploadInfoManager {
     constructor (shadowUI) {
@@ -29,20 +29,20 @@ export default class UploadInfoManager {
         return data;
     }
 
-    static _getUploadIFrameForIE9 () {
-        var uploadIFrame = nativeMethods.querySelector.call(document, '#' + UPLOAD_IFRAME_FOR_IE9_ID);
+    static _getUploadIframeForIE9 () {
+        var uploadIframe = nativeMethods.querySelector.call(document, '#' + UPLOAD_IFRAME_FOR_IE9_ID);
 
-        if (!uploadIFrame) {
-            uploadIFrame               = nativeMethods.createElement.call(document, 'iframe');
+        if (!uploadIframe) {
+            uploadIframe               = nativeMethods.createElement.call(document, 'iframe');
 
-            nativeMethods.setAttribute.call(uploadIFrame, 'id', UPLOAD_IFRAME_FOR_IE9_ID);
-            nativeMethods.setAttribute.call(uploadIFrame, 'name', UPLOAD_IFRAME_FOR_IE9_ID);
-            uploadIFrame.style.display = 'none';
+            nativeMethods.setAttribute.call(uploadIframe, 'id', UPLOAD_IFRAME_FOR_IE9_ID);
+            nativeMethods.setAttribute.call(uploadIframe, 'name', UPLOAD_IFRAME_FOR_IE9_ID);
+            uploadIframe.style.display = 'none';
 
-            this.shadowUI.getRoot().appendChild(uploadIFrame);
+            this.shadowUI.getRoot().appendChild(uploadIframe);
         }
 
-        return uploadIFrame;
+        return uploadIframe;
     }
 
     _loadFileListDataForIE9 (input) {
@@ -53,16 +53,16 @@ export default class UploadInfoManager {
                 var sourceTarget       = form.target;
                 var sourceActionString = form.action;
                 var sourceMethod       = form.method;
-                var uploadIFrame       = UploadInfoManager._getUploadIFrameForIE9();
+                var uploadIframe       = UploadInfoManager._getUploadIframeForIE9();
 
                 var loadHandler = () => {
-                    var fileListWrapper = new FileListWrapper([JSON.parse(uploadIFrame.contentWindow.document.body.innerHTML)]);
+                    var fileListWrapper = new FileListWrapper([JSON.parse(uploadIframe.contentWindow.document.body.innerHTML)]);
 
-                    uploadIFrame.removeEventListener('load', loadHandler);
+                    uploadIframe.removeEventListener('load', loadHandler);
                     resolve(fileListWrapper);
                 };
 
-                uploadIFrame.addEventListener('load', loadHandler);
+                uploadIframe.addEventListener('load', loadHandler);
 
                 form.action = settings.get().ie9FileReaderShimUrl + '?input-name=' + input.name + '&filename=' +
                               input.value;

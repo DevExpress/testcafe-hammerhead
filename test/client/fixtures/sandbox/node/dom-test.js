@@ -1,35 +1,35 @@
-var Browser       = Hammerhead.get('./utils/browser');
-var NativeMethods = Hammerhead.get('./sandbox/native-methods');
-var UrlUtil       = Hammerhead.get('./utils/url');
+var urlUtils = Hammerhead.get('./utils/url');
 
+var browserUtils   = Hammerhead.utils.browser;
+var nativeMethods  = Hammerhead.nativeMethods;
 var iframeSandbox  = Hammerhead.sandbox.iframe;
 var nodeMutation   = Hammerhead.sandbox.node.mutation;
 var eventSimulator = Hammerhead.sandbox.event.eventSimulator;
 
 QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
-    window.open       = NativeMethods.windowOpen;
-    window.setTimeout = NativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    window.open       = nativeMethods.windowOpen;
+    window.setTimeout = nativeMethods.setTimeout;
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 asyncTest('prevent "error" event during image reloading', function () {
-    var storedGetOriginUrlObj    = UrlUtil.getProxyUrl;
-    var storedResolveUrlAsOrigin = UrlUtil.resolveUrlAsOrigin;
+    var storedGetOriginUrlObj    = urlUtils.getProxyUrl;
+    var storedResolveUrlAsOrigin = urlUtils.resolveUrlAsOrigin;
     var errorEventRised          = false;
     var realImageUrl             = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
     var fakeIamgeUrl             = 'fakeIamge.gif';
 
-    UrlUtil.getProxyUrl = function () {
-        return storedGetOriginUrlObj(realImageUrl);
+    urlUtils.getProxyUrl = function () {
+        return storedGetOriginUrlObj.call(urlUtils, realImageUrl);
     };
 
-    UrlUtil.resolveUrlAsOrigin = function (url) {
+    urlUtils.resolveUrlAsOrigin = function (url) {
         return url;
     };
 
@@ -41,11 +41,11 @@ asyncTest('prevent "error" event during image reloading', function () {
 
     img.onload = function () {
         ok(!errorEventRised);
-        strictEqual(img.src, storedGetOriginUrlObj(realImageUrl));
+        strictEqual(img.src, storedGetOriginUrlObj.call(urlUtils, realImageUrl));
 
         $(img).remove();
-        UrlUtil.getProxyUrl        = storedGetOriginUrlObj;
-        UrlUtil.resolveUrlAsOrigin = storedResolveUrlAsOrigin;
+        urlUtils.getProxyUrl        = storedGetOriginUrlObj;
+        urlUtils.resolveUrlAsOrigin = storedResolveUrlAsOrigin;
 
         start();
     };
@@ -57,7 +57,7 @@ asyncTest('prevent "error" event during image reloading', function () {
 asyncTest('reload image through the proxy', function () {
     var realImageUrl  = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
     var fakeIamgeUrl  = 'fakeIamge.gif';
-    var proxyIamgeUrl = UrlUtil.getProxyUrl(fakeIamgeUrl);
+    var proxyIamgeUrl = urlUtils.getProxyUrl(fakeIamgeUrl);
 
     var $img1 = $('<img src="' + realImageUrl + '">').appendTo('body');
     var $img2 = $('<img>').appendTo('body');
@@ -103,7 +103,7 @@ asyncTest('reload image through the proxy', function () {
 });
 
 // IE9 does not support insertAdjacentHTML for the 'tr'
-if (!Browser.isIE9) {
+if (!browserUtils.isIE9) {
     test('html fragment', function () {
         var table = $('<table><tr></tr></table>')[0];
         var tbody = table.childNodes[0];
@@ -119,10 +119,10 @@ if (!Browser.isIE9) {
 }
 
 test('process a text node when it is appended to script', function () {
-    var originGetProxyUrl = UrlUtil.getProxyUrl;
+    var originGetProxyUrl = urlUtils.getProxyUrl;
     var proxyUrl          = 'http://example.proxy.com/';
 
-    UrlUtil.getProxyUrl = function () {
+    urlUtils.getProxyUrl = function () {
         return proxyUrl;
     };
 
@@ -138,7 +138,7 @@ test('process a text node when it is appended to script', function () {
     ok(window.testLink.tagName && window.testLink.tagName.toLowerCase() === 'a');
     strictEqual(window.testLink.href, proxyUrl);
 
-    UrlUtil.getProxyUrl = originGetProxyUrl;
+    urlUtils.getProxyUrl = originGetProxyUrl;
 });
 
 test('iframe added to dom event', function () {

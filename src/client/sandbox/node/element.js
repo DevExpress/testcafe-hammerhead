@@ -2,9 +2,10 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor/dom-processor';
 import scriptProcessor from '../../../processing/script';
-import urlUtils from '../../utils/url';
+import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
+import { sameOriginCheck } from '../../utils/origin-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
 import { waitCookieMsg } from '../../transport';
@@ -95,13 +96,13 @@ export default class ElementSandbox extends SandboxBase {
                 if (value !== '') {
                     var isIframe         = tagName === 'iframe';
                     var isScript         = tagName === 'script';
-                    var isCrossDomainUrl = isSupportedProtocol && !urlUtils.sameOriginCheck(location.toString(), value);
+                    var isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
                     var resourceType     = null;
                     var elCharset        = isScript && el.charset;
 
                     if (isScript)
                         resourceType = urlUtils.SCRIPT;
-                    else if (isIframe || domProcessor.isOpenLinkInIFrame(el))
+                    else if (isIframe || domProcessor.isOpenLinkInIframe(el))
                         resourceType = urlUtils.IFRAME;
 
                     value = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
@@ -290,7 +291,7 @@ export default class ElementSandbox extends SandboxBase {
 
             if (iframes.length) {
                 for (var i = 0; i < iframes.length; i++)
-                    this.onIFrameAddedToDOM(iframes[i]);
+                    this.onIframeAddedToDOM(iframes[i]);
             }
             else if (el.tagName && el.tagName.toLowerCase() === 'body')
                 this.shadowUI.onBodyElementMutation();
@@ -321,9 +322,9 @@ export default class ElementSandbox extends SandboxBase {
         hiddenInfo.addInputInfo(el, infoManager.getFiles(el), infoManager.getValue(el));
     }
 
-    onIFrameAddedToDOM (iframe) {
+    onIframeAddedToDOM (iframe) {
         if (!domUtils.isCrossDomainIframe(iframe, true))
-            this.nodeSandbox.mutation.onIFrameAddedToDOM({ iframe });
+            this.nodeSandbox.mutation.onIframeAddedToDOM({ iframe });
     }
 
     attach (window) {

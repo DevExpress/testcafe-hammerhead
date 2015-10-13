@@ -5,7 +5,8 @@ import { isShadowUIElement, isCrossDomainIframe, isElementInDocument } from '../
 import { syncServiceMsg } from '../transport';
 import { isFirefox, isWebKit } from '../utils/browser';
 import { DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME } from '../../const';
-import { isSupportedProtocol, isIframeWithoutSrc } from '../utils/url';
+import { isSupportedProtocol } from '../utils/url';
+import { isIframeWithoutSrc } from '../utils/dom';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
@@ -67,8 +68,8 @@ export default class IframeSandbox extends SandboxBase {
             referer: settings.get().referer || this.window.location.toString()
         };
 
-        syncServiceMsg(msg, iFrameTaskScript => {
-            e.iframe.contentWindow.eval.apply(e.iframe.contentWindow, [iFrameTaskScript]);
+        syncServiceMsg(msg, iframeTaskScript => {
+            e.iframe.contentWindow.eval.apply(e.iframe.contentWindow, [iframeTaskScript]);
         });
     }
 

@@ -23,9 +23,9 @@ function flattenParsedProxyUrl (parsed) {
     }
 }
 
-function getContentTypeUrlToken (isScript, isIFrame) {
+function getContentTypeUrlToken (isScript, isIframe) {
     if (isScript) return urlUtils.SCRIPT;
-    if (isIFrame) return urlUtils.IFRAME;
+    if (isIframe) return urlUtils.IFRAME;
 
     return null;
 }
@@ -47,7 +47,7 @@ export default class RequestPipelineContext {
 
         this.isXhr       = false;
         this.isPage      = false;
-        this.isIFrame    = false;
+        this.isIframe    = false;
         this.contentInfo = null;
 
         var acceptHeader = req.headers['accept'];
@@ -100,7 +100,7 @@ export default class RequestPipelineContext {
 
         this.isXhr    = !!this.req.headers[XHR_HEADERS.requestMarker];
         this.isPage   = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader);
-        this.isIFrame = this.dest.resourceType === urlUtils.IFRAME;
+        this.isIframe = this.dest.resourceType === urlUtils.IFRAME;
     }
 
     // API
@@ -151,12 +151,12 @@ export default class RequestPipelineContext {
                          contentTypeUtils.isScriptResource(contentType, accept);
 
         var requireProcessing = !this.isXhr &&
-                                (this.isPage || this.isIFrame || isCSS || isScript || isManifest || isJSON);
+                                (this.isPage || this.isIframe || isCSS || isScript || isManifest || isJSON);
 
-        var isIFrameWithImageSrc = this.isIFrame && !this.isPage && /^\s*image\//.test(contentType);
+        var isIframeWithImageSrc = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
         var charset             = null;
-        var contentTypeUrlToken = getContentTypeUrlToken(isScript, this.isIFrame);
+        var contentTypeUrlToken = getContentTypeUrlToken(isScript, this.isIframe);
 
         // NOTE: we need charset information if we are going to process resource
         if (requireProcessing) {
@@ -172,7 +172,7 @@ export default class RequestPipelineContext {
         this.contentInfo = {
             charset,
             requireProcessing,
-            isIFrameWithImageSrc,
+            isIframeWithImageSrc,
             isCSS,
             isScript,
             isManifest,
@@ -183,7 +183,7 @@ export default class RequestPipelineContext {
     }
 
     getInjectableScripts () {
-        var taskScript = this.isIFrame ? '/iframe-task.js' : '/task.js';
+        var taskScript = this.isIframe ? '/iframe-task.js' : '/task.js';
         var scripts    = this.session.injectable.scripts.concat(taskScript);
 
         return this._getInjectable(scripts);

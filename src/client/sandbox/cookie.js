@@ -1,8 +1,8 @@
 import SandboxBase from './base';
 import COMMAND from '../../session/command';
 import trim from '../../utils/string-trim';
-import urlUtils from '../utils/url';
 import settings from '../settings';
+import * as originLocation from '../utils/origin-location';
 import * as cookieUtils from '../utils/cookie';
 import { isCrossDomainWindows } from '../utils/dom';
 import { queuedAsyncServiceMsg } from '../transport';
@@ -32,7 +32,7 @@ export default class CookieSandbox extends SandboxBase {
         // NOTE: We must add cookie path prefix to the path because the proxied location path defferent from the
         // destination location path
         if (parsedCookieCopy.path && parsedCookieCopy.path !== '/')
-            parsedCookieCopy.path = urlUtils.OriginLocation.getCookiePathPrefix() + parsedCookieCopy.path;
+            parsedCookieCopy.path = originLocation.getCookiePathPrefix() + parsedCookieCopy.path;
 
         document.cookie = cookieUtils.format(parsedCookieCopy);
 
@@ -55,19 +55,19 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookie.httponly)
             return false;
 
-        var parsedOrigin   = urlUtils.OriginLocation.getParsed();
+        var parsedOrigin   = originLocation.getParsed();
         var originProtocol = parsedOrigin.protocol;
 
         //NOTE: TestCafe tunnels HTTPS requests via HTTP so we should validate Secure attribute manually
         if (parsedCookie.secure && originProtocol !== 'https:')
             return false;
 
-        //NOTE: add protocol portion to the domain, so we can use urlUtil for same origin check
+        //NOTE: add protocol portion to the domain, so we can use urlUtils for same origin check
         var domain = parsedCookie.domain && 'http://' + parsedCookie.domain;
 
         //NOTE: all TestCafe sessions has same domain, so we should validate Domain attribute manually
         //according to test url
-        return !domain || urlUtils.sameOriginCheck(document.location.toString(), domain);
+        return !domain || originLocation.sameOriginCheck(document.location.toString(), domain);
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {

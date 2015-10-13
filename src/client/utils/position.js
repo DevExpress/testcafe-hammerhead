@@ -236,8 +236,8 @@ export function getOffsetPosition (el) {
     }
 
     var doc               = domUtils.findDocument(el);
-    var isInIFrame        = domUtils.isElementInIframe(el, doc);
-    var currentIFrame     = isInIFrame ? domUtils.getIFrameByElement(doc) : null;
+    var isInIframe        = domUtils.isElementInIframe(el, doc);
+    var currentIframe     = isInIframe ? domUtils.getIframeByElement(doc) : null;
     var offsetPosition    = doc === el ? styleUtils.getOffset(doc.documentElement) : styleUtils.getOffset(el);
     var relativeRectangle = null;
 
@@ -250,7 +250,7 @@ export function getOffsetPosition (el) {
         top:  0
     };
 
-    if (!isInIFrame || !currentIFrame) {
+    if (!isInIframe || !currentIframe) {
         var isSvg = domUtils.isSVGElementOrChild(el);
 
         relativeRectangle = isSvg ? getSvgElementRelativeRectangle(el) : null;
@@ -261,13 +261,13 @@ export function getOffsetPosition (el) {
         };
     }
 
-    var iframeBorders = styleUtils.getBordersWidth(currentIFrame);
+    var iframeBorders = styleUtils.getBordersWidth(currentIframe);
 
     borders.left += iframeBorders.left;
     borders.top += iframeBorders.top;
 
-    var iframeOffset   = getOffsetPosition(currentIFrame);
-    var iframePadding  = styleUtils.getElementPadding(currentIFrame);
+    var iframeOffset   = getOffsetPosition(currentIframe);
+    var iframePadding  = styleUtils.getElementPadding(currentIframe);
     var clientPosition = null;
 
     if (domUtils.isSVGElementOrChild(el)) {

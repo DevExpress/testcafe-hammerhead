@@ -1,7 +1,8 @@
 /*eslint-disable no-native-reassign */
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
-import urlUtils from '../../utils/url';
+import * as originLocation from '../../utils/origin-location';
+import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows } from '../../utils/dom';
@@ -28,7 +29,7 @@ export default class MessageSandbox extends SandboxBase {
         this.pingCallback = null;
         this.pingCmd      = null;
 
-        //NOTE: the window.top property may be changed after an iFrame is removed from DOM in IE, so we save it on script initializing
+        //NOTE: the window.top property may be changed after an iframe is removed from DOM in IE, so we save it on script initializing
         this.topWindow = null;
         this.window    = null;
 
@@ -62,9 +63,9 @@ export default class MessageSandbox extends SandboxBase {
         var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
         if (data.type !== MESSAGE_TYPE.service) {
-            var originUrl = urlUtils.OriginLocation.get();
+            var originUrl = originLocation.get();
 
-            if (data.targetUrl === '*' || urlUtils.sameOriginCheck(originUrl, data.targetUrl)) {
+            if (data.targetUrl === '*' || originLocation.sameOriginCheck(originUrl, data.targetUrl)) {
                 resultEvt.origin = data.originUrl;
 
                 // IE9 can send only string values
@@ -81,8 +82,8 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     static _wrapMessage (type, message, targetUrl) {
-        var parsedOrigin = urlUtils.OriginLocation.getParsed();
-        var originUrl    = urlUtils.formatUrl({
+        var parsedOrigin = originLocation.getParsed();
+        var originUrl    = formatUrl({
             protocol: parsedOrigin.protocol,
             host:     parsedOrigin.host
         });
@@ -99,14 +100,14 @@ export default class MessageSandbox extends SandboxBase {
         return isIE9 ? stringifyJSON(result) : result;
     }
 
-    //NOTE: in IE after an iFrame is removed from DOM the window.top property is equal to window.self
-    _isIFrameRemoved () {
+    //NOTE: in IE after an iframe is removed from DOM the window.top property is equal to window.self
+    _isIframeRemoved () {
         return this.window.top === this.window.self && this.window !== this.topWindow;
     }
 
     attach (window) {
         super.attach(window);
-        //NOTE: the window.top property may be changed after an iFrame is removed from DOM in IE, so we save it on script initializing
+        //NOTE: the window.top property may be changed after an iframe is removed from DOM in IE, so we save it on script initializing
         this.topWindow = window.top;
 
         var onMessageHandler        = this._onMessage.bind(this);
@@ -114,10 +115,10 @@ export default class MessageSandbox extends SandboxBase {
 
         this.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
         this.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
-        window[this.RECEIVE_MSG_FN] = isIFrameWithoutSrc || this.topWindow === window.self ? onMessageHandler : null;
+        window[this.RECEIVE_MSG_FN] = isIframeWithoutSrc || this.topWindow === window.self ? onMessageHandler : null;
     }
 
-    setPingIFrameTimeout (value) {
+    setPingIframeTimeout (value) {
         this.PING_IFRAME_TIMEOUT = value;
     }
 
@@ -140,11 +141,11 @@ export default class MessageSandbox extends SandboxBase {
         var targetUrl = args[1];
 
         if (isCrossDomainWindows(this.window, contentWindow))
-            args[1] = urlUtils.getCrossDomainProxyUrl();
-        else if (!urlUtils.isSupportedProtocol(contentWindow.location))
+            args[1] = getCrossDomainProxyUrl();
+        else if (!isSupportedProtocol(contentWindow.location))
             args[1] = '*';
         else {
-            args[1] = urlUtils.formatUrl({
+            args[1] = formatUrl({
                 protocol: this.window.location.protocol,
                 host:     this.window.location.host
             });
@@ -152,7 +153,7 @@ export default class MessageSandbox extends SandboxBase {
 
         args[0] = MessageSandbox._wrapMessage(MESSAGE_TYPE.user, args[0], targetUrl);
 
-        if (isIFrameWithoutSrc) {
+        if (isIframeWithoutSrc) {
             /*eslint-disable camelcase */
             this.window.tc_cw_375fb9e7 = contentWindow;
             this.window.tc_a_375fb9e7  = args;
@@ -168,7 +169,7 @@ export default class MessageSandbox extends SandboxBase {
         var message = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
 
         //NOTE: for iframes without src
-        if (!this._isIFrameRemoved() && (isIFrameWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
+        if (!this._isIframeRemoved() && (isIframeWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
                                                                targetWindow[this.RECEIVE_MSG_FN])) {
             //NOTE: postMessage delay imitation
             nativeMethods.setTimeout.call(this.topWindow, () =>
@@ -184,15 +185,15 @@ export default class MessageSandbox extends SandboxBase {
         return targetWindow.postMessage(message, '*');
     }
 
-    pingIFrame (targetIFrame, pingMessageCommand, shortWaiting) {
+    pingIframe (targetIframe, pingMessageCommand, shortWaiting) {
         return new Promise(resolve => {
             var pingInterval = null;
             var pingTimeout  = null;
             var targetWindow = null;
 
             var sendPingRequest = () => {
-                if (targetIFrame.contentWindow) {
-                    targetWindow = targetIFrame.contentWindow;
+                if (targetIframe.contentWindow) {
+                    targetWindow = targetIframe.contentWindow;
 
                     this.sendServiceMsg({
                         cmd:           this.pingCmd,

@@ -1,24 +1,23 @@
-var Browser         = Hammerhead.get('./utils/browser');
-var DomProcessor    = Hammerhead.get('./dom-processor/dom-processor');
-var ScriptProcessor = Hammerhead.get('../processing/script');
-var JSProcessor     = Hammerhead.get('../processing/js/index');
-var NativeMethods   = Hammerhead.get('./sandbox/native-methods');
-var Const           = Hammerhead.get('../const');
-var UrlUtil         = Hammerhead.get('./utils/url');
+var CONST           = Hammerhead.get('../const');
 var Promise         = Hammerhead.get('es6-promise').Promise;
+var urlUtils        = Hammerhead.get('./utils/url');
+var domProcessor    = Hammerhead.get('./dom-processor/dom-processor');
+var scriptProcessor = Hammerhead.get('../processing/script');
 
+var jsProcessor           = Hammerhead.jsProcessor;
+var nativeMethods         = Hammerhead.nativeMethods;
+var browserUtils          = Hammerhead.utils.browser;
 var iframeSandbox         = Hammerhead.sandbox.iframe;
 var elementEditingWatcher = Hammerhead.sandbox.event.elementEditingWatcher;
 var eventSimulator        = Hammerhead.sandbox.event.eventSimulator;
 
-
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 /* eslint-disable no-implied-eval */
@@ -29,7 +28,7 @@ test('script.textContent', function () {
     eval(processScript('script.textContent="' + scriptCode + '"'));
 
     notEqual(script.textContent, scriptCode);
-    strictEqual(script.textContent.replace(/\s/g, ''), ScriptProcessor.process(scriptCode).replace(/\s/g, ''));
+    strictEqual(script.textContent.replace(/\s/g, ''), scriptProcessor.process(scriptCode).replace(/\s/g, ''));
 });
 
 test('unsupported protocol', function () {
@@ -50,7 +49,7 @@ test('anchor', function () {
     var etalonEmptyAnchor                    = document.createElement('a');
     var etalonAnchorWithNotSupportedProtocol = document.createElement('a');
     var url                                  = 'https://google.com:1888/index.html?value#yo';
-    var proxyUrl                             = UrlUtil.getProxyUrl(url);
+    var proxyUrl                             = urlUtils.getProxyUrl(url);
 
     etalonAnchor.href = url;
     anchor.href       = proxyUrl;
@@ -114,7 +113,7 @@ test('anchor', function () {
     strictEqual(execScript('anchor.protocol'), etalonAnchor.protocol);
 
 
-    if (!Browser.isSafari) {
+    if (!browserUtils.isSafari) {
         execScript('emptyAnchor.protocol="https:";');
         etalonEmptyAnchor.protocol = 'https:';
         strictEqual(execScript('emptyAnchor.protocol'), etalonEmptyAnchor.protocol);
@@ -190,17 +189,17 @@ test('script text', function () {
     var script = document.createElement('script');
 
     eval(processScript('script.text="var test = window.href;"'));
-    ok(JSProcessor.isScriptProcessed(script.text));
+    ok(jsProcessor.isScriptProcessed(script.text));
 });
 
 test('iframe', function () {
     var iframe = document.createElement('iframe');
 
-    window[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](iframe);
+    window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](iframe);
 
     eval(processScript('iframe.sandbox="allow-forms"'));
-    strictEqual(NativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');
-    strictEqual(NativeMethods.getAttribute.call(iframe, DomProcessor.getStoredAttrName('sandbox')), 'allow-forms');
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, domProcessor.getStoredAttrName('sandbox')), 'allow-forms');
 
     var result = '';
 
@@ -213,15 +212,15 @@ test('innerHTML', function () {
     var scriptUrl = 'http://some.com/script.js';
     var linkUrl   = 'http://some.com/page';
 
-    document[Const.DOCUMENT_CHARSET] = 'utf-8';
+    document[CONST.DOCUMENT_CHARSET] = 'utf-8';
 
     eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><\/script><a href=\\"" + linkUrl + "\\"></a>";'));
 
     strictEqual(div.children.length, 2);
-    strictEqual(div.children[0].src, UrlUtil.getProxyUrl(scriptUrl, null, null, null, UrlUtil.SCRIPT, 'utf-8'));
-    strictEqual(div.children[1].href, UrlUtil.getProxyUrl(linkUrl));
+    strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, null, null, null, urlUtils.SCRIPT, 'utf-8'));
+    strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl));
 
-    document[Const.DOCUMENT_CHARSET] = null;
+    document[CONST.DOCUMENT_CHARSET] = null;
 });
 
 asyncTest('body.innerHTML in iframe', function () {
@@ -253,7 +252,7 @@ asyncTest('body.innerHTML in iframe', function () {
 });
 
 // IE does not allow to override postMessage method
-if (!Browser.isIE) {
+if (!browserUtils.isIE) {
     asyncTest('postMessage', function () {
         var target = window.location.protocol + '//' + window.location.host;
         var iframe = document.createElement('iframe');
@@ -287,7 +286,7 @@ test('script block inserted via element.innerHtml must not be executed (B237015)
     ok(!window[testPropertyName]);
 });
 
-if (!Browser.isIE) {
+if (!browserUtils.isIE) {
     asyncTest('valid resource type for iframe.contentWindow.location must be calculated', function () {
         var iframe = document.createElement('iframe');
 
@@ -297,7 +296,7 @@ if (!Browser.isIE) {
             iframe.removeEventListener('load', loadHandler);
 
             iframe.addEventListener('load', function () {
-                strictEqual(UrlUtil.parseProxyUrl(iframe.contentWindow.location).resourceType, 'iframe');
+                strictEqual(urlUtils.parseProxyUrl(iframe.contentWindow.location).resourceType, 'iframe');
                 iframe.parentNode.removeChild(iframe);
                 start();
             });
@@ -315,7 +314,7 @@ asyncTest('iframe.body.innerHtml must be overriden (Q527555)', function () {
 
     window.setTimeout(function () {
         var iframeBody = $iframe[0].contentWindow.document.body;
-        var html       = '<a href="url" ' + DomProcessor.getStoredAttrName('src') + '="url1" />';
+        var html       = '<a href="url" ' + domProcessor.getStoredAttrName('src') + '="url1" />';
 
         iframeBody.innerHTML = html;
 
@@ -326,10 +325,10 @@ asyncTest('iframe.body.innerHtml must be overriden (Q527555)', function () {
 });
 
 test('setting the link.href attribute to \'mailto\' in iframe (T228218)', function () {
-    var storedGetProxyUrl = UrlUtil.getProxyUrl;
+    var storedGetProxyUrl = urlUtils.getProxyUrl;
     var link              = document.createElement('a');
 
-    UrlUtil.getProxyUrl = function () {
+    urlUtils.getProxyUrl = function () {
         return 'http://replaced';
     };
 
@@ -341,7 +340,7 @@ test('setting the link.href attribute to \'mailto\' in iframe (T228218)', functi
     strictEqual(eval(processScript('link.href')), 'mailto:test@mail.com');
     strictEqual(link.getAttribute('href'), 'mailto:test@mail.com');
 
-    UrlUtil.getProxyUrl = storedGetProxyUrl;
+    urlUtils.getProxyUrl = storedGetProxyUrl;
 });
 
 test('link without the href attrubute must return an empty value for href (B238838)', function () {

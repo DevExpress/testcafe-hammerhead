@@ -56,9 +56,9 @@ var responseTransforms = {
     // NOTE: we perform CORS checks on our side, so we skip related headers
     'access-control-allow-origin': skip,
 
-    // NOTE: change transform type if we have iFrame with image as src,
+    // NOTE: change transform type if we have iframe with image as src,
     // because it was transformed to the HTML with the image tag
-    'content-type':   (src, ctx) => ctx.contentInfo.isIFrameWithImageSrc ? 'text/html' : src,
+    'content-type':   (src, ctx) => ctx.contentInfo.isIframeWithImageSrc ? 'text/html' : src,
     'content-length': (src, ctx) => ctx.contentInfo.requireProcessing ? ctx.destResBody.length : src,
 
     'location': (src, ctx) => {
@@ -70,7 +70,7 @@ var responseTransforms = {
         if (!host)
             src = resolveUrl(ctx.dest.url, src);
 
-        var isCrossDomain = ctx.isIFrame && !urlUtils.sameOriginCheck(ctx.dest.url, src);
+        var isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
 
         return ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
     }

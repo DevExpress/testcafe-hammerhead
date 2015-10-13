@@ -37,7 +37,7 @@
     "getLocation": true,
     "Hammerhead": true,
     "overrideDomMeth": true,
-    "initIFrameTestHandler": true
+    "initIframeTestHandler": true
   }
 }
 

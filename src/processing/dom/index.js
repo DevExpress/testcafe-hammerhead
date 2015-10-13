@@ -2,13 +2,12 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-
 import CONST from '../../const';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
-import urlUtils from '../../utils/url';
 import jsProcessor from '../js/index';
 import scriptProcessor from '../../processing/script';
 import styleProcessor from '../../processing/style';
+import * as urlUtils from '../../utils/url';
 
 const CDATA_REG_EX = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 // Ignore '//:0/' url (http://www.myntra.com/)
@@ -192,7 +191,7 @@ export default class DomProcessor {
         return attr + CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX;
     }
 
-    isOpenLinkInIFrame (el) {
+    isOpenLinkInIframe (el) {
         var tagName = this.adapter.getTagName(el).toLowerCase();
         var target  = this.adapter.getAttr(el, 'target');
 
@@ -201,9 +200,9 @@ export default class DomProcessor {
             var isNameTarget   = target ? target[0] !== '_' : false;
 
             if (target === '_parent')
-                return mustProcessTag && !this.adapter.isTopParentIFrame(el);
+                return mustProcessTag && !this.adapter.isTopParentIframe(el);
 
-            if (mustProcessTag && (this.adapter.hasIFrameParent(el) || isNameTarget))
+            if (mustProcessTag && (this.adapter.hasIframeParent(el) || isNameTarget))
                 return true;
         }
 
@@ -400,7 +399,7 @@ export default class DomProcessor {
                     if (!this.adapter.needToProcessUrl(elTagName, target))
                         return;
 
-                    if (isIframe || this.isOpenLinkInIFrame(el))
+                    if (isIframe || this.isOpenLinkInIframe(el))
                         resourceType = urlUtils.IFRAME;
                     else if (isScript)
                         resourceType = urlUtils.SCRIPT;
@@ -420,7 +419,7 @@ export default class DomProcessor {
                             resourceUrl = proxyUrlObj.originResourceInfo.protocol + resourceUrl;
 
                         // Cross-domain iframe
-                        if (!urlUtils.sameOriginCheck(originUrl, resourceUrl)) {
+                        if (!this.adapter.sameOriginCheck(originUrl, resourceUrl)) {
                             var proxyHostname = urlUtils.parseUrl(location).hostname;
 
                             proxyUrl = resourceUrl ? this.adapter.getProxyUrl(resourceUrl, proxyHostname,

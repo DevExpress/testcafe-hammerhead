@@ -4,7 +4,7 @@ import jsProcessor from '../../../processing/js/index';
 import nativeMethods from '../native-methods';
 import * as htmlUtils from '../../utils/html';
 import { isFirefox, isIE } from '../../utils/browser';
-import { isIframeWithoutSrc } from '../../utils/url';
+import { isIframeWithoutSrc } from '../../utils/dom';
 
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox) {
@@ -29,14 +29,14 @@ export default class DocumentSandbox extends SandboxBase {
     _beforeDocumentCleaned () {
         this.nodeSandbox.mutation.onBeforeDocumentCleaned({
             document:           this.document,
-            isIFrameWithoutSrc: isIFrameWithoutSrc
+            isIframeWithoutSrc: isIframeWithoutSrc
         });
     }
 
     _onDocumentClosed () {
         this.nodeSandbox.mutation.onDocumentClosed({
             document:           this.document,
-            isIFrameWithoutSrc: isIFrameWithoutSrc
+            isIframeWithoutSrc: isIframeWithoutSrc
         });
     }
 
@@ -89,7 +89,7 @@ export default class DocumentSandbox extends SandboxBase {
             this.nodeSandbox.mutation.onDocumentCleaned({
                 window:             this.window,
                 document:           this.document,
-                isIFrameWithoutSrc: isIFrameWithoutSrc
+                isIframeWithoutSrc: isIframeWithoutSrc
             });
 
             this.nodeSandbox.overrideDomMethods(null, this.document); // B234357

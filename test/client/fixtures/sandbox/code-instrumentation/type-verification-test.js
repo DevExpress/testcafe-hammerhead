@@ -1,15 +1,15 @@
-var UrlUtil = Hammerhead.get('./utils/url');
+var urlUtils = Hammerhead.get('./utils/url');
 
 var accessors     = Hammerhead.sandbox.codeInstrumentation.elementPropertyAccessors;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 test('Is anchor instance', function () {
@@ -33,50 +33,50 @@ test('Is dom element instance', function () {
 });
 
 test('Is document instance', function () {
-    var savedGetProxyUrl = UrlUtil.getProxyUrl;
+    var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeDoc          = {
         referrer: ''
     };
 
-    UrlUtil.getProxyUrl = function () {
+    urlUtils.getProxyUrl = function () {
         return 'http://proxy/';
     };
 
     setProperty(fakeDoc, 'referrer', 'referrer');
     strictEqual(fakeDoc.referrer, 'referrer');
 
-    UrlUtil.getProxyUrl = savedGetProxyUrl;
+    urlUtils.getProxyUrl = savedGetProxyUrl;
 });
 
 test('Is window instance', function () {
-    var savedGetProxyUrl = UrlUtil.getProxyUrl;
+    var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeWin          = {
         location: ''
     };
 
-    UrlUtil.getProxyUrl = function () {
+    urlUtils.getProxyUrl = function () {
         return 'http://proxy/';
     };
 
     setProperty(fakeWin, 'location', 'location');
     strictEqual(fakeWin.location, 'location');
 
-    UrlUtil.getProxyUrl = savedGetProxyUrl;
+    urlUtils.getProxyUrl = savedGetProxyUrl;
 });
 
 test('Is location instance', function () {
-    var savedGetProxyUrl = UrlUtil.getProxyUrl;
+    var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeLocation     = {
         href: ''
     };
 
-    UrlUtil.getProxyUrl = function () {
+    urlUtils.getProxyUrl = function () {
         return 'http://proxy/';
     };
 
     setProperty(fakeLocation, 'href', 'href');
     strictEqual(fakeLocation.href, 'href');
 
-    UrlUtil.getProxyUrl = savedGetProxyUrl;
+    urlUtils.getProxyUrl = savedGetProxyUrl;
 });
 

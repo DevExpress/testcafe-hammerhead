@@ -5,10 +5,7 @@
     <meta charset="utf-8">
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
     <script type="text/javascript">
-        Hammerhead.get('./utils/url').OriginLocation.get = function () {
-            return 'https://example.com';
-        };
-
+        Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
         Hammerhead.start();
         Hammerhead.on(Hammerhead.EVENTS.bodyCreated, function (e) {
             if (e.body === document.body && !window.bodyExecutingStarted)
@@ -25,7 +22,6 @@
 
     script.parentNode.removeChild(script);
 </script>
-
 <script>window.bodyExecutingStarted = true;</script>
 </body>
 </html>

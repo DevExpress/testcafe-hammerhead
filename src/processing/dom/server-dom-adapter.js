@@ -1,6 +1,6 @@
 import BaseDomAdapter from './base-dom-adapter';
 import events from 'events';
-import urlUtils from '../../utils/url.js';
+import * as urlUtils from '../../utils/url.js';
 
 export default class ServerDomAdapter extends BaseDomAdapter {
     constructor (isIframe, crossDomainPort) {
@@ -81,7 +81,7 @@ export default class ServerDomAdapter extends BaseDomAdapter {
         domProcessor.emit = eventEmitter.emit.bind(eventEmitter);
     }
 
-    hasIFrameParent () {
+    hasIframeParent () {
         return this.isIframe;
     }
 
@@ -93,7 +93,11 @@ export default class ServerDomAdapter extends BaseDomAdapter {
         return urlUtils.getProxyUrl.apply(urlUtils, arguments);
     }
 
-    isTopParentIFrame () {
+    isTopParentIframe () {
         return false;
+    }
+
+    sameOriginCheck (location, checkedUrl) {
+        return urlUtils.sameOriginCheck(location, checkedUrl);
     }
 }

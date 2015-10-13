@@ -5,22 +5,13 @@
     $('script').addClass('script-hammerhead-shadow-ui');
     $('link').addClass('ui-stylesheet-hammerhead-shadow-ui');
 
+    var CONST          = Hammerhead.get('../const');
+    var originLocation = Hammerhead.get('./utils/origin-location');
+    var jsProcessor    = Hammerhead.jsProcessor;
 
-    var Settings = Hammerhead.get('./settings');
+    originLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
-    Settings.set({
-        sessionId: 'sessionId'
-    });
-
-    var UrlUtil     = Hammerhead.get('./utils/url');
-    var JSProcessor = Hammerhead.get('../processing/js/index');
-    var Const       = Hammerhead.get('../const');
-
-    UrlUtil.OriginLocation.get = function () {
-        return 'https://example.com';
-    };
-
-    window.initIFrameTestHandler = function (e) {
+    window.initIframeTestHandler = function (e) {
         if (e.iframe.id.indexOf('test') !== -1) {
             e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
                 'Hammerhead.start({',
@@ -32,20 +23,22 @@
         }
     };
 
-    Hammerhead.start();
+    Hammerhead.start({
+        sessionId: 'sessionId'
+    });
 
-    window.overrideDomMeth = window[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME];
+    window.overrideDomMeth = window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME];
 
-    window[Const.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] = function (el) {
+    window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] = function (el) {
         if (el)
             window.overrideDomMeth(el);
     };
 
-    window.processScript = window[JSProcessor.PROCESS_SCRIPT_METH_NAME];
-    window.getProperty   = window[JSProcessor.GET_PROPERTY_METH_NAME];
-    window.setProperty   = window[JSProcessor.SET_PROPERTY_METH_NAME];
-    window.callMethod    = window[JSProcessor.CALL_METHOD_METH_NAME];
-    window.getLocation   = window[JSProcessor.GET_LOCATION_METH_NAME];
+    window.processScript = window[jsProcessor.PROCESS_SCRIPT_METH_NAME];
+    window.getProperty   = window[jsProcessor.GET_PROPERTY_METH_NAME];
+    window.setProperty   = window[jsProcessor.SET_PROPERTY_METH_NAME];
+    window.callMethod    = window[jsProcessor.CALL_METHOD_METH_NAME];
+    window.getLocation   = window[jsProcessor.GET_LOCATION_METH_NAME];
 
 
     var globals = window.QUnitGlobals;

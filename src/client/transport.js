@@ -145,7 +145,7 @@ class Transport extends EventEmitter {
     performRequest (msg, callback) {
         msg.sessionId = settings.get().sessionId;
 
-        if (isIFrameWithoutSrc)
+        if (isIframeWithoutSrc)
             msg.referer = settings.get().referer;
 
         var sendMsg = forced => {

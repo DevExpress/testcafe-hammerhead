@@ -1,18 +1,19 @@
-var Browser                 = Hammerhead.get('./utils/browser');
 var CodeInstrumentation     = Hammerhead.get('./sandbox/code-instrumentation');
 var LocationInstrumentation = Hammerhead.get('./sandbox/code-instrumentation/location');
-var UrlUtil                 = Hammerhead.get('./utils/url');
 var Promise                 = Hammerhead.get('es6-promise').Promise;
+var urlUtils                = Hammerhead.get('./utils/url');
 
 var iframeSandbox = Hammerhead.sandbox.iframe;
+var browserUtils  = Hammerhead.utils.browser;
+
 
 QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 asyncTest('iframe with empty src', function () {
@@ -63,7 +64,7 @@ asyncTest('iframe with empty src', function () {
 });
 
 //// Only Chrome raises 'load' event for iframes with 'javascript:' src and creates window instance
-if (Browser.isWebKit) {
+if (browserUtils.isWebKit) {
     asyncTest('iframe with "javascript:" src', function () {
         var $iframe = $('<iframe id="test3" src="javascript:void(0);">');
 
@@ -89,7 +90,7 @@ if (Browser.isWebKit) {
 test('iframe', function () {
     var checkProp = function (prop, value) {
         var windowMock                                               = {
-            location: UrlUtil.getProxyUrl('http://google.net:90/'),
+            location: urlUtils.getProxyUrl('http://google.net:90/'),
 
             top: {
                 document: document
@@ -100,14 +101,14 @@ test('iframe', function () {
 
         new CodeInstrumentation({}, {}).attach(windowMock);
         LocationInstrumentation.getLocationWrapper(windowMock)[prop] = value;
-        strictEqual(UrlUtil.getProxyUrl(windowMock.location).resourceType, UrlUtil.Iframe);
+        strictEqual(urlUtils.getProxyUrl(windowMock.location).resourceType, urlUtils.Iframe);
     };
 
     var checkFunc = function (func, value) {
         var windowMock = {
             location: {
                 toString: function () {
-                    return UrlUtil.getProxyUrl('http://google.net:90/');
+                    return urlUtils.getProxyUrl('http://google.net:90/');
                 },
 
                 assign: function (value) {
@@ -125,7 +126,7 @@ test('iframe', function () {
 
         new CodeInstrumentation({}, {}).attach(windowMock);
         LocationInstrumentation.getLocationWrapper(windowMock)[func](value);
-        strictEqual(UrlUtil.getProxyUrl(windowMock.location[func + 'Value']).resourceType, UrlUtil.Iframe);
+        strictEqual(urlUtils.getProxyUrl(windowMock.location[func + 'Value']).resourceType, urlUtils.Iframe);
     };
 
     checkProp('port', 1333);

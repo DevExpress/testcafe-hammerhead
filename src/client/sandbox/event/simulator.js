@@ -198,7 +198,7 @@ export default class EventSimulator {
 
     _raiseNativeClick (el, originClick) {
         //B254199
-        var curWindow = domUtils.isElementInIframe(el) ? domUtils.getIFrameByElement(el).contentWindow : window;
+        var curWindow = domUtils.isElementInIframe(el) ? domUtils.getIframeByElement(el).contentWindow : window;
 
         if (browserUtils.isIE && browserUtils.version < 11)
             delete curWindow.event;
@@ -375,7 +375,7 @@ export default class EventSimulator {
         // Except IE11 - window.event is not null and its the same as in event handler (only in window.top.event).
         // Also in iE11 window.event has not returnValue property and
         // impossible to prevent event via assigning window.event.returnValue = false
-        var isElementInIFrame = domUtils.isElementInIframe(el);
+        var isElementInIframe = domUtils.isElementInIframe(el);
 
         if (domUtils.isFileInput(el) && ev.type === 'click')
             this.clickedFileInput = el;
@@ -385,7 +385,7 @@ export default class EventSimulator {
 
             var returnValue = true;
             //B254199
-            var curWindow      = isElementInIFrame ? domUtils.getIFrameByElement(el).contentWindow : window;
+            var curWindow      = isElementInIframe ? domUtils.getIframeByElement(el).contentWindow : window;
             var curWindowEvent = null;
             var onEvent        = 'on' + (browserUtils.isIE10 &&
                                          /MSPointer(Down|Up|Move|Over|Out)/.test(ev.type) ? ev.type.toLowerCase() : ev.type);
@@ -467,8 +467,8 @@ export default class EventSimulator {
         }
         //NOTE: In IE11 iframe's window.event object is null.
         // So we should set iframe's window.event object malually by window.event (B254199).
-        else if (browserUtils.isIE && browserUtils.version > 10 && isElementInIFrame) {
-            Object.defineProperty(domUtils.getIFrameByElement(el).contentWindow, 'event', {
+        else if (browserUtils.isIE && browserUtils.version > 10 && isElementInIframe) {
+            Object.defineProperty(domUtils.getIframeByElement(el).contentWindow, 'event', {
                 get:          () => window.event,
                 configurable: true
             });

@@ -26,11 +26,11 @@ class PageProcessor extends ResourceProcessorBase {
     static _getPageProcessingOptions (ctx, urlReplacer) {
         return {
             crossDomainProxyPort: ctx.serverInfo.crossDomainPort,
-            isIFrame:             ctx.isIFrame,
+            isIframe:             ctx.isIframe,
             styleUrl:             ctx.getInjectableStyles()[0],
             scripts:              ctx.getInjectableScripts(),
             urlReplacer:          urlReplacer,
-            isIframeWithImageSrc: ctx.contentInfo && ctx.contentInfo.isIFrameWithImageSrc
+            isIframeWithImageSrc: ctx.contentInfo && ctx.contentInfo.isIframeWithImageSrc
         };
     }
 
@@ -98,7 +98,7 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     shouldProcessResource (ctx) {
-        return ctx.isPage || ctx.contentInfo.isIFrameWithImageSrc;
+        return ctx.isPage || ctx.contentInfo.isIframeWithImageSrc;
     }
 
     processResource (html, ctx, charset, urlReplacer, processingOpts) {
@@ -118,18 +118,18 @@ class PageProcessor extends ResourceProcessorBase {
         var pageProcessor = this;
 
         var iframeHtmlProcessor = function (iframeHtml, callback) {
-            var storedIsIframe = processingOpts.isIFrame;
+            var storedIsIframe = processingOpts.isIframe;
 
-            processingOpts.isIFrame = true;
+            processingOpts.isIframe = true;
 
             var result = pageProcessor.processResource(iframeHtml, ctx, charset, urlReplacer, processingOpts);
 
-            processingOpts.isIFrame = storedIsIframe;
+            processingOpts.isIframe = storedIsIframe;
 
             callback(result);
         };
 
-        var domProcessor = new DomProcessor(new DomAdapter(processingOpts.isIFrame, processingOpts.crossDomainProxyPort));
+        var domProcessor = new DomProcessor(new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort));
 
         domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
         domProcessor.processPage($, processingOpts.urlReplacer);

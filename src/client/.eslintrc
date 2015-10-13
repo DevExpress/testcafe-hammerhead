@@ -1,6 +1,6 @@
 {
   "globals": {
-    "isIFrameWithoutSrc": true,
+    "isIframeWithoutSrc": true,
     "initHammerheadClient": true
   },
   "env": {

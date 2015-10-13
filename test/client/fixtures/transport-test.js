@@ -1,34 +1,35 @@
-var Browser       = Hammerhead.get('./utils/browser');
-var Transport     = Hammerhead.get('./transport');
-var NativeMethods = Hammerhead.get('./sandbox/native-methods');
-var Settings      = Hammerhead.get('./settings');
-var Promise       = Hammerhead.get('es6-promise').Promise;
+var Promise  = Hammerhead.get('es6-promise').Promise;
+var settings = Hammerhead.get('./settings');
 
-var savedAjaxOpenMethod = NativeMethods.XMLHttpRequest.prototype.open;
-var savedAjaxSendMethod = NativeMethods.XMLHttpRequest.prototype.send;
+var browserUtils  = Hammerhead.utils.browser;
+var transport     = Hammerhead.transport;
+var nativeMethods = Hammerhead.nativeMethods;
+
+var savedAjaxOpenMethod = nativeMethods.XMLHttpRequest.prototype.open;
+var savedAjaxSendMethod = nativeMethods.XMLHttpRequest.prototype.send;
 
 var requestIsAsync = false;
 
-Settings.get().serviceMsgUrl = '/service-msg/100';
+settings.get().serviceMsgUrl = '/service-msg/100';
 
 function reqisterAfterAjaxSendHook (callback) {
     callback = callback || function () {};
 
-    NativeMethods.XMLHttpRequest.prototype.open = function () {
+    nativeMethods.XMLHttpRequest.prototype.open = function () {
         requestIsAsync = arguments[2];
         if (typeof requestIsAsync === 'undefined')
             requestIsAsync = true;
 
         savedAjaxOpenMethod.apply(this, arguments);
     };
-    NativeMethods.XMLHttpRequest.prototype.send = function () {
+    nativeMethods.XMLHttpRequest.prototype.send = function () {
         savedAjaxSendMethod.apply(this, arguments);
         callback(this);
     };
 }
 function unregisterAfterAjaxSendHook () {
-    NativeMethods.XMLHttpRequest.prototype.open = savedAjaxOpenMethod;
-    NativeMethods.XMLHttpRequest.prototype.send = savedAjaxSendMethod;
+    nativeMethods.XMLHttpRequest.prototype.open = savedAjaxOpenMethod;
+    nativeMethods.XMLHttpRequest.prototype.send = savedAjaxSendMethod;
 }
 
 test('sendServiceMsg', function () {
@@ -40,9 +41,9 @@ test('sendServiceMsg', function () {
 
     reqisterAfterAjaxSendHook();
 
-    Transport.syncServiceMsg(msg, function (responseText, parsedResponceText) {
+    transport.syncServiceMsg(msg, function (responseText, parsedResponseText) {
         strictEqual(responseText, 100);
-        strictEqual(typeof parsedResponceText, 'undefined');
+        strictEqual(typeof parsedResponseText, 'undefined');
 
         ok(!requestIsAsync);
         unregisterAfterAjaxSendHook();
@@ -58,10 +59,10 @@ asyncTest('sendAsyncServiceMsg', function () {
 
     reqisterAfterAjaxSendHook();
 
-    Transport.asyncServiceMsg(msg)
-        .then(function (responseText, parsedResponceText) {
+    transport.asyncServiceMsg(msg)
+        .then(function (responseText, parsedResponseText) {
             strictEqual(responseText, 100);
-            strictEqual(typeof parsedResponceText, 'undefined');
+            strictEqual(typeof parsedResponseText, 'undefined');
             ok(requestIsAsync);
 
             unregisterAfterAjaxSendHook();
@@ -70,9 +71,9 @@ asyncTest('sendAsyncServiceMsg', function () {
 });
 
 asyncTest('queuedAsyncServiceMsg', function () {
-    var savedAsyncServiceMsgFunc = Transport.asyncServiceMsg;
+    var savedAsyncServiceMsgFunc = transport.asyncServiceMsg;
 
-    Transport.asyncServiceMsg = function (msg) {
+    transport.asyncServiceMsg = function (msg) {
         return new Promise(function (resolve) {
             window.setTimeout(function () {
                 resolve(msg.duration);
@@ -90,7 +91,7 @@ asyncTest('queuedAsyncServiceMsg', function () {
 
             deepEqual(completeMsgReqs, expectedCompleteMsgReqs);
 
-            Transport.asyncServiceMsg = savedAsyncServiceMsgFunc;
+            transport.asyncServiceMsg = savedAsyncServiceMsgFunc;
 
             start();
         }
@@ -98,18 +99,18 @@ asyncTest('queuedAsyncServiceMsg', function () {
 
     expect(1);
 
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 500 }).then(msgCallback);
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type2', duration: 10 }).then(msgCallback);
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }).then(msgCallback);
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 300 }).then(msgCallback);
-    Transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }).then(msgCallback);
+    transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 500 }).then(msgCallback);
+    transport.queuedAsyncServiceMsg({ cmd: 'Type2', duration: 10 }).then(msgCallback);
+    transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }).then(msgCallback);
+    transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 300 }).then(msgCallback);
+    transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }).then(msgCallback);
 
 });
 
 asyncTest('batchUpdate - without stored messages', function () {
     expect(1);
 
-    Transport.batchUpdate().then(function () {
+    transport.batchUpdate().then(function () {
         ok(true);
         start();
     });
@@ -118,15 +119,14 @@ asyncTest('batchUpdate - without stored messages', function () {
 asyncTest('batchUpdate - with stored messages', function () {
     expect(2);
 
-    var savedQueuedAsyncServiceMsg = Transport.queuedAsyncServiceMsg;
-
-    var result = 0;
+    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
+    var result                     = 0;
 
     var updateCallback = function () {
         ok(true);
         strictEqual(result, 60);
 
-        Transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
+        transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
         start();
     };
 
@@ -136,18 +136,18 @@ asyncTest('batchUpdate - with stored messages', function () {
         { cmd: 'Type3', duration: 30 }
     ];
 
-    Transport.queuedAsyncServiceMsg = function (item) {
+    transport.queuedAsyncServiceMsg = function (item) {
         return new Promise(function (resolve) {
             result += item.duration;
             resolve();
         });
     };
 
-    window.localStorage.setItem(Settings.get().sessionId, JSON.stringify(messages));
-    Transport.batchUpdate().then(updateCallback);
+    window.localStorage.setItem(settings.get().sessionId, JSON.stringify(messages));
+    transport.batchUpdate().then(updateCallback);
 });
 
-if (!Browser.isWebKit) {
+if (!browserUtils.isWebKit) {
     asyncTest('Resend aborted async service msg', function () {
         var xhrCount      = 0;
         var callbackCount = 0;
@@ -164,7 +164,7 @@ if (!Browser.isWebKit) {
 
         reqisterAfterAjaxSendHook(onAjaxSend);
 
-        Transport.asyncServiceMsg({})
+        transport.asyncServiceMsg({})
             .then(function () {
                 callbackCount++;
             });
@@ -181,13 +181,13 @@ if (!Browser.isWebKit) {
 }
 else {
     asyncTest('Resend aborted async service msg (WebKit)', function () {
-        Settings.get().sessionId = '%%%testUid%%%';
+        settings.get().sessionId = '%%%testUid%%%';
 
         var xhrCount      = 0;
         var callbackCount = 0;
         var value         = 'testValue';
 
-        ok(!window.localStorage.getItem(Settings.get().sessionId));
+        ok(!window.localStorage.getItem(settings.get().sessionId));
 
         var onAjaxSend = function (xhr) {
             xhrCount++;
@@ -200,7 +200,7 @@ else {
             test: value
         };
 
-        Transport.asyncServiceMsg(msg)
+        transport.asyncServiceMsg(msg)
             .then(function () {
                 callbackCount++;
             });
@@ -209,7 +209,7 @@ else {
             strictEqual(callbackCount, 1);
             strictEqual(xhrCount, 1);
 
-            var storedMsgStr = window.localStorage.getItem(Settings.get().sessionId);
+            var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
             var storedMsg    = JSON.parse(storedMsgStr)[0];
 
             ok(storedMsgStr);
@@ -217,18 +217,18 @@ else {
 
             unregisterAfterAjaxSendHook();
 
-            window.localStorage.removeItem(Settings.get().sessionId);
+            window.localStorage.removeItem(settings.get().sessionId);
             start();
         }, 200);
     });
 
     asyncTest('Do not dublicate messages in store (WebKit)', function () {
-        Settings.get().sessionId = '%%%testUid%%%';
+        settings.get().sessionId = '%%%testUid%%%';
 
         var callbackCount = 0;
         var value         = 'testValue';
 
-        ok(!window.localStorage.getItem(Settings.sessionId));
+        ok(!window.localStorage.getItem(settings.sessionId));
 
         var onAjaxSend = function (xhr) {
             xhr.abort();
@@ -240,12 +240,12 @@ else {
             test: value
         };
 
-        Transport.asyncServiceMsg(msg)
+        transport.asyncServiceMsg(msg)
             .then(function () {
                 callbackCount++;
             });
 
-        Transport.asyncServiceMsg(msg)
+        transport.asyncServiceMsg(msg)
             .then(function () {
                 callbackCount++;
             });
@@ -255,12 +255,12 @@ else {
         window.setTimeout(function () {
             strictEqual(callbackCount, 2);
 
-            var storedMsgStr = window.localStorage.getItem(Settings.get().sessionId);
+            var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
             var storedMsgArr = JSON.parse(storedMsgStr);
 
             strictEqual(storedMsgArr.length, 1);
 
-            window.localStorage.removeItem(Settings.get().sessionId);
+            window.localStorage.removeItem(settings.get().sessionId);
             start();
         }, 200);
     });
@@ -269,17 +269,17 @@ else {
 module('regression');
 
 test('Hammerhead should remove service data from local storage on the first session page load (GH-100)', function () {
-    var sessionId = Settings.get().sessionId;
+    var sessionId = settings.get().sessionId;
 
     // First page loading
-    Settings.get().isFirstPageLoad = true;
+    settings.get().isFirstPageLoad = true;
 
     // Add service data
     window.localStorage.setItem(sessionId, 'some-serive-data');
 
     var hammerhead = new Hammerhead.constructor(window);
 
-    hammerhead.start(Settings.get(), window);
+    hammerhead.start(settings.get(), window);
 
     ok(!window.localStorage.getItem(sessionId));
 });

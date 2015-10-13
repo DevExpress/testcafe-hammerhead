@@ -14,7 +14,7 @@ var SERVER_PORT  = 1400;
 function createSession () {
     var session = new Session('test/playground/upload-storage');
 
-    session._getIFramePayloadScript = function () {
+    session._getIframePayloadScript = function () {
         return '';
     };
 

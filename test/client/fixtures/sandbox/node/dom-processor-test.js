@@ -1,33 +1,33 @@
-var Html            = Hammerhead.get('./utils/html');
-var DomProcessor    = Hammerhead.get('./dom-processor/dom-processor');
-var ScriptProcessor = Hammerhead.get('../processing/script');
-var StyleProcessor  = Hammerhead.get('../processing/style');
-var Settings        = Hammerhead.get('./settings');
-var Const           = Hammerhead.get('../const');
-var UrlUtil         = Hammerhead.get('./utils/url');
-var NativeMethods   = Hammerhead.get('./sandbox/native-methods');
+var CONST           = Hammerhead.get('../const');
+var htmlUtils       = Hammerhead.get('./utils/html');
+var domProcessor    = Hammerhead.get('./dom-processor/dom-processor');
+var scriptProcessor = Hammerhead.get('../processing/script');
+var styleProcessor  = Hammerhead.get('../processing/style');
+var settings        = Hammerhead.get('./settings');
+var urlUtils        = Hammerhead.get('./utils/url');
 
+var nativeMethods = Hammerhead.nativeMethods;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     // 'window.open' method uses in the QUnit
-    window.open       = NativeMethods.windowOpen;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    window.open = nativeMethods.windowOpen;
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIFrameTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
 test('iframe', function () {
     var iframe         = $('<iframe sandbox="allow-forms">')[0];
-    var storedAttrName = DomProcessor.getStoredAttrName('sandbox');
+    var storedAttrName = domProcessor.getStoredAttrName('sandbox');
 
-    DomProcessor.processElement(iframe);
+    domProcessor.processElement(iframe);
 
-    strictEqual(NativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');
-    strictEqual(NativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-forms');
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-forms');
 });
 
 test('link in iframe', function () {
@@ -43,11 +43,11 @@ test('link in iframe', function () {
 
     iframeBody.innerHTML = '<a href="/index.html"></a>';
 
-    DomProcessor.processElement(iframeBody.childNodes[0], UrlUtil.convertToProxyUrl);
-    DomProcessor.processElement($link[0], UrlUtil.convertToProxyUrl);
+    domProcessor.processElement(iframeBody.childNodes[0], urlUtils.convertToProxyUrl);
+    domProcessor.processElement($link[0], urlUtils.convertToProxyUrl);
 
-    strictEqual(UrlUtil.parseProxyUrl(iframeBody.childNodes[0].href).resourceType, 'iframe');
-    ok(!UrlUtil.parseProxyUrl($link[0].href).resourceType);
+    strictEqual(urlUtils.parseProxyUrl(iframeBody.childNodes[0].href).resourceType, 'iframe');
+    ok(!urlUtils.parseProxyUrl($link[0].href).resourceType);
 
     $iframe.remove();
     $link.remove();
@@ -56,11 +56,11 @@ test('link in iframe', function () {
 test('script text', function () {
     var $div            = $('<div>').appendTo($('body'));
     var script          = 'var host = location.host';
-    var processedScript = ScriptProcessor.process(script);
+    var processedScript = scriptProcessor.process(script);
 
     $div[0].innerHTML = '\<script\>' + script + '\</script\>';
 
-    DomProcessor.processElement($div.find('script')[0]);
+    domProcessor.processElement($div.find('script')[0]);
 
     notEqual(script, processedScript);
     strictEqual($div[0].innerHTML.replace(/\s/g, ''), ('\<script\>' + processedScript +
@@ -71,15 +71,15 @@ test('script text', function () {
 
 test('comment inside script', function () {
     var testScript = function (scriptText) {
-        var script = NativeMethods.createElement.call(document, 'script');
+        var script = nativeMethods.createElement.call(document, 'script');
 
         script.text = scriptText;
-        DomProcessor.processElement(script);
-        NativeMethods.appendChild.call(document.head, script);
+        domProcessor.processElement(script);
+        nativeMethods.appendChild.call(document.head, script);
 
-        strictEqual(NativeMethods.getAttribute.call(window.commentTest, 'href'), UrlUtil.getProxyUrl('http://google.com'));
+        strictEqual(nativeMethods.getAttribute.call(window.commentTest, 'href'), urlUtils.getProxyUrl('http://google.com'));
 
-        NativeMethods.removeAttribute.call(window.commentTest, 'href');
+        nativeMethods.removeAttribute.call(window.commentTest, 'href');
         document.head.removeChild(script);
     };
 
@@ -119,123 +119,123 @@ test('attribute value', function () {
     container.innerHTML = html;
 
     $(container).find('*').each(function () {
-        DomProcessor.processElement(this);
+        domProcessor.processElement(this);
     });
 
     strictEqual(container.innerHTML, expectedHTML);
 });
 
 test('script src', function () {
-    var storedSessionId = Settings.get().sessionId;
+    var storedSessionId = settings.get().sessionId;
 
-    Settings.get().sessionId = 'uid';
+    settings.get().sessionId = 'uid';
 
     var script = document.createElement('script');
 
     script.src = 'http://google.com';
 
-    DomProcessor.processElement(script, UrlUtil.convertToProxyUrl);
+    domProcessor.processElement(script, urlUtils.convertToProxyUrl);
 
-    strictEqual(UrlUtil.parseProxyUrl(script.src).resourceType, UrlUtil.SCRIPT);
+    strictEqual(urlUtils.parseProxyUrl(script.src).resourceType, urlUtils.SCRIPT);
 
-    Settings.get().sessionId = storedSessionId;
+    settings.get().sessionId = storedSessionId;
 });
 
 test('event attributes', function () {
-    var div            = NativeMethods.createElement.call(document, 'div');
+    var div            = nativeMethods.createElement.call(document, 'div');
     var attrValue      = 'window.location="test";';
     var processedValue = processScript(attrValue);
-    var storedAttrName = DomProcessor.getStoredAttrName('onclick');
+    var storedAttrName = domProcessor.getStoredAttrName('onclick');
 
     notEqual(processedValue, attrValue);
 
-    NativeMethods.setAttribute.call(div, 'onclick', attrValue);
+    nativeMethods.setAttribute.call(div, 'onclick', attrValue);
 
-    DomProcessor.processElement(div, function () {
+    domProcessor.processElement(div, function () {
     });
 
-    strictEqual(NativeMethods.getAttribute.call(div, 'onclick'), processedValue);
-    strictEqual(NativeMethods.getAttribute.call(div, storedAttrName), attrValue);
+    strictEqual(nativeMethods.getAttribute.call(div, 'onclick'), processedValue);
+    strictEqual(nativeMethods.getAttribute.call(div, storedAttrName), attrValue);
 });
 
 test('javascript protocol', function () {
-    var link           = NativeMethods.createElement.call(document, 'a');
+    var link           = nativeMethods.createElement.call(document, 'a');
     var attrValue      = 'javascript:window.location="test";';
     var processedValue = 'javascript:' + processScript(attrValue.replace('javascript:', ''));
 
     notEqual(processedValue, attrValue);
 
-    NativeMethods.setAttribute.call(link, 'onclick', attrValue);
-    NativeMethods.setAttribute.call(link, 'href', attrValue);
+    nativeMethods.setAttribute.call(link, 'onclick', attrValue);
+    nativeMethods.setAttribute.call(link, 'href', attrValue);
 
-    DomProcessor.processElement(link, function () {
+    domProcessor.processElement(link, function () {
     });
 
-    strictEqual(NativeMethods.getAttribute.call(link, 'onclick'), processedValue);
-    strictEqual(NativeMethods.getAttribute.call(link, 'href'), processedValue);
-    strictEqual(NativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('onclick')), attrValue);
-    strictEqual(NativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('href')), attrValue);
+    strictEqual(nativeMethods.getAttribute.call(link, 'onclick'), processedValue);
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), processedValue);
+    strictEqual(nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('onclick')), attrValue);
+    strictEqual(nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('href')), attrValue);
 });
 
 test('anchor with target attribute', function () {
-    var anchor   = NativeMethods.createElement.call(document, 'a');
+    var anchor   = nativeMethods.createElement.call(document, 'a');
     var url      = 'http://url.com/';
-    var proxyUrl = UrlUtil.getProxyUrl(url, null, null, null, 'iframe');
+    var proxyUrl = urlUtils.getProxyUrl(url, null, null, null, 'iframe');
 
-    NativeMethods.setAttribute.call(anchor, 'href', url);
-    NativeMethods.setAttribute.call(anchor, 'target', 'iframeName');
+    nativeMethods.setAttribute.call(anchor, 'href', url);
+    nativeMethods.setAttribute.call(anchor, 'target', 'iframeName');
 
-    DomProcessor.processElement(anchor, function (url, resourceType) {
-        return UrlUtil.getProxyUrl(url, null, null, null, resourceType);
+    domProcessor.processElement(anchor, function (url, resourceType) {
+        return urlUtils.getProxyUrl(url, null, null, null, resourceType);
     });
 
-    strictEqual(NativeMethods.getAttribute.call(anchor, 'href'), proxyUrl);
-    strictEqual(NativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href')), url);
+    strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), proxyUrl);
+    strictEqual(nativeMethods.getAttribute.call(anchor, domProcessor.getStoredAttrName('href')), url);
 });
 
 test('autocomplete attribute', function () {
-    var input1 = NativeMethods.createElement.call(document, 'input');
-    var input2 = NativeMethods.createElement.call(document, 'input');
-    var input3 = NativeMethods.createElement.call(document, 'input');
-    var input4 = NativeMethods.createElement.call(document, 'input');
+    var input1 = nativeMethods.createElement.call(document, 'input');
+    var input2 = nativeMethods.createElement.call(document, 'input');
+    var input3 = nativeMethods.createElement.call(document, 'input');
+    var input4 = nativeMethods.createElement.call(document, 'input');
 
-    NativeMethods.setAttribute.call(input1, 'autocomplete', 'on');
-    NativeMethods.setAttribute.call(input2, 'autocomplete', 'off');
-    NativeMethods.setAttribute.call(input3, 'autocomplete', '');
+    nativeMethods.setAttribute.call(input1, 'autocomplete', 'on');
+    nativeMethods.setAttribute.call(input2, 'autocomplete', 'off');
+    nativeMethods.setAttribute.call(input3, 'autocomplete', '');
 
-    DomProcessor.processElement(input1);
-    DomProcessor.processElement(input2);
-    DomProcessor.processElement(input3);
-    DomProcessor.processElement(input4);
+    domProcessor.processElement(input1);
+    domProcessor.processElement(input2);
+    domProcessor.processElement(input3);
+    domProcessor.processElement(input4);
 
-    var storedAutocompleteAttr = DomProcessor.getStoredAttrName('autocomplete');
+    var storedAutocompleteAttr = domProcessor.getStoredAttrName('autocomplete');
 
-    strictEqual(NativeMethods.getAttribute.call(input1, 'autocomplete'), 'off');
-    strictEqual(NativeMethods.getAttribute.call(input1, storedAutocompleteAttr), 'on');
+    strictEqual(nativeMethods.getAttribute.call(input1, 'autocomplete'), 'off');
+    strictEqual(nativeMethods.getAttribute.call(input1, storedAutocompleteAttr), 'on');
 
-    strictEqual(NativeMethods.getAttribute.call(input2, 'autocomplete'), 'off');
-    strictEqual(NativeMethods.getAttribute.call(input2, storedAutocompleteAttr), 'off');
+    strictEqual(nativeMethods.getAttribute.call(input2, 'autocomplete'), 'off');
+    strictEqual(nativeMethods.getAttribute.call(input2, storedAutocompleteAttr), 'off');
 
-    strictEqual(NativeMethods.getAttribute.call(input3, 'autocomplete'), 'off');
-    strictEqual(NativeMethods.getAttribute.call(input3, storedAutocompleteAttr), '');
+    strictEqual(nativeMethods.getAttribute.call(input3, 'autocomplete'), 'off');
+    strictEqual(nativeMethods.getAttribute.call(input3, storedAutocompleteAttr), '');
 
-    strictEqual(NativeMethods.getAttribute.call(input4, 'autocomplete'), 'off');
-    strictEqual(NativeMethods.getAttribute.call(input4, storedAutocompleteAttr), 'none');
+    strictEqual(nativeMethods.getAttribute.call(input4, 'autocomplete'), 'off');
+    strictEqual(nativeMethods.getAttribute.call(input4, storedAutocompleteAttr), 'none');
 });
 
 test('crossdomain src', function () {
     var url                   = 'http://cross.domain.com/';
-    var proxyUrl              = UrlUtil.getProxyUrl(url, location.hostname, 2001, null, 'iframe');
-    var storedCrossDomainPort = Settings.get().crossDomainProxyPort;
+    var proxyUrl              = urlUtils.getProxyUrl(url, location.hostname, 2001, null, 'iframe');
+    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
 
-    Settings.get().crossDomainProxyPort = 2001;
+    settings.get().crossDomainProxyPort = 2001;
 
-    var processed = Html.processHtml('<iframe src="' + url + '"></iframe>');
+    var processed = htmlUtils.processHtml('<iframe src="' + url + '"></iframe>');
 
     ok(processed.indexOf('src="' + proxyUrl) !== -1);
-    ok(processed.indexOf(DomProcessor.getStoredAttrName('src') + '="' + url + '"') !== -1);
+    ok(processed.indexOf(domProcessor.getStoredAttrName('src') + '="' + url + '"') !== -1);
 
-    Settings.get().crossDomainProxyPort = storedCrossDomainPort;
+    settings.get().crossDomainProxyPort = storedCrossDomainPort;
 });
 
 test('stylesheet', function () {
@@ -244,10 +244,10 @@ test('stylesheet', function () {
     };
 
     var check = function (css, expected) {
-        strictEqual(StyleProcessor.process(css, urlReplacer), expected);
+        strictEqual(styleProcessor.process(css, urlReplacer), expected);
     };
 
-    check('a:hover {}', 'a[' + Const.HOVER_PSEUDO_CLASS_ATTR + '] {}');
+    check('a:hover {}', 'a[' + CONST.HOVER_PSEUDO_CLASS_ATTR + '] {}');
     check('div { background-image: url(""); }', 'div { background-image: url(""); }');
     check('div { background-image: url(\'\'); }', 'div { background-image: url(\'\'); }');
     check('div { background-image: url(); }', 'div { background-image: url(); }');
@@ -262,13 +262,13 @@ test('stylesheet', function () {
 
 test('clean up stylesheet', function () {
     var url      = 'http://google.com/image.png';
-    var proxyUrl = UrlUtil.getProxyUrl(url);
+    var proxyUrl = urlUtils.getProxyUrl(url);
 
     var check = function (css, expected) {
-        strictEqual(StyleProcessor.cleanUp(css, UrlUtil.parseProxyUrl, UrlUtil.formatUrl), expected);
+        strictEqual(styleProcessor.cleanUp(css, urlUtils.parseProxyUrl, urlUtils.formatUrl), expected);
     };
 
-    check('a[' + Const.HOVER_PSEUDO_CLASS_ATTR + '] {}', 'a:hover {}');
+    check('a[' + CONST.HOVER_PSEUDO_CLASS_ATTR + '] {}', 'a:hover {}');
     check('div { background-image: url(""); }', 'div { background-image: url(""); }');
     check('div { background-image: url(\'\'); }', 'div { background-image: url(\'\'); }');
     check('div { background-image: url(); }', 'div { background-image: url(); }');
@@ -285,9 +285,9 @@ test('stylesheet after innerHTML', function () {
     var div   = $('<div>').appendTo('body')[0];
     var style = $('<style>')[0];
     var check = function (cssText) {
-        strictEqual(cssText.indexOf(Const.IS_STYLESHEET_PROCESSED_COMMENT), 0);
-        strictEqual(cssText.indexOf(Const.IS_STYLESHEET_PROCESSED_COMMENT, 1), -1);
-        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), UrlUtil.getProxyUrl('http://test.ru'));
+        strictEqual(cssText.indexOf(CONST.IS_STYLESHEET_PROCESSED_COMMENT), 0);
+        strictEqual(cssText.indexOf(CONST.IS_STYLESHEET_PROCESSED_COMMENT, 1), -1);
+        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://test.ru'));
     };
 
     eval(processScript('div.innerHTML = "<style>.rule { background: url(http://test.ru) }</style>";'));
@@ -307,15 +307,15 @@ module('regression');
 
 asyncTest('link with target=\'_parent\' in iframe (T216999)', function () {
     var iframe         = document.createElement('iframe');
-    var storedAttrName = DomProcessor.getStoredAttrName('href');
+    var storedAttrName = domProcessor.getStoredAttrName('href');
 
     iframe.id  = 'test';
     iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
 
     iframe.addEventListener('load', function () {
-        var link = NativeMethods.getElementById.call(this.contentDocument, 'link');
+        var link = nativeMethods.getElementById.call(this.contentDocument, 'link');
 
-        strictEqual(NativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
+        strictEqual(nativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
 
         this.parentNode.removeChild(this);
         start();
@@ -325,34 +325,35 @@ asyncTest('link with target=\'_parent\' in iframe (T216999)', function () {
 });
 
 test('iframe with javascript protocol in \'src\' attribute value must be processed (T135513)', function () {
-    var iframe = NativeMethods.createElement.call(document, 'iframe');
+    var iframe = nativeMethods.createElement.call(document, 'iframe');
     var src    = 'javascript:"<html><body><a id=\'test\' data-attr=\"123\">link</a></body></html>"';
 
-    NativeMethods.setAttribute.call(iframe, 'src', src);
+    nativeMethods.setAttribute.call(iframe, 'src', src);
 
-    DomProcessor.processElement(iframe, function (url) {
+    domProcessor.processElement(iframe, function (url) {
         return url;
     });
 
-    var srcAttr       = NativeMethods.getAttribute.call(iframe, 'src');
-    var storedSrcAttr = NativeMethods.getAttribute.call(iframe, DomProcessor.getStoredAttrName('src'));
+    var srcAttr       = nativeMethods.getAttribute.call(iframe, 'src');
+    var storedSrcAttr = nativeMethods.getAttribute.call(iframe, domProcessor.getStoredAttrName('src'));
 
     notEqual(srcAttr, src);
     strictEqual(srcAttr, 'javascript:\'' +
-                         Html.processHtml('<html><body><a id=\'test\' data-attr="123">link</a></body></html>') + '\'');
+                         htmlUtils.processHtml('<html><body><a id=\'test\' data-attr="123">link</a></body></html>') +
+                         '\'');
     strictEqual(storedSrcAttr, src);
 });
 
 test('The URL attribute must be set to an empty string on the server only once (T295078) (GH-159)', function () {
-    var iframe = NativeMethods.createElement.call(document, 'iframe');
+    var iframe = nativeMethods.createElement.call(document, 'iframe');
 
-    NativeMethods.setAttribute.call(iframe, 'src', '/should_not_be_changed');
+    nativeMethods.setAttribute.call(iframe, 'src', '/should_not_be_changed');
     // NOTE: Simulating that iframe was processed on the server
-    NativeMethods.setAttribute.call(iframe, DomProcessor.getStoredAttrName('src'), '');
+    nativeMethods.setAttribute.call(iframe, domProcessor.getStoredAttrName('src'), '');
 
-    DomProcessor.processElement(iframe, function () {
+    domProcessor.processElement(iframe, function () {
         return 'fail';
     });
 
-    strictEqual(NativeMethods.getAttribute.call(iframe, 'src'), '/should_not_be_changed');
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'src'), '/should_not_be_changed');
 });

@@ -40,12 +40,12 @@ export default class Session extends EventEmitter {
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
-    getTaskScript (referer, cookieUrl, serverInfo, isIFrame, withPayload) {
+    getTaskScript (referer, cookieUrl, serverInfo, isIframe, withPayload) {
         var cookies       = this.cookies.getClientString(cookieUrl);
         var payloadScript = '';
 
         if (withPayload)
-            payloadScript = isIFrame ? this._getIFramePayloadScript() : this._getPayloadScript();
+            payloadScript = isIframe ? this._getIframePayloadScript() : this._getPayloadScript();
 
         var taskScript = mustache.render(TASK_TEMPLATE, {
             cookie:               cookies.replace(/'/g, "\\'"),
@@ -63,7 +63,7 @@ export default class Session extends EventEmitter {
         return taskScript;
     }
 
-    _getIFramePayloadScript () {
+    _getIframePayloadScript () {
         throw new Error('Not implemented');
     }
 
