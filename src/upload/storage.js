@@ -1,7 +1,7 @@
 import fs from 'fs';
 import mime from 'mime';
 import path from 'path';
-import promisify from '../utils/promisify';
+import promisify from 'es6-promisify';
 import { Promise } from 'es6-promise';
 
 var readFile  = promisify(fs.readFile);

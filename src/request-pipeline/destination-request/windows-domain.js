@@ -1,5 +1,5 @@
 import childProcess from 'child_process';
-import promisify from '../../utils/promisify';
+import promisify from 'es6-promisify';
 
 var exec   = promisify(childProcess.exec);
 var cached = null;
