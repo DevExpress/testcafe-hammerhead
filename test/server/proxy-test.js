@@ -3,6 +3,7 @@ var request            = require('request');
 var expect             = require('chai').expect;
 var express            = require('express');
 var Promise            = require('es6-promise').Promise;
+var read               = require('read-file-relative').readSync;
 var Proxy              = require('../../lib/proxy');
 var Session            = require('../../lib/session');
 var COMMAND            = require('../../lib/session/command');
@@ -500,6 +501,25 @@ describe('Proxy', function () {
             request(proxy.openSession('http://127.0.0.1:2000/with-auth', session), function (err, res, body) {
                 expect(res.statusCode).eql(401);
                 expect(body).to.be.empty;
+                done();
+            });
+        });
+    });
+
+    describe('Shadow UI', function () {
+        it('Should process shadow ui stylesheet', function (done) {
+            var src      = read('/data/shadow-ui-stylesheet/src.css').toString();
+            var expected = read('/data/shadow-ui-stylesheet/expected.css').toString();
+
+            proxy.GET('/testcafe-ui-styles.css', {
+                contentType:          'text/css',
+                content:              src,
+                isShadowUIStylesheet: true
+            });
+
+            request('http://127.0.0.1:1836/testcafe-ui-styles.css', function (err, res, body) {
+                expect(body.replace(/\r\n|\n/g, '')).equal(expected.replace(/\r\n|\n/g, ''));
+
                 done();
             });
         });

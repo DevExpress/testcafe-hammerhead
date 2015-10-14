@@ -1,0 +1,227 @@
+#root.root {
+  position: absolute;
+  display: block;
+  left: 0px;
+  top: 0px;
+  margin: 0 !important;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  /*Mixins*/
+
+  /*Const*/
+
+  /*Make z-index context*/
+
+  z-index: 2147483647;
+  /*Reset*/
+
+  /* Clear */
+
+  /* Cursor */
+
+  /* Modal background and loading text */
+
+  /* Actions Emulating */
+
+}
+#root.root fieldset,
+#root.root img {
+  border: 0;
+}
+#root.root ol,
+#root.root ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#root.root h1,
+#root.root h2,
+#root.root h3,
+#root.root h4,
+#root.root h5,
+#root.root h6 {
+  font-size: 100%;
+  font-weight: normal;
+}
+#root.root table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 100%;
+  font: inherit;
+}
+#root.root * {
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  vertical-align: baseline;
+  background: transparent;
+  text-align: left !important;
+  line-height: normal;
+  border-radius: 0px;
+  font-variant: normal !important;
+  font-weight: normal;
+  font-size: inherit;
+  cursor: default;
+  font-family: Segoe UI, Helvetica, sans-serif !important;
+  letter-spacing: normal;
+  clear: none;
+  box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  transition: none !important;
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  zoom: 1 !important;
+  text-indent: 0 !important;
+  text-shadow: none;
+}
+#root.root textarea,
+#root.root input,
+#root.root select,
+#root.root input:focus,
+#root.root input[type="text"],
+#root.root input[type="text"]:hover,
+#root.root input[type="text"]:focus,
+#root.root input[type="text"]:active,
+#root.root input[type="button"],
+#root.root input[type="button"]:hover,
+#root.root input[type="button"]:focus,
+#root.root input[type="button"]:active {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-family: Segoe UI, Helvetica, sans-serif;
+  cursor: text;
+  font-weight: normal;
+  vertical-align: baseline;
+  background-color: white;
+  background-image: none;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  text-align: left !important;
+  line-height: normal;
+  border-radius: 0px;
+  min-height: 0;
+  min-width: 0;
+  box-shadow: none;
+  box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  -moz-user-select: auto;
+  -webkit-user-select: auto;
+  transition: none !important;
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  letter-spacing: normal;
+  text-shadow: none;
+  text-transform: none;
+}
+#root.root ::-ms-clear {
+  display: none;
+}
+#root.root label {
+  display: inline;
+  color: #ffffff !important;
+}
+#root.root button::-moz-focus-inner {
+  margin-top: -1px;
+}
+#root.root .clear {
+  display: block;
+  clear: both;
+  height: 0;
+  width: 0;
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+#root.root.hidden .cursor {
+  display: none;
+}
+#root.root.blind .cursor {
+  opacity: 0.4;
+}
+#root.root .cursor {
+  background-image: url("/testcafe-ui-sprite.png") !important;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 35px;
+  height: 57px;
+  background-position: 0 0;
+  z-index: 2147483644;
+}
+#root.root .cursor.l-mouse-down {
+  background-position: -64px 0;
+}
+#root.root .cursor.r-mouse-down {
+  background-position: -130px 0;
+}
+#root.root .cursor.touch {
+  width: 50px;
+  height: 50px;
+  background-position: -190px 0;
+}
+#root.root .cursor.touch.l-mouse-down,
+#root.root .cursor.touch.r-mouse-down {
+  background-position: -264px 0;
+}
+#root.root .modal-background {
+  display: none;
+  position: fixed;
+  -webkit-transform: translate3d(0px, 0px, 0px) !important;
+  top: 0;
+  left: 0;
+  z-index: 2147483645;
+  background-color: #000000;
+}
+#root.root .loading-text {
+  font-family: Segoe UI, Helvetica, sans-serif;
+  font-size: 40px;
+  color: #ffffff;
+  text-shadow: 0 0 10px #000000;
+  display: none;
+  position: fixed;
+  -webkit-transform: translate3d(0px, 0px, 0px) !important;
+  top: 0;
+  left: 0;
+  z-index: 2147483646;
+}
+#root.root .loading-icon {
+  background-image: url("/testcafe-ui-sprite.png") !important;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  display: block;
+  width: 218px;
+  height: 218px;
+  background-position: -465px 0;
+  position: fixed;
+  -webkit-transform: translate3d(0px, 0px, 0px) !important;
+  z-index: 2147483647;
+}
+#root.root .tcOptionList {
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #7F9DB9;
+  z-index: 2147483643;
+}
+#root.root .tcOptionList .tcOptionGroup {
+  font-weight: bolder;
+}
+#root.root .tcOptionList .tcOptionGroup .tcOption {
+  margin: 1px 20px;
+}
+#root.root .tcOptionList .tcOption {
+  margin: 1px 5px;
+}
