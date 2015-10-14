@@ -1,10 +1,10 @@
+import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import SandboxBase from '../base';
 import ActiveWindowTracker from '../event/active-window-tracker';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import { getElementScroll, setScrollLeft, setScrollTop } from '../../utils/style';
-import { HOVER_PSEUDO_CLASS_ATTR, FOCUS_PSEUDO_CLASS_ATTR } from '../../../const';
 
 const INTERNAL_FOCUS_FLAG = 'hammerhead|internal-focus';
 const INTERNAL_BLUR_FLAG  = 'hammerhead|internal-blur';
@@ -53,7 +53,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                 while (el && el.tagName) {
                     // Check that the current element is a joint parent for the hovered elements.
                     if (el.contains && !el.contains(newHoveredElement)) {
-                        nativeMethods.removeAttribute.call(el, HOVER_PSEUDO_CLASS_ATTR);
+                        nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
                         el = el.parentNode;
                     }
                     else
@@ -63,7 +63,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                 jointParent = el;
 
                 if (jointParent)
-                    nativeMethods.removeAttribute.call(jointParent, HOVER_PSEUDO_CLASS_ATTR);
+                    nativeMethods.removeAttribute.call(jointParent, INTERNAL_ATTRS.hoverPseudoClass);
             }
 
             return jointParent;
@@ -71,12 +71,12 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         var setHoverMarker = (newHoveredElement, jointParent) => {
             if (jointParent)
-                nativeMethods.setAttribute.call(jointParent, HOVER_PSEUDO_CLASS_ATTR, '');
+                nativeMethods.setAttribute.call(jointParent, INTERNAL_ATTRS.hoverPseudoClass, '');
 
             while (newHoveredElement && newHoveredElement.tagName) {
                 // Assign pseudo-class marker up to joint parent.
                 if (newHoveredElement !== jointParent) {
-                    nativeMethods.setAttribute.call(newHoveredElement, HOVER_PSEUDO_CLASS_ATTR, '');
+                    nativeMethods.setAttribute.call(newHoveredElement, INTERNAL_ATTRS.hoverPseudoClass, '');
                     newHoveredElement = newHoveredElement.parentNode;
                 }
                 else
@@ -99,14 +99,14 @@ export default class FocusBlurSandbox extends SandboxBase {
             return;
 
         if (this.lastFocusedElement &&
-            nativeMethods.getAttribute.call(this.lastFocusedElement, FOCUS_PSEUDO_CLASS_ATTR))
-            nativeMethods.removeAttribute.call(this.lastFocusedElement, FOCUS_PSEUDO_CLASS_ATTR);
+            nativeMethods.getAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass))
+            nativeMethods.removeAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass);
 
         if (domUtils.isElementFocusable(activeElement) &&
             !(activeElement.tagName && activeElement.tagName.toLowerCase() === 'body' &&
             activeElement.getAttribute('tabIndex') === null)) {
             this.lastFocusedElement = activeElement;
-            nativeMethods.setAttribute.call(activeElement, FOCUS_PSEUDO_CLASS_ATTR, true);
+            nativeMethods.setAttribute.call(activeElement, INTERNAL_ATTRS.focusPseudoClass, true);
         }
         else
             this.lastFocusedElement = null;

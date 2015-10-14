@@ -1,10 +1,10 @@
 import COMMAND from '../../session/command';
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import settings from '../settings';
 import { isShadowUIElement, isCrossDomainIframe, isElementInDocument } from '../utils/dom';
 import { syncServiceMsg } from '../transport';
 import { isFirefox, isWebKit } from '../utils/browser';
-import { DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME } from '../../const';
 import { isSupportedProtocol } from '../utils/url';
 import { isIframeWithoutSrc } from '../utils/dom';
 
@@ -37,7 +37,7 @@ export default class IframeSandbox extends SandboxBase {
                 // Rise this event to eval "task" script and to call Hammerhead initialization method after
                 this.emit(this.IFRAME_READY_TO_INIT_EVENT, { iframe });
 
-                iframe.contentWindow[DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME]();
+                iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName]();
             }
             else if (!iframeInitialized) {
                 // Even if iframe is not loaded (iframe.contentDocument.documentElement not exist) we should still

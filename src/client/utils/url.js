@@ -1,6 +1,6 @@
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import * as sharedUrlUtils from '../../utils/url';
 import * as originLocation from './origin-location';
-import { DOCUMENT_CHARSET } from '../../const';
 import { get as getSettings } from '../settings';
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
@@ -35,7 +35,7 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
 
 
     var parsedUrl = sharedUrlUtils.parseUrl(url);
-    var charset   = charsetAttrValue || resourceType === SCRIPT && document[DOCUMENT_CHARSET];
+    var charset   = charsetAttrValue || resourceType === SCRIPT && document[INTERNAL_PROPS.documentCharset];
 
     // NOTE: seems like we've had a relative URL with leading slash or dots,
     // so our proxy info path part was removed by resolver and we have an origin URL,

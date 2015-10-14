@@ -1,4 +1,4 @@
-var CONST           = Hammerhead.get('../const');
+var INTERNAL_PROPS  = Hammerhead.get('../processing/dom/internal-properties');
 var Promise         = Hammerhead.get('es6-promise').Promise;
 var urlUtils        = Hammerhead.get('./utils/url');
 var domProcessor    = Hammerhead.get('./dom-processor/dom-processor');
@@ -195,7 +195,7 @@ test('script text', function () {
 test('iframe', function () {
     var iframe = document.createElement('iframe');
 
-    window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](iframe);
+    window[INTERNAL_PROPS.overrideDomMethodName](iframe);
 
     eval(processScript('iframe.sandbox="allow-forms"'));
     strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');
@@ -212,7 +212,7 @@ test('innerHTML', function () {
     var scriptUrl = 'http://some.com/script.js';
     var linkUrl   = 'http://some.com/page';
 
-    document[CONST.DOCUMENT_CHARSET] = 'utf-8';
+    document[INTERNAL_PROPS.documentCharset] = 'utf-8';
 
     eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><\/script><a href=\\"" + linkUrl + "\\"></a>";'));
 
@@ -220,7 +220,7 @@ test('innerHTML', function () {
     strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, null, null, null, urlUtils.SCRIPT, 'utf-8'));
     strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl));
 
-    document[CONST.DOCUMENT_CHARSET] = null;
+    document[INTERNAL_PROPS.documentCharset] = null;
 });
 
 asyncTest('body.innerHTML in iframe', function () {

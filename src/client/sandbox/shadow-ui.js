@@ -1,3 +1,4 @@
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import * as domUtils from '../utils/dom';
@@ -7,7 +8,6 @@ import { getOffsetPosition } from '../utils/position';
 import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
 import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
-import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../const';
 
 export default class ShadowUI extends SandboxBase {
     constructor (nodeMutation, messageSandbox, iframeSandbox) {
@@ -206,7 +206,7 @@ export default class ShadowUI extends SandboxBase {
         }
 
         this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, el => {
-            var elContextWindow = el[DOM_SANDBOX_PROCESSED_CONTEXT];
+            var elContextWindow = el[INTERNAL_PROPS.processedContext];
 
             if (elContextWindow !== window) {
                 this.messageSandbox.sendServiceMsg({

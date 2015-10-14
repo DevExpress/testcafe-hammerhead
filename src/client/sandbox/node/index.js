@@ -1,16 +1,16 @@
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
-import CONST from '../../../const';
 import { parseDocumentCharset } from '../../utils/dom';
 
 export default class NodeSandbox extends SandboxBase {
     constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
         super();
 
-        this.raiseBodyCreatedEvent       = this._onBodyCreated;
-        document[CONST.DOCUMENT_CHARSET] = parseDocumentCharset();
+        this.raiseBodyCreatedEvent               = this._onBodyCreated;
+        document[INTERNAL_PROPS.documentCharset] = parseDocumentCharset();
 
         this.eventSandbox  = eventSandbox;
         this.iframeSandbox = iframeSandbox;
@@ -30,8 +30,8 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     _overrideElement (el) {
-        if (el[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] !== this.window) {
-            el[CONST.DOM_SANDBOX_PROCESSED_CONTEXT] = this.window;
+        if (el[INTERNAL_PROPS.processedContext] !== this.window) {
+            el[INTERNAL_PROPS.processedContext] = this.window;
 
             this.element.overrideElement(el);
             this.eventSandbox.overrideElement(el, true);
@@ -84,7 +84,7 @@ export default class NodeSandbox extends SandboxBase {
                 this.doc.attach(e.iframe.contentWindow, e.iframe.contentDocument)
         );
 
-        window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] = this.overrideDomMethods.bind(this);
+        window[INTERNAL_PROPS.overrideDomMethodName] = this.overrideDomMethods.bind(this);
 
         // NOTE: in some browsers (for example Firefox) 'window.document' are different objects when iframe is created
         // just now and on document ready event. Therefore we should update 'document' object to override its methods (Q527555).

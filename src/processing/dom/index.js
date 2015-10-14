@@ -2,7 +2,7 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
-import CONST from '../../const';
+import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import jsProcessor from '../js/index';
 import scriptProcessor from '../../processing/script';
@@ -159,10 +159,8 @@ export default class DomProcessor {
             $all.filter(function () {
                 return pattern.selector(this);
             }).each(function () {
-                if (!this[CONST.ELEMENT_PROCESSED_FLAG]) {
-                    for (var j = 0; j < pattern.elementProcessors.length; j++)
-                        pattern.elementProcessors[j].call(domProc, this, replacer, pattern);
-                }
+                for (var j = 0; j < pattern.elementProcessors.length; j++)
+                    pattern.elementProcessors[j].call(domProc, this, replacer, pattern);
             });
             /*eslint-enable no-loop-func*/
         }
@@ -188,7 +186,7 @@ export default class DomProcessor {
     // Utils
 
     getStoredAttrName (attr) {
-        return attr + CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX;
+        return attr + INTERNAL_ATTRS.storedAttrPostfix;
     }
 
     isOpenLinkInIframe (el) {

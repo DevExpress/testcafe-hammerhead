@@ -1,3 +1,4 @@
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import extend from '../../utils/extend';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
@@ -5,7 +6,6 @@ import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
 import { getOffsetPosition, offsetToClientCoords } from '../../utils/position';
 import { getBordersWidth, getElementScroll } from '../../utils/style';
-import { EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER } from '../../../const';
 
 const IE_BUTTONS_MAP = {
     0: 1,
@@ -326,7 +326,7 @@ export default class EventSimulator {
 
         //T188166 - act.hover trigger "mouseenter" event with "which" parameter 1
         if (typeof args.which !== 'undefined' && browserUtils.isWebKit) {
-            Object.defineProperty(ev, EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER, {
+            Object.defineProperty(ev, INTERNAL_PROPS.whichPropertyWrapper, {
                 get: () => args.which
             });
         }

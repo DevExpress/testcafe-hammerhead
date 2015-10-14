@@ -1,9 +1,9 @@
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
 import { isIE, version as browserVersion } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
-import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../../const';
 import { getSandboxFromStorage } from '../storage';
 
 export default class UploadSandbox extends SandboxBase {
@@ -24,7 +24,7 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     static _getCurrentInfoManager (input) {
-        var contextWindow = input[DOM_SANDBOX_PROCESSED_CONTEXT];
+        var contextWindow = input[INTERNAL_PROPS.processedContext];
 
         return getSandboxFromStorage(contextWindow).upload.infoManager;
     }

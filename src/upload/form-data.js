@@ -1,6 +1,6 @@
+import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import FormDataEntry from './form-data-entry';
 import * as bufferUtils from '../utils/buffer';
-import { UPLOAD_SANDBOX_HIDDEN_INPUT_NAME } from '../const';
 
 // Const
 const BOUNDARY_RE = /;\s*boundary=([^;]*)/i;
@@ -58,13 +58,13 @@ export default class FormData {
     }
 
     expandUploads () {
-        var uploadsEntry = this.getEntriesByName(UPLOAD_SANDBOX_HIDDEN_INPUT_NAME)[0];
+        var uploadsEntry = this.getEntriesByName(INTERNAL_ATTRS.uploadInfoHiddenInputName)[0];
 
         if (uploadsEntry) {
             var body  = Buffer.concat(uploadsEntry.body).toString();
             var files = JSON.parse(body);
 
-            this._removeEntry(UPLOAD_SANDBOX_HIDDEN_INPUT_NAME);
+            this._removeEntry(INTERNAL_ATTRS.uploadInfoHiddenInputName);
             files.forEach(fileInfo => this._injectFileInfo(fileInfo));
         }
     }

@@ -1,7 +1,7 @@
+import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import SandboxBase from '../base';
 import { isNullOrUndefined, inaccessibleTypeToStr } from '../../utils/types';
 import { DOCUMENT_WRITE_BEGIN_PARAM, DOCUMENT_WRITE_END_PARAM, CALL_METHOD_METH_NAME } from '../../../processing/js';
-import { FOCUS_PSEUDO_CLASS_ATTR } from '../../../const';
 import { isWindow, isDocument, isDomElement } from '../../utils/dom';
 import { isIE } from '../../utils/browser';
 
@@ -98,6 +98,6 @@ export default class MethodCallInstrumentation extends SandboxBase {
     }
 
     static _replaceFocusPseudoClass (selector) {
-        return selector.replace(/\s*:focus\b/gi, '[' + FOCUS_PSEUDO_CLASS_ATTR + ']');
+        return selector.replace(/\s*:focus\b/gi, '[' + INTERNAL_ATTRS.focusPseudoClass + ']');
     }
 }

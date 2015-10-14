@@ -5,7 +5,7 @@
     $('script').addClass('script-hammerhead-shadow-ui');
     $('link').addClass('ui-stylesheet-hammerhead-shadow-ui');
 
-    var CONST          = Hammerhead.get('../const');
+    var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
     var originLocation = Hammerhead.get('./utils/origin-location');
     var jsProcessor    = Hammerhead.jsProcessor;
 
@@ -27,9 +27,9 @@
         sessionId: 'sessionId'
     });
 
-    window.overrideDomMeth = window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME];
+    window.overrideDomMeth = window[INTERNAL_PROPS.overrideDomMethodName];
 
-    window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] = function (el) {
+    window[INTERNAL_PROPS.overrideDomMethodName] = function (el) {
         if (el)
             window.overrideDomMeth(el);
     };
