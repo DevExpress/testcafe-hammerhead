@@ -1,4 +1,4 @@
-import CONST from '../../const';
+import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import domProcessor from '../dom-processor/dom-processor';
@@ -192,8 +192,8 @@ export function cleanUpHtml (html, parentTag) {
             }
         });
 
-        find(container, '[' + CONST.HOVER_PSEUDO_CLASS_ATTR + ']', el => {
-            nativeMethods.removeAttribute.call(el, CONST.HOVER_PSEUDO_CLASS_ATTR);
+        find(container, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']', el => {
+            nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
 
             changed = true;
         });

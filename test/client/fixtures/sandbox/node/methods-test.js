@@ -1,6 +1,6 @@
-var CONST        = Hammerhead.get('../const');
-var domProcessor = Hammerhead.get('./dom-processor/dom-processor');
-var urlUtils     = Hammerhead.get('./utils/url');
+var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
+var domProcessor   = Hammerhead.get('./dom-processor/dom-processor');
+var urlUtils       = Hammerhead.get('./utils/url');
 
 var browserUtils  = Hammerhead.utils.browser;
 var nativeMethods = Hammerhead.nativeMethods;
@@ -118,7 +118,7 @@ test('element.getAttributeNS, element.setAttributeNS', function () {
 
     var el = document.createElementNS('xlink', elTagName);
 
-    strictEqual(el[CONST.DOM_SANDBOX_PROCESSED_CONTEXT], window);
+    strictEqual(el[INTERNAL_PROPS.processedContext], window);
 
     el.setAttributeNS('xlink', attr, 'image.png');
     strictEqual(nativeMethods.getAttributeNS.call(el, 'xlink', attr), 'replaced');

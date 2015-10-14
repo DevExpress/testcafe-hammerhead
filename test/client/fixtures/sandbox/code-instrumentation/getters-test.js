@@ -1,4 +1,4 @@
-var CONST           = Hammerhead.get('../const');
+var INTERNAL_PROPS  = Hammerhead.get('../processing/dom/internal-properties');
 var urlUtils        = Hammerhead.get('./utils/url');
 var scriptProcessor = Hammerhead.get('../processing/script');
 var originLocation  = Hammerhead.get('./utils/origin-location');
@@ -193,7 +193,7 @@ test('get script body (T296958) (GH-183)', function () {
 
     notEqual(script.textContent, scriptCode);
     strictEqual(script.textContent.replace(/\s/g, ''), processedScriptCode.replace(/\s/g, ''));
-    strictEqual(cleanedScriptCode.indexOf(CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME), -1);
+    strictEqual(cleanedScriptCode.indexOf(INTERNAL_PROPS.overrideDomMethodName), -1);
     strictEqual(eval(scriptProcessor.process('script.text')), cleanedScriptCode);
     strictEqual(eval(scriptProcessor.process('script.textContent')), cleanedScriptCode);
     strictEqual(eval(scriptProcessor.process('script.innerHTML')), cleanedScriptCode);

@@ -1,4 +1,4 @@
-import CONST from '../../const';
+import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import trim from '../../utils/string-trim';
 import nativeMethods from '../sandbox/native-methods';
@@ -84,7 +84,7 @@ export function getIframeLocation (iframe) {
         documentLocation = null;
     }
 
-    var srcLocation = nativeMethods.getAttribute.call(iframe, 'src' + CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX) ||
+    var srcLocation = nativeMethods.getAttribute.call(iframe, 'src' + INTERNAL_ATTRS.storedAttrPostfix) ||
                       nativeMethods.getAttribute.call(iframe, 'src') || iframe.src;
 
     var parsedProxyDocumentLocation = documentLocation && urlUtils.isSupportedProtocol(documentLocation) &&
@@ -293,7 +293,7 @@ export function isFileInput (el) {
 }
 
 export function isHammerheadAttr (attr) {
-    return attr === CONST.HOVER_PSEUDO_CLASS_ATTR || attr.indexOf(CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX) !== -1;
+    return attr === INTERNAL_ATTRS.hoverPseudoClass || attr.indexOf(INTERNAL_ATTRS.storedAttrPostfix) !== -1;
 }
 
 export function isIframe (el) {

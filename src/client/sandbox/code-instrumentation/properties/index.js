@@ -1,4 +1,4 @@
-import CONST from '../../../../const';
+import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
@@ -185,10 +185,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     //NOTE: for iframe with empty src
                     if (parentWindow && parentWindow !== window &&
-                        parentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME])
-                        parentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](el, parentDocument);
-                    else if (window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME])
-                        window[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME](el);
+                        parentWindow[INTERNAL_PROPS.overrideDomMethodName])
+                        parentWindow[INTERNAL_PROPS.overrideDomMethodName](el, parentDocument);
+                    else if (window[INTERNAL_PROPS.overrideDomMethodName])
+                        window[INTERNAL_PROPS.overrideDomMethodName](el);
 
 
                     //NOTE: fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
@@ -456,12 +456,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             which: {
-                condition: ev => typeof ev[CONST.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] !== 'undefined' ||
+                condition: ev => typeof ev[INTERNAL_PROPS.whichPropertyWrapper] !== 'undefined' ||
                                  ev.originalEvent &&
-                                 typeof ev.originalEvent[CONST.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] !== 'undefined',
+                                 typeof ev.originalEvent[INTERNAL_PROPS.whichPropertyWrapper] !== 'undefined',
 
-                get: ev => ev.originalEvent ? ev.originalEvent[CONST.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER] :
-                           ev[CONST.EVENT_SANDBOX_WHICH_PROPERTY_WRAPPER],
+                get: ev => ev.originalEvent ? ev.originalEvent[INTERNAL_PROPS.whichPropertyWrapper] :
+                           ev[INTERNAL_PROPS.whichPropertyWrapper],
 
                 set: () => void 0
             },

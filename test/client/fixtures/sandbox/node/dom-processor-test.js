@@ -1,4 +1,4 @@
-var CONST           = Hammerhead.get('../const');
+var INTERNAL_ATTRS  = Hammerhead.get('../processing/dom/internal-attributes');
 var htmlUtils       = Hammerhead.get('./utils/html');
 var domProcessor    = Hammerhead.get('./dom-processor/dom-processor');
 var scriptProcessor = Hammerhead.get('../processing/script');
@@ -247,7 +247,7 @@ test('stylesheet', function () {
         strictEqual(styleProcessor.process(css, urlReplacer), expected);
     };
 
-    check('a:hover {}', 'a[' + CONST.HOVER_PSEUDO_CLASS_ATTR + '] {}');
+    check('a:hover {}', 'a[' + INTERNAL_ATTRS.hoverPseudoClass + '] {}');
     check('div { background-image: url(""); }', 'div { background-image: url(""); }');
     check('div { background-image: url(\'\'); }', 'div { background-image: url(\'\'); }');
     check('div { background-image: url(); }', 'div { background-image: url(); }');
@@ -268,7 +268,7 @@ test('clean up stylesheet', function () {
         strictEqual(styleProcessor.cleanUp(css, urlUtils.parseProxyUrl, urlUtils.formatUrl), expected);
     };
 
-    check('a[' + CONST.HOVER_PSEUDO_CLASS_ATTR + '] {}', 'a:hover {}');
+    check('a[' + INTERNAL_ATTRS.hoverPseudoClass + '] {}', 'a:hover {}');
     check('div { background-image: url(""); }', 'div { background-image: url(""); }');
     check('div { background-image: url(\'\'); }', 'div { background-image: url(\'\'); }');
     check('div { background-image: url(); }', 'div { background-image: url(); }');
@@ -285,8 +285,8 @@ test('stylesheet after innerHTML', function () {
     var div   = $('<div>').appendTo('body')[0];
     var style = $('<style>')[0];
     var check = function (cssText) {
-        strictEqual(cssText.indexOf(CONST.IS_STYLESHEET_PROCESSED_COMMENT), 0);
-        strictEqual(cssText.indexOf(CONST.IS_STYLESHEET_PROCESSED_COMMENT, 1), -1);
+        strictEqual(cssText.indexOf(styleProcessor.IS_STYLESHEET_PROCESSED_COMMENT), 0);
+        strictEqual(cssText.indexOf(styleProcessor.IS_STYLESHEET_PROCESSED_COMMENT, 1), -1);
         strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://test.ru'));
     };
 

@@ -1,4 +1,4 @@
-﻿var CONST           = Hammerhead.get('../const');
+﻿var INTERNAL_ATTRS  = Hammerhead.get('../processing/dom/internal-attributes');
 var domProcessor    = Hammerhead.get('./dom-processor/dom-processor');
 var htmlUtils       = Hammerhead.get('./utils/html');
 var scriptProcessor = Hammerhead.get('../processing/script');
@@ -27,8 +27,8 @@ test('hover marker', function () {
     };
 
     var html = '<a href="http://domain.com"></a>' +
-               '<div ' + CONST.HOVER_PSEUDO_CLASS_ATTR + '></div>' +
-               '<div ' + CONST.HOVER_PSEUDO_CLASS_ATTR + '=""></div>';
+               '<div ' + INTERNAL_ATTRS.hoverPseudoClass + '></div>' +
+               '<div ' + INTERNAL_ATTRS.hoverPseudoClass + '=""></div>';
 
     var expexted     = '<a href="http://domain.com"></a><div></div><div></div>';
     var pocessedHtml = htmlUtils.processHtml(html);
@@ -157,7 +157,7 @@ test('html fragment', function () {
 });
 
 test('text nodes', function () {
-    var hoverAttr = CONST.HOVER_PSEUDO_CLASS_ATTR;
+    var hoverAttr = INTERNAL_ATTRS.hoverPseudoClass;
 
     var check = function (html) {
         var processedHtml = htmlUtils.cleanUpHtml('<div ' + hoverAttr + '="">' + html + '</div>');

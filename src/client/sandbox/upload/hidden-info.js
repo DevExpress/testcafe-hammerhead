@@ -1,10 +1,10 @@
-import { UPLOAD_SANDBOX_HIDDEN_INPUT_NAME } from '../../../const';
+import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 
 function createInput (form) {
     var hiddenInput = document.createElement('input');
 
     hiddenInput.type  = 'hidden';
-    hiddenInput.name  = UPLOAD_SANDBOX_HIDDEN_INPUT_NAME;
+    hiddenInput.name  = INTERNAL_ATTRS.uploadInfoHiddenInputName;
     hiddenInput.value = '[]';
 
     form.appendChild(hiddenInput);
@@ -13,7 +13,7 @@ function createInput (form) {
 }
 
 function getInput (form) {
-    return form.querySelector('[name="' + UPLOAD_SANDBOX_HIDDEN_INPUT_NAME + '"]') || createInput(form);
+    return form.querySelector('[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]') || createInput(form);
 }
 
 function indexOf (info, input) {

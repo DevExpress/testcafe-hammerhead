@@ -3,9 +3,9 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import dedent from 'dedent';
 import jsProcessor from './js';
-import { DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME } from '../const';
 
 // Byte Order Mark
 const BOM_REGEX = new RegExp(
@@ -27,7 +27,7 @@ const BOM_REGEX = new RegExp(
 
 class ScriptProcessor {
     constructor () {
-        var overrideDomMethScript = `window["${DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME}"]`;
+        var overrideDomMethScript = `window["${INTERNAL_PROPS.overrideDomMethodName}"]`;
         var scriptHeaderPrefix    = '/*hammerhead|script-processing-header|start*/';
         var scriptHeaderPostfix   = '/*hammerhead|script-processing-header|end*/';
 
@@ -51,7 +51,7 @@ class ScriptProcessor {
 
         // Overriding methods that work with the DOM.
         if (!jsProcessor.isDataScript(text) && !withoutHeader &&
-            text.indexOf(DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME) === -1)
+            text.indexOf(INTERNAL_PROPS.overrideDomMethodName) === -1)
             text = this.SCRIPT_HEADER + text;
 
         return bom ? bom + text : text;

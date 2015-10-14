@@ -3,23 +3,25 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { IS_STYLESHEET_PROCESSED_COMMENT, HOVER_PSEUDO_CLASS_ATTR } from '../const';
-
-const IS_STYLESHEET_PROCESSED_REG_EX = new RegExp('^\\s*' + IS_STYLESHEET_PROCESSED_COMMENT
-        .replace(/\/|\*/g, '\\$&'));
+import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 
 const SOURCE_MAP_REG_EX              = /#\s*sourceMappingURL\s*=\s*[^\s]+(\s|\*\/)/i;
 const CSS_URL_PROPERTY_VALUE_PATTERN = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s\)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
 
 class StyleProcessor {
+    constructor () {
+        this.IS_STYLESHEET_PROCESSED_COMMENT = '/* stylesheet processed via hammerhead */';
+    }
+
     process (css, urlReplacer, isStylesheetTable) {
-        var isStylesheetProcessed = IS_STYLESHEET_PROCESSED_REG_EX.test(css);
+        var isStyleSheetProcessingRegEx  = new RegExp('^\\s*' + this.IS_STYLESHEET_PROCESSED_COMMENT.replace(/\/|\*/g, '\\$&'));
+        var isStylesheetProcessed = isStyleSheetProcessingRegEx.test(css);
 
         if (typeof css === 'string' && !isStylesheetProcessed) {
-            var prefix = isStylesheetTable ? IS_STYLESHEET_PROCESSED_COMMENT + '\n' : '';
+            var prefix = isStylesheetTable ? this.IS_STYLESHEET_PROCESSED_COMMENT + '\n' : '';
 
             // Replace :hover pseudo class
-            css = css.replace(/\s*:\s*hover(\W)/gi, '[' + HOVER_PSEUDO_CLASS_ATTR + ']$1');
+            css = css.replace(/\s*:\s*hover(\W)/gi, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']$1');
 
             // Remove source map directive
             css = css.replace(SOURCE_MAP_REG_EX, '$1');
@@ -33,7 +35,7 @@ class StyleProcessor {
 
     cleanUp (css, parseProxyUrl, formatUrl) {
         if (typeof css === 'string') {
-            css = css.replace(new RegExp('\\[' + HOVER_PSEUDO_CLASS_ATTR + '\\](\\W)', 'ig'), ':hover$1');
+            css = css.replace(new RegExp('\\[' + INTERNAL_ATTRS.hoverPseudoClass + '\\](\\W)', 'ig'), ':hover$1');
 
             return this._replaceStylsheetUrls(css, url => {
                 var originUrlObj = parseProxyUrl(url);

@@ -1,4 +1,4 @@
-var CONST          = Hammerhead.get('../const');
+var INTERNAL_ATTRS = Hammerhead.get('../processing/dom/internal-attributes');
 var settings       = Hammerhead.get('./settings');
 var sharedUrlUtils = Hammerhead.get('../utils/url');
 
@@ -45,7 +45,7 @@ asyncTest('service message is not processed by a page processor', function () {
     settings.get().serviceMsgUrl = '/service-msg/100';
 
     var handler = function (data) {
-        ok(data.indexOf(CONST.DOM_SANDBOX_STORED_ATTR_POSTFIX) === -1);
+        ok(data.indexOf(INTERNAL_ATTRS.storedAttrPostfix) === -1);
         settings.get().serviceMsgUrl = storedServiceUrl;
         start();
     };

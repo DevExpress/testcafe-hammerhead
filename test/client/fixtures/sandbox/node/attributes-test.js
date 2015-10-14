@@ -1,8 +1,8 @@
-var CONST        = Hammerhead.get('../const');
-var domProcessor = Hammerhead.get('./dom-processor/dom-processor');
-var htmlUtils    = Hammerhead.get('./utils/html');
-var settings     = Hammerhead.get('./settings');
-var urlUtils     = Hammerhead.get('./utils/url');
+var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
+var domProcessor   = Hammerhead.get('./dom-processor/dom-processor');
+var htmlUtils      = Hammerhead.get('./utils/html');
+var settings       = Hammerhead.get('./settings');
+var urlUtils       = Hammerhead.get('./utils/url');
 
 var nativeMethods = Hammerhead.nativeMethods;
 var browserUtils  = Hammerhead.utils.browser;
@@ -95,14 +95,14 @@ test('script src', function () {
 
     overrideDomMeth(script);
 
-    document[CONST.DOCUMENT_CHARSET] = 'utf-8';
+    document[INTERNAL_PROPS.documentCharset] = 'utf-8';
 
     script.setAttribute('src', 'http://google.com');
 
     strictEqual(urlUtils.parseProxyUrl(script.src).resourceType, urlUtils.SCRIPT);
     strictEqual(urlUtils.parseProxyUrl(script.src).charset, 'utf-8');
 
-    document[CONST.DOCUMENT_CHARSET] = null;
+    document[INTERNAL_PROPS.documentCharset] = null;
 
     settings.get().sessionId = storedSessionId;
 });

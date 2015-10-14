@@ -1,3 +1,4 @@
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import EventEmitter from '../utils/event-emitter';
 import BaseDomAdapter from '../../processing/dom/base-dom-adapter';
 import nativeMethods from '../sandbox/native-methods';
@@ -6,7 +7,6 @@ import { sameOriginCheck } from '../utils/origin-location';
 import { getProxyUrl } from '../utils/url';
 import { isIE9 } from '../utils/browser';
 import { findDocument } from '../utils/dom';
-import { DOM_SANDBOX_PROCESSED_CONTEXT } from '../../const';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
     getAttr (el, attr) {
@@ -99,7 +99,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     isTopParentIframe (el) {
-        var elWindow = el[DOM_SANDBOX_PROCESSED_CONTEXT];
+        var elWindow = el[INTERNAL_PROPS.processedContext];
 
         return elWindow && window.top === elWindow.parent;
     }

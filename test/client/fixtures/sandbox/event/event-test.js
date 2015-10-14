@@ -1,4 +1,4 @@
-var CONST = Hammerhead.get('../const');
+var INTERNAL_ATTRS = Hammerhead.get('../processing/dom/internal-attributes');
 
 var browserUtils   = Hammerhead.utils.browser;
 var nativeMethods  = Hammerhead.nativeMethods;
@@ -62,7 +62,7 @@ function dispatchMouseEvent (el, type) {
 }
 
 function isHovered (el) {
-    return el.getAttribute(CONST.HOVER_PSEUDO_CLASS_ATTR) === '';
+    return el.getAttribute(INTERNAL_ATTRS.hoverPseudoClass) === '';
 }
 
 if (!browserUtils.hasTouchEvents) {

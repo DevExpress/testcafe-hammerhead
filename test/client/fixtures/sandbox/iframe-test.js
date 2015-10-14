@@ -1,6 +1,6 @@
-var CONST    = Hammerhead.get('../const');
-var urlUtils = Hammerhead.get('./utils/url');
-var settings = Hammerhead.get('./settings');
+var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
+var urlUtils       = Hammerhead.get('./utils/url');
+var settings       = Hammerhead.get('./settings');
 
 var iframeSandbox = Hammerhead.sandbox.iframe;
 var browserUtils  = Hammerhead.utils.browser;
@@ -76,10 +76,8 @@ asyncTest('element.setAttribute', function () {
         var storedMeth    = iframeSandbox.constructor.isIframeInitialized;
 
         iframeSandbox.constructor.isIframeInitialized = function (iframe) {
-            iframe.contentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] =
-                iframe.contentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME] || function () {
-
-                };
+            iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName] =
+                iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName] || function () { };
 
             return storedMeth.call(iframeSandbox, iframe);
         };
@@ -180,7 +178,7 @@ asyncTest('iframe initialization must be synchronous (for iframes with an empty 
 
     var storedServiceMsgUrl  = settings.get().serviceMsgUrl;
     var testIframeTaskScript = [
-        '"window[\'' + CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME + '\'] = function () {',
+        '"window[\'' + INTERNAL_PROPS.overrideDomMethodName + '\'] = function () {',
         '    window.isIframeInitialized = true;',
         '};"'
     ].join('');
@@ -191,7 +189,7 @@ asyncTest('iframe initialization must be synchronous (for iframes with an empty 
 
     iframe.id = 'test_unique_id_96sfs8d69ba';
     iframe.addEventListener('load', function () {
-        ok(this.contentWindow[CONST.DOM_SANDBOX_OVERRIDE_DOM_METHOD_NAME]);
+        ok(this.contentWindow[INTERNAL_PROPS.overrideDomMethodName]);
         ok(this.contentWindow.isIframeInitialized);
 
         this.parentNode.removeChild(this);
