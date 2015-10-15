@@ -23,9 +23,7 @@
         }
     };
 
-    Hammerhead.start({
-        sessionId: 'sessionId'
-    });
+    Hammerhead.start({ sessionId: 'sessionId' });
 
     window.overrideDomMeth = window[INTERNAL_PROPS.overrideDomMethodName];
 
@@ -39,7 +37,6 @@
     window.setProperty   = window[jsProcessor.SET_PROPERTY_METH_NAME];
     window.callMethod    = window[jsProcessor.CALL_METHOD_METH_NAME];
     window.getLocation   = window[jsProcessor.GET_LOCATION_METH_NAME];
-
 
     var globals = window.QUnitGlobals;
 
