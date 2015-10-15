@@ -257,7 +257,7 @@ asyncTest('transfer input element between forms', function () {
     strictEqual(formEl1.children.length, 2, 'Hidden input in form1 is present');
     strictEqual(formEl2.children.length, 0, 'Hidden input in form2 is missing');
 
-    uploadSandbox.upload(inputEl, ['./file.txt'])
+    uploadSandbox.doUpload(inputEl, ['./file.txt'])
         .then(function () {
             hiddenInfo       = formEl1.children[1].value;
             parsedHiddenInfo = JSON.parse(hiddenInfo);
@@ -361,19 +361,19 @@ module('server errs');
 asyncTest('upload error', function () {
     var input = $('<input type="file">')[0];
 
-    uploadSandbox.upload(input, './err_file.txt')
+    uploadSandbox.doUpload(input, './err_file.txt')
         .then(function (errs) {
             strictEqual(errs.length, 1);
             strictEqual(errs[0].err, 34);
 
-            uploadSandbox.upload(input, ['./err_file1.txt', './file.txt', './err_file2.txt'])
-                .then(function (errs) {
-                    strictEqual(errs.length, 2);
-                    strictEqual(errs[0].err, 34);
-                    strictEqual(errs[1].err, 34);
+            return uploadSandbox.doUpload(input, ['./err_file1.txt', './file.txt', './err_file2.txt']);
+        })
+        .then(function (errs) {
+            strictEqual(errs.length, 2);
+            strictEqual(errs[0].err, 34);
+            strictEqual(errs[1].err, 34);
 
-                    start();
-                });
+            start();
         });
 });
 
@@ -451,7 +451,7 @@ asyncTest('set empty value', function () {
     else
         strictEqual(files.length, 0);
 
-    uploadSandbox.upload(fileInput, ['./file.txt'])
+    uploadSandbox.doUpload(fileInput, ['./file.txt'])
         .then(function () {
             eval(processScript('value = fileInput.value; files = fileInput.files'));
 
@@ -483,7 +483,7 @@ asyncTest('repeated select file', function () {
     var value     = '';
     var files     = null;
 
-    uploadSandbox.upload(fileInput, './file.txt')
+    uploadSandbox.doUpload(fileInput, './file.txt')
         .then(function () {
             eval(processScript('value = fileInput.value; files = fileInput.files'));
 
@@ -497,22 +497,22 @@ asyncTest('repeated select file', function () {
             else
                 strictEqual(files[0].name, 'file.txt');
 
-            uploadSandbox.upload(fileInput, 'folder/file.png')
-                .then(function () {
-                    eval(processScript('value = fileInput.value; files = fileInput.files'));
+            return uploadSandbox.doUpload(fileInput, 'folder/file.png');
+        })
+        .then(function () {
+            eval(processScript('value = fileInput.value; files = fileInput.files'));
 
-                    if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
-                        strictEqual(value, 'C:\\fakepath\\file.png');
-                    else
-                        strictEqual(value, 'file.png');
+            if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
+                strictEqual(value, 'C:\\fakepath\\file.png');
+            else
+                strictEqual(value, 'file.png');
 
-                    if (browserUtils.isIE9)
-                        strictEqual(typeof files, 'undefined');
-                    else
-                        strictEqual(files[0].name, 'file.png');
+            if (browserUtils.isIE9)
+                strictEqual(typeof files, 'undefined');
+            else
+                strictEqual(files[0].name, 'file.png');
 
-                    start();
-                });
+            start();
         });
 });
 
@@ -538,7 +538,7 @@ asyncTest('change event', function () {
         start();
     };
 
-    uploadSandbox.upload(fileInput, './file.txt').then(function () {
+    uploadSandbox.doUpload(fileInput, './file.txt').then(function () {
     });
 });
 
@@ -547,7 +547,7 @@ asyncTest('multi-select files', function () {
     var value     = '';
     var files     = null;
 
-    uploadSandbox.upload(fileInput, ['./file.txt', 'folder/file.png'])
+    uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png'])
         .then(function () {
             eval(processScript('value = fileInput.value; files = fileInput.files'));
 
@@ -575,7 +575,7 @@ asyncTest('get file info from iframe', function () {
     fileInput.name = 'test';
     document.body.appendChild(fileInput);
 
-    uploadSandbox.upload(fileInput, './file.txt')
+    uploadSandbox.doUpload(fileInput, './file.txt')
         .then(function () {
             var iframe = document.createElement('iframe');
 
@@ -607,7 +607,7 @@ asyncTest('get file info from iframe', function () {
 asyncTest('input.value getter', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
 
-    uploadSandbox.upload(fileInput, ['./file.txt'])
+    uploadSandbox.doUpload(fileInput, ['./file.txt'])
         .then(function () {
             var fileInputValue = getProperty(fileInput, 'value');
 

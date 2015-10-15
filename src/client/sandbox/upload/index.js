@@ -79,7 +79,7 @@ export default class UploadSandbox extends SandboxBase {
         return value;
     }
 
-    upload (input, filePaths) {
+    doUpload (input, filePaths) {
         var currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
         filePaths = filePaths || [];
