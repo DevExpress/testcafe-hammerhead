@@ -5,6 +5,7 @@ import { readSync as read } from 'read-file-relative';
 import { respond404, respond500, respondWithJSON, fetchBody } from '../utils/http';
 import { ie9FileReaderShim } from '../upload';
 import { run as runRequestPipeline } from '../request-pipeline';
+import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 
 // Const
 const CLIENT_SCRIPT = read('../client/hammerhead.js');
@@ -120,6 +121,11 @@ export default class Proxy extends Router {
         // NOTE: not a service request, execute proxy request pipeline
         else if (!this._route(req, res, serverInfo))
             runRequestPipeline(req, res, serverInfo, this.openSessions);
+    }
+
+    _processStaticContent (handler) {
+        if (handler.isShadowUIStylesheet)
+            handler.content = prepareShadowUIStylesheet(handler.content);
     }
 
     // API

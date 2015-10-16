@@ -3,10 +3,15 @@ var Router = require('../../lib/proxy/router');
 var md5    = require('crypto-md5');
 
 describe('Router', function () {
+    function noop () {
+    }
+
     it('Should route requests', function () {
         var router          = new Router();
         var calledHandlerId = null;
         var routeParams     = null;
+
+        router._processStaticContent = noop;
 
         router.GET('/yo/42/test/', function () {
             calledHandlerId = 'get';
@@ -72,6 +77,8 @@ describe('Router', function () {
     it('Should provide headers and content for static resources if ETag not match', function () {
         var router = new Router();
 
+        router._processStaticContent = noop;
+
         function testRoute (url, handler) {
             var reqMock = {
                 url:     url,
@@ -122,6 +129,8 @@ describe('Router', function () {
     it('Should respond 304 for static resources if ETag match', function () {
         var router = new Router();
 
+        router._processStaticContent = noop;
+
         var reqMock = {
             url:     '/some/static/js',
             method:  'GET',
@@ -154,6 +163,4 @@ describe('Router', function () {
         expect(resMock.statusCode).eql(304);
         expect(resMock.content).to.be.empty;
     });
-
-
 });

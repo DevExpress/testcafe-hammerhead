@@ -11,7 +11,6 @@ function buildRouteParamsMap (routeMatch, paramNames) {
         params[paramName] = routeMatch[i + 1];
         return params;
     }, {});
-
 }
 
 // Router
@@ -31,8 +30,11 @@ export default class Router {
         else {
             var isStatic = typeof handler !== 'function';
 
-            if (isStatic)
+            if (isStatic) {
+                this._processStaticContent(handler);
+
                 handler.etag = md5(handler.content);
+            }
 
             this.routes[`${method} ${route}`] = {
                 handler:  handler,
@@ -91,6 +93,10 @@ export default class Router {
         }
 
         return false;
+    }
+
+    _processStaticContent () {
+        throw new Error('Not implemented');
     }
 
     // API

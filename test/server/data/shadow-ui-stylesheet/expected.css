@@ -1,0 +1,227 @@
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui {
+  position: absolute;
+  display: block;
+  left: 0px;
+  top: 0px;
+  margin: 0 !important;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  /*Mixins*/
+
+  /*Const*/
+
+  /*Make z-index context*/
+
+  z-index: 2147483647;
+  /*Reset*/
+
+  /* Clear */
+
+  /* Cursor */
+
+  /* Modal background and loading text */
+
+  /* Actions Emulating */
+
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui fieldset,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui img {
+  border: 0;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui ol,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui h1,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui h2,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui h3,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui h4,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui h5,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui h6 {
+  font-size: 100%;
+  font-weight: normal;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 100%;
+  font: inherit;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui * {
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  vertical-align: baseline;
+  background: transparent;
+  text-align: left !important;
+  line-height: normal;
+  border-radius: 0px;
+  font-variant: normal !important;
+  font-weight: normal;
+  font-size: inherit;
+  cursor: default;
+  font-family: Segoe UI, Helvetica, sans-serif !important;
+  letter-spacing: normal;
+  clear: none;
+  box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  transition: none !important;
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  zoom: 1 !important;
+  text-indent: 0 !important;
+  text-shadow: none;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui textarea,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui select,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input:focus,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input[type="text"],
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input[type="text"]:hover,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input[type="text"]:focus,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input[type="text"]:active,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input[type="button"],
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input[type="button"]:hover,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input[type="button"]:focus,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui input[type="button"]:active {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-family: Segoe UI, Helvetica, sans-serif;
+  cursor: text;
+  font-weight: normal;
+  vertical-align: baseline;
+  background-color: white;
+  background-image: none;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  text-align: left !important;
+  line-height: normal;
+  border-radius: 0px;
+  min-height: 0;
+  min-width: 0;
+  box-shadow: none;
+  box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  -moz-user-select: auto;
+  -webkit-user-select: auto;
+  transition: none !important;
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  letter-spacing: normal;
+  text-shadow: none;
+  text-transform: none;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui ::-ms-clear {
+  display: none;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui label {
+  display: inline;
+  color: #ffffff !important;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui button::-moz-focus-inner {
+  margin-top: -1px;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .clear-hammerhead-shadow-ui {
+  display: block;
+  clear: both;
+  height: 0;
+  width: 0;
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui.hidden-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui {
+  display: none;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui.blind-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui {
+  opacity: 0.4;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui {
+  background-image: url("/testcafe-ui-sprite.png") !important;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 35px;
+  height: 57px;
+  background-position: 0 0;
+  z-index: 2147483644;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui.l-mouse-down-hammerhead-shadow-ui {
+  background-position: -64px 0;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui.r-mouse-down-hammerhead-shadow-ui {
+  background-position: -130px 0;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui.touch-hammerhead-shadow-ui {
+  width: 50px;
+  height: 50px;
+  background-position: -190px 0;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui.touch-hammerhead-shadow-ui.l-mouse-down-hammerhead-shadow-ui,
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .cursor-hammerhead-shadow-ui.touch-hammerhead-shadow-ui.r-mouse-down-hammerhead-shadow-ui {
+  background-position: -264px 0;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .modal-background-hammerhead-shadow-ui {
+  display: none;
+  position: fixed;
+  -webkit-transform: translate3d(0px, 0px, 0px) !important;
+  top: 0;
+  left: 0;
+  z-index: 2147483645;
+  background-color: #000000;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .loading-text-hammerhead-shadow-ui {
+  font-family: Segoe UI, Helvetica, sans-serif;
+  font-size: 40px;
+  color: #ffffff;
+  text-shadow: 0 0 10px #000000;
+  display: none;
+  position: fixed;
+  -webkit-transform: translate3d(0px, 0px, 0px) !important;
+  top: 0;
+  left: 0;
+  z-index: 2147483646;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .loading-icon-hammerhead-shadow-ui {
+  background-image: url("/testcafe-ui-sprite.png") !important;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  display: block;
+  width: 218px;
+  height: 218px;
+  background-position: -465px 0;
+  position: fixed;
+  -webkit-transform: translate3d(0px, 0px, 0px) !important;
+  z-index: 2147483647;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .tcOptionList-hammerhead-shadow-ui {
+  overflow-y: auto;
+  background-color: white;
+  border: 1px solid #7F9DB9;
+  z-index: 2147483643;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .tcOptionList-hammerhead-shadow-ui .tcOptionGroup-hammerhead-shadow-ui {
+  font-weight: bolder;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .tcOptionList-hammerhead-shadow-ui .tcOptionGroup-hammerhead-shadow-ui .tcOption-hammerhead-shadow-ui {
+  margin: 1px 20px;
+}
+#root-hammerhead-shadow-ui.root-hammerhead-shadow-ui .tcOptionList-hammerhead-shadow-ui .tcOption-hammerhead-shadow-ui {
+  margin: 1px 5px;
+}
