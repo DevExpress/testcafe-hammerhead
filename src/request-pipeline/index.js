@@ -90,6 +90,13 @@ var stages = {
 function createReqOpts (ctx) {
     var bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);
 
+    // NOTE: First, we should rewrite the request body, because the 'content-length' header will be built based on it.
+    if (bodyWithUploads)
+        ctx.reqBody = bodyWithUploads;
+
+    // NOTE: All headers, including 'content-length', are built here.
+    var headers = headerTransforms.forRequest(ctx, this);
+
     return {
         url:         ctx.dest.url,
         protocol:    ctx.dest.protocol,
@@ -98,9 +105,9 @@ function createReqOpts (ctx) {
         port:        ctx.dest.port,
         path:        ctx.dest.partAfterHost,
         method:      ctx.req.method,
-        headers:     headerTransforms.forRequest(ctx, this),
         credentials: ctx.session.getAuthCredentials(),
-        body:        bodyWithUploads || ctx.reqBody
+        body:        ctx.reqBody,
+        headers:     headers
     };
 }
 

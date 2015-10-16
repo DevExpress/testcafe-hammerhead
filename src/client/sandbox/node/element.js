@@ -8,7 +8,7 @@ import * as hiddenInfo from '../upload/hidden-info';
 import { sameOriginCheck } from '../../utils/origin-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
-import { waitCookieMsg } from '../../transport';
+import { waitCookieMsg, cookieMsgInProgress } from '../../transport';
 
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
@@ -189,8 +189,13 @@ export default class ElementSandbox extends SandboxBase {
             formSubmit () {
                 var form = this;
 
-                waitCookieMsg()
-                    .then(() => nativeMethods.formSubmit.apply(form, arguments));
+                // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
+                if (cookieMsgInProgress()) {
+                    waitCookieMsg()
+                        .then(() => nativeMethods.formSubmit.apply(form, arguments));
+                }
+                else
+                    nativeMethods.formSubmit.apply(form, arguments);
             },
 
             insertBefore (newNode, refNode) {
