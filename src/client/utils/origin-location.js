@@ -1,5 +1,5 @@
 import * as sharedUrlUtils from '../../utils/url';
-import { isIframeWithoutSrc } from './dom';
+import * as domUtils from './dom';
 import { get as getSettings } from '../settings';
 
 const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
@@ -15,7 +15,7 @@ function getLocation () {
 
     try {
         // NOTE: fallback to the owner page's URL if we are in the iframe without src
-        if (window.frameElement && isIframeWithoutSrc(window.frameElement))
+        if (window.frameElement && domUtils.isIframeWithoutSrc(window.frameElement))
             return getSettings().referer;
     }
         /*eslint-disable no-empty */
