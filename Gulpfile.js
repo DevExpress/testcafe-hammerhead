@@ -1,12 +1,3 @@
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//Useful tasks:
-//
-//      $ gulp server-tests                        - run mocha tests
-//      $ gulp client-tests                        - run qunit test page
-//      $ gulp playground                          - run playground page
-//
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 var babel        = require('babel');
 var gulpBabel    = require('gulp-babel');
 var del          = require('del');
@@ -176,7 +167,7 @@ gulp.task('lint', function () {
 
 gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
 
-gulp.task('server-tests', ['build'], function () {
+gulp.task('test-server', ['build'], function () {
     return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
             ui:       'bdd',
@@ -186,7 +177,7 @@ gulp.task('server-tests', ['build'], function () {
         }));
 });
 
-gulp.task('client-tests', ['build'], function () {
+gulp.task('test-client', ['build'], function () {
     gulp.watch('./src/**', ['build']);
 
     return gulp
@@ -194,7 +185,7 @@ gulp.task('client-tests', ['build'], function () {
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS));
 });
 
-gulp.task('client-tests-travis', ['build'], function () {
+gulp.task('test-client-travis', ['build'], function () {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
