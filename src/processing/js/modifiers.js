@@ -395,11 +395,11 @@ export default [
         modifier:  memberSet,
         condition: function (astNode) {
             // [object] = [value]
-            if (astNode.type === Syntax.AssignmentExpression && !astNode.computed && astNode.operator === '=') {
+            if (astNode.type === Syntax.AssignmentExpression && astNode.operator === '=') {
                 var leftOperand = astNode.left;
 
                 // [object].[field] = []
-                if (leftOperand.type === Syntax.MemberExpression &&
+                if (leftOperand.type === Syntax.MemberExpression && !leftOperand.computed &&
                     leftOperand.property.type === Syntax.Identifier) {
                     // [object].location = [value]
                     if (instructs.needToWrapProperty(leftOperand.property.name))
