@@ -383,4 +383,3 @@ describe('Upload', function () {
         expect(actual.toString()).eql(expected.toString());
     });
 });
-

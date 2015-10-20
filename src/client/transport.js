@@ -67,7 +67,7 @@ class Transport extends EventEmitter {
         window.localStorage.setItem(settings.get().sessionId, stringifyJSON(messages));
     }
 
-    _cookieMsgInProgress () {
+    cookieMsgInProgress () {
         return this.msgQueue[COMMAND.setCookie] && !!this.msgQueue[COMMAND.setCookie].length;
     }
 
@@ -90,19 +90,15 @@ class Transport extends EventEmitter {
 
     waitCookieMsg () {
         return new Promise(resolve => {
-            if (this._cookieMsgInProgress()) {
-                var handler = () => {
-                    if (!this._cookieMsgInProgress()) {
-                        this.off(this.MSG_RECEIVED_EVENT, handler);
+            var handler = () => {
+                if (!this.cookieMsgInProgress()) {
+                    this.off(this.MSG_RECEIVED_EVENT, handler);
 
-                        resolve();
-                    }
-                };
+                    resolve();
+                }
+            };
 
-                this.on(this.MSG_RECEIVED_EVENT, handler);
-            }
-            else
-                resolve();
+            this.on(this.MSG_RECEIVED_EVENT, handler);
         });
     }
 
