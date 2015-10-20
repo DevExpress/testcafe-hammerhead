@@ -20,7 +20,6 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
-/* eslint-disable no-implied-eval */
 test('script.textContent', function () {
     var script     = document.createElement('script');
     var scriptCode = 'var test = window.href;';
@@ -398,5 +397,3 @@ asyncTest('input\'s onchange event must not be raise after press Tab key (T22137
             start();
         });
 });
-
-/* eslint-enable no-implied-eval */

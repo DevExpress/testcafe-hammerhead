@@ -1,6 +1,7 @@
-var expect      = require('chai').expect;
-var multiline   = require('multiline');
-var jsProcessor = require('../../lib/processing/js');
+var expect                  = require('chai').expect;
+var multiline               = require('multiline');
+var jsProcessor             = require('../../lib/processing/js');
+var INSTRUMENTED_PROPERTIES = require('../../lib/processing/js/instrumented').PROPERTIES;
 
 var ACORN_PROPERTY_NODES_PATCH_WARNING = multiline(function () {/*
  ATTENTION! If this test fails, this may happen because you have updated acorn.
@@ -126,7 +127,7 @@ function testProcessing (testCases) {
 }
 
 function testPropertyProcessing (templates) {
-    Object.keys(jsProcessor.wrappedProperties).forEach(function (propName) {
+    INSTRUMENTED_PROPERTIES.forEach(function (propName) {
         var testCases = templates.map(function (template) {
             return {
                 src:      template.src.replace(/\{0\}/g, propName),
@@ -350,15 +351,16 @@ describe('Script processor', function () {
                 expected: 'window["eval"].call(window, __proc$Script(script))'
             },
 
-            { src: 'eval.apply(window, [script])', expected: 'eval.apply(window, [__proc$Script(script)])' },
-            { src: 'eval.apply(window, ["script"])', expected: 'eval.apply(window, [__proc$Script("script")])' },
+            { src: 'eval.apply(window, [script])', expected: 'eval.apply(window, __proc$Script([script], true))' },
+            { src: 'eval.apply(window, ["script"])', expected: 'eval.apply(window, __proc$Script(["script"], true))' },
+            { src: 'eval.apply(window, args)', expected: 'eval.apply(window, __proc$Script(args, true))' },
             {
                 src:      'window.eval.apply(window, [script])',
-                expected: 'window.eval.apply(window, [__proc$Script(script)])'
+                expected: 'window.eval.apply(window, __proc$Script([script], true))'
             },
             {
                 src:      'window["eval"].apply(window, [script])',
-                expected: 'window["eval"].apply(window, [__proc$Script(script)])'
+                expected: 'window["eval"].apply(window, __proc$Script([script], true))'
             }
         ]);
     });
@@ -389,19 +391,19 @@ describe('Script processor', function () {
 
             {
                 src:      'setTimeout.apply(window, [script, 0])',
-                expected: 'setTimeout.apply(window, [__proc$Script(script), 0])'
+                expected: 'setTimeout.apply(window, __proc$Script([script, 0], true))'
             },
             {
                 src:      'setTimeout.apply(window, ["script", 0])',
-                expected: 'setTimeout.apply(window, [__proc$Script("script"), 0])'
+                expected: 'setTimeout.apply(window, __proc$Script(["script", 0], true))'
             },
             {
                 src:      'window.setTimeout.apply(window, [script, 0])',
-                expected: 'window.setTimeout.apply(window, [__proc$Script(script), 0])'
+                expected: 'window.setTimeout.apply(window, __proc$Script([script, 0], true))'
             },
             {
                 src:      'window["setTimeout"].apply(window, [script, 0])',
-                expected: 'window["setTimeout"].apply(window, [__proc$Script(script), 0])'
+                expected: 'window["setTimeout"].apply(window, __proc$Script([script, 0], true))'
             }
         ]);
     });
@@ -432,19 +434,19 @@ describe('Script processor', function () {
 
             {
                 src:      'setInterval.apply(window, [script, 0])',
-                expected: 'setInterval.apply(window, [__proc$Script(script), 0])'
+                expected: 'setInterval.apply(window, __proc$Script([script, 0], true))'
             },
             {
                 src:      'setInterval.apply(window, ["script", 0])',
-                expected: 'setInterval.apply(window, [__proc$Script("script"), 0])'
+                expected: 'setInterval.apply(window, __proc$Script(["script", 0], true))'
             },
             {
                 src:      'window.setInterval.apply(window, [script, 0])',
-                expected: 'window.setInterval.apply(window, [__proc$Script(script), 0])'
+                expected: 'window.setInterval.apply(window, __proc$Script([script, 0], true))'
             },
             {
                 src:      'window["setInterval"].apply(window, [script, 0])',
-                expected: 'window["setInterval"].apply(window, [__proc$Script(script), 0])'
+                expected: 'window["setInterval"].apply(window, __proc$Script([script, 0], true))'
             }
         ]);
     });

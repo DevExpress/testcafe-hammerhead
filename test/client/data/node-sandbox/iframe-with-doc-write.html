@@ -14,7 +14,9 @@
     hammerhead.shadowUI.getRoot();
 </script>
 <script>
-    eval(window[hammerhead.jsProcessor.PROCESS_SCRIPT_METH_NAME]([
+    var INSTRUCTION = hammerhead.get('../processing/js/instruction');
+
+    eval(window[INSTRUCTION.processScript]([
         'var childs = [\'hello\', \'testcafe\', \'!!!\'];',
         'document.write(\'<div id="parent">\');',
         'for (var i = 0; i < childs.length; i++) {',

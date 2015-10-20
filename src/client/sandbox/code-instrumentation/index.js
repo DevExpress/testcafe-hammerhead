@@ -3,7 +3,8 @@ import PropertyAccessorsInstrumentation from './properties';
 import LocationAccessorsInstrumentation from './location';
 import MethodCallInstrumentation from './methods';
 import { getAttributeProperty } from './properties/attributes';
-import { PROCESS_SCRIPT_METH_NAME, process as processScript } from '../../../processing/js';
+import { process as processScript } from '../../../processing/js';
+import INSTRUCTION from '../../../processing/js/instruction';
 
 export default class CodeInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI) {
@@ -30,6 +31,24 @@ export default class CodeInstrumentation extends SandboxBase {
         this.locationAccessorsInstrumentation.attach(window);
         this.elementPropertyAccessors = this.propertyAccessorsInstrumentation.attach(window);
 
-        window[PROCESS_SCRIPT_METH_NAME] = script => typeof script !== 'string' ? script : processScript(script);
+        window[INSTRUCTION.processScript] = (script, isApply) => {
+            if (isApply) {
+                if (script && script.length && typeof script[0] === 'string') {
+                    var args = [processScript(script[0])];
+
+                    // NOTE: shallow-copy the remaining args. Don't use arr.slice(),
+                    // since it may leak the arguments object.
+                    // See: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments
+                    for (var i = 1; i < script.length; i++)
+                        args.push(script[i]);
+
+                    return args;
+                }
+            }
+            else if (typeof script === 'string')
+                return processScript(script);
+
+            return script;
+        };
     }
 }

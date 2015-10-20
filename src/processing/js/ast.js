@@ -3,31 +3,94 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import * as instructs from './instructions';
 import { Syntax } from './parsing-tools';
+import INTERNAL_LITERAL from './internal-literal';
+import INSTRUCTION from './instruction';
 
-export function getProcessScriptMethAst (args) {
+export function replaceNode (node, newNode, parent, key) {
+    if (key === 'arguments' || key === 'elements' || key === 'expressions') {
+        var idx = parent[key].indexOf(node);
+
+        parent[key][idx] = newNode;
+    }
+    else
+        parent[key] = newNode;
+}
+
+export function createStringLiteral (value) {
     return {
-        type: Syntax.CallExpression,
-
-        callee: {
-            type: Syntax.Identifier,
-            name: instructs.PROCESS_SCRIPT_METH_NAME
-        },
-
-        arguments: [
-            args[0]
-        ]
+        type:  Syntax.Literal,
+        value: value,
+        raw:   `"${value}"`
     };
 }
 
-export function getGetLocationMethAst () {
+export function createTempVarIdentifier () {
+    return {
+        type: Syntax.Identifier,
+        name: INTERNAL_LITERAL.tempVar
+    };
+}
+
+export function createAssignmentExprStmt (left, right) {
+    return {
+        type: Syntax.ExpressionStatement,
+
+        expression: {
+            type:     Syntax.AssignmentExpression,
+            operator: '=',
+            left:     left,
+            right:    right
+        }
+    };
+}
+
+export function createVarDeclaration (identifier) {
+    return {
+        type: Syntax.VariableDeclaration,
+
+        declarations: [
+            {
+                type: Syntax.VariableDeclarator,
+                id:   identifier,
+                init: null
+            }
+        ],
+
+        kind: 'var'
+    };
+}
+
+export function createProcessScriptMethCall (arg, isApply) {
+    var ast = {
+        type: Syntax.CallExpression,
+
+        callee: {
+            type: Syntax.Identifier,
+            name: INSTRUCTION.processScript
+        },
+
+        arguments: [arg]
+    };
+
+    if (isApply) {
+        ast.arguments.push({
+            type:  Syntax.Literal,
+            value: true,
+            raw:   'true'
+        });
+    }
+
+    return ast;
+}
+
+export function createLocationGetWrapper () {
     return {
         type: Syntax.CallExpression,
 
         callee: {
             type: Syntax.Identifier,
-            name: instructs.GET_LOCATION_METH_NAME
+            name: INSTRUCTION.getLocation
         },
 
         arguments: [
@@ -39,7 +102,7 @@ export function getGetLocationMethAst () {
     };
 }
 
-export function getSetLocationMethAst (value) {
+export function createLocationSetWrapper (value) {
     return {
         type: Syntax.CallExpression,
 
@@ -68,7 +131,7 @@ export function getSetLocationMethAst (value) {
 
                                     callee: {
                                         type: Syntax.Identifier,
-                                        name: instructs.SET_LOCATION_METH_NAME
+                                        name: INSTRUCTION.setLocation
                                     },
 
                                     arguments: [
@@ -115,33 +178,30 @@ export function getSetLocationMethAst (value) {
     };
 }
 
-export function getSetMethAst (propertyName, obj, value) {
+export function createPropertySetWrapper (propertyName, obj, value) {
     return {
         type: Syntax.CallExpression,
 
         callee: {
             type: Syntax.Identifier,
-            name: instructs.SET_PROPERTY_METH_NAME
+            name: INSTRUCTION.setProperty
         },
 
         arguments: [
-            obj, {
-                type:  Syntax.Literal,
-                value: propertyName,
-                raw:   '"' + propertyName + '"'
-            },
+            obj,
+            createStringLiteral(propertyName),
             value
         ]
     };
 }
 
-export function getCallMethodMthAst (owner, meth, args) {
+export function createMethCallWrapper (owner, meth, args) {
     return {
         type: Syntax.CallExpression,
 
         callee: {
             type: Syntax.Identifier,
-            name: instructs.CALL_METHOD_METH_NAME
+            name: INSTRUCTION.callMethod
         },
 
         arguments: [
@@ -155,32 +215,29 @@ export function getCallMethodMthAst (owner, meth, args) {
     };
 }
 
-export function getGetMethAst (propertyName, owner) {
+export function createPropertyGetWrapper (propertyName, owner) {
     return {
         type: Syntax.CallExpression,
 
         callee: {
             type: Syntax.Identifier,
-            name: instructs.GET_PROPERTY_METH_NAME
+            name: INSTRUCTION.getProperty
         },
 
         arguments: [
-            owner, {
-                type:  Syntax.Literal,
-                value: propertyName,
-                raw:   '"' + propertyName + '"'
-            }
+            owner,
+            createStringLiteral(propertyName)
         ]
     };
 }
 
-export function getGetComputedMethAst (property, owner) {
+export function createComputedPropertyGetWrapper (property, owner) {
     return {
         type: Syntax.CallExpression,
 
         callee: {
             type: Syntax.Identifier,
-            name: instructs.GET_PROPERTY_METH_NAME
+            name: INSTRUCTION.getProperty
         },
 
         arguments: [
@@ -190,13 +247,13 @@ export function getGetComputedMethAst (property, owner) {
     };
 }
 
-export function getSetComputedMethAst (property, owner, value) {
+export function createComputedPropertySetWrapper (property, owner, value) {
     return {
         type: Syntax.CallExpression,
 
         callee: {
             type: Syntax.Identifier,
-            name: instructs.SET_PROPERTY_METH_NAME
+            name: INSTRUCTION.setProperty
         },
 
         arguments: [
@@ -207,7 +264,7 @@ export function getSetComputedMethAst (property, owner, value) {
     };
 }
 
-export function getConcatOperatorAst (left, right) {
+export function createExpandedConcatOperation (left, right) {
     return {
         type:     Syntax.AssignmentExpression,
         operator: '=',
@@ -220,32 +277,4 @@ export function getConcatOperatorAst (left, right) {
             right:    right
         }
     };
-}
-
-export function getDocumentWriteArgAst (arg) {
-    return {
-        type:  Syntax.Literal,
-        value: arg,
-        raw:   '\'' + arg + '\''
-    };
-}
-
-export function getDocumentWriteStatementIndices (statements) {
-    var indices = [];
-
-    var isExpressionStatement = statement => statement.type === Syntax.ExpressionStatement;
-    var isCallStatement       = statement => statement.expression.type === Syntax.CallExpression;
-    var isMember              = statement => statement.expression.callee.type === Syntax.MemberExpression;
-    var isDocumentWrite       = statement => statement.expression.callee.property.name === 'write' ||
-                                             statement.expression.callee.property.name === 'writeln';
-
-    for (var i = 0; i < statements.length; i++) {
-        var statement = statements[i];
-
-        if (isExpressionStatement(statement) && isCallStatement(statement) && isMember(statement) &&
-            isDocumentWrite(statement))
-            indices.push(i);
-    }
-
-    return indices;
 }

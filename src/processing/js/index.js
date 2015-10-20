@@ -3,138 +3,73 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import dedent from 'dedent';
-import modifiers from './modifiers';
-import * as instructs from './instructions';
+import transform from './transform';
+import INSTRUCTION from './instruction';
 import { parse, generate } from './parsing-tools';
 
 // Const
-const HTML_COMMENT_REG_EXP = /(^|\n)\s*<!--[.\r]*(\n|$)/g;
+const HTML_COMMENT_RE = /(^|\n)\s*<!--[.\r]*(\n|$)/g;
+const ARRAY_RE        = /^\s*\[[\s\S]*\]\s*$/;
+const OBJECT_RE       = /^\s*\{[\s\S]*\}\s*$/;
 
-const codegenOpts = {
-    format: {
-        quotes:     'double',
-        escapeless: true
-    }
-};
+const PROCESSED_SCRIPT_RE = new RegExp([
+    INSTRUCTION.getLocation,
+    INSTRUCTION.setLocation,
+    INSTRUCTION.getProperty,
+    INSTRUCTION.setProperty,
+    INSTRUCTION.callMethod,
+    INSTRUCTION.processScript
+].join('|').replace(/\$/, '\\$'));
 
-const MOCK_ACCESSORS = dedent`
-    var __w$undef_ = typeof window === "undefined",
-    ${ instructs.GET_LOCATION_METH_NAME }=__w$undef_?function(l){return l}:window.${ instructs.GET_LOCATION_METH_NAME },
-    ${ instructs.SET_LOCATION_METH_NAME }=__w$undef_?function(l,v){return l = v}:window.${ instructs.SET_LOCATION_METH_NAME },
-    ${ instructs.SET_PROPERTY_METH_NAME }=__w$undef_?function(o,p,v){return o[p] = v}:window.${ instructs.SET_PROPERTY_METH_NAME },
-    ${ instructs.GET_PROPERTY_METH_NAME }=__w$undef_?function(o,p){return o[p]}:window.${ instructs.GET_PROPERTY_METH_NAME },
-    ${ instructs.CALL_METHOD_METH_NAME }=__w$undef_?function(o,p,a){return o[p].apply(o,a)}:window.${ instructs.CALL_METHOD_METH_NAME },
-    ${ instructs.PROCESS_SCRIPT_METH_NAME }=__w$undef_?function(s){return s}:window.${ instructs.PROCESS_SCRIPT_METH_NAME };
-`;
 
-class JsProcessor {
-    constructor () {
-        this.GET_LOCATION_METH_NAME     = instructs.GET_LOCATION_METH_NAME;
-        this.SET_LOCATION_METH_NAME     = instructs.SET_LOCATION_METH_NAME;
-        this.SET_PROPERTY_METH_NAME     = instructs.SET_PROPERTY_METH_NAME;
-        this.GET_PROPERTY_METH_NAME     = instructs.GET_PROPERTY_METH_NAME;
-        this.CALL_METHOD_METH_NAME      = instructs.CALL_METHOD_METH_NAME;
-        this.PROCESS_SCRIPT_METH_NAME   = instructs.PROCESS_SCRIPT_METH_NAME;
-        this.DOCUMENT_WRITE_BEGIN_PARAM = instructs.DOCUMENT_WRITE_BEGIN_PARAM;
-        this.DOCUMENT_WRITE_END_PARAM   = instructs.DOCUMENT_WRITE_END_PARAM;
+// Utils
+function replaceHtmlComments (code) {
+    do
+        code = code.replace(HTML_COMMENT_RE, '\n');
+    while (HTML_COMMENT_RE.test(code));
 
-        this.MOCK_ACCESSORS = MOCK_ACCESSORS;
+    return code;
+}
 
-        this.wrappedProperties = instructs.wrappedProperties;
-        this.wrappedMethods    = instructs.wrappedMethods;
-    }
+function isArrayCode (code) {
+    return ARRAY_RE.test(code);
+}
 
-    _htmlCommentsReplacer (code) {
-        code = code.replace(HTML_COMMENT_REG_EXP, '\n');
+function isObjectCode (code) {
+    return OBJECT_RE.test(code);
+}
 
-        if (HTML_COMMENT_REG_EXP.test(code))
-            code = this._htmlCommentsReplacer(code);
+function isJSONCode (code) {
+    if (isObjectCode(code)) {
+        try {
+            JSON.parse(code);
 
-        return code;
-    }
-
-    _modify (ast, parent, key) {
-        var modified = false;
-
-        if (!ast || typeof ast !== 'object')
-            return modified;
-
-        if (ast.type) {
-            for (var i = 0; i < modifiers.length; i++) {
-                if (modifiers[i].condition(ast, parent)) {
-                    var needToModify = modifiers[i].modifier(ast, parent, key);
-
-                    modified = true;
-
-                    if (needToModify)
-                        modified = this._modify(parent[key], parent, key) || modified;
-                }
-            }
+            return true;
         }
-
-        for (var astKey in ast) {
-            if (ast.hasOwnProperty(astKey)) {
-                var childNode = ast[astKey];
-
-                if (Object.prototype.toString.call(childNode) === '[object Array]') {
-                    for (var j = 0; j < childNode.length; j++)
-                        modified = this._modify(childNode[j], ast, astKey) || modified;
-                }
-                else
-                    modified = this._modify(childNode, ast, astKey) || modified;
-            }
+        catch (e) {
+            return false;
         }
-
-        return modified;
     }
 
-    _isArray (code) {
-        return /^\s*\[[\s\S]*\]\s*$/.test(code);
-    }
+    return false;
+}
 
-    _isObject (code) {
-        return /^\s*\{[\s\S]*\}\s*$/.test(code);
-    }
 
-    isJSON (code) {
-        if (this._isObject(code)) {
-            try {
-                JSON.parse(code);
-
-                return true;
-            }
-            catch (e) {
-                return false;
-            }
-        }
-
-        return false;
-    }
-
+export default {
     isScriptProcessed (code) {
-        return new RegExp([
-            instructs.GET_LOCATION_METH_NAME,
-            instructs.SET_LOCATION_METH_NAME,
-            instructs.SET_PROPERTY_METH_NAME,
-            instructs.GET_PROPERTY_METH_NAME,
-            instructs.CALL_METHOD_METH_NAME,
-            instructs.PROCESS_SCRIPT_METH_NAME
-        ].join('|').replace(/\$/, '\\$')).test(code);
-    }
+        return PROCESSED_SCRIPT_RE.test(code);
+    },
 
     isDataScript (code) {
-        return this._isObject(code) || this._isArray(code);
-    }
+        return isObjectCode(code) || isArrayCode(code);
+    },
 
     process (code, beautify) {
-        var isJSON   = this.isJSON(code);
-        var isObject = this._isObject(code);
-
-        codegenOpts.json = isJSON;
+        var isJSON   = isJSONCode(code);
+        var isObject = isObjectCode(code);
 
         // NOTE: The JS parser removes the line that follows'<!--'. (T226589)
-        var result = this._htmlCommentsReplacer(code);
+        var result = replaceHtmlComments(code);
         var ast    = null;
 
         try {
@@ -155,14 +90,18 @@ class JsProcessor {
             }
         }
 
-        var modified = this._modify(ast);
-
-        if (!modified)
+        if (!transform(ast))
             return code;
 
-        codegenOpts.format.compact = !beautify;
+        result = generate(ast, {
+            format: {
+                quotes:     'double',
+                escapeless: true,
+                compact:    !beautify
+            },
 
-        result = generate(ast, codegenOpts);
+            json: isJSON
+        });
 
         if (isObject && !isJSON)
             result = result.replace(/^\(|\);\s*$/g, '');
@@ -174,6 +113,4 @@ class JsProcessor {
 
         return result;
     }
-}
-
-export default new JsProcessor();
+};
