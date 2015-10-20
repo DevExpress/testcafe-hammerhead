@@ -399,3 +399,19 @@ test('IsDomElement for plain object (T198784)', function () {
     strictEqual(eval(processScript('obj.target')), 'ok');
     /* eslint-enable no-unused-vars */
 });
+
+asyncTest('Cross domain iframe that contains iframe without src should not throw the security error (GH-114)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/page-with-iframe-with-js-protocol.html');
+
+    window.addEventListener('message', function (e) {
+        strictEqual(e.data, 'ok');
+
+        document.body.removeChild(iframe);
+
+        start();
+    });
+
+    document.body.appendChild(iframe);
+});
