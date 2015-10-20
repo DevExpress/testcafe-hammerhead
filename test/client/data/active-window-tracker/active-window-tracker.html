@@ -7,10 +7,12 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
-    Hammerhead.start({ crossDomainProxyPort: 2000 });
+    var hammerhead = window['%hammerhead%'];
 
-    window.activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
+    hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+
+    window.activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 </script>
 <div></div>
 </body>

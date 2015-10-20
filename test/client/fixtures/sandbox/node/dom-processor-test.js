@@ -1,13 +1,13 @@
-var INTERNAL_ATTRS  = Hammerhead.get('../processing/dom/internal-attributes');
-var htmlUtils       = Hammerhead.get('./utils/html');
-var domProcessor    = Hammerhead.get('./dom-processor');
-var scriptProcessor = Hammerhead.get('../processing/script');
-var styleProcessor  = Hammerhead.get('../processing/style');
-var settings        = Hammerhead.get('./settings');
-var urlUtils        = Hammerhead.get('./utils/url');
+var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
+var htmlUtils       = hammerhead.get('./utils/html');
+var domProcessor    = hammerhead.get('./dom-processor');
+var scriptProcessor = hammerhead.get('../processing/script');
+var styleProcessor  = hammerhead.get('../processing/style');
+var settings        = hammerhead.get('./settings');
+var urlUtils        = hammerhead.get('./utils/url');
 
-var nativeMethods = Hammerhead.nativeMethods;
-var iframeSandbox = Hammerhead.sandbox.iframe;
+var nativeMethods = hammerhead.nativeMethods;
+var iframeSandbox = hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -93,7 +93,7 @@ test('attribute value', function () {
     var html =
             '<p class="location test"></p>' +
             '<p data-w="dslkfe"></p>' +
-            '<p ' + Hammerhead.DOM_SANDBOX_STORED_ATTR_KEY_PREFIX + 'test="location"></p>' +
+            '<p ' + hammerhead.DOM_SANDBOX_STORED_ATTR_KEY_PREFIX + 'test="location"></p>' +
             '<div id="URL"></div>' +
             '<div attr=""></div>' +
             '<div data-wrap="{simbols: -904, action: data}"></div>' +
@@ -105,7 +105,7 @@ test('attribute value', function () {
     var expectedHTML =
             '<p class="location test"></p>' +
             '<p data-w="dslkfe"></p>' +
-            '<p ' + Hammerhead.DOM_SANDBOX_STORED_ATTR_KEY_PREFIX + 'test="location"></p>' +
+            '<p ' + hammerhead.DOM_SANDBOX_STORED_ATTR_KEY_PREFIX + 'test="location"></p>' +
             '<div id="URL"></div>' +
             '<div attr=""></div>' +
             '<div data-wrap="{simbols: -904, action: data}"></div>' +

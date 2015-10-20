@@ -1,10 +1,10 @@
-var Promise         = Hammerhead.get('es6-promise').Promise;
-var scriptProcessor = Hammerhead.get('../processing/script');
-var settings        = Hammerhead.get('./settings');
+var Promise         = hammerhead.get('es6-promise').Promise;
+var scriptProcessor = hammerhead.get('../processing/script');
+var settings        = hammerhead.get('./settings');
 
-var browserUtils   = Hammerhead.utils.browser;
-var iframeSandbox  = Hammerhead.sandbox.iframe;
-var messageSandbox = Hammerhead.sandbox.event.message;
+var browserUtils   = hammerhead.utils.browser;
+var iframeSandbox  = hammerhead.sandbox.iframe;
+var messageSandbox = hammerhead.sandbox.event.message;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
@@ -154,7 +154,7 @@ asyncTest('cloning arguments', function () {
     iframe.addEventListener('load', function () {
         var sourceObj = { testObject: true };
 
-        this.contentWindow.Hammerhead.sandbox.event.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+        this.contentWindow['%hammerhead%'].sandbox.event.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
             ok(e.message.testObject);
             e.message.modified = true;
             ok(!sourceObj.modified);

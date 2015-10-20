@@ -1,7 +1,7 @@
-var urlUtils = Hammerhead.get('./utils/url');
+var urlUtils = hammerhead.get('./utils/url');
 
-var accessors     = Hammerhead.sandbox.codeInstrumentation.elementPropertyAccessors;
-var iframeSandbox = Hammerhead.sandbox.iframe;
+var accessors     = hammerhead.sandbox.codeInstrumentation.elementPropertyAccessors;
+var iframeSandbox = hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);

@@ -1,5 +1,5 @@
-var jsProcessor         = Hammerhead.jsProcessor;
-var codeInstrumentation = Hammerhead.sandbox.codeInstrumentation;
+var jsProcessor         = hammerhead.jsProcessor;
+var codeInstrumentation = hammerhead.sandbox.codeInstrumentation;
 
 test('wrapped properties equals with accessors properties', function () {
     codeInstrumentation.attach(window);

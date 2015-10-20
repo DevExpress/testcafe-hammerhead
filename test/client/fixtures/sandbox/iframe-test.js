@@ -1,10 +1,10 @@
-var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
-var urlUtils       = Hammerhead.get('./utils/url');
-var settings       = Hammerhead.get('./settings');
+var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
+var urlUtils       = hammerhead.get('./utils/url');
+var settings       = hammerhead.get('./settings');
 
-var iframeSandbox = Hammerhead.sandbox.iframe;
-var browserUtils  = Hammerhead.utils.browser;
-var nativeMethods = Hammerhead.nativeMethods;
+var iframeSandbox = hammerhead.sandbox.iframe;
+var browserUtils  = hammerhead.utils.browser;
+var nativeMethods = hammerhead.nativeMethods;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -72,7 +72,7 @@ asyncTest('element.setAttribute', function () {
         var iframeBody = iframe.contentDocument.body;
 
         // NOTE: IE hack part 1: catch hammerhead initialization exception.
-        var iframeSandbox = this.contentWindow.Hammerhead.sandbox.iframe;
+        var iframeSandbox = this.contentWindow['%hammerhead%'].sandbox.iframe;
         var storedMeth    = iframeSandbox.constructor.isIframeInitialized;
 
         iframeSandbox.constructor.isIframeInitialized = function (iframe) {
@@ -164,7 +164,7 @@ asyncTest('the AMD module loader damages proxing an iframe without src (GH-127)'
 
     iframe.id = 'test_iframe_unique_id_jlsuie56598o';
     iframe.addEventListener('load', function () {
-        ok(this.contentWindow.Hammerhead);
+        ok(this.contentWindow['%hammerhead%']);
         delete window.define;
         iframe.parentNode.removeChild(iframe);
         start();

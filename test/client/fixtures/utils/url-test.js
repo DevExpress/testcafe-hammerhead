@@ -1,9 +1,9 @@
-var settings       = Hammerhead.get('./settings');
-var sharedUrlUtils = Hammerhead.get('../utils/url');
-var urlUtils       = Hammerhead.get('./utils/url');
-var originLocation = Hammerhead.get('./utils/origin-location');
+var settings       = hammerhead.get('./settings');
+var sharedUrlUtils = hammerhead.get('../utils/url');
+var urlUtils       = hammerhead.get('./utils/url');
+var originLocation = hammerhead.get('./utils/origin-location');
 
-var browserUtils = Hammerhead.utils.browser;
+var browserUtils = hammerhead.utils.browser;
 
 var PROXY_PORT     = 1337;
 var PROXY_HOSTNAME = '127.0.0.1';

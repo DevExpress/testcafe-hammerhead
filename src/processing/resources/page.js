@@ -8,8 +8,8 @@ import scriptProcessor from '../script';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent`
     <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.script }">
-        if (window.Hammerhead)
-            window.Hammerhead.sandbox.node.raiseBodyCreatedEvent();
+        if (window["%hammerhead%"])
+            window["%hammerhead%"].sandbox.node.raiseBodyCreatedEvent();
 
         var script = document.currentScript || document.scripts[document.scripts.length - 1];
         script.parentNode.removeChild(script);

@@ -1,15 +1,15 @@
-var INTERNAL_PROPS  = Hammerhead.get('../processing/dom/internal-properties');
-var Promise         = Hammerhead.get('es6-promise').Promise;
-var urlUtils        = Hammerhead.get('./utils/url');
-var domProcessor    = Hammerhead.get('./dom-processor');
-var scriptProcessor = Hammerhead.get('../processing/script');
+var INTERNAL_PROPS  = hammerhead.get('../processing/dom/internal-properties');
+var Promise         = hammerhead.get('es6-promise').Promise;
+var urlUtils        = hammerhead.get('./utils/url');
+var domProcessor    = hammerhead.get('./dom-processor');
+var scriptProcessor = hammerhead.get('../processing/script');
 
-var jsProcessor           = Hammerhead.jsProcessor;
-var nativeMethods         = Hammerhead.nativeMethods;
-var browserUtils          = Hammerhead.utils.browser;
-var iframeSandbox         = Hammerhead.sandbox.iframe;
-var elementEditingWatcher = Hammerhead.sandbox.event.elementEditingWatcher;
-var eventSimulator        = Hammerhead.sandbox.event.eventSimulator;
+var jsProcessor           = hammerhead.jsProcessor;
+var nativeMethods         = hammerhead.nativeMethods;
+var browserUtils          = hammerhead.utils.browser;
+var iframeSandbox         = hammerhead.sandbox.iframe;
+var elementEditingWatcher = hammerhead.sandbox.event.elementEditingWatcher;
+var eventSimulator        = hammerhead.sandbox.event.eventSimulator;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);

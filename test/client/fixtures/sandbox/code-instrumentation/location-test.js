@@ -1,10 +1,10 @@
-var CodeInstrumentation     = Hammerhead.get('./sandbox/code-instrumentation');
-var LocationInstrumentation = Hammerhead.get('./sandbox/code-instrumentation/location');
-var Promise                 = Hammerhead.get('es6-promise').Promise;
-var urlUtils                = Hammerhead.get('./utils/url');
+var CodeInstrumentation     = hammerhead.get('./sandbox/code-instrumentation');
+var LocationInstrumentation = hammerhead.get('./sandbox/code-instrumentation/location');
+var Promise                 = hammerhead.get('es6-promise').Promise;
+var urlUtils                = hammerhead.get('./utils/url');
 
-var iframeSandbox = Hammerhead.sandbox.iframe;
-var browserUtils  = Hammerhead.utils.browser;
+var iframeSandbox = hammerhead.sandbox.iframe;
+var browserUtils  = hammerhead.utils.browser;
 
 
 QUnit.testStart(function () {

@@ -5,16 +5,17 @@
     $('script').addClass('script-hammerhead-shadow-ui');
     $('link').addClass('ui-stylesheet-hammerhead-shadow-ui');
 
-    var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
-    var originLocation = Hammerhead.get('./utils/origin-location');
-    var jsProcessor    = Hammerhead.jsProcessor;
+    var hammerhead     = window['%hammerhead%'];
+    var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
+    var originLocation = hammerhead.get('./utils/origin-location');
+    var jsProcessor    = hammerhead.jsProcessor;
 
     originLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
     window.initIframeTestHandler = function (e) {
         if (e.iframe.id.indexOf('test') !== -1) {
             e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
-                'Hammerhead.start({',
+                'window["%hammerhead%"].start({',
                 '    referer : "http://localhost/sessionId/https://example.com",',
                 '    serviceMsgUrl : "/service-msg/100",',
                 '    sessionId : "sessionId"',
@@ -23,7 +24,7 @@
         }
     };
 
-    Hammerhead.start({ sessionId: 'sessionId' });
+    hammerhead.start({ sessionId: 'sessionId' });
 
     window.overrideDomMeth = window[INTERNAL_PROPS.overrideDomMethodName];
 
@@ -37,6 +38,7 @@
     window.setProperty   = window[jsProcessor.SET_PROPERTY_METH_NAME];
     window.callMethod    = window[jsProcessor.CALL_METHOD_METH_NAME];
     window.getLocation   = window[jsProcessor.GET_LOCATION_METH_NAME];
+    window.hammerhead    = hammerhead;
 
     var globals = window.QUnitGlobals;
 

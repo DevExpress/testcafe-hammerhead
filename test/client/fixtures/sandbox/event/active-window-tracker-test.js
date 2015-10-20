@@ -1,7 +1,7 @@
-var Promise = Hammerhead.get('es6-promise').Promise;
+var Promise = hammerhead.get('es6-promise').Promise;
 
-var activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
-var iframeSandbox       = Hammerhead.sandbox.iframe;
+var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
+var iframeSandbox       = hammerhead.sandbox.iframe;
 
 function nextTick () {
     return new Promise(function (resolve) {

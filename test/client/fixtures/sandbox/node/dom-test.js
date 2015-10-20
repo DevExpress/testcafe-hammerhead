@@ -1,10 +1,10 @@
-var urlUtils = Hammerhead.get('./utils/url');
+var urlUtils = hammerhead.get('./utils/url');
 
-var browserUtils   = Hammerhead.utils.browser;
-var nativeMethods  = Hammerhead.nativeMethods;
-var iframeSandbox  = Hammerhead.sandbox.iframe;
-var nodeMutation   = Hammerhead.sandbox.node.mutation;
-var eventSimulator = Hammerhead.sandbox.event.eventSimulator;
+var browserUtils   = hammerhead.utils.browser;
+var nativeMethods  = hammerhead.nativeMethods;
+var iframeSandbox  = hammerhead.sandbox.iframe;
+var nodeMutation   = hammerhead.sandbox.node.mutation;
+var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.

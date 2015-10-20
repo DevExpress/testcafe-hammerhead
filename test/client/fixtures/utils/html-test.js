@@ -1,12 +1,12 @@
-﻿var INTERNAL_ATTRS  = Hammerhead.get('../processing/dom/internal-attributes');
-var domProcessor    = Hammerhead.get('./dom-processor');
-var htmlUtils       = Hammerhead.get('./utils/html');
-var scriptProcessor = Hammerhead.get('../processing/script');
-var urlUtils        = Hammerhead.get('./utils/url');
+﻿var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
+var domProcessor    = hammerhead.get('./dom-processor');
+var htmlUtils       = hammerhead.get('./utils/html');
+var scriptProcessor = hammerhead.get('../processing/script');
+var urlUtils        = hammerhead.get('./utils/url');
 
-var nativeMethods = Hammerhead.nativeMethods;
-var iframeSandbox = Hammerhead.sandbox.iframe;
-var shadowUI      = Hammerhead.sandbox.shadowUI;
+var nativeMethods = hammerhead.nativeMethods;
+var iframeSandbox = hammerhead.sandbox.iframe;
+var shadowUI      = hammerhead.sandbox.shadowUI;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);

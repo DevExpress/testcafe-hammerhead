@@ -10,7 +10,7 @@ import { queuedAsyncServiceMsg } from '../transport';
 export default class CookieSandbox extends SandboxBase {
     _getSettings () {
         var windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
-                             this.window.top.Hammerhead.get('./settings') : settings;
+                             this.window.top['%hammerhead%'].get('./settings') : settings;
 
         return windowSettings.get();
     }

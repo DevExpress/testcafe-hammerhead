@@ -1,7 +1,7 @@
-var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
+var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
-var domUtils      = Hammerhead.utils.dom;
-var iframeSandbox = Hammerhead.sandbox.iframe;
+var domUtils      = hammerhead.utils.dom;
+var iframeSandbox = hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);

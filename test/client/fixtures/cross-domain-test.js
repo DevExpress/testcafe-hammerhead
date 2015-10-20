@@ -1,4 +1,4 @@
-var scriptProcessor = Hammerhead.get('../processing/script');
+var scriptProcessor = hammerhead.get('../processing/script');
 
 asyncTest('cross domain messaging between windows', function () {
     expect(4);

@@ -7,10 +7,12 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
-    Hammerhead.start({ crossDomainProxyPort: 2000 });
+    var hammerhead = window['%hammerhead%'];
 
-    var scriptProcessor = Hammerhead.get('../processing/script');
+    hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+
+    var scriptProcessor = hammerhead.get('../processing/script');
 
     eval(scriptProcessor.process([
         'var input = window.top.document.querySelector("#uploadTestIframe"),',

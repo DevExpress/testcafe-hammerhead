@@ -132,6 +132,11 @@ class Hammerhead {
 
 var hammerhead = new Hammerhead();
 
-window.Hammerhead = hammerhead;
+Object.defineProperty(window, '%hammerhead%', {
+    enumerable:   false,
+    configurable: false,
+    writable:     false,
+    value:        hammerhead
+});
 
 export default hammerhead;
