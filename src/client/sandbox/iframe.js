@@ -28,22 +28,21 @@ export default class IframeSandbox extends SandboxBase {
             var iframeWindowInitialized = iframe.contentWindow[IFRAME_WINDOW_INITED];
 
             if (iframeInitialized && !iframeWindowInitialized) {
-                // Ok, iframe fully loaded now, but Hammerhead not injected
+                // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
                 iframe.contentWindow[IFRAME_WINDOW_INITED] = true;
 
-                // Rise this internal event to eval Hammerhead code script
+                // NOTE: Raise this internal event to eval the Hammerhead code script.
                 this.emit(this.IFRAME_READY_TO_INIT_INTERNAL_EVENT, { iframe });
 
-                // Rise this event to eval "task" script and to call Hammerhead initialization method after
+                // NOTE: Raise this event to eval the "task" script and to call the Hammerhead initialization method.
                 this.emit(this.IFRAME_READY_TO_INIT_EVENT, { iframe });
 
                 iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName]();
             }
             else if (!iframeInitialized) {
-                // Even if iframe is not loaded (iframe.contentDocument.documentElement not exist) we should still
-                // override document.write method, without Hammerhead initializing. This method can be called
-                // before iframe fully loading, we are obliged to override it now
-
+                // NOTE: Even if iframe is not loaded (iframe.contentDocument.documentElement does not exist), we
+                // still need to override the document.write method without initializing Hammerhead. This method can
+                // be called before iframe is fully loaded, we shouldoverride it now.
                 if (iframe.contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
                     this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
             }
@@ -61,8 +60,7 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     iframeReadyToInitHandler (e) {
-        // Get and evaluate iframe task script
-        // Iframe's task script evaluation must be synchronous
+        // NOTE: Get and evaluate an iframe task script. The evaluation must be synchronous.
         var msg = {
             cmd:     COMMAND.getIframeTaskScript,
             referer: settings.get().referer || this.window.location.toString()

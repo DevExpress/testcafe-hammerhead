@@ -9,7 +9,7 @@ import * as HiddenInfo from './hidden-info';
 import SHADOW_UI_CLASSNAME from '../../../shadow-ui/class-name';
 import { Promise } from 'es6-promise';
 
-// NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly
+// NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
 
 const UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIframeForIE9' + SHADOW_UI_CLASSNAME.postfix;

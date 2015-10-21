@@ -8,8 +8,8 @@ import { assign as assignWindowsDomain } from './windows-domain';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 
-// HACK: Ignore SSL auth. rejectUnauthorized https.request
-// option doesn't work(see:  https://github.com/mikeal/request/issues/418)
+// HACK: Ignore SSL auth. The rejectUnauthorized option in the https.request method
+// doesn't work (see: https://github.com/mikeal/request/issues/418).
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Utils
@@ -28,7 +28,7 @@ export default class DestinationRequest extends EventEmitter {
         this.isHttps           = opts.protocol === 'https:';
         this.protocolInterface = this.isHttps ? https : http;
 
-        // NOTE: ignore SSL auth
+        // NOTE: Ignore SSL auth.
         if (this.isHttps)
             opts.rejectUnauthorized = false;
 
@@ -72,9 +72,8 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _onTimeout () {
-        // NOTE: this handler is called if we get error
-        // response(for example, 404). So, we should check
-        // for the response presence before raising error.
+        // NOTE: this handler is also called if we get an error response (for example, 404). So, we should check
+        // for the response presence before raising the timeout error.
         if (!this.hasResponse) {
             this.req.abort();
 
@@ -95,5 +94,5 @@ export default class DestinationRequest extends EventEmitter {
     }
 }
 
-// NOTE: exposed for the testing purposes
+// NOTE: Exposed for testing purposes.
 DestinationRequest.TIMEOUT = 25 * 1000;

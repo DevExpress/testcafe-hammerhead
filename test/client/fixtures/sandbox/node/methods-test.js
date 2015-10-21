@@ -1,5 +1,5 @@
 var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
-var domProcessor   = Hammerhead.get('./dom-processor/dom-processor');
+var domProcessor   = Hammerhead.get('./dom-processor');
 var urlUtils       = Hammerhead.get('./utils/url');
 
 var browserUtils  = Hammerhead.utils.browser;

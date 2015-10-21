@@ -19,7 +19,7 @@ export default class UnloadSandbox extends SandboxBase {
         this.storedBeforeUnloadHandler     = null;
     }
 
-    //NOTE: this handler should be called after the others
+    // NOTE: This handler has to be called after others.
     _emitBeforeUnloadEvent () {
         this.emit(this.BEFORE_UNLOAD_EVENT, {
             returnValue:   this.storedBeforeUnloadReturnValue,
@@ -31,12 +31,12 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     _onBeforeUnloadHandler (e, originListener) {
-        //NOTE: overriding the returnValue property to prevent native dialog
+        // NOTE: Overriding the returnValue property to prevent a native dialog.
         Object.defineProperty(e, 'returnValue', createPropertyDesc({
             get: () => this.storedBeforeUnloadReturnValue,
             set: value => {
-                //NOTE: in all browsers if any value is set it leads to preventing unload. In Firefox only if value
-                // is an empty string it does not do it.
+                // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
+                // only if a value is set to an empty string, the unload operation is prevented.
                 this.storedBeforeUnloadReturnValue = value;
 
                 this.prevented = isFirefox ? value !== '' : true;
@@ -85,7 +85,7 @@ export default class UnloadSandbox extends SandboxBase {
 
         listeners.on(listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
             if (e.el === window && e.eventType === 'beforeunload') {
-                //NOTE: reattach listener and it'll be the last in the queue
+                // NOTE: reattach Listener, it'll be last in the queue.
                 nativeMethods.windowRemoveEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
                 nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
             }
@@ -99,7 +99,7 @@ export default class UnloadSandbox extends SandboxBase {
 
             window.onbeforeunload = e => this._onBeforeUnloadHandler(e, value);
 
-            //NOTE: reattach listener and it'll be the last in the queue
+            // NOTE: reattach Listener, it'll be last in the queue.
             nativeMethods.windowRemoveEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
             nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._emitBeforeUnloadEvent());
         }

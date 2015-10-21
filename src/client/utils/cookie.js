@@ -1,12 +1,9 @@
 import trim from '../../utils/string-trim';
 
-//NOTE: The name/key cannot be empty but the value can
+// NOTE: The name/key cannot be empty, but the value can.
 const COOKIE_PAIR_REGEX        = /^([^=;]+)\s*=\s*(("?)[^\n\r\0]*\3)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;
 
-
-//Exports
-//-------------------------------------------------------------------------------------
 export function parse (str) {
     str = trim(str);
 
@@ -93,7 +90,7 @@ export function format (parsedCookie) {
             if (attrName !== 'key' && attrName !== 'value') {
                 cookieStr += attrName;
 
-                //NOTE: skip attrs without value and boolean attrs (e.g. Secure)
+                // NOTE: Skip attributes without value and boolean attributes (e.g. Secure).
                 if (typeof parsedCookie[attrName] !== 'undefined' && parsedCookie[attrName] !== true)
                     cookieStr += '=' + parsedCookie[attrName];
 

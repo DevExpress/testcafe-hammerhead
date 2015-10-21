@@ -1,4 +1,4 @@
-// for internal using Listeners
+// NOTE: For internal usage of Listeners.
 import { isIE, version as browserVersion } from '../../utils/browser';
 
 const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'hammerhead|element-listening-events-storage-prop';

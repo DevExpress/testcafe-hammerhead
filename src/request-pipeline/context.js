@@ -3,7 +3,7 @@ import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
 
-//TODO rewrite parseProxyUrl instead
+// TODO: Rewrite parseProxyUrl instead.
 function flattenParsedProxyUrl (parsed) {
     if (parsed) {
         return {
@@ -57,12 +57,9 @@ export default class RequestPipelineContext {
     }
 
     _getDestFromReferer (parsedReferer) {
-        // NOTE: browsers may send default port in referer.
-        // But, since we compose destination URL from it we
-        // need to skip port number if it's protocol default
-        // port. Some servers has host conditions which do not
-        // include port number.
-
+        // NOTE: Browsers may send the default port in the ‘referer’ header. But since we compose the destination
+        // URL from it, we need to skip the port number if it's the protocol’s default port. Some servers have
+        // host conditions that do not include a port number.
         var rDest         = parsedReferer.dest;
         var isDefaultPort = rDest.protocol === 'https:' && rDest.port === '443' ||
                             rDest.protocol === 'http:' && rDest.port === '80';
@@ -109,11 +106,11 @@ export default class RequestPipelineContext {
         var referer       = this.req.headers['referer'];
         var parsedReferer = referer && urlUtils.parseProxyUrl(referer);
 
-        //TODO remove it after parseProxyURL rewrite
+        // TODO: Remove it after parseProxyURL is rewritten.
         parsedReqUrl  = flattenParsedProxyUrl(parsedReqUrl);
         parsedReferer = flattenParsedProxyUrl(parsedReferer);
 
-        // NOTE: try to extract destination from the referer
+        // NOTE: Try to extract the destination from the ‘referer’ header.
         if (!parsedReqUrl && parsedReferer)
             parsedReqUrl = this._getDestFromReferer(parsedReferer);
 
@@ -158,7 +155,7 @@ export default class RequestPipelineContext {
         var charset             = null;
         var contentTypeUrlToken = getContentTypeUrlToken(isScript, this.isIframe);
 
-        // NOTE: we need charset information if we are going to process resource
+        // NOTE: We need charset information if we are going to process the resource.
         if (requireProcessing) {
             charset = new Charset();
 

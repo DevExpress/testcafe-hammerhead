@@ -2,9 +2,9 @@ import SandboxBase from '../base';
 import { isIE, version as browserVersion } from '../../utils/browser';
 import { setTimeout as nativeSetTimeout, setInterval as nativeSetInterval } from '../native-methods';
 
-// NOTE: when you call focus/blur function of some element in IE, handlers of the event are executed it async manner,
-// but before any function that is called with the window.setTimeout function. So, we should raise handlers with
-// timeout but we should do it before other async functions calling
+// NOTE: When you call the focus and blur function for some elements in IE, the event handlers  must be raised
+// asynchronously, but before executing functions that are called by using the window.setTimeout function. So,
+// we need to raise the handlers with a timeout, but do it before calling other asynchronous functions.
 export default class TimersSandbox extends SandboxBase {
     constructor () {
         super();
@@ -44,7 +44,7 @@ export default class TimersSandbox extends SandboxBase {
                 curHandlers[j]();
             }
 
-            //NOTE: handlers can create new deferred functions
+            // NOTE: Handlers can create new deferred functions.
             return this._callDeferredFunction(fn, args);
         }
 

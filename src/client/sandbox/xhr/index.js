@@ -18,7 +18,7 @@ export default class XhrSandbox extends SandboxBase {
         this.corsSupported = false;
     }
 
-    //Barrier
+    // Barrier
     _proxyXhrMethods (xhr) {
         var open       = xhr.open;
         var send       = xhr.send;
@@ -33,7 +33,8 @@ export default class XhrSandbox extends SandboxBase {
             });
         };
 
-        //NOTE: redirect all requests to TestCafe proxy and ensure that request don't violate Same Origin Policy
+        // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
+        // violate Same Origin Policy.
         xhr.open = function (method, url, async, user, password) {
             if (url === settings.get().serviceMsgUrl)
                 xhr[SERVICE_MSG_REQUEST_FLAG] = true;
@@ -51,8 +52,8 @@ export default class XhrSandbox extends SandboxBase {
                 }
             }
 
-            //NOTE: the 'async' argument is true by default. But when you send 'undefined' as the 'async' argument
-            // a browser (Chrome, FF) casts it to 'false', and request becomes synchronous (B238528).
+            // NOTE: The 'async' argument is true by default. However, when the 'async' argument is set to ‘undefined’,
+            // a browser (Chrome, FireFox) sets it to 'false', and a request becomes synchronous (B238528).
             if (arguments.length === 2)
                 open.call(xhr, method, url);
             else
@@ -68,15 +69,16 @@ export default class XhrSandbox extends SandboxBase {
                         xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: xhr });
                 };
 
-                //NOTE: if we're in sync mode or it's in cache and has been retrieved directly (IE6 & IE7)
-                //we need to manually fire the callback
+                // NOTE: If we're using the sync mode or the response is in cache and the object has been retrieved
+                // directly (IE6 & IE7), we need to raise the callback manually.
                 if (xhr.readyState === 4)
                     orscHandler();
                 else {
-                    //NOTE: get out of current execution tick and when proxy onreadystatechange.
-                    //Because e.g. jQuery assigns handler after send() was called.
+                    // NOTE: Get out of the current execution tick and then proxy onreadystatechange,
+                    // because jQuery assigns a handler after the send() method was called.
                     nativeMethods.setTimeout.call(xhrSandbox.window, () => {
-                        //NOTE: if state already changed we just call handler without onreadystatechange proxying
+                        // NOTE: If the state is already changed, we just call the handler without proxying
+                        // onreadystatechange.
                         if (xhr.readyState === 4)
                             orscHandler();
 
@@ -94,10 +96,10 @@ export default class XhrSandbox extends SandboxBase {
                 }
             }
 
-            //NOTE: add XHR request mark, so proxy can recognize it as XHR request.
-            //Due to the fact that all requests are passed to the proxy we need to perform all Same Origin Policy
-            //compliance checks on server side. So we pass CORS support flag as well to inform proxy that it can
-            //analyze Access-Control_Allow_Origin flag and skip "preflight" requests.
+            // NOTE: Add the XHR request mark, so that a proxy can recognize a request as a XHR request. As all
+            // requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
+            // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
+            // Access-Control_Allow_Origin flag and skip "preflight" requests.
             xhr.setRequestHeader(XHR_HEADERS.requestMarker, 'true');
 
             if (xhrSandbox.corsSupported)
@@ -119,8 +121,8 @@ export default class XhrSandbox extends SandboxBase {
             this._proxyXhrMethods(xhr);
             this.corsSupported = typeof xhr.withCredentials !== 'undefined';
 
-            //NOTE: emulate CORS, so 3rd party libs (e.g. jQuery) will allow requests with proxy host and
-            //origin page host as well
+            // NOTE: Emulate CORS, so that 3rd party libs (e.g. jQuery) allow requests with the proxy host as well as
+            // the origin page host.
             if (!this.corsSupported)
                 xhr.withCredentials = false;
 

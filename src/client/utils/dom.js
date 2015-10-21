@@ -9,8 +9,8 @@ import { isFirefox, isWebKit, isIE, isOpera } from './browser';
 var scrollbarSize = null;
 
 function getFocusableSelector () {
-    //NOTE: We don't take into account the case of embedded contentEditable elements and
-    // specify the contentEditable attribute for focusable elements
+    // NOTE: We don't take into account the case of embedded contentEditable elements, and we
+    // specify the contentEditable attribute for focusable elements.
     var selectorPostfix = 'input, select, textarea, button, [contenteditable="true"], [contenteditable=""], [tabIndex]';
 
     if (isIE)
@@ -158,7 +158,7 @@ export function getSelectVisibleChildren (select) {
 
     children = Array.prototype.slice.call(children);
 
-    //NOTE: Firefox does not display group without label and with empty label
+    // NOTE: Firefox does not display groups without a label and with an empty label.
     if (isFirefox)
         children = children.filter(item => item.tagName.toLowerCase() !== 'optgroup' || !!item.label);
 
@@ -257,13 +257,13 @@ export function isCrossDomainWindows (window1, window2) {
 }
 
 export function isDomElement (el) {
-    // T184805
+    // NOTE: T184805
     if (el && typeof el.toString === 'function' && el.toString.toString().indexOf('[native code]') !== -1 &&
         el.constructor &&
         (el.constructor.toString().indexOf(' Element') !== -1 || el.constructor.toString().indexOf(' Node') !== -1))
         return false;
 
-    //B252941
+    // NOTE: B252941
     return el && (typeof el === 'object' || isFirefox && typeof el === 'function') &&
            el.nodeType !== 11 && typeof el.nodeName === 'string' && el.tagName;
 }
@@ -310,8 +310,9 @@ export function isIframeWithoutSrc (iframe) {
 
     var iframeDocumentLocationHaveSupportedProtocol = urlUtils.isSupportedProtocol(iframeDocumentLocation);
 
-    //NOTE: when an iframe have empty src attribute (<iframe src></iframe>) the iframe.src property doesn't empty but it has different values
-    //in different browsers. Its document location is 'about:blank'. Therefore we should check the src attribute.
+    // NOTE: When an iframe has an empty src attribute (<iframe src></iframe>), the iframe.src property is not
+    // empty but has different values in different browsers. Its document location is 'about:blank'. Therefore,
+    // we should check the src attribute.
     if (!iframeDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
         return true;
 
@@ -324,8 +325,8 @@ export function isIframeWithoutSrc (iframe) {
         return true;
 
 
-    // NOTE: in Chrome an iframe with src has documentLocation 'about:blank' when it is just created. So, we should check
-    // srcLocation in this case.
+    // NOTE: In Chrome, an iframe with an src has its documentLocation set to 'about:blank' when it is created. So,
+    // we should check srcLocation in this case.
     if (iframeSrcLocation && urlUtils.isSupportedProtocol(iframeSrcLocation))
         return false;
 
@@ -341,7 +342,7 @@ export function isInputElement (el) {
 }
 
 export function isInputWithoutSelectionPropertiesInFirefox (el) {
-    //T101195, T133144, T101195
+    // NOTE: T101195, T133144, T101195
     return isFirefox && matches(el, 'input[type=number]');
 }
 
@@ -380,7 +381,7 @@ export function isShadowUIElement (element) {
         if (element.tagName === 'BODY' || element.tagName === 'HEAD')
             return false;
 
-        //NOTE: check className type to avoid issues with SVG elements className property
+        // NOTE: Check the className type to avoid issues with a SVG element’s className property.
         if (typeof element.className === 'string' && element.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1)
             return true;
 
@@ -490,7 +491,7 @@ export function addClass (el, className) {
     if (!el)
         return;
 
-    //IE10+
+    // NOTE: IE10+
     if (el && el.classList) {
         var classNames = className.split(/\s+/);
 
@@ -519,7 +520,7 @@ export function removeClass (el, className) {
     if (!el)
         return;
 
-    //IE10+
+    // NOTE: IE10+
     if (el.classList) {
         var classNames = className.split(/\s+/);
 
@@ -547,7 +548,7 @@ export function hasClass (el, className) {
     if (!el)
         return false;
 
-    //IE10+
+    // NOTE: IE10+
     if (el.classList)
         return el.classList.contains(className);
 

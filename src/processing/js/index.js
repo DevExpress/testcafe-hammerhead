@@ -133,7 +133,7 @@ class JsProcessor {
 
         codegenOpts.json = isJSON;
 
-        // T226589. Js parser removes next line after '<!--'
+        // NOTE: The JS parser removes the line that follows'<!--'. (T226589)
         var result = this._htmlCommentsReplacer(code);
         var ast    = null;
 

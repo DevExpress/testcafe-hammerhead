@@ -79,7 +79,7 @@ export default class DocumentSandbox extends SandboxBase {
         if (!isUninitializedIframe)
             this._beforeDocumentCleaned();
 
-        // FireFox, IE recreate window instance during the document.write function execution T213930
+        // NOTE: Firefox and IE recreate a window instance during the document.write function execution (T213930).
         if ((isFirefox || isIE) && !htmlUtils.isPageHtml(str))
             str = htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + str;
 
@@ -92,7 +92,8 @@ export default class DocumentSandbox extends SandboxBase {
                 isIframeWithoutSrc: isIframeWithoutSrc
             });
 
-            this.nodeSandbox.overrideDomMethods(null, this.document); // B234357
+            // NOTE: B234357
+            this.nodeSandbox.overrideDomMethods(null, this.document);
         }
 
         return result;
@@ -114,17 +115,17 @@ export default class DocumentSandbox extends SandboxBase {
             if (!isUninitializedIframe)
                 this.nodeSandbox.mutation.onDocumentCleaned({ window: window, document: document });
             else
-            // If iframe initialization in progress, we should once again override document.write and document.open meths
-            // because they were cleaned after native document.open meth calling
+            // NOTE: If iframe initialization is in progress, we need to override the document.write and document.open
+            // methods once again, because they were cleaned after the native document.open method call.
                 this.attach(window, document);
 
             return result;
         };
 
         document.close = () => {
-            // IE10 and IE9 rise "load" event only when document.close meth called.
-            // We should restore overrided document.open and document.write meths before Hammerhead injection
-            // if window not initialized
+            // NOTE: IE10 and IE9 raise the "load" event only when the document.close method is called. We need to
+            // restore the overrided document.open and document.write methods before Hammerhead injection, if the
+            // window is not initialized.
             if (isIE && !IframeSandbox.isWindowInited(window))
                 nativeMethods.restoreNativeDocumentMeth(document);
 

@@ -49,9 +49,8 @@ export async function ie9FileReaderShim (req, res) {
     var filename          = parsedUrl.query['filename'];
     var info              = getFileInfo(contentTypeHeader, body, inputName, filename);
 
-    // NOTE: we should skip content type, because IE9 can't
-    // handle content with content-type "application/json"
-    // and trying to download it as a file
+    // NOTE: We should skip a content type, because IE9 can't handle content with the "application/json" content type
+    // trying to download it as a file.
     respondWithJSON(res, info, true);
 }
 

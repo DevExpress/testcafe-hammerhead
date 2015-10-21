@@ -3,7 +3,7 @@ import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import * as domUtils from '../utils/dom';
 import { isWebKit } from '../utils/browser';
-import { EVENTS } from '../dom-processor/dom-processor';
+import { EVENTS } from '../dom-processor';
 import { getOffsetPosition } from '../utils/position';
 import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
 import { get as getStyle, set as setStyle } from '../utils/style';
@@ -85,7 +85,7 @@ export default class ShadowUI extends SandboxBase {
         var shadowUI = this;
 
         document.elementFromPoint = function () {
-            //T212974
+            // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             var res = shadowUI._filterElement(nativeMethods.elementFromPoint.apply(document, arguments));
@@ -119,17 +119,17 @@ export default class ShadowUI extends SandboxBase {
             return shadowUI._filterNodeList(nativeMethods.querySelectorAll.apply(document, arguments));
         };
 
-        // T195358
+        // NOTE: T195358
         document.querySelectorAll.toString       = () => nativeMethods.querySelectorAll.toString();
         document.getElementsByClassName.toString = () => nativeMethods.getElementsByClassName.toString();
     }
 
     getRoot () {
-        if (!this.root || /* T225944 */ !this.document.body.contains(this.root)) {
+        if (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root)) {
             this.overrideElement(this.document.body);
 
             if (!this.root) {
-                //B254893
+                // NOTE: B254893
                 this.root = this.document.createElement('div');
                 nativeMethods.setAttribute.call(this.root, 'id', this.ROOT_ID);
                 nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
@@ -169,7 +169,7 @@ export default class ShadowUI extends SandboxBase {
             }
         });
 
-        // T174435
+        // NOTE: T174435
         if (isWebKit) {
             var styleLink  = null;
             var shadowRoot = null;
@@ -230,8 +230,8 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
-    //NOTE: fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
-    //There were an issue then document.body was replaced, so we need to reattach UI to new body manually
+    // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
+    // There were an issue when document.body was replaced, so we need to reattach UI to a new body manually.
     onBodyElementMutation () {
         if (this.root) {
             if (this.document.body && this.root.parentNode !== this.document.body) {

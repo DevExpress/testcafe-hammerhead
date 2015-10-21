@@ -49,7 +49,7 @@ export default class NodeSandbox extends SandboxBase {
                 this.overrideDomMethods(doc.documentElement);
         }
         else if (el.querySelectorAll) {
-            //OPTIMIZATION: use querySelectorAll to iterate over descendant nodes
+            // OPTIMIZATION: Use querySelectorAll to iterate through descendant nodes.
             this._overrideElement(el);
 
             var children = el.querySelectorAll('*');
@@ -58,7 +58,7 @@ export default class NodeSandbox extends SandboxBase {
                 this._overrideElement(children[i]);
         }
 
-        //NOTE: if querySelectorAll is not available fallback to recursive algorithm
+        // NOTE: If querySelectorAll is not available, use a recursive algorithm.
         else if (el.nodeType === 1 || el.nodeType === 11) {
             this._overrideElement(el);
 
@@ -71,23 +71,24 @@ export default class NodeSandbox extends SandboxBase {
         }
     }
 
-    //NOTE: DOM sandbox hides evidence of the content proxying from page-native script. Proxy replaces URLs for
-    //resources. Our goal is to make native script think that all resources are fetched from origin resource not
-    //from proxy and also provide proxying for dynamicly created elements.
+    // NOTE: DOM sandbox hides evidence of the content proxying from a page native script. Proxy replaces URLs for
+    // resources. Our goal is to make the native script think that all resources are fetched from the original resource,
+    // not from proxy, and also provide proxying for dynamically created elements.
     attach (window) {
         var document = window.document;
 
         super.attach(window, document);
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, e =>
-                // Override only document (In fact, we only need 'write' and 'writeln' methods)
+                // NOTE: Override only document (In fact, we only need 'write' and 'writeln' methods).
                 this.doc.attach(e.iframe.contentWindow, e.iframe.contentDocument)
         );
 
         window[INTERNAL_PROPS.overrideDomMethodName] = this.overrideDomMethods.bind(this);
 
-        // NOTE: in some browsers (for example Firefox) 'window.document' are different objects when iframe is created
-        // just now and on document ready event. Therefore we should update 'document' object to override its methods (Q527555).
+        // NOTE: In some browsers (for example Firefox), the 'window.document' object is different when iframe is
+        // created and when the document’s ready event is raised. Therefore, we need to update the 'document' object
+        // to override its methods (Q527555).
         document.addEventListener('DOMContentLoaded', () => this.overrideDomMethods(null, document), false);
 
         this.doc.attach(window, document);

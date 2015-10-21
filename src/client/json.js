@@ -1,9 +1,8 @@
 import isJQueryObj from './utils/is-jquery-object';
 
-//NOTE: json2.js uses fallbacks to existing JSON implementations. So we can't rely on it in our client code.
-//This is an isolated implementation of JSON that is not rely on any external stuff (prototypes, existing JSON
-//implementations, etc.)
-//Serialization/deserialization logic borrowed from http://json.org/json2.js
+// NOTE: json2.js uses fallbacks to the existing JSON implementations. So we can't rely on it in our client code.
+// This is an isolated implementation of JSON that does not rely on any external stuff (prototypes, existing JSON
+// implementations, etc.). The Serialization/deserialization logic is borrowed from http://json.org/json2.js.
 function f (n) {
     // Format integers to have at least two digits.
     return n < 10 ? '0' + n : n;

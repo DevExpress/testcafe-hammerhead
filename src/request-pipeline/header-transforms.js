@@ -21,9 +21,8 @@ var requestTransforms = {
 var requestForced = {
     'cookie': (src, ctx) => ctx.session.cookies.getHeader(ctx.dest.url) || void 0,
 
-    // NOTE: all browsers except Chrome doesn't send 'Origin'-header
-    // in case of same domain XHR requests. So, if the destination request
-    // is actually cross-domain we need to force 'Origin'-header to support CORS. (see: B234325)
+    // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
+    // So, if the request is actually cross-domain, we need to force the 'Origin' header to support CORS. (B234325)
     'origin': (src, ctx) => {
         var force = ctx.isXhr && !src && ctx.dest.domain !== ctx.dest.reqOrigin;
 
@@ -42,29 +41,28 @@ var responseTransforms = {
             ctx.session.cookies.setByServer(ctx.dest.url, cookies);
         }
 
-        // NOTE: delete header
+        // NOTE: Delete header.
         return void 0;
     },
 
-    // NOTE: disable Content Security Policy (see http://en.wikipedia.org/wiki/Content_Security_Policy)
+    // NOTE: Disable Content Security Policy (see http://en.wikipedia.org/wiki/Content_Security_Policy).
     'content-security-policy':               skip,
     'content-security-policy-report-only':   skip,
     'x-content-security-policy':             skip,
     'x-content-security-policy-report-only': skip,
     'x-webkit-csp':                          skip,
 
-    // NOTE: we perform CORS checks on our side, so we skip related headers
+    // NOTE: We perform CORS checks on our side, so we skip the related headers.
     'access-control-allow-origin': skip,
 
-    // NOTE: change transform type if we have iframe with image as src,
-    // because it was transformed to the HTML with the image tag
+    // NOTE: Change the transform type if we have an iframe with an image as src,
+    // because it was transformed to HTML with the image tag.
     'content-type':   (src, ctx) => ctx.contentInfo.isIframeWithImageSrc ? 'text/html' : src,
     'content-length': (src, ctx) => ctx.contentInfo.requireProcessing ? ctx.destResBody.length : src,
 
     'location': (src, ctx) => {
-        // NOTE: RFC 1945 standard requires location URL to be absolute.
-        // However, most popular browsers will accept a relative URL.
-        // We transform relative URLs to absolute to correctly handle this situation.
+        // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
+        // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.
         var { host } = parseUrl(src);
 
         if (!host)

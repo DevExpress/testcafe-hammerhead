@@ -28,7 +28,7 @@ export default class Session extends EventEmitter {
     }
 
     static _generateSessionId () {
-        // NOTE: #116 (https://github.com/superroma/testcafe-hammerhead/issues/116)
+        // NOTE: GH-116
         return uuid.v4().substr(0, 3);
     }
 
@@ -111,5 +111,3 @@ ServiceMessages[COMMAND.uploadFiles] = async function (msg) {
 ServiceMessages[COMMAND.getUploadedFiles] = async function (msg) {
     return await this.uploadStorage.get(msg.filePaths);
 };
-
-

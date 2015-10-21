@@ -1,7 +1,8 @@
 (function () {
     function initHammerheadClient(window, isIframeWithoutSrc) {
-        // NOTE: the following script will be executed in the current window context. But when you call a script in an iframe
-        // global vars are get from the top window. So, we should override the global vars that can have affect to our script.
+        // NOTE: The following script will be executed in the current window context. However, when you call a script
+        // in an iframe, global variables are obtained from the top window. So, we need to override the global variables
+        // which can affect our script.
         var document = window.document;
 
         {{{source}}}

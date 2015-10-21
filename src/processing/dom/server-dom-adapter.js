@@ -42,14 +42,15 @@ export default class ServerDomAdapter extends BaseDomAdapter {
     }
 
     getScriptContent (script) {
-        // The $script.html() method is not used because it is not working properly, it adds garbage in the result.
+        // NOTE: The $script.html() method is not used because it does not work properly, it adds
+        // garbage to the result.
         var contentChild = script.children.length ? script.children[0] : null;
 
         return contentChild ? contentChild.data : '';
     }
 
     getStyleContent (style) {
-        // The $el.html() method is not used because it is not working properly, it adds garbage in the result.
+        // NOTE: The $el.html() method is not used because it does not work properly, it adds garbage to the result.
         var contentChild = style.children.length ? style.children[0] : null;
 
         return contentChild && contentChild.data ? contentChild.data : null;

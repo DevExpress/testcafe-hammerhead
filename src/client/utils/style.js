@@ -2,7 +2,7 @@ import * as domUtils from './dom';
 import { isIE, isFirefox } from './browser';
 import { styleClass } from '../sandbox/native-methods';
 
-//NOTE: for Chrome
+// NOTE: For Chrome.
 const MIN_SELECT_SIZE_VALUE = 4;
 
 function getIntValue (value) {
@@ -171,7 +171,7 @@ export function isVisibleChild (el) {
 
     return select && select.tagName.toLowerCase() === 'select' && getSelectElementSize(select) > 1 &&
            (tagName === 'option' || tagName === 'optgroup') &&
-           //NOTE: Firefox does not display group without label and with empty label
+           // NOTE: Firefox does not display groups without a label or with an empty label.
            (!isFirefox || el.label);
 }
 
@@ -247,7 +247,7 @@ export function getOffset (el) {
 
     var clientRect = el.getBoundingClientRect();
 
-    //Detached node or documentElement
+    // NOTE: A detached node or documentElement.
     var doc        = el.ownerDocument;
     var docElement = doc.documentElement;
 

@@ -21,11 +21,11 @@ class Transport extends EventEmitter {
         this.useAsyncXhr                  = true;
         this.activeServiceMessagesCounter = 0;
 
-        //NOTE: if we are unloading we should switch to sync XHR to be sure that we will not lost any service msgs
+        // NOTE: When unloading, we should switch to synchronous XHR to be sure that we won’t lose any service messages.
         window.addEventListener('beforeunload', () => {
             this.useAsyncXhr = false;
 
-            //NOTE: if unloading was canceled switch back to async XHR
+            // NOTE: If the unloading was canceled, switch back to asynchronous XHR.
             nativeMethods.setTimeout.call(window, () => this.useAsyncXhr = true, this.SWITCH_BACK_TO_ASYNC_XHR_DELAY);
         }, true);
     }
@@ -102,7 +102,7 @@ class Transport extends EventEmitter {
         });
     }
 
-    //NOTE: use sync method for most important things only
+    // NOTE: Use the sync method for the most important things only.
     syncServiceMsg (msg, callback) {
         var storedSync = this.useAsyncXhr;
 
@@ -137,7 +137,7 @@ class Transport extends EventEmitter {
         });
     }
 
-    //TODO: rewrite this using Promise after getting rid of syncServiceMsg
+    // TODO: Rewrite this using Promise after getting rid of syncServiceMsg.
     performRequest (msg, callback) {
         msg.sessionId = settings.get().sessionId;
 
@@ -177,8 +177,8 @@ class Transport extends EventEmitter {
                 });
             }
             else if (isIE9) {
-                // Aborted ajax requests do not raise the error, abort or timeout events in IE9.
-                // Getting a status code raises the c00c023f error.
+                // NOTE: Aborting ajax requests in IE9 does not raise the error, abort or timeout events.
+                // Getting the status code raises the c00c023f error.
                 request.addEventListener('readystatechange', function () {
                     if (this.readyState !== 4)
                         return;
@@ -239,7 +239,7 @@ class Transport extends EventEmitter {
                 callback: resolve
             });
 
-            //NOTE: if we don't have pending msgs except this one then send it immediately
+            // NOTE: If we don't have pending messages except the current one, send the latter immediately.
             if (this.msgQueue[msg.cmd].length === 1)
                 this.sendNextQueuedMsg(msg.cmd);
         });

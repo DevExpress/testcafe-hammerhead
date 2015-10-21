@@ -67,42 +67,42 @@ export default class Sandbox extends SandboxBase {
             return window.XMLHttpRequest.toString() === this.nativeMethods.XMLHttpRequest.toString();
         });
 
-        // T173709
+        // NOTE: T173709
         if (needToUpdateNativeDomMeths)
             this.nativeMethods.refreshDocumentMeths(document);
 
         if (needToUpdateNativeElementMeths)
             this.nativeMethods.refreshElementMeths(document);
 
-        // T239109
+        // NOTE: T239109
         if (needToUpdateNativeWindowMeths)
             this.nativeMethods.refreshWindowMeths(window);
     }
 
     onIframeDocumentRecreated (iframe) {
         if (iframe) {
-            // Try to find existing iframe sandbox
+            // NOTE: Try to find an existing iframe sandbox.
             var sandbox = getSandboxFromStorage(iframe.contentWindow);
 
             if (sandbox)
-            // Inform the sandbox so that it restore communication with the recreated document
+                // NOTE: Inform the sandbox so that it restores communication with the recreated document.
                 sandbox.reattach(iframe.contentWindow, iframe.contentDocument);
             else {
-                // If the iframe sandbox is not found, this means that iframe not initialized,
-                // in this case we should inject Hammerhead
+                // NOTE: If the iframe sandbox is not found, this means that iframe is not initialized.
+                // In this case, we need to inject Hammerhead.
 
-                // Hack: IE10 clean up overrided methods after document.write calling
+                // HACK: IE10 cleans up overridden methods after the document.write method call.
                 this.nativeMethods.restoreNativeDocumentMeth(iframe.contentDocument);
 
-                // Sandbox for this iframe not found (iframe not yet initialized).
-                // Inform the IFrameSandbox about it, and it inject Hammerhead
+                // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
+                // Inform IFrameSandbox about this, and it injects Hammerhead.
                 this.iframe.onIframeBeganToRun(iframe);
             }
         }
     }
 
     reattach (window, document) {
-        // Assign exists sandbox to cleared document
+        // NOTE: Assign the existing sandbox to the cleared document.
         if (isIE)
             this._refreshNativeMethods(window, document);
 
@@ -112,17 +112,18 @@ export default class Sandbox extends SandboxBase {
             this.event.listeners.restartElementListening(window);
 
         this.shadowUI.attach(window);
-        this.codeInstrumentation.attach(window); // T182337
+        // NOTE: T182337
+        this.codeInstrumentation.attach(window);
         this.node.doc.attach(window, document);
     }
 
     attach (window) {
         super.attach(window);
 
-        // Eval Hammerhead code script
+        // NOTE: Eval Hammerhead code script.
         this.iframe.on(this.iframe.IFRAME_READY_TO_INIT_INTERNAL_EVENT, e => initHammerheadClient(e.iframe.contentWindow, true));
 
-        // We should reattach sandbox to the recreated iframe document
+        // NOTE: We need to reattach a sandbox to the recreated iframe document.
         this.node.mutation.on(this.node.mutation.DOCUMENT_CLEANED_EVENT, e => this.reattach(e.window, e.document));
 
         this.iframe.attach(window);

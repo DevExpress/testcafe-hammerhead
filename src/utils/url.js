@@ -68,8 +68,7 @@ export function sameOriginCheck (location, checkedUrl) {
     return false;
 }
 
-// NOTE: Convert origin protocol and hostname to lower case
-// (https://github.com/superroma/testcafe-hammerhead/issues/1)
+// NOTE: Convert the origin protocol and hostname to the lower case. (GH-1)
 export function convertHostToLowerCase (url) {
     var parsedUrl = parseUrl(url);
 
@@ -102,7 +101,7 @@ export function getDomain (parsed) {
 }
 
 export function parseProxyUrl (proxyUrl) {
-    //TODO remove it
+    // TODO: Remove it.
     var parsedUrl = parseUrl(proxyUrl);
 
     if (!parsedUrl.partAfterHost)
@@ -115,7 +114,7 @@ export function parseProxyUrl (proxyUrl) {
 
     var params = match[1].split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
-    // NOTE: we should have at least job uid and owner token
+    // NOTE: We should have, at least, the job uid and the owner token.
     if (!params.length)
         return null;
 
@@ -161,7 +160,7 @@ export function parseUrl (url) {
             return '';
         });
 
-    // NOTE: URL is relative
+    // NOTE: the URL is relative.
     if (!parsed.protocol && !hasImplicitProtocol) {
         parsed.partAfterHost = url;
         return parsed;
@@ -202,7 +201,7 @@ export function resolveUrlAsOrigin (url, getProxyUrlMeth) {
 }
 
 export function formatUrl (parsedUrl) {
-    // NOTE: URL is relative
+    // NOTE: the URL is relative.
     if (!parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost;
 
@@ -238,7 +237,7 @@ export function prepareUrl (url) {
 
     url = (url + '').replace(/\n|\t/g, '');
 
-    // NOTE: Remove unnecessary slashes form the begin of the url.
-    // For example, "//////google.com" url is equal to "//google.com"
+    // NOTE: Remove unnecessary slashes from the beginning of the url.
+    // For example, the "//////google.com" url is equal to "//google.com".
     return url.replace(/^\/+(\/\/.*$)/, '$1');
 }

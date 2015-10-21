@@ -48,7 +48,7 @@ export default class Proxy extends Router {
 
         this.sockets = [];
 
-        // BUG: https://github.com/superroma/testcafe-hammerhead/issues/89
+        // BUG: GH-89
         this._startSocketsCollecting();
         this._registerServiceRoutes();
     }
@@ -114,11 +114,11 @@ export default class Proxy extends Router {
     }
 
     _onRequest (req, res, serverInfo) {
-        //NOTE: skip browsers favicon requests which we can't process
+        // NOTE: Skip browsers favicon requests, which we can't process.
         if (req.url === '/favicon.ico')
             respond404(res);
 
-        // NOTE: not a service request, execute proxy request pipeline
+        // NOTE: Not a service request, execute the proxy pipeline.
         else if (!this._route(req, res, serverInfo))
             runRequestPipeline(req, res, serverInfo, this.openSessions);
     }

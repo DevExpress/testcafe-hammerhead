@@ -8,7 +8,7 @@ import { encodeContent, decodeContent } from '../encoding';
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
-        // NOTE: resolve base url without a protocol ('//google.com/path' for example)
+        // NOTE: Resolves base URLs without a protocol ('//google.com/path' for example).
         baseUrl     = baseUrl ? url.resolve(ctx.dest.url, baseUrl) : '';
         resourceUrl = urlUtil.prepareUrl(resourceUrl);
 
