@@ -615,5 +615,3 @@ asyncTest('input.value getter', function () {
             start();
         });
 });
-
-

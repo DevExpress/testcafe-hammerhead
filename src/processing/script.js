@@ -49,7 +49,7 @@ class ScriptProcessor {
 
         text = jsProcessor.process(text);
 
-        // Overriding methods that work with the DOM.
+        // NOTE: Overriding methods that work with the DOM.
         if (!jsProcessor.isDataScript(text) && !withoutHeader &&
             text.indexOf(INTERNAL_PROPS.overrideDomMethodName) === -1)
             text = this.SCRIPT_HEADER + text;

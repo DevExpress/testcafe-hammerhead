@@ -22,7 +22,7 @@ export default class ActiveWindowTracker extends SandboxBase {
                 }, this.activeWindow);
             }
             catch (err) {
-                //NOTE: the error appears in IE when the corresponding iframe is removed
+                // NOTE: The error appears in IE when the corresponding iframe is removed.
                 return void 0;
             }
         }

@@ -103,7 +103,7 @@ class NativeMethods {
         // Canvas
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
 
-        //DateTime
+        // DateTime
         this.date    = win.Date;
         this.dateNow = win.Date.now;
 

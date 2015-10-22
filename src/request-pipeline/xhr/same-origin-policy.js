@@ -4,18 +4,18 @@ import XHR_HEADERS from './headers';
 export function check (ctx) {
     var reqOrigin = ctx.dest.reqOrigin;
 
-    // PASSED: Same origin
+    // PASSED: Same origin.
     if (ctx.dest.domain === reqOrigin)
         return true;
 
-    // Ok, we have a cross-origin request
+    // NOTE: Ok, we have a cross-origin request.
     var corsSupported = !!ctx.req.headers[XHR_HEADERS.corsSupported];
 
-    // FAILED: CORS not supported
+    // FAILED: CORS not supported.
     if (!corsSupported)
         return false;
 
-    // PASSED: we have a "preflight" request
+    // PASSED: We have a "preflight" request.
     if (ctx.req.method === 'OPTIONS')
         return true;
 
@@ -27,10 +27,10 @@ export function check (ctx) {
     var wildcardAllowed        = allowedOrigins.indexOf('*') > -1;
 
     // FAILED: Credentialed requests are not allowed or wild carding was used
-    // for the allowed origin (credentialed requests should specify exact domain).
+    // for the allowed origin (credentialed requests should specify the exact domain).
     if (withCredentials && (!allowCredentials || wildcardAllowed))
         return false;
 
-    // FINAL CHECK: request origin should match one of the allowed origins
+    // FINAL CHECK: The request origin should match one of the allowed origins.
     return wildcardAllowed || allowedOrigins.indexOf(reqOrigin) > -1;
 }

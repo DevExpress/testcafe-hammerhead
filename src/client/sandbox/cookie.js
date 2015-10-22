@@ -15,8 +15,8 @@ export default class CookieSandbox extends SandboxBase {
         return windowSettings.get();
     }
 
-    //NOTE: let browser validate other stuff (e.g. Path attribute), so we add unique prefix
-    //to the cookie key, pass cookie to the browser then clean up and return result.
+    // NOTE: Let a browser validate other stuff (e.g. the Path attribute). For this purpose, we add a unique prefix
+    // to the cookie key, pass cookies to the browser, then clean up the cookies and return a result.
     static _getBrowserProcessedCookie (parsedCookie, document) {
         var parsedCookieCopy = {};
 
@@ -29,8 +29,8 @@ export default class CookieSandbox extends SandboxBase {
 
         parsedCookieCopy.key = uniquePrefix + parsedCookieCopy.key;
 
-        // NOTE: We must add cookie path prefix to the path because the proxied location path defferent from the
-        // destination location path
+        // NOTE: We must add a cookie path prefix to the path because the proxied location path differs from the
+        // destination location path.
         if (parsedCookieCopy.path && parsedCookieCopy.path !== '/')
             parsedCookieCopy.path = originLocation.getCookiePathPrefix() + parsedCookieCopy.path;
 
@@ -46,27 +46,27 @@ export default class CookieSandbox extends SandboxBase {
         return null;
     }
 
-    //NOTE: perform validations which can't be processed by browser due to proxying
+    // NOTE: Perform validations that can't be processed by a browser due to proxying.
     static _isValidCookie (parsedCookie, document) {
         if (!parsedCookie)
             return false;
 
-        //NOTE: HttpOnly cookies can't be accessed from client code
+        // NOTE: HttpOnly cookies can't be accessed from the client code.
         if (parsedCookie.httponly)
             return false;
 
         var parsedOrigin   = originLocation.getParsed();
         var originProtocol = parsedOrigin.protocol;
 
-        //NOTE: TestCafe tunnels HTTPS requests via HTTP so we should validate Secure attribute manually
+        // NOTE: Hammerhead tunnels HTTPS requests via HTTP, so we need to validate the Secure attribute manually.
         if (parsedCookie.secure && originProtocol !== 'https:')
             return false;
 
-        //NOTE: add protocol portion to the domain, so we can use urlUtils for same origin check
+        // NOTE: Add a protocol portion to the domain, so that we can use urlUtils for the same origin check.
         var domain = parsedCookie.domain && 'http://' + parsedCookie.domain;
 
-        //NOTE: all TestCafe sessions has same domain, so we should validate Domain attribute manually
-        //according to test url
+        // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
+        // according to a test url.
         return !domain || originLocation.sameOriginCheck(document.location.toString(), domain);
     }
 
@@ -74,12 +74,12 @@ export default class CookieSandbox extends SandboxBase {
         var cookies  = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
         var replaced = false;
 
-        //NOTE: replace cookie if it's already exists
+        // NOTE: Replace a cookie if it already exists.
         for (var i = 0; i < cookies.length; i++) {
             cookies[i] = trim(cookies[i]);
 
             if (cookies[i].indexOf(cookieKey + '=') === 0 || cookies[i] === cookieKey) {
-                //NOTE: delete or update cookie string
+                // NOTE: Delete or update a cookie string.
                 if (newCookieStr === null)
                     cookies.splice(i, 1);
                 else
@@ -100,25 +100,25 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     setCookie (document, value) {
-        //NOTE: at first try to update our client cookie cache with client-validated cookie string,
-        //so sync code can immediately access cookie
+        // NOTE: First, update our client cookies cache with a client-validated cookie string,
+        // so that sync code can immediately access cookies.
         var parsedCookie = cookieUtils.parse(value);
 
         if (CookieSandbox._isValidCookie(parsedCookie, document)) {
-            //NOTE: this attributes shouldn't be processed by browser
+            // NOTE: These attributes don't have to be processed by a browser.
             delete parsedCookie.secure;
             delete parsedCookie.domain;
 
             var clientCookieStr = CookieSandbox._getBrowserProcessedCookie(parsedCookie, document);
 
             if (!clientCookieStr) {
-                //NOTE: we have two options here:
-                //1)cookie was invalid, so it was ignored
-                //2)cookie was deleted by setting Expired attribute
-                //We need to check the second option and delete cookie in our cookie string manually
+                // NOTE: We have two options here:
+                // 1)cookie was invalid, so it was ignored;
+                // 2)cookie was deleted by setting the Expired attribute;
+                // We need to check the second option and delete cookie in our cookie string manually.
                 delete parsedCookie.expires;
 
-                //NOTE: we should delete cookie
+                // NOTE: We should delete a cookie.
                 if (CookieSandbox._getBrowserProcessedCookie(parsedCookie, document))
                     this._updateClientCookieStr(parsedCookie.key, null);
 
@@ -133,11 +133,9 @@ export default class CookieSandbox extends SandboxBase {
             url:    document.location.href
         };
 
-        //NOTE: meanwhile sync cookies with server cookie jar
+        // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
         queuedAsyncServiceMsg(setCookieMsg);
 
         return value;
     }
 }
-
-

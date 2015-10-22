@@ -35,8 +35,9 @@ export default class Selection {
                 if (changeType)
                     el.type = 'text';
 
-                //NOTE: in MSEdge error raised when setSelectionRange method calls for input with 'display = none' and selectionStart !== selectionEnd
-                //in other IEs error don't raise but selectionStart === selectionEnd === 0 in result
+                // NOTE: In MSEdge, an error occurs  when the setSelectionRange method is called for an input with
+                // 'display = none' and selectionStart !== selectionEnd in other IEs, the error doesn't occur, but
+                // as a result selectionStart === selectionEnd === 0.
                 try {
                     res = fn.call(el, selectionStart, selectionEnd, selectionDirection);
                 }
@@ -46,17 +47,19 @@ export default class Selection {
 
                 if (changeType) {
                     el.type = savedType;
-                    //HACK: (the problem after Chrome update to v.33.0.1750.117, and in Mozilla 29.0 for input with type 'number' T101195)
-                    // To set right selection we should change input type to text if it's 'number' or 'email' and restore it after (B254340).
-                    // But type changing is async in this case, so we should call blur to raise it (and focus to restore activeElement).
+                    // HACK: (A problem with input type = 'number' after Chrome is updated to v.33.0.1750.117 and
+                    // in Firefox 29.0.  T101195) To set right selection: if the input type is 'number' or 'email',
+                    // we need to change the type to text, and then restore it after setting selection.(B254340).
+                    // However, the type is changed asynchronously in this case. To force type changing,we need to
+                    // call blur, Then raise the focus event to make the element active.
                     if (isElementActive) {
                         selection.focusBlurSandbox.blur(el, null, true);
                         selection.focusBlurSandbox.focus(el, null, true);
                     }
                 }
 
-                //NOTE:in MSEdge event 'selectionchange' doesn't occur immediately (with some delay)
-                //so we should raise it right after 'setSelectionRange' method
+                // NOTE: In MSEdge, the 'selectionchange' event doesn't occur immediately (it occurs with a delay)
+                // So, we should raise it right after the 'setSelectionRange' method.
                 if (browserUtils.isIE && browserUtils.version > 11)
                     eventSimulator.selectionchange(el);
 
@@ -68,7 +71,7 @@ export default class Selection {
                 return selectionSetter();
             }
 
-            //setSelectionRange leads to element focusing only in IE
+            // NOTE: setSelectionRange leads to focusing an element only in IE.
             return selection.wrapSetterSelection(el, selectionSetter, browserUtils.isIE && browserUtils.version < 12);
         };
 
@@ -124,9 +127,10 @@ export default class Selection {
         var savedType       = el.type;
         var selection       = null;
 
-        //HACK: (the problem after Chrome update to v.33.0.1750.117, and in Mozilla 29.0 for input with type 'number' T101195)
-        // To get selection we should change input type to text if it's 'number' or 'email' (B254340).
-        // But type changing is async in this case, so we should call blur to raise it (and focus to restore activeElement).
+        // HACK: (A problem with input type = ‘number’ after Chrome is updated to v.33.0.1750.117 and in
+        // Firefox 29.0. T101195) To get selection, if the input type is  'number' or 'email', we need to change
+        // the type to text (B254340). However, the type is changed asynchronously in this case. To force type changing,
+        // we need to call blur.Then call focus to make the element active.
         if (changeType) {
             if (isElementActive)
                 this.focusBlurSandbox.blur(el, null, true);
@@ -173,13 +177,13 @@ export default class Selection {
         if (needFocus)
             this.listeners.addInternalEventListener(document, ['focus'], focusHandler);
 
-        //focus and blur events
+        // The focus and blur events
         Listeners.beforeDispatchEvent();
         Listeners.beforeDispatchEvent();
 
         result = selectionSetter();
 
-        //focus and blur events
+        // The focus and blur events
         Listeners.afterDispatchEvent();
         Listeners.afterDispatchEvent();
 
@@ -193,7 +197,7 @@ export default class Selection {
                 el.focus();
             }
 
-            //in MSEdge focus/blur is sync
+            // NOTE: In MSEdge, focus and blur are sync.
             if (browserUtils.isIE && browserUtils.version < 12) {
                 this.timersSandbox.internalSetTimeout.call(window, () => {
                     this.timersSandbox.internalSetTimeout.call(window, () => {
@@ -208,8 +212,8 @@ export default class Selection {
                 this.listeners.removeInternalEventListener(document, ['focus'], focusHandler);
 
                 if (!focusRaised) {
-                    //NOTE: in Firefox calling dispatchEvent 'focus' does active element.
-                    // We should call native focus method.
+                    // NOTE: In Firefox, raising the dispatchEvent 'focus' doesn’t activate an element.
+                    // We should call the native focus method.
                     if (isContentEditable && browserUtils.isFirefox)
                         this.focusBlurSandbox.focus(el, null, true, false, true);
                     else

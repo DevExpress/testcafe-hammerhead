@@ -168,7 +168,7 @@ test('head.children', function () {
     link1.parentNode.removeChild(link1);
     link2.parentNode.removeChild(link2);
 
-    ok(!found, 'check that document.head.children does not return TestCafe elements');
+    ok(!found, 'check that document.head.children does not return Hammerhead elements');
 });
 
 test('head.childNodes', function () {
@@ -207,7 +207,7 @@ test('head.childNodes', function () {
     link1.parentNode.removeChild(link1);
     link2.parentNode.removeChild(link2);
 
-    ok(!found, 'check that document.head.childNodes does not return TestCafe elements');
+    ok(!found, 'check that document.head.childNodes does not return Hammerhead elements');
 });
 
 test('isShadowContainerCollection', function () {
@@ -299,7 +299,7 @@ test('head.getElementsByTagName', function () {
     }
 
     link.parentNode.removeChild(link);
-    ok(!found, 'check that document.head.getElementsByTagName does not return TestCafe elements');
+    ok(!found, 'check that document.head.getElementsByTagName does not return Hammerhead elements');
 });
 
 test('body.querySelector', function () {

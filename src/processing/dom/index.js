@@ -10,7 +10,7 @@ import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
 
 const CDATA_REG_EX = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
-// Ignore '//:0/' url (http://www.myntra.com/)
+// NOTE: Ignore '//:0/' url (http://www.myntra.com/).
 const EMPTY_URL_REG_EX                   = /^(\w+:)?\/\/\:0/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
 const HTML_COMMENT_PREFIX_REG_EX         = /^(\s)*<!--[^\n]*\n/;
@@ -167,10 +167,11 @@ export default class DomProcessor {
     }
 
     processElement (el, urlReplacer) {
-        // NOTE: When the 'script' element created it is not executed. It occurs after the element is appended to a
-        // document. But in IE 9 only, if you get script's 'document', 'children' or 'all' property, the script is executed
-        // at the same time (before it is appended to a document). JQuery element's 'is' function implementation gets
-        // 'document' property and the script is executed too early. Therefore we should check clone element instead it. (B237231)
+        // NOTE: The 'script' element is not executed at the moment it is created. The execution occurs after the
+        // element is appended to a document. But in IE9, if you read a script's 'document', 'children' or 'all'
+        // property, the script is executed immediately (even if this happens before the script is appended to a
+        // document). The JQuery element's 'is' function reads the 'document' property and the script is executed
+        // too early. Therefore, we should test a clone of the element instead of the element itself. (B237231)
         var elementForSelectorCheck = this.adapter.getElementForSelectorCheck(el);
 
         for (var i = 0; i < this.elementProcessorPatterns.length; i++) {
@@ -310,9 +311,9 @@ export default class DomProcessor {
         if (scriptProcessedOnServer)
             return;
 
-        // NOTE: we do not process scripts that are not executed during a page loading. We process scripts with type
-        // text/javascript, application/javascript etc. (list of MIME types is specified in the w3c.org html5
-        // specification). If type is not set, it 'text/javascript' by default.
+        // NOTE: We do not process scripts that are not executed during page load. We process scripts of types like
+        // text/javascript, application/javascript etc. (a complete list of MIME types is specified in the w3c.org
+        // html5 specification). If the type is not set, it is considered 'text/javascript' by default.
         var scriptType                 = this.adapter.getAttr(script, 'type');
         var executableScriptTypesRegEx = /(application\/((x-)?ecma|(x-)?java)script)|(text\/)(javascript(1\.{0-5})?|((x-)?ecma|x-java|js|live)script)/;
         var isExecutableScript         = !scriptType || executableScriptTypesRegEx.test(scriptType);
@@ -367,10 +368,10 @@ export default class DomProcessor {
     }
 
     _processTargetBlank (el) {
-        // NOTE: replace target='_blank' to avoid popups
+        // NOTE: Replace target='_blank' to avoid popups.
         var attrValue = this.adapter.getAttr(el, 'target');
 
-        // NOTE: Value may have whitespace
+        // NOTE: Value may have whitespace.
         attrValue = attrValue && attrValue.replace(/\s/g, '');
 
         if (attrValue === '_blank' || attrValue === 'blank')
@@ -383,7 +384,7 @@ export default class DomProcessor {
             var resourceUrl       = this.adapter.getAttr(el, pattern.urlAttr);
             var processedOnServer = this.adapter.hasAttr(el, storedUrlAttr);
 
-            // NOTE: page resource URL with proxy URL
+            // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
                 if (urlUtils.isSupportedProtocol(resourceUrl) && !EMPTY_URL_REG_EX.test(resourceUrl)) {
                     var elTagName    = this.adapter.getTagName(el).toLowerCase();
@@ -392,8 +393,8 @@ export default class DomProcessor {
                     var resourceType = null;
                     var target       = this.adapter.getAttr(el, 'target');
 
-                    // On the server the elements shouldn't process with target=_parent,
-                    // because we don't know who is the parent of the processing page (iframe or top window)
+                    // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
+                    // know what is the parent of the processed page (an iframe or the top window).
                     if (!this.adapter.needToProcessUrl(elTagName, target))
                         return;
 
@@ -407,7 +408,7 @@ export default class DomProcessor {
                     var proxyUrl          = '';
                     var charsetAttrValue  = isScript && this.adapter.getAttr(el, 'charset');
 
-                    // NOTE: Only non relative iframe src can be cross-domain
+                    // NOTE: Only a non-relative iframe src can be cross-domain.
                     if (isIframe && !isRelativePath) {
                         var location    = urlReplacer('/');
                         var proxyUrlObj = urlUtils.parseProxyUrl(location);
@@ -416,7 +417,7 @@ export default class DomProcessor {
                         if (!parsedResourceUrl.protocol)
                             resourceUrl = proxyUrlObj.originResourceInfo.protocol + resourceUrl;
 
-                        // Cross-domain iframe
+                        // NOTE: Cross-domain iframe.
                         if (!this.adapter.sameOriginCheck(originUrl, resourceUrl)) {
                             var proxyHostname = urlUtils.parseUrl(location).hostname;
 

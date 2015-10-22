@@ -14,13 +14,13 @@ function getLocation () {
         return forcedLocation;
 
     try {
-        // NOTE: fallback to the owner page's URL if we are in the iframe without src
+        // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
         if (window.frameElement && domUtils.isIframeWithoutSrc(window.frameElement))
             return getSettings().referer;
     }
         /*eslint-disable no-empty */
     catch (e) {
-        // NOTE: Cross-domain iframe
+        // NOTE: Cross-domain iframe.
     }
     /*eslint-enable no-empty */
 
@@ -41,7 +41,7 @@ export function sameOriginCheck (location, checkedUrl) {
 }
 
 export function getResolver (doc) {
-    // IE clean up document after document.open call
+    // NOTE: IE cleans the document up after document.open is called.
     if (!doc[DOCUMENT_URL_RESOLVER])
         doc[DOCUMENT_URL_RESOLVER] = doc.createElement('a');
 
@@ -61,11 +61,9 @@ export function resolveUrl (url, doc) {
     else {
         urlResolver.href = url;
 
-        //NOTE: it looks like a chrome bug: in nested iframe without src (when iframe is placed in another iframe) you
-        //cannot set relative link href for some time while the iframe loading is not completed. So, we'll do it with
-        //parent's urlResolver
-        //In Safari presents equal behaviour,
-        // but urlResolver.href has relative url value
+        // NOTE: It looks like a Chrome bug: in a nested iframe without src (when an iframe is placed into another
+        // iframe) you cannot set a relative link href while the iframe loading is not completed. So, we'll do it with
+        // the parent's urlResolver Safari demonstrates similar behavior, but urlResolver.href has a relative URL value.
         var needUseParentResolver = url && isIframeWithoutSrc && window.parent && window.parent.document &&
                                     (!urlResolver.href || urlResolver.href.indexOf('/') === 0);
 
@@ -85,7 +83,7 @@ export function get () {
 export function withHash (hash) {
     var location = get();
 
-    // NOTE: remove previous hash if we have one
+    // NOTE: Remove the previous hash if there is any.
     location = location.replace(/(#.*)$/, '');
 
     return location + hash;
@@ -102,19 +100,19 @@ export function getParsed () {
     var origin       = get();
     var parsedOrigin = sharedUrlUtils.parseUrl(origin);
 
-    // NOTE: IE "browser" adds default port for the https protocol while resolving
+    // NOTE: IE browser adds the default port for the https protocol while resolving.
     resolver.href = get();
 
-    // NOTE: IE ignores first '/' symbol in the pathname
+    // NOTE: IE ignores the first '/' symbol in the pathname.
     var pathname = resolver.pathname.indexOf('/') === 0 ? resolver.pathname : '/' + resolver.pathname;
 
-    //TODO describe default ports logic
+    // TODO: Describe default ports logic.
     return {
         protocol: resolver.protocol,
-        // NOTE: remove default port
+        // NOTE: Remove the default port.
         port:     parsedOrigin.port ? resolver.port : '',
         hostname: resolver.hostname,
-        // NOTE: remove default port form the host
+        // NOTE: Remove the default port from the host.
         host:     parsedOrigin.port ? resolver.host : resolver.host.replace(/:\d+$/, ''),
         pathname: pathname,
         hash:     resolver.hash,

@@ -1,4 +1,4 @@
-// NOTE: We should wrap xhr response (B236741)
+// NOTE: We should wrap the xhr response (B236741).
 export default class XMLHttpRequestWrapper {
     constructor (xhr) {
         const XHR_PROPERTY_ACCESS_ERROR = 'hammerhead|xhr-property-access-error';
@@ -64,8 +64,8 @@ export default class XMLHttpRequestWrapper {
             if (!Object.prototype.hasOwnProperty(prop)) {
                 var isFunction = false;
 
-                //in some cases xhr properties reading leads to error throwing (B253550, T177746)
-                //if it happens we wrap these properties without reading them
+                // NOTE: In some cases, reading the xhr properties leads to errors (B253550, T177746).
+                // If it happens, we wrap these properties without reading them.
                 try {
                     isFunction = typeof xhr[prop] === 'function';
                 }

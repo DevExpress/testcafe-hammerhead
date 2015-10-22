@@ -29,7 +29,7 @@ export default class MessageSandbox extends SandboxBase {
         this.pingCallback = null;
         this.pingCmd      = null;
 
-        //NOTE: the window.top property may be changed after an iframe is removed from DOM in IE, so we save it on script initializing
+        // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
         this.topWindow = null;
         this.window    = null;
 
@@ -68,7 +68,7 @@ export default class MessageSandbox extends SandboxBase {
             if (data.targetUrl === '*' || originLocation.sameOriginCheck(originUrl, data.targetUrl)) {
                 resultEvt.origin = data.originUrl;
 
-                // IE9 can send only string values
+                // NOTE: IE9 can send only string values.
                 var needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
 
                 resultEvt.data = needToStringify ? stringifyJSON(data.message) : data.message;
@@ -96,18 +96,18 @@ export default class MessageSandbox extends SandboxBase {
             type:            type
         };
 
-        // IE9 can send only string values
+        // NOTE: IE9 can send only string values.
         return isIE9 ? stringifyJSON(result) : result;
     }
 
-    //NOTE: in IE after an iframe is removed from DOM the window.top property is equal to window.self
+    // NOTE: In IE, after an iframe is removed from DOM, the window.top property is equal to window.self.
     _isIframeRemoved () {
         return this.window.top === this.window.self && this.window !== this.topWindow;
     }
 
     attach (window) {
         super.attach(window);
-        //NOTE: the window.top property may be changed after an iframe is removed from DOM in IE, so we save it on script initializing
+        // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
         this.topWindow = window.top;
 
         var onMessageHandler        = this._onMessage.bind(this);
@@ -168,10 +168,10 @@ export default class MessageSandbox extends SandboxBase {
     sendServiceMsg (msg, targetWindow) {
         var message = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
 
-        //NOTE: for iframes without src
+        // NOTE: For iframes without src.
         if (!this._isIframeRemoved() && (isIframeWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
                                                                targetWindow[this.RECEIVE_MSG_FN])) {
-            //NOTE: postMessage delay imitation
+            // NOTE: Imitation of a delay for the postMessage method.
             nativeMethods.setTimeout.call(this.topWindow, () => {
                 // NOTE: We leave the capability to communicate with a removed frame. Unfortunately, this
                 // cannot be done in Safari, because it restricts operations with removed windows (GH-171).
@@ -179,7 +179,7 @@ export default class MessageSandbox extends SandboxBase {
 
                 if (!isUnreachableIframe) {
                     targetWindow[this.RECEIVE_MSG_FN]({
-                        // NOTE: Cloning message to prevent this modification
+                        // NOTE: Cloning a message to prevent this modification.
                         data:   parseJSON(stringifyJSON(message)),
                         source: this.window
                     });

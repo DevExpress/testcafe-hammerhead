@@ -79,9 +79,9 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     static _changeMetas ($) {
-        // TODO: figure out how to emulate the behavior of the tag
+        // TODO: Figure out how to emulate the tag behavior.
         $('meta[name="referrer"][content="origin"]').remove();
-        // NOTE: Remove existing compatible meta tag and add a new at the beginning of the head
+        // NOTE: Remove the existing ‘compatible’ meta tag and add a new one at the beginning of the head.
         $('meta[http-equiv="X-UA-Compatible"]').remove();
         $('head').prepend('<meta http-equiv="X-UA-Compatible" content="IE=edge" />');
     }

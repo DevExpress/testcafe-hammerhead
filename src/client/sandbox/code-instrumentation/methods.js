@@ -11,7 +11,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
 
         this.methodWrappers = {
             // NOTE: When a selector that contains the ':focus' pseudo-class is used in the querySelector and
-            // querySelectorAll functions, the latter return an empty result if the browser is not focused.
+            // querySelectorAll functions, these functions return an empty result if the browser is not focused.
             // This replaces ':focus' with a custom CSS class to return the current active element in that case.
             querySelector: {
                 condition: el => !isIE && (isDocument(el) || isDomElement(el)),
@@ -56,7 +56,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         };
     }
 
-    //NOTE: isolate throw statement into separate function because JS engines doesn't optimize such functions.
+    // NOTE: Isolate throw statement into a separate function because JS engine doesn't optimize such functions.
     static _error (msg) {
         throw new Error(msg);
     }

@@ -8,8 +8,7 @@ var gunzip     = promisify(zlib.gunzip);
 var inflate    = promisify(zlib.inflate);
 var inflateRaw = promisify(zlib.inflateRaw);
 
-// NOTE: IIS has a bug when it sends 'raw deflate' compressed
-// data for 'Deflate' Accept-Encoding header.
+// NOTE: IIS has a bug when it sends 'raw deflate' compressed data for the 'Deflate' Accept-Encoding header.
 // (see: http://zoompf.com/2012/02/lose-the-wait-http-compression)
 async function inflateWithFallback (data) {
     try {

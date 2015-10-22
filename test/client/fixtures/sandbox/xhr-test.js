@@ -98,5 +98,3 @@ asyncTest('parameters must pass correctly in xhr event handlers (T239198)', func
     request.open('GET', '/xhr-large-response', true);
     request.send(null);
 });
-
-

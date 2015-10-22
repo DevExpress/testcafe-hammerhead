@@ -13,7 +13,7 @@ import { isStyle } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAnchorProperty, setAnchorProperty } from './anchor';
 import { getAttributesProperty } from './attributes';
-import { URL_ATTR_TAGS, TARGET_ATTR_TAGS } from '../../../dom-processor/dom-processor';
+import { URL_ATTR_TAGS, TARGET_ATTR_TAGS } from '../../../dom-processor';
 import { process as processStyle, cleanUp as cleanUpStyle } from '../../../../processing/style';
 import { process as processScript, cleanUpHeader as cleanUpScriptHeader } from '../../../../processing/script';
 import { GET_PROPERTY_METH_NAME, SET_PROPERTY_METH_NAME } from '../../../../processing/js';
@@ -34,7 +34,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.shadowUI              = shadowUI;
     }
 
-    //NOTE: isolate throw statement into separate function because JS engines doesn't optimize such functions.
+    // NOTE: Isolate throw statements into a separate function because the
+    // JS engine doesn't optimize such functions.
     static _error (msg) {
         throw new Error(msg);
     }
@@ -183,7 +184,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     var parentDocument = domUtils.findDocument(el);
                     var parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
-                    //NOTE: for iframe with empty src
+                    // NOTE: For the iframe with an empty src.
                     if (parentWindow && parentWindow !== window &&
                         parentWindow[INTERNAL_PROPS.overrideDomMethodName])
                         parentWindow[INTERNAL_PROPS.overrideDomMethodName](el, parentDocument);
@@ -191,14 +192,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         window[INTERNAL_PROPS.overrideDomMethodName](el);
 
 
-                    //NOTE: fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
-                    //There were an issue then document.body was replaced, so we need to reattach UI to new body manually
-                    //See also: ui/ui.js
+                    // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised
+                    // during recording. There was an issue when the document.body was replaced, so we need to
+                    // reattach UI to a new body manually.
                     var containerTagName = el.tagName && el.tagName.toLowerCase();
 
-                    //NOTE: this check is required because jQuery calls the set innerHTML method for an element in an unavailable window
+                    // NOTE: This check is required because jQuery calls the set innerHTML method for an element
+                    // in an unavailable window.
                     if (window.self) {
-                        //NOTE: use timeout, so changes take effect
+                        // NOTE: Use timeout, so that changes take effect.
                         if (containerTagName === 'html' || containerTagName === 'body')
                             nativeSetTimeout.call(window, () => this.nodeMutation.onBodyContentChanged(el), 0);
                     }
@@ -384,9 +386,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             text: {
-                //NOTE: check for tagName being a string. Because is some cases in Angular app it
-                //may be function.
-                //See: T175340: TD_14_2 - Uncaught JS error on angular getting started site
+                // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
                 condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script',
                 get:       el => typeof el.text === 'string' ? cleanUpScriptHeader(el.text) : el.text,
 
@@ -398,9 +398,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             textContent: {
-                //NOTE: check for tagName being a string. Because is some cases in Angular app it
-                //may be function.
-                //See: T175340: TD_14_2 - Uncaught JS error on angular getting started site
+                // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
                 condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script',
                 get:       el => typeof el.textContent === 'string' ?
                                  cleanUpScriptHeader(el.textContent) : el.textContent,

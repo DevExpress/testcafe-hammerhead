@@ -1,7 +1,7 @@
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
-import domProcessor from '../dom-processor/dom-processor';
+import domProcessor from '../dom-processor';
 import { cleanUpHeader as cleanUpScriptHeader } from '../../processing/script';
 import { find } from './dom';
 import { convertToProxyUrl } from '../utils/url';
@@ -31,7 +31,7 @@ domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, (html, callback) =>
 
 function getHtmlDocument () {
     try {
-        // IE bug: access denied
+        // NOTE: IE bug: access denied.
         if (htmlDocument.location)
             htmlDocument.location.toString();
     }
@@ -215,7 +215,7 @@ export function processHtml (html, parentTag) {
         return processPageHtml(html, processHtml);
 
     return processHtmlInternal(html, parentTag, container => {
-        //NOTE: we check this condition to avoid unnecessary calling the querySelectorAll function
+        // NOTE: We check this condition to avoid unnecessary calls of the querySelectorAll function.
         if (container.children.length === 1 && container.children[0].children && !container.children[0].children.length)
             domProcessor.processElement(container.children[0], convertToProxyUrl);
         else {
@@ -235,12 +235,12 @@ export function processHtml (html, parentTag) {
 export function isWellFormattedHtml (html) {
     var tagStack = [];
 
-    //http://www.w3.org/TR/html5/syntax.html#void-elements
+    // NOTE: http://www.w3.org/TR/html5/syntax.html#void-elements.
     var voidElements = ['area', 'base', 'basefont', 'br', 'col', 'embed', 'frame', 'hr', 'img', 'input', 'keygen', 'isindex', 'link', 'meta', 'param', 'source', 'track', 'wbr'];
 
-    //Real cases are very hard - http://www.w3.org/TR/html5/syntax.html#optional-tags
-    //Use a simplified algorithm
-    //Also not check self-closed elements for SVG(http://www.w3.org/TR/SVG/struct.html) and MathML(http://www.w3.org/wiki/MathML/Elements)
+    // NOTE: Real cases are very hard - http://www.w3.org/TR/html5/syntax.html#optional-tags Using a simplified
+    // algorithm. And going without checking self-closed elements for SVG(http://www.w3.org/TR/SVG/struct.html) and
+    // MathML(http://www.w3.org/wiki/MathML/Elements).
     var selfClosedTags = ['colgroup', 'dd', 'dt', 'li', 'options', 'p', 'td', 'tfoot', 'th', 'thead', 'tr'];
 
     var lastItem      = arr => arr[arr.length - 1];
@@ -273,7 +273,7 @@ export function isWellFormattedHtml (html) {
     var endTagReg   = /^<\/(\w+)[^>]*>/;
     var doctypeReg  = /^<!doctype[^>]*>/i;
 
-    //http://www.w3.org/TR/html5/syntax.html#raw-text-elements
+    // NOTE: http://www.w3.org/TR/html5/syntax.html#raw-text-elements.
     var rawTextElements = ['script', 'style'];
 
     var BEGIN_COMMENT       = '<!--';
@@ -292,7 +292,7 @@ export function isWellFormattedHtml (html) {
         while (html) {
             isPlanText = true;
 
-            // Not in a script or style element
+            // NOTE: Not in a script or style element.
             if (!lastItem(tagStack) || !contains(rawTextElements, lastItem(tagStack))) {
                 // html comment
                 if (html.indexOf(BEGIN_COMMENT) === 0) {
@@ -300,7 +300,7 @@ export function isWellFormattedHtml (html) {
                     html       = html.substring(charIndex + 3);
                     isPlanText = false;
                 }
-                // doctype declaration
+                // NOTE: Doctype declaration.
                 else if (html.indexOf(DOCTYPE_DECLARATION) === 0) {
                     match = html.match(doctypeReg);
 
@@ -309,7 +309,7 @@ export function isWellFormattedHtml (html) {
                         isPlanText = false;
                     }
                 }
-                // end tag
+                // NOTE: End tag.
                 else if (html.indexOf(END_TAG) === 0) {
                     match = html.match(endTagReg);
 

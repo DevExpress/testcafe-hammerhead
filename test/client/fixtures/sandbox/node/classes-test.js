@@ -1,4 +1,4 @@
-var domProcessor   = Hammerhead.get('./dom-processor/dom-processor');
+var domProcessor   = Hammerhead.get('./dom-processor');
 var originLocation = Hammerhead.get('./utils/origin-location');
 var urlUtils       = Hammerhead.get('./utils/url');
 

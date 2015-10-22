@@ -14,10 +14,8 @@ const TYPE = {
 // Static
 var SSLv3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
 
-// NOTE: we need agent with the proper keep-alive behavior.
-// Such agent was landed in Node 0.12. Since we still support
-// Node 0.10 we will use third-party agent which is basically is the
-// extraction of the Node 0.12 Agent code.
+// NOTE: We need an agent with proper keep-alive behavior. Such an agent has landed in Node 0.12. Since we
+// still support Node 0.10, we will use a third-party agent that is the extraction of Node 0.12 Agent code.
 var agents = {
     [TYPE.SSLv3]: {
         instance:       null,
@@ -84,8 +82,8 @@ export function regressHttps (reqOpts) {
     reqOpts.agent = getAgent(TYPE.SSLv3);
 }
 
-// NOTE: since our agents are keep-alive, we need to manually
-// reset connections when we switch servers in tests
+// NOTE: Since our agents are keep-alive, we need to manually reset connections when we
+// switch between servers in tests.
 export function resetKeepAliveConnections () {
     Object.keys(agents).forEach(type => {
         var agent = agents[type];

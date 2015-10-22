@@ -163,7 +163,7 @@ function getSvgElementRelativeRectangle (el) {
 
     var strokeWidth = nativeMethods.getAttribute.call(el, 'stroke-width') || styleUtils.get(el, 'stroke-width');
 
-    //NOTE: we think that 'stroke-width' attribute can only be set in pixels
+    // NOTE: We assume that the 'stroke-width' attribute can only be set in pixels.
     strokeWidth = strokeWidth ? +strokeWidth.replace(/px|em|ex|pt|pc|cm|mm|in/, '') : 1;
 
     if (strokeWidth && +strokeWidth % 2 !== 0)
@@ -241,10 +241,11 @@ export function getOffsetPosition (el) {
     var offsetPosition    = doc === el ? styleUtils.getOffset(doc.documentElement) : styleUtils.getOffset(el);
     var relativeRectangle = null;
 
-    // NOTE: jquery .offset() function doesn't take body's border into account (except IE7)
-    // http://bugs.jquery.com/ticket/7948
+    // NOTE: The jquery .offset() function doesn't take the body's border into account (except IE7)
+    // http://bugs.jquery.com/ticket/7948.
 
-    //NOTE: Sometimes in IE method getElementFromPoint returns cross-domain iframe's documentElement, but we can't get his body
+    // NOTE: Sometimes, in IE, the getElementFromPoint method returns a cross-domain iframe's documentElement,
+    // but there’s no way to access its body.
     var borders = doc.body ? styleUtils.getBordersWidth(doc.body) : {
         left: 0,
         top:  0

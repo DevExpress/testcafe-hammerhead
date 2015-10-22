@@ -71,8 +71,8 @@ export default class Listeners extends EventEmitter {
         var listeningCtx = this.listeningCtx;
 
         return function (e) {
-            //NOTE: fix for the bug in firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1161548).
-            //An exception is raised when try to get any property from the event object in some cases.
+            // NOTE: Fix for the bug in Firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1161548).
+            // Sometimes an exception is raised on an attempt to get a property from the event object.
             var type = '';
 
             try {
@@ -130,7 +130,7 @@ export default class Listeners extends EventEmitter {
                 if (!eventListeningInfo)
                     return nativeAddEventListener.call(this, type, listener, useCapture);
 
-                //T233158 - Wrong test run for mouse click in IE
+                // NOTE: T233158
                 var isDifferentHandler = eventListeningInfo.outerHandlers.every(value => value.fn !== listener ||
                                                                                          value.useCapture !==
                                                                                          useCapture);
@@ -177,7 +177,7 @@ export default class Listeners extends EventEmitter {
                 if (!docEventListeningInfo)
                     return nativeAddEventListener.call(this, type, listener, useCapture);
 
-                //T233158 - Wrong test run for mouse click in IE
+                // NOTE: T233158
                 var isDifferentHandler = eventListeningInfo.outerHandlers.every(value => value.fn !== listener ||
                                                                                          value.useCapture !==
                                                                                          useCapture);

@@ -20,13 +20,13 @@ class StyleProcessor {
         if (typeof css === 'string' && !isStylesheetProcessed) {
             var prefix = isStylesheetTable ? this.IS_STYLESHEET_PROCESSED_COMMENT + '\n' : '';
 
-            // Replace :hover pseudo class
+            // NOTE: Replace the :hover pseudo-class.
             css = css.replace(/\s*:\s*hover(\W)/gi, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']$1');
 
-            // Remove source map directive
+            // NOTE: Remove the ‘source map’ directive.
             css = css.replace(SOURCE_MAP_REG_EX, '$1');
 
-            // NOTE: replace URLs in css rules with the proxy URLs.
+            // NOTE: Replace URLs in CSS rules with proxy URLs.
             return prefix + this._replaceStylsheetUrls(css, urlReplacer);
         }
 

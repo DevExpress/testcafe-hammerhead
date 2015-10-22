@@ -1,5 +1,5 @@
 ﻿var INTERNAL_ATTRS  = Hammerhead.get('../processing/dom/internal-attributes');
-var domProcessor    = Hammerhead.get('./dom-processor/dom-processor');
+var domProcessor    = Hammerhead.get('./dom-processor');
 var htmlUtils       = Hammerhead.get('./utils/html');
 var scriptProcessor = Hammerhead.get('../processing/script');
 var urlUtils        = Hammerhead.get('./utils/url');

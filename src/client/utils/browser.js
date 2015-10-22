@@ -47,6 +47,6 @@ export var isWebKit          = browser.name === 'webkit' && !isMSEdge && !isSafa
 export var hasTouchEvents    = !!('ontouchstart' in window);
 export var isMacPlatform     = /^Mac/.test(navigator.platform);
 
-// NOTE: we need check of touch points only for IE, because it has PointerEvent
-// and MSPointerEvent (IE10, IE11) instead TouchEvent (T109295)
+// NOTE: We need to check touch points only for IE, because it has PointerEvent and MSPointerEvent (IE10, IE11)
+// instead of TouchEvent (T109295).
 export var isTouchDevice = hasTouchEvents || isIE && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);

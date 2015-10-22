@@ -1,7 +1,7 @@
 const CHARSET_RE      = /(?:^|;)\s*charset=(.+)(?:;|$)/i;
 const META_CHARSET_RE = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
 
-// NOTE: HTTP 1.1 specifies ISO-8859-1 as a default charset
+// NOTE: HTTP 1.1 specifies ISO-8859-1 as the default charset
 // (see: http://www.w3.org/International/O-HTTP-charset.en.php).
 const DEFAULT_CHARSET = 'iso-8859-1';
 
@@ -60,7 +60,6 @@ var normalizedCharsetMap = {
 };
 
 CHARSETS.forEach(charset => normalizedCharsetMap.add(charset));
-
 
 // Charset
 export default class Charset {
@@ -127,7 +126,7 @@ export default class Charset {
         return false;
     }
 
-    // NOTE: parsing charset from meta-tags
+    // NOTE: Parsing charset from meta tags
     // www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#determining-the-character-encoding
     // Each <meta> descriptor should contain values of the "http-equiv", "content" and "charset" attributes.
     fromMeta (metas) {

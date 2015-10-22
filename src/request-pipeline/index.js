@@ -40,7 +40,7 @@ var stages = {
     3: function decideOnProcessingStrategy (ctx, next) {
         ctx.buildContentInfo();
 
-        //NOTE: just pipe body to browser if we don't need to process content body
+        // NOTE: Just pipe the content body to the browser if we don't need to process it.
         if (!ctx.contentInfo.requireProcessing) {
             sendResponseHeaders(ctx);
             ctx.destRes.pipe(ctx.res);
@@ -53,9 +53,8 @@ var stages = {
     4: async function fetchContent (ctx, next) {
         ctx.destResBody = await fetchBody(ctx.destRes);
 
-        // NOTE: sometimes underlying socket emits error event.
-        // But if we have response body we can still process
-        // such requests. (See: B234324)
+        // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
+        // we can still process such requests. (B234324)
         if (ctx.hasDestReqErr && isDestResBodyMalformed(ctx)) {
             error(getText(MESSAGE.destConnectionTerminated, ctx.dest.url));
 

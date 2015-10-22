@@ -1,6 +1,6 @@
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
-import domProcessor from '../../dom-processor/dom-processor';
+import domProcessor from '../../dom-processor';
 import scriptProcessor from '../../../processing/script';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
@@ -25,7 +25,7 @@ export default class ElementSandbox extends SandboxBase {
     _overridedGetAttributeCore (el, attr, ns) {
         var getAttrMeth = ns ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
 
-        // Optimization: hasAttribute meth is very slow
+        // OPTIMIZATION: The hasAttribute method is very slow.
         if (ElementSandbox._isUrlAttr(el, attr) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
             attr === 'autocomplete') {
             var storedAttr = domProcessor.getStoredAttrName(attr);
@@ -209,7 +209,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             appendChild (child) {
-                //NOTE: we should process a TextNode as a script if it is appended to a script element (B254284)
+                // NOTE: We need to process TextNode as a script if it is appended to a script element (B254284).
                 if (child.nodeType === 3 && this.tagName && this.tagName.toLowerCase() === 'script')
                     child.data = scriptProcessor.process(child.data);
 
@@ -218,7 +218,7 @@ export default class ElementSandbox extends SandboxBase {
                 var result = null;
 
                 if (this.tagName && this.tagName.toLowerCase() === 'body' && this.children.length) {
-                    // NOTE: We should to append element before shadow ui root
+                    // NOTE: We need to append the element before the shadow ui root.
                     var lastChild = this.children[this.children.length - 1];
 
                     result = nativeMethods.insertBefore.call(this, child, lastChild);

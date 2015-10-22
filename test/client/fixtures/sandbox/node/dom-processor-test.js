@@ -1,6 +1,6 @@
 var INTERNAL_ATTRS  = Hammerhead.get('../processing/dom/internal-attributes');
 var htmlUtils       = Hammerhead.get('./utils/html');
-var domProcessor    = Hammerhead.get('./dom-processor/dom-processor');
+var domProcessor    = Hammerhead.get('./dom-processor');
 var scriptProcessor = Hammerhead.get('../processing/script');
 var styleProcessor  = Hammerhead.get('../processing/style');
 var settings        = Hammerhead.get('./settings');

@@ -58,7 +58,7 @@ export default class EventSandbox extends SandboxBase {
 
                 Listeners.beforeDispatchEvent();
 
-                //event is 'MSEventObj'
+                // NOTE: Event is 'MSEventObj'.
                 if (!ev || !ev.target) {
                     if (/(^mouse\w+$)|^(dbl)?click$|^contextmenu$/.test(eventType))
                         createEventType = 'MouseEvents';
@@ -74,7 +74,7 @@ export default class EventSandbox extends SandboxBase {
                         ev.initEvent(eventType, typeof ev.cancelBubble !== 'undefined' ? ev.cancelBubble : false, true);
                     }
                     else {
-                        //NOTE: fire event method can be called with no arguments
+                        // NOTE: The fireEvent method can be called with no arguments.
                         ev = document.createEvent(createEventType);
                         ev.initEvent(eventType, true, true);
                     }
@@ -139,8 +139,8 @@ export default class EventSandbox extends SandboxBase {
         };
 
         this.cancelInternalEvents = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
-            // NOTE: we should cancel events raised by native function calling (focus, blur) only if the element has the flag.
-            // If event is dispatched, we shouldn't cancel it.
+            // NOTE: We should cancel events raised by calling the native function (focus, blur) only if the
+            // element has a flag. If an event is dispatched, we shouldn't cancel it.
             var target            = e.target || e.srcElement;
             var internalEventFlag = FocusBlurSandbox.getInternalEventFlag(e.type);
 
@@ -216,7 +216,7 @@ export default class EventSandbox extends SandboxBase {
 
         if (domUtils.isInputElement(el)) {
             if (isIE) {
-                // Prevent browser's open file dialog
+                // NOTE: Prevent the browser's open file dialog.
                 nativeMethods.addEventListener.call(el, 'click', e => {
                     if (domUtils.isFileInput(el)) {
                         if (this.eventSimulator.getClickedFileInput() === el) {

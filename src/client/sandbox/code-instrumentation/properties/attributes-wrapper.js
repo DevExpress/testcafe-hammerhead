@@ -1,5 +1,5 @@
 import { isHammerheadAttr } from '../../../utils/dom';
-import { getStoredAttrName } from '../../../dom-processor/dom-processor';
+import { getStoredAttrName } from '../../../dom-processor';
 
 export default class AttributesWrapper {
     constructor (attributes) {

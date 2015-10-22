@@ -77,9 +77,9 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.canvasContextDrawImage.apply(this, changedArgs || arguments);
         };
 
-        // Override uncaught error handling
+        // NOTE: Override uncaught error handling.
         window.onerror = (msg, url, line, col, errObj) => {
-            // FireFox raises NS_ERROR_NOT_INITIALIZED exception after widnow has been removed from the dom
+            // NOTE: Firefox raises the NS_ERROR_NOT_INITIALIZED exception after the window is removed from the dom.
             if (msg.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
                 return true;
 
@@ -118,8 +118,8 @@ export default class WindowSandbox extends SandboxBase {
         if (window.Blob) {
             window.Blob = function (parts, opts) {
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
-                // If the overridden function is called with one parameter,
-                // then we need to call the original function with one parameter as well.
+                // If the overridden function is called with one parameter, we need to call the original function
+                // with one parameter as well.
                 switch (arguments.length) {
                     case 0:
                         return new nativeMethods.Blob();

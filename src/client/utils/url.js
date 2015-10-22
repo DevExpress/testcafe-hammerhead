@@ -11,11 +11,12 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
     if (!isSupportedProtocol(url))
         return url;
 
-    // NOTE: resolve relative URLs
+    // NOTE: Resolves relative URLs.
     url = originLocation.resolveUrl(url);
 
-    // NOTE: if we have a relative URL without slash (e.g. 'img123') resolver will keep
-    // original proxy information, so we can return such URL as is. TODO: implement is proxy URL func
+    // NOTE: If the relative URL contains no slash (e.g. 'img123'), the resolver will keep
+    // the original proxy information, so that we can return such URL as is.
+    // TODO: Implement the isProxyURL function.
     var parsedAsProxy   = sharedUrlUtils.parseProxyUrl(url);
     var isValidProxyUrl = !!parsedAsProxy;
 
@@ -23,7 +24,7 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
         if (resourceType && parsedAsProxy.resourceType === resourceType)
             return url;
 
-        // NOTE: we need to change proxy url resource type
+        // NOTE: Need to change the proxy URL resource type.
         var destUrl = sharedUrlUtils.formatUrl(parsedAsProxy.originResourceInfo);
 
         return getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue);
@@ -37,9 +38,8 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
     var parsedUrl = sharedUrlUtils.parseUrl(url);
     var charset   = charsetAttrValue || resourceType === SCRIPT && document[INTERNAL_PROPS.documentCharset];
 
-    // NOTE: seems like we've had a relative URL with leading slash or dots,
-    // so our proxy info path part was removed by resolver and we have an origin URL,
-    // but with incorrect host and protocol.
+    // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
+    // removed by the resolver and we have an origin URL with the incorrect host and protocol.
     if (parsedUrl.protocol === 'http:' && parsedUrl.hostname === proxyHostname && parsedUrl.port === proxyPort) {
         var parsedOriginLocation = originLocation.getParsed();
 
