@@ -124,8 +124,8 @@ $(document).ready(function () {
             strictEqual(fourthHandlerCounter, fourth);
         }
 
-        //NOTE: because of T233158 - Wrong test run for mouse click in IE
-        //it should be different handlers
+        // NOTE: Because of T233158 - Wrong test run for a mouse click in IE
+        // there should be different handlers.
         container.addEventListener(event, firstHandler, true);
         container.addEventListener(event, secondHandler);
         container.addEventListener(event, thirdHandler, true);

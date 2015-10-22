@@ -266,7 +266,7 @@ asyncTest('timeout', function () {
     var timeoutExceededError = false;
     var storedDelay          = messageSandbox.PING_IFRAME_TIMEOUT;
 
-    //MutationObserver (used in the es6-promise library) works slowly in IE
+    // NOTE: MutationObserver (used in the es6-promise library) works slowly in IE.
     var timeout = browserUtils.isIE ? 200 : 20;
 
     messageSandbox.setPingIframeTimeout(5);

@@ -1,16 +1,16 @@
 var urlParser = require('url');
 
-//NOTE: Url rewrite proxied requests (e.g. for iframes), so they will hit our server
+// NOTE: Url rewrite proxied requests (e.g. for iframes), so they will hit our server.
 function urlRewriteProxyRequest (req, res, next) {
     var proxiedUrlPartRegExp = /^\/\S+?\/(https?:)/;
 
     if (proxiedUrlPartRegExp.test(req.url)) {
-        // NOTE: store original URL so we can sent it back for testing purposes (see GET xhr-test route).
+        // NOTE: Store the original URL so we can send it back for testing purposes (see GET xhr-test route).
         req.originalUrl = req.url;
 
         var url = req.url.replace(proxiedUrlPartRegExp, '$1');
 
-        //NOTE: create host-relative URL
+        // NOTE: Create host-relative URL.
         var parsedUrl = urlParser.parse(url);
 
         parsedUrl.host     = null;

@@ -59,8 +59,8 @@ test('parse', function () {
 
 });
 
-//NOTE: we can't guarantee order of keys in serialized cookie string, so we use
-//format-parse technique to test cookie formatting
+// NOTE: We can't guarantee the order of keys in a serialized cookie string, so we use the
+// format-parse technique to test cookie formatting.
 test('format-parse', function () {
     var parsedCookies = [
         {

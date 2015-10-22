@@ -82,7 +82,7 @@ describe('DOM processor', function () {
     });
 
     it.skip('Should process <iframe> with src', function () {
-        //// TODO rewrite once with move url replacer to the page processor
+        // TODO: Rewrite moving url replacer to the page processor.
         //var $iframe                            = whacko.load('<iframe src="http://cross.domain.com/"></iframe>'),
         //    expectedHtml                       = '<iframe src="http://proxy.cross.domain.com/" src' +
         //                                         sharedConst.DOM_SANDBOX_STORED_ATTR_POSTFIX +

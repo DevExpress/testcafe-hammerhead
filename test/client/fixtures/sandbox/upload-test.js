@@ -9,8 +9,8 @@ var browserUtils  = Hammerhead.utils.browser;
 var uploadSandbox = Hammerhead.sandbox.upload;
 var infoManager   = Hammerhead.sandbox.upload.infoManager;
 
-// ----- Server api mock ---------
-// virtual file system:
+// ----- Server API mock ---------
+// Virtual file system:
 //   - file.txt
 //   - folder
 //      - file.png

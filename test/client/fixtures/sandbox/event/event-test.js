@@ -192,7 +192,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
         jQueryHandlerClickedCount++;
     });
 
-    //createEvent
+    // NOTE: createEvent.
     event = document.createEvent('MouseEvents');
     event.initEvent('click', true, false);
 
@@ -210,7 +210,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
         strictEqual(jQueryHandlerClickedCount, 2);
     }
 
-    //createEventObject (we CAN NOT call dispatchEvent, only fire event)
+    // NOTE: createEventObject (we CANNOT call dispatchEvent, only fire the event).
     if (document.createEventObject) {
         event = document.createEventObject('MouseEvents');
         div.fireEvent('onclick', event);
@@ -221,7 +221,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
         strictEqual(jQueryHandlerClickedCount, 3);
     }
 
-    //new MouseEvent (this way not for IE and fireEvent)
+    // NOTE: new MouseEvent (not for IE with its fireEvent).
     var error = false;
 
     if (!browserUtils.isIE) {
@@ -233,7 +233,7 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
             });
         }
         catch (e) {
-            //browser doesn't support this action
+            // NOTE: The browser doesn't support this action.
             error = true;
         }
 

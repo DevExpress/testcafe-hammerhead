@@ -131,7 +131,7 @@ test('anchor', function () {
     strictEqual(execScript('emptyAnchor.pathname'), etalonEmptyAnchor.pathname);
 
     // Origin
-    // IE has no origin property
+    // NOTE: IE has no origin property.
     if ('origin' in etalonEmptyAnchor) {
         execScript('anchor.origin="http://yandex.ru:2000"');
         etalonAnchor.origin      = 'http://yandex.ru:2000';
@@ -251,7 +251,7 @@ asyncTest('body.innerHTML in iframe', function () {
         });
 });
 
-// IE does not allow to override postMessage method
+// NOTE: IE does not allow overriding the postMessage method.
 if (!browserUtils.isIE) {
     asyncTest('postMessage', function () {
         var target = window.location.protocol + '//' + window.location.host;

@@ -142,7 +142,7 @@ test('closest element', function () {
 
     iframeDiv.className = 'parent';
 
-    //IE9, IE10
+    // NOTE: IE9, IE10.
     if (!iframe.contentDocument.body) {
         var body = iframe.contentDocument.createElement('body');
 

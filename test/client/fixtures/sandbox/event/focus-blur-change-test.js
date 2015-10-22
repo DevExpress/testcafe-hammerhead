@@ -238,7 +238,6 @@ function removeTestElements () {
     $('.' + TEST_ELEMENT_CLASS).remove();
 }
 
-//tests
 QUnit.testStart(function (e) {
     input1 = $('<input type="text" id="input1"/>').addClass(TEST_ELEMENT_CLASS).appendTo('body').get(0);
     input2 = $('<input type="text" id="input2"/>').addClass(TEST_ELEMENT_CLASS).appendTo('body').get(0);
@@ -803,7 +802,7 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
         })
         .attr('tabIndex', 1);
 
-    //NOTE:we should use unfocusable element in IE (T292365)
+    // NOTE: We should use unfocusable element in IE. (T292365)
     $(childDiv)
         .css({
             marginLeft: '110%',

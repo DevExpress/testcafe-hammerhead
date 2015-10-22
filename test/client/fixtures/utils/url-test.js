@@ -151,7 +151,7 @@ test('undefined or null', function () {
     var a        = document.createElement('a');
     var proxyUrl = urlUtils.getProxyUrl(null, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    //In Safari a.href = null will equal the current url instead <current_url>/null
+    // NOTE: In Safari, a.href = null  leads to the current url, not <current_url>/null.
     if (!browserUtils.isSafari) {
         a.href = null;
         strictEqual(proxyUrl, urlUtils.getProxyUrl(a.href, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'), 'null');
@@ -169,7 +169,7 @@ test('remove unnecessary slashes form the begin of the url', function () {
 });
 
 test('convert origin host and protocol to lower case', function () {
-    // BUG: https://github.com/superroma/testcafe-hammerhead/issues/1
+    // BUG: GH-1
     var proxy = urlUtils.getProxyUrl('hTtp://eXamPle.Com:123/paTh/Image?Name=Value&#Hash');
 
     ok(proxy.indexOf('http://example.com:123/paTh/Image?Name=Value&#Hash') !== -1);
@@ -267,7 +267,7 @@ test('sameOriginCheck for third-level domain (T106172)', function () {
 test('location.port must return the empty string (T262593)', function () {
     /* eslint-disable no-undef */
     eval(processScript([
-        // code from att.com, iframesrc === https://att.com:null/?IFRAME
+        // NOTE: From att.com, iframesrc === https://att.com:null/?IFRAME.
         'var port = (document.location.port == "") ? "" : (":" + document.location.port);',
         'var iframesrc = document.location.protocol + "//" + document.location.hostname + port + "/" + "?IFRAME";'
     ].join('\n')));

@@ -79,7 +79,7 @@ asyncTest('Unexpected text modifying during typing text in the search input on t
 asyncTest('parameters must pass correctly in xhr event handlers (T239198)', function () {
     var request = new XMLHttpRequest();
 
-    // NOTE: check XHR is wrapped
+    // NOTE: Check if the XHR is wrapped.
     ok(request.hasOwnProperty('addEventListener'));
 
     request.addEventListener('progress', function (e) {

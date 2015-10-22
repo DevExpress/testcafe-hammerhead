@@ -271,10 +271,10 @@ module('regression');
 test('Hammerhead should remove service data from local storage on the first session page load (GH-100)', function () {
     var sessionId = settings.get().sessionId;
 
-    // First page loading
+    // NOTE: First page loading.
     settings.get().isFirstPageLoad = true;
 
-    // Add service data
+    // NOTE: Add service data.
     window.localStorage.setItem(sessionId, 'some-serive-data');
 
     var hammerhead = new Hammerhead.constructor(window);

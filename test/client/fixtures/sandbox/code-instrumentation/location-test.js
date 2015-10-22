@@ -63,7 +63,7 @@ asyncTest('iframe with empty src', function () {
         });
 });
 
-//// Only Chrome raises 'load' event for iframes with 'javascript:' src and creates window instance
+// NOTE: Only Chrome raises the 'load' event for iframes with 'javascript:' src and creates a window instance.
 if (browserUtils.isWebKit) {
     asyncTest('iframe with "javascript:" src', function () {
         var $iframe = $('<iframe id="test3" src="javascript:void(0);">');
