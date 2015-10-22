@@ -7,7 +7,7 @@ var nodeMutation   = Hammerhead.sandbox.node.mutation;
 var eventSimulator = Hammerhead.sandbox.event.eventSimulator;
 
 QUnit.testStart(function () {
-    // 'window.open' method uses in the QUnit
+    // NOTE: The 'window.open' method used in QUnit.
     window.open       = nativeMethods.windowOpen;
     window.setTimeout = nativeMethods.setTimeout;
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
@@ -102,7 +102,7 @@ asyncTest('reload image through the proxy', function () {
     eval(processScript('$img2[0].src="' + realImageUrl + '";'));
 });
 
-// IE9 does not support insertAdjacentHTML for the 'tr'
+// NOTE: IE9 does not support insertAdjacentHTML for the 'tr' element.
 if (!browserUtils.isIE9) {
     test('html fragment', function () {
         var table = $('<table><tr></tr></table>')[0];

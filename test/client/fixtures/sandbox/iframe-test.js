@@ -7,7 +7,7 @@ var browserUtils  = Hammerhead.utils.browser;
 var nativeMethods = Hammerhead.nativeMethods;
 
 QUnit.testStart(function () {
-    // 'window.open' method uses in the QUnit
+    // NOTE: The 'window.open' method used in QUnit.
     window.open       = nativeMethods.windowOpen;
     window.setTimeout = nativeMethods.setTimeout;
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
@@ -61,7 +61,7 @@ test('document.write', function () {
     iframe.parentNode.removeChild(iframe);
 });
 
-// NOTE: This test must be last (IE11 hack)
+// NOTE: This test must be the last (IE11 hack).
 asyncTest('element.setAttribute', function () {
     var src = browserUtils.isFirefox ? ' src="javascript:&quot;<html><body></body></html>&quot;"' : '';
 
@@ -71,7 +71,7 @@ asyncTest('element.setAttribute', function () {
         var iframe     = this;
         var iframeBody = iframe.contentDocument.body;
 
-        // IE hack part1: catch hammerhead initialization exception
+        // NOTE: IE hack part 1: catch hammerhead initialization exception.
         var iframeSandbox = this.contentWindow.Hammerhead.sandbox.iframe;
         var storedMeth    = iframeSandbox.constructor.isIframeInitialized;
 
@@ -84,7 +84,7 @@ asyncTest('element.setAttribute', function () {
         // --------------------------------------------------------
 
         $('<iframe id="test21">').load(function () {
-            // IE hack part2: initialize hammerhead manually
+            // NOTE: IE hack part 2: initialize hammerhead manually.
             if (this.contentDocument.createElement.toString().indexOf('native') !== -1)
                 initIframeTestHandler({ iframe: this });
 
@@ -134,7 +134,7 @@ asyncTest('ready to init event must not raise for added iframe(B239643)', functi
     var $container               = $('<div><iframe id="test1"></iframe></div>').appendTo('body');
     var iframeLoadingEventRaised = false;
 
-    //iframe loading waiting
+    // NOTE: Waiting until the iframe is loaded.
     window.setTimeout(function () {
         var handler = function () {
             iframeLoadingEventRaised = true;

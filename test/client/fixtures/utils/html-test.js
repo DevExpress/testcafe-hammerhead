@@ -233,40 +233,40 @@ test('init script for iframe template', function () {
 module('is well formatted tag');
 
 test('special cases', function () {
-    //single tags with plain text
+    // NOTE: Single tags with plain text.
     strictEqual(htmlUtils.isWellFormattedHtml(''), true);
     strictEqual(htmlUtils.isWellFormattedHtml('test<div />blablabla'), true);
 
-    //script, style
+    // NOTE: Script, style.
     strictEqual(htmlUtils.isWellFormattedHtml('<script type="text/javascript" src="URL">alert("hello");<\/script>'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<div><style type="text/css">div > h1 { font-size: 120%; }<\/style></div>'), true);
 
-    //html comments and ie-specific comments
+    // NOTE: Html comments and ie-specific comments.
     strictEqual(htmlUtils.isWellFormattedHtml('test<!--Html comment-->blablabla'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<head><style type="text/css">P { color: green; }</style><!--[if IE 7]><style type="text/css"> P { color: red; }</style><![endif]--></head>'), true);
 
-    //doctype
+    // NOTE: Doctype.
     strictEqual(htmlUtils.isWellFormattedHtml('<!DOCTYPE html> '), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<!DOCTYPE HTML PUBLIC \n "-//W3C//DTD HTML 4.01//EN" \n "http://www.w3.org/TR/html4/strict.dtd">'), true);
 
-    //empty tags
+    // NOTE: Empty tags.
     strictEqual(htmlUtils.isWellFormattedHtml('<div><br></div>'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<div><br /></div>'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<div><input></input></div>'), false);
     strictEqual(htmlUtils.isWellFormattedHtml('<div><input><img></input></div>'), false);
 
-    //self closed
+    // NOTE: Self closed.
     strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="1"><tr><td></td></tr></table>'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="1"><col span="1"><col span="1"></colgroup><tr><td></td></tr></table>'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="150"><colgroup><col span="1"><col span="2"></colgroup><tr><td></td></tr></table>'), true);
 
-    //upper case, new line
+    // NOTE: Upper case, new line.
     strictEqual(htmlUtils.isWellFormattedHtml(' \n <div ></DIV>'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<div id="test">\n <div class="inner">\n blablabla </div> \n </div>'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<script>if (mr.slidotype_on) \n {mr.logoTrigger = document.getElementById("logo"); \n mr.logoTrigger.onclick = "mr.slidotypeClicked = true;"; \n }<\/script>'), true);
     strictEqual(htmlUtils.isWellFormattedHtml('<div \n id="test" \n />'), true);
 
-    //negative scenarious
+    // NOTE: Negative scenarious.
     strictEqual(htmlUtils.isWellFormattedHtml('test<div>blablabla'), false);
     strictEqual(htmlUtils.isWellFormattedHtml('<div>'), false);
     strictEqual(htmlUtils.isWellFormattedHtml('<div><span id="test"></span>'), false);
@@ -322,7 +322,6 @@ test('script.innerHtml must be cleaned up (T226885)', function () {
 
 test('markup with special characters must be cleaned up (T112153)', function () {
     var html =
-            // <script type="script/x-kendo-template" id="inboxItem">
             '<h3 class="time">#: Time#</h3><h3>#: From #</h3>\n' +
             '<a class="reply"\n' +
             'data-role="button"\n' +
@@ -331,8 +330,6 @@ test('markup with special characters must be cleaned up (T112153)', function () 
             'data-actionsheet-context="#:ID#">Reply</a>\n' +
             '<h2>#: Subject#</h2>\n' +
             '<p>#: Text#</p>';
-
-    // </script\>
 
     strictEqual(htmlUtils.cleanUpHtml(html).replace(/\s/g, ''), html.replace(/\s/g, ''));
 });

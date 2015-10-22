@@ -65,7 +65,7 @@ export function parse (str) {
                 break;
 
             case 'domain':
-                //NOTE: remove leading '.'
+                // NOTE: Remove leading '.'.
                 parsedCookie.domain = trim(value.replace(/^\./, ''));
                 break;
 

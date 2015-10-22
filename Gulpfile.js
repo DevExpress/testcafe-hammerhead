@@ -92,7 +92,7 @@ var SAUCELABS_SETTINGS = {
 
 function hang () {
     return new Promise(function () {
-        // NOTE: hang forever
+        // NOTE: Hang forever.
     });
 }
 
@@ -172,7 +172,7 @@ gulp.task('test-server', ['build'], function () {
         .pipe(mocha({
             ui:       'bdd',
             reporter: 'spec',
-            // NOTE: disable timeouts in debug
+            // NOTE: Disable timeouts in debug mode.
             timeout:  typeof v8debug === 'undefined' ? 2000 : Infinity
         }));
 });

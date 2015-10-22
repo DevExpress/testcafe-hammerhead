@@ -9,7 +9,7 @@ var browserUtils  = Hammerhead.utils.browser;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
-    // 'window.open' method uses in the QUnit
+    // NOTE: The 'window.open' method used in QUnit.
     window.open       = nativeMethods.windowOpen;
     window.setTimeout = nativeMethods.setTimeout;
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
@@ -209,7 +209,7 @@ test('iframe javascript src', function () {
 
         var processedSrc = testContainer.src;
 
-        //Safari returns encoded value for iframe.src with javascript protocol value
+        // NOTE: Safari returns an encoded value for iframe.src with a javascript protocol value.
         if (browserUtils.isSafari)
             processedSrc = decodeURI(processedSrc);
 
@@ -378,7 +378,7 @@ test('input.autocomplete', function () {
 
 test('window.onbeforeunload', function () {
     strictEqual(window.onbeforeunload, null);
-    //NOTE: if the test will be failed, system dialog blocks page before the page unloading
+    // NOTE: If this test fails, a system dialog blocks the page before it is unloaded.
     setProperty(window, 'onbeforeunload', function () {
         return 'value';
     });

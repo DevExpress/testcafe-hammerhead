@@ -10,7 +10,7 @@ var nativeMethods = Hammerhead.nativeMethods;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
-    // 'window.open' method uses in the QUnit
+    // NOTE: The 'window.open' method used in QUnit.
     window.open = nativeMethods.windowOpen;
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
@@ -35,7 +35,7 @@ test('link in iframe', function () {
     var iframeBody = $iframe[0].contentDocument.body;
     var $link      = $('<a href="/index.html">').appendTo('body');
 
-    // HACK: IE
+    // HACK: IE.
     if (!iframeBody) {
         $iframe[0].contentDocument.write('<body></body>');
         iframeBody = $iframe[0].contentDocument.body;
@@ -348,7 +348,7 @@ test('The URL attribute must be set to an empty string on the server only once (
     var iframe = nativeMethods.createElement.call(document, 'iframe');
 
     nativeMethods.setAttribute.call(iframe, 'src', '/should_not_be_changed');
-    // NOTE: Simulating that iframe was processed on the server
+    // NOTE: Simulates processing an iframe on the server.
     nativeMethods.setAttribute.call(iframe, domProcessor.getStoredAttrName('src'), '');
 
     domProcessor.processElement(iframe, function () {

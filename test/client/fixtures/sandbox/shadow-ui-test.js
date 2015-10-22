@@ -232,7 +232,7 @@ test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function
     ok(!wrappedChildren.item(-1));
     ok(!wrappedChildren.item(10000));
 
-    //Safari returns NodeList instead HTMLCollection
+    // NOTE: Safari returns NodeList instead of HTMLCollection.
     if (wrappedChildren.namedItem)
         strictEqual(wrappedChildren.namedItem('testInput'), input);
 

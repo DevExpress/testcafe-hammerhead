@@ -35,7 +35,7 @@ describe('Proxy', function () {
     var proxy      = null;
     var session    = null;
 
-    // Fixture setup/teardown
+    // NOTE: Fixture setup/teardown.
     before(function () {
         var app = express();
 
@@ -171,7 +171,7 @@ describe('Proxy', function () {
     });
 
 
-    // Test setup/teardown
+    // NOTE: Test setup/teardown.
     beforeEach(function () {
         session = new Session();
 
@@ -272,7 +272,7 @@ describe('Proxy', function () {
         });
 
         it('Should convert origin host and protocol to lower case', function () {
-            // BUG: https://github.com/superroma/testcafe-hammerhead/issues/1
+            // BUG: GH-1
             var proxiedUrl = proxy.openSession('hTtp://ExaMple.Com:123/paTh/Image?Name=Value&#Hash', session);
 
             expect(proxiedUrl).to.have.string('http://example.com:123/paTh/Image?Name=Value&#Hash');
@@ -610,7 +610,7 @@ describe('Proxy', function () {
             request(options);
         });
 
-        // NOTE: requires fix in node.js
+        // NOTE: Requires fix in node.js.
         it.skip('Should not encode cyrillic symbols in header (T239167, GH-nodejs/io.js#1693)', function (done) {
             var url              = proxy.openSession('http://127.0.0.1:2000/T239167/send-location', session);
             var expectedLocation = proxy.openSession('http://127.0.0.1:2000/\u0410\u0411', session);

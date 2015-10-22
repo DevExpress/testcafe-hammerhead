@@ -6,7 +6,7 @@ var nativeMethods = Hammerhead.nativeMethods;
 var iframeSandbox = Hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
-    // 'window.open' method uses in the QUnit
+    // NOTE: The 'window.open' method used in QUnit.
     window.open       = nativeMethods.windowOpen;
     window.setTimeout = nativeMethods.setTimeout;
     iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
@@ -82,7 +82,7 @@ if (!browserUtils.isFirefox) {
                     result = false;
             }
 
-            // Stack overflow check
+            // NOTE: Stack overflow check.
             ok(!document || document.getElementsByTagName('body'));
             ok(window.top.document.getElementsByTagName('body'));
 
@@ -109,11 +109,11 @@ if (!browserUtils.isFirefox) {
         $iframe.ready(checkIframeDocumentOverrided);
         $iframe.load(checkIframeDocumentOverrided);
 
-        // After append to DOM
+        // NOTE: After appended to DOM.
         $div[0].appendChild(iframe);
         checkWriteFunction();
 
-        // After reinsert to dom
+        // NOTE: After reinserted to DOM.
         $sdiv[0].appendChild(iframe);
         checkWriteFunction();
 
@@ -211,9 +211,8 @@ if (!browserUtils.isFirefox) {
         var loadHandler = function () {
             iframe.removeEventListener('load', loadHandler);
 
-            // Some browsers remove their documentElement after "write([])" call.
-            // Previously, if the documentElement was null, "overrideDomMethods""
-            // failed with the 'Maximum call stack size exceeded' error
+            // NOTE: Some browsers remove their documentElement after a "write([])" call. Previously, if the
+            // documentElement was null, "overrideDomMethods" failed with the 'Maximum call stack size exceeded' error.
             iframe.contentDocument.write([]);
             ok(true);
             iframe.contentDocument.close();

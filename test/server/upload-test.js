@@ -29,7 +29,7 @@ var dataFiles = [
 var data = dataFiles.reduce(function (data, filename) {
     var content = fs.readFileSync('test/server/data/form-data/' + filename + '.formdata');
 
-    // NOTE: force \r\n new lines
+    // NOTE: Force \r\n new lines.
     data[filename] = newLineReplacer(content);
 
     return data;

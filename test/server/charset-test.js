@@ -45,7 +45,7 @@ describe('Content charset', function () {
     var manifestSrc        = fs.readFileSync('test/server/data/content-charset/manifest').toString();
     var stylesheetSrc      = fs.readFileSync('test/server/data/content-charset/style.css').toString();
 
-    // Fixture setup/teardown
+    // NOTE: Fixture setup/teardown.
     before(function () {
         var app = express();
 

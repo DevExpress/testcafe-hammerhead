@@ -172,7 +172,7 @@ if (!browserUtils.isFirefox) {
     });
 }
 
-// NOTE: for touch devices
+// NOTE: For touch devices.
 if (browserUtils.hasTouchEvents) {
     var bindTouchEvent = function (eventType) {
         domElement['on' + eventType] = function (e) {
@@ -183,7 +183,8 @@ if (browserUtils.hasTouchEvents) {
         };
     };
 
-    //T112153 - Click (Touch) events are not raised when using a combination of TestCafé 14.1.1 + KendoUI Mobile + iOS
+    // NOTE: Click (Touch) events are not raised when using a combination of
+    // TestCafé 14.1.1 + KendoUI Mobile + iOS. (T112153)
     test('touchstart, touchend, touchmove', function () {
         var savedIdentifier = lastTouchIdentifier;
 

@@ -3,15 +3,15 @@ var multiline   = require('multiline');
 var jsProcessor = require('../../lib/processing/js');
 
 var ACORN_PROPERTY_NODES_PATCH_WARNING = multiline(function () {/*
- ATTENTION! If this test fails seems like you have updated acorn.
- We have patched acorn to make it work "Property" nodes.
+ ATTENTION! If this test fails, this may happen because you have updated acorn.
+ We have patched acorn to enable it to work with unicode identifiers.
 
- HOW TO FIX - go to acorn an replace this code:
+ HOW TO FIX - go to acorn and replace the following code:
  ```
  var prop = {key: parsePropertyName()}, isGetSet = false, kind;
  ```
 
- with this code:
+ with the code below:
 
  ```
  var prop = {type: "Property", key: parsePropertyName()}, isGetSet = false, kind;
@@ -20,10 +20,10 @@ var ACORN_PROPERTY_NODES_PATCH_WARNING = multiline(function () {/*
 });
 
 var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
- ATTENTION! If this test fails seems like you have updated acorn.
- We have patched acorn to make it work with the unicode identifiers.
+ ATTENTION! If this test fails, this may happen because you have updated acorn.
+ We have patched acorn to enable it to work with unicode identifiers.
 
- HOW TO FIX - go to acorn an replace this code:
+ HOW TO FIX - go to acorn and replace the following code:
  ```
  function readWord1() {
     ...
@@ -32,7 +32,7 @@ var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  }
  ```
 
- with this code:
+ with the code below:
 
  ```
  function readWord1() {
@@ -45,10 +45,10 @@ var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
 });
 
 var ACORN_STRICT_MODE_PATCH_WARNING = multiline(function () {/*
- ATTENTION! If this test fails seems like you have updated acorn.
- We have patched acorn to make it with ES6 syntax in strict mode.
+ ATTENTION! If this test fails, this may happen because you have updated acorn.
+ We have patched acorn to enable it to work with ES6 syntax in strict mode.
 
- HOW TO FIX - go to acorn an replace this code:
+ HOW TO FIX - go to acorn and replace the following code:
  ```
  function isUseStrict(stmt) {
      return this.options.ecmaVersion >= 5 && stmt.type === "ExpressionStatement" &&
@@ -56,7 +56,7 @@ var ACORN_STRICT_MODE_PATCH_WARNING = multiline(function () {/*
  }
  ```
 
- with this code:
+ with the code below:
 
  ```
  function isUseStrict(stmt) {
@@ -67,17 +67,17 @@ var ACORN_STRICT_MODE_PATCH_WARNING = multiline(function () {/*
 });
 
 var ESOTOPE_RAW_LITERAL_PATCH_WARNING = multiline(function () {/*
- ATTENTION! If this test fails seems like you have updated esotope.
- We have patched esotope to make it work with raw literals without
- additional parsing.
+ ATTENTION! If this test fails, this may happen because you have updated esotope.
+ We have patched esotope to enable it to work with raw literals without additional parsing.
 
- HOW TO FIX - go to esotope an replace this code:
+ HOW TO FIX - go to esotope and replace the following code:
+
  ```
  if (parse && extra.raw && canUseRawLiteral($expr))
     _.js += $expr.raw;
  ```
 
- with this code:
+ with the code below:
 
  ```
  if (extra.raw && $expr.raw !== void 0)
@@ -87,12 +87,11 @@ var ESOTOPE_RAW_LITERAL_PATCH_WARNING = multiline(function () {/*
 });
 
 var ESOTOPE_T170848_PATCH_WARNING = multiline(function () {/*
- ATTENTION! If this test fails seems like you have updated esotope.
- We have patched esotope so it will insert empty comment in case
- of empty function body, which allows it to work in T170848 case.
+ ATTENTION! If this test fails, this may happen because you have updated esotope. We have patched esotope so
+ that it inserts empty comments into a function with an empty body, which allows it to work around the T170848 issue.
 
- HOW TO FIX - go to esotope and add this code to the BlockStatement
- gen before stmt body items generation::
+ HOW TO FIX - go to esotope and add the following code to the BlockStatement
+ gen before stmt body item generation:
  ```
  if (settings.functionBody && !$body.length)
     _.js += "/**\/";'

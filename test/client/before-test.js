@@ -1,7 +1,7 @@
 (function () {
-    // NOTE: Prohibit Hammerhead from processing testing environment resources.
-    // There are only testing environment resources on the page when this script is being executed. So, we can add
-    // the hammerhead class to all script and link elements on the page.
+    // NOTE: Prevent Hammerhead from processing testing environment resources. There are only testing environment
+    // resources on the page when this script is being executed. So, we can add the hammerhead class to all scripts
+    // and link elements on the page.
     $('script').addClass('script-hammerhead-shadow-ui');
     $('link').addClass('ui-stylesheet-hammerhead-shadow-ui');
 
