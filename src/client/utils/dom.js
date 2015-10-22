@@ -107,15 +107,23 @@ export function getMapContainer (el) {
 }
 
 export function getParentWindowWithSrc (window) {
-    var parent = window.parent;
+    var parent             = window.parent;
+    var parentFrameElement = null;
 
     if (window === window.top)
         return window;
 
-    if (isCrossDomainWindows(window, parent))
+    if (parent === window.top || isCrossDomainWindows(window, parent))
         return parent;
 
-    if (parent === window.top || !isIframeWithoutSrc(parent.frameElement))
+    try {
+        parentFrameElement = parent.frameElement;
+    }
+    catch (e) {
+        parentFrameElement = null;
+    }
+
+    if (parentFrameElement === null || !isIframeWithoutSrc(parentFrameElement))
         return parent;
 
     return getParentWindowWithSrc(parent);

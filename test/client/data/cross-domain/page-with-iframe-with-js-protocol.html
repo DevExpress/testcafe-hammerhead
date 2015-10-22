@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
+
+        Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/http://target_url');
+        Hammerhead.start({
+            crossDomainProxyPort: 2000,
+            serviceMsgUrl       : '/service-msg/"window[\'' + INTERNAL_PROPS.overrideDomMethodName + '\'] = function() {}"'
+        });
+    </script>
+    <h1>Iframe content</h1>
+    <script>
+        var iframe       = document.createElement('iframe');
+        var domUtils     = Hammerhead.utils.dom;
+        var browserUtils = Hammerhead.utils.browser;
+        var postMessage  = Hammerhead.sandbox.event.message.postMessage;
+        var test         = function () {
+            var winWithSrc;
+
+            try {
+                winWithSrc = domUtils.getParentWindowWithSrc(iframe.contentWindow);
+            } catch (e) { }
+
+            postMessage(window.parent, [winWithSrc === window ? 'ok' : 'notOk', '*']);
+        };
+
+        iframe.src = 'javascript: void(0);';
+
+        if (browserUtils.isFirefox)
+            setTimeout(test, 300);
+        else
+            iframe.addEventListener('load', test);
+
+        document.body.appendChild(iframe);
+    </script>
+</body>
+</html>
