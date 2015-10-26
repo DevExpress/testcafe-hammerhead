@@ -197,4 +197,10 @@ gulp.task('playground', ['build'], function () {
     return hang();
 });
 
+gulp.task('web-platform', ['build'], function () {
+    require('./test/web-platform/server').start();
+
+    return hang();
+});
+
 gulp.task('travis', [process.env.GULP_TASK || '']);
