@@ -7,12 +7,14 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
-    Hammerhead.start({ crossDomainProxyPort: 2000 });
-    Hammerhead.shadowUI.getRoot();
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+    hammerhead.shadowUI.getRoot();
 </script>
 <script>
-    eval(window[Hammerhead.jsProcessor.PROCESS_SCRIPT_METH_NAME]([
+    eval(window[hammerhead.jsProcessor.PROCESS_SCRIPT_METH_NAME]([
         'var childs = [\'hello\', \'testcafe\', \'!!!\'];',
         'document.write(\'<div id="parent">\');',
         'for (var i = 0; i < childs.length; i++) {',

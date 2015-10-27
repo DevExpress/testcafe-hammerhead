@@ -5,9 +5,11 @@
     <meta charset="utf-8">
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
     <script type="text/javascript">
-        Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
-        Hammerhead.start();
-        Hammerhead.on(Hammerhead.EVENTS.bodyCreated, function (e) {
+        var hammerhead = window['%hammerhead%'];
+
+        hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
+        hammerhead.start();
+        hammerhead.on(hammerhead.EVENTS.bodyCreated, function (e) {
             if (e.body === document.body && !window.bodyExecutingStarted)
                 window.testOk = true;
         });
@@ -15,8 +17,8 @@
 </head>
 <body>
 <script type="text/javascript">
-    if (window.Hammerhead)
-        window.Hammerhead.sandbox.node.raiseBodyCreatedEvent();
+    if (window['%hammerhead%'])
+        window['%hammerhead%'].sandbox.node.raiseBodyCreatedEvent();
 
     var script = document.currentScript || document.scripts[document.scripts.length - 1];
 

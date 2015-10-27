@@ -1,9 +1,9 @@
-var domProcessor   = Hammerhead.get('./dom-processor');
-var originLocation = Hammerhead.get('./utils/origin-location');
-var urlUtils       = Hammerhead.get('./utils/url');
+var domProcessor   = hammerhead.get('./dom-processor');
+var originLocation = hammerhead.get('./utils/origin-location');
+var urlUtils       = hammerhead.get('./utils/url');
 
-var browserUtils  = Hammerhead.utils.browser;
-var nativeMethods = Hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
+var nativeMethods = hammerhead.nativeMethods;
 
 test('window.Image', function () {
     notEqual(window.Image, nativeMethods.Image);

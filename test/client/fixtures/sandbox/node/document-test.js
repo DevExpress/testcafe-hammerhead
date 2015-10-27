@@ -1,9 +1,9 @@
-var scriptProcessor = Hammerhead.get('../processing/script');
+var scriptProcessor = hammerhead.get('../processing/script');
 
-var browserUtils  = Hammerhead.utils.browser;
-var jsProcessor   = Hammerhead.jsProcessor;
-var nativeMethods = Hammerhead.nativeMethods;
-var iframeSandbox = Hammerhead.sandbox.iframe;
+var browserUtils  = hammerhead.utils.browser;
+var jsProcessor   = hammerhead.jsProcessor;
+var nativeMethods = hammerhead.nativeMethods;
+var iframeSandbox = hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -171,7 +171,7 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
         var $iframe = $('<iframe id="test_wrapper">');
 
         window.top.onIframeInited = function (window) {
-            var iframeSandbox = window.Hammerhead.sandbox.iframe;
+            var iframeSandbox = window['%hammerhead%'].sandbox.iframe;
 
             iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
             iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);

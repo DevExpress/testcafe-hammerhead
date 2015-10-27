@@ -1,13 +1,13 @@
-var COMMAND           = Hammerhead.get('../session/command');
-var UploadInfoManager = Hammerhead.get('./sandbox/upload/info-manager');
-var Promise           = Hammerhead.get('es6-promise').Promise;
-var hiddenInfo        = Hammerhead.get('./sandbox/upload/hidden-info');
+var COMMAND           = hammerhead.get('../session/command');
+var UploadInfoManager = hammerhead.get('./sandbox/upload/info-manager');
+var Promise           = hammerhead.get('es6-promise').Promise;
+var hiddenInfo        = hammerhead.get('./sandbox/upload/hidden-info');
 
-var nativeMethods = Hammerhead.nativeMethods;
-var transport     = Hammerhead.transport;
-var browserUtils  = Hammerhead.utils.browser;
-var uploadSandbox = Hammerhead.sandbox.upload;
-var infoManager   = Hammerhead.sandbox.upload.infoManager;
+var nativeMethods = hammerhead.nativeMethods;
+var transport     = hammerhead.transport;
+var browserUtils  = hammerhead.utils.browser;
+var uploadSandbox = hammerhead.sandbox.upload;
+var infoManager   = hammerhead.sandbox.upload.infoManager;
 
 // ----- Server API mock ---------
 // Virtual file system:

@@ -1,6 +1,6 @@
-var browserUtils = Hammerhead.utils.browser;
-var domUtils     = Hammerhead.utils.dom;
-var listeners    = Hammerhead.sandbox.event.listeners;
+var browserUtils = hammerhead.utils.browser;
+var domUtils     = hammerhead.utils.dom;
+var listeners    = hammerhead.sandbox.event.listeners;
 
 $(document).ready(function () {
     var containerCaptureEventRaised = false;

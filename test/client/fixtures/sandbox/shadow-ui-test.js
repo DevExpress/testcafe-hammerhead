@@ -1,11 +1,11 @@
-var SHADOW_UI_CLASSNAME = Hammerhead.get('./../shadow-ui/class-name');
-var ShadowUI            = Hammerhead.get('./sandbox/shadow-ui');
-var settings            = Hammerhead.get('./settings');
+var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
+var ShadowUI            = hammerhead.get('./sandbox/shadow-ui');
+var settings            = hammerhead.get('./settings');
 
-var shadowUI      = Hammerhead.sandbox.shadowUI;
-var iframeSandbox = Hammerhead.sandbox.iframe;
-var domUtils      = Hammerhead.utils.dom;
-var nativeMethods = Hammerhead.nativeMethods;
+var shadowUI      = hammerhead.sandbox.shadowUI;
+var iframeSandbox = hammerhead.sandbox.iframe;
+var domUtils      = hammerhead.utils.dom;
+var nativeMethods = hammerhead.nativeMethods;
 
 
 QUnit.testStart(function () {
@@ -77,7 +77,7 @@ asyncTest('get root after body recreation', function () {
             var document = this.contentDocument;
             var window   = this.contentWindow;
             var getRoot  = function () {
-                return window.Hammerhead.shadowUI.getRoot();
+                return window['%hammerhead%'].shadowUI.getRoot();
             };
 
             ok(getRoot());
@@ -444,13 +444,13 @@ asyncTest('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T22
     var $iframe = $('<iframe id="test001">');
 
     $iframe.load(function () {
-        var $root = $(this.contentWindow.Hammerhead.shadowUI.getRoot());
+        var $root = $(this.contentWindow['%hammerhead%'].shadowUI.getRoot());
 
         strictEqual($root.parent().parent().parent()[0], this.contentDocument);
 
         this.contentDocument.body.innerHTMl = '';
 
-        $root = $(this.contentWindow.Hammerhead.shadowUI.getRoot());
+        $root = $(this.contentWindow['%hammerhead%'].shadowUI.getRoot());
 
         strictEqual($root.parent().parent().parent()[0], this.contentDocument);
 

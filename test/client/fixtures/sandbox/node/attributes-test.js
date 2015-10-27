@@ -1,12 +1,12 @@
-var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
-var domProcessor   = Hammerhead.get('./dom-processor');
-var htmlUtils      = Hammerhead.get('./utils/html');
-var settings       = Hammerhead.get('./settings');
-var urlUtils       = Hammerhead.get('./utils/url');
+var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
+var domProcessor   = hammerhead.get('./dom-processor');
+var htmlUtils      = hammerhead.get('./utils/html');
+var settings       = hammerhead.get('./settings');
+var urlUtils       = hammerhead.get('./utils/url');
 
-var nativeMethods = Hammerhead.nativeMethods;
-var browserUtils  = Hammerhead.utils.browser;
-var iframeSandbox = Hammerhead.sandbox.iframe;
+var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
+var iframeSandbox = hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -210,11 +210,15 @@ test('iframe javascript src', function () {
         var processedSrc = testContainer.src;
 
         // NOTE: Safari returns an encoded value for iframe.src with a javascript protocol value.
-        if (browserUtils.isSafari)
+        if (browserUtils.isSafari) {
+            processedSrc = processedSrc.replace(/%hammerhead%/g, '%25hammerhead%25');
             processedSrc = decodeURI(processedSrc);
+        }
 
         strictEqual(processedSrc.indexOf('javascript:' + testData[i].quote), 0);
         strictEqual(processedSrc[processedSrc.length - 1], testData[i].quote);
+
+        processedSrc = processedSrc.replace(/%hammerhead%/g, '%25hammerhead%25');
 
         var decodedSrc = decodeURIComponent(processedSrc);
         var expected   = testData[i].expected;

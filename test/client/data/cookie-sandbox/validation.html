@@ -3,11 +3,13 @@
 <head>
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
     <script>
-        Hammerhead.start();
-        Hammerhead.get('./transport').queuedAsyncServiceMsg = function () {
+        var hammerhead = window['%hammerhead%'];
+
+        hammerhead.start();
+        hammerhead.get('./transport').queuedAsyncServiceMsg = function () {
         };
 
-        var cookieSandbox = Hammerhead.sandbox.cookie;
+        var cookieSandbox = hammerhead.sandbox.cookie;
 
         function setCookie (cookie) {
             cookieSandbox.setCookie(document, cookie);

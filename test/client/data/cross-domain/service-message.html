@@ -7,10 +7,12 @@
 </head>
 <body>
 <script type="text/javascript">
-    Hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
-    Hammerhead.start({ crossDomainProxyPort: 2000 });
+    var hammerhead = window['%hammerhead%'];
 
-    var messageSandbox = Hammerhead.sandbox.event.message;
+    hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+
+    var messageSandbox = hammerhead.sandbox.event.message;
 
     messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function () {
         messageSandbox.sendServiceMsg('', window.top);

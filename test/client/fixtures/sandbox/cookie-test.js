@@ -1,11 +1,11 @@
-var Promise     = Hammerhead.get('es6-promise').Promise;
-var cookieUtils = Hammerhead.get('./utils/cookie');
-var settings    = Hammerhead.get('./settings');
-var urlUtils    = Hammerhead.get('./utils/url');
+var Promise     = hammerhead.get('es6-promise').Promise;
+var cookieUtils = hammerhead.get('./utils/cookie');
+var settings    = hammerhead.get('./settings');
+var urlUtils    = hammerhead.get('./utils/url');
 
-var transport     = Hammerhead.transport;
-var nativeMethods = Hammerhead.nativeMethods;
-var cookieSandbox = Hammerhead.sandbox.cookie;
+var transport     = hammerhead.transport;
+var nativeMethods = hammerhead.nativeMethods;
+var cookieSandbox = hammerhead.sandbox.cookie;
 
 function setCookie (value) {
     return setProperty(document, 'cookie', value);

@@ -1,9 +1,9 @@
-var Promise  = Hammerhead.get('es6-promise').Promise;
-var settings = Hammerhead.get('./settings');
+var Promise  = hammerhead.get('es6-promise').Promise;
+var settings = hammerhead.get('./settings');
 
-var browserUtils  = Hammerhead.utils.browser;
-var transport     = Hammerhead.transport;
-var nativeMethods = Hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
+var transport     = hammerhead.transport;
+var nativeMethods = hammerhead.nativeMethods;
 
 var savedAjaxOpenMethod = nativeMethods.XMLHttpRequest.prototype.open;
 var savedAjaxSendMethod = nativeMethods.XMLHttpRequest.prototype.send;
@@ -277,9 +277,9 @@ test('Hammerhead should remove service data from local storage on the first sess
     // NOTE: Add service data.
     window.localStorage.setItem(sessionId, 'some-serive-data');
 
-    var hammerhead = new Hammerhead.constructor(window);
+    var hh = new hammerhead.constructor(window);
 
-    hammerhead.start(settings.get(), window);
+    hh.start(settings.get(), window);
 
     ok(!window.localStorage.getItem(sessionId));
 });

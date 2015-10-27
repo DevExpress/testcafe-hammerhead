@@ -1,6 +1,6 @@
-var browserUtils   = Hammerhead.utils.browser;
-var eventUtils     = Hammerhead.utils.event;
-var eventSimulator = Hammerhead.sandbox.event.eventSimulator;
+var browserUtils   = hammerhead.utils.browser;
+var eventUtils     = hammerhead.utils.event;
+var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
 var $domElement = null;
 var domElement  = null;

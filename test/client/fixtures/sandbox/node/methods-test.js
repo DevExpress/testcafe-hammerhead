@@ -1,10 +1,10 @@
-var INTERNAL_PROPS = Hammerhead.get('../processing/dom/internal-properties');
-var domProcessor   = Hammerhead.get('./dom-processor');
-var urlUtils       = Hammerhead.get('./utils/url');
+var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
+var domProcessor   = hammerhead.get('./dom-processor');
+var urlUtils       = hammerhead.get('./utils/url');
 
-var browserUtils  = Hammerhead.utils.browser;
-var nativeMethods = Hammerhead.nativeMethods;
-var iframeSandbox = Hammerhead.sandbox.iframe;
+var browserUtils  = hammerhead.utils.browser;
+var nativeMethods = hammerhead.nativeMethods;
+var iframeSandbox = hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.

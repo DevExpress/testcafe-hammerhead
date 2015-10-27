@@ -1,8 +1,8 @@
-var INTERNAL_ATTRS = Hammerhead.get('../processing/dom/internal-attributes');
-var settings       = Hammerhead.get('./settings');
-var sharedUrlUtils = Hammerhead.get('../utils/url');
+var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
+var settings       = hammerhead.get('./settings');
+var sharedUrlUtils = hammerhead.get('../utils/url');
 
-var xhrSandbox = Hammerhead.sandbox.xhr;
+var xhrSandbox = hammerhead.sandbox.xhr;
 
 test('redirect requests to proxy', function () {
     jQuery.ajaxSetup({ async: false });

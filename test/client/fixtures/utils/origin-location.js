@@ -1,4 +1,4 @@
-var originLocation = Hammerhead.get('./utils/origin-location');
+var originLocation = hammerhead.get('./utils/origin-location');
 
 test('sameOriginCheck', function () {
     ok(originLocation.sameOriginCheck('http://proxy/token!uid/http://origin.com:111/index.html', 'http://origin.com:111/index.php'));

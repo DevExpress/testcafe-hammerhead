@@ -1,11 +1,11 @@
-var SHADOW_UI_CLASSNAME = Hammerhead.get('./../shadow-ui/class-name');
-var Promise             = Hammerhead.get('es6-promise').Promise;
+var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
+var Promise             = hammerhead.get('es6-promise').Promise;
 
-var browserUtils        = Hammerhead.utils.browser;
-var styleUtil           = Hammerhead.utils.style;
-var activeWindowTracker = Hammerhead.sandbox.event.focusBlur.activeWindowTracker;
-var eventSimulator      = Hammerhead.sandbox.event.eventSimulator;
-var focusBlur           = Hammerhead.sandbox.event.focusBlur;
+var browserUtils        = hammerhead.utils.browser;
+var styleUtil           = hammerhead.utils.style;
+var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
+var eventSimulator      = hammerhead.sandbox.event.eventSimulator;
+var focusBlur           = hammerhead.sandbox.event.focusBlur;
 
 var input1                             = null;
 var input2                             = null;

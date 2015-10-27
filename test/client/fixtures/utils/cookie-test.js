@@ -1,4 +1,4 @@
-var cookieUtil = Hammerhead.get('./utils/cookie');
+var cookieUtil = hammerhead.get('./utils/cookie');
 
 test('parse', function () {
     var cookieStrs = [
