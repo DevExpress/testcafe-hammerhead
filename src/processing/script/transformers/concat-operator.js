@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createExpandedConcatOperation, replaceNode } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createExpandedConcatOperation } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 
 // Transform:
 // val1 += val2
@@ -17,9 +17,5 @@ export default {
 
     condition: node => node.operator === '+=',
 
-    run: (node, parent, key) => {
-        var newNode = createExpandedConcatOperation(node.left, node.right);
-
-        replaceNode(node, newNode, parent, key);
-    }
+    run: node => createExpandedConcatOperation(node.left, node.right)
 };

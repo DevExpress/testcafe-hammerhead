@@ -15,9 +15,10 @@ import { getAnchorProperty, setAnchorProperty } from './anchor';
 import { getAttributesProperty } from './attributes';
 import { URL_ATTR_TAGS, TARGET_ATTR_TAGS } from '../../../dom-processor';
 import { process as processStyle, cleanUp as cleanUpStyle } from '../../../../processing/style';
-import { process as processScript, cleanUpHeader as cleanUpScriptHeader } from '../../../../processing/script';
-import INSTRUCTION from '../../../../processing/js/instruction';
-import { shouldInstrumentProperty } from '../../../../processing/js/instrumented';
+import { processScript } from '../../../../processing/script';
+import { remove as removeProcessingHeader } from '../../../../processing/script/header';
+import INSTRUCTION from '../../../../processing/script/instruction';
+import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import { setTimeout as nativeSetTimeout } from '../../native-methods';
 
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
@@ -214,10 +215,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script' &&
                                  typeof el.innerText === 'string',
 
-                get: el => typeof el.innerText === 'string' ? cleanUpScriptHeader(el.innerText) : el.innerText,
+                get: el => typeof el.innerText === 'string' ? removeProcessingHeader(el.innerText) : el.innerText,
 
                 set: function (el, script) {
-                    el.innerText = script ? processScript(script) : script;
+                    el.innerText = script ? processScript(script, true, false) : script;
 
                     return script;
                 }
@@ -389,10 +390,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             text: {
                 // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
                 condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script',
-                get:       el => typeof el.text === 'string' ? cleanUpScriptHeader(el.text) : el.text,
+                get:       el => typeof el.text === 'string' ? removeProcessingHeader(el.text) : el.text,
 
                 set: (el, script) => {
-                    el.text = script ? processScript(script) : script;
+                    el.text = script ? processScript(script, true, false) : script;
 
                     return script;
                 }
@@ -402,10 +403,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
                 condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script',
                 get:       el => typeof el.textContent === 'string' ?
-                                 cleanUpScriptHeader(el.textContent) : el.textContent,
+                                 removeProcessingHeader(el.textContent) : el.textContent,
 
                 set: (el, script) => {
-                    el.textContent = script ? processScript(script) : script;
+                    el.textContent = script ? processScript(script, true, false) : script;
 
                     return script;
                 }

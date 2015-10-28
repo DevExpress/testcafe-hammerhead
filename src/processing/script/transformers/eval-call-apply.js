@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createProcessScriptMethCall } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createProcessScriptMethCall } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 
 const EVAL_FUNC_NAME_RE       = /^(eval|setTimeout|setInterval)$/;
 const INVOCATION_FUNC_NAME_RE = /^(call|apply)$/;
@@ -46,5 +46,7 @@ export default {
         var isApply = node.callee.property.name === 'apply';
 
         node.arguments[1] = createProcessScriptMethCall(node.arguments[1], isApply);
+
+        return null;
     }
 };

@@ -1,10 +1,10 @@
-var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
-var htmlUtils       = hammerhead.get('./utils/html');
-var domProcessor    = hammerhead.get('./dom-processor');
-var scriptProcessor = hammerhead.get('../processing/script');
-var styleProcessor  = hammerhead.get('../processing/style');
-var settings        = hammerhead.get('./settings');
-var urlUtils        = hammerhead.get('./utils/url');
+var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
+var htmlUtils      = hammerhead.get('./utils/html');
+var domProcessor   = hammerhead.get('./dom-processor');
+var processScript  = hammerhead.get('../processing/script').processScript;
+var styleProcessor = hammerhead.get('../processing/style');
+var settings       = hammerhead.get('./settings');
+var urlUtils       = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -56,7 +56,7 @@ test('link in iframe', function () {
 test('script text', function () {
     var $div            = $('<div>').appendTo($('body'));
     var script          = 'var host = location.host';
-    var processedScript = scriptProcessor.process(script);
+    var processedScript = processScript(script, true, false);
 
     $div[0].innerHTML = '\<script\>' + script + '\</script\>';
 

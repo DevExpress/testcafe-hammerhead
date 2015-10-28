@@ -1,7 +1,8 @@
-var INTERNAL_PROPS  = hammerhead.get('../processing/dom/internal-properties');
-var urlUtils        = hammerhead.get('./utils/url');
-var scriptProcessor = hammerhead.get('../processing/script');
-var destLocation    = hammerhead.get('./utils/destination-location');
+var INTERNAL_PROPS         = hammerhead.get('../processing/dom/internal-properties');
+var urlUtils               = hammerhead.get('./utils/url');
+var processScript          = hammerhead.get('../processing/script').processScript;
+var removeProcessingHeader = hammerhead.get('../processing/script/header').remove;
+var destLocation           = hammerhead.get('./utils/destination-location');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -186,19 +187,19 @@ test('changing the link.href property must affect the stored attribute value (T1
 test('get script body (T296958) (GH-183)', function () {
     var script              = document.createElement('script');
     var scriptCode          = 'var test = window.href;';
-    var processedScriptCode = scriptProcessor.process(scriptCode);
-    var cleanedScriptCode   = scriptProcessor.cleanUpHeader(processedScriptCode);
+    var processedScriptCode = processScript(scriptCode, true, false);
+    var cleanedScriptCode   = removeProcessingHeader(processedScriptCode);
 
-    eval(scriptProcessor.process('script.textContent="' + scriptCode + '"'));
+    eval(processScript('script.textContent="' + scriptCode + '"', true, false));
 
     notEqual(script.textContent, scriptCode);
     strictEqual(script.textContent.replace(/\s/g, ''), processedScriptCode.replace(/\s/g, ''));
     strictEqual(cleanedScriptCode.indexOf(INTERNAL_PROPS.overrideDomMethodName), -1);
-    strictEqual(eval(scriptProcessor.process('script.text')), cleanedScriptCode);
-    strictEqual(eval(scriptProcessor.process('script.textContent')), cleanedScriptCode);
-    strictEqual(eval(scriptProcessor.process('script.innerHTML')), cleanedScriptCode);
+    strictEqual(eval(processScript('script.text', true, false)), cleanedScriptCode);
+    strictEqual(eval(processScript('script.textContent', true, false)), cleanedScriptCode);
+    strictEqual(eval(processScript('script.innerHTML', true, false)), cleanedScriptCode);
 
     if (typeof script.innerText === 'string')
-        strictEqual(eval(scriptProcessor.process('script.innerText')).replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
+        strictEqual(eval(processScript('script.innerText', true, false)).replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
 });
 

@@ -3,9 +3,9 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createLocationGetWrapper, replaceNode } from '../ast';
+import { createLocationGetWrapper } from '../node-builder';
 import INSTRUCTION from '../instruction';
-import { Syntax } from '../parsing-tools';
+import { Syntax } from '../tools/esotope';
 
 // Transform:
 // location -->
@@ -52,9 +52,5 @@ export default {
         return true;
     },
 
-    run: (node, parent, key) => {
-        var newNode = createLocationGetWrapper();
-
-        replaceNode(node, newNode, parent, key);
-    }
+    run: () => createLocationGetWrapper()
 };

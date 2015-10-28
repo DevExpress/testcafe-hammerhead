@@ -7,7 +7,7 @@
 
     var hammerhead     = window['%hammerhead%'];
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
-    var INSTRUCTION    = hammerhead.get('../processing/js/instruction');
+    var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
     var destLocation   = hammerhead.get('./utils/destination-location');
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');

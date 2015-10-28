@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createStringLiteral, createMethCallWrapper, replaceNode } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createStringLiteral, createMethCallWrapper } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 import { shouldInstrumentMethod } from '../instrumented';
 
 // Transform:
@@ -32,11 +32,10 @@ export default {
         return false;
     },
 
-    run: (node, parent, key) => {
-        var callee  = node.callee;
-        var meth    = callee.computed ? callee.property : createStringLiteral(callee.property.name);
-        var newNode = createMethCallWrapper(callee.object, meth, node.arguments);
+    run: node => {
+        var callee = node.callee;
+        var method = callee.computed ? callee.property : createStringLiteral(callee.property.name);
 
-        replaceNode(node, newNode, parent, key);
+        return createMethCallWrapper(callee.object, method, node.arguments);
     }
 };

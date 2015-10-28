@@ -4,8 +4,7 @@
 // -------------------------------------------------------------
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
-import jsProcessor from '../js/index';
-import scriptProcessor from '../../processing/script';
+import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
 
@@ -242,7 +241,7 @@ export default class DomProcessor {
 
         }
         else {
-            var processedCode      = scriptProcessor.process(code, true);
+            var processedCode      = processScript(code, false, false);
             var processedAttrValue = processedCode;
 
             /*eslint-disable no-script-url*/
@@ -292,7 +291,7 @@ export default class DomProcessor {
         if (!scriptContent)
             return;
 
-        var scriptProcessedOnServer = jsProcessor.isScriptProcessed(scriptContent);
+        var scriptProcessedOnServer = isScriptProcessed(scriptContent);
 
         if (scriptProcessedOnServer)
             return;
@@ -327,7 +326,7 @@ export default class DomProcessor {
             if (hasCDATA)
                 result = result.replace(CDATA_REG_EX, '$2');
 
-            result = commentPrefix + scriptProcessor.process(result) + commentPostfix;
+            result = commentPrefix + processScript(result, true, false) + commentPostfix;
 
             if (hasCDATA)
                 result = '\n//<![CDATA[\n' + result + '//]]>';

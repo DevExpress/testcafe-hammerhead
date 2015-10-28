@@ -10,16 +10,16 @@
 <body>
 <script type="text/javascript">
     var hammerhead = window['%hammerhead%'];
-    var scriptProcessor = hammerhead.get('../processing/script');
+    var processScript = hammerhead.get('../processing/script').processScript;
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
     var onMessageHandler = function (evt) {
-        eval(scriptProcessor.process("top.postMessage({ msg: evt.origin + (evt.data ? ' failed' : '') }, '*');"));
+        eval(processScript("top.postMessage({ msg: evt.origin + (evt.data ? ' failed' : '') }, '*');", true, false));
     };
 
-    eval(scriptProcessor.process("window.onmessage = onMessageHandler;"));
+    eval(processScript("window.onmessage = onMessageHandler;", true, false));
 </script>
 </body>
 </html>

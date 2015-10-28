@@ -1,11 +1,11 @@
+import parse5 from 'parse5';
+import dedent from 'dedent';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import DomProcessor from '../dom';
 import DomAdapter from '../dom/parse5-dom-adapter';
 import ResourceProcessorBase from './resource-processor-base';
-import parse5 from 'parse5';
-import dedent from 'dedent';
-import scriptProcessor from '../script';
 import * as parse5Utils from '../../utils/parse5';
+import getBOM from '../../utils/get-bom';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent`
     <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.script }">
@@ -129,7 +129,7 @@ class PageProcessor extends ResourceProcessorBase {
 
         processingOpts = processingOpts || PageProcessor._getPageProcessingOptions(ctx, urlReplacer);
 
-        var bom = scriptProcessor.getBOM(html);
+        var bom = getBOM(html);
 
         html = bom ? html.replace(bom, '') : html;
 

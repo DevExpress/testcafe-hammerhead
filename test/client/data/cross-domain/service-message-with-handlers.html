@@ -12,7 +12,7 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var scriptProcessor = hammerhead.get('../processing/script');
+    var processScript = hammerhead.get('../processing/script').processScript;
     var messageSandbox = hammerhead.sandbox.event.message;
     var windowHandlerExecuted = false;
 
@@ -26,7 +26,7 @@
         }, 100);
     };
 
-    eval(scriptProcessor.process("window.onmessage = windowMessageHandler;"));
+    eval(processScript("window.onmessage = windowMessageHandler;", true, false));
     window.addEventListener("message", windowMessageHandler);
     messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
 </script>

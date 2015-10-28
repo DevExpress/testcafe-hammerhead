@@ -1,6 +1,6 @@
 import ResourceProcessorBase from './resource-processor-base';
 import Lru from 'lru-cache';
-import scriptProcessor from '../script';
+import { processScript } from '../script';
 
 class ScriptResourceProcessor extends ResourceProcessorBase {
     constructor () {
@@ -21,7 +21,7 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
         var processedScript = this.jsCache.get(script);
 
         if (!processedScript) {
-            processedScript = scriptProcessor.process(script);
+            processedScript = processScript(script, true, false);
             this.jsCache.set(script, processedScript);
         }
 

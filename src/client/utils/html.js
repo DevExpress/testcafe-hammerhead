@@ -2,7 +2,7 @@ import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import domProcessor from '../dom-processor';
-import { cleanUpHeader as cleanUpScriptHeader } from '../../processing/script';
+import { remove as removeProcessingHeader } from '../../processing/script/header';
 import { find } from './dom';
 import { convertToProxyUrl } from '../utils/url';
 
@@ -183,7 +183,7 @@ export function cleanUpHtml (html, parentTag) {
 
         find(container, 'script', el => {
             var innerHTML        = el.innerHTML;
-            var cleanedInnerHTML = cleanUpScriptHeader(innerHTML);
+            var cleanedInnerHTML = removeProcessingHeader(innerHTML);
 
             if (innerHTML !== cleanedInnerHTML) {
                 el.innerHTML = cleanedInnerHTML;

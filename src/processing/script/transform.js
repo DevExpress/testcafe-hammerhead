@@ -5,6 +5,17 @@
 
 import transformers from './transformers';
 
+function replaceNode (node, newNode, parent, key) {
+    if (key === 'arguments' || key === 'elements' || key === 'expressions') {
+        var idx = parent[key].indexOf(node);
+
+        parent[key][idx] = newNode;
+    }
+    else
+        parent[key] = newNode;
+}
+
+
 function transformChildNodes (node) {
     var changed = false;
 
@@ -36,14 +47,15 @@ export default function transform (node, parent, key) {
             var transformer = nodeTransformers[i];
 
             if (transformer.condition(node, parent)) {
-                transformer.run(node, parent, key);
+                var replacement = transformer.run(node, parent, key);
 
                 changed = true;
 
-                // NOTE: node was replaced by transformer
-                if (parent[key] !== node) {
+                if (replacement) {
+                    replaceNode(node, replacement, parent, key);
+
                     if (transformer.nodeReplacementRequireTransform)
-                        return transform(parent[key], parent, key) || changed;
+                        return transform(replacement, parent, key) || changed;
 
                     break;
                 }

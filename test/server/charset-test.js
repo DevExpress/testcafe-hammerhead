@@ -11,7 +11,7 @@ var Charset             = require('../../lib/processing/encoding/charset');
 var encodeContent       = require('../../lib/processing/encoding').encodeContent;
 var decodeContent       = require('../../lib/processing/encoding').decodeContent;
 var urlUtils            = require('../../lib/utils/url');
-var scriptProcessor     = require('../../lib/processing/resources/script');
+var processScript       = require('../../lib/processing/script').processScript;
 var pageProcessor       = require('../../lib/processing/resources/page');
 var stylesheetProcessor = require('../../lib/processing/resources/stylesheet');
 var manifestProcessor   = require('../../lib/processing/resources/manifest');
@@ -206,7 +206,7 @@ describe('Content charset', function () {
     });
 
     describe('Scripts', function () {
-        var processedScript = scriptProcessor.processResource(scriptSrc);
+        var processedScript = processScript(scriptSrc, true, false);
 
         function testScriptCharset (destUrl, expectedCharset, expectedBody, done) {
             var url = getProxyUrl('http://127.0.0.1:2000' + destUrl, urlUtils.SCRIPT, expectedCharset);

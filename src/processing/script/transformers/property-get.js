@@ -3,13 +3,13 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createComputedPropertyGetWrapper, replaceNode } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createPropertyGetWrapper } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 import { shouldInstrumentProperty } from '../instrumented';
 
 // Transform:
-// obj[prop] -->
-// __get$(obj, prop)
+// obj.<wrappable-property> -->
+// __get$(obj, '<wrappable-property>')
 
 export default {
     nodeReplacementRequireTransform: true,
@@ -17,42 +17,38 @@ export default {
     nodeTypes: [Syntax.MemberExpression],
 
     condition: (node, parent) => {
-        if (!node.computed)
+        if (node.computed)
             return false;
 
-        if (node.property.type === Syntax.Literal && !shouldInstrumentProperty(node.property.value))
+        if (!shouldInstrumentProperty(node.property.name))
             return false;
 
-        // object[prop] = value
+        // Skip: object.prop = value
         if (parent.type === Syntax.AssignmentExpression && parent.left === node)
             return false;
 
-        // delete object[prop]
+        // Skip: delete object.prop
         if (parent.type === Syntax.UnaryExpression && parent.operator === 'delete')
             return false;
 
-        // object[prop]++ || object[prop]-- || ++object[prop] || --object[prop]
-        if (parent.type === Syntax.UpdateExpression && parent.operator === '++' || parent.operator === '--')
-            return false;
-
-        // object[prop]()
+        // Skip: object.prop()
         if (parent.type === Syntax.CallExpression && parent.callee === node)
             return false;
 
-        // new (object[prop])() || new (object[prop])
+        // Skip: object.prop++ || object.prop-- || ++object.prop || --object.prop
+        if (parent.type === Syntax.UpdateExpression && parent.operator === '++' || parent.operator === '--')
+            return false;
+
+        // Skip: new (object.prop)() || new (object.prop)
         if (parent.type === Syntax.NewExpression && parent.callee === node)
             return false;
 
-        // for(object[prop] in source)
+        // Skip: for(object.prop in source)
         if (parent.type === Syntax.ForInStatement && parent.left === node)
             return false;
 
         return true;
     },
 
-    run: (node, parent, key) => {
-        var newNode = createComputedPropertyGetWrapper(node.property, node.object);
-
-        replaceNode(node, newNode, parent, key);
-    }
+    run: node => createPropertyGetWrapper(node.property.name, node.object)
 };

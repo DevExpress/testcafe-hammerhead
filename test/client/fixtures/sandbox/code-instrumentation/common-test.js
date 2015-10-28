@@ -1,4 +1,4 @@
-var INSTRUMETNED_PROPERTIES = hammerhead.get('../processing/js/instrumented').PROPERTIES;
+var INSTRUMETNED_PROPERTIES = hammerhead.get('../processing/script/instrumented').PROPERTIES;
 var codeInstrumentation     = hammerhead.sandbox.codeInstrumentation;
 
 test('wrapped properties equal accessors properties', function () {

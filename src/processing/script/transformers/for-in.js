@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { Syntax } from '../parsing-tools';
-import { createTempVarIdentifier, createAssignmentExprStmt, createVarDeclaration } from '../ast';
+import { Syntax } from '../tools/esotope';
+import { createTempVarIdentifier, createAssignmentExprStmt, createVarDeclaration } from '../node-builder';
 
 // Transform:
 // for(obj[prop] in src), for(obj.prop in src) -->
@@ -23,6 +23,8 @@ export default {
         node.body.body.unshift(createAssignmentExprStmt(node.left, tempVarAst));
 
         node.left = createVarDeclaration(tempVarAst);
+
+        return null;
     }
 };
 

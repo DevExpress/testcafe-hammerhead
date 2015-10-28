@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createLocationGetWrapper } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createLocationGetWrapper } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 
 // Transform:
 // location.field; location[field] -->
@@ -25,5 +25,7 @@ export default {
 
     run: node => {
         node.object = createLocationGetWrapper();
+
+        return null;
     }
 };

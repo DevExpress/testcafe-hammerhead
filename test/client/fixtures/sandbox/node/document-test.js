@@ -1,5 +1,5 @@
-var scriptProcessor  = hammerhead.get('../processing/script');
-var INTERNAL_LITERAL = hammerhead.get('../processing/js/internal-literal');
+var processScript    = hammerhead.get('../processing/script').processScript;
+var INTERNAL_LITERAL = hammerhead.get('../processing/script/internal-literal');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -146,7 +146,7 @@ test('document.write for page html (T190753)', function () {
     var $div            = $('<div>').appendTo('body');
     var $iframe         = $('<iframe id="test5">');
     var script          = 'var a = [1,2], b = 0; window.test = a[b];';
-    var processedScript = scriptProcessor.process(script).replace(/\s*/g, '');
+    var processedScript = processScript(script, true, false).replace(/\s*/g, '');
 
     overrideDomMeth($div[0]);
     $div[0].appendChild($iframe[0]);

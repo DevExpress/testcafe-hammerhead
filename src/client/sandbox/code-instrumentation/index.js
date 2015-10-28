@@ -3,8 +3,8 @@ import PropertyAccessorsInstrumentation from './properties';
 import LocationAccessorsInstrumentation from './location';
 import MethodCallInstrumentation from './methods';
 import { getAttributeProperty } from './properties/attributes';
-import { process as processScript } from '../../../processing/js';
-import INSTRUCTION from '../../../processing/js/instruction';
+import { processScript } from '../../../processing/script';
+import INSTRUCTION from '../../../processing/script/instruction';
 
 export default class CodeInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI) {
@@ -34,7 +34,7 @@ export default class CodeInstrumentation extends SandboxBase {
         window[INSTRUCTION.processScript] = (script, isApply) => {
             if (isApply) {
                 if (script && script.length && typeof script[0] === 'string') {
-                    var args = [processScript(script[0])];
+                    var args = [processScript(script[0], false, false)];
 
                     // NOTE: shallow-copy the remaining args. Don't use arr.slice(),
                     // since it may leak the arguments object.
@@ -46,7 +46,7 @@ export default class CodeInstrumentation extends SandboxBase {
                 }
             }
             else if (typeof script === 'string')
-                return processScript(script);
+                return processScript(script, false, false);
 
             return script;
         };
