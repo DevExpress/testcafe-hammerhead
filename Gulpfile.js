@@ -77,6 +77,14 @@ var CLIENT_TESTS_BROWSERS = [
         platform:    'Linux',
         version:     '5.1',
         deviceName:  'Android Emulator'
+    },
+    {
+        browserName: 'chrome',
+        platform:    'OS X 10.11'
+    },
+    {
+        browserName: 'firefox',
+        platform:    'OS X 10.11'
     }
 ];
 
