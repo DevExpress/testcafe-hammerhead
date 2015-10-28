@@ -1,7 +1,9 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import SandboxBase from '../base';
 import { isNullOrUndefined, inaccessibleTypeToStr } from '../../utils/types';
-import { DOCUMENT_WRITE_BEGIN_PARAM, DOCUMENT_WRITE_END_PARAM, CALL_METHOD_METH_NAME } from '../../../processing/js';
+import INTERNAL_LITERAL from '../../../processing/js/internal-literal';
+import INSTRUCTION from '../../../processing/js/instruction';
+import { shouldInstrumentMethod } from '../../../processing/js/instrumented';
 import { isWindow, isDocument, isDomElement } from '../../utils/dom';
 import { isIE } from '../../utils/browser';
 
@@ -65,7 +67,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
         if (args.length) {
             var lastArg = args[args.length - 1];
 
-            if (lastArg === DOCUMENT_WRITE_BEGIN_PARAM || lastArg === DOCUMENT_WRITE_END_PARAM) {
+            if (lastArg === INTERNAL_LITERAL.documentWriteBegin || lastArg === INTERNAL_LITERAL.documentWriteEnd) {
                 var result = Array.prototype.slice.call(args);
 
                 result.pop();
@@ -77,23 +79,45 @@ export default class MethodCallInstrumentation extends SandboxBase {
         return args;
     }
 
+    // OPTIMIZATION: http://jsperf.com/call-apply-optimization
+    static _fastApply (owner, methName, args) {
+        var meth = owner[methName];
+
+        switch (args.length) {
+            case 1:
+                return meth.call(owner, args[0]);
+            case 2:
+                return meth.call(owner, args[0], args[1]);
+            case 3:
+                return meth.call(owner, args[0], args[1], args[2]);
+            case 4:
+                return meth.call(owner, args[0], args[1], args[2], args[3]);
+            case 5:
+                return meth.call(owner, args[0], args[1], args[2], args[3], args[4]);
+            default:
+                return meth.apply(owner, args);
+        }
+    }
+
     attach (window) {
         super.attach(window);
 
-        window[CALL_METHOD_METH_NAME] = (owner, methName, args) => {
-            if (isNullOrUndefined(owner)) {
-                MethodCallInstrumentation._error('Cannot call method \'' + methName + '\' of ' +
-                                                 inaccessibleTypeToStr(owner));
-            }
+        window[INSTRUCTION.callMethod] = (owner, methName, args) => {
+            if (isNullOrUndefined(owner))
+                MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${inaccessibleTypeToStr(owner)}`);
 
             if (typeof owner[methName] !== 'function')
-                MethodCallInstrumentation._error('\'' + methName + '\' is not a function');
+                MethodCallInstrumentation._error(`'${methName}' is not a function`);
 
-            if (typeof methName !== 'string' || !this.methodWrappers.hasOwnProperty(methName))
-                return owner[methName].apply(owner, args);
+            // OPTIMIZATION: previously we've performed the
+            // `this.methodWrappers.hasOwnProperty(methName)`
+            // check which is quite slow. Now we use the
+            // fast RegExp check instead.
+            if (typeof methName === 'string' && shouldInstrumentMethod(methName) &&
+                this.methodWrappers[methName].condition(owner))
+                return this.methodWrappers[methName].method(owner, args);
 
-            return this.methodWrappers[methName].condition(owner) ?
-                   this.methodWrappers[methName].method(owner, args) : owner[methName].apply(owner, args);
+            return MethodCallInstrumentation._fastApply(owner, methName, args);
         };
     }
 

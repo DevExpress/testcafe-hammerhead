@@ -7,8 +7,8 @@
 
     var hammerhead     = window['%hammerhead%'];
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
+    var INSTRUCTION    = hammerhead.get('../processing/js/instruction');
     var originLocation = hammerhead.get('./utils/origin-location');
-    var jsProcessor    = hammerhead.jsProcessor;
 
     originLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
@@ -33,11 +33,11 @@
             window.overrideDomMeth(el);
     };
 
-    window.processScript = window[jsProcessor.PROCESS_SCRIPT_METH_NAME];
-    window.getProperty   = window[jsProcessor.GET_PROPERTY_METH_NAME];
-    window.setProperty   = window[jsProcessor.SET_PROPERTY_METH_NAME];
-    window.callMethod    = window[jsProcessor.CALL_METHOD_METH_NAME];
-    window.getLocation   = window[jsProcessor.GET_LOCATION_METH_NAME];
+    window.processScript = window[INSTRUCTION.processScript];
+    window.getProperty   = window[INSTRUCTION.getProperty];
+    window.setProperty   = window[INSTRUCTION.setProperty];
+    window.callMethod    = window[INSTRUCTION.callMethod];
+    window.getLocation   = window[INSTRUCTION.getLocation];
     window.hammerhead    = hammerhead;
 
     var globals = window.QUnitGlobals;

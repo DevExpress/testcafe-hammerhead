@@ -7,7 +7,7 @@ import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
 import * as originLocation from '../../../utils/origin-location';
 import * as domUtils from '../../../utils/dom';
-import * as typeUtils from '../../../utils/types';
+import { isNullOrUndefined, inaccessibleTypeToStr } from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
 import { isStyle } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
@@ -16,7 +16,8 @@ import { getAttributesProperty } from './attributes';
 import { URL_ATTR_TAGS, TARGET_ATTR_TAGS } from '../../../dom-processor';
 import { process as processStyle, cleanUp as cleanUpStyle } from '../../../../processing/style';
 import { process as processScript, cleanUpHeader as cleanUpScriptHeader } from '../../../../processing/script';
-import { GET_PROPERTY_METH_NAME, SET_PROPERTY_METH_NAME } from '../../../../processing/js';
+import INSTRUCTION from '../../../../processing/js/instruction';
+import { shouldInstrumentProperty } from '../../../../processing/js/instrumented';
 import { setTimeout as nativeSetTimeout } from '../../native-methods';
 
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
@@ -558,42 +559,32 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var propertyAccessors = this._createPropertyAccessors(window, window.document);
+        var accessors = this._createPropertyAccessors(window, window.document);
 
-        window[GET_PROPERTY_METH_NAME] = (owner, propName) => {
-            if (typeUtils.isNullOrUndefined(owner)) {
-                PropertyAccessorsInstrumentation._error('Cannot read property \'' + propName + '\' of ' +
-                                                        typeUtils.inaccessibleTypeToStr(owner));
-            }
+        window[INSTRUCTION.getProperty] = (owner, propName) => {
+            if (isNullOrUndefined(owner))
+                PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${inaccessibleTypeToStr(owner)}`);
 
-            if (typeof propName !== 'string' || !propertyAccessors.hasOwnProperty(propName))
-                return owner[propName];
+            if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
+                accessors[propName].condition(owner))
+                return accessors[propName].get(owner);
 
-            return propertyAccessors[propName].condition(owner) ? propertyAccessors[propName].get(owner) : owner[propName];
+            return owner[propName];
         };
 
-        window[SET_PROPERTY_METH_NAME] = (owner, propName, value) => {
-            if (typeUtils.isNullOrUndefined(owner)) {
-                PropertyAccessorsInstrumentation._error('Cannot set property \'' + propName + '\' of ' +
-                                                        typeUtils.inaccessibleTypeToStr(owner));
-            }
+        window[INSTRUCTION.setProperty] = (owner, propName, value) => {
+            if (isNullOrUndefined(owner))
+                PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${inaccessibleTypeToStr(owner)}`);
 
-            var returnValue = null;
+            if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
+                accessors[propName].condition(owner))
+                return accessors[propName].set(owner, value);
 
-            if (typeof propName !== 'string' || !propertyAccessors.hasOwnProperty(propName)) {
-                returnValue = owner[propName] = value;
-
-                return returnValue;
-            }
-
-            if (propertyAccessors[propName].condition(owner))
-                return propertyAccessors[propName].set(owner, value);
-
-            returnValue = owner[propName] = value;
-
-            return returnValue;
+            /* eslint-disable no-return-assign */
+            return owner[propName] = value;
+            /* eslint-enable no-return-assign */
         };
 
-        return propertyAccessors;
+        return accessors;
     }
 }

@@ -1,7 +1,7 @@
-var scriptProcessor = hammerhead.get('../processing/script');
+var scriptProcessor  = hammerhead.get('../processing/script');
+var INTERNAL_LITERAL = hammerhead.get('../processing/js/internal-literal');
 
 var browserUtils  = hammerhead.utils.browser;
-var jsProcessor   = hammerhead.jsProcessor;
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
 
@@ -251,8 +251,8 @@ test('document.write with __begin$, __end$ parameters (T232454)', function () {
 
     eval(processedScript);
 
-    ok(processedScript.indexOf(jsProcessor.DOCUMENT_WRITE_BEGIN_PARAM) !== -1 &&
-       processedScript.indexOf(jsProcessor.DOCUMENT_WRITE_END_PARAM) !== -1);
+    ok(processedScript.indexOf(INTERNAL_LITERAL.documentWriteBegin) !== -1 &&
+       processedScript.indexOf(INTERNAL_LITERAL.documentWriteEnd) !== -1);
 
     strictEqual(result, 'w1w2w3wl1wl2wl3');
 });

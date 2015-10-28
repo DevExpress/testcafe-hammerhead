@@ -6,6 +6,7 @@
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import dedent from 'dedent';
 import jsProcessor from './js';
+import INSTRUCTION from './js/instruction';
 
 // Byte Order Mark
 const BOM_REGEX = new RegExp(
@@ -27,18 +28,23 @@ const BOM_REGEX = new RegExp(
 
 class ScriptProcessor {
     constructor () {
-        var overrideDomMethScript = `window["${INTERNAL_PROPS.overrideDomMethodName}"]`;
-        var scriptHeaderPrefix    = '/*hammerhead|script-processing-header|start*/';
-        var scriptHeaderPostfix   = '/*hammerhead|script-processing-header|end*/';
+        var HEADER_PREFIX    = '/*hammerhead|script-processing-header|start*/';
+        var HEADER_POSTFIX   = '/*hammerhead|script-processing-header|end*/';
 
         this.SCRIPT_HEADER = dedent`
-            ${scriptHeaderPrefix}
-            typeof window !== "undefined" && ${overrideDomMethScript} && ${overrideDomMethScript}();
-            ${jsProcessor.MOCK_ACCESSORS}
-            ${scriptHeaderPostfix}
+            ${HEADER_PREFIX}
+            var __w$= typeof window!=="undefined"&&window;
+            __w$ && __w$["${INTERNAL_PROPS.overrideDomMethodName}"] && __w$["${INTERNAL_PROPS.overrideDomMethodName}"]();
+            var ${ INSTRUCTION.getLocation }=__w$?__w$.${ INSTRUCTION.getLocation }:function(l){return l},
+                ${ INSTRUCTION.setLocation }=__w$?__w$.${ INSTRUCTION.setLocation }:function(l,v){return l = v},
+                ${ INSTRUCTION.setProperty }=__w$?__w$.${ INSTRUCTION.setProperty }:function(o,p,v){return o[p] = v},
+                ${ INSTRUCTION.getProperty }=__w$?__w$.${ INSTRUCTION.getProperty }:function(o,p){return o[p]},
+                ${ INSTRUCTION.callMethod }=__w$?__w$.${ INSTRUCTION.callMethod }:function(o,p,a){return o[p].apply(o,a)},
+                ${ INSTRUCTION.processScript }=__w$?__w$.${ INSTRUCTION.processScript }:function(s){return s};
+            ${HEADER_POSTFIX}
         `;
 
-        this.SCRIPT_HEADER_REG_EX = new RegExp(`${scriptHeaderPrefix}[\\S\\s]+?${scriptHeaderPostfix}`.replace(/\/|\*|\|/g, '\\$&'), 'i');
+        this.SCRIPT_HEADER_REG_EX = new RegExp(`${HEADER_PREFIX}[\\S\\s]+?${HEADER_POSTFIX}`.replace(/\/|\*|\|/g, '\\$&'), 'i');
     }
 
     process (text, withoutHeader) {

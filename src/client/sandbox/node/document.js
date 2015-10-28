@@ -1,6 +1,6 @@
 import SandboxBase from '../base';
 import IframeSandbox from '../iframe';
-import jsProcessor from '../../../processing/js/index';
+import INTERNAL_LITERAL from '../../../processing/js/internal-literal';
 import nativeMethods from '../native-methods';
 import * as htmlUtils from '../../utils/html';
 import { isFirefox, isIE } from '../../utils/browser';
@@ -45,8 +45,8 @@ export default class DocumentSandbox extends SandboxBase {
 
         var separator = ln ? '\n' : '';
         var lastArg   = args.length ? args[args.length - 1] : '';
-        var isBegin   = lastArg === jsProcessor.DOCUMENT_WRITE_BEGIN_PARAM;
-        var isEnd     = lastArg === jsProcessor.DOCUMENT_WRITE_END_PARAM;
+        var isBegin   = lastArg === INTERNAL_LITERAL.documentWriteBegin;
+        var isEnd     = lastArg === INTERNAL_LITERAL.documentWriteEnd;
 
         if (isBegin)
             this.writeBlockCounter++;

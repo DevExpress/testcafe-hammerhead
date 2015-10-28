@@ -1,10 +1,10 @@
 /*hammerhead|script-processing-header|start*/
-typeof window !== "undefined" && window["hammerhead|override-dom-method"] && window["hammerhead|override-dom-method"]();
-var __w$undef_ = typeof window === "undefined",
-__get$Loc=__w$undef_?function(l){return l}:window.__get$Loc,
-__set$Loc=__w$undef_?function(l,v){return l = v}:window.__set$Loc,
-__set$=__w$undef_?function(o,p,v){return o[p] = v}:window.__set$,
-__get$=__w$undef_?function(o,p){return o[p]}:window.__get$,
-__call$=__w$undef_?function(o,p,a){return o[p].apply(o,a)}:window.__call$,
-__proc$Script=__w$undef_?function(s){return s}:window.__proc$Script;
+var __w$= typeof window!=="undefined"&&window;
+__w$ && __w$["hammerhead|override-dom-method"] && __w$["hammerhead|override-dom-method"]();
+var __get$Loc=__w$?__w$.__get$Loc:function(l){return l},
+    __set$Loc=__w$?__w$.__set$Loc:function(l,v){return l = v},
+    __set$=__w$?__w$.__set$:function(o,p,v){return o[p] = v},
+    __get$=__w$?__w$.__get$:function(o,p){return o[p]},
+    __call$=__w$?__w$.__call$:function(o,p,a){return o[p].apply(o,a)},
+    __proc$Script=__w$?__w$.__proc$Script:function(s){return s};
 /*hammerhead|script-processing-header|end*/__set$(window,"location",'test');(function(){return __set$Loc(location,'test')||(location='test');}.apply(this));__set$(document,"location",'test');__set$(document,"domain",'test');__set$(document,"cookie",'test');
