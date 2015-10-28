@@ -2,7 +2,7 @@ import Router from './router';
 import http from 'http';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
-import { respond404, respond500, respondWithJSON, fetchBody } from '../utils/http';
+import { respond500, respondWithJSON, fetchBody } from '../utils/http';
 import { ie9FileReaderShim } from '../upload';
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
@@ -114,12 +114,8 @@ export default class Proxy extends Router {
     }
 
     _onRequest (req, res, serverInfo) {
-        // NOTE: Skip browsers favicon requests, which we can't process.
-        if (req.url === '/favicon.ico')
-            respond404(res);
-
         // NOTE: Not a service request, execute the proxy pipeline.
-        else if (!this._route(req, res, serverInfo))
+        if (!this._route(req, res, serverInfo))
             runRequestPipeline(req, res, serverInfo, this.openSessions);
     }
 
