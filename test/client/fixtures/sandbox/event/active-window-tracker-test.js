@@ -92,3 +92,43 @@ asyncTest('check switching active window (between two iframes)', function () {
             });
     });
 });
+
+module('regression');
+
+asyncTest('check that an error does not rise when trying to send serviceMessage to the removed iframe (GH-206)', function () {
+    var iframeSrc  = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var iframe     = document.createElement('iframe');
+    var link       = document.createElement('a');
+    var withError  = false;
+
+    link.setAttribute('href', '#');
+    link.innerHTML = 'Link';
+
+    iframe.setAttribute('src', iframeSrc);
+    iframe.addEventListener('load', function () {
+        iframe.contentDocument.body.focus();
+
+        nextTick()
+            .then(function () {
+                document.body.removeChild(iframe);
+            })
+            .then(nextTick)
+            .then(function () {
+                link.focus();
+            })
+            .catch(function () {
+                withError = true;
+            })
+            .then(nextTick)
+            .then(function () {
+                document.body.removeChild(link);
+
+                ok(!withError);
+
+                start();
+            });
+    });
+
+    document.body.appendChild(link);
+    document.body.appendChild(iframe);
+});
