@@ -9,7 +9,7 @@ var mocha        = require('gulp-mocha');
 var mustache     = require('gulp-mustache');
 var rename       = require('gulp-rename');
 var webmake      = require('gulp-webmake');
-var Promise      = require('es6-promise').Promise;
+var Promise      = require('pinkie');
 var uglify       = require('gulp-uglify');
 var gulpif       = require('gulp-if');
 var util         = require('gulp-util');
@@ -130,14 +130,6 @@ gulp.task('client-scripts-bundle', ['clean'], function () {
         .pipe(webmake({
             sourceMap: false,
             transform: function (filename, code) {
-                //https://github.com/jakearchibald/es6-promise/issues/108
-                if (filename.indexOf('es6-promise.js') !== -1) {
-                    var polyfillCallString = 'lib$es6$promise$polyfill$$default();';
-
-                    code = code.replace(polyfillCallString, '');
-                }
-                ///////////////////////////////////////////////////////////////
-
                 var transformed = babel.transform(code, {
                     sourceMap: false,
                     filename:  filename,

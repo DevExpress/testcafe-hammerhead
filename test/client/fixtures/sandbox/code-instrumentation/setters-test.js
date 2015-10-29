@@ -1,9 +1,9 @@
 var INTERNAL_PROPS  = hammerhead.get('../processing/dom/internal-properties');
-var Promise         = hammerhead.get('es6-promise').Promise;
 var urlUtils        = hammerhead.get('./utils/url');
 var domProcessor    = hammerhead.get('./dom-processor');
 var scriptProcessor = hammerhead.get('../processing/script');
 
+var Promise               = hammerhead.Promise;
 var jsProcessor           = hammerhead.jsProcessor;
 var nativeMethods         = hammerhead.nativeMethods;
 var browserUtils          = hammerhead.utils.browser;

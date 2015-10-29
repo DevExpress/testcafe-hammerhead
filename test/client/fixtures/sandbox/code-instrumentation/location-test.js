@@ -1,8 +1,8 @@
 var CodeInstrumentation     = hammerhead.get('./sandbox/code-instrumentation');
 var LocationInstrumentation = hammerhead.get('./sandbox/code-instrumentation/location');
-var Promise                 = hammerhead.get('es6-promise').Promise;
 var urlUtils                = hammerhead.get('./utils/url');
 
+var Promise       = hammerhead.Promise;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
 

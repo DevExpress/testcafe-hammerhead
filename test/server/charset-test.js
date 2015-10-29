@@ -3,6 +3,7 @@ var request             = require('request');
 var expect              = require('chai').expect;
 var express             = require('express');
 var iconv               = require('iconv-lite');
+var Promise             = require('pinkie');
 var Proxy               = require('../../lib/proxy');
 var Session             = require('../../lib/session');
 var requestAgent        = require('../../lib/request-pipeline/destination-request/agent');

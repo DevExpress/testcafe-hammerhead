@@ -1,8 +1,8 @@
 import fs from 'fs';
 import mime from 'mime';
 import path from 'path';
-import promisify from 'es6-promisify';
-import { Promise } from 'es6-promise';
+import promisify from '../utils/promisify';
+import Promise from 'pinkie';
 
 var readFile  = promisify(fs.readFile);
 var stat      = promisify(fs.stat);

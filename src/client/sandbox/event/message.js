@@ -7,7 +7,7 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isIE9, isSafari } from '../../utils/browser';
 import { isCrossDomainWindows } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
-import { Promise } from 'es6-promise';
+import Promise from 'pinkie';
 
 /*eslint-enable no-native-reassign */
 

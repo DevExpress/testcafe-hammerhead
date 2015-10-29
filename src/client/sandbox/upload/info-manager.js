@@ -7,7 +7,7 @@ import settings from '../../settings';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 import SHADOW_UI_CLASSNAME from '../../../shadow-ui/class-name';
-import { Promise } from 'es6-promise';
+import Promise from 'pinkie';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
 const FAKE_PATH_STRING = 'C:\\fakepath\\';
