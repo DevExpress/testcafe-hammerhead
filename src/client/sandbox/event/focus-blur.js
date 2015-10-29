@@ -115,8 +115,8 @@ export default class FocusBlurSandbox extends SandboxBase {
 
 
     _raiseEvent (el, type, callback, withoutHandlers, isAsync, forMouseEvent, preventScrolling) {
-        // NOTE: We cannot use Promise from the es6-promise library because the 'resolve' method is called
-        // from setTimeout(1) in IE9 and IE10.
+        // NOTE: We cannot use Promise because 'resolve' will be called async, but we need to resolve
+        // immediately in IE9 and IE10.
 
         // NOTE: The focus and blur events should be raised after activeElement is changed (B237489)
         // in MSEdge, the focus/blur events are executed  synchronously.

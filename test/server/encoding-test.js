@@ -1,5 +1,5 @@
 var expect        = require('chai').expect;
-var Promise       = require('es6-promise').Promise;
+var Promise       = require('pinkie');
 var encodeContent = require('../../lib/processing/encoding').encodeContent;
 var decodeContent = require('../../lib/processing/encoding').decodeContent;
 var Charset       = require('../../lib/processing/encoding/charset');

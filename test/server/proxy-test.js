@@ -1,4 +1,4 @@
-var Promise            = require('es6-promise').Promise;
+var Promise            = require('pinkie');
 var fs                 = require('fs');
 var request            = require('request');
 var expect             = require('chai').expect;

@@ -1,5 +1,4 @@
-var Promise = hammerhead.get('es6-promise').Promise;
-
+var Promise             = hammerhead.Promise;
 var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var iframeSandbox       = hammerhead.sandbox.iframe;
 

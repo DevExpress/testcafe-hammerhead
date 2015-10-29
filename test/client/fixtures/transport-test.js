@@ -1,6 +1,6 @@
-var Promise  = hammerhead.get('es6-promise').Promise;
 var settings = hammerhead.get('./settings');
 
+var Promise       = hammerhead.Promise;
 var browserUtils  = hammerhead.utils.browser;
 var transport     = hammerhead.transport;
 var nativeMethods = hammerhead.nativeMethods;

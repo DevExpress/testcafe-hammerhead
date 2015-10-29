@@ -1,6 +1,6 @@
 var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
-var Promise             = hammerhead.get('es6-promise').Promise;
 
+var Promise             = hammerhead.Promise;
 var browserUtils        = hammerhead.utils.browser;
 var styleUtil           = hammerhead.utils.style;
 var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;

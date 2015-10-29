@@ -1,8 +1,8 @@
 var COMMAND           = hammerhead.get('../session/command');
 var UploadInfoManager = hammerhead.get('./sandbox/upload/info-manager');
-var Promise           = hammerhead.get('es6-promise').Promise;
 var hiddenInfo        = hammerhead.get('./sandbox/upload/hidden-info');
 
+var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
 var transport     = hammerhead.transport;
 var browserUtils  = hammerhead.utils.browser;

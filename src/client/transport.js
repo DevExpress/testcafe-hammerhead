@@ -5,7 +5,7 @@ import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
 import { stringify as stringifyJSON, parse as parseJSON } from './json';
 import { isWebKit, isIE9 } from './utils/browser';
-import { Promise } from 'es6-promise';
+import Promise from 'pinkie';
 
 /*eslint-enable no-native-reassign*/
 

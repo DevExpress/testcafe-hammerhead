@@ -1,8 +1,8 @@
-var Promise     = hammerhead.get('es6-promise').Promise;
 var cookieUtils = hammerhead.get('./utils/cookie');
 var settings    = hammerhead.get('./settings');
 var urlUtils    = hammerhead.get('./utils/url');
 
+var Promise       = hammerhead.Promise;
 var transport     = hammerhead.transport;
 var nativeMethods = hammerhead.nativeMethods;
 var cookieSandbox = hammerhead.sandbox.cookie;

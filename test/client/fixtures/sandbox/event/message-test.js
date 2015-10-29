@@ -1,7 +1,7 @@
-var Promise         = hammerhead.get('es6-promise').Promise;
 var scriptProcessor = hammerhead.get('../processing/script');
 var settings        = hammerhead.get('./settings');
 
+var Promise        = hammerhead.Promise;
 var browserUtils   = hammerhead.utils.browser;
 var iframeSandbox  = hammerhead.sandbox.iframe;
 var messageSandbox = hammerhead.sandbox.event.message;
@@ -265,9 +265,7 @@ asyncTest('timeout', function () {
     var iframe               = document.createElement('iframe');
     var timeoutExceededError = false;
     var storedDelay          = messageSandbox.PING_IFRAME_TIMEOUT;
-
-    // NOTE: MutationObserver (used in the es6-promise library) works slowly in IE.
-    var timeout = browserUtils.isIE ? 200 : 20;
+    var timeout              = 100;
 
     messageSandbox.setPingIframeTimeout(5);
 

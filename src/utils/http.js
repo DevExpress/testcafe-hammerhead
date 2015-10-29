@@ -1,4 +1,4 @@
-import { Promise } from 'es6-promise';
+import Promise from 'pinkie';
 
 export function respond404 (res) {
     res.statusCode = 404;

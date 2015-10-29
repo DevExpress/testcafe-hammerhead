@@ -1,4 +1,5 @@
 /*eslint-disable no-native-reassign*/
+import Promise from 'pinkie';
 import Sandbox from './sandbox';
 import CodeInstrumentation from './sandbox/code-instrumentation';
 import EventEmitter from './utils/event-emitter';
@@ -44,6 +45,7 @@ class Hammerhead {
         this.get = require;
 
         // Modules
+        this.Promise       = Promise;
         this.json          = JSON;
         this.jsProcessor   = jsProcessor;
         this.transport     = transport;
