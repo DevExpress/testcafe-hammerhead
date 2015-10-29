@@ -1,7 +1,7 @@
 {
   "name": "testcafe-hammerhead",
   "description": "A powerful web-proxy used as a core for the TestCafe testing framework (https://github.com/superroma/testcafe-phoenix).",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "homepage": "https://github.com/superroma/testcafe-hammerhead",
   "bugs": "https://github.com/superroma/testcafe-hammerhead/issues",
   "license": "https://github.com/superroma/testcafe-hammerhead/blob/master/LICENSE",
