@@ -1,10 +1,11 @@
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import DomProcessor from '../dom';
-import DomAdapter from '../dom/server-dom-adapter';
+import DomAdapter from '../dom/parse5-dom-adapter';
 import ResourceProcessorBase from './resource-processor-base';
-import whacko from 'whacko';
+import parse5 from 'parse5';
 import dedent from 'dedent';
 import scriptProcessor from '../script';
+import * as parse5Utils from '../../utils/parse5';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent`
     <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.script }">
@@ -20,7 +21,13 @@ class PageProcessor extends ResourceProcessorBase {
     constructor () {
         super();
 
-        this.RESTART_PROCESSING = Symbol();
+        this.parser = new parse5.Parser();
+
+        this.RESTART_PROCESSING               = Symbol();
+        this.PARSED_BODY_CREATED_EVENT_SCRIPT = this.parser.parseFragment(BODY_CREATED_EVENT_SCRIPT).childNodes[0];
+
+
+        this.serializer = new parse5.Serializer();
     }
 
     static _getPageProcessingOptions (ctx, urlReplacer) {
@@ -34,56 +41,72 @@ class PageProcessor extends ResourceProcessorBase {
         };
     }
 
-    _getPageMetas ($) {
+    static _getPageMetas (metaEls, domAdapter) {
         var metas = [];
 
-        $('meta').each((index, meta) => {
-            var $meta = $(meta);
-
+        for (var i = 0; i < metaEls.length; i++) {
             metas.push({
-                httpEquiv: $meta.attr('http-equiv'),
-                content:   $meta.attr('content'),
-                charset:   $meta.attr('charset')
+                httpEquiv: domAdapter.getAttr(metaEls[i], 'http-equiv'),
+                content:   domAdapter.getAttr(metaEls[i], 'content'),
+                charset:   domAdapter.getAttr(metaEls[i], 'charset')
             });
-        });
+        }
 
         return metas;
     }
 
-    _addPageResources ($, processingOptions) {
-        var resources = [];
+    static _addPageResources (head, processingOptions) {
+        var result = [];
 
         if (processingOptions.styleUrl) {
-            resources.push(
-                `<link rel="stylesheet" type="text/css" class="${SHADOW_UI_CLASSNAME.uiStylesheet}"` +
-                `href="${processingOptions.styleUrl}">`
-            );
+            result.push(parse5Utils.createElement('link', [
+                { name: 'rel', value: 'stylesheet' },
+                { name: 'type', value: 'text/css' },
+                { name: 'class', value: SHADOW_UI_CLASSNAME.uiStylesheet },
+                { name: 'href', value: processingOptions.styleUrl }
+            ]));
         }
 
         if (processingOptions.scripts) {
             processingOptions.scripts.forEach(scriptUrl => {
-                resources.push(
-                    `<script type="text/javascript" class="${SHADOW_UI_CLASSNAME.script}"` +
-                    `charset="UTF-8" src="${scriptUrl}"></script>`
-                );
+                result.push(parse5Utils.createElement('script', [
+                    { name: 'type', value: 'text/javascript' },
+                    { name: 'class', value: SHADOW_UI_CLASSNAME.script },
+                    { name: 'charset', value: 'UTF-8' },
+                    { name: 'src', value: scriptUrl }
+                ]));
             });
         }
 
-        if (resources.length)
-            $('head').prepend(resources.join(''));
+        for (var i = result.length; i--; i > -1)
+            parse5Utils.insertElement(result[i], head);
     }
 
-    static _addCharsetInfo ($, charset) {
-        $($('.' + SHADOW_UI_CLASSNAME.script)[0])
-            .before(`<meta class="${ SHADOW_UI_CLASSNAME.charset }" charset="${charset}">`);
+    static _addCharsetInfo (head, charset) {
+        parse5Utils.insertElement(parse5Utils.createElement('meta', [
+            { name: 'class', value: SHADOW_UI_CLASSNAME.charset },
+            { name: 'charset', value: charset }
+        ]), head);
     }
 
-    static _changeMetas ($) {
-        // TODO: Figure out how to emulate the tag behavior.
-        $('meta[name="referrer"][content="origin"]').remove();
-        // NOTE: Remove the existing ‘compatible’ meta tag and add a new one at the beginning of the head.
-        $('meta[http-equiv="X-UA-Compatible"]').remove();
-        $('head').prepend('<meta http-equiv="X-UA-Compatible" content="IE=edge" />');
+    static _changeMetas (metas, domAdapter) {
+        if (metas) {
+            metas.forEach(meta => {
+                // TODO: Figure out how to emulate the tag behavior.
+                if (domAdapter.getAttr(meta, 'name') === 'referrer' && domAdapter.getAttr(meta, 'content') === 'origin')
+                    parse5Utils.removeNode(meta);
+                // NOTE: Remove the existing ‘compatible’ meta tag and add a new one at the beginning of the head.
+                if (domAdapter.getAttr(meta, 'http-equiv') === 'X-UA-Compatible')
+                    parse5Utils.removeNode(meta);
+            });
+        }
+    }
+
+    static _addCompatibilityMeta (head) {
+        parse5Utils.insertElement(parse5Utils.createElement('meta', [
+            { name: 'http-equiv', value: 'X-UA-Compatible' },
+            { name: 'content', value: 'IE=edge' }
+        ]), head);
     }
 
     static _prepareHtml (html, processingOpts) {
@@ -93,8 +116,8 @@ class PageProcessor extends ResourceProcessorBase {
         return html;
     }
 
-    static _addBodyCreatedEventScript ($) {
-        $('body').prepend(BODY_CREATED_EVENT_SCRIPT);
+    _addBodyCreatedEventScript (body) {
+        parse5Utils.insertElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
     }
 
     shouldProcessResource (ctx) {
@@ -102,6 +125,8 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     processResource (html, ctx, charset, urlReplacer, processingOpts) {
+        var pageProcessor = this;
+
         processingOpts = processingOpts || PageProcessor._getPageProcessingOptions(ctx, urlReplacer);
 
         var bom = scriptProcessor.getBOM(html);
@@ -110,12 +135,17 @@ class PageProcessor extends ResourceProcessorBase {
 
         PageProcessor._prepareHtml(html, processingOpts);
 
-        var $ = whacko.load(html);
+        var root       = this.parser.parse(html);
+        var domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort);
+        var elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body']);
+        var base       = elements.base ? elements.base[0] : null;
+        var baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';
+        var metas      = elements.meta;
+        var head       = elements.head[0];
+        var body       = elements.body[0];
 
-        if (charset.fromMeta(this._getPageMetas($)))
+        if (metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
             return this.RESTART_PROCESSING;
-
-        var pageProcessor = this;
 
         var iframeHtmlProcessor = function (iframeHtml, callback) {
             var storedIsIframe = processingOpts.isIframe;
@@ -129,18 +159,20 @@ class PageProcessor extends ResourceProcessorBase {
             callback(result);
         };
 
-        var domProcessor = new DomProcessor(new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort));
+        var domProcessor = new DomProcessor(domAdapter);
+        var replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
 
         domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
-        domProcessor.processPage($, processingOpts.urlReplacer);
+        parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
         domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
 
-        this._addPageResources($, processingOpts);
-        PageProcessor._addBodyCreatedEventScript($);
-        PageProcessor._changeMetas($);
-        PageProcessor._addCharsetInfo($, charset.get());
+        PageProcessor._addPageResources(head, processingOpts, domAdapter);
+        this._addBodyCreatedEventScript(body, domAdapter);
+        PageProcessor._changeMetas(metas, domAdapter);
+        PageProcessor._addCharsetInfo(head, charset.get(), domAdapter);
+        PageProcessor._addCompatibilityMeta(head, domAdapter);
 
-        return (bom || '') + $.html();
+        return (bom || '') + this.serializer.serialize(root);
     }
 }
 

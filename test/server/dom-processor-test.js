@@ -1,68 +1,85 @@
 var expect       = require('chai').expect;
-var whacko       = require('whacko');
+var parse5       = require('parse5');
 var DomProcessor = require('../../lib/processing/dom');
-var DomAdapter   = require('../../lib/processing/dom/server-dom-adapter');
+var DomAdapter   = require('../../lib/processing/dom/parse5-dom-adapter');
 var urlUtils     = require('../../lib/utils/url');
+var parse5Utils  = require('../../lib/utils/parse5');
 
-var domProcessor = new DomProcessor(new DomAdapter());
+var domAdapter   = new DomAdapter();
+var domProcessor = new DomProcessor(domAdapter);
 
 var testCrossDomainPort = 1338;
 var testProxyHostName   = 'localhost';
 var testProxyPort       = 80;
 
-function process (html, isIframe) {
-    var $            = whacko.load(html);
-    var domProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
+var parser = new parse5.Parser();
 
-    domProcessor.processPage($, function (url, resourceType) {
+function process (html, isIframe) {
+    var root         = parser.parse(html);
+    var domProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
+    var urlReplacer  = function (url, resourceType) {
         url = url.indexOf('/') === 0 ? 'http://example.com' + url : url;
 
         return urlUtils.getProxyUrl(url, 'localhost', '80', 'sessionId', resourceType);
-    }, 1338, isIframe);
+    };
 
-    return $;
+    parse5Utils.walkElements(root, function (el) {
+        domProcessor.processElement(el, urlReplacer);
+    });
+
+    return root;
 }
 
 describe('DOM processor', function () {
     it('Should process elements outside <html></html>', function () {
-        var $ = process('<html></html><script src="http://example.com/script.js"></script>');
+        var root = process('<html></html><script src="http://example.com/script.js"></script>');
 
-        expect($('script')[0].attribs.src).eql('http://localhost:80/sessionId!script/http://example.com/script.js');
+        var script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
+
+        expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!script/http://example.com/script.js');
     });
 
     it('Should process sandboxed <iframe>', function () {
-        var $ = process('<html><head></head><body><iframe sandbox="allow-forms"></iframe></body></html>');
+        var root = process('<html><head></head><body><iframe sandbox="allow-forms"></iframe></body></html>');
 
-        expect($.html()).contains('<iframe sandbox="allow-forms allow-scripts" ' +
-                                  domProcessor.getStoredAttrName('sandbox') + '="allow-forms">');
+        expect(new parse5.Serializer().serialize(root)).contains('<iframe sandbox="allow-forms allow-scripts" ' +
+                                                                 domProcessor.getStoredAttrName('sandbox') +
+                                                                 '="allow-forms">');
     });
 
     it('Should process style attribute', function () {
-        var $ = process('<div style="background: url(\'http://example.com/style.css\')"></div>');
+        var root = process('<div style="background: url(\'http://example.com/style.css\')"></div>');
 
-        expect($.html()).eql('<html><head></head><body><div style="background: ' +
-                             'url(\'http://localhost:80/sessionId/http://example.com/style.css\')"></div></body></html>');
+        expect(new parse5.Serializer().serialize(root)).eql('<html><head></head><body><div style="background: ' +
+                                                            'url(\'http://localhost:80/sessionId/http://example.com/style.css\')"></div></body></html>');
     });
 
     it('Should process <script> src', function () {
-        var $ = process('<script src="http://example.com/script.js"></script>');
+        var root = process('<script src="http://example.com/script.js"></script>');
 
-        expect($('script')[0].attribs.src).eql('http://localhost:80/sessionId!script/http://example.com/script.js');
+        var script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
+
+        expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!script/http://example.com/script.js');
     });
 
     it('Should process <img> src', function () {
-        var $ = process('<img src="http://example.com/image.png">');
+        var root = process('<img src="http://example.com/image.png">');
+        var img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
 
-        expect($('img')[0].attribs['src']).eql('http://example.com/image.png');
-        expect($('img')[0].attribs[domProcessor.getStoredAttrName('src')]).eql('http://example.com/image.png');
+        expect(domAdapter.getAttr(img, 'src')).eql('http://example.com/image.png');
+        expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).eql('http://example.com/image.png');
 
-        $ = process('<img src="">');
-        expect($('img')[0].attribs['src']).to.be.empty;
-        expect($('img')[0].attribs[domProcessor.getStoredAttrName('src')]).to.be.empty;
+        root = process('<img src="">');
+        img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
 
-        $ = process('<img src="about:blank">');
-        expect($('img')[0].attribs['src']).eql('about:blank');
-        expect($('img')[0].attribs[domProcessor.getStoredAttrName('src')]).to.be.empty;
+        expect(domAdapter.getAttr(img, 'src')).to.be.empty;
+        expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).to.be.empty;
+
+        root = process('<img src="about:blank">');
+        img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
+
+        expect(domAdapter.getAttr(img, 'src')).eql('about:blank');
+        expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).to.be.null;
     });
 
     it('Should process malformed <img> src', function () {
@@ -74,10 +91,12 @@ describe('DOM processor', function () {
         ];
 
         cases.forEach(function (testCase) {
-            var $ = process(testCase.html);
+            var root = process(testCase.html);
 
-            expect($('img')[0].attribs['src']).eql(testCase.expectedSrc);
-            expect($('img')[0].attribs[domProcessor.getStoredAttrName('src')]).to.be.empty;
+            var img = parse5Utils.findElementsByTagNames(root, 'img').img[0];
+
+            expect(domAdapter.getAttr(img, 'src')).eql(testCase.expectedSrc);
+            expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).to.be.null;
         });
     });
 
@@ -109,22 +128,25 @@ describe('DOM processor', function () {
     });
 
     it('Should process target attribute for the elements in <iframe>', function () {
-        var $ = process('<a id="a" href="http://example.com"></a>' +
-                        '<form id="form" action="http://example.com"></form>' +
-                        '<a id="a_target_top" href="http://example.com" target="_top"></a>' +
-                        '<a id="a_target_parent" href="http://example.com" target="_parent"></a>', true);
+        var root = process('<a id="a" href="http://example.com"></a>' +
+                           '<form id="form" action="http://example.com"></form>' +
+                           '<a id="a_target_top" href="http://example.com" target="_top"></a>' +
+                           '<a id="a_target_parent" href="http://example.com" target="_parent"></a>', true);
 
-        expect(urlUtils.parseProxyUrl($('#a')[0].attribs.href).resourceType).eql('iframe');
-        expect(urlUtils.parseProxyUrl($('#form')[0].attribs.action).resourceType).eql('iframe');
-        expect(urlUtils.parseProxyUrl($('#a_target_top')[0].attribs.href).resourceType).to.be.null;
-        expect($('#a_target_parent')[0].attribs.href).eql('http://example.com');
+        var elements = parse5Utils.findElementsByTagNames(root, ['a', 'form']);
+
+        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.a[0], 'href')).resourceType).eql('iframe');
+        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.form[0], 'action')).resourceType).eql('iframe');
+        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.a[1], 'href')).resourceType).to.be.null;
+        expect(domAdapter.getAttr(elements.a[2], 'href')).eql('http://example.com');
     });
 
     it('Should process <iframe> with src without protocol', function () {
-        var $                    = process('<iframe src="//cross.domain.com/"></iframe><iframe src="//example.com/"></iframe>');
-        var crossDomainIframeSrc = $('iframe')[0].attribs.src;
+        var root                 = process('<iframe src="//cross.domain.com/"></iframe><iframe src="//example.com/"></iframe>');
+        var iframes              = parse5Utils.findElementsByTagNames(root, 'iframe').iframe;
+        var crossDomainIframeSrc = domAdapter.getAttr(iframes[0], 'src');
         var crossDomainProxyUrl  = urlUtils.getProxyUrl('http://cross.domain.com/', testProxyHostName, testCrossDomainPort, 'sessionId', 'iframe');
-        var iframeSrc            = $('iframe')[1].attribs.src;
+        var iframeSrc            = domAdapter.getAttr(iframes[1], 'src');
         var proxyUrl             = urlUtils.getProxyUrl('http://example.com/', testProxyHostName, testProxyPort, 'sessionId', 'iframe');
 
         expect(crossDomainIframeSrc).eql(crossDomainProxyUrl);

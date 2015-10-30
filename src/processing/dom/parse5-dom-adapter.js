@@ -1,8 +1,9 @@
 import BaseDomAdapter from './base-dom-adapter';
 import events from 'events';
-import * as urlUtils from '../../utils/url.js';
+import * as urlUtils from '../../utils/url';
+import * as parse5Utils from '../../utils/parse5';
 
-export default class ServerDomAdapter extends BaseDomAdapter {
+export default class Parse5DomAdapter extends BaseDomAdapter {
     constructor (isIframe, crossDomainPort) {
         super();
 
@@ -11,16 +12,25 @@ export default class ServerDomAdapter extends BaseDomAdapter {
     }
 
     getAttr (el, attr) {
-        return el.attribs[attr];
+        for (var i = 0; i < el.attrs.length; i++) {
+            if (el.attrs[i].name === attr)
+                return el.attrs[i].value;
+        }
+
+        return null;
+    }
+
+    getClassName (el) {
+        return this.getAttr(el, 'class') || '';
     }
 
     hasAttr (el, attr) {
-        return attr in el.attribs;
+        return this.getAttr(el, attr) !== null;
     }
 
     hasEventHandler (el) {
-        for (var attr in el.attribs) {
-            if (this.EVENTS.indexOf(el.attribs[attr]))
+        for (var i = 0; i < el.attrs.length; i++) {
+            if (this.EVENTS.indexOf(el.attrs[i].name))
                 return true;
         }
 
@@ -28,39 +38,37 @@ export default class ServerDomAdapter extends BaseDomAdapter {
     }
 
     getTagName (el) {
-        return el.name;
+        return el.tagName || '';
     }
 
     setAttr (el, attr, value) {
-        var result = el.attribs[attr] = value;
+        for (var i = 0; i < el.attrs.length; i++) {
+            if (el.attrs[i].name === attr) {
+                el.attrs[i].value = value;
 
-        return result;
+                return value;
+            }
+        }
+
+        el.attrs.push({ name: attr, value: value });
+
+        return value;
     }
 
     setScriptContent (script, content) {
-        script.children[0].data = content;
+        script.childNodes = [parse5Utils.createTextNode(content, script)];
     }
 
     getScriptContent (script) {
-        // NOTE: The $script.html() method is not used because it does not work properly, it adds
-        // garbage to the result.
-        var contentChild = script.children.length ? script.children[0] : null;
-
-        return contentChild ? contentChild.data : '';
+        return script.childNodes.length ? script.childNodes[0].value : '';
     }
 
     getStyleContent (style) {
-        // NOTE: The $el.html() method is not used because it does not work properly, it adds garbage to the result.
-        var contentChild = style.children.length ? style.children[0] : null;
-
-        return contentChild && contentChild.data ? contentChild.data : null;
+        return style.childNodes.length ? style.childNodes[0].value : '';
     }
 
     setStyleContent (style, content) {
-        var contentChild = style.children.length ? style.children[0] : null;
-
-        if (contentChild && contentChild.data)
-            contentChild.data = content;
+        style.childNodes = [parse5Utils.createTextNode(content, style)];
     }
 
     getElementForSelectorCheck (el) {

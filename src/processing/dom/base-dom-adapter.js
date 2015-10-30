@@ -86,4 +86,8 @@ export default class BaseDomAdapter {
     sameOriginCheck () {
         throw new Error('Not implemented');
     }
+
+    getClassName () {
+        throw new Error('Not implemented');
+    }
 }
