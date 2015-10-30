@@ -34,6 +34,8 @@ const TARGET_ATTR_TAGS = {
     base: true
 };
 
+const ELEMENT_PROCESSED = 'hammerhead|element-processed';
+
 export default class DomProcessor {
     constructor (adapter) {
         this.adapter = adapter;
@@ -146,6 +148,9 @@ export default class DomProcessor {
 
     // API
     processElement (el, urlReplacer) {
+        if (el[ELEMENT_PROCESSED])
+            return;
+
         // NOTE: The 'script' element is not executed at the moment it is created. The execution occurs after the
         // element is appended to a document. But in IE9, if you read a script's 'document', 'children' or 'all'
         // property, the script is executed immediately (even if this happens before the script is appended to a
@@ -159,6 +164,7 @@ export default class DomProcessor {
             if (pattern.selector(elementForSelectorCheck) && !this._isShadowElement(el)) {
                 for (var j = 0; j < pattern.elementProcessors.length; j++)
                     pattern.elementProcessors[j].call(this, el, urlReplacer, pattern);
+                el[ELEMENT_PROCESSED] = true;
             }
         }
     }

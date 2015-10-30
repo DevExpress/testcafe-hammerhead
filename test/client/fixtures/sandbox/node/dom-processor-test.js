@@ -130,7 +130,7 @@ test('script src', function () {
 
     settings.get().sessionId = 'uid';
 
-    var script = document.createElement('script');
+    var script = nativeMethods.createElement.call(document, 'script');
 
     script.src = 'http://google.com';
 

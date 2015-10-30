@@ -12,10 +12,10 @@ const TASK_TEMPLATE = read('../client/task.js.mustache');
 
 // Session
 export default class Session extends EventEmitter {
-    constructor (uploadStoragePath) {
+    constructor (uploadsRoot) {
         super();
 
-        this.uploadStorage = new UploadStorage(uploadStoragePath);
+        this.uploadStorage = new UploadStorage(uploadsRoot);
 
         this.id            = Session._generateSessionId();
         this.cookies       = new Cookies();
