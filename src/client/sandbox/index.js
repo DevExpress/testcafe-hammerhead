@@ -25,7 +25,7 @@ export default class Sandbox extends SandboxBase {
         var listeners             = new Listeners();
         var nodeMutation          = new NodeMutation();
         var unloadSandbox         = new UnloadSandbox(listeners);
-        var messageSandbox        = new MessageSandbox(listeners);
+        var messageSandbox        = new MessageSandbox(listeners, unloadSandbox);
         var eventSimulator        = new EventSimulator();
         var elementEditingWatcher = new ElementEditingWatcher(eventSimulator);
 

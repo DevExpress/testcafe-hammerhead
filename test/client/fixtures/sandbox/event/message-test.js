@@ -289,3 +289,26 @@ asyncTest('timeout', function () {
 
     document.body.appendChild(iframe);
 });
+
+module('regression');
+
+asyncTest('service message from removed iframe (GH-64)', function () {
+    var iframe          = document.createElement('iframe');
+    var messageReceived = false;
+
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
+
+    iframe.addEventListener('load', function () {
+        window.setTimeout(function () {
+            ok(messageReceived, 'message received');
+
+            start();
+        }, 100);
+    });
+
+    document.body.appendChild(iframe);
+
+    messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function () {
+        messageReceived = true;
+    });
+});
