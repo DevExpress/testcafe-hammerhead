@@ -19,6 +19,10 @@ export default class BaseDomAdapter {
         this.IFRAME_FLAG_TAGS = ['a', 'form'];
     }
 
+    removeAttr () {
+        throw new Error('Not implemented');
+    }
+
     getAttr () {
         throw new Error('Not implemented');
     }

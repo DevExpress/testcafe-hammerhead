@@ -44,8 +44,8 @@ asyncTest('prevent "error" event during image reloading', function () {
         strictEqual(img.src, storedGetProxyUrl.call(urlUtils, realImageUrl));
 
         $(img).remove();
-        urlUtils.getProxyUrl        = storedGetProxyUrl;
-        urlUtils.resolveUrlAsOrigin = storedResolveUrlAsDest;
+        urlUtils.getProxyUrl      = storedGetProxyUrl;
+        urlUtils.resolveUrlAsDest = storedResolveUrlAsDest;
 
         start();
     };
