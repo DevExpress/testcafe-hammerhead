@@ -265,7 +265,7 @@ test('clean up stylesheet', function () {
     var proxyUrl = urlUtils.getProxyUrl(url);
 
     var check = function (css, expected) {
-        strictEqual(styleProcessor.cleanUp(css, urlUtils.parseProxyUrl, urlUtils.formatUrl), expected);
+        strictEqual(styleProcessor.cleanUp(css, urlUtils.parseProxyUrl), expected);
     };
 
     check('a[' + INTERNAL_ATTRS.hoverPseudoClass + '] {}', 'a:hover {}');

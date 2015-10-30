@@ -133,8 +133,8 @@ describe('Content charset', function () {
 
     // Tests
     describe('Pages', function () {
-        function testDocumentCharset (originUrl, expectedBody, done) {
-            var url     = getProxyUrl('http://127.0.0.1:2000' + originUrl);
+        function testDocumentCharset (destUrl, expectedBody, done) {
+            var url     = getProxyUrl('http://127.0.0.1:2000' + destUrl);
             var options = {
                 url:     url,
                 headers: {
@@ -208,8 +208,8 @@ describe('Content charset', function () {
     describe('Scripts', function () {
         var processedScript = scriptProcessor.processResource(scriptSrc);
 
-        function testScriptCharset (originUrl, expectedCharset, expectedBody, done) {
-            var url = getProxyUrl('http://127.0.0.1:2000' + originUrl, urlUtils.SCRIPT, expectedCharset);
+        function testScriptCharset (destUrl, expectedCharset, expectedBody, done) {
+            var url = getProxyUrl('http://127.0.0.1:2000' + destUrl, urlUtils.SCRIPT, expectedCharset);
 
             request(url, function (err, res, body) {
                 compareCode(body, expectedBody);

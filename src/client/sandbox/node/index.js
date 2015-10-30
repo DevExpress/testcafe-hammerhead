@@ -72,8 +72,8 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     // NOTE: DOM sandbox hides evidence of the content proxying from a page native script. Proxy replaces URLs for
-    // resources. Our goal is to make the native script think that all resources are fetched from the original resource,
-    // not from proxy, and also provide proxying for dynamically created elements.
+    // resources. Our goal is to make the native script think that all resources are fetched from the destination
+    // resource, not from proxy, and also provide proxying for dynamically created elements.
     attach (window) {
         var document = window.document;
 

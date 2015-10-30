@@ -398,13 +398,13 @@ export default class DomProcessor {
                     if (isIframe && !isRelativePath) {
                         var location    = urlReplacer('/');
                         var proxyUrlObj = urlUtils.parseProxyUrl(location);
-                        var originUrl   = proxyUrlObj.originUrl;
+                        var destUrl     = proxyUrlObj.destUrl;
 
                         if (!parsedResourceUrl.protocol)
-                            resourceUrl = proxyUrlObj.originResourceInfo.protocol + resourceUrl;
+                            resourceUrl = proxyUrlObj.destResourceInfo.protocol + resourceUrl;
 
                         // NOTE: Cross-domain iframe.
-                        if (!this.adapter.sameOriginCheck(originUrl, resourceUrl)) {
+                        if (!this.adapter.sameOriginCheck(destUrl, resourceUrl)) {
                             var proxyHostname = urlUtils.parseUrl(location).hostname;
 
                             proxyUrl = resourceUrl ? this.adapter.getProxyUrl(resourceUrl, proxyHostname,
@@ -419,7 +419,7 @@ export default class DomProcessor {
                     this.adapter.setAttr(el, storedUrlAttr, resourceUrl);
 
                     if (elTagName === 'img' && proxyUrl !== '')
-                        this.adapter.setAttr(el, pattern.urlAttr, urlUtils.resolveUrlAsOrigin(resourceUrl, urlReplacer));
+                        this.adapter.setAttr(el, pattern.urlAttr, urlUtils.resolveUrlAsDest(resourceUrl, urlReplacer));
                     else
                         this.adapter.setAttr(el, pattern.urlAttr, proxyUrl);
                 }

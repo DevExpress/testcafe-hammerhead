@@ -89,7 +89,7 @@ var ServiceMessages = Session.prototype;
 
 ServiceMessages[COMMAND.setCookie] = function (msg) {
     var parsedUrl = parseProxyUrl(msg.url);
-    var cookieUrl = parsedUrl ? parsedUrl.originUrl : msg.url;
+    var cookieUrl = parsedUrl ? parsedUrl.destUrl : msg.url;
 
     this.cookies.setByClient(cookieUrl, msg.cookie);
 
@@ -99,7 +99,7 @@ ServiceMessages[COMMAND.setCookie] = function (msg) {
 ServiceMessages[COMMAND.getIframeTaskScript] = function (msg, serverInfo) {
     var referer     = msg.referer || '';
     var refererDest = referer && parseProxyUrl(referer);
-    var cookieUrl   = refererDest && refererDest.originUrl;
+    var cookieUrl   = refererDest && refererDest.destUrl;
 
     return this.getTaskScript(referer, cookieUrl, serverInfo, true, false);
 };

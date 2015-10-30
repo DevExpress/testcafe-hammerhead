@@ -8,9 +8,9 @@
     var hammerhead     = window['%hammerhead%'];
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
     var INSTRUCTION    = hammerhead.get('../processing/js/instruction');
-    var originLocation = hammerhead.get('./utils/origin-location');
+    var destLocation   = hammerhead.get('./utils/destination-location');
 
-    originLocation.forceLocation('http://localhost/sessionId/https://example.com');
+    destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
     window.initIframeTestHandler = function (e) {
         if (e.iframe.id.indexOf('test') !== -1) {

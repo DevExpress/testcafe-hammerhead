@@ -5,7 +5,7 @@ import scriptProcessor from '../../../processing/script';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
-import { sameOriginCheck } from '../../utils/origin-location';
+import { sameOriginCheck } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
 import { waitCookieMsg, cookieMsgInProgress } from '../../transport';
@@ -110,7 +110,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
             }
             else if (value && !urlUtils.parseProxyUrl(value))
-                value = urlUtils.resolveUrlAsOrigin(value);
+                value = urlUtils.resolveUrlAsDest(value);
 
         }
         else if (attr === 'autocomplete') {

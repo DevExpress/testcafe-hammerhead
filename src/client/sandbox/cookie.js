@@ -2,7 +2,7 @@ import SandboxBase from './base';
 import COMMAND from '../../session/command';
 import trim from '../../utils/string-trim';
 import settings from '../settings';
-import * as originLocation from '../utils/origin-location';
+import * as destLocation from '../utils/destination-location';
 import * as cookieUtils from '../utils/cookie';
 import { isCrossDomainWindows } from '../utils/dom';
 import { queuedAsyncServiceMsg } from '../transport';
@@ -32,7 +32,7 @@ export default class CookieSandbox extends SandboxBase {
         // NOTE: We must add a cookie path prefix to the path because the proxied location path differs from the
         // destination location path.
         if (parsedCookieCopy.path && parsedCookieCopy.path !== '/')
-            parsedCookieCopy.path = originLocation.getCookiePathPrefix() + parsedCookieCopy.path;
+            parsedCookieCopy.path = destLocation.getCookiePathPrefix() + parsedCookieCopy.path;
 
         document.cookie = cookieUtils.format(parsedCookieCopy);
 
@@ -55,11 +55,11 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookie.httponly)
             return false;
 
-        var parsedOrigin   = originLocation.getParsed();
-        var originProtocol = parsedOrigin.protocol;
+        var parsedDestLocation = destLocation.getParsed();
+        var destProtocol       = parsedDestLocation.protocol;
 
         // NOTE: Hammerhead tunnels HTTPS requests via HTTP, so we need to validate the Secure attribute manually.
-        if (parsedCookie.secure && originProtocol !== 'https:')
+        if (parsedCookie.secure && destProtocol !== 'https:')
             return false;
 
         // NOTE: Add a protocol portion to the domain, so that we can use urlUtils for the same origin check.
@@ -67,7 +67,7 @@ export default class CookieSandbox extends SandboxBase {
 
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
         // according to a test url.
-        return !domain || originLocation.sameOriginCheck(document.location.toString(), domain);
+        return !domain || destLocation.sameOriginCheck(document.location.toString(), domain);
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {

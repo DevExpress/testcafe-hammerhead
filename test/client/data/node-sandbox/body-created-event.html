@@ -7,7 +7,7 @@
     <script type="text/javascript">
         var hammerhead = window['%hammerhead%'];
 
-        hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/https://example.com');
+        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
         hammerhead.start();
         hammerhead.on(hammerhead.EVENTS.bodyCreated, function (e) {
             if (e.body === document.body && !window.bodyExecutingStarted)

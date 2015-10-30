@@ -3,7 +3,7 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import trim from '../../utils/string-trim';
 import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
-import { sameOriginCheck } from './origin-location';
+import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, isOpera } from './browser';
 
 var scrollbarSize = null;
@@ -93,8 +93,8 @@ export function getIframeLocation (iframe) {
                                       urlUtils.parseProxyUrl(srcLocation);
 
     return {
-        documentLocation: parsedProxyDocumentLocation ? parsedProxyDocumentLocation.originUrl : documentLocation,
-        srcLocation:      parsedProxySrcLocation ? parsedProxySrcLocation.originUrl : srcLocation
+        documentLocation: parsedProxyDocumentLocation ? parsedProxyDocumentLocation.destUrl : documentLocation,
+        srcLocation:      parsedProxySrcLocation ? parsedProxySrcLocation.destUrl : srcLocation
     };
 }
 
@@ -328,8 +328,8 @@ export function isIframeWithoutSrc (iframe) {
     var windowLocation       = parentWindowWithSrc.location.toString();
     var parsedWindowLocation = urlUtils.parseProxyUrl(windowLocation);
 
-    if (iframeDocumentLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation) ||
-        iframeSrcLocation === (parsedWindowLocation ? parsedWindowLocation.originUrl : windowLocation))
+    if (iframeDocumentLocation === (parsedWindowLocation ? parsedWindowLocation.destUrl : windowLocation) ||
+        iframeSrcLocation === (parsedWindowLocation ? parsedWindowLocation.destUrl : windowLocation))
         return true;
 
 

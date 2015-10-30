@@ -9,23 +9,11 @@
 <script type="text/javascript">
     var hammerhead = window['%hammerhead%'];
 
-    var originLocation =  hammerhead.get('./utils/origin-location');
-    var scriptProcessor = hammerhead.get('../processing/script');
+    hammerhead.get('./settings').set({ CROSS_DOMAIN_PROXY_PORT: 2000 });
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start();
 
     var messageSandbox = hammerhead.sandbox.event.message;
-
-    hammerhead.get('./settings').set({
-        CROSS_DOMAIN_PROXY_PORT: 2000
-    });
-
-    originLocation.getParsed = function () {
-        return {
-            protocol: 'https:',
-            host:     'example.com'
-        };
-    };
-
-    hammerhead.start();
 
     var iframe = window.top.document.getElementsByTagName('iframe')[0];
 

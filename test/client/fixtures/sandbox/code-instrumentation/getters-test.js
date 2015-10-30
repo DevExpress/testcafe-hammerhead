@@ -1,7 +1,7 @@
 var INTERNAL_PROPS  = hammerhead.get('../processing/dom/internal-properties');
 var urlUtils        = hammerhead.get('./utils/url');
 var scriptProcessor = hammerhead.get('../processing/script');
-var originLocation  = hammerhead.get('./utils/origin-location');
+var destLocation    = hammerhead.get('./utils/destination-location');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -54,7 +54,7 @@ test('url', function () {
     var $scriptWithoutSrc   = $('<script>');
     var $linkWithOnlyHash   = $('<a href="#hash">');
 
-    var proxyLocation = originLocation.get();
+    var proxyLocation = destLocation.get();
 
     strictEqual(eval(processScript('$scriptWithSrc[0].src')), 'http://some.com/script.js');
     strictEqual(eval(processScript('$scriptWithEmptySrc[0].src')), proxyLocation);
@@ -116,7 +116,7 @@ asyncTest('document properties', function () {
 test('document.URL', function () {
     var url = eval(processScript('document.URL'));
 
-    strictEqual(url, originLocation.get());
+    strictEqual(url, destLocation.get());
 });
 
 test('document.referrer', function () {
@@ -175,7 +175,7 @@ test('changing the link.href property must affect the stored attribute value (T1
 
     setProperty(link, 'href', url);
     strictEqual(link.href, proxyUrl);
-    strictEqual(getProperty(link, 'href'), urlUtils.parseProxyUrl(proxyUrl).originUrl);
+    strictEqual(getProperty(link, 'href'), urlUtils.parseProxyUrl(proxyUrl).destUrl);
 
     eval(processScript('link.pathname="newPath"'));
     ok(/newPath$/.test(getProperty(link, 'pathname')));

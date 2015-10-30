@@ -110,7 +110,7 @@ export default class XhrSandbox extends SandboxBase {
             this.corsSupported = typeof xhr.withCredentials !== 'undefined';
 
             // NOTE: Emulate CORS, so that 3rd party libs (e.g. jQuery) allow requests with the proxy host as well as
-            // the origin page host.
+            // the destination page host.
             if (!this.corsSupported)
                 xhr.withCredentials = false;
 
