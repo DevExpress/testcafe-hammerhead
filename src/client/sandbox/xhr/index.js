@@ -1,11 +1,8 @@
 import SandboxBase from '../base';
 import XMLHttpRequestWrapper from './xml-http-request-wrapper';
-import settings from '../../settings';
 import nativeMethods from '../native-methods';
 import { getProxyUrl } from '../../utils/url';
 import XHR_HEADERS from '../../../request-pipeline/xhr/headers';
-
-const SERVICE_MSG_REQUEST_FLAG = 'hammerhead|service-msg-request-flag';
 
 export default class XhrSandbox extends SandboxBase {
     constructor (sandbox) {
@@ -36,23 +33,16 @@ export default class XhrSandbox extends SandboxBase {
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
         xhr.open = function (method, url, async, user, password) {
-            if (url === settings.get().serviceMsgUrl)
-                xhr[SERVICE_MSG_REQUEST_FLAG] = true;
-            else {
-                try {
-                    url = getProxyUrl(url);
-                }
-                catch (err) {
-                    xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
-                        err: err,
-                        xhr: xhr
-                    });
+            try {
+                url = getProxyUrl(url);
+            }
+            catch (err) {
+                xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, { err, xhr });
 
-                    return;
-                }
+                return;
             }
 
-            // NOTE: The 'async' argument is true by default. However, when the 'async' argument is set to ‘undefined’,
+            // NOTE: The 'async' argument is true by default. However, when the 'async' argument is set to â€˜undefinedâ€™,
             // a browser (Chrome, FireFox) sets it to 'false', and a request becomes synchronous (B238528).
             if (arguments.length === 2)
                 open.call(xhr, method, url);
@@ -61,39 +51,37 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         xhr.send = function () {
-            if (!xhr[SERVICE_MSG_REQUEST_FLAG]) {
-                xhrSandbox.emit(xhrSandbox.XHR_SEND_EVENT, { xhr: xhr });
+            xhrSandbox.emit(xhrSandbox.XHR_SEND_EVENT, { xhr });
 
-                var orscHandler = () => {
-                    if (xhr.readyState === 4)
-                        xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: xhr });
-                };
-
-                // NOTE: If we're using the sync mode or the response is in cache and the object has been retrieved
-                // directly (IE6 & IE7), we need to raise the callback manually.
+            var orscHandler = () => {
                 if (xhr.readyState === 4)
-                    orscHandler();
-                else {
-                    // NOTE: Get out of the current execution tick and then proxy onreadystatechange,
-                    // because jQuery assigns a handler after the send() method was called.
-                    nativeMethods.setTimeout.call(xhrSandbox.window, () => {
-                        // NOTE: If the state is already changed, we just call the handler without proxying
-                        // onreadystatechange.
-                        if (xhr.readyState === 4)
+                    xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr });
+            };
+
+            // NOTE: If we're using the sync mode or the response is in cache and the object has been retrieved
+            // directly (IE6 & IE7), we need to raise the callback manually.
+            if (xhr.readyState === 4)
+                orscHandler();
+            else {
+                // NOTE: Get out of the current execution tick and then proxy onreadystatechange,
+                // because jQuery assigns a handler after the send() method was called.
+                nativeMethods.setTimeout.call(xhrSandbox.window, () => {
+                    // NOTE: If the state is already changed, we just call the handler without proxying
+                    // onreadystatechange.
+                    if (xhr.readyState === 4)
+                        orscHandler();
+
+                    else if (typeof xhr.onreadystatechange === 'function') {
+                        var originalHandler = xhr.onreadystatechange;
+
+                        xhr.onreadystatechange = progress => {
                             orscHandler();
-
-                        else if (typeof xhr.onreadystatechange === 'function') {
-                            var originalHandler = xhr.onreadystatechange;
-
-                            xhr.onreadystatechange = progress => {
-                                orscHandler();
-                                originalHandler.call(xhr, progress);
-                            };
-                        }
-                        else
-                            xhr.addEventListener('readystatechange', orscHandler, false);
-                    }, 0);
-                }
+                            originalHandler.call(xhr, progress);
+                        };
+                    }
+                    else
+                        xhr.addEventListener('readystatechange', orscHandler, false);
+                }, 0);
             }
 
             // NOTE: Add the XHR request mark, so that a proxy can recognize a request as a XHR request. As all
