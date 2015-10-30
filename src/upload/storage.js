@@ -9,8 +9,8 @@ var stat      = promisify(fs.stat);
 var writeFile = promisify(fs.writeFile);
 
 export default class UploadStorage {
-    constructor (storagePath) {
-        this.storagePath = storagePath;
+    constructor (uploadsRoot) {
+        this.uploadsRoot = uploadsRoot;
     }
 
     static async _loadFile (filePath) {
@@ -28,7 +28,7 @@ export default class UploadStorage {
     }
 
     async _runFileProcessingTask (fileName, processor) {
-        var resolvedPath = path.resolve(this.storagePath, fileName);
+        var resolvedPath = path.resolve(this.uploadsRoot, fileName);
 
         try {
             return await processor(resolvedPath, fileName);
