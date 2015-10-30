@@ -22,6 +22,10 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         return false;
     }
 
+    getClassName (el) {
+        return el.className;
+    }
+
     hasEventHandler (el) {
         var attrs = el.attributes;
 

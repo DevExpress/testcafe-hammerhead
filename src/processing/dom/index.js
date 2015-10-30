@@ -100,7 +100,8 @@ export default class DomProcessor {
 
             HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
 
-            IS_SANDBOXED_IFRAME: el => adapter.getTagName(el).toLowerCase() === 'iframe' && adapter.hasAttr(el, 'sandbox')
+            IS_SANDBOXED_IFRAME: el => adapter.getTagName(el).toLowerCase() === 'iframe' &&
+                                       adapter.hasAttr(el, 'sandbox')
         };
 
         return [
@@ -144,28 +145,6 @@ export default class DomProcessor {
     }
 
     // API
-    processPage ($, urlReplacer) {
-        var $base   = $('base');
-        var baseUrl = $base.length ? this.adapter.getAttr($base[0], 'href') : '';
-        var domProc = this;
-
-        var replacer = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
-        var $all     = $('*');
-
-        for (var i = 0; i < this.elementProcessorPatterns.length; i++) {
-            var pattern = this.elementProcessorPatterns[i];
-
-            /*eslint-disable no-loop-func*/
-            $all.filter(function () {
-                return pattern.selector(this);
-            }).each(function () {
-                for (var j = 0; j < pattern.elementProcessors.length; j++)
-                    pattern.elementProcessors[j].call(domProc, this, replacer, pattern);
-            });
-            /*eslint-enable no-loop-func*/
-        }
-    }
-
     processElement (el, urlReplacer) {
         // NOTE: The 'script' element is not executed at the moment it is created. The execution occurs after the
         // element is appended to a document. But in IE9, if you read a script's 'document', 'children' or 'all'
@@ -177,7 +156,7 @@ export default class DomProcessor {
         for (var i = 0; i < this.elementProcessorPatterns.length; i++) {
             var pattern = this.elementProcessorPatterns[i];
 
-            if (pattern.selector(elementForSelectorCheck) && !DomProcessor._isShadowElement(el)) {
+            if (pattern.selector(elementForSelectorCheck) && !this._isShadowElement(el)) {
                 for (var j = 0; j < pattern.elementProcessors.length; j++)
                     pattern.elementProcessors[j].call(this, el, urlReplacer, pattern);
             }
@@ -185,7 +164,6 @@ export default class DomProcessor {
     }
 
     // Utils
-
     getStoredAttrName (attr) {
         return attr + INTERNAL_ATTRS.storedAttrPostfix;
     }
@@ -208,8 +186,10 @@ export default class DomProcessor {
         return false;
     }
 
-    static _isShadowElement (el) {
-        return typeof el.className === 'string' && el.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
+    _isShadowElement (el) {
+        var className = this.adapter.getClassName(el);
+
+        return typeof className === 'string' && className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
     }
 
     // Element processors

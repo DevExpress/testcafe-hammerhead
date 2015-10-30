@@ -101,7 +101,7 @@ export function getIframeLocation (iframe) {
 export function getMapContainer (el) {
     var closestMap        = closest(el, 'map');
     var closestMapName    = nativeMethods.getAttribute.call(closestMap, 'name');
-    var containerSelector = '[usemap=#' + closestMapName + ']';
+    var containerSelector = '[usemap="#' + closestMapName + '"]';
 
     return nativeMethods.querySelector.call(findDocument(el), containerSelector);
 }
