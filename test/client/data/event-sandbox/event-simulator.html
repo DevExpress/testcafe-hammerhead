@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+</script>
+<form action="./">
+    <span id="span">Span</span>
+    <input type="submit" id="input"/>
+</form>
+<script type="text/javascript">
+    function checkWindowEvent () {
+        if (typeof window.event === 'undefined')
+            window.top.error = true;
+    }
+
+    document.onclick = checkWindowEvent;
+
+    document.getElementById('span').addEventListener('click', function () {
+        checkWindowEvent();
+
+        document.getElementById('input').click();
+
+        checkWindowEvent();
+    });
+</script>
+</body>
+</html>

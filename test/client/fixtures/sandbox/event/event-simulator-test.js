@@ -316,3 +316,40 @@ if (browserUtils.isIE) {
     });
 }
 
+if (!browserUtils.isFirefox) {
+    asyncTest('Window event should not be undefined inside iframe handler (B254199)', function () {
+        var iframeSrc      = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+        var $iframe        = $('<iframe>')
+            .attr('src', iframeSrc)
+            .appendTo('body');
+        var iframeDocument = $iframe[0].contentDocument;
+
+        $iframe.load(function () {
+            iframeDocument.onclick = function () {
+                if (typeof window.top.event === 'undefined' || typeof $iframe[0].contentWindow.event === 'undefined')
+                    window.top.error = true;
+            };
+
+            eventSimulator.click(iframeDocument.body);
+
+            ok(!window.top.error);
+            $iframe.remove();
+            start();
+        });
+    });
+
+    asyncTest('Window.event becomes empty when a click event handler triggers the click event on a different element in IE11 (GH-226)', function () {
+        var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+        var $iframe   = $('<iframe>')
+            .attr('src', iframeSrc)
+            .appendTo('body');
+
+        $iframe.load(function () {
+            eventSimulator.click($iframe[0].contentDocument.getElementById('span'));
+
+            ok(!window.top.error);
+            $iframe.remove();
+            start();
+        });
+    });
+}
