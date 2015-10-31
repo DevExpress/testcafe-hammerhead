@@ -4,7 +4,7 @@ import ActiveWindowTracker from '../event/active-window-tracker';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
-import { getElementScroll, setScrollLeft, setScrollTop } from '../../utils/style';
+import * as styleUtils from '../../utils/style';
 
 const INTERNAL_FOCUS_FLAG = 'hammerhead|internal-focus';
 const INTERNAL_BLUR_FLAG  = 'hammerhead|internal-blur';
@@ -36,6 +36,16 @@ export default class FocusBlurSandbox extends SandboxBase {
         }
 
         return nativeMethods[event];
+    }
+
+    static _restoreElementScroll (el, scroll) {
+        var newScroll = styleUtils.getElementScroll(el);
+
+        if (newScroll.left !== scroll.left)
+            styleUtils.setScrollLeft(el, scroll.left);
+
+        if (newScroll.top !== scroll.top)
+            styleUtils.setScrollTop(el, scroll.top);
     }
 
     _onMouseOverHandler (e) {
@@ -150,10 +160,24 @@ export default class FocusBlurSandbox extends SandboxBase {
         if (el[type]) {
             // NOTE: We should guarantee that activeElement will be changed, therefore we need to call the native
             // focus/blur event. To guarantee that all focus/blur events are raised, we need to raise them manually.
-            var windowScroll = null;
+            var windowScroll                     = null;
+            var elementParents                   = [];
+            var nonScrollableParents             = [];
+            var nonScrollableParentsScrollValues = [];
 
             if (preventScrolling)
-                windowScroll = getElementScroll(this.window);
+                windowScroll = styleUtils.getElementScroll(this.window);
+
+            if (browserUtils.isIE) {
+                elementParents = domUtils.getParents(el);
+
+                for (var i = 0; i < elementParents.length; i++) {
+                    if (styleUtils.get(elementParents[i], 'overflow') === 'hidden') {
+                        nonScrollableParents.push(elementParents[i]);
+                        nonScrollableParentsScrollValues.push(styleUtils.getElementScroll(elementParents[i]));
+                    }
+                }
+            }
 
             var tempElement = null;
 
@@ -172,14 +196,13 @@ export default class FocusBlurSandbox extends SandboxBase {
 
             FocusBlurSandbox._getNativeMeth(el, type).call(el);
 
-            if (preventScrolling) {
-                var newWindowScroll = getElementScroll(this.window);
+            if (preventScrolling)
+                FocusBlurSandbox._restoreElementScroll(this.window, windowScroll);
 
-                if (newWindowScroll.left !== windowScroll.left)
-                    setScrollLeft(this.window, windowScroll.left);
-
-                if (newWindowScroll.top !== windowScroll.top)
-                    setScrollTop(this.window, windowScroll.top);
+            if (browserUtils.isIE && nonScrollableParents.length) {
+                nonScrollableParents.forEach((parent, index) => {
+                    FocusBlurSandbox._restoreElementScroll(parent, nonScrollableParentsScrollValues[index]);
+                });
             }
 
             var curDocument   = domUtils.findDocument(el);

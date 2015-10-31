@@ -576,3 +576,18 @@ export function parseDocumentCharset () {
 
     return metaCharset && metaCharset.getAttribute('charset');
 }
+
+export function getParents (el, selector) {
+    var parent  = el.parentNode;
+    var parents = [];
+
+    while (parent) {
+        if (parent.nodeType === 1 && !selector || selector && matches(parent, selector))
+            parents.push(parent);
+
+        parent = parent.parentNode;
+    }
+
+    return parents;
+}
+

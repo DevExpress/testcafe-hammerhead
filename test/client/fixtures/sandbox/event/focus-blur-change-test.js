@@ -880,3 +880,50 @@ asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=
         startNext();
     });
 });
+
+asyncTest('Scrolling elements with "overflow=hidden" should be restored after focus (GH-221)', function () {
+    var parentDiv      = document.createElement('div');
+    var childContainer = document.createElement('div');
+    var childDiv       = document.createElement('div');
+
+    $(parentDiv)
+        .css({
+            backgroundColor: 'grey',
+            width:           '500px',
+            height:          '150px',
+            overflow:        'hidden'
+
+        })
+        .attr('id', 'parent');
+
+    $(childContainer).css({
+        width:    '140px',
+        height:   '100px',
+        position: 'relative',
+        left:     '80%',
+        overflow: 'hidden'
+    });
+
+    $(childDiv)
+        .css({
+            width:      '150px',
+            height:     '100px',
+            background: 'red'
+        })
+        .attr('id', 'child');
+
+    childContainer.appendChild(childDiv);
+    parentDiv.appendChild(childContainer);
+    document.body.appendChild(parentDiv);
+
+    var containerScroll = styleUtil.getElementScroll(childContainer);
+    var parentScroll    = styleUtil.getElementScroll(parentDiv);
+
+    focusBlur.focus(childDiv, function () {
+        deepEqual(styleUtil.getElementScroll(childContainer), containerScroll);
+        deepEqual(styleUtil.getElementScroll(parentDiv), parentScroll);
+
+        document.body.removeChild(parentDiv);
+        start();
+    }, false, true);
+});
