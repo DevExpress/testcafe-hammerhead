@@ -34,7 +34,7 @@ class PageProcessor extends ResourceProcessorBase {
         return {
             crossDomainProxyPort: ctx.serverInfo.crossDomainPort,
             isIframe:             ctx.isIframe,
-            styleUrl:             ctx.getInjectableStyles()[0],
+            stylesheets:          ctx.getInjectableStyles(),
             scripts:              ctx.getInjectableScripts(),
             urlReplacer:          urlReplacer,
             isIframeWithImageSrc: ctx.contentInfo && ctx.contentInfo.isIframeWithImageSrc
@@ -58,13 +58,16 @@ class PageProcessor extends ResourceProcessorBase {
     static _addPageResources (head, processingOptions) {
         var result = [];
 
-        if (processingOptions.styleUrl) {
-            result.push(parse5Utils.createElement('link', [
-                { name: 'rel', value: 'stylesheet' },
-                { name: 'type', value: 'text/css' },
-                { name: 'class', value: SHADOW_UI_CLASSNAME.uiStylesheet },
-                { name: 'href', value: processingOptions.styleUrl }
-            ]));
+        if (processingOptions.stylesheets) {
+            processingOptions.stylesheets.forEach(stylesheetUrl => {
+                result.push(parse5Utils.createElement('link', [
+                    { name: 'rel', value: 'stylesheet' },
+                    { name: 'type', value: 'text/css' },
+                    { name: 'class', value: SHADOW_UI_CLASSNAME.uiStylesheet },
+                    { name: 'href', value: stylesheetUrl }
+                ]));
+            });
+
         }
 
         if (processingOptions.scripts) {
