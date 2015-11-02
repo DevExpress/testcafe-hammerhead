@@ -4,7 +4,7 @@ import nativeMethods from '../native-methods';
 import * as originLocation from '../../utils/origin-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
-import { isIE9, isSafari } from '../../utils/browser';
+import { isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import Promise from 'pinkie';
@@ -17,7 +17,7 @@ const MESSAGE_TYPE = {
 };
 
 export default class MessageSandbox extends SandboxBase {
-    constructor (listeners) {
+    constructor (listeners, unloadSandbox) {
         super();
 
         this.PING_DELAY                 = 200;
@@ -33,9 +33,12 @@ export default class MessageSandbox extends SandboxBase {
         this.topWindow = null;
         this.window    = null;
 
-        this.listeners = listeners;
+        this.listeners     = listeners;
+        this.unloadSandbox = unloadSandbox;
 
         this.storedOnMessageHandler = null;
+
+        this.iframeInternalMsgQueue = [];
     }
 
     _onMessage (e) {
@@ -105,10 +108,31 @@ export default class MessageSandbox extends SandboxBase {
         return this.window.top === this.window.self && this.window !== this.topWindow;
     }
 
+    _removeInternalMsgFromQueue (sendFunc) {
+        for (var index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
+            if (this.iframeInternalMsgQueue[index].sendFunc === sendFunc) {
+                this.iframeInternalMsgQueue.splice(index, 1);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     attach (window) {
         super.attach(window);
         // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
         this.topWindow = window.top;
+
+        this.unloadSandbox.on(this.unloadSandbox.UNLOAD_EVENT, () => {
+            while (this.iframeInternalMsgQueue.length) {
+                var msgInfo = this.iframeInternalMsgQueue[0];
+
+                this.window.clearTimeout(msgInfo.timeoutId);
+                msgInfo.sendFunc();
+            }
+        });
 
         var onMessageHandler        = this._onMessage.bind(this);
         var onWindowMessageHandler  = this._onWindowMessage.bind(this);
@@ -171,20 +195,22 @@ export default class MessageSandbox extends SandboxBase {
         // NOTE: For iframes without src.
         if (!this._isIframeRemoved() && (isIframeWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
                                                                targetWindow[this.RECEIVE_MSG_FN])) {
-            // NOTE: Imitation of a delay for the postMessage method.
-            nativeMethods.setTimeout.call(this.topWindow, () => {
-                // NOTE: We leave the capability to communicate with a removed frame. Unfortunately, this
-                // cannot be done in Safari, because it restricts operations with removed windows (GH-171).
-                var isUnreachableIframe = isSafari && !this.window.top;
-
-                if (!isUnreachableIframe) {
+            var sendFunc  = () => {
+                // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
+                // in the unload event handler, so we check whether the function is in the queue
+                if (this._removeInternalMsgFromQueue(sendFunc)) {
                     targetWindow[this.RECEIVE_MSG_FN]({
                         // NOTE: Cloning a message to prevent this modification.
                         data:   parseJSON(stringifyJSON(message)),
                         source: this.window
                     });
                 }
-            }, 10);
+            };
+
+            // NOTE: Imitation of a delay for the postMessage method.
+            var timeoutId = nativeMethods.setTimeout.call(this.topWindow, sendFunc, 10);
+
+            this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
 
             return null;
         }

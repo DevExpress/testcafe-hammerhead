@@ -187,9 +187,9 @@ export default class EventSandbox extends SandboxBase {
         this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change'], this.cancelInternalEvents);
 
         this.unload.attach(window);
+        this.message.attach(window);
         this.timers.attach(window);
         this.focusBlur.attach(window);
-        this.message.attach(window);
     }
 
     overrideElement (el, overridePrototypeMeths) {
