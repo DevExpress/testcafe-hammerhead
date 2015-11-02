@@ -12,9 +12,9 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var scriptProcessor = hammerhead.get('../processing/script');
+    var processScript = hammerhead.get('../processing/script').processScript;
 
-    eval(scriptProcessor.process([
+    eval(processScript([
         'var input = window.top.document.querySelector("#uploadTestIframe"),',
         '    files = input.files;',
         '',
@@ -28,7 +28,7 @@
         '} catch(e) {',
         '    window.top.postMessage(e, "*");',
         '}'
-    ].join('')));
+    ].join(''), true, false));
 </script>
 </body>
 </html>

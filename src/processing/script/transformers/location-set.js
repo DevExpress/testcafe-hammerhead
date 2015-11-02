@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createLocationSetWrapper, replaceNode } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createLocationSetWrapper } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 
 // Transform:
 // location = value -->
@@ -19,9 +19,5 @@ export default {
                        node.left.type === Syntax.Identifier &&
                        node.left.name === 'location',
 
-    run: (node, parent, key) => {
-        var newNode = createLocationSetWrapper(node.right);
-
-        replaceNode(node, newNode, parent, key);
-    }
+    run: node => createLocationSetWrapper(node.right)
 };

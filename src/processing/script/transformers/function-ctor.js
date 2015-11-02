@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createProcessScriptMethCall } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createProcessScriptMethCall } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 
 // Transform:
 // new Function(params..., body); -->
@@ -21,5 +21,7 @@ export default {
         var lastArgIndex = node.arguments.length - 1;
 
         node.arguments[lastArgIndex] = createProcessScriptMethCall(node.arguments[lastArgIndex]);
+
+        return null;
     }
 };

@@ -3,7 +3,7 @@ import SandboxBase from '../base';
 import ShadowUI from '../shadow-ui';
 import CodeInstrumentation from '../code-instrumentation';
 import nativeMethods from '../native-methods';
-import scriptProcessor from '../../../processing/script';
+import { processScript } from '../../../processing/script';
 import * as destLocation from '../../utils/destination-location';
 import { isSubDomain, parseUrl, getProxyUrl } from '../../utils/url';
 import { isFirefox } from '../../utils/browser';
@@ -130,7 +130,7 @@ export default class WindowSandbox extends SandboxBase {
 
                         if (type === 'text/javascript' || type === 'application/javascript' ||
                             type === 'application/x-javascript')
-                            parts = [scriptProcessor.process(parts.join(''))];
+                            parts = [processScript(parts.join(''), true, false)];
 
                         return new nativeMethods.Blob(parts, opts);
                 }

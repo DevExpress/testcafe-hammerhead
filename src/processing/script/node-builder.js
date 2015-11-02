@@ -3,19 +3,9 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { Syntax } from './parsing-tools';
+import { Syntax } from './tools/esotope';
 import INTERNAL_LITERAL from './internal-literal';
 import INSTRUCTION from './instruction';
-
-export function replaceNode (node, newNode, parent, key) {
-    if (key === 'arguments' || key === 'elements' || key === 'expressions') {
-        var idx = parent[key].indexOf(node);
-
-        parent[key][idx] = newNode;
-    }
-    else
-        parent[key] = newNode;
-}
 
 export function createStringLiteral (value) {
     return {

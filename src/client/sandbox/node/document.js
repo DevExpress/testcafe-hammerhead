@@ -1,6 +1,6 @@
 import SandboxBase from '../base';
 import IframeSandbox from '../iframe';
-import INTERNAL_LITERAL from '../../../processing/js/internal-literal';
+import INTERNAL_LITERAL from '../../../processing/script/internal-literal';
 import nativeMethods from '../native-methods';
 import * as htmlUtils from '../../utils/html';
 import { isFirefox, isIE } from '../../utils/browser';

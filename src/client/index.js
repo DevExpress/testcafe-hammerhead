@@ -5,7 +5,6 @@ import CodeInstrumentation from './sandbox/code-instrumentation';
 import EventEmitter from './utils/event-emitter';
 import settings from './settings';
 import transport from './transport';
-import jsProcessor from '../processing/js/index';
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
 import * as eventUtils from './utils/event';
@@ -13,10 +12,12 @@ import * as typeUtils from './utils/types';
 import * as JSON from './json';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
+import { getProxyUrl } from './utils/url';
 /*eslint-enable no-native-reassign*/
 
 class Hammerhead {
     constructor () {
+        this.win     = null;
         this.sandbox = new Sandbox();
 
         this.EVENTS = {
@@ -47,11 +48,11 @@ class Hammerhead {
         // Modules
         this.Promise       = Promise;
         this.json          = JSON;
-        this.jsProcessor   = jsProcessor;
         this.transport     = transport;
         this.nativeMethods = this.sandbox.nativeMethods;
         this.shadowUI      = this.sandbox.shadowUI;
-        this.eventSandbox  = {
+
+        this.eventSandbox = {
             listeners:             this.sandbox.event.listeners,
             focusBlur:             this.sandbox.event.focusBlur,
             elementEditingWatcher: this.sandbox.event.elementEditingWatcher,
@@ -59,7 +60,8 @@ class Hammerhead {
             selection:             this.sandbox.event.selection,
             message:               this.sandbox.event.message
         };
-        this.utils         = {
+
+        this.utils = {
             browser:  browserUtils,
             dom:      domUtils,
             event:    eventUtils,
@@ -118,17 +120,22 @@ class Hammerhead {
             eventOwner.off(evtName, handler);
     }
 
+    navigateTo (url) {
+        this.win.location = getProxyUrl(url);
+    }
+
+
     start (initSettings, win) {
-        win = win || window;
+        this.win = win || window;
 
         if (initSettings) {
             settings.set(initSettings);
 
             if (initSettings.isFirstPageLoad)
-                Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, win);
+                Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, this.win);
         }
 
-        this.sandbox.attach(win);
+        this.sandbox.attach(this.win);
     }
 }
 

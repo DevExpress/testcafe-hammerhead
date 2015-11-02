@@ -1,8 +1,9 @@
-﻿var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
-var domProcessor    = hammerhead.get('./dom-processor');
-var htmlUtils       = hammerhead.get('./utils/html');
-var scriptProcessor = hammerhead.get('../processing/script');
-var urlUtils        = hammerhead.get('./utils/url');
+﻿var INTERNAL_ATTRS    = hammerhead.get('../processing/dom/internal-attributes');
+var domProcessor      = hammerhead.get('./dom-processor');
+var htmlUtils         = hammerhead.get('./utils/html');
+var processScript     = hammerhead.get('../processing/script').processScript;
+var PROCESSING_HEADER = hammerhead.get('../processing/script/header').HEADER;
+var urlUtils          = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -126,7 +127,7 @@ test('text node', function () {
 test('script inner html', function () {
     var html = htmlUtils.processHtml('var v = a && b;', 'script');
 
-    strictEqual(html.replace(/\s/g, ''), (scriptProcessor.SCRIPT_HEADER + 'var v = a && b;').replace(/\s/g, ''));
+    strictEqual(html.replace(/\s/g, ''), (PROCESSING_HEADER + 'var v = a && b;').replace(/\s/g, ''));
 });
 
 test('html fragment', function () {
@@ -336,7 +337,7 @@ test('markup with special characters must be cleaned up (T112153)', function () 
 
 test('html and body attributes must be processed (T226655)', function () {
     var attrValue           = 'var js = document.createElement(\'script\');js.src = \'http://google.com\'; document.body.appendChild(js);';
-    var expectedAttrValue   = scriptProcessor.process(attrValue, true).replace(/\s/g, '');
+    var expectedAttrValue   = processScript(attrValue, false, false).replace(/\s/g, '');
     var htmlWithBody        = '<body onload="' + attrValue + '">';
     var htmlWithHeadAndBody = '<head></head><body onload="' + attrValue + '"></body>';
     var htmlWithHtmlTag     = '<html onload="' + attrValue + '">';

@@ -1,7 +1,7 @@
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
-import scriptProcessor from '../../../processing/script';
+import { processScript } from '../../../processing/script';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
@@ -75,7 +75,7 @@ export default class ElementSandbox extends SandboxBase {
                 else {
                     /*eslint-disable no-script-url */
                     processedValue = (isJsProtocol ? 'javascript:' : '') +
-                                     scriptProcessor.process(valueWithoutProtocol, true);
+                                     processScript(valueWithoutProtocol, false, false);
                     /*eslint-enable no-script-url */
                 }
 
@@ -211,7 +211,7 @@ export default class ElementSandbox extends SandboxBase {
             appendChild (child) {
                 // NOTE: We need to process TextNode as a script if it is appended to a script element (B254284).
                 if (child.nodeType === 3 && this.tagName && this.tagName.toLowerCase() === 'script')
-                    child.data = scriptProcessor.process(child.data);
+                    child.data = processScript(child.data, true, false);
 
                 overrideNewElement(child);
 

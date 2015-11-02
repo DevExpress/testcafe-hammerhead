@@ -3,9 +3,9 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createStringLiteral } from '../ast';
+import { createStringLiteral } from '../node-builder';
 import INTERNAL_LITERAL from '../internal-literal';
-import { Syntax } from '../parsing-tools';
+import { Syntax } from '../tools/esotope';
 
 function isDocumentWriteStmt (stmt) {
     return stmt.type === Syntax.ExpressionStatement &&
@@ -48,5 +48,7 @@ export default {
 
         firstExpr.arguments.push(createStringLiteral(INTERNAL_LITERAL.documentWriteBegin));
         lastExpr.arguments.push(createStringLiteral(INTERNAL_LITERAL.documentWriteEnd));
+
+        return null;
     }
 };

@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createComputedPropertySetWrapper, replaceNode } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createComputedPropertySetWrapper } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 import { shouldInstrumentProperty } from '../instrumented';
 
 // Transform:
@@ -25,9 +25,5 @@ export default {
         return false;
     },
 
-    run: (node, parent, key) => {
-        var newNode = createComputedPropertySetWrapper(node.left.property, node.left.object, node.right);
-
-        replaceNode(node, newNode, parent, key);
-    }
+    run: node => createComputedPropertySetWrapper(node.left.property, node.left.object, node.right)
 };

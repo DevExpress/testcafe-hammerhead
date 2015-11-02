@@ -1,9 +1,9 @@
 import Proxy from './proxy';
 import Session from './session';
-import jsProcessor from './processing/js';
+import { processScript } from './processing/script';
 
 export default {
     Proxy:            Proxy,
     Session:          Session,
-    wrapDomAccessors: (code, beautify) => jsProcessor.process(code, beautify)
+    wrapDomAccessors: (code, beautify) => processScript(code, false, beautify)
 };

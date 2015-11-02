@@ -1,7 +1,7 @@
 import LocationWrapper from './wrapper';
 import SandboxBase from '../../base';
 import { isLocation } from '../../../utils/dom';
-import INSTRUCTION from '../../../../processing/js/instruction';
+import INSTRUCTION from '../../../../processing/script/instruction';
 
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 

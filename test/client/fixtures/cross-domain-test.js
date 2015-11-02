@@ -1,4 +1,4 @@
-var scriptProcessor = hammerhead.get('../processing/script');
+var processScript = hammerhead.get('../processing/script').processScript;
 
 asyncTest('cross domain messaging between windows', function () {
     expect(4);
@@ -18,13 +18,13 @@ asyncTest('cross domain messaging between windows', function () {
 
         if (messageCounter >= 4) {
             iframe.parentNode.removeChild(iframe);
-            eval(scriptProcessor.process('window.onmessage = null;'));
+            eval(processScript('window.onmessage = null;', true, false));
             start();
         }
     };
 
     /* eslint-enable no-unused-vars*/
 
-    eval(scriptProcessor.process('window.onmessage = onMessageHandler;'));
+    eval(processScript('window.onmessage = onMessageHandler;', true, false));
 });
 

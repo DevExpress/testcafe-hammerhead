@@ -3,8 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { createPropertySetWrapper, replaceNode } from '../ast';
-import { Syntax } from '../parsing-tools';
+import { createPropertySetWrapper } from '../node-builder';
+import { Syntax } from '../tools/esotope';
 import { shouldInstrumentProperty } from '../instrumented';
 
 // Transform:
@@ -21,9 +21,5 @@ export default {
                        node.left.property.type === Syntax.Identifier &&
                        shouldInstrumentProperty(node.left.property.name),
 
-    run: (node, parent, key) => {
-        var newNode = createPropertySetWrapper(node.left.property.name, node.left.object, node.right);
-
-        replaceNode(node, newNode, parent, key);
-    }
+    run: node => createPropertySetWrapper(node.left.property.name, node.left.object, node.right)
 };

@@ -1,24 +1,10 @@
 var expect                  = require('chai').expect;
 var multiline               = require('multiline');
-var jsProcessor             = require('../../lib/processing/js');
-var INSTRUMENTED_PROPERTIES = require('../../lib/processing/js/instrumented').PROPERTIES;
+var processScript           = require('../../lib/processing/script').processScript;
+var isScriptProcessed       = require('../../lib/processing/script').isScriptProcessed;
+var HEADER                  = require('../../lib/processing/script/header').HEADER;
+var INSTRUMENTED_PROPERTIES = require('../../lib/processing/script/instrumented').PROPERTIES;
 
-var ACORN_PROPERTY_NODES_PATCH_WARNING = multiline(function () {/*
- ATTENTION! If this test fails, this may happen because you have updated acorn.
- We have patched acorn to enable it to work with unicode identifiers.
-
- HOW TO FIX - go to acorn and replace the following code:
- ```
- var prop = {key: parsePropertyName()}, isGetSet = false, kind;
- ```
-
- with the code below:
-
- ```
- var prop = {type: "Property", key: parsePropertyName()}, isGetSet = false, kind;
- ```
- */
-});
 
 var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  ATTENTION! If this test fails, this may happen because you have updated acorn.
@@ -38,7 +24,7 @@ var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  ```
  function readWord1() {
     ...
-    word += input.substr(tokPos-6, 6);;
+    word += input.substr(tokPos-6, 6);
     ...
  }
  ```
@@ -60,7 +46,7 @@ var ACORN_STRICT_MODE_PATCH_WARNING = multiline(function () {/*
  with the code below:
 
  ```
- function isUseStrict(stmt) {
+ function isUseStrict() {
     return false;
  }
  ```
@@ -112,7 +98,7 @@ function testProcessing (testCases) {
     testCases = Array.isArray(testCases) ? testCases : [testCases];
 
     testCases.forEach(function (testCase) {
-        var processed = jsProcessor.process(testCase.src);
+        var processed = processScript(testCase.src, false, false);
         var actual    = normalizeCode(processed);
         var expected  = normalizeCode(testCase.expected);
         var msg       = 'Source: ' + testCase.src + '\n' +
@@ -139,13 +125,48 @@ function testPropertyProcessing (templates) {
     });
 }
 
+function assertHasHeader (expected, testCases) {
+    testCases.forEach(function (src) {
+        var processed = processScript(src, true, false);
+        var hasHeader = processed.indexOf(HEADER) > -1;
+        var msg       = 'Source: ' + src + '\n';
+
+        expect(hasHeader).eql(expected, msg);
+    });
+}
+
 describe('Script processor', function () {
+    describe('Processing header', function () {
+        it('Should add processing header', function () {
+            assertHasHeader(true, [
+                'var a = 42;',
+                '[]; var a = 42; []',
+                '{ var a = 42; }'
+            ]);
+        });
+
+        it('Should not add processing header for the data script', function () {
+            assertHasHeader(false, [
+                '[1, 2, 3]',
+                '{ a: 42 }'
+            ]);
+        });
+
+        it('Should not add processing header twice', function () {
+            var src        = 'var a = 42;';
+            var processed1 = processScript(src, true, false);
+            var processed2 = processScript(processed1, true, false);
+
+            expect(normalizeCode(processed1)).eql(normalizeCode(processed2));
+        });
+    });
+
     it('Should determine if script was processed', function () {
         var src       = '//comment\n var temp = 0; \n var host = location.host; \n temp = 1; \n // comment';
-        var processed = jsProcessor.process(src);
+        var processed = processScript(src, false, false);
 
-        expect(jsProcessor.isScriptProcessed(src)).to.be.false;
-        expect(jsProcessor.isScriptProcessed(processed)).to.be.true;
+        expect(isScriptProcessed(src)).to.be.false;
+        expect(isScriptProcessed(processed)).to.be.true;
     });
 
     it('Should process location getters and setters', function () {
@@ -157,8 +178,7 @@ describe('Script processor', function () {
             },
             {
                 src:      '{ location: 123 }',
-                expected: '{ location: 123 }',
-                msg:      ACORN_PROPERTY_NODES_PATCH_WARNING
+                expected: '{ location: 123 }'
             },
             { src: '[ location ]', expected: '[ __get$Loc(location) ]' },
             { src: 'var loc = location', expected: 'var loc = __get$Loc(location)' },
@@ -175,8 +195,7 @@ describe('Script processor', function () {
             { src: 'location[host].toString()', expected: '__get$(__get$Loc(location), host).toString()' },
             {
                 src:      'temp = { location: value, value: location }',
-                expected: 'temp = { location: value, value: __get$Loc(location) }',
-                msg:      ACORN_PROPERTY_NODES_PATCH_WARNING
+                expected: 'temp = { location: value, value: __get$Loc(location) }'
             },
 
             { src: '--location', expected: '--location' },
@@ -322,9 +341,8 @@ describe('Script processor', function () {
 
     it('Should process object expressions', function () {
         testProcessing({
-            src:                     '{ location: value, value: location, src: src }',
-            expected:                '{ location: value, value: __get$Loc(location), src: src }',
-            additionalAssertionText: ACORN_PROPERTY_NODES_PATCH_WARNING
+            src:      '{ location: value, value: location, src: src }',
+            expected: '{ location: value, value: __get$Loc(location), src: src }'
         });
     });
 

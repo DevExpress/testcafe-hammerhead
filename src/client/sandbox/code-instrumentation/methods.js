@@ -1,9 +1,9 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import SandboxBase from '../base';
 import { isNullOrUndefined, inaccessibleTypeToStr } from '../../utils/types';
-import INTERNAL_LITERAL from '../../../processing/js/internal-literal';
-import INSTRUCTION from '../../../processing/js/instruction';
-import { shouldInstrumentMethod } from '../../../processing/js/instrumented';
+import INTERNAL_LITERAL from '../../../processing/script/internal-literal';
+import INSTRUCTION from '../../../processing/script/instruction';
+import { shouldInstrumentMethod } from '../../../processing/script/instrumented';
 import { isWindow, isDocument, isDomElement } from '../../utils/dom';
 import { isIE } from '../../utils/browser';
 

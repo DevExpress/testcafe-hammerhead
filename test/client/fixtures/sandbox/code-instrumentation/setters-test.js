@@ -1,10 +1,10 @@
-var INTERNAL_PROPS  = hammerhead.get('../processing/dom/internal-properties');
-var urlUtils        = hammerhead.get('./utils/url');
-var domProcessor    = hammerhead.get('./dom-processor');
-var scriptProcessor = hammerhead.get('../processing/script');
+var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
+var urlUtils          = hammerhead.get('./utils/url');
+var domProcessor      = hammerhead.get('./dom-processor');
+var processScript     = hammerhead.get('../processing/script').processScript;
+var isScriptProcessed = hammerhead.get('../processing/script').isScriptProcessed;
 
 var Promise               = hammerhead.Promise;
-var jsProcessor           = hammerhead.jsProcessor;
 var nativeMethods         = hammerhead.nativeMethods;
 var browserUtils          = hammerhead.utils.browser;
 var iframeSandbox         = hammerhead.sandbox.iframe;
@@ -27,7 +27,7 @@ test('script.textContent', function () {
     eval(processScript('script.textContent="' + scriptCode + '"'));
 
     notEqual(script.textContent, scriptCode);
-    strictEqual(script.textContent.replace(/\s/g, ''), scriptProcessor.process(scriptCode).replace(/\s/g, ''));
+    strictEqual(script.textContent.replace(/\s/g, ''), processScript(scriptCode, true, false).replace(/\s/g, ''));
 });
 
 test('unsupported protocol', function () {
@@ -188,7 +188,7 @@ test('script text', function () {
     var script = document.createElement('script');
 
     eval(processScript('script.text="var test = window.href;"'));
-    ok(jsProcessor.isScriptProcessed(script.text));
+    ok(isScriptProcessed(script.text));
 });
 
 test('iframe', function () {
