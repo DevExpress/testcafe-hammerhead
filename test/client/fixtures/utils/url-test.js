@@ -1,7 +1,7 @@
 var settings       = hammerhead.get('./settings');
 var sharedUrlUtils = hammerhead.get('../utils/url');
 var urlUtils       = hammerhead.get('./utils/url');
-var originLocation = hammerhead.get('./utils/origin-location');
+var destLocation   = hammerhead.get('./utils/destination-location');
 
 var browserUtils = hammerhead.utils.browser;
 
@@ -19,13 +19,13 @@ test('getCrossDomainProxyUrl', function () {
     settings.get().crossDomainProxyPort = storedCrossDomainport;
 });
 
-test('resolveUrlAsOrigin', function () {
-    strictEqual(urlUtils.resolveUrlAsOrigin('/index.html#hash'), 'https://example.com/index.html#hash');
-    strictEqual(urlUtils.resolveUrlAsOrigin('javascript:0;'), 'javascript:0;');
-    strictEqual(urlUtils.resolveUrlAsOrigin('/index.html?param=value#hash'), 'https://example.com/index.html?param=value#hash');
-    strictEqual(urlUtils.resolveUrlAsOrigin('https://twitter.com/index.html?param=value#hash'), 'https://twitter.com/index.html?param=value#hash');
-    strictEqual(urlUtils.resolveUrlAsOrigin('//twitter.com/index.html?param=value#hash'), 'https://twitter.com/index.html?param=value#hash');
-    strictEqual(urlUtils.resolveUrlAsOrigin('http://g.tbcdn.cn/??kissy/k/1.4.2/seed-min.js'), 'http://g.tbcdn.cn/??kissy/k/1.4.2/seed-min.js');
+test('resolveUrlAsDest', function () {
+    strictEqual(urlUtils.resolveUrlAsDest('/index.html#hash'), 'https://example.com/index.html#hash');
+    strictEqual(urlUtils.resolveUrlAsDest('javascript:0;'), 'javascript:0;');
+    strictEqual(urlUtils.resolveUrlAsDest('/index.html?param=value#hash'), 'https://example.com/index.html?param=value#hash');
+    strictEqual(urlUtils.resolveUrlAsDest('https://twitter.com/index.html?param=value#hash'), 'https://twitter.com/index.html?param=value#hash');
+    strictEqual(urlUtils.resolveUrlAsDest('//twitter.com/index.html?param=value#hash'), 'https://twitter.com/index.html?param=value#hash');
+    strictEqual(urlUtils.resolveUrlAsDest('http://g.tbcdn.cn/??kissy/k/1.4.2/seed-min.js'), 'http://g.tbcdn.cn/??kissy/k/1.4.2/seed-min.js');
 });
 
 module('parse url');
@@ -73,52 +73,52 @@ test('question mark disappears', function () {
 module('get proxy url');
 
 test('already proxied', function () {
-    var originUrl = 'http://test.example.com/';
-    var proxyUrl  = urlUtils.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
-    var newUrl    = urlUtils.getProxyUrl(proxyUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId', 'iframe');
+    var destUrl  = 'http://test.example.com/';
+    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+    var newUrl   = urlUtils.getProxyUrl(proxyUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId', 'iframe');
 
     strictEqual(urlUtils.parseProxyUrl(newUrl).resourceType, 'iframe');
 
 });
 
-test('origin with query, path, hash and host', function () {
-    var originUrl = 'http://test.example.com/pa/th/Page?param1=value&param2=&param3#testHash';
-    var proxyUrl  = urlUtils.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+test('destination with query, path, hash and host', function () {
+    var destUrl  = 'http://test.example.com/pa/th/Page?param1=value&param2=&param3#testHash';
+    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
-test('origin with host only', function () {
-    var originUrl = 'http://test.example.com/';
-    var proxyUrl  = urlUtils.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+test('destination with host only', function () {
+    var destUrl  = 'http://test.example.com/';
+    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
-test('origin with https protocol', function () {
-    var originUrl = 'https://test.example.com:53/';
-    var proxyUrl  = urlUtils.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+test('destination with https protocol', function () {
+    var destUrl  = 'https://test.example.com:53/';
+    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
-test('origin with non http or https protocol', function () {
+test('destination with non http or https protocol', function () {
     expect(2);
 
-    var originUrl = 'someProtocol://test.example.com:53/';
+    var destUrl = 'someProtocol://test.example.com:53/';
 
     try {
-        urlUtils.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT);
+        urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT);
     }
     catch (err) {
         strictEqual(err.code, sharedUrlUtils.URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED);
-        strictEqual(err.originUrl.toLowerCase(), originUrl.toLowerCase());
+        strictEqual(err.destUrl.toLowerCase(), destUrl.toLowerCase());
     }
 });
 
 test('relative path', function () {
-    var originUrl = '/Image1.jpg';
-    var proxyUrl  = urlUtils.getProxyUrl(originUrl);
+    var destUrl  = '/Image1.jpg';
+    var proxyUrl = urlUtils.getProxyUrl(destUrl);
 
     strictEqual(proxyUrl, 'http://' + location.host + '/sessionId/https://example.com/Image1.jpg');
 
@@ -134,17 +134,17 @@ test('relative path', function () {
 });
 
 test('contains successive question marks in query', function () {
-    var originUrl = 'http://test.example.com/??dirs/???files/';
-    var proxyUrl  = urlUtils.getProxyUrl(originUrl, '127.0.0.1', PROXY_PORT, 'sessionId');
+    var destUrl  = 'http://test.example.com/??dirs/???files/';
+    var proxyUrl = urlUtils.getProxyUrl(destUrl, '127.0.0.1', PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
-test('origin with port', function () {
-    var originUrl = 'http://test.example.com:53/';
-    var proxyUrl  = urlUtils.getProxyUrl(originUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+test('destination with port', function () {
+    var destUrl  = 'http://test.example.com:53/';
+    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
-    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + originUrl);
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
 test('undefined or null', function () {
@@ -168,7 +168,7 @@ test('remove unnecessary slashes form the begin of the url', function () {
     strictEqual(proxy, 'http://localhost:5555/sessionId!resourceType/https://example.com/');
 });
 
-test('convert origin host and protocol to lower case', function () {
+test('convert destination host and protocol to lower case', function () {
     // BUG: GH-1
     var proxy = urlUtils.getProxyUrl('hTtp://eXamPle.Com:123/paTh/Image?Name=Value&#Hash');
 
@@ -181,12 +181,12 @@ test('http', function () {
     var proxyUrl      = 'http://' + PROXY_HOST + '/sessionId/http://test.example.com:53/PA/TH/?#testHash';
     var parsingResult = urlUtils.parseProxyUrl(proxyUrl);
 
-    strictEqual(parsingResult.originUrl, 'http://test.example.com:53/PA/TH/?#testHash');
-    strictEqual(parsingResult.originResourceInfo.protocol, 'http:');
-    strictEqual(parsingResult.originResourceInfo.host, 'test.example.com:53');
-    strictEqual(parsingResult.originResourceInfo.hostname, 'test.example.com');
-    strictEqual(parsingResult.originResourceInfo.port, '53');
-    strictEqual(parsingResult.originResourceInfo.partAfterHost, '/PA/TH/?#testHash');
+    strictEqual(parsingResult.destUrl, 'http://test.example.com:53/PA/TH/?#testHash');
+    strictEqual(parsingResult.destResourceInfo.protocol, 'http:');
+    strictEqual(parsingResult.destResourceInfo.host, 'test.example.com:53');
+    strictEqual(parsingResult.destResourceInfo.hostname, 'test.example.com');
+    strictEqual(parsingResult.destResourceInfo.port, '53');
+    strictEqual(parsingResult.destResourceInfo.partAfterHost, '/PA/TH/?#testHash');
     strictEqual(parsingResult.sessionId, 'sessionId');
 });
 
@@ -194,20 +194,20 @@ test('https', function () {
     var proxyUrl      = 'http://' + PROXY_HOST + '/sessionId/https://test.example.com:53/PA/TH/?#testHash';
     var parsingResult = urlUtils.parseProxyUrl(proxyUrl);
 
-    strictEqual(parsingResult.originUrl, 'https://test.example.com:53/PA/TH/?#testHash');
-    strictEqual(parsingResult.originResourceInfo.protocol, 'https:');
-    strictEqual(parsingResult.originResourceInfo.host, 'test.example.com:53');
-    strictEqual(parsingResult.originResourceInfo.hostname, 'test.example.com');
-    strictEqual(parsingResult.originResourceInfo.port, '53');
-    strictEqual(parsingResult.originResourceInfo.partAfterHost, '/PA/TH/?#testHash');
+    strictEqual(parsingResult.destUrl, 'https://test.example.com:53/PA/TH/?#testHash');
+    strictEqual(parsingResult.destResourceInfo.protocol, 'https:');
+    strictEqual(parsingResult.destResourceInfo.host, 'test.example.com:53');
+    strictEqual(parsingResult.destResourceInfo.hostname, 'test.example.com');
+    strictEqual(parsingResult.destResourceInfo.port, '53');
+    strictEqual(parsingResult.destResourceInfo.partAfterHost, '/PA/TH/?#testHash');
     strictEqual(parsingResult.sessionId, 'sessionId');
 });
 
 test('non-proxy URL', function () {
     var proxyUrl      = 'http://' + PROXY_HOST + '/PA/TH/?someParam=value';
-    var originUrlInfo = urlUtils.parseProxyUrl(proxyUrl);
+    var destUrlInfo = urlUtils.parseProxyUrl(proxyUrl);
 
-    ok(!originUrlInfo);
+    ok(!destUrlInfo);
 });
 
 test('successive question marks', function () {
@@ -215,12 +215,12 @@ test('successive question marks', function () {
                         '/sessionId/http://test.example.com:53??dirs/???files/&#testHash';
     var parsingResult = urlUtils.parseProxyUrl(proxyUrl);
 
-    strictEqual(parsingResult.originUrl, 'http://test.example.com:53??dirs/???files/&#testHash');
-    strictEqual(parsingResult.originResourceInfo.protocol, 'http:');
-    strictEqual(parsingResult.originResourceInfo.host, 'test.example.com:53');
-    strictEqual(parsingResult.originResourceInfo.hostname, 'test.example.com');
-    strictEqual(parsingResult.originResourceInfo.port, '53');
-    strictEqual(parsingResult.originResourceInfo.partAfterHost, '??dirs/???files/&#testHash');
+    strictEqual(parsingResult.destUrl, 'http://test.example.com:53??dirs/???files/&#testHash');
+    strictEqual(parsingResult.destResourceInfo.protocol, 'http:');
+    strictEqual(parsingResult.destResourceInfo.host, 'test.example.com:53');
+    strictEqual(parsingResult.destResourceInfo.hostname, 'test.example.com');
+    strictEqual(parsingResult.destResourceInfo.port, '53');
+    strictEqual(parsingResult.destResourceInfo.partAfterHost, '??dirs/???files/&#testHash');
     strictEqual(parsingResult.sessionId, 'sessionId');
 });
 
@@ -228,40 +228,40 @@ test('single question mark', function () {
     var url       = 'http://ac-gb.marketgid.com/p/j/2865/11?';
     var proxyUtrl = urlUtils.getProxyUrl(url, 'hostname', 1111, 'sessionId');
 
-    strictEqual(url, urlUtils.formatUrl(urlUtils.parseProxyUrl(proxyUtrl).originResourceInfo));
+    strictEqual(url, urlUtils.formatUrl(urlUtils.parseProxyUrl(proxyUtrl).destResourceInfo));
 });
 
 module('change proxy url');
 
-test('origin URL part', function () {
+test('destination URL part', function () {
     var proxyUrl = 'http://localhost:1337/sessionId/http://test.example.com:53/#testHash';
-    var changed  = urlUtils.changeOriginUrlPart(proxyUrl, 'port', '34');
+    var changed  = urlUtils.changeDestUrlPart(proxyUrl, 'port', '34');
 
     strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:34/#testHash');
 
-    changed = urlUtils.changeOriginUrlPart(proxyUrl, 'host', 'newhost:99');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, 'host', 'newhost:99');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://newhost:99/#testHash');
 
-    changed = urlUtils.changeOriginUrlPart(proxyUrl, 'hostname', 'newhostname');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, 'hostname', 'newhostname');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://newhostname:53/#testHash');
 
-    changed = urlUtils.changeOriginUrlPart(proxyUrl, 'protocol', 'https:');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, 'protocol', 'https:');
     strictEqual(changed, 'http://localhost:1337/sessionId/https://test.example.com:53/#testHash');
 
-    changed = urlUtils.changeOriginUrlPart(proxyUrl, 'pathname', 'test1.html');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, 'pathname', 'test1.html');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/test1.html#testHash');
 
-    changed = urlUtils.changeOriginUrlPart(proxyUrl, 'hash', 'newHash');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, 'hash', 'newHash');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/#newHash');
 
-    changed = urlUtils.changeOriginUrlPart(proxyUrl, 'search', '?hl=ru&tab=wn');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, 'search', '?hl=ru&tab=wn');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/?hl=ru&tab=wn#testHash');
 });
 
 module('regression');
 
 test('sameOriginCheck for third-level domain (T106172)', function () {
-    ok(originLocation.sameOriginCheck('http://www.example.com', 'http://money.example.com'));
+    ok(destLocation.sameOriginCheck('http://www.example.com', 'http://money.example.com'));
 });
 
 test('location.port must return the empty string (T262593)', function () {

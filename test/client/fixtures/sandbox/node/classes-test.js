@@ -1,6 +1,6 @@
-var domProcessor   = hammerhead.get('./dom-processor');
-var originLocation = hammerhead.get('./utils/origin-location');
-var urlUtils       = hammerhead.get('./utils/url');
+var domProcessor = hammerhead.get('./dom-processor');
+var destLocation = hammerhead.get('./utils/destination-location');
+var urlUtils     = hammerhead.get('./utils/url');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -58,7 +58,7 @@ test('window.Image must be overriden (B234340)', function () {
 
     setProperty(img, 'src', 'data/image.png');
 
-    strictEqual(nativeMethods.getAttribute.call(img, 'src'), urlUtils.resolveUrlAsOrigin('data/image.png'));
+    strictEqual(nativeMethods.getAttribute.call(img, 'src'), urlUtils.resolveUrlAsDest('data/image.png'));
     strictEqual(nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src')), 'data/image.png');
 
     var NativeImage = nativeMethods.Image;
@@ -88,7 +88,7 @@ if (!browserUtils.isIE || browserUtils.isIE11) {
 
 if (navigator.registerProtocolHandler) {
     test('navigator.registerProtocolHandler must be overriden (T185853)', function () {
-        var savedGetOriginLocation = originLocation.get;
+        var savedGetOriginLocation = destLocation.get;
 
         var testUrl = function (url, result, description) {
             var exception = false;
@@ -104,17 +104,17 @@ if (navigator.registerProtocolHandler) {
             }
         };
 
-        originLocation.get = function () {
+        destLocation.get = function () {
             return 'https://example.com:233';
         };
 
-        testUrl('https://example.com:233/?url=%s', false, 'Origin url');
+        testUrl('https://example.com:233/?url=%s', false, 'Destination url');
         testUrl('http://example.com:233/?url=%s', !browserUtils.isFirefox, 'Another protocol');
         testUrl('https://xample.com:233/?url=%s', true, 'Another hostname');
         testUrl('https://example.com:934/?url=%s', !browserUtils.isFirefox, 'Another port');
         testUrl('https://subdomain.example.com:233/?url=%s', false, 'Sub domain');
 
-        originLocation.get = savedGetOriginLocation;
+        destLocation.get = savedGetOriginLocation;
     });
 }
 

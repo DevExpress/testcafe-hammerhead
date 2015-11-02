@@ -147,7 +147,7 @@ test('setAttribute: img src', function () {
 
     $img[0].setAttribute('src', '/image.gif?param=value');
 
-    strictEqual(nativeMethods.getAttribute.call($img[0], 'src'), urlUtils.resolveUrlAsOrigin('/image.gif?param=value'));
+    strictEqual(nativeMethods.getAttribute.call($img[0], 'src'), urlUtils.resolveUrlAsDest('/image.gif?param=value'));
     $img.remove();
 });
 

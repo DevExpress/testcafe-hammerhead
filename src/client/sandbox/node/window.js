@@ -4,7 +4,7 @@ import ShadowUI from '../shadow-ui';
 import CodeInstrumentation from '../code-instrumentation';
 import nativeMethods from '../native-methods';
 import scriptProcessor from '../../../processing/script';
-import * as originLocation from '../../utils/origin-location';
+import * as destLocation from '../../utils/destination-location';
 import { isSubDomain, parseUrl, getProxyUrl } from '../../utils/url';
 import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
@@ -13,7 +13,7 @@ export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox) {
         super();
 
-        this.nodeSandbox = nodeSandbox;
+        this.nodeSandbox    = nodeSandbox;
         this.messageSandbox = messageSandbox;
 
         this.UNCAUGHT_JS_ERROR_EVENT = 'hammerhead|event|uncaught-js-error';
@@ -24,7 +24,7 @@ export default class WindowSandbox extends SandboxBase {
             var sendToTopWindow = window !== window.top;
 
             if (!pageUrl)
-                pageUrl = originLocation.get();
+                pageUrl = destLocation.get();
 
             if (sendToTopWindow) {
                 this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
@@ -68,7 +68,7 @@ export default class WindowSandbox extends SandboxBase {
                 var changedArgs = Array.prototype.slice.call(arguments, 0);
                 var src         = image.src;
 
-                if (originLocation.sameOriginCheck(location.toString(), src)) {
+                if (destLocation.sameOriginCheck(location.toString(), src)) {
                     changedArgs[0]     = nativeMethods.createElement.call(window.document, 'img');
                     changedArgs[0].src = getProxyUrl(src);
                 }
@@ -202,13 +202,13 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.navigator.registerProtocolHandler) {
             window.navigator.registerProtocolHandler = function () {
-                var args           = Array.prototype.slice.call(arguments);
-                var urlIndex       = 1;
-                var originHostname = originLocation.getParsed().hostname;
-                var isOriginUrl    = isFirefox ? isSubDomain(originHostname, parseUrl(args[urlIndex]).hostname) :
-                                     originLocation.sameOriginCheck(originLocation.get(), args[urlIndex]);
+                var args         = Array.prototype.slice.call(arguments);
+                var urlIndex     = 1;
+                var destHostname = destLocation.getParsed().hostname;
+                var isDestUrl    = isFirefox ? isSubDomain(destHostname, parseUrl(args[urlIndex]).hostname) :
+                                   destLocation.sameOriginCheck(destLocation.get(), args[urlIndex]);
 
-                if (isOriginUrl)
+                if (isDestUrl)
                     args[urlIndex] = getProxyUrl(args[urlIndex]);
 
                 return nativeMethods.registerProtocolHandler.apply(navigator, args);

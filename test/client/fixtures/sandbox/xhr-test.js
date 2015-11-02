@@ -25,7 +25,7 @@ asyncTest('unsupported protocol', function () {
 
     var handler = function (e) {
         strictEqual(e.err.code, sharedUrlUtils.URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED);
-        strictEqual(e.err.originUrl, unsupportedUrl);
+        strictEqual(e.err.destUrl, unsupportedUrl);
         xhrSandbox.off(xhrSandbox.XHR_ERROR_EVENT, handler);
         start();
     };

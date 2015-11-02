@@ -8,12 +8,12 @@ function flattenParsedProxyUrl (parsed) {
     if (parsed) {
         return {
             dest: {
-                url:           parsed.originUrl,
-                protocol:      parsed.originResourceInfo.protocol,
-                host:          parsed.originResourceInfo.host,
-                hostname:      parsed.originResourceInfo.hostname,
-                port:          parsed.originResourceInfo.port,
-                partAfterHost: parsed.originResourceInfo.partAfterHost,
+                url:           parsed.destUrl,
+                protocol:      parsed.destResourceInfo.protocol,
+                host:          parsed.destResourceInfo.host,
+                hostname:      parsed.destResourceInfo.hostname,
+                port:          parsed.destResourceInfo.port,
+                partAfterHost: parsed.destResourceInfo.partAfterHost,
                 resourceType:  parsed.resourceType,
                 charset:       parsed.charset
             },

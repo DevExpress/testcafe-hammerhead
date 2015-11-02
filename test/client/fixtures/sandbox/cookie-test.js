@@ -124,7 +124,7 @@ test('overwrite (B239496)', function () {
 
     urlUtils.parseProxyUrl = function (url) {
         return {
-            'originResourceInfo': urlUtils.parseUrl(url)
+            destResourceInfo: urlUtils.parseUrl(url)
         };
     };
 
@@ -156,7 +156,7 @@ test('delete (B239496)', function () {
 
     urlUtils.parseProxyUrl = function (url) {
         return {
-            'originResourceInfo': urlUtils.parseUrl(url)
+            destResourceInfo: urlUtils.parseUrl(url)
         };
     };
 

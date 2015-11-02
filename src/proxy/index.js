@@ -107,7 +107,7 @@ export default class Proxy extends Router {
             res.setHeader('content-type', 'application/x-javascript');
             res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
             res.setHeader('pragma', 'no-cache');
-            res.end(session.getTaskScript(referer, refererDest.originUrl, serverInfo, isIframe, true));
+            res.end(session.getTaskScript(referer, refererDest.destUrl, serverInfo, isIframe, true));
         }
         else
             respond500(res);

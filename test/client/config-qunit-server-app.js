@@ -5,7 +5,7 @@ function urlRewriteProxyRequest (req, res, next) {
     var proxiedUrlPartRegExp = /^\/\S+?\/(https?:)/;
 
     if (proxiedUrlPartRegExp.test(req.url)) {
-        // NOTE: Store the original URL so we can send it back for testing purposes (see GET xhr-test route).
+        // NOTE: Store the destination URL so we can send it back for testing purposes (see GET xhr-test route).
         req.originalUrl = req.url;
 
         var url = req.url.replace(proxiedUrlPartRegExp, '$1');

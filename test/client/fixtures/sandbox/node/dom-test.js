@@ -19,17 +19,17 @@ QUnit.testDone(function () {
 });
 
 asyncTest('prevent "error" event during image reloading', function () {
-    var storedGetOriginUrlObj    = urlUtils.getProxyUrl;
-    var storedResolveUrlAsOrigin = urlUtils.resolveUrlAsOrigin;
-    var errorEventRised          = false;
-    var realImageUrl             = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
-    var fakeIamgeUrl             = 'fakeIamge.gif';
+    var storedGetProxyUrl      = urlUtils.getProxyUrl;
+    var storedResolveUrlAsDest = urlUtils.resolveUrlAsDest;
+    var errorEventRised        = false;
+    var realImageUrl           = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+    var fakeIamgeUrl           = 'fakeIamge.gif';
 
     urlUtils.getProxyUrl = function () {
-        return storedGetOriginUrlObj.call(urlUtils, realImageUrl);
+        return storedGetProxyUrl.call(urlUtils, realImageUrl);
     };
 
-    urlUtils.resolveUrlAsOrigin = function (url) {
+    urlUtils.resolveUrlAsDest = function (url) {
         return url;
     };
 
@@ -41,11 +41,11 @@ asyncTest('prevent "error" event during image reloading', function () {
 
     img.onload = function () {
         ok(!errorEventRised);
-        strictEqual(img.src, storedGetOriginUrlObj.call(urlUtils, realImageUrl));
+        strictEqual(img.src, storedGetProxyUrl.call(urlUtils, realImageUrl));
 
         $(img).remove();
-        urlUtils.getProxyUrl        = storedGetOriginUrlObj;
-        urlUtils.resolveUrlAsOrigin = storedResolveUrlAsOrigin;
+        urlUtils.getProxyUrl        = storedGetProxyUrl;
+        urlUtils.resolveUrlAsOrigin = storedResolveUrlAsDest;
 
         start();
     };
@@ -119,7 +119,7 @@ if (!browserUtils.isIE9) {
 }
 
 test('process a text node when it is appended to script', function () {
-    var originGetProxyUrl = urlUtils.getProxyUrl;
+    var storedGetProxyUrl = urlUtils.getProxyUrl;
     var proxyUrl          = 'http://example.proxy.com/';
 
     urlUtils.getProxyUrl = function () {
@@ -138,7 +138,7 @@ test('process a text node when it is appended to script', function () {
     ok(window.testLink.tagName && window.testLink.tagName.toLowerCase() === 'a');
     strictEqual(window.testLink.href, proxyUrl);
 
-    urlUtils.getProxyUrl = originGetProxyUrl;
+    urlUtils.getProxyUrl = storedGetProxyUrl;
 });
 
 test('iframe added to dom event', function () {

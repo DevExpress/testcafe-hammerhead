@@ -5,7 +5,7 @@ import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
 import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
-import * as originLocation from '../../../utils/origin-location';
+import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import { isNullOrUndefined, inaccessibleTypeToStr } from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
@@ -48,13 +48,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             return '';
 
         else if (attrValue === '')
-            return originLocation.get();
+            return destLocation.get();
 
         else if (/^#/.test(attrValue))
-            return originLocation.withHash(attrValue);
+            return destLocation.withHash(attrValue);
 
 
-        return urlUtils.resolveUrlAsOrigin(attrValue);
+        return urlUtils.resolveUrlAsDest(attrValue);
     }
 
     _createPropertyAccessors (window, document) {
@@ -167,7 +167,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => LocationAccessorsInstrumentation.isLocationWrapper(el) ? el.href : PropertyAccessorsInstrumentation._getUrlAttr(el, 'href'),
                 set: (el, value) => LocationAccessorsInstrumentation.isLocationWrapper(el) ?
-                                    el.href = originLocation.resolveUrl(value, document) : el.setAttribute('href', value)
+                                    el.href = destLocation.resolveUrl(value, document) : el.setAttribute('href', value)
             },
 
             innerHTML: {
@@ -285,7 +285,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (owner, location) => {
                     if (typeof location === 'string') {
                         if (window.self !== window.top)
-                            location = originLocation.resolveUrl(location, window.top.document);
+                            location = destLocation.resolveUrl(location, window.top.document);
 
                         var resourceType = owner !== window.top ? urlUtils.IFRAME : null;
 
@@ -340,7 +340,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: doc => {
                     var proxyUrl = urlUtils.parseProxyUrl(doc.referrer);
 
-                    return proxyUrl ? proxyUrl.originUrl : '';
+                    return proxyUrl ? proxyUrl.destUrl : '';
                 },
 
                 set: (doc, value) => {

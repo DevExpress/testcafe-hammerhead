@@ -80,8 +80,8 @@ test('iframe', function () {
 });
 
 test('element with error in attribute', function () {
-    var originalUrl  = 'http://example.com/';
-    var src          = '<script data-src="' + originalUrl + '"></script\>';
+    var destUrl      = 'http://example.com/';
+    var src          = '<script data-src="' + destUrl + '"></script\>';
     var processedSrc = src;
 
     src = htmlUtils.processHtml(src);

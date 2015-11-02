@@ -14,8 +14,9 @@ class StyleProcessor {
     }
 
     process (css, urlReplacer, isStylesheetTable) {
-        var isStyleSheetProcessingRegEx  = new RegExp('^\\s*' + this.IS_STYLESHEET_PROCESSED_COMMENT.replace(/\/|\*/g, '\\$&'));
-        var isStylesheetProcessed = isStyleSheetProcessingRegEx.test(css);
+        var isStyleSheetProcessingRegEx = new RegExp('^\\s*' +
+                                                     this.IS_STYLESHEET_PROCESSED_COMMENT.replace(/\/|\*/g, '\\$&'));
+        var isStylesheetProcessed       = isStyleSheetProcessingRegEx.test(css);
 
         if (typeof css === 'string' && !isStylesheetProcessed) {
             var prefix = isStylesheetTable ? this.IS_STYLESHEET_PROCESSED_COMMENT + '\n' : '';
@@ -33,17 +34,14 @@ class StyleProcessor {
         return css;
     }
 
-    cleanUp (css, parseProxyUrl, formatUrl) {
+    cleanUp (css, parseProxyUrl) {
         if (typeof css === 'string') {
             css = css.replace(new RegExp('\\[' + INTERNAL_ATTRS.hoverPseudoClass + '\\](\\W)', 'ig'), ':hover$1');
 
             return this._replaceStylsheetUrls(css, url => {
-                var originUrlObj = parseProxyUrl(url);
+                var parsedProxyUrl = parseProxyUrl(url);
 
-                if (originUrlObj)
-                    return formatUrl(originUrlObj.originResourceInfo);
-
-                return url;
+                return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
             });
         }
 

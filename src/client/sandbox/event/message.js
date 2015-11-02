@@ -1,13 +1,13 @@
 /*eslint-disable no-native-reassign */
+import Promise from 'pinkie';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
-import * as originLocation from '../../utils/origin-location';
+import * as destLocation from '../../utils/destination-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
-import Promise from 'pinkie';
 
 /*eslint-enable no-native-reassign */
 
@@ -66,9 +66,9 @@ export default class MessageSandbox extends SandboxBase {
         var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
         if (data.type !== MESSAGE_TYPE.service) {
-            var originUrl = originLocation.get();
+            var originUrl = destLocation.get();
 
-            if (data.targetUrl === '*' || originLocation.sameOriginCheck(originUrl, data.targetUrl)) {
+            if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl)) {
                 resultEvt.origin = data.originUrl;
 
                 // NOTE: IE9 can send only string values.
@@ -85,10 +85,10 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     static _wrapMessage (type, message, targetUrl) {
-        var parsedOrigin = originLocation.getParsed();
-        var originUrl    = formatUrl({
-            protocol: parsedOrigin.protocol,
-            host:     parsedOrigin.host
+        var parsedDest = destLocation.getParsed();
+        var originUrl  = formatUrl({
+            protocol: parsedDest.protocol,
+            host:     parsedDest.host
         });
 
         var result = {
@@ -195,7 +195,7 @@ export default class MessageSandbox extends SandboxBase {
         // NOTE: For iframes without src.
         if (!this._isIframeRemoved() && (isIframeWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
                                                                targetWindow[this.RECEIVE_MSG_FN])) {
-            var sendFunc  = () => {
+            var sendFunc = () => {
                 // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
                 // in the unload event handler, so we check whether the function is in the queue
                 if (this._removeInternalMsgFromQueue(sendFunc)) {

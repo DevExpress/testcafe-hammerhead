@@ -7,7 +7,7 @@ export function getAnchorProperty (el, prop) {
     if (el.href) {
         var parsedProxyUrl = parseProxyUrl(el.href);
 
-        anchor.href = parsedProxyUrl ? parsedProxyUrl.originUrl : el.href;
+        anchor.href = parsedProxyUrl ? parsedProxyUrl.destUrl : el.href;
 
         return anchor[prop];
     }
@@ -17,7 +17,7 @@ export function getAnchorProperty (el, prop) {
 
 export function setAnchorProperty (el, prop, value) {
     if (el.href) {
-        anchor.href  = parseProxyUrl(el.href).originUrl;
+        anchor.href  = parseProxyUrl(el.href).destUrl;
         anchor[prop] = value;
         el.setAttribute('href', anchor.href);
 

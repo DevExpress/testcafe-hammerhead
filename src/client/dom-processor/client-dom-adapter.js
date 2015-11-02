@@ -3,7 +3,7 @@ import EventEmitter from '../utils/event-emitter';
 import BaseDomAdapter from '../../processing/dom/base-dom-adapter';
 import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
-import { sameOriginCheck } from '../utils/origin-location';
+import { sameOriginCheck } from '../utils/destination-location';
 import { getProxyUrl } from '../utils/url';
 import { isIE9 } from '../utils/browser';
 import { findDocument } from '../utils/dom';

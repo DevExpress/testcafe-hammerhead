@@ -10,7 +10,7 @@
     var hammerhead = window['%hammerhead%'];
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
-    hammerhead.get('./utils/origin-location').forceLocation('http://localhost/sessionId/http://target_url');
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://target_url');
     hammerhead.start({
         crossDomainProxyPort: 2000,
         serviceMsgUrl:        '/service-msg/"window[\'' + INTERNAL_PROPS.overrideDomMethodName + '\'] = function() {}"'

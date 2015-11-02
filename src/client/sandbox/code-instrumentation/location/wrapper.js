@@ -1,11 +1,11 @@
 import createPropertyDesc from '../../../utils/create-property-desc';
-import { get as getOriginLocation, getParsed as getParsedOriginLocation } from '../../../utils/origin-location';
-import { IFRAME, getProxyUrl, changeOriginUrlPart } from '../../../utils/url';
+import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
+import { IFRAME, getProxyUrl, changeDestUrlPart } from '../../../utils/url';
 
 export default class LocationWrapper {
     constructor (window) {
         var resourceType   = window !== window.top ? IFRAME : null;
-        var getHref        = () => window.location.href === 'about:blank' ? 'about:blank' : getOriginLocation();
+        var getHref        = () => window.location.href === 'about:blank' ? 'about:blank' : getDestLocation();
         var getProxiedHref = href => getProxyUrl(href, null, null, null, resourceType);
 
         Object.defineProperty(this, 'href', createPropertyDesc({
@@ -20,7 +20,7 @@ export default class LocationWrapper {
         Object.defineProperty(this, 'search', createPropertyDesc({
             get: () => window.location.search,
             set: search => {
-                window.location = changeOriginUrlPart(window.location.toString(), 'search', search, resourceType);
+                window.location = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
 
                 return search;
             }
@@ -28,9 +28,9 @@ export default class LocationWrapper {
 
         Object.defineProperty(this, 'origin', createPropertyDesc({
             get: () => {
-                var parsedOriginLocation = getParsedOriginLocation();
+                var parsedDestLocation = getParsedDestLocation();
 
-                return parsedOriginLocation.protocol + '//' + parsedOriginLocation.host;
+                return parsedDestLocation.protocol + '//' + parsedDestLocation.host;
             },
             set: origin => origin
         }));
@@ -42,9 +42,9 @@ export default class LocationWrapper {
 
         ['port', 'host', 'hostname', 'pathname', 'protocol'].forEach(prop => {
             Object.defineProperty(this, prop, createPropertyDesc({
-                get: () => getParsedOriginLocation()[prop],
+                get: () => getParsedDestLocation()[prop],
                 set: value => {
-                    window.location = changeOriginUrlPart(window.location.toString(), prop, value, resourceType);
+                    window.location = changeDestUrlPart(window.location.toString(), prop, value, resourceType);
 
                     return value;
                 }

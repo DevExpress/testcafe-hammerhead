@@ -39,22 +39,22 @@ test('url', function () {
         el.setAttribute(attr, '');
 
         var emptyAttrValue = el[attr];
-        var origin         = 'http://origin.com/';
+        var dest           = 'http://dest.com/';
         var resourceType   = tagName === 'script' ? 'script' : null;
-        var proxy          = urlUtils.getProxyUrl(origin, null, null, null, resourceType);
+        var proxy          = urlUtils.getProxyUrl(dest, null, null, null, resourceType);
 
-        setProperty(el, attr, origin);
+        setProperty(el, attr, dest);
         strictEqual(el[attr], proxy);
-        strictEqual(getProperty(el, attr), origin);
+        strictEqual(getProperty(el, attr), dest);
         strictEqual(getAttr(), proxy);
-        strictEqual(getWrapAttr(), origin);
+        strictEqual(getWrapAttr(), dest);
 
         var newUrl      = '/image';
         var proxyNewUrl = urlUtils.getProxyUrl('/image', null, null, null, resourceType);
 
         el.setAttribute(attr, newUrl);
         strictEqual(el[attr], proxyNewUrl);
-        strictEqual(getProperty(el, attr), urlUtils.parseProxyUrl(proxyNewUrl).originUrl);
+        strictEqual(getProperty(el, attr), urlUtils.parseProxyUrl(proxyNewUrl).destUrl);
         strictEqual(getAttr(), proxyNewUrl);
         strictEqual(getWrapAttr(), newUrl);
 
@@ -68,9 +68,9 @@ test('url', function () {
         strictEqual(getAttr(), null);
         strictEqual(el[attr], '');
 
-        el.setAttributeNS(namespace, attr, origin);
+        el.setAttributeNS(namespace, attr, dest);
         strictEqual(nativeMethods.getAttributeNS.call(el, namespace, attr), proxy);
-        strictEqual(nativeMethods.getAttributeNS.call(el, namespace, storedAttr), origin);
+        strictEqual(nativeMethods.getAttributeNS.call(el, namespace, storedAttr), dest);
     };
 
     var testData = [
@@ -398,7 +398,7 @@ test('element.innerHTML', function () {
         var exprectedValue = 'http://' + location.host + '/sessionId' + resourceType +
                              '/https://example.com/Images/1.png';
 
-        strictEqual(nativeMethods.getAttribute.call(el, storedAttr), '/Images/1.png', 'original url stored');
+        strictEqual(nativeMethods.getAttribute.call(el, storedAttr), '/Images/1.png', 'destination url stored');
         strictEqual(nativeMethods.getAttribute.call(el, attr), exprectedValue);
     };
 

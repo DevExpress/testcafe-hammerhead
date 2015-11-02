@@ -17,11 +17,11 @@ export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
 export const IFRAME                              = 'iframe';
 export const SCRIPT                              = 'script';
 
-function validateOriginUrl (url) {
+function validateDestUrl (url) {
     if (!/^https?:/.test(url)) {
         throw {
-            code:      URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED,
-            originUrl: url
+            code:    URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED,
+            destUrl: url
         };
     }
 }
@@ -45,30 +45,30 @@ export function sameOriginCheck (location, checkedUrl) {
     var parsedLocation      = parseUrl(location);
     var parsedCheckedUrl    = parseUrl(checkedUrl);
     var parsedProxyLocation = parseProxyUrl(location);
-    var parsedOriginUrl     = parsedProxyLocation ? parsedProxyLocation.originResourceInfo : parsedLocation;
+    var parsedDestUrl       = parsedProxyLocation ? parsedProxyLocation.destResourceInfo : parsedLocation;
     var isRelative          = !parsedCheckedUrl.host;
 
     if (isRelative ||
         parsedCheckedUrl.host === parsedLocation.host && parsedCheckedUrl.protocol === parsedLocation.protocol)
         return true;
 
-    if (parsedOriginUrl) {
-        var portsEq = !parsedOriginUrl.port && !parsedCheckedUrl.port ||
-                      parsedOriginUrl.port && parsedOriginUrl.port.toString() === parsedCheckedUrl.port;
+    if (parsedDestUrl) {
+        var portsEq = !parsedDestUrl.port && !parsedCheckedUrl.port ||
+                      parsedDestUrl.port && parsedDestUrl.port.toString() === parsedCheckedUrl.port;
 
-        if (parsedOriginUrl.protocol === parsedCheckedUrl.protocol && portsEq) {
-            if (parsedOriginUrl.hostname === parsedCheckedUrl.hostname)
+        if (parsedDestUrl.protocol === parsedCheckedUrl.protocol && portsEq) {
+            if (parsedDestUrl.hostname === parsedCheckedUrl.hostname)
                 return true;
 
-            return isSubDomain(parsedOriginUrl.hostname, parsedCheckedUrl.hostname) ||
-                   isSubDomain(parsedCheckedUrl.hostname, parsedOriginUrl.hostname);
+            return isSubDomain(parsedDestUrl.hostname, parsedCheckedUrl.hostname) ||
+                   isSubDomain(parsedCheckedUrl.hostname, parsedDestUrl.hostname);
         }
     }
 
     return false;
 }
 
-// NOTE: Convert the origin protocol and hostname to the lower case. (GH-1)
+// NOTE: Convert the destination protocol and hostname to the lower case. (GH-1)
 export function convertHostToLowerCase (url) {
     var parsedUrl = parseUrl(url);
 
@@ -76,7 +76,7 @@ export function convertHostToLowerCase (url) {
 }
 
 export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charset) {
-    validateOriginUrl(url);
+    validateDestUrl(url);
 
     var params = [sessionId];
 
@@ -119,9 +119,9 @@ export function parseProxyUrl (proxyUrl) {
         return null;
 
     return {
-        originUrl:          match[2],
-        originResourceInfo: parseUrl(match[2]),
-        partAfterHost:      parsedUrl.partAfterHost,
+        destUrl:          match[2],
+        destResourceInfo: parseUrl(match[2]),
+        partAfterHost:    parsedUrl.partAfterHost,
 
         proxy: {
             hostname: parsedUrl.hostname,
@@ -187,14 +187,14 @@ export function isSupportedProtocol (url) {
     return !/^\s*(chrome-extension:|blob:|javascript:|about:|mailto:|tel:|data:|skype:|skypec2c:|file:|#)/i.test(url);
 }
 
-export function resolveUrlAsOrigin (url, getProxyUrlMeth) {
+export function resolveUrlAsDest (url, getProxyUrlMeth) {
     getProxyUrlMeth = getProxyUrlMeth || getProxyUrl;
 
     if (isSupportedProtocol(url)) {
         var proxyUrl       = getProxyUrlMeth(url);
         var parsedProxyUrl = parseProxyUrl(proxyUrl);
 
-        return formatUrl(parsedProxyUrl.originResourceInfo);
+        return formatUrl(parsedProxyUrl.destResourceInfo);
     }
 
     return url;

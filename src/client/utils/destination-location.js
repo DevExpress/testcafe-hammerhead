@@ -77,7 +77,7 @@ export function resolveUrl (url, doc) {
 export function get () {
     var location = getLocation();
 
-    return sharedUrlUtils.parseProxyUrl(location).originUrl;
+    return sharedUrlUtils.parseProxyUrl(location).destUrl;
 }
 
 export function withHash (hash) {
@@ -92,13 +92,13 @@ export function withHash (hash) {
 export function getCookiePathPrefix () {
     var parsedLocation = sharedUrlUtils.parseProxyUrl(getLocation());
 
-    return parsedLocation.partAfterHost.replace(parsedLocation.originResourceInfo.partAfterHost, '');
+    return parsedLocation.partAfterHost.replace(parsedLocation.destResourceInfo.partAfterHost, '');
 }
 
 export function getParsed () {
-    var resolver     = getResolver(document);
-    var origin       = get();
-    var parsedOrigin = sharedUrlUtils.parseUrl(origin);
+    var resolver   = getResolver(document);
+    var dest       = get();
+    var parsedDest = sharedUrlUtils.parseUrl(dest);
 
     // NOTE: IE browser adds the default port for the https protocol while resolving.
     resolver.href = get();
@@ -110,10 +110,10 @@ export function getParsed () {
     return {
         protocol: resolver.protocol,
         // NOTE: Remove the default port.
-        port:     parsedOrigin.port ? resolver.port : '',
+        port:     parsedDest.port ? resolver.port : '',
         hostname: resolver.hostname,
         // NOTE: Remove the default port from the host.
-        host:     parsedOrigin.port ? resolver.host : resolver.host.replace(/:\d+$/, ''),
+        host:     parsedDest.port ? resolver.host : resolver.host.replace(/:\d+$/, ''),
         pathname: pathname,
         hash:     resolver.hash,
         search:   resolver.search
