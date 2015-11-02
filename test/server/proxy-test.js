@@ -409,7 +409,8 @@ describe('Proxy', function () {
             session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
             session.injectable.scripts.push('/script2.js');
-            session.injectable.styles.push('/styles.css');
+            session.injectable.styles.push('/styles1.css');
+            session.injectable.styles.push('/styles2.css');
 
             var options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
