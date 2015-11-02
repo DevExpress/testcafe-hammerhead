@@ -1,5 +1,3 @@
-var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
-var settings       = hammerhead.get('./settings');
 var sharedUrlUtils = hammerhead.get('../utils/url');
 
 var xhrSandbox = hammerhead.sandbox.xhr;
@@ -37,20 +35,6 @@ asyncTest('unsupported protocol', function () {
     var request = new XMLHttpRequest();
 
     request.open('GET', unsupportedUrl, true);
-});
-
-asyncTest('service message is not processed by a page processor', function () {
-    var storedServiceUrl = settings.get().serviceMsgUrl;
-
-    settings.get().serviceMsgUrl = '/service-msg/100';
-
-    var handler = function (data) {
-        ok(data.indexOf(INTERNAL_ATTRS.storedAttrPostfix) === -1);
-        settings.get().serviceMsgUrl = storedServiceUrl;
-        start();
-    };
-
-    $.post(settings.get().serviceMsgUrl, handler);
 });
 
 module('regression');
