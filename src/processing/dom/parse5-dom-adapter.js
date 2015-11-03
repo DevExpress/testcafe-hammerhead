@@ -11,6 +11,16 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         this.crossDomainPort = crossDomainPort;
     }
 
+    removeAttr (el, attr) {
+        for (var i = 0; i < el.attrs.length; i++) {
+            if (el.attrs[i].name === attr) {
+                el.attrs.splice(i, 1);
+
+                return;
+            }
+        }
+    }
+
     getAttr (el, attr) {
         for (var i = 0; i < el.attrs.length; i++) {
             if (el.attrs[i].name === attr)

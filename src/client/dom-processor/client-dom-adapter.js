@@ -9,6 +9,10 @@ import { isIE9 } from '../utils/browser';
 import { findDocument } from '../utils/dom';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
+    removeAttr (el, attr) {
+        return el.removeAttribute(attr);
+    }
+
     getAttr (el, attr) {
         return nativeMethods.getAttribute.call(el, attr);
     }

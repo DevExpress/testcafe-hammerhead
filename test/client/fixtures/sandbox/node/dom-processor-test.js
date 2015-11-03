@@ -305,6 +305,24 @@ test('stylesheet after innerHTML', function () {
 
 module('regression');
 
+test('Remove the "integrity" attribute from the link and script tags (GH-235)', function () {
+    var script = nativeMethods.createElement.call(document, 'script');
+    var link   = nativeMethods.createElement.call(document, 'link');
+
+    nativeMethods.setAttribute.call(script, 'integrity', 'sha384-Li9vy3DqF8tnTXuiaAJuML3ky+er10rcgNR/VqsVpcw+ThHmYcwiB1pbOxEbzJr7');
+    nativeMethods.setAttribute.call(link, 'integrity', 'sha384-Li9vy3DqF8tnTXuiaAJuML3ky+er10rcgNR/VqsVpcw+ThHmYcwiB1pbOxEbzJr7');
+
+    var urlReplacer = function (url) {
+        return url;
+    };
+
+    domProcessor.processElement(script, urlReplacer);
+    domProcessor.processElement(link, urlReplacer);
+
+    ok(!script.hasAttribute('integrity'));
+    ok(!link.hasAttribute('integrity'));
+});
+
 asyncTest('link with target=\'_parent\' in iframe (T216999)', function () {
     var iframe         = document.createElement('iframe');
     var storedAttrName = domProcessor.getStoredAttrName('href');
