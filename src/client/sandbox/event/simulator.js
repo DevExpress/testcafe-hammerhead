@@ -19,9 +19,10 @@ const POINTER_EVENT_BUTTON = {
     rightButton: 2
 };
 
-const KEY_EVENT_NAME_RE   = /^key\w+$/;
-const MOUSE_EVENT_NAME_RE = /^((mouse\w+)|((dbl)?click)|(contextmenu))$/;
-const TOUCH_EVENT_NAME_RE = /^touch\w+$/;
+const KEY_EVENT_NAME_RE       = /^key\w+$/;
+const MOUSE_EVENT_NAME_RE     = /^((mouse\w+)|((dbl)?click)|(contextmenu))$/;
+const TOUCH_EVENT_NAME_RE     = /^touch\w+$/;
+const MSPOINTER_EVENT_NAME_RE = /^MSPointer(Down|Up|Move|Over|Out)$/;
 
 export default class EventSimulator {
     constructor () {
@@ -204,9 +205,10 @@ export default class EventSimulator {
 
     _raiseNativeClick (el, originClick) {
         // NOTE: B254199
-        var curWindow = domUtils.isElementInIframe(el) ? domUtils.getIframeByElement(el).contentWindow : window;
+        var curWindow       = domUtils.isElementInIframe(el) ? domUtils.getIframeByElement(el).contentWindow : window;
+        var prevWindowEvent = curWindow.event;
 
-        if (browserUtils.isIE && browserUtils.version < 11)
+        if (browserUtils.isIE && browserUtils.version <= 11)
             delete curWindow.event;
 
         originClick.call(el);
@@ -221,6 +223,15 @@ export default class EventSimulator {
                     configurable: true
                 });
             }
+        }
+
+        // NOTE: Window.event becomes empty when the click event handler
+        // triggers the click event for a different element in IE11.(GH-226).
+        if (browserUtils.isIE11 && prevWindowEvent) {
+            Object.defineProperty(curWindow, 'event', {
+                get:          () => prevWindowEvent,
+                configurable: true
+            });
         }
     }
 
@@ -376,115 +387,123 @@ export default class EventSimulator {
     }
 
     _raiseDispatchEvent (el, ev, args) {
-        // NOTE: In IE, when we raise an event by using the dispatchEvent function, the window.event object is null.
-        // If a real event happens, there is a window.event object, but it is not identical with the first argument
-        // of the event handler. The window.Event object is identical with the object that is created when we raise
-        // the event by using  the fireEvent function. So, when we raise the event by using the dispatchEvent function,
-        // we need to set the window.event object manually. An exception for IE11: The window.event object is not null
-        // and it’s the same as in the event handler (only in window.top.event). Also, in iE11, window.event doesn’t
-        // have the returnValue property, so it’s impossible to prevent the event by assigning window.event.returnValue
-        // to false.
-        var isElementInIframe = domUtils.isElementInIframe(el);
-
         if (domUtils.isFileInput(el) && ev.type === 'click')
             this.clickedFileInput = el;
 
-        if (browserUtils.isIE && browserUtils.version < 11) {
-            args = args || { type: ev.type };
+        if (browserUtils.isIE) {
+            // NOTE: In IE, when we raise an event by using the dispatchEvent function, the window.event object is null.
+            // If a real event happens, there is a window.event object, but it is not identical with the first argument
+            // of the event handler. The window.Event object is identical with the object that is created when we raise
+            // the event by using  the fireEvent function. So, when we raise the event by using the dispatchEvent function,
+            // we need to set the window.event object manually. An exception for IE11: The window.event object is not null
+            // and it’s the same as in the event handler (only in window.top.event). Also, in iE11, window.event doesn’t
+            // have the returnValue property, so it’s impossible to prevent the event by assigning window.event.returnValue
+            // to false.
+            var isElementInIframe = domUtils.isElementInIframe(el);
+            var iframe            = isElementInIframe ? domUtils.getIframeByElement(el) : null;
+            var curWindow         = iframe ? iframe.contentWindow : window;
 
-            var returnValue = true;
-            // NOTE: B254199
-            var curWindow      = isElementInIframe ? domUtils.getIframeByElement(el).contentWindow : window;
-            var curWindowEvent = null;
-            var onEvent        = 'on' + (browserUtils.isIE10 &&
-                                         /MSPointer(Down|Up|Move|Over|Out)/.test(ev.type) ? ev.type.toLowerCase() : ev.type);
-            var inlineHandler  = el[onEvent];
-            var button         = args.button;
+            if (browserUtils.version < 11) {
+                args = args || { type: ev.type };
 
-            // NOTE: If window.event is generated after the native click is raised.
-            if (typeof curWindow.event === 'object' && this.savedWindowEvents.length &&
-                curWindow.event !== this.savedWindowEvents[0]) {
-                this.savedNativeClickCount++;
-                this.savedWindowEvents.unshift(curWindow.event);
-            }
+                var returnValue    = true;
+                var curWindowEvent = null; // NOTE: B254199
+                var onEvent       = 'on' + (MSPOINTER_EVENT_NAME_RE.test(ev.type) ? ev.type.toLowerCase() : ev.type);
+                var inlineHandler = el[onEvent];
+                var button        = args.button;
 
-            delete curWindow.event;
-
-            var saveWindowEventObject = e => {
-                curWindowEvent = curWindow.event || ev;
-                this.savedWindowEvents.unshift(curWindowEvent);
-                eventUtils.preventDefault(e);
-            };
-
-            // NOTE: fireEvent throws an error when el.parentNode === null.
-            if (el.parentNode) {
-                el[onEvent] = saveWindowEventObject;
-                args.button = IE_BUTTONS_MAP[button];
-
-                nativeMethods.fireEvent.call(el, onEvent, extend(domUtils.findDocument(el).createEventObject(), args));
-
-                el[onEvent] = inlineHandler;
-                args.button = button;
-            }
-
-            Object.defineProperty(curWindow, 'event', {
-                get:          () => this.savedWindowEvents[0],
-                configurable: true
-            });
-
-            var cancelBubble = false;
-
-            if (curWindowEvent) {
-                Object.defineProperty(curWindowEvent, 'returnValue', {
-                    get: () => returnValue,
-                    set: value => {
-                        if (value === false)
-                            ev.preventDefault();
-
-                        returnValue = value;
-                    },
-
-                    configurable: true
-                });
-
-                Object.defineProperty(curWindowEvent, 'cancelBubble', {
-                    get:          () => cancelBubble,
-                    set:          value => ev.cancelBubble = cancelBubble = value,
-                    configurable: true
-                });
-
-                if (curWindowEvent.type === 'mouseout' || curWindowEvent.type === 'mouseover') {
-                    Object.defineProperty(curWindowEvent, 'fromElement', {
-                        get:          () => curWindowEvent.type === 'mouseout' ? el : args.relatedTarget,
-                        configurable: true
-                    });
-                    Object.defineProperty(curWindowEvent, 'toElement', {
-                        get:          () => curWindowEvent.type === 'mouseover' ? el : args.relatedTarget,
-                        configurable: true
-                    });
+                // NOTE: If window.event is generated after the native click is raised.
+                if (typeof curWindow.event === 'object' && this.savedWindowEvents.length &&
+                    curWindow.event !== this.savedWindowEvents[0]) {
+                    this.savedNativeClickCount++;
+                    this.savedWindowEvents.unshift(curWindow.event);
                 }
-            }
 
-            returnValue = el.dispatchEvent(ev) && returnValue;
-
-            if (curWindowEvent && curWindowEvent === this.savedWindowEvents[0])
-                this.savedWindowEvents.shift();
-
-            if (!this.savedWindowEvents.length)
                 delete curWindow.event;
 
-            return returnValue;
-        }
-        // NOTE: In IE11, iframe's window.event object is null.
-        // We need to set iframe's window.event object manually by using window.event (B254199).
-        else if (browserUtils.isIE && browserUtils.version > 10 && isElementInIframe) {
-            Object.defineProperty(domUtils.getIframeByElement(el).contentWindow, 'event', {
-                get:          () => window.event,
-                configurable: true
-            });
+                var saveWindowEventObject = e => {
+                    curWindowEvent = curWindow.event || ev;
+                    this.savedWindowEvents.unshift(curWindowEvent);
+                    eventUtils.preventDefault(e);
+                };
+
+                // NOTE: fireEvent throws an error when el.parentNode === null.
+                if (el.parentNode) {
+                    el[onEvent] = saveWindowEventObject;
+                    args.button = IE_BUTTONS_MAP[button];
+
+                    nativeMethods.fireEvent.call(el, onEvent, extend(domUtils.findDocument(el).createEventObject(), args));
+
+                    el[onEvent] = inlineHandler;
+                    args.button = button;
+                }
+
+                Object.defineProperty(curWindow, 'event', {
+                    get:          () => this.savedWindowEvents[0],
+                    configurable: true
+                });
+
+                var cancelBubble = false;
+
+                if (curWindowEvent) {
+                    Object.defineProperty(curWindowEvent, 'returnValue', {
+                        get: () => returnValue,
+                        set: value => {
+                            if (value === false)
+                                ev.preventDefault();
+
+                            returnValue = value;
+                        },
+
+                        configurable: true
+                    });
+
+                    Object.defineProperty(curWindowEvent, 'cancelBubble', {
+                        get:          () => cancelBubble,
+                        set:          value => ev.cancelBubble = cancelBubble = value,
+                        configurable: true
+                    });
+
+                    if (curWindowEvent.type === 'mouseout' || curWindowEvent.type === 'mouseover') {
+                        Object.defineProperty(curWindowEvent, 'fromElement', {
+                            get:          () => curWindowEvent.type === 'mouseout' ? el : args.relatedTarget,
+                            configurable: true
+                        });
+                        Object.defineProperty(curWindowEvent, 'toElement', {
+                            get:          () => curWindowEvent.type === 'mouseover' ? el : args.relatedTarget,
+                            configurable: true
+                        });
+                    }
+                }
+
+                returnValue = el.dispatchEvent(ev) && returnValue;
+
+                if (curWindowEvent && curWindowEvent === this.savedWindowEvents[0])
+                    this.savedWindowEvents.shift();
+
+                if (!this.savedWindowEvents.length)
+                    delete curWindow.event;
+
+                return returnValue;
+            }
+
+            // NOTE: In IE11, iframe's window.event object is null. We need to set
+            // iframe's window.event object manually by using window.event (B254199).
+            if (browserUtils.version === 11 && isElementInIframe) {
+                Object.defineProperty(domUtils.getIframeByElement(el).contentWindow, 'event', {
+                    get:          () => window.event,
+                    configurable: true
+                });
+            }
         }
 
-        return el.dispatchEvent(ev);
+        var res = el.dispatchEvent(ev);
+
+        // NOTE: GH-226
+        if (browserUtils.isIE11)
+            delete curWindow.event;
+
+        return res;
     }
 
     /* NOTE: options = {
