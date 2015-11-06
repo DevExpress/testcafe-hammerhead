@@ -117,23 +117,23 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.Blob) {
             window.Blob = function (parts, opts) {
+                if (arguments.length === 0)
+                    return new nativeMethods.Blob();
+
+                var type = opts && opts.type && opts.type.toString().toLowerCase();
+
+                // NOTE: If we cannot identify the content type of data, we're trying to process it as a script.
+                // Unfortunately, we do not have the ability to exactly identify a script. That's why we make such
+                // an assumption. We cannot solve this problem at the Worker level either, because the operation of
+                // creating a new Blob instance is asynchronous. (GH-231)
+                if (!type || type === 'text/javascript' || type === 'application/javascript' ||
+                    type === 'application/x-javascript')
+                    parts = [processScript(parts.join(''), true, false)];
+
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
                 // If the overridden function is called with one parameter, we need to call the original function
                 // with one parameter as well.
-                switch (arguments.length) {
-                    case 0:
-                        return new nativeMethods.Blob();
-                    case 1:
-                        return new nativeMethods.Blob(parts);
-                    default:
-                        var type = opts && opts.type && opts.type.toString().toLowerCase();
-
-                        if (type === 'text/javascript' || type === 'application/javascript' ||
-                            type === 'application/x-javascript')
-                            parts = [processScript(parts.join(''), true, false)];
-
-                        return new nativeMethods.Blob(parts, opts);
-                }
+                return arguments.length === 1 ? new nativeMethods.Blob(parts) : new nativeMethods.Blob(parts, opts);
             };
         }
 
