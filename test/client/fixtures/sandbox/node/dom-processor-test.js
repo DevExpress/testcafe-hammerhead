@@ -375,3 +375,28 @@ test('The URL attribute must be set to an empty string on the server only once (
 
     strictEqual(nativeMethods.getAttribute.call(iframe, 'src'), '/should_not_be_changed');
 });
+
+test('Remove the meta tag with http-equiv="Content-Security-Policy" attribute from document (GH-243)', function () {
+    var metaTag = nativeMethods.createElement.call(document, 'meta');
+
+    nativeMethods.setAttribute.call(metaTag, 'http-equiv', 'Content-Security-Policy');
+    nativeMethods.setAttribute.call(metaTag, 'content', "script-src https: 'unsafe-eval';");
+
+    domProcessor.processElement(metaTag);
+
+    ok(!metaTag.hasAttribute('http-equiv'));
+    ok(!metaTag.hasAttribute('content'));
+});
+
+test('Remove the meta tag with http-equiv="Content-Security-Policy" attribute from document (tag properties added via setAttribute) (GH-243)', function () {
+    var metaTag = document.createElement('meta');
+
+    metaTag.setAttribute('id', 'metaContentSecurityPolicy');
+    metaTag.setAttribute('http-equiv', 'Content-Security-Policy');
+    metaTag.setAttribute('content', "script-src https: 'unsafe-eval';");
+    document.head.appendChild(metaTag);
+
+    ok(!metaTag.hasAttribute('http-equiv'));
+    ok(!metaTag.hasAttribute('content'));
+    metaTag.parentNode.removeChild(metaTag);
+});

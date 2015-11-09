@@ -279,12 +279,19 @@ export default class DomProcessor {
     }
 
     _processMetaElement (el, urlReplacer, pattern) {
-        if (this.adapter.getAttr(el, 'http-equiv').toLowerCase() === 'refresh') {
+        var httpEquivAttrValue = this.adapter.getAttr(el, 'http-equiv').toLowerCase();
+
+        if (httpEquivAttrValue === 'refresh') {
             var attr = this.adapter.getAttr(el, pattern.urlAttr);
 
             attr = attr.replace(/(url=)(.*)$/i, (match, prefix, url) => prefix + urlReplacer(url));
 
             this.adapter.setAttr(el, pattern.urlAttr, attr);
+        }
+        // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
+        else if (httpEquivAttrValue === 'content-security-policy') {
+            this.adapter.removeAttr(el, 'http-equiv');
+            this.adapter.removeAttr(el, 'content');
         }
     }
 

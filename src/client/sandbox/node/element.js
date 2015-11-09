@@ -128,6 +128,9 @@ export default class ElementSandbox extends SandboxBase {
             setAttrMeth.apply(el, ns ? [ns, storedSandboxAttr, value] : [storedSandboxAttr, value]);
             value += ' allow-scripts';
         }
+        // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
+        else if (tagName === 'meta' && ['http-equiv', 'content'].indexOf(attr) !== -1)
+            return null;
 
         return setAttrMeth.apply(el, ns ? [ns, attr, value] : [attr, value]);
     }
