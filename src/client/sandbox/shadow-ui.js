@@ -158,24 +158,18 @@ export default class ShadowUI extends SandboxBase {
         this._overrideDocumentMethods(window.document);
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_READY_TO_INIT_EVENT, e => {
-            var style = this.getUIStylesheet();
+            var iframeDocumentHead = e.iframe.contentDocument.head;
 
-            if (style) {
-                style = style.cloneNode(true);
-
-                var iframeDocumentHead = e.iframe.contentDocument.head;
-
-                iframeDocumentHead.insertBefore(style, iframeDocumentHead.firstChild);
-            }
+            iframeDocumentHead.insertBefore(this.getUIStylesheetsCopyFragment(), iframeDocumentHead.firstChild);
         });
 
         // NOTE: T174435
         if (isWebKit) {
-            var styleLink  = null;
-            var shadowRoot = null;
+            var stylesheetsCopy = null;
+            var shadowRoot      = null;
 
             this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
-                styleLink = this.getUIStylesheet();
+                stylesheetsCopy = this.getUIStylesheetsCopyFragment();
 
                 if (window.top === window.self) {
                     if (this.select('.root').length) {
@@ -188,12 +182,11 @@ export default class ShadowUI extends SandboxBase {
             });
 
             var restoreStyle = e => {
-                if (!this.getUIStylesheet()) {
-                    var headElemenet = e.document.head;
+                if (!this.isUIStylesheetExists()) {
+                    var headElement = e.document.head;
 
-                    if (styleLink && headElemenet) {
-                        styleLink = styleLink.cloneNode(true);
-                        headElemenet.insertBefore(styleLink, headElemenet.firstChild);
+                    if (stylesheetsCopy && stylesheetsCopy.children.length && headElement) {
+                        headElement.insertBefore(stylesheetsCopy, headElement.firstChild);
 
                         if (window.top === window.self && shadowRoot)
                             e.document.body.appendChild(shadowRoot);
@@ -393,8 +386,18 @@ export default class ShadowUI extends SandboxBase {
         return names.join(' ');
     }
 
-    getUIStylesheet () {
-        return nativeMethods.querySelector.call(this.document, 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet);
+    getUIStylesheetsCopyFragment () {
+        var stylesheets = nativeMethods.querySelectorAll.call(this.document, 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet);
+        var fragment    = document.createDocumentFragment();
+
+        for (var index = 0, length = stylesheets.length; index < length; index++)
+            fragment.appendChild(stylesheets[index].cloneNode(true));
+
+        return fragment;
+    }
+
+    isUIStylesheetExists () {
+        return !!nativeMethods.querySelectorAll.call(this.document, 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet).length;
     }
 
     select (selector, context) {

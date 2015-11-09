@@ -6,6 +6,7 @@ var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var domUtils      = hammerhead.utils.dom;
 var nativeMethods = hammerhead.nativeMethods;
+var isWebKit      = hammerhead.utils.browser.isWebKit;
 
 
 QUnit.testStart(function () {
@@ -436,6 +437,117 @@ test('querySelectorAll', function () {
 
     strictEqual(elems.length, 1);
     strictEqual(elems[0].id, 'pageElem');
+});
+
+module('ui stylesheet');
+
+if (isWebKit) {
+    asyncTest('stylesheets are restored after the document is cleaned', function () {
+        var link1  = document.createElement('link');
+        var link2  = document.createElement('link');
+        var iframe = document.createElement('iframe');
+
+        link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+        link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+        link1.id        = 'id1';
+        link2.id        = 'id2';
+        iframe.id       = 'test';
+
+        document.head.insertBefore(link2, document.head.firstChild);
+        document.head.insertBefore(link1, document.head.firstChild);
+
+        iframe.addEventListener('load', function () {
+            iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
+
+            var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
+                iframe.contentDocument,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
+            var result              = '';
+
+            for (var index = 0, length = iframeUIStylesheets.length; index < length; index++)
+                result += iframeUIStylesheets[index].id;
+
+            strictEqual(iframe.contentDocument.body.innerHTML, 'Cleaned!');
+            strictEqual(length, 3);
+            strictEqual(result, 'id1id2');
+
+            document.head.removeChild(link1);
+            document.head.removeChild(link2);
+            document.body.removeChild(iframe);
+
+            start();
+        });
+
+        document.body.appendChild(iframe);
+    });
+}
+
+asyncTest('append stylesheets to the iframe on initialization', function () {
+    var link1  = document.createElement('link');
+    var link2  = document.createElement('link');
+    var iframe = document.createElement('iframe');
+
+    link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+    link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+    link1.id        = 'id1';
+    link2.id        = 'id2';
+    iframe.id       = 'test';
+
+    document.head.insertBefore(link2, document.head.firstChild);
+    document.head.insertBefore(link1, document.head.firstChild);
+
+    iframe.addEventListener('load', function () {
+        var currentUIStylesheets = nativeMethods.querySelectorAll.call(
+            document,
+            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+        );
+        var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
+            iframe.contentDocument,
+            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+        );
+
+        strictEqual(currentUIStylesheets.length, iframeUIStylesheets.length);
+
+        for (var index = 0, length = currentUIStylesheets.length; index < length; index++)
+            strictEqual(currentUIStylesheets[index].outerHTML, iframeUIStylesheets[index].outerHTML);
+
+        document.head.removeChild(link1);
+        document.head.removeChild(link2);
+        document.body.removeChild(iframe);
+
+        start();
+    });
+
+    document.body.appendChild(iframe);
+});
+
+asyncTest("do nothing if ShadowUIStylesheet doesn't exist", function () {
+    var iframe       = document.createElement('iframe');
+    var qUnitCssLink = nativeMethods.querySelector.call(document, '.' + SHADOW_UI_CLASSNAME.uiStylesheet);
+
+    iframe.id              = 'test';
+    qUnitCssLink.className = '';
+
+    iframe.addEventListener('load', function () {
+        var currentUIStylesheets = nativeMethods.querySelectorAll.call(
+            document,
+            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+        );
+        var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
+            iframe.contentDocument,
+            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+        );
+
+        strictEqual(currentUIStylesheets.length, 0);
+        strictEqual(iframeUIStylesheets.length, 0);
+
+        qUnitCssLink.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+
+        start();
+    });
+
+    document.body.appendChild(iframe);
 });
 
 module('regression');
