@@ -428,6 +428,55 @@ describe('Script processor', function () {
         ]);
     });
 
+    it('Should process storages', function () {
+        testProcessing([
+            { src: 'localStorage()', expected: '__get$Storage(localStorage)()' },
+            { src: 'window.sessionStorage()', expected: 'window.sessionStorage()' },
+            { src: 'window["localStorage"]()', expected: 'window["localStorage"]()' },
+            {
+                src:      'var a = localStorage, b = window.localStorage, c = window["localStorage"];',
+                expected: 'var a = __get$Storage(localStorage), b = __get$(window,"localStorage"), c = __get$(window,"localStorage");'
+            },
+            {
+                src:      'a = sessionStorage, b = window.sessionStorage, c = window["sessionStorage"];',
+                expected: 'a = __get$Storage(sessionStorage), b =__get$(window,"sessionStorage"), c =__get$(window,"sessionStorage");'
+            },
+            {
+                src:      '{a: localStorage, b:window.localStorage, c: window["localStorage"]}',
+                expected: '{a: __get$Storage(localStorage), b: __get$(window,"localStorage"), c:  __get$(window,"localStorage")}'
+            },
+            {
+                src:      '(function() {return sessionStorage;}, function(){return window.sessionStorage;}, function(){return window["sessionStorage"]})',
+                expected: '(function() {return __get$Storage(sessionStorage);}, function(){return __get$(window,"sessionStorage");}, function(){return __get$(window,"sessionStorage");})'
+            },
+            {
+                src:      '(function a (localStorage) {}); a(localStorage, window.localStorage, window["localStorage"]);',
+                expected: '(function a (localStorage) {/**/}); a(__get$Storage(localStorage),__get$(window,"localStorage"), __get$(window,"localStorage"));'
+            },
+            {
+                src:      '__get$Storage(sessionStorage).getItem("");__get$(window,"localStorage").getItem("");',
+                expected: '__get$Storage(sessionStorage).getItem("");__get$(window,"localStorage").getItem("");'
+            },
+            {
+                src:      'sessionStorage++; sessionStorage--; ++localStorage; --localStorage;',
+                expected: 'sessionStorage++; sessionStorage--; ++localStorage; --localStorage;'
+            },
+            {
+                src:      'var ob = {localStorage : 1};',
+                expected: 'var ob = {localStorage : 1};'
+            },
+
+            {
+                src:      'var sessionStorage = value; sessionStorage = newValue;',
+                expected: 'var sessionStorage = value; sessionStorage = newValue;'
+            },
+            {
+                src:      'window.localStorage.key; window["localStorage"].key',
+                expected: '__get$(window,"localStorage").key;__get$(window,"localStorage").key'
+            }
+        ]);
+    });
+
     it('Should process window.postMessage()', function () {
         testProcessing([
             { src: 'window.postMessage("", "")', expected: '__call$(window, "postMessage", ["", ""])' },

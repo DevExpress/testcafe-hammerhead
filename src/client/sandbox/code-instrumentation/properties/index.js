@@ -25,7 +25,7 @@ import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-de
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI) {
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
         super();
 
         this.nodeMutation          = nodeMutation;
@@ -35,6 +35,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
         this.unloadSandbox         = eventSandbox.unload;
         this.shadowUI              = shadowUI;
+        this.storageSandbox        = storageSandbox;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
@@ -120,6 +121,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'data'),
                 set: (el, value) => el.setAttribute('data', value)
+            },
+
+            documentURI: {
+                condition: doc => domUtils.isDocument(doc),
+                get:       doc => urlUtils.parseProxyUrl(doc.documentURI).destUrl,
+                set:       val => val
             },
 
             domain: {
@@ -269,6 +276,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: () => void 0
             },
 
+            localStorage: {
+                condition: wnd => domUtils.isWindow(wnd),
+                get:       () => this.storageSandbox.localStorage,
+                set:       () => void 0
+            },
+
             location: {
                 condition: owner => domUtils.isDocument(owner) || domUtils.isWindow(owner),
 
@@ -362,6 +375,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: el => domUtils.isAnchor(el),
                 get:       el => getAnchorProperty(el, 'search'),
                 set:       (el, search) => setAnchorProperty(el, 'search', search)
+            },
+
+            sessionStorage: {
+                condition: wnd => domUtils.isWindow(wnd),
+                get:       () => this.storageSandbox.sessionStorage,
+                set:       () => void 0
             },
 
             src: {

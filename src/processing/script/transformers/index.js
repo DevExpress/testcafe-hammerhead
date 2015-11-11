@@ -14,6 +14,7 @@ import windowEvalGetTransformer from './window-eval-get';
 import forInTransformer from './for-in';
 import functionCtorTransformer from './function-ctor';
 import locationGetTransformer from './location-get';
+import storageGetTransformer from './storage-get';
 import locationPropertyGetTransformer from './location-property-get';
 import locationSetTransformer from './location-set';
 import propertyGetTransformer from './property-get';
@@ -33,6 +34,7 @@ const TRANSFORMERS = [
     forInTransformer,
     functionCtorTransformer,
     locationGetTransformer,
+    storageGetTransformer,
     locationPropertyGetTransformer,
     locationSetTransformer,
     propertyGetTransformer,

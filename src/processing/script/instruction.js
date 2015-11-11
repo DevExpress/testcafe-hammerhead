@@ -10,5 +10,6 @@ export default {
     setProperty:   '__set$',
     callMethod:    '__call$',
     processScript: '__proc$Script',
-    getEval:       '__get$Eval'
+    getEval:       '__get$Eval',
+    getStorage:    '__get$Storage'
 };

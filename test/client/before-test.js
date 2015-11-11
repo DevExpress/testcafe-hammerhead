@@ -1,4 +1,7 @@
 (function () {
+    localStorage.clear();
+    sessionStorage.clear();
+
     // NOTE: Prevent Hammerhead from processing testing environment resources. There are only testing environment
     // resources on the page when this script is being executed. So, we can add the hammerhead class to all scripts
     // and link elements on the page.
@@ -19,7 +22,8 @@
                 '    referer : "http://localhost/sessionId/https://example.com",',
                 '    serviceMsgUrl : "/service-msg/100",',
                 '    sessionId : "sessionId"',
-                '});'
+                '});',
+                'window["%hammerhead%"].get("./utils/destination-location").forceLocation("http://localhost/sessionId/https://iframe.example.com")'
             ].join(''));
         }
     };

@@ -45,7 +45,9 @@ export default class EventSandbox extends SandboxBase {
             dispatchEvent: function (ev) {
                 Listeners.beforeDispatchEvent();
 
-                var res = nativeMethods.dispatchEvent.call(this, ev);
+                var isWindow = domUtils.isWindow(this);
+                var res      = isWindow ? nativeMethods.windowDispatchEvent.call(this, ev) :
+                               nativeMethods.dispatchEvent.call(this, ev);
 
                 Listeners.afterDispatchEvent();
 
@@ -165,6 +167,7 @@ export default class EventSandbox extends SandboxBase {
 
         window.HTMLInputElement.prototype.setSelectionRange    = this.overridedMethods.setSelectionRange;
         window.HTMLTextAreaElement.prototype.setSelectionRange = this.overridedMethods.setSelectionRange;
+        window.dispatchEvent                                   = this.overridedMethods.dispatchEvent;
 
         this._overrideElementOrHTMLElementMethod('focus', this.overridedMethods.focus);
         this._overrideElementOrHTMLElementMethod('blur', this.overridedMethods.blur);

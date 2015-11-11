@@ -4,7 +4,7 @@ import UploadInfoManager from './info-manager';
 import { isFileInput } from '../../utils/dom';
 import { isIE, version as browserVersion } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
-import { getSandboxFromStorage } from '../storage';
+import { get as getSandboxBackup } from '../backup';
 
 export default class UploadSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, shadowUI) {
@@ -26,7 +26,7 @@ export default class UploadSandbox extends SandboxBase {
     static _getCurrentInfoManager (input) {
         var contextWindow = input[INTERNAL_PROPS.processedContext];
 
-        return getSandboxFromStorage(contextWindow).upload.infoManager;
+        return getSandboxBackup(contextWindow).upload.infoManager;
     }
 
     /*eslint-disable max-nested-callbacks */

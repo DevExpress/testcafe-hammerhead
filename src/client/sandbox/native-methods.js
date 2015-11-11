@@ -85,7 +85,9 @@ class NativeMethods {
         this.historyPushState        = win.history ? win.history.pushState : null;
         this.historyReplaceState     = win.history ? win.history.replaceState : null;
         this.Image                   = win.Image;
+        this.StorageEvent            = win.StorageEvent;
         this.MutationObserver        = win.MutationObserver;
+        this.windowDispatchEvent     = win.dispatchEvent;
         this.postMessage             = win.postMessage || Window.prototype.postMessage;
         this.windowOpen              = win.open || Window.prototype.open;
         this.Worker                  = win.Worker;
@@ -96,7 +98,7 @@ class NativeMethods {
         this.registerProtocolHandler = win.navigator.registerProtocolHandler;
 
         try {
-            this.registerServiceWorker = win.navigator && win.navigator.serviceWorker ? win.navigator.serviceWorker.register : null;
+            this.registerServiceWorker = win.navigator.serviceWorker.register;
         }
         catch (e) {
             this.registerServiceWorker = null;
