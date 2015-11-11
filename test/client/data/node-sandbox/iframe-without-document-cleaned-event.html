@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+    hammerhead.shadowUI.getRoot();
+</script>
+<script>
+    var INSTRUCTION = hammerhead.get('../processing/script/instruction');
+    var mutation = hammerhead.sandbox.node.mutation;
+    var postMessage = hammerhead.sandbox.event.message.postMessage;
+
+    var isDocumentCleanedCalled = false;
+
+    mutation.on(mutation.DOCUMENT_CLEANED_EVENT, function () {
+        isDocumentCleanedCalled = true;
+
+        postMessage(window.top, ['fail', '*']);
+    });
+
+    window.addEventListener('load', function () {
+        if (!isDocumentCleanedCalled)
+            postMessage(window.top, ['success', '*']);
+    });
+
+    eval(window[INSTRUCTION.processScript]('document.write(\'<div id="test-div">Hello!</div>\');'));
+</script>
+</body>
+</html>

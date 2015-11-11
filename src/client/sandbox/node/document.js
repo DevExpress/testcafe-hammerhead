@@ -3,7 +3,7 @@ import IframeSandbox from '../iframe';
 import INTERNAL_LITERAL from '../../../processing/script/internal-literal';
 import nativeMethods from '../native-methods';
 import * as htmlUtils from '../../utils/html';
-import { isFirefox, isIE } from '../../utils/browser';
+import { isFirefox, isIE, isIE9, isIE10 } from '../../utils/browser';
 import { isIframeWithoutSrc } from '../../utils/dom';
 
 export default class DocumentSandbox extends SandboxBase {
@@ -14,12 +14,14 @@ export default class DocumentSandbox extends SandboxBase {
         this.writeBlockCounter          = 0;
 
         this.nodeSandbox = nodeSandbox;
+
+        this.readyStateForIE = null;
     }
 
-    _isUninitializedIframeWithoutSrc (window) {
+    _isUninitializedIframeWithoutSrc () {
         try {
-            return window !== window.top && isIframeWithoutSrc(window.frameElement) &&
-                   !IframeSandbox.isIframeInitialized(window.frameElement);
+            return this.window !== this.window.top && isIframeWithoutSrc(this.window.frameElement) &&
+                   !IframeSandbox.isIframeInitialized(this.window.frameElement);
         }
         catch (e) {
             return false;
@@ -72,11 +74,12 @@ export default class DocumentSandbox extends SandboxBase {
             return null;
         }
 
-        var isUninitializedIframe = this._isUninitializedIframeWithoutSrc(this.window);
+        var shouldEmitDocumentCleanedEvent = (this.readyStateForIE || this.document.readyState) !== 'loading' &&
+                                             this.document.readyState !== 'uninitialized';
 
         str = htmlUtils.processHtml('' + str);
 
-        if (!isUninitializedIframe)
+        if (shouldEmitDocumentCleanedEvent)
             this._beforeDocumentCleaned();
 
         // NOTE: Firefox and IE recreate a window instance during the document.write function execution (T213930).
@@ -85,7 +88,7 @@ export default class DocumentSandbox extends SandboxBase {
 
         var result = nativeMethods.documentWrite.call(this.document, str);
 
-        if (!isUninitializedIframe) {
+        if (shouldEmitDocumentCleanedEvent) {
             this.nodeSandbox.mutation.onDocumentCleaned({
                 window:             this.window,
                 document:           this.document,
@@ -102,10 +105,17 @@ export default class DocumentSandbox extends SandboxBase {
     attach (window, document) {
         super.attach(window, document);
 
+        // NOTE: https://connect.microsoft.com/IE/feedback/details/792880/document-readystat
+        if (isIE9 || isIE10) {
+            this.readyStateForIE = 'loading';
+
+            nativeMethods.addEventListener.call(this.document, 'DOMContentLoaded', () => this.readyStateForIE = null);
+        }
+
         var documentSandbox = this;
 
         document.open = () => {
-            var isUninitializedIframe = this._isUninitializedIframeWithoutSrc(window);
+            var isUninitializedIframe = this._isUninitializedIframeWithoutSrc();
 
             if (!isUninitializedIframe)
                 this._beforeDocumentCleaned();
@@ -113,7 +123,7 @@ export default class DocumentSandbox extends SandboxBase {
             var result = nativeMethods.documentOpen.call(document);
 
             if (!isUninitializedIframe)
-                this.nodeSandbox.mutation.onDocumentCleaned({ window: window, document: document });
+                this.nodeSandbox.mutation.onDocumentCleaned({ window, document });
             else
             // NOTE: If iframe initialization is in progress, we need to override the document.write and document.open
             // methods once again, because they were cleaned after the native document.open method call.
@@ -131,7 +141,7 @@ export default class DocumentSandbox extends SandboxBase {
 
             var result = nativeMethods.documentClose.call(document);
 
-            if (!this._isUninitializedIframeWithoutSrc(window))
+            if (!this._isUninitializedIframeWithoutSrc())
                 this._onDocumentClosed();
 
             return result;

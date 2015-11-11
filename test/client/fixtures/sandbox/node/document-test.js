@@ -256,3 +256,21 @@ test('document.write with __begin$, __end$ parameters (T232454)', function () {
 
     strictEqual(result, 'w1w2w3wl1wl2wl3');
 });
+
+asyncTest('the onDocumentCleaned event is not raised after calling document.write (GH-253)', function () {
+    expect(1);
+
+    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
+
+    window.addEventListener('message', function (e) {
+        var iframe = e.source.frameElement;
+
+        strictEqual(e.data, 'success');
+
+        iframe.parentNode.removeChild(iframe);
+
+        start();
+    });
+
+    $('<iframe></iframe>').attr('src', iframeSrc).appendTo('body');
+});
