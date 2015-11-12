@@ -50,11 +50,12 @@
     "gulp-webmake": "0.0.4",
     "multiline": "^1.0.2",
     "request": "~2.27.0",
+    "self-signed-https": "^1.0.5",
     "tmp": "0.0.26"
   },
   "main": "lib/index",
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">= 4.0.0"
   },
   "files": [
     "lib"
