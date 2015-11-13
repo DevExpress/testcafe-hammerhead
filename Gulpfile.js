@@ -116,12 +116,9 @@ gulp.task('templates', ['clean'], function () {
 
 gulp.task('client-scripts', ['client-scripts-bundle'], function () {
     return gulp.src('./src/client/index.js.wrapper.mustache')
-        .pipe(mustache({
-            source:    fs.readFileSync('./lib/client/hammerhead.js').toString(),
-            sourceMap: ''
-        }))
+        .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
         .pipe(rename('hammerhead.js'))
-        .pipe(gulpif(util.env.release, uglify()))
+        .pipe(gulpif(!util.env.dev, uglify()))
         .pipe(gulp.dest('./lib/client'));
 });
 
@@ -136,10 +133,7 @@ gulp.task('client-scripts-bundle', ['clean'], function () {
                     blacklist: ['runtime']
                 });
 
-                return {
-                    code:      transformed.code,
-                    sourceMap: transformed.map
-                };
+                return { code: transformed.code };
             }
         }))
         .pipe(rename('hammerhead.js'))
