@@ -60,6 +60,6 @@
     "lib"
   ],
   "scripts": {
-    "test": "gulp travis --release"
+    "test": "gulp travis"
   }
 }
