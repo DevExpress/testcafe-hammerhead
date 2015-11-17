@@ -9,5 +9,6 @@ export default {
     getProperty:   '__get$',
     setProperty:   '__set$',
     callMethod:    '__call$',
-    processScript: '__proc$Script'
+    processScript: '__proc$Script',
+    getEval:       '__get$Eval'
 };

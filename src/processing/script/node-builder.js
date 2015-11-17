@@ -254,6 +254,21 @@ export function createComputedPropertySetWrapper (property, owner, value) {
     };
 }
 
+export function createGetEvalMethCall (node) {
+    return {
+        type: Syntax.CallExpression,
+
+        callee: {
+            type: Syntax.Identifier,
+            name: INSTRUCTION.getEval
+        },
+
+        arguments: [
+            node
+        ]
+    };
+}
+
 export function createExpandedConcatOperation (left, right) {
     return {
         type:     Syntax.AssignmentExpression,

@@ -31,6 +31,19 @@ export default class CodeInstrumentation extends SandboxBase {
         this.locationAccessorsInstrumentation.attach(window);
         this.elementPropertyAccessors = this.propertyAccessorsInstrumentation.attach(window);
 
+        // NOTE: GH-260
+        window[INSTRUCTION.getEval] = evalFn => {
+            if (evalFn !== window.eval)
+                return evalFn;
+
+            return script => {
+                if (typeof script === 'string')
+                    script = processScript(script);
+
+                return evalFn(script);
+            };
+        };
+
         window[INSTRUCTION.processScript] = (script, isApply) => {
             if (isApply) {
                 if (script && script.length && typeof script[0] === 'string') {
