@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({
+        crossDomainProxyPort: 2000,
+        serviceMsgUrl: '/service-msg/100'
+    });
+    hammerhead.shadowUI.getRoot();
+</script>
+<script>
+    var iframeSandbox = window['%hammerhead%'].sandbox.iframe;
+    var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
+    var postMessage = hammerhead.sandbox.event.message.postMessage;
+
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, window.top.initIframeTestHandler);
+
+    document.write('<a>Link</a><iframe id="test"></iframe>');
+
+    postMessage(window.top, [[
+        {
+            success:     document.querySelector('a')[INTERNAL_PROPS.processedContext] === window,
+            description: 'element "a" is overridden'
+        },
+
+        {
+            success:     document.querySelector('iframe')[INTERNAL_PROPS.processedContext] === window,
+            description: 'element "iframe" is overridden'
+        },
+
+        {
+            success:     document.querySelector('iframe').contentDocument.write.toString() !==
+                         hammerhead.nativeMethods.documentWrite.toString(),
+            description: 'document.write function of element "iframe" is overridden'
+        }
+    ], '*']);
+</script>
+</body>
+</html>

@@ -262,7 +262,9 @@ asyncTest('the onDocumentCleaned event is not raised after calling document.writ
 
     var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
 
-    window.addEventListener('message', function (e) {
+    var onMessageHandler = function (e) {
+        window.removeEventListener('message', onMessageHandler);
+
         var iframe = e.source.frameElement;
 
         strictEqual(e.data, 'success');
@@ -270,7 +272,36 @@ asyncTest('the onDocumentCleaned event is not raised after calling document.writ
         iframe.parentNode.removeChild(iframe);
 
         start();
-    });
+    };
 
-    $('<iframe></iframe>').attr('src', iframeSrc).appendTo('body');
+    window.addEventListener('message', onMessageHandler);
+
+    $('<iframe>').attr('src', iframeSrc).appendTo('body');
+});
+
+asyncTest('document elements are overridden after document.write has been called (GH-253)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id  = 'test';
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-override-elems-after-write.html');
+
+    var onMessageHandler = function (e) {
+        window.removeEventListener('message', onMessageHandler);
+
+        var data = e.data instanceof Object ? e.data : JSON.parse(e.data);
+
+        strictEqual(data.length, 3);
+
+        data.forEach(function (testResult) {
+            ok(testResult.success, testResult.description);
+        });
+
+        iframe.parentNode.removeChild(iframe);
+
+        start();
+    };
+
+    window.addEventListener('message', onMessageHandler);
+
+    document.body.appendChild(iframe);
 });
