@@ -5,28 +5,27 @@ import LRUCache from 'lru-cache';
 const SSL3_HOST_CACHE_SIZE = 1000;
 
 const TYPE = {
-    SSLv3: 'SSLv3',
-    TLSv1: 'TLSv1',
-    HTTP:  'HTTP'
+    SSL3: 'SSL3',
+    TLS:  'TLS',
+    HTTP: 'HTTP'
 };
 
 
 // Static
-var SSLv3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
+var ssl3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
 
 // NOTE: We need an agent with proper keep-alive behavior. Such an agent has landed in Node 0.12. Since we
 // still support Node 0.10, we will use a third-party agent that is the extraction of Node 0.12 Agent code.
 var agents = {
-    [TYPE.SSLv3]: {
+    [TYPE.SSL3]: {
         instance:       null,
         Ctor:           Agent.SSL,
         secureProtocol: 'SSLv3_method'
     },
 
-    [TYPE.TLSv1]: {
-        instance:       null,
-        Ctor:           Agent.SSL,
-        secureProtocol: 'TLSv1_method'
+    [TYPE.TLS]: {
+        instance: null,
+        Ctor:     Agent.SSL
     },
 
     [TYPE.HTTP]: {
@@ -62,24 +61,22 @@ export function assign (reqOpts) {
     if (reqOpts.protocol === 'http:')
         type = TYPE.HTTP;
 
-    else if (SSLv3HostCache.get(reqOpts.host))
-        type = TYPE.SSLv3;
+    else if (ssl3HostCache.get(reqOpts.host))
+        type = TYPE.SSL3;
 
     else
-        type = TYPE.TLSv1;
+        type = TYPE.TLS;
 
     reqOpts.agent = getAgent(type);
 }
 
 export function shouldRegressHttps (reqErr, reqOpts) {
-    var currentAgentIsTLSv1 = reqOpts.agent.options.secureProtocol === agents[TYPE.TLSv1].secureProtocol;
-
-    return currentAgentIsTLSv1 && isSSLProtocolErr(reqErr);
+    return reqOpts.agent === agents[TYPE.TLS] && isSSLProtocolErr(reqErr);
 }
 
 export function regressHttps (reqOpts) {
-    SSLv3HostCache.set(reqOpts.host, true);
-    reqOpts.agent = getAgent(TYPE.SSLv3);
+    ssl3HostCache.set(reqOpts.host, true);
+    reqOpts.agent = getAgent(TYPE.SSL3);
 }
 
 // NOTE: Since our agents are keep-alive, we need to manually reset connections when we

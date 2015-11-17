@@ -1,15 +1,16 @@
-var Promise            = require('pinkie');
-var fs                 = require('fs');
-var request            = require('request');
-var expect             = require('chai').expect;
-var express            = require('express');
-var read               = require('read-file-relative').readSync;
-var COMMAND            = require('../../lib/session/command');
-var XHR_HEADERS        = require('../../lib/request-pipeline/xhr/headers');
-var Proxy              = require('../../lib/proxy');
-var Session            = require('../../lib/session');
-var DestinationRequest = require('../../lib/request-pipeline/destination-request');
-var requestAgent       = require('../../lib/request-pipeline/destination-request/agent');
+var Promise                     = require('pinkie');
+var fs                          = require('fs');
+var request                     = require('request');
+var expect                      = require('chai').expect;
+var express                     = require('express');
+var read                        = require('read-file-relative').readSync;
+var createSelfSignedHttpsServer = require('self-signed-https');
+var COMMAND                     = require('../../lib/session/command');
+var XHR_HEADERS                 = require('../../lib/request-pipeline/xhr/headers');
+var Proxy                       = require('../../lib/proxy');
+var Session                     = require('../../lib/session');
+var DestinationRequest          = require('../../lib/request-pipeline/destination-request');
+var requestAgent                = require('../../lib/request-pipeline/destination-request/agent');
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
@@ -553,6 +554,33 @@ describe('Proxy', function () {
             request('http://127.0.0.1:1836/testcafe-ui-styles.css', function (err, res, body) {
                 expect(body.replace(/\r\n|\n/g, '')).equal(expected.replace(/\r\n|\n/g, ''));
 
+                done();
+            });
+        });
+    });
+
+    describe('HTTPS', function () {
+        var httpsServer = null;
+
+        before(function () {
+            var httpsApp = express();
+
+            httpsApp.get('/answer', function (req, res) {
+                res.send('42');
+            });
+
+            httpsServer = createSelfSignedHttpsServer(httpsApp).listen(2001);
+        });
+
+        after(function () {
+            httpsServer.close();
+        });
+
+        it('Should proxy unauthorized HTTPS pages', function (done) {
+            var url = proxy.openSession('https://127.0.0.1:2001/answer', session);
+
+            request(url, function (err, res, body) {
+                expect(body).eql('42');
                 done();
             });
         });
