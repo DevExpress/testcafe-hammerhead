@@ -3,8 +3,8 @@ var urlUtils       = hammerhead.get('./utils/url');
 var settings       = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
-var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -61,37 +61,33 @@ test('document.write', function () {
     iframe.parentNode.removeChild(iframe);
 });
 
-// NOTE: This test must be the last (IE11 hack).
 asyncTest('element.setAttribute', function () {
-    var src = browserUtils.isFirefox ? ' src="javascript:&quot;<html><body></body></html>&quot;"' : '';
+    // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
+    var src    = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
+    var iframe = document.createElement('iframe');
 
-    expect(12);
+    iframe.id  = 'test20';
+    iframe.setAttribute('src', src);
+    iframe.addEventListener('load', function () {
+        var iframeHammerhead    = this.contentWindow['%hammerhead%'];
+        var iframeIframeSandbox = iframeHammerhead.sandbox.iframe;
 
-    $('<iframe id="test20"' + src + '>').load(function () {
-        var iframe     = this;
-        var iframeBody = iframe.contentDocument.body;
+        iframeIframeSandbox.on(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+        iframeIframeSandbox.off(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 
-        // NOTE: IE hack part 1: catch hammerhead initialization exception.
-        var iframeSandbox = this.contentWindow['%hammerhead%'].sandbox.iframe;
-        var storedMeth    = iframeSandbox.constructor.isIframeInitialized;
+        var iframeDocument   = this.contentDocument;
+        var iframeBody       = iframeDocument.body;
+        var nestedIframe     = iframeDocument.createElement('iframe');
 
-        iframeSandbox.constructor.isIframeInitialized = function (iframe) {
-            iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName] =
-                iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName] || function () { };
+        nestedIframe.id = 'test21';
+        nestedIframe.addEventListener('load', function () {
+            var nestedIframeHammerhead = this.contentWindow['%hammerhead%'];
 
-            return storedMeth.call(iframeSandbox, iframe);
-        };
-        // --------------------------------------------------------
+            ok(nestedIframeHammerhead);
 
-        $('<iframe id="test21">').load(function () {
-            // NOTE: IE hack part 2: initialize hammerhead manually.
-            if (this.contentDocument.createElement.toString().indexOf('native') !== -1)
-                initIframeTestHandler({ iframe: this });
-
-            var iframeDocument = this.contentDocument;
-            var subIframeBody  = iframeDocument.body;
-
-            var testData = [
+            var nestedIframeDocument = this.contentDocument;
+            var nestedIframeBody     = nestedIframeDocument.body;
+            var testData             = [
                 [document.body, 'a', 'href', null, null],
                 [iframeBody, 'a', 'href', null, 'iframe'],
                 [document.body, 'form', 'action', null, null],
@@ -100,10 +96,10 @@ asyncTest('element.setAttribute', function () {
                 [iframeBody, 'area', 'href', null, null],
                 [document.body, 'a', 'href', '_top', null],
                 [iframeBody, 'a', 'href', '_top', null],
-                [subIframeBody, 'a', 'href', '_top', null],
+                [nestedIframeBody, 'a', 'href', '_top', null],
                 [document.body, 'a', 'href', '_parent', null],
                 [iframeBody, 'a', 'href', '_parent', null],
-                [subIframeBody, 'a', 'href', '_parent', 'iframe']
+                [nestedIframeBody, 'a', 'href', '_parent', 'iframe']
             ];
 
             var testIframeFlag = function (body, tag, urlAttr, target, resultFlag) {
@@ -122,10 +118,12 @@ asyncTest('element.setAttribute', function () {
             for (var i = 0; i < testData.length; i++)
                 testIframeFlag.apply(null, testData[i]);
 
+            iframe.parentNode.removeChild(iframe);
             start();
-            $(iframe).remove();
-        }).appendTo(iframeBody);
-    }).appendTo('body');
+        });
+        iframeBody.appendChild(nestedIframe);
+    });
+    document.body.appendChild(iframe);
 });
 
 module('regression');

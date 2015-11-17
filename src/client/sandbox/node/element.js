@@ -2,6 +2,7 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
 import { processScript } from '../../../processing/script';
+import { process as processStyle } from '../../../processing/style';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
@@ -153,22 +154,24 @@ export default class ElementSandbox extends SandboxBase {
             return removeAttrFunc.apply(el, arg);
     }
 
+    _prepareNodeForInsertion (node, parentNode) {
+        if (node.nodeType === 3)
+            ElementSandbox._processTextNodeContent(node, parentNode);
+
+        this.nodeSandbox.overrideDomMethods(node);
+    }
+
     _createOverridedMethods () {
-        var overrideNewElement           = el => this.nodeSandbox.overrideDomMethods(el);
-        var onElementAdded               = el => this._onElementAdded(el);
-        var onElementRemoved             = el => this.onElementRemoved(el);
-        var removeFileInputInfo          = el => ElementSandbox._removeFileInputInfo(el);
-        var overridedGetAttributeCore    = (el, attr, ns) => this._overridedGetAttributeCore(el, attr, ns);
-        var overridedSetAttributeCore    = (el, attr, value, ns) => this._overridedSetAttributeCore(el, attr, value, ns);
-        var overridedRemoveAttributeCore = (el, ns, arg) => this._overridedRemoveAttributeCore(el, ns, arg);
+        // NOTE: We need the closure because a context of overridden methods is an html element
+        var sandbox = this;
 
         this.overridedMethods = {
-            insertRow: function () {
+            insertRow () {
                 var tagName    = this.tagName.toLowerCase();
                 var nativeMeth = tagName === 'table' ? nativeMethods.insertTableRow : nativeMethods.insertTBodyRow;
                 var row        = nativeMeth.apply(this, arguments);
 
-                overrideNewElement(row);
+                sandbox.nodeSandbox.overrideDomMethods(row);
 
                 return row;
             },
@@ -176,7 +179,7 @@ export default class ElementSandbox extends SandboxBase {
             insertCell () {
                 var cell = nativeMethods.insertCell.apply(this, arguments);
 
-                overrideNewElement(cell);
+                sandbox.nodeSandbox.overrideDomMethods(cell);
 
                 return cell;
             },
@@ -186,7 +189,7 @@ export default class ElementSandbox extends SandboxBase {
                     html = processHtml('' + html, this.parentNode && this.parentNode.tagName);
 
                 nativeMethods.insertAdjacentHTML.call(this, pos, html);
-                overrideNewElement(this.parentNode || this);
+                sandbox.nodeSandbox.overrideDomMethods(this.parentNode || this);
             },
 
             formSubmit () {
@@ -202,49 +205,46 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             insertBefore (newNode, refNode) {
-                overrideNewElement(newNode);
+                sandbox._prepareNodeForInsertion(newNode, this);
 
-                var result = nativeMethods.insertBefore.call(this, newNode, refNode);
+                var result = null;
 
-                onElementAdded(newNode);
+                if (domUtils.isBodyElementWithChildren(this) && !refNode)
+                    result = sandbox.shadowUI.insertBeforeRoot(newNode);
+                else
+                    result = nativeMethods.insertBefore.call(this, newNode, refNode);
+
+                sandbox._onElementAdded(newNode);
 
                 return result;
             },
 
             appendChild (child) {
-                // NOTE: We need to process TextNode as a script if it is appended to a script element (B254284).
-                if (child.nodeType === 3 && this.tagName && this.tagName.toLowerCase() === 'script')
-                    child.data = processScript(child.data, true, false);
-
-                overrideNewElement(child);
+                sandbox._prepareNodeForInsertion(child, this);
 
                 var result = null;
 
-                if (this.tagName && this.tagName.toLowerCase() === 'body' && this.children.length) {
-                    // NOTE: We need to append the element before the shadow ui root.
-                    var lastChild = this.children[this.children.length - 1];
-
-                    result = nativeMethods.insertBefore.call(this, child, lastChild);
-                }
+                if (domUtils.isBodyElementWithChildren(this))
+                    result = sandbox.shadowUI.insertBeforeRoot(child);
                 else
                     result = nativeMethods.appendChild.call(this, child);
 
-                onElementAdded(child);
+                sandbox._onElementAdded(child);
 
                 return result;
             },
 
             removeChild (child) {
                 if (domUtils.isDomElement(child)) {
-                    domUtils.find(child, 'input[type=file]', removeFileInputInfo);
+                    domUtils.find(child, 'input[type=file]', ElementSandbox._removeFileInputInfo);
 
                     if (domUtils.isFileInput(child))
-                        removeFileInputInfo(child);
+                        ElementSandbox._removeFileInputInfo(child);
                 }
 
                 var result = nativeMethods.removeChild.call(this, child);
 
-                onElementRemoved(child);
+                sandbox.onElementRemoved(child);
 
                 return result;
             },
@@ -252,35 +252,47 @@ export default class ElementSandbox extends SandboxBase {
             cloneNode () {
                 var clone = nativeMethods.cloneNode.apply(this, arguments);
 
-                overrideNewElement(clone);
+                sandbox.nodeSandbox.overrideDomMethods(clone);
 
                 return clone;
             },
 
             getAttribute (attr) {
-                return overridedGetAttributeCore(this, attr);
+                return sandbox._overridedGetAttributeCore(this, attr);
             },
 
             getAttributeNS (ns, attr) {
-                return overridedGetAttributeCore(this, attr, ns);
+                return sandbox._overridedGetAttributeCore(this, attr, ns);
             },
 
             setAttribute (attr, value) {
-                return overridedSetAttributeCore(this, attr, value);
+                return sandbox._overridedSetAttributeCore(this, attr, value);
             },
 
             setAttributeNS (ns, attr, value) {
-                return overridedSetAttributeCore(this, attr, value, ns);
+                return sandbox._overridedSetAttributeCore(this, attr, value, ns);
             },
 
             removeAttribute () {
-                return overridedRemoveAttributeCore(this, false, arguments);
+                return sandbox._overridedRemoveAttributeCore(this, false, arguments);
             },
 
             removeAttributeNS () {
-                return overridedRemoveAttributeCore(this, true, arguments);
+                return sandbox._overridedRemoveAttributeCore(this, true, arguments);
             }
         };
+    }
+
+    static _processTextNodeContent (node, parentNode) {
+        if (!parentNode.tagName)
+            return;
+
+        var parentTagName = parentNode.tagName.toLowerCase();
+
+        if (parentTagName === 'script')
+            node.data = processScript(node.data, true, false);
+        else if (parentTagName === 'style')
+            node.data = processStyle(node.data, urlUtils.getProxyUrl);
     }
 
     static _isUrlAttr (el, attr) {
@@ -301,7 +313,7 @@ export default class ElementSandbox extends SandboxBase {
                 for (var i = 0; i < iframes.length; i++)
                     this.onIframeAddedToDOM(iframes[i]);
             }
-            else if (el.tagName && el.tagName.toLowerCase() === 'body')
+            else if (domUtils.isBodyElement(el))
                 this.shadowUI.onBodyElementMutation();
         }
 
@@ -314,7 +326,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     onElementRemoved (el) {
-        if (el.nodeType === 1 && el.tagName && el.tagName.toLowerCase() === 'body')
+        if (domUtils.isBodyElement(el))
             this.shadowUI.onBodyElementMutation();
     }
 

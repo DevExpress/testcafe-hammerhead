@@ -351,6 +351,14 @@ export function isInputElement (el) {
     return isDomElement(el) && el.tagName.toLowerCase() === 'input';
 }
 
+export function isBodyElement (el) {
+    return isDomElement(el) && el.tagName.toLowerCase() === 'body';
+}
+
+export function isBodyElementWithChildren (el) {
+    return isBodyElement(el) && el.children.length;
+}
+
 export function isInputWithoutSelectionPropertiesInFirefox (el) {
     // NOTE: T101195, T133144, T101195
     return isFirefox && matches(el, 'input[type=number]');

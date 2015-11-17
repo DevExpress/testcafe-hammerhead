@@ -543,6 +543,7 @@ asyncTest("do nothing if ShadowUIStylesheet doesn't exist", function () {
         strictEqual(iframeUIStylesheets.length, 0);
 
         qUnitCssLink.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+        iframe.parentNode.removeChild(iframe);
 
         start();
     });
@@ -579,15 +580,27 @@ test('ShadowUI\'s root must be the last child after adding a new element (T23968
 
     strictEqual(document.body.children[bodyChildrenCount - 1], root);
 
-    var $newElement = $('<div>');
+    var div1 = document.createElement('div');
 
-    document.body.appendChild($newElement[0]);
-
+    div1.id = 'div1';
+    document.body.appendChild(div1);
     strictEqual(document.body.children.length, bodyChildrenCount + 1);
-    strictEqual(document.body.children[bodyChildrenCount - 1], $newElement[0]);
+    strictEqual(document.body.children[bodyChildrenCount - 1], div1);
     strictEqual(document.body.children[bodyChildrenCount], root);
 
-    $newElement.remove();
+    bodyChildrenCount = document.body.children.length;
+    strictEqual(document.body.children[bodyChildrenCount - 1], root);
+
+    var div2 = document.createElement('div');
+
+    div2.id = 'div2';
+    document.body.insertBefore(div2, null);
+    strictEqual(document.body.children.length, bodyChildrenCount + 1);
+    strictEqual(document.body.children[bodyChildrenCount - 1], div2);
+    strictEqual(document.body.children[bodyChildrenCount], root);
+
+    div1.parentNode.removeChild(div1);
+    div2.parentNode.removeChild(div2);
 });
 
 asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
