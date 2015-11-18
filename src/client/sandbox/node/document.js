@@ -94,10 +94,10 @@ export default class DocumentSandbox extends SandboxBase {
                 document:           this.document,
                 isIframeWithoutSrc: isIframeWithoutSrc
             });
-
-            // NOTE: B234357
-            this.nodeSandbox.overrideDomMethods(null, this.document);
         }
+
+        // NOTE: B234357
+        this.nodeSandbox.overrideDomMethods(null, this.document);
 
         return result;
     }
