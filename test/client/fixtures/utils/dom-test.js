@@ -165,6 +165,26 @@ test('closest element', function () {
 
 module('isIframeWithoutSrc');
 
+asyncTest('after the location is set to an iframe without src isIframeWithoutSrc should return "false"', function () {
+    var handler = function () {
+        ok(domUtils.isIframeWithoutSrc(this));
+        this.removeEventListener('load', handler);
+        this.addEventListener('load', function () {
+            ok(!domUtils.isIframeWithoutSrc(this));
+            this.parentNode.removeChild(this);
+            start();
+        });
+
+        this.contentWindow.location = window.QUnitGlobals.getResourceUrl('../../data/same-domain/service-message-from-removed-iframe.html');
+    };
+
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test9';
+    iframe.addEventListener('load', handler);
+    document.body.appendChild(iframe);
+});
+
 asyncTest('changed location 2', function () {
     var handler = function () {
         this.removeEventListener('load', handler);

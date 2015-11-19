@@ -325,13 +325,14 @@ export function isIframeWithoutSrc (iframe) {
         return true;
 
     var parentWindowWithSrc  = getParentWindowWithSrc(iframe.contentWindow);
-    var windowLocation       = parentWindowWithSrc.location.toString();
-    var parsedWindowLocation = urlUtils.parseProxyUrl(windowLocation);
+    var parsedWindowLocation = urlUtils.parseProxyUrl(parentWindowWithSrc.location.toString());
+    var windowLocation       = parsedWindowLocation ? parsedWindowLocation.destUrl : parentWindowWithSrc.location.toString();
 
-    if (iframeDocumentLocation === (parsedWindowLocation ? parsedWindowLocation.destUrl : windowLocation) ||
-        iframeSrcLocation === (parsedWindowLocation ? parsedWindowLocation.destUrl : windowLocation))
+    if (iframeDocumentLocationHaveSupportedProtocol)
+        return iframeDocumentLocation === windowLocation;
+
+    if (iframeSrcLocation === windowLocation)
         return true;
-
 
     // NOTE: In Chrome, an iframe with an src has its documentLocation set to 'about:blank' when it is created. So,
     // we should check srcLocation in this case.
