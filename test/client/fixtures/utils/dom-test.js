@@ -384,6 +384,14 @@ test('hasClass', function () {
     div.parentNode.removeChild(div);
 });
 
+test('isHammerheadAttr', function () {
+    ok(!domUtils.isHammerheadAttr('href'));
+    ok(!domUtils.isHammerheadAttr('class'));
+    ok(domUtils.isHammerheadAttr('data-hammerhead-focused'));
+    ok(domUtils.isHammerheadAttr('data-hammerhead-hovered'));
+    ok(domUtils.isHammerheadAttr('src-hammerhead-stored-value'));
+});
+
 module('regression');
 
 test('IsDomElement for <object> tag (B252941)', function () {

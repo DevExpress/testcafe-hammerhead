@@ -301,7 +301,8 @@ export function isFileInput (el) {
 }
 
 export function isHammerheadAttr (attr) {
-    return attr === INTERNAL_ATTRS.hoverPseudoClass || attr.indexOf(INTERNAL_ATTRS.storedAttrPostfix) !== -1;
+    return attr === INTERNAL_ATTRS.focusPseudoClass || attr === INTERNAL_ATTRS.hoverPseudoClass ||
+           attr.indexOf(INTERNAL_ATTRS.storedAttrPostfix) !== -1;
 }
 
 export function isIframe (el) {
