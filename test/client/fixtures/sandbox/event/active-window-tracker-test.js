@@ -104,30 +104,67 @@ asyncTest('check that an error does not rise when trying to send serviceMessage 
     link.innerHTML = 'Link';
 
     iframe.setAttribute('src', iframeSrc);
+
     iframe.addEventListener('load', function () {
         iframe.contentDocument.body.focus();
 
         nextTick()
             .then(function () {
                 document.body.removeChild(iframe);
-            })
-            .then(nextTick)
-            .then(function () {
+
                 link.focus();
             })
             .catch(function () {
                 withError = true;
             })
-            .then(nextTick)
             .then(function () {
-                document.body.removeChild(link);
-
                 ok(!withError);
 
+                document.body.removeChild(link);
                 start();
             });
     });
 
     document.body.appendChild(link);
     document.body.appendChild(iframe);
+});
+
+asyncTest('no error occurs when a focused iframe is removed and a different iframe gets focus afterwards (GH-271)', function () {
+    var iframeSrc    = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var firstIframe  = document.createElement('iframe');
+    var secondIframe = document.createElement('iframe');
+    var withError    = false;
+
+    hammerhead.on(hammerhead.EVENTS.uncaughtJsError, function () {
+        withError = true;
+    });
+
+    firstIframe.setAttribute('src', iframeSrc);
+    secondIframe.setAttribute('src', iframeSrc);
+
+    secondIframe.addEventListener('load', function () {
+        nextTick()
+            .then(function () {
+                firstIframe.contentDocument.body.focus();
+            })
+            .then(function () {
+                document.body.removeChild(firstIframe);
+
+                secondIframe.contentDocument.body.focus();
+            })
+            .then(function () {
+                return window.QUnitGlobals.wait(function () {
+                    return activeWindowTracker.activeWindow === secondIframe.contentWindow;
+                });
+            })
+            .then(function () {
+                ok(!withError);
+
+                document.body.removeChild(secondIframe);
+                start();
+            });
+    });
+
+    document.body.appendChild(firstIframe);
+    document.body.appendChild(secondIframe);
 });
