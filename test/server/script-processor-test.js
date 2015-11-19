@@ -379,6 +379,30 @@ describe('Script processor', function () {
             {
                 src:      'window["eval"].apply(window, [script])',
                 expected: 'window["eval"].apply(window, __proc$Script([script], true))'
+            },
+            {
+                src:      'var a = eval, b = window.eval, c = window["eval"];',
+                expected: 'var a = __get$Eval(eval), b = __get$Eval(window.eval), c = __get$Eval(window["eval"]);'
+            },
+            {
+                src:      'a = eval, b = window.eval, c = window["eval"];',
+                expected: 'a = __get$Eval(eval), b = __get$Eval(window.eval), c = __get$Eval(window["eval"]);'
+            },
+            {
+                src:      '{a: eval, b:window.eval, c: window["eval"]}',
+                expected: '{a: __get$Eval(eval), b:__get$Eval(window.eval), c: __get$Eval(window["eval"])}'
+            },
+            {
+                src:      '(function() {return eval;}, function(){return window.eval;}, function(){return window["eval"]})',
+                expected: '(function() {return __get$Eval(eval);}, function(){return __get$Eval(window.eval);}, function(){return __get$Eval(window["eval"]);})'
+            },
+            {
+                src:      '(function a (eval) {}); a(eval, window.eval, window["eval"]);',
+                expected: '(function a (eval) {/**/}); a(__get$Eval(eval), __get$Eval(window.eval), __get$Eval(window["eval"]));'
+            },
+            {
+                src:      'window.eval.property',
+                expected: 'window.eval.property'
             }
         ]);
     });

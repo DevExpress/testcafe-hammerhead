@@ -19,6 +19,7 @@ export const HEADER = [
     `${ INSTRUCTION.setProperty }=__w$?__w$.${ INSTRUCTION.setProperty }:function(o,p,v){return o[p] = v},`,
     `${ INSTRUCTION.getProperty }=__w$?__w$.${ INSTRUCTION.getProperty }:function(o,p){return o[p]},`,
     `${ INSTRUCTION.callMethod }=__w$?__w$.${ INSTRUCTION.callMethod }:function(o,p,a){return o[p].apply(o,a)},`,
+    `${ INSTRUCTION.getEval }=__w$?__w$.${ INSTRUCTION.getEval }:function(e){return e},`,
     `${ INSTRUCTION.processScript }=__w$?__w$.${ INSTRUCTION.processScript }:function(s){return s};`,
     POSTFIX,
     '\n'

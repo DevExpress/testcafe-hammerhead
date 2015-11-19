@@ -1,5 +1,7 @@
 var urlUtils = hammerhead.get('./utils/url');
 
+var nativeMethods = hammerhead.nativeMethods;
+
 var url = 'http://example.com/test';
 
 QUnit.testStart(function () {
@@ -78,3 +80,21 @@ test('should not process non-string args', function () {
     deepEqual(execScript('eval.apply(this, [[1, 2 ,3]])'), [1, 2, 3]);
 });
 
+module('eval assignment');
+
+test('the eval method should switch its own context to global', function () {
+    strictEqual(execScript('window.t1="globalScope";(function()  { var t1 = "localScope", ev = eval; return ev("t1"); })()'), 'globalScope');
+    strictEqual(execScript('window.t2="globalScope";(function()  { var t2 = "localScope"; return eval; })()("t2")'), 'globalScope');
+    strictEqual(execScript('window.t3="globalScope";(function(ev){ var t3 = "localScope"; return ev("t3"); })(eval)'), 'globalScope');
+});
+
+test('the script processor should process eval\'s global', function () {
+    var link = document.createElement('a');
+    var url  = 'http://host/index.html';
+
+    link.setAttribute('href', url);
+
+    window['test'] = link;
+    ok(nativeMethods.getAttribute.call(link, 'href') !== url);
+    strictEqual(execScript('var ev = eval; ev("test.href")'), url);
+});
