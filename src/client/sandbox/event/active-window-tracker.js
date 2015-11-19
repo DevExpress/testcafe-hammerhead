@@ -37,8 +37,7 @@ export default class ActiveWindowTracker extends SandboxBase {
 
         this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             if (e.message.cmd === WINDOW_ACTIVATED_EVENT) {
-                if (this.activeWindow !== this.activeWindow.top)
-                    this._notifyPrevActiveWindow();
+                this._notifyPrevActiveWindow();
 
                 this.isActive     = false;
                 this.activeWindow = e.source;
