@@ -307,3 +307,26 @@ test('document.createDocumentFragment must be overriden (B237717)', function () 
     notEqual(fragment.firstChild.getAttribute, nativeMethods.getAttribute);
     notEqual(clone.firstChild.getAttribute, nativeMethods.getAttribute);
 });
+
+if (window.navigator.serviceWorker) {
+    asyncTest('navigator.serviceWorker in the iframe is not available (GH-277)', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.setAttribute('sandbox', '');
+        iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-worker-not-available.html');
+
+        var onMessageHandler = function (e) {
+            window.removeEventListener('message', onMessageHandler);
+
+            ok(e.data === 'success');
+
+            document.body.removeChild(iframe);
+
+            start();
+        };
+
+        window.addEventListener('message', onMessageHandler);
+
+        document.body.appendChild(iframe);
+    });
+}
