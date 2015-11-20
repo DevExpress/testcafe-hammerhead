@@ -1,8 +1,10 @@
-var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
-var domProcessor   = hammerhead.get('./dom-processor');
-var htmlUtils      = hammerhead.get('./utils/html');
-var settings       = hammerhead.get('./settings');
-var urlUtils       = hammerhead.get('./utils/url');
+var INTERNAL_PROPS   = hammerhead.get('../processing/dom/internal-properties');
+var domProcessor     = hammerhead.get('./dom-processor');
+var htmlUtils        = hammerhead.get('./utils/html');
+var settings         = hammerhead.get('./settings');
+var urlUtils         = hammerhead.get('./utils/url');
+var destLocation     = hammerhead.get('./utils/destination-location');
+var featureDetection = hammerhead.get('./utils/feature-detection');
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
@@ -62,11 +64,16 @@ test('url', function () {
         strictEqual(getWrapAttr(), '');
         strictEqual(getAttr(), '');
         strictEqual(el[attr], emptyAttrValue);
+        strictEqual(getProperty(el, attr), destLocation.get());
 
         el.removeAttribute(attr);
         strictEqual(getWrapAttr(), null);
         strictEqual(getAttr(), null);
-        strictEqual(el[attr], '');
+
+        if (attr === 'action' && featureDetection.emptyActionAttrFallbacksToTheLocation)
+            strictEqual(getProperty(el, attr), destLocation.get());
+        else
+            strictEqual(getProperty(el, attr), '');
 
         el.setAttributeNS(namespace, attr, dest);
         strictEqual(nativeMethods.getAttributeNS.call(el, namespace, attr), proxy);

@@ -20,6 +20,7 @@ import { remove as removeProcessingHeader } from '../../../../processing/script/
 import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import { setTimeout as nativeSetTimeout } from '../../native-methods';
+import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-detection';
 
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
@@ -45,15 +46,14 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     static _getUrlAttr (el, attr) {
         var attrValue = el.getAttribute(attr);
 
-        if (attrValue === null)
-            return '';
-
-        else if (attrValue === '')
+        if (attrValue === '' || attrValue === null && attr === 'action' && emptyActionAttrFallbacksToTheLocation)
             return destLocation.get();
+
+        else if (attrValue === null)
+            return '';
 
         else if (/^#/.test(attrValue))
             return destLocation.withHash(attrValue);
-
 
         return urlUtils.resolveUrlAsDest(attrValue);
     }
