@@ -13,6 +13,14 @@ var Promise      = require('pinkie');
 var uglify       = require('gulp-uglify');
 var gulpif       = require('gulp-if');
 var util         = require('gulp-util');
+var ll           = require('gulp-ll');
+
+ll
+    .tasks('lint' )
+    .onlyInDebug([
+        'server-scripts',
+        'client-scripts-bundle'
+    ]);
 
 var CLIENT_TESTS_SETTINGS = {
     basePath:        './test/client/fixtures',
