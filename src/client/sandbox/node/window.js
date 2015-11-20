@@ -157,7 +157,7 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
-        if (window.navigator && window.navigator.serviceWorker) {
+        if (nativeMethods.registerServiceWorker) {
             window.navigator.serviceWorker.register = url => {
                 url = getProxyUrl(url);
 

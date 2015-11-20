@@ -93,8 +93,13 @@ class NativeMethods {
         this.setInterval             = win.setInterval || Window.prototype.setInterval;
         this.XMLHttpRequest          = win.XMLHttpRequest;
         this.registerProtocolHandler = win.navigator.registerProtocolHandler;
-        this.registerServiceWorker   = win.navigator &&
-                                       win.navigator.serviceWorker ? win.navigator.serviceWorker.register : null;
+
+        try {
+            this.registerServiceWorker = win.navigator && win.navigator.serviceWorker ? win.navigator.serviceWorker.register : null;
+        }
+        catch (e) {
+            this.registerServiceWorker = null;
+        }
 
         // Event
         this.windowAddEventListener    = win.addEventListener || Window.prototype.addEventListener;
