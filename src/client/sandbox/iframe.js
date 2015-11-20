@@ -31,6 +31,14 @@ export default class IframeSandbox extends SandboxBase {
                 // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
                 iframe.contentWindow[IFRAME_WINDOW_INITED] = true;
 
+                // NOTE: Restore native document methods for the iframe's document if it overrided earlier
+                var iframeNativeMethods = iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+
+                if (iframeNativeMethods) {
+                    iframeNativeMethods.restoreDocumentMeths(iframe.contentDocument, iframe.contentWindow);
+                    delete iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+                }
+
                 // NOTE: Raise this internal event to eval the Hammerhead code script.
                 this.emit(this.IFRAME_READY_TO_INIT_INTERNAL_EVENT, { iframe });
 

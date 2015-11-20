@@ -79,10 +79,16 @@ export default class NodeSandbox extends SandboxBase {
 
         super.attach(window, document);
 
-        this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, e =>
-                // NOTE: Override only document (In fact, we only need 'write' and 'writeln' methods).
-                this.doc.attach(e.iframe.contentWindow, e.iframe.contentDocument)
-        );
+        this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, e => {
+            // NOTE: Before overriding the iframe, we must restore native document methods.
+            // Therefore, we save them before they are overridden.
+            var iframeNativeMethods = new this.nativeMethods.constructor(e.iframe.contentDocument, e.iframe.contentWindow);
+
+            e.iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods] = iframeNativeMethods;
+
+            // NOTE: Override only the document (in fact, we only need the 'write' and 'writeln' methods).
+            this.doc.attach(e.iframe.contentWindow, e.iframe.contentDocument);
+        });
 
         window[INTERNAL_PROPS.overrideDomMethodName] = this.overrideDomMethods.bind(this);
 

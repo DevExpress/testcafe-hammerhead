@@ -137,7 +137,7 @@ export default class DocumentSandbox extends SandboxBase {
             // restore the overrided document.open and document.write methods before Hammerhead injection, if the
             // window is not initialized.
             if (isIE && !IframeSandbox.isWindowInited(window))
-                nativeMethods.restoreNativeDocumentMeth(document);
+                nativeMethods.restoreDocumentMeths(document);
 
             var result = nativeMethods.documentClose.call(document);
 
