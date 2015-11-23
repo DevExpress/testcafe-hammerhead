@@ -50,7 +50,7 @@ export default class IframeSandbox extends SandboxBase {
             else if (!iframeInitialized) {
                 // NOTE: Even if iframe is not loaded (iframe.contentDocument.documentElement does not exist), we
                 // still need to override the document.write method without initializing Hammerhead. This method can
-                // be called before iframe is fully loaded, we shouldoverride it now.
+                // be called before iframe is fully loaded, we should override it now.
                 if (iframe.contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
                     this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
             }

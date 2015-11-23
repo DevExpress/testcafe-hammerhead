@@ -92,8 +92,8 @@ export default class Selection {
 
             result = nativeMethods.select.call(this);
 
-            timersSandbox.internalSetTimeout.call(window, () => {
-                timersSandbox.internalSetTimeout.call(window, () => {
+            timersSandbox.setTimeout.call(window, () => {
+                timersSandbox.setTimeout.call(window, () => {
                     listeners.removeInternalEventListener(document, ['focus'], focusHandler);
 
                     if (!focusRaised)
@@ -199,8 +199,8 @@ export default class Selection {
 
             // NOTE: In MSEdge, focus and blur are sync.
             if (browserUtils.isIE && browserUtils.version < 12) {
-                this.timersSandbox.internalSetTimeout.call(window, () => {
-                    this.timersSandbox.internalSetTimeout.call(window, () => {
+                this.timersSandbox.setTimeout.call(window, () => {
+                    this.timersSandbox.setTimeout.call(window, () => {
                         this.listeners.removeInternalEventListener(document, ['focus'], focusHandler);
 
                         if (!focusRaised)

@@ -1,6 +1,5 @@
 import FocusBlurSandbox from './focus-blur';
 import Listeners from './listeners';
-import TimersSandbox from './timers';
 import Selection from './selection';
 import SandboxBase from '../base';
 import extend from '../../utils/extend';
@@ -12,16 +11,16 @@ import { preventDefault, DOM_EVENTS } from '../../utils/event';
 const ELEMENT_HAS_ADDITIONAL_EVENT_METHODS = isIE && browserVersion < 11;
 
 export default class EventSandbox extends SandboxBase {
-    constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI) {
+    constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
         super();
 
         this.listeners             = listeners;
         this.eventSimulator        = eventSimulator;
         this.elementEditingWatcher = elementEditingWatcher;
         this.unload                = unloadSandbox;
-        this.timers                = new TimersSandbox();
+        this.timers                = timerSandbox;
         this.eventSimulator        = eventSimulator;
-        this.focusBlur             = new FocusBlurSandbox(listeners, eventSimulator, messageSandbox, shadowUI, this.timers, elementEditingWatcher);
+        this.focusBlur             = new FocusBlurSandbox(listeners, eventSimulator, messageSandbox, shadowUI, timerSandbox, elementEditingWatcher);
         this.selection             = new Selection(this);
         this.shadowUI              = shadowUI;
         this.message               = messageSandbox;
