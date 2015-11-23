@@ -401,11 +401,20 @@ describe('Script processor', function () {
                 expected: '(function a (eval) {/**/}); a(__get$Eval(eval), __get$Eval(window.eval), __get$Eval(window["eval"]));'
             },
             {
+                src:      'eval++; eval--; ++eval; --eval;',
+                expected: 'eval++; eval--; ++eval; --eval;'
+            },
+            {
+                src:      'var eval = value; eval = newValue;',
+                expected: 'var eval = value; eval = newValue;'
+            },
+            {
                 src:      'window.eval.property',
                 expected: 'window.eval.property'
             }
         ]);
     });
+
 
     it('Should process setTimeout() with string handler', function () {
         testProcessing([

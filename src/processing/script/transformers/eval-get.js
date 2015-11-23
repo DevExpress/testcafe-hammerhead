@@ -18,28 +18,42 @@ export default {
 
     condition: (node, parentNode) => {
         if (node.type === Syntax.Identifier && node.name === 'eval') {
-            // eval()
+            // Skip: eval()
             if (parentNode.type === Syntax.CallExpression && parentNode.callee === node)
                 return false;
 
-            // window.eval, eval.call
+            // Skip: window.eval, eval.call
             if (parentNode.type === Syntax.MemberExpression)
                 return false;
 
-            // function(eval) {}
-            if (parentNode.type === Syntax.FunctionExpression)
+            // Skip: function (eval) { ... } || function func(eval) { ... }
+            if ((parentNode.type === Syntax.FunctionExpression || parentNode.type === Syntax.FunctionDeclaration) &&
+                parentNode.params.indexOf(node) !== -1)
+                return false;
+
+            // Skip: eval = value
+            if (parentNode.type === Syntax.AssignmentExpression && parentNode.left === node)
+                return false;
+
+            // Skip: var eval = value;
+            if (parentNode.type === Syntax.VariableDeclarator && parentNode.id === node)
+                return false;
+
+            // Skip: eval++ || eval-- || ++eval || --eval
+            if (parentNode.type === Syntax.UpdateExpression && parentNode.operator === '++' ||
+                parentNode.operator === '--')
                 return false;
 
             return true;
         }
 
         if (node.type === Syntax.MemberExpression) {
-            // window.eval.field
+            // Skip: window.eval.field
             if (parentNode.type === Syntax.MemberExpression &&
                 (parentNode.property === node || parentNode.object === node))
                 return false;
 
-            // window.eval()
+            // Skip: window.eval()
             if (parentNode.type === Syntax.CallExpression && parentNode.callee === node)
                 return false;
 
