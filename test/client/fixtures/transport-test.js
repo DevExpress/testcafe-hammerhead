@@ -228,7 +228,7 @@ else {
         var callbackCount = 0;
         var value         = 'testValue';
 
-        ok(!window.localStorage.getItem(settings.sessionId));
+        ok(!window.localStorage.getItem(settings.get().sessionId));
 
         var onAjaxSend = function (xhr) {
             xhr.abort();

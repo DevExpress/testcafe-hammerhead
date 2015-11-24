@@ -3,6 +3,7 @@ import XMLHttpRequestWrapper from './xml-http-request-wrapper';
 import nativeMethods from '../native-methods';
 import { getProxyUrl } from '../../utils/url';
 import XHR_HEADERS from '../../../request-pipeline/xhr/headers';
+import { getOrigin } from '../../utils/destination-location';
 
 export default class XhrSandbox extends SandboxBase {
     constructor (sandbox) {
@@ -89,6 +90,8 @@ export default class XhrSandbox extends SandboxBase {
             // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
             xhr.setRequestHeader(XHR_HEADERS.requestMarker, 'true');
+
+            xhr.setRequestHeader(XHR_HEADERS.origin, getOrigin());
 
             if (xhrSandbox.corsSupported)
                 xhr.setRequestHeader(XHR_HEADERS.corsSupported, 'true');

@@ -120,3 +120,6 @@ export function getParsed () {
     };
 }
 
+export function getOrigin () {
+    return sharedUrlUtils.getDomain(getParsed());
+}
