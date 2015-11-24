@@ -401,9 +401,22 @@ describe('Script processor', function () {
                 expected: '(function a (eval) {/**/}); a(__get$Eval(eval), __get$Eval(window.eval), __get$Eval(window["eval"]));'
             },
             {
+                src:      '__get$Eval(eval)("");__get$Eval(window.eval)("");__get$Eval(window["eval"])("");',
+                expected: '__get$Eval(eval)("");__get$Eval(window.eval)("");__get$Eval(window["eval"])("");'
+            },
+            {
                 src:      'eval++; eval--; ++eval; --eval;',
                 expected: 'eval++; eval--; ++eval; --eval;'
             },
+            {
+                src:      'window.eval = 1; window["eval"] = 1;',
+                expected: 'window.eval = 1; window["eval"] = 1;'
+            },
+            {
+                src:      'var ob = {eval : 1};',
+                expected: 'var ob = {eval : 1};'
+            },
+
             {
                 src:      'var eval = value; eval = newValue;',
                 expected: 'var eval = value; eval = newValue;'
