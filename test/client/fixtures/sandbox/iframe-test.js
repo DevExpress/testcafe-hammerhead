@@ -200,3 +200,27 @@ asyncTest('iframe initialization must be synchronous (for iframes with an empty 
     });
     document.body.appendChild(iframe);
 });
+
+asyncTest('native methods are properly initialized in an iframe without src (GH-279)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test_unique_id_lkjlosjkf';
+    iframe.addEventListener('load', function () {
+        var iframeDocument         = this.contentDocument;
+        var iframeWindow           = this.contentWindow;
+        var iframeHammerhead       = iframeWindow['%hammerhead%'];
+        var nativeCreateElement    = iframeHammerhead.sandbox.nativeMethods.createElement.toString();
+        var nativeAppendChild      = iframeHammerhead.sandbox.nativeMethods.appendChild.toString();
+        var nativeImage            = iframeHammerhead.sandbox.nativeMethods.Image.toString();
+        var overridedCreateElement = iframeDocument.createElement.toString();
+        var overridedAppendChild   = iframeDocument.createElement('div').appendChild.toString();
+        var overridedImage         = iframeWindow.Image.toString();
+
+        ok(nativeCreateElement !== overridedCreateElement);
+        ok(nativeAppendChild !== overridedAppendChild);
+        ok(nativeImage !== overridedImage);
+        iframe.parentNode.removeChild(iframe);
+        start();
+    });
+    document.body.appendChild(iframe);
+});

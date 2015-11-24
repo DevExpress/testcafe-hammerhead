@@ -1,3 +1,4 @@
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import CodeInstrumentation from './code-instrumentation';
 import CookieSandbox from './cookie';
 import ElementEditingWatcher from './event/element-editing-watcher';
@@ -88,11 +89,15 @@ export default class Sandbox extends SandboxBase {
                 // NOTE: Inform the sandbox so that it restores communication with the recreated document.
                 sandbox.reattach(iframe.contentWindow, iframe.contentDocument);
             else {
+                // NOTE: Remove saved native methods for iframe
+                if (iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods])
+                    delete iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+
                 // NOTE: If the iframe sandbox is not found, this means that iframe is not initialized.
                 // In this case, we need to inject Hammerhead.
 
                 // HACK: IE10 cleans up overridden methods after the document.write method call.
-                this.nativeMethods.restoreNativeDocumentMeth(iframe.contentDocument);
+                this.nativeMethods.restoreDocumentMeths(iframe.contentDocument);
 
                 // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
                 // Inform IFrameSandbox about this, and it injects Hammerhead.

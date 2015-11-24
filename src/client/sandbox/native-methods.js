@@ -1,9 +1,9 @@
 /*global Document, Window */
 class NativeMethods {
-    constructor () {
-        this.refreshDocumentMeths();
-        this.refreshElementMeths();
-        this.refreshWindowMeths();
+    constructor (doc, win) {
+        this.refreshDocumentMeths(doc);
+        this.refreshElementMeths(doc, win);
+        this.refreshWindowMeths(win);
     }
 
     refreshDocumentMeths (doc) {
@@ -124,7 +124,7 @@ class NativeMethods {
         this.styleClass    = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties || mock;
     }
 
-    restoreNativeDocumentMeth (document) {
+    restoreDocumentMeths (document) {
         document.createDocumentFragment = this.createDocumentFragment;
         document.createElement          = this.createElement;
         document.createElementNS        = this.createElementNS;
