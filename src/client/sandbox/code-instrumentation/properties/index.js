@@ -288,7 +288,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         if (window.self !== window.top)
                             location = destLocation.resolveUrl(location, window.top.document);
 
-                        var resourceType = owner !== window.top ? urlUtils.IFRAME : null;
+                        var ownerWindow  = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                        var resourceType = ownerWindow !== window.top ? urlUtils.IFRAME : null;
 
                         owner.location = urlUtils.getProxyUrl(location, null, null, null, resourceType);
 
