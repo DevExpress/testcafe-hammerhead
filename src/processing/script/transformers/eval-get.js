@@ -3,6 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+import INSTRUCTION from '../instruction';
 import { createGetEvalMethCall } from '../node-builder';
 import { Syntax } from '../tools/esotope';
 
@@ -14,56 +15,45 @@ import { Syntax } from '../tools/esotope';
 export default {
     nodeReplacementRequireTransform: false,
 
-    nodeTypes: [Syntax.Identifier, Syntax.MemberExpression],
+    nodeTypes: [Syntax.Identifier],
 
-    condition: (node, parentNode) => {
-        if (node.type === Syntax.Identifier && node.name === 'eval') {
+    condition: (node, parent) => {
+        if (node.name === 'eval') {
             // Skip: eval()
-            if (parentNode.type === Syntax.CallExpression && parentNode.callee === node)
+            if (parent.type === Syntax.CallExpression && parent.callee === node)
                 return false;
 
             // Skip: window.eval, eval.call
-            if (parentNode.type === Syntax.MemberExpression)
+            if (parent.type === Syntax.MemberExpression)
                 return false;
 
             // Skip: function (eval) { ... } || function func(eval) { ... }
-            if ((parentNode.type === Syntax.FunctionExpression || parentNode.type === Syntax.FunctionDeclaration) &&
-                parentNode.params.indexOf(node) !== -1)
+            if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
+                parent.params.indexOf(node) !== -1)
+                return false;
+
+            // Skip: { eval: value }
+            if (parent.type === Syntax.Property && parent.key === node)
                 return false;
 
             // Skip: eval = value
-            if (parentNode.type === Syntax.AssignmentExpression && parentNode.left === node)
+            if (parent.type === Syntax.AssignmentExpression && parent.left === node)
                 return false;
 
             // Skip: var eval = value;
-            if (parentNode.type === Syntax.VariableDeclarator && parentNode.id === node)
+            if (parent.type === Syntax.VariableDeclarator && parent.id === node)
                 return false;
 
             // Skip: eval++ || eval-- || ++eval || --eval
-            if (parentNode.type === Syntax.UpdateExpression && parentNode.operator === '++' ||
-                parentNode.operator === '--')
+            if (parent.type === Syntax.UpdateExpression && parent.operator === '++' ||
+                parent.operator === '--')
+                return false;
+
+            // Skip already transformed: __get$Eval(eval)
+            if (parent.type === Syntax.CallExpression && parent.callee.name === INSTRUCTION.getEval)
                 return false;
 
             return true;
-        }
-
-        if (node.type === Syntax.MemberExpression) {
-            // Skip: window.eval.field
-            if (parentNode.type === Syntax.MemberExpression &&
-                (parentNode.property === node || parentNode.object === node))
-                return false;
-
-            // Skip: window.eval()
-            if (parentNode.type === Syntax.CallExpression && parentNode.callee === node)
-                return false;
-
-            // window.eval
-            if (node.property.type === Syntax.Identifier && node.property.name === 'eval')
-                return true;
-
-            // window['eval']
-            if (node.property.type === Syntax.Literal && node.property.value === 'eval')
-                return true;
         }
 
         return false;

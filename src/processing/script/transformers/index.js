@@ -9,7 +9,8 @@ import concatOperatorTransformer from './concat-operator';
 import documentWriteTransformer from './document-write';
 import evalTransformer from './eval';
 import evalCallApplyTransformer from './eval-call-apply';
-import getEvalTransformer from './eval-get';
+import evalGetTransformer from './eval-get';
+import windowEvalGetTransformer from './window-eval-get';
 import forInTransformer from './for-in';
 import functionCtorTransformer from './function-ctor';
 import locationGetTransformer from './location-get';
@@ -27,7 +28,8 @@ const TRANSFORMERS = [
     documentWriteTransformer,
     evalTransformer,
     evalCallApplyTransformer,
-    getEvalTransformer,
+    evalGetTransformer,
+    windowEvalGetTransformer,
     forInTransformer,
     functionCtorTransformer,
     locationGetTransformer,
