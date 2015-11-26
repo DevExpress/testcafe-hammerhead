@@ -400,3 +400,23 @@ test('Remove the meta tag with http-equiv="Content-Security-Policy" attribute fr
     ok(!metaTag.hasAttribute('content'));
     metaTag.parentNode.removeChild(metaTag);
 });
+
+test('Script and style content added via a child text node must be overridden (GH-259)', function () {
+    var style          = document.createElement('style');
+    var styleTextNode1 = document.createTextNode('div.class1 { background-image: url("/image1.png"); }');
+    var styleTextNode2 = document.createTextNode('div.class2 { background-image: url("/image2.png"); }');
+
+    style.appendChild(styleTextNode1);
+    ok(style.childNodes[0].data, urlUtils.getProxyUrl('/image1.png') > -1);
+    style.insertBefore(styleTextNode2, styleTextNode1);
+    ok(style.childNodes[0].data, urlUtils.getProxyUrl('/image2.png') > -1);
+
+    var script          = document.createElement('script');
+    var scriptTextNode1 = document.createTextNode('var host1 = location.host');
+    var scriptTextNode2 = document.createTextNode('var host2 = location.host');
+
+    script.appendChild(scriptTextNode1);
+    ok(script.childNodes[0].data.indexOf('var host1=__get$(__get$Loc(location),"host")') > -1);
+    script.insertBefore(scriptTextNode2, scriptTextNode1);
+    ok(script.childNodes[0].data.indexOf('var host2=__get$(__get$Loc(location),"host")') > -1);
+});

@@ -229,7 +229,8 @@ asyncTest('body.innerHTML in iframe', function () {
         .load(function () {
             var iframe           = this;
             var haveShadowUIRoot = function () {
-                var root = iframe.contentDocument.body.children[0];
+                var iframeBody = iframe.contentDocument.body;
+                var root       = iframeBody.children[iframeBody.children.length - 1];
 
                 return root && root.id.indexOf('root-') === 0;
             };
