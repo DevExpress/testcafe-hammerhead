@@ -432,3 +432,30 @@ test('Node.replaceChild must be overridden (GH-264)', function () {
     style.replaceChild(styleTextNode2, styleTextNode1);
     ok(style.innerHTML.indexOf(urlUtils.getProxyUrl('/image2.png')) > -1);
 });
+
+asyncTest('script error when a new element is added to a "body" element that is not in the DOM (GH-296)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test_unique_id_l7ajkl';
+    iframe.addEventListener('load', function () {
+        var iframeDocument = this.contentDocument;
+
+        iframeDocument.documentElement.removeChild(iframeDocument.body);
+
+        var newIframeBody = iframeDocument.createElement('body');
+        var div1          = iframeDocument.createElement('div');
+        var div2          = iframeDocument.createElement('div');
+        var div3          = iframeDocument.createElement('div');
+
+        newIframeBody.appendChild(div1);
+        strictEqual(newIframeBody.lastChild, div1);
+        newIframeBody.appendChild(div2);
+        strictEqual(newIframeBody.lastChild, div2);
+        newIframeBody.insertBefore(div3, null);
+        strictEqual(newIframeBody.lastChild, div3);
+
+        iframe.parentNode.removeChild(iframe);
+        start();
+    });
+    document.body.appendChild(iframe);
+});
