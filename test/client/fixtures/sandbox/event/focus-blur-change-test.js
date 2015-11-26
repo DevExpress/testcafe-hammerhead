@@ -104,7 +104,7 @@ var changeListener = getChangeHandler();
 var changeAttached = getChangeHandler();
 
 var defaultTestTimeout         = QUnit.config.testTimeout;
-var smallTestTimeout           = 2000;
+var smallTestTimeout           = 3000;
 var modulesForSmallTestTimeout = ['focus', 'change', 'native methods replacing'];
 
 function clearExecutedHandlersCounter () {
@@ -382,8 +382,8 @@ asyncTest('attachEvent one per element', function () {
 
 asyncTest('handlers binded by ontype property, jQuery and addEventListener\\attachEvent together', function () {
     var unbindHandlersAndTest = function () {
-        var $input1    = $(input1);
-        var $input2    = $(input2);
+        var $input1 = $(input1);
+        var $input2 = $(input2);
 
         $input1.unbind('focus', onFocus);
         $input2.unbind('focus', onFocus);
@@ -417,10 +417,10 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         $input1.blur(onBlur);
         $input2.blur(onBlur);
         listenerCount++;
-        input1.onfocus    = onFocus;
-        input2.onfocus    = onFocus;
-        input1.onblur     = onBlur;
-        input2.onblur     = onBlur;
+        input1.onfocus = onFocus;
+        input2.onfocus = onFocus;
+        input1.onblur  = onBlur;
+        input2.onblur  = onBlur;
         listenerCount++;
         if (input1.attachEvent) {
             input1.attachEvent('onfocus', focusAttached);
@@ -778,11 +778,18 @@ asyncTest('active window doesn\'t change after focusing ShadowUI element in ifra
         divElement.setAttribute('class', SHADOW_UI_CLASSNAME.postfix);
 
         focusBlur.focus(divElement, function () {
-            ok(activeWindowTracker.isCurrentWindowActive());
-            notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
+            window.QUnitGlobals
+                .wait(function () {
+                    return activeWindowTracker.isCurrentWindowActive() &&
+                           !iframeWindow.activeWindowTracker.isCurrentWindowActive();
+                })
+                .then(function () {
+                    ok(activeWindowTracker.isCurrentWindowActive());
+                    notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
 
-            $iframe.remove();
-            start();
+                    $iframe.remove();
+                    start();
+                });
         });
     });
 });
