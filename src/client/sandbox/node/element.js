@@ -249,6 +249,13 @@ export default class ElementSandbox extends SandboxBase {
                 return result;
             },
 
+            replaceChild (newChild, oldChild) {
+                if (newChild.nodeType === 3)
+                    ElementSandbox._processTextNodeContent(newChild, this);
+
+                return nativeMethods.replaceChild.call(this, newChild, oldChild);
+            },
+
             cloneNode () {
                 var clone = nativeMethods.cloneNode.apply(this, arguments);
 
@@ -354,6 +361,7 @@ export default class ElementSandbox extends SandboxBase {
 
         window.Element.prototype.insertBefore              = this.overridedMethods.insertBefore;
         window.Element.prototype.appendChild               = this.overridedMethods.appendChild;
+        window.Element.prototype.replaceChild              = this.overridedMethods.replaceChild;
         window.Element.prototype.removeChild               = this.overridedMethods.removeChild;
         window.Element.prototype.setAttribute              = this.overridedMethods.setAttribute;
         window.Element.prototype.setAttributeNS            = this.overridedMethods.setAttributeNS;
@@ -366,6 +374,7 @@ export default class ElementSandbox extends SandboxBase {
         window.Node.prototype.appendChild                  = this.overridedMethods.appendChild;
         window.Node.prototype.removeChild                  = this.overridedMethods.removeChild;
         window.Node.prototype.insertBefore                 = this.overridedMethods.insertBefore;
+        window.Node.prototype.replaceChild                 = this.overridedMethods.replaceChild;
         window.HTMLTableElement.prototype.insertRow        = this.overridedMethods.insertRow;
         window.HTMLTableSectionElement.prototype.insertRow = this.overridedMethods.insertRow;
         window.HTMLTableRowElement.prototype.insertCell    = this.overridedMethods.insertCell;
@@ -400,6 +409,7 @@ export default class ElementSandbox extends SandboxBase {
 
         el.insertBefore = this.overridedMethods.insertBefore;
         el.appendChild  = this.overridedMethods.appendChild;
+        el.replaceChild = this.overridedMethods.replaceChild;
         el.removeChild  = this.overridedMethods.removeChild;
         el.cloneNode    = this.overridedMethods.cloneNode;
 
