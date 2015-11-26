@@ -331,7 +331,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                         var simulateBodyBlur = this.eventSimulator.blur.bind(this.eventSimulator, activeElement);
 
                         if (isAsync)
-                            this.timersSandbox.internalSetTimeout.call(this.window, simulateBodyBlur, 0);
+                            this.timersSandbox.setTimeout.call(this.window, simulateBodyBlur, 0);
                         else
                             simulateBodyBlur();
                     }

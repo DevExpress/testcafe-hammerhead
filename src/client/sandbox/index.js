@@ -11,6 +11,7 @@ import NodeMutation from './node/mutation';
 import NodeSandbox from './node';
 import SandboxBase from './base';
 import ShadowUI from './shadow-ui';
+import TimersSandbox from './timers';
 import UnloadSandbox from './event/unload';
 import UploadSandbox from './upload';
 import XhrSandbox from './xhr';
@@ -29,6 +30,7 @@ export default class Sandbox extends SandboxBase {
         var messageSandbox        = new MessageSandbox(listeners, unloadSandbox);
         var eventSimulator        = new EventSimulator();
         var elementEditingWatcher = new ElementEditingWatcher(eventSimulator);
+        var timersSandbox         = new TimersSandbox();
 
         // API
         this.iframe              = new IframeSandbox(nodeMutation);
@@ -36,7 +38,7 @@ export default class Sandbox extends SandboxBase {
         this.cookie              = new CookieSandbox();
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe);
         this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
-        this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI);
+        this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
     }
@@ -86,7 +88,7 @@ export default class Sandbox extends SandboxBase {
             var sandbox = getSandboxFromStorage(iframe.contentWindow);
 
             if (sandbox)
-                // NOTE: Inform the sandbox so that it restores communication with the recreated document.
+            // NOTE: Inform the sandbox so that it restores communication with the recreated document.
                 sandbox.reattach(iframe.contentWindow, iframe.contentDocument);
             else {
                 // NOTE: Remove saved native methods for iframe
