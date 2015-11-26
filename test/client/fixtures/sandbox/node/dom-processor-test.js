@@ -420,3 +420,15 @@ test('Script and style content added via a child text node must be overridden (G
     script.insertBefore(scriptTextNode2, scriptTextNode1);
     ok(script.childNodes[0].data.indexOf('var host2=__get$(__get$Loc(location),"host")') > -1);
 });
+
+test('Node.replaceChild must be overridden (GH-264)', function () {
+    var style          = document.createElement('style');
+    var styleTextNode1 = document.createTextNode('div.class1 { background-image: url("/image1.png"); }');
+    var styleTextNode2 = document.createTextNode('div.class2 { background-image: url("/image2.png"); }');
+
+    style.appendChild(styleTextNode1);
+    ok(style.innerHTML.indexOf(urlUtils.getProxyUrl('/image1.png')) > -1);
+
+    style.replaceChild(styleTextNode2, styleTextNode1);
+    ok(style.innerHTML.indexOf(urlUtils.getProxyUrl('/image2.png')) > -1);
+});

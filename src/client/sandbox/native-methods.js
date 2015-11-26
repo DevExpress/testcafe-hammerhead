@@ -39,6 +39,7 @@ class NativeMethods {
 
         // Dom
         this.appendChild                   = nativeElement.appendChild;
+        this.replaceChild                  = nativeElement.replaceChild;
         this.cloneNode                     = nativeElement.cloneNode;
         this.elementGetElementsByClassName = nativeElement.getElementsByClassName;
         this.elementGetElementsByTagName   = nativeElement.getElementsByTagName;
