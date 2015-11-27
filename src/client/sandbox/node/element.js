@@ -209,7 +209,11 @@ export default class ElementSandbox extends SandboxBase {
 
                 var result = null;
 
-                if (domUtils.isBodyElementWithChildren(this) && !refNode)
+                // NOTE: Before the page's <body> is processed and added to DOM,
+                // some javascript frameworks create their own body element, perform
+                // certain manipulations and then remove it.
+                // Therefore, we need to check if the body element is present in DOM
+                if (domUtils.isBodyElementWithChildren(this) && !refNode && domUtils.isElementInDocument(this))
                     result = sandbox.shadowUI.insertBeforeRoot(newNode);
                 else
                     result = nativeMethods.insertBefore.call(this, newNode, refNode);
@@ -224,7 +228,11 @@ export default class ElementSandbox extends SandboxBase {
 
                 var result = null;
 
-                if (domUtils.isBodyElementWithChildren(this))
+                // NOTE: Before the page's <body> is processed and added to DOM,
+                // some javascript frameworks create their own body element, perform
+                // certain manipulations and then remove it.
+                // Therefore, we need to check if the body element is present in DOM
+                if (domUtils.isBodyElementWithChildren(this) && domUtils.isElementInDocument(this))
                     result = sandbox.shadowUI.insertBeforeRoot(child);
                 else
                     result = nativeMethods.appendChild.call(this, child);
