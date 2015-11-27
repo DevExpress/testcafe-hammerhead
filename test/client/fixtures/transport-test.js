@@ -148,7 +148,7 @@ asyncTest('batchUpdate - with stored messages', function () {
 });
 
 if (!browserUtils.isWebKit) {
-    asyncTest('Resend aborted async service msg', function () {
+    asyncTest('resend aborted async service msg', function () {
         var xhrCount      = 0;
         var callbackCount = 0;
 
@@ -180,7 +180,7 @@ if (!browserUtils.isWebKit) {
     });
 }
 else {
-    asyncTest('Resend aborted async service msg (WebKit)', function () {
+    asyncTest('resend aborted async service msg (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
         var xhrCount      = 0;
@@ -222,7 +222,7 @@ else {
         }, 200);
     });
 
-    asyncTest('Do not dublicate messages in store (WebKit)', function () {
+    asyncTest('do not dublicate messages in store (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
         var callbackCount = 0;
@@ -268,7 +268,7 @@ else {
 
 module('regression');
 
-test('Hammerhead should remove service data from local storage on the first session page load (GH-100)', function () {
+test('hammerhead should remove service data from local storage on the first session page load (GH-100)', function () {
     var sessionId = settings.get().sessionId;
 
     // NOTE: First page loading.

@@ -888,7 +888,7 @@ asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=
     });
 });
 
-asyncTest('Scrolling elements with "overflow=hidden" should be restored after focus (GH-221)', function () {
+asyncTest('scrolling elements with "overflow=hidden" should be restored after focus (GH-221)', function () {
     var parentDiv      = document.createElement('div');
     var childContainer = document.createElement('div');
     var childDiv       = document.createElement('div');

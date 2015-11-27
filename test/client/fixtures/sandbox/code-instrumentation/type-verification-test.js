@@ -12,13 +12,13 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
 
-test('Is anchor instance', function () {
+test('is anchor instance', function () {
     var anchor = document.createElement('a');
 
     ok(accessors.protocol.condition(anchor));
 });
 
-test('Is dom element instance', function () {
+test('is dom element instance', function () {
     var img           = document.createElement('img');
     var fragment      = document.createDocumentFragment();
     var notDomElement = {
@@ -32,7 +32,7 @@ test('Is dom element instance', function () {
     ok(!accessors.src.condition(document), 'Document isn\'t dom element');
 });
 
-test('Is document instance', function () {
+test('is document instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeDoc          = {
         referrer: ''
@@ -48,7 +48,7 @@ test('Is document instance', function () {
     urlUtils.getProxyUrl = savedGetProxyUrl;
 });
 
-test('Is window instance', function () {
+test('is window instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeWin          = {
         location: ''
@@ -64,7 +64,7 @@ test('Is window instance', function () {
     urlUtils.getProxyUrl = savedGetProxyUrl;
 });
 
-test('Is location instance', function () {
+test('is location instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeLocation     = {
         href: ''
