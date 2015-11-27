@@ -574,7 +574,7 @@ asyncTest('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T22
     $iframe.appendTo('body');
 });
 
-test('ShadowUI\'s root must be the last child after adding a new element (T239689)', function () {
+test('shadowUI\'s root must be the last child after adding a new element (T239689)', function () {
     var root              = shadowUI.getRoot();
     var bodyChildrenCount = document.body.children.length;
 

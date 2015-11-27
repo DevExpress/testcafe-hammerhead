@@ -394,7 +394,7 @@ test('isHammerheadAttr', function () {
 
 module('regression');
 
-test('IsDomElement for <object> tag (B252941)', function () {
+test('isDomElement for <object> tag (B252941)', function () {
     var objectElement = document.createElement('object');
 
     document.body.appendChild(objectElement);
@@ -404,7 +404,7 @@ test('IsDomElement for <object> tag (B252941)', function () {
     objectElement.parentNode.removeChild(objectElement);
 });
 
-test('IsDomElement for object that simulate HTMLInputElement (T230802)', function () {
+test('isDomElement for object that simulate HTMLInputElement (T230802)', function () {
     /* eslint-disable no-unused-vars */
     var obj = {
         size:    null,
@@ -417,7 +417,7 @@ test('IsDomElement for object that simulate HTMLInputElement (T230802)', functio
     /* eslint-enable no-unused-vars */
 });
 
-test('IsDomElement for plain object (T198784)', function () {
+test('isDomElement for plain object (T198784)', function () {
     /* eslint-disable no-unused-vars */
     var obj = {
         target:  'ok',
@@ -428,7 +428,7 @@ test('IsDomElement for plain object (T198784)', function () {
     /* eslint-enable no-unused-vars */
 });
 
-asyncTest('Cross domain iframe that contains iframe without src should not throw the security error (GH-114)', function () {
+asyncTest('cross domain iframe that contains iframe without src should not throw the security error (GH-114)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/page-with-iframe-with-js-protocol.html');

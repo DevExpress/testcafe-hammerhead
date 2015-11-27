@@ -317,7 +317,7 @@ if (browserUtils.isIE) {
 }
 
 if (!browserUtils.isFirefox) {
-    asyncTest('Window event should not be undefined inside iframe handler (B254199)', function () {
+    asyncTest('window event should not be undefined inside iframe handler (B254199)', function () {
         var iframeSrc      = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
         var $iframe        = $('<iframe>')
             .attr('src', iframeSrc)
@@ -338,7 +338,7 @@ if (!browserUtils.isFirefox) {
         });
     });
 
-    asyncTest('Window.event becomes empty when a click event handler triggers the click event on a different element in IE11 (GH-226)', function () {
+    asyncTest('window.event becomes empty when a click event handler triggers the click event on a different element in IE11 (GH-226)', function () {
         var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
         var $iframe   = $('<iframe>')
             .attr('src', iframeSrc)

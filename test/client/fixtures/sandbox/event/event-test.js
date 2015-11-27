@@ -347,7 +347,7 @@ asyncTest('handler not the function for addEventListener (T261234)', function ()
 });
 
 if (browserUtils.isWebKit) {
-    asyncTest('The "Illegal invocation" error after svg element focused (#82)', function () {
+    asyncTest('the "Illegal invocation" error after svg element focused (#82)', function () {
         var $svgElement = $(
             '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">' +
             '<rect id="rect" width="300" height="300" fill="red" tabIndex="1"></rect>' +
@@ -369,7 +369,7 @@ if (browserUtils.isWebKit) {
     });
 }
 
-test('The click event handler for the svg element must be overridden correctly (B238956)', function () {
+test('the click event handler for the svg element must be overridden correctly (B238956)', function () {
     var $svg       = $('<svg xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>');
     var clickCount = 0;
 

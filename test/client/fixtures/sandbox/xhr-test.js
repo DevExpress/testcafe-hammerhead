@@ -39,7 +39,7 @@ asyncTest('unsupported protocol', function () {
 
 module('regression');
 
-asyncTest('Unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
+asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
     var timeout = 100;
 
     var ready = function () {

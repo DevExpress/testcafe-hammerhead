@@ -305,7 +305,7 @@ test('stylesheet after innerHTML', function () {
 
 module('regression');
 
-test('Remove the "integrity" attribute from the link and script tags (GH-235)', function () {
+test('remove the "integrity" attribute from the link and script tags (GH-235)', function () {
     var script = nativeMethods.createElement.call(document, 'script');
     var link   = nativeMethods.createElement.call(document, 'link');
 
@@ -362,7 +362,7 @@ test('iframe with javascript protocol in \'src\' attribute value must be process
     strictEqual(storedSrcAttr, src);
 });
 
-test('The URL attribute must be set to an empty string on the server only once (T295078) (GH-159)', function () {
+test('the URL attribute must be set to an empty string on the server only once (T295078) (GH-159)', function () {
     var iframe = nativeMethods.createElement.call(document, 'iframe');
 
     nativeMethods.setAttribute.call(iframe, 'src', '/should_not_be_changed');
@@ -376,7 +376,7 @@ test('The URL attribute must be set to an empty string on the server only once (
     strictEqual(nativeMethods.getAttribute.call(iframe, 'src'), '/should_not_be_changed');
 });
 
-test('Remove the meta tag with http-equiv="Content-Security-Policy" attribute from document (GH-243)', function () {
+test('remove the meta tag with http-equiv="Content-Security-Policy" attribute from document (GH-243)', function () {
     var metaTag = nativeMethods.createElement.call(document, 'meta');
 
     nativeMethods.setAttribute.call(metaTag, 'http-equiv', 'Content-Security-Policy');
@@ -388,7 +388,7 @@ test('Remove the meta tag with http-equiv="Content-Security-Policy" attribute fr
     ok(!metaTag.hasAttribute('content'));
 });
 
-test('Remove the meta tag with http-equiv="Content-Security-Policy" attribute from document (tag properties added via setAttribute) (GH-243)', function () {
+test('remove the meta tag with http-equiv="Content-Security-Policy" attribute from document (tag properties added via setAttribute) (GH-243)', function () {
     var metaTag = document.createElement('meta');
 
     metaTag.setAttribute('id', 'metaContentSecurityPolicy');
@@ -401,7 +401,7 @@ test('Remove the meta tag with http-equiv="Content-Security-Policy" attribute fr
     metaTag.parentNode.removeChild(metaTag);
 });
 
-test('Script and style content added via a child text node must be overridden (GH-259)', function () {
+test('script and style content added via a child text node must be overridden (GH-259)', function () {
     var style          = document.createElement('style');
     var styleTextNode1 = document.createTextNode('div.class1 { background-image: url("/image1.png"); }');
     var styleTextNode2 = document.createTextNode('div.class2 { background-image: url("/image2.png"); }');
@@ -421,7 +421,7 @@ test('Script and style content added via a child text node must be overridden (G
     ok(script.childNodes[0].data.indexOf('var host2=__get$(__get$Loc(location),"host")') > -1);
 });
 
-test('Node.replaceChild must be overridden (GH-264)', function () {
+test('node.replaceChild must be overridden (GH-264)', function () {
     var style          = document.createElement('style');
     var styleTextNode1 = document.createTextNode('div.class1 { background-image: url("/image1.png"); }');
     var styleTextNode2 = document.createTextNode('div.class2 { background-image: url("/image2.png"); }');

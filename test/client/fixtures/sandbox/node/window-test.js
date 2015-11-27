@@ -24,7 +24,7 @@ var isWorkerFromBlobSupported = (function () {
 })();
 
 if (isWorkerFromBlobSupported) {
-    asyncTest('Blob should try to process data as a script even if the content type is not passed (GH-231)', function () {
+    asyncTest('blob should try to process data as a script even if the content type is not passed (GH-231)', function () {
         var script  = 'var obj = {}, prop = "prop"; obj[prop] = true; postMessage(true);';
         var blobURL = URL.createObjectURL(new Blob([script]));
 
