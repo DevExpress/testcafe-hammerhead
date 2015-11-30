@@ -4,7 +4,8 @@
 // -------------------------------------------------------------
 
 export default {
-    requestMarker:   'hammerhead|xhr|request-marker-header',
-    corsSupported:   'hammerhead|xhr|cors-supported-header',
-    withCredentials: 'hammerhead|xhr|with-credentials-header'
+    requestMarker:   'x-hammerhead|xhr|request-marker-header',
+    corsSupported:   'x-hammerhead|xhr|cors-supported-header',
+    withCredentials: 'x-hammerhead|xhr|with-credentials-header',
+    origin:          'x-hammerhead|xhr|origin'
 };

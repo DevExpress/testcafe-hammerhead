@@ -127,6 +127,8 @@ export default class RequestPipelineContext {
                 this.dest.referer   = parsedReferer.dest.url;
                 this.dest.reqOrigin = urlUtils.getDomain(parsedReferer.dest);
             }
+            else if (this.req.headers[XHR_HEADERS.origin])
+                this.dest.reqOrigin = this.req.headers[XHR_HEADERS.origin];
 
             this._initRequestNatureInfo();
 

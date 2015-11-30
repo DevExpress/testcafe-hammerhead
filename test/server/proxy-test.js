@@ -122,7 +122,7 @@ describe('Proxy', function () {
             res.end();
         });
 
-        app.get('/B234325/reply-with-origin', function (req, res) {
+        app.get('/B234325,GH-284/reply-with-origin', function (req, res) {
             res.set('access-control-allow-origin', 'http://example.com');
             res.end(req.headers['origin']);
         });
@@ -589,7 +589,7 @@ describe('Proxy', function () {
     describe('Regression', function () {
         it('Should force "Origin" header for the same-domain requests (B234325)', function (done) {
             var options = {
-                url:     proxy.openSession('http://127.0.0.1:2000/B234325/reply-with-origin', session),
+                url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
                 }
@@ -662,6 +662,23 @@ describe('Proxy', function () {
                 var expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
 
                 compareCode(body, expected);
+                done();
+            });
+        });
+
+        it('Should transform the "Origin" header for requests without the "Referer" header correctly (GH-284)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
+                headers: { origin: 'http://127.0.0.1:1836' }
+            };
+
+            options.headers[XHR_HEADERS.origin]        = 'http://example.com';
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
+
+            request(options, function (err, res, body) {
+                expect(body).eql('http://example.com');
+
                 done();
             });
         });

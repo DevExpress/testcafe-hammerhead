@@ -1,6 +1,17 @@
 var sharedUrlUtils = hammerhead.get('../utils/url');
 
-var xhrSandbox = hammerhead.sandbox.xhr;
+var xhrSandbox    = hammerhead.sandbox.xhr;
+var iframeSandbox = hammerhead.sandbox.iframe;
+var browserUtils  = hammerhead.utils.browser;
+
+QUnit.testStart(function () {
+    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+});
+
+QUnit.testDone(function () {
+    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+});
 
 test('redirect requests to proxy', function () {
     jQuery.ajaxSetup({ async: false });
@@ -82,3 +93,39 @@ asyncTest('parameters must pass correctly in xhr event handlers (T239198)', func
     request.open('GET', '/xhr-large-response', true);
     request.send(null);
 });
+
+if (!browserUtils.isIE9) {
+    asyncTest('send the origin header correctly (GH-284)', function () {
+        var xhrTestFunc = function () {
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('POST', '/xhr-origin-header-test/', false);
+            xhr.send();
+
+            window.response = xhr.responseText;
+        };
+
+        xhrTestFunc();
+        strictEqual(window.response, 'https://example.com', 'top window');
+
+        var iframe = document.createElement('iframe');
+
+        iframe.id = 'test';
+        iframe.addEventListener('load', function () {
+            var script = document.createElement('script');
+
+            script.innerHTML = '(' + xhrTestFunc.toString() + ')()';
+
+            iframe.contentDocument.body.appendChild(script);
+
+            strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
+
+            document.body.removeChild(iframe);
+
+            expect(2);
+            start();
+        });
+
+        document.body.appendChild(iframe);
+    });
+}

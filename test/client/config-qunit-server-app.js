@@ -54,4 +54,8 @@ module.exports = function (app) {
             res.send(req.originalUrl || req.url);
         }, delay);
     });
+
+    app.post('/xhr-origin-header-test/', function (req, res) {
+        res.send(req.headers['x-hammerhead|xhr|origin']);
+    });
 };

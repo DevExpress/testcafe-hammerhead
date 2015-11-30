@@ -1,6 +1,7 @@
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
 import { IFRAME, getProxyUrl, changeDestUrlPart } from '../../../utils/url';
+import { getDomain } from '../../../../utils/url';
 
 export default class LocationWrapper {
     constructor (window) {
@@ -27,11 +28,7 @@ export default class LocationWrapper {
         }));
 
         Object.defineProperty(this, 'origin', createPropertyDesc({
-            get: () => {
-                var parsedDestLocation = getParsedDestLocation();
-
-                return parsedDestLocation.protocol + '//' + parsedDestLocation.host;
-            },
+            get: () => getDomain(getParsedDestLocation()),
             set: origin => origin
         }));
 
