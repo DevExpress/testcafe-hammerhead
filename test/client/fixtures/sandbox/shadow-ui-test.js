@@ -6,7 +6,7 @@ var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var domUtils      = hammerhead.utils.dom;
 var nativeMethods = hammerhead.nativeMethods;
-var isWebKit      = hammerhead.utils.browser.isWebKit;
+var browserUtils  = hammerhead.utils.browser;
 
 
 QUnit.testStart(function () {
@@ -441,7 +441,7 @@ test('querySelectorAll', function () {
 
 module('ui stylesheet');
 
-if (isWebKit) {
+if (browserUtils.isWebKit && !browserUtils.isSafari) {
     asyncTest('stylesheets are restored after the document is cleaned', function () {
         var link1  = document.createElement('link');
         var link2  = document.createElement('link');

@@ -43,7 +43,7 @@ export var isFirefox         = browser.name === 'firefox' && !isIE11;
 export var isOpera           = browser.name === 'opera';
 export var isOperaWithWebKit = /opr/.test(userAgent);
 export var isSafari          = isIOS || /safari/.test(userAgent) && !/chrome/.test(userAgent);
-export var isWebKit          = browser.name === 'webkit' && !isMSEdge && !isSafari;
+export var isWebKit          = browser.name === 'webkit' && !isMSEdge;
 export var hasTouchEvents    = !!('ontouchstart' in window);
 export var isMacPlatform     = /^Mac/.test(navigator.platform);
 

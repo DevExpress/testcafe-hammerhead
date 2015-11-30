@@ -2,7 +2,7 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import * as domUtils from '../utils/dom';
-import { isWebKit } from '../utils/browser';
+import { isWebKit, isSafari } from '../utils/browser';
 import { EVENTS } from '../dom-processor';
 import { getOffsetPosition } from '../utils/position';
 import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
@@ -161,7 +161,7 @@ export default class ShadowUI extends SandboxBase {
         });
 
         // NOTE: T174435
-        if (isWebKit) {
+        if (isWebKit && !isSafari) {
             var stylesheetsCopy = null;
             var shadowRoot      = null;
 
