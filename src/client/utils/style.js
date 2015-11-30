@@ -1,5 +1,5 @@
 import * as domUtils from './dom';
-import { isIE, isFirefox } from './browser';
+import * as browserUtils from './browser';
 import { styleClass } from '../sandbox/native-methods';
 
 // NOTE: For Chrome.
@@ -149,12 +149,17 @@ export function getOptionHeight (select) {
     if (realSizeValue === 1)
         return getHeight(select);
 
-    return isIE && realSizeValue > childrenCount ?
+    return browserUtils.isIE && realSizeValue > childrenCount ?
            Math.round(selectScrollHeight / childrenCount) :
            Math.round(selectScrollHeight / Math.max(childrenCount, realSizeValue));
 }
 
 export function getSelectElementSize (select) {
+    // NOTE: iOS and Android ignore 'size' and 'multiple' attributes,
+    // all select elements behave like a select with size=1.
+    if (browserUtils.isSafari && browserUtils.hasTouchEvents || browserUtils.isAndroid)
+        return 1;
+
     var sizeAttr     = select.getAttribute('size');
     var multipleAttr = select.getAttribute('multiple');
     var size         = !sizeAttr ? 1 : parseInt(sizeAttr, 10);
@@ -172,7 +177,7 @@ export function isVisibleChild (el) {
     return select && select.tagName.toLowerCase() === 'select' && getSelectElementSize(select) > 1 &&
            (tagName === 'option' || tagName === 'optgroup') &&
            // NOTE: Firefox does not display groups without a label or with an empty label.
-           (!isFirefox || el.label);
+           (!browserUtils.isFirefox || el.label);
 }
 
 export function getScrollLeft (el) {
