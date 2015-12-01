@@ -13,16 +13,11 @@ function getLocation () {
     if (forcedLocation)
         return forcedLocation;
 
-    try {
-        // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
-        if (window.frameElement && domUtils.isIframeWithoutSrc(window.frameElement))
-            return getSettings().referer;
-    }
-        /*eslint-disable no-empty */
-    catch (e) {
-        // NOTE: Cross-domain iframe.
-    }
-    /*eslint-enable no-empty */
+    var frameElement = domUtils.getFrameElement(window);
+
+    // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
+    if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
+        return getSettings().referer;
 
     return window.location.toString();
 }

@@ -2,7 +2,6 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import * as domUtils from '../utils/dom';
-import { isWebKit, isSafari } from '../utils/browser';
 import { EVENTS } from '../dom-processor';
 import { getOffsetPosition } from '../utils/position';
 import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
@@ -25,8 +24,9 @@ export default class ShadowUI extends SandboxBase {
         this.messageSandbox = messageSandbox;
         this.iframeSandbox  = iframeSandbox;
 
-        this.root              = null;
-        this.lastActiveElement = null;
+        this.root                    = null;
+        this.lastActiveElement       = null;
+        this.uiStyleSheetsHtmlBackup = null;
     }
 
     _bringRootToWindowTopLeft () {
@@ -124,6 +124,32 @@ export default class ShadowUI extends SandboxBase {
         document.getElementsByClassName.toString = () => nativeMethods.getElementsByClassName.toString();
     }
 
+    _getUIStyleSheetsHtml () {
+        var stylesheets = this.nativeMethods.querySelectorAll.call(this.document, 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet);
+        var result      = '';
+
+        for (var i = 0; i < stylesheets.length; i++)
+            result += stylesheets[i].outerHTML;
+
+        return result;
+    }
+
+    _restoreUIStyleSheets (head, uiStyleSheetsHtml) {
+        if (!head || !uiStyleSheetsHtml)
+            return;
+
+        var parser = this.nativeMethods.createElement.call(this.document, 'div');
+
+        parser.innerHTML = uiStyleSheetsHtml;
+
+        for (var i = 0; i < parser.children.length; i++) {
+            var refNode = head.children[i] || null;
+            var newNode = parser.children[i].cloneNode();
+
+            this.nativeMethods.insertBefore.call(head, newNode, refNode);
+        }
+    }
+
     getRoot () {
         if (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root)) {
             this.overrideElement(this.document.body);
@@ -155,45 +181,23 @@ export default class ShadowUI extends SandboxBase {
         this._overrideDocumentMethods(window.document);
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_READY_TO_INIT_EVENT, e => {
-            var iframeDocumentHead = e.iframe.contentDocument.head;
+            var iframeHead      = e.iframe.contentDocument.head;
 
-            iframeDocumentHead.insertBefore(this.getUIStylesheetsCopyFragment(), iframeDocumentHead.firstChild);
+            this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());
         });
 
-        // NOTE: T174435
-        if (isWebKit && !isSafari) {
-            var stylesheetsCopy = null;
-            var shadowRoot      = null;
+        this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
+            this.uiStyleSheetsHtmlBackup = this._getUIStyleSheetsHtml();
+        });
 
-            this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
-                stylesheetsCopy = this.getUIStylesheetsCopyFragment();
-
-                if (window.top === window.self) {
-                    if (this.select('.root').length) {
-                        shadowRoot = this.getRoot();
-                        shadowRoot.parentNode.removeChild(shadowRoot);
-                    }
-                    else
-                        shadowRoot = null;
-                }
-            });
-
-            var restoreStyle = e => {
-                if (!this.isUIStylesheetExists()) {
-                    var headElement = e.document.head;
-
-                    if (stylesheetsCopy && stylesheetsCopy.children.length && headElement) {
-                        headElement.insertBefore(stylesheetsCopy, headElement.firstChild);
-
-                        if (window.top === window.self && shadowRoot)
-                            e.document.body.appendChild(shadowRoot);
-                    }
-                }
-            };
-
-            this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLEANED_EVENT, restoreStyle);
-            this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, restoreStyle);
-        }
+        this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLEANED_EVENT, e => {
+            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
+            this.uiStyleSheetsHtmlBackup = null;
+        });
+        this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, e => {
+            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
+            this.uiStyleSheetsHtmlBackup = null;
+        });
 
         this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, el => {
             var elContextWindow = el[INTERNAL_PROPS.processedContext];
@@ -216,7 +220,7 @@ export default class ShadowUI extends SandboxBase {
     onBodyContentChanged () {
         if (this.root) {
             if (!domUtils.closest(this.root, 'html'))
-                this.document.body.appendChild(this.root);
+                this.nativeMethods.appendChild.call(this.document.body, this.root);
         }
     }
 
@@ -226,7 +230,7 @@ export default class ShadowUI extends SandboxBase {
         if (this.root) {
             if (this.document.body && this.root.parentNode !== this.document.body) {
                 this.overrideElement(this.document.body);
-                this.document.body.appendChild(this.root);
+                this.nativeMethods.appendChild.call(this.document.body, this.root);
             }
         }
     }
@@ -385,20 +389,6 @@ export default class ShadowUI extends SandboxBase {
             names[i] += SHADOW_UI_CLASS_NAME.postfix;
 
         return names.join(' ');
-    }
-
-    getUIStylesheetsCopyFragment () {
-        var stylesheets = nativeMethods.querySelectorAll.call(this.document, 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet);
-        var fragment    = document.createDocumentFragment();
-
-        for (var index = 0, length = stylesheets.length; index < length; index++)
-            fragment.appendChild(stylesheets[index].cloneNode(true));
-
-        return fragment;
-    }
-
-    isUIStylesheetExists () {
-        return !!nativeMethods.querySelectorAll.call(this.document, 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet).length;
     }
 
     select (selector, context) {
