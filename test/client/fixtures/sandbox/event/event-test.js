@@ -1,5 +1,3 @@
-var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
-
 var browserUtils   = hammerhead.utils.browser;
 var nativeMethods  = hammerhead.nativeMethods;
 var iframeSandbox  = hammerhead.sandbox.iframe;
@@ -16,79 +14,6 @@ QUnit.testStart(function () {
 QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
 });
-
-var lastHovered = null;
-
-function hoverElement (el) {
-    if (lastHovered)
-        dispatchMouseEvent(lastHovered, 'mouseout');
-    dispatchMouseEvent(el, 'mouseover');
-    lastHovered = el;
-}
-
-function dispatchMouseEvent (el, type) {
-    var evt = null;
-    var e   = {
-        bubbles:       true,
-        cancelable:    true,
-        view:          window,
-        detail:        0,
-        ctrlKey:       false,
-        altKey:        false,
-        shiftKey:      false,
-        metaKey:       false,
-        button:        0,
-        relatedTarget: void 0
-    };
-
-    if (document.createEvent) {
-        evt = document.createEvent('MouseEvents');
-        evt.initMouseEvent(type, e.bubbles, e.cancelable, e.view, e.detail, e.screenX, e.screenY,
-            e.clientX, e.clientY, e.ctrlKey, e.altKey, e.shiftKey, e.metaKey, e.button, document.body.parentNode);
-    }
-    else if (document.createEventObject) {
-        evt = document.createEventObject();
-        for (var prop in e)
-            evt[prop] = e[prop];
-        evt.button = { 0: 1, 1: 4, 2: 2 }[evt.button] || evt.button;
-    }
-
-    if (el.dispatchEvent)
-        nativeMethods.dispatchEvent.call(el, evt);
-    else if (el.fireEvent)
-        nativeMethods.fireEvent.call(el, 'on' + type, evt);
-
-    lastHovered = el;
-}
-
-function isHovered (el) {
-    return el.getAttribute(INTERNAL_ATTRS.hoverPseudoClass) === '';
-}
-
-if (!browserUtils.hasTouchEvents) {
-    test('hover pseudo class', function () {
-        var $parent = $('<div style="width:100px; height:100px; background-color: Red" class="parent">').appendTo($('body'));
-        var $child  = $('<div style="width:50px; height:50px; background-color: Blue" class="child">').appendTo($parent);
-
-        ok(!isHovered($parent[0]));
-        ok(!isHovered($child[0]));
-
-        hoverElement($parent[0]);
-        ok(isHovered($parent[0]));
-        ok(!isHovered($child[0]));
-
-        hoverElement($child[0]);
-        ok(isHovered($parent[0]));
-        ok(isHovered($child[0]));
-
-        hoverElement($('body')[0]);
-        ok(!isHovered($parent[0]));
-        ok(!isHovered($child[0]));
-
-        $parent.remove();
-        $child.remove();
-    });
-}
 
 if (!browserUtils.isIE9) {
     asyncTest('override setTimeout error (T203986)', function () {
@@ -247,35 +172,6 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
     }
     $div.remove();
 });
-
-if (!browserUtils.hasTouchEvents) {
-    test('focusBlur.fixHoveredElement, focusBlur.freeHoveredElement (B254111)', function () {
-        var $parent = $('<div style="width:100px; height:100px; background-color: Red" class="parent">').appendTo($('body'));
-        var $child  = $('<div style="width:50px; height:50px; background-color: Blue" class="child">').appendTo($parent);
-
-        ok(!isHovered($parent[0]));
-        ok(!isHovered($child[0]));
-
-        focusBlur.fixHoveredElement();
-
-        hoverElement($parent[0]);
-        ok(!isHovered($parent[0]));
-        ok(!isHovered($child[0]));
-
-        focusBlur.freeHoveredElement();
-
-        hoverElement($child[0]);
-        ok(isHovered($parent[0]));
-        ok(isHovered($child[0]));
-
-        hoverElement($('body')[0]);
-        ok(!isHovered($parent[0]));
-        ok(!isHovered($child[0]));
-
-        $parent.remove();
-        $child.remove();
-    });
-}
 
 test('attachEvent, fireEvent, detachEvent must be overriden (T239606)', function () {
     var el = nativeMethods.createElement.call(document, 'A');
