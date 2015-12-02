@@ -147,6 +147,15 @@ describe('Proxy', function () {
             res.end();
         });
 
+        app.get('/GH-306/empty-resource', function (req, res) {
+            res.set({
+                'content-type':   req.headers['x-resource-type'],
+                'content-length': 0
+            });
+            res.status(204);
+            res.end();
+        });
+
         app.get('/T239167/send-location', function (req, res) {
             res.writeHead(200, { 'location': 'http://127.0.0.1:2000/\u0410\u0411' });
             res._send('');
@@ -664,6 +673,56 @@ describe('Proxy', function () {
                 compareCode(body, expected);
                 done();
             });
+        });
+
+        it('Should process pages with status 204 and return status 200 instead (GH-306)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session),
+                headers: {
+                    accept:            'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                    'x-resource-type': 'text/html; charset=utf-8'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                var expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
+
+                compareCode(body, expected);
+                expect(res.statusCode).eql(200);
+                expect(res.headers['content-length']).eql(body.length.toString());
+
+                done();
+            });
+        });
+
+        it('Should not process assets with status 204 (GH-306)', function (done) {
+            function testSourceWithStatus204 (mimeType) {
+                return new Promise(function (resolve) {
+                    var options = {
+                        url:     proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session),
+                        headers: {
+                            'x-resource-type': mimeType
+                        }
+                    };
+
+                    request(options, function (err, res, body) {
+                        expect(body).eql('');
+                        expect(res.statusCode).eql(204);
+                        resolve();
+                    });
+                });
+            }
+
+            Promise
+                .all([
+                    testSourceWithStatus204('application/javascript'),
+                    testSourceWithStatus204('text/cache-manifest'),
+                    testSourceWithStatus204('text/css')
+                ])
+                .then(function () {
+                    done();
+                })
+                .catch(done);
         });
 
         it('Should transform the "Origin" header for requests without the "Referer" header correctly (GH-284)', function (done) {

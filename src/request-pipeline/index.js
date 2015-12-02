@@ -40,6 +40,9 @@ var stages = {
     3: function decideOnProcessingStrategy (ctx, next) {
         ctx.buildContentInfo();
 
+        if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
+            ctx.destRes.statusCode = 200;
+
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
         if (!ctx.contentInfo.requireProcessing) {
             sendResponseHeaders(ctx);
