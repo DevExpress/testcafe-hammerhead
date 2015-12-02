@@ -1,5 +1,4 @@
 // Const
-const JSON_MIME       = 'application/json';
 const MANIFEST_MIME   = 'text/cache-manifest';
 const CSS_MIME        = 'text/css';
 
@@ -40,8 +39,3 @@ export function isScriptResource (contentTypeHeader, acceptHeader) {
 export function isManifest (contentTypeHeader) {
     return contentTypeHeader.toLowerCase().indexOf(MANIFEST_MIME) > -1;
 }
-
-export function isJSON (contentTypeHeader) {
-    return contentTypeHeader.toLowerCase().indexOf(JSON_MIME) > -1;
-}
-

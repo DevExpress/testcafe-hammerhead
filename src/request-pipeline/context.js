@@ -145,12 +145,11 @@ export default class RequestPipelineContext {
 
         var isCSS      = contentTypeUtils.isCSSResource(contentType, accept);
         var isManifest = contentTypeUtils.isManifest(contentType);
-        var isJSON     = contentTypeUtils.isJSON(contentType);
         var isScript   = this.dest.resourceType === urlUtils.SCRIPT ||
                          contentTypeUtils.isScriptResource(contentType, accept);
 
-        var requireProcessing = !this.isXhr &&
-                                (this.isPage || this.isIframe || isCSS || isScript || isManifest || isJSON);
+        var requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
+        var requireProcessing       = !this.isXhr && (this.isPage || this.isIframe || requireAssetsProcessing);
 
         var isIframeWithImageSrc = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
@@ -175,7 +174,6 @@ export default class RequestPipelineContext {
             isCSS,
             isScript,
             isManifest,
-            isJSON,
             encoding,
             contentTypeUrlToken
         };
