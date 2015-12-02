@@ -54,6 +54,7 @@ class Hammerhead {
 
         this.eventSandbox = {
             listeners:             this.sandbox.event.listeners,
+            hover:                 this.sandbox.event.hover,
             focusBlur:             this.sandbox.event.focusBlur,
             elementEditingWatcher: this.sandbox.event.elementEditingWatcher,
             eventSimulator:        this.sandbox.event.eventSimulator,

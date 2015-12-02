@@ -15,8 +15,6 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         this.shouldDisableOuterFocusHandlers = false;
         this.topWindow                       = null;
-        this.hoverElementFixed               = false;
-        this.lastHoveredElement              = null;
         this.lastFocusedElement              = null;
 
         this.eventSimulator        = eventSimulator;
@@ -46,63 +44,6 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         if (newScroll.top !== scroll.top)
             styleUtils.setScrollTop(el, scroll.top);
-    }
-
-    _onMouseOverHandler (e) {
-        if (this.hoverElementFixed || domUtils.isShadowUIElement(e.target))
-            return;
-
-        // NOTE: In this method, we go up to the tree of elements and look for a joint parent for the
-        // previous and new hovered elements. Processing is needed only until  that parent is found.
-        // In this case, we’ll  reduce the number of dom calls.
-        var clearHoverMarkerUntilJointParent = newHoveredElement => {
-            var jointParent = null;
-
-            if (this.lastHoveredElement) {
-                var el = this.lastHoveredElement;
-
-                while (el && el.tagName) {
-                    // NOTE: Check that the current element is a joint parent for the hovered elements.
-                    if (el.contains && !el.contains(newHoveredElement)) {
-                        nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
-                        el = el.parentNode;
-                    }
-                    else
-                        break;
-                }
-
-                jointParent = el;
-
-                if (jointParent)
-                    nativeMethods.removeAttribute.call(jointParent, INTERNAL_ATTRS.hoverPseudoClass);
-            }
-
-            return jointParent;
-        };
-
-        var setHoverMarker = (newHoveredElement, jointParent) => {
-            if (jointParent)
-                nativeMethods.setAttribute.call(jointParent, INTERNAL_ATTRS.hoverPseudoClass, '');
-
-            while (newHoveredElement && newHoveredElement.tagName) {
-                // NOTE: Assign a pseudo-class marker to the elements until the joint parent is found.
-                if (newHoveredElement !== jointParent) {
-                    nativeMethods.setAttribute.call(newHoveredElement, INTERNAL_ATTRS.hoverPseudoClass, '');
-                    newHoveredElement = newHoveredElement.parentNode;
-                }
-                else
-                    break;
-            }
-        };
-
-        var jointParent = clearHoverMarkerUntilJointParent(e.target);
-
-        setHoverMarker(e.target, jointParent);
-    }
-
-    _onMouseOut (e) {
-        if (!domUtils.isShadowUIElement(e.target))
-            this.lastHoveredElement = e.target;
     }
 
     _onChangeActiveElement (activeElement) {
@@ -242,8 +183,6 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.activeWindowTracker.attach(window);
         this.topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
 
-        this.listeners.addInternalEventListener(window, ['mouseover'], e => this._onMouseOverHandler(e));
-        this.listeners.addInternalEventListener(window, ['mouseout'], e => this._onMouseOut(e));
         this.listeners.addInternalEventListener(window, ['focus', 'blur'], () => this._onChangeActiveElement(this.document.activeElement));
     }
 
@@ -373,14 +312,6 @@ export default class FocusBlurSandbox extends SandboxBase {
 
     enableOuterFocusHandlers () {
         this.shouldDisableOuterFocusHandlers = false;
-    }
-
-    fixHoveredElement () {
-        this.hoverElementFixed = true;
-    }
-
-    freeHoveredElement () {
-        this.hoverElementFixed = false;
     }
 
     blur (el, callback, withoutHandlers, isNativeBlur) {

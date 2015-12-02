@@ -1,4 +1,5 @@
 import FocusBlurSandbox from './focus-blur';
+import HoverSandbox from './hover';
 import Listeners from './listeners';
 import Selection from './selection';
 import SandboxBase from '../base';
@@ -22,6 +23,7 @@ export default class EventSandbox extends SandboxBase {
         this.eventSimulator        = eventSimulator;
         this.focusBlur             = new FocusBlurSandbox(listeners, eventSimulator, messageSandbox, shadowUI, timerSandbox, elementEditingWatcher);
         this.selection             = new Selection(this);
+        this.hover                 = new HoverSandbox(listeners);
         this.shadowUI              = shadowUI;
         this.message               = messageSandbox;
 
@@ -189,6 +191,7 @@ export default class EventSandbox extends SandboxBase {
         this.message.attach(window);
         this.timers.attach(window);
         this.focusBlur.attach(window);
+        this.hover.attach(window);
     }
 
     overrideElement (el, overridePrototypeMeths) {
