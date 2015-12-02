@@ -1,4 +1,5 @@
-var styleUtils = hammerhead.get('./utils/style');
+var styleUtils   = hammerhead.get('./utils/style');
+var browserUtils = hammerhead.get('./utils/browser');
 
 test('getBordersWidth', function () {
     var $el = $('<div>')
@@ -186,4 +187,47 @@ test('getOffset', function () {
 
     document.body.style.border            = '';
     document.documentElement.style.border = '';
+});
+
+test('getSelectElementSize', function () {
+    function createOption (parent, text) {
+        return $('<option>').text(text)
+            .appendTo(parent);
+    }
+
+    function createSelect () {
+        var select = $('<select>')
+            .appendTo(document.body)[0];
+
+        createOption(select, 'one');
+        createOption(select, 'two');
+        createOption(select, 'three');
+        createOption(select, 'four');
+        createOption(select, 'five');
+
+        return select;
+    }
+
+    var select = createSelect();
+    var size   = styleUtils.getSelectElementSize(select);
+
+    strictEqual(size, 1);
+
+    select.setAttribute('size', 4);
+    size = styleUtils.getSelectElementSize(select);
+
+    if (browserUtils.isSafari && browserUtils.hasTouchEvents || browserUtils.isAndroid)
+        strictEqual(size, 1);
+    else
+        strictEqual(size, 4);
+
+    select.removeAttribute('size');
+    select.setAttribute('multiple', 'multiple');
+
+    if (browserUtils.isSafari && browserUtils.hasTouchEvents || browserUtils.isAndroid)
+        strictEqual(size, 1);
+    else
+        strictEqual(size, 4);
+
+    document.body.removeChild(select);
 });
