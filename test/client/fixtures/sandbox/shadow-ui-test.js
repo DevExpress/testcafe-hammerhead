@@ -6,8 +6,6 @@ var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var domUtils      = hammerhead.utils.dom;
 var nativeMethods = hammerhead.nativeMethods;
-var browserUtils  = hammerhead.utils.browser;
-
 
 QUnit.testStart(function () {
     if (!$('#testDiv').length)
@@ -441,47 +439,45 @@ test('querySelectorAll', function () {
 
 module('ui stylesheet');
 
-if (browserUtils.isWebKit && !browserUtils.isSafari) {
-    asyncTest('stylesheets are restored after the document is cleaned', function () {
-        var link1  = document.createElement('link');
-        var link2  = document.createElement('link');
-        var iframe = document.createElement('iframe');
+asyncTest('stylesheets are restored after the document is cleaned', function () {
+    var link1  = document.createElement('link');
+    var link2  = document.createElement('link');
+    var iframe = document.createElement('iframe');
 
-        link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
-        link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
-        link1.id        = 'id1';
-        link2.id        = 'id2';
-        iframe.id       = 'test';
+    link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+    link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+    link1.id        = 'id1';
+    link2.id        = 'id2';
+    iframe.id       = 'test';
 
-        document.head.insertBefore(link2, document.head.firstChild);
-        document.head.insertBefore(link1, document.head.firstChild);
+    document.head.insertBefore(link2, document.head.firstChild);
+    document.head.insertBefore(link1, document.head.firstChild);
 
-        iframe.addEventListener('load', function () {
-            iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
+    iframe.addEventListener('load', function () {
+        iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
 
-            var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
-                iframe.contentDocument,
-                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-            );
-            var result              = '';
+        var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
+            iframe.contentDocument,
+            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+        );
+        var result              = '';
 
-            for (var index = 0, length = iframeUIStylesheets.length; index < length; index++)
-                result += iframeUIStylesheets[index].id;
+        for (var index = 0, length = iframeUIStylesheets.length; index < length; index++)
+            result += iframeUIStylesheets[index].id;
 
-            strictEqual(iframe.contentDocument.body.innerHTML, 'Cleaned!');
-            strictEqual(length, 3);
-            strictEqual(result, 'id1id2');
+        ok(iframe.contentDocument.body.innerHTML.indexOf('Cleaned!') > -1);
+        strictEqual(length, 3);
+        strictEqual(result, 'id1id2');
 
-            document.head.removeChild(link1);
-            document.head.removeChild(link2);
-            document.body.removeChild(iframe);
+        document.head.removeChild(link1);
+        document.head.removeChild(link2);
+        document.body.removeChild(iframe);
 
-            start();
-        });
-
-        document.body.appendChild(iframe);
+        start();
     });
-}
+
+    document.body.appendChild(iframe);
+});
 
 asyncTest('append stylesheets to the iframe on initialization', function () {
     var link1  = document.createElement('link');
@@ -509,8 +505,8 @@ asyncTest('append stylesheets to the iframe on initialization', function () {
 
         strictEqual(currentUIStylesheets.length, iframeUIStylesheets.length);
 
-        for (var index = 0, length = currentUIStylesheets.length; index < length; index++)
-            strictEqual(currentUIStylesheets[index].outerHTML, iframeUIStylesheets[index].outerHTML);
+        for (var i = 0; i < currentUIStylesheets.length; i++)
+            strictEqual(currentUIStylesheets[i].outerHTML, iframeUIStylesheets[i].outerHTML);
 
         document.head.removeChild(link1);
         document.head.removeChild(link2);

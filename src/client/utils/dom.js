@@ -98,6 +98,15 @@ export function getIframeLocation (iframe) {
     };
 }
 
+export function getFrameElement (win) {
+    try {
+        return win.frameElement;
+    }
+    catch (e) {
+        return null;
+    }
+}
+
 export function getMapContainer (el) {
     var closestMap        = closest(el, 'map');
     var closestMapName    = nativeMethods.getAttribute.call(closestMap, 'name');
@@ -174,14 +183,10 @@ export function getSelectVisibleChildren (select) {
 }
 
 export function getTopSameDomainWindow (window) {
-    try {
-        if (window !== window.top && isIframeWithoutSrc(window.frameElement))
-            return getTopSameDomainWindow(window.parent);
-    }
-        /*eslint-disable no-empty */
-    catch (e) {
-    }
-    /*eslint-enable no-empty */
+    var frameElement = getFrameElement(window);
+
+    if (window !== window.top && frameElement && isIframeWithoutSrc(frameElement))
+        return getTopSameDomainWindow(window.parent);
 
     return window;
 }
