@@ -222,3 +222,51 @@ asyncTest('native methods are properly initialized in an iframe without src (GH-
     });
     document.body.appendChild(iframe);
 });
+
+asyncTest('an error occurs when proxing two nested iframes (a top iframe has src with javascript protocol) (GH-125)', function () {
+    var iframe                         = document.createElement('iframe');
+    var countNestedIframeLoadEvents    = 0;
+    var maxCountNestedIframeLoadEvents = browserUtils.isWebKit ? 2 : 1;
+    var countXhrLoadEvents             = 0;
+    var validCountXhrLoadEvents        = browserUtils.isWebKit ? 2 : 1;
+
+    iframe.id = 'test_iframe_id_96ljkls';
+    iframe.setAttribute('src', 'javascript:"<html><body><h1>test</h1></body></html>"');
+    iframe.addEventListener('load', function () {
+        var iframeHammerhead       = this.contentWindow['%hammerhead%'];
+        var iframeIframeSandbox    = iframeHammerhead.sandbox.iframe;
+        var iframeDocument         = this.contentDocument;
+        var nestedIframe           = iframeDocument.createElement('iframe');
+        var checkXhrEventListeners = function () {
+            var xhr = new iframeHammerhead.sandbox.nativeMethods.XMLHttpRequest();
+
+            xhr.addEventListener('load', function () {
+                countXhrLoadEvents++;
+                ok(this.responseText, 'test');
+            });
+            xhr.addEventListener('error', function () {
+                ok(false, 'error event must not be raised');
+            });
+            xhr.open('post', '/get-script/test', false);
+            xhr.send();
+        };
+
+        iframeIframeSandbox.off(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
+        iframeIframeSandbox.on(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, checkXhrEventListeners);
+        iframeIframeSandbox.on(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+
+        nestedIframe.id = 'test_nestedIframe_klshgfn111';
+        nestedIframe.setAttribute('src', 'about:blank');
+        nestedIframe.addEventListener('load', function () {
+            countNestedIframeLoadEvents++;
+
+            if (countNestedIframeLoadEvents === maxCountNestedIframeLoadEvents) {
+                strictEqual(countXhrLoadEvents, validCountXhrLoadEvents);
+                iframe.parentNode.removeChild(iframe);
+                start();
+            }
+        });
+        iframeDocument.body.appendChild(nestedIframe);
+    });
+    document.body.appendChild(iframe);
+});

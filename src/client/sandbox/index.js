@@ -110,7 +110,7 @@ export default class Sandbox extends SandboxBase {
 
     reattach (window, document) {
         // NOTE: Assign the existing sandbox to the cleared document.
-        if (isIE)
+        if (isIE || isWebKit)
             this._refreshNativeMethods(window, document);
 
         this.event.initDocumentListening();
