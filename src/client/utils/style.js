@@ -92,9 +92,44 @@ export function getElementScroll (el) {
     };
 }
 
+export function getWidth (el) {
+    if (!el)
+        return null;
+
+    if (domUtils.isWindow(el))
+        return el.document.documentElement.clientWidth;
+
+    if (el.nodeType === 9) {
+        var doc        = el.documentElement;
+        var clientProp = 'clientWidth';
+        var scrollProp = 'scrollWidth';
+        var offsetProp = 'offsetWidth';
+
+        if (doc[clientProp] >= doc[scrollProp])
+            return doc[clientProp];
+
+        return Math.max(
+            el.body[scrollProp], doc[scrollProp],
+            el.body[offsetProp], doc[offsetProp]
+        );
+    }
+
+    var value = el.offsetWidth;
+
+    value -= getIntValue(get(el, 'paddingLeft'));
+    value -= getIntValue(get(el, 'paddingRight'));
+    value -= getIntValue(get(el, 'borderLeftWidth'));
+    value -= getIntValue(get(el, 'borderRightWidth'));
+
+    return value;
+}
+
 export function getHeight (el) {
     if (!el)
         return null;
+
+    if (domUtils.isWindow(el))
+        return el.document.documentElement.clientHeight;
 
     if (el.nodeType === 9) {
         var doc        = el.documentElement;
@@ -110,7 +145,6 @@ export function getHeight (el) {
             el.body[offsetProp], doc[offsetProp]
         );
     }
-
 
     var value = el.offsetHeight;
 
@@ -136,6 +170,24 @@ export function getInnerWidth (el) {
 
     value -= getIntValue(get(el, 'borderLeftWidth'));
     value -= getIntValue(get(el, 'borderRightWidth'));
+
+    return value;
+}
+
+export function getInnerHeight (el) {
+    if (!el)
+        return null;
+
+    if (domUtils.isWindow(el))
+        return el.document.documentElement.clientHeight;
+
+    if (domUtils.isDocument(el))
+        return el.documentElement.clientHeight;
+
+    var value = el.offsetHeight;
+
+    value -= getIntValue(get(el, 'borderTopWidth'));
+    value -= getIntValue(get(el, 'borderBottomWidth'));
 
     return value;
 }
@@ -225,7 +277,7 @@ export function setScrollTop (el, value) {
         return;
 
     if (domUtils.isWindow(el) || domUtils.isDocument(el)) {
-        var win       = domUtils.findDocument(el).defaultView;
+        var win        = domUtils.findDocument(el).defaultView;
         var scrollLeft = getScrollLeft(el);
 
         win.scrollTo(scrollLeft, value);

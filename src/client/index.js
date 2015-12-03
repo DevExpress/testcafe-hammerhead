@@ -5,14 +5,17 @@ import CodeInstrumentation from './sandbox/code-instrumentation';
 import EventEmitter from './utils/event-emitter';
 import settings from './settings';
 import transport from './transport';
+import * as JSON from './json';
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
 import * as eventUtils from './utils/event';
 import * as typeUtils from './utils/types';
-import * as JSON from './json';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import { getProxyUrl } from './utils/url';
+import isJQueryObj from './utils/is-jquery-object';
+import extend from './utils/extend';
+import trim from '../utils/string-trim';
 /*eslint-enable no-native-reassign*/
 
 class Hammerhead {
@@ -63,12 +66,15 @@ class Hammerhead {
         };
 
         this.utils = {
-            browser:  browserUtils,
-            dom:      domUtils,
-            event:    eventUtils,
-            position: positionUtils,
-            style:    styleUtils,
-            types:    typeUtils
+            browser:     browserUtils,
+            dom:         domUtils,
+            event:       eventUtils,
+            position:    positionUtils,
+            style:       styleUtils,
+            types:       typeUtils,
+            isJQueryObj: isJQueryObj,
+            extend:      extend,
+            trim:        trim
         };
     }
 
