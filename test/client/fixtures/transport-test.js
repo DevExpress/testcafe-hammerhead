@@ -149,8 +149,11 @@ asyncTest('batchUpdate - with stored messages', function () {
 
 if (!browserUtils.isWebKit) {
     asyncTest('resend aborted async service msg', function () {
-        var xhrCount      = 0;
-        var callbackCount = 0;
+        var xhrCount           = 0;
+        var callbackCount      = 0;
+        var checkCallbackCount = function () {
+            return callbackCount === 1;
+        };
 
         var onAjaxSend = function (xhr) {
             xhrCount++;
@@ -169,23 +172,25 @@ if (!browserUtils.isWebKit) {
                 callbackCount++;
             });
 
-        expect(3);
+        expect(2);
 
-        window.setTimeout(function () {
-            strictEqual(callbackCount, 1);
-
-            unregisterAfterAjaxSendHook();
-            start();
-        }, 200);
+        window.QUnitGlobals.wait(checkCallbackCount)
+            .then(function () {
+                unregisterAfterAjaxSendHook();
+                start();
+            });
     });
 }
 else {
     asyncTest('resend aborted async service msg (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
-        var xhrCount      = 0;
-        var callbackCount = 0;
-        var value         = 'testValue';
+        var xhrCount           = 0;
+        var callbackCount      = 0;
+        var value              = 'testValue';
+        var checkCallbackCount = function () {
+            return callbackCount === 1;
+        };
 
         ok(!window.localStorage.getItem(settings.get().sessionId));
 
@@ -205,28 +210,31 @@ else {
                 callbackCount++;
             });
 
-        window.setTimeout(function () {
-            strictEqual(callbackCount, 1);
-            strictEqual(xhrCount, 1);
+        window.QUnitGlobals.wait(checkCallbackCount)
+            .then(function () {
+                strictEqual(xhrCount, 1);
 
-            var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
-            var storedMsg    = JSON.parse(storedMsgStr)[0];
+                var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
+                var storedMsg    = JSON.parse(storedMsgStr)[0];
 
-            ok(storedMsgStr);
-            strictEqual(storedMsg.test, value);
+                ok(storedMsgStr);
+                strictEqual(storedMsg.test, value);
 
-            unregisterAfterAjaxSendHook();
+                unregisterAfterAjaxSendHook();
 
-            window.localStorage.removeItem(settings.get().sessionId);
-            start();
-        }, 200);
+                window.localStorage.removeItem(settings.get().sessionId);
+                start();
+            });
     });
 
     asyncTest('do not dublicate messages in store (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
-        var callbackCount = 0;
-        var value         = 'testValue';
+        var callbackCount      = 0;
+        var value              = 'testValue';
+        var checkCallbackCount = function () {
+            return callbackCount === 2;
+        };
 
         ok(!window.localStorage.getItem(settings.get().sessionId));
 
@@ -252,17 +260,16 @@ else {
 
         unregisterAfterAjaxSendHook();
 
-        window.setTimeout(function () {
-            strictEqual(callbackCount, 2);
+        window.QUnitGlobals.wait(checkCallbackCount)
+            .then(function () {
+                var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
+                var storedMsgArr = JSON.parse(storedMsgStr);
 
-            var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
-            var storedMsgArr = JSON.parse(storedMsgStr);
+                strictEqual(storedMsgArr.length, 1);
 
-            strictEqual(storedMsgArr.length, 1);
-
-            window.localStorage.removeItem(settings.get().sessionId);
-            start();
-        }, 200);
+                window.localStorage.removeItem(settings.get().sessionId);
+                start();
+            });
     });
 }
 

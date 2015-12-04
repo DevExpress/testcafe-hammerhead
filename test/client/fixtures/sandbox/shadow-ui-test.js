@@ -71,10 +71,13 @@ test('get root', function () {
 });
 
 asyncTest('get root after body recreation', function () {
-    $('<iframe id="test_unique_lsjisujf" />')
-        .load(function () {
-            var document = this.contentDocument;
-            var window   = this.contentWindow;
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test_unique_lsjisujf';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var document = iframe.contentDocument;
+            var window   = iframe.contentWindow;
             var getRoot  = function () {
                 return window['%hammerhead%'].shadowUI.getRoot();
             };
@@ -91,10 +94,10 @@ asyncTest('get root after body recreation', function () {
             html.insertBefore(document.createElement('body'), null);
             ok(getRoot());
 
-            $(this).remove();
+            iframe.parentNode.removeChild(iframe);
             start();
-        })
-        .appendTo('body');
+        });
+    document.body.appendChild(iframe);
 });
 
 module('childNodes');
@@ -453,7 +456,7 @@ asyncTest('stylesheets are restored after the document is cleaned', function () 
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    iframe.addEventListener('load', function () {
+    window.QUnitGlobals.waitForIframe(iframe).then(function () {
         iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
 
         var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
@@ -475,7 +478,6 @@ asyncTest('stylesheets are restored after the document is cleaned', function () 
 
         start();
     });
-
     document.body.appendChild(iframe);
 });
 
@@ -493,7 +495,7 @@ asyncTest('append stylesheets to the iframe on initialization', function () {
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    iframe.addEventListener('load', function () {
+    window.QUnitGlobals.waitForIframe(iframe).then(function () {
         var currentUIStylesheets = nativeMethods.querySelectorAll.call(
             document,
             '.' + SHADOW_UI_CLASSNAME.uiStylesheet
@@ -514,7 +516,6 @@ asyncTest('append stylesheets to the iframe on initialization', function () {
 
         start();
     });
-
     document.body.appendChild(iframe);
 });
 
@@ -525,7 +526,7 @@ asyncTest("do nothing if ShadowUIStylesheet doesn't exist", function () {
     iframe.id              = 'test';
     qUnitCssLink.className = '';
 
-    iframe.addEventListener('load', function () {
+    window.QUnitGlobals.waitForIframe(iframe).then(function () {
         var currentUIStylesheets = nativeMethods.querySelectorAll.call(
             document,
             '.' + SHADOW_UI_CLASSNAME.uiStylesheet
@@ -543,31 +544,30 @@ asyncTest("do nothing if ShadowUIStylesheet doesn't exist", function () {
 
         start();
     });
-
     document.body.appendChild(iframe);
 });
 
 module('regression');
 
 asyncTest('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
-    var $iframe = $('<iframe id="test001">');
+    var iframe = document.createElement('iframe');
 
-    $iframe.load(function () {
-        var $root = $(this.contentWindow['%hammerhead%'].shadowUI.getRoot());
+    iframe.id = 'test001';
+    window.QUnitGlobals.waitForIframe(iframe).then(function () {
+        var root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
-        strictEqual($root.parent().parent().parent()[0], this.contentDocument);
+        strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
 
-        this.contentDocument.body.innerHTMl = '';
+        iframe.contentDocument.body.innerHTMl = '';
 
-        $root = $(this.contentWindow['%hammerhead%'].shadowUI.getRoot());
+        root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
-        strictEqual($root.parent().parent().parent()[0], this.contentDocument);
+        strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
 
-        $iframe.remove();
+        iframe.parentNode.removeChild(iframe);
         start();
     });
-
-    $iframe.appendTo('body');
+    document.body.appendChild(iframe);
 });
 
 test('shadowUI\'s root must be the last child after adding a new element (T239689)', function () {
@@ -607,13 +607,12 @@ asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow mus
     var crossDomainIframe = document.createElement('iframe');
 
     crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
-    crossDomainIframe.addEventListener('load', function () {
+    window.QUnitGlobals.waitForIframe(crossDomainIframe).then(function () {
         ok(!ShadowUI.isShadowContainerCollection([this.contentWindow]));
 
         crossDomainIframe.parentNode.removeChild(crossDomainIframe);
         settings.get().crossDomainProxyPort = storedCrossDomainPort;
         start();
     });
-
     document.body.appendChild(crossDomainIframe);
 });

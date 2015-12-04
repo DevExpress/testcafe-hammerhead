@@ -111,21 +111,18 @@ if (!browserUtils.isIE9) {
         var iframe = document.createElement('iframe');
 
         iframe.id = 'test';
-        iframe.addEventListener('load', function () {
-            var script = document.createElement('script');
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                var script = document.createElement('script');
 
-            script.innerHTML = '(' + xhrTestFunc.toString() + ')()';
+                script.innerHTML = '(' + xhrTestFunc.toString() + ')()';
+                iframe.contentDocument.body.appendChild(script);
+                strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
+                document.body.removeChild(iframe);
 
-            iframe.contentDocument.body.appendChild(script);
-
-            strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
-
-            document.body.removeChild(iframe);
-
-            expect(2);
-            start();
-        });
-
+                expect(2);
+                start();
+            });
         document.body.appendChild(iframe);
     });
 }

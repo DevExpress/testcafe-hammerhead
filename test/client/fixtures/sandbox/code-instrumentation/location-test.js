@@ -17,47 +17,53 @@ QUnit.testDone(function () {
 });
 
 asyncTest('iframe with empty src', function () {
-    var $iframe1 = $('<iframe id="test1">');
-    var $iframe2 = $('<iframe id="test2" src="">');
-    var $iframe3 = $('<iframe id="test3" src="about:blank">');
+    var iframe1 = document.createElement('iframe');
+    var iframe2 = document.createElement('iframe');
+    var iframe3 = document.createElement('iframe');
 
-    function assert ($iframe) {
-        return new Promise(function (resolve) {
-            $iframe.bind('load', function () {
-                new CodeInstrumentation({}, {}).attach(this.contentWindow);
+    iframe1.id = 'test1';
+    iframe2.id = 'test2';
+    iframe3.id = 'test3';
+    iframe2.setAttribute('src', '');
+    iframe3.setAttribute('src', 'about:blank');
 
-                var hyperlink = this.contentDocument.createElement('a');
+    function assert (iframe) {
+        var promise = window.QUnitGlobals.waitForIframe(iframe);
 
-                hyperlink.setAttribute('href', '/test');
-                this.contentDocument.body.appendChild(hyperlink);
+        document.body.appendChild(iframe);
+        return promise.then(function () {
+            new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
-                strictEqual(
-                    eval(processScript('hyperlink.href')),
-                    'https://example.com/test'
-                );
+            var hyperlink = iframe.contentDocument.createElement('a');
 
-                strictEqual(
-                    eval(processScript('this.contentDocument.location.href')),
-                    'about:blank'
-                );
+            hyperlink.setAttribute('href', '/test');
+            iframe.contentDocument.body.appendChild(hyperlink);
 
-                resolve();
-            });
-            $iframe.appendTo('body');
+            strictEqual(
+                eval(processScript('hyperlink.href')),
+                'https://example.com/test'
+            );
+
+            strictEqual(
+                eval(processScript('iframe.contentDocument.location.href')),
+                'about:blank'
+            );
+
+            return Promise.resolve();
         });
     }
 
-    assert($iframe1)
+    assert(iframe1)
         .then(function () {
-            return assert($iframe2);
+            return assert(iframe2);
         })
         .then(function () {
-            return assert($iframe3);
+            return assert(iframe3);
         })
         .then(function () {
-            $iframe1.remove();
-            $iframe2.remove();
-            $iframe3.remove();
+            iframe1.parentNode.removeChild(iframe1);
+            iframe2.parentNode.removeChild(iframe2);
+            iframe3.parentNode.removeChild(iframe3);
 
             start();
         });
@@ -66,24 +72,26 @@ asyncTest('iframe with empty src', function () {
 // NOTE: Only Chrome raises the 'load' event for iframes with 'javascript:' src and creates a window instance.
 if (browserUtils.isWebKit) {
     asyncTest('iframe with "javascript:" src', function () {
-        var $iframe = $('<iframe id="test3" src="javascript:void(0);">');
+        var iframe = document.createElement('iframe');
 
-        $iframe.bind('load', function () {
-            new CodeInstrumentation({}, {}).attach(this.contentWindow);
+        iframe.id = 'test3';
+        iframe.setAttribute('src', 'javascript:void(0);');
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
-            var hyperlink = this.contentDocument.createElement('a');
+                var hyperlink = iframe.contentDocument.createElement('a');
 
-            hyperlink.setAttribute('href', '/test');
-            this.contentDocument.body.appendChild(hyperlink);
+                hyperlink.setAttribute('href', '/test');
+                iframe.contentDocument.body.appendChild(hyperlink);
 
-            strictEqual(eval(processScript('hyperlink.href')), 'https://example.com/test');
-            strictEqual(eval(processScript('this.contentDocument.location.href')), 'about:blank');
+                strictEqual(eval(processScript('hyperlink.href')), 'https://example.com/test');
+                strictEqual(eval(processScript('iframe.contentDocument.location.href')), 'about:blank');
 
-            $iframe.remove();
-            start();
-        });
-
-        $iframe.appendTo('body');
+                iframe.parentNode.removeChild(iframe);
+                start();
+            });
+        document.body.appendChild(iframe);
     });
 }
 
@@ -147,10 +155,13 @@ test('get location origin', function () {
 });
 
 test('create location wrapper before iframe loading', function () {
-    var $iframe = $('<iframe id="test001">').appendTo('body');
+    var iframe = document.createElement('iframe');
 
-    ok(!!eval(processScript('$iframe[0].contentWindow.location')));
-    ok(!!eval(processScript('$iframe[0].contentDocument.location')));
+    iframe.id = 'test001';
+    document.body.appendChild(iframe);
 
-    $iframe.remove();
+    ok(!!eval(processScript('iframe.contentWindow.location')));
+    ok(!!eval(processScript('iframe.contentDocument.location')));
+
+    iframe.parentNode.removeChild(iframe);
 });

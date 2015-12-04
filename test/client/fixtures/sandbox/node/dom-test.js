@@ -175,13 +175,12 @@ asyncTest('body created event', function () {
     var iframe = document.createElement('iframe');
 
     iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/body-created-event.html');
-
-    iframe.addEventListener('load', function () {
-        ok(this.contentWindow.testOk);
-        iframe.parentNode.removeChild(iframe);
-        start();
-    });
-
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            ok(iframe.contentWindow.testOk);
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });
 

@@ -1,22 +1,11 @@
-var Promise             = hammerhead.Promise;
 var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var iframeSandbox       = hammerhead.sandbox.iframe;
 
-function nextTick () {
-    return new Promise(function (resolve) {
-        setTimeout(resolve, 100);
-    });
-}
-
 function createIframe () {
-    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-    var iframe    = document.createElement('iframe');
+    var src    = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var iframe = document.createElement('iframe');
 
-    iframe.setAttribute('src', iframeSrc);
-
-    iframe.addEventListener('load', function () {
-        iframe.contentWindow.loaded = true;
-    });
+    iframe.setAttribute('src', src);
 
     return iframe;
 }
@@ -35,90 +24,79 @@ QUnit.testDone(function () {
 asyncTest('check changing active window', function () {
     var iframe = createIframe();
 
-    iframe.addEventListener('load', function () {
-        var iframeWindow = this.contentWindow;
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            ok(activeWindowTracker.isCurrentWindowActive());
+            notOk(iframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
 
-        nextTick()
-            .then(function () {
-                ok(activeWindowTracker.isCurrentWindowActive());
-                notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
-
-                iframeWindow.document.body.focus();
-            })
-            .then(function () {
-                return window.QUnitGlobals.wait(function () {
-                    return activeWindowTracker.activeWindow === iframeWindow;
-                });
-            })
-            .then(function () {
-                notOk(activeWindowTracker.isCurrentWindowActive());
-                ok(iframeWindow.activeWindowTracker.isCurrentWindowActive());
-
-                document.body.focus();
-            })
-            .then(function () {
-                return window.QUnitGlobals.wait(function () {
-                    return activeWindowTracker.activeWindow === window.top &&
-                           !iframeWindow.activeWindowTracker.isCurrentWindowActive();
-                });
-            })
-            .then(function () {
-                ok(activeWindowTracker.isCurrentWindowActive());
-                notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
-
-                document.body.removeChild(iframe);
-
-                start();
+            iframe.contentDocument.body.focus();
+        })
+        .then(function () {
+            return window.QUnitGlobals.wait(function () {
+                return activeWindowTracker.activeWindow === iframe.contentWindow;
             });
-    });
+        })
+        .then(function () {
+            notOk(activeWindowTracker.isCurrentWindowActive());
+            ok(iframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
 
+            document.body.focus();
+        })
+        .then(function () {
+            return window.QUnitGlobals.wait(function () {
+                return activeWindowTracker.activeWindow === window.top &&
+                       !iframe.contentWindow.activeWindowTracker.isCurrentWindowActive();
+            });
+        })
+        .then(function () {
+            ok(activeWindowTracker.isCurrentWindowActive());
+            notOk(iframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
+
+            document.body.removeChild(iframe);
+
+            start();
+        });
     document.body.appendChild(iframe);
 });
 
 asyncTest('check switching active window (between two iframes)', function () {
-    var firstIframe        = createIframe();
-    var secondIframe       = createIframe();
-    var firstIframeWindow  = null;
-    var secondIframeWindow = null;
+    var firstIframe         = createIframe();
+    var secondIframe        = createIframe();
+    var firstIframePromise  = window.QUnitGlobals.waitForIframe(firstIframe);
+    var secondIframePromise = window.QUnitGlobals.waitForIframe(secondIframe);
 
     document.body.appendChild(firstIframe);
     document.body.appendChild(secondIframe);
 
-    nextTick()
+    firstIframePromise
         .then(function () {
-            return window.QUnitGlobals.wait(function () {
-                return firstIframe.contentWindow && firstIframe.contentWindow.loaded &&
-                       secondIframe.contentWindow && secondIframe.contentWindow.loaded;
-            });
+            return secondIframePromise;
         })
         .then(function () {
-            firstIframeWindow  = firstIframe.contentWindow;
-            secondIframeWindow = secondIframe.contentWindow;
-
-            firstIframeWindow.document.body.focus();
+            firstIframe.contentWindow.document.body.focus();
         })
         .then(function () {
             return window.QUnitGlobals.wait(function () {
-                return activeWindowTracker.activeWindow === firstIframeWindow;
+                return activeWindowTracker.activeWindow === firstIframe.contentWindow;
             });
         })
         .then(function () {
             notOk(activeWindowTracker.isCurrentWindowActive());
-            ok(firstIframeWindow.activeWindowTracker.isCurrentWindowActive());
-            notOk(secondIframeWindow.activeWindowTracker.isCurrentWindowActive());
+            ok(firstIframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
+            notOk(secondIframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
 
-            secondIframeWindow.document.body.focus();
+            secondIframe.contentWindow.document.body.focus();
         })
         .then(function () {
             return window.QUnitGlobals.wait(function () {
-                return activeWindowTracker.activeWindow === secondIframeWindow &&
-                       !firstIframeWindow.activeWindowTracker.isCurrentWindowActive();
+                return activeWindowTracker.activeWindow === secondIframe.contentWindow &&
+                       !firstIframe.contentWindow.activeWindowTracker.isCurrentWindowActive();
             });
         })
         .then(function () {
             notOk(activeWindowTracker.isCurrentWindowActive());
-            notOk(firstIframeWindow.activeWindowTracker.isCurrentWindowActive());
-            ok(secondIframeWindow.activeWindowTracker.isCurrentWindowActive());
+            notOk(firstIframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
+            ok(secondIframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
 
             document.body.removeChild(firstIframe);
             document.body.removeChild(secondIframe);
@@ -130,46 +108,49 @@ asyncTest('check switching active window (between two iframes)', function () {
 module('regression');
 
 asyncTest('check that an error does not rise when trying to send serviceMessage to the removed iframe (GH-206)', function () {
-    var iframe     = createIframe();
-    var link       = document.createElement('a');
-    var withError  = false;
+    var iframe            = createIframe();
+    var link              = document.createElement('a');
+    var withError         = false;
+    var checkActiveWindow = function () {
+        return activeWindowTracker.activeWindow === iframe.contentWindow;
+    };
 
     link.setAttribute('href', '#');
     link.innerHTML = 'Link';
+    iframe.id = 'GH206';
 
-    iframe.addEventListener('load', function () {
-        iframe.contentDocument.body.focus();
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe.contentDocument.body.focus();
+        })
+        .then(function () {
+            return window.QUnitGlobals.wait(checkActiveWindow);
+        })
+        .then(function () {
+            document.body.removeChild(iframe);
 
-        nextTick()
-            .then(function () {
-                return window.QUnitGlobals.wait(function () {
-                    return activeWindowTracker.activeWindow === iframe.contentWindow;
-                });
-            })
-            .then(function () {
-                document.body.removeChild(iframe);
+            link.focus();
+        })
+        .catch(function () {
+            withError = true;
+        })
+        .then(function () {
+            ok(!withError);
 
-                link.focus();
-            })
-            .catch(function () {
-                withError = true;
-            })
-            .then(function () {
-                ok(!withError);
-
-                document.body.removeChild(link);
-                start();
-            });
-    });
+            document.body.removeChild(link);
+            start();
+        });
 
     document.body.appendChild(link);
     document.body.appendChild(iframe);
 });
 
 asyncTest('no error occurs when a focused iframe is removed and a different iframe gets focus afterwards (GH-271)', function () {
-    var firstIframe  = createIframe();
-    var secondIframe = createIframe();
-    var withError    = false;
+    var firstIframe         = createIframe();
+    var secondIframe        = createIframe();
+    var firstIframePromise  = window.QUnitGlobals.waitForIframe(firstIframe);
+    var secondIframePromise = window.QUnitGlobals.waitForIframe(secondIframe);
+    var withError           = false;
 
     hammerhead.on(hammerhead.EVENTS.uncaughtJsError, function () {
         withError = true;
@@ -178,12 +159,9 @@ asyncTest('no error occurs when a focused iframe is removed and a different ifra
     document.body.appendChild(firstIframe);
     document.body.appendChild(secondIframe);
 
-    nextTick()
+    firstIframePromise
         .then(function () {
-            return window.QUnitGlobals.wait(function () {
-                return firstIframe.contentWindow && firstIframe.contentWindow.loaded &&
-                       secondIframe.contentWindow && secondIframe.contentWindow.loaded;
-            });
+            return secondIframePromise;
         })
         .then(function () {
             firstIframe.contentDocument.body.focus();

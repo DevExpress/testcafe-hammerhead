@@ -223,32 +223,31 @@ test('innerHTML', function () {
 });
 
 asyncTest('body.innerHTML in iframe', function () {
-    $('<iframe>')
-        .attr('src', window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html'))
-        .appendTo(document.body)
-        .load(function () {
-            var iframe           = this;
-            var haveShadowUIRoot = function () {
+    var iframe = document.createElement('iframe');
+    var src    = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
+
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var hasShadowUIRoot = function () {
                 var iframeBody = iframe.contentDocument.body;
                 var root       = iframeBody.children[iframeBody.children.length - 1];
 
                 return root && root.id.indexOf('root-') === 0;
             };
 
-            ok(haveShadowUIRoot());
+            ok(hasShadowUIRoot());
 
             eval(processScript('iframe.contentDocument.body.innerHTML = "";'));
 
-            var id = window.setInterval(function () {
-                if (haveShadowUIRoot()) {
+            window.QUnitGlobals.wait(hasShadowUIRoot)
+                .then(function () {
                     ok(true);
                     iframe.parentNode.removeChild(iframe);
-                    window.clearInterval(id);
                     start();
-                }
-            }, 100);
-
+                });
         });
+    document.body.appendChild(iframe);
 });
 
 // NOTE: IE does not allow overriding the postMessage method.
@@ -258,16 +257,15 @@ if (!browserUtils.isIE) {
         var iframe = document.createElement('iframe');
 
         iframe.src = window.location.origin;
-        iframe.addEventListener('load', function () {
-            iframe.contentWindow.postMessage = function () {
-                strictEqual(target, window.location.origin);
-                iframe.parentNode.removeChild(iframe);
-                this.postMessage = function () {
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                iframe.contentWindow.postMessage = function () {
+                    strictEqual(target, window.location.origin);
+                    iframe.parentNode.removeChild(iframe);
+                    start();
                 };
-                start();
-            };
-            eval(processScript('iframe.contentWindow.postMessage("data", "' + target + '")'));
-        });
+                eval(processScript('iframe.contentWindow.postMessage("data", "' + target + '")'));
+            });
         document.body.appendChild(iframe);
     });
 }
@@ -288,13 +286,9 @@ test('script block inserted via element.innerHtml must not be executed (B237015)
 
 if (!browserUtils.isIE) {
     asyncTest('valid resource type for iframe.contentWindow.location must be calculated', function () {
-        var iframe = document.createElement('iframe');
-
-        iframe.id = 'testT260697';
-
-        var loadHandler = function () {
-            iframe.removeEventListener('load', loadHandler);
-
+        var iframe  = document.createElement('iframe');
+        var handler = function () {
+            iframe.removeEventListener('load', handler);
             iframe.addEventListener('load', function () {
                 strictEqual(urlUtils.parseProxyUrl(iframe.contentWindow.location).resourceType, 'iframe');
                 iframe.parentNode.removeChild(iframe);
@@ -304,27 +298,31 @@ if (!browserUtils.isIE) {
             eval(processScript('iframe.contentWindow.location = "/test.html";'));
         };
 
-        iframe.addEventListener('load', loadHandler);
+        iframe.id = 'testT260697';
+        iframe.addEventListener('load', handler);
         document.body.appendChild(iframe);
     });
 }
 
 asyncTest('iframe.body.innerHtml must be overriden (Q527555)', function () {
-    var $iframe = $('<iframe id="test">').appendTo('body');
+    var iframe = document.createElement('iframe');
 
-    window.setTimeout(function () {
-        var iframeBody = $iframe[0].contentWindow.document.body;
-        var html       = '<a href="url" ' + domProcessor.getStoredAttrName('src') + '="url1" />';
+    iframe.id = 'test';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeBody = iframe.contentWindow.document.body;
+            var html       = '<a href="url" ' + domProcessor.getStoredAttrName('src') + '="url1" />';
 
-        iframeBody.innerHTML = html;
+            iframeBody.innerHTML = html;
 
-        ok(getProperty(iframeBody, 'innerHTML') !== html);
-        $iframe.remove();
-        start();
-    }, 100);
+            ok(getProperty(iframeBody, 'innerHTML') !== html);
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
 });
 
-test('setting the link.href attribute to \'mailto\' in iframe (T228218)', function () {
+test('setting the link.href attribute to "mailto" in iframe (T228218)', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
     var link              = document.createElement('a');
 

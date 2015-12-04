@@ -128,18 +128,22 @@ module('resgression');
 asyncTest('document.write for several tags in iframe (T215136)', function () {
     expect(2);
 
-    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-with-doc-write.html');
+    var src    = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-with-doc-write.html');
+    var iframe = document.createElement('iframe');
 
-    $('<iframe></iframe>').attr('src', iframeSrc).appendTo('body').load(function () {
-        var iframe = this;
-        var div    = iframe.contentDocument.querySelector('#parent');
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var div = iframe.contentDocument.querySelector('#parent');
 
-        strictEqual(div.children.length, 3);
-        strictEqual(div.parentNode.lastElementChild, div);
+            strictEqual(div.children.length, 3);
+            strictEqual(div.parentNode.lastElementChild, div);
 
-        iframe.parentNode.removeChild(iframe);
-        start();
-    });
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
 });
 
 test('document.write for page html (T190753)', function () {
@@ -204,23 +208,19 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
 
 if (!browserUtils.isFirefox) {
     asyncTest('document.write([]) in iframe (T239131)', function () {
-        var iframe = document.createElement('iframe');
+        var iframe  = document.createElement('iframe');
 
         iframe.id = 'test04';
-
-        var loadHandler = function () {
-            iframe.removeEventListener('load', loadHandler);
-
-            // NOTE: Some browsers remove their documentElement after a "write([])" call. Previously, if the
-            // documentElement was null, "overrideDomMethods" failed with the 'Maximum call stack size exceeded' error.
-            iframe.contentDocument.write([]);
-            ok(true);
-            iframe.contentDocument.close();
-            iframe.parentNode.removeChild(iframe);
-            start();
-        };
-
-        iframe.addEventListener('load', loadHandler);
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                // NOTE: Some browsers remove their documentElement after a "write([])" call. Previously, if the
+                // documentElement was null, "overrideDomMethods" failed with the 'Maximum call stack size exceeded' error.
+                iframe.contentDocument.write([]);
+                ok(true);
+                iframe.contentDocument.close();
+                iframe.parentNode.removeChild(iframe);
+                start();
+            });
         document.body.appendChild(iframe);
     });
 }
@@ -260,10 +260,10 @@ test('document.write with __begin$, __end$ parameters (T232454)', function () {
 asyncTest('the onDocumentCleaned event is not raised after calling document.write (GH-253)', function () {
     expect(1);
 
-    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
-
-    var onMessageHandler = function (e) {
-        window.removeEventListener('message', onMessageHandler);
+    var iframe = document.createElement('iframe');
+    var src     = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
+    var handler = function (e) {
+        window.removeEventListener('message', handler);
 
         var iframe = e.source.frameElement;
 
@@ -274,9 +274,9 @@ asyncTest('the onDocumentCleaned event is not raised after calling document.writ
         start();
     };
 
-    window.addEventListener('message', onMessageHandler);
-
-    $('<iframe>').attr('src', iframeSrc).appendTo('body');
+    window.addEventListener('message', handler);
+    iframe.setAttribute('src', src);
+    document.body.appendChild(iframe);
 });
 
 asyncTest('document elements are overridden after document.write has been called (GH-253)', function () {

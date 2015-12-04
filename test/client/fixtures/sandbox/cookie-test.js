@@ -43,10 +43,8 @@ asyncTest('cookie must be to send to a server before form.submit', function () {
 
     form.submit();
 
-    window.setTimeout(function () {
-        msgReceived = true;
-        resolveAsyncServiceMsgPromise();
-    }, 500);
+    msgReceived = true;
+    resolveAsyncServiceMsgPromise();
 });
 
 test('get/set', function () {
@@ -80,13 +78,13 @@ asyncTest('path validation', function () {
     var iframe = document.createElement('iframe');
     var src    = window.QUnitGlobals.getResourceUrl('../../data/cookie-sandbox/validation.html', 'cookie-sandbox/validation.html');
 
-    iframe.src = urlUtils.getProxyUrl(src);
-    iframe.addEventListener('load', function () {
-        ok(this.contentWindow.runTest());
-        this.parentNode.removeChild(this);
-        start();
-    });
-
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            ok(iframe.contentWindow.runTest());
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });
 

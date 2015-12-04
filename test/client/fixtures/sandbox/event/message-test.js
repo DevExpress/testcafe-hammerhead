@@ -32,16 +32,11 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
 });
 
 asyncTest('onmessage event', function () {
-    var $iframe               = $('<iframe>');
+    var iframe                = document.createElement('iframe');
+    var src                   = window.getCrossDomainPageUrl('../../../data/cross-domain/get-message.html');
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var count                 = 0;
-
-    settings.get().crossDomainProxyPort = 2001;
-
-    $iframe[0].src = window.getCrossDomainPageUrl('../../../data/cross-domain/get-message.html');
-    $iframe.appendTo('body');
-
-    var onMessageHandler = function (evt) {
+    var onMessageHandler      = function (evt) {
         var data = typeof evt.data === 'string' ? JSON.parse(evt.data) : evt.data;
 
         strictEqual(evt.origin, 'http://origin_iframe_host');
@@ -51,37 +46,36 @@ asyncTest('onmessage event', function () {
 
         if (count === 2) {
             settings.get().crossDomainProxyPort = storedCrossDomainPort;
-            $iframe.remove();
-            window.removeEventListener('message', onMessageHandler);
-            start();
-        }
-    };
-
-    $iframe.bind('load', function () {
-        eval(processScript('window.onmessage = onMessageHandler;', true, false));
-        window.addEventListener('message', onMessageHandler);
-        eval(processScript('this.contentWindow.postMessage(\'\', \'*\')', true, false));
-    });
-});
-
-asyncTest('crossdomain post messages between diffferen windows', function () {
-    expect(0);
-
-    var iframe = document.createElement('iframe');
-
-    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
-    document.body.appendChild(iframe);
-
-    var result = 0;
-
-    var checkResult = function () {
-        if (result === 4) {
             iframe.parentNode.removeChild(iframe);
             window.removeEventListener('message', onMessageHandler);
             start();
         }
     };
 
+    settings.get().crossDomainProxyPort = 2001;
+
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            eval(processScript('window.onmessage = onMessageHandler;', true, false));
+            window.addEventListener('message', onMessageHandler);
+            eval(processScript('iframe.contentWindow.postMessage(\'\', \'*\')', true, false));
+        });
+    document.body.appendChild(iframe);
+});
+
+asyncTest('cross-domain post messages between different windows', function () {
+    expect(0);
+
+    var iframe = document.createElement('iframe');
+    var result           = 0;
+    var checkResult      = function () {
+        if (result === 4) {
+            iframe.parentNode.removeChild(iframe);
+            window.removeEventListener('message', onMessageHandler);
+            start();
+        }
+    };
     var onMessageHandler = function (e) {
         if (parseInt(e.data, 10))
             result++;
@@ -90,6 +84,9 @@ asyncTest('crossdomain post messages between diffferen windows', function () {
     };
 
     eval(processScript('window.onmessage = onMessageHandler;', true, false));
+
+    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
+    document.body.appendChild(iframe);
 });
 
 asyncTest('message types', function () {
@@ -151,21 +148,20 @@ asyncTest('cloning arguments', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test006';
-    iframe.addEventListener('load', function () {
-        var sourceObj = { testObject: true };
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var sourceObj = { testObject: true };
 
-        this.contentWindow['%hammerhead%'].sandbox.event.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
-            ok(e.message.testObject);
-            e.message.modified = true;
-            ok(!sourceObj.modified);
-            iframe.parentNode.removeChild(iframe);
+            iframe.contentWindow['%hammerhead%'].sandbox.event.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+                ok(e.message.testObject);
+                e.message.modified = true;
+                ok(!sourceObj.modified);
+                iframe.parentNode.removeChild(iframe);
 
-            start();
+                start();
+            });
+            messageSandbox.sendServiceMsg(sourceObj, iframe.contentWindow);
         });
-
-        messageSandbox.sendServiceMsg(sourceObj, this.contentWindow);
-    });
-
     document.body.appendChild(iframe);
 });
 
@@ -173,28 +169,31 @@ asyncTest('crossdomain', function () {
     var iframe                = document.createElement('iframe');
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var serviceMsgReceived    = false;
+    var serviceMsgHandler     = function () {
+        serviceMsgReceived = true;
+    };
+    var isServiceMsgReceived  = function () {
+        return serviceMsgReceived;
+    };
 
     settings.get().crossDomainProxyPort = 2001;
 
-    var serviceMsgHandler = function () {
-        serviceMsgReceived = true;
-    };
-
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message.html');
-    iframe.addEventListener('load', function () {
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
-        messageSandbox.sendServiceMsg('service_msg', this.contentWindow);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
+            messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
 
-        window.setTimeout(function () {
+            return window.QUnitGlobals.wait(isServiceMsgReceived);
+        })
+        .then(function () {
             ok(serviceMsgReceived);
 
             settings.get().crossDomainProxyPort = storedCrossDomainPort;
             iframe.parentNode.removeChild(iframe);
             messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             start();
-        }, 200);
-    });
-
+        });
     document.body.appendChild(iframe);
 });
 
@@ -202,14 +201,10 @@ asyncTest('service message handler should not call other handlers', function () 
     var iframe                = document.createElement('iframe');
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var windowHandlerExecuted = false;
-
-    settings.get().crossDomainProxyPort = 2001;
-
-    var windowMessageHandler = function () {
+    var windowMessageHandler  = function () {
         windowHandlerExecuted = true;
     };
-
-    var serviceMsgHandler = function (evt) {
+    var serviceMsgHandler     = function (evt) {
         window.setTimeout(function () {
             ok(!windowHandlerExecuted);
             strictEqual(evt.message, 'successfully');
@@ -224,13 +219,16 @@ asyncTest('service message handler should not call other handlers', function () 
         }, 100);
     };
 
+    settings.get().crossDomainProxyPort = 2001;
+
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
-    iframe.addEventListener('load', function () {
-        eval(processScript('window.onmessage = windowMessageHandler;', true, false));
-        window.addEventListener('message', windowMessageHandler);
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
-        messageSandbox.sendServiceMsg('service_msg', this.contentWindow);
-    });
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            eval(processScript('window.onmessage = windowMessageHandler;', true, false));
+            window.addEventListener('message', windowMessageHandler);
+            messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
+            messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
+        });
     document.body.appendChild(iframe);
 });
 
@@ -239,8 +237,7 @@ module('ping window');
 asyncTest('iframe', function () {
     var iframe                 = document.createElement('iframe');
     var iframeResponseReceived = false;
-
-    var onMessageHandler = function (evt) {
+    var onMessageHandler       = function (evt) {
         if (evt.data === 'ready') {
             ok(iframeResponseReceived);
 
@@ -291,22 +288,24 @@ asyncTest('timeout', function () {
 module('regression');
 
 asyncTest('service message from removed iframe (GH-64)', function () {
-    var iframe          = document.createElement('iframe');
-    var messageReceived = false;
-
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
-
-    iframe.addEventListener('load', function () {
-        window.setTimeout(function () {
-            ok(messageReceived, 'message received');
-
-            start();
-        }, 100);
-    });
-
-    document.body.appendChild(iframe);
+    var iframe            = document.createElement('iframe');
+    var messageReceived   = false;
+    var isMessageReceived = function () {
+        return messageReceived;
+    };
 
     messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function () {
         messageReceived = true;
     });
+
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            return window.QUnitGlobals.wait(isMessageReceived);
+        })
+        .then(function () {
+            ok(messageReceived, 'message received');
+            start();
+        });
+    document.body.appendChild(iframe);
 });
