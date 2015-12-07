@@ -277,8 +277,7 @@ export function isDomElement (el) {
         return false;
 
     // NOTE: B252941
-    return el && (typeof el === 'object' || isFirefox && typeof el === 'function') &&
-           el.nodeType !== 11 && typeof el.nodeName === 'string' && el.tagName;
+    return el && el.nodeType !== 11 && typeof el.nodeName === 'string' && el.tagName;
 }
 
 export function isElementInDocument (el, currentDocument) {

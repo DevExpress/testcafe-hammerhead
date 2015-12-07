@@ -134,36 +134,43 @@ test('document.referrer', function () {
 
 if (browserUtils.isWebKit) {
     test('url in stylesheet properties', function () {
-        var el       = document.createElement('div');
-        var url      = 'http://google.com/image.png';
-        var proxyUrl = urlUtils.getProxyUrl(url);
+        var el                 = document.createElement('div');
+        var url                = 'http://google.com/image.png';
+        var proxyUrl           = urlUtils.getProxyUrl(url);
+        var quote              = (function () {
+            var div = document.createElement('div');
+
+            div.style.backgroundImage = 'url(http://example.com/img.jpg)';
+
+            return div.style.backgroundImage.match(/url\((.*)http:\/\/example.com\/img.jpg/)[1];
+        })();
+        var getExpected        = function (value) {
+            return 'url(' + quote + value + quote + ')';
+        };
 
         eval(processScript('el.style.backgroundImage="url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'backgroundImage'), 'url(' + url +
-                                                              ')', 'backgroundImage');
-        strictEqual(el.style.backgroundImage, 'url(' + proxyUrl + ')', 'backgroundImage');
+        strictEqual(getProperty(el.style, 'backgroundImage'), getExpected(url), 'backgroundImage');
+        strictEqual(el.style.backgroundImage, getExpected(proxyUrl), 'backgroundImage');
 
         eval(processScript('el.style.background="url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'background'), 'url(' + url + ')', 'background');
-        strictEqual(el.style.background, 'url(' + proxyUrl + ')', 'background');
+        strictEqual(getProperty(el.style, 'background'), getExpected(url), 'background');
+        strictEqual(el.style.background, getExpected(proxyUrl), 'background');
 
         eval(processScript('el.style.listStyle="url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'listStyle'), 'url(' + url + ')', 'listStyle');
-        strictEqual(el.style.listStyle, 'url(' + proxyUrl + ')', 'listStyle');
+        strictEqual(getProperty(el.style, 'listStyle'), getExpected(url), 'listStyle');
+        strictEqual(el.style.listStyle, getExpected(proxyUrl), 'listStyle');
 
         eval(processScript('el.style.listStyleImage="url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'listStyleImage'), 'url(' + url +
-                                                             ')', 'listStyleImage');
-        strictEqual(el.style.listStyleImage, 'url(' + proxyUrl + ')', 'listStyleImage');
+        strictEqual(getProperty(el.style, 'listStyleImage'), getExpected(url), 'listStyleImage');
+        strictEqual(el.style.listStyleImage, getExpected(proxyUrl), 'listStyleImage');
 
         eval(processScript('el.style.cssText="background-image: url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'cssText'), 'background-image: url(' + url +
-                                                      ');', 'cssText');
-        strictEqual(el.style.cssText, 'background-image: url(' + proxyUrl + ');', 'cssText');
+        strictEqual(getProperty(el.style, 'cssText'), 'background-image: ' + getExpected(url) + ';', 'cssText');
+        strictEqual(el.style.cssText, 'background-image: ' + getExpected(proxyUrl) + ';', 'cssText');
 
         eval(processScript('el.style.cursor="url(' + url + '), auto"'));
-        strictEqual(getProperty(el.style, 'cursor'), 'url(' + url + '), auto', 'cursor');
-        strictEqual(el.style.cursor, 'url(' + proxyUrl + '), auto', 'cursor');
+        strictEqual(getProperty(el.style, 'cursor'), getExpected(url) + ', auto', 'cursor');
+        strictEqual(el.style.cursor, getExpected(proxyUrl) + ', auto', 'cursor');
     });
 }
 
