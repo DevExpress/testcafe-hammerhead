@@ -353,4 +353,47 @@ if (!browserUtils.isFirefox) {
             });
         document.body.appendChild(iframe);
     });
+
+    test('"submit","input" and "change" should bubble; "focus", "blur", "selectionchange" should not (GH-318)', function () {
+        var $input = $('<input>')
+            .appendTo('body');
+
+        var $form = $('<form>')
+            .appendTo('body');
+
+        var firedEvents = {};
+
+        var eventTypes = ['focus', 'blur', 'input', 'change', 'selectionchange', 'submit'];
+
+        function eventHandler (e) {
+            firedEvents[e.type] = true;
+        }
+
+        function getEventTarget (eventType) {
+            if (eventType === 'submit')
+                return $form[0];
+
+            if (eventType === 'selectionchange')
+                return window.document;
+
+            return $input[0];
+        }
+
+        eventTypes.forEach(function (eventType) {
+            window.addEventListener(eventType, eventHandler);
+
+            eventSimulator[eventType](getEventTarget(eventType));
+
+            window.removeEventListener(eventType, eventHandler);
+        });
+
+        $input.remove();
+        $form.remove();
+
+        deepEqual(firedEvents, {
+            input:  true,
+            change: true,
+            submit: true
+        });
+    });
 }
