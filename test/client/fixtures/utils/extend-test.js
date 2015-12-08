@@ -81,3 +81,50 @@ test('target is build-in type', function () {
     strictEqual(result.property1, obj2.property1);
     strictEqual(Object.keys(result).length, 1);
 });
+
+test('circular dependency', function () {
+    var obj1 = {
+        property1: 1
+    };
+
+    var obj2 = {
+        property2: obj1
+    };
+
+    obj1 = extend(obj1, obj2);
+
+    strictEqual(obj1.property1, 1);
+    strictEqual(typeof obj1.property2, 'undefined');
+});
+
+test('extend prototype for inheriting on classes', function () {
+    var Child = function () {
+        this.child = true;
+    };
+
+    Child.prototype.isChild = function () {
+        return !!this.child;
+    };
+
+    var Parent = function () {
+        this.parent = true;
+    };
+
+    Parent.prototype.isParent = function () {
+        return !!this.parent;
+    };
+
+    //inheriting
+    var Func = function () {
+    };
+
+    Func.prototype = Parent.prototype;
+    extend(Child.prototype, new Func());
+
+    var child = new Child();
+
+    strictEqual(child.child, true);
+    strictEqual(typeof child.parent, 'undefined');
+    strictEqual(child.isChild(), true);
+    strictEqual(child.isParent(), false);
+});
