@@ -323,22 +323,22 @@ test('remove the "integrity" attribute from the link and script tags (GH-235)', 
     ok(!link.hasAttribute('integrity'));
 });
 
-asyncTest('link with target=\'_parent\' in iframe (T216999)', function () {
+asyncTest('link with target="_parent" in iframe (T216999)', function () {
     var iframe         = document.createElement('iframe');
     var storedAttrName = domProcessor.getStoredAttrName('href');
 
     iframe.id  = 'test';
     iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
 
-    iframe.addEventListener('load', function () {
-        var link = nativeMethods.getElementById.call(this.contentDocument, 'link');
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var link = nativeMethods.getElementById.call(iframe.contentDocument, 'link');
 
-        strictEqual(nativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
+            strictEqual(nativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
 
-        this.parentNode.removeChild(this);
-        start();
-    });
-
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });
 
@@ -437,25 +437,26 @@ asyncTest('script error when a new element is added to a "body" element that is 
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test_unique_id_l7ajkl';
-    iframe.addEventListener('load', function () {
-        var iframeDocument = this.contentDocument;
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument = iframe.contentDocument;
 
-        iframeDocument.documentElement.removeChild(iframeDocument.body);
+            iframeDocument.documentElement.removeChild(iframeDocument.body);
 
-        var newIframeBody = iframeDocument.createElement('body');
-        var div1          = iframeDocument.createElement('div');
-        var div2          = iframeDocument.createElement('div');
-        var div3          = iframeDocument.createElement('div');
+            var newIframeBody = iframeDocument.createElement('body');
+            var div1          = iframeDocument.createElement('div');
+            var div2          = iframeDocument.createElement('div');
+            var div3          = iframeDocument.createElement('div');
 
-        newIframeBody.appendChild(div1);
-        strictEqual(newIframeBody.lastChild, div1);
-        newIframeBody.appendChild(div2);
-        strictEqual(newIframeBody.lastChild, div2);
-        newIframeBody.insertBefore(div3, null);
-        strictEqual(newIframeBody.lastChild, div3);
+            newIframeBody.appendChild(div1);
+            strictEqual(newIframeBody.lastChild, div1);
+            newIframeBody.appendChild(div2);
+            strictEqual(newIframeBody.lastChild, div2);
+            newIframeBody.insertBefore(div3, null);
+            strictEqual(newIframeBody.lastChild, div3);
 
-        iframe.parentNode.removeChild(iframe);
-        start();
-    });
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });

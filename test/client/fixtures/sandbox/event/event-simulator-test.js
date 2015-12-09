@@ -318,38 +318,39 @@ if (browserUtils.isIE) {
 
 if (!browserUtils.isFirefox) {
     asyncTest('window event should not be undefined inside iframe handler (B254199)', function () {
-        var iframeSrc      = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
-        var $iframe        = $('<iframe>')
-            .attr('src', iframeSrc)
-            .appendTo('body');
-        var iframeDocument = $iframe[0].contentDocument;
+        var src      = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+        var iframe   = document.createElement('iframe');
 
-        $iframe.load(function () {
-            iframeDocument.onclick = function () {
-                if (typeof window.top.event === 'undefined' || typeof $iframe[0].contentWindow.event === 'undefined')
-                    window.top.error = true;
-            };
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                iframe.contentDocument.addEventListener('click', function () {
+                    if (typeof iframe.contentWindow.event === 'undefined')
+                        window.top.error = true;
+                });
 
-            eventSimulator.click(iframeDocument.body);
+                eventSimulator.click(iframe.contentDocument.body);
 
-            ok(!window.top.error);
-            $iframe.remove();
-            start();
-        });
+                ok(!window.top.error);
+                iframe.parentNode.removeChild(iframe);
+                start();
+            });
+        iframe.setAttribute('src', src);
+        document.body.appendChild(iframe);
     });
 
     asyncTest('window.event becomes empty when a click event handler triggers the click event on a different element in IE11 (GH-226)', function () {
-        var iframeSrc = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
-        var $iframe   = $('<iframe>')
-            .attr('src', iframeSrc)
-            .appendTo('body');
+        var src    = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+        var iframe = document.createElement('iframe');
 
-        $iframe.load(function () {
-            eventSimulator.click($iframe[0].contentDocument.getElementById('span'));
+        iframe.setAttribute('src', src);
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                eventSimulator.click(iframe.contentDocument.getElementById('span'));
 
-            ok(!window.top.error);
-            $iframe.remove();
-            start();
-        });
+                ok(!window.top.error);
+                iframe.parentNode.removeChild(iframe);
+                start();
+            });
+        document.body.appendChild(iframe);
     });
 }

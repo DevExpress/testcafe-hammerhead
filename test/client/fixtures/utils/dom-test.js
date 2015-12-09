@@ -13,42 +13,36 @@ QUnit.testDone(function () {
 });
 
 asyncTest('isCrossDomainWindows', function () {
-    var crossDomainIframe = document.createElement('iframe');
-
-    crossDomainIframe.id = 'test1';
+    ok(!domUtils.isCrossDomainWindows(window, window));
 
     var iframeWithEmptySrc = document.createElement('iframe');
 
     iframeWithEmptySrc.id = 'test2';
+    iframeWithEmptySrc.src = '';
+    document.body.appendChild(iframeWithEmptySrc);
+    ok(!domUtils.isCrossDomainWindows(window, iframeWithEmptySrc.contentWindow));
+    iframeWithEmptySrc.parentNode.removeChild(iframeWithEmptySrc);
 
     var iframeAboutBlank = document.createElement('iframe');
 
     iframeAboutBlank.id = 'test3';
-
-    ok(!domUtils.isCrossDomainWindows(window, window));
-
-    iframeWithEmptySrc.src = '';
-    document.body.appendChild(iframeWithEmptySrc);
-
-    ok(!domUtils.isCrossDomainWindows(window, iframeWithEmptySrc.contentWindow));
-
     iframeAboutBlank.src = 'about:blank';
     document.body.appendChild(iframeAboutBlank);
-
     ok(!domUtils.isCrossDomainWindows(window, iframeAboutBlank.contentWindow));
+    iframeAboutBlank.parentNode.removeChild(iframeAboutBlank);
 
+    var crossDomainIframe = document.createElement('iframe');
+
+    window.QUnitGlobals.waitForIframe(crossDomainIframe)
+        .then(function () {
+            ok(domUtils.isCrossDomainWindows(window, crossDomainIframe.contentWindow));
+            crossDomainIframe.parentNode.removeChild(crossDomainIframe);
+            start();
+        });
+    crossDomainIframe.id = 'test1';
     crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
+
     document.body.appendChild(crossDomainIframe);
-
-    crossDomainIframe.addEventListener('load', function () {
-        ok(domUtils.isCrossDomainWindows(window, crossDomainIframe.contentWindow));
-
-        crossDomainIframe.parentNode.removeChild(crossDomainIframe);
-        iframeWithEmptySrc.parentNode.removeChild(iframeWithEmptySrc);
-        iframeAboutBlank.parentNode.removeChild(iframeAboutBlank);
-
-        start();
-    });
 });
 
 test('isDomElement', function () {
@@ -73,19 +67,19 @@ asyncTest('isDomElement for iframe Element.prototype chain', function () {
 
     iframe.id  = 'test4';
     iframe.src = '';
-    iframe.addEventListener('load', function () {
-        var p = this.contentWindow.Element.prototype;
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var p = iframe.contentWindow.Element.prototype;
 
-        /* eslint-disable no-extra-parens */
-        do
-            ok(!domUtils.isDomElement(p));
-        while ((p = Object.getPrototypeOf(p)));
-        /* eslint-enable no-extra-parens */
+            /* eslint-disable no-extra-parens */
+            do
+                ok(!domUtils.isDomElement(p));
+            while ((p = Object.getPrototypeOf(p)));
+            /* eslint-enable no-extra-parens */
 
-        this.parentNode.removeChild(this);
-        start();
-    });
-
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });
 
@@ -93,13 +87,14 @@ asyncTest('getTopSameDomainWindow', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test5';
-    iframe.addEventListener('load', function () {
-        strictEqual(domUtils.getTopSameDomainWindow(window.top), window.top);
-        strictEqual(domUtils.getTopSameDomainWindow(this.contentWindow), window.top);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            strictEqual(domUtils.getTopSameDomainWindow(window.top), window.top);
+            strictEqual(domUtils.getTopSameDomainWindow(iframe.contentWindow), window.top);
 
-        iframe.parentNode.removeChild(iframe);
-        start();
-    });
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });
 
@@ -166,6 +161,7 @@ test('closest element', function () {
 module('isIframeWithoutSrc');
 
 asyncTest('after the location is set to an iframe without src isIframeWithoutSrc should return "false"', function () {
+    var iframe  = document.createElement('iframe');
     var handler = function () {
         ok(domUtils.isIframeWithoutSrc(this));
         this.removeEventListener('load', handler);
@@ -178,14 +174,13 @@ asyncTest('after the location is set to an iframe without src isIframeWithoutSrc
         this.contentWindow.location = window.QUnitGlobals.getResourceUrl('../../data/same-domain/service-message-from-removed-iframe.html');
     };
 
-    var iframe = document.createElement('iframe');
-
     iframe.id = 'test9';
     iframe.addEventListener('load', handler);
     document.body.appendChild(iframe);
 });
 
 asyncTest('changed location 2', function () {
+    var iframe  = document.createElement('iframe');
     var handler = function () {
         this.removeEventListener('load', handler);
         this.addEventListener('load', function () {
@@ -199,10 +194,8 @@ asyncTest('changed location 2', function () {
         this.contentWindow.location = 'http://' + location.host + '/';
     };
 
-    var iframe = document.createElement('iframe');
-
     iframe.id  = 'test7';
-    iframe.src = 'about:blank';
+    iframe.setAttribute('src', 'about:blank');
     iframe.addEventListener('load', handler);
     document.body.appendChild(iframe);
 });
@@ -212,14 +205,15 @@ asyncTest('crossdomain src', function () {
 
     iframe.id  = 'test8';
     iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
-    iframe.addEventListener('load', function () {
-        this[INTERNAL_PROPS.processedContext] = window;
-        ok(!domUtils.isIframeWithoutSrc(this));
-        ok(domUtils.isCrossDomainIframe(this));
-        this.parentNode.removeChild(this);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe[INTERNAL_PROPS.processedContext] = window;
+            ok(!domUtils.isIframeWithoutSrc(iframe));
+            ok(domUtils.isCrossDomainIframe(iframe));
+            iframe.parentNode.removeChild(iframe);
 
-        start();
-    });
+            start();
+        });
     document.body.appendChild(iframe);
 });
 
@@ -228,14 +222,15 @@ asyncTest('samedomain src', function () {
 
     iframe.id  = 'test9';
     iframe.src = 'http://' + location.host + '/';
-    iframe.addEventListener('load', function () {
-        this[INTERNAL_PROPS.processedContext] = window;
-        ok(!domUtils.isIframeWithoutSrc(this));
-        ok(!domUtils.isCrossDomainIframe(this));
-        this.parentNode.removeChild(this);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe[INTERNAL_PROPS.processedContext] = window;
+            ok(!domUtils.isIframeWithoutSrc(iframe));
+            ok(!domUtils.isCrossDomainIframe(iframe));
+            iframe.parentNode.removeChild(iframe);
 
-        start();
-    });
+            start();
+        });
     document.body.appendChild(iframe);
 });
 
@@ -243,13 +238,14 @@ asyncTest('without src attribute', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test10';
-    iframe.addEventListener('load', function () {
-        this[INTERNAL_PROPS.processedContext] = window;
-        ok(domUtils.isIframeWithoutSrc(this));
-        ok(!domUtils.isCrossDomainIframe(this));
-        this.parentNode.removeChild(this);
-        start();
-    });
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe[INTERNAL_PROPS.processedContext] = window;
+            ok(domUtils.isIframeWithoutSrc(iframe));
+            ok(!domUtils.isCrossDomainIframe(iframe));
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });
 
@@ -258,13 +254,14 @@ asyncTest('about:blank', function () {
 
     iframe.id  = 'test11';
     iframe.src = 'about:blank';
-    iframe.addEventListener('load', function () {
-        this[INTERNAL_PROPS.processedContext] = window;
-        ok(domUtils.isIframeWithoutSrc(this));
-        ok(!domUtils.isCrossDomainIframe(this));
-        this.parentNode.removeChild(this);
-        start();
-    });
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe[INTERNAL_PROPS.processedContext] = window;
+            ok(domUtils.isIframeWithoutSrc(iframe));
+            ok(!domUtils.isCrossDomainIframe(iframe));
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });
 
@@ -280,15 +277,15 @@ asyncTest('location is changed to cross-domain', function () {
     iframe.src = 'http://' + location.host + '/';
     iframe.addEventListener('load', function () {
         if (!iteration) {
-            ok(!domUtils.isCrossDomainIframe(this));
-            ok(!domUtils.isCrossDomainIframe(this, true));
-            this.contentDocument.location.href = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
+            ok(!domUtils.isCrossDomainIframe(iframe));
+            ok(!domUtils.isCrossDomainIframe(iframe, true));
+            iframe.contentDocument.location.href = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
             iteration++;
         }
         else {
-            ok(domUtils.isCrossDomainIframe(this));
-            ok(!domUtils.isCrossDomainIframe(this, true));
-            this.parentNode.removeChild(this);
+            ok(domUtils.isCrossDomainIframe(iframe));
+            ok(!domUtils.isCrossDomainIframe(iframe, true));
+            iframe.parentNode.removeChild(iframe);
             start();
         }
     });
@@ -300,13 +297,14 @@ asyncTest('empty src attribute', function () {
 
     iframe.id  = 'test13';
     iframe.src = '';
-    iframe.addEventListener('load', function () {
-        this[INTERNAL_PROPS.processedContext] = window;
-        ok(domUtils.isIframeWithoutSrc(this));
-        ok(!domUtils.isCrossDomainIframe(this));
-        this.parentNode.removeChild(this);
-        start();
-    });
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe[INTERNAL_PROPS.processedContext] = window;
+            ok(domUtils.isIframeWithoutSrc(iframe));
+            ok(!domUtils.isCrossDomainIframe(iframe));
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
     document.body.appendChild(iframe);
 });
 

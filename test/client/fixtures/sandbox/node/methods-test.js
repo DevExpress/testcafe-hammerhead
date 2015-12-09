@@ -225,60 +225,48 @@ if (window.navigator.serviceWorker) {
 
 if (!browserUtils.isFirefox) {
     asyncTest('document.write exception', function () {
-        var $iframe = $('<iframe id="test10">').appendTo('body');
-        var iframe  = $iframe[0];
+        var iframe      = document.createElement('iframe');
+        var checkIframe = function () {
+            return iframe.contentWindow.test &&
+                   iframe.contentDocument.getElementById('div1');
+        };
+
+        iframe.id = 'test10';
+        document.body.appendChild(iframe);
 
         eval(processScript([
             'iframe.contentDocument.write("<html><body><div id=\'div1\'></div></body></html>");',
             'iframe.contentDocument.write("<script>window.test = true;<\/script>");'
         ].join('')));
 
-        var intervalId = window.setInterval(function () {
-            if (iframe.contentWindow.test && iframe.contentDocument.getElementById('div1')) {
+        window.QUnitGlobals.wait(checkIframe)
+            .then(function () {
                 ok(true);
-                $iframe.remove();
-                clearInterval(intervalId);
+                iframe.parentNode.removeChild(iframe);
                 start();
-            }
-        }, 100);
-
+            });
     });
 }
 
 module('regression');
 
 asyncTest('script must be executed after it is added to head tag (B237231)', function () {
-    var scriptText = 'window.top.testField = true;';
-    var head       = document.getElementsByTagName('head')[0];
-    var script     = document.createElement('script');
+    var scriptText       = 'window.top.testField = true;';
+    var script           = document.createElement('script');
+    var isScriptExecuted = function () {
+        return window.top.testField;
+    };
 
     script.src = '/get-script/' + scriptText;
 
     ok(!window.top.testField);
-    head.appendChild(script);
+    document.head.appendChild(script);
 
-    var maxIterationCount     = 10;
-    var iterationCount        = 0;
-    var clearCheckingInterval = function (id) {
-        window.clearInterval(id);
-        $(script).remove();
-        start();
-    };
-
-    var intervalId = window.setInterval(function () {
-        iterationCount++;
-
-        if (window.top.testField) {
-            ok(true);
-            clearCheckingInterval(intervalId);
-        }
-
-        if (iterationCount > maxIterationCount) {
-            ok(false);
-            clearCheckingInterval(intervalId);
-        }
-    }, 500);
-
+    window.QUnitGlobals.wait(isScriptExecuted)
+        .then(function () {
+            ok(true, 'script was executed');
+            start();
+        });
 });
 
 test('element.cloneNode must be overridden (B234291)', function () {

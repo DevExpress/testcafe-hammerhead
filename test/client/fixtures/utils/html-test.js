@@ -298,14 +298,18 @@ asyncTest('real big page', function () {
         });
     }
 
-    var iframeSrc = window.QUnitGlobals.getResourceUrl('../../data/node-sandbox/is-well-formatted-html.html');
+    var src    = window.QUnitGlobals.getResourceUrl('../../data/node-sandbox/is-well-formatted-html.html');
+    var iframe = document.createElement('iframe');
 
-    $('<iframe></iframe>').attr('src', iframeSrc).load(function () {
-        checkNode(this.contentDocument.documentElement);
-        $(this).remove();
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            checkNode(iframe.contentDocument.documentElement);
+            iframe.parentNode.removeChild(iframe);
 
-        start();
-    }).appendTo('body');
+            start();
+        });
+    document.body.appendChild(iframe);
 });
 
 
