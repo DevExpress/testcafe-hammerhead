@@ -50,6 +50,7 @@
     "gulp-util": "3.0.6",
     "gulp-webmake": "0.0.4",
     "multiline": "^1.0.2",
+    "publish-please": "^1.0.1",
     "request": "~2.27.0",
     "self-signed-https": "^1.0.5",
     "tmp": "0.0.26"

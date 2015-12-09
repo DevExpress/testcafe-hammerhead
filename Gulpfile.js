@@ -14,9 +14,10 @@ var uglify       = require('gulp-uglify');
 var gulpif       = require('gulp-if');
 var util         = require('gulp-util');
 var ll           = require('gulp-ll');
+var publish      = require('publish-please');
 
 ll
-    .tasks('lint' )
+    .tasks('lint')
     .onlyInDebug([
         'server-scripts',
         'client-scripts-bundle'
@@ -112,6 +113,7 @@ function hang () {
     });
 }
 
+// Build
 gulp.task('clean', function (cb) {
     del(['./lib'], cb);
 });
@@ -169,6 +171,8 @@ gulp.task('lint', function () {
 
 gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
 
+
+// Test
 gulp.task('test-server', ['build'], function () {
     return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
@@ -200,3 +204,9 @@ gulp.task('playground', ['build'], function () {
 });
 
 gulp.task('travis', [process.env.GULP_TASK || '']);
+
+
+// Publish
+gulp.task('publish', ['test-server'], function () {
+    return publish();
+});
