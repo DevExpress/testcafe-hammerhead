@@ -1,6 +1,8 @@
-var domProcessor = hammerhead.get('./dom-processor');
-var destLocation = hammerhead.get('./utils/destination-location');
-var urlUtils     = hammerhead.get('./utils/url');
+var domProcessor    = hammerhead.get('./dom-processor');
+var destLocation    = hammerhead.get('./utils/destination-location');
+var urlUtils        = hammerhead.get('./utils/url');
+var FileListWrapper = hammerhead.get('./sandbox/upload/file-list-wrapper');
+var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -50,6 +52,37 @@ if (window.Blob) {
                 ok(false, testCase.description);
             }
         });
+    });
+}
+
+if (window.FormData) {
+    asyncTest('FormData must be sent correctly with our file wrappers (GH-324)', function () {
+        var formData = new FormData();
+        var xhr      = new XMLHttpRequest();
+
+        formData.append('file', FileListWrapper._createFileWrapper({
+            info: {
+                size: 4,
+                type: 'text/plain',
+                name: 'correctName.txt'
+            },
+            blob: new Blob(['text'], { type: 'text/plain' })
+        }));
+        formData.append(INTERNAL_ATTRS.uploadInfoHiddenInputName, '[]');
+
+        xhr.open('post', '/form-data', true);
+        xhr.addEventListener('readystatechange', function () {
+            if (this.readyState !== this.DONE)
+                return;
+
+            var contentDispositionHeader = 'Content-Disposition: form-data; name="file"; filename="correctName.txt"';
+
+            ok(this.responseText.indexOf(contentDispositionHeader) !== -1);
+            ok(this.responseText.indexOf(INTERNAL_ATTRS.uploadInfoHiddenInputName) === -1);
+
+            start();
+        });
+        xhr.send(formData);
     });
 }
 

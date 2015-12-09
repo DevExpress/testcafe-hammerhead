@@ -109,6 +109,10 @@ class NativeMethods {
         // Canvas
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
 
+        // FormData
+        if (win.FormData)
+            this.formDataAppend = win.FormData.prototype.append;
+
         // DateTime
         this.date    = win.Date;
         this.dateNow = win.Date.now;

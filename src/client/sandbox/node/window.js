@@ -7,7 +7,8 @@ import { processScript } from '../../../processing/script';
 import * as destLocation from '../../utils/destination-location';
 import { isSubDomain, parseUrl, getProxyUrl } from '../../utils/url';
 import { isFirefox } from '../../utils/browser';
-import { isCrossDomainWindows, isImgElement } from '../../utils/dom';
+import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
+import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox) {
@@ -212,6 +213,23 @@ export default class WindowSandbox extends SandboxBase {
                     args[urlIndex] = getProxyUrl(args[urlIndex]);
 
                 return nativeMethods.registerProtocolHandler.apply(navigator, args);
+            };
+        }
+
+        if (window.FormData) {
+            window.FormData.prototype.append = function (name, value) {
+                // NOTE: We should not send our hidden input's value along with the file info,
+                // because our input may have incorrect value if the input with the file has been removed from DOM.
+                if (name === INTERNAL_ATTRS.uploadInfoHiddenInputName)
+                    return;
+
+                // NOTE: If we append our file wrapper to FormData, we will lose the file name.
+                // This happens because the file wrapper is an instance of Blob
+                // and a browser thinks that Blob does not contain the "name" property.
+                if (arguments.length === 2 && isBlob(value) && 'name' in value)
+                    nativeMethods.formDataAppend.call(this, name, value, value.name);
+                else
+                    nativeMethods.formDataAppend.apply(this, arguments);
             };
         }
     }
