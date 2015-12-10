@@ -368,16 +368,13 @@ export default class EventSimulator {
         return this._raiseDispatchEvent(el, ev, args);
     }
 
-    _dispatchEvent (el, name, flag) {
+    _dispatchEvent (el, name, shouldBubble, flag) {
         var ev = null;
 
         if (document.createEvent) {
             ev = document.createEvent('Events');
 
-            // NOTE: The dispatchEvent function is used for events, which are raised for a certain element and aren’t
-            // raised for parent elements (focus, blur, change, input, submit). So, we set the 'bubbling' (the second)
-            // argument to false (T229732).
-            ev.initEvent(name, false, true);
+            ev.initEvent(name, shouldBubble, true);
 
             if (flag)
                 ev[flag] = true;
@@ -598,29 +595,31 @@ export default class EventSimulator {
         return this._simulateEvent(el, 'keydown', options);
     }
 
-    input (el) {
-        return this._dispatchEvent(el, 'input');
-    }
-
     // NOTE: Control events.
+    // NOTE: "focus", "blur" and "selectionchange" shouldn't bubble (T229732),
+    // but "input", "change" and "submit" should do it (GH-318).
     blur (el) {
-        return this._dispatchEvent(el, 'blur', this.DISPATCHED_EVENT_FLAG);
+        return this._dispatchEvent(el, 'blur', false, this.DISPATCHED_EVENT_FLAG);
     }
 
     focus (el) {
-        return this._dispatchEvent(el, 'focus', this.DISPATCHED_EVENT_FLAG);
+        return this._dispatchEvent(el, 'focus', false, this.DISPATCHED_EVENT_FLAG);
     }
 
     change (el) {
-        return this._dispatchEvent(el, 'change', this.DISPATCHED_EVENT_FLAG);
+        return this._dispatchEvent(el, 'change', true, this.DISPATCHED_EVENT_FLAG);
+    }
+
+    input (el) {
+        return this._dispatchEvent(el, 'input', true);
     }
 
     submit (el) {
-        return this._dispatchEvent(el, 'submit');
+        return this._dispatchEvent(el, 'submit', true);
     }
 
     selectionchange (el) {
-        return this._dispatchEvent(el, 'selectionchange');
+        return this._dispatchEvent(el, 'selectionchange', false);
     }
 
     // NOTE: Touch events.
