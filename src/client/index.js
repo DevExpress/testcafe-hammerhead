@@ -1,11 +1,12 @@
-/*eslint-disable no-native-reassign*/
 import Promise from 'pinkie';
 import Sandbox from './sandbox';
 import CodeInstrumentation from './sandbox/code-instrumentation';
 import EventEmitter from './utils/event-emitter';
 import settings from './settings';
 import transport from './transport';
+/*eslint-disable no-native-reassign*/
 import * as JSON from './json';
+/*eslint-enable no-native-reassign*/
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
 import * as eventUtils from './utils/event';
@@ -16,7 +17,6 @@ import { getProxyUrl } from './utils/url';
 import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
 import trim from '../utils/string-trim';
-/*eslint-enable no-native-reassign*/
 
 class Hammerhead {
     constructor () {

@@ -119,12 +119,12 @@ test('iframe', function () {
                     return urlUtils.getProxyUrl('http://google.net:90/');
                 },
 
-                assign: function (value) {
-                    windowMock.location.assignValue = value;
+                assign: function (val) {
+                    windowMock.location.assignValue = val;
                 },
 
-                replace: function (value) {
-                    windowMock.location.replaceValue = value;
+                replace: function (val) {
+                    windowMock.location.replaceValue = val;
                 }
             },
 

@@ -186,6 +186,16 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.listeners.addInternalEventListener(window, ['focus', 'blur'], () => this._onChangeActiveElement(this.document.activeElement));
     }
 
+    _callFocusCallback (callback, el) {
+        // NOTE: In MSEdge, the 'selectionchange' event doesn't occur immediately (it occurs with a some delay)
+        // so we should raise it right after the 'focus' event is raised.
+        if (browserUtils.isIE && browserUtils.version > 11 && el && domUtils.isTextEditableElement(el))
+            this.eventSimulator.selectionchange(el);
+
+        if (typeof callback === 'function')
+            callback();
+    }
+
     focus (el, callback, silent, forMouseEvent, isNativeFocus) {
         if (this.shouldDisableOuterFocusHandlers && !domUtils.isShadowUIElement(el))
             return null;
@@ -212,18 +222,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         // NOTE: In IE, if you call focus() or blur() methods from script, an active element is changed immediately,
         // but events are raised asynchronously after some timeout.
-        var isAsync = false;
-
-        var callFocusCallback = (callback, el) => {
-            // NOTE: In MSEdge, the 'selectionchange' event doesn't occur immediately (it occurs with a some delay)
-            // so we should raise it right after the 'focus' event is raised.
-            if (browserUtils.isIE && browserUtils.version > 11 && el && domUtils.isTextEditableElement(el))
-                this.eventSimulator.selectionchange(el);
-
-            if (typeof callback === 'function')
-                callback();
-        };
-
+        var isAsync         = false;
         var raiseFocusEvent = () => {
             if (!isCurrentWindowActive && !domUtils.isShadowUIElement(el))
                 this.activeWindowTracker.makeCurrentWindowActive();
@@ -235,9 +234,9 @@ export default class FocusBlurSandbox extends SandboxBase {
                 // NOTE: If we call focus for an unfocusable element (like 'div' or 'image') in iframe, we should
                 // specify document.active for this iframe manually, so we call focus without handlers.
                 if (isElementInIframe && iframeElement && this.topWindow.document.activeElement !== iframeElement)
-                    this._raiseEvent(iframeElement, 'focus', () => callFocusCallback(callback, el), true, isAsync);
+                    this._raiseEvent(iframeElement, 'focus', () => this._callFocusCallback(callback, el), true, isAsync);
                 else
-                    callFocusCallback(callback, el);
+                    this._callFocusCallback(callback, el);
 
             }, withoutHandlers || silent, isAsync, forMouseEvent);
         };
@@ -248,7 +247,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             if ((this.eventSimulator.isSavedWindowsEventsExists() || browserUtils.isIE && browserUtils.version > 10) &&
                 this.window.event &&
                 this.window.event.type === 'focus' && this.window.event.srcElement === el) {
-                callFocusCallback(callback);
+                this._callFocusCallback(callback);
 
                 return null;
             }

@@ -15,16 +15,16 @@ var testProxyPort       = 80;
 var parser = new parse5.Parser();
 
 function process (html, isIframe) {
-    var root         = parser.parse(html);
-    var domProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
-    var urlReplacer  = function (url, resourceType) {
+    var root             = parser.parse(html);
+    var testDomProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
+    var urlReplacer      = function (url, resourceType) {
         url = url.indexOf('/') === 0 ? 'http://example.com' + url : url;
 
         return urlUtils.getProxyUrl(url, 'localhost', '80', 'sessionId', resourceType);
     };
 
     parse5Utils.walkElements(root, function (el) {
-        domProcessor.processElement(el, urlReplacer);
+        testDomProcessor.processElement(el, urlReplacer);
     });
 
     return root;

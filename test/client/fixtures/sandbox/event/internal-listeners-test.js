@@ -153,13 +153,13 @@ $(document).ready(function () {
     test('stop propagation', function () {
         var event = 'focus';
 
-        var stopPropagation = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
+        var testStopPropagation = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
             strictEqual(e.type, event);
             stopPropagation();
         };
 
         listeners.initElementListening(container, [event]);
-        listeners.addInternalEventListener(container, [event], stopPropagation);
+        listeners.addInternalEventListener(container, [event], testStopPropagation);
         bindAll(event);
 
         notEqual(domUtils.getActiveElement(), input);
@@ -198,14 +198,14 @@ $(document).ready(function () {
         var event              = 'click';
         var preventEventRaised = false;
 
-        var preventEvent = function (e, dispatched, preventEvent) {
+        var testPreventEvent = function (e, dispatched, preventEvent) {
             strictEqual(e.type, event);
             preventEventRaised = true;
             preventEvent();
         };
 
         listeners.initElementListening(container, [event]);
-        listeners.addInternalEventListener(container, [event], preventEvent);
+        listeners.addInternalEventListener(container, [event], testPreventEvent);
         bindAll(event);
         dispatchEvent(input, event);
 
@@ -216,7 +216,7 @@ $(document).ready(function () {
         ok(!elementBubbleEventRaised);
 
         preventEventRaised = false;
-        listeners.removeInternalEventListener(container, [event], preventEvent);
+        listeners.removeInternalEventListener(container, [event], testPreventEvent);
         dispatchEvent(input, event);
 
         ok(!preventEventRaised);
@@ -230,7 +230,7 @@ $(document).ready(function () {
         var event              = 'click';
         var preventEventRaised = false;
 
-        var preventEvent = function (e, dispatched, preventEvent) {
+        var testPreventEvent = function (e, dispatched, preventEvent) {
             strictEqual(e.type, event);
             preventEventRaised = true;
             preventEvent();
@@ -238,7 +238,7 @@ $(document).ready(function () {
 
         listeners.initElementListening(container, [event]);
         bindAll(event);
-        listeners.addInternalEventListener(container, [event], preventEvent);
+        listeners.addInternalEventListener(container, [event], testPreventEvent);
         dispatchEvent(input, event);
 
         ok(preventEventRaised);
@@ -263,16 +263,16 @@ $(document).ready(function () {
             handler2Raised = true;
         };
 
-        var preventEvent = function (e, dispatched, preventEvent) {
+        var testPreventEvent = function (e, dispatched, preventEvent) {
             preventEventCounter++;
             preventEvent();
         };
 
         listeners.initElementListening(container, [event1, event2]);
         listeners.addInternalEventListener(container, [event1], handler1);
-        listeners.addInternalEventListener(container, [event1], preventEvent);
+        listeners.addInternalEventListener(container, [event1], testPreventEvent);
         listeners.addInternalEventListener(container, [event1], handler2);
-        listeners.addInternalEventListener(container, [event2], preventEvent);
+        listeners.addInternalEventListener(container, [event2], testPreventEvent);
 
         bindAll(event1);
         bindAll(event2);
@@ -295,14 +295,14 @@ $(document).ready(function () {
         var event                = 'click';
         var cancelHandlersRaised = false;
 
-        var cancelHandlers = function (e, dispatched, preventEvent, cancelHandlers) {
+        var testCancelHandlers = function (e, dispatched, preventEvent, cancelHandlers) {
             strictEqual(e.type, event);
             cancelHandlersRaised = true;
             cancelHandlers();
         };
 
         listeners.initElementListening(container, [event]);
-        listeners.addInternalEventListener(container, [event], cancelHandlers);
+        listeners.addInternalEventListener(container, [event], testCancelHandlers);
         bindAll(event);
         dispatchEvent(uiElement, event);
 
@@ -314,14 +314,14 @@ $(document).ready(function () {
         ok(uiElementCaptureEventRaised);
         ok(uiElementBubbleEventRaised);
 
-        listeners.removeInternalEventListener(container, [event], cancelHandlers);
+        listeners.removeInternalEventListener(container, [event], testCancelHandlers);
     });
 
     test('canceller added after listener', function () {
         var event                = 'click';
         var cancelHandlersRaised = false;
 
-        var cancelHandlers = function (e, dispatched, preventEvent, cancelHandlers) {
+        var testCancelHandlers = function (e, dispatched, preventEvent, cancelHandlers) {
             strictEqual(e.type, event);
             cancelHandlersRaised = true;
             cancelHandlers();
@@ -329,7 +329,7 @@ $(document).ready(function () {
 
         listeners.initElementListening(container, [event]);
         bindAll(event);
-        listeners.addInternalEventListener(container, [event], cancelHandlers);
+        listeners.addInternalEventListener(container, [event], testCancelHandlers);
         dispatchEvent(uiElement, event);
 
         ok(cancelHandlersRaised);
@@ -340,7 +340,7 @@ $(document).ready(function () {
         ok(uiElementCaptureEventRaised);
         ok(uiElementBubbleEventRaised);
 
-        listeners.removeInternalEventListener(container, [event], cancelHandlers);
+        listeners.removeInternalEventListener(container, [event], testCancelHandlers);
     });
 
     module('regression');

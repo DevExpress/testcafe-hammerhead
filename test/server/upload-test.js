@@ -26,13 +26,13 @@ var dataFiles = [
     'empty-headers'
 ];
 
-var data = dataFiles.reduce(function (data, filename) {
+var data = dataFiles.reduce(function (dataFile, filename) {
     var content = fs.readFileSync('test/server/data/form-data/' + filename + '.formdata');
 
     // NOTE: Force \r\n new lines.
-    data[filename] = newLineReplacer(content);
+    dataFile[filename] = newLineReplacer(content);
 
-    return data;
+    return dataFile;
 }, {});
 
 function newLineReplacer (content) {
@@ -57,8 +57,8 @@ describe('Upload', function () {
                 'empty-with-separator-and-newline'
             ];
 
-            cases.forEach(function (data) {
-                var formData = initFormData(data);
+            cases.forEach(function (item) {
+                var formData = initFormData(item);
 
                 expect(formData.entries).to.be.empty;
                 expect(formData.preamble).to.be.empty;

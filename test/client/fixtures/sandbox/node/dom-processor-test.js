@@ -179,10 +179,10 @@ test('javascript protocol', function () {
 
 test('anchor with target attribute', function () {
     var anchor   = nativeMethods.createElement.call(document, 'a');
-    var url      = 'http://url.com/';
-    var proxyUrl = urlUtils.getProxyUrl(url, null, null, null, 'iframe');
+    var testUrl  = 'http://url.com/';
+    var proxyUrl = urlUtils.getProxyUrl(testUrl, null, null, null, 'iframe');
 
-    nativeMethods.setAttribute.call(anchor, 'href', url);
+    nativeMethods.setAttribute.call(anchor, 'href', testUrl);
     nativeMethods.setAttribute.call(anchor, 'target', 'iframeName');
 
     domProcessor.processElement(anchor, function (url, resourceType) {
@@ -190,7 +190,7 @@ test('anchor with target attribute', function () {
     });
 
     strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), proxyUrl);
-    strictEqual(nativeMethods.getAttribute.call(anchor, domProcessor.getStoredAttrName('href')), url);
+    strictEqual(nativeMethods.getAttribute.call(anchor, domProcessor.getStoredAttrName('href')), testUrl);
 });
 
 test('autocomplete attribute', function () {

@@ -139,7 +139,9 @@ export default class EventSimulator {
                 opts = extend(opts, { button: userOptions.button });
 
             args     = EventSimulator._getMouseEventArgs(event, opts);
+            /* eslint-disable no-shadow */
             dispatch = (el, args) => this._dispatchMouseEvent(el, args);
+            /* eslint-enable no-shadow */
         }
 
         else if (KEY_EVENT_NAME_RE.test(event)) {
@@ -152,7 +154,9 @@ export default class EventSimulator {
             }
 
             args     = EventSimulator._getKeyEventArgs(event, opts);
+            /* eslint-disable no-shadow */
             dispatch = (el, args) => this._dispatchKeyEvent(el, args);
+            /* eslint-enable no-shadow */
         }
 
         else if (TOUCH_EVENT_NAME_RE.test(event)) {
