@@ -7,7 +7,7 @@ var Charset       = require('../../lib/processing/encoding/charset');
 describe('Content encoding', function () {
     var src = new Buffer('Answer to the Ultimate Question of Life, the Universe, and Everything.');
 
-    it('Should encode and decode content', function (done) {
+    it('Should encode and decode content', function () {
         function testConfiguration (encoding, charsetStr) {
             var charset = new Charset();
 
@@ -22,25 +22,19 @@ describe('Content encoding', function () {
                 });
         }
 
-        Promise
-            .all([
-                testConfiguration(null, 'utf8'),
-                testConfiguration('gzip', 'utf8'),
-                testConfiguration('deflate', 'utf8'),
-                testConfiguration('deflate', 'win1251'),
-                testConfiguration(null, 'iso-8859-1')
-            ])
-            .then(function () {
-                done();
-            })
-            .catch(done);
+        return Promise.all([
+            testConfiguration(null, 'utf8'),
+            testConfiguration('gzip', 'utf8'),
+            testConfiguration('deflate', 'utf8'),
+            testConfiguration('deflate', 'win1251'),
+            testConfiguration(null, 'iso-8859-1')
+        ]);
     });
 
-    it('Should handle decoding errors', function (done) {
-        decodeContent(src, 'deflate', 'utf-8')
+    it('Should handle decoding errors', function () {
+        return decodeContent(src, 'deflate', 'utf-8')
             .catch(function (err) {
                 expect(err).to.be.an('object');
-                done();
             });
     });
 });

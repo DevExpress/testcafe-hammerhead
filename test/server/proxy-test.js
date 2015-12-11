@@ -242,7 +242,7 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should render task script', function (done) {
+        it('Should render task script', function () {
             function testTaskScriptRequest (url, scriptBody) {
                 return new Promise(function (resolve) {
                     var options = {
@@ -270,15 +270,10 @@ describe('Proxy', function () {
                 return 'IframePayloadScript';
             };
 
-            Promise
-                .all([
-                    testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
-                    testTaskScriptRequest('http://localhost:1836/iframe-task.js', 'IframePayloadScript')
-                ])
-                .then(function () {
-                    done();
-                })
-                .catch(done);
+            return Promise.all([
+                testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
+                testTaskScriptRequest('http://localhost:1836/iframe-task.js', 'IframePayloadScript')
+            ]);
         });
 
         it('Should convert origin host and protocol to lower case', function () {
@@ -695,7 +690,7 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should not process assets with status 204 (GH-306)', function (done) {
+        it('Should not process assets with status 204 (GH-306)', function () {
             function testSourceWithStatus204 (mimeType) {
                 return new Promise(function (resolve) {
                     var options = {
@@ -713,16 +708,11 @@ describe('Proxy', function () {
                 });
             }
 
-            Promise
-                .all([
-                    testSourceWithStatus204('application/javascript'),
-                    testSourceWithStatus204('text/cache-manifest'),
-                    testSourceWithStatus204('text/css')
-                ])
-                .then(function () {
-                    done();
-                })
-                .catch(done);
+            return Promise.all([
+                testSourceWithStatus204('application/javascript'),
+                testSourceWithStatus204('text/cache-manifest'),
+                testSourceWithStatus204('text/css')
+            ]);
         });
 
         it('Should transform the "Origin" header for requests without the "Referer" header correctly (GH-284)', function (done) {
