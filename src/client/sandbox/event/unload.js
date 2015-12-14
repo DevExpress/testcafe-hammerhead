@@ -62,7 +62,7 @@ export default class UnloadSandbox extends SandboxBase {
         var document  = window.document;
         var listeners = this.listeners;
 
-        listeners.setEventListenerWrapper(window, ['beforeunload'], () => this._onBeforeUnloadHandler);
+        listeners.setEventListenerWrapper(window, ['beforeunload'], (e, listener) => this._onBeforeUnloadHandler(e, listener));
         listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
 
         nativeMethods.addEventListener.call(document, 'click', e => {
