@@ -175,10 +175,10 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
         var $iframe = $('<iframe id="test_wrapper">');
 
         window.top.onIframeInited = function (window) {
-            var iframeSandbox = window['%hammerhead%'].sandbox.iframe;
+            var iframeIframeSandbox = window['%hammerhead%'].sandbox.iframe;
 
-            iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
-            iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+            iframeIframeSandbox.on(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+            iframeIframeSandbox.off(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
         };
 
         $iframe[0].setAttribute('src', 'javascript:\'' +
@@ -260,17 +260,12 @@ test('document.write with __begin$, __end$ parameters (T232454)', function () {
 asyncTest('the onDocumentCleaned event is not raised after calling document.write (GH-253)', function () {
     expect(1);
 
-    var iframe = document.createElement('iframe');
+    var iframe  = document.createElement('iframe');
     var src     = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
     var handler = function (e) {
         window.removeEventListener('message', handler);
-
-        var iframe = e.source.frameElement;
-
         strictEqual(e.data, 'success');
-
         iframe.parentNode.removeChild(iframe);
-
         start();
     };
 

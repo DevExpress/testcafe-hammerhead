@@ -1,64 +1,64 @@
 // NOTE: We should wrap the xhr response (B236741).
 export default class XMLHttpRequestWrapper {
-    constructor (xhr) {
-        const XHR_PROPERTY_ACCESS_ERROR = 'hammerhead|xhr-property-access-error';
+    static _wrapProp (xhr, xhrWrapper, propName) {
+        Object.defineProperty(xhrWrapper, propName, {
+            get: () => {
+                if (propName.indexOf('on') === 0)
+                    return typeof xhr[propName] === 'function' ? xhr[propName]('get') : xhr[propName];
 
+                return xhr[propName];
+            },
+            set: value => {
+                if (propName.indexOf('on') === 0) {
+                    xhr[propName] = typeof value !== 'function' ? value : (func => function () {
+                        return arguments[0] === 'get' ? func : func.apply(xhrWrapper, arguments);
+                    })(value);
+                }
+                else
+                    xhr[propName] = value;
+
+                return xhr[propName];
+            }
+        });
+    }
+
+    static _wrapFunc (xhr, xhrWrapper, funcName) {
         var eventHandlers = [];
 
-        var wrapFunc = (xhr, xhrWrapper, funcName) => {
-            xhrWrapper[funcName] = function () {
-                var args   = Array.prototype.slice.call(arguments);
-                var isFunc = typeof args[1] === 'function';
+        xhrWrapper[funcName] = function () {
+            var args   = Array.prototype.slice.call(arguments);
+            var isFunc = typeof args[1] === 'function';
 
-                if (funcName === 'addEventListener' && isFunc) {
-                    var originHandler  = args[1];
-                    var wrappedHandler = function () {
-                        originHandler.apply(xhrWrapper, arguments);
-                    };
+            if (funcName === 'addEventListener' && isFunc) {
+                var originHandler  = args[1];
+                var wrappedHandler = function () {
+                    originHandler.apply(xhrWrapper, arguments);
+                };
 
-                    args[1] = wrappedHandler;
+                args[1] = wrappedHandler;
 
-                    eventHandlers.push({
-                        origin:  originHandler,
-                        wrapped: wrappedHandler
-                    });
-                }
-                else if (funcName === 'removeEventListener' && isFunc) {
-                    for (var i = 0; i < eventHandlers.length; i++) {
-                        if (eventHandlers[i].origin === args[1]) {
-                            args[1] = eventHandlers[i].wrapped;
-                            eventHandlers.splice(i, 1);
+                eventHandlers.push({
+                    origin:  originHandler,
+                    wrapped: wrappedHandler
+                });
+            }
+            else if (funcName === 'removeEventListener' && isFunc) {
+                for (var i = 0; i < eventHandlers.length; i++) {
+                    if (eventHandlers[i].origin === args[1]) {
+                        args[1] = eventHandlers[i].wrapped;
+                        eventHandlers.splice(i, 1);
 
-                            break;
-                        }
+                        break;
                     }
                 }
+            }
 
-                return xhr[funcName].apply(xhr, args);
-            };
+            return xhr[funcName].apply(xhr, args);
         };
+    }
 
-        var wrapProp = (xhr, xhrWrapper, propName) => {
-            Object.defineProperty(xhrWrapper, propName, {
-                get: () => {
-                    if (propName.indexOf('on') === 0)
-                        return typeof xhr[propName] === 'function' ? xhr[propName]('get') : xhr[propName];
-
-                    return xhr[propName];
-                },
-                set: value => {
-                    if (propName.indexOf('on') === 0) {
-                        xhr[propName] = typeof value !== 'function' ? value : (func => function () {
-                            return arguments[0] === 'get' ? func : func.apply(xhrWrapper, arguments);
-                        })(value);
-                    }
-                    else
-                        xhr[propName] = value;
-
-                    return xhr[propName];
-                }
-            });
-        };
+    constructor (xhr) {
+        const XHR_PROPERTY_ACCESS_ERROR = 'hammerhead|xhr-property-access-error';
 
         for (var prop in xhr) {
             if (!Object.prototype.hasOwnProperty(prop)) {
@@ -75,9 +75,9 @@ export default class XMLHttpRequestWrapper {
                 }
 
                 if (isFunction)
-                    wrapFunc(xhr, this, prop);
+                    XMLHttpRequestWrapper._wrapFunc(xhr, this, prop);
                 else
-                    wrapProp(xhr, this, prop);
+                    XMLHttpRequestWrapper._wrapProp(xhr, this, prop);
             }
         }
     }

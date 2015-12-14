@@ -333,7 +333,9 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (domUtils.isDomElement(el)) {
+            /* eslint-disable no-shadow */
             domUtils.find(el, 'input[type=file]', el => this.addFileInputInfo(el));
+            /* eslint-enable no-shadow */
 
             if (domUtils.isFileInput(el))
                 this.addFileInputInfo(el);

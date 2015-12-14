@@ -26,6 +26,60 @@ function isHidden (el) {
     return el.offsetWidth <= 0 && el.offsetHeight <= 0;
 }
 
+function isAlwaysNotEditableElement (el) {
+    var tagName                          = el.tagName.toLowerCase();
+    var notContentEditableElementsRegExp = /select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img/;
+    var inputElementsRegExp              = /input|textarea|button/;
+
+    return tagName && (notContentEditableElementsRegExp.test(tagName) || inputElementsRegExp.test(tagName));
+}
+
+function closestFallback (el, selector) {
+    while (el) {
+        if (matches(el, selector))
+            return el;
+
+        el = el.parentNode;
+    }
+
+    return null;
+}
+
+function addClassFallback (el, className) {
+    if (className) {
+        var classNames = className.split(/\s+/);
+        var setClass   = ' ' + el.className + ' ';
+
+        for (var i = 0; i < classNames.length; i++) {
+            if (setClass.indexOf(' ' + classNames[i] + ' ') === -1)
+                setClass += classNames[i] + ' ';
+        }
+
+        el.className = trim(setClass);
+    }
+}
+
+function removeClassFallback (el, className) {
+    if (el.className && className) {
+        var classNames = (className || '').split(/\s+/);
+
+        className = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
+
+        for (var i = 0; i < classNames.length; i++)
+            className = className.replace(' ' + classNames[i] + ' ', ' ');
+
+        el.className = trim(className);
+    }
+}
+
+function hasClassFallback (el, className) {
+    var preparedElementClassName = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
+
+    className = ' ' + className + ' ';
+
+    return preparedElementClassName.indexOf(className) !== -1;
+}
+
 export function getActiveElement (currentDocument) {
     var doc           = currentDocument || document;
     var activeElement = doc.activeElement &&
@@ -213,14 +267,6 @@ export function findDocument (el) {
 }
 
 export function isContentEditableElement (el) {
-    var isAlwaysNotEditableElement = function (el) {
-        var tagName                          = el.tagName.toLowerCase();
-        var notContentEditableElementsRegExp = /select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img/;
-        var inputElementsRegExp              = /input|textarea|button/;
-
-        return tagName && (notContentEditableElementsRegExp.test(tagName) || inputElementsRegExp.test(tagName));
-    };
-
     var isContentEditable = false;
     var element           = null;
 
@@ -500,17 +546,6 @@ export function closest (el, selector) {
     if (el && el.closest)
         return el.closest(selector);
 
-    var closestFallback = (el, selector) => {
-        while (el) {
-            if (matches(el, selector))
-                return el;
-
-            el = el.parentNode;
-        }
-
-        return null;
-    };
-
     return closestFallback(el, selector);
 }
 
@@ -524,23 +559,8 @@ export function addClass (el, className) {
 
         classNames.forEach(item => el.classList.add(item));
     }
-    else {
-        var addClassFallback = (el, className) => {
-            if (className) {
-                var classNames = className.split(/\s+/);
-                var setClass   = ' ' + el.className + ' ';
-
-                for (var i = 0; i < classNames.length; i++) {
-                    if (setClass.indexOf(' ' + classNames[i] + ' ') === -1)
-                        setClass += classNames[i] + ' ';
-                }
-
-                el.className = trim(setClass);
-            }
-        };
-
+    else
         addClassFallback(el, className);
-    }
 }
 
 export function removeClass (el, className) {
@@ -553,22 +573,8 @@ export function removeClass (el, className) {
 
         classNames.forEach(item => el.classList.remove(item));
     }
-    else {
-        var removeClassFallback = function (el, className) {
-            if (el.className && className) {
-                var classNames = (className || '').split(/\s+/);
-
-                className = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
-
-                for (var i = 0; i < classNames.length; i++)
-                    className = className.replace(' ' + classNames[i] + ' ', ' ');
-
-                el.className = trim(className);
-            }
-        };
-
+    else
         removeClassFallback(el, className);
-    }
 }
 
 export function hasClass (el, className) {
@@ -578,14 +584,6 @@ export function hasClass (el, className) {
     // NOTE: IE10+
     if (el.classList)
         return el.classList.contains(className);
-
-    var hasClassFallback = (el, className) => {
-        var preparedElementClassName = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
-
-        className = ' ' + className + ' ';
-
-        return preparedElementClassName.indexOf(className) !== -1;
-    };
 
     return hasClassFallback(el, className);
 }

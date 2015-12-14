@@ -147,17 +147,17 @@ function getInputWrapper (fileNames) {
 }
 
 function getFiles (filesInfo) {
-    var files = [];
+    var result = [];
 
     for (var i = 0; i < filesInfo.length; i++) {
-        files.push({
+        result.push({
             base64: filesInfo[i].data,
             type:   filesInfo[i].info.type,
             name:   filesInfo[i].info.name
         });
     }
 
-    return files;
+    return result;
 }
 
 module('hidden info');
@@ -251,7 +251,7 @@ asyncTest('transfer input element between forms', function () {
     var formEl2          = $('<form>')[0];
     var inputEl          = formEl1.firstChild;
     var div              = document.createElement('div');
-    var hiddenInfo       = null;
+    var testHiddenInfo   = null;
     var parsedHiddenInfo = null;
 
     strictEqual(formEl1.children.length, 2, 'Hidden input in form1 is present');
@@ -259,8 +259,8 @@ asyncTest('transfer input element between forms', function () {
 
     uploadSandbox.doUpload(inputEl, ['./file.txt'])
         .then(function () {
-            hiddenInfo       = formEl1.children[1].value;
-            parsedHiddenInfo = JSON.parse(hiddenInfo);
+            testHiddenInfo   = formEl1.children[1].value;
+            parsedHiddenInfo = JSON.parse(testHiddenInfo);
 
             strictEqual(parsedHiddenInfo[0].files.length, 1, 'Hidden info contains 1 file');
             strictEqual(parsedHiddenInfo[0].files[0].name, 'file.txt', 'File name is "file.txt"');
@@ -273,14 +273,14 @@ asyncTest('transfer input element between forms', function () {
 
             formEl2.appendChild(inputEl);
             strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
-            strictEqual(formEl2.children[1].value, hiddenInfo, 'Hidden input in form2 contains file info');
+            strictEqual(formEl2.children[1].value, testHiddenInfo, 'Hidden input in form2 contains file info');
 
             formEl2.removeChild(inputEl);
             strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
             strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
             formEl1.insertBefore(inputEl, formEl1.firstChild);
-            strictEqual(formEl1.children[1].value, hiddenInfo, 'Hidden input in form1 contains file info');
+            strictEqual(formEl1.children[1].value, testHiddenInfo, 'Hidden input in form1 contains file info');
             strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
             formEl1.removeChild(inputEl);
@@ -289,7 +289,7 @@ asyncTest('transfer input element between forms', function () {
             strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
             formEl1.insertBefore(div, formEl1.firstChild);
-            strictEqual(formEl1.children[1].value, hiddenInfo, 'Hidden input in form1 contains file info');
+            strictEqual(formEl1.children[1].value, testHiddenInfo, 'Hidden input in form1 contains file info');
             strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
 
             formEl1.removeChild(div);
@@ -440,20 +440,20 @@ test('set value', function () {
 asyncTest('set empty value', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
     var value     = '';
-    var files     = null;
+    var testFiles     = null;
 
-    eval(processScript('value = fileInput.value; files = fileInput.files'));
+    eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
     strictEqual(value, '');
 
     if (browserUtils.isIE9)
-        strictEqual(typeof files, 'undefined');
+        strictEqual(typeof testFiles, 'undefined');
     else
-        strictEqual(files.length, 0);
+        strictEqual(testFiles.length, 0);
 
     uploadSandbox.doUpload(fileInput, ['./file.txt'])
         .then(function () {
-            eval(processScript('value = fileInput.value; files = fileInput.files'));
+            eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
             if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
                 strictEqual(value, 'C:\\fakepath\\file.txt');
@@ -461,18 +461,18 @@ asyncTest('set empty value', function () {
                 strictEqual(value, 'file.txt');
 
             if (browserUtils.isIE9)
-                strictEqual(typeof files, 'undefined');
+                strictEqual(typeof testFiles, 'undefined');
             else
-                strictEqual(files.length, 1);
+                strictEqual(testFiles.length, 1);
 
-            eval(processScript('fileInput.value = "";value = fileInput.value; files = fileInput.files'));
+            eval(processScript('fileInput.value = "";value = fileInput.value; testFiles = fileInput.files'));
 
             strictEqual(value, '');
 
             if (browserUtils.isIE9)
-                strictEqual(typeof files, 'undefined');
+                strictEqual(typeof testFiles, 'undefined');
             else
-                strictEqual(files.length, 0);
+                strictEqual(testFiles.length, 0);
 
             start();
         });
@@ -481,11 +481,11 @@ asyncTest('set empty value', function () {
 asyncTest('repeated select file', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
     var value     = '';
-    var files     = null;
+    var testFiles = null;
 
     uploadSandbox.doUpload(fileInput, './file.txt')
         .then(function () {
-            eval(processScript('value = fileInput.value; files = fileInput.files'));
+            eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
             if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
                 strictEqual(value, 'C:\\fakepath\\file.txt');
@@ -493,14 +493,14 @@ asyncTest('repeated select file', function () {
                 strictEqual(value, 'file.txt');
 
             if (browserUtils.isIE9)
-                strictEqual(typeof files, 'undefined');
+                strictEqual(typeof testFiles, 'undefined');
             else
-                strictEqual(files[0].name, 'file.txt');
+                strictEqual(testFiles[0].name, 'file.txt');
 
             return uploadSandbox.doUpload(fileInput, 'folder/file.png');
         })
         .then(function () {
-            eval(processScript('value = fileInput.value; files = fileInput.files'));
+            eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
             if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
                 strictEqual(value, 'C:\\fakepath\\file.png');
@@ -508,9 +508,9 @@ asyncTest('repeated select file', function () {
                 strictEqual(value, 'file.png');
 
             if (browserUtils.isIE9)
-                strictEqual(typeof files, 'undefined');
+                strictEqual(typeof testFiles, 'undefined');
             else
-                strictEqual(files[0].name, 'file.png');
+                strictEqual(testFiles[0].name, 'file.png');
 
             start();
         });
@@ -520,10 +520,10 @@ asyncTest('change event', function () {
     var fileInput = $('<input type="file" name="test" id="777">')[0];
 
     fileInput.onchange = function () {
-        var value = '';
-        var files = null;
+        var value     = '';
+        var testFiles = null;
 
-        eval(processScript('value = fileInput.value; files = fileInput.files'));
+        eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
         if (browserUtils.isWebKit || browserUtils.isIE9 || browserUtils.isIE10)
             strictEqual(value, 'C:\\fakepath\\file.txt');
@@ -531,9 +531,9 @@ asyncTest('change event', function () {
             strictEqual(value, 'file.txt');
 
         if (browserUtils.isIE9)
-            strictEqual(typeof files, 'undefined');
+            strictEqual(typeof testFiles, 'undefined');
         else
-            strictEqual(files.length, 1);
+            strictEqual(testFiles.length, 1);
 
         start();
     };
@@ -545,11 +545,11 @@ asyncTest('change event', function () {
 asyncTest('multi-select files', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
     var value     = '';
-    var files     = null;
+    var testFiles = null;
 
     uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png'])
         .then(function () {
-            eval(processScript('value = fileInput.value; files = fileInput.files'));
+            eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
             if (browserUtils.isIE9 || browserUtils.isIE10)
                 strictEqual(value, 'C:\\fakepath\\file.txt, C:\\fakepath\\file.png');
@@ -559,9 +559,9 @@ asyncTest('multi-select files', function () {
                 strictEqual(value, 'file.txt');
 
             if (browserUtils.isIE9)
-                strictEqual(typeof files, 'undefined');
+                strictEqual(typeof testFiles, 'undefined');
             else
-                strictEqual(files.length, 2);
+                strictEqual(testFiles.length, 2);
 
             start();
         });

@@ -68,7 +68,7 @@ export default class Listeners extends EventEmitter {
     }
 
     _createEventHandler () {
-        var listeningCtx = this.listeningCtx;
+        var listeners = this;
 
         return function (e) {
             // NOTE: Fix for the bug in Firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1161548).
@@ -86,7 +86,7 @@ export default class Listeners extends EventEmitter {
             var eventPrevented        = false;
             var handlersCancelled     = false;
             var stopPropagationCalled = false;
-            var eventCtx              = listeningCtx.getEventCtx(el, type);
+            var eventCtx              = listeners.listeningCtx.getEventCtx(el, type);
             var internalHandlers      = eventCtx ? eventCtx.internalHandlers : [];
 
             eventCtx.cancelOuterHandlers = false;

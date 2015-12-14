@@ -112,7 +112,7 @@ function clearExecutedHandlersCounter () {
         input2BlurHandlersExecutedAmount = input1ChangeHandlersExecutedAmount = input2ChangeHandlersExecutedAmount = 0;
 }
 
-function testFocusing (numberOfHandlers, startNext) {
+function testFocusing (numberOfHandlers, next) {
     var input1FocusedCount = 0;
     var input1BlurredCount = 0;
     var input2FocusedCount = 0;
@@ -181,11 +181,11 @@ function testFocusing (numberOfHandlers, startNext) {
         })
         .then(function () {
             assertFocusing(input2);
-            startNext();
+            next();
         });
 }
 
-function testChanging (numberOfHandlers, startNext) {
+function testChanging (numberOfHandlers, next) {
     var input1ChangedCount = 0;
     var input2ChangedCount = 0;
 
@@ -230,7 +230,7 @@ function testChanging (numberOfHandlers, startNext) {
             return focusAndType(input2);
         })
         .then(function () {
-            startNext();
+            next();
         });
 }
 

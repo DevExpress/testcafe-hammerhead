@@ -278,9 +278,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (locationWrapper)
                         return locationWrapper;
 
-                    var window = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                    var wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
 
-                    return new LocationWrapper(window);
+                    return new LocationWrapper(wnd);
                 },
 
                 set: (owner, location) => {
@@ -445,15 +445,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             // Event
             onbeforeunload: {
-                condition: window => domUtils.isWindow(window),
+                condition: wnd => domUtils.isWindow(wnd),
                 get:       () => this.unloadSandbox.getOnBeforeUnload(),
-                set:       (window, handler) => this.unloadSandbox.setOnBeforeUnload(window, handler)
+                set:       (wnd, handler) => this.unloadSandbox.setOnBeforeUnload(wnd, handler)
             },
 
             onmessage: {
-                condition: window => domUtils.isWindow(window),
+                condition: wnd => domUtils.isWindow(wnd),
                 get:       () => this.messageSandbox.getOnMessage(),
-                set:       (window, handler) => this.messageSandbox.setOnMessage(window, handler)
+                set:       (wnd, handler) => this.messageSandbox.setOnMessage(wnd, handler)
             },
 
             which: {
