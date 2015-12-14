@@ -253,15 +253,14 @@ describe('Upload', function () {
     });
 
     describe('Upload storage', function () {
-        var SRC_PATH = 'test/server/data/upload/';
-
+        var SRC_PATH  = 'test/server/data/upload/';
         var tmpDirObj = null;
 
-        before(function () {
+        beforeEach(function () {
             tmpDirObj = tmp.dirSync();
         });
 
-        after(function () {
+        afterEach(function () {
             tmpDirObj.removeCallback();
         });
 
@@ -293,13 +292,13 @@ describe('Upload', function () {
             expect(fileInfo.info.lastModifiedDate).eql(fs.statSync(filePath).mtime);
         }
 
-        it('Should store and get file', function (done) {
+        it('Should store and get file', function () {
             var storage = new UploadStorage(tmpDirObj.name);
 
             var srcFilePath    = getSrcFilePath('file-to-upload.txt');
             var storedFilePath = getStoredFilePath('file-to-upload.txt');
 
-            storage
+            return storage
                 .store(['file-to-upload.txt'], [fs.readFileSync(srcFilePath)])
                 .then(function (result) {
                     expect(result).to.be.null;
@@ -312,18 +311,15 @@ describe('Upload', function () {
                     assetCorrectFileInfo(result[0], 'file-to-upload.txt', storedFilePath);
 
                     fs.unlinkSync(storedFilePath);
-
-                    done();
-                })
-                .catch(done);
+                });
         });
 
-        it('Should return an error if storing or getting is impossible', function (done) {
+        it('Should return an error if storing or getting is impossible', function () {
             var storage        = new UploadStorage('this/path/will/not/exist/ever/');
             var storedFilePath = path.resolve(path.join('this/path/will/not/exist/ever/', 'file-to-upload.txt'));
             var filePath       = getSrcFilePath('file-to-upload.txt');
 
-            storage
+            return storage
                 .store(['file-to-upload.txt'], [filePath])
                 .then(function (result) {
                     expect(result.length).eql(1);
@@ -334,13 +330,10 @@ describe('Upload', function () {
                 .then(function (result) {
                     expect(result.length).eql(1);
                     assertCorrectErr(result[0], storedFilePath);
-
-                    done();
-                })
-                .catch(done);
+                });
         });
 
-        it('Should store and get multiple files', function (done) {
+        it('Should store and get multiple files', function () {
             var storage = new UploadStorage(tmpDirObj.name);
 
             var file1Path        = getSrcFilePath('expected.formdata');
@@ -349,7 +342,7 @@ describe('Upload', function () {
             var file1StoragePath = getStoredFilePath('expected.formdata');
             var file2StoragePath = getStoredFilePath('src.formdata');
 
-            storage
+            return storage
                 .store(['expected.formdata', 'src.formdata'], [fs.readFileSync(file1Path), fs.readFileSync(file2Path)])
                 .then(function (result) {
                     expect(result).to.be.null;
@@ -368,10 +361,7 @@ describe('Upload', function () {
 
                     fs.unlinkSync(file1StoragePath);
                     fs.unlinkSync(file2StoragePath);
-
-                    done();
-                })
-                .catch(done);
+                });
         });
     });
 

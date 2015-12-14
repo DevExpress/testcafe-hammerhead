@@ -257,40 +257,30 @@ describe('Content charset', function () {
             });
         }
 
-        it('Should set content charset for manifest', function (done) {
+        it('Should set content charset for manifest', function () {
             var processedManifest = manifestProcessor.processResource(manifestSrc, null, null, getProxyUrl);
             var resourceUrl       = 'http://127.0.0.1:2000/other-resource/manifest/';
 
-            Promise
-                .all([
-                    testResourceCharset(processedManifest, 'utf-16be', getProxyUrl(resourceUrl + 'bom')),
-                    testResourceCharset(processedManifest, 'utf-8', getProxyUrl(resourceUrl + 'content-type')),
-                    testResourceCharset(processedManifest, 'iso-8859-1', getProxyUrl(resourceUrl + 'default'))
-                ])
-                .then(function () {
-                    done();
-                })
-                .catch(done);
+            return Promise.all([
+                testResourceCharset(processedManifest, 'utf-16be', getProxyUrl(resourceUrl + 'bom')),
+                testResourceCharset(processedManifest, 'utf-8', getProxyUrl(resourceUrl + 'content-type')),
+                testResourceCharset(processedManifest, 'iso-8859-1', getProxyUrl(resourceUrl + 'default'))
+            ]);
         });
 
-        it('Should set content charset for stylesheet', function (done) {
+        it('Should set content charset for stylesheet', function () {
             var processedStylesheet = stylesheetProcessor.processResource(stylesheetSrc, null, null, getProxyUrl);
             var resourceUrl         = 'http://127.0.0.1:2000/other-resource/stylesheet/';
 
-            Promise
-                .all([
-                    testResourceCharset(processedStylesheet, 'utf-16be', getProxyUrl(resourceUrl + 'bom')),
-                    testResourceCharset(processedStylesheet, 'utf-8', getProxyUrl(resourceUrl + 'content-type')),
-                    testResourceCharset(processedStylesheet, 'iso-8859-1', getProxyUrl(resourceUrl + 'default'))
-                ])
-                .then(function () {
-                    done();
-                })
-                .catch(done);
+            return Promise.all([
+                testResourceCharset(processedStylesheet, 'utf-16be', getProxyUrl(resourceUrl + 'bom')),
+                testResourceCharset(processedStylesheet, 'utf-8', getProxyUrl(resourceUrl + 'content-type')),
+                testResourceCharset(processedStylesheet, 'iso-8859-1', getProxyUrl(resourceUrl + 'default'))
+            ]);
         });
     });
 
-    it('Should correctly determine the charset from BOM', function (done) {
+    it('Should correctly determine the charset from BOM', function () {
         function testBOM (bomCharset, contentTypeHeader) {
             var inputData = iconv.encode(pageWithoutMetaSrc, bomCharset, { addBOM: true });
             var charset   = new Charset();
@@ -310,16 +300,11 @@ describe('Content charset', function () {
                 });
         }
 
-        Promise
-            .all([
-                testBOM('utf-8', 'text/html; charset=utf16le'),
-                testBOM('utf-16le', 'text/html; charset=utf16be'),
-                testBOM('utf-16be', 'text/html')
-            ])
-            .then(function () {
-                done();
-            })
-            .catch(done);
+        return Promise.all([
+            testBOM('utf-8', 'text/html; charset=utf16le'),
+            testBOM('utf-16le', 'text/html; charset=utf16be'),
+            testBOM('utf-16be', 'text/html')
+        ]);
     });
 
     it('Should correctly determine the charset from meta', function () {
