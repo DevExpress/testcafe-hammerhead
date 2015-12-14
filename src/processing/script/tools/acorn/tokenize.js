@@ -660,7 +660,7 @@ pp.readWord1 = function() {
       let esc = this.readCodePoint()
       if (!(first ? isIdentifierStart : isIdentifierChar)(esc, astral))
         this.raise(escStart, "Invalid Unicode escape")
-      word += codePointToString(esc)
+      word += this.input.substr(this.pos-6, 6)
       chunkStart = this.pos
     } else {
       break
