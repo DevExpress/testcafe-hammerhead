@@ -1,6 +1,7 @@
 import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
 import { get as getSettings } from '../settings';
+import { endsWith } from '../../utils/string';
 
 const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
 
@@ -66,7 +67,13 @@ export function resolveUrl (url, doc) {
             return resolveUrl(url, window.parent.document);
     }
 
-    return urlResolver.href;
+    var result           = urlResolver.href;
+    var hasTrailingSlash = endsWith(url, '/');
+
+    if (!hasTrailingSlash)
+        result = result.replace(/\/$/, '');
+
+    return result;
 }
 
 export function get () {

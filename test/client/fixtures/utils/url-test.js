@@ -165,7 +165,7 @@ test('undefined or null', function () {
 test('remove unnecessary slashes form the begin of the url', function () {
     var proxy = urlUtils.getProxyUrl('/////example.com', 'localhost', '5555', 'sessionId', 'resourceType');
 
-    strictEqual(proxy, 'http://localhost:5555/sessionId!resourceType/https://example.com/');
+    strictEqual(proxy, 'http://localhost:5555/sessionId!resourceType/https://example.com');
 });
 
 test('convert destination host and protocol to lower case', function () {
@@ -173,6 +173,15 @@ test('convert destination host and protocol to lower case', function () {
     var proxy = urlUtils.getProxyUrl('hTtp://eXamPle.Com:123/paTh/Image?Name=Value&#Hash');
 
     ok(proxy.indexOf('http://example.com:123/paTh/Image?Name=Value&#Hash') !== -1);
+});
+
+test('unexpected trailing slash (GH-342)', function () {
+    var proxyUrl = urlUtils.getProxyUrl('http://google.com');
+
+    ok(!/\/$/.test(proxyUrl));
+
+    proxyUrl = urlUtils.getProxyUrl('http://google.com/');
+    ok(/\/$/.test(proxyUrl));
 });
 
 module('parse proxy url');

@@ -1,10 +1,10 @@
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
-import trim from '../../utils/string-trim';
 import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, isOpera } from './browser';
+import { trim } from '../../utils/string';
 
 var scrollbarSize = null;
 
