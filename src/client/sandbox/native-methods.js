@@ -79,23 +79,25 @@ class NativeMethods {
     refreshWindowMeths (win) {
         win = win || window;
         // Dom
-        this.eval                    = win.eval;
-        this.EventSource             = win.EventSource;
-        this.formSubmit              = win.HTMLFormElement.prototype.submit;
-        this.historyPushState        = win.history ? win.history.pushState : null;
-        this.historyReplaceState     = win.history ? win.history.replaceState : null;
-        this.Image                   = win.Image;
-        this.StorageEvent            = win.StorageEvent;
-        this.MutationObserver        = win.MutationObserver;
-        this.windowDispatchEvent     = win.dispatchEvent;
-        this.postMessage             = win.postMessage || Window.prototype.postMessage;
-        this.windowOpen              = win.open || Window.prototype.open;
-        this.Worker                  = win.Worker;
-        this.Blob                    = win.Blob;
-        this.setTimeout              = win.setTimeout || Window.prototype.setTimeout;
-        this.setInterval             = win.setInterval || Window.prototype.setInterval;
-        this.XMLHttpRequest          = win.XMLHttpRequest;
-        this.registerProtocolHandler = win.navigator.registerProtocolHandler;
+        this.eval                             = win.eval;
+        this.EventSource                      = win.EventSource;
+        this.formSubmit                       = win.HTMLFormElement.prototype.submit;
+        this.documentFragmentQuerySelector    = win.DocumentFragment.prototype.querySelector;
+        this.documentFragmentQuerySelectorAll = win.DocumentFragment.prototype.querySelectorAll;
+        this.historyPushState                 = win.history ? win.history.pushState : null;
+        this.historyReplaceState              = win.history ? win.history.replaceState : null;
+        this.Image                            = win.Image;
+        this.StorageEvent                     = win.StorageEvent;
+        this.MutationObserver                 = win.MutationObserver;
+        this.windowDispatchEvent              = win.dispatchEvent;
+        this.postMessage                      = win.postMessage || Window.prototype.postMessage;
+        this.windowOpen                       = win.open || Window.prototype.open;
+        this.Worker                           = win.Worker;
+        this.Blob                             = win.Blob;
+        this.setTimeout                       = win.setTimeout || Window.prototype.setTimeout;
+        this.setInterval                      = win.setInterval || Window.prototype.setInterval;
+        this.XMLHttpRequest                   = win.XMLHttpRequest;
+        this.registerProtocolHandler          = win.navigator.registerProtocolHandler;
 
         try {
             this.registerServiceWorker = win.navigator.serviceWorker.register;

@@ -3,7 +3,11 @@ import SandboxBase from '../base';
 import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
-import { parseDocumentCharset } from '../../utils/dom';
+import nativeMethods from '../native-methods';
+import domProcessor from '../../dom-processor';
+import { parseDocumentCharset, isDocumentFragment } from '../../utils/dom';
+
+const ATTRIBUTE_SELECTOR_REG_EX = /\[([\w-]+)(\^?=.+?)]/g;
 
 export default class NodeSandbox extends SandboxBase {
     constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
@@ -52,7 +56,9 @@ export default class NodeSandbox extends SandboxBase {
             // OPTIMIZATION: Use querySelectorAll to iterate through descendant nodes.
             this._overrideElement(el);
 
-            var children = el.querySelectorAll('*');
+            var nativeQuerySelectorAll = isDocumentFragment(el) ? nativeMethods.documentFragmentQuerySelectorAll
+                                                                : nativeMethods.elementQuerySelectorAll;
+            var children = nativeQuerySelectorAll.call(el, '*');
 
             for (var i = 0; i < children.length; i++)
                 this._overrideElement(children[i]);
@@ -100,5 +106,22 @@ export default class NodeSandbox extends SandboxBase {
         this.doc.attach(window, document);
         this.win.attach(window);
         this.element.attach(window);
+    }
+
+    static processSelector (selector) {
+        selector = String(selector);
+
+        if (!ATTRIBUTE_SELECTOR_REG_EX.test(selector))
+            return selector;
+
+        return selector.replace(ATTRIBUTE_SELECTOR_REG_EX, (str, name, operatorWithValue) => {
+            if (domProcessor.URL_ATTRS.indexOf(name) !== -1) {
+                name  = domProcessor.getStoredAttrName(name);
+
+                return '[' + name + operatorWithValue + ']';
+            }
+
+            return str;
+        });
     }
 }

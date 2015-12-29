@@ -494,6 +494,10 @@ export function isDocument (instance) {
            (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
 }
 
+export function isDocumentFragment (el) {
+    return el && el.nodeType === 11;
+}
+
 export function isBlob (instance) {
     return instance && typeof instance === 'object' && typeof instance.slice === 'function' &&
            instance.toString && instance.toString() === '[object Blob]';

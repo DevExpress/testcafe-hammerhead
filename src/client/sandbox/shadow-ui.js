@@ -1,5 +1,6 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
+import NodeSandbox from './node/index';
 import nativeMethods from './native-methods';
 import * as domUtils from '../utils/dom';
 import { EVENTS } from '../dom-processor';
@@ -111,12 +112,16 @@ export default class ShadowUI extends SandboxBase {
             return shadowUI._filterNodeList(nativeMethods.getElementsByTagName.apply(document, arguments));
         };
 
-        document.querySelector = function () {
-            return shadowUI._filterElement(nativeMethods.querySelector.apply(document, arguments));
+        document.querySelector = function (selectors) {
+            selectors = NodeSandbox.processSelector(selectors);
+
+            return shadowUI._filterElement(nativeMethods.querySelector.call(document, selectors));
         };
 
-        document.querySelectorAll = function () {
-            return shadowUI._filterNodeList(nativeMethods.querySelectorAll.apply(document, arguments));
+        document.querySelectorAll = function (selectors) {
+            selectors = NodeSandbox.processSelector(selectors);
+
+            return shadowUI._filterNodeList(nativeMethods.querySelectorAll.call(document, selectors));
         };
 
         // NOTE: T195358
@@ -248,12 +253,16 @@ export default class ShadowUI extends SandboxBase {
                 return shadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.apply(el, arguments));
             };
 
-            el.querySelector = function () {
-                return shadowUI._filterElement(nativeMethods.elementQuerySelector.apply(el, arguments));
+            el.querySelector = function (selectors) {
+                selectors = NodeSandbox.processSelector(selectors);
+
+                return shadowUI._filterElement(nativeMethods.elementQuerySelector.call(el, selectors));
             };
 
-            el.querySelectorAll = function () {
-                return shadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.apply(el, arguments));
+            el.querySelectorAll = function (selectors) {
+                selectors = NodeSandbox.processSelector(selectors);
+
+                return shadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.call(el, selectors));
             };
         }
     }

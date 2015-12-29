@@ -123,6 +123,141 @@ if (!browserUtils.isFirefox) {
     });
 }
 
+module('querySelector, querySelectorAll (GH-340)');
+
+test('quote types in attribute selectors', function () {
+    var link = document.createElement('a');
+
+    link.setAttribute('href', 'http://some.domain.com');
+    document.body.appendChild(link);
+
+    ok(document.querySelector('[href="http://some.domain.com"]'));
+    ok(document.querySelector("[href='http://some.domain.com']"));
+
+    link.parentNode.removeChild(link);
+});
+
+test('non-processed attributes', function () {
+    var link = document.createElement('a');
+
+    link.setAttribute('data-info', 'external link');
+    link.setAttribute('hreflang', 'ru-RU');
+    document.body.appendChild(link);
+
+    ok(document.querySelector('[data-info~=external]'));
+    ok(document.querySelector('[hreflang|=ru]'));
+
+    link.parentNode.removeChild(link);
+});
+
+//http://www.w3.org/TR/css3-selectors/#attribute-selectors
+test('attrubute types', function () {
+    var link = document.createElement('a');
+    var div  = document.createElement('div');
+
+    link.setAttribute('href', 'http://some.domain.com');
+    div.className = 'container';
+    div.appendChild(link);
+
+    document.body.appendChild(div);
+
+    // [attribute]
+    ok(div.querySelector('[href]'));
+
+    // [attribute=value]
+    ok(document.querySelector('[href="http://some.domain.com"]'));
+
+    // [attribute~=value] - whitespace-separated values
+    // Proxied attributes don't contain whitespace-separated values
+
+    // [attribute|=value] - equal or starts with for value that ends with '-'
+    // This is primarily intended to allow language subcode matches
+
+    // [attribute^=value] - starts with
+    ok(document.querySelector('[href^="http://some"]'));
+
+    // [attribute$=value] - ends with
+    ok(document.querySelector('[href$="domain.com"]'));
+
+    // [attribute*=value] - contains value
+    ok(document.querySelector('[href*=domain]'));
+    link.parentNode.removeChild(link);
+});
+
+test('document, documentFragment, element', function () {
+    var link         = document.createElement('a');
+    var div          = document.createElement('div');
+    var fragment     = document.createDocumentFragment();
+    var fragmentLink = document.createElement('a');
+
+    link.setAttribute('href', 'http://some.domain.com');
+    fragmentLink.setAttribute('href', 'http://some.domain.com');
+    div.appendChild(link);
+    document.body.appendChild(div);
+    fragment.appendChild(fragmentLink);
+
+    ok(document.querySelector('a[href="http://some.domain.com"]'));
+    strictEqual(document.querySelectorAll('a[href="http://some.domain.com"]').length, 1);
+    ok(div.querySelector('[href="http://some.domain.com"]'));
+    strictEqual(div.querySelectorAll('[href="http://some.domain.com"]').length, 1);
+    ok(fragment.querySelector('a[href="http://some.domain.com"]'));
+    strictEqual(fragment.querySelectorAll('a[href="http://some.domain.com"]').length, 1);
+
+    div.parentNode.removeChild(div);
+});
+
+test('non-added to DOM', function () {
+    var link = document.createElement('a');
+    var div  = document.createElement('div');
+
+    link.setAttribute('href', 'http://some.domain.com');
+    div.appendChild(link);
+
+    ok(div.querySelector('[href="http://some.domain.com"]'));
+});
+
+test('javascript protocol', function () {
+    var link = document.createElement('a');
+
+    link.setAttribute('href', 'javascript:performCommand(cmd);');
+    document.body.appendChild(link);
+
+    ok(document.querySelector('[href="javascript:performCommand(cmd);"]'));
+
+    link.parentNode.removeChild(link);
+});
+
+test('complex selector', function () {
+    var link     = document.createElement('a');
+    var divOuter = document.createElement('div');
+    var divInner = document.createElement('div');
+
+    divOuter.setAttribute('data-id', '123456');
+    divInner.className = 'inner';
+    link.setAttribute('href', 'http://some.domain.com');
+    divOuter.appendChild(divInner);
+    divInner.appendChild(link);
+    document.body.appendChild(divOuter);
+
+    ok(document.querySelector('div[data-id="123456"] div.inner a[href="http://some.domain.com"]'));
+
+    divOuter.parentNode.removeChild(divOuter);
+});
+
+// http://w3c-test.org/dom/nodes/ParentNode-querySelector-All.html
+test('special selectors', function () {
+    var div = document.createElement('div');
+
+    div.appendChild(document.createElement('null'));
+    div.appendChild(document.createElement('undefined'));
+
+    ok(div.querySelector(null));
+
+    /*eslint-disable no-undefined*/
+    ok(div.querySelectorAll(undefined));
+    /*eslint-enable no-undefined*/
+});
+
 module('resgression');
 
 asyncTest('document.write for several tags in iframe (T215136)', function () {

@@ -1,4 +1,5 @@
 import SandboxBase from '../base';
+import NodeSandbox from '../node/index';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
 import { processScript } from '../../../processing/script';
@@ -80,10 +81,8 @@ export default class ElementSandbox extends SandboxBase {
                     /*eslint-enable no-script-url */
                 }
 
-                if (processedValue !== value) {
-                    setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                    value = processedValue;
-                }
+                setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
+                value = processedValue;
             }
             else
                 setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
@@ -294,6 +293,24 @@ export default class ElementSandbox extends SandboxBase {
 
             removeAttributeNS () {
                 return sandbox._overridedRemoveAttributeCore(this, true, arguments);
+            },
+
+            querySelector (selectors) {
+                selectors = NodeSandbox.processSelector(selectors);
+
+                var nativeQuerySelector = domUtils.isDocumentFragment(this) ? nativeMethods.documentFragmentQuerySelector
+                                                                            : nativeMethods.elementQuerySelector;
+
+                return nativeQuerySelector.call(this, selectors);
+            },
+
+            querySelectorAll (selectors) {
+                selectors = NodeSandbox.processSelector(selectors);
+
+                var nativeQuerySelectorAll = domUtils.isDocumentFragment(this) ? nativeMethods.documentFragmentQuerySelectorAll
+                                                                               : nativeMethods.elementQuerySelectorAll;
+
+                return nativeQuerySelectorAll.call(this, selectors);
             }
         };
     }
@@ -380,11 +397,15 @@ export default class ElementSandbox extends SandboxBase {
         window.Element.prototype.removeAttribute           = this.overridedMethods.removeAttribute;
         window.Element.prototype.removeAttributeNS         = this.overridedMethods.removeAttributeNS;
         window.Element.prototype.cloneNode                 = this.overridedMethods.cloneNode;
+        window.Element.prototype.querySelector             = this.overridedMethods.querySelector;
+        window.Element.prototype.querySelectorAll          = this.overridedMethods.querySelectorAll;
         window.Node.prototype.cloneNode                    = this.overridedMethods.cloneNode;
         window.Node.prototype.appendChild                  = this.overridedMethods.appendChild;
         window.Node.prototype.removeChild                  = this.overridedMethods.removeChild;
         window.Node.prototype.insertBefore                 = this.overridedMethods.insertBefore;
         window.Node.prototype.replaceChild                 = this.overridedMethods.replaceChild;
+        window.DocumentFragment.prototype.querySelector    = this.overridedMethods.querySelector;
+        window.DocumentFragment.prototype.querySelectorAll = this.overridedMethods.querySelectorAll;
         window.HTMLTableElement.prototype.insertRow        = this.overridedMethods.insertRow;
         window.HTMLTableSectionElement.prototype.insertRow = this.overridedMethods.insertRow;
         window.HTMLTableRowElement.prototype.insertCell    = this.overridedMethods.insertCell;
@@ -392,7 +413,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     overrideElement (el) {
-        var isDocFragment = el.nodeType === 11;
+        var isDocFragment = domUtils.isDocumentFragment(el);
         var elTagName     = el.tagName && el.tagName.toLowerCase();
         var isForm        = elTagName === 'form';
         var isIframe      = elTagName === 'iframe';
