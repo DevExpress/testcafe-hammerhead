@@ -11,6 +11,7 @@ var Proxy                       = require('../../lib/proxy');
 var Session                     = require('../../lib/session');
 var DestinationRequest          = require('../../lib/request-pipeline/destination-request');
 var requestAgent                = require('../../lib/request-pipeline/destination-request/agent');
+var scriptHeader                = require('../../lib/processing/script/header').HEADER;
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
@@ -685,6 +686,23 @@ describe('Proxy', function () {
                 compareCode(body, expected);
                 expect(res.statusCode).eql(200);
                 expect(res.headers['content-length']).eql(body.length.toString());
+
+                done();
+            });
+        });
+
+        it('Should not process script with the html "accept" header as a page', function (done) {
+            var url     = proxy.openSession('http://127.0.0.1:2000/script', session);
+            var options = {
+                url:     url.replace(/^(.*?\/\/.*?\/.*?)(\/.*)$/, '$1!script$2'),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                expect(res.statusCode).eql(200);
+                expect(body).to.contain(scriptHeader);
 
                 done();
             });

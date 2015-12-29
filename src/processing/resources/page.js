@@ -124,7 +124,9 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     shouldProcessResource (ctx) {
-        return ctx.isPage || ctx.contentInfo.isIframeWithImageSrc;
+        // NOTE: In some cases, Firefox sends the default accept header for the script.
+        // We should not try to process it as a page in this case.
+        return (ctx.isPage || ctx.contentInfo.isIframeWithImageSrc) && !ctx.contentInfo.isScript;
     }
 
     processResource (html, ctx, charset, urlReplacer, processingOpts) {
