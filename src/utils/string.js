@@ -7,6 +7,10 @@
 // in our scripts, we expect it to have the default behavior. Therefore, in order to protect
 // ourselves from spoofing, we must use our own implementation.
 
-export default function trim (str) {
+export function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
+}
+
+export function endsWith (str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }

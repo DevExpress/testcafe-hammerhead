@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import trim from './string-trim';
+import { trim } from './string';
 
 //Const
 const PROTOCOL_RE        = /(^(\w+?\:))/;
