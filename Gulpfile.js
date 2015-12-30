@@ -140,7 +140,7 @@ gulp.task('client-scripts-bundle', ['clean'], function () {
                 var transformed = babel.transform(code, {
                     sourceMap: false,
                     filename:  filename,
-                    blacklist: ['runtime']
+                    blacklist: ['runtime', 'useStrict']
                 });
 
                 return { code: transformed.code };
