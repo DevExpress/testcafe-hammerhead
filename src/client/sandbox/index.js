@@ -15,14 +15,15 @@ import TimersSandbox from './timers';
 import UnloadSandbox from './event/unload';
 import UploadSandbox from './upload';
 import XhrSandbox from './xhr';
+import StorageSandbox from './storages';
 import { isIE, isWebKit } from '../utils/browser';
-import { addSandboxToStorage, getSandboxFromStorage } from './storage';
+import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
         super();
 
-        addSandboxToStorage(window, this);
+        createSandboxBackup(window, this);
 
         var listeners             = new Listeners();
         var nodeMutation          = new NodeMutation();
@@ -33,13 +34,14 @@ export default class Sandbox extends SandboxBase {
         var timersSandbox         = new TimersSandbox();
 
         // API
+        this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
         this.iframe              = new IframeSandbox(nodeMutation);
         this.xhr                 = new XhrSandbox();
         this.cookie              = new CookieSandbox();
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe);
         this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
-        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI);
+        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
     }
 
@@ -85,7 +87,7 @@ export default class Sandbox extends SandboxBase {
     onIframeDocumentRecreated (iframe) {
         if (iframe) {
             // NOTE: Try to find an existing iframe sandbox.
-            var sandbox = getSandboxFromStorage(iframe.contentWindow);
+            var sandbox = getSandboxBackup(iframe.contentWindow);
 
             if (sandbox)
             // NOTE: Inform the sandbox so that it restores communication with the recreated document.
@@ -135,6 +137,7 @@ export default class Sandbox extends SandboxBase {
 
         this.iframe.attach(window);
         this.xhr.attach(window);
+        this.storageSandbox.attach(window);
         this.codeInstrumentation.attach(window);
         this.shadowUI.attach(window);
         this.event.attach(window);

@@ -111,18 +111,26 @@ if (!browserUtils.isIE9) {
         var iframe = document.createElement('iframe');
 
         iframe.id = 'test';
+
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
+                // NOTE: iframe without src
+                iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
+
                 var script = document.createElement('script');
 
                 script.innerHTML = '(' + xhrTestFunc.toString() + ')()';
+
                 iframe.contentDocument.body.appendChild(script);
+
                 strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
+
                 document.body.removeChild(iframe);
 
                 expect(2);
                 start();
             });
+
         document.body.appendChild(iframe);
     });
 }

@@ -38,6 +38,27 @@ export default class EventSimulator {
         this.savedNativeClickCount = 0;
     }
 
+    static _dispatchStorageEvent (el, args) {
+        var ev = document.createEvent('StorageEvent');
+
+        ev.initStorageEvent('storage', args.canBubble, args.cancelable, args.key, args.oldValue,
+            args.newValue, args.url, null);
+
+        Object.defineProperty(ev, 'storageArea', {
+            get:          () => args.storageArea,
+            configurable: true
+        });
+
+        if (args.key === null) {
+            Object.defineProperty(ev, 'key', {
+                get:          () => null,
+                configurable: true
+            });
+        }
+
+        return el.dispatchEvent(ev);
+    }
+
     static _dispatchTouchEvent (el, args) {
         var ev = document.createEvent('TouchEvent');
 
@@ -83,6 +104,15 @@ export default class EventSimulator {
             shiftKey:   opts.shiftKey || false,
             metaKey:    opts.metaKey || false
         };
+    }
+
+    static _getStorageEventArgs (options) {
+        var opts = options || {};
+
+        return extend(opts, {
+            canBubble:  opts.canBubble !== false,
+            cancelable: opts.cancelable !== false
+        });
     }
 
     static _getMouseEventArgs (type, options) {
@@ -134,7 +164,13 @@ export default class EventSimulator {
         if (!opts.relatedTarget)
             opts.relatedTarget = document.body;
 
-        if (MOUSE_EVENT_NAME_RE.test(event)) {
+        if (event === 'storage') {
+            opts     = extend(opts, userOptions);
+            args     = EventSimulator._getStorageEventArgs(opts);
+            dispatch = EventSimulator._dispatchStorageEvent;
+        }
+
+        else if (MOUSE_EVENT_NAME_RE.test(event)) {
             if (userOptions && typeof userOptions.button !== 'undefined')
                 opts = extend(opts, { button: userOptions.button });
 
@@ -608,6 +644,10 @@ export default class EventSimulator {
 
     focus (el) {
         return this._dispatchEvent(el, 'focus', false, this.DISPATCHED_EVENT_FLAG);
+    }
+
+    storage (window, options) {
+        return this._simulateEvent(window, 'storage', options);
     }
 
     change (el) {

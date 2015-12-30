@@ -121,7 +121,7 @@ test('document.URL', function () {
 });
 
 test('document.referrer', function () {
-    var url          = 'http://google.com/index.html';
+    var url          = 'http://some.domain.com/index.html';
     var documentMock = {
         referrer: urlUtils.getProxyUrl(url),
         toString: function () {
@@ -132,19 +132,32 @@ test('document.referrer', function () {
     strictEqual(getProperty(documentMock, 'referrer'), url);
 });
 
+test('document.documentURI', function () {
+    var url          = 'http://some.domain.com/index.html';
+    var documentMock = {
+        referrer:    '',
+        documentURI: urlUtils.getProxyUrl(url),
+        toString:    function () {
+            return '[object HTMLDocument]';
+        }
+    };
+
+    strictEqual(getProperty(documentMock, 'documentURI'), url);
+});
+
 if (browserUtils.isWebKit) {
     test('url in stylesheet properties', function () {
-        var el                 = document.createElement('div');
-        var url                = 'http://google.com/image.png';
-        var proxyUrl           = urlUtils.getProxyUrl(url);
-        var quote              = (function () {
+        var el          = document.createElement('div');
+        var url         = 'http://some.domain.com/image.png';
+        var proxyUrl    = urlUtils.getProxyUrl(url);
+        var quote       = (function () {
             var div = document.createElement('div');
 
             div.style.backgroundImage = 'url(http://example.com/img.jpg)';
 
             return div.style.backgroundImage.match(/url\((.*)http:\/\/example.com\/img.jpg/)[1];
         })();
-        var getExpected        = function (value) {
+        var getExpected = function (value) {
             return 'url(' + quote + value + quote + ')';
         };
 

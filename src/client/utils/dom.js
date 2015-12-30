@@ -237,12 +237,24 @@ export function getSelectVisibleChildren (select) {
 }
 
 export function getTopSameDomainWindow (window) {
-    var frameElement = getFrameElement(window);
+    var result        = window;
+    var currentWindow = window.parent;
 
-    if (window !== window.top && frameElement && isIframeWithoutSrc(frameElement))
-        return getTopSameDomainWindow(window.parent);
+    if (result === window.top)
+        return result;
 
-    return window;
+    while (currentWindow) {
+        if (!isCrossDomainWindows(window, currentWindow)) {
+            var frameElement = getFrameElement(currentWindow);
+
+            if (!frameElement || !isIframeWithoutSrc(frameElement))
+                result = currentWindow;
+        }
+
+        currentWindow = currentWindow !== window.top ? currentWindow.parent : null;
+    }
+
+    return result;
 }
 
 export function find (parent, selector, handler) {
