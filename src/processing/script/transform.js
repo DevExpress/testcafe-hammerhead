@@ -5,6 +5,10 @@
 
 import transformers from './transformers';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+var objectToString = Object.prototype.toString;
+
 function replaceNode (node, newNode, parent, key) {
     if (key === 'arguments' || key === 'elements' || key === 'expressions') {
         var idx = parent[key].indexOf(node);
@@ -23,7 +27,7 @@ function transformChildNodes (node) {
         if (node.hasOwnProperty(key)) {
             var childNode = node[key];
 
-            if (Object.prototype.toString.call(childNode) === '[object Array]') {
+            if (objectToString.call(childNode) === '[object Array]') {
                 for (var j = 0; j < childNode.length; j++)
                     changed = transform(childNode[j], node, key) || changed;
             }

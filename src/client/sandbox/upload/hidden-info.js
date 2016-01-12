@@ -1,5 +1,9 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+var arraySlice = Array.prototype.slice;
+
 function createInput (form) {
     var hiddenInput = document.createElement('input');
 
@@ -31,13 +35,17 @@ export function addInputInfo (input, fileList, value) {
     if (formInfo) {
         var files = [];
 
-        Array.prototype.slice.call(fileList).forEach(file => {
+        fileList = arraySlice.call(fileList);
+
+        for (var i = 0, len = fileList.length; i < len; i++) {
+            var file = fileList[i];
+
             files.push({
                 name: file.name,
                 type: file.type,
                 data: file.base64
             });
-        });
+        }
 
         var inputInfoIndex = indexOf(formInfo, input);
         var inputInfo      = {

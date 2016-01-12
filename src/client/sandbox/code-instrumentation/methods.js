@@ -7,6 +7,10 @@ import { shouldInstrumentMethod } from '../../../processing/script/instrumented'
 import { isWindow, isDocument, isDomElement } from '../../utils/dom';
 import { isIE } from '../../utils/browser';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+var arraySlice = Array.prototype.slice;
+
 export default class MethodCallInstrumentation extends SandboxBase {
     constructor (messageSandbox) {
         super();
@@ -68,7 +72,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
             var lastArg = args[args.length - 1];
 
             if (lastArg === INTERNAL_LITERAL.documentWriteBegin || lastArg === INTERNAL_LITERAL.documentWriteEnd) {
-                var result = Array.prototype.slice.call(args);
+                var result = arraySlice.call(args);
 
                 result.pop();
 

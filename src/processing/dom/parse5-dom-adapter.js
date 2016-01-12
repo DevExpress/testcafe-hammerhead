@@ -1,3 +1,4 @@
+/* eslint hammerhead/proto-methods: 0 */
 import BaseDomAdapter from './base-dom-adapter';
 import events from 'events';
 import * as urlUtils from '../../utils/url';

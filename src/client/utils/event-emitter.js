@@ -1,3 +1,7 @@
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+var arraySlice = Array.prototype.slice;
+
 export default class EventEmitter {
     constructor () {
         this.eventsListeners = [];
@@ -10,7 +14,7 @@ export default class EventEmitter {
             for (var i = 0; i < listeners.length; i++) {
                 try {
                     if (listeners[i])
-                        listeners[i].apply(this, Array.prototype.slice.apply(arguments, [1]));
+                        listeners[i].apply(this, arraySlice.apply(arguments, [1]));
                 }
                 catch (e) {
                     // HACK: For IE: after calling document.write, the IFrameSandbox event handler throws the
@@ -28,8 +32,16 @@ export default class EventEmitter {
     off (evt, listener) {
         var listeners = this.eventsListeners[evt];
 
-        if (listeners)
-            this.eventsListeners[evt] = listeners.filter(item => item !== listener);
+        if (listeners) {
+            var filtered = [];
+
+            for (var i = 0, len = listeners.length; i < len; i++) {
+                if (listeners[i] !== listener)
+                    filtered.push(listeners[i]);
+            }
+
+            this.eventsListeners[evt] = filtered;
+        }
     }
 
     on (evt, listener) {

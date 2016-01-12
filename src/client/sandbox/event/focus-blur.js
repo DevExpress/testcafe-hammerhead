@@ -141,9 +141,8 @@ export default class FocusBlurSandbox extends SandboxBase {
                 FocusBlurSandbox._restoreElementScroll(this.window, windowScroll);
 
             if (browserUtils.isIE && nonScrollableParents.length) {
-                nonScrollableParents.forEach((parent, index) => {
-                    FocusBlurSandbox._restoreElementScroll(parent, nonScrollableParentsScrollValues[index]);
-                });
+                for (var j = 0, len = nonScrollableParents.length; j < len; j++)
+                    FocusBlurSandbox._restoreElementScroll(nonScrollableParents[j], nonScrollableParentsScrollValues[j]);
             }
 
             var curDocument   = domUtils.findDocument(el);

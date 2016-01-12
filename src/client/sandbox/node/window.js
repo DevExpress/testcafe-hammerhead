@@ -10,6 +10,10 @@ import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+var arraySlice = Array.prototype.slice;
+
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox) {
         super();
@@ -66,7 +70,7 @@ export default class WindowSandbox extends SandboxBase {
             var image = arguments[0];
 
             if (isImgElement(image)) {
-                var changedArgs = Array.prototype.slice.call(arguments, 0);
+                var changedArgs = arraySlice.call(arguments);
                 var src         = image.src;
 
                 if (destLocation.sameOriginCheck(location.toString(), src)) {
@@ -203,7 +207,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.navigator.registerProtocolHandler) {
             window.navigator.registerProtocolHandler = function () {
-                var args         = Array.prototype.slice.call(arguments);
+                var args         = arraySlice.call(arguments);
                 var urlIndex     = 1;
                 var destHostname = destLocation.getParsed().hostname;
                 var isDestUrl    = isFirefox ? isSubDomain(destHostname, parseUrl(args[urlIndex]).hostname) :

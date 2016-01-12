@@ -1,4 +1,7 @@
 {
+  "rules": {
+    "hammerhead/proto-methods": 2
+  },
   "globals": {
     "isIframeWithoutSrc": true,
     "initHammerheadClient": true

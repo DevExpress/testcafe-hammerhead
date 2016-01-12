@@ -6,6 +6,10 @@ import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, isOpera } from './browser';
 import { trim } from '../../utils/string';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+var arraySlice = Array.prototype.slice;
+
 var scrollbarSize = null;
 
 function getFocusableSelector () {
@@ -227,11 +231,19 @@ export function getSelectParent (child) {
 export function getSelectVisibleChildren (select) {
     var children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
 
-    children = Array.prototype.slice.call(children);
+    children = arraySlice.call(children);
 
     // NOTE: Firefox does not display groups without a label and with an empty label.
-    if (isFirefox)
-        children = children.filter(item => item.tagName.toLowerCase() !== 'optgroup' || !!item.label);
+    if (isFirefox) {
+        var filtered = [];
+
+        for (var i = 0, len = children.length; i < len; i++) {
+            if (children[i].tagName.toLowerCase() !== 'optgroup' || !!children[i].label)
+                filtered.push(children[i]);
+        }
+
+        children = filtered;
+    }
 
     return children;
 }
@@ -569,7 +581,8 @@ export function addClass (el, className) {
     if (el && el.classList) {
         var classNames = className.split(/\s+/);
 
-        classNames.forEach(item => el.classList.add(item));
+        for (var i = 0, len = classNames.length; i < len; i++)
+            el.classList.add(classNames[i]);
     }
     else
         addClassFallback(el, className);
@@ -583,7 +596,8 @@ export function removeClass (el, className) {
     if (el.classList) {
         var classNames = className.split(/\s+/);
 
-        classNames.forEach(item => el.classList.remove(item));
+        for (var i = 0, len = classNames.length; i < len; i++)
+            el.classList.remove(classNames[i]);
     }
     else
         removeClassFallback(el, className);

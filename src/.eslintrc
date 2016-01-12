@@ -5,6 +5,7 @@
     "prefer-arrow-callback": 2
   },
   "plugins": [
-    "babel"
+    "babel",
+    "hammerhead"
   ]
 }

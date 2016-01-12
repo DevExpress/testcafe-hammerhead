@@ -35,6 +35,7 @@
     "chai": "^2.3.0",
     "del": "^0.1.2",
     "ejs": "0.8.4",
+    "eslint-plugin-hammerhead": "0.0.3",
     "eslint-plugin-babel": "2.1.1",
     "express": "3.2.5",
     "gulp": "^3.8.7",

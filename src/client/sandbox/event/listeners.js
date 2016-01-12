@@ -67,6 +67,15 @@ export default class Listeners extends EventEmitter {
         };
     }
 
+    static _isDifferentHandler (outerHandlers, listener, useCapture) {
+        for (var i = 0, len = outerHandlers.length; i < len; i++) {
+            if (outerHandlers[i].fn === listener && outerHandlers[i].useCapture === useCapture)
+                return false;
+        }
+
+        return true;
+    }
+
     _createEventHandler () {
         var listeners = this;
 
@@ -131,9 +140,7 @@ export default class Listeners extends EventEmitter {
                     return nativeAddEventListener.call(this, type, listener, useCapture);
 
                 // NOTE: T233158
-                var isDifferentHandler = eventListeningInfo.outerHandlers.every(value => value.fn !== listener ||
-                                                                                         value.useCapture !==
-                                                                                         useCapture);
+                var isDifferentHandler = Listeners._isDifferentHandler(eventListeningInfo.outerHandlers, listener, useCapture);
 
                 if (!isDifferentHandler)
                     return null;
@@ -178,9 +185,7 @@ export default class Listeners extends EventEmitter {
                     return nativeAddEventListener.call(this, type, listener, useCapture);
 
                 // NOTE: T233158
-                var isDifferentHandler = eventListeningInfo.outerHandlers.every(value => value.fn !== listener ||
-                                                                                         value.useCapture !==
-                                                                                         useCapture);
+                var isDifferentHandler = Listeners._isDifferentHandler(eventListeningInfo.outerHandlers, listener, useCapture);
 
                 if (!isDifferentHandler)
                     return null;
@@ -240,8 +245,12 @@ export default class Listeners extends EventEmitter {
         var nativeAddEventListener = Listeners._getNativeAddEventListener(el);
         var elementCtx             = this.listeningCtx.getElementCtx(el);
 
-        if (elementCtx)
-            Object.keys(elementCtx).forEach(event => nativeAddEventListener.call(el, event, this._createEventHandler(), true));
+        if (elementCtx) {
+            var eventNames = Object.keys(elementCtx);
+
+            for (var i = 0, len = eventNames.length; i < len; i++)
+                nativeAddEventListener.call(el, eventNames[i], this._createEventHandler(), true);
+        }
     }
 
     cancelElementListening (el) {
