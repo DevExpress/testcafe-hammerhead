@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { trim } from './string';
+import * as stringUtils from './string';
 
 //Const
 const PROTOCOL_RE        = /(^(\w+?\:))/;
@@ -146,7 +146,7 @@ export function parseUrl (url) {
     if (!url)
         return parsed;
 
-    url = trim(url);
+    url = stringUtils.trim(url);
 
     // Protocol
     var hasImplicitProtocol = false;
@@ -240,4 +240,13 @@ export function prepareUrl (url) {
     // NOTE: Remove unnecessary slashes from the beginning of the url.
     // For example, the "//////google.com" url is equal to "//google.com".
     return url.replace(/^\/+(\/\/.*$)/, '$1');
+}
+
+export function ensureTrailingSlash (srcUrl, processedUrl) {
+    var hasTrailingSlash = stringUtils.endsWith(srcUrl, '/');
+
+    if (!hasTrailingSlash)
+        processedUrl = processedUrl.replace(/\/$/, '');
+
+    return processedUrl;
 }
