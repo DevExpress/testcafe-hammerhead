@@ -397,3 +397,31 @@ if (!browserUtils.isFirefox) {
         });
     });
 }
+
+asyncTest('hammerhead functions should not be in strict mode (GH-344)', function () {
+    var button = $('<button>').appendTo('body');
+
+    button.click(function () {
+        var exceptionRaised = false;
+
+        try {
+            /*eslint-disable no-caller*/
+
+            var caller = arguments.callee.caller;
+
+            /*eslint-enable no-caller*/
+
+            while (caller && caller.arguments && caller.arguments.callee)
+                caller = caller.arguments.callee.caller;
+        }
+        catch (e) {
+            exceptionRaised = true;
+        }
+
+        ok(!exceptionRaised, 'should not throw an exception');
+        button.remove();
+        start();
+    });
+
+    eventSimulator.click(button[0]);
+});
