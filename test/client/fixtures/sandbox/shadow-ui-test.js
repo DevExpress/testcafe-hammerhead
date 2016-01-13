@@ -549,6 +549,17 @@ asyncTest("do nothing if ShadowUIStylesheet doesn't exist", function () {
 
 module('regression');
 
+test('SVG elements\' className is of the SVGAnimatedString type instead of string (GH-354)', function () {
+    document.body.innerHTML = '<svg></svg>' + document.body.innerHTML;
+
+    var svg = document.body.childNodes[0];
+
+    ok(typeof svg.className !== 'string');
+    strictEqual(eval(processScript('document.body.children.length')), document.body.children.length - 1);
+
+    document.body.removeChild(svg);
+});
+
 asyncTest('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
     var iframe = document.createElement('iframe');
 

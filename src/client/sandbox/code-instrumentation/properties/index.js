@@ -262,9 +262,17 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     var elementCount = 0;
 
                     for (var i = 0; i < collection.length; i++) {
-                        if (collection[i].className &&
-                            collection[i].className.indexOf(SHADOW_UI_CLASSNAME.postfix) !== -1)
-                            elementCount++;
+                        var className = collection[i].className;
+
+                        if (className) {
+                            // NOTE: SVG elements' className is of the SVGAnimatedString type instead
+                            // of string (GH-354).
+                            if (typeof className !== 'string')
+                                className = className.baseVal || '';
+
+                            if (className.indexOf(SHADOW_UI_CLASSNAME.postfix) !== -1)
+                                elementCount++;
+                        }
                     }
 
                     if (elementCount !== 0)
