@@ -5,6 +5,7 @@ import scriptProcessor from './script';
 import stylesheetProcessor from './stylesheet';
 import * as urlUtil from '../../utils/url';
 import { encodeContent, decodeContent } from '../encoding';
+import { ensureTrailingSlash } from '../../utils/url';
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
@@ -14,6 +15,8 @@ function getResourceUrlReplacer (ctx) {
 
         var resolvedUrl = url.resolve(baseUrl || ctx.dest.url, resourceUrl);
         var charsetStr  = charsetAttrValue || resourceType === urlUtil.SCRIPT && ctx.contentInfo.charset.get();
+
+        resolvedUrl = ensureTrailingSlash(resourceUrl, resolvedUrl);
 
         try {
             return ctx.toProxyUrl(resolvedUrl, false, resourceType, charsetStr);
