@@ -396,3 +396,21 @@ asyncTest('input\'s onchange event must not be raise after press Tab key (T22137
             start();
         });
 });
+
+test('restoring the removed RegExp.prototype.test function should not throw an error (GH-331)', function () {
+    var savedTest = RegExp.prototype.test;
+    var withError = false;
+
+    try {
+        delete RegExp.prototype.test;
+        setProperty(RegExp.prototype, 'test', savedTest);
+    }
+    catch (e) {
+        withError = true;
+        /* eslint-disable no-extend-native */
+        RegExp.prototype.test = savedTest;
+        /* eslint-enable no-extend-native */
+    }
+
+    ok(!withError);
+});

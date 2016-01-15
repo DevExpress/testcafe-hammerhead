@@ -65,6 +65,14 @@ export const PROPERTIES = [
 const INSTRUMENTED_METHOD_RE   = new RegExp(`^(${METHODS.join('|')})$`);
 const INSTRUMENTED_PROPERTY_RE = new RegExp(`^(${PROPERTIES.join('|')})$`);
 
+// NOTE: The obfuscated version of the mootools framework contains code
+// that removes the RegExp.prototype.test method and restores it later.
+//    delete z[A]; // z = RegExp.prototype, A = "test"
+//    __set$(z, A, x.protect()); // x.protect - returns the removed method
+// The __set$ function calls the test method of the regular expression. (GH-331)
+var reTest = RegExp.prototype.test;
+var test   = (regexp, str) => regexp.test ? regexp.test(str) : reTest.call(regexp, str);
+
 // NOTE: we can't use the map approach here, because
 // cases like `WRAPPABLE_METHOD['toString']` will fail.
 // We could use the hasOwnProperty test, but it is
@@ -74,5 +82,5 @@ export function shouldInstrumentMethod (name) {
 }
 
 export function shouldInstrumentProperty (name) {
-    return INSTRUMENTED_PROPERTY_RE.test(name);
+    return test(INSTRUMENTED_PROPERTY_RE, name);
 }
