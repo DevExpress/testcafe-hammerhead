@@ -222,4 +222,3 @@ test('get script body (T296958) (GH-183)', function () {
     if (typeof script.innerText === 'string')
         strictEqual(eval(processScript('script.innerText', true, false)).replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
 });
-

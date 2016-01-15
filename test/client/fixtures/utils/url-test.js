@@ -176,11 +176,11 @@ test('convert destination host and protocol to lower case', function () {
 });
 
 test('unexpected trailing slash (GH-342)', function () {
-    var proxyUrl = urlUtils.getProxyUrl('http://google.com');
+    var proxyUrl = urlUtils.getProxyUrl('http://example.com');
 
     ok(!/\/$/.test(proxyUrl));
 
-    proxyUrl = urlUtils.getProxyUrl('http://google.com/');
+    proxyUrl = urlUtils.getProxyUrl('http://example.com/');
     ok(/\/$/.test(proxyUrl));
 });
 
