@@ -220,9 +220,12 @@ class Transport extends EventEmitter {
         var storedMessages = Transport._getStoredMessages();
 
         if (storedMessages.length) {
+            var tasks  = [];
+
             window.localStorage.removeItem(settings.get().sessionId);
 
-            var tasks = storedMessages.map(item => this.queuedAsyncServiceMsg(item));
+            for (var i = 0, len = storedMessages.length; i < len; i++)
+                tasks.push(this.queuedAsyncServiceMsg(storedMessages[i]));
 
             return Promise.all(tasks);
         }

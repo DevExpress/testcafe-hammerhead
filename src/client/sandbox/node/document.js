@@ -6,6 +6,10 @@ import * as htmlUtils from '../../utils/html';
 import { isFirefox, isIE, isIE9, isIE10 } from '../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement } from '../../utils/dom';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+var arraySlice = Array.prototype.slice;
+
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox) {
         super();
@@ -38,7 +42,7 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _overridedDocumentWrite (args, ln) {
-        args = Array.prototype.slice.call(args);
+        args = arraySlice.call(args);
 
         var separator = ln ? '\n' : '';
         var lastArg   = args.length ? args[args.length - 1] : '';

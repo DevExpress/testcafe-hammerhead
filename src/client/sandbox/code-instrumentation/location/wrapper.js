@@ -8,6 +8,7 @@ export default class LocationWrapper {
         var resourceType   = window !== window.top ? IFRAME : null;
         var getHref        = () => window.location.href === 'about:blank' ? 'about:blank' : getDestLocation();
         var getProxiedHref = href => getProxyUrl(href, null, null, null, resourceType);
+        var urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 
         Object.defineProperty(this, 'href', createPropertyDesc({
             get: getHref,
@@ -37,20 +38,23 @@ export default class LocationWrapper {
             set: hash => window.location.hash = hash
         }));
 
-        ['port', 'host', 'hostname', 'pathname', 'protocol'].forEach(prop => {
-            Object.defineProperty(this, prop, createPropertyDesc({
-                get: () => getParsedDestLocation()[prop],
-                set: value => {
-                    window.location = changeDestUrlPart(window.location.toString(), prop, value, resourceType);
-
-                    return value;
-                }
-            }));
-        });
+        for (var i = 0, len = urlProps.length; i < len; i++)
+            LocationWrapper._defineUrlProp(this, window, urlProps[i], resourceType);
 
         this.assign   = url => window.location.assign(getProxiedHref(url));
         this.replace  = url => window.location.replace(getProxiedHref(url));
         this.reload   = forceget => window.location.reload(forceget);
         this.toString = () => getHref();
+    }
+
+    static _defineUrlProp (wrapper, window, prop, resourceType) {
+        Object.defineProperty(wrapper, prop, createPropertyDesc({
+            get: () => getParsedDestLocation()[prop],
+            set: value => {
+                window.location = changeDestUrlPart(window.location.toString(), prop, value, resourceType);
+
+                return value;
+            }
+        }));
     }
 }

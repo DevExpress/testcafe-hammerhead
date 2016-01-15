@@ -1,3 +1,7 @@
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+var arraySlice = Array.prototype.slice;
+
 // NOTE: We should wrap the xhr response (B236741).
 export default class XMLHttpRequestWrapper {
     static _wrapProp (xhr, xhrWrapper, propName) {
@@ -26,7 +30,7 @@ export default class XMLHttpRequestWrapper {
         var eventHandlers = [];
 
         xhrWrapper[funcName] = function () {
-            var args   = Array.prototype.slice.call(arguments);
+            var args   = arraySlice.call(arguments);
             var isFunc = typeof args[1] === 'function';
 
             if (funcName === 'addEventListener' && isFunc) {
