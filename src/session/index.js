@@ -40,6 +40,17 @@ export default class Session extends EventEmitter {
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
+    getTaskScriptTemplateForIframeWithoutSrc (serverInfo) {
+        return mustache.render(TASK_TEMPLATE, {
+            sessionId:            this.id,
+            isFirstPageLoad:      false,
+            serviceMsgUrl:        serverInfo.domain + '/messaging',
+            ie9FileReaderShimUrl: serverInfo.domain + '/ie9-file-reader-shim',
+            crossDomainPort:      serverInfo.crossDomainPort,
+            payloadScript:        this._getIframePayloadScript(true)
+        });
+    }
+
     getTaskScript (referer, cookieUrl, serverInfo, isIframe, withPayload) {
         var cookies       = this.cookies.getClientString(cookieUrl);
         var payloadScript = '';
@@ -48,14 +59,15 @@ export default class Session extends EventEmitter {
             payloadScript = isIframe ? this._getIframePayloadScript() : this._getPayloadScript();
 
         var taskScript = mustache.render(TASK_TEMPLATE, {
-            cookie:               cookies.replace(/'/g, "\\'"),
-            sessionId:            this.id,
-            isFirstPageLoad:      this.pageLoadCount === 0,
-            serviceMsgUrl:        serverInfo.domain + '/messaging',
-            ie9FileReaderShimUrl: serverInfo.domain + '/ie9-file-reader-shim',
-            crossDomainPort:      serverInfo.crossDomainPort,
-            payloadScript:        payloadScript,
-            referer:              referer
+            cookie:                       cookies.replace(/'/g, "\\'"),
+            sessionId:                    this.id,
+            isFirstPageLoad:              this.pageLoadCount === 0,
+            serviceMsgUrl:                serverInfo.domain + '/messaging',
+            ie9FileReaderShimUrl:         serverInfo.domain + '/ie9-file-reader-shim',
+            crossDomainPort:              serverInfo.crossDomainPort,
+            payloadScript:                payloadScript,
+            referer:                      referer,
+            iframeWithoutSrcTaskTemplate: this.getTaskScriptTemplateForIframeWithoutSrc(serverInfo)
         });
 
         this.pageLoadCount++;
@@ -63,7 +75,7 @@ export default class Session extends EventEmitter {
         return taskScript;
     }
 
-    _getIframePayloadScript () {
+    _getIframePayloadScript (/* iframeWithoutSrc */) {
         throw new Error('Not implemented');
     }
 
@@ -94,14 +106,6 @@ ServiceMessages[COMMAND.setCookie] = function (msg) {
     this.cookies.setByClient(cookieUrl, msg.cookie);
 
     return this.cookies.getClientString(cookieUrl);
-};
-
-ServiceMessages[COMMAND.getIframeTaskScript] = function (msg, serverInfo) {
-    var referer     = msg.referer || '';
-    var refererDest = referer && parseProxyUrl(referer);
-    var cookieUrl   = refererDest && refererDest.destUrl;
-
-    return this.getTaskScript(referer, cookieUrl, serverInfo, true, false);
 };
 
 ServiceMessages[COMMAND.uploadFiles] = async function (msg) {

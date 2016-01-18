@@ -10,7 +10,7 @@ import * as hiddenInfo from '../upload/hidden-info';
 import { sameOriginCheck } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
-import { waitCookieMsg, cookieMsgInProgress } from '../../transport';
+import { waitCookieMsg } from '../../transport';
 
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
@@ -82,7 +82,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
 
                 setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                value = processedValue;
+                value                    = processedValue;
             }
             else
                 setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
@@ -192,15 +192,8 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             formSubmit () {
-                var form = this;
-
                 // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
-                if (cookieMsgInProgress()) {
-                    waitCookieMsg()
-                        .then(() => nativeMethods.formSubmit.apply(form, arguments));
-                }
-                else
-                    nativeMethods.formSubmit.apply(form, arguments);
+                waitCookieMsg().then(() => nativeMethods.formSubmit.apply(this, arguments));
             },
 
             insertBefore (newNode, refNode) {
@@ -299,7 +292,7 @@ export default class ElementSandbox extends SandboxBase {
                 selectors = NodeSandbox.processSelector(selectors);
 
                 var nativeQuerySelector = domUtils.isDocumentFragment(this) ? nativeMethods.documentFragmentQuerySelector
-                                                                            : nativeMethods.elementQuerySelector;
+                    : nativeMethods.elementQuerySelector;
 
                 return nativeQuerySelector.call(this, selectors);
             },
@@ -308,7 +301,7 @@ export default class ElementSandbox extends SandboxBase {
                 selectors = NodeSandbox.processSelector(selectors);
 
                 var nativeQuerySelectorAll = domUtils.isDocumentFragment(this) ? nativeMethods.documentFragmentQuerySelectorAll
-                                                                               : nativeMethods.elementQuerySelectorAll;
+                    : nativeMethods.elementQuerySelectorAll;
 
                 return nativeQuerySelectorAll.call(this, selectors);
             }
