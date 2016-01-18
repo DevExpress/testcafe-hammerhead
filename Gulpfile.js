@@ -78,7 +78,7 @@ var CLIENT_TESTS_BROWSERS = [
     {
         browserName: 'iphone',
         platform:    'OS X 10.10',
-        version:     '9.1',
+        version:     '9.2',
         deviceName:  'iPhone 6 Plus'
     },
     {
