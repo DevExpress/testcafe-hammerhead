@@ -7,6 +7,7 @@ import { sameOriginCheck } from '../utils/destination-location';
 import { getProxyUrl } from '../utils/url';
 import { isIE9 } from '../utils/browser';
 import { findDocument } from '../utils/dom';
+import fastApply from '../utils/fast-apply';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
     removeAttr (el, attr) {
@@ -93,9 +94,9 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     attachEventEmitter (domProcessor) {
         var eventEmitter = new EventEmitter();
 
-        domProcessor.on   = eventEmitter.on.bind(eventEmitter);
-        domProcessor.off  = eventEmitter.off.bind(eventEmitter);
-        domProcessor.emit = eventEmitter.emit.bind(eventEmitter);
+        domProcessor.on   = (evt, listener) => eventEmitter.on(evt, listener);
+        domProcessor.off  = (evt, listener) => eventEmitter.off(evt, listener);
+        domProcessor.emit = (...args) => fastApply(eventEmitter, 'emit', args);
     }
 
     getCrossDomainPort () {

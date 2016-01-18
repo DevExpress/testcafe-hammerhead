@@ -96,7 +96,7 @@ export default class NodeSandbox extends SandboxBase {
             this.doc.attach(e.iframe.contentWindow, e.iframe.contentDocument);
         });
 
-        window[INTERNAL_PROPS.overrideDomMethodName] = this.overrideDomMethods.bind(this);
+        window[INTERNAL_PROPS.overrideDomMethodName] = (el, doc) => this.overrideDomMethods(el, doc);
 
         // NOTE: In some browsers (for example Firefox), the 'window.document' object is different when iframe is
         // created and when the document’s ready event is raised. Therefore, we need to update the 'document' object

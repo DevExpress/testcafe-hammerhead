@@ -42,7 +42,7 @@ class Hammerhead {
 
         // Methods
         this.getOriginElementAttributes = CodeInstrumentation.getAttributesProperty;
-        this.doUpload                   = this.sandbox.upload.doUpload.bind(this.sandbox.upload);
+        this.doUpload                   = (input, filePaths) => this.sandbox.upload.doUpload(input, filePaths);
 
         // NOTE: We should provide a function to retrieve modules, because hammerhead will be bundled into a single
         // file and we will not have access to the internal modules by default.

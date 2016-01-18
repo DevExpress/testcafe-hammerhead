@@ -3,6 +3,7 @@ var urlUtils               = hammerhead.get('./utils/url');
 var processScript          = hammerhead.get('../processing/script').processScript;
 var removeProcessingHeader = hammerhead.get('../processing/script/header').remove;
 var destLocation           = hammerhead.get('./utils/destination-location');
+var attributesProperty     = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -221,4 +222,29 @@ test('get script body (T296958) (GH-183)', function () {
 
     if (typeof script.innerText === 'string')
         strictEqual(eval(processScript('script.innerText', true, false)).replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
+});
+
+test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
+    var storedBind = Function.prototype.bind;
+    var a          = document.createElement('a');
+    var withError  = false;
+
+    a.href = 'test';
+    delete Function.prototype.bind;
+
+    try {
+        var attrs = attributesProperty.getAttributesProperty(a);
+
+        strictEqual(attrs.getNamedItem('href').value, 'test');
+    }
+    catch (e) {
+        withError = true;
+    }
+    finally {
+        ok(!withError);
+
+        /* eslint-disable no-extend-native */
+        Function.prototype.bind = storedBind;
+        /* eslint-enable no-extend-native */
+    }
 });
