@@ -35,9 +35,9 @@ export default class Sandbox extends SandboxBase {
 
         // API
         this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
-        this.iframe              = new IframeSandbox(nodeMutation);
         this.xhr                 = new XhrSandbox();
         this.cookie              = new CookieSandbox();
+        this.iframe              = new IframeSandbox(nodeMutation, this.cookie);
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe);
         this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);

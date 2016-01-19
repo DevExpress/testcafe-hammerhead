@@ -67,11 +67,11 @@ class Transport extends EventEmitter {
         window.localStorage.setItem(settings.get().sessionId, stringifyJSON(messages));
     }
 
-    cookieMsgInProgress () {
+    _cookieMsgInProgress () {
         return this.msgQueue[COMMAND.setCookie] && !!this.msgQueue[COMMAND.setCookie].length;
     }
 
-    sendNextQueuedMsg (queueId) {
+    _sendNextQueuedMsg (queueId) {
         var queueItem = this.msgQueue[queueId][0];
 
         this.asyncServiceMsg(queueItem.msg)
@@ -84,61 +84,12 @@ class Transport extends EventEmitter {
                 this.emit(this.MSG_RECEIVED_EVENT, {});
 
                 if (this.msgQueue[queueId].length)
-                    this.sendNextQueuedMsg(queueId);
+                    this._sendNextQueuedMsg(queueId);
             });
     }
 
-    waitCookieMsg () {
-        return new Promise(resolve => {
-            var handler = () => {
-                if (!this.cookieMsgInProgress()) {
-                    this.off(this.MSG_RECEIVED_EVENT, handler);
-
-                    resolve();
-                }
-            };
-
-            this.on(this.MSG_RECEIVED_EVENT, handler);
-        });
-    }
-
-    // NOTE: Use the sync method for the most important things only.
-    syncServiceMsg (msg, callback) {
-        var storedSync = this.useAsyncXhr;
-
-        this.useAsyncXhr = false;
-
-        this.performRequest(msg, res => {
-            this.useAsyncXhr = storedSync;
-            callback(res);
-        });
-    }
-
-    waitForServiceMessagesCompleted (timeout) {
-        return new Promise(resolve => {
-            if (!this.activeServiceMessagesCounter) {
-                resolve();
-                return;
-            }
-
-            var intervalId = null;
-            var timeoutId  = window.setTimeout(() => {
-                window.clearInterval(intervalId);
-                resolve();
-            }, timeout);
-
-            intervalId = window.setInterval(() => {
-                if (!this.activeServiceMessagesCounter) {
-                    window.clearInterval(intervalId);
-                    window.clearTimeout(timeoutId);
-                    resolve();
-                }
-            }, this.SERVICE_MESSAGES_WAITING_INTERVAL);
-        });
-    }
-
     // TODO: Rewrite this using Promise after getting rid of syncServiceMsg.
-    performRequest (msg, callback) {
+    _performRequest (msg, callback) {
         msg.sessionId = settings.get().sessionId;
 
         if (isIframeWithoutSrc)
@@ -210,9 +161,49 @@ class Transport extends EventEmitter {
         sendMsg();
     }
 
+    waitCookieMsg () {
+        return new Promise(resolve => {
+            var handler = () => {
+                if (!this._cookieMsgInProgress()) {
+                    this.off(this.MSG_RECEIVED_EVENT, handler);
+
+                    resolve();
+                }
+            };
+
+            if (this._cookieMsgInProgress())
+                this.on(this.MSG_RECEIVED_EVENT, handler);
+            else
+                resolve();
+        });
+    }
+
+    waitForServiceMessagesCompleted (timeout) {
+        return new Promise(resolve => {
+            if (!this.activeServiceMessagesCounter) {
+                resolve();
+                return;
+            }
+
+            var intervalId = null;
+            var timeoutId  = window.setTimeout(() => {
+                window.clearInterval(intervalId);
+                resolve();
+            }, timeout);
+
+            intervalId = window.setInterval(() => {
+                if (!this.activeServiceMessagesCounter) {
+                    window.clearInterval(intervalId);
+                    window.clearTimeout(timeoutId);
+                    resolve();
+                }
+            }, this.SERVICE_MESSAGES_WAITING_INTERVAL);
+        });
+    }
+
     asyncServiceMsg (msg) {
         return new Promise(resolve => {
-            this.performRequest(msg, data => resolve(data));
+            this._performRequest(msg, data => resolve(data));
         });
     }
 
@@ -220,7 +211,7 @@ class Transport extends EventEmitter {
         var storedMessages = Transport._getStoredMessages();
 
         if (storedMessages.length) {
-            var tasks  = [];
+            var tasks = [];
 
             window.localStorage.removeItem(settings.get().sessionId);
 
@@ -244,7 +235,7 @@ class Transport extends EventEmitter {
 
             // NOTE: If we don't have pending messages except the current one, send the latter immediately.
             if (this.msgQueue[msg.cmd].length === 1)
-                this.sendNextQueuedMsg(msg.cmd);
+                this._sendNextQueuedMsg(msg.cmd);
         });
     }
 }

@@ -1,6 +1,4 @@
-var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 var urlUtils       = hammerhead.get('./utils/url');
-var settings       = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
@@ -175,35 +173,6 @@ asyncTest('the AMD module loader disturbs proxying an iframe without src (GH-127
             iframe.parentNode.removeChild(iframe);
             start();
         });
-    document.body.appendChild(iframe);
-});
-
-asyncTest('iframe initialization must be synchronous (for iframes with an empty src) (GH-184)', function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-
-    var storedServiceMsgUrl  = settings.get().serviceMsgUrl;
-    var testIframeTaskScript = [
-        '"window[\'' + INTERNAL_PROPS.overrideDomMethodName + '\'] = function () {',
-        '    window.isIframeInitialized = true;',
-        '};"'
-    ].join('');
-
-    settings.get().serviceMsgUrl = '/get-script/' + testIframeTaskScript;
-
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test_unique_id_96sfs8d69ba';
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        ok(iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName]);
-        ok(iframe.contentWindow.isIframeInitialized);
-
-        iframe.parentNode.removeChild(iframe);
-        settings.get().serviceMsgUrl = storedServiceMsgUrl;
-        iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-        iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
-        start();
-    });
     document.body.appendChild(iframe);
 });
 
