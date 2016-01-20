@@ -11,9 +11,9 @@
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
     hammerhead.start({
-        crossDomainProxyPort:         2000,
-        serviceMsgUrl:                '/service-msg/100',
-        iframeWithoutSrcTaskTemplate: window.top.getIframeTaskScript('', '/service-msg/100', 'http://localhost/sessionId/https://example.com')
+        crossDomainProxyPort:     2000,
+        serviceMsgUrl:            '/service-msg/100',
+        iframeTaskScriptTemplate: window.top.getIframeTaskScript('', '/service-msg/100', 'http://localhost/sessionId/https://example.com')
     });
     hammerhead.shadowUI.getRoot();
 </script>
@@ -22,7 +22,7 @@
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
     var postMessage = hammerhead.sandbox.event.message.postMessage;
 
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, window.top.initIframeTestHandler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, window.top.initIframeTestHandler);
 
     document.write('<a>Link</a><iframe id="test"></iframe>');
 

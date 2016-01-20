@@ -12,12 +12,12 @@ var iframeSandbox = hammerhead.sandbox.iframe;
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
     window.open = nativeMethods.windowOpen;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
 test('iframe', function () {

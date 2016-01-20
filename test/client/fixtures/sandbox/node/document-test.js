@@ -9,12 +9,12 @@ QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
     window.open       = nativeMethods.windowOpen;
     window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
 test('document.write for iframe.src with javascript protocol', function () {
@@ -312,8 +312,8 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
         window.top.onIframeInited = function (window) {
             var iframeIframeSandbox = window['%hammerhead%'].sandbox.iframe;
 
-            iframeIframeSandbox.on(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
-            iframeIframeSandbox.off(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
+            iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+            iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT, iframeIframeSandbox.iframeReadyToInitHandler);
         };
 
         $iframe[0].setAttribute('src', 'javascript:\'' +
