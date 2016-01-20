@@ -65,7 +65,7 @@ export default class Session extends EventEmitter {
     }
 
     getTaskScript (referer, cookieUrl, serverInfo, isIframe, withPayload) {
-        var cookies       = this.cookies.getClientString(cookieUrl).replace(/'/g, "\\'");
+        var cookies       = JSON.stringify(this.cookies.getClientString(cookieUrl));
         var payloadScript = '';
 
         if (withPayload)
