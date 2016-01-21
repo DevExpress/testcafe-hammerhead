@@ -1,4 +1,5 @@
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
@@ -109,27 +110,9 @@ export function getChildVisibleIndex (select, child) {
 }
 
 export function getIframeByElement (el) {
-    var currentDocument = el.documentElement ? el : findDocument(el);
-    var currentWindow   = window !== window.top && isCrossDomainWindows(window.top, window) ? window : window.top;
-    var iframes         = currentWindow.document.getElementsByTagName('iframe');
+    var elWindow = el[INTERNAL_PROPS.processedContext];
 
-    for (var i = 0; i < iframes.length; i++) {
-        if (iframes[i].contentDocument === currentDocument)
-            return iframes[i];
-    }
-
-    return null;
-}
-
-export function getIframeByWindow (win) {
-    var iframes = window.top.document.getElementsByTagName('iframe');
-
-    for (var i = 0; i < iframes.length; i++) {
-        if (iframes[i].contentWindow === win)
-            return iframes[i];
-    }
-
-    return null;
+    return getFrameElement(elWindow);
 }
 
 export function getIframeLocation (iframe) {
@@ -637,4 +620,3 @@ export function getParents (el, selector) {
 
     return parents;
 }
-
