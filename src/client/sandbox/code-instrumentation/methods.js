@@ -6,6 +6,7 @@ import INSTRUCTION from '../../../processing/script/instruction';
 import { shouldInstrumentMethod } from '../../../processing/script/instrumented';
 import { isWindow, isDocument, isDomElement } from '../../utils/dom';
 import { isIE } from '../../utils/browser';
+import fastApply from '../../utils/fast-apply';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -83,26 +84,6 @@ export default class MethodCallInstrumentation extends SandboxBase {
         return args;
     }
 
-    // OPTIMIZATION: http://jsperf.com/call-apply-optimization
-    static _fastApply (owner, methName, args) {
-        var meth = owner[methName];
-
-        switch (args.length) {
-            case 1:
-                return meth.call(owner, args[0]);
-            case 2:
-                return meth.call(owner, args[0], args[1]);
-            case 3:
-                return meth.call(owner, args[0], args[1], args[2]);
-            case 4:
-                return meth.call(owner, args[0], args[1], args[2], args[3]);
-            case 5:
-                return meth.call(owner, args[0], args[1], args[2], args[3], args[4]);
-            default:
-                return meth.apply(owner, args);
-        }
-    }
-
     attach (window) {
         super.attach(window);
 
@@ -121,7 +102,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
                 this.methodWrappers[methName].condition(owner))
                 return this.methodWrappers[methName].method(owner, args);
 
-            return MethodCallInstrumentation._fastApply(owner, methName, args);
+            return fastApply(owner, methName, args);
         };
     }
 

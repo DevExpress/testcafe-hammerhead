@@ -265,12 +265,10 @@ export default class FocusBlurSandbox extends SandboxBase {
                     // NOTE: The Blur event is raised for the body only in IE. In addition, we must not call the
                     // blur function for the body because this moves the browser window into the background.
                     if (!silent && browserUtils.isIE) {
-                        var simulateBodyBlur = this.eventSimulator.blur.bind(this.eventSimulator, activeElement);
-
                         if (isAsync)
-                            this.timersSandbox.setTimeout.call(this.window, simulateBodyBlur, 0);
+                            this.timersSandbox.setTimeout.call(this.window, () => this.eventSimulator.blur(activeElement), 0);
                         else
-                            simulateBodyBlur();
+                            this.eventSimulator.blur(activeElement);
                     }
                 }
                 else

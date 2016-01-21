@@ -1,5 +1,6 @@
 import { isHammerheadAttr } from '../../../utils/dom';
 import { getStoredAttrName } from '../../../dom-processor';
+import fnBind from '../../../utils/fn-bind';
 
 export default class AttributesWrapper {
     constructor (attributes) {
@@ -28,7 +29,7 @@ export default class AttributesWrapper {
 
         for (var funcName in attributes) {
             if (typeof this[funcName] === 'function' && funcName !== 'item')
-                this[funcName] = attributes[funcName].bind(attributes);
+                this[funcName] = fnBind(attributes[funcName], attributes);
         }
     }
 }

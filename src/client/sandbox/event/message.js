@@ -8,6 +8,8 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
+import fastApply from '../../utils/fast-apply';
+import fnBind from '../../utils/fn-bind';
 
 /*eslint-enable no-native-reassign */
 
@@ -60,7 +62,7 @@ export default class MessageSandbox extends SandboxBase {
 
         /* jshint ignore:start */
         for (var key in e)
-            resultEvt[key] = typeof e[key] === 'function' ? e[key].bind(e) : e[key];
+            resultEvt[key] = typeof e[key] === 'function' ? fnBind(e[key], e) : e[key];
         /* jshint ignore:end */
 
         var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
@@ -134,8 +136,8 @@ export default class MessageSandbox extends SandboxBase {
             }
         });
 
-        var onMessageHandler        = this._onMessage.bind(this);
-        var onWindowMessageHandler  = this._onWindowMessage.bind(this);
+        var onMessageHandler        = (...args) => fastApply(this, '_onMessage', args);
+        var onWindowMessageHandler  = (...args) => fastApply(this, '_onWindowMessage', args);
 
         this.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
         this.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
