@@ -12,13 +12,14 @@ export default class IframeSandbox extends SandboxBase {
     constructor (nodeMutation, cookieSandbox) {
         super();
 
-        this.IFRAME_READY_TO_INIT_EVENT          = 'hammerhead|event|iframe-ready-to-init';
-        this.IFRAME_READY_TO_INIT_INTERNAL_EVENT = 'hammerhead|event|iframe-ready-to-init-internal';
-        this.IFRAME_DOCUMENT_CREATED_EVENT       = 'hammerhead|event|iframe-document-created';
+        this.RUN_TASK_SCRIPT               = 'hammerhead|event|run-task-script';
+        this.EVAL_HAMMERHEAD_SCRIPT        = 'hammerhead|event|eval-hammerhead-script';
+        this.EVAL_EXTERNAL_SCRIPT          = 'hammerhead|event|eval-external-script';
+        this.IFRAME_DOCUMENT_CREATED_EVENT = 'hammerhead|event|iframe-document-created';
 
         this.cookieSandbox = cookieSandbox;
 
-        this.on(this.IFRAME_READY_TO_INIT_EVENT, this.iframeReadyToInitHandler);
+        this.on(this.RUN_TASK_SCRIPT, this.iframeReadyToInitHandler);
         nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, e => this.iframeAddedToDom(e.iframe));
     }
 
@@ -40,10 +41,14 @@ export default class IframeSandbox extends SandboxBase {
                 }
 
                 // NOTE: Raise this internal event to eval the Hammerhead code script.
-                this.emit(this.IFRAME_READY_TO_INIT_INTERNAL_EVENT, { iframe });
+                this.emit(this.EVAL_HAMMERHEAD_SCRIPT, { iframe });
 
-                // NOTE: Raise this event to eval the "task" script and to call the Hammerhead initialization method.
-                this.emit(this.IFRAME_READY_TO_INIT_EVENT, { iframe });
+                // NOTE: Raise this event to eval external code script.
+                this.emit(this.EVAL_EXTERNAL_SCRIPT, { iframe });
+
+                // NOTE: Raise this event to eval the "task" script and to call the Hammerhead initialization method
+                // and external script initialization code.
+                this.emit(this.RUN_TASK_SCRIPT, { iframe });
 
                 iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName]();
             }
@@ -68,11 +73,13 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     iframeReadyToInitHandler (e) {
-        var taskScriptTemplate = settings.get().iframeWithoutSrcTaskTemplate;
+        // NOTE: We are using String.replace in order to avoid adding Mustache scripts on the client side.
+        // If it is needed elsewhere in a certain place, we should consider using Mustache.
+        var taskScriptTemplate = settings.get().iframeTaskScriptTemplate;
         var taskScript         = taskScriptTemplate
             .replace('{{{cookie}}}', this.cookieSandbox.getCookie())
             .replace('{{{referer}}}', settings.get().referer || this.window.location.toString())
-            .replace('{{{iframeWithoutSrcTaskTemplate}}}', taskScriptTemplate.replace(/"/g, '\\"'));
+            .replace('{{{iframeTaskScriptTemplate}}}', JSON.stringify(taskScriptTemplate));
 
         e.iframe.contentWindow.eval.apply(e.iframe.contentWindow, [taskScript]);
     }

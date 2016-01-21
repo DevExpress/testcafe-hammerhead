@@ -32,7 +32,7 @@ class Hammerhead {
             uncaughtJsError:    this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
             startFileUploading: this.sandbox.upload.START_FILE_UPLOADING_EVENT,
             endFileUploading:   this.sandbox.upload.END_FILE_UPLOADING_EVENT,
-            iframeReadyToInit:  this.sandbox.iframe.IFRAME_READY_TO_INIT_EVENT,
+            evalIframeScript:   this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT,
             xhrCompleted:       this.sandbox.xhr.XHR_COMPLETED_EVENT,
             xhrError:           this.sandbox.xhr.XHR_ERROR_EVENT,
             xhrSend:            this.sandbox.xhr.XHR_SEND_EVENT
@@ -96,7 +96,7 @@ class Hammerhead {
             case this.EVENTS.endFileUploading:
                 return this.sandbox.upload;
 
-            case this.EVENTS.iframeReadyToInit:
+            case this.EVENTS.evalIframeScript:
                 return this.sandbox.iframe;
 
             case this.EVENTS.xhrCompleted:

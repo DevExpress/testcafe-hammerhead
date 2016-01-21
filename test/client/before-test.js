@@ -22,7 +22,7 @@
         '    cookie: "{{{cookie}}}",',
         '    serviceMsgUrl : "{{{serviceMsgUrl}}}",',
         '    sessionId : "sessionId",',
-        '    iframeWithoutSrcTaskTemplate: "{{{iframeWithoutSrcTaskTemplate}}}"',
+        '    iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}',
         '});'
     ].join('');
 
@@ -47,7 +47,7 @@
                 '    referer : "' + referer + '",',
                 '    serviceMsgUrl : "' + serviceMsgUrl + '",',
                 '    sessionId : "sessionId",',
-                '    iframeWithoutSrcTaskTemplate: "' + iframeTaskScript + '"',
+                '    iframeTaskScriptTemplate: "' + iframeTaskScript + '"',
                 '});'
             ].join(''));
         }

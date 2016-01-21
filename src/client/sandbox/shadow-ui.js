@@ -130,7 +130,8 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _getUIStyleSheetsHtml () {
-        var stylesheets = this.nativeMethods.querySelectorAll.call(this.document, 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet);
+        var stylesheets = this.nativeMethods.querySelectorAll.call(this.document, 'link.' +
+                                                                                  SHADOW_UI_CLASS_NAME.uiStylesheet);
         var result      = '';
 
         for (var i = 0; i < stylesheets.length; i++)
@@ -185,8 +186,8 @@ export default class ShadowUI extends SandboxBase {
 
         this._overrideDocumentMethods(window.document);
 
-        this.iframeSandbox.on(this.iframeSandbox.IFRAME_READY_TO_INIT_EVENT, e => {
-            var iframeHead      = e.iframe.contentDocument.head;
+        this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT, e => {
+            var iframeHead = e.iframe.contentDocument.head;
 
             this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());
         });

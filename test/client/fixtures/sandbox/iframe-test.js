@@ -8,12 +8,12 @@ QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
     window.open       = nativeMethods.windowOpen;
     window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
 test('event should not raise before iframe is appended to DOM', function () {
@@ -23,12 +23,12 @@ test('event should not raise before iframe is appended to DOM', function () {
         eventRaised = true;
     };
 
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, handler);
 
     document.createElement('iframe');
 
     ok(!eventRaised);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, handler);
 });
 
 test('event should not raise if a cross-domain iframe is appended', function () {
@@ -38,12 +38,12 @@ test('event should not raise if a cross-domain iframe is appended', function () 
         eventRaised = true;
     };
 
-    iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, handler);
 
     var $iframe = $('<iframe id="test7" src="http://cross.domain.com">').appendTo('body');
 
     ok(!eventRaised);
-    iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, handler);
     $iframe.remove();
 });
 
@@ -71,8 +71,8 @@ asyncTest('element.setAttribute', function () {
             var iframeHammerhead    = iframe.contentWindow['%hammerhead%'];
             var iframeIframeSandbox = iframeHammerhead.sandbox.iframe;
 
-            iframeIframeSandbox.on(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
-            iframeIframeSandbox.off(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+            iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+            iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
 
             var iframeDocument   = iframe.contentDocument;
             var iframeBody       = iframeDocument.body;
@@ -142,14 +142,14 @@ asyncTest('ready to init event must not raise for added iframe(B239643)', functi
                 iframeLoadingEventRaised = true;
             };
 
-            iframeSandbox.on(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
+            iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, handler);
 
             /* eslint-disable no-unused-vars */
             var dummy = container.innerHTML;
 
             /* eslint-enable no-unused-vars */
             ok(!iframeLoadingEventRaised);
-            iframeSandbox.off(iframeSandbox.IFRAME_READY_TO_INIT_EVENT, handler);
+            iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, handler);
             container.parentNode.removeChild(container);
             start();
         });
@@ -229,9 +229,9 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
             xhr.send();
         };
 
-        iframeIframeSandbox.off(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
-        iframeIframeSandbox.on(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, checkXhrEventListeners);
-        iframeIframeSandbox.on(iframeIframeSandbox.IFRAME_READY_TO_INIT_EVENT, initIframeTestHandler);
+        iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT, iframeIframeSandbox.iframeReadyToInitHandler);
+        iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, checkXhrEventListeners);
+        iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 
         nestedIframe.id = 'test_nestedIframe_klshgfn111';
         nestedIframe.setAttribute('src', 'about:blank');

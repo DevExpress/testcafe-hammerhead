@@ -40,35 +40,39 @@ export default class Session extends EventEmitter {
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
-    getTaskScriptTemplateForIframeWithoutSrc (serverInfo) {
+    _fillTaskScriptTemplate (serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript) {
+        referer = referer === null ? '{{{referer}}}' : referer;
+        cookie  = cookie === null ? '{{{cookie}}}' : cookie;
+
+        iframeTaskScriptTemplate = iframeTaskScriptTemplate ===
+                                   null ? '{{{iframeTaskScriptTemplate}}}' : iframeTaskScriptTemplate;
+
         return mustache.render(TASK_TEMPLATE, {
-            sessionId:            this.id,
-            isFirstPageLoad:      false,
-            serviceMsgUrl:        serverInfo.domain + '/messaging',
-            ie9FileReaderShimUrl: serverInfo.domain + '/ie9-file-reader-shim',
-            crossDomainPort:      serverInfo.crossDomainPort,
-            payloadScript:        this._getIframePayloadScript(true)
+            sessionId:                this.id,
+            serviceMsgUrl:            serverInfo.domain + '/messaging',
+            ie9FileReaderShimUrl:     serverInfo.domain + '/ie9-file-reader-shim',
+            crossDomainPort:          serverInfo.crossDomainPort,
+            isFirstPageLoad:          isFirstPageLoad,
+            referer:                  referer,
+            cookie:                   cookie,
+            iframeTaskScriptTemplate: iframeTaskScriptTemplate,
+            payloadScript:            payloadScript
         });
     }
 
+    getIframeTaskScriptTemplate (serverInfo) {
+        return JSON.stringify(this._fillTaskScriptTemplate(serverInfo, false, null, null, null, this._getIframePayloadScript(true)));
+    }
+
     getTaskScript (referer, cookieUrl, serverInfo, isIframe, withPayload) {
-        var cookies       = this.cookies.getClientString(cookieUrl);
+        var cookies       = this.cookies.getClientString(cookieUrl).replace(/'/g, "\\'");
         var payloadScript = '';
 
         if (withPayload)
             payloadScript = isIframe ? this._getIframePayloadScript() : this._getPayloadScript();
 
-        var taskScript = mustache.render(TASK_TEMPLATE, {
-            cookie:                       cookies.replace(/'/g, "\\'"),
-            sessionId:                    this.id,
-            isFirstPageLoad:              this.pageLoadCount === 0,
-            serviceMsgUrl:                serverInfo.domain + '/messaging',
-            ie9FileReaderShimUrl:         serverInfo.domain + '/ie9-file-reader-shim',
-            crossDomainPort:              serverInfo.crossDomainPort,
-            payloadScript:                payloadScript,
-            referer:                      referer,
-            iframeWithoutSrcTaskTemplate: this.getTaskScriptTemplateForIframeWithoutSrc(serverInfo)
-        });
+        var taskScript = this._fillTaskScriptTemplate(serverInfo, this.pageLoadCount === 0, referer,
+            cookies, this.getIframeTaskScriptTemplate(serverInfo), payloadScript);
 
         this.pageLoadCount++;
 
