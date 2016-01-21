@@ -12,6 +12,7 @@
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
     var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
     var destLocation   = hammerhead.get('./utils/destination-location');
+    var settings       = hammerhead.get('./settings');
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
@@ -19,7 +20,7 @@
         'window["%hammerhead%"].get("./utils/destination-location").forceLocation("{{{location}}}");',
         'window["%hammerhead%"].start({',
         '    referer : "{{{referer}}}",',
-        '    cookie: "{{{cookie}}}",',
+        '    cookie: {{{cookie}}},',
         '    serviceMsgUrl : "{{{serviceMsgUrl}}}",',
         '    sessionId : "sessionId",',
         '    iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}',
@@ -31,14 +32,15 @@
             .replace('{{{referer}}}', referer || '')
             .replace('{{{serviceMsgUrl}}}', serviceMsgUrl || '')
             .replace('{{{location}}}', location || '')
-            .replace('{{{cookie}}}', cookie || '');
+            .replace('{{{cookie}}}', JSON.stringify(cookie || ''));
     };
 
     window.initIframeTestHandler = function (e) {
         var referer          = "http://localhost/sessionId/https://example.com";
         var location         = "http://localhost/sessionId/https://example.com";
         var serviceMsgUrl    = "/service-msg/100";
-        var iframeTaskScript = window.getIframeTaskScript(referer, serviceMsgUrl, location).replace(/"/g, '\\"');
+        var cookie           = settings.get().cookie || '';
+        var iframeTaskScript = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie));
 
         if (e.iframe.id.indexOf('test') !== -1) {
             e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
@@ -47,7 +49,8 @@
                 '    referer : "' + referer + '",',
                 '    serviceMsgUrl : "' + serviceMsgUrl + '",',
                 '    sessionId : "sessionId",',
-                '    iframeTaskScriptTemplate: "' + iframeTaskScript + '"',
+                '    cookie: ' + JSON.stringify(cookie) + ',',
+                '    iframeTaskScriptTemplate: ' + iframeTaskScript + '',
                 '});'
             ].join(''));
         }

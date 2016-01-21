@@ -1,4 +1,5 @@
-var urlUtils       = hammerhead.get('./utils/url');
+var urlUtils = hammerhead.get('./utils/url');
+var settings = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
@@ -64,7 +65,7 @@ asyncTest('element.setAttribute', function () {
     var src    = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
     var iframe = document.createElement('iframe');
 
-    iframe.id  = 'test20';
+    iframe.id = 'test20';
     iframe.setAttribute('src', src);
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
@@ -74,9 +75,9 @@ asyncTest('element.setAttribute', function () {
             iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
             iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
 
-            var iframeDocument   = iframe.contentDocument;
-            var iframeBody       = iframeDocument.body;
-            var nestedIframe     = iframeDocument.createElement('iframe');
+            var iframeDocument = iframe.contentDocument;
+            var iframeBody     = iframeDocument.body;
+            var nestedIframe   = iframeDocument.createElement('iframe');
 
             nestedIframe.id = 'test21';
 
@@ -198,6 +199,23 @@ asyncTest('native methods are properly initialized in an iframe without src (GH-
             iframe.parentNode.removeChild(iframe);
             start();
         });
+    document.body.appendChild(iframe);
+});
+
+asyncTest('quotes in the cookies are not escaped when a task script for an iframe is built on the client (GH-366)', function () {
+    var iframe = document.createElement('iframe');
+    var cookie = '""\'\'';
+
+    iframe.id             = 'test_cookie';
+    settings.get().cookie = cookie;
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, cookie);
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
     document.body.appendChild(iframe);
 });
 
