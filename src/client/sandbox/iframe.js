@@ -1,10 +1,11 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import settings from '../settings';
-import { isShadowUIElement, isCrossDomainIframe, isElementInDocument } from '../utils/dom';
+import domProcessor from '../dom-processor';
+import { isShadowUIElement, isCrossDomainIframe, isElementInDocument, isIframeWithoutSrc } from '../utils/dom';
 import { isFirefox, isWebKit } from '../utils/browser';
 import { isSupportedProtocol } from '../utils/url';
-import { isIframeWithoutSrc } from '../utils/dom';
+import { isPageHtml } from '../utils/html';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 
@@ -21,6 +22,46 @@ export default class IframeSandbox extends SandboxBase {
 
         this.on(this.RUN_TASK_SCRIPT, this.iframeReadyToInitHandler);
         nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, e => this.iframeAddedToDom(e.iframe));
+
+        this.iframeNativeMethodsBackup = null;
+    }
+
+    _shouldSaveIframeNativeMethods (iframe) {
+        if (!isWebKit)
+            return false;
+
+        var iframeSrc = this.nativeMethods.getAttribute.call(iframe, 'src');
+
+        if (!domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(iframeSrc))
+            return false;
+
+        var iframeSrcValueWithoutProtocol = iframeSrc.replace(domProcessor.JAVASCRIPT_PROTOCOL_REG_EX, '');
+        var matches                       = iframeSrcValueWithoutProtocol.match(domProcessor.HTML_STRING_REG_EX);
+
+        if (!matches)
+            return false;
+
+        var html = matches[2];
+
+        return isPageHtml(html);
+    }
+
+    _ensureIframeNativeMethodsForChrome (iframe) {
+        if (!this.iframeNativeMethodsBackup && this._shouldSaveIframeNativeMethods(iframe))
+            this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(iframe.contentDocument, iframe.contentWindow);
+        else if (this.iframeNativeMethodsBackup) {
+            this.iframeNativeMethodsBackup.restoreDocumentMeths(iframe.contentDocument, iframe.contentWindow);
+            this.iframeNativeMethodsBackup = null;
+        }
+    }
+
+    _ensureIframeNativeMethodsForIE (iframe) {
+        var iframeNativeMethods = iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+
+        if (iframeNativeMethods) {
+            iframeNativeMethods.restoreDocumentMeths(iframe.contentDocument, iframe.contentWindow);
+            delete iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+        }
     }
 
     _raiseReadyToInitEvent (iframe) {
@@ -29,16 +70,18 @@ export default class IframeSandbox extends SandboxBase {
             var iframeWindowInitialized = iframe.contentWindow[IFRAME_WINDOW_INITED];
 
             if (iframeInitialized && !iframeWindowInitialized) {
+                // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
+                // As a result, when the second load event is raised, we write the overridden methods to the native methods.
+                // So, we need to save the native methods when the first load event is raised.
+                // https://code.google.com/p/chromium/issues/detail?id=578812
+                this._ensureIframeNativeMethodsForChrome(iframe);
+
+                // NOTE: Restore native document methods for the iframe's document if it overrided earlier (IE9, IE10 only)
+                // https://github.com/DevExpress/testcafe-hammerhead/issues/279
+                this._ensureIframeNativeMethodsForIE(iframe);
+
                 // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
                 iframe.contentWindow[IFRAME_WINDOW_INITED] = true;
-
-                // NOTE: Restore native document methods for the iframe's document if it overrided earlier
-                var iframeNativeMethods = iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
-
-                if (iframeNativeMethods) {
-                    iframeNativeMethods.restoreDocumentMeths(iframe.contentDocument, iframe.contentWindow);
-                    delete iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
-                }
 
                 // NOTE: Raise this internal event to eval the Hammerhead code script.
                 this.emit(this.EVAL_HAMMERHEAD_SCRIPT, { iframe });

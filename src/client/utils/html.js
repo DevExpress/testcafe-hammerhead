@@ -219,7 +219,7 @@ export function processHtml (html, parentTag) {
         if (container.children.length === 1 && container.children[0].children && !container.children[0].children.length)
             domProcessor.processElement(container.children[0], convertToProxyUrl);
         else {
-            var children = container.querySelectorAll('*');
+            var children = nativeMethods.elementQuerySelectorAll.call(container, '*');
 
             for (var i = 0; i < children.length; i++)
                 domProcessor.processElement(children[i], convertToProxyUrl);
