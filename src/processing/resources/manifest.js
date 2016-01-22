@@ -1,12 +1,11 @@
 import ResourceProcessorBase from './resource-processor-base';
-import { trim } from '../../utils/string';
 
 class ManifestProcessor extends ResourceProcessorBase {
     processResource (manifest, ctx, charset, urlReplacer) {
         var lines = manifest.split('\n');
 
         for (var i = 0; i < lines.length; i++) {
-            var line = trim(lines[i]);
+            var line = lines[i].trim();
 
             if (line && line !== 'CACHE MANIFEST' && line !== 'NETWORK:' && line !== 'FALLBACK:' &&
                 line !== 'CACHE:' && line[0] !== '#' && line !== '*') {

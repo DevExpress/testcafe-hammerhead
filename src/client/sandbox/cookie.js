@@ -5,7 +5,7 @@ import * as destLocation from '../utils/destination-location';
 import * as cookieUtils from '../utils/cookie';
 import { isCrossDomainWindows } from '../utils/dom';
 import { queuedAsyncServiceMsg } from '../transport';
-import { trim } from '../../utils/string';
+import trim from '../../utils/string-trim';
 
 export default class CookieSandbox extends SandboxBase {
     _getSettings () {

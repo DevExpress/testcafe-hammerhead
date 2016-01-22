@@ -1,4 +1,4 @@
-import { trim } from '../../utils/string';
+import trim from '../../utils/string-trim';
 
 // NOTE: The name/key cannot be empty, but the value can.
 const COOKIE_PAIR_REGEX        = /^([^=;]+)\s*=\s*(("?)[^\n\r\0]*\3)/;
