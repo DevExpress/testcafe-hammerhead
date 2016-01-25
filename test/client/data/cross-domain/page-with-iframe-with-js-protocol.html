@@ -12,8 +12,18 @@
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://target_url');
     hammerhead.start({
-        crossDomainProxyPort: 2000,
-        serviceMsgUrl:        '/service-msg/"window[\'' + INTERNAL_PROPS.overrideDomMethodName + '\'] = function() {}"'
+        crossDomainProxyPort:     2000,
+        serviceMsgUrl:            '/service-msg/"window[\'' + INTERNAL_PROPS.overrideDomMethodName +
+                                  '\'] = function() {}"',
+        iframeTaskScriptTemplate: [
+                                      'window["%hammerhead%"].get("./utils/destination-location").forceLocation("http://localhost/sessionId/http://target_url");',
+                                      'window["%hammerhead%"].start({',
+                                      '    referer : "",',
+                                      '    cookie: "",',
+                                      '    serviceMsgUrl : "/service-msg/100",',
+                                      '    sessionId : "sessionId",',
+                                      '    iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}',
+                                      '});'].join('')
     });
 </script>
 <h1>Iframe content</h1>

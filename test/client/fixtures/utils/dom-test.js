@@ -1,6 +1,7 @@
 var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
 var domUtils      = hammerhead.utils.dom;
+var browserUtils  = hammerhead.utils.browser;
 var iframeSandbox = hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
@@ -17,7 +18,7 @@ asyncTest('isCrossDomainWindows', function () {
 
     var iframeWithEmptySrc = document.createElement('iframe');
 
-    iframeWithEmptySrc.id = 'test2';
+    iframeWithEmptySrc.id  = 'test2';
     iframeWithEmptySrc.src = '';
     document.body.appendChild(iframeWithEmptySrc);
     ok(!domUtils.isCrossDomainWindows(window, iframeWithEmptySrc.contentWindow));
@@ -25,7 +26,7 @@ asyncTest('isCrossDomainWindows', function () {
 
     var iframeAboutBlank = document.createElement('iframe');
 
-    iframeAboutBlank.id = 'test3';
+    iframeAboutBlank.id  = 'test3';
     iframeAboutBlank.src = 'about:blank';
     document.body.appendChild(iframeAboutBlank);
     ok(!domUtils.isCrossDomainWindows(window, iframeAboutBlank.contentWindow));
@@ -39,7 +40,7 @@ asyncTest('isCrossDomainWindows', function () {
             crossDomainIframe.parentNode.removeChild(crossDomainIframe);
             start();
         });
-    crossDomainIframe.id = 'test1';
+    crossDomainIframe.id  = 'test1';
     crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
 
     document.body.appendChild(crossDomainIframe);
@@ -194,7 +195,7 @@ asyncTest('changed location 2', function () {
         this.contentWindow.location = 'http://' + location.host + '/';
     };
 
-    iframe.id  = 'test7';
+    iframe.id = 'test7';
     iframe.setAttribute('src', 'about:blank');
     iframe.addEventListener('load', handler);
     document.body.appendChild(iframe);
@@ -441,3 +442,38 @@ asyncTest('cross domain iframe that contains iframe without src should not throw
 
     document.body.appendChild(iframe);
 });
+
+if (!browserUtils.isFirefox) {
+    asyncTest('getIframeByElement', function () {
+        var parentIframe = document.createElement('iframe');
+
+        parentIframe.id = 'test_parent';
+
+        window.QUnitGlobals.waitForIframe(parentIframe)
+            .then(function () {
+                var parentIframeUtils = parentIframe.contentWindow['%hammerhead%'].utils.dom;
+                var childIframe       = parentIframe.contentDocument.createElement('iframe');
+
+                childIframe.id = 'test_child';
+
+                window.QUnitGlobals.waitForIframe(childIframe)
+                    .then(function () {
+                        var childIframeUtils = childIframe.contentWindow['%hammerhead%'].utils.dom;
+
+                        strictEqual(domUtils.getIframeByElement(parentIframe.contentDocument.body), parentIframe);
+                        strictEqual(domUtils.getIframeByElement(childIframe.contentDocument.body), childIframe);
+                        strictEqual(childIframeUtils.getIframeByElement(parentIframe.contentDocument.body), parentIframe);
+                        strictEqual(childIframeUtils.getIframeByElement(childIframe.contentDocument.body), childIframe);
+                        strictEqual(parentIframeUtils.getIframeByElement(parentIframe.contentDocument.body), parentIframe);
+                        strictEqual(parentIframeUtils.getIframeByElement(childIframe.contentDocument.body), childIframe);
+
+                        childIframe.parentNode.removeChild(childIframe);
+                        start();
+                    });
+
+                parentIframe.contentDocument.body.appendChild(childIframe);
+            });
+
+        document.body.appendChild(parentIframe);
+    });
+}
