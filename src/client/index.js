@@ -13,7 +13,7 @@ import * as eventUtils from './utils/event';
 import * as typeUtils from './utils/types';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
-import * as stringUtils from '../utils/string';
+import trim from '../utils/string-trim';
 import { getProxyUrl } from './utils/url';
 import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
@@ -72,7 +72,7 @@ class Hammerhead {
             position:    positionUtils,
             style:       styleUtils,
             types:       typeUtils,
-            string:      stringUtils,
+            trim:        trim,
             isJQueryObj: isJQueryObj,
             extend:      extend
         };

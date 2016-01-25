@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, isOpera } from './browser';
-import { trim } from '../../utils/string';
+import trim from '../../utils/string-trim';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)

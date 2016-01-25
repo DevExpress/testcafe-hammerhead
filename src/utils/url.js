@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import * as stringUtils from './string';
+import trim from './string-trim';
 
 //Const
 const PROTOCOL_RE        = /(^(\w+?\:))/;
@@ -146,7 +146,7 @@ export function parseUrl (url) {
     if (!url)
         return parsed;
 
-    url = stringUtils.trim(url);
+    url = trim(url);
 
     // Protocol
     var hasImplicitProtocol = false;
@@ -243,7 +243,7 @@ export function prepareUrl (url) {
 }
 
 export function ensureTrailingSlash (srcUrl, processedUrl) {
-    var hasTrailingSlash = stringUtils.endsWith(srcUrl, '/');
+    var hasTrailingSlash = /\/$/.test(srcUrl);
 
     if (!hasTrailingSlash)
         processedUrl = processedUrl.replace(/\/$/, '');
