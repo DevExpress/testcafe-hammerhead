@@ -644,36 +644,6 @@ describe('Proxy', function () {
             request(options);
         });
 
-        it('Should use a special timeout for xhr requests (GH-347)', function (done) {
-            var savedReqTimeout    = DestinationRequest.TIMEOUT;
-            var savedXhrReqTimeout = DestinationRequest.XHR_TIMEOUT;
-
-            DestinationRequest.TIMEOUT     = 100;
-            DestinationRequest.XHR_TIMEOUT = 200;
-
-            var options = {
-                url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
-                headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
-                }
-            };
-
-            options.headers[XHR_HEADERS.requestMarker] = 'true';
-
-            var requestTime = Date.now();
-
-            request(options, function (err, res) {
-                var responseTime = Date.now();
-
-                expect(res.statusCode).eql(500);
-                expect(responseTime - requestTime).above(DestinationRequest.XHR_TIMEOUT);
-
-                DestinationRequest.TIMEOUT     = savedReqTimeout;
-                DestinationRequest.XHR_TIMEOUT = savedXhrReqTimeout;
-                done();
-            });
-        });
-
         // NOTE: Requires fix in node.js.
         it.skip('Should not encode cyrillic symbols in header (T239167, GH-nodejs/io.js#1693)', function (done) {
             var url              = proxy.openSession('http://127.0.0.1:2000/T239167/send-location', session);
