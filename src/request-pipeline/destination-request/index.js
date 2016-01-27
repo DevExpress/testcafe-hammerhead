@@ -19,10 +19,9 @@ function isDNSErr (err) {
 
 // DestinationRequest
 export default class DestinationRequest extends EventEmitter {
-    constructor (opts, isXhr) {
+    constructor (opts) {
         super();
 
-        this.isXhr             = isXhr;
         this.req               = null;
         this.hasResponse       = false;
         this.opts              = opts;
@@ -39,7 +38,7 @@ export default class DestinationRequest extends EventEmitter {
 
     _send () {
         connectionResetGuard(() => {
-            var timeout = this.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
+            var timeout = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
 
             this.req = this.protocolInterface.request(this.opts);
 

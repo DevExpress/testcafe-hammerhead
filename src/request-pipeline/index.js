@@ -17,7 +17,7 @@ var stages = {
 
     1: function sendDestinationRequest (ctx, next) {
         var opts = createReqOpts(ctx);
-        var req  = new DestinationRequest(opts, ctx.isXhr);
+        var req  = new DestinationRequest(opts);
 
         req.on('response', res => {
             ctx.destRes = res;
