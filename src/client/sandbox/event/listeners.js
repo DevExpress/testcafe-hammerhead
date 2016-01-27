@@ -54,6 +54,12 @@ export default class Listeners extends EventEmitter {
 
     static _getEventListenerWrapper (eventCtx, listener) {
         return function (e) {
+            var isIEServiceHandler = listener.toString() === '[object FunctionWrapper]';
+
+            // NOTE: Ignore IE11's and Edge's service handlers (GH-379)
+            if (isIEServiceHandler)
+                return null;
+
             if (eventCtx.cancelOuterHandlers)
                 return null;
 
