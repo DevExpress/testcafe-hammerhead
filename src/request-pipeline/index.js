@@ -17,7 +17,7 @@ var stages = {
 
     1: function sendDestinationRequest (ctx, next) {
         var opts = createReqOpts(ctx);
-        var req  = new DestinationRequest(opts, ctx.isXhr);
+        var req  = new DestinationRequest(opts);
 
         req.on('response', res => {
             ctx.destRes = res;
@@ -109,9 +109,7 @@ function createReqOpts (ctx) {
         method:      ctx.req.method,
         credentials: ctx.session.getAuthCredentials(),
         body:        ctx.reqBody,
-        isXhr:       ctx.isXhr,
-
-        headers
+        headers:     headers
     };
 }
 
