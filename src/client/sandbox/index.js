@@ -18,6 +18,7 @@ import XhrSandbox from './xhr';
 import StorageSandbox from './storages';
 import { isIE, isWebKit } from '../utils/browser';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
+import urlResolver from '../utils/url-resolver';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
@@ -115,6 +116,8 @@ export default class Sandbox extends SandboxBase {
         if (isIE || isWebKit)
             this._refreshNativeMethods(window, document);
 
+        urlResolver.init(document);
+
         this.event.initDocumentListening();
 
         if (isWebKit)
@@ -128,6 +131,8 @@ export default class Sandbox extends SandboxBase {
 
     attach (window) {
         super.attach(window);
+
+        urlResolver.init(document);
 
         // NOTE: Eval Hammerhead code script.
         this.iframe.on(this.iframe.EVAL_HAMMERHEAD_SCRIPT, e => initHammerheadClient(e.iframe.contentWindow, true));

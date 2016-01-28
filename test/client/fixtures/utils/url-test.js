@@ -3,11 +3,25 @@ var sharedUrlUtils = hammerhead.get('../utils/url');
 var urlUtils       = hammerhead.get('./utils/url');
 var destLocation   = hammerhead.get('./utils/destination-location');
 
-var browserUtils = hammerhead.utils.browser;
+var browserUtils  = hammerhead.utils.browser;
+var iframeSandbox = hammerhead.sandbox.iframe;
+var nativeMethods = hammerhead.nativeMethods;
 
 var PROXY_PORT     = 1337;
 var PROXY_HOSTNAME = '127.0.0.1';
 var PROXY_HOST     = PROXY_HOSTNAME + ':' + PROXY_PORT;
+
+QUnit.testStart(function () {
+    // NOTE: The 'window.open' method used in QUnit.
+    window.open       = nativeMethods.windowOpen;
+    window.setTimeout = nativeMethods.setTimeout;
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
+});
+
+QUnit.testDone(function () {
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+});
 
 test('getCrossDomainProxyUrl', function () {
     var storedCrossDomainport = settings.get().crossDomainProxyPort;
@@ -148,18 +162,14 @@ test('destination with port', function () {
 });
 
 test('undefined or null', function () {
-    var a        = document.createElement('a');
-    var proxyUrl = urlUtils.getProxyUrl(null, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
-
-    // NOTE: In Safari, a.href = null  leads to the current url, not <current_url>/null.
+    // NOTE: In Safari, a.href = null  leads to the empty url, not <current_url>/null.
     if (!browserUtils.isSafari) {
-        a.href = null;
-        strictEqual(proxyUrl, urlUtils.getProxyUrl(a.href, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'), 'null');
+        strictEqual(urlUtils.getProxyUrl(null, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                    'http://' + PROXY_HOST + '/sessionId/https://example.com/null');
     }
 
-    proxyUrl = urlUtils.getProxyUrl(void 0, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
-    a.href   = void 0;
-    strictEqual(proxyUrl, urlUtils.getProxyUrl(a.href, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'), 'undefined');
+    strictEqual(urlUtils.getProxyUrl(void 0, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/undefined');
 });
 
 test('remove unnecessary slashes form the begin of the url', function () {
@@ -283,4 +293,55 @@ test('location.port must return the empty string (T262593)', function () {
 
     strictEqual(iframesrc, 'https://example.com/?IFRAME');
     /* eslint-enable no-undef */
+});
+
+module('getProxyUrl in a document with then "base" tag (GH-371)');
+
+test('add, update and remove the "base" tag', function () {
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+
+    var baseEl = document.createElement('base');
+
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+
+    baseEl.setAttribute('href', 'http://subdomain.example.com');
+    document.head.appendChild(baseEl);
+
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/http://subdomain.example.com/image.png');
+
+    baseEl.setAttribute('href', 'http://example2.com');
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/http://example2.com/image.png');
+
+    baseEl.removeAttribute('href');
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+
+    baseEl.parentNode.removeChild(baseEl);
+
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+});
+
+asyncTest('recreating a document with the "base" tag', function () {
+    var iframe = document.createElement('iframe');
+    var src    = window.QUnitGlobals.getResourceUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
+
+    iframe.id = 'test_ojfnnhsg43';
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument = iframe.contentDocument;
+            var link           = iframeDocument.getElementsByTagName('a')[0];
+            var proxyUrl       = 'http://' + location.hostname + ':' + location.port +
+                                 '/sessionId!iframe/http://subdomain.example.com/index.html';
+
+            strictEqual(link.href, proxyUrl);
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
 });
