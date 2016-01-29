@@ -1,566 +1,613 @@
+var Listeners = hammerhead.get('./sandbox/event/listeners');
+
 var browserUtils = hammerhead.utils.browser;
 var domUtils     = hammerhead.utils.dom;
 var listeners    = hammerhead.sandbox.event.listeners;
 
-$(document).ready(function () {
-    var containerCaptureEventRaised = false;
-    var containerBubbleEventRaised  = false;
-    var elementCaptureEventRaised   = false;
-    var elementBubbleEventRaised    = false;
-    var uiElementCaptureEventRaised = false;
-    var uiElementBubbleEventRaised  = false;
+var containerCaptureEventRaised = false;
+var containerBubbleEventRaised  = false;
+var elementCaptureEventRaised   = false;
+var elementBubbleEventRaised    = false;
+var uiElementCaptureEventRaised = false;
+var uiElementBubbleEventRaised  = false;
 
-    var $container = null;
-    var container  = null;
-    var $input     = null;
-    var input      = null;
-    var $uiElement = null;
-    var uiElement  = null;
+var $container = null;
+var container  = null;
+var $input     = null;
+var input      = null;
+var $uiElement = null;
+var uiElement  = null;
 
-    var containerCaptureHandler = function () {
-        containerCaptureEventRaised = true;
+var containerCaptureHandler = function () {
+    containerCaptureEventRaised = true;
+};
+
+var containerBubbleHandler = function () {
+    containerBubbleEventRaised = true;
+};
+
+var elementCaptureHandler = function () {
+    elementCaptureEventRaised = true;
+};
+
+var elementBubbleHandler = function () {
+    elementBubbleEventRaised = true;
+};
+
+var uiElementCaptureHandler = function () {
+    uiElementCaptureEventRaised = true;
+};
+
+var uiElementBubbleHandler = function () {
+    uiElementBubbleEventRaised = true;
+};
+
+var bindAll = function (event) {
+    container.addEventListener(event, containerCaptureHandler, true);
+    container.addEventListener(event, containerBubbleHandler, false);
+    input.addEventListener(event, elementCaptureHandler, true);
+    input.addEventListener(event, elementBubbleHandler, false);
+    uiElement.addEventListener(event, uiElementCaptureHandler, true);
+    uiElement.addEventListener(event, uiElementBubbleHandler, false);
+};
+
+var dispatchEvent = function (el, type) {
+    var ev = document.createEvent('MouseEvents');
+
+    ev.initMouseEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, el);
+
+    el.dispatchEvent(ev);
+};
+
+var dispatchPointerEvent = function (el, type) {
+    var pointEvent = browserUtils.isIE11 ? document.createEvent('PointerEvent') : document.createEvent('MSPointerEvent');
+
+    pointEvent.initPointerEvent(type, true, true, window, 0, 0,
+        0, 0, 0, false, false, false, false, 0, null, 0, 0, 0, 0, 0.5, 0, 0, 0, 1, 'mouse', Date.now(), true);
+
+    el.dispatchEvent(pointEvent);
+};
+
+QUnit.testStart(function () {
+    containerCaptureEventRaised = false;
+    containerBubbleEventRaised  = false;
+    elementCaptureEventRaised   = false;
+    elementBubbleEventRaised    = false;
+    uiElementCaptureEventRaised = false;
+    uiElementBubbleEventRaised  = false;
+
+    $container = $('<div>').appendTo('body');
+    container  = $container[0];
+    $input     = $('<input>').appendTo($container);
+    input      = $input[0];
+    $uiElement = $('<div>').appendTo($container);
+    uiElement  = $uiElement[0];
+});
+
+QUnit.testDone(function () {
+    $container.remove();
+    $input.remove();
+    $uiElement.remove();
+});
+
+test('initElementListening', function () {
+    var event                = 'click';
+    var firstHandlerCounter  = 0;
+    var secondHandlerCounter = 0;
+    var thirdHandlerCounter  = 0;
+    var fourthHandlerCounter = 0;
+
+    var firstHandler = function () {
+        firstHandlerCounter++;
     };
 
-    var containerBubbleHandler = function () {
-        containerBubbleEventRaised = true;
+    var secondHandler = function () {
+        secondHandlerCounter++;
     };
 
-    var elementCaptureHandler = function () {
-        elementCaptureEventRaised = true;
+    var thirdHandler = function () {
+        thirdHandlerCounter++;
     };
 
-    var elementBubbleHandler = function () {
-        elementBubbleEventRaised = true;
+    var fourthHandler = function () {
+        fourthHandlerCounter++;
     };
 
-    var uiElementCaptureHandler = function () {
-        uiElementCaptureEventRaised = true;
-    };
+    listeners.initElementListening(container, [event]);
 
-    var uiElementBubbleHandler = function () {
-        uiElementBubbleEventRaised = true;
-    };
-
-    var bindAll = function (event) {
-        container.addEventListener(event, containerCaptureHandler, true);
-        container.addEventListener(event, containerBubbleHandler, false);
-        input.addEventListener(event, elementCaptureHandler, true);
-        input.addEventListener(event, elementBubbleHandler, false);
-        uiElement.addEventListener(event, uiElementCaptureHandler, true);
-        uiElement.addEventListener(event, uiElementBubbleHandler, false);
-    };
-
-    var dispatchEvent = function (el, type) {
-        var ev = document.createEvent('MouseEvents');
-
-        ev.initMouseEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, el);
-
-        el.dispatchEvent(ev);
-    };
-
-    var dispatchPointerEvent = function (el, type) {
-        var pointEvent = browserUtils.isIE11 ? document.createEvent('PointerEvent') : document.createEvent('MSPointerEvent');
-
-        pointEvent.initPointerEvent(type, true, true, window, 0, 0,
-            0, 0, 0, false, false, false, false, 0, null, 0, 0, 0, 0, 0.5, 0, 0, 0, 1, 'mouse', Date.now(), true);
-
-        el.dispatchEvent(pointEvent);
-    };
-
-    QUnit.testStart(function () {
-        containerCaptureEventRaised = false;
-        containerBubbleEventRaised  = false;
-        elementCaptureEventRaised   = false;
-        elementBubbleEventRaised    = false;
-        uiElementCaptureEventRaised = false;
-        uiElementBubbleEventRaised  = false;
-
-        $container = $('<div>').appendTo('body');
-        container  = $container[0];
-        $input     = $('<input>').appendTo($container);
-        input      = $input[0];
-        $uiElement = $('<div>').appendTo($container);
-        uiElement  = $uiElement[0];
+    listeners.addInternalEventListener(container, [event], function () {
     });
 
-    QUnit.testDone(function () {
-        $container.remove();
-        $input.remove();
-        $uiElement.remove();
-    });
+    function checkHandlerCounters (first, second, third, fourth) {
+        strictEqual(firstHandlerCounter, first);
+        strictEqual(secondHandlerCounter, second);
+        strictEqual(thirdHandlerCounter, third);
+        strictEqual(fourthHandlerCounter, fourth);
+    }
 
-    test('initElementListening', function () {
-        var event                = 'click';
-        var firstHandlerCounter  = 0;
-        var secondHandlerCounter = 0;
-        var thirdHandlerCounter  = 0;
-        var fourthHandlerCounter = 0;
+    // NOTE: Because of T233158 - Wrong test run for a mouse click in IE
+    // there should be different handlers.
+    container.addEventListener(event, firstHandler, true);
+    container.addEventListener(event, secondHandler);
+    container.addEventListener(event, thirdHandler, true);
+    container.addEventListener(event, fourthHandler, false);
 
-        var firstHandler = function () {
-            firstHandlerCounter++;
-        };
+    dispatchEvent(container, event);
 
-        var secondHandler = function () {
-            secondHandlerCounter++;
-        };
+    checkHandlerCounters(1, 1, 1, 1);
 
-        var thirdHandler = function () {
-            thirdHandlerCounter++;
-        };
+    container.removeEventListener(event, firstHandler, true);
+    container.removeEventListener(event, fourthHandler);
 
-        var fourthHandler = function () {
-            fourthHandlerCounter++;
-        };
+    dispatchEvent(container, event);
 
-        listeners.initElementListening(container, [event]);
+    checkHandlerCounters(1, 2, 2, 1);
 
-        listeners.addInternalEventListener(container, [event], function () {
-        });
+    container.removeEventListener(event, secondHandler, false);
+    container.removeEventListener(event, thirdHandler, true);
 
-        function checkHandlerCounters (first, second, third, fourth) {
-            strictEqual(firstHandlerCounter, first);
-            strictEqual(secondHandlerCounter, second);
-            strictEqual(thirdHandlerCounter, third);
-            strictEqual(fourthHandlerCounter, fourth);
+    dispatchEvent(container, event);
+
+    checkHandlerCounters(1, 2, 2, 1);
+});
+
+test('stop propagation', function () {
+    var event = 'focus';
+
+    var testStopPropagation = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
+        strictEqual(e.type, event);
+        stopPropagation();
+    };
+
+    listeners.initElementListening(container, [event]);
+    listeners.addInternalEventListener(container, [event], testStopPropagation);
+    bindAll(event);
+
+    notEqual(domUtils.getActiveElement(), input);
+    input.focus();
+
+    ok(!containerCaptureEventRaised);
+    ok(!containerBubbleEventRaised);
+    ok(!elementCaptureEventRaised);
+    ok(!elementBubbleEventRaised);
+
+    strictEqual(domUtils.getActiveElement(), input);
+});
+
+test('add wrapper', function () {
+    var event = 'click';
+
+    var onclick1 = function () {
+        strictEqual(this, input);
+    };
+
+    var clickListenersWrapper = function (e, originListener) {
+        originListener.call(input, e);
+    };
+
+    listeners.setEventListenerWrapper(container, [event], clickListenersWrapper);
+    container.addEventListener(event, onclick1, true);
+
+    expect(1);
+
+    dispatchEvent(container, event);
+});
+
+module('prevent event');
+
+test('preventer added before listener', function () {
+    var event              = 'click';
+    var preventEventRaised = false;
+
+    var testPreventEvent = function (e, dispatched, preventEvent) {
+        strictEqual(e.type, event);
+        preventEventRaised = true;
+        preventEvent();
+    };
+
+    listeners.initElementListening(container, [event]);
+    listeners.addInternalEventListener(container, [event], testPreventEvent);
+    bindAll(event);
+    dispatchEvent(input, event);
+
+    ok(preventEventRaised);
+    ok(!containerCaptureEventRaised);
+    ok(!containerBubbleEventRaised);
+    ok(!elementCaptureEventRaised);
+    ok(!elementBubbleEventRaised);
+
+    preventEventRaised = false;
+    listeners.removeInternalEventListener(container, [event], testPreventEvent);
+    dispatchEvent(input, event);
+
+    ok(!preventEventRaised);
+    ok(containerCaptureEventRaised);
+    ok(containerBubbleEventRaised);
+    ok(elementCaptureEventRaised);
+    ok(elementBubbleEventRaised);
+});
+
+test('preventer added after listener', function () {
+    var event              = 'click';
+    var preventEventRaised = false;
+
+    var testPreventEvent = function (e, dispatched, preventEvent) {
+        strictEqual(e.type, event);
+        preventEventRaised = true;
+        preventEvent();
+    };
+
+    listeners.initElementListening(container, [event]);
+    bindAll(event);
+    listeners.addInternalEventListener(container, [event], testPreventEvent);
+    dispatchEvent(input, event);
+
+    ok(preventEventRaised);
+    ok(!containerCaptureEventRaised);
+    ok(!containerBubbleEventRaised);
+    ok(!elementCaptureEventRaised);
+    ok(!elementBubbleEventRaised);
+});
+
+test('append several handlers', function () {
+    var event1              = 'click';
+    var event2              = 'mousedown';
+    var handler1Raised      = false;
+    var handler2Raised      = false;
+    var preventEventCounter = 0;
+
+    var handler1 = function () {
+        handler1Raised = true;
+    };
+
+    var handler2 = function () {
+        handler2Raised = true;
+    };
+
+    var testPreventEvent = function (e, dispatched, preventEvent) {
+        preventEventCounter++;
+        preventEvent();
+    };
+
+    listeners.initElementListening(container, [event1, event2]);
+    listeners.addInternalEventListener(container, [event1], handler1);
+    listeners.addInternalEventListener(container, [event1], testPreventEvent);
+    listeners.addInternalEventListener(container, [event1], handler2);
+    listeners.addInternalEventListener(container, [event2], testPreventEvent);
+
+    bindAll(event1);
+    bindAll(event2);
+
+    dispatchEvent(input, event1);
+    dispatchEvent(input, event2);
+
+    strictEqual(preventEventCounter, 2);
+    ok(handler1Raised);
+    ok(!handler2Raised);
+    ok(!containerCaptureEventRaised);
+    ok(!containerBubbleEventRaised);
+    ok(!elementCaptureEventRaised);
+    ok(!elementBubbleEventRaised);
+});
+
+module('cancel handlers');
+
+test('canceller added after listener', function () {
+    var event                = 'click';
+    var cancelHandlersRaised = false;
+
+    var testCancelHandlers = function (e, dispatched, preventEvent, cancelHandlers) {
+        strictEqual(e.type, event);
+        cancelHandlersRaised = true;
+        cancelHandlers();
+    };
+
+    listeners.initElementListening(container, [event]);
+    bindAll(event);
+    listeners.addInternalEventListener(container, [event], testCancelHandlers);
+    dispatchEvent(uiElement, event);
+
+    ok(cancelHandlersRaised);
+    ok(!containerCaptureEventRaised);
+    ok(!containerBubbleEventRaised);
+    ok(!elementCaptureEventRaised);
+    ok(!elementBubbleEventRaised);
+    ok(uiElementCaptureEventRaised);
+    ok(uiElementBubbleEventRaised);
+
+    listeners.removeInternalEventListener(container, [event], testCancelHandlers);
+});
+
+module('regression');
+
+test('ie service handlers should be ignored (GH-379)', function () {
+    var ieServiceHandlerMock = {
+        toString: function () {
+            return '[object FunctionWrapper]';
         }
+    };
 
-        // NOTE: Because of T233158 - Wrong test run for a mouse click in IE
-        // there should be different handlers.
-        container.addEventListener(event, firstHandler, true);
-        container.addEventListener(event, secondHandler);
-        container.addEventListener(event, thirdHandler, true);
-        container.addEventListener(event, fourthHandler, false);
+    var listenerWrapper = Listeners._getEventListenerWrapper({}, ieServiceHandlerMock);
 
-        dispatchEvent(container, event);
+    strictEqual(listenerWrapper(), null);
+});
 
-        checkHandlerCounters(1, 1, 1, 1);
+test('only one of several handlers must be called (document handlers) (T233158)', function () {
+    var event               = 'click';
+    var clickHandlerCounter = 0;
 
-        container.removeEventListener(event, firstHandler, true);
-        container.removeEventListener(event, fourthHandler);
+    var clickHandler = function () {
+        clickHandlerCounter++;
+    };
 
-        dispatchEvent(container, event);
+    listeners.initElementListening(document, [event]);
 
-        checkHandlerCounters(1, 2, 2, 1);
-
-        container.removeEventListener(event, secondHandler, false);
-        container.removeEventListener(event, thirdHandler, true);
-
-        dispatchEvent(container, event);
-
-        checkHandlerCounters(1, 2, 2, 1);
+    listeners.addInternalEventListener(document, [event], function () {
     });
 
-    test('stop propagation', function () {
-        var event = 'focus';
+    var $document = $(document);
 
-        var testStopPropagation = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
-            strictEqual(e.type, event);
-            stopPropagation();
-        };
+    document.addEventListener(event, clickHandler, true);
+    document.addEventListener(event, clickHandler, true);
+    document.addEventListener(event, clickHandler, true);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 1);
 
-        listeners.initElementListening(container, [event]);
-        listeners.addInternalEventListener(container, [event], testStopPropagation);
-        bindAll(event);
+    document.removeEventListener(event, clickHandler, true);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 1);
 
-        notEqual(domUtils.getActiveElement(), input);
-        input.focus();
+    $document.bind('click', clickHandler);
+    $document.bind('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 3);
 
-        ok(!containerCaptureEventRaised);
-        ok(!containerBubbleEventRaised);
-        ok(!elementCaptureEventRaised);
-        ok(!elementBubbleEventRaised);
+    $document.unbind('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 3);
 
-        strictEqual(domUtils.getActiveElement(), input);
+    $document.on('click', clickHandler);
+    $document.on('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 5);
+
+    $document.off('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 5);
+
+    document.addEventListener(event, clickHandler, true);
+    $document.bind('click', clickHandler);
+    $document.on('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 8);
+    document.removeEventListener(event, clickHandler, true);
+    $document.unbind('click', clickHandler);
+    $document.off('click', clickHandler);
+
+    document.addEventListener(event, clickHandler, true);
+    document.addEventListener(event, clickHandler, false);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 10);
+
+    document.removeEventListener(event, clickHandler, true);
+    document.removeEventListener(event, clickHandler, false);
+});
+
+test('only one of several handlers must be called (document handlers) (T233158)', function () {
+    var event               = 'click';
+    var clickHandlerCounter = 0;
+
+    var clickHandler = function () {
+        clickHandlerCounter++;
+    };
+
+    listeners.initElementListening(document, [event]);
+
+    listeners.addInternalEventListener(document, [event], function () {
     });
 
-    test('add wrapper', function () {
-        var event = 'click';
+    var $document = $(document);
 
-        var onclick1 = function () {
-            strictEqual(this, input);
-        };
+    document.addEventListener(event, clickHandler, true);
+    document.addEventListener(event, clickHandler, true);
+    document.addEventListener(event, clickHandler, true);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 1);
 
-        var clickListenersWrapper = function (e, originListener) {
-            originListener.call(input, e);
-        };
+    document.removeEventListener(event, clickHandler, true);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 1);
 
-        listeners.setEventListenerWrapper(container, [event], clickListenersWrapper);
-        container.addEventListener(event, onclick1, true);
+    $document.bind('click', clickHandler);
+    $document.bind('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 3);
 
-        expect(1);
+    $document.unbind('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 3);
 
-        dispatchEvent(container, event);
+    $document.on('click', clickHandler);
+    $document.on('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 5);
+
+    $document.off('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 5);
+
+    document.addEventListener(event, clickHandler, true);
+    $document.bind('click', clickHandler);
+    $document.on('click', clickHandler);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 8);
+    document.removeEventListener(event, clickHandler, true);
+    $document.unbind('click', clickHandler);
+    $document.off('click', clickHandler);
+
+    document.addEventListener(event, clickHandler, true);
+    document.addEventListener(event, clickHandler, false);
+    dispatchEvent(document, event);
+    strictEqual(clickHandlerCounter, 10);
+
+    document.removeEventListener(event, clickHandler, true);
+    document.removeEventListener(event, clickHandler, false);
+});
+
+test('only one of several handlers must be called (body handlers) (T233158)', function () {
+    var event               = 'click';
+    var clickHandlerCounter = 0;
+
+    var clickHandler = function () {
+        clickHandlerCounter++;
+    };
+
+    listeners.initElementListening(document, [event]);
+
+    listeners.addInternalEventListener(document, [event], function () {
     });
 
-    module('prevent event');
+    document.body.addEventListener(event, clickHandler, true);
+    document.body.addEventListener(event, clickHandler, true);
+    document.body.addEventListener(event, clickHandler, false);
 
-    test('preventer added before listener', function () {
-        var event              = 'click';
-        var preventEventRaised = false;
+    var $body = $('body');
 
-        var testPreventEvent = function (e, dispatched, preventEvent) {
-            strictEqual(e.type, event);
-            preventEventRaised = true;
-            preventEvent();
-        };
+    $body.bind('click', clickHandler);
+    $body.bind('click', clickHandler);
+    $body.on('click', clickHandler);
+    $body.on('click', clickHandler);
 
-        listeners.initElementListening(container, [event]);
-        listeners.addInternalEventListener(container, [event], testPreventEvent);
-        bindAll(event);
-        dispatchEvent(input, event);
+    dispatchEvent(document.body, event);
+    strictEqual(clickHandlerCounter, 6);
 
-        ok(preventEventRaised);
-        ok(!containerCaptureEventRaised);
-        ok(!containerBubbleEventRaised);
-        ok(!elementCaptureEventRaised);
-        ok(!elementBubbleEventRaised);
+    document.body.removeEventListener(event, clickHandler, true);
+    document.body.removeEventListener(event, clickHandler, false);
+    $body.unbind('click', clickHandler);
+    $body.off('click', clickHandler);
+});
 
-        preventEventRaised = false;
-        listeners.removeInternalEventListener(container, [event], testPreventEvent);
-        dispatchEvent(input, event);
+test('only one of several handlers must be called (element handlers) (T233158)', function () {
+    var event               = 'click';
+    var clickHandlerCounter = 0;
 
-        ok(!preventEventRaised);
-        ok(containerCaptureEventRaised);
-        ok(containerBubbleEventRaised);
-        ok(elementCaptureEventRaised);
-        ok(elementBubbleEventRaised);
+    var clickHandler = function () {
+        clickHandlerCounter++;
+    };
+
+    listeners.initElementListening(document, [event]);
+
+    listeners.addInternalEventListener(document, [event], function () {
     });
 
-    test('preventer added after listener', function () {
-        var event              = 'click';
-        var preventEventRaised = false;
+    container.addEventListener(event, clickHandler, true);
+    container.addEventListener(event, clickHandler, true);
+    container.addEventListener(event, clickHandler, false);
+    $container.bind('click', clickHandler);
+    $container.bind('click', clickHandler);
+    $container.on('click', clickHandler);
+    $container.on('click', clickHandler);
 
-        var testPreventEvent = function (e, dispatched, preventEvent) {
-            strictEqual(e.type, event);
-            preventEventRaised = true;
-            preventEvent();
+    dispatchEvent(container, event);
+    strictEqual(clickHandlerCounter, 6);
+
+    container.removeEventListener(event, clickHandler, true);
+    container.removeEventListener(event, clickHandler, false);
+    $container.unbind('click', clickHandler);
+    $container.off('click', clickHandler);
+});
+
+if (browserUtils.isIE && browserUtils.version >= 10) {
+    test('only one of several handlers must be called (MSPointerDown, pointerdown combination) (T233158)', function () {
+        var events              = browserUtils.isMSEdge ? 'pointerdown MSPointerDown' : 'pointerdown';
+        var eventHandlerCounter = 0;
+
+        var handler = function () {
+            eventHandlerCounter++;
         };
 
-        listeners.initElementListening(container, [event]);
-        bindAll(event);
-        listeners.addInternalEventListener(container, [event], testPreventEvent);
-        dispatchEvent(input, event);
+        listeners.initElementListening(document, [events]);
 
-        ok(preventEventRaised);
-        ok(!containerCaptureEventRaised);
-        ok(!containerBubbleEventRaised);
-        ok(!elementCaptureEventRaised);
-        ok(!elementBubbleEventRaised);
-    });
-
-    test('append several handlers', function () {
-        var event1              = 'click';
-        var event2              = 'mousedown';
-        var handler1Raised      = false;
-        var handler2Raised      = false;
-        var preventEventCounter = 0;
-
-        var handler1 = function () {
-            handler1Raised = true;
-        };
-
-        var handler2 = function () {
-            handler2Raised = true;
-        };
-
-        var testPreventEvent = function (e, dispatched, preventEvent) {
-            preventEventCounter++;
-            preventEvent();
-        };
-
-        listeners.initElementListening(container, [event1, event2]);
-        listeners.addInternalEventListener(container, [event1], handler1);
-        listeners.addInternalEventListener(container, [event1], testPreventEvent);
-        listeners.addInternalEventListener(container, [event1], handler2);
-        listeners.addInternalEventListener(container, [event2], testPreventEvent);
-
-        bindAll(event1);
-        bindAll(event2);
-
-        dispatchEvent(input, event1);
-        dispatchEvent(input, event2);
-
-        strictEqual(preventEventCounter, 2);
-        ok(handler1Raised);
-        ok(!handler2Raised);
-        ok(!containerCaptureEventRaised);
-        ok(!containerBubbleEventRaised);
-        ok(!elementCaptureEventRaised);
-        ok(!elementBubbleEventRaised);
-    });
-
-    module('cancel handlers');
-
-    test('canceller added betfore listener', function () {
-        var event                = 'click';
-        var cancelHandlersRaised = false;
-
-        var testCancelHandlers = function (e, dispatched, preventEvent, cancelHandlers) {
-            strictEqual(e.type, event);
-            cancelHandlersRaised = true;
-            cancelHandlers();
-        };
-
-        listeners.initElementListening(container, [event]);
-        listeners.addInternalEventListener(container, [event], testCancelHandlers);
-        bindAll(event);
-        dispatchEvent(uiElement, event);
-
-        ok(cancelHandlersRaised);
-        ok(!containerCaptureEventRaised);
-        ok(!containerBubbleEventRaised);
-        ok(!elementCaptureEventRaised);
-        ok(!elementBubbleEventRaised);
-        ok(uiElementCaptureEventRaised);
-        ok(uiElementBubbleEventRaised);
-
-        listeners.removeInternalEventListener(container, [event], testCancelHandlers);
-    });
-
-    test('canceller added after listener', function () {
-        var event                = 'click';
-        var cancelHandlersRaised = false;
-
-        var testCancelHandlers = function (e, dispatched, preventEvent, cancelHandlers) {
-            strictEqual(e.type, event);
-            cancelHandlersRaised = true;
-            cancelHandlers();
-        };
-
-        listeners.initElementListening(container, [event]);
-        bindAll(event);
-        listeners.addInternalEventListener(container, [event], testCancelHandlers);
-        dispatchEvent(uiElement, event);
-
-        ok(cancelHandlersRaised);
-        ok(!containerCaptureEventRaised);
-        ok(!containerBubbleEventRaised);
-        ok(!elementCaptureEventRaised);
-        ok(!elementBubbleEventRaised);
-        ok(uiElementCaptureEventRaised);
-        ok(uiElementBubbleEventRaised);
-
-        listeners.removeInternalEventListener(container, [event], testCancelHandlers);
-    });
-
-    module('regression');
-
-    test('only one of several handlers must be called (document handlers) (T233158)', function () {
-        var event               = 'click';
-        var clickHandlerCounter = 0;
-
-        var clickHandler = function () {
-            clickHandlerCounter++;
-        };
-
-        listeners.initElementListening(document, [event]);
-
-        listeners.addInternalEventListener(document, [event], function () {
+        listeners.addInternalEventListener(document, [events], function () {
         });
+
+        document.addEventListener('pointerdown', handler, true);
+        document.addEventListener('pointerdown', handler, true);
+        dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
+        strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 1 : 0);
+
+        document.addEventListener('pointerdown', handler, true);
+        document.addEventListener('pointerdown', handler, false);
+        dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
+        strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 3 : 0);
+        document.removeEventListener('pointerdown', handler, true);
+        document.removeEventListener('pointerdown', handler, false);
 
         var $document = $(document);
 
-        document.addEventListener(event, clickHandler, true);
-        document.addEventListener(event, clickHandler, true);
-        document.addEventListener(event, clickHandler, true);
-        dispatchEvent(document, event);
-        strictEqual(clickHandlerCounter, 1);
+        $document.bind('pointerdown', handler);
+        $document.bind('pointerdown', handler);
+        dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
+        strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 5 : 0);
+        $document.unbind('pointerdown', handler);
 
-        document.removeEventListener(event, clickHandler, true);
-        dispatchEvent(document, event);
-        strictEqual(clickHandlerCounter, 1);
+        $document.on('pointerdown', handler);
+        $document.on('pointerdown', handler);
+        dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
+        strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 7 : 0);
+        $document.off('pointerdown', handler);
 
-        $document.bind('click', clickHandler);
-        $document.bind('click', clickHandler);
-        dispatchEvent(document, event);
-        strictEqual(clickHandlerCounter, 3);
-
-        $document.unbind('click', clickHandler);
-        dispatchEvent(document, event);
-        strictEqual(clickHandlerCounter, 3);
-
-        $document.on('click', clickHandler);
-        $document.on('click', clickHandler);
-        dispatchEvent(document, event);
-        strictEqual(clickHandlerCounter, 5);
-
-        $document.off('click', clickHandler);
-        dispatchEvent(document, event);
-        strictEqual(clickHandlerCounter, 5);
-
-        document.addEventListener(event, clickHandler, true);
-        $document.bind('click', clickHandler);
-        $document.on('click', clickHandler);
-        dispatchEvent(document, event);
-        strictEqual(clickHandlerCounter, 8);
-        document.removeEventListener(event, clickHandler, true);
-        $document.unbind('click', clickHandler);
-        $document.off('click', clickHandler);
-
-        document.addEventListener(event, clickHandler, true);
-        document.addEventListener(event, clickHandler, false);
-        dispatchEvent(document, event);
-        strictEqual(clickHandlerCounter, 10);
-
-        document.removeEventListener(event, clickHandler, true);
-        document.removeEventListener(event, clickHandler, false);
-    });
-
-    test('only one of several handlers must be called (body handlers) (T233158)', function () {
-        var event               = 'click';
-        var clickHandlerCounter = 0;
-
-        var clickHandler = function () {
-            clickHandlerCounter++;
-        };
-
-        listeners.initElementListening(document, [event]);
-
-        listeners.addInternalEventListener(document, [event], function () {
-        });
-
-        document.body.addEventListener(event, clickHandler, true);
-        document.body.addEventListener(event, clickHandler, true);
-        document.body.addEventListener(event, clickHandler, false);
-
-        var $body = $('body');
-
-        $body.bind('click', clickHandler);
-        $body.bind('click', clickHandler);
-        $body.on('click', clickHandler);
-        $body.on('click', clickHandler);
-
-        dispatchEvent(document.body, event);
-        strictEqual(clickHandlerCounter, 6);
-
-        document.body.removeEventListener(event, clickHandler, true);
-        document.body.removeEventListener(event, clickHandler, false);
-        $body.unbind('click', clickHandler);
-        $body.off('click', clickHandler);
-    });
-
-    test('only one of several handlers must be called (element handlers) (T233158)', function () {
-        var event               = 'click';
-        var clickHandlerCounter = 0;
-
-        var clickHandler = function () {
-            clickHandlerCounter++;
-        };
-
-        listeners.initElementListening(document, [event]);
-
-        listeners.addInternalEventListener(document, [event], function () {
-        });
-
-        container.addEventListener(event, clickHandler, true);
-        container.addEventListener(event, clickHandler, true);
-        container.addEventListener(event, clickHandler, false);
-        $container.bind('click', clickHandler);
-        $container.bind('click', clickHandler);
-        $container.on('click', clickHandler);
-        $container.on('click', clickHandler);
-
-        dispatchEvent(container, event);
-        strictEqual(clickHandlerCounter, 6);
-
-        container.removeEventListener(event, clickHandler, true);
-        container.removeEventListener(event, clickHandler, false);
-        $container.unbind('click', clickHandler);
-        $container.off('click', clickHandler);
-    });
-
-    if (browserUtils.isIE && browserUtils.version >= 10) {
-        test('only one of several handlers must be called (MSPointerDown, pointerdown combination) (T233158)', function () {
-            var events              = browserUtils.isMSEdge ? 'pointerdown MSPointerDown' : 'pointerdown';
-            var eventHandlerCounter = 0;
-
-            var handler = function () {
-                eventHandlerCounter++;
-            };
-
-            listeners.initElementListening(document, [events]);
-
-            listeners.addInternalEventListener(document, [events], function () {
-            });
-
+        if (browserUtils.version < 12) {
             document.addEventListener('pointerdown', handler, true);
-            document.addEventListener('pointerdown', handler, true);
-            dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 1 : 0);
+            document.addEventListener('MSPointerDown', handler, true);
+            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
+            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 8 : 1);
 
-            document.addEventListener('pointerdown', handler, true);
-            document.addEventListener('pointerdown', handler, false);
-            dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 3 : 0);
             document.removeEventListener('pointerdown', handler, true);
-            document.removeEventListener('pointerdown', handler, false);
+            document.addEventListener('MSPointerDown', handler, true);
+            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
+            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 9 : 2);
 
-            var $document = $(document);
+            document.removeEventListener('MSPointerDown', handler, true);
+            document.addEventListener('MSPointerDown', handler, true);
+            document.addEventListener('MSPointerDown', handler, false);
+            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
+            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 11 : 4);
+            document.removeEventListener('MSPointerDown', handler, true);
+            document.removeEventListener('MSPointerDown', handler, false);
+
+            document.addEventListener('pointerdown', handler, true);
+            document.addEventListener('MSPointerDown', handler, false);
+            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
+            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 13 : 5);
+            document.removeEventListener('pointerdown', handler, true);
+            document.removeEventListener('MSPointerDown', handler, false);
 
             $document.bind('pointerdown', handler);
-            $document.bind('pointerdown', handler);
-            dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 5 : 0);
+            $document.bind('MSPointerDown', handler);
+            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
+            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 14 : 6);
             $document.unbind('pointerdown', handler);
+            $document.unbind('MSPointerDown', handler);
+
+            $document.bind('MSPointerDown', handler);
+            $document.bind('MSPointerDown', handler);
+            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
+            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 14 : 8);
+            $document.unbind('MSPointerDown', handler);
 
             $document.on('pointerdown', handler);
-            $document.on('pointerdown', handler);
-            dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 7 : 0);
+            $document.on('MSPointerDown', handler);
+            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
+            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 15 : 9);
             $document.off('pointerdown', handler);
+            $document.off('MSPointerDown', handler);
 
-            if (browserUtils.version < 12) {
-                document.addEventListener('pointerdown', handler, true);
-                document.addEventListener('MSPointerDown', handler, true);
-                dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-                strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 8 : 1);
-
-                document.removeEventListener('pointerdown', handler, true);
-                document.addEventListener('MSPointerDown', handler, true);
-                dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-                strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 9 : 2);
-
-                document.removeEventListener('MSPointerDown', handler, true);
-                document.addEventListener('MSPointerDown', handler, true);
-                document.addEventListener('MSPointerDown', handler, false);
-                dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-                strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 11 : 4);
-                document.removeEventListener('MSPointerDown', handler, true);
-                document.removeEventListener('MSPointerDown', handler, false);
-
-                document.addEventListener('pointerdown', handler, true);
-                document.addEventListener('MSPointerDown', handler, false);
-                dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-                strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 13 : 5);
-                document.removeEventListener('pointerdown', handler, true);
-                document.removeEventListener('MSPointerDown', handler, false);
-
-                $document.bind('pointerdown', handler);
-                $document.bind('MSPointerDown', handler);
-                dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-                strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 14 : 6);
-                $document.unbind('pointerdown', handler);
-                $document.unbind('MSPointerDown', handler);
-
-                $document.bind('MSPointerDown', handler);
-                $document.bind('MSPointerDown', handler);
-                dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-                strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 14 : 8);
-                $document.unbind('MSPointerDown', handler);
-
-                $document.on('pointerdown', handler);
-                $document.on('MSPointerDown', handler);
-                dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-                strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 15 : 9);
-                $document.off('pointerdown', handler);
-                $document.off('MSPointerDown', handler);
-
-                $document.on('MSPointerDown', handler);
-                $document.on('MSPointerDown', handler);
-                dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-                strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 15 : 11);
-                $document.off('MSPointerDown', handler);
-            }
-        });
-    }
-});
+            $document.on('MSPointerDown', handler);
+            $document.on('MSPointerDown', handler);
+            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
+            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 15 : 11);
+            $document.off('MSPointerDown', handler);
+        }
+    });
+}
