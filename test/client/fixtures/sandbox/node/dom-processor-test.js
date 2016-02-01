@@ -407,9 +407,9 @@ test('script and style content added via a child text node must be overridden (G
     var styleTextNode2 = document.createTextNode('div.class2 { background-image: url("/image2.png"); }');
 
     style.appendChild(styleTextNode1);
-    ok(style.childNodes[0].data, urlUtils.getProxyUrl('/image1.png') > -1);
+    ok(style.childNodes[0].data.indexOf(urlUtils.getProxyUrl('/image1.png')) > -1);
     style.insertBefore(styleTextNode2, styleTextNode1);
-    ok(style.childNodes[0].data, urlUtils.getProxyUrl('/image2.png') > -1);
+    ok(style.childNodes[0].data.indexOf(urlUtils.getProxyUrl('/image2.png')) > -1);
 
     var script          = document.createElement('script');
     var scriptTextNode1 = document.createTextNode('var host1 = location.host');
