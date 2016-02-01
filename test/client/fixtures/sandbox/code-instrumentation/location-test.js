@@ -96,9 +96,21 @@ if (browserUtils.isWebKit) {
 }
 
 test('iframe', function () {
-    var checkProp = function (prop, value) {
-        var windowMock                                               = {
-            location: urlUtils.getProxyUrl('http://google.net:90/'),
+    var getWindowMock = function () {
+        return {
+            location: {
+                toString: function () {
+                    return this.val || urlUtils.getProxyUrl('http://domain.com:90/');
+                },
+
+                assign: function (url) {
+                    this.val = url;
+                },
+
+                replace: function (url) {
+                    this.val = url;
+                }
+            },
 
             top: {
                 document: document
@@ -106,46 +118,39 @@ test('iframe', function () {
 
             document: {}
         };
-
-        new CodeInstrumentation({}, {}).attach(windowMock);
-        LocationInstrumentation.getLocationWrapper(windowMock)[prop] = value;
-        strictEqual(urlUtils.getProxyUrl(windowMock.location).resourceType, urlUtils.Iframe);
     };
 
-    var checkFunc = function (func, value) {
-        var windowMock = {
-            location: {
-                toString: function () {
-                    return urlUtils.getProxyUrl('http://google.net:90/');
-                },
-
-                assign: function (val) {
-                    windowMock.location.assignValue = val;
-                },
-
-                replace: function (val) {
-                    windowMock.location.replaceValue = val;
-                }
-            },
-
-            document: {},
-            top:      { document: document }
-        };
-
-        new CodeInstrumentation({}, {}).attach(windowMock);
-        LocationInstrumentation.getLocationWrapper(windowMock)[func](value);
-        strictEqual(urlUtils.getProxyUrl(windowMock.location[func + 'Value']).resourceType, urlUtils.Iframe);
+    var getProxy = function (url) {
+        return urlUtils.getProxyUrl(url, null, null, null, 'i');
     };
 
-    checkProp('port', 1333);
-    checkProp('host', 'google.com:80');
-    checkProp('hostname', 'google.com');
-    checkProp('pathname', '/index.html');
-    checkProp('protocol', 'https:');
-    checkProp('href', 'http://google.com');
-    checkProp('search', '?param=value');
-    checkFunc('assign', 'http://google.com');
-    checkFunc('replace', 'http://google.com');
+    var windowMock = getWindowMock();
+
+    new CodeInstrumentation({}, {}).attach(windowMock);
+
+    var wrapper = LocationInstrumentation.getLocationWrapper(windowMock);
+
+    wrapper.port     = 1333;
+    strictEqual(windowMock.location, getProxy('http://domain.com:1333/'));
+    wrapper.host     = 'new.domain.com:1222';
+    strictEqual(windowMock.location, getProxy('http://new.domain.com:1222/'));
+    wrapper.hostname = 'domain.com';
+    strictEqual(windowMock.location, getProxy('http://domain.com:1222/'));
+    wrapper.pathname = '/index.html';
+    strictEqual(windowMock.location, getProxy('http://domain.com:1222/index.html'));
+    wrapper.protocol = 'https:';
+    strictEqual(windowMock.location, getProxy('https://domain.com:1222/index.html'));
+    wrapper.search   = '?param=value';
+    strictEqual(windowMock.location, getProxy('https://domain.com:1222/index.html?param=value'));
+
+    windowMock = getWindowMock();
+    new CodeInstrumentation({}, {}).attach(windowMock);
+    wrapper    = LocationInstrumentation.getLocationWrapper(windowMock);
+
+    wrapper.assign('http://new.domain.com:1444');
+    strictEqual(windowMock.location.toString(), getProxy('http://new.domain.com:1444'));
+    wrapper.replace('https://domain.com:1555/index.html');
+    strictEqual(windowMock.location.toString(), getProxy('https://domain.com:1555/index.html'));
 });
 
 test('get location origin', function () {

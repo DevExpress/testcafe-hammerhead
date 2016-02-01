@@ -779,5 +779,21 @@ describe('Proxy', function () {
                 done();
             });
         });
+
+        it('Should return 204 status code instead of 200 for the empty form submission response (GH-373)', function (done) {
+            var url     = proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session);
+            var options = {
+                url:     url.replace(session.id, session.id + '!f'),
+                headers: {
+                    accept:            'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                    'x-resource-type': 'text/html; charset=utf-8'
+                }
+            };
+
+            request(options, function (err, res) {
+                expect(res.statusCode).eql(204);
+                done();
+            });
+        });
     });
 });

@@ -91,9 +91,9 @@ asyncTest('element.setAttribute', function () {
                     var nestedIframeBody     = nestedIframeDocument.body;
                     var testData             = [
                         [document.body, 'a', 'href', null, null],
-                        [iframeBody, 'a', 'href', null, 'iframe'],
-                        [document.body, 'form', 'action', null, null],
-                        [iframeBody, 'form', 'action', null, 'iframe'],
+                        [iframeBody, 'a', 'href', null, 'i'],
+                        [document.body, 'form', 'action', null, 'f'],
+                        [iframeBody, 'form', 'action', null, 'if'],
                         [document.body, 'area', 'href', null, null],
                         [iframeBody, 'area', 'href', null, null],
                         [document.body, 'a', 'href', '_top', null],
@@ -101,7 +101,7 @@ asyncTest('element.setAttribute', function () {
                         [nestedIframeBody, 'a', 'href', '_top', null],
                         [document.body, 'a', 'href', '_parent', null],
                         [iframeBody, 'a', 'href', '_parent', null],
-                        [nestedIframeBody, 'a', 'href', '_parent', 'iframe']
+                        [nestedIframeBody, 'a', 'href', '_parent', 'i']
                     ];
 
                     var testIframeFlag = function (body, tag, urlAttr, target, resultFlag) {

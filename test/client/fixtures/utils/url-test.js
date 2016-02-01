@@ -89,9 +89,9 @@ module('get proxy url');
 test('already proxied', function () {
     var destUrl  = 'http://test.example.com/';
     var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
-    var newUrl   = urlUtils.getProxyUrl(proxyUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId', 'iframe');
+    var newUrl   = urlUtils.getProxyUrl(proxyUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId', 'i');
 
-    strictEqual(urlUtils.parseProxyUrl(newUrl).resourceType, 'iframe');
+    strictEqual(urlUtils.parseProxyUrl(newUrl).resourceType, 'i');
 
 });
 
@@ -337,7 +337,7 @@ asyncTest('recreating a document with the "base" tag', function () {
             var iframeDocument = iframe.contentDocument;
             var link           = iframeDocument.getElementsByTagName('a')[0];
             var proxyUrl       = 'http://' + location.hostname + ':' + location.port +
-                                 '/sessionId!iframe/http://subdomain.example.com/index.html';
+                                 '/sessionId!i/http://subdomain.example.com/index.html';
 
             strictEqual(link.href, proxyUrl);
             iframe.parentNode.removeChild(iframe);

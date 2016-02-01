@@ -46,7 +46,7 @@ test('link in iframe', function () {
     domProcessor.processElement(iframeBody.childNodes[0], urlUtils.convertToProxyUrl);
     domProcessor.processElement($link[0], urlUtils.convertToProxyUrl);
 
-    strictEqual(urlUtils.parseProxyUrl(iframeBody.childNodes[0].href).resourceType, 'iframe');
+    strictEqual(urlUtils.parseProxyUrl(iframeBody.childNodes[0].href).resourceType, 'i');
     ok(!urlUtils.parseProxyUrl($link[0].href).resourceType);
 
     $iframe.remove();
@@ -136,7 +136,7 @@ test('script src', function () {
 
     domProcessor.processElement(script, urlUtils.convertToProxyUrl);
 
-    strictEqual(urlUtils.parseProxyUrl(script.src).resourceType, urlUtils.SCRIPT);
+    strictEqual(urlUtils.parseProxyUrl(script.src).resourceType, 's');
 
     settings.get().sessionId = storedSessionId;
 });
@@ -180,7 +180,7 @@ test('javascript protocol', function () {
 test('anchor with target attribute', function () {
     var anchor   = nativeMethods.createElement.call(document, 'a');
     var testUrl  = 'http://url.com/';
-    var proxyUrl = urlUtils.getProxyUrl(testUrl, null, null, null, 'iframe');
+    var proxyUrl = urlUtils.getProxyUrl(testUrl, null, null, null, 'i');
 
     nativeMethods.setAttribute.call(anchor, 'href', testUrl);
     nativeMethods.setAttribute.call(anchor, 'target', 'iframeName');
@@ -225,7 +225,7 @@ test('autocomplete attribute', function () {
 
 test('crossdomain src', function () {
     var url                   = 'http://cross.domain.com/';
-    var proxyUrl              = urlUtils.getProxyUrl(url, location.hostname, 2001, null, 'iframe');
+    var proxyUrl              = urlUtils.getProxyUrl(url, location.hostname, 2001, null, 'i');
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
 
     settings.get().crossDomainProxyPort = 2001;

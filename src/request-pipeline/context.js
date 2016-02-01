@@ -6,6 +6,8 @@ import * as contentTypeUtils from '../utils/content-type';
 // TODO: Rewrite parseProxyUrl instead.
 function flattenParsedProxyUrl (parsed) {
     if (parsed) {
+        var parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
+
         return {
             dest: {
                 url:           parsed.destUrl,
@@ -14,20 +16,15 @@ function flattenParsedProxyUrl (parsed) {
                 hostname:      parsed.destResourceInfo.hostname,
                 port:          parsed.destResourceInfo.port,
                 partAfterHost: parsed.destResourceInfo.partAfterHost,
-                resourceType:  parsed.resourceType,
+                isIframe:      parsedResourceType.isIframe,
+                isForm:        parsedResourceType.isForm,
+                isScript:      parsedResourceType.isScript,
                 charset:       parsed.charset
             },
 
             sessionId: parsed.sessionId
         };
     }
-}
-
-function getContentTypeUrlToken (isScript, isIframe) {
-    if (isScript) return urlUtils.SCRIPT;
-    if (isIframe) return urlUtils.IFRAME;
-
-    return null;
 }
 
 
@@ -97,7 +94,7 @@ export default class RequestPipelineContext {
 
         this.isXhr    = !!this.req.headers[XHR_HEADERS.requestMarker];
         this.isPage   = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader);
-        this.isIframe = this.dest.resourceType === urlUtils.IFRAME;
+        this.isIframe = this.dest.isIframe;
     }
 
     // API
@@ -143,18 +140,20 @@ export default class RequestPipelineContext {
         var accept      = this.req.headers['accept'] || '';
         var encoding    = this.destRes.headers['content-encoding'];
 
-        var isCSS      = contentTypeUtils.isCSSResource(contentType, accept);
-        var isManifest = contentTypeUtils.isManifest(contentType);
-        var isScript   = this.dest.resourceType === urlUtils.SCRIPT ||
-                         contentTypeUtils.isScriptResource(contentType, accept);
+        var isCSS                   = contentTypeUtils.isCSSResource(contentType, accept);
+        var isManifest              = contentTypeUtils.isManifest(contentType);
+        var isScript                = this.dest.isScript || contentTypeUtils.isScriptResource(contentType, accept);
+        var isForm                  = this.dest.isForm;
+        var isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
         var requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
-        var requireProcessing       = !this.isXhr && (this.isPage || this.isIframe || requireAssetsProcessing);
+        var requireProcessing       = !this.isXhr && !isFormWithEmptyResponse &&
+                                      (this.isPage || this.isIframe || requireAssetsProcessing);
 
         var isIframeWithImageSrc = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
         var charset             = null;
-        var contentTypeUrlToken = getContentTypeUrlToken(isScript, this.isIframe);
+        var contentTypeUrlToken = urlUtils.stringifyResourceType(this.isIframe, isForm, isScript);
 
         // NOTE: We need charset information if we are going to process the resource.
         if (requireProcessing) {

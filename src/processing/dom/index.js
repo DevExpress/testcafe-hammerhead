@@ -176,11 +176,20 @@ export default class DomProcessor {
     }
 
     // Utils
+    getElementResourceType (el) {
+        var tagName  = this.adapter.getTagName(el).toLowerCase();
+        var isScript = tagName === 'script';
+        var isForm   = tagName === 'form';
+        var isIframe = tagName === 'iframe' || this._isOpenLinkInIframe(el);
+
+        return urlUtils.stringifyResourceType(isIframe, isForm, isScript);
+    }
+
     getStoredAttrName (attr) {
         return attr + INTERNAL_ATTRS.storedAttrPostfix;
     }
 
-    isOpenLinkInIframe (el) {
+    _isOpenLinkInIframe (el) {
         var tagName = this.adapter.getTagName(el).toLowerCase();
         var target  = this.adapter.getAttr(el, 'target');
 
@@ -393,22 +402,17 @@ export default class DomProcessor {
             // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
                 if (urlUtils.isSupportedProtocol(resourceUrl) && !EMPTY_URL_REG_EX.test(resourceUrl)) {
-                    var elTagName    = this.adapter.getTagName(el).toLowerCase();
-                    var isIframe     = elTagName === 'iframe';
-                    var isScript     = elTagName === 'script';
-                    var resourceType = null;
-                    var target       = this.adapter.getAttr(el, 'target');
+                    var elTagName = this.adapter.getTagName(el).toLowerCase();
+                    var isIframe  = elTagName === 'iframe';
+                    var isScript  = elTagName === 'script';
+                    var target    = this.adapter.getAttr(el, 'target');
 
                     // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
                     // know what is the parent of the processed page (an iframe or the top window).
                     if (!this.adapter.needToProcessUrl(elTagName, target))
                         return;
 
-                    if (isIframe || this.isOpenLinkInIframe(el))
-                        resourceType = urlUtils.IFRAME;
-                    else if (isScript)
-                        resourceType = urlUtils.SCRIPT;
-
+                    var resourceType      = this.getElementResourceType(el);
                     var parsedResourceUrl = urlUtils.parseUrl(resourceUrl);
                     var isRelativePath    = !parsedResourceUrl.host;
                     var proxyUrl          = '';
@@ -425,10 +429,11 @@ export default class DomProcessor {
 
                         // NOTE: Cross-domain iframe.
                         if (!this.adapter.sameOriginCheck(destUrl, resourceUrl)) {
-                            var proxyHostname = urlUtils.parseUrl(location).hostname;
+                            var proxyHostname      = urlUtils.parseUrl(location).hostname;
+                            var iframeResourceType = urlUtils.stringifyResourceType(true);
 
                             proxyUrl = resourceUrl ? this.adapter.getProxyUrl(resourceUrl, proxyHostname,
-                                this.adapter.getCrossDomainPort(), proxyUrlObj.sessionId, urlUtils.IFRAME) : '';
+                                this.adapter.getCrossDomainPort(), proxyUrlObj.sessionId, iframeResourceType) : '';
                         }
 
                     }

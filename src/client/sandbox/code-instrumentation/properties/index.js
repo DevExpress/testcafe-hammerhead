@@ -9,6 +9,7 @@ import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import { isNullOrUndefined, inaccessibleTypeToStr } from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
+import { stringifyResourceType } from '../../../../utils/url';
 import { isStyle } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAnchorProperty, setAnchorProperty } from './anchor';
@@ -310,7 +311,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                             location = destLocation.resolveUrl(location, window.top.document);
 
                         var ownerWindow  = domUtils.isWindow(owner) ? owner : owner.defaultView;
-                        var resourceType = ownerWindow !== window.top ? urlUtils.IFRAME : null;
+                        var resourceType = stringifyResourceType(ownerWindow !== window.top);
 
                         owner.location = urlUtils.getProxyUrl(location, null, null, null, resourceType);
 

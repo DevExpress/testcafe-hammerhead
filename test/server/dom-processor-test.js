@@ -36,7 +36,7 @@ describe('DOM processor', function () {
 
         var script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
 
-        expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!script/http://example.com/script.js');
+        expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!s/http://example.com/script.js');
     });
 
     it('Should process sandboxed <iframe>', function () {
@@ -59,7 +59,7 @@ describe('DOM processor', function () {
 
         var script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
 
-        expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!script/http://example.com/script.js');
+        expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!s/http://example.com/script.js');
     });
 
     it('Should process <img> src', function () {
@@ -135,8 +135,8 @@ describe('DOM processor', function () {
 
         var elements = parse5Utils.findElementsByTagNames(root, ['a', 'form']);
 
-        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.a[0], 'href')).resourceType).eql('iframe');
-        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.form[0], 'action')).resourceType).eql('iframe');
+        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.a[0], 'href')).resourceType).eql('i');
+        expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.form[0], 'action')).resourceType).eql('if');
         expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.a[1], 'href')).resourceType).to.be.null;
         expect(domAdapter.getAttr(elements.a[2], 'href')).eql('http://example.com');
     });
@@ -145,9 +145,9 @@ describe('DOM processor', function () {
         var root                 = process('<iframe src="//cross.domain.com/"></iframe><iframe src="//example.com/"></iframe>');
         var iframes              = parse5Utils.findElementsByTagNames(root, 'iframe').iframe;
         var crossDomainIframeSrc = domAdapter.getAttr(iframes[0], 'src');
-        var crossDomainProxyUrl  = urlUtils.getProxyUrl('http://cross.domain.com/', testProxyHostName, testCrossDomainPort, 'sessionId', 'iframe');
+        var crossDomainProxyUrl  = urlUtils.getProxyUrl('http://cross.domain.com/', testProxyHostName, testCrossDomainPort, 'sessionId', 'i');
         var iframeSrc            = domAdapter.getAttr(iframes[1], 'src');
-        var proxyUrl             = urlUtils.getProxyUrl('http://example.com/', testProxyHostName, testProxyPort, 'sessionId', 'iframe');
+        var proxyUrl             = urlUtils.getProxyUrl('http://example.com/', testProxyHostName, testProxyPort, 'sessionId', 'i');
 
         expect(crossDomainIframeSrc).eql(crossDomainProxyUrl);
         expect(iframeSrc).eql(proxyUrl);
