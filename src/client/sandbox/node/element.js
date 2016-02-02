@@ -7,7 +7,8 @@ import { process as processStyle } from '../../../processing/style';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
-import { sameOriginCheck } from '../../utils/destination-location';
+import * as urlResolver from '../../utils/url-resolver';
+import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
 import { waitCookieMsg } from '../../transport';
@@ -105,6 +106,9 @@ export default class ElementSandbox extends SandboxBase {
                     else if (isIframe || domProcessor.isOpenLinkInIframe(el))
                         resourceType = urlUtils.IFRAME;
 
+                    if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
+                        urlResolver.updateBase(value, this.document);
+
                     value = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
                             urlUtils.getProxyUrl(value, null, null, null, resourceType, elCharset);
                 }
@@ -148,6 +152,9 @@ export default class ElementSandbox extends SandboxBase {
             else
                 removeAttrFunc.apply(el, ns ? [arg[0], storedAttr] : [storedAttr]);
         }
+
+        if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
+            urlResolver.updateBase(getDestLocation(), this.document);
 
         if (attr !== 'autocomplete')
             return removeAttrFunc.apply(el, arg);
@@ -326,6 +333,10 @@ export default class ElementSandbox extends SandboxBase {
         return domProcessor.URL_ATTR_TAGS[attr] && domProcessor.URL_ATTR_TAGS[attr].indexOf(tagName) !== -1;
     }
 
+    static _isHrefAttrForBaseElement (el, attr) {
+        return domUtils.isBaseElement(el) && attr === 'href';
+    }
+
     static _removeFileInputInfo (el) {
         hiddenInfo.removeInputInfo(el);
     }
@@ -349,12 +360,23 @@ export default class ElementSandbox extends SandboxBase {
 
             if (domUtils.isFileInput(el))
                 this.addFileInputInfo(el);
+
+            else if (domUtils.isBaseElement(el)) {
+                var storedHrefAttrName  = domProcessor.getStoredAttrName('href');
+                var storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
+
+                urlResolver.updateBase(storedHrefAttrValue, this.document);
+            }
+
         }
     }
 
     onElementRemoved (el) {
         if (domUtils.isBodyElement(el))
             this.shadowUI.onBodyElementMutation();
+
+        else if (domUtils.isBaseElement(el))
+            urlResolver.updateBase(getDestLocation(), this.document);
     }
 
     static getIframes (el) {

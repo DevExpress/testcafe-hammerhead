@@ -1,6 +1,7 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import * as sharedUrlUtils from '../../utils/url';
 import * as destLocation from './destination-location';
+import * as urlResolver from './url-resolver';
 import { get as getSettings } from '../settings';
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
@@ -86,14 +87,11 @@ export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
     var parsed = sharedUrlUtils.parseProxyUrl(proxyUrl);
 
     if (parsed) {
-        var resolver  = destLocation.getResolver(document);
         var sessionId = parsed.sessionId;
         var proxy     = parsed.proxy;
+        var destUrl   = urlResolver.changeUrlPart(parsed.destUrl, prop, value, document);
 
-        resolver.href  = parsed.destUrl;
-        resolver[prop] = value;
-
-        return getProxyUrl(resolver.href, proxy.hostname, proxy.port, sessionId, resourceType);
+        return getProxyUrl(destUrl, proxy.hostname, proxy.port, sessionId, resourceType);
     }
 
     return proxyUrl;

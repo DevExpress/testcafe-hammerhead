@@ -1,11 +1,7 @@
 import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
+import * as urlResolver from './url-resolver';
 import { get as getSettings } from '../settings';
-import { ensureTrailingSlash } from '../../utils/url';
-
-const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
-
-document[DOCUMENT_URL_RESOLVER] = document.createElement('a');
 
 var forcedLocation = null;
 
@@ -36,38 +32,13 @@ export function sameOriginCheck (location, checkedUrl) {
     return sharedUrlUtils.sameOriginCheck(location, checkedUrl);
 }
 
-export function getResolver (doc) {
-    // NOTE: IE cleans the document up after document.open is called.
-    if (!doc[DOCUMENT_URL_RESOLVER])
-        doc[DOCUMENT_URL_RESOLVER] = doc.createElement('a');
-
-    return doc[DOCUMENT_URL_RESOLVER];
-}
-
 export function resolveUrl (url, doc) {
     url = sharedUrlUtils.prepareUrl(url);
 
     if (url && url.indexOf('//') === 0)
         url = getParsed().protocol + url;
 
-    var urlResolver = getResolver(doc || document);
-
-    if (url === null)
-        urlResolver.removeAttribute('href');
-    else {
-        urlResolver.href = url;
-
-        // NOTE: It looks like a Chrome bug: in a nested iframe without src (when an iframe is placed into another
-        // iframe) you cannot set a relative link href while the iframe loading is not completed. So, we'll do it with
-        // the parent's urlResolver Safari demonstrates similar behavior, but urlResolver.href has a relative URL value.
-        var needUseParentResolver = url && isIframeWithoutSrc && window.parent && window.parent.document &&
-                                    (!urlResolver.href || urlResolver.href.indexOf('/') === 0);
-
-        if (needUseParentResolver)
-            return resolveUrl(url, window.parent.document);
-    }
-
-    return ensureTrailingSlash(url, urlResolver.href);
+    return urlResolver.resolve(url, doc || document);
 }
 
 export function get () {
@@ -92,7 +63,7 @@ export function getCookiePathPrefix () {
 }
 
 export function getParsed () {
-    var resolver   = getResolver(document);
+    var resolver   = urlResolver.getResolverElement(document);
     var dest       = get();
     var parsedDest = sharedUrlUtils.parseUrl(dest);
 

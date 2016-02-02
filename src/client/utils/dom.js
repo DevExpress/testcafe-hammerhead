@@ -412,6 +412,10 @@ export function isBodyElement (el) {
     return isDomElement(el) && el.tagName.toLowerCase() === 'body';
 }
 
+export function isBaseElement (el) {
+    return isDomElement(el) && el.tagName.toLowerCase() === 'base';
+}
+
 export function isBodyElementWithChildren (el) {
     return isBodyElement(el) && el.children.length;
 }
