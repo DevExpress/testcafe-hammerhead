@@ -14,7 +14,8 @@ function getResourceUrlReplacer (ctx) {
         resourceUrl = urlUtil.prepareUrl(resourceUrl);
 
         var resolvedUrl = url.resolve(baseUrl || ctx.dest.url, resourceUrl);
-        var charsetStr  = charsetAttrValue || resourceType === urlUtil.SCRIPT && ctx.contentInfo.charset.get();
+        var isScript    = urlUtil.parseResourceType(resourceType).isScript;
+        var charsetStr  = charsetAttrValue || isScript && ctx.contentInfo.charset.get();
 
         resolvedUrl = ensureTrailingSlash(resourceUrl, resolvedUrl);
 

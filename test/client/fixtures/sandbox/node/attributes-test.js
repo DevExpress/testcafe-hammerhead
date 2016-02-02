@@ -42,8 +42,14 @@ test('url', function () {
 
         var emptyAttrValue = el[attr];
         var dest           = 'http://dest.com/';
-        var resourceType   = tagName === 'script' ? 'script' : null;
-        var proxy          = urlUtils.getProxyUrl(dest, null, null, null, resourceType);
+        var resourceType   = null;
+
+        if (tagName === 'script')
+            resourceType = 's';
+        else if (tagName === 'form')
+            resourceType = 'f';
+
+        var proxy = urlUtils.getProxyUrl(dest, null, null, null, resourceType);
 
         setProperty(el, attr, dest);
         strictEqual(el[attr], proxy);
@@ -106,7 +112,7 @@ test('script src', function () {
 
     script.setAttribute('src', 'http://google.com');
 
-    strictEqual(urlUtils.parseProxyUrl(script.src).resourceType, urlUtils.SCRIPT);
+    strictEqual(urlUtils.parseProxyUrl(script.src).resourceType, 's');
     strictEqual(urlUtils.parseProxyUrl(script.src).charset, 'utf-8');
 
     document[INTERNAL_PROPS.documentCharset] = null;
@@ -417,15 +423,15 @@ test('element.innerHTML', function () {
     setProperty($container[0], 'innerHTML', html);
 
     checkElement($container.find('a')[0], 'href', '');
-    checkElement($container.find('form')[0], 'action', '');
+    checkElement($container.find('form')[0], 'action', '!f');
     checkElement($container.find('link')[0], 'href', '');
-    checkElement($container.find('script')[0], 'src', urlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR + 'script');
+    checkElement($container.find('script')[0], 'src', '!s');
 });
 
 test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
     var url      = 'http://url.com/';
-    var proxyUrl = urlUtils.getProxyUrl(url, null, null, null, 'iframe');
+    var proxyUrl = urlUtils.getProxyUrl(url, null, null, null, 'i');
 
     anchor.setAttribute('target', 'iframeName');
 
@@ -438,7 +444,7 @@ test('anchor with target attribute', function () {
     strictEqual(nativeHref, proxyUrl);
     strictEqual(nativeMethods.getAttribute.call(anchor, domProcessor.getStoredAttrName('href')), url);
     strictEqual(anchor.getAttribute('href'), url);
-    strictEqual(urlUtils.parseProxyUrl(nativeHref).resourceType, 'iframe');
+    strictEqual(urlUtils.parseProxyUrl(nativeHref).resourceType, 'i');
 });
 
 module('regression');

@@ -216,7 +216,7 @@ test('innerHTML', function () {
     eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><\/script><a href=\\"" + linkUrl + "\\"></a>";'));
 
     strictEqual(div.children.length, 2);
-    strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, null, null, null, urlUtils.SCRIPT, 'utf-8'));
+    strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, null, null, null, 's', 'utf-8'));
     strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl));
 
     document[INTERNAL_PROPS.documentCharset] = null;
@@ -290,7 +290,7 @@ if (!browserUtils.isIE) {
         var handler = function () {
             iframe.removeEventListener('load', handler);
             iframe.addEventListener('load', function () {
-                strictEqual(urlUtils.parseProxyUrl(iframe.contentWindow.location).resourceType, 'iframe');
+                strictEqual(urlUtils.parseProxyUrl(iframe.contentWindow.location).resourceType, 'i');
                 iframe.parentNode.removeChild(iframe);
                 start();
             });

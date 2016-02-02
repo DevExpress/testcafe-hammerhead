@@ -98,13 +98,8 @@ export default class ElementSandbox extends SandboxBase {
                     var isIframe         = tagName === 'iframe';
                     var isScript         = tagName === 'script';
                     var isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
-                    var resourceType     = null;
+                    var resourceType     = domProcessor.getElementResourceType(el);
                     var elCharset        = isScript && el.charset;
-
-                    if (isScript)
-                        resourceType = urlUtils.SCRIPT;
-                    else if (isIframe || domProcessor.isOpenLinkInIframe(el))
-                        resourceType = urlUtils.IFRAME;
 
                     if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
                         urlResolver.updateBase(value, this.document);

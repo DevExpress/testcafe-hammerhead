@@ -5,8 +5,6 @@ import * as urlResolver from './url-resolver';
 import { get as getSettings } from '../settings';
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
-export const IFRAME                              = sharedUrlUtils.IFRAME;
-export const SCRIPT                              = sharedUrlUtils.SCRIPT;
 
 export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue) {
     if (!isSupportedProtocol(url))
@@ -37,7 +35,8 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
 
 
     var parsedUrl = sharedUrlUtils.parseUrl(url);
-    var charset   = charsetAttrValue || resourceType === SCRIPT && document[INTERNAL_PROPS.documentCharset];
+    var isScript  = sharedUrlUtils.parseResourceType(resourceType).isScript;
+    var charset   = charsetAttrValue || isScript && document[INTERNAL_PROPS.documentCharset];
 
     // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
     // removed by the resolver and we have an origin URL with the incorrect host and protocol.
@@ -56,7 +55,7 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
 }
 
 export function getCrossDomainIframeProxyUrl (url) {
-    return getProxyUrl(url, null, getSettings().crossDomainProxyPort, null, IFRAME);
+    return getProxyUrl(url, null, getSettings().crossDomainProxyPort, null, sharedUrlUtils.stringifyResourceType(true));
 }
 
 export function getCrossDomainProxyUrl () {

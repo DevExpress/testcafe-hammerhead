@@ -1,11 +1,11 @@
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
-import { IFRAME, getProxyUrl, changeDestUrlPart } from '../../../utils/url';
-import { getDomain } from '../../../../utils/url';
+import { getProxyUrl, changeDestUrlPart } from '../../../utils/url';
+import { getDomain, stringifyResourceType } from '../../../../utils/url';
 
 export default class LocationWrapper {
     constructor (window) {
-        var resourceType   = window !== window.top ? IFRAME : null;
+        var resourceType   = stringifyResourceType(window !== window.top);
         var getHref        = () => window.location.href === 'about:blank' ? 'about:blank' : getDestLocation();
         var getProxiedHref = href => getProxyUrl(href, null, null, null, resourceType);
         var urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];

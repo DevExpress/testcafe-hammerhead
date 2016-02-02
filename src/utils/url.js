@@ -14,8 +14,6 @@ const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 
 export const URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED  = 'CLIENT_URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED';
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
-export const IFRAME                              = 'iframe';
-export const SCRIPT                              = 'script';
 
 function validateDestUrl (url) {
     if (!/^https?:/.test(url)) {
@@ -24,6 +22,33 @@ function validateDestUrl (url) {
             destUrl: url
         };
     }
+}
+
+export function parseResourceType (resourceType) {
+    if (!resourceType) {
+        return {
+            isIframe: false,
+            isForm:   false,
+            isScript: false
+        };
+    }
+
+    return {
+        isIframe: /i/.test(resourceType),
+        isForm:   /f/.test(resourceType),
+        isScript: /s/.test(resourceType)
+    };
+}
+
+export function stringifyResourceType (isIframe, isForm, isScript) {
+    if (!isIframe && !isForm && !isScript)
+        return null;
+
+    return [
+        isIframe ? 'i' : '',
+        isForm ? 'f' : '',
+        isScript ? 's' : ''
+    ].join('');
 }
 
 export function isSubDomain (domain, subDomain) {
