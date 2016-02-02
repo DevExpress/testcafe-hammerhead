@@ -120,9 +120,9 @@ export default class IframeSandbox extends SandboxBase {
         // If it is needed elsewhere in a certain place, we should consider using Mustache.
         var taskScriptTemplate = settings.get().iframeTaskScriptTemplate;
         var taskScript         = taskScriptTemplate
-            .replace('{{{cookie}}}', JSON.stringify(this.cookieSandbox.getCookie()))
-            .replace('{{{referer}}}', settings.get().referer || this.window.location.toString())
-            .replace('{{{iframeTaskScriptTemplate}}}', JSON.stringify(taskScriptTemplate));
+            .replace('{{{cookie}}}', () => JSON.stringify(this.cookieSandbox.getCookie()))
+            .replace('{{{referer}}}', () => settings.get().referer || this.window.location.toString())
+            .replace('{{{iframeTaskScriptTemplate}}}', () => JSON.stringify(taskScriptTemplate));
 
         e.iframe.contentWindow.eval.apply(e.iframe.contentWindow, [taskScript]);
     }
