@@ -2,6 +2,7 @@ var urlUtils = hammerhead.get('./utils/url');
 var settings = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
+var cookieSandbox = hammerhead.sandbox.cookie;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 
@@ -129,6 +130,30 @@ asyncTest('element.setAttribute', function () {
 });
 
 module('regression');
+
+test('take sequences starting with "$" into account when generating task scripts (GH-389)', function () {
+    expect(1);
+
+    var iframeTemplate = '$$ $& $` $\' $n $nn {{{cookie}}}{{{referer}}}{{{iframeTaskScriptTemplate}}}';
+
+    var evtMock = {
+        iframe: {
+            contentWindow: {
+                eval: function (processed) {
+                    strictEqual(processed, '$$ $& $` $\' $n $nn "' + cookieSandbox.getCookie() + '"' +
+                                           window.location.toString() + '"' + iframeTemplate + '"');
+                }
+            }
+        }
+    };
+
+    var templateSettings = settings.get();
+    var storedTemplate   = templateSettings.iframeTaskScriptTemplate;
+
+    templateSettings.iframeTaskScriptTemplate = iframeTemplate;
+    iframeSandbox.iframeReadyToInitHandler(evtMock);
+    templateSettings.iframeTaskScriptTemplate = storedTemplate;
+});
 
 asyncTest('ready to init event must not raise for added iframe(B239643)', function () {
     var iframe                   = document.createElement('iframe');

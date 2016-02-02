@@ -118,11 +118,15 @@ export default class IframeSandbox extends SandboxBase {
     iframeReadyToInitHandler (e) {
         // NOTE: We are using String.replace in order to avoid adding Mustache scripts on the client side.
         // If it is needed elsewhere in a certain place, we should consider using Mustache.
-        var taskScriptTemplate = settings.get().iframeTaskScriptTemplate;
-        var taskScript         = taskScriptTemplate
-            .replace('{{{cookie}}}', () => JSON.stringify(this.cookieSandbox.getCookie()))
-            .replace('{{{referer}}}', () => settings.get().referer || this.window.location.toString())
-            .replace('{{{iframeTaskScriptTemplate}}}', () => JSON.stringify(taskScriptTemplate));
+        var taskScriptTemplate       = settings.get().iframeTaskScriptTemplate;
+        var escapeStringPatterns     = str => str.replace(/\$/g, '$$$$');
+        var cookie                   = JSON.stringify(this.cookieSandbox.getCookie());
+        var referer                  = settings.get().referer || this.window.location.toString();
+        var iframeTaskScriptTemplate = JSON.stringify(taskScriptTemplate);
+        var taskScript               = taskScriptTemplate
+            .replace('{{{cookie}}}', escapeStringPatterns(cookie))
+            .replace('{{{referer}}}', escapeStringPatterns(referer))
+            .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
 
         e.iframe.contentWindow.eval.apply(e.iframe.contentWindow, [taskScript]);
     }
