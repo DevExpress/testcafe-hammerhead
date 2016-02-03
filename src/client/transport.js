@@ -113,7 +113,7 @@ class Transport extends EventEmitter {
             var errorHandler = function () {
                 if (isWebKit) {
                     Transport._storeMessage(msg);
-                    msgCallback();
+                    msgCallback.call(this);
                 }
                 else
                     sendMsg(true);
@@ -124,7 +124,7 @@ class Transport extends EventEmitter {
                     if (this.readyState !== 4)
                         return;
 
-                    msgCallback();
+                    msgCallback.call(this);
                 });
             }
             else if (isIE9) {

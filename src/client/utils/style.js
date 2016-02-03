@@ -1,6 +1,6 @@
 import * as domUtils from './dom';
 import * as browserUtils from './browser';
-import { styleClass } from '../sandbox/native-methods';
+import nativeMethods from '../sandbox/native-methods';
 
 // NOTE: For Chrome.
 const MIN_SELECT_SIZE_VALUE = 4;
@@ -14,7 +14,7 @@ function getIntValue (value) {
 }
 
 export function isStyle (instance) {
-    if (instance instanceof styleClass)
+    if (instance instanceof nativeMethods.styleClass)
         return true;
 
     if (instance && typeof instance === 'object' && typeof instance.border !== 'undefined') {

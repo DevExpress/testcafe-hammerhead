@@ -3,7 +3,7 @@ import NodeSandbox from '../node/index';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
 import { processScript } from '../../../processing/script';
-import { process as processStyle } from '../../../processing/style';
+import styleProcessor from '../../../processing/style';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
@@ -11,7 +11,7 @@ import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
-import { waitCookieMsg } from '../../transport';
+import transport from '../../transport';
 
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
@@ -194,7 +194,7 @@ export default class ElementSandbox extends SandboxBase {
 
             formSubmit () {
                 // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
-                waitCookieMsg().then(() => nativeMethods.formSubmit.apply(this, arguments));
+                transport.waitCookieMsg().then(() => nativeMethods.formSubmit.apply(this, arguments));
             },
 
             insertBefore (newNode, refNode) {
@@ -317,7 +317,7 @@ export default class ElementSandbox extends SandboxBase {
         if (domUtils.isScriptElement(parentNode))
             node.data = processScript(node.data, true, false);
         else if (domUtils.isStyleElement(parentNode))
-            node.data = processStyle(node.data, urlUtils.getProxyUrl);
+            node.data = styleProcessor.process(node.data, urlUtils.getProxyUrl);
     }
 
     static _isUrlAttr (el, attr) {

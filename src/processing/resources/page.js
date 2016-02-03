@@ -7,7 +7,7 @@ import ResourceProcessorBase from './resource-processor-base';
 import * as parse5Utils from '../../utils/parse5';
 import getBOM from '../../utils/get-bom';
 
-const BODY_CREATED_EVENT_SCRIPT = dedent`
+const BODY_CREATED_EVENT_SCRIPT = dedent(`
     <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.script }">
         if (window["%hammerhead%"])
             window["%hammerhead%"].sandbox.node.raiseBodyCreatedEvent();
@@ -15,7 +15,7 @@ const BODY_CREATED_EVENT_SCRIPT = dedent`
         var script = document.currentScript || document.scripts[document.scripts.length - 1];
         script.parentNode.removeChild(script);
     </script>
-`;
+`);
 
 class PageProcessor extends ResourceProcessorBase {
     constructor () {

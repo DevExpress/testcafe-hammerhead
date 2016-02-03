@@ -4,7 +4,7 @@ import settings from '../settings';
 import * as destLocation from '../utils/destination-location';
 import * as cookieUtils from '../utils/cookie';
 import { isCrossDomainWindows } from '../utils/dom';
-import { queuedAsyncServiceMsg } from '../transport';
+import transport from '../transport';
 import trim from '../../utils/string-trim';
 
 export default class CookieSandbox extends SandboxBase {
@@ -134,7 +134,7 @@ export default class CookieSandbox extends SandboxBase {
         };
 
         // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
-        queuedAsyncServiceMsg(setCookieMsg);
+        transport.queuedAsyncServiceMsg(setCookieMsg);
 
         return value;
     }
