@@ -39,7 +39,7 @@
         var referer          = "http://localhost/sessionId/https://example.com";
         var location         = "http://localhost/sessionId/https://example.com";
         var serviceMsgUrl    = "/service-msg/100";
-        var cookie           = settings.get().cookie || '';
+        var cookie           = settings.get().cookie;
         var iframeTaskScript = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie));
 
         if (e.iframe.id.indexOf('test') !== -1) {
@@ -56,7 +56,7 @@
         }
     };
 
-    hammerhead.start({ sessionId: 'sessionId' });
+    hammerhead.start({ sessionId: 'sessionId', cookie: '' });
 
     window.overrideDomMeth = window[INTERNAL_PROPS.overrideDomMethodName];
 
