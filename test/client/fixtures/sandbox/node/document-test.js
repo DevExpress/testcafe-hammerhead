@@ -435,3 +435,26 @@ asyncTest('document elements are overridden after document.write has been called
 
     document.body.appendChild(iframe);
 });
+
+asyncTest('multiple document.write with html and body tags should not break markup (GH-387)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id  = 'test';
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/multiple-write-with-html-and-body-tags.html');
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var doc = iframe.contentDocument;
+
+            strictEqual(doc.querySelector('h1').innerHTML, 'Header');
+            ok(/Text( text){19}/.test(doc.querySelector('p').innerHTML));
+            strictEqual(doc.querySelector('a').target, '_self');
+            strictEqual(doc.querySelectorAll('body > table tr > td > a > img').length, 1);
+
+            document.body.removeChild(iframe);
+
+            start();
+        });
+
+    document.body.appendChild(iframe);
+});

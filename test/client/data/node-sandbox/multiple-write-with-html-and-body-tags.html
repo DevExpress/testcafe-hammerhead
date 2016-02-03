@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frame with advertising banner</title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({ crossDomainProxyPort: 2000, sessionId: 'sessionId' });
+    hammerhead.shadowUI.getRoot();
+</script>
+<h1>Header</h1>
+
+<p>Text text text text text text text text text text text text text text text text text text text text</p>
+<script>
+    __call$(document, "write", ['<html>\n', "__begin$"]);
+    __call$(document, "write", [' <body>\n']);
+    __call$(document, "write", ['  <table border="0" cellspacing="0" cellpadding="0">\n']);
+    __call$(document, "write", ['   <tr>\n']);
+    __call$(document, "write", ['       <td><a href="https://example.com/ad-url']);
+    __call$(document, "write", ['" target="_blank"><img border="0"></a></td>\n']);
+    __call$(document, "write", ['   </tr>\n']);
+    __call$(document, "write", ['</table>\n']);
+    __call$(document, "write", [' </body>\n']);
+    __call$(document, "write", ['</html>\n', "__end$"]);
+</script>
+
+</body>
+</html>

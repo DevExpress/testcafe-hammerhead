@@ -61,8 +61,7 @@ export default class DocumentSandbox extends SandboxBase {
 
         var needWriteOnEndMarker = isEnd && !this.writeBlockCounter;
 
-        if (needWriteOnEndMarker || htmlUtils.isPageHtml(str) ||
-            htmlUtils.isWellFormattedHtml(str) && !this.storedDocumentWriteContent) {
+        if (needWriteOnEndMarker || !this.storedDocumentWriteContent && htmlUtils.isWellFormattedHtml(str)) {
             this.writeBlockCounter          = 0;
             str                             = this.storedDocumentWriteContent + str;
             this.storedDocumentWriteContent = '';
