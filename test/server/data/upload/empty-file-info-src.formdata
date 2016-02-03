@@ -1,0 +1,10 @@
+--separator
+Content-Disposition: form-data; name="hammerhead|upload-info-hidden-input-name"
+
+[{"name":"inputUpload","files":[]}]
+--separator
+Content-Disposition: form-data; name="inputUpload"; filename=""
+Content-Type: application/octet-stream
+
+
+--separator--

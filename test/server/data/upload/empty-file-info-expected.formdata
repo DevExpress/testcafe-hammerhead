@@ -1,0 +1,6 @@
+--separator
+Content-Disposition: form-data; name="inputUpload"; filename=""
+Content-Type: application/octet-stream
+
+
+--separator--

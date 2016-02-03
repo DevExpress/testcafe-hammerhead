@@ -372,4 +372,12 @@ describe('Upload', function () {
 
         expect(actual.toString()).eql(expected.toString());
     });
+
+    it('Should remove only the information about hidden input (GH-395)', function () {
+        var src      = newLineReplacer(fs.readFileSync('test/server/data/upload/empty-file-info-src.formdata'));
+        var expected = newLineReplacer(fs.readFileSync('test/server/data/upload/empty-file-info-expected.formdata'));
+        var actual   = upload.inject(CONTENT_TYPE, src);
+
+        expect(actual.toString()).eql(expected.toString());
+    });
 });

@@ -30,6 +30,9 @@ export default class FormData {
     _injectFileInfo (fileInfo) {
         var entries = this.getEntriesByName(fileInfo.name);
 
+        if (!fileInfo.files.length)
+            return;
+
         while (entries.length < fileInfo.files.length) {
             var newEntry = new FormDataEntry();
 
