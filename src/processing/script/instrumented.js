@@ -43,6 +43,7 @@ export const PROPERTIES = [
     'location',
     'manifest',
     'onbeforeunload',
+    'onpagehide',
     'onerror',
     'onmessage',
     'origin',

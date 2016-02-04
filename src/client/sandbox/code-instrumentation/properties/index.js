@@ -478,6 +478,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set:       (wnd, handler) => this.unloadSandbox.setOnBeforeUnload(wnd, handler)
             },
 
+            onpagehide: {
+                condition: wnd => domUtils.isWindow(wnd),
+                get:       () => this.unloadSandbox.getOnBeforeUnload(),
+                set:       (wnd, handler) => this.unloadSandbox.setOnBeforeUnload(wnd, handler)
+            },
+
             onmessage: {
                 condition: wnd => domUtils.isWindow(wnd),
                 get:       () => this.messageSandbox.getOnMessage(),
