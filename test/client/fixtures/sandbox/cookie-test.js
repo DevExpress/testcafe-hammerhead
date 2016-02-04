@@ -1,11 +1,21 @@
-var cookieUtils = hammerhead.get('./utils/cookie');
-var settings    = hammerhead.get('./settings');
-var urlUtils    = hammerhead.get('./utils/url');
+var cookieUtils              = hammerhead.get('./utils/cookie');
+var settings                 = hammerhead.get('./settings');
+var urlUtils                 = hammerhead.get('./utils/url');
+var COOKIE_HIDDEN_INPUT_NAME = hammerhead.get('../session/cookies/hidden-input-name');
 
-var Promise       = hammerhead.Promise;
 var transport     = hammerhead.transport;
-var nativeMethods = hammerhead.nativeMethods;
 var cookieSandbox = hammerhead.sandbox.cookie;
+var iframeSandbox = hammerhead.sandbox.iframe;
+
+QUnit.testStart(function () {
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
+});
+
+QUnit.testDone(function () {
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+});
+
 
 function setCookie (value) {
     return setProperty(document, 'cookie', value);
@@ -14,38 +24,6 @@ function setCookie (value) {
 function getCookie () {
     return getProperty(document, 'cookie');
 }
-
-asyncTest('cookie must be to send to a server before form.submit', function () {
-    var form                          = document.body.appendChild(document.createElement('form'));
-    var storedAsyncServiceMsg         = transport.asyncServiceMsg;
-    var resolveAsyncServiceMsgPromise = null;
-    var storedNativeSubmit            = nativeMethods.formSubmit;
-    var msgReceived                   = false;
-
-    transport.asyncServiceMsg = function () {
-        return new Promise(function (resolve) {
-            resolveAsyncServiceMsgPromise = resolve;
-        });
-    };
-
-    nativeMethods.formSubmit = function () {
-        ok(msgReceived);
-
-        nativeMethods.formSubmit  = storedNativeSubmit;
-        transport.asyncServiceMsg = storedAsyncServiceMsg;
-
-        start();
-    };
-
-    cookieSandbox.setCookie(document, 'cookie=1');
-
-    overrideDomMeth(form);
-
-    form.submit();
-
-    msgReceived = true;
-    resolveAsyncServiceMsgPromise();
-});
 
 test('get/set', function () {
     settings.get().cookie = '';
@@ -110,6 +88,114 @@ test('remove real cookie after browser processing', function () {
     ok(document.cookie.indexOf(uniqKey) === -1);
 
     transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
+});
+
+module('add cookie info to the form before submission');
+
+asyncTest('POST', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id   = 'test-cookie';
+    iframe.name = 'cookie-iframe';
+
+    document.body.appendChild(iframe);
+
+    var storedCookieMsgInProgress = cookieSandbox._cookieMsgInProgress;
+
+    cookieSandbox._cookieMsgInProgress = function () {
+        return true;
+    };
+
+    settings.get().cookie = 'test-cookie1=true;test-cookie2=true';
+
+    var form = document.createElement('form');
+
+    form.action = '/get-req-body';
+    form.target = 'cookie-iframe';
+    form.method = 'POST';
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            form.submit();
+
+            var id = setInterval(function () {
+                var resultContainer = iframe.contentDocument.getElementById('result');
+
+                if (resultContainer) {
+                    clearInterval(id);
+
+                    var reqBody         = resultContainer.innerHTML;
+                    var expectedReqBody = COOKIE_HIDDEN_INPUT_NAME + '=';
+
+                    expectedReqBody += JSON.stringify({
+                        cookie: settings.get().cookie,
+                        url:    location.toString()
+                    });
+
+                    strictEqual(decodeURIComponent(reqBody), expectedReqBody);
+
+                    iframe.parentNode.removeChild(iframe);
+                    form.parentNode.removeChild(form);
+                    cookieSandbox._cookieMsgInProgress = storedCookieMsgInProgress;
+                    start();
+                }
+            }, 10);
+        });
+
+    document.body.appendChild(form);
+});
+
+asyncTest('GET', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id   = 'test-cookie';
+    iframe.name = 'cookie-iframe';
+
+    document.body.appendChild(iframe);
+
+    var storedCookieMsgInProgress = cookieSandbox._cookieMsgInProgress;
+
+    cookieSandbox._cookieMsgInProgress = function () {
+        return true;
+    };
+
+    settings.get().cookie = 'test-cookie1=true;test-cookie2=true';
+
+    var form = document.createElement('form');
+
+    form.action = '/get-request-url';
+    form.target = 'cookie-iframe';
+    form.method = 'GET';
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            form.submit();
+
+            var id = setInterval(function () {
+                var result = iframe.contentDocument.getElementById('result');
+
+                if (result) {
+                    clearInterval(id);
+
+                    var reqUrl              = result.innerHTML;
+                    var expectedReqUrlParam = COOKIE_HIDDEN_INPUT_NAME + '=';
+
+                    expectedReqUrlParam += encodeURIComponent(JSON.stringify({
+                        cookie: settings.get().cookie,
+                        url:    location.toString()
+                    }));
+
+                    ok(reqUrl.indexOf(expectedReqUrlParam) !== -1);
+
+                    iframe.parentNode.removeChild(iframe);
+                    form.parentNode.removeChild(form);
+                    cookieSandbox._cookieMsgInProgress = storedCookieMsgInProgress;
+                    start();
+                }
+            }, 10);
+        });
+
+    document.body.appendChild(form);
 });
 
 module('regression');

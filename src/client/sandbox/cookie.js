@@ -4,10 +4,21 @@ import settings from '../settings';
 import * as destLocation from '../utils/destination-location';
 import * as cookieUtils from '../utils/cookie';
 import { isCrossDomainWindows } from '../utils/dom';
-import { queuedAsyncServiceMsg } from '../transport';
+import transport from '../transport';
+import COOKIE_HIDDEN_INPUT_NAME from '../../session/cookies/hidden-input-name';
 import trim from '../../utils/string-trim';
 
 export default class CookieSandbox extends SandboxBase {
+    constructor () {
+        super();
+
+        this.srvMsgCount = 0;
+        transport.on(transport.MSG_RECEIVED_EVENT, e => {
+            if (e.cmd === COMMAND.setCookie)
+                this.srvMsgCount--;
+        });
+    }
+
     _getSettings () {
         var windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
                              this.window.top['%hammerhead%'].get('./settings') : settings;
@@ -95,6 +106,24 @@ export default class CookieSandbox extends SandboxBase {
         this._getSettings().cookie = cookies.join('; ');
     }
 
+    _cookieMsgInProgress () {
+        return this.srvMsgCount > 0;
+    }
+
+    addCookieInfoToForm (form) {
+        if (this._cookieMsgInProgress()) {
+            var input = this.document.createElement('input');
+
+            input.name  = COOKIE_HIDDEN_INPUT_NAME;
+            input.type  = 'hidden';
+            input.value = JSON.stringify({
+                cookie: this.getCookie(),
+                url:    this.window.location.toString()
+            });
+            form.appendChild(input);
+        }
+    }
+
     getCookie () {
         return this._getSettings().cookie;
     }
@@ -134,7 +163,8 @@ export default class CookieSandbox extends SandboxBase {
         };
 
         // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
-        queuedAsyncServiceMsg(setCookieMsg);
+        this.srvMsgCount++;
+        transport.queuedAsyncServiceMsg(setCookieMsg);
 
         return value;
     }

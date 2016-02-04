@@ -15,7 +15,13 @@ var stages = {
         next();
     },
 
-    1: function sendDestinationRequest (ctx, next) {
+    1: async function checkCookieInfo (ctx, next) {
+        if (ctx.dest.isForm)
+            ctx.session.cookies.extractFromRequest(ctx.req.url, ctx.req.method, ctx.reqBody.toString());
+        next();
+    },
+
+    2: function sendDestinationRequest (ctx, next) {
         var opts = createReqOpts(ctx);
         var req  = new DestinationRequest(opts);
 
@@ -28,7 +34,7 @@ var stages = {
         req.on('fatalError', err => error(ctx, err));
     },
 
-    2: function checkSameOriginPolicyCompliance (ctx, next) {
+    3: function checkSameOriginPolicyCompliance (ctx, next) {
         if (ctx.isXhr && !checkSameOriginPolicy(ctx)) {
             ctx.closeWithError(0);
             return;
@@ -37,7 +43,7 @@ var stages = {
         next();
     },
 
-    3: function decideOnProcessingStrategy (ctx, next) {
+    4: function decideOnProcessingStrategy (ctx, next) {
         ctx.buildContentInfo();
 
         if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
@@ -53,7 +59,7 @@ var stages = {
         next();
     },
 
-    4: async function fetchContent (ctx, next) {
+    5: async function fetchContent (ctx, next) {
         ctx.destResBody = await fetchBody(ctx.destRes);
 
         // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
@@ -67,7 +73,7 @@ var stages = {
         next();
     },
 
-    5: async function processContent (ctx, next) {
+    6: async function processContent (ctx, next) {
         try {
             ctx.destResBody = await processResource(ctx);
             next();
@@ -77,7 +83,7 @@ var stages = {
         }
     },
 
-    6: function sendProxyResponse (ctx) {
+    7: function sendProxyResponse (ctx) {
         sendResponseHeaders(ctx);
 
         connectionResetGuard(() => {
