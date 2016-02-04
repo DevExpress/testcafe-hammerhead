@@ -1,6 +1,5 @@
 /*eslint-disable no-native-reassign*/
 import EventEmitter from './utils/event-emitter';
-import COMMAND from '../session/command';
 import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
 import { stringify as stringifyJSON, parse as parseJSON } from './json';
@@ -67,10 +66,6 @@ class Transport extends EventEmitter {
         window.localStorage.setItem(settings.get().sessionId, stringifyJSON(messages));
     }
 
-    _cookieMsgInProgress () {
-        return this.msgQueue[COMMAND.setCookie] && !!this.msgQueue[COMMAND.setCookie].length;
-    }
-
     _sendNextQueuedMsg (queueId) {
         var queueItem = this.msgQueue[queueId][0];
 
@@ -81,7 +76,7 @@ class Transport extends EventEmitter {
 
                 this.msgQueue[queueId].shift();
 
-                this.emit(this.MSG_RECEIVED_EVENT, {});
+                this.emit(this.MSG_RECEIVED_EVENT, { cmd: queueItem.msg.cmd });
 
                 if (this.msgQueue[queueId].length)
                     this._sendNextQueuedMsg(queueId);
@@ -159,23 +154,6 @@ class Transport extends EventEmitter {
 
         Transport._removeMessageFromStore(msg.cmd);
         sendMsg();
-    }
-
-    waitCookieMsg () {
-        return new Promise(resolve => {
-            var handler = () => {
-                if (!this._cookieMsgInProgress()) {
-                    this.off(this.MSG_RECEIVED_EVENT, handler);
-
-                    resolve();
-                }
-            };
-
-            if (this._cookieMsgInProgress())
-                this.on(this.MSG_RECEIVED_EVENT, handler);
-            else
-                resolve();
-        });
     }
 
     waitForServiceMessagesCompleted (timeout) {

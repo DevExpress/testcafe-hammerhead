@@ -47,6 +47,22 @@ module.exports = function (app) {
         }, delay);
     });
 
+    app.post('/get-req-body', function (req, res) {
+        var reqData = '';
+
+        req.on('data', function (data) {
+            reqData += data;
+        });
+
+        req.on('end', function () {
+            res.send('<html><head></head><body><div id="result">' + reqData + '</div></body></html>');
+        });
+    });
+
+    app.get('/get-request-url', function (req, res) {
+        res.send('<html><head></head><body><div id="result">' + req.url + '</div></body></html>');
+    });
+
     app.get('/xhr-test/:delay', function (req, res) {
         var delay = req.params.delay || 0;
 

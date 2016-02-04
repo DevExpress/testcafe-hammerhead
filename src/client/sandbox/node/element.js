@@ -11,16 +11,16 @@ import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
-import transport from '../../transport';
 
 export default class ElementSandbox extends SandboxBase {
-    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, cookieSandbox) {
         super();
 
         this.nodeSandbox   = nodeSandbox;
         this.shadowUI      = shadowUI;
         this.uploadSandbox = uploadSandbox;
         this.iframeSandbox = iframeSandbox;
+        this.cookieSandbox = cookieSandbox;
 
         this.overridedMethods = null;
     }
@@ -193,8 +193,8 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             formSubmit () {
-                // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
-                transport.waitCookieMsg().then(() => nativeMethods.formSubmit.apply(this, arguments));
+                sandbox.cookieSandbox.addCookieInfoToForm(this);
+                nativeMethods.formSubmit.apply(this, arguments);
             },
 
             insertBefore (newNode, refNode) {

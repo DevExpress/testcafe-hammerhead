@@ -11,7 +11,7 @@ import { parseDocumentCharset, isDocumentFragment } from '../../utils/dom';
 const ATTRIBUTE_SELECTOR_REG_EX = /\[([\w-]+)(\^?=.+?)]/g;
 
 export default class NodeSandbox extends SandboxBase {
-    constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
+    constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI, cookieSandbox) {
         super();
 
         this.raiseBodyCreatedEvent               = this._onBodyCreated;
@@ -24,7 +24,7 @@ export default class NodeSandbox extends SandboxBase {
 
         this.doc     = new DocumentSandbox(this);
         this.win     = new WindowSandbox(this, eventSandbox.message);
-        this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI);
+        this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI, cookieSandbox);
     }
 
     _onBodyCreated () {

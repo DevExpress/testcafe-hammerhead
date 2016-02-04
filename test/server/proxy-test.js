@@ -10,6 +10,7 @@ var COMMAND                     = require('../../lib/session/command');
 var XHR_HEADERS                 = require('../../lib/request-pipeline/xhr/headers');
 var Proxy                       = require('../../lib/proxy');
 var Session                     = require('../../lib/session');
+var COOKIE_HIDDEN_INPUT_NAME    = require('../../lib/session/cookies/hidden-input-name');
 var DestinationRequest          = require('../../lib/request-pipeline/destination-request');
 var requestAgent                = require('../../lib/request-pipeline/destination-request/agent');
 var scriptHeader                = require('../../lib/processing/script/header').HEADER;
@@ -175,6 +176,14 @@ describe('Proxy', function () {
             });
         });
 
+        app.post('/cookie/empty-post', function (req, res) {
+            res.end();
+        });
+
+        app.get('/cookie/empty-get', function (req, res) {
+            res.end();
+        });
+
         destServer = app.listen(2000);
     });
 
@@ -313,6 +322,43 @@ describe('Proxy', function () {
 
             request(options, function (err, res, body) {
                 expect(body).eql('Test=value');
+                done();
+            });
+        });
+
+        it('Should read cookie info from the GET form submission request', function (done) {
+            var cookie    = 'p1=v1; p2=v2';
+            var cookieUrl = 'http://127.0.0.1:2000/';
+            var url       = proxy.openSession('http://127.0.0.1:2000/cookie/empty-get', session);
+
+            url += '?' + COOKIE_HIDDEN_INPUT_NAME + '=';
+            url += JSON.stringify({
+                cookie: cookie,
+                url:    cookieUrl
+            });
+            url = url.replace(session.id, session.id + '!f');
+
+            request.get(url, function () {
+                expect(session.cookies.getClientString(cookieUrl)).eql(cookie);
+                done();
+            });
+        });
+
+        it('Should read cookie info from the POST form submission request', function (done) {
+            var cookie    = 'p11=v11; p22=v22';
+            var cookieUrl = 'http://127.0.0.1:2000/';
+            var url       = proxy.openSession('http://127.0.0.1:2000/cookie/empty-post', session);
+            var form      = {};
+
+            form[COOKIE_HIDDEN_INPUT_NAME] = JSON.stringify({
+                cookie: cookie,
+                url:    cookieUrl
+            });
+
+            url = url.replace(session.id, session.id + '!f');
+
+            request.post(url, { form: form }, function () {
+                expect(session.cookies.getClientString(cookieUrl)).eql(cookie);
                 done();
             });
         });
@@ -820,4 +866,5 @@ describe('Proxy', function () {
                 });
         });
     });
-});
+})
+;
