@@ -306,7 +306,12 @@ if (window.navigator.serviceWorker) {
         var onMessageHandler = function (e) {
             window.removeEventListener('message', onMessageHandler);
 
-            ok(e.data === 'success');
+            var isRegisterServiceWorker = e.data;
+
+            if (browserUtils.isFirefox)
+                ok(isRegisterServiceWorker);
+            else
+                ok(!isRegisterServiceWorker);
 
             document.body.removeChild(iframe);
 
