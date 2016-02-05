@@ -487,30 +487,6 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should process document.write() and document.writeln()', function () {
-        var src      = 'var doc = document;' +
-                       'doc.write("some html", "html");' +
-                       'var g = obj.href;' +
-                       'if(false){' +
-                       '   doc.writeln("some html", "html");' +
-                       '   g = obj.href;' +
-                       '}' +
-                       'doc.writeln("some html", "html");';
-        var expected = 'var doc = document;' +
-                       '__call$(doc, "write", ["some html", "html", "__begin$"]);' +
-                       'var g = __get$(obj, "href");' +
-                       'if(false){' +
-                       '   __call$(doc, "writeln", ["some html", "html"]);' +
-                       '   g = __get$(obj, "href");' +
-                       '}' +
-                       '__call$(doc, "writeln", ["some html", "html", "__end$"]);';
-
-        testProcessing([
-            { src: src, expected: expected },
-            { src: 'function test(){' + src + '}', expected: 'function test(){' + expected + '}' }
-        ]);
-    });
-
     it('Should process for..in iteration', function () {
         testProcessing([
             { src: 'for(obj.prop in src){}', expected: 'for(var __set$temp in src){obj.prop = __set$temp;}' },
@@ -594,13 +570,13 @@ describe('Script processor', function () {
                      'document.writeln("t = 2;");\n' +
                      'document.close();\n',
 
-                expected: '__call$(document, "writeln", ["<!--test123-->", \'__begin$\']);' +
+                expected: 'document.writeln("<!--test123-->", \'__begin$\');' +
                           'client = "42";' +
                           'slot = "43";' +
                           'width = 300;' +
                           'height = 250;' +
-                          '__call$(document, "writeln", ["var t = 1;"]);' +
-                          '__call$(document, "writeln", ["t = 2;", \'__end$\']);' +
+                          'document.writeln("var t = 1;");' +
+                          'document.writeln("t = 2;", \'__end$\');' +
                           'document.close();'
             });
         });
@@ -614,8 +590,8 @@ describe('Script processor', function () {
                          '}\n',
 
                     expected: 'if (true) {\n' +
-                              '__call$(document, "write", ["<html>", \'__begin$\']);\n' +
-                              '__call$(document, "writeln", ["</html>", \'__end$\']);\n' +
+                              'document.write("<html>", \'__begin$\');\n' +
+                              'document.writeln("</html>", \'__end$\');\n' +
                               '}'
                 });
             });
