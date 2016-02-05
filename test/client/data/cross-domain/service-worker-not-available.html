@@ -15,7 +15,7 @@
 <script>
     var postMessage = hammerhead.sandbox.event.message.postMessage;
 
-    postMessage(window.top, [!hammerhead.nativeMethods.registerServiceWorker ? 'success' : 'fail', '*']);
+    postMessage(window.top, [hammerhead.nativeMethods.registerServiceWorker ? true : false, '*']);
 </script>
 </body>
 </html>
