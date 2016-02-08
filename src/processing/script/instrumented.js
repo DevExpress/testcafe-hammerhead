@@ -5,8 +5,6 @@
 
 // NOTE: constants are exported for the testing purposes
 export const METHODS = [
-    'querySelector',
-    'querySelectorAll',
     'postMessage',
     'write',
     'writeln'

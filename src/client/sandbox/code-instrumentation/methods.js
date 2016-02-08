@@ -4,8 +4,7 @@ import { isNullOrUndefined, inaccessibleTypeToStr } from '../../utils/types';
 import INTERNAL_LITERAL from '../../../processing/script/internal-literal';
 import INSTRUCTION from '../../../processing/script/instruction';
 import { shouldInstrumentMethod } from '../../../processing/script/instrumented';
-import { isWindow, isDocument, isDomElement } from '../../utils/dom';
-import { isIE } from '../../utils/browser';
+import { isWindow, isDocument } from '../../utils/dom';
 import fastApply from '../../utils/fast-apply';
 
 // NOTE: We should avoid using native object prototype methods,
@@ -17,35 +16,6 @@ export default class MethodCallInstrumentation extends SandboxBase {
         super();
 
         this.methodWrappers = {
-            // NOTE: When a selector that contains the ':focus' pseudo-class is used in the querySelector and
-            // querySelectorAll functions, these functions return an empty result if the browser is not focused.
-            // This replaces ':focus' with a custom CSS class to return the current active element in that case.
-            querySelector: {
-                condition: el => !isIE && (isDocument(el) || isDomElement(el)),
-
-                method: (el, args) => {
-                    var selector = args[0];
-
-                    if (typeof selector === 'string')
-                        selector = MethodCallInstrumentation._replaceFocusPseudoClass(selector);
-
-                    return el.querySelector(selector);
-                }
-            },
-
-            querySelectorAll: {
-                condition: el => !isIE && (isDocument(el) || isDomElement(el)),
-
-                method: (el, args) => {
-                    var selector = args[0];
-
-                    if (typeof selector === 'string')
-                        selector = MethodCallInstrumentation._replaceFocusPseudoClass(selector);
-
-                    return el.querySelectorAll(selector);
-                }
-            },
-
             postMessage: {
                 condition: window => isWindow(window),
                 method:    (contentWindow, args) => messageSandbox.postMessage(contentWindow, args)

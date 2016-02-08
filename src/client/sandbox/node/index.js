@@ -3,6 +3,7 @@ import SandboxBase from '../base';
 import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
+import FocusBlurSandbox from '../event/focus-blur';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
 import { parseDocumentCharset, isDocumentFragment } from '../../utils/dom';
@@ -108,9 +109,7 @@ export default class NodeSandbox extends SandboxBase {
         this.element.attach(window);
     }
 
-    static processSelector (selector) {
-        selector = String(selector);
-
+    static _processAttributeSelector (selector) {
         if (!ATTRIBUTE_SELECTOR_REG_EX.test(selector))
             return selector;
 
@@ -123,5 +122,14 @@ export default class NodeSandbox extends SandboxBase {
 
             return str;
         });
+    }
+
+    static processSelector (selector) {
+        if (selector) {
+            selector = FocusBlurSandbox._processFocusPseudoClassSelector(selector);
+            selector = NodeSandbox._processAttributeSelector(selector);
+        }
+
+        return selector;
     }
 }
