@@ -1,5 +1,5 @@
 var processScript = hammerhead.get('../processing/script').processScript;
-var settings        = hammerhead.get('./settings');
+var settings      = hammerhead.get('./settings');
 
 var Promise        = hammerhead.Promise;
 var browserUtils   = hammerhead.utils.browser;
@@ -67,7 +67,7 @@ asyncTest('onmessage event', function () {
 asyncTest('cross-domain post messages between different windows', function () {
     expect(0);
 
-    var iframe = document.createElement('iframe');
+    var iframe           = document.createElement('iframe');
     var result           = 0;
     var checkResult      = function () {
         if (result === 4) {

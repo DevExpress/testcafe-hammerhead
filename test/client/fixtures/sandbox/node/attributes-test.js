@@ -9,6 +9,7 @@ var featureDetection = hammerhead.get('./utils/feature-detection');
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var iframeSandbox = hammerhead.sandbox.iframe;
+var unloadSandbox = hammerhead.sandbox.event.unload;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -394,12 +395,14 @@ test('input.autocomplete', function () {
 });
 
 test('window.onbeforeunload', function () {
-    strictEqual(window.onbeforeunload, null);
+    var evName = 'on' + unloadSandbox.beforeUnloadEventName;
+
+    strictEqual(window[evName], null);
     // NOTE: If this test fails, a system dialog blocks the page before it is unloaded.
-    setProperty(window, 'onbeforeunload', function () {
+    setProperty(window, evName, function () {
         return 'value';
     });
-    ok(window.onbeforeunload);
+    ok(window[evName]);
 });
 
 test('element.innerHTML', function () {
