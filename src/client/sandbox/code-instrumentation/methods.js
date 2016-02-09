@@ -1,4 +1,3 @@
-import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import SandboxBase from '../base';
 import { isNullOrUndefined, inaccessibleTypeToStr } from '../../utils/types';
 import INSTRUCTION from '../../../processing/script/instruction';
@@ -44,9 +43,5 @@ export default class MethodCallInstrumentation extends SandboxBase {
 
             return fastApply(owner, methName, args);
         };
-    }
-
-    static _replaceFocusPseudoClass (selector) {
-        return selector.replace(/\s*:focus\b/gi, '[' + INTERNAL_ATTRS.focusPseudoClass + ']');
     }
 }
