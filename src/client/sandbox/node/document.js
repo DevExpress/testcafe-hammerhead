@@ -44,7 +44,6 @@ export default class DocumentSandbox extends SandboxBase {
     _overridedDocumentWrite (args, ln) {
         args = arraySlice.call(args);
 
-        var separator = ln ? '\n' : '';
         var lastArg   = args.length ? args[args.length - 1] : '';
         var isBegin   = lastArg === INTERNAL_LITERAL.documentWriteBegin;
         var isEnd     = lastArg === INTERNAL_LITERAL.documentWriteEnd;
@@ -57,7 +56,7 @@ export default class DocumentSandbox extends SandboxBase {
         if (isBegin || isEnd)
             args.pop();
 
-        var str = separator + args.join(separator);
+        var str = args.join('');
 
         var needWriteOnEndMarker = isEnd && !this.writeBlockCounter;
 
@@ -84,7 +83,8 @@ export default class DocumentSandbox extends SandboxBase {
         if ((isFirefox || isIE) && !htmlUtils.isPageHtml(str))
             str = htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + str;
 
-        var result = nativeMethods.documentWrite.call(this.document, str);
+        var targetNativeMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
+        var result             = targetNativeMethod.call(this.document, str);
 
         if (shouldEmitEvents) {
             this.nodeSandbox.mutation.onDocumentCleaned({
