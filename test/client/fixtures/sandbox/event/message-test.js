@@ -258,30 +258,48 @@ asyncTest('iframe', function () {
     document.body.appendChild(iframe);
 });
 
-asyncTest('timeout', function () {
+asyncTest('timeout (non-added to DOM iframe)', function () {
     var iframe               = document.createElement('iframe');
-    var timeoutExceededError = false;
     var storedDelay          = messageSandbox.PING_IFRAME_TIMEOUT;
-    var timeout              = 100;
 
-    messageSandbox.setPingIframeTimeout(5);
+    messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
     iframe.src = 'http://cross.domain.com/';
 
     messageSandbox.pingIframe(iframe, 'pingCmd')
-        .then(function (timeoutExceeded) {
-            timeoutExceededError = timeoutExceeded;
+        .then(function () {
+            ok(false, 'ping should not be resolved');
+        }, function () {
+            ok(true, 'ping should be rejected');
+        })
+        .then(function () {
+            messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
+            start();
         });
+});
 
-    window.setTimeout(function () {
-        ok(timeoutExceededError);
-        iframe.parentNode.removeChild(iframe);
+asyncTest('timeout (added to DOM iframe)', function () {
+    var iframe               = document.createElement('iframe');
+    var storedDelay          = messageSandbox.PING_IFRAME_TIMEOUT;
 
-        messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
+    messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
-        start();
-    }, timeout);
+    iframe.src = 'http://cross.domain.com/';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            return messageSandbox.pingIframe(iframe, 'pingCmd');
+        })
+        .then(function () {
+            ok(false, 'ping should not be resolved');
+        }, function () {
+            ok(true, 'ping should be rejected');
+        })
+        .then(function () {
+            messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
+            iframe.parentNode.removeChild(iframe);
 
+            start();
+        });
     document.body.appendChild(iframe);
 });
 

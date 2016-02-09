@@ -144,10 +144,6 @@ export default class MessageSandbox extends SandboxBase {
         window[this.RECEIVE_MSG_FN] = isIframeWithoutSrc || this.topWindow === window.self ? onMessageHandler : null;
     }
 
-    setPingIframeTimeout (value) {
-        this.PING_IFRAME_TIMEOUT = value;
-    }
-
     setOnMessage (window, value) {
         if (typeof value === 'function') {
             this.storedOnMessageHandler = value;
@@ -221,7 +217,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     pingIframe (targetIframe, pingMessageCommand, shortWaiting) {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             var pingInterval = null;
             var pingTimeout  = null;
             var targetWindow = null;
@@ -249,7 +245,7 @@ export default class MessageSandbox extends SandboxBase {
 
             pingTimeout = nativeMethods.setTimeout.call(this.window, () => {
                 cleanTimeouts();
-                resolve(true);
+                reject();
             }, shortWaiting ? this.PING_IFRAME_MIN_TIMEOUT : this.PING_IFRAME_TIMEOUT);
 
             this.pingCallback = () => {
