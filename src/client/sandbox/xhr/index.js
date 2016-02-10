@@ -117,8 +117,6 @@ export default class XhrSandbox extends SandboxBase {
             if (!this.corsSupported)
                 xhr.withCredentials = false;
 
-            XMLHttpRequestWrapper.prototype = xhr;
-
             return new XMLHttpRequestWrapper(xhr);
         };
     }
