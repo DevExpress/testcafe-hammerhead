@@ -295,7 +295,16 @@ test('location.port must return the empty string (T262593)', function () {
     /* eslint-enable no-undef */
 });
 
-module('getProxyUrl in a document with then "base" tag (GH-371)');
+test('setting up an href attribute for a non-added to DOM "base" tag should not cause urlResolver to update. (GH-415)', function () {
+    var baseEl = document.createElement('base');
+
+    baseEl.setAttribute('href', 'http://subdomain.example.com');
+
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+});
+
+module('getProxyUrl in a document with "base" tag (GH-371)');
 
 test('add, update and remove the "base" tag', function () {
     strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
