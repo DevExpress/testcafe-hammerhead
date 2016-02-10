@@ -237,12 +237,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeChild (child) {
-                if (domUtils.isDomElement(child)) {
-                    domUtils.find(child, 'input[type=file]', ElementSandbox._removeFileInputInfo);
-
-                    if (domUtils.isFileInput(child))
-                        ElementSandbox._removeFileInputInfo(child);
-                }
+                sandbox._onRemoveFileInputInfo(child);
 
                 var result = nativeMethods.removeChild.call(this, child);
 
@@ -255,7 +250,13 @@ export default class ElementSandbox extends SandboxBase {
                 if (newChild.nodeType === 3)
                     ElementSandbox._processTextNodeContent(newChild, this);
 
-                return nativeMethods.replaceChild.call(this, newChild, oldChild);
+                sandbox._onRemoveFileInputInfo(oldChild);
+
+                var result = nativeMethods.replaceChild.call(this, newChild, oldChild);
+
+                sandbox._onAddFileInputInfo(newChild);
+
+                return result;
             },
 
             cloneNode () {
@@ -336,6 +337,24 @@ export default class ElementSandbox extends SandboxBase {
         hiddenInfo.removeInputInfo(el);
     }
 
+    _onAddFileInputInfo (el) {
+        if (domUtils.isDomElement(el)) {
+            domUtils.find(el, 'input[type=file]', elem => this.addFileInputInfo(elem));
+
+            if (domUtils.isFileInput(el))
+                this.addFileInputInfo(el);
+        }
+    }
+
+    _onRemoveFileInputInfo (el) {
+        if (domUtils.isDomElement(el)) {
+            domUtils.find(el, 'input[type=file]', ElementSandbox._removeFileInputInfo);
+
+            if (domUtils.isFileInput(el))
+                ElementSandbox._removeFileInputInfo(el);
+        }
+    }
+
     _onElementAdded (el) {
         if ((el.nodeType === 1 || el.nodeType === 9) && domUtils.isElementInDocument(el)) {
             var iframes = ElementSandbox.getIframes(el);
@@ -348,21 +367,13 @@ export default class ElementSandbox extends SandboxBase {
                 this.shadowUI.onBodyElementMutation();
         }
 
-        if (domUtils.isDomElement(el)) {
-            /* eslint-disable no-shadow */
-            domUtils.find(el, 'input[type=file]', el => this.addFileInputInfo(el));
-            /* eslint-enable no-shadow */
+        this._onAddFileInputInfo(el);
 
-            if (domUtils.isFileInput(el))
-                this.addFileInputInfo(el);
+        if (domUtils.isBaseElement(el)) {
+            var storedHrefAttrName  = domProcessor.getStoredAttrName('href');
+            var storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
-            else if (domUtils.isBaseElement(el)) {
-                var storedHrefAttrName  = domProcessor.getStoredAttrName('href');
-                var storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
-
-                urlResolver.updateBase(storedHrefAttrValue, this.document);
-            }
-
+            urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
     }
 
