@@ -295,18 +295,9 @@ test('location.port must return the empty string (T262593)', function () {
     /* eslint-enable no-undef */
 });
 
-test('setting up an href attribute for a non-added to DOM "base" tag should not cause urlResolver to update. (GH-415)', function () {
-    var baseEl = document.createElement('base');
+module('getProxyUrl in a document with "base" tag');
 
-    baseEl.setAttribute('href', 'http://subdomain.example.com');
-
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
-});
-
-module('getProxyUrl in a document with "base" tag (GH-371)');
-
-test('add, update and remove the "base" tag', function () {
+test('add, update and remove the "base" tag (GH-371)', function () {
     strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
                 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 
@@ -335,7 +326,7 @@ test('add, update and remove the "base" tag', function () {
                 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 });
 
-asyncTest('recreating a document with the "base" tag', function () {
+asyncTest('recreating a document with the "base" tag (GH-371)', function () {
     var iframe = document.createElement('iframe');
     var src    = window.QUnitGlobals.getResourceUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
 
@@ -353,4 +344,39 @@ asyncTest('recreating a document with the "base" tag', function () {
             start();
         });
     document.body.appendChild(iframe);
+});
+
+test('setting up an href attribute for a non-added to DOM "base" tag should not cause urlResolver to update. (GH-415)', function () {
+    var baseEl = document.createElement('base');
+
+    baseEl.setAttribute('href', 'http://subdomain.example.com');
+
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+});
+
+test('"base" tag with an empty href attribute (GH-422)', function () {
+    var base = document.createElement('base');
+
+    document.head.appendChild(base);
+
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+
+    base.setAttribute('href', '');
+
+    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+});
+
+test('"base" tag with an href attribute that is set to a relative url (GH-422)', function () {
+    var base = document.createElement('base');
+
+    document.head.appendChild(base);
+    base.setAttribute('href', '/test1/test2/test3');
+
+    strictEqual(urlUtils.getProxyUrl('../image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://example.com/test1/image.png');
+
+    base.parentNode.removeChild(base);
 });

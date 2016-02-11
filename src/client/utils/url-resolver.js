@@ -1,6 +1,6 @@
 import nativeMethods from '../sandbox/native-methods';
 import * as destLocation from '../utils/destination-location';
-import { ensureTrailingSlash } from '../../utils/url';
+import { ensureTrailingSlash, parseUrl } from '../../utils/url';
 
 const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
 
@@ -59,6 +59,18 @@ export default {
     updateBase (url, doc) {
         var resolverDocument = this._getResolver(doc);
         var baseElement      = resolverDocument.head.getElementsByTagName('base')[0];
+
+        url = url || destLocation.get();
+
+        var parsedUrl        = parseUrl(url);
+        var isRelativeUrl    = !parsedUrl.host;
+
+        if (isRelativeUrl) {
+            var destinationLocation = destLocation.get();
+
+            this.updateBase(destinationLocation, doc);
+            url = this.resolve(url, doc);
+        }
 
         nativeMethods.setAttribute.call(baseElement, 'href', url);
     },
