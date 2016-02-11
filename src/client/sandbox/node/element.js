@@ -101,7 +101,7 @@ export default class ElementSandbox extends SandboxBase {
                     var resourceType     = domProcessor.getElementResourceType(el);
                     var elCharset        = isScript && el.charset;
 
-                    if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
+                    if (ElementSandbox._isHrefAttrForBaseElement(el, attr) && domUtils.isElementInDocument(el, this.document))
                         urlResolver.updateBase(value, this.document);
 
                     value = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
