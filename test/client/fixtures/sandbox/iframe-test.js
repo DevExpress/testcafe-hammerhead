@@ -5,6 +5,7 @@ var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
+var shadowUI      = hammerhead.sandbox.shadowUI;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -330,5 +331,56 @@ test("native methods of the iframe document aren't overridden for iframe with ja
 
     iframe.setAttribute('src', 'javascript:"<html><body></body></html>"');
     strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), browserUtils.isWebKit);
+});
+
+test("'body.appendChild' method works incorrectly in the particular case (GH-421)", function () {
+    var iframes      = [];
+    var countIframes = 2;
+
+    var createIframes = function () {
+        for (var i = 0; i < countIframes; i++) {
+            var iframe = document.createElement('iframe');
+
+            iframes.push(iframe);
+            iframe.id = 'test_GH_i_421_' + i;
+            iframe.setAttribute('src', 'javascript:false');
+            document.body.appendChild(iframe);
+        }
+    };
+
+    var performDocumentWriteInIframes = function () {
+        for (var i = 0; i < countIframes; i++) {
+            var iframe = iframes[i];
+
+            iframe.contentDocument.open();
+            iframe.contentDocument.write('<html><head><style></style><title>title</title></head><body></body></html>');
+            iframe.contentDocument.close();
+        }
+    };
+
+    var checkIframes = function () {
+        for (var i = 0; i < countIframes; i++) {
+            var iframe = iframes[i];
+
+            ok(!iframe.contentWindow['%hammerhead%'].sandbox.shadowUI.root);
+            iframe.parentNode.removeChild(iframe);
+        }
+    };
+
+    createIframes();
+    performDocumentWriteInIframes();
+
+    var container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    var child = document.createElement('p');
+
+    container.appendChild(child);
+    document.body.removeChild(container);
+
+    ok(shadowUI.root);
+
+    checkIframes();
 });
 
