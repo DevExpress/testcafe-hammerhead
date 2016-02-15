@@ -97,4 +97,4 @@ export default class DestinationRequest extends EventEmitter {
 
 // NOTE: Exposed for testing purposes.
 DestinationRequest.TIMEOUT     = 25 * 1000;
-DestinationRequest.XHR_TIMEOUT = 60 * 1000;
+DestinationRequest.XHR_TIMEOUT = 2 * 60 * 1000;
