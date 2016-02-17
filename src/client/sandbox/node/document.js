@@ -20,10 +20,11 @@ export default class DocumentSandbox extends SandboxBase {
         this.readyStateForIE            = null;
     }
 
-    _isUninitializedIframeWithoutSrc () {
-        var frameElement = getFrameElement(this.window);
+    _isUninitializedIframeWithoutSrc (doc) {
+        var wnd          = doc.defaultView;
+        var frameElement = getFrameElement(wnd);
 
-        return this.window !== this.window.top && frameElement && isIframeWithoutSrc(frameElement) &&
+        return wnd !== wnd.top && frameElement && isIframeWithoutSrc(frameElement) &&
                !IframeSandbox.isIframeInitialized(frameElement);
     }
 
@@ -115,7 +116,7 @@ export default class DocumentSandbox extends SandboxBase {
         var documentSandbox = this;
 
         document.open = () => {
-            var isUninitializedIframe = this._isUninitializedIframeWithoutSrc();
+            var isUninitializedIframe = this._isUninitializedIframeWithoutSrc(document);
 
             if (!isUninitializedIframe)
                 this._beforeDocumentCleaned();
@@ -141,7 +142,7 @@ export default class DocumentSandbox extends SandboxBase {
 
             var result = nativeMethods.documentClose.call(document);
 
-            if (!this._isUninitializedIframeWithoutSrc())
+            if (!this._isUninitializedIframeWithoutSrc(document))
                 this._onDocumentClosed();
 
             return result;
