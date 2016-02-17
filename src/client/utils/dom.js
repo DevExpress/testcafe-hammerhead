@@ -200,15 +200,7 @@ export function getScrollbarSize () {
 }
 
 export function getSelectParent (child) {
-    var parent = child.parentNode;
-
-    while (parent) {
-        if (parent.tagName && parent.tagName.toLowerCase() === 'select')
-            return parent;
-
-        parent = parent.parentNode;
-    }
-    return null;
+    return closest(child.parentNode, 'select');
 }
 
 export function getSelectVisibleChildren (select) {
