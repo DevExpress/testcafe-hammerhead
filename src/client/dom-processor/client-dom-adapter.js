@@ -6,7 +6,7 @@ import settings from '../settings';
 import { sameOriginCheck } from '../utils/destination-location';
 import { getProxyUrl } from '../utils/url';
 import { isIE9 } from '../utils/browser';
-import { findDocument } from '../utils/dom';
+import { findDocument, isScriptElement } from '../utils/dom';
 import fastApply from '../utils/fast-apply';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
@@ -67,7 +67,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     getElementForSelectorCheck (el) {
-        if (isIE9 && el.tagName.toLowerCase() === 'script') {
+        if (isIE9 && isScriptElement(el)) {
             var clone = nativeMethods.cloneNode.call(el, false);
 
             clone.src = clone.innerHTML = '';

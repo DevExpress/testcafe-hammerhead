@@ -145,7 +145,7 @@ export default class EventSimulator {
         var dispatch = null;
         // NOTE: We don't simulate a click on links with modifiers (ctrl, shift, ctrl+shift, alt),
         // because it causes the opening of a browser window or additional tabs in it or loading files.
-        var isClickOnLink = event === 'click' && el.tagName && el.tagName.toLocaleLowerCase() === 'a';
+        var isClickOnLink = event === 'click' && domUtils.isAnchorElement(el);
         var opts          = extend(
             userOptions ? {
                 clientX:       userOptions.clientX,

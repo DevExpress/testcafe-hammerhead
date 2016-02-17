@@ -122,8 +122,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
             var tempElement = null;
 
-            if (type === 'focus' && el.tagName && el.tagName.toLowerCase() === 'label' &&
-                el.htmlFor) {
+            if (type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor) {
                 tempElement = domUtils.findDocument(el).getElementById(el.htmlFor);
                 if (tempElement)
                     el = tempElement;

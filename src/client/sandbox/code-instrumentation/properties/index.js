@@ -67,7 +67,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             action: {
                 condition: el => {
                     if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['action'].indexOf(el.tagName.toLowerCase()) !== -1;
+                        return URL_ATTR_TAGS['action'].indexOf(domUtils.getTagName(el)) !== -1;
 
                     return false;
                 },
@@ -115,7 +115,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             data: {
                 condition: el => {
                     if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['data'].indexOf(el.tagName.toLowerCase()) !== -1;
+                        return URL_ATTR_TAGS['data'].indexOf(domUtils.getTagName(el)) !== -1;
 
                     return false;
                 },
@@ -155,13 +155,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             host: {
-                condition: el => domUtils.isAnchor(el),
+                condition: el => domUtils.isAnchorElement(el),
                 get:       el => getAnchorProperty(el, 'host'),
                 set:       (el, port) => setAnchorProperty(el, 'host', port)
             },
 
             hostname: {
-                condition: el => domUtils.isAnchor(el),
+                condition: el => domUtils.isAnchorElement(el),
                 get:       el => getAnchorProperty(el, 'hostname'),
                 set:       (el, port) => setAnchorProperty(el, 'hostname', port)
             },
@@ -169,7 +169,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             href: {
                 condition: el => {
                     if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['href'].indexOf(el.tagName.toLowerCase()) !== -1;
+                        return URL_ATTR_TAGS['href'].indexOf(domUtils.getTagName(el)) !== -1;
 
                     return LocationAccessorsInstrumentation.isLocationWrapper(el);
                 },
@@ -184,7 +184,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       el => cleanUpHtml(el.innerHTML, el.tagName),
 
                 set: (el, value) => {
-                    if (el.tagName && el.tagName.toLowerCase() === 'style')
+                    if (domUtils.isStyleElement(el))
                         value = processStyle('' + value, urlUtils.getProxyUrl, true);
                     else if (value !== null)
                         value = processHtml('' + value, el.tagName);
@@ -205,13 +205,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised
                     // during recording. There was an issue when the document.body was replaced, so we need to
                     // reattach UI to a new body manually.
-                    var containerTagName = el.tagName && el.tagName.toLowerCase();
 
                     // NOTE: This check is required because jQuery calls the set innerHTML method for an element
                     // in an unavailable window.
                     if (window.self) {
                         // NOTE: Use timeout, so that changes take effect.
-                        if (containerTagName === 'html' || containerTagName === 'body')
+                        if (domUtils.isHtmlElement(el) || domUtils.isBodyElement(el))
                             nativeSetTimeout.call(window, () => this.nodeMutation.onBodyContentChanged(el), 0);
                     }
 
@@ -220,7 +219,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             innerText: {
-                condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script' &&
+                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el) &&
                                  typeof el.innerText === 'string',
 
                 get: el => typeof el.innerText === 'string' ? removeProcessingHeader(el.innerText) : el.innerText,
@@ -325,7 +324,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             manifest: {
                 condition: el => {
                     if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['manifest'].indexOf(el.tagName.toLowerCase()) !== -1;
+                        return URL_ATTR_TAGS['manifest'].indexOf(domUtils.getTagName(el)) !== -1;
 
                     return false;
                 },
@@ -335,25 +334,25 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             origin: {
-                condition: el => domUtils.isAnchor(el),
+                condition: el => domUtils.isAnchorElement(el),
                 get:       el => typeof el.origin !== 'undefined' ? getAnchorProperty(el, 'origin') : el.origin,
                 set:       (el, origin) => el.origin = origin
             },
 
             pathname: {
-                condition: el => domUtils.isAnchor(el),
+                condition: el => domUtils.isAnchorElement(el),
                 get:       el => getAnchorProperty(el, 'pathname'),
                 set:       (el, pathname) => setAnchorProperty(el, 'pathname', pathname)
             },
 
             port: {
-                condition: el => domUtils.isAnchor(el),
+                condition: el => domUtils.isAnchorElement(el),
                 get:       el => getAnchorProperty(el, 'port'),
                 set:       (el, port) => setAnchorProperty(el, 'port', port)
             },
 
             protocol: {
-                condition: el => domUtils.isAnchor(el),
+                condition: el => domUtils.isAnchorElement(el),
                 get:       el => getAnchorProperty(el, 'protocol'),
                 set:       (el, port) => setAnchorProperty(el, 'protocol', port)
             },
@@ -375,13 +374,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             sandbox: {
-                condition: el => domUtils.isIframe(el),
+                condition: el => domUtils.isIframeElement(el),
                 get:       el => el.getAttribute('sandbox'),
                 set:       (el, value) => el.setAttribute('sandbox', value)
             },
 
             search: {
-                condition: el => domUtils.isAnchor(el),
+                condition: el => domUtils.isAnchorElement(el),
                 get:       el => getAnchorProperty(el, 'search'),
                 set:       (el, search) => setAnchorProperty(el, 'search', search)
             },
@@ -395,7 +394,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             src: {
                 condition: el => {
                     if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['src'].indexOf(el.tagName.toLowerCase()) !== -1;
+                        return URL_ATTR_TAGS['src'].indexOf(domUtils.getTagName(el)) !== -1;
 
                     return false;
                 },
@@ -405,7 +404,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             target: {
-                condition: el => domUtils.isDomElement(el) && TARGET_ATTR_TAGS[el.tagName.toLowerCase()],
+                condition: el => domUtils.isDomElement(el) && TARGET_ATTR_TAGS[domUtils.getTagName(el)],
                 get:       el => el.target,
 
                 set: (el, value) => {
@@ -418,7 +417,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             text: {
                 // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
-                condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script',
+                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el),
                 get:       el => typeof el.text === 'string' ? removeProcessingHeader(el.text) : el.text,
 
                 set: (el, script) => {
@@ -430,7 +429,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             textContent: {
                 // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
-                condition: el => typeof el.tagName === 'string' && el.tagName.toLowerCase() === 'script',
+                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el),
                 get:       el => typeof el.textContent === 'string' ?
                                  removeProcessingHeader(el.textContent) : el.textContent,
 
