@@ -334,17 +334,9 @@ export function isDomElement (el) {
 }
 
 export function isElementInDocument (el, currentDocument) {
-    var doc        = currentDocument || document;
-    var curElement = el.parentNode;
+    var doc = currentDocument || document;
 
-    while (curElement) {
-        if (curElement === doc)
-            return true;
-
-        curElement = curElement.parentNode;
-    }
-
-    return false;
+    return doc.documentElement.contains(el);
 }
 
 export function isElementInIframe (el, currentDocument) {
