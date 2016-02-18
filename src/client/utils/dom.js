@@ -315,6 +315,9 @@ export function isCrossDomainWindows (window1, window2) {
 }
 
 export function isDomElement (el) {
+    if (el instanceof nativeMethods.elementClass)
+        return true;
+
     // NOTE: T184805
     if (el && typeof el.toString === 'function' && el.toString.toString().indexOf('[native code]') !== -1 &&
         el.constructor &&

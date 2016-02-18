@@ -47,6 +47,8 @@ asyncTest('isCrossDomainWindows', function () {
 });
 
 test('isDomElement', function () {
+    ok(!domUtils.isDomElement(document));
+    ok(domUtils.isDomElement(document.documentElement));
     ok(domUtils.isDomElement(document.body));
     ok(domUtils.isDomElement(document.createElement('span')));
     ok(domUtils.isDomElement(document.createElement('strong')));
@@ -63,13 +65,22 @@ test('isDomElement', function () {
     /* eslint-enable no-extra-parens */
 });
 
-asyncTest('isDomElement for iframe Element.prototype chain', function () {
+asyncTest('isDomElement for iframe elements', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id  = 'test4';
     iframe.src = '';
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
+            var iframeDocument = iframe.contentDocument;
+
+            ok(!domUtils.isDomElement(iframeDocument));
+            ok(domUtils.isDomElement(iframeDocument.documentElement));
+            ok(domUtils.isDomElement(iframeDocument.body));
+            ok(domUtils.isDomElement(iframeDocument.createElement('span')));
+            ok(domUtils.isDomElement(iframeDocument.createElement('strong')));
+            ok(domUtils.isDomElement(iframeDocument.createElement('a')));
+
             var p = iframe.contentWindow.Element.prototype;
 
             /* eslint-disable no-extra-parens */
@@ -467,7 +478,7 @@ if (!browserUtils.isFirefox) {
                         strictEqual(parentIframeUtils.getIframeByElement(parentIframe.contentDocument.body), parentIframe);
                         strictEqual(parentIframeUtils.getIframeByElement(childIframe.contentDocument.body), childIframe);
 
-                        childIframe.parentNode.removeChild(childIframe);
+                        parentIframe.parentNode.removeChild(parentIframe);
                         start();
                     });
 
