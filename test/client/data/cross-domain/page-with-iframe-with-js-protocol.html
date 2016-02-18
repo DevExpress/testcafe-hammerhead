@@ -12,6 +12,7 @@
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://target_url');
     hammerhead.start({
+        cookie:                   "",
         crossDomainProxyPort:     2000,
         serviceMsgUrl:            '/service-msg/"window[\'' + INTERNAL_PROPS.overrideDomMethodName +
                                   '\'] = function() {}"',
