@@ -334,7 +334,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _onAddFileInputInfo (el) {
-        if (domUtils.isTextNode(el))
+        if (!el.querySelectorAll)
             return;
 
         if (domUtils.isFileInput(el))
@@ -345,7 +345,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _onRemoveFileInputInfo (el) {
-        if (domUtils.isTextNode(el))
+        if (!el.querySelectorAll)
             return;
 
         if (domUtils.isFileInput(el))
