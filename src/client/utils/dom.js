@@ -90,7 +90,7 @@ export function getActiveElement (currentDocument) {
     var activeElement = doc.activeElement &&
                         doc.activeElement.tagName ? doc.activeElement : doc.body;
 
-    if (activeElement.tagName.toLowerCase() === 'iframe') {
+    if (isIframeElement(activeElement)) {
         try {
             return getActiveElement(activeElement.contentDocument);
         }
@@ -328,6 +328,10 @@ export function isDomElement (el) {
     return el && el.nodeType !== 11 && typeof el.nodeName === 'string' && el.tagName;
 }
 
+export function getTagName (el) {
+    return el && el.tagName ? el.tagName.toLowerCase() : '';
+}
+
 export function isElementInDocument (el, currentDocument) {
     var doc = currentDocument || document;
 
@@ -349,8 +353,8 @@ export function isHammerheadAttr (attr) {
            attr.indexOf(INTERNAL_ATTRS.storedAttrPostfix) !== -1;
 }
 
-export function isIframe (el) {
-    return isDomElement(el) && el.tagName.toLowerCase() === 'iframe';
+export function isIframeElement (el) {
+    return getTagName(el) === 'iframe';
 }
 
 export function isIframeWithoutSrc (iframe) {
@@ -388,19 +392,47 @@ export function isIframeWithoutSrc (iframe) {
 }
 
 export function isImgElement (el) {
-    return isDomElement(el) && el.tagName.toLowerCase() === 'img';
+    return getTagName(el) === 'img';
 }
 
 export function isInputElement (el) {
-    return isDomElement(el) && el.tagName.toLowerCase() === 'input';
+    return getTagName(el) === 'input';
+}
+
+export function isHtmlElement (el) {
+    return getTagName(el) === 'html';
 }
 
 export function isBodyElement (el) {
-    return isDomElement(el) && el.tagName.toLowerCase() === 'body';
+    return getTagName(el) === 'body';
+}
+
+export function isHeadElement (el) {
+    return getTagName(el) === 'head';
 }
 
 export function isBaseElement (el) {
-    return isDomElement(el) && el.tagName.toLowerCase() === 'base';
+    return getTagName(el) === 'base';
+}
+
+export function isScriptElement (el) {
+    return getTagName(el) === 'script';
+}
+
+export function isStyleElement (el) {
+    return getTagName(el) === 'style';
+}
+
+export function isLabelElement (el) {
+    return getTagName(el) === 'label';
+}
+
+export function isTextAreaElement (el) {
+    return getTagName(el) === 'textarea';
+}
+
+export function isFormElement (el) {
+    return getTagName(el) === 'form';
 }
 
 export function isBodyElementWithChildren (el) {
@@ -413,20 +445,22 @@ export function isInputWithoutSelectionPropertiesInFirefox (el) {
 }
 
 export function isMapElement (el) {
-    return /^map$|^area$/i.test(el.tagName);
+    return /^map$|^area$/i.test(getTagName(el));
 }
 
 export function isRenderedNode (node) {
     return !(node.nodeType === 7 || node.nodeType === 8 || /^(script|style)$/i.test(node.nodeName));
 }
 
+export function isTextNode (node) {
+    return node && node.nodeType === 3;
+}
+
 export function isElementFocusable (el) {
     if (!el)
         return false;
 
-    var isAnchorWithoutHref = el.tagName &&
-                              el.tagName.toLowerCase() === 'a' &&
-                              el.getAttribute('href') === '' && !el.getAttribute('tabIndex');
+    var isAnchorWithoutHref = isAnchorElement(el) && el.getAttribute('href') === '' && !el.getAttribute('tabIndex');
 
     var isFocusable = !isAnchorWithoutHref &&
                       matches(el, getFocusableSelector() + ', body') && !matches(el, ':disabled') &&
@@ -507,15 +541,12 @@ export function isSVGElementOrChild (el) {
 
 export function isTextEditableInput (el) {
     var editableInputTypesRegEx = /^(datetime|email|number|password|search|tel|text|url)$/;
-    var tagName                 = el.tagName ? el.tagName.toLowerCase() : '';
 
-    return tagName === 'input' && editableInputTypesRegEx.test(el.type);
+    return isInputElement(el) && editableInputTypesRegEx.test(el.type);
 }
 
 export function isTextEditableElement (el) {
-    var tagName = el.tagName ? el.tagName.toLowerCase() : '';
-
-    return isTextEditableInput(el) || tagName === 'textarea';
+    return isTextEditableInput(el) || isTextAreaElement(el);
 }
 
 export function isTextEditableElementAndEditingAllowed (el) {
@@ -528,8 +559,12 @@ export function isTextNode (node) {
     return node && typeof node === 'object' && node.nodeType === 3 && typeof node.nodeName === 'string';
 }
 
-export function isAnchor (el) {
-    return isDomElement(el) && el.tagName.toLowerCase() === 'a';
+export function isAnchorElement (el) {
+    return getTagName(el) === 'a';
+}
+
+export function isTableElement (el) {
+    return getTagName(el) === 'table';
 }
 
 export function matches (el, selector) {

@@ -2,6 +2,7 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIE9, isIE10, isIOS } from '../../utils/browser';
+import * as domUtils from '../../utils/dom';
 
 export default class UnloadSandbox extends SandboxBase {
     constructor (listeners) {
@@ -63,7 +64,7 @@ export default class UnloadSandbox extends SandboxBase {
     _onDocumentClick (e) {
         var target = e.target || e.srcElement;
 
-        if (target.tagName && target.tagName.toLowerCase() === 'a')
+        if (domUtils.isAnchorElement(target))
             this.isFakeIEBeforeUnloadEvent = !target.href || !/^https?:/.test(target.href);
     }
 

@@ -74,7 +74,7 @@ export function getElementPadding (el) {
 }
 
 export function getElementScroll (el) {
-    var isHtmlElement = /html/i.test(el.tagName);
+    var isHtmlElement = domUtils.isHtmlElement(el);
     var currentWindow = window;
 
     if (isHtmlElement && domUtils.isElementInIframe(el)) {
@@ -224,7 +224,7 @@ export function getSelectElementSize (select) {
 
 export function isVisibleChild (el) {
     var select  = domUtils.getSelectParent(el);
-    var tagName = el.tagName.toLowerCase();
+    var tagName = domUtils.getTagName(el);
 
     return select && select.tagName.toLowerCase() === 'select' && getSelectElementSize(select) > 1 &&
            (tagName === 'option' || tagName === 'optgroup') &&

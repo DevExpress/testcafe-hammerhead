@@ -243,9 +243,8 @@ export default class ShadowUI extends SandboxBase {
 
     overrideElement (el) {
         var shadowUI = this;
-        var tagName  = el && el.tagName && el.tagName.toLowerCase();
 
-        if (tagName && (tagName === 'body' || tagName === 'head')) {
+        if (domUtils.isBodyElement(el) || domUtils.isHeadElement(el)) {
             el.getElementsByClassName = function () {
                 return shadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.apply(el, arguments));
             };
@@ -325,11 +324,8 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static isShadowContainer (el) {
-        if (domUtils.isDomElement(el)) {
-            var tagName = el.tagName.toLowerCase();
-
-            return tagName === 'head' || tagName === 'body';
-        }
+        if (domUtils.isDomElement(el))
+            return domUtils.isBodyElement(el) || domUtils.isHeadElement(el);
 
         return false;
     }

@@ -134,7 +134,7 @@ function getSelectChildRectangle (el) {
 
 function getSvgElementRelativeRectangle (el) {
     var isSvgTextElement   = domUtils.matches(el, 'tspan') || domUtils.matches(el, 'tref') ||
-                             el.tagName && el.tagName.toLowerCase() === 'textpath';
+                             domUtils.getTagName(el) === 'textpath';
     var boundingClientRect = el.getBoundingClientRect();
     var elementRect        = {
         height: !isSvgTextElement ? boundingClientRect.height : el.offsetHeight,

@@ -44,7 +44,7 @@ export default class ElementSandbox extends SandboxBase {
 
     _overridedSetAttributeCore (el, attr, value, ns) {
         var setAttrMeth         = ns ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
-        var tagName             = el.tagName.toLowerCase();
+        var tagName             = domUtils.getTagName(el);
         var isSupportedProtocol = urlUtils.isSupportedProtocol(value);
         var urlAttr             = ElementSandbox._isUrlAttr(el, attr);
         var isEventAttr         = domProcessor.EVENTS.indexOf(attr) !== -1;
@@ -156,7 +156,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _prepareNodeForInsertion (node, parentNode) {
-        if (node.nodeType === 3)
+        if (domUtils.isTextNode(node))
             ElementSandbox._processTextNodeContent(node, parentNode);
 
         this.nodeSandbox.overrideDomMethods(node);
@@ -168,8 +168,7 @@ export default class ElementSandbox extends SandboxBase {
 
         this.overridedMethods = {
             insertRow () {
-                var tagName    = this.tagName.toLowerCase();
-                var nativeMeth = tagName === 'table' ? nativeMethods.insertTableRow : nativeMethods.insertTBodyRow;
+                var nativeMeth = domUtils.isTableElement(this) ? nativeMethods.insertTableRow : nativeMethods.insertTBodyRow;
                 var row        = nativeMeth.apply(this, arguments);
 
                 sandbox.nodeSandbox.overrideDomMethods(row);
@@ -247,7 +246,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             replaceChild (newChild, oldChild) {
-                if (newChild.nodeType === 3)
+                if (domUtils.isTextNode(newChild))
                     ElementSandbox._processTextNodeContent(newChild, this);
 
                 sandbox._onRemoveFileInputInfo(oldChild);
@@ -315,18 +314,15 @@ export default class ElementSandbox extends SandboxBase {
         if (!parentNode.tagName)
             return;
 
-        var parentTagName = parentNode.tagName.toLowerCase();
-
-        if (parentTagName === 'script')
+        if (domUtils.isScriptElement(parentNode))
             node.data = processScript(node.data, true, false);
-        else if (parentTagName === 'style')
+        else if (domUtils.isStyleElement(parentNode))
             node.data = processStyle(node.data, urlUtils.getProxyUrl);
     }
 
     static _isUrlAttr (el, attr) {
-        var tagName = el.tagName.toLowerCase();
-
-        return domProcessor.URL_ATTR_TAGS[attr] && domProcessor.URL_ATTR_TAGS[attr].indexOf(tagName) !== -1;
+        return domProcessor.URL_ATTR_TAGS[attr] &&
+               domProcessor.URL_ATTR_TAGS[attr].indexOf(domUtils.getTagName(el)) !== -1;
     }
 
     static _isHrefAttrForBaseElement (el, attr) {
@@ -338,21 +334,25 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _onAddFileInputInfo (el) {
-        if (domUtils.isDomElement(el)) {
-            domUtils.find(el, 'input[type=file]', elem => this.addFileInputInfo(elem));
+        if (domUtils.isTextNode(el))
+            return;
 
-            if (domUtils.isFileInput(el))
-                this.addFileInputInfo(el);
-        }
+        if (domUtils.isFileInput(el))
+            this.addFileInputInfo(el);
+
+        else
+            domUtils.find(el, 'input[type=file]', elem => this.addFileInputInfo(elem));
     }
 
     _onRemoveFileInputInfo (el) {
-        if (domUtils.isDomElement(el)) {
-            domUtils.find(el, 'input[type=file]', ElementSandbox._removeFileInputInfo);
+        if (domUtils.isTextNode(el))
+            return;
 
-            if (domUtils.isFileInput(el))
-                ElementSandbox._removeFileInputInfo(el);
-        }
+        if (domUtils.isFileInput(el))
+            ElementSandbox._removeFileInputInfo(el);
+
+        else
+            domUtils.find(el, 'input[type=file]', ElementSandbox._removeFileInputInfo);
     }
 
     _onElementAdded (el) {
@@ -386,9 +386,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     static getIframes (el) {
-        var isIframe = el.tagName && el.tagName.toLowerCase() === 'iframe';
-
-        return isIframe ? [el] : el.querySelectorAll('iframe');
+        return domUtils.isIframeElement(el) ? [el] : el.querySelectorAll('iframe');
     }
 
     addFileInputInfo (el) {
@@ -435,14 +433,11 @@ export default class ElementSandbox extends SandboxBase {
 
     overrideElement (el) {
         var isDocFragment = domUtils.isDocumentFragment(el);
-        var elTagName     = el.tagName && el.tagName.toLowerCase();
-        var isForm        = elTagName === 'form';
-        var isIframe      = elTagName === 'iframe';
 
         if (!isDocFragment)
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
 
-        if (elTagName === 'img') {
+        if (domUtils.isImgElement(el)) {
             el.addEventListener('error', e => {
                 var storedAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('src'));
 
@@ -452,9 +447,10 @@ export default class ElementSandbox extends SandboxBase {
                 }
             }, false);
         }
-
-        if (isIframe && !domUtils.isCrossDomainIframe(el, true))
+        else if (domUtils.isIframeElement(el) && !domUtils.isCrossDomainIframe(el, true))
             this.iframeSandbox.overrideIframe(el);
+        else if (domUtils.isFormElement(el))
+            el.submit = this.overridedMethods.formSubmit;
 
         if ('insertAdjacentHTML' in el)
             el.insertAdjacentHTML = this.overridedMethods.insertAdjacentHTML;
@@ -479,8 +475,5 @@ export default class ElementSandbox extends SandboxBase {
 
         if ('insertCell' in el)
             el.insertCell = this.overridedMethods.insertCell;
-
-        if (isForm)
-            el.submit = this.overridedMethods.formSubmit;
     }
 }

@@ -2,7 +2,7 @@ import FocusBlurSandbox from './focus-blur';
 import Listeners from './listeners';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
-import { getActiveElement, findDocument, isInputWithoutSelectionPropertiesInFirefox } from '../../utils/dom';
+import * as domUtils from '../../utils/dom';
 
 export default class Selection {
     constructor (eventSandbox) {
@@ -21,11 +21,9 @@ export default class Selection {
             var selectionEnd       = arguments[1];
             var selectionDirection = arguments[2] || 'none';
             var el                 = this;
-
-            var isTextArea      = this.tagName && this.tagName.toLowerCase() === 'textarea';
-            var fn              = isTextArea ? nativeMethods.textAreaSetSelectionRange : nativeMethods.setSelectionRange;
-            var activeElement   = getActiveElement(findDocument(el));
-            var isElementActive = false;
+            var fn                 = domUtils.isTextAreaElement(el) ? nativeMethods.textAreaSetSelectionRange : nativeMethods.setSelectionRange;
+            var activeElement      = domUtils.getActiveElement(domUtils.findDocument(el));
+            var isElementActive    = false;
 
             var selectionSetter = () => {
                 var changeType = Selection._needChangeInputType(el);
@@ -78,7 +76,7 @@ export default class Selection {
         this.selectWrapper = function () {
             var element = this.parentElement();
 
-            if (!element || getActiveElement(findDocument(element)) === element)
+            if (!element || domUtils.getActiveElement(domUtils.findDocument(element)) === element)
                 return nativeMethods.select.call(this);
 
             var result       = null;
@@ -106,9 +104,7 @@ export default class Selection {
     }
 
     static _needChangeInputType (el) {
-        var tagName = el.tagName ? el.tagName.toLowerCase() : '';
-
-        return tagName === 'input' && (browserUtils.isWebKit && /^(number|email)$/.test(el.type));
+        return domUtils.isInputElement(el) && (browserUtils.isWebKit && /^(number|email)$/.test(el.type));
     }
 
     setSelection (el, start, end, direction) {
@@ -122,7 +118,7 @@ export default class Selection {
 
     getSelection (el) {
         var changeType      = Selection._needChangeInputType(el);
-        var activeElement   = getActiveElement(findDocument(el));
+        var activeElement   = domUtils.getActiveElement(domUtils.findDocument(el));
         var isElementActive = activeElement === el;
         var savedType       = el.type;
         var selection       = null;
@@ -138,7 +134,7 @@ export default class Selection {
             el.type = 'text';
         }
 
-        if (isInputWithoutSelectionPropertiesInFirefox(el)) {
+        if (domUtils.isInputWithoutSelectionPropertiesInFirefox(el)) {
             selection = {
                 start:     0,
                 end:       0,
@@ -164,7 +160,7 @@ export default class Selection {
     }
 
     wrapSetterSelection (el, selectionSetter, needFocus, isContentEditable) {
-        var curDocument   = findDocument(el);
+        var curDocument   = domUtils.findDocument(el);
         var activeElement = null;
         var result        = null;
         var focusRaised   = false;
@@ -188,7 +184,7 @@ export default class Selection {
         Listeners.afterDispatchEvent();
 
         if (needFocus) {
-            activeElement = getActiveElement(curDocument);
+            activeElement = domUtils.getActiveElement(curDocument);
 
             if (browserUtils.isWebKit && activeElement !== el) {
                 if (focusRaised)
