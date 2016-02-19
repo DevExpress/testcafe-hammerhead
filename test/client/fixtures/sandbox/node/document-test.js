@@ -473,3 +473,21 @@ asyncTest('multiple document.write with html and body tags should not break mark
 
     document.body.appendChild(iframe);
 });
+
+test('script error when adding a comment node to DOM (GH-435)', function () {
+    var commentNode = document.createComment('');
+
+    document.documentElement.appendChild(commentNode);
+    strictEqual(commentNode, document.documentElement.lastChild);
+
+    commentNode.parentNode.removeChild(commentNode);
+    ok(!commentNode.parentNode);
+
+    var textNode = document.createTextNode('');
+
+    document.documentElement.appendChild(textNode);
+    strictEqual(textNode, document.documentElement.lastChild);
+
+    textNode.parentNode.removeChild(textNode);
+    ok(!textNode.parentNode);
+});
