@@ -483,11 +483,19 @@ test('script error when adding a comment node to DOM (GH-435)', function () {
     commentNode.parentNode.removeChild(commentNode);
     ok(!commentNode.parentNode);
 
-    var textNode = document.createTextNode('');
+    var textNode1 = document.createTextNode('');
 
-    document.documentElement.appendChild(textNode);
-    strictEqual(textNode, document.documentElement.lastChild);
+    document.documentElement.appendChild(textNode1);
+    strictEqual(textNode1, document.documentElement.lastChild);
 
-    textNode.parentNode.removeChild(textNode);
-    ok(!textNode.parentNode);
+    textNode1.parentNode.removeChild(textNode1);
+    ok(!textNode1.parentNode);
+
+    var documentFragment = document.createDocumentFragment();
+    var textNode2        = document.createTextNode('');
+
+    documentFragment.appendChild(textNode2);
+    document.documentElement.appendChild(documentFragment);
+    strictEqual(textNode2, document.documentElement.lastChild);
+    textNode2.parentNode.removeChild(textNode2);
 });
