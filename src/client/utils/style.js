@@ -99,7 +99,7 @@ export function getWidth (el) {
     if (domUtils.isWindow(el))
         return el.document.documentElement.clientWidth;
 
-    if (el.nodeType === 9) {
+    if (domUtils.isDocumentNode(el)) {
         var doc        = el.documentElement;
         var clientProp = 'clientWidth';
         var scrollProp = 'scrollWidth';
@@ -131,7 +131,7 @@ export function getHeight (el) {
     if (domUtils.isWindow(el))
         return el.document.documentElement.clientHeight;
 
-    if (el.nodeType === 9) {
+    if (domUtils.isDocumentNode(el)) {
         var doc        = el.documentElement;
         var clientProp = 'clientHeight';
         var scrollProp = 'scrollHeight';
@@ -226,7 +226,7 @@ export function isVisibleChild (el) {
     var select  = domUtils.getSelectParent(el);
     var tagName = domUtils.getTagName(el);
 
-    return select && select.tagName.toLowerCase() === 'select' && getSelectElementSize(select) > 1 &&
+    return domUtils.isSelectElement(select) && getSelectElementSize(select) > 1 &&
            (tagName === 'option' || tagName === 'optgroup') &&
            // NOTE: Firefox does not display groups without a label or with an empty label.
            (!browserUtils.isFirefox || el.label);

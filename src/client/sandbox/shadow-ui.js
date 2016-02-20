@@ -279,7 +279,7 @@ export default class ShadowUI extends SandboxBase {
         var cnLength   = childNodes.length;
 
         for (var i = 0; i < cnLength; i++) {
-            if (childNodes[i].nodeType === 1)
+            if (domUtils.isElementNode(childNodes[i]))
                 return childNodes[i];
         }
 
@@ -298,7 +298,7 @@ export default class ShadowUI extends SandboxBase {
         var cnLength   = childNodes.length;
 
         for (var i = cnLength - 1; i >= 0; i--) {
-            if (childNodes[i].nodeType === 1)
+            if (domUtils.isElementNode(childNodes[i]))
                 return childNodes[i];
         }
 

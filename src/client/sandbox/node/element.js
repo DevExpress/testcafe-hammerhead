@@ -12,6 +12,7 @@ import { sameOriginCheck, get as getDestLocation } from '../../utils/destination
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
 import transport from '../../transport';
+import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
@@ -293,7 +294,7 @@ export default class ElementSandbox extends SandboxBase {
             querySelector (selectors) {
                 selectors = NodeSandbox.processSelector(selectors);
 
-                var nativeQuerySelector = domUtils.isDocumentFragment(this) ? nativeMethods.documentFragmentQuerySelector
+                var nativeQuerySelector = domUtils.isDocumentFragmentNode(this) ? nativeMethods.documentFragmentQuerySelector
                     : nativeMethods.elementQuerySelector;
 
                 return nativeQuerySelector.call(this, selectors);
@@ -302,10 +303,7 @@ export default class ElementSandbox extends SandboxBase {
             querySelectorAll (selectors) {
                 selectors = NodeSandbox.processSelector(selectors);
 
-                var nativeQuerySelectorAll = domUtils.isDocumentFragment(this) ? nativeMethods.documentFragmentQuerySelectorAll
-                    : nativeMethods.elementQuerySelectorAll;
-
-                return nativeQuerySelectorAll.call(this, selectors);
+                return getNativeQuerySelectorAll(this).call(this, selectors);
             }
         };
     }
@@ -356,7 +354,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _onElementAdded (el) {
-        if ((el.nodeType === 1 || el.nodeType === 9) && domUtils.isElementInDocument(el)) {
+        if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             var iframes = ElementSandbox.getIframes(el);
 
             if (iframes.length) {
@@ -386,7 +384,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     static getIframes (el) {
-        return domUtils.isIframeElement(el) ? [el] : el.querySelectorAll('iframe');
+        return domUtils.isIframeElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'iframe');
     }
 
     addFileInputInfo (el) {
@@ -432,7 +430,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     overrideElement (el) {
-        var isDocFragment = domUtils.isDocumentFragment(el);
+        var isDocFragment = domUtils.isDocumentFragmentNode(el);
 
         if (!isDocFragment)
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
