@@ -104,7 +104,7 @@ export default class Selection {
     }
 
     static _needChangeInputType (el) {
-        return domUtils.isInputElement(el) && (browserUtils.isWebKit && /^(number|email)$/.test(el.type));
+        return domUtils.isInputElement(el) && browserUtils.isWebKit && /^(number|email)$/.test(el.type);
     }
 
     setSelection (el, start, end, direction) {
@@ -134,20 +134,11 @@ export default class Selection {
             el.type = 'text';
         }
 
-        if (domUtils.isInputWithoutSelectionPropertiesInFirefox(el)) {
-            selection = {
-                start:     0,
-                end:       0,
-                direction: 'forward'
-            };
-        }
-        else {
-            selection = {
-                start:     el.selectionStart,
-                end:       el.selectionEnd,
-                direction: el.selectionDirection
-            };
-        }
+        selection = {
+            start:     el.selectionStart,
+            end:       el.selectionEnd,
+            direction: el.selectionDirection
+        };
 
         if (changeType) {
             el.type = savedType;
