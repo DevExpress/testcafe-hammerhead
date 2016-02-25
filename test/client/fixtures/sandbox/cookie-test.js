@@ -173,3 +173,29 @@ test('delete (B239496)', function () {
     transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
     urlUtils.parseProxyUrl          = savedUrlUtilParseProxyUrl;
 });
+
+test('hammerhead crashes if client-side code contains "document.cookie=null" or "document.cookie=undefined" (GH-444, T349254).', function () {
+    settings.get().cookie = '';
+
+    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
+
+    transport.queuedAsyncServiceMsg = function () {
+    };
+
+    setCookie(null);
+    strictEqual(getCookie(), '');
+
+    setCookie(void 0);
+    strictEqual(getCookie(), '');
+
+    setCookie(true);
+    strictEqual(getCookie(), '');
+
+    setCookie('');
+    strictEqual(getCookie(), '');
+
+    setCookie(123);
+    strictEqual(getCookie(), '');
+
+    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
+});
