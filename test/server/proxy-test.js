@@ -5,6 +5,7 @@ var expect                      = require('chai').expect;
 var express                     = require('express');
 var read                        = require('read-file-relative').readSync;
 var createSelfSignedHttpsServer = require('self-signed-https');
+var getFreePort                 = require('endpoint-utils').getFreePort;
 var COMMAND                     = require('../../lib/session/command');
 var XHR_HEADERS                 = require('../../lib/request-pipeline/xhr/headers');
 var Proxy                       = require('../../lib/proxy');
@@ -794,6 +795,29 @@ describe('Proxy', function () {
                 expect(res.statusCode).eql(204);
                 done();
             });
+        });
+
+        it('Should pass ECONNREFUSED error to session (GH-446)', function (done) {
+            getFreePort()
+                .then(function (port) {
+                    var host = 'http://127.0.0.1:' + port;
+
+                    session.handlePageError = function (ctx, err) {
+                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '">' + host + '</a>.');
+                        ctx.res.end();
+                        done();
+                        return true;
+                    };
+
+                    var options = {
+                        url:     proxy.openSession(host, session),
+                        headers: {
+                            accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                        }
+                    };
+
+                    request(options);
+                });
         });
     });
 });
