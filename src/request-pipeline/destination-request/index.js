@@ -14,7 +14,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Utils
 function isDNSErr (err) {
-    return err.message && err.message.indexOf('ENOTFOUND') > -1;
+    return err.message && /ECONNREFUSED|ENOTFOUND/.test(err.message);
 }
 
 // DestinationRequest
