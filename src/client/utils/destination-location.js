@@ -1,7 +1,7 @@
 import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
-import { get as getSettings } from '../settings';
+import settings from '../settings';
 
 var forcedLocation = null;
 
@@ -14,7 +14,7 @@ function getLocation () {
 
     // NOTE: Fallback to the owner page's URL if we are in an iframe without src.
     if (frameElement && domUtils.isIframeWithoutSrc(frameElement))
-        return getSettings().referer;
+        return settings.get().referer;
 
     return window.location.toString();
 }

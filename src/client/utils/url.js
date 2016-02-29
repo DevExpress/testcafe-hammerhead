@@ -2,7 +2,7 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import * as sharedUrlUtils from '../../utils/url';
 import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
-import { get as getSettings } from '../settings';
+import settings from '../settings';
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
@@ -31,7 +31,7 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
 
     proxyHostname = proxyHostname || location.hostname;
     proxyPort     = proxyPort || location.port.toString();
-    sessionId     = sessionId || getSettings().sessionId;
+    sessionId     = sessionId || settings.get().sessionId;
 
 
     var parsedUrl = sharedUrlUtils.parseUrl(url);
@@ -55,11 +55,11 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
 }
 
 export function getCrossDomainIframeProxyUrl (url) {
-    return getProxyUrl(url, null, getSettings().crossDomainProxyPort, null, sharedUrlUtils.stringifyResourceType(true));
+    return getProxyUrl(url, null, settings.get().crossDomainProxyPort, null, sharedUrlUtils.stringifyResourceType(true));
 }
 
 export function getCrossDomainProxyUrl () {
-    return location.protocol + '//' + location.hostname + ':' + getSettings().crossDomainProxyPort + '/';
+    return location.protocol + '//' + location.hostname + ':' + settings.get().crossDomainProxyPort + '/';
 }
 
 export function resolveUrlAsDest (url) {

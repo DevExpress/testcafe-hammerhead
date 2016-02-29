@@ -1,8 +1,9 @@
 {
-  "blacklist": [
-    "es6.forOf",
-    "es7.asyncFunctions",
-    "regenerator",
-    "runtime"
+  "compact": false,
+  "presets": [
+    "es2015-hammerhead"
+  ],
+  "plugins": [
+    "add-module-exports"
   ]
 }
