@@ -54,8 +54,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             nativeMethods.getAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass))
             nativeMethods.removeAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass);
 
-        if (domUtils.isElementFocusable(activeElement) &&
-            !(domUtils.isBodyElement(activeElement) &&
+        if (domUtils.isElementFocusable(activeElement) && !(domUtils.isBodyElement(activeElement) &&
             activeElement.getAttribute('tabIndex') === null)) {
             this.lastFocusedElement = activeElement;
             nativeMethods.setAttribute.call(activeElement, INTERNAL_ATTRS.focusPseudoClass, true);
@@ -196,6 +195,13 @@ export default class FocusBlurSandbox extends SandboxBase {
 
     focus (el, callback, silent, forMouseEvent, isNativeFocus) {
         if (this.shouldDisableOuterFocusHandlers && !domUtils.isShadowUIElement(el))
+            return null;
+
+        // NOTE: el.focus() does not raise the event if the element is invisible. If the element is located
+        // within an invisible iframe, all browsers except Chrome do not raise the event (GH-442)
+        var raiseEventInIframe = !isNativeFocus || browserUtils.isWebKit || !styleUtils.isElementInInvisibleIframe(el);
+
+        if (!raiseEventInIframe || isNativeFocus && !styleUtils.isElementVisible(el))
             return null;
 
         var isElementInIframe = domUtils.isElementInIframe(el);
