@@ -1,18 +1,32 @@
 // Const
-const MANIFEST_MIME   = 'text/cache-manifest';
-const CSS_MIME        = 'text/css';
+const MANIFEST_MIME = 'text/cache-manifest';
+const CSS_MIME      = 'text/css';
 
 const PAGE_MIMES = [
     'text/html',
+    'text/xml',
     'application/xhtml+xml',
     'application/xml',
     'application/x-ms-application'
 ];
 
 const SCRIPT_MIMES = [
+    'application/ecmascript',
     'application/javascript',
+    'application/x-ecmascript',
+    'application/x-javascript',
+    'text/ecmascript',
     'text/javascript',
-    'application/x-javascript'
+    'text/javascript1.0',
+    'text/javascript1.1',
+    'text/javascript1.2',
+    'text/javascript1.3',
+    'text/javascript1.4',
+    'text/javascript1.5',
+    'text/jscript',
+    'text/livescript',
+    'text/x-ecmascript',
+    'text/x-javascript'
 ];
 
 
