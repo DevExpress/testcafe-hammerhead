@@ -27,12 +27,12 @@ export function isStyle (instance) {
     return false;
 }
 
-export function get (el, property) {
+export function get (el, property, doc) {
     el = el.documentElement || el;
 
-    var computedStyle = getComputedStyle(el);
+    var computedStyle = getComputedStyle(el, doc);
 
-    return computedStyle[property];
+    return computedStyle && computedStyle[property];
 }
 
 export function set (el, property, value) {
@@ -327,4 +327,24 @@ export function getOffset (el) {
         top:  clientRect.top + scrollTop - clientTop,
         left: clientRect.left + scrollLeft - clientLeft
     };
+}
+
+export function isElementVisible (el, doc) {
+    if (!domUtils.isElementInDocument(el, doc))
+        return false;
+
+    while (el) {
+        if (get(el, 'display', doc) === 'none' || get(el, 'visibility', doc) === 'hidden')
+            return false;
+
+        el = el.parentNode;
+    }
+
+    return true;
+}
+
+export function isElementInInvisibleIframe (el) {
+    var frameElement = domUtils.getIframeByElement(el);
+
+    return frameElement && !isElementVisible(frameElement, domUtils.findDocument(frameElement));
 }

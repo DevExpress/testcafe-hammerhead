@@ -6,6 +6,8 @@ var styleUtil           = hammerhead.utils.style;
 var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var eventSimulator      = hammerhead.sandbox.event.eventSimulator;
 var focusBlur           = hammerhead.sandbox.event.focusBlur;
+var nativeMethods       = hammerhead.nativeMethods;
+var iframeSandbox       = hammerhead.sandbox.iframe;
 
 var input1                             = null;
 var input2                             = null;
@@ -245,10 +247,15 @@ QUnit.testStart(function (e) {
 
     if (modulesForSmallTestTimeout.indexOf(e.module) !== -1)
         QUnit.config.testTimeout = smallTestTimeout;
+
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
     QUnit.config.testTimeout = defaultTestTimeout;
+
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
 module('focus');
@@ -382,8 +389,8 @@ asyncTest('attachEvent one per element', function () {
 
 asyncTest('handlers binded by ontype property, jQuery and addEventListener\\attachEvent together', function () {
     var unbindHandlersAndTest = function () {
-        var $input1 = $(input1);
-        var $input2 = $(input2);
+        var $input1    = $(input1);
+        var $input2    = $(input2);
 
         $input1.unbind('focus', onFocus);
         $input2.unbind('focus', onFocus);
@@ -417,10 +424,10 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         $input1.blur(onBlur);
         $input2.blur(onBlur);
         listenerCount++;
-        input1.onfocus = onFocus;
-        input2.onfocus = onFocus;
-        input1.onblur  = onBlur;
-        input2.onblur  = onBlur;
+        input1.onfocus    = onFocus;
+        input2.onfocus    = onFocus;
+        input1.onblur     = onBlur;
+        input2.onblur     = onBlur;
         listenerCount++;
         if (input1.attachEvent) {
             input1.attachEvent('onfocus', focusAttached);
@@ -767,8 +774,8 @@ if (window.HTMLInputElement.prototype.createTextRange) {
 }
 
 asyncTest('active window doesn\'t change after focusing ShadowUI element in iframe', function () {
-    var iframe       = document.createElement('iframe');
-    var src          = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var iframe = document.createElement('iframe');
+    var src    = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
 
     iframe.setAttribute('src', src);
     window.QUnitGlobals.waitForIframe(iframe)
@@ -935,4 +942,103 @@ asyncTest('scrolling elements with "overflow=hidden" should be restored after fo
         document.body.removeChild(parentDiv);
         start();
     }, false, true);
+});
+
+asyncTest('focus() must not raise the event if the element is invisible (GH-442)', function () {
+    var checkFocus = function (style) {
+        return new Promise(function (resolve) {
+            var styleProp         = Object.keys(style)[0];
+            var isOverriddenFocus = false;
+            var isCleanFocus      = false;
+
+            var onInputFocus = function (e) {
+                if (e.target.id === 'overridden')
+                    isOverriddenFocus = true;
+                else if (e.target.id === 'clean')
+                    isCleanFocus = true;
+            };
+
+            input1.id               = 'overridden';
+            input2.id               = 'clean';
+            input1.style[styleProp] = style[styleProp];
+            input2.style[styleProp] = style[styleProp];
+
+            input1.addEventListener('focus', onInputFocus);
+            nativeMethods.addEventListener.call(input2, 'focus', onInputFocus);
+
+            input1.focus();
+            nativeMethods.focus.call(input2);
+
+            setTimeout(function () {
+                strictEqual(isCleanFocus, isOverriddenFocus);
+                resolve();
+            }, 100);
+        });
+    };
+
+    checkFocus({ display: 'none' })
+        .then(function () {
+            return checkFocus({ visibility: 'hidden' });
+        })
+        .then(start);
+});
+
+asyncTest('focus() must not raise the event if the element is in an invisible iframe (GH-442)', function () {
+    var iframe                 = document.createElement('iframe');
+    var overriddenInput        = document.createElement('input');
+    var cleanInput             = nativeMethods.createElement.call(document, 'input');
+    var isOverriddenInputFocus = false;
+    var isCleanInputFocus      = false;
+
+    var onInputFocus = function (e) {
+        if (e.target.id === 'overridden')
+            isOverriddenInputFocus = true;
+        else if (e.target.id === 'clean')
+            isCleanInputFocus = true;
+    };
+
+    var checkFocus = function () {
+        return new Promise(function (resolve) {
+            setTimeout(function () {
+                strictEqual(isCleanInputFocus, isOverriddenInputFocus);
+                resolve();
+            }, 100);
+        });
+    };
+
+    iframe.id            = 'test';
+    iframe.style.display = 'none';
+    overriddenInput.id   = 'overridden';
+    cleanInput.id        = 'clean';
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe.contentDocument.body.appendChild(overriddenInput);
+            overriddenInput.addEventListener('focus', onInputFocus);
+
+            nativeMethods.appendChild.call(iframe.contentDocument.body, cleanInput);
+            nativeMethods.addEventListener.call(cleanInput, 'focus', onInputFocus);
+
+            overriddenInput.focus();
+            nativeMethods.focus.call(cleanInput);
+
+            return checkFocus();
+        })
+        .then(function () {
+            isOverriddenInputFocus  = false;
+            isCleanInputFocus       = false;
+            iframe.style.display    = '';
+            iframe.style.visibility = 'hidden';
+
+            overriddenInput.focus();
+            nativeMethods.focus.call(cleanInput);
+
+            return checkFocus();
+        })
+        .then(function () {
+            document.body.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
 });
