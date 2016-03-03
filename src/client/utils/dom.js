@@ -447,10 +447,6 @@ export function isRenderedNode (node) {
     return !(node.nodeType === 7 || node.nodeType === 8 || /^(script|style)$/i.test(node.nodeName));
 }
 
-export function isTextNode (node) {
-    return node && node.nodeType === 3;
-}
-
 export function isElementFocusable (el) {
     if (!el)
         return false;
