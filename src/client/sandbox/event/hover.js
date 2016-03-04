@@ -37,17 +37,17 @@ export default class HoverSandbox extends SandboxBase {
         if (this.lastHoveredElement) {
             var el = this.lastHoveredElement;
 
-            while (el && el.tagName) {
+            while (el && el.tagName && el.contains) {
                 // NOTE: Check that the current element is a joint parent for the hovered elements.
-                if (el.contains && !el.contains(newHoveredElement)) {
+                if (!el.contains(newHoveredElement)) {
                     nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
                     el = el.parentNode;
                 }
-                else
+                else {
+                    jointParent = el;
                     break;
+                }
             }
-
-            jointParent = el;
 
             if (jointParent)
                 nativeMethods.removeAttribute.call(jointParent, INTERNAL_ATTRS.hoverPseudoClass);

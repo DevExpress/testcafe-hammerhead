@@ -3,6 +3,7 @@ var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
 var hover          = hammerhead.sandbox.event.hover;
 var browserUtils   = hammerhead.utils.browser;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
+var hoverSandbox   = hammerhead.sandbox.event.hover;
 
 function hoverElement (el) {
     if (browserUtils.hasTouchEvents)
@@ -63,4 +64,20 @@ test('hover.fixHoveredElement, hover.freeHoveredElement (B254111)', function () 
 
     $parent.remove();
     $child.remove();
+});
+
+test('Hovering element which is not in the DOM (GH-345)', function () {
+    var el1 = document.createElement('div');
+    var el2 = document.createElement('div');
+
+    document.body.appendChild(el1);
+    hoverSandbox._hover(el1);
+    ok(isHovered(el1));
+    ok(!isHovered(el2));
+
+    hoverSandbox._hover(el2);
+    ok(isHovered(el2));
+    ok(!isHovered(el1));
+
+    document.body.removeChild(el1);
 });
