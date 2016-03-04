@@ -3,6 +3,8 @@ import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
 
+const REDIRECT_STATUS_CODES = [301, 302, 303, 307];
+
 // TODO: Rewrite parseProxyUrl instead.
 function flattenParsedProxyUrl (parsed) {
     if (parsed) {
@@ -146,8 +148,10 @@ export default class RequestPipelineContext {
         var isForm                  = this.dest.isForm;
         var isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
+        var isRedirect              = this.destRes.headers['location'] &&
+                                      REDIRECT_STATUS_CODES.indexOf(this.destRes.statusCode) > -1;
         var requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
-        var requireProcessing       = !this.isXhr && !isFormWithEmptyResponse &&
+        var requireProcessing       = !this.isXhr && !isFormWithEmptyResponse && !isRedirect &&
                                       (this.isPage || this.isIframe || requireAssetsProcessing);
 
         var isIframeWithImageSrc = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);

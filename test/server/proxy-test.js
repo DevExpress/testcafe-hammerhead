@@ -1,5 +1,7 @@
 var Promise                     = require('pinkie');
 var fs                          = require('fs');
+var http                        = require('http');
+var urlLib                      = require('url');
 var request                     = require('request');
 var expect                      = require('chai').expect;
 var express                     = require('express');
@@ -162,6 +164,17 @@ describe('Proxy', function () {
             res.writeHead(200, { 'location': 'http://127.0.0.1:2000/\u0410\u0411' });
             res._send('');
             res.end();
+        });
+
+        app.get('/GH-390/redirect-302-with-body', function (req, res) {
+            res.writeHead(302, {
+                'content-type': 'text/plain',
+                'location':     'http://127.0.0.1:2002/'
+            });
+
+            res.write('body');
+
+            setTimeout(res.end.bind(res), 1000);
         });
 
         app.post('/upload-info', function (req, res) {
@@ -818,6 +831,33 @@ describe('Proxy', function () {
 
                     request(options);
                 });
+        });
+
+        it('Should send a response without waiting for the end of the destination response and without processing its body (GH-390)', function (done) {
+            var url           = proxy.openSession('http://127.0.0.1:2000/GH-390/redirect-302-with-body', session);
+            var opts          = urlLib.parse(url);
+            var startTestTime = Date.now();
+
+            opts.method = 'GET';
+
+            http.request(opts)
+                .on('response', function (res) {
+                    expect(Date.now() - startTestTime < 100).to.be.true;
+
+                    var chunks = [];
+
+                    res.on('data', function (chunk) {
+                        chunks.push(chunk);
+                    });
+
+                    res.on('end', function () {
+                        expect(Date.now() - startTestTime > 1000).to.be.true;
+                        expect(chunks.join('')).equal('body');
+
+                        done();
+                    });
+                })
+                .end();
         });
     });
 });
