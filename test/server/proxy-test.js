@@ -244,6 +244,42 @@ describe('Proxy', function () {
             });
         });
 
+        it("Should notify session about service request disconnection while it's processing service command", function (done) {
+            var cmdMsg = null;
+
+            var options = {
+                method: 'POST',
+                url:    'http://localhost:1836/messaging',
+                body:   JSON.stringify({
+                    cmd:       'SomeCmd',
+                    sessionId: session.id
+                })
+            };
+
+            proxy.openSession('http://example.com', session);
+
+            session['SomeCmd'] = function (msg) {
+                return new Promise(function (resolve) {
+                    setTimeout(function () {
+                        cmdMsg = msg;
+                        resolve();
+                    }, 400);
+                });
+            };
+
+            session.handleServiceRequestDisconnection = function (msg) {
+                expect(msg).to.be.an('object');
+                expect(msg).eql(cmdMsg);
+                done();
+            };
+
+            var req = request(options);
+
+            setTimeout(function () {
+                req.abort();
+            }, 300);
+        });
+
         it('Should render task script', function () {
             function testTaskScriptRequest (url, scriptBody) {
                 return new Promise(function (resolve) {
@@ -803,7 +839,8 @@ describe('Proxy', function () {
                     var host = 'http://127.0.0.1:' + port;
 
                     session.handlePageError = function (ctx, err) {
-                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '">' + host + '</a>.');
+                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '">' +
+                                        host + '</a>.');
                         ctx.res.end();
                         done();
                         return true;
