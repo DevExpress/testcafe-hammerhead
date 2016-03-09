@@ -128,7 +128,7 @@ export default class IframeSandbox extends SandboxBase {
             .replace('{{{referer}}}', escapeStringPatterns(referer))
             .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
 
-        e.iframe.contentWindow.eval.apply(e.iframe.contentWindow, [taskScript]);
+        e.iframe.contentWindow.eval.call(e.iframe.contentWindow, taskScript);
     }
 
     iframeAddedToDom (el) {

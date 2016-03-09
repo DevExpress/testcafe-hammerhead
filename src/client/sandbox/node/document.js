@@ -172,8 +172,8 @@ export default class DocumentSandbox extends SandboxBase {
             return documentSandbox._overridedDocumentWrite(arguments, true);
         };
 
-        document.createDocumentFragment = function () {
-            var fragment = nativeMethods.createDocumentFragment.apply(document, arguments);
+        document.createDocumentFragment = () => {
+            var fragment = nativeMethods.createDocumentFragment.call(document);
 
             documentSandbox.nodeSandbox.overrideDomMethods(fragment);
 

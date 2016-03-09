@@ -168,17 +168,17 @@ export default class ElementSandbox extends SandboxBase {
         var sandbox = this;
 
         this.overridedMethods = {
-            insertRow () {
+            insertRow (index) {
                 var nativeMeth = domUtils.isTableElement(this) ? nativeMethods.insertTableRow : nativeMethods.insertTBodyRow;
-                var row        = nativeMeth.apply(this, arguments);
+                var row        = nativeMeth.call(this, index);
 
                 sandbox.nodeSandbox.overrideDomMethods(row);
 
                 return row;
             },
 
-            insertCell () {
-                var cell = nativeMethods.insertCell.apply(this, arguments);
+            insertCell (index) {
+                var cell = nativeMethods.insertCell.call(this, index);
 
                 sandbox.nodeSandbox.overrideDomMethods(cell);
 
@@ -259,8 +259,8 @@ export default class ElementSandbox extends SandboxBase {
                 return result;
             },
 
-            cloneNode () {
-                var clone = nativeMethods.cloneNode.apply(this, arguments);
+            cloneNode (deep) {
+                var clone = nativeMethods.cloneNode.call(this, deep);
 
                 sandbox.nodeSandbox.overrideDomMethods(clone);
 
