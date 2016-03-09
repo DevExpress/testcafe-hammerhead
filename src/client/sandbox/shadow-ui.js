@@ -331,11 +331,9 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static isShadowContainerCollection (collection) {
-        var parent = null;
-
         try {
-            if (collection.length && !domUtils.isWindow(collection) && collection[0] && collection[0].nodeType) {
-                parent = collection[0].parentNode || collection[0].parentElement;
+            if (collection && collection.length && !domUtils.isWindow(collection) && collection[0] && collection[0].nodeType) {
+                var parent = collection[0].parentNode;
 
                 if (parent && (parent.childNodes === collection || parent.children === collection))
                     return ShadowUI.isShadowContainer(parent);
