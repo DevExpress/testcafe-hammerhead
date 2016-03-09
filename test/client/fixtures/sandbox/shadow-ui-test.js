@@ -618,12 +618,13 @@ asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow mus
     var crossDomainIframe = document.createElement('iframe');
 
     crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
-    window.QUnitGlobals.waitForIframe(crossDomainIframe).then(function () {
-        ok(!ShadowUI.isShadowContainerCollection([this.contentWindow]));
+    window.QUnitGlobals.waitForIframe(crossDomainIframe)
+        .then(function () {
+            ok(!ShadowUI.isShadowContainerCollection([crossDomainIframe.contentWindow]));
 
-        crossDomainIframe.parentNode.removeChild(crossDomainIframe);
-        settings.get().crossDomainProxyPort = storedCrossDomainPort;
-        start();
-    });
+            crossDomainIframe.parentNode.removeChild(crossDomainIframe);
+            settings.get().crossDomainProxyPort = storedCrossDomainPort;
+            start();
+        });
     document.body.appendChild(crossDomainIframe);
 });
