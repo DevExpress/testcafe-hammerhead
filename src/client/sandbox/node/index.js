@@ -4,9 +4,9 @@ import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
 import FocusBlurSandbox from '../event/focus-blur';
-import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
-import { parseDocumentCharset, isDocumentFragment } from '../../utils/dom';
+import { parseDocumentCharset } from '../../utils/dom';
+import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 
 const ATTRIBUTE_SELECTOR_REG_EX = /\[([\w-]+)(\^?=.+?)]/g;
 
@@ -57,24 +57,10 @@ export default class NodeSandbox extends SandboxBase {
             // OPTIMIZATION: Use querySelectorAll to iterate through descendant nodes.
             this._overrideElement(el);
 
-            var nativeQuerySelectorAll = isDocumentFragment(el) ? nativeMethods.documentFragmentQuerySelectorAll
-                                                                : nativeMethods.elementQuerySelectorAll;
-            var children = nativeQuerySelectorAll.call(el, '*');
+            var children = getNativeQuerySelectorAll(el).call(el, '*');
 
             for (var i = 0; i < children.length; i++)
                 this._overrideElement(children[i]);
-        }
-
-        // NOTE: If querySelectorAll is not available, use a recursive algorithm.
-        else if (el.nodeType === 1 || el.nodeType === 11) {
-            this._overrideElement(el);
-
-            var cnLength = el.childNodes.length;
-
-            if (cnLength) {
-                for (var j = 0; j < cnLength; j++)
-                    this.overrideDomMethods(el.childNodes[j]);
-            }
         }
     }
 

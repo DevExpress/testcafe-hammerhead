@@ -180,7 +180,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             innerHTML: {
-                condition: el => el.nodeType === 1 && 'innerHTML' in el,
+                condition: el => domUtils.isElementNode(el) && 'innerHTML' in el,
                 get:       el => cleanUpHtml(el.innerHTML, el.tagName),
 
                 set: (el, value) => {

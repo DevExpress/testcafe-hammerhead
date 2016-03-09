@@ -6,6 +6,7 @@ import * as urlUtils from './url';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, isOpera } from './browser';
 import trim from '../../utils/string-trim';
+import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -32,7 +33,7 @@ function isHidden (el) {
 }
 
 function isAlwaysNotEditableElement (el) {
-    var tagName                          = el.tagName.toLowerCase();
+    var tagName                          = getTagName(el);
     var notContentEditableElementsRegExp = /select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img/;
     var inputElementsRegExp              = /input|textarea|button/;
 
@@ -213,7 +214,7 @@ export function getSelectVisibleChildren (select) {
         var filtered = [];
 
         for (var i = 0, len = children.length; i < len; i++) {
-            if (children[i].tagName.toLowerCase() !== 'optgroup' || !!children[i].label)
+            if (getTagName(children[i]) !== 'optgroup' || !!children[i].label)
                 filtered.push(children[i]);
         }
 
@@ -245,7 +246,7 @@ export function getTopSameDomainWindow (window) {
 }
 
 export function find (parent, selector, handler) {
-    var elms = nativeMethods.elementQuerySelectorAll.call(parent, selector);
+    var elms = getNativeQuerySelectorAll(parent).call(parent, selector);
 
     if (handler) {
         for (var i = 0; i < elms.length; i++)
@@ -325,11 +326,15 @@ export function isDomElement (el) {
         return false;
 
     // NOTE: B252941
-    return el && el.nodeType !== 11 && typeof el.nodeName === 'string' && el.tagName;
+    return el && !isDocumentFragmentNode(el) && typeof el.nodeName === 'string' && el.tagName;
 }
 
 export function getTagName (el) {
     return el && el.tagName ? el.tagName.toLowerCase() : '';
+}
+
+export function getNodeType (node) {
+    return node && node.nodeType;
 }
 
 export function isElementInDocument (el, currentDocument) {
@@ -342,10 +347,6 @@ export function isElementInIframe (el, currentDocument) {
     var doc = currentDocument || findDocument(el);
 
     return window.document !== doc;
-}
-
-export function isFileInput (el) {
-    return isInputElement(el) && el.type.toLowerCase() === 'file';
 }
 
 export function isHammerheadAttr (attr) {
@@ -431,8 +432,20 @@ export function isTextAreaElement (el) {
     return getTagName(el) === 'textarea';
 }
 
+export function isOptionElement (el) {
+    return getTagName(el) === 'option';
+}
+
+export function isSelectElement (el) {
+    return getTagName(el) === 'select';
+}
+
 export function isFormElement (el) {
     return getTagName(el) === 'form';
+}
+
+export function isFileInput (el) {
+    return isInputElement(el) && el.type.toLowerCase() === 'file';
 }
 
 export function isBodyElementWithChildren (el) {
@@ -444,7 +457,7 @@ export function isMapElement (el) {
 }
 
 export function isRenderedNode (node) {
-    return !(node.nodeType === 7 || node.nodeType === 8 || /^(script|style)$/i.test(node.nodeName));
+    return !(isProcessingInstructionNode(node) || isCommentNode(node) || /^(script|style)$/i.test(node.nodeName));
 }
 
 export function isElementFocusable (el) {
@@ -462,7 +475,7 @@ export function isElementFocusable (el) {
         return false;
 
     if (isWebKit || isOpera)
-        return !isHidden(el) || el.tagName && el.tagName.toLowerCase() === 'option';
+        return !isHidden(el) || isOptionElement(el);
 
     return !isHidden(el);
 }
@@ -505,10 +518,6 @@ export function isDocument (instance) {
            (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
 }
 
-export function isDocumentFragment (el) {
-    return el && el.nodeType === 11;
-}
-
 export function isBlob (instance) {
     return instance && typeof instance === 'object' && typeof instance.slice === 'function' &&
            instance.toString && instance.toString() === '[object Blob]';
@@ -546,8 +555,28 @@ export function isTextEditableElementAndEditingAllowed (el) {
     return isTextEditableElement(el) && isElementEditingAllowed();
 }
 
+export function isElementNode (node) {
+    return getNodeType(node) === 1;
+}
+
 export function isTextNode (node) {
-    return node && typeof node === 'object' && node.nodeType === 3 && typeof node.nodeName === 'string';
+    return getNodeType(node) === 3;
+}
+
+export function isProcessingInstructionNode (node) {
+    return getNodeType(node) === 7;
+}
+
+export function isCommentNode (node) {
+    return getNodeType(node) === 8;
+}
+
+export function isDocumentNode (node) {
+    return getNodeType(node) === 9;
+}
+
+export function isDocumentFragmentNode (el) {
+    return getNodeType(el) === 11;
 }
 
 export function isAnchorElement (el) {
@@ -629,7 +658,7 @@ export function getParents (el, selector) {
     var parents = [];
 
     while (parent) {
-        if (parent.nodeType === 1 && !selector || selector && matches(parent, selector))
+        if (isElementNode(parent) && !selector || selector && matches(parent, selector))
             parents.push(parent);
 
         parent = parent.parentNode;

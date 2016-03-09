@@ -538,8 +538,7 @@ asyncTest('change event', function () {
         start();
     };
 
-    uploadSandbox.doUpload(fileInput, './file.txt').then(function () {
-    });
+    uploadSandbox.doUpload(fileInput, './file.txt');
 });
 
 asyncTest('multi-select files', function () {
@@ -614,4 +613,120 @@ asyncTest('input.value getter', function () {
             ok(fileInputValue.indexOf('file.txt') !== -1);
             start();
         });
+});
+
+module('add / remove element');
+
+test('file input', function () {
+    var form  = document.createElement('form');
+    var input = document.createElement('input');
+
+    document.body.appendChild(form);
+    input.setAttribute('type', 'file');
+    input.name = 'fileInput1';
+    form.appendChild(input);
+
+    var inputHiddenInfo = hiddenInfo.getFormInfo(input);
+
+    strictEqual(inputHiddenInfo.length, 1);
+    strictEqual(inputHiddenInfo[0].name, 'fileInput1');
+    strictEqual(inputHiddenInfo[0].files.length, 0);
+
+    form.parentNode.removeChild(form);
+
+    inputHiddenInfo = hiddenInfo.getFormInfo(input);
+    strictEqual(inputHiddenInfo.length, 0);
+});
+
+test('file inputs inside container', function () {
+    var form      = document.createElement('form');
+    var container = document.createElement('div');
+    var input1    = document.createElement('input');
+    var input2    = document.createElement('input');
+
+    document.body.appendChild(form);
+    input1.setAttribute('type', 'file');
+    input1.id = 'fileInput1';
+    input1.name = 'fileInput1';
+    input2.setAttribute('type', 'file');
+    input2.id = 'fileInput2';
+    input2.name = 'fileInput2';
+    container.appendChild(input1);
+    container.appendChild(input2);
+    form.appendChild(container);
+
+    var inputHiddenInfo = hiddenInfo.getFormInfo(input1);
+
+    strictEqual(inputHiddenInfo.length, 2);
+    strictEqual(inputHiddenInfo[0].name, 'fileInput1');
+    strictEqual(inputHiddenInfo[0].files.length, 0);
+    strictEqual(inputHiddenInfo[1].name, 'fileInput2');
+    strictEqual(inputHiddenInfo[1].files.length, 0);
+
+    form.parentNode.removeChild(form);
+    inputHiddenInfo = hiddenInfo.getFormInfo(input1);
+    strictEqual(inputHiddenInfo.length, 0);
+});
+
+test('text node', function () {
+    var form     = document.createElement('form');
+    var textNode = document.createTextNode('text');
+
+    document.body.appendChild(form);
+    textNode.name = 'fileInput1';
+    form.appendChild(textNode);
+
+    var inputHiddenInfo = hiddenInfo.getFormInfo(textNode);
+
+    ok(!inputHiddenInfo);
+
+    form.parentNode.removeChild(form);
+});
+
+test('document fragment', function () {
+    var form   = null;
+    var input1 = null;
+
+    var createTestDocumentFragment = function () {
+        var documentFragment = document.createDocumentFragment();
+        var input2           = document.createElement('input');
+
+        form = document.createElement('form');
+        input1 = document.createElement('input');
+        input1.setAttribute('type', 'file');
+        input1.id = 'fileInput1';
+        input1.name = 'fileInput1';
+        input2.setAttribute('type', 'file');
+        input2.id = 'fileInput2';
+        input2.name = 'fileInput2';
+        form.appendChild(input1);
+        form.appendChild(input2);
+        form.id = 'testFormForDocumentFragment';
+        documentFragment.appendChild(form);
+
+        return documentFragment;
+    };
+
+    var checkHiddenInfo = function () {
+        var inputHiddenInfo = hiddenInfo.getFormInfo(input1);
+
+        strictEqual(inputHiddenInfo.length, 2);
+        strictEqual(inputHiddenInfo[0].name, 'fileInput1');
+        strictEqual(inputHiddenInfo[0].files.length, 0);
+        strictEqual(inputHiddenInfo[1].name, 'fileInput2');
+        strictEqual(inputHiddenInfo[1].files.length, 0);
+
+        form.parentNode.removeChild(form);
+        inputHiddenInfo = hiddenInfo.getFormInfo(input1);
+        strictEqual(inputHiddenInfo.length, 0);
+    };
+
+    var documentFragment = createTestDocumentFragment();
+
+    document.body.appendChild(documentFragment);
+    checkHiddenInfo();
+
+    documentFragment = createTestDocumentFragment();
+    document.body.insertBefore(documentFragment, null);
+    checkHiddenInfo();
 });
