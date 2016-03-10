@@ -30,6 +30,32 @@ export default class ShadowUI extends SandboxBase {
         this.uiStyleSheetsHtmlBackup = null;
     }
 
+    static _filterElement (el) {
+        if (!el || domUtils.isDocument(el) || domUtils.isWindow(el))
+            return el;
+
+        return domUtils.isShadowUIElement(el) ? null : el;
+    }
+
+    static _filterNodeList (nodeList) {
+        var filteredList = [];
+        var nlLength     = nodeList.length;
+
+        for (var i = 0; i < nlLength; i++) {
+            var el = ShadowUI._filterElement(nodeList[i]);
+
+            if (el)
+                filteredList.push(el);
+        }
+
+        filteredList.item = index => index >= filteredList.length ? null : filteredList[index];
+
+        if (nodeList.namedItem)
+            filteredList.namedItem = name => nodeList.namedItem(name);
+
+        return filteredList.length === nlLength ? nodeList : filteredList;
+    }
+
     _bringRootToWindowTopLeft () {
         var rootHasParentWithNonStaticPosition = false;
         var parent                             = this.root.parentNode;
@@ -56,108 +82,84 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
-    _filterElement (el) {
-        if (!el || el === this.document || el === this.window)
-            return el;
-
-        return domUtils.isShadowUIElement(el) ? null : el;
-    }
-
-    _filterNodeList (nodeList) {
-        var filteredList = [];
-        var nlLength     = nodeList.length;
-
-        for (var i = 0; i < nlLength; i++) {
-            var el = this._filterElement(nodeList[i]);
-
-            if (el)
-                filteredList.push(el);
-        }
-
-        filteredList.item = index => index >= filteredList.length ? null : filteredList[index];
-
-        if (nodeList.namedItem)
-            filteredList.namedItem = name => nodeList.namedItem(name);
-
-        return filteredList.length === nlLength ? nodeList : filteredList;
-    }
-
     _overrideDocumentMethods (document) {
         var shadowUI = this;
+        var docProto = document.constructor.prototype;
 
         document.elementFromPoint = (x, y) => {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-            var res = shadowUI._filterElement(nativeMethods.elementFromPoint.call(document, x, y));
+            var res = ShadowUI._filterElement(nativeMethods.elementFromPoint.call(document, x, y));
 
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             return res;
         };
 
-        document.getElementById = id =>
-            shadowUI._filterElement(nativeMethods.getElementById.call(document, id));
+        docProto.getElementById = id =>
+            ShadowUI._filterElement(nativeMethods.getElementById.call(document, id));
 
-        document.getElementsByClassName = names =>
-            shadowUI._filterNodeList(nativeMethods.getElementsByClassName.call(document, names));
+        docProto.getElementsByClassName = names =>
+            ShadowUI._filterNodeList(nativeMethods.getElementsByClassName.call(document, names));
 
-        document.getElementsByName = name =>
-            shadowUI._filterNodeList(nativeMethods.getElementsByName.call(document, name));
+        docProto.getElementsByName = name =>
+            ShadowUI._filterNodeList(nativeMethods.getElementsByName.call(document, name));
 
-        document.getElementsByTagName = name =>
-            shadowUI._filterNodeList(nativeMethods.getElementsByTagName.call(document, name));
+        docProto.getElementsByTagName = name =>
+            ShadowUI._filterNodeList(nativeMethods.getElementsByTagName.call(document, name));
 
-        document.querySelector = selectors => {
+        docProto.querySelector = selectors => {
             selectors = NodeSandbox.processSelector(selectors);
 
-            return shadowUI._filterElement(nativeMethods.querySelector.call(document, selectors));
+            return ShadowUI._filterElement(nativeMethods.querySelector.call(document, selectors));
         };
 
-        document.querySelectorAll = selectors => {
+        docProto.querySelectorAll = selectors => {
             selectors = NodeSandbox.processSelector(selectors);
 
-            return shadowUI._filterNodeList(nativeMethods.querySelectorAll.call(document, selectors));
+            return ShadowUI._filterNodeList(nativeMethods.querySelectorAll.call(document, selectors));
         };
 
         // NOTE: T195358
-        document.querySelectorAll.toString       = () => nativeMethods.querySelectorAll.toString();
-        document.getElementsByClassName.toString = () => nativeMethods.getElementsByClassName.toString();
+        docProto.querySelectorAll.toString       = () => nativeMethods.querySelectorAll.toString();
+        docProto.getElementsByClassName.toString = () => nativeMethods.getElementsByClassName.toString();
     }
 
     _overrideElementMethods (window) {
-        var shadowUI = this;
-
         var overridedMethods = {
             getElementsByClassName (names) {
-                return shadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.call(this, names));
+                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.call(this, names));
             },
 
             getElementsByTagName (name) {
-                return shadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.call(this, name));
+                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.call(this, name));
             },
 
             querySelector (selectors) {
                 selectors = NodeSandbox.processSelector(selectors);
 
-                return shadowUI._filterElement(nativeMethods.elementQuerySelector.call(this, selectors));
+                return ShadowUI._filterElement(nativeMethods.elementQuerySelector.call(this, selectors));
             },
 
             querySelectorAll (selectors) {
                 selectors = NodeSandbox.processSelector(selectors);
 
-                return shadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.call(this, selectors));
+                return ShadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.call(this, selectors));
             }
         };
 
-        window.HTMLBodyElement.prototype.getElementsByClassName = overridedMethods.getElementsByClassName;
-        window.HTMLBodyElement.prototype.getElementsByTagName   = overridedMethods.getElementsByTagName;
-        window.HTMLBodyElement.prototype.querySelector          = overridedMethods.querySelector;
-        window.HTMLBodyElement.prototype.querySelectorAll       = overridedMethods.querySelectorAll;
-        window.HTMLHeadElement.prototype.getElementsByClassName = overridedMethods.getElementsByClassName;
-        window.HTMLHeadElement.prototype.getElementsByTagName   = overridedMethods.getElementsByTagName;
-        window.HTMLHeadElement.prototype.querySelector          = overridedMethods.querySelector;
-        window.HTMLHeadElement.prototype.querySelectorAll       = overridedMethods.querySelectorAll;
+        var bodyProto = window.HTMLBodyElement.prototype;
+        var headProto = window.HTMLHeadElement.prototype;
+
+        bodyProto.getElementsByClassName = overridedMethods.getElementsByClassName;
+        bodyProto.getElementsByTagName   = overridedMethods.getElementsByTagName;
+        bodyProto.querySelector          = overridedMethods.querySelector;
+        bodyProto.querySelectorAll       = overridedMethods.querySelectorAll;
+        headProto.getElementsByClassName = overridedMethods.getElementsByClassName;
+        headProto.getElementsByTagName   = overridedMethods.getElementsByTagName;
+        headProto.querySelector          = overridedMethods.querySelector;
+        headProto.querySelectorAll       = overridedMethods.querySelectorAll;
     }
 
     _getUIStyleSheetsHtml () {
@@ -271,13 +273,13 @@ export default class ShadowUI extends SandboxBase {
 
     // Accessors
     getFirstChild (el) {
-        var childNodes = this._filterNodeList(el.childNodes);
+        var childNodes = ShadowUI._filterNodeList(el.childNodes);
 
         return childNodes.length && childNodes[0] ? childNodes[0] : null;
     }
 
     getFirstElementChild (el) {
-        var childNodes = this._filterNodeList(el.childNodes);
+        var childNodes = ShadowUI._filterNodeList(el.childNodes);
         var cnLength   = childNodes.length;
 
         for (var i = 0; i < cnLength; i++) {
@@ -289,14 +291,14 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getLastChild (el) {
-        var childNodes = this._filterNodeList(el.childNodes);
+        var childNodes = ShadowUI._filterNodeList(el.childNodes);
         var index      = childNodes.length - 1;
 
         return index >= 0 ? childNodes[index] : null;
     }
 
     getLastElementChild (el) {
-        var childNodes = this._filterNodeList(el.childNodes);
+        var childNodes = ShadowUI._filterNodeList(el.childNodes);
         var cnLength   = childNodes.length;
 
         for (var i = cnLength - 1; i >= 0; i--) {
@@ -334,7 +336,8 @@ export default class ShadowUI extends SandboxBase {
 
     static isShadowContainerCollection (collection) {
         try {
-            if (collection && collection.length && !domUtils.isWindow(collection) && collection[0] && collection[0].nodeType) {
+            if (collection && collection.length && !domUtils.isWindow(collection) && collection[0] &&
+                collection[0].nodeType) {
                 var parent = collection[0].parentNode;
 
                 if (parent && (parent.childNodes === collection || parent.children === collection))

@@ -9,26 +9,28 @@ class NativeMethods {
     refreshDocumentMeths (doc) {
         doc = doc || document;
 
-        // Dom
-        this.createDocumentFragment = doc.createDocumentFragment || Document.prototype.createDocumentFragment;
-        this.createElement          = doc.createElement || Document.prototype.createElement;
-        this.createElementNS        = doc.createElementNS || Document.prototype.createElementNS;
-        this.documentOpen           = doc.open || Document.prototype.open;
-        this.documentClose          = doc.close || Document.prototype.close;
-        this.documentWrite          = doc.write || Document.prototype.write;
-        this.documentWriteLn        = doc.writeln || Document.prototype.writeln;
-        this.elementFromPoint       = doc.elementFromPoint || Document.prototype.elementFromPoint;
-        this.getElementById         = doc.getElementById || Document.prototype.getElementById;
-        this.getElementsByClassName = doc.getElementsByClassName || Document.prototype.getElementsByClassName;
-        this.getElementsByName      = doc.getElementsByName || Document.prototype.getElementsByName;
+        var docProto = doc.constructor.prototype;
 
-        this.getElementsByTagName = doc.getElementsByTagName || Document.prototype.getElementsByTagName;
-        this.querySelector        = doc.querySelector || Document.prototype.querySelector;
-        this.querySelectorAll     = doc.querySelectorAll || Document.prototype.querySelectorAll;
+        // Dom
+        this.createDocumentFragment = doc.createDocumentFragment || docProto.createDocumentFragment;
+        this.createElement          = doc.createElement || docProto.createElement;
+        this.createElementNS        = doc.createElementNS || docProto.createElementNS;
+        this.documentOpen           = doc.open || docProto.open;
+        this.documentClose          = doc.close || docProto.close;
+        this.documentWrite          = doc.write || docProto.write;
+        this.documentWriteLn        = doc.writeln || docProto.writeln;
+        this.elementFromPoint       = doc.elementFromPoint || docProto.elementFromPoint;
+        this.getElementById         = doc.getElementById || docProto.getElementById;
+        this.getElementsByClassName = doc.getElementsByClassName || docProto.getElementsByClassName;
+        this.getElementsByName      = doc.getElementsByName || docProto.getElementsByName;
+
+        this.getElementsByTagName = doc.getElementsByTagName || docProto.getElementsByTagName;
+        this.querySelector        = doc.querySelector || docProto.querySelector;
+        this.querySelectorAll     = doc.querySelectorAll || docProto.querySelectorAll;
 
         // Event
-        this.documentAddEventListener    = doc.addEventListener || Document.prototype.addEventListener;
-        this.documentRemoveEventListener = doc.removeEventListener || Document.prototype.removeEventListener;
+        this.documentAddEventListener    = doc.addEventListener || docProto.addEventListener;
+        this.documentRemoveEventListener = doc.removeEventListener || docProto.removeEventListener;
     }
 
     refreshElementMeths (doc, win) {
@@ -96,8 +98,15 @@ class NativeMethods {
         this.Blob                             = win.Blob;
         this.setTimeout                       = win.setTimeout || Window.prototype.setTimeout;
         this.setInterval                      = win.setInterval || Window.prototype.setInterval;
-        this.XMLHttpRequest                   = win.XMLHttpRequest;
         this.registerProtocolHandler          = win.navigator.registerProtocolHandler;
+
+        // XHR
+        this.XMLHttpRequest                    = win.XMLHttpRequest;
+        this.xmlHttpRequestAbort               = win.XMLHttpRequest.prototype.abort;
+        this.xmlHttpRequestOpen                = win.XMLHttpRequest.prototype.open;
+        this.xmlHttpRequestSend                = win.XMLHttpRequest.prototype.send;
+        this.xmlHttpRequestAddEventListener    = win.XMLHttpRequest.prototype.addEventListener;
+        this.xmlHttpRequestRemoveEventListener = win.XMLHttpRequest.prototype.removeEventListener;
 
         try {
             this.registerServiceWorker = win.navigator.serviceWorker.register;

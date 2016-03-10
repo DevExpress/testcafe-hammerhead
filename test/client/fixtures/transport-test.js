@@ -5,8 +5,8 @@ var browserUtils  = hammerhead.utils.browser;
 var transport     = hammerhead.transport;
 var nativeMethods = hammerhead.nativeMethods;
 
-var savedAjaxOpenMethod = nativeMethods.XMLHttpRequest.prototype.open;
-var savedAjaxSendMethod = nativeMethods.XMLHttpRequest.prototype.send;
+var savedAjaxOpenMethod = nativeMethods.xmlHttpRequestOpen;
+var savedAjaxSendMethod = nativeMethods.xmlHttpRequestSend;
 
 var requestIsAsync = false;
 
@@ -15,21 +15,21 @@ settings.get().serviceMsgUrl = '/service-msg/100';
 function reqisterAfterAjaxSendHook (callback) {
     callback = callback || function () {};
 
-    nativeMethods.XMLHttpRequest.prototype.open = function () {
+    nativeMethods.xmlHttpRequestOpen = function () {
         requestIsAsync = arguments[2];
         if (typeof requestIsAsync === 'undefined')
             requestIsAsync = true;
 
         savedAjaxOpenMethod.apply(this, arguments);
     };
-    nativeMethods.XMLHttpRequest.prototype.send = function () {
+    nativeMethods.xmlHttpRequestSend = function () {
         savedAjaxSendMethod.apply(this, arguments);
         callback(this);
     };
 }
 function unregisterAfterAjaxSendHook () {
-    nativeMethods.XMLHttpRequest.prototype.open = savedAjaxOpenMethod;
-    nativeMethods.XMLHttpRequest.prototype.send = savedAjaxSendMethod;
+    nativeMethods.xmlHttpRequestOpen = savedAjaxOpenMethod;
+    nativeMethods.xmlHttpRequestSend = savedAjaxSendMethod;
 }
 
 asyncTest('sendAsyncServiceMsg', function () {

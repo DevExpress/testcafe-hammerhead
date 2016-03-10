@@ -70,7 +70,7 @@ export default class Sandbox extends SandboxBase {
         var needToUpdateNativeWindowMeths = tryToExecuteCode(() => {
             this.nativeMethods.setTimeout.call(window, () => void 0, 0);
 
-            return window.XMLHttpRequest.toString() === this.nativeMethods.XMLHttpRequest.toString();
+            return window.XMLHttpRequest.prototype.open.toString() === this.nativeMethods.xmlHttpRequestOpen.toString();
         });
 
         // NOTE: T173709
@@ -83,6 +83,27 @@ export default class Sandbox extends SandboxBase {
         // NOTE: T239109
         if (needToUpdateNativeWindowMeths)
             this.nativeMethods.refreshWindowMeths(window);
+    }
+
+    _restoreDocumentMethodsFromProto (document) {
+        var docProto = document.constructor.prototype;
+
+        document.createDocumentFragment = document.createDocumentFragment || docProto.createDocumentFragment;
+        document.createElement          = document.createElement || docProto.createElement;
+        document.createElementNS        = document.createElementNS || docProto.createElementNS;
+        document.open                   = document.open || docProto.open;
+        document.close                  = document.close || docProto.close;
+        document.write                  = document.write || docProto.write;
+        document.writeln                = document.writeln || docProto.writeln;
+        document.elementFromPoint       = document.elementFromPoint || docProto.elementFromPoint;
+        document.getElementById         = document.getElementById || docProto.getElementById;
+        document.getElementsByClassName = document.getElementsByClassName || docProto.getElementsByClassName;
+        document.getElementsByName      = document.getElementsByName || docProto.getElementsByName;
+        document.getElementsByTagName   = document.getElementsByTagName || docProto.getElementsByTagName;
+        document.querySelector          = document.querySelector || docProto.querySelector;
+        document.querySelectorAll       = document.querySelectorAll || docProto.querySelectorAll;
+        document.addEventListener       = document.addEventListener || docProto.addEventListener;
+        document.removeEventListener    = document.removeEventListener || docProto.removeEventListener;
     }
 
     onIframeDocumentRecreated (iframe) {
@@ -127,6 +148,8 @@ export default class Sandbox extends SandboxBase {
         // NOTE: T182337
         this.codeInstrumentation.attach(window);
         this.node.doc.attach(window, document);
+
+        this._restoreDocumentMethodsFromProto(document);
     }
 
     attach (window) {
