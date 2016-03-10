@@ -6,23 +6,15 @@
 import trim from './string-trim';
 
 //Const
-const PROTOCOL_RE        = /(^(\w+?\:))/;
-const LEADING_SLASHES_RE = /^(\/\/)/;
-const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
-const PORT_RE            = /:([0-9]*)$/;
-const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
+const PROTOCOL_RE           = /(^([\w-]+?\:))/;
+const LEADING_SLASHES_RE    = /^(\/\/)/;
+const HOST_RE               = /^(.*?)(\/|%|\?|;|#|$)/;
+const PORT_RE               = /:([0-9]*)$/;
+const QUERY_AND_HASH_RE     = /(\?.+|#[^#]*)$/;
+const SUPPORTED_PROTOCOL_RE = /^https?:/i;
+const HASH_RE               = /^#/;
 
-export const URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED  = 'CLIENT_URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED';
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
-
-function validateDestUrl (url) {
-    if (!/^https?:/.test(url)) {
-        throw {
-            code:    URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED,
-            destUrl: url
-        };
-    }
-}
 
 export function parseResourceType (resourceType) {
     if (!resourceType) {
@@ -101,8 +93,6 @@ export function convertHostToLowerCase (url) {
 }
 
 export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charset) {
-    validateDestUrl(url);
-
     var params = [sessionId];
 
     if (resourceType)
@@ -209,7 +199,19 @@ export function parseUrl (url) {
 }
 
 export function isSupportedProtocol (url) {
-    return !/^\s*(chrome-extension:|blob:|javascript:|about:|mailto:|tel:|data:|skype:|skypec2c:|file:|#)/i.test(url);
+    url = trim(url || '');
+
+    var isHash = HASH_RE.test(url);
+
+    if (isHash)
+        return false;
+
+    var protocol = url.match(PROTOCOL_RE);
+
+    if (!protocol)
+        return true;
+
+    return SUPPORTED_PROTOCOL_RE.test(protocol[0]);
 }
 
 export function resolveUrlAsDest (url, getProxyUrlMeth) {
