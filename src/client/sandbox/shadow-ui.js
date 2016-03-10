@@ -85,40 +85,36 @@ export default class ShadowUI extends SandboxBase {
     _overrideDocumentMethods (document) {
         var shadowUI = this;
 
-        document.elementFromPoint = function () {
+        document.elementFromPoint = (x, y) => {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-            var res = shadowUI._filterElement(nativeMethods.elementFromPoint.apply(document, arguments));
+            var res = shadowUI._filterElement(nativeMethods.elementFromPoint.call(document, x, y));
 
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             return res;
         };
 
-        document.getElementById = function () {
-            return shadowUI._filterElement(nativeMethods.getElementById.apply(document, arguments));
-        };
+        document.getElementById = id =>
+            shadowUI._filterElement(nativeMethods.getElementById.call(document, id));
 
-        document.getElementsByClassName = function () {
-            return shadowUI._filterNodeList(nativeMethods.getElementsByClassName.apply(document, arguments));
-        };
+        document.getElementsByClassName = names =>
+            shadowUI._filterNodeList(nativeMethods.getElementsByClassName.call(document, names));
 
-        document.getElementsByName = function () {
-            return shadowUI._filterNodeList(nativeMethods.getElementsByName.apply(document, arguments));
-        };
+        document.getElementsByName = name =>
+            shadowUI._filterNodeList(nativeMethods.getElementsByName.call(document, name));
 
-        document.getElementsByTagName = function () {
-            return shadowUI._filterNodeList(nativeMethods.getElementsByTagName.apply(document, arguments));
-        };
+        document.getElementsByTagName = name =>
+            shadowUI._filterNodeList(nativeMethods.getElementsByTagName.call(document, name));
 
-        document.querySelector = function (selectors) {
+        document.querySelector = selectors => {
             selectors = NodeSandbox.processSelector(selectors);
 
             return shadowUI._filterElement(nativeMethods.querySelector.call(document, selectors));
         };
 
-        document.querySelectorAll = function (selectors) {
+        document.querySelectorAll = selectors => {
             selectors = NodeSandbox.processSelector(selectors);
 
             return shadowUI._filterNodeList(nativeMethods.querySelectorAll.call(document, selectors));
@@ -245,21 +241,19 @@ export default class ShadowUI extends SandboxBase {
         var shadowUI = this;
 
         if (domUtils.isBodyElement(el) || domUtils.isHeadElement(el)) {
-            el.getElementsByClassName = function () {
-                return shadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.apply(el, arguments));
-            };
+            el.getElementsByClassName = names =>
+                shadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.call(el, names));
 
-            el.getElementsByTagName = function () {
-                return shadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.apply(el, arguments));
-            };
+            el.getElementsByTagName = name =>
+                shadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.call(el, name));
 
-            el.querySelector = function (selectors) {
+            el.querySelector = selectors => {
                 selectors = NodeSandbox.processSelector(selectors);
 
                 return shadowUI._filterElement(nativeMethods.elementQuerySelector.call(el, selectors));
             };
 
-            el.querySelectorAll = function (selectors) {
+            el.querySelectorAll = selectors => {
                 selectors = NodeSandbox.processSelector(selectors);
 
                 return shadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.call(el, selectors));
