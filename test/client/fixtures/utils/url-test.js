@@ -1,5 +1,4 @@
 var settings       = hammerhead.get('./settings');
-var sharedUrlUtils = hammerhead.get('../utils/url');
 var urlUtils       = hammerhead.get('./utils/url');
 var destLocation   = hammerhead.get('./utils/destination-location');
 
@@ -40,6 +39,46 @@ test('resolveUrlAsDest', function () {
     strictEqual(urlUtils.resolveUrlAsDest('https://twitter.com/index.html?param=value#hash'), 'https://twitter.com/index.html?param=value#hash');
     strictEqual(urlUtils.resolveUrlAsDest('//twitter.com/index.html?param=value#hash'), 'https://twitter.com/index.html?param=value#hash');
     strictEqual(urlUtils.resolveUrlAsDest('http://g.tbcdn.cn/??kissy/k/1.4.2/seed-min.js'), 'http://g.tbcdn.cn/??kissy/k/1.4.2/seed-min.js');
+});
+
+test('isSupportedProtocol', function () {
+    ok(urlUtils.isSupportedProtocol('http://example.org'));
+    ok(urlUtils.isSupportedProtocol('https://example.org'));
+    ok(urlUtils.isSupportedProtocol('//example.org'));
+    ok(urlUtils.isSupportedProtocol('/some/path'));
+    ok(urlUtils.isSupportedProtocol('path'));
+    ok(urlUtils.isSupportedProtocol('./'));
+    ok(urlUtils.isSupportedProtocol('../../'));
+    ok(urlUtils.isSupportedProtocol('?t'));
+    ok(!urlUtils.isSupportedProtocol('#42'));
+    ok(!urlUtils.isSupportedProtocol(' data:asdasdasdasdasdasd'));
+    ok(!urlUtils.isSupportedProtocol('chrome-extension://google.com/image.png'));
+});
+
+test('formatUrl', function () {
+    strictEqual(urlUtils.formatUrl({ hostname: 'localhost', partAfterHost: '/path' }), '/path');
+    strictEqual(urlUtils.formatUrl({ port: '1400', partAfterHost: '/path' }), '/path');
+    strictEqual(urlUtils.formatUrl({ hostname: 'localhost', port: '1400', protocol: 'http:' }), 'http://localhost:1400');
+
+    var parsedUrl = {
+        hostname: 'localhost',
+        port:     '1400',
+        protocol: 'http:',
+        username: 'test',
+        password: 'test'
+    };
+
+    strictEqual(urlUtils.formatUrl(parsedUrl), 'http://test:test@localhost:1400');
+
+    parsedUrl = {
+        hostname:      'localhost',
+        port:          '1400',
+        protocol:      'http:',
+        username:      'test',
+        password:      'test',
+        partAfterHost: '/path'
+    };
+    strictEqual(urlUtils.formatUrl(parsedUrl), 'http://test:test@localhost:1400/path');
 });
 
 module('parse url');
@@ -114,20 +153,6 @@ test('destination with https protocol', function () {
     var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
 
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
-});
-
-test('destination with non http or https protocol', function () {
-    expect(2);
-
-    var destUrl = 'someProtocol://test.example.com:53/';
-
-    try {
-        urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT);
-    }
-    catch (err) {
-        strictEqual(err.code, sharedUrlUtils.URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED);
-        strictEqual(err.destUrl.toLowerCase(), destUrl.toLowerCase());
-    }
 });
 
 test('relative path', function () {

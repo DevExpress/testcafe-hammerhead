@@ -34,14 +34,7 @@ export default class XhrSandbox extends SandboxBase {
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
         xhr.open = function (method, url, async, user, password) {
-            try {
-                url = getProxyUrl(url);
-            }
-            catch (err) {
-                xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, { err, xhr });
-
-                return;
-            }
+            url = getProxyUrl(url);
 
             // NOTE: The 'async' argument is true by default. However, when the 'async' argument is set to â€˜undefinedâ€™,
             // a browser (Chrome, FireFox) sets it to 'false', and a request becomes synchronous (B238528).

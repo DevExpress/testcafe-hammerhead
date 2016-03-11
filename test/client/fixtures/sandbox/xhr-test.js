@@ -1,6 +1,3 @@
-var sharedUrlUtils = hammerhead.get('../utils/url');
-
-var xhrSandbox    = hammerhead.sandbox.xhr;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
 
@@ -29,23 +26,6 @@ test('redirect requests to proxy', function () {
     });
 
     jQuery.ajaxSetup({ async: true });
-});
-
-asyncTest('unsupported protocol', function () {
-    var unsupportedUrl = 'gopher://test.domain/';
-
-    var handler = function (e) {
-        strictEqual(e.err.code, sharedUrlUtils.URL_UTIL_PROTOCOL_IS_NOT_SUPPORTED);
-        strictEqual(e.err.destUrl, unsupportedUrl);
-        xhrSandbox.off(xhrSandbox.XHR_ERROR_EVENT, handler);
-        start();
-    };
-
-    xhrSandbox.on(xhrSandbox.XHR_ERROR_EVENT, handler);
-
-    var request = new XMLHttpRequest();
-
-    request.open('GET', unsupportedUrl, true);
 });
 
 module('regression');
