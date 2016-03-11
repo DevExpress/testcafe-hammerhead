@@ -295,6 +295,13 @@ test('location.port must return the empty string (T262593)', function () {
     /* eslint-enable no-undef */
 });
 
+test('a correct proxy URL should be obtained from a destination that has a URL in its path (GH-471)', function () {
+    var destUrl  = 'https://example.com/path/path/sdfjhsdkjf/http://example.com/image.png';
+    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+
+    strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
+});
+
 module('getProxyUrl in a document with "base" tag');
 
 test('add, update and remove the "base" tag (GH-371)', function () {

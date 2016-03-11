@@ -13,26 +13,29 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
     // NOTE: Resolves relative URLs.
     url = destLocation.resolveUrl(url);
 
-    // NOTE: If the relative URL contains no slash (e.g. 'img123'), the resolver will keep
-    // the original proxy information, so that we can return such URL as is.
-    // TODO: Implement the isProxyURL function.
-    var parsedAsProxy   = sharedUrlUtils.parseProxyUrl(url);
-    var isValidProxyUrl = !!parsedAsProxy;
-
-    if (isValidProxyUrl) {
-        if (resourceType && parsedAsProxy.resourceType === resourceType)
-            return url;
-
-        // NOTE: Need to change the proxy URL resource type.
-        var destUrl = sharedUrlUtils.formatUrl(parsedAsProxy.destResourceInfo);
-
-        return getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue);
-    }
-
     proxyHostname = proxyHostname || location.hostname;
     proxyPort     = proxyPort || location.port.toString();
     sessionId     = sessionId || settings.get().sessionId;
 
+    var crossDomainPort = settings.get().crossDomainProxyPort === proxyPort ?
+                          location.port.toString() : settings.get().crossDomainProxyPort;
+
+    // NOTE: If the relative URL contains no slash (e.g. 'img123'), the resolver will keep
+    // the original proxy information, so that we can return such URL as is.
+    // TODO: Implement the isProxyURL function.
+    var parsedProxyUrl  = sharedUrlUtils.parseProxyUrl(url);
+    var isValidProxyUrl = !!parsedProxyUrl && parsedProxyUrl.proxy.hostname === proxyHostname &&
+                          (parsedProxyUrl.proxy.port === proxyPort || parsedProxyUrl.proxy.port === crossDomainPort);
+
+    if (isValidProxyUrl) {
+        if (resourceType && parsedProxyUrl.resourceType === resourceType)
+            return url;
+
+        // NOTE: Need to change the proxy URL resource type.
+        var destUrl = sharedUrlUtils.formatUrl(parsedProxyUrl.destResourceInfo);
+
+        return getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue);
+    }
 
     var parsedUrl = sharedUrlUtils.parseUrl(url);
     var isScript  = sharedUrlUtils.parseResourceType(resourceType).isScript;
