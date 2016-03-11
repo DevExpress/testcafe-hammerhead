@@ -87,21 +87,10 @@ function hasClassFallback (el, className) {
 }
 
 export function getActiveElement (currentDocument) {
-    var doc           = currentDocument || document;
-    var activeElement = doc.activeElement &&
-                        doc.activeElement.tagName ? doc.activeElement : doc.body;
+    var doc = currentDocument || document;
 
-    if (isIframeElement(activeElement)) {
-        try {
-            return getActiveElement(activeElement.contentDocument);
-        }
-            /*eslint-disable no-empty */
-        catch (e) {
-        }
-        /*eslint-enable no-empty */
-    }
 
-    return activeElement;
+    return isDomElement(doc.activeElement) ? doc.activeElement : doc.body;
 }
 
 export function getChildVisibleIndex (select, child) {
