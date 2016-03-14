@@ -9,6 +9,9 @@ import { ensureTrailingSlash } from '../../utils/url';
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
+        if (!urlUtil.isSupportedProtocol(resourceUrl))
+            return resourceUrl;
+
         // NOTE: Resolves base URLs without a protocol ('//google.com/path' for example).
         baseUrl     = baseUrl ? url.resolve(ctx.dest.url, baseUrl) : '';
         resourceUrl = urlUtil.prepareUrl(resourceUrl);
@@ -19,12 +22,7 @@ function getResourceUrlReplacer (ctx) {
 
         resolvedUrl = ensureTrailingSlash(resourceUrl, resolvedUrl);
 
-        try {
-            return ctx.toProxyUrl(resolvedUrl, false, resourceType, charsetStr);
-        }
-        catch (err) {
-            return resourceUrl;
-        }
+        return ctx.toProxyUrl(resolvedUrl, false, resourceType, charsetStr);
     };
 }
 
