@@ -37,7 +37,7 @@
     "processScript": true,
     "getLocation": true,
     "hammerhead": true,
-    "overrideDomMeth": true,
+    "processDomMeth": true,
     "initIframeTestHandler": true
   }
 }

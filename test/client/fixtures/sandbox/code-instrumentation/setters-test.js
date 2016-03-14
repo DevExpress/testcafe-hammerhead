@@ -194,7 +194,7 @@ test('script text', function () {
 test('iframe', function () {
     var iframe = document.createElement('iframe');
 
-    window[INTERNAL_PROPS.overrideDomMethodName](iframe);
+    window[INTERNAL_PROPS.processDomMethodName](iframe);
 
     eval(processScript('iframe.sandbox="allow-forms"'));
     strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');

@@ -1,4 +1,5 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import ActiveWindowTracker from '../event/active-window-tracker';
 import nativeMethods from '../native-methods';
@@ -200,14 +201,15 @@ export default class FocusBlurSandbox extends SandboxBase {
         // NOTE: el.focus() does not raise the event if the element is invisible. If the element is located
         // within an invisible iframe, all browsers except Chrome do not raise the event (GH-442)
         var raiseEventInIframe = !isNativeFocus || browserUtils.isWebKit || !styleUtils.isElementInInvisibleIframe(el);
+        var elDocument         = (el[INTERNAL_PROPS.processedContext] || this.window).document;
 
-        if (!raiseEventInIframe || isNativeFocus && !styleUtils.isElementVisible(el))
+        if (!raiseEventInIframe || isNativeFocus && !styleUtils.isElementVisible(el, elDocument))
             return null;
 
         var isElementInIframe = domUtils.isElementInIframe(el);
         var iframeElement     = isElementInIframe ? domUtils.getIframeByElement(el) : null;
         var curDocument       = domUtils.findDocument(el);
-        var isBodyElement     = el === curDocument.body;
+        var isBodyElement     = domUtils.isBodyElement(el);
 
         var activeElement         = domUtils.getActiveElement();
         var activeElementDocument = domUtils.findDocument(activeElement);

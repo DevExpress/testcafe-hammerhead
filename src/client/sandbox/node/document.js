@@ -96,7 +96,7 @@ export default class DocumentSandbox extends SandboxBase {
         }
 
         // NOTE: B234357
-        this.nodeSandbox.overrideDomMethods(null, this.document);
+        this.nodeSandbox.processNodes(null, this.document);
 
         return result;
     }
@@ -151,7 +151,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createElement = tagName => {
             var el = nativeMethods.createElement.call(document, tagName);
 
-            this.nodeSandbox.overrideDomMethods(el);
+            this.nodeSandbox.processNodes(el);
 
             return el;
         };
@@ -159,7 +159,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createElementNS = (ns, tagName) => {
             var el = nativeMethods.createElementNS.call(document, ns, tagName);
 
-            this.nodeSandbox.overrideDomMethods(el);
+            this.nodeSandbox.processNodes(el);
 
             return el;
         };
@@ -175,7 +175,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createDocumentFragment = () => {
             var fragment = nativeMethods.createDocumentFragment.call(document);
 
-            documentSandbox.nodeSandbox.overrideDomMethods(fragment);
+            documentSandbox.nodeSandbox.processNodes(fragment);
 
             return fragment;
         };

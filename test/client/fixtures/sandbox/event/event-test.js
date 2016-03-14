@@ -183,7 +183,7 @@ test('attachEvent, fireEvent, detachEvent must be overriden (T239606)', function
     if (attachEventExist || fireEventExist || detachEventExist)
         ok(nativeMethods.attachEvent && nativeMethods.fireEvent && nativeMethods.detachEvent);
     else {
-        eventSandbox.overrideElement(el);
+        eventSandbox.processElement(el);
 
         ok(!el.attachEvent);
         ok(!el.fireEvent);
@@ -249,7 +249,7 @@ if (browserUtils.isWebKit) {
             '<rect id="rect" width="300" height="300" fill="red" tabIndex="1"></rect>' +
             '</svg>').appendTo('body');
 
-        overrideDomMeth($svgElement[0]);
+        processDomMeth($svgElement[0]);
 
         var rectElement = document.getElementById('rect');
 

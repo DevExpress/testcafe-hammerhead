@@ -5,7 +5,8 @@ import DocumentSandbox from './document';
 import ElementSandbox from './element';
 import FocusBlurSandbox from '../event/focus-blur';
 import domProcessor from '../../dom-processor';
-import { parseDocumentCharset } from '../../utils/dom';
+import * as urlUtils from '../../utils/url';
+import * as domUtils from '../../utils/dom';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 
 const ATTRIBUTE_SELECTOR_REG_EX = /\[([\w-]+)(\^?=.+?)]/g;
@@ -15,7 +16,7 @@ export default class NodeSandbox extends SandboxBase {
         super();
 
         this.raiseBodyCreatedEvent               = this._onBodyCreated;
-        document[INTERNAL_PROPS.documentCharset] = parseDocumentCharset();
+        document[INTERNAL_PROPS.documentCharset] = domUtils.parseDocumentCharset();
 
         this.eventSandbox  = eventSandbox;
         this.iframeSandbox = iframeSandbox;
@@ -34,33 +35,32 @@ export default class NodeSandbox extends SandboxBase {
         });
     }
 
-    _overrideElement (el) {
+    _processElement (el) {
         if (el[INTERNAL_PROPS.processedContext] !== this.window) {
             el[INTERNAL_PROPS.processedContext] = this.window;
 
-            this.element.overrideElement(el);
-            this.eventSandbox.overrideElement(el, true);
-            this.shadowUI.overrideElement(el, true);
+            if (!domUtils.isDocumentFragmentNode(el))
+                domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+
+            this.element.processElement(el);
+            this.eventSandbox.processElement(el);
         }
     }
 
-    overrideDomMethods (el, doc) {
+    processNodes (el, doc) {
         if (!el) {
             doc = doc || this.document;
 
-            this.eventSandbox.overrideElement(doc);
-
             if (doc.documentElement)
-                this.overrideDomMethods(doc.documentElement);
+                this.processNodes(doc.documentElement);
         }
         else if (el.querySelectorAll) {
-            // OPTIMIZATION: Use querySelectorAll to iterate through descendant nodes.
-            this._overrideElement(el);
+            this._processElement(el);
 
             var children = getNativeQuerySelectorAll(el).call(el, '*');
 
             for (var i = 0; i < children.length; i++)
-                this._overrideElement(children[i]);
+                this._processElement(children[i]);
         }
     }
 
@@ -83,12 +83,12 @@ export default class NodeSandbox extends SandboxBase {
             this.doc.attach(e.iframe.contentWindow, e.iframe.contentDocument);
         });
 
-        window[INTERNAL_PROPS.overrideDomMethodName] = (el, doc) => this.overrideDomMethods(el, doc);
+        window[INTERNAL_PROPS.processDomMethodName] = (el, doc) => this.processNodes(el, doc);
 
         // NOTE: In some browsers (for example Firefox), the 'window.document' object is different when iframe is
         // created and when the document’s ready event is raised. Therefore, we need to update the 'document' object
         // to override its methods (Q527555).
-        document.addEventListener('DOMContentLoaded', () => this.overrideDomMethods(null, document), false);
+        document.addEventListener('DOMContentLoaded', () => this.processNodes(null, document), false);
 
         this.doc.attach(window, document);
         this.win.attach(window);

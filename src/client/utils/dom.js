@@ -655,3 +655,11 @@ export function getParents (el, selector) {
 
     return parents;
 }
+
+export function getFileInputs (el) {
+    return isFileInput(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'input[type=file]');
+}
+
+export function getIframes (el) {
+    return isIframeElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'iframe');
+}

@@ -196,10 +196,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     // NOTE: For the iframe with an empty src.
                     if (parentWindow && parentWindow !== window &&
-                        parentWindow[INTERNAL_PROPS.overrideDomMethodName])
-                        parentWindow[INTERNAL_PROPS.overrideDomMethodName](el, parentDocument);
-                    else if (window[INTERNAL_PROPS.overrideDomMethodName])
-                        window[INTERNAL_PROPS.overrideDomMethodName](el);
+                        parentWindow[INTERNAL_PROPS.processDomMethodName])
+                        parentWindow[INTERNAL_PROPS.processDomMethodName](el, parentDocument);
+                    else if (window[INTERNAL_PROPS.processDomMethodName])
+                        window[INTERNAL_PROPS.processDomMethodName](el);
 
 
                     // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised

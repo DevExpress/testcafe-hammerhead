@@ -215,7 +215,7 @@ test('get script body (T296958) (GH-183)', function () {
 
     notEqual(script.textContent, scriptCode);
     strictEqual(script.textContent.replace(/\s/g, ''), processedScriptCode.replace(/\s/g, ''));
-    strictEqual(cleanedScriptCode.indexOf(INTERNAL_PROPS.overrideDomMethodName), -1);
+    strictEqual(cleanedScriptCode.indexOf(INTERNAL_PROPS.processDomMethodName), -1);
     strictEqual(eval(processScript('script.text', true, false)), cleanedScriptCode);
     strictEqual(eval(processScript('script.textContent', true, false)), cleanedScriptCode);
     strictEqual(eval(processScript('script.innerHTML', true, false)), cleanedScriptCode);

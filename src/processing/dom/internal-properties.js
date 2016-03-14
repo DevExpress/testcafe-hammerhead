@@ -4,9 +4,9 @@
 // -------------------------------------------------------------
 
 export default {
-    overrideDomMethodName: 'hammerhead|override-dom-method',
-    processedContext:      'hammerhead|processed-context',
-    whichPropertyWrapper:  'hammerhead|which-property-wrapper',
-    documentCharset:       'hammerhead|document-charset',
-    iframeNativeMethods:   'hammerhead|iframe-native-methods'
+    processDomMethodName: 'hammerhead|process-dom-method',
+    processedContext:     'hammerhead|processed-context',
+    whichPropertyWrapper: 'hammerhead|which-property-wrapper',
+    documentCharset:      'hammerhead|document-charset',
+    iframeNativeMethods:  'hammerhead|iframe-native-methods'
 };

@@ -160,7 +160,7 @@ export default class ElementSandbox extends SandboxBase {
         if (domUtils.isTextNode(node))
             ElementSandbox._processTextNodeContent(node, parentNode);
 
-        this.nodeSandbox.overrideDomMethods(node);
+        this.nodeSandbox.processNodes(node);
     }
 
     _createOverridedMethods () {
@@ -172,7 +172,7 @@ export default class ElementSandbox extends SandboxBase {
                 var nativeMeth = domUtils.isTableElement(this) ? nativeMethods.insertTableRow : nativeMethods.insertTBodyRow;
                 var row        = nativeMeth.call(this, index);
 
-                sandbox.nodeSandbox.overrideDomMethods(row);
+                sandbox.nodeSandbox.processNodes(row);
 
                 return row;
             },
@@ -180,7 +180,7 @@ export default class ElementSandbox extends SandboxBase {
             insertCell (index) {
                 var cell = nativeMethods.insertCell.call(this, index);
 
-                sandbox.nodeSandbox.overrideDomMethods(cell);
+                sandbox.nodeSandbox.processNodes(cell);
 
                 return cell;
             },
@@ -190,7 +190,7 @@ export default class ElementSandbox extends SandboxBase {
                     html = processHtml('' + html, this.parentNode && this.parentNode.tagName);
 
                 nativeMethods.insertAdjacentHTML.call(this, pos, html);
-                sandbox.nodeSandbox.overrideDomMethods(this.parentNode || this);
+                sandbox.nodeSandbox.processNodes(this.parentNode || this);
             },
 
             formSubmit () {
@@ -262,7 +262,7 @@ export default class ElementSandbox extends SandboxBase {
             cloneNode (deep) {
                 var clone = nativeMethods.cloneNode.call(this, deep);
 
-                sandbox.nodeSandbox.overrideDomMethods(clone);
+                sandbox.nodeSandbox.processNodes(clone);
 
                 return clone;
             },
@@ -335,11 +335,10 @@ export default class ElementSandbox extends SandboxBase {
         if (!domUtils.isDomElement(el))
             return;
 
-        if (domUtils.isFileInput(el))
-            this.addFileInputInfo(el);
+        var fileInputs = domUtils.getFileInputs(el);
 
-        else
-            domUtils.find(el, 'input[type=file]', elem => this.addFileInputInfo(elem));
+        for (var i = 0; i < fileInputs.length; i++)
+            this.addFileInputInfo(fileInputs[i]);
     }
 
     _onRemoveFileInputInfo (el) {
@@ -355,15 +354,14 @@ export default class ElementSandbox extends SandboxBase {
 
     _onElementAdded (el) {
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
-            var iframes = ElementSandbox.getIframes(el);
+            var iframes = domUtils.getIframes(el);
 
-            if (iframes.length) {
-                for (var i = 0; i < iframes.length; i++)
-                    this.onIframeAddedToDOM(iframes[i]);
-            }
-            else if (domUtils.isBodyElement(el))
-                this.shadowUI.onBodyElementMutation();
+            for (var i = 0; i < iframes.length; i++)
+                this.onIframeAddedToDOM(iframes[i]);
         }
+
+        if (domUtils.isBodyElement(el))
+            this.shadowUI.onBodyElementMutation();
 
         this._onAddFileInputInfo(el);
 
@@ -381,10 +379,6 @@ export default class ElementSandbox extends SandboxBase {
 
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(getDestLocation(), this.document);
-    }
-
-    static getIframes (el) {
-        return domUtils.isIframeElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'iframe');
     }
 
     addFileInputInfo (el) {
@@ -416,6 +410,7 @@ export default class ElementSandbox extends SandboxBase {
         window.Element.prototype.cloneNode                 = this.overridedMethods.cloneNode;
         window.Element.prototype.querySelector             = this.overridedMethods.querySelector;
         window.Element.prototype.querySelectorAll          = this.overridedMethods.querySelectorAll;
+        window.Element.prototype.insertAdjacentHTML        = this.overridedMethods.insertAdjacentHTML;
         window.Node.prototype.cloneNode                    = this.overridedMethods.cloneNode;
         window.Node.prototype.appendChild                  = this.overridedMethods.appendChild;
         window.Node.prototype.removeChild                  = this.overridedMethods.removeChild;
@@ -429,49 +424,21 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLFormElement.prototype.submit            = this.overridedMethods.formSubmit;
     }
 
-    overrideElement (el) {
-        var isDocFragment = domUtils.isDocumentFragmentNode(el);
+    _setNonProxedSrcOnError (img) {
+        img.addEventListener('error', e => {
+            var storedAttr = nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src'));
 
-        if (!isDocFragment)
-            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
+            if (storedAttr && !urlUtils.parseProxyUrl(img.src) && urlUtils.isSupportedProtocol(img.src)) {
+                nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
+                stopPropagation(e);
+            }
+        }, false);
+    }
 
-        if (domUtils.isImgElement(el)) {
-            el.addEventListener('error', e => {
-                var storedAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('src'));
-
-                if (storedAttr && !urlUtils.parseProxyUrl(el.src) && urlUtils.isSupportedProtocol(el.src)) {
-                    nativeMethods.setAttribute.call(el, 'src', urlUtils.getProxyUrl(storedAttr));
-                    stopPropagation(e);
-                }
-            }, false);
-        }
-        else if (domUtils.isIframeElement(el) && !domUtils.isCrossDomainIframe(el, true))
-            this.iframeSandbox.overrideIframe(el);
-        else if (domUtils.isFormElement(el))
-            el.submit = this.overridedMethods.formSubmit;
-
-        if ('insertAdjacentHTML' in el)
-            el.insertAdjacentHTML = this.overridedMethods.insertAdjacentHTML;
-
-        el.insertBefore = this.overridedMethods.insertBefore;
-        el.appendChild  = this.overridedMethods.appendChild;
-        el.replaceChild = this.overridedMethods.replaceChild;
-        el.removeChild  = this.overridedMethods.removeChild;
-        el.cloneNode    = this.overridedMethods.cloneNode;
-
-        if (!isDocFragment) {
-            el.setAttribute      = this.overridedMethods.setAttribute;
-            el.setAttributeNS    = this.overridedMethods.setAttributeNS;
-            el.getAttribute      = this.overridedMethods.getAttribute;
-            el.getAttributeNS    = this.overridedMethods.getAttributeNS;
-            el.removeAttribute   = this.overridedMethods.removeAttribute;
-            el.removeAttributeNS = this.overridedMethods.removeAttributeNS;
-        }
-
-        if ('insertRow' in el)
-            el.insertRow = this.overridedMethods.insertRow;
-
-        if ('insertCell' in el)
-            el.insertCell = this.overridedMethods.insertCell;
+    processElement (el) {
+        if (domUtils.isImgElement(el))
+            this._setNonProxedSrcOnError(el);
+        else if (domUtils.isIframeElement(el))
+            this.iframeSandbox.processIframe(el);
     }
 }

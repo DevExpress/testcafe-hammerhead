@@ -21,7 +21,7 @@ export default class IframeSandbox extends SandboxBase {
         this.cookieSandbox = cookieSandbox;
 
         this.on(this.RUN_TASK_SCRIPT, this.iframeReadyToInitHandler);
-        nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, e => this.iframeAddedToDom(e.iframe));
+        nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, e => this.processIframe(e.iframe));
 
         this.iframeNativeMethodsBackup = null;
     }
@@ -93,7 +93,7 @@ export default class IframeSandbox extends SandboxBase {
                 // and external script initialization code.
                 this.emit(this.RUN_TASK_SCRIPT, { iframe });
 
-                iframe.contentWindow[INTERNAL_PROPS.overrideDomMethodName]();
+                iframe.contentWindow[INTERNAL_PROPS.processDomMethodName]();
             }
             else if (!iframeInitialized) {
                 // NOTE: Even if iframe is not loaded (iframe.contentDocument.documentElement does not exist), we
@@ -131,25 +131,11 @@ export default class IframeSandbox extends SandboxBase {
         e.iframe.contentWindow.eval.call(e.iframe.contentWindow, taskScript);
     }
 
-    iframeAddedToDom (el) {
-        this.overrideIframe(el);
-
-        if (!isShadowUIElement(el)) {
-            this._raiseReadyToInitEvent(el);
-
-            if (!isWebKit && el.contentDocument) {
-                this.nativeMethods.documentAddEventListener.call(el.contentDocument, 'DOMContentLoaded', () => {
-                    this._raiseReadyToInitEvent(el);
-                });
-            }
-        }
-    }
-
     onIframeBeganToRun (iframe) {
         this._raiseReadyToInitEvent(iframe);
     }
 
-    overrideIframe (el) {
+    processIframe (el) {
         if (isShadowUIElement(el))
             return;
 
@@ -171,12 +157,10 @@ export default class IframeSandbox extends SandboxBase {
             }
             else {
                 var handler = () => {
-                    if (!isShadowUIElement(el)) {
-                        if (isCrossDomainIframe(el))
-                            this.nativeMethods.removeEventListener.call(el, 'load', handler);
-                        else
-                            this._raiseReadyToInitEvent(el);
-                    }
+                    if (isCrossDomainIframe(el))
+                        this.nativeMethods.removeEventListener.call(el, 'load', handler);
+                    else
+                        this._raiseReadyToInitEvent(el);
                 };
 
                 if (isElementInDocument(el))
@@ -190,6 +174,12 @@ export default class IframeSandbox extends SandboxBase {
                 this._raiseReadyToInitEvent(el);
 
             this.nativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
+        }
+
+        if (!isWebKit && el.contentDocument) {
+            this.nativeMethods.documentAddEventListener.call(el.contentDocument, 'DOMContentLoaded', () => {
+                this._raiseReadyToInitEvent(el);
+            });
         }
     }
 }
