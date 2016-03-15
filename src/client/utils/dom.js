@@ -316,7 +316,8 @@ export function isDomElement (el) {
 }
 
 export function getTagName (el) {
-    return el && el.tagName ? el.tagName.toLowerCase() : '';
+    // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
+    return el && typeof el.tagName === 'string' ? el.tagName.toLowerCase() : '';
 }
 
 export function getNodeType (node) {

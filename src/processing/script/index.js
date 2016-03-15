@@ -13,7 +13,7 @@ import getBOM from '../../utils/get-bom';
 
 
 // Const
-const HTML_COMMENT_RE       = /(^|\n)\s*<!--[.\r]*(\n|$)/g;
+const HTML_COMMENT_RE       = /(^|\n)\s*<!--[^\n]*(\n|$)/g;
 const OBJECT_RE             = /^\s*\{.*\}\s*$/;
 const TRAILING_SEMICOLON_RE = /;\s*$/;
 const OBJECT_WRAPPER_RE     = /^\s*\((.*)\);\s*$/;

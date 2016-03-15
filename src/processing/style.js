@@ -37,7 +37,9 @@ class StyleProcessor {
 
     cleanUp (css, parseProxyUrl) {
         if (typeof css === 'string') {
-            css = css.replace(new RegExp('\\[' + INTERNAL_ATTRS.hoverPseudoClass + '\\](\\W)', 'ig'), ':hover$1');
+            css = css
+                .replace(new RegExp('\\[' + INTERNAL_ATTRS.hoverPseudoClass + '\\](\\W)', 'ig'), ':hover$1')
+                .replace(new RegExp('^\\s*' + this.IS_STYLESHEET_PROCESSED_COMMENT.replace(/\/|\*/g, '\\$&') + '\n?'), '');
 
             return this._replaceStylsheetUrls(css, url => {
                 var parsedProxyUrl = parseProxyUrl(url);
