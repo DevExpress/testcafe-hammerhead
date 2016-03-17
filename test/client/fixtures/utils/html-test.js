@@ -204,20 +204,19 @@ test('page html', function () {
     check('<head>\u2028\u2029<script src="HeadScript.js"><\/script></head><body param="value"><script src="BodyScript.js"><\/script></body>');
     check('<body><script src="HeadScript.js"><\/script>\u2028\u2029<script src="BodyScript.js"><\/script></body>');
     check('<body><script src="HeadScript.js"><\/script>\u2028\u2029<script src="BodyScript.js"><\/script></body>');
-    check('<!DOCTYPE html><html><head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script>');
-    check('<html><head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script>');
 
     urlUtils.convertToProxyUrl = storedConvertToProxyUrl;
 });
 
-test('init script for iframe template', function () {
-    var pageHtmlTemplates = [
-        '<!doctype><html><head>{0}</head><body>{0}</body></html>',
-        '<html><head>{0}</head><body>{0}</body></html>',
-        '<head>{0}</head>',
-        '<body>{0}</body>'
-    ];
+test('partial page html', function () {
+    strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml('<!DOCTYPE html><html><head></head><body>')),
+        '<!DOCTYPE html><html><head></head><body></body></html>');
 
+    strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml('<html><head></head><body>')),
+        '<html><head></head><body></body></html>');
+});
+
+test('init script for iframe template', function () {
     var check = function (template) {
         var html                  = template.replace(/\{0\}/g, '');
         var expectedProcessedHtml = template.replace(/\{0\}/g, htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
@@ -227,8 +226,10 @@ test('init script for iframe template', function () {
         strictEqual(htmlUtils.cleanUpHtml(processedHtml), html);
     };
 
-    for (var i = 0; i < pageHtmlTemplates.length; i++)
-        check(pageHtmlTemplates[i]);
+    check('<!doctype><html><head>{0}</head><body>{0}</body></html>');
+    check('<html><head>{0}</head><body>{0}</body></html>');
+    check('<head>{0}</head>');
+    check('<body>{0}</body>');
 });
 
 module('is well formatted tag');

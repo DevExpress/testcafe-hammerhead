@@ -7,6 +7,7 @@ import { find } from './dom';
 import { convertToProxyUrl } from '../utils/url';
 
 const TEXT_NODE_COMMENT_MARKER = 'hammerhead|text-node-comment-marker';
+const FAKE_TAG_NAME_PREFIX     = 'faketagname_';
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE =
     '<script class="' + SHADOW_UI_CLASSNAME.script + '" type="text/javascript">' +
@@ -47,49 +48,59 @@ export function isPageHtml (html) {
     return /^\s*(<\s*(!doctype|html|head|body)[^>]*>)/i.test(html);
 }
 
-function processPageTag (pageTagHtml, process) {
-    pageTagHtml = pageTagHtml.replace(/^(\s*<\s*)(head|body|html)/i, '$1fakeTagName_$2');
-
-    return process(pageTagHtml).replace(/<\/fakeTagName_[\s\S]+$/i, '').replace(/fakeTagName_/i, '');
+function hidePageTag (tagHtml) {
+    return tagHtml ? tagHtml.replace(/^(\s*<\s*\/?)(head|body|html)/i, `$1${FAKE_TAG_NAME_PREFIX}$2`) : '';
 }
 
-function processPageHtml (html, process) {
+function exposePageTags (html) {
+    return html.replace(new RegExp(FAKE_TAG_NAME_PREFIX, 'ig'), '');
+}
+
+function preparePageHtml (html) {
     var doctypeRegEx     = /^(\s*<\s*!doctype[^>]*>)([\s\S]*)$/i;
     var headBodyRegEx    = /^(\s*<\s*(head|body)[^>]*>)([\s\S]*?)(<\s*\/(head|body)\s*>\s*)?$/i;
     var htmlContentRegEx = /^(\s*<\s*head[^>]*>)([\s\S]*?)(<\s*\/head\s*>\s*)(<\s*body[^>]*>)([\s\S]*?)(<\s*\/body\s*>\s*)?$/i;
     var htmlRegEx        = /^(\s*<\s*html[^>]*>)([\s\S]*?)(<\s*\/html\s*>\s*)?$/i;
+    var doctype          = '';
+    var prefix           = '';
+    var postfix          = '';
 
     var doctypeMatches = html.match(doctypeRegEx);
 
-    if (doctypeMatches)
-        return doctypeMatches[1] + process(doctypeMatches[2]);
+    if (doctypeMatches) {
+        doctype = doctypeMatches[1];
+        html    = doctypeMatches[2];
+    }
 
     var htmlMatches = html.match(htmlRegEx);
 
     if (htmlMatches) {
-        return processPageTag(htmlMatches[1], process) +
-               process(htmlMatches[2], 'html') +
-               (htmlMatches[3] || '');
+        prefix += hidePageTag(htmlMatches[1]);
+        html    = htmlMatches[2];
+        postfix = hidePageTag(htmlMatches[3]) + postfix;
     }
 
     var htmlContentMatches = html.match(htmlContentRegEx);
 
     if (htmlContentMatches) {
-        return processPageTag(htmlContentMatches[1], process) +
-               process(htmlContentMatches[2], 'head') +
-               (htmlContentMatches[3] || '') +
-               processPageTag(htmlContentMatches[4], process) +
-               process(htmlContentMatches[5], 'body') +
-               (htmlContentMatches[6] || '');
+        prefix += hidePageTag(htmlContentMatches[1]) + htmlContentMatches[2] + hidePageTag(htmlContentMatches[3]);
+        postfix = hidePageTag(htmlContentMatches[4]) + htmlContentMatches[5] + hidePageTag(htmlContentMatches[6]) +
+                  postfix;
+        html    = '';
+    }
+    else {
+        var headBodyMatches = html.match(headBodyRegEx);
+
+        if (headBodyMatches) {
+            prefix += hidePageTag(headBodyMatches[1]);
+            html    = headBodyMatches[3];
+            postfix = hidePageTag(headBodyMatches[4]) + postfix;
+        }
     }
 
-    var headBodyMatches = html.match(headBodyRegEx);
+    html = prefix + html + postfix;
 
-    if (headBodyMatches) {
-        return processPageTag(headBodyMatches[1], process) +
-               process(headBodyMatches[3], headBodyMatches[2]) +
-               (headBodyMatches[4] || '');
-    }
+    return { doctype, html };
 }
 
 function wrapTextNodes (html) {
@@ -116,6 +127,16 @@ function unwrapTextNodes (html) {
 }
 
 function processHtmlInternal (html, parentTag, process) {
+    var isPage  = isPageHtml(html);
+    var doctype = '';
+
+    if (isPage) {
+        var preparedHtml = preparePageHtml(html);
+
+        doctype = preparedHtml.doctype;
+        html    = preparedHtml.html;
+    }
+
     html = wrapTextNodes(html);
 
     var container = getHtmlDocument().createElement('div');
@@ -148,13 +169,15 @@ function processHtmlInternal (html, parentTag, process) {
     else if (isScript)
         html = html.replace(/^<script>|<\/script>$/ig, '');
 
-    return unwrapTextNodes(html);
+    html = unwrapTextNodes(html);
+
+    if (isPage)
+        html = doctype + exposePageTags(html);
+
+    return html;
 }
 
 export function cleanUpHtml (html, parentTag) {
-    if (isPageHtml(html))
-        return processPageHtml(html, cleanUpHtml);
-
     return processHtmlInternal(html, parentTag, container => {
         var changed = false;
 
@@ -198,35 +221,45 @@ export function cleanUpHtml (html, parentTag) {
             changed = true;
         });
 
-        if (parentTag === 'head' || parentTag === 'body') {
-            if (container.innerHTML.indexOf(INIT_SCRIPT_FOR_IFRAME_TEMPLATE) !== -1) {
-                container.innerHTML = container.innerHTML.replace(INIT_SCRIPT_FOR_IFRAME_TEMPLATE, '');
+        find(container, `${FAKE_TAG_NAME_PREFIX}head, ${FAKE_TAG_NAME_PREFIX}body`, el => {
+            if (el.innerHTML.indexOf(INIT_SCRIPT_FOR_IFRAME_TEMPLATE) !== -1) {
+                el.innerHTML = el.innerHTML.replace(INIT_SCRIPT_FOR_IFRAME_TEMPLATE, '');
 
                 changed = true;
             }
-        }
+        });
 
         return changed;
     });
 }
 
 export function processHtml (html, parentTag) {
-    if (isPageHtml(html))
-        return processPageHtml(html, processHtml);
-
     return processHtmlInternal(html, parentTag, container => {
+        var htmlElements = [];
+
+        var processElement = el => {
+            domProcessor.processElement(el, convertToProxyUrl);
+
+            var elTagName = el.tagName && el.tagName.toLowerCase();
+
+            if (elTagName === `${FAKE_TAG_NAME_PREFIX}head` || elTagName === `${FAKE_TAG_NAME_PREFIX}body`)
+                htmlElements.push(el);
+        };
+
         // NOTE: We check this condition to avoid unnecessary calls of the querySelectorAll function.
         if (container.children.length === 1 && container.children[0].children && !container.children[0].children.length)
-            domProcessor.processElement(container.children[0], convertToProxyUrl);
+            processElement(container.children[0]);
         else {
             var children = nativeMethods.elementQuerySelectorAll.call(container, '*');
 
             for (var i = 0; i < children.length; i++)
-                domProcessor.processElement(children[i], convertToProxyUrl);
+                processElement(children[i]);
         }
 
-        if (parentTag === 'head' || parentTag === 'body')
-            container.innerHTML = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + container.innerHTML;
+        if (!parentTag) {
+            for (var j = 0; j < htmlElements.length; j++)
+                htmlElements[j].innerHTML = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlElements[j].innerHTML;
+        }
 
         return true;
     });

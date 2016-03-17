@@ -414,3 +414,12 @@ test('restoring the removed RegExp.prototype.test function should not throw an e
 
     ok(!withError);
 });
+
+test('the client code gets access to the Hammerhead script (GH-479)', function () {
+    var div = document.createElement('div');
+
+    eval(processScript('div.innerHTML="<html><body><div id=\\"test\\"></div></body></html>"'));
+
+    strictEqual(div.childNodes.length, 1);
+    strictEqual(div.childNodes[0].id, 'test');
+});
