@@ -1,5 +1,5 @@
 import mustache from 'mustache';
-import uuid from 'node-uuid';
+import shortId from 'shortid';
 import { readSync as read } from 'read-file-relative';
 import { EventEmitter } from 'events';
 import Cookies from './cookies';
@@ -29,7 +29,7 @@ export default class Session extends EventEmitter {
 
     static _generateSessionId () {
         // NOTE: GH-116
-        return uuid.v4().substr(0, 3);
+        return shortId.generate();
     }
 
     async handleServiceMessage (msg, serverInfo) {
