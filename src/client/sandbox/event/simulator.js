@@ -6,6 +6,7 @@ import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
 import { getOffsetPosition, offsetToClientCoords } from '../../utils/position';
 import { getBordersWidth, getElementScroll } from '../../utils/style';
+import { isUndefined } from '../../../utils/types';
 
 const IE_BUTTONS_MAP = {
     0: 1,
@@ -28,7 +29,7 @@ export default class EventSimulator {
     constructor () {
         this.DISPATCHED_EVENT_FLAG = 'hammerhead|dispatched-event';
 
-        this.touchIdentifier  = Date.now();
+        this.touchIdentifier  = nativeMethods.dateNow();
         this.clickedFileInput = null;
         // NOTE: (IE only) If event dispatching calls a native click function, we should clear the window.event
         // property (which was set in the raiseDispatchEvent function). Otherwise, the window.event property will
@@ -69,9 +70,9 @@ export default class EventSimulator {
                 args.detail, args.screenX, args.screenY, args.pageX, args.pageY, args.ctrlKey,
                 args.altKey, args.shiftKey, args.metaKey, args.touches, args.targetTouches,
                 args.changedTouches,
-                typeof args.scale === 'undefined' ? 1.0 : args.scale,
+                isUndefined(args.scale) ? 1.0 : args.scale,
                 // NOTE: B237995
-                typeof args.rotation === 'undefined' ? 0.0 : args.rotation);
+                isUndefined(args.rotation) ? 0.0 : args.rotation);
 
         }
         else if (ev.initTouchEvent.length === 12) {
@@ -123,10 +124,10 @@ export default class EventSimulator {
             screenY:       opts.screenY || 0,
             clientX:       opts.clientX || 0,
             clientY:       opts.clientY || 0,
-            button:        typeof opts.button === 'undefined' ? eventUtils.BUTTON.left : opts.button,
-            buttons:       typeof opts.buttons === 'undefined' ? eventUtils.BUTTONS_PARAMETER.leftButton : opts.buttons,
+            button:        isUndefined(opts.button) ? eventUtils.BUTTON.left : opts.button,
+            buttons:       isUndefined(opts.buttons) ? eventUtils.BUTTONS_PARAMETER.leftButton : opts.buttons,
             relatedTarget: opts.relatedTarget || null,
-            which:         typeof opts.which === 'undefined' ? eventUtils.WHICH_PARAMETER.leftButton : opts.which
+            which:         isUndefined(opts.which) ? eventUtils.WHICH_PARAMETER.leftButton : opts.which
         });
     }
 
@@ -171,7 +172,7 @@ export default class EventSimulator {
         }
 
         else if (MOUSE_EVENT_NAME_RE.test(event)) {
-            if (userOptions && typeof userOptions.button !== 'undefined')
+            if (userOptions && !isUndefined(userOptions.button))
                 opts = extend(opts, { button: userOptions.button });
 
             args     = EventSimulator._getMouseEventArgs(event, opts);
@@ -182,7 +183,7 @@ export default class EventSimulator {
 
         else if (KEY_EVENT_NAME_RE.test(event)) {
             if (userOptions &&
-                (typeof userOptions.keyCode !== 'undefined' || typeof userOptions.charCode !== 'undefined')) {
+                (!isUndefined(userOptions.keyCode) || !isUndefined(userOptions.charCode))) {
                 opts = extend(opts, {
                     keyCode:  userOptions.keyCode || 0,
                     charCode: userOptions.charCode || 0
@@ -223,7 +224,7 @@ export default class EventSimulator {
             // NOTE: B237995
             args.touch = document.createTouch(args.view, options.target, this._getTouchIdentifier(args.type), args.pageX,
                 args.pageY, args.screenX, args.screenY, args.clientX, args.clientY, null, null,
-                typeof args.rotation === 'undefined' ? 0 : args.rotation);
+                isUndefined(args.rotation) ? 0 : args.rotation);
         }
 
         args.changedTouches = document.createTouchList(args.touch);
@@ -335,7 +336,7 @@ export default class EventSimulator {
                 // NOTE: This parameter must be "1" for “mouse”.
                 pointerIdArg:   1,
                 pointerType:    browserUtils.version > 10 ? 'mouse' : 4,
-                hwTimestampArg: Date.now(),
+                hwTimestampArg: nativeMethods.dateNow(),
                 isPrimary:      true
             }, args);
 
@@ -384,7 +385,7 @@ export default class EventSimulator {
         }
 
         // NOTE: T188166 (act.hover triggers the mouseenter event with the "which" parameter set to 1).
-        if (typeof args.which !== 'undefined' && browserUtils.isWebKit) {
+        if (!isUndefined(args.which) && browserUtils.isWebKit) {
             Object.defineProperty(ev, INTERNAL_PROPS.whichPropertyWrapper, {
                 get: () => args.which
             });
@@ -589,11 +590,10 @@ export default class EventSimulator {
     mousedown (el, options) {
         options = options || {};
 
-        options.button  = typeof options.button === 'undefined' ? eventUtils.BUTTON.left : options.button;
-        options.which   = typeof options.which === 'undefined' || options.button !== eventUtils.BUTTON.right ?
+        options.button  = isUndefined(options.button) ? eventUtils.BUTTON.left : options.button;
+        options.which   = isUndefined(options.which) || options.button !== eventUtils.BUTTON.right ?
                           eventUtils.WHICH_PARAMETER.leftButton : eventUtils.WHICH_PARAMETER.rightButton;
-        options.buttons = typeof options.buttons ===
-                          'undefined' ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
+        options.buttons = isUndefined(options.buttons) ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
 
         return this._simulateEvent(el, 'mousedown', options);
     }
@@ -601,11 +601,10 @@ export default class EventSimulator {
     mouseup (el, options) {
         options = options || {};
 
-        options.button  = typeof options.button === 'undefined' ? eventUtils.BUTTON.left : options.button;
-        options.which   = typeof options.which === 'undefined' || options.button !== eventUtils.BUTTON.right ?
+        options.button  = isUndefined(options.button) ? eventUtils.BUTTON.left : options.button;
+        options.which   = isUndefined(options.which) || options.button !== eventUtils.BUTTON.right ?
                           eventUtils.WHICH_PARAMETER.leftButton : eventUtils.WHICH_PARAMETER.rightButton;
-        options.buttons = typeof options.buttons ===
-                          'undefined' ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
+        options.buttons = isUndefined(options.buttons) ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
 
         return this._simulateEvent(el, 'mouseup', options);
     }

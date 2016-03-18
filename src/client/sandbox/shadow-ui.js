@@ -183,7 +183,7 @@ export default class ShadowUI extends SandboxBase {
 
         for (var i = 0; i < parser.children.length; i++) {
             var refNode = head.children[i] || null;
-            var newNode = parser.children[i].cloneNode();
+            var newNode = nativeMethods.cloneNode.call(parser.children[i]);
 
             this.nativeMethods.insertBefore.call(head, newNode, refNode);
         }
@@ -312,7 +312,7 @@ export default class ShadowUI extends SandboxBase {
     // Utils
     static checkElementsPosition (collection) {
         if (collection.length) {
-            var parent           = collection[0].parentNode || collection[0].parentElement;
+            var parent           = collection[0].parentNode;
             var shadowUIElements = [];
 
             if (parent) {

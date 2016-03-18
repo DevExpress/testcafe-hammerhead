@@ -1,9 +1,9 @@
 import SandboxBase from '../base';
-import { isNullOrUndefined, inaccessibleTypeToStr } from '../../utils/types';
 import INSTRUCTION from '../../../processing/script/instruction';
 import { shouldInstrumentMethod } from '../../../processing/script/instrumented';
 import { isWindow } from '../../utils/dom';
 import fastApply from '../../utils/fast-apply';
+import * as typeUtils from '../../../utils/types';
 
 export default class MethodCallInstrumentation extends SandboxBase {
     constructor (messageSandbox) {
@@ -27,17 +27,17 @@ export default class MethodCallInstrumentation extends SandboxBase {
         super.attach(window);
 
         window[INSTRUCTION.callMethod] = (owner, methName, args) => {
-            if (isNullOrUndefined(owner))
-                MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${inaccessibleTypeToStr(owner)}`);
+            if (typeUtils.isNullOrUndefined(owner))
+                MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-            if (typeof owner[methName] !== 'function')
+            if (!typeUtils.isFunction(owner[methName]))
                 MethodCallInstrumentation._error(`'${methName}' is not a function`);
 
             // OPTIMIZATION: previously we've performed the
             // `this.methodWrappers.hasOwnProperty(methName)`
             // check which is quite slow. Now we use the
             // fast RegExp check instead.
-            if (typeof methName === 'string' && shouldInstrumentMethod(methName) &&
+            if (typeUtils.isString(methName) && shouldInstrumentMethod(methName) &&
                 this.methodWrappers[methName].condition(owner))
                 return this.methodWrappers[methName].method(owner, args);
 

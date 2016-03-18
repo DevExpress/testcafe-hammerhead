@@ -11,9 +11,9 @@ const LEADING_SLASHES_RE    = /^(\/\/)/;
 const HOST_RE               = /^(.*?)(\/|%|\?|;|#|$)/;
 const PORT_RE               = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE     = /(\?.+|#[^#]*)$/;
-const SUPPORTED_PROTOCOL_RE = /^https?:/i;
-const HASH_RE               = /^#/;
 
+export const SUPPORTED_PROTOCOL_RE               = /^https?:/i;
+export const HASH_RE                             = /^#/;
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
 
 export function parseResourceType (resourceType) {

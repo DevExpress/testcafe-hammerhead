@@ -8,6 +8,7 @@ import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 import { isIE } from '../../utils/browser';
 import { preventDefault, DOM_EVENTS } from '../../utils/event';
+import { isUndefined } from '../../../utils/types';
 
 export default class EventSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
@@ -72,7 +73,7 @@ export default class EventSandbox extends SandboxBase {
 
                     if (ev) {
                         ev = extend(document.createEvent(createEventType), ev);
-                        ev.initEvent(eventType, typeof ev.cancelBubble !== 'undefined' ? ev.cancelBubble : false, true);
+                        ev.initEvent(eventType, !isUndefined(ev.cancelBubble) ? ev.cancelBubble : false, true);
                     }
                     else {
                         // NOTE: The fireEvent method can be called with no arguments.
@@ -142,10 +143,9 @@ export default class EventSandbox extends SandboxBase {
         this.cancelInternalEvents = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
             // NOTE: We should cancel events raised by calling the native function (focus, blur) only if the
             // element has a flag. If an event is dispatched, we shouldn't cancel it.
-            var target            = e.target || e.srcElement;
             var internalEventFlag = FocusBlurSandbox.getInternalEventFlag(e.type);
 
-            if (target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])
+            if (e.target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])
                 stopPropagation();
         };
     }

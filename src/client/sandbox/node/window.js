@@ -10,6 +10,7 @@ import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl } from '../../uti
 import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
+import { isFunction } from '../../../utils/types';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -194,7 +195,7 @@ export default class WindowSandbox extends SandboxBase {
             return image;
         };
 
-        if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
+        if (isFunction(window.history.pushState) && isFunction(window.history.replaceState)) {
             window.history.pushState = function (data, title, url) {
                 var args = [data, title];
 

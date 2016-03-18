@@ -1,6 +1,7 @@
 import EventEmitter from '../../utils/event-emitter';
 import { isIE } from '../../utils/browser';
 import * as destLocation from '../../utils/destination-location';
+import { isUndefined } from '../../../utils/types';
 
 const STORAGES_SANDBOX_TEMP = 'hammerhead|storeges-sandbox-temp';
 const API_KEY_PREFIX        = 'hammerhead|api-key-prefix|';
@@ -175,7 +176,7 @@ export default class StorageWrapper extends EventEmitter {
     }
 
     key (keyNum) {
-        if (typeof keyNum === 'undefined')
+        if (isUndefined(keyNum))
             throw new TypeError();
 
         // NOTE: http://w3c-test.org/webstorage/storage_key.html

@@ -3,6 +3,7 @@ import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isObjectEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
+import { isUndefined, isFunction } from '../../../utils/types';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
@@ -41,15 +42,14 @@ export default class Listeners extends EventEmitter {
         if (isWindow(el))
             return nativeMethods.windowAddEventListener;
 
-        return typeof el.body !== 'undefined' ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
+        return !isUndefined(el.body) ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
     }
 
     static _getNativeRemoveEventListener (el) {
         if (isWindow(el))
             return nativeMethods.windowRemoveEventListener;
 
-        return typeof el.body !==
-               'undefined' ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
+        return !isUndefined(el.body) ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
     }
 
     static _getEventListenerWrapper (eventCtx, listener) {
@@ -63,7 +63,7 @@ export default class Listeners extends EventEmitter {
             if (eventCtx.cancelOuterHandlers)
                 return null;
 
-            if (typeof eventCtx.outerHandlersWrapper === 'function')
+            if (isFunction(eventCtx.outerHandlersWrapper))
                 return eventCtx.outerHandlersWrapper.call(this, e, listener);
 
             if (isObjectEventListener(listener))
@@ -86,22 +86,11 @@ export default class Listeners extends EventEmitter {
         var listeners = this;
 
         return function (e) {
-            // NOTE: Fix for the bug in Firefox (https://bugzilla.mozilla.org/show_bug.cgi?id=1161548).
-            // Sometimes an exception is raised on an attempt to get a property from the event object.
-            var type = '';
-
-            try {
-                type = e.type;
-            }
-            catch (err) {
-                return;
-            }
-
             var el                    = this;
             var eventPrevented        = false;
             var handlersCancelled     = false;
             var stopPropagationCalled = false;
-            var eventCtx              = listeners.listeningCtx.getEventCtx(el, type);
+            var eventCtx              = listeners.listeningCtx.getEventCtx(el, e.type);
             var internalHandlers      = eventCtx ? eventCtx.internalHandlers : [];
 
             eventCtx.cancelOuterHandlers = false;

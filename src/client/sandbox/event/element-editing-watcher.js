@@ -10,14 +10,12 @@ export default class ElementEditingWatcher {
     }
 
     _onBlur (e) {
-        var target = e.target || e.srcElement;
-
-        if (!this.processElementChanging(target))
-            this.stopWatching(target);
+        if (!this.processElementChanging(e.target))
+            this.stopWatching(e.target);
     }
 
     _onChange (e) {
-        this.stopWatching(e.target || e.srcElement);
+        this.stopWatching(e.target);
     }
 
     stopWatching (el) {

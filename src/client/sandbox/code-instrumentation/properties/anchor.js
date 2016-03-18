@@ -1,7 +1,8 @@
 import { parseProxyUrl } from '../../../utils/url';
+import nativeMethods from '../../native-methods';
 
-var anchor      = document.createElement('A');
-var emptyAnchor = document.createElement('A');
+var anchor      = nativeMethods.createElement.call(document, 'a');
+var emptyAnchor = nativeMethods.createElement.call(document, 'a');
 
 export function getAnchorProperty (el, prop) {
     if (el.href) {

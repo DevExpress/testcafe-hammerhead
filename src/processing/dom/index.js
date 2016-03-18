@@ -7,6 +7,7 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
+import { isString } from '../../utils/types';
 
 const CDATA_REG_EX = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 // NOTE: Ignore '//:0/' url (http://www.myntra.com/).
@@ -210,7 +211,7 @@ export default class DomProcessor {
     _isShadowElement (el) {
         var className = this.adapter.getClassName(el);
 
-        return typeof className === 'string' && className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
+        return isString(className) && className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
     }
 
     // Element processors

@@ -34,7 +34,7 @@ export default class UploadSandbox extends SandboxBase {
         super.attach(window);
 
         this.listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
-            var input              = e.target || e.srcElement;
+            var input              = e.target;
             var currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
             if (isFileInput(input) && !dispatched) {

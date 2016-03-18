@@ -3,6 +3,8 @@ import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIE9, isIE10, isIOS } from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
+import { isUndefined, isFunction } from '../../../utils/types';
+import { SUPPORTED_PROTOCOL_RE } from '../../../utils/url';
 
 export default class UnloadSandbox extends SandboxBase {
     constructor (listeners) {
@@ -55,17 +57,15 @@ export default class UnloadSandbox extends SandboxBase {
 
         var res = originListener(e);
 
-        if (typeof res !== 'undefined') {
+        if (!isUndefined(res)) {
             this.storedBeforeUnloadReturnValue = res;
             this.prevented                     = true;
         }
     }
 
     _onDocumentClick (e) {
-        var target = e.target || e.srcElement;
-
-        if (domUtils.isAnchorElement(target))
-            this.isFakeIEBeforeUnloadEvent = !target.href || !/^https?:/.test(target.href);
+        if (domUtils.isAnchorElement(e.target))
+            this.isFakeIEBeforeUnloadEvent = !e.target.href || !SUPPORTED_PROTOCOL_RE.test(e.target.href);
     }
 
     _reattachBeforeUnloadListener () {
@@ -101,7 +101,7 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     setOnBeforeUnload (window, value) {
-        if (typeof value === 'function') {
+        if (isFunction(value)) {
 
             this.storedBeforeUnloadHandler = value;
 

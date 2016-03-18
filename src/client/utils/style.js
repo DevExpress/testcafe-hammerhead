@@ -1,6 +1,7 @@
 import * as domUtils from './dom';
 import * as browserUtils from './browser';
 import nativeMethods from '../sandbox/native-methods';
+import { isObject, isUndefined } from '../../utils/types';
 
 // NOTE: For Chrome.
 const MIN_SELECT_SIZE_VALUE = 4;
@@ -17,7 +18,7 @@ export function isStyle (instance) {
     if (instance instanceof nativeMethods.styleClass)
         return true;
 
-    if (instance && typeof instance === 'object' && typeof instance.border !== 'undefined') {
+    if (instance && isObject(instance) && !isUndefined(instance.border)) {
         instance = instance.toString();
 
         return instance === '[object CSSStyleDeclaration]' || instance === '[object CSS2Properties]' ||
@@ -212,8 +213,8 @@ export function getSelectElementSize (select) {
     if (browserUtils.isSafari && browserUtils.hasTouchEvents || browserUtils.isAndroid)
         return 1;
 
-    var sizeAttr     = select.getAttribute('size');
-    var multipleAttr = select.getAttribute('multiple');
+    var sizeAttr     = nativeMethods.getAttribute.call(select, 'size');
+    var multipleAttr = nativeMethods.getAttribute.call(select, 'multiple');
     var size         = !sizeAttr ? 1 : parseInt(sizeAttr, 10);
 
     if (multipleAttr && (!sizeAttr || size < 1))

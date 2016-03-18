@@ -5,6 +5,7 @@
 /* eslint hammerhead/proto-methods: 2 */
 
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
+import { isString } from '../utils/types';
 
 const SOURCE_MAP_REG_EX              = /#\s*sourceMappingURL\s*=\s*[^\s]+(\s|\*\/)/i;
 const CSS_URL_PROPERTY_VALUE_PATTERN = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s\)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
@@ -19,7 +20,7 @@ class StyleProcessor {
                                                      this.IS_STYLESHEET_PROCESSED_COMMENT.replace(/\/|\*/g, '\\$&'));
         var isStylesheetProcessed       = isStyleSheetProcessingRegEx.test(css);
 
-        if (typeof css === 'string' && !isStylesheetProcessed) {
+        if (isString(css) && !isStylesheetProcessed) {
             var prefix = isStylesheetTable ? this.IS_STYLESHEET_PROCESSED_COMMENT + '\n' : '';
 
             // NOTE: Replace the :hover pseudo-class.
@@ -36,7 +37,7 @@ class StyleProcessor {
     }
 
     cleanUp (css, parseProxyUrl) {
-        if (typeof css === 'string') {
+        if (isString(css)) {
             css = css.replace(new RegExp('\\[' + INTERNAL_ATTRS.hoverPseudoClass + '\\](\\W)', 'ig'), ':hover$1');
 
             return this._replaceStylsheetUrls(css, url => {

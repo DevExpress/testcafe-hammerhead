@@ -7,6 +7,7 @@ import settings from '../../settings';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 import SHADOW_UI_CLASSNAME from '../../../shadow-ui/class-name';
+import { isString } from '../../../utils/types';
 import Promise from 'pinkie';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
@@ -39,7 +40,7 @@ export default class UploadInfoManager {
             nativeMethods.setAttribute.call(uploadIframe, 'name', UPLOAD_IFRAME_FOR_IE9_ID);
             uploadIframe.style.display = 'none';
 
-            this.shadowUI.getRoot().appendChild(uploadIframe);
+            nativeMethods.appendChild.call(this.shadowUI.getRoot(), uploadIframe);
         }
 
         return uploadIframe;
@@ -69,7 +70,7 @@ export default class UploadInfoManager {
                 form.target = UPLOAD_IFRAME_FOR_IE9_ID;
                 form.method = 'post';
 
-                form.submit();
+                nativeMethods.formSubmit.call(form);
 
                 form.action = sourceActionString;
                 form.target = sourceTarget;
@@ -83,7 +84,7 @@ export default class UploadInfoManager {
     static formatValue (fileNames) {
         var value = '';
 
-        fileNames = typeof fileNames === 'string' ? [fileNames] : fileNames;
+        fileNames = isString(fileNames) ? [fileNames] : fileNames;
 
         if (fileNames && fileNames.length) {
             if (Browser.isWebKit)
@@ -119,7 +120,7 @@ export default class UploadInfoManager {
     static loadFilesInfoFromServer (filePaths) {
         return transport.asyncServiceMsg({
             cmd:       COMMAND.getUploadedFiles,
-            filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
+            filePaths: isString(filePaths) ? [filePaths] : filePaths
         });
     }
 

@@ -6,6 +6,7 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as styleUtils from '../../utils/style';
+import { isFunction } from '../../../utils/types';
 
 const INTERNAL_FOCUS_FLAG = 'hammerhead|internal-focus';
 const INTERNAL_BLUR_FLAG  = 'hammerhead|internal-blur';
@@ -56,7 +57,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             nativeMethods.removeAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass);
 
         if (domUtils.isElementFocusable(activeElement) && !(domUtils.isBodyElement(activeElement) &&
-            activeElement.getAttribute('tabIndex') === null)) {
+            nativeMethods.getAttribute.call(activeElement, 'tabIndex') === null)) {
             this.lastFocusedElement = activeElement;
             nativeMethods.setAttribute.call(activeElement, INTERNAL_ATTRS.focusPseudoClass, true);
         }
@@ -123,7 +124,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             var tempElement = null;
 
             if (type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor) {
-                tempElement = domUtils.findDocument(el).getElementById(el.htmlFor);
+                tempElement = nativeMethods.getElementById.call(domUtils.findDocument(el), el.htmlFor);
                 if (tempElement)
                     el = tempElement;
                 else {
@@ -190,7 +191,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         if (browserUtils.isIE && browserUtils.version > 11 && el && domUtils.isTextEditableElement(el))
             this.eventSimulator.selectionchange(el);
 
-        if (typeof callback === 'function')
+        if (isFunction(callback))
             callback();
     }
 
@@ -250,7 +251,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         if (isNativeFocus && browserUtils.isIE) {
             // NOTE: In IE, the focus() method does not have any effect if it is called in the focus event handler
             // during the  second event phase.
-            if ((this.eventSimulator.isSavedWindowsEventsExists() || browserUtils.isIE && browserUtils.version > 10) &&
+            if ((this.eventSimulator.isSavedWindowsEventsExists() || browserUtils.version > 10) &&
                 this.window.event &&
                 this.window.event.type === 'focus' && this.window.event.srcElement === el) {
                 this._callFocusCallback(callback);
@@ -333,7 +334,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         }
 
         this._raiseEvent(el, 'blur', () => {
-            if (typeof callback === 'function')
+            if (isFunction(callback))
                 callback();
         }, withoutHandlers, isAsync);
     }
