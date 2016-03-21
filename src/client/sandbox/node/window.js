@@ -180,7 +180,7 @@ export default class WindowSandbox extends SandboxBase {
             else
                 image = new nativeMethods.Image(arguments[0], arguments[1]);
 
-            nodeSandbox.overrideDomMethods(image);
+            nodeSandbox.processNodes(image);
 
             return image;
         };

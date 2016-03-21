@@ -37,7 +37,7 @@ test('url', function () {
             return nativeMethods.getAttribute.call(el, storedAttr);
         };
 
-        overrideDomMeth(el);
+        processDomMeth(el);
 
         el.setAttribute(attr, '');
 
@@ -107,7 +107,7 @@ test('script src', function () {
 
     var script = document.createElement('script');
 
-    overrideDomMeth(script);
+    processDomMeth(script);
 
     document[INTERNAL_PROPS.documentCharset] = 'utf-8';
 
@@ -126,7 +126,7 @@ asyncTest('iframe with "javascript: <html>...</html>" src', function () {
     var src    = 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<\/script>"';
 
     iframe.id = 'test55';
-    overrideDomMeth(iframe);
+    processDomMeth(iframe);
 
     iframe.setAttribute('src', src);
 
@@ -147,7 +147,7 @@ asyncTest('iframe html src', function () {
     var src    = 'javascript:\'<html><body><a id=\\\'test\\\' data-attr=\"123\">link</a></body></html>\'';
 
     iframe.id = 'test56';
-    overrideDomMeth(iframe);
+    processDomMeth(iframe);
 
     iframe.setAttribute('src', src);
 
@@ -309,7 +309,7 @@ test('iframe', function () {
     var storedAttr = domProcessor.getStoredAttrName(attr);
     var iframe     = document.createElement('iframe');
 
-    overrideDomMeth(iframe);
+    processDomMeth(iframe);
 
     ok(!nativeMethods.getAttribute.call(iframe, attr));
     ok(!nativeMethods.getAttribute.call(iframe, storedAttr));

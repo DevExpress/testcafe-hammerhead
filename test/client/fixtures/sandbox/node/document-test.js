@@ -20,7 +20,7 @@ QUnit.testDone(function () {
 test('document.write for iframe.src with javascript protocol', function () {
     var $div = $('<div>').appendTo('body');
 
-    overrideDomMeth($div[0]);
+    processDomMeth($div[0]);
 
     var $iframe = $('<iframe id="test4" src="javascript:&quot;<html><body><a id=\'link\' href=\'http://google.com/\'></body></html>&quot;"></iframe>"');
 
@@ -34,7 +34,7 @@ asyncTest('document.write for iframe with empty url', function () {
     var $div   = $('<div>').appendTo('body');
     var cheked = false;
 
-    overrideDomMeth($div[0]);
+    processDomMeth($div[0]);
 
     var $iframe = $('<iframe id="test3" src="about:blank">"');
 
@@ -287,7 +287,7 @@ test('document.write for page html (T190753)', function () {
     var script          = 'var a = [1,2], b = 0; window.test = a[b];';
     var processedScript = processScript(script, true, false).replace(/\s*/g, '');
 
-    overrideDomMeth($div[0]);
+    processDomMeth($div[0]);
     $div[0].appendChild($iframe[0]);
 
     ok(script.replace(/\s*/g, '') !== processedScript);
@@ -349,7 +349,7 @@ if (!browserUtils.isFirefox) {
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 // NOTE: Some browsers remove their documentElement after a "write([])" call. Previously, if the
-                // documentElement was null, "overrideDomMethods" failed with the 'Maximum call stack size exceeded' error.
+                // documentElement was null, "processDomMethodName" failed with the 'Maximum call stack size exceeded' error.
                 iframe.contentDocument.write([]);
                 ok(true);
                 iframe.contentDocument.close();

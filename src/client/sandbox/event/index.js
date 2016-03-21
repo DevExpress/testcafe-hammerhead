@@ -6,10 +6,8 @@ import SandboxBase from '../base';
 import extend from '../../utils/extend';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
-import { isIE, version as browserVersion } from '../../utils/browser';
+import { isIE } from '../../utils/browser';
 import { preventDefault, DOM_EVENTS } from '../../utils/event';
-
-const ELEMENT_HAS_ADDITIONAL_EVENT_METHODS = isIE && browserVersion < 11;
 
 export default class EventSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
@@ -152,31 +150,27 @@ export default class EventSandbox extends SandboxBase {
         };
     }
 
-    _overrideElementOrHTMLElementMethod (methodName, overridedMethod) {
-        if (this.window.Element && methodName in this.window.Element.prototype)
-            this.window.Element.prototype[methodName] = overridedMethod;
-        else if (this.window.HTMLElement && methodName in this.window.HTMLElement.prototype)
-            this.window.HTMLElement.prototype[methodName] = overridedMethod;
-
-        if (this.window.Document && methodName in this.window.Document.prototype)
-            this.window.Document.prototype[methodName] = overridedMethod;
-    }
-
     attach (window) {
         super.attach(window);
 
         window.HTMLInputElement.prototype.setSelectionRange    = this.overridedMethods.setSelectionRange;
         window.HTMLTextAreaElement.prototype.setSelectionRange = this.overridedMethods.setSelectionRange;
-        window.dispatchEvent                                   = this.overridedMethods.dispatchEvent;
+        window.Window.prototype.dispatchEvent                  = this.overridedMethods.dispatchEvent;
+        window.Document.prototype.dispatchEvent                = this.overridedMethods.dispatchEvent;
+        window.HTMLElement.prototype.dispatchEvent             = this.overridedMethods.dispatchEvent;
+        window.HTMLElement.prototype.focus                     = this.overridedMethods.focus;
+        window.HTMLElement.prototype.blur                      = this.overridedMethods.blur;
+        window.HTMLElement.prototype.click                     = this.overridedMethods.click;
+        window.Window.focus                                    = this.overridedMethods.focus;
+        window.Window.blur                                     = this.overridedMethods.blur;
 
-        this._overrideElementOrHTMLElementMethod('focus', this.overridedMethods.focus);
-        this._overrideElementOrHTMLElementMethod('blur', this.overridedMethods.blur);
-        this._overrideElementOrHTMLElementMethod('dispatchEvent', this.overridedMethods.dispatchEvent);
-
-        if (ELEMENT_HAS_ADDITIONAL_EVENT_METHODS) {
-            this._overrideElementOrHTMLElementMethod('fireEvent', this.overridedMethods.fireEvent);
-            this._overrideElementOrHTMLElementMethod('attachEvent', this.overridedMethods.attachEvent);
-            this._overrideElementOrHTMLElementMethod('detachEvent', this.overridedMethods.detachEvent);
+        if (window.Document.prototype.fireEvent) {
+            window.Document.prototype.fireEvent                = this.overridedMethods.fireEvent;
+            window.Document.prototype.attachEvent              = this.overridedMethods.attachEvent;
+            window.Document.prototype.detachEvent              = this.overridedMethods.detachEvent;
+            window.HTMLElement.prototype.fireEvent   = this.overridedMethods.fireEvent;
+            window.HTMLElement.prototype.attachEvent = this.overridedMethods.attachEvent;
+            window.HTMLElement.prototype.detachEvent = this.overridedMethods.detachEvent;
         }
 
         if (window.TextRange && window.TextRange.prototype.select)
@@ -197,42 +191,20 @@ export default class EventSandbox extends SandboxBase {
         this.hover.attach(window);
     }
 
-    overrideElement (el, overridePrototypeMeths) {
-        if ('click' in el)
-            el.click = this.overridedMethods.click;
+    processElement (el) {
+        if (isIE && domUtils.isFileInput(el))
+            this._preventOpenFileDialog(el);
+    }
 
-        if (overridePrototypeMeths) {
-            el.dispatchEvent = this.overridedMethods.dispatchEvent;
+    _preventOpenFileDialog (fileInput) {
+        // NOTE: Prevent the browser's open file dialog.
+        nativeMethods.addEventListener.call(fileInput, 'click', e => {
+            if (this.eventSimulator.getClickedFileInput() === fileInput) {
+                this.eventSimulator.setClickedFileInput(null);
 
-            if ('focus' in el) {
-                el.focus = this.overridedMethods.focus;
-                el.blur  = this.overridedMethods.blur;
+                return preventDefault(e, true);
             }
-
-            if ('setSelectionRange' in el)
-                el.setSelectionRange = this.overridedMethods.setSelectionRange;
-
-            if (ELEMENT_HAS_ADDITIONAL_EVENT_METHODS) {
-                el.fireEvent   = this.overridedMethods.fireEvent;
-                el.attachEvent = this.overridedMethods.attachEvent;
-                el.detachEvent = this.overridedMethods.detachEvent;
-            }
-        }
-
-        if (domUtils.isInputElement(el)) {
-            if (isIE) {
-                // NOTE: Prevent the browser's open file dialog.
-                nativeMethods.addEventListener.call(el, 'click', e => {
-                    if (domUtils.isFileInput(el)) {
-                        if (this.eventSimulator.getClickedFileInput() === el) {
-                            this.eventSimulator.setClickedFileInput(null);
-
-                            return preventDefault(e, true);
-                        }
-                    }
-                }, true);
-            }
-        }
+        }, true);
     }
 
     initDocumentListening () {

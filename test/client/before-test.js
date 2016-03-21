@@ -58,11 +58,11 @@
 
     hammerhead.start({ sessionId: 'sessionId', cookie: '' });
 
-    window.overrideDomMeth = window[INTERNAL_PROPS.overrideDomMethodName];
+    window.processDomMeth = window[INTERNAL_PROPS.processDomMethodName];
 
-    window[INTERNAL_PROPS.overrideDomMethodName] = function (el) {
+    window[INTERNAL_PROPS.processDomMethodName] = function (el) {
         if (el)
-            window.overrideDomMeth(el);
+            window.processDomMeth(el);
     };
 
     window.processScript = window[INSTRUCTION.processScript];

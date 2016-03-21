@@ -143,7 +143,7 @@ test('table.insertRow, table.insertCell', function () {
 test('setAttribute: img src', function () {
     var $img = $('<img>');
 
-    overrideDomMeth($img[0]);
+    processDomMeth($img[0]);
 
     $img[0].setAttribute('src', '/image.gif?param=value');
 

@@ -125,6 +125,41 @@ export default class ShadowUI extends SandboxBase {
         document.getElementsByClassName.toString = () => nativeMethods.getElementsByClassName.toString();
     }
 
+    _overrideElementMethods (window) {
+        var shadowUI = this;
+
+        var overridedMethods = {
+            getElementsByClassName (names) {
+                return shadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.call(this, names));
+            },
+
+            getElementsByTagName (name) {
+                return shadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.call(this, name));
+            },
+
+            querySelector (selectors) {
+                selectors = NodeSandbox.processSelector(selectors);
+
+                return shadowUI._filterElement(nativeMethods.elementQuerySelector.call(this, selectors));
+            },
+
+            querySelectorAll (selectors) {
+                selectors = NodeSandbox.processSelector(selectors);
+
+                return shadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.call(this, selectors));
+            }
+        };
+
+        window.HTMLBodyElement.prototype.getElementsByClassName = overridedMethods.getElementsByClassName;
+        window.HTMLBodyElement.prototype.getElementsByTagName   = overridedMethods.getElementsByTagName;
+        window.HTMLBodyElement.prototype.querySelector          = overridedMethods.querySelector;
+        window.HTMLBodyElement.prototype.querySelectorAll       = overridedMethods.querySelectorAll;
+        window.HTMLHeadElement.prototype.getElementsByClassName = overridedMethods.getElementsByClassName;
+        window.HTMLHeadElement.prototype.getElementsByTagName   = overridedMethods.getElementsByTagName;
+        window.HTMLHeadElement.prototype.querySelector          = overridedMethods.querySelector;
+        window.HTMLHeadElement.prototype.querySelectorAll       = overridedMethods.querySelectorAll;
+    }
+
     _getUIStyleSheetsHtml () {
         var stylesheets = this.nativeMethods.querySelectorAll.call(this.document, 'link.' +
                                                                                   SHADOW_UI_CLASS_NAME.uiStylesheet);
@@ -154,8 +189,6 @@ export default class ShadowUI extends SandboxBase {
 
     getRoot () {
         if (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root)) {
-            this.overrideElement(this.document.body);
-
             if (!this.root) {
                 // NOTE: B254893
                 this.root = nativeMethods.createElement.call(this.document, 'div');
@@ -181,6 +214,7 @@ export default class ShadowUI extends SandboxBase {
         super.attach(window, window.document);
 
         this._overrideDocumentMethods(window.document);
+        this._overrideElementMethods(window);
 
         this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT, e => {
             var iframeHead = e.iframe.contentDocument.head;
@@ -230,34 +264,8 @@ export default class ShadowUI extends SandboxBase {
     // There were an issue when document.body was replaced, so we need to reattach UI to a new body manually.
     onBodyElementMutation () {
         if (this.root) {
-            if (this.document.body && this.root.parentNode !== this.document.body) {
-                this.overrideElement(this.document.body);
+            if (this.document.body && this.root.parentNode !== this.document.body)
                 this.nativeMethods.appendChild.call(this.document.body, this.root);
-            }
-        }
-    }
-
-    overrideElement (el) {
-        var shadowUI = this;
-
-        if (domUtils.isBodyElement(el) || domUtils.isHeadElement(el)) {
-            el.getElementsByClassName = names =>
-                shadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.call(el, names));
-
-            el.getElementsByTagName = name =>
-                shadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.call(el, name));
-
-            el.querySelector = selectors => {
-                selectors = NodeSandbox.processSelector(selectors);
-
-                return shadowUI._filterElement(nativeMethods.elementQuerySelector.call(el, selectors));
-            };
-
-            el.querySelectorAll = selectors => {
-                selectors = NodeSandbox.processSelector(selectors);
-
-                return shadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.call(el, selectors));
-            };
         }
     }
 

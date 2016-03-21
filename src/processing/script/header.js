@@ -13,7 +13,7 @@ const POSTFIX = '/*hammerhead|script-processing-header|end*/';
 export const HEADER = [
     PREFIX,
     'var __w$= typeof window!=="undefined"&&window;',
-    `__w$ && __w$["${INTERNAL_PROPS.overrideDomMethodName}"] && __w$["${INTERNAL_PROPS.overrideDomMethodName}"]();`,
+    `__w$ && __w$["${INTERNAL_PROPS.processDomMethodName}"] && __w$["${INTERNAL_PROPS.processDomMethodName}"]();`,
     `var ${ INSTRUCTION.getLocation }=__w$?__w$.${ INSTRUCTION.getLocation }:function(l){return l},`,
     `${ INSTRUCTION.setLocation }=__w$?__w$.${ INSTRUCTION.setLocation }:function(l,v){return l = v},`,
     `${ INSTRUCTION.setProperty }=__w$?__w$.${ INSTRUCTION.setProperty }:function(o,p,v){return o[p] = v},`,
