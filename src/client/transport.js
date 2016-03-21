@@ -3,6 +3,7 @@ import EventEmitter from './utils/event-emitter';
 import COMMAND from '../session/command';
 import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
+import XhrSandbox from './sandbox/xhr';
 import { stringify as stringifyJSON, parse as parseJSON } from './json';
 import { isWebKit, isIE9 } from './utils/browser';
 import Promise from 'pinkie';
@@ -31,7 +32,7 @@ class Transport extends EventEmitter {
     }
 
     static _createXMLHttpRequest (async) {
-        var xhr = new nativeMethods.XMLHttpRequest();
+        var xhr = XhrSandbox.createNativeXHR();
 
         xhr.open('POST', settings.get().serviceMsgUrl, async);
         xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
