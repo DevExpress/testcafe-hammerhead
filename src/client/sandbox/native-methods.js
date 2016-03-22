@@ -89,6 +89,7 @@ class NativeMethods {
         this.historyPushState                 = win.history ? win.history.pushState : null;
         this.historyReplaceState              = win.history ? win.history.replaceState : null;
         this.Image                            = win.Image;
+        this.FontFace                         = win.FontFace;
         this.StorageEvent                     = win.StorageEvent;
         this.MutationObserver                 = win.MutationObserver;
         this.windowDispatchEvent              = win.dispatchEvent;
