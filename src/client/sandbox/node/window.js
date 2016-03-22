@@ -4,8 +4,9 @@ import ShadowUI from '../shadow-ui';
 import CodeInstrumentation from '../code-instrumentation';
 import nativeMethods from '../native-methods';
 import { processScript } from '../../../processing/script';
+import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
-import { isSubDomain, parseUrl, getProxyUrl } from '../../utils/url';
+import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl } from '../../utils/url';
 import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
@@ -112,6 +113,12 @@ export default class WindowSandbox extends SandboxBase {
                 newArgs.push(arguments[3]);
 
             return nativeMethods.windowOpen.apply(window, newArgs);
+        };
+
+        window.FontFace = (family, source, descriptors) => {
+            source = styleProcessor.process(source, convertToProxyUrl);
+
+            return new nativeMethods.FontFace(family, source, descriptors);
         };
 
         window.Worker = scriptURL => {

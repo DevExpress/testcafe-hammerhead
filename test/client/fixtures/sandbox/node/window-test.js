@@ -1,3 +1,7 @@
+var urlUtils = hammerhead.get('./utils/url');
+
+var nativeMethods = hammerhead.nativeMethods;
+
 test('window.onerror setter/getter', function () {
     strictEqual(getProperty(window, 'onerror'), null);
 
@@ -9,6 +13,23 @@ test('window.onerror setter/getter', function () {
 
     setProperty(window, 'onerror', handler);
     strictEqual(getProperty(window, 'onerror'), handler);
+});
+
+asyncTest('FontFace', function () {
+    var nativeFontFace = nativeMethods.FontFace;
+    var url            = 'https://fonts.com/fs_albert.woff2';
+    var desc           = {};
+
+    nativeMethods.FontFace = function (family, source, descriptors) {
+        strictEqual(family, 'family');
+        strictEqual(source, 'url("' + urlUtils.getProxyUrl(url) + '")');
+        ok(descriptors, desc);
+
+        nativeMethods.FontFace = nativeFontFace;
+        start();
+    };
+
+    return new FontFace('family', 'url("' + url + '")', desc);
 });
 
 module('regression');
