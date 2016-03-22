@@ -77,7 +77,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             activeElement: {
-                condition: el => domUtils.isDocument(el),
+                condition: domUtils.isDocument,
 
                 get: el => {
                     if (domUtils.isShadowUIElement(el.activeElement))
@@ -99,13 +99,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             autocomplete: {
-                condition: el => domUtils.isInputElement(el),
+                condition: domUtils.isInputElement,
                 get:       input => input.getAttribute('autocomplete') || '',
                 set:       (input, value) => input.setAttribute('autocomplete', value)
             },
 
             cookie: {
-                condition: doc => domUtils.isDocument(doc),
+                condition: domUtils.isDocument,
                 get:       () => this.cookieSandbox.getCookie(),
                 set:       (doc, cookie) => this.cookieSandbox.setCookie(doc, String(cookie))
             },
@@ -123,43 +123,43 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             documentURI: {
-                condition: doc => domUtils.isDocument(doc),
+                condition: domUtils.isDocument,
                 get:       doc => urlUtils.parseProxyUrl(doc.documentURI).destUrl,
                 set:       val => val
             },
 
             domain: {
-                condition: doc => domUtils.isDocument(doc),
+                condition: domUtils.isDocument,
                 get:       () => storedDomain ? storedDomain : LocationAccessorsInstrumentation.getLocationWrapper(window).hostname,
                 set:       (doc, domain) => storedDomain = domain
             },
 
             files: {
-                condition: el => domUtils.isFileInput(el),
+                condition: domUtils.isFileInput,
                 get:       el => UploadSandbox.getFiles(el),
                 set:       (el, value) => value
             },
 
             firstChild: {
-                condition: el => ShadowUI.isShadowContainer(el),
+                condition: ShadowUI.isShadowContainer,
                 get:       el => this.shadowUI.getFirstChild(el),
                 set:       () => void 0
             },
 
             firstElementChild: {
-                condition: el => ShadowUI.isShadowContainer(el),
+                condition: ShadowUI.isShadowContainer,
                 get:       el => this.shadowUI.getFirstElementChild(el),
                 set:       () => void 0
             },
 
             host: {
-                condition: el => domUtils.isAnchorElement(el),
+                condition: domUtils.isAnchorElement,
                 get:       el => getAnchorProperty(el, 'host'),
                 set:       (el, port) => setAnchorProperty(el, 'host', port)
             },
 
             hostname: {
-                condition: el => domUtils.isAnchorElement(el),
+                condition: domUtils.isAnchorElement,
                 get:       el => getAnchorProperty(el, 'hostname'),
                 set:       (el, port) => setAnchorProperty(el, 'hostname', port)
             },
@@ -219,6 +219,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             innerText: {
                 condition: el => typeUtils.isString(el.tagName) && domUtils.isScriptElement(el) &&
                                  typeUtils.isString(el.innerText),
+
                 get: el => typeUtils.isString(el.innerText) ? removeProcessingHeader(el.innerText) : el.innerText,
 
                 set: function (el, script) {
@@ -229,7 +230,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             onerror: {
-                condition: owner => domUtils.isWindow(owner),
+                condition: domUtils.isWindow,
                 get:       owner => owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] || null,
 
                 set: (owner, handler) => {
@@ -241,19 +242,19 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             lastChild: {
-                condition: el => ShadowUI.isShadowContainer(el),
+                condition: ShadowUI.isShadowContainer,
                 get:       el => this.shadowUI.getLastChild(el),
                 set:       () => void 0
             },
 
             lastElementChild: {
-                condition: el => ShadowUI.isShadowContainer(el),
+                condition: ShadowUI.isShadowContainer,
                 get:       el => this.shadowUI.getLastElementChild(el),
                 set:       () => void 0
             },
 
             length: {
-                condition: collection => ShadowUI.isShadowContainerCollection(collection),
+                condition: ShadowUI.isShadowContainerCollection,
 
                 get: collection => {
                     var elementCount = 0;
@@ -282,7 +283,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             localStorage: {
-                condition: wnd => domUtils.isWindow(wnd),
+                condition: domUtils.isWindow,
                 get:       () => this.storageSandbox.localStorage,
                 set:       () => void 0
             },
@@ -331,31 +332,31 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             origin: {
-                condition: el => domUtils.isAnchorElement(el),
+                condition: domUtils.isAnchorElement,
                 get:       el => !typeUtils.isUndefined(el.origin) ? getAnchorProperty(el, 'origin') : el.origin,
                 set:       (el, origin) => el.origin = origin
             },
 
             pathname: {
-                condition: el => domUtils.isAnchorElement(el),
+                condition: domUtils.isAnchorElement,
                 get:       el => getAnchorProperty(el, 'pathname'),
                 set:       (el, pathname) => setAnchorProperty(el, 'pathname', pathname)
             },
 
             port: {
-                condition: el => domUtils.isAnchorElement(el),
+                condition: domUtils.isAnchorElement,
                 get:       el => getAnchorProperty(el, 'port'),
                 set:       (el, port) => setAnchorProperty(el, 'port', port)
             },
 
             protocol: {
-                condition: el => domUtils.isAnchorElement(el),
+                condition: domUtils.isAnchorElement,
                 get:       el => getAnchorProperty(el, 'protocol'),
                 set:       (el, port) => setAnchorProperty(el, 'protocol', port)
             },
 
             referrer: {
-                condition: doc => domUtils.isDocument(doc),
+                condition: domUtils.isDocument,
 
                 get: doc => {
                     var proxyUrl = urlUtils.parseProxyUrl(doc.referrer);
@@ -371,19 +372,19 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             sandbox: {
-                condition: el => domUtils.isIframeElement(el),
+                condition: domUtils.isIframeElement,
                 get:       el => el.getAttribute('sandbox'),
                 set:       (el, value) => el.setAttribute('sandbox', value)
             },
 
             search: {
-                condition: el => domUtils.isAnchorElement(el),
+                condition: domUtils.isAnchorElement,
                 get:       el => getAnchorProperty(el, 'search'),
                 set:       (el, search) => setAnchorProperty(el, 'search', search)
             },
 
             sessionStorage: {
-                condition: wnd => domUtils.isWindow(wnd),
+                condition: domUtils.isWindow,
                 get:       () => this.storageSandbox.sessionStorage,
                 set:       () => void 0
             },
@@ -437,7 +438,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             URL: {
-                condition: doc => domUtils.isDocument(doc),
+                condition: domUtils.isDocument,
                 get:       doc => LocationAccessorsInstrumentation.getLocationWrapper(doc).href,
                 set:       () => void 0
             },
@@ -468,19 +469,19 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             // Event
             onbeforeunload: {
-                condition: wnd => domUtils.isWindow(wnd),
+                condition: domUtils.isWindow,
                 get:       () => this.unloadSandbox.getOnBeforeUnload(),
                 set:       (wnd, handler) => this.unloadSandbox.setOnBeforeUnload(wnd, handler)
             },
 
             onpagehide: {
-                condition: wnd => domUtils.isWindow(wnd),
+                condition: domUtils.isWindow,
                 get:       () => this.unloadSandbox.getOnBeforeUnload(),
                 set:       (wnd, handler) => this.unloadSandbox.setOnBeforeUnload(wnd, handler)
             },
 
             onmessage: {
-                condition: wnd => domUtils.isWindow(wnd),
+                condition: domUtils.isWindow,
                 get:       () => this.messageSandbox.getOnMessage(),
                 set:       (wnd, handler) => this.messageSandbox.setOnMessage(wnd, handler)
             },
@@ -498,7 +499,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             // Style
             background: {
-                condition: style => isStyle(style),
+                condition: isStyle,
                 get:       style => styleProcessor.cleanUp(style.background, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
@@ -510,7 +511,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             backgroundImage: {
-                condition: style => isStyle(style),
+                condition: isStyle,
                 get:       style => styleProcessor.cleanUp(style.backgroundImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
@@ -522,7 +523,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             borderImage: {
-                condition: style => isStyle(style),
+                condition: isStyle,
                 get:       style => styleProcessor.cleanUp(style.borderImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
@@ -534,7 +535,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             cssText: {
-                condition: style => isStyle(style),
+                condition: isStyle,
                 get:       style => styleProcessor.cleanUp(style.cssText, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
@@ -546,7 +547,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             cursor: {
-                condition: style => isStyle(style),
+                condition: isStyle,
                 get:       style => styleProcessor.cleanUp(style.cursor, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
@@ -558,7 +559,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             listStyle: {
-                condition: style => isStyle(style),
+                condition: isStyle,
                 get:       style => styleProcessor.cleanUp(style.listStyle, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
@@ -570,7 +571,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             listStyleImage: {
-                condition: style => isStyle(style),
+                condition: isStyle,
                 get:       style => styleProcessor.cleanUp(style.listStyleImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {

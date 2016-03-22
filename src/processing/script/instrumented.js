@@ -5,7 +5,9 @@
 
 // NOTE: constants are exported for the testing purposes
 export const METHODS = [
-    'postMessage'
+    'postMessage',
+    'replace',
+    'assign'
 ];
 
 export const PROPERTIES = [

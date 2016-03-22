@@ -404,6 +404,23 @@ test('isHammerheadAttr', function () {
 
 module('regression');
 
+asyncTest('isDocument for a cross-domain object (GH-467)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/target-url.html');
+    iframe.id  = 'test_467';
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            ok(!domUtils.isDocument(iframe.contentWindow));
+
+            document.body.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
+});
+
 test('isDomElement for <object> tag (B252941)', function () {
     var objectElement = document.createElement('object');
 
