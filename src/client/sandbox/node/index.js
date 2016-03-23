@@ -5,7 +5,6 @@ import DocumentSandbox from './document';
 import ElementSandbox from './element';
 import FocusBlurSandbox from '../event/focus-blur';
 import domProcessor from '../../dom-processor';
-import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 
@@ -38,10 +37,6 @@ export default class NodeSandbox extends SandboxBase {
     _processElement (el) {
         if (el[INTERNAL_PROPS.processedContext] !== this.window) {
             el[INTERNAL_PROPS.processedContext] = this.window;
-
-            if (!domUtils.isDocumentFragmentNode(el))
-                domProcessor.processElement(el, urlUtils.convertToProxyUrl);
-
             this.element.processElement(el);
             this.eventSandbox.processElement(el);
         }

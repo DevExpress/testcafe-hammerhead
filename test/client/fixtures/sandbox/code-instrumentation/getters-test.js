@@ -66,8 +66,11 @@ test('url', function () {
 });
 
 test('attributes', function () {
-    var link       = $('<a href="http://some.com/" rel="x">')[0];
+    var link       = document.createElement('a');
     var attributes = null;
+
+    link.setAttribute('href', 'http://some.com/');
+    link.setAttribute('rel', 'x');
 
     eval(processScript('attributes = link.attributes'));
     strictEqual(link.attributes.length, 3);
