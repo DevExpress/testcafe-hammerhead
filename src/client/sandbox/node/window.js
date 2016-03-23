@@ -115,11 +115,13 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.windowOpen.apply(window, newArgs);
         };
 
-        window.FontFace = (family, source, descriptors) => {
-            source = styleProcessor.process(source, convertToProxyUrl);
+        if (window.FontFace) {
+            window.FontFace = (family, source, descriptors) => {
+                source = styleProcessor.process(source, convertToProxyUrl);
 
-            return new nativeMethods.FontFace(family, source, descriptors);
-        };
+                return new nativeMethods.FontFace(family, source, descriptors);
+            };
+        }
 
         window.Worker = scriptURL => {
             scriptURL = getProxyUrl(scriptURL);
