@@ -318,12 +318,11 @@ module('regression');
 
 test('script.innerHtml must be cleaned up (T226885)', function () {
     var code    = 'var t = 1;';
-    var $script = $('<script>' + code + '<\/script>');
+    var script  = document.createElement('script');
 
-    notEqual($script[0].innerHTML.replace(/^\s*|\s*$/g, ''), code);
-    strictEqual(eval(processScript('$script[0].innerHTML')).replace(/^\s*|\s*$/g, ''), code);
-
-    $script.remove();
+    script.appendChild(document.createTextNode(code));
+    notEqual(script.innerHTML.replace(/^\s*|\s*$/g, ''), code);
+    strictEqual(eval(processScript('script.innerHTML')).replace(/^\s*|\s*$/g, ''), code);
 });
 
 test('markup with special characters must be cleaned up (T112153)', function () {

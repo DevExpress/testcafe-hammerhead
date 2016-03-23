@@ -12,8 +12,13 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
     hammerhead.start({ crossDomainProxyPort: 2000 });
     hammerhead.shadowUI.getRoot();
-</script>
 
-<a id="link" href="/index.html" target="_parent">Link</a>
+    var link = document.createElement('a');
+
+    link.id = 'link';
+    link.setAttribute('href', '/index.html');
+    link.setAttribute('target', '_parent');
+    document.body.appendChild(link);
+</script>
 </body>
 </html>

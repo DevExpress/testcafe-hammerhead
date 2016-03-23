@@ -2,7 +2,9 @@ import SandboxBase from '../base';
 import IframeSandbox from '../iframe';
 import INTERNAL_LITERAL from '../../../processing/script/internal-literal';
 import nativeMethods from '../native-methods';
+import domProcessor from '../../dom-processor';
 import * as htmlUtils from '../../utils/html';
+import * as urlUtils from '../../utils/url';
 import { isFirefox, isIE, isIE9, isIE10 } from '../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement } from '../../utils/dom';
 
@@ -151,6 +153,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createElement = tagName => {
             var el = nativeMethods.createElement.call(document, tagName);
 
+            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
             this.nodeSandbox.processNodes(el);
 
             return el;
@@ -159,6 +162,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createElementNS = (ns, tagName) => {
             var el = nativeMethods.createElementNS.call(document, ns, tagName);
 
+            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
             this.nodeSandbox.processNodes(el);
 
             return el;

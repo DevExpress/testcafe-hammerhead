@@ -58,48 +58,53 @@ asyncTest('reload image through the proxy', function () {
     var realImageUrl  = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
     var fakeIamgeUrl  = 'fakeIamge.gif';
     var proxyIamgeUrl = urlUtils.getProxyUrl(fakeIamgeUrl);
+    var img1          = document.createElement('img');
+    var img2          = document.createElement('img');
 
-    var $img1 = $('<img src="' + realImageUrl + '">').appendTo('body');
-    var $img2 = $('<img>').appendTo('body');
+    img1.setAttribute('src', realImageUrl);
+    document.body.appendChild(img1);
+    document.body.appendChild(img2);
 
-    $img2[0].onload = function () {
-        $img2[0].onload = null;
+    img2.onload = function () {
+        img2.onload = null;
 
-        notEqual($img1[0].src.indexOf(realImageUrl), -1);
-        notEqual($img2[0].src.indexOf(realImageUrl), -1);
+        notEqual(img1.src.indexOf(realImageUrl), -1);
+        notEqual(img2.src.indexOf(realImageUrl), -1);
 
-        $img1.remove();
-        $img2.remove();
+        img1.parentNode.removeChild(img1);
+        img2.parentNode.removeChild(img2);
 
-        $img1 = $('<img src="' + fakeIamgeUrl + '">').appendTo('body');
-        $img2 = $('<img>').appendTo('body');
+        img1.setAttribute('src', fakeIamgeUrl);
+        document.body.appendChild(img1);
+        document.body.appendChild(img2);
 
-        $img2[0].onerror = function () {
-            $img2[0].onerror = null;
+        img2.onerror = function () {
+            img2.onerror = null;
 
-            strictEqual($img1[0].src, proxyIamgeUrl);
-            strictEqual($img2[0].src, proxyIamgeUrl);
+            strictEqual(img1.src, proxyIamgeUrl);
+            strictEqual(img2.src, proxyIamgeUrl);
 
-            $img1.remove();
-            $img2.remove();
+            img1.parentNode.removeChild(img1);
+            img2.parentNode.removeChild(img2);
 
-            $img1 = $('<img src="">').appendTo('body');
+            img1.setAttribute('src', '');
+            document.body.appendChild(img1);
 
-            $img1[0].onerror = function () {
-                $img1[0].onerror = null;
-                strictEqual($img1[0].src, 'about:blank');
-                $img1.remove();
+            img1.onerror = function () {
+                img1.onerror = null;
+                strictEqual(img1.src, 'about:blank');
+                img1.parentNode.removeChild(img1);
 
                 start();
             };
 
-            eval(processScript('$img1[0].src="about:blank";'));
+            eval(processScript('img1.src="about:blank";'));
         };
 
-        eval(processScript('$img2[0].src="' + fakeIamgeUrl + '";'));
+        eval(processScript('img2.src="' + fakeIamgeUrl + '";'));
     };
 
-    eval(processScript('$img2[0].src="' + realImageUrl + '";'));
+    eval(processScript('img2.src="' + realImageUrl + '";'));
 });
 
 // NOTE: IE9 does not support insertAdjacentHTML for the 'tr' element.
