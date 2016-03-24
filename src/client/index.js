@@ -2,6 +2,7 @@ import Promise from 'pinkie';
 import Sandbox from './sandbox';
 import CodeInstrumentation from './sandbox/code-instrumentation';
 import EventEmitter from './utils/event-emitter';
+import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
 import transport from './transport';
 /*eslint-disable no-native-reassign*/
@@ -43,6 +44,7 @@ class Hammerhead {
         // Methods
         this.getOriginElementAttributes = CodeInstrumentation.getAttributesProperty;
         this.doUpload                   = (input, filePaths) => this.sandbox.upload.doUpload(input, filePaths);
+        this.createNativeXHR            = XhrSandbox.createNativeXHR;
 
         // NOTE: We should provide a function to retrieve modules, because hammerhead will be bundled into a single
         // file and we will not have access to the internal modules by default.
