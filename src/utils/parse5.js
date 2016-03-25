@@ -1,3 +1,35 @@
+const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR = ':';
+const XLINK_NAMESPACE                     = 'http://www.w3.org/1999/xlink';
+
+function getAttrName (attr) {
+    return attr.prefix ?
+           attr.prefix + ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR + attr.name :
+           attr.name;
+}
+
+function parseAttrName (attr) {
+    var parts = attr.split(ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR);
+
+    if (parts.length === 2) {
+        return {
+            prefix: parts[0],
+            name:   parts[1]
+        };
+    }
+
+    return {
+        name: parts[0]
+    };
+}
+
+function findAttr (el, name) {
+    for (var i = 0; i < el.attrs.length; i++) {
+        if (getAttrName(el.attrs[i]) === name)
+            return el.attrs[i];
+    }
+    return null;
+}
+
 export function createElement (tagName, attrs) {
     return {
         nodeName:   tagName,
@@ -48,4 +80,40 @@ export function createTextNode (content, parent) {
         value:      content,
         parentNode: parent
     };
+}
+
+export function removeAttr (el, name) {
+    for (var i = 0; i < el.attrs.length; i++) {
+        if (getAttrName(el.attrs[i]) === name) {
+            el.attrs.splice(i, 1);
+
+            return;
+        }
+    }
+}
+
+export function getAttr (el, name) {
+    var attr = findAttr(el, name);
+
+    return attr ? attr.value : null;
+}
+
+export function setAttr (el, name, value) {
+    var attr = findAttr(el, name);
+
+    if (attr) {
+        attr.value = value;
+
+        return value;
+    }
+
+    var parsedAttrName = parseAttrName(name);
+    var newAttr        = { name: parsedAttrName.name, value: value };
+
+    if (parsedAttrName.prefix && parsedAttrName.prefix === 'xlink')
+        newAttr.namespace = XLINK_NAMESPACE;
+
+    el.attrs.push(newAttr);
+
+    return value;
 }

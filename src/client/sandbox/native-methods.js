@@ -137,11 +137,12 @@ class NativeMethods {
     refreshClasses (win) {
         var mock = () => null;
 
-        this.windowClass   = win.Window || mock;
-        this.documentClass = win.Document || mock;
-        this.locationClass = win.Location || mock;
-        this.styleClass    = win.CSSStyleDeclaration || mock;
-        this.elementClass  = win.Element || mock;
+        this.windowClass     = win.Window || mock;
+        this.documentClass   = win.Document || mock;
+        this.locationClass   = win.Location || mock;
+        this.styleClass      = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties || mock;
+        this.elementClass    = win.Element || mock;
+        this.svgElementClass = win.SVGElement || mock;
     }
 
     restoreDocumentMeths (document) {

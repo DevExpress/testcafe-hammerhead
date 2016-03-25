@@ -27,6 +27,13 @@ const URL_ATTR_TAGS = {
     data:     ['object']
 };
 
+const SVG_XLINK_HREF_TAGS = [
+    'animate', 'animateColor', 'animateMotion', 'animateTransform', 'mpath', 'set', //animation elements
+    'linearGradient', 'radialGradient', 'stop', //gradient elements
+    'a', 'altglyph', 'color-profile', 'cursor', 'feimage', 'filter', '<font-face-uri', 'glyphref', 'image',
+    'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
+];
+
 const TARGET_ATTR_TAGS = {
     a:    true,
     form: true,
@@ -46,6 +53,7 @@ export default class DomProcessor {
         this.TARGET_ATTR_TAGS           = TARGET_ATTR_TAGS;
         this.URL_ATTR_TAGS              = URL_ATTR_TAGS;
         this.URL_ATTRS                  = URL_ATTRS;
+        this.SVG_XLINK_HREF_TAGS        = SVG_XLINK_HREF_TAGS;
 
         this.HTML_PROCESSING_REQUIRED_EVENT = 'hammerhead|event|html-processing-required';
 
@@ -57,55 +65,61 @@ export default class DomProcessor {
     _createProcessorPatterns (adapter) {
         var selectors = {
             HAS_HREF_ATTR: el => {
-                var tagName = adapter.getTagName(el).toLowerCase();
+                var tagName = adapter.getTagName(el);
 
                 return URL_ATTR_TAGS.href.indexOf(tagName) !== -1;
             },
 
             HAS_SRC_ATTR: el => {
-                var tagName = adapter.getTagName(el).toLowerCase();
+                var tagName = adapter.getTagName(el);
 
                 return URL_ATTR_TAGS.src.indexOf(tagName) !== -1;
             },
 
             HAS_ACTION_ATTR: el => {
-                var tagName = adapter.getTagName(el).toLowerCase();
+                var tagName = adapter.getTagName(el);
 
                 return URL_ATTR_TAGS.action.indexOf(tagName) !== -1;
             },
 
             HAS_MANIFEST_ATTR: el => {
-                var tagName = adapter.getTagName(el).toLowerCase();
+                var tagName = adapter.getTagName(el);
 
                 return URL_ATTR_TAGS.manifest.indexOf(tagName) !== -1;
             },
 
             HAS_DATA_ATTR: el => {
-                var tagName = adapter.getTagName(el).toLowerCase();
+                var tagName = adapter.getTagName(el);
 
                 return URL_ATTR_TAGS.data.indexOf(tagName) !== -1;
             },
 
             HTTP_EQUIV_META: el => {
-                var tagName = adapter.getTagName(el).toLowerCase();
+                var tagName = adapter.getTagName(el);
 
                 return tagName === 'meta' && adapter.hasAttr(el, 'http-equiv');
             },
 
             ALL: () => true,
 
-            IS_SCRIPT: el => adapter.getTagName(el).toLowerCase() === 'script',
+            IS_SCRIPT: el => adapter.getTagName(el) === 'script',
 
-            IS_LINK: el => adapter.getTagName(el).toLowerCase() === 'link',
+            IS_LINK: el => adapter.getTagName(el) === 'link',
 
-            IS_INPUT: el => adapter.getTagName(el).toLowerCase() === 'input',
+            IS_INPUT: el => adapter.getTagName(el) === 'input',
 
-            IS_STYLE: el => adapter.getTagName(el).toLowerCase() === 'style',
+            IS_STYLE: el => adapter.getTagName(el) === 'style',
 
             HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
 
-            IS_SANDBOXED_IFRAME: el => adapter.getTagName(el).toLowerCase() === 'iframe' &&
-                                       adapter.hasAttr(el, 'sandbox')
+            IS_SANDBOXED_IFRAME: el => adapter.getTagName(el) === 'iframe' &&
+                                       adapter.hasAttr(el, 'sandbox'),
+
+            IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR: el => {
+                return adapter.isSVGElement(el) &&
+                       adapter.hasAttr(el, 'xlink:href') &&
+                       SVG_XLINK_HREF_TAGS.indexOf(adapter.getTagName(el)) !== -1;
+            }
         };
 
         return [
@@ -149,7 +163,12 @@ export default class DomProcessor {
             { selector: selectors.IS_STYLE, elementProcessors: [this._processStylesheetElement] },
             { selector: selectors.IS_INPUT, elementProcessors: [this._processAutoComplete] },
             { selector: selectors.HAS_EVENT_HANDLER, elementProcessors: [this._processEvtAttr] },
-            { selector: selectors.IS_SANDBOXED_IFRAME, elementProcessors: [this._processSandboxedIframe] }
+            { selector: selectors.IS_SANDBOXED_IFRAME, elementProcessors: [this._processSandboxedIframe] },
+            {
+                selector:          selectors.IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR,
+                urlAttr:           'xlink:href',
+                elementProcessors: [ this._processSVGXLinkHrefAttr, this._processUrlAttrs]
+            }
         ];
     }
 
@@ -178,7 +197,7 @@ export default class DomProcessor {
 
     // Utils
     getElementResourceType (el) {
-        var tagName  = this.adapter.getTagName(el).toLowerCase();
+        var tagName  = this.adapter.getTagName(el);
         var isScript = tagName === 'script';
         var isForm   = tagName === 'form';
         var isIframe = tagName === 'iframe' || this._isOpenLinkInIframe(el);
@@ -191,7 +210,7 @@ export default class DomProcessor {
     }
 
     _isOpenLinkInIframe (el) {
-        var tagName = this.adapter.getTagName(el).toLowerCase();
+        var tagName = this.adapter.getTagName(el);
         var target  = this.adapter.getAttr(el, 'target');
 
         if (target !== '_top') {
@@ -403,7 +422,7 @@ export default class DomProcessor {
             // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
                 if (urlUtils.isSupportedProtocol(resourceUrl) && !EMPTY_URL_REG_EX.test(resourceUrl)) {
-                    var elTagName = this.adapter.getTagName(el).toLowerCase();
+                    var elTagName = this.adapter.getTagName(el);
                     var isIframe  = elTagName === 'iframe';
                     var isScript  = elTagName === 'script';
                     var target    = this.adapter.getAttr(el, 'target');
@@ -456,5 +475,15 @@ export default class DomProcessor {
     _processUrlJsAttr (el, urlReplacer, pattern) {
         if (JAVASCRIPT_PROTOCOL_REG_EX.test(this.adapter.getAttr(el, pattern.urlAttr)))
             this._processJsAttr(el, pattern.urlAttr, true);
+    }
+
+    _processSVGXLinkHrefAttr (el, urlReplacer, pattern) {
+        var attrValue = this.adapter.getAttr(el, pattern.urlAttr);
+
+        if (urlUtils.HASH_RE.test(attrValue)) {
+            var storedUrlAttr = this.getStoredAttrName(pattern.urlAttr);
+
+            this.adapter.setAttr(el, storedUrlAttr, attrValue);
+        }
     }
 }

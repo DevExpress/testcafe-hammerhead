@@ -170,6 +170,44 @@ test('closest element', function () {
     div.parentNode.removeChild(div);
 });
 
+test('isSVGElement', function () {
+    ok(!domUtils.isSVGElement(null));
+    ok(!domUtils.isSVGElement(document));
+    ok(!domUtils.isSVGElement(document.documentElement));
+    ok(domUtils.isSVGElement(document.createElementNS('http://www.w3.org/2000/svg', 'svg')));
+    ok(domUtils.isSVGElement(document.createElementNS('http://www.w3.org/2000/svg', 'use')));
+    ok(!domUtils.isSVGElement(document.createElement('div')));
+});
+
+asyncTest('isSVGElement for iframe elements', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id  = 'test_unique_id_ydnfgf544332';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument = iframe.contentDocument;
+
+            ok(!domUtils.isSVGElement(null));
+            ok(!domUtils.isSVGElement(iframeDocument));
+            ok(!domUtils.isSVGElement(iframeDocument.documentElement));
+            ok(domUtils.isSVGElement(iframeDocument.createElementNS('http://www.w3.org/2000/svg', 'svg')));
+            ok(domUtils.isSVGElement(iframeDocument.createElementNS('http://www.w3.org/2000/svg', 'use')));
+            ok(!domUtils.isSVGElement(iframeDocument.createElement('div')));
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
+});
+
+test('isHammerheadAttr', function () {
+    ok(!domUtils.isHammerheadAttr('href'));
+    ok(!domUtils.isHammerheadAttr('class'));
+    ok(domUtils.isHammerheadAttr('data-hammerhead-focused'));
+    ok(domUtils.isHammerheadAttr('data-hammerhead-hovered'));
+    ok(domUtils.isHammerheadAttr('src-hammerhead-stored-value'));
+});
+
 module('isIframeWithoutSrc');
 
 asyncTest('after the location is set to an iframe without src isIframeWithoutSrc should return "false"', function () {
@@ -392,14 +430,6 @@ test('hasClass', function () {
     ok(domUtils.hasClass(div, 'test3'));
 
     div.parentNode.removeChild(div);
-});
-
-test('isHammerheadAttr', function () {
-    ok(!domUtils.isHammerheadAttr('href'));
-    ok(!domUtils.isHammerheadAttr('class'));
-    ok(domUtils.isHammerheadAttr('data-hammerhead-focused'));
-    ok(domUtils.isHammerheadAttr('data-hammerhead-hovered'));
-    ok(domUtils.isHammerheadAttr('src-hammerhead-stored-value'));
 });
 
 module('regression');
