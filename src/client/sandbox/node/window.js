@@ -180,15 +180,8 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
-        window.Image = function () {
-            var image = null;
-
-            if (!arguments.length)
-                image = new nativeMethods.Image();
-            else if (arguments.length === 1)
-                image = new nativeMethods.Image(arguments[0]);
-            else
-                image = new nativeMethods.Image(arguments[0], arguments[1]);
+        window.Image = function (width, height) {
+            var image = new nativeMethods.Image(width, height);
 
             nodeSandbox.processNodes(image);
 
