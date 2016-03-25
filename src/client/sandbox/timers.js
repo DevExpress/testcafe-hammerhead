@@ -2,6 +2,7 @@ import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import { processScript } from '../../processing/script';
 import { isIE, version as browserVersion } from '../utils/browser';
+import { isString } from '../../utils/types';
 
 // NOTE: When you call the focus and blur function for some elements in IE, the event handlers  must be raised
 // asynchronously, but before executing functions that are called by using the window.setTimeout function. So,
@@ -16,7 +17,7 @@ export default class TimersSandbox extends SandboxBase {
     }
 
     _wrapTimeoutFunctionsArguments (args) {
-        var isScriptFirstArg = typeof args[0] === 'string';
+        var isScriptFirstArg = isString(args[0]);
         var func             = !isScriptFirstArg ? args[0] : null;
         var script           = isScriptFirstArg ? processScript(args[0], false, false) : null;
 

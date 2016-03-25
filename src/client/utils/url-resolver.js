@@ -39,7 +39,7 @@ export default {
         var resolver = this.getResolverElement(doc);
 
         if (url === null)
-            resolver.removeAttribute('href');
+            nativeMethods.removeAttribute.call(resolver, 'href');
         else {
             resolver.href = url;
 

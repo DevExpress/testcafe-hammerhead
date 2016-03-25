@@ -3,7 +3,7 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import domProcessor from '../dom-processor';
 import { remove as removeProcessingHeader } from '../../processing/script/header';
-import { find } from './dom';
+import { find, getTagName } from './dom';
 import { convertToProxyUrl } from '../utils/url';
 
 const TEXT_NODE_COMMENT_MARKER = 'hammerhead|text-node-comment-marker';
@@ -199,7 +199,7 @@ export function cleanUpHtml (html, parentTag) {
 
         find(container, '[class*="' + SHADOW_UI_CLASSNAME.postfix + '"]', el => {
             if (el.parentNode) {
-                el.parentNode.removeChild(el);
+                nativeMethods.removeChild.call(el.parentNode, el);
                 changed = true;
             }
         });
@@ -240,7 +240,7 @@ export function processHtml (html, parentTag) {
         var processElement = el => {
             domProcessor.processElement(el, convertToProxyUrl);
 
-            var elTagName = el.tagName && el.tagName.toLowerCase();
+            var elTagName = getTagName(el);
 
             if (elTagName === `${FAKE_TAG_NAME_PREFIX}head` || elTagName === `${FAKE_TAG_NAME_PREFIX}body`)
                 htmlElements.push(el);

@@ -1,4 +1,5 @@
 import trim from '../../utils/string-trim';
+import { isUndefined } from '../../utils/types';
 
 // NOTE: The name/key cannot be empty, but the value can.
 const COOKIE_PAIR_REGEX        = /^([^=;]+)\s*=\s*(("?)[^\n\r\0]*\3)/;
@@ -91,7 +92,7 @@ export function format (parsedCookie) {
                 cookieStr += attrName;
 
                 // NOTE: Skip attributes without value and boolean attributes (e.g. Secure).
-                if (typeof parsedCookie[attrName] !== 'undefined' && parsedCookie[attrName] !== true)
+                if (!isUndefined(parsedCookie[attrName]) && parsedCookie[attrName] !== true)
                     cookieStr += '=' + parsedCookie[attrName];
 
                 cookieStr += ';';

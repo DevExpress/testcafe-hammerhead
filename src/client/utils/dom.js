@@ -6,6 +6,7 @@ import * as urlUtils from './url';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, isOpera } from './browser';
 import trim from '../../utils/string-trim';
+import { isObject, isString, isUndefined, isFunction } from '../../utils/types';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
 // NOTE: We should avoid using native object prototype methods,
@@ -178,7 +179,7 @@ export function getScrollbarSize () {
         scrollDiv.style.position = 'absolute';
         scrollDiv.style.top      = '-9999px';
         scrollDiv.style.width    = '100px';
-        document.body.appendChild(scrollDiv);
+        nativeMethods.appendChild.call(document.body, scrollDiv);
 
         var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
 
@@ -309,13 +310,13 @@ export function isDomElement (el) {
         return true;
 
     // NOTE: T184805
-    if (el && typeof el.toString === 'function' && el.toString.toString().indexOf('[native code]') !== -1 &&
+    if (el && isFunction(el.toString) && el.toString.toString().indexOf('[native code]') !== -1 &&
         el.constructor &&
         (el.constructor.toString().indexOf(' Element') !== -1 || el.constructor.toString().indexOf(' Node') !== -1))
         return false;
 
     // NOTE: B252941
-    return el && !isDocumentFragmentNode(el) && typeof el.nodeName === 'string' && el.tagName;
+    return el && !isDocumentFragmentNode(el) && isString(el.nodeName) && el.tagName;
 }
 
 export function getTagName (el) {
@@ -475,7 +476,7 @@ export function isShadowUIElement (element) {
             return false;
 
         // NOTE: Check the className type to avoid issues with a SVG element’s className property.
-        if (typeof element.className === 'string' && element.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1)
+        if (isString(element.className) && element.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1)
             return true;
 
         element = element.parentNode;
@@ -488,7 +489,7 @@ export function isWindow (instance) {
     if (instance instanceof nativeMethods.windowClass)
         return true;
 
-    var result = instance && typeof instance === 'object' && typeof instance.top !== 'undefined' &&
+    var result = instance && isObject(instance) && !isUndefined(instance.top) &&
                  (isFirefox ? true : instance.toString && (instance.toString() === '[object Window]' ||
                                                            instance.toString() === '[object global]'));
 
@@ -502,13 +503,13 @@ export function isDocument (instance) {
     if (instance instanceof nativeMethods.documentClass)
         return true;
 
-    return instance && typeof instance === 'object' && typeof instance.referrer !== 'undefined' &&
+    return instance && isObject(instance) && !isUndefined(instance.referrer) &&
            instance.toString &&
            (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
 }
 
 export function isBlob (instance) {
-    return instance && typeof instance === 'object' && typeof instance.slice === 'function' &&
+    return instance && isObject(instance) && isFunction(instance.slice) &&
            instance.toString && instance.toString() === '[object Blob]';
 }
 
@@ -516,8 +517,7 @@ export function isLocation (instance) {
     if (instance instanceof nativeMethods.locationClass)
         return true;
 
-    return instance && typeof instance === 'object' && typeof instance.href !== 'undefined' &&
-           typeof instance.assign !== 'undefined';
+    return instance && isObject(instance) && !isUndefined(instance.href) && !isUndefined(instance.assign);
 }
 
 export function isSVGElement (obj) {

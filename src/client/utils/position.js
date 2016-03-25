@@ -4,8 +4,8 @@ import * as styleUtils from './style';
 import { isFirefox, isIE } from './browser';
 
 function getAreaElementRectangle (el, mapContainer) {
-    var shape  = el.getAttribute('shape');
-    var coords = el.getAttribute('coords');
+    var shape  = nativeMethods.getAttribute.call(el, 'shape');
+    var coords = nativeMethods.getAttribute.call(el, 'coords');
     var i      = 0;
 
     if (shape === 'default')

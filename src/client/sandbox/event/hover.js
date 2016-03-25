@@ -30,7 +30,7 @@ export default class HoverSandbox extends SandboxBase {
 
     // NOTE: In this method, we go up to the tree of elements and look for a joint parent for the
     // previous and new hovered elements. Processing is needed only until  that parent is found.
-    // In this case, we’ll  reduce the number of dom calls.
+    // In this case, we'll reduce the number of dom calls.
     _clearHoverMarkerUntilJointParent (newHoveredElement) {
         var jointParent = null;
 

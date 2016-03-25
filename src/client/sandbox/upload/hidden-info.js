@@ -1,23 +1,26 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
+import nativeMethods from '../native-methods';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 var arraySlice = Array.prototype.slice;
 
 function createInput (form) {
-    var hiddenInput = document.createElement('input');
+    var hiddenInput = nativeMethods.createElement.call(document, 'input');
 
     hiddenInput.type  = 'hidden';
     hiddenInput.name  = INTERNAL_ATTRS.uploadInfoHiddenInputName;
     hiddenInput.value = '[]';
 
-    form.appendChild(hiddenInput);
+    nativeMethods.appendChild.call(form, hiddenInput);
 
     return hiddenInput;
 }
 
 function getInput (form) {
-    return form.querySelector('[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]') || createInput(form);
+    var inputSelector = '[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]';
+
+    return nativeMethods.elementQuerySelector.call(form, inputSelector) || createInput(form);
 }
 
 function indexOf (info, input) {

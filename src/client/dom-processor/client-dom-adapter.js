@@ -11,7 +11,7 @@ import fastApply from '../utils/fast-apply';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
     removeAttr (el, attr) {
-        return el.removeAttribute(attr);
+        return nativeMethods.removeAttribute.call(el, attr);
     }
 
     getAttr (el, attr) {
@@ -19,12 +19,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     hasAttr (el, attr) {
-        for (var i = 0; i < el.attributes.length; i++) {
-            if (el.attributes[i].name === attr)
-                return true;
-        }
-
-        return false;
+        return el.hasAttribute(attr);
     }
 
     getClassName (el) {
