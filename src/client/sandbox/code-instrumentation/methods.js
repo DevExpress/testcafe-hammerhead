@@ -1,9 +1,10 @@
 import SandboxBase from '../base';
 import INSTRUCTION from '../../../processing/script/instruction';
 import { shouldInstrumentMethod } from '../../../processing/script/instrumented';
-import { isWindow } from '../../utils/dom';
+import { isWindow, isLocation } from '../../utils/dom';
 import fastApply from '../../utils/fast-apply';
 import * as typeUtils from '../../../utils/types';
+import { getProxyUrl } from '../../utils/url';
 
 export default class MethodCallInstrumentation extends SandboxBase {
     constructor (messageSandbox) {
@@ -11,10 +12,23 @@ export default class MethodCallInstrumentation extends SandboxBase {
 
         this.methodWrappers = {
             postMessage: {
-                condition: window => isWindow(window),
+                condition: isWindow,
                 method:    (contentWindow, args) => messageSandbox.postMessage(contentWindow, args)
-            }
+            },
 
+            // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
+            // intercept calls to the native 'replace' method.
+            replace: {
+                condition: isLocation,
+                method:    (location, args) => location.replace(getProxyUrl(args[0]))
+            },
+
+            // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
+            // intercept calls to the native 'assign' method.
+            assign: {
+                condition: isLocation,
+                method:    (location, args) => location.replace(getProxyUrl(args[0]))
+            }
         };
     }
 

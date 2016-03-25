@@ -170,3 +170,37 @@ test('create location wrapper before iframe loading', function () {
 
     iframe.parentNode.removeChild(iframe);
 });
+
+module('regression');
+
+// NOTE The firefox does not provide access to the cross-domain location.
+if (!browserUtils.isFirefox) {
+    asyncTest('getting location of a cross-domain window (GH-467)', function () {
+        var iframe        = document.createElement('iframe');
+        var sameDomainSrc = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
+
+        iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
+        iframe.id  = 'test_467';
+
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                var storedGetProxyUrl = urlUtils.getProxyUrl;
+
+                urlUtils.getProxyUrl = function () {
+                    return sameDomainSrc;
+                };
+
+                iframe.onload = function () {
+                    ok(iframe.contentWindow.location.toString().indexOf(sameDomainSrc) !== -1);
+
+                    urlUtils.getProxyUrl = storedGetProxyUrl;
+                    document.body.removeChild(iframe);
+                    start();
+                };
+
+                eval(processScript('iframe.contentWindow.location.assign("http://same-domain-url.com/")'));
+            });
+
+        document.body.appendChild(iframe);
+    });
+}

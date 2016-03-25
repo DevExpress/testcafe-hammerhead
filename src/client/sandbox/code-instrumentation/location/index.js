@@ -11,7 +11,15 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
     }
 
     static getLocationWrapper (owner) {
-        return owner[LOCATION_WRAPPER];
+        // NOTE: When the owner is cross-domain, we cannot get its location wrapper, so we return the original
+        // location, which cannot be accessed but behaves like a real one. Cross-domain location retains the 'replace'
+        // and 'assign' methods, so we intercept calls to them through MethodCallInstrumentation.
+        try {
+            return owner[LOCATION_WRAPPER];
+        }
+        catch (e) {
+            return owner.location;
+        }
     }
 
     attach (window) {

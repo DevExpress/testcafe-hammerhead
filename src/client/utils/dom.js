@@ -489,23 +489,30 @@ export function isWindow (instance) {
     if (instance instanceof nativeMethods.windowClass)
         return true;
 
-    var result = instance && isObject(instance) && !isUndefined(instance.top) &&
-                 (isFirefox ? true : instance.toString && (instance.toString() === '[object Window]' ||
-                                                           instance.toString() === '[object global]'));
-
-    if (result && instance.top !== instance)
-        return isWindow(instance.top);
-
-    return result;
+    try {
+        return instance && isObject(instance) && !isUndefined(instance.top) && instance.toString &&
+               (instance.toString() === '[object Window]' || instance.toString() === '[object global]');
+    }
+    catch (e) {
+        // NOTE: If a cross-domain object has the 'top' field, this object is a window
+        // (not a document or location).
+        return true;
+    }
 }
 
 export function isDocument (instance) {
     if (instance instanceof nativeMethods.documentClass)
         return true;
 
-    return instance && isObject(instance) && !isUndefined(instance.referrer) &&
-           instance.toString &&
-           (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
+    try {
+        return instance && isObject(instance) && instance.toString &&
+               (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
+    }
+    catch (e) {
+        // NOTE: For cross-domain objects (windows, documents or locations), we return false because
+        // it's impossible to work with them in any case.
+        return false;
+    }
 }
 
 export function isBlob (instance) {
@@ -517,7 +524,13 @@ export function isLocation (instance) {
     if (instance instanceof nativeMethods.locationClass)
         return true;
 
-    return instance && isObject(instance) && !isUndefined(instance.href) && !isUndefined(instance.assign);
+    try {
+        return instance && isObject(instance) && !isUndefined(instance.href) && !isUndefined(instance.assign);
+    }
+    catch (e) {
+        // NOTE: Try to detect cross-domain window location.
+        return instance.replace && instance.assign;
+    }
 }
 
 export function isSVGElement (obj) {
