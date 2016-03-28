@@ -21,9 +21,10 @@ QUnit.testDone(function () {
 });
 
 test('iframe', function () {
-    var iframe         = $('<iframe sandbox="allow-forms">')[0];
+    var iframe         = nativeMethods.createElement.call(document, 'iframe');
     var storedAttrName = domProcessor.getStoredAttrName('sandbox');
 
+    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-forms');
     domProcessor.processElement(iframe);
 
     strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');
@@ -31,42 +32,53 @@ test('iframe', function () {
 });
 
 test('link in iframe', function () {
-    var $iframe    = $('<iframe id="test1">').appendTo('body');
-    var iframeBody = $iframe[0].contentDocument.body;
-    var $link      = $('<a href="/index.html">').appendTo('body');
+    var iframe = nativeMethods.createElement.call(document, 'iframe');
 
-    // HACK: IE.
+    iframe.id = 'test';
+    nativeMethods.appendChild.call(document.body, iframe);
+
+    var link = nativeMethods.createElement.call(document, 'a');
+
+    link.href = '/index.html';
+    nativeMethods.appendChild.call(document.body, link);
+
+    var iframeBody = iframe.contentDocument.body;
+
+    // NOTE: In IE9, iframe's contentDocument does not have a 'body' element.
+    // So, we need to create it manually.
     if (!iframeBody) {
-        $iframe[0].contentDocument.write('<body></body>');
-        iframeBody = $iframe[0].contentDocument.body;
+        iframeBody = nativeMethods.createElement.call(iframe.contentDocument, 'body');
+        nativeMethods.appendChild.call(iframe.contentDocument, iframeBody);
     }
+
 
     iframeBody.innerHTML = '<a href="/index.html"></a>';
 
     domProcessor.processElement(iframeBody.childNodes[0], urlUtils.convertToProxyUrl);
-    domProcessor.processElement($link[0], urlUtils.convertToProxyUrl);
+    domProcessor.processElement(link, urlUtils.convertToProxyUrl);
 
     strictEqual(urlUtils.parseProxyUrl(iframeBody.childNodes[0].href).resourceType, 'i');
-    ok(!urlUtils.parseProxyUrl($link[0].href).resourceType);
+    ok(!urlUtils.parseProxyUrl(link.href).resourceType);
 
-    $iframe.remove();
-    $link.remove();
+    iframe.parentNode.removeChild(iframe);
+    link.parentNode.removeChild(link);
 });
 
 test('script text', function () {
-    var $div            = $('<div>').appendTo($('body'));
+    var div             = nativeMethods.createElement.call(document, 'div');
     var script          = 'var host = location.host';
     var processedScript = processScript(script, true, false);
 
-    $div[0].innerHTML = '\<script\>' + script + '\</script\>';
+    nativeMethods.appendChild.call(document.body, div);
+    div.innerHTML = '\<script\>' + script + '\</script\>';
 
-    domProcessor.processElement($div.find('script')[0]);
+    domProcessor.processElement(div.firstChild);
 
     notEqual(script, processedScript);
-    strictEqual($div[0].innerHTML.replace(/\s/g, ''), ('\<script\>' + processedScript +
+    strictEqual(div.innerHTML.replace(/\s/g, ''), ('\<script\>' + processedScript +
                                                        '\</script\>').replace(/\s/g, ''));
 
-    $div.remove();
+    div.parentNode.removeChild(div);
 });
 
 test('comment inside script', function () {
@@ -77,7 +89,7 @@ test('comment inside script', function () {
         domProcessor.processElement(script);
         nativeMethods.appendChild.call(document.head, script);
 
-        strictEqual(nativeMethods.getAttribute.call(window.commentTest, 'href'), urlUtils.getProxyUrl('http://google.com'));
+        strictEqual(nativeMethods.getAttribute.call(window.commentTest, 'href'), urlUtils.getProxyUrl('http://domain.com'));
 
         nativeMethods.removeAttribute.call(window.commentTest, 'href');
         document.head.removeChild(script);
@@ -85,8 +97,8 @@ test('comment inside script', function () {
 
     window.commentTest = document.createElement('a');
 
-    testScript('\<!-- Begin comment\n' + 'window.commentTest.href = "http://google.com";\n' + '//End comment -->');
-    testScript('\<!-- Begin comment\n' + 'window.commentTest.href = "http://google.com";\n' + ' -->');
+    testScript('\<!-- Begin comment\n' + 'window.commentTest.href = "http://domain.com";\n' + '//End comment -->');
+    testScript('\<!-- Begin comment\n' + 'window.commentTest.href = "http://domain.com";\n' + ' -->');
 });
 
 test('attribute value', function () {
@@ -114,13 +126,14 @@ test('attribute value', function () {
             '<span id="href"></span>' +
             '<div data-src="test"></div>';
 
-    var container = document.createElement('div');
+    var container = nativeMethods.createElement.call(document, 'div');
 
     container.innerHTML = html;
 
-    $(container).find('*').each(function () {
-        domProcessor.processElement(this);
-    });
+    var elems = container.querySelectorAll('*');
+
+    for (var i = 0; i < elems.length; i++)
+        domProcessor.processElement(elems[i]);
 
     strictEqual(container.innerHTML, expectedHTML);
 });
@@ -132,7 +145,7 @@ test('script src', function () {
 
     var script = nativeMethods.createElement.call(document, 'script');
 
-    script.src = 'http://google.com';
+    script.src = 'http://domain.com';
 
     domProcessor.processElement(script, urlUtils.convertToProxyUrl);
 
@@ -151,8 +164,7 @@ test('event attributes', function () {
 
     nativeMethods.setAttribute.call(div, 'onclick', attrValue);
 
-    domProcessor.processElement(div, function () {
-    });
+    domProcessor.processElement(div, function () { });
 
     strictEqual(nativeMethods.getAttribute.call(div, 'onclick'), processedValue);
     strictEqual(nativeMethods.getAttribute.call(div, storedAttrName), attrValue);
@@ -168,8 +180,7 @@ test('javascript protocol', function () {
     nativeMethods.setAttribute.call(link, 'onclick', attrValue);
     nativeMethods.setAttribute.call(link, 'href', attrValue);
 
-    domProcessor.processElement(link, function () {
-    });
+    domProcessor.processElement(link, function () { });
 
     strictEqual(nativeMethods.getAttribute.call(link, 'onclick'), processedValue);
     strictEqual(nativeMethods.getAttribute.call(link, 'href'), processedValue);
@@ -282,21 +293,24 @@ test('clean up stylesheet', function () {
 });
 
 test('stylesheet after innerHTML', function () {
-    var div   = $('<div>').appendTo('body')[0];
-    var style = $('<style>')[0];
+    var div   = nativeMethods.createElement.call(document, 'div');
+    var style = nativeMethods.createElement.call(document, 'style');
+
+    nativeMethods.appendChild.call(document.body, style);
+
     var check = function (cssText) {
         strictEqual(cssText.indexOf(styleProcessor.IS_STYLESHEET_PROCESSED_COMMENT), 0);
         strictEqual(cssText.indexOf(styleProcessor.IS_STYLESHEET_PROCESSED_COMMENT, 1), -1);
-        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://test.ru'));
+        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://domain.com'));
     };
 
-    eval(processScript('div.innerHTML = "<style>.rule { background: url(http://test.ru) }</style>";'));
+    eval(processScript('div.innerHTML = "<style>.rule { background: url(http://domain.com) }</style>";'));
     check(div.children[0].innerHTML);
 
     eval(processScript('div.innerHTML = div.innerHTML;'));
     check(div.children[0].innerHTML);
 
-    eval(processScript('style.innerHTML = ".rule { background: url(http://test.ru) }";'));
+    eval(processScript('style.innerHTML = ".rule { background: url(http://domain.com) }";'));
     check(style.innerHTML);
 
     eval(processScript('style.innerHTML = style.innerHTML;'));
