@@ -74,4 +74,12 @@ module.exports = function (app) {
             res.end(chunks.join(''));
         });
     });
+
+    app.post('/echo-request-body', function (req, res) {
+        res.json(req.body);
+    });
+
+    app.all('/echo-request-headers', function (req, res) {
+       res.json(req.headers);
+    });
 };

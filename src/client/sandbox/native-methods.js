@@ -118,6 +118,11 @@ class NativeMethods {
 
         this.createContextualFragment = win.Range.prototype.createContextualFragment;
 
+        // Fetch
+        this.fetch    = win.fetch;
+        this.Request  = win.Request;
+        this.Headers  = win.Headers;
+
         // Event
         this.windowAddEventListener    = win.addEventListener || Window.prototype.addEventListener;
         this.windowRemoveEventListener = win.removeEventListener || Window.prototype.removeEventListener;

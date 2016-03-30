@@ -542,6 +542,22 @@ export function isSVGElementOrChild (el) {
     return !!closest(el, 'svg');
 }
 
+export function isFetchHeaders (instance) {
+    if (nativeMethods.Headers && instance instanceof nativeMethods.Headers)
+        return true;
+
+    return instance && typeof instance === 'object' && instance.getAll !== void 0 &&
+           typeof instance.toString === 'function' && instance.toString() === '[object Headers]';
+}
+
+export function isFetchRequest (instance) {
+    if (nativeMethods.Request && instance instanceof nativeMethods.Request)
+        return true;
+
+    return instance && typeof instance === 'object' && typeof instance.json === 'function' &&
+           typeof instance.toString === 'function' && instance.toString() === '[object Request]';
+}
+
 export function isTextEditableInput (el) {
     var editableInputTypesRegEx = /^(datetime|email|number|password|search|tel|text|url)$/;
 

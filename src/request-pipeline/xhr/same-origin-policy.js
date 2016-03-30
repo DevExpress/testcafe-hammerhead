@@ -11,9 +11,9 @@ export function check (ctx) {
         return true;
 
     // NOTE: Ok, we have a cross-origin request.
-    var corsSupported = !!ctx.req.headers[XHR_HEADERS.corsSupported];
+    var corsSupported = !!ctx.req.headers[XHR_HEADERS.corsSupported] || ctx.isFetch;
 
-    // FAILED: CORS not supported.
+    // FAILED: CORS not supported (IE9 only).
     if (!corsSupported)
         return false;
 
@@ -21,7 +21,8 @@ export function check (ctx) {
     if (ctx.req.method === 'OPTIONS')
         return true;
 
-    var withCredentials        = !!ctx.req.headers[XHR_HEADERS.withCredentials];
+    var withCredentials        = !!ctx.req.headers[XHR_HEADERS.withCredentials] ||
+                                 ctx.req.headers[XHR_HEADERS.fetchRequestCredentials] === 'include';
     var allowOriginHeader      = ctx.destRes.headers['access-control-allow-origin'];
     var allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
     var allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';

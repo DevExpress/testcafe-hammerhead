@@ -56,7 +56,7 @@ export function isSubDomain (domain, subDomain) {
     return subDomain[index - 1] === '.' && subDomain.length === index + domain.length;
 }
 
-export function sameOriginCheck (location, checkedUrl) {
+export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
     if (!checkedUrl)
         return true;
 
@@ -78,8 +78,10 @@ export function sameOriginCheck (location, checkedUrl) {
             if (parsedDestUrl.hostname === parsedCheckedUrl.hostname)
                 return true;
 
-            return isSubDomain(parsedDestUrl.hostname, parsedCheckedUrl.hostname) ||
-                   isSubDomain(parsedCheckedUrl.hostname, parsedDestUrl.hostname);
+            var isSubDomainHostname = isSubDomain(parsedDestUrl.hostname, parsedCheckedUrl.hostname) ||
+                                      isSubDomain(parsedCheckedUrl.hostname, parsedDestUrl.hostname);
+
+            return !rejectForSubdomains && isSubDomainHostname;
         }
     }
 

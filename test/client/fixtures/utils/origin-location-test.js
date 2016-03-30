@@ -13,6 +13,8 @@ test('sameOriginCheck', function () {
     ok(!destLocation.sameOriginCheck('http://proxy/token!uid/http://origin.com:111/index.html', 'http://origin.com:222/index.php'));
     ok(!destLocation.sameOriginCheck('http://proxy/token!uid/http://origin.com:111/index.html', 'https://origin.com:111/index.php'));
     ok(!destLocation.sameOriginCheck('http://proxy/token!uid/http://origin.com:111/index.html', 'http://origin2.com:111/index.php'));
+    ok(destLocation.sameOriginCheck('http://proxy/token!uid/http://www.origin.com:111/index.html', 'http://origin.com:111/index.php', false));
+    ok(!destLocation.sameOriginCheck('http://proxy/token!uid/http://www.origin.com:111/index.html', 'http://origin.com:111/index.php', true));
 });
 
 test('resolveUrl', function () {

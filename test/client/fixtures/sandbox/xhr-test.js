@@ -91,7 +91,7 @@ test('createNativeXHR returns an xhr with the native "open" method (GH-492)', fu
     XhrSandbox.createNativeXHR().open();
 });
 
-test('the internal 222 status code should be replaced to 0 on the client side', function () {
+test('the internal 222 status code should be replaced with 0 on the client side', function () {
     var xhr = new XMLHttpRequest();
 
     xhr.open('GET', '/xhr-222/', false);
