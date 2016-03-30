@@ -140,7 +140,7 @@ class NativeMethods {
         this.windowClass   = win.Window || mock;
         this.documentClass = win.Document || mock;
         this.locationClass = win.Location || mock;
-        this.styleClass    = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties || mock;
+        this.styleClass    = win.CSSStyleDeclaration || mock;
         this.elementClass  = win.Element || mock;
     }
 
