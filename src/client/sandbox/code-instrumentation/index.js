@@ -6,7 +6,6 @@ import StoragesAccessorsInstrumentation from './storages';
 import { getAttributeProperty } from './properties/attributes';
 import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
-import { isString } from '../../../utils/types';
 
 export default class CodeInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
@@ -41,7 +40,7 @@ export default class CodeInstrumentation extends SandboxBase {
                 return evalFn;
 
             return script => {
-                if (isString(script))
+                if (typeof script === 'string')
                     script = processScript(script);
 
                 return evalFn(script);
@@ -50,7 +49,7 @@ export default class CodeInstrumentation extends SandboxBase {
 
         window[INSTRUCTION.processScript] = (script, isApply) => {
             if (isApply) {
-                if (script && script.length && isString(script[0])) {
+                if (script && script.length && typeof script[0] === 'string') {
                     var args = [processScript(script[0], false, false)];
 
                     // NOTE: shallow-copy the remaining args. Don't use arr.slice(),
@@ -62,7 +61,7 @@ export default class CodeInstrumentation extends SandboxBase {
                     return args;
                 }
             }
-            else if (isString(script))
+            else if (typeof script === 'string')
                 return processScript(script, false, false);
 
             return script;

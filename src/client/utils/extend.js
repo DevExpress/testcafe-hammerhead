@@ -1,11 +1,9 @@
-import { isObject, isUndefined } from '../../utils/types';
-
 export default function extend () {
     var target     = arguments[0] || {};
     var currentObj = null;
     var copy       = null;
 
-    if (!isObject(target) && target.toString() !== '[object Function]')
+    if (typeof target !== 'object' && target.toString() !== '[object Function]')
         target = {};
 
     for (var i = 1; i < arguments.length; i++) {
@@ -15,7 +13,7 @@ export default function extend () {
             for (var name in currentObj) {
                 copy = currentObj[name];
 
-                if (target !== copy && !isUndefined(copy))
+                if (target !== copy && copy !== void 0)
                     target[name] = copy;
             }
         }

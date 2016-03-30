@@ -8,7 +8,6 @@ import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 import { isIE } from '../../utils/browser';
 import { preventDefault, DOM_EVENTS } from '../../utils/event';
-import { isUndefined } from '../../../utils/types';
 
 export default class EventSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
@@ -73,7 +72,7 @@ export default class EventSandbox extends SandboxBase {
 
                     if (ev) {
                         ev = extend(document.createEvent(createEventType), ev);
-                        ev.initEvent(eventType, !isUndefined(ev.cancelBubble) ? ev.cancelBubble : false, true);
+                        ev.initEvent(eventType, ev.cancelBubble !== void 0 ? ev.cancelBubble : false, true);
                     }
                     else {
                         // NOTE: The fireEvent method can be called with no arguments.

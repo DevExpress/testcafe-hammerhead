@@ -10,7 +10,6 @@ import { isCrossDomainWindows } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import fnBind from '../../utils/fn-bind';
-import { isString, isFunction } from '../../../utils/types';
 
 /*eslint-enable no-native-reassign */
 
@@ -45,7 +44,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onMessage (e) {
-        var data = isString(e.data) ? parseJSON(e.data) : e.data;
+        var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
         if (data.type === MESSAGE_TYPE.service && e.source) {
             if (this.pingCmd && data.message.cmd === this.pingCmd && data.message.isPingResponse) {
@@ -63,10 +62,10 @@ export default class MessageSandbox extends SandboxBase {
 
         /* jshint ignore:start */
         for (var key in e)
-            resultEvt[key] = isFunction(e[key]) ? fnBind(e[key], e) : e[key];
+            resultEvt[key] = typeof e[key] === 'function' ? fnBind(e[key], e) : e[key];
         /* jshint ignore:end */
 
-        var data = isString(e.data) ? parseJSON(e.data) : e.data;
+        var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
         if (data.type !== MESSAGE_TYPE.service) {
             var originUrl = destLocation.get();
@@ -75,7 +74,7 @@ export default class MessageSandbox extends SandboxBase {
                 resultEvt.origin = data.originUrl;
 
                 // NOTE: IE9 can send only string values.
-                var needToStringify = !isString(data.message) && (isIE9 || data.isStringMessage);
+                var needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
 
                 resultEvt.data = needToStringify ? stringifyJSON(data.message) : data.message;
 
@@ -95,7 +94,7 @@ export default class MessageSandbox extends SandboxBase {
         });
 
         var result = {
-            isStringMessage: isString(message),
+            isStringMessage: typeof message === 'string',
             message:         message,
             originUrl:       originUrl,
             targetUrl:       targetUrl,
@@ -146,7 +145,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     setOnMessage (window, value) {
-        if (isFunction(value)) {
+        if (typeof value === 'function') {
             this.storedOnMessageHandler = value;
             window.onmessage            = e => this._onWindowMessage(e, value);
         }

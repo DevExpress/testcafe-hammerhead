@@ -11,7 +11,7 @@ import * as JSON from './json';
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
 import * as eventUtils from './utils/event';
-import * as typeUtils from '../utils/types';
+import * as typeUtils from './utils/types';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';

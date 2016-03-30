@@ -3,7 +3,6 @@ import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIE9, isIE10, isIOS } from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
-import { isUndefined, isFunction } from '../../../utils/types';
 import { SUPPORTED_PROTOCOL_RE } from '../../../utils/url';
 
 export default class UnloadSandbox extends SandboxBase {
@@ -57,7 +56,7 @@ export default class UnloadSandbox extends SandboxBase {
 
         var res = originListener(e);
 
-        if (!isUndefined(res)) {
+        if (res !== void 0) {
             this.storedBeforeUnloadReturnValue = res;
             this.prevented                     = true;
         }
@@ -101,7 +100,7 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     setOnBeforeUnload (window, value) {
-        if (isFunction(value)) {
+        if (typeof value === 'function') {
 
             this.storedBeforeUnloadHandler = value;
 

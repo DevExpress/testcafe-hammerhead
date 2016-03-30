@@ -6,7 +6,6 @@ import * as urlUtils from './url';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, isOpera } from './browser';
 import trim from '../../utils/string-trim';
-import { isObject, isString, isUndefined, isFunction } from '../../utils/types';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
 // NOTE: We should avoid using native object prototype methods,
@@ -310,13 +309,13 @@ export function isDomElement (el) {
         return true;
 
     // NOTE: T184805
-    if (el && isFunction(el.toString) && el.toString.toString().indexOf('[native code]') !== -1 &&
+    if (el && typeof el.toString === 'function' && el.toString.toString().indexOf('[native code]') !== -1 &&
         el.constructor &&
         (el.constructor.toString().indexOf(' Element') !== -1 || el.constructor.toString().indexOf(' Node') !== -1))
         return false;
 
     // NOTE: B252941
-    return el && !isDocumentFragmentNode(el) && isString(el.nodeName) && el.tagName;
+    return el && !isDocumentFragmentNode(el) && typeof el.nodeName === 'string' && el.tagName;
 }
 
 export function getTagName (el) {
@@ -476,7 +475,7 @@ export function isShadowUIElement (element) {
             return false;
 
         // NOTE: Check the className type to avoid issues with a SVG element’s className property.
-        if (isString(element.className) && element.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1)
+        if (typeof element.className === 'string' && element.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1)
             return true;
 
         element = element.parentNode;
@@ -490,7 +489,7 @@ export function isWindow (instance) {
         return true;
 
     try {
-        return instance && isObject(instance) && !isUndefined(instance.top) && instance.toString &&
+        return instance && typeof instance === 'object' && instance.top !== void 0 && instance.toString &&
                (instance.toString() === '[object Window]' || instance.toString() === '[object global]');
     }
     catch (e) {
@@ -505,7 +504,7 @@ export function isDocument (instance) {
         return true;
 
     try {
-        return instance && isObject(instance) && instance.toString &&
+        return instance && typeof instance === 'object' && instance.toString &&
                (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
     }
     catch (e) {
@@ -516,7 +515,7 @@ export function isDocument (instance) {
 }
 
 export function isBlob (instance) {
-    return instance && isObject(instance) && isFunction(instance.slice) &&
+    return instance && typeof instance === 'object' && typeof instance.slice === 'function' &&
            instance.toString && instance.toString() === '[object Blob]';
 }
 
@@ -525,7 +524,7 @@ export function isLocation (instance) {
         return true;
 
     try {
-        return instance && isObject(instance) && !isUndefined(instance.href) && !isUndefined(instance.assign);
+        return instance && typeof instance === 'object' && instance.href !== void 0 && instance.assign !== void 0;
     }
     catch (e) {
         // NOTE: Try to detect cross-domain window location.

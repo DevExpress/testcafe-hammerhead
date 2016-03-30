@@ -6,7 +6,6 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as styleUtils from '../../utils/style';
-import { isFunction } from '../../../utils/types';
 
 const INTERNAL_FOCUS_FLAG = 'hammerhead|internal-focus';
 const INTERNAL_BLUR_FLAG  = 'hammerhead|internal-blur';
@@ -191,7 +190,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         if (browserUtils.isIE && browserUtils.version > 11 && el && domUtils.isTextEditableElement(el))
             this.eventSimulator.selectionchange(el);
 
-        if (isFunction(callback))
+        if (typeof callback === 'function')
             callback();
     }
 
@@ -334,7 +333,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         }
 
         this._raiseEvent(el, 'blur', () => {
-            if (isFunction(callback))
+            if (typeof callback === 'function')
                 callback();
         }, withoutHandlers, isAsync);
     }
