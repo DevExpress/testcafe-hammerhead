@@ -7,7 +7,7 @@ import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
 import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
-import * as typeUtils from '../../../../utils/types';
+import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
 import { stringifyResourceType, HASH_RE } from '../../../../utils/url';
 import { isStyle } from '../../../utils/style';
@@ -217,10 +217,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             innerText: {
-                condition: el => typeUtils.isString(el.tagName) && domUtils.isScriptElement(el) &&
-                                 typeUtils.isString(el.innerText),
+                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el) &&
+                                 typeof el.innerText === 'string',
 
-                get: el => typeUtils.isString(el.innerText) ? removeProcessingHeader(el.innerText) : el.innerText,
+                get: el => typeof el.innerText === 'string' ? removeProcessingHeader(el.innerText) : el.innerText,
 
                 set: function (el, script) {
                     el.innerText = script ? processScript(script, true, false) : script;
@@ -234,7 +234,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       owner => owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] || null,
 
                 set: (owner, handler) => {
-                    if (typeUtils.isFunction(handler))
+                    if (typeof handler === 'function')
                         owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] = handler;
 
                     return handler;
@@ -265,7 +265,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         if (className) {
                             // NOTE: SVG elements' className is of the SVGAnimatedString type instead
                             // of string (GH-354).
-                            if (!typeUtils.isString(className))
+                            if (typeof className !== 'string')
                                 className = className.baseVal || '';
 
                             if (className.indexOf(SHADOW_UI_CLASSNAME.postfix) !== -1)
@@ -303,7 +303,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 },
 
                 set: (owner, location) => {
-                    if (typeUtils.isString(location)) {
+                    if (typeof location === 'string') {
                         if (window.self !== window.top)
                             location = destLocation.resolveUrl(location, window.top.document);
 
@@ -333,7 +333,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             origin: {
                 condition: domUtils.isAnchorElement,
-                get:       el => !typeUtils.isUndefined(el.origin) ? getAnchorProperty(el, 'origin') : el.origin,
+                get:       el => el.origin !== void 0 ? getAnchorProperty(el, 'origin') : el.origin,
                 set:       (el, origin) => el.origin = origin
             },
 
@@ -415,8 +415,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             text: {
                 // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
-                condition: el => typeUtils.isString(el.tagName) && domUtils.isScriptElement(el),
-                get:       el => typeUtils.isString(el.text) ? removeProcessingHeader(el.text) : el.text,
+                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el),
+                get:       el => typeof el.text === 'string' ? removeProcessingHeader(el.text) : el.text,
 
                 set: (el, script) => {
                     el.text = script ? processScript(script, true, false) : script;
@@ -427,8 +427,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             textContent: {
                 // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
-                condition: el => typeUtils.isString(el.tagName) && domUtils.isScriptElement(el),
-                get:       el => typeUtils.isString(el.textContent) ? removeProcessingHeader(el.textContent) : el.textContent,
+                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el),
+                get:       el => typeof el.textContent === 'string' ? removeProcessingHeader(el.textContent) : el.textContent,
 
                 set: (el, script) => {
                     el.textContent = script ? processScript(script, true, false) : script;
@@ -487,9 +487,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             which: {
-                condition: ev => !typeUtils.isUndefined(ev[INTERNAL_PROPS.whichPropertyWrapper]) ||
+                condition: ev => ev[INTERNAL_PROPS.whichPropertyWrapper] !== void 0 ||
                                  ev.originalEvent &&
-                                 !typeUtils.isUndefined(ev.originalEvent[INTERNAL_PROPS.whichPropertyWrapper]),
+                                 ev.originalEvent[INTERNAL_PROPS.whichPropertyWrapper] !== void 0,
 
                 get: ev => ev.originalEvent ? ev.originalEvent[INTERNAL_PROPS.whichPropertyWrapper] :
                            ev[INTERNAL_PROPS.whichPropertyWrapper],
@@ -503,7 +503,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       style => styleProcessor.cleanUp(style.background, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
-                    if (typeUtils.isString(value))
+                    if (typeof value === 'string')
                         style.background = styleProcessor.process(value, urlUtils.getProxyUrl);
 
                     return style.background;
@@ -515,7 +515,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       style => styleProcessor.cleanUp(style.backgroundImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
-                    if (typeUtils.isString(value))
+                    if (typeof value === 'string')
                         style.backgroundImage = styleProcessor.process(value, urlUtils.getProxyUrl);
 
                     return style.backgroundImage;
@@ -527,7 +527,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       style => styleProcessor.cleanUp(style.borderImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
-                    if (typeUtils.isString(value))
+                    if (typeof value === 'string')
                         style.borderImage = styleProcessor.process(value, urlUtils.getProxyUrl);
 
                     return style.borderImage;
@@ -539,7 +539,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       style => styleProcessor.cleanUp(style.cssText, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
-                    if (typeUtils.isString(value))
+                    if (typeof value === 'string')
                         style.cssText = styleProcessor.process(value, urlUtils.getProxyUrl);
 
                     return style.cssText;
@@ -551,7 +551,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       style => styleProcessor.cleanUp(style.cursor, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
-                    if (typeUtils.isString(value))
+                    if (typeof value === 'string')
                         style.cursor = styleProcessor.process(value, urlUtils.getProxyUrl);
 
                     return style.cursor;
@@ -563,7 +563,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       style => styleProcessor.cleanUp(style.listStyle, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
-                    if (typeUtils.isString(value))
+                    if (typeof value === 'string')
                         style.listStyle = styleProcessor.process(value, urlUtils.getProxyUrl);
 
                     return style.listStyle;
@@ -575,7 +575,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get:       style => styleProcessor.cleanUp(style.listStyleImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
 
                 set: (style, value) => {
-                    if (typeUtils.isString(value))
+                    if (typeof value === 'string')
                         style.listStyleImage = styleProcessor.process(value, urlUtils.getProxyUrl);
 
                     return style.listStyleImage;
@@ -597,7 +597,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             if (typeUtils.isNullOrUndefined(owner))
                 PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-            if (typeUtils.isString(propName) && shouldInstrumentProperty(propName) &&
+            if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
                 accessors[propName].condition(owner))
                 return accessors[propName].get(owner);
 
@@ -608,7 +608,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             if (typeUtils.isNullOrUndefined(owner))
                 PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-            if (typeUtils.isString(propName) && shouldInstrumentProperty(propName) &&
+            if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
                 accessors[propName].condition(owner))
                 return accessors[propName].set(owner, value);
 

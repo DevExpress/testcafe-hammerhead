@@ -1,7 +1,6 @@
 import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 import { respondStatic } from '../utils/http';
-import { isFunction } from '../utils/types';
 
 // Const
 const PARAM_RE = /^{(\S+)}$/;
@@ -29,7 +28,7 @@ export default class Router {
             this._registerRouteWithParams(tokens, method, handler);
 
         else {
-            var isStatic = !isFunction(handler);
+            var isStatic = typeof handler !== 'function';
 
             if (isStatic) {
                 this._processStaticContent(handler);

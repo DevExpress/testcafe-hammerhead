@@ -7,7 +7,6 @@ import settings from '../../settings';
 import * as Browser from '../../utils/browser';
 import * as HiddenInfo from './hidden-info';
 import SHADOW_UI_CLASSNAME from '../../../shadow-ui/class-name';
-import { isString } from '../../../utils/types';
 import Promise from 'pinkie';
 
 // NOTE: https://html.spec.whatwg.org/multipage/forms.html#fakepath-srsly.
@@ -84,7 +83,7 @@ export default class UploadInfoManager {
     static formatValue (fileNames) {
         var value = '';
 
-        fileNames = isString(fileNames) ? [fileNames] : fileNames;
+        fileNames = typeof fileNames === 'string' ? [fileNames] : fileNames;
 
         if (fileNames && fileNames.length) {
             if (Browser.isWebKit)
@@ -120,7 +119,7 @@ export default class UploadInfoManager {
     static loadFilesInfoFromServer (filePaths) {
         return transport.asyncServiceMsg({
             cmd:       COMMAND.getUploadedFiles,
-            filePaths: isString(filePaths) ? [filePaths] : filePaths
+            filePaths: typeof filePaths === 'string' ? [filePaths] : filePaths
         });
     }
 

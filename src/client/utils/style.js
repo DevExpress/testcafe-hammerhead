@@ -1,7 +1,6 @@
 import * as domUtils from './dom';
 import * as browserUtils from './browser';
 import nativeMethods from '../sandbox/native-methods';
-import { isObject, isUndefined } from '../../utils/types';
 
 // NOTE: For Chrome.
 const MIN_SELECT_SIZE_VALUE = 4;
@@ -18,7 +17,7 @@ export function isStyle (instance) {
     if (instance instanceof nativeMethods.styleClass)
         return true;
 
-    if (instance && isObject(instance) && !isUndefined(instance.border)) {
+    if (instance && typeof instance === 'object' && instance.border !== void 0) {
         instance = instance.toString();
 
         return instance === '[object CSSStyleDeclaration]' || instance === '[object CSS2Properties]' ||

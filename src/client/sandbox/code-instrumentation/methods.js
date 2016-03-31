@@ -3,7 +3,7 @@ import INSTRUCTION from '../../../processing/script/instruction';
 import { shouldInstrumentMethod } from '../../../processing/script/instrumented';
 import { isWindow, isLocation } from '../../utils/dom';
 import fastApply from '../../utils/fast-apply';
-import * as typeUtils from '../../../utils/types';
+import * as typeUtils from '../../utils/types';
 import { getProxyUrl } from '../../utils/url';
 
 export default class MethodCallInstrumentation extends SandboxBase {
@@ -44,14 +44,14 @@ export default class MethodCallInstrumentation extends SandboxBase {
             if (typeUtils.isNullOrUndefined(owner))
                 MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-            if (!typeUtils.isFunction(owner[methName]))
+            if (typeof owner[methName] !== 'function')
                 MethodCallInstrumentation._error(`'${methName}' is not a function`);
 
             // OPTIMIZATION: previously we've performed the
             // `this.methodWrappers.hasOwnProperty(methName)`
             // check which is quite slow. Now we use the
             // fast RegExp check instead.
-            if (typeUtils.isString(methName) && shouldInstrumentMethod(methName) &&
+            if (typeof methName === 'string' && shouldInstrumentMethod(methName) &&
                 this.methodWrappers[methName].condition(owner))
                 return this.methodWrappers[methName].method(owner, args);
 

@@ -4,7 +4,6 @@
 // -------------------------------------------------------------
 
 import transformers from './transformers';
-import { isObject } from '../../utils/types';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -41,7 +40,7 @@ function transformChildNodes (node) {
 }
 
 export default function transform (node, parent, key) {
-    if (!node || !isObject(node))
+    if (!node || typeof node !== 'object')
         return false;
 
     var nodeTransformers = transformers[node.type];

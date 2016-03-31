@@ -1,5 +1,3 @@
-import { isObject, isFunction } from '../../utils/types';
-
 export const BUTTON = {
     left:   0,
     middle: 1,
@@ -45,6 +43,6 @@ export function stopPropagation (ev) {
 }
 
 export function isObjectEventListener (listener) {
-    return isObject(listener) && isFunction(listener.handleEvent);
+    return typeof listener === 'object' && typeof listener.handleEvent === 'function';
 }
 

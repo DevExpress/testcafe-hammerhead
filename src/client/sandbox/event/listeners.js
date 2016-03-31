@@ -3,7 +3,6 @@ import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isObjectEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
-import { isUndefined, isFunction } from '../../../utils/types';
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
@@ -42,14 +41,14 @@ export default class Listeners extends EventEmitter {
         if (isWindow(el))
             return nativeMethods.windowAddEventListener;
 
-        return !isUndefined(el.body) ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
+        return el.body !== void 0 ? nativeMethods.documentAddEventListener : nativeMethods.addEventListener;
     }
 
     static _getNativeRemoveEventListener (el) {
         if (isWindow(el))
             return nativeMethods.windowRemoveEventListener;
 
-        return !isUndefined(el.body) ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
+        return el.body !== void 0 ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
     }
 
     static _getEventListenerWrapper (eventCtx, listener) {
@@ -63,7 +62,7 @@ export default class Listeners extends EventEmitter {
             if (eventCtx.cancelOuterHandlers)
                 return null;
 
-            if (isFunction(eventCtx.outerHandlersWrapper))
+            if (typeof eventCtx.outerHandlersWrapper === 'function')
                 return eventCtx.outerHandlersWrapper.call(this, e, listener);
 
             if (isObjectEventListener(listener))
