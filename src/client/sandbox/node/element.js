@@ -13,6 +13,7 @@ import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
 import transport from '../../transport';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
+import { HASH_RE } from '../../../utils/url';
 
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
@@ -131,6 +132,16 @@ export default class ElementSandbox extends SandboxBase {
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
         else if (tagName === 'meta' && ['http-equiv', 'content'].indexOf(attr) !== -1)
             return null;
+        else if (attr === 'xlink:href' &&
+                 domProcessor.SVG_XLINK_HREF_TAGS.indexOf(tagName) !== -1 &&
+                 domUtils.isSVGElement(el)) {
+            var storedXLinkHrefAttr = domProcessor.getStoredAttrName(attr);
+
+            setAttrMeth.call(el, storedXLinkHrefAttr, value);
+
+            if (!HASH_RE.test(value))
+                value = urlUtils.getProxyUrl(value);
+        }
 
         return setAttrMeth.apply(el, ns ? [ns, attr, value] : [attr, value]);
     }

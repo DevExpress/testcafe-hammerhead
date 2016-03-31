@@ -31,6 +31,10 @@ export default class BaseDomAdapter {
         throw new Error('Not implemented');
     }
 
+    isSVGElement () {
+        throw new Error('Not implemented');
+    }
+
     hasEventHandler () {
         throw new Error('Not implemented');
     }

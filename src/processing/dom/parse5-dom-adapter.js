@@ -4,6 +4,8 @@ import events from 'events';
 import * as urlUtils from '../../utils/url';
 import * as parse5Utils from '../../utils/parse5';
 
+const SVG_NAMESPACE_URI = 'http://www.w3.org/2000/svg';
+
 export default class Parse5DomAdapter extends BaseDomAdapter {
     constructor (isIframe, crossDomainPort) {
         super();
@@ -13,22 +15,11 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     removeAttr (el, attr) {
-        for (var i = 0; i < el.attrs.length; i++) {
-            if (el.attrs[i].name === attr) {
-                el.attrs.splice(i, 1);
-
-                return;
-            }
-        }
+        parse5Utils.removeAttr(el, attr);
     }
 
     getAttr (el, attr) {
-        for (var i = 0; i < el.attrs.length; i++) {
-            if (el.attrs[i].name === attr)
-                return el.attrs[i].value;
-        }
-
-        return null;
+        return parse5Utils.getAttr(el, attr);
     }
 
     getClassName (el) {
@@ -37,6 +28,10 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
 
     hasAttr (el, attr) {
         return this.getAttr(el, attr) !== null;
+    }
+
+    isSVGElement (el) {
+        return el.namespaceURI === SVG_NAMESPACE_URI;
     }
 
     hasEventHandler (el) {
@@ -49,21 +44,11 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     getTagName (el) {
-        return el.tagName || '';
+        return (el.tagName || '').toLowerCase();
     }
 
     setAttr (el, attr, value) {
-        for (var i = 0; i < el.attrs.length; i++) {
-            if (el.attrs[i].name === attr) {
-                el.attrs[i].value = value;
-
-                return value;
-            }
-        }
-
-        el.attrs.push({ name: attr, value: value });
-
-        return value;
+        return parse5Utils.setAttr(el, attr, value);
     }
 
     setScriptContent (script, content) {

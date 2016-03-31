@@ -474,3 +474,18 @@ asyncTest('script error when a new element is added to a "body" element that is 
         });
     document.body.appendChild(iframe);
 });
+
+test('xlink:href attribute of svg elements should be overriden (GH-434)', function () {
+    var use    = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    var svgUrl = 'http://domain.com/test.svg#rect';
+    var div    = document.createElement('div');
+
+    use.setAttribute('xlink:href', '#svg-rect');
+    strictEqual(nativeMethods.getAttribute.call(use, 'xlink:href'), '#svg-rect');
+
+    use.setAttribute('xlink:href', svgUrl);
+    strictEqual(nativeMethods.getAttribute.call(use, 'xlink:href'), urlUtils.getProxyUrl(svgUrl));
+
+    div.setAttribute('xlink:href', '#svg-rect');
+    strictEqual(nativeMethods.getAttribute.call(div, 'xlink:href'), '#svg-rect');
+});

@@ -6,7 +6,7 @@ import settings from '../settings';
 import { sameOriginCheck } from '../utils/destination-location';
 import { getProxyUrl } from '../utils/url';
 import { isIE9 } from '../utils/browser';
-import { findDocument, isScriptElement } from '../utils/dom';
+import * as domUtils from '../utils/dom';
 import fastApply from '../utils/fast-apply';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
@@ -20,6 +20,10 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     hasAttr (el, attr) {
         return el.hasAttribute(attr);
+    }
+
+    isSVGElement (el) {
+        return domUtils.isSVGElement(el);
     }
 
     getClassName (el) {
@@ -38,7 +42,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     getTagName (el) {
-        return el.tagName;
+        return domUtils.getTagName(el);
     }
 
     setAttr (el, attr, value) {
@@ -62,7 +66,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     getElementForSelectorCheck (el) {
-        if (isIE9 && isScriptElement(el)) {
+        if (isIE9 && domUtils.isScriptElement(el)) {
             var clone = nativeMethods.cloneNode.call(el, false);
 
             clone.src = clone.innerHTML = '';
@@ -79,7 +83,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     hasIframeParent (el) {
         try {
-            return window.top.document !== findDocument(el);
+            return window.top.document !== domUtils.findDocument(el);
         }
         catch (e) {
             return true;

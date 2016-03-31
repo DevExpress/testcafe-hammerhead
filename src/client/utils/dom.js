@@ -529,8 +529,12 @@ export function isLocation (instance) {
     }
 }
 
-export function isSVGElement (obj) {
-    return window.SVGElement && obj instanceof window.SVGElement;
+export function isSVGElement (instance) {
+    if (instance instanceof nativeMethods.svgElementClass)
+        return true;
+
+    return instance && isObject(instance) && instance.ownerSVGElement !== void 0 && instance.toString &&
+           instance.toString().toLowerCase() === '[object svg' + getTagName(instance) + 'element]';
 }
 
 export function isSVGElementOrChild (el) {
