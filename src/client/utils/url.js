@@ -7,7 +7,7 @@ import settings from '../settings';
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
 export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue) {
-    if (!isSupportedProtocol(url))
+    if (!isSupportedProtocol(url) && !isSpecialPage(url))
         return url;
 
     // NOTE: Resolves relative URLs.
@@ -105,4 +105,8 @@ export function isSubDomain (domain, subDomain) {
 
 export function isSupportedProtocol (url) {
     return sharedUrlUtils.isSupportedProtocol(url);
+}
+
+export function isSpecialPage (url) {
+    return sharedUrlUtils.isSpecialPage(url);
 }

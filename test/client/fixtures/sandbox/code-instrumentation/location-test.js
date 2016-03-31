@@ -1,6 +1,9 @@
 var CodeInstrumentation     = hammerhead.get('./sandbox/code-instrumentation');
 var LocationInstrumentation = hammerhead.get('./sandbox/code-instrumentation/location');
+var LocationWrapper         = hammerhead.get('./sandbox/code-instrumentation/location/wrapper');
 var urlUtils                = hammerhead.get('./utils/url');
+var sharedUrlUtils          = hammerhead.get('../utils/url');
+var destLocation            = hammerhead.get('./utils/destination-location');
 
 var Promise       = hammerhead.Promise;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -169,6 +172,24 @@ test('create location wrapper before iframe loading', function () {
     ok(!!eval(processScript('iframe.contentDocument.location')));
 
     iframe.parentNode.removeChild(iframe);
+});
+
+test('special pages (GH-339)', function () {
+    sharedUrlUtils.SPECIAL_PAGES.forEach(function (specialPageUrl) {
+        destLocation.forceLocation(urlUtils.getProxyUrl(specialPageUrl));
+
+        var windowMock = {
+            location: { }
+        };
+
+        var locationWrapper = new LocationWrapper(windowMock);
+
+        strictEqual(locationWrapper.href, specialPageUrl);
+        strictEqual(locationWrapper.protocol, 'about:');
+        strictEqual(locationWrapper.toString(), specialPageUrl);
+    });
+
+    destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 });
 
 module('regression');

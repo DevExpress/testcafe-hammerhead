@@ -155,14 +155,13 @@ asyncTest('form.submit', function () {
 });
 
 test('setAttribute: img src', function () {
-    var $img = $('<img>');
+    var img = nativeMethods.createElement.call(document, 'img');
 
-    processDomMeth($img[0]);
+    processDomMeth(img);
 
-    $img[0].setAttribute('src', '/image.gif?param=value');
+    img.setAttribute('src', '/image.gif?param=value');
 
-    strictEqual(nativeMethods.getAttribute.call($img[0], 'src'), urlUtils.resolveUrlAsDest('/image.gif?param=value'));
-    $img.remove();
+    strictEqual(nativeMethods.getAttribute.call(img, 'src'), urlUtils.resolveUrlAsDest('/image.gif?param=value'));
 });
 
 test('canvasRenderingContext2D.drawImage', function () {

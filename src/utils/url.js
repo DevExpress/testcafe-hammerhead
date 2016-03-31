@@ -15,6 +15,7 @@ const QUERY_AND_HASH_RE     = /(\?.+|#[^#]*)$/;
 export const SUPPORTED_PROTOCOL_RE               = /^https?:/i;
 export const HASH_RE                             = /^#/;
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
+export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
 
 export function parseResourceType (resourceType) {
     if (!resourceType) {
@@ -87,9 +88,10 @@ export function sameOriginCheck (location, checkedUrl) {
 
 // NOTE: Convert the destination protocol and hostname to the lower case. (GH-1)
 export function convertHostToLowerCase (url) {
-    var parsedUrl = parseUrl(url);
+    var parsedUrl             = parseUrl(url);
+    var protocolHostSeparator = parsedUrl.protocol === 'about:' ? '' : '//';
 
-    return (parsedUrl.protocol + '//' + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
+    return (parsedUrl.protocol + protocolHostSeparator + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
 }
 
 export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charset) {
@@ -122,7 +124,7 @@ export function parseProxyUrl (proxyUrl) {
     if (!parsedUrl.partAfterHost)
         return null;
 
-    var match = parsedUrl.partAfterHost.match(/^\/(\S+?)\/(https?:\/\/\S+)/);
+    var match = parsedUrl.partAfterHost.match(/^\/(\S+?)\/(\S+)/);
 
     if (!match)
         return null;
@@ -133,9 +135,23 @@ export function parseProxyUrl (proxyUrl) {
     if (!params.length)
         return null;
 
+    var destUrl = match[2];
+
+    if (!isSpecialPage(destUrl) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
+        return null;
+
+    var destResourceInfo = !isSpecialPage(destUrl) ? parseUrl(match[2]) :
+        {
+            protocol:      'about:',
+            host:          '',
+            hostname:      '',
+            port:          '',
+            partAfterHost: ''
+        };
+
     return {
-        destUrl:          match[2],
-        destResourceInfo: parseUrl(match[2]),
+        destUrl:          destUrl,
+        destResourceInfo: destResourceInfo,
         partAfterHost:    parsedUrl.partAfterHost,
 
         proxy: {
@@ -276,4 +292,8 @@ export function ensureTrailingSlash (srcUrl, processedUrl) {
         processedUrl = processedUrl.replace(/\/$/, '');
 
     return processedUrl;
+}
+
+export function isSpecialPage (url) {
+    return SPECIAL_PAGES.indexOf(url) !== -1;
 }
