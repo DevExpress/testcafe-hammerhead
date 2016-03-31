@@ -4,7 +4,7 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE, isOpera } from './browser';
+import { isFirefox, isWebKit, isIE } from './browser';
 import trim from '../../utils/string-trim';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
@@ -21,9 +21,6 @@ function getFocusableSelector () {
 
     if (isIE)
         return 'a[href]:not([href = ""]), iframe, ' + selectorPostfix;
-
-    if (isOpera)
-        return selectorPostfix;
 
     return 'a[href], iframe, ' + selectorPostfix;
 }
@@ -463,7 +460,7 @@ export function isElementFocusable (el) {
     if (!isFocusable)
         return false;
 
-    if (isWebKit || isOpera)
+    if (isWebKit)
         return !isHidden(el) || isOptionElement(el);
 
     return !isHidden(el);
