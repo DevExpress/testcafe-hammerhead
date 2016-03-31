@@ -40,8 +40,6 @@ export var isIE              = browser.name === 'msie' || isIE11 || isMSEdge;
 export var isIE10            = isIE && version === 10;
 export var isIE9             = isIE && version === 9;
 export var isFirefox         = browser.name === 'firefox' && !isIE11;
-export var isOpera           = browser.name === 'opera';
-export var isOperaWithWebKit = /opr/.test(userAgent);
 export var isSafari          = isIOS || /safari/.test(userAgent) && !/chrome/.test(userAgent);
 export var isWebKit          = browser.name === 'webkit' && !isMSEdge;
 export var hasTouchEvents    = !!('ontouchstart' in window);
