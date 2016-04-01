@@ -194,7 +194,7 @@ export default class WindowSandbox extends SandboxBase {
             return image;
         };
 
-        if (typeof window.history.pushState === 'function' && window.history.replaceState === 'function') {
+        if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             window.history.pushState = function (data, title, url) {
                 var args = [data, title];
 
