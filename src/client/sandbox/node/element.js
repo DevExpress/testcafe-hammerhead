@@ -137,7 +137,7 @@ export default class ElementSandbox extends SandboxBase {
                  domUtils.isSVGElement(el)) {
             var storedXLinkHrefAttr = domProcessor.getStoredAttrName(attr);
 
-            setAttrMeth.call(el, storedXLinkHrefAttr, value);
+            setAttrMeth.apply(el, ns ? [ns, storedXLinkHrefAttr, value] : [storedXLinkHrefAttr, value]);
 
             if (!HASH_RE.test(value))
                 value = urlUtils.getProxyUrl(value);
