@@ -1,5 +1,8 @@
+var XhrSandbox = hammerhead.get('./sandbox/xhr');
+
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
+var nativeMethods = hammerhead.nativeMethods;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
@@ -69,6 +72,25 @@ asyncTest('parameters must pass correctly in xhr event handlers (T239198)', func
 
     request.open('GET', '/xhr-large-response', true);
     request.send(null);
+});
+
+
+test('createNativeXHR returns an xhr with the native "open" method (GH-492)', function () {
+    var storedNativeOpen    = nativeMethods.xmlHttpRequestOpen;
+    var storedPrototypeOpen = XMLHttpRequest.prototype.open;
+
+    expect(1);
+
+    nativeMethods.xmlHttpRequestOpen = function () {
+        nativeMethods.xmlHttpRequestOpen = storedNativeOpen;
+        XMLHttpRequest.prototype.open    = storedPrototypeOpen;
+        ok(true);
+    };
+
+    XMLHttpRequest.prototype.open = function () {
+    };
+
+    XhrSandbox.createNativeXHR().open();
 });
 
 if (!browserUtils.isIE9) {
