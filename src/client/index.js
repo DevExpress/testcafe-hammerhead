@@ -25,6 +25,7 @@ class Hammerhead {
         this.sandbox = new Sandbox();
 
         this.EVENTS = {
+            beforeFormSubmit:   this.sandbox.node.element.BEFORE_FORM_SUBMIT,
             beforeBeforeUnload: this.sandbox.event.unload.BEFORE_BEFORE_UNLOAD_EVENT,
             beforeUnload:       this.sandbox.event.unload.BEFORE_UNLOAD_EVENT,
             upload:             this.sandbox.event.unload.UNLOAD_EVENT,
@@ -105,6 +106,9 @@ class Hammerhead {
             case this.EVENTS.xhrError:
             case this.EVENTS.xhrSend:
                 return this.sandbox.xhr;
+
+            case this.EVENTS.beforeFormSubmit:
+                return this.sandbox.node.element;
 
             default:
                 return null;
