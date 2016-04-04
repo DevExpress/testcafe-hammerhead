@@ -4,8 +4,6 @@ import { getProxyUrl } from '../utils/url';
 import XHR_HEADERS from '../../request-pipeline/xhr/headers';
 import { getOrigin } from '../utils/destination-location';
 
-const NATIVE_BEHAVIOR = 'hammerhead|xhr|native-behavior';
-
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 var arraySlice = Array.prototype.slice;
@@ -26,7 +24,11 @@ export default class XhrSandbox extends SandboxBase {
     static createNativeXHR () {
         var xhr = new window.XMLHttpRequest();
 
-        xhr[NATIVE_BEHAVIOR] = true;
+        xhr.open                = nativeMethods.xmlHttpRequestOpen;
+        xhr.abort               = nativeMethods.xmlHttpRequestAbort;
+        xhr.send                = nativeMethods.xmlHttpRequestSend;
+        xhr.addEventListener    = nativeMethods.xmlHttpRequestAddEventListener;
+        xhr.removeEventListener = nativeMethods.xmlHttpRequestRemoveEventListener;
 
         return xhr;
     }
@@ -39,12 +41,10 @@ export default class XhrSandbox extends SandboxBase {
 
         xmlHttpRequestProto.abort = function () {
             nativeMethods.xmlHttpRequestAbort.call(this);
-            if (!this[NATIVE_BEHAVIOR]) {
-                xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
-                    err: new Error('XHR aborted'),
-                    xhr: this
-                });
-            }
+            xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
+                err: new Error('XHR aborted'),
+                xhr: this
+            });
         };
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
@@ -55,8 +55,7 @@ export default class XhrSandbox extends SandboxBase {
             if (!xhrSandbox.corsSupported)
                 this.withCredentials = false;
 
-            if (!this[NATIVE_BEHAVIOR])
-                url = getProxyUrl(url);
+            url = getProxyUrl(url);
 
             // NOTE: The 'async' argument is true by default. However, when the 'async' argument is set to undefined,
             // a browser (Chrome, FireFox) sets it to 'false', and a request becomes synchronous (B238528).
@@ -67,56 +66,54 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         xmlHttpRequestProto.send = function () {
-            if (!this[NATIVE_BEHAVIOR]) {
-                var xhr = this;
+            var xhr = this;
 
-                xhrSandbox.emit(xhrSandbox.XHR_SEND_EVENT, { xhr });
+            xhrSandbox.emit(xhrSandbox.XHR_SEND_EVENT, { xhr });
 
-                var orscHandler = () => {
-                    if (this.readyState === 4)
-                        xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr });
-                };
-
-                // NOTE: If we're using the sync mode or the response is in cache and the object has been retrieved
-                // directly (IE6 & IE7), we need to raise the callback manually.
+            var orscHandler = () => {
                 if (this.readyState === 4)
-                    orscHandler();
-                else {
-                    // NOTE: Get out of the current execution tick and then proxy onreadystatechange,
-                    // because jQuery assigns a handler after the send() method was called.
-                    nativeMethods.setTimeout.call(xhrSandbox.window, () => {
-                        // NOTE: If the state is already changed, we just call the handler without proxying
-                        // onreadystatechange.
-                        if (this.readyState === 4)
+                    xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr });
+            };
+
+            // NOTE: If we're using the sync mode or the response is in cache and the object has been retrieved
+            // directly (IE6 & IE7), we need to raise the callback manually.
+            if (this.readyState === 4)
+                orscHandler();
+            else {
+                // NOTE: Get out of the current execution tick and then proxy onreadystatechange,
+                // because jQuery assigns a handler after the send() method was called.
+                nativeMethods.setTimeout.call(xhrSandbox.window, () => {
+                    // NOTE: If the state is already changed, we just call the handler without proxying
+                    // onreadystatechange.
+                    if (this.readyState === 4)
+                        orscHandler();
+
+                    else if (typeof this.onreadystatechange === 'function') {
+                        var originalHandler = this.onreadystatechange;
+
+                        this.onreadystatechange = progress => {
                             orscHandler();
-
-                        else if (typeof this.onreadystatechange === 'function') {
-                            var originalHandler = this.onreadystatechange;
-
-                            this.onreadystatechange = progress => {
-                                orscHandler();
-                                originalHandler.call(this, progress);
-                            };
-                        }
-                        else
-                            this.addEventListener('readystatechange', orscHandler, false);
-                    }, 0);
-                }
-
-                // NOTE: Add the XHR request mark, so that a proxy can recognize a request as a XHR request. As all
-                // requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
-                // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
-                // Access-Control_Allow_Origin flag and skip "preflight" requests.
-                this.setRequestHeader(XHR_HEADERS.requestMarker, 'true');
-
-                this.setRequestHeader(XHR_HEADERS.origin, getOrigin());
-
-                if (xhrSandbox.corsSupported)
-                    this.setRequestHeader(XHR_HEADERS.corsSupported, 'true');
-
-                if (this.withCredentials)
-                    this.setRequestHeader(XHR_HEADERS.withCredentials, 'true');
+                            originalHandler.call(this, progress);
+                        };
+                    }
+                    else
+                        this.addEventListener('readystatechange', orscHandler, false);
+                }, 0);
             }
+
+            // NOTE: Add the XHR request mark, so that a proxy can recognize a request as a XHR request. As all
+            // requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
+            // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
+            // Access-Control_Allow_Origin flag and skip "preflight" requests.
+            this.setRequestHeader(XHR_HEADERS.requestMarker, 'true');
+
+            this.setRequestHeader(XHR_HEADERS.origin, getOrigin());
+
+            if (xhrSandbox.corsSupported)
+                this.setRequestHeader(XHR_HEADERS.corsSupported, 'true');
+
+            if (this.withCredentials)
+                this.setRequestHeader(XHR_HEADERS.withCredentials, 'true');
 
             nativeMethods.xmlHttpRequestSend.apply(this, arguments);
         };
@@ -125,23 +122,21 @@ export default class XhrSandbox extends SandboxBase {
             var xhr  = this;
             var args = arraySlice.call(arguments);
 
-            if (!this[NATIVE_BEHAVIOR]) {
-                if (typeof args[1] === 'function') {
-                    this.eventHandlers = this.eventHandlers || [];
+            if (typeof args[1] === 'function') {
+                this.eventHandlers = this.eventHandlers || [];
 
-                    var eventHandlers  = this.eventHandlers;
-                    var originHandler  = args[1];
-                    var wrappedHandler = function () {
-                        originHandler.apply(xhr, arguments);
-                    };
+                var eventHandlers  = this.eventHandlers;
+                var originHandler  = args[1];
+                var wrappedHandler = function () {
+                    originHandler.apply(xhr, arguments);
+                };
 
-                    args[1] = wrappedHandler;
+                args[1] = wrappedHandler;
 
-                    eventHandlers.push({
-                        origin:  originHandler,
-                        wrapped: wrappedHandler
-                    });
-                }
+                eventHandlers.push({
+                    origin:  originHandler,
+                    wrapped: wrappedHandler
+                });
             }
 
             return nativeMethods.xmlHttpRequestAddEventListener.apply(this, args);
@@ -150,19 +145,17 @@ export default class XhrSandbox extends SandboxBase {
         xmlHttpRequestProto.removeEventListener = function () {
             var args = arraySlice.call(arguments);
 
-            if (!this[NATIVE_BEHAVIOR]) {
-                if (typeof args[1] === 'function') {
-                    this.eventHandlers = this.eventHandlers || [];
+            if (typeof args[1] === 'function') {
+                this.eventHandlers = this.eventHandlers || [];
 
-                    var eventHandlers = this.eventHandlers;
+                var eventHandlers = this.eventHandlers;
 
-                    for (var i = 0; i < eventHandlers.length; i++) {
-                        if (eventHandlers[i].origin === args[1]) {
-                            args[1] = eventHandlers[i].wrapped;
-                            eventHandlers.splice(i, 1);
+                for (var i = 0; i < eventHandlers.length; i++) {
+                    if (eventHandlers[i].origin === args[1]) {
+                        args[1] = eventHandlers[i].wrapped;
+                        eventHandlers.splice(i, 1);
 
-                            break;
-                        }
+                        break;
                     }
                 }
             }
