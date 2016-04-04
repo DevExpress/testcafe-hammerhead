@@ -25,6 +25,8 @@ export default class ElementSandbox extends SandboxBase {
         this.iframeSandbox = iframeSandbox;
 
         this.overridedMethods = null;
+
+        this.BEFORE_FORM_SUBMIT = 'hammerhead|event|before-form-submit';
     }
 
     _overridedGetAttributeCore (el, attr, ns) {
@@ -103,7 +105,8 @@ export default class ElementSandbox extends SandboxBase {
                     var resourceType     = domProcessor.getElementResourceType(el);
                     var elCharset        = isScript && el.charset;
 
-                    if (ElementSandbox._isHrefAttrForBaseElement(el, attr) && domUtils.isElementInDocument(el, this.document))
+                    if (ElementSandbox._isHrefAttrForBaseElement(el, attr) &&
+                        domUtils.isElementInDocument(el, this.document))
                         urlResolver.updateBase(value, this.document);
 
                     value = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
@@ -206,7 +209,11 @@ export default class ElementSandbox extends SandboxBase {
 
             formSubmit () {
                 // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
-                transport.waitCookieMsg().then(() => nativeMethods.formSubmit.apply(this, arguments));
+                transport.waitCookieMsg().then(() => {
+                    sandbox.emit(sandbox.BEFORE_FORM_SUBMIT, { form: this });
+
+                    return nativeMethods.formSubmit.apply(this, arguments);
+                });
             },
 
             insertBefore (newNode, refNode) {

@@ -140,6 +140,20 @@ test('table.insertRow, table.insertCell', function () {
     notEqual(cell.appendChild, nativeMethods.appendChild);
 });
 
+asyncTest('form.submit', function () {
+    var form    = document.createElement('form');
+    var handler = function (e) {
+        strictEqual(e.form, form);
+        hammerhead.off(hammerhead.EVENTS.beforeFormSubmit, handler);
+        start();
+    };
+
+    hammerhead.on(hammerhead.EVENTS.beforeFormSubmit, handler);
+
+    form.target = 'fake-window';
+    form.submit();
+});
+
 test('setAttribute: img src', function () {
     var $img = $('<img>');
 

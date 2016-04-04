@@ -34,21 +34,23 @@ export default class WindowSandbox extends SandboxBase {
 
             if (sendToTopWindow) {
                 this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
-                    msg:      msg,
-                    pageUrl:  pageUrl,
+                    msg,
+                    pageUrl,
+
                     inIframe: true
                 });
 
                 this.messageSandbox.sendServiceMsg({
-                    cmd:     this.UNCAUGHT_JS_ERROR_EVENT,
-                    pageUrl: pageUrl,
-                    msg:     msg
+                    msg,
+                    pageUrl,
+
+                    cmd: this.UNCAUGHT_JS_ERROR_EVENT
                 }, window.top);
             }
             else {
                 this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
-                    msg:     msg,
-                    pageUrl: pageUrl
+                    msg,
+                    pageUrl
                 });
             }
         }
