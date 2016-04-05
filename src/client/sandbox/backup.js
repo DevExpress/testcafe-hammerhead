@@ -4,14 +4,20 @@ const SANDBOX_BACKUP = 'hammerhead|sandbox-backup';
 
 export function create (window, sandbox) {
     var topSameDomainWindow = getTopSameDomainWindow(window);
+    var iframe              = window !== topSameDomainWindow ? getFrameElement(window) : null;
+    var storage             = topSameDomainWindow[SANDBOX_BACKUP];
 
-    if (!topSameDomainWindow[SANDBOX_BACKUP])
-        topSameDomainWindow[SANDBOX_BACKUP] = [];
+    if (!storage)
+        storage = topSameDomainWindow[SANDBOX_BACKUP] = [];
 
-    topSameDomainWindow[SANDBOX_BACKUP].push({
-        iframe:  window !== topSameDomainWindow ? getFrameElement(window) : null,
-        sandbox: sandbox
-    });
+    for (var i = 0; i < storage.length; i++) {
+        if (storage[i].iframe === iframe) {
+            storage[i].sandbox = sandbox;
+            return;
+        }
+    }
+
+    storage.push({ iframe, sandbox });
 }
 
 export function get (window) {
