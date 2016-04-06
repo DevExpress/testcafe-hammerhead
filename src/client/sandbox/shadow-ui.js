@@ -86,39 +86,41 @@ export default class ShadowUI extends SandboxBase {
         var shadowUI = this;
         var docProto = document.constructor.prototype;
 
-        document.elementFromPoint = (x, y) => {
+        document.elementFromPoint = (...args) => {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-            var res = ShadowUI._filterElement(nativeMethods.elementFromPoint.call(document, x, y));
+            var res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(document, args));
 
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             return res;
         };
 
-        docProto.getElementById = id =>
-            ShadowUI._filterElement(nativeMethods.getElementById.call(document, id));
+        docProto.getElementById = (...args) =>
+            ShadowUI._filterElement(nativeMethods.getElementById.apply(document, args));
 
-        docProto.getElementsByClassName = names =>
-            ShadowUI._filterNodeList(nativeMethods.getElementsByClassName.call(document, names));
+        docProto.getElementsByClassName = (...args) =>
+            ShadowUI._filterNodeList(nativeMethods.getElementsByClassName.apply(document, args));
 
-        docProto.getElementsByName = name =>
-            ShadowUI._filterNodeList(nativeMethods.getElementsByName.call(document, name));
+        docProto.getElementsByName = (...args) =>
+            ShadowUI._filterNodeList(nativeMethods.getElementsByName.apply(document, args));
 
-        docProto.getElementsByTagName = name =>
-            ShadowUI._filterNodeList(nativeMethods.getElementsByTagName.call(document, name));
+        docProto.getElementsByTagName = (...args) =>
+            ShadowUI._filterNodeList(nativeMethods.getElementsByTagName.apply(document, args));
 
-        docProto.querySelector = selectors => {
-            selectors = NodeSandbox.processSelector(selectors);
+        docProto.querySelector = (...args) => {
+            if (typeof args[0] === 'string')
+                args[0] = NodeSandbox.processSelector(args[0]);
 
-            return ShadowUI._filterElement(nativeMethods.querySelector.call(document, selectors));
+            return ShadowUI._filterElement(nativeMethods.querySelector.apply(document, args));
         };
 
-        docProto.querySelectorAll = selectors => {
-            selectors = NodeSandbox.processSelector(selectors);
+        docProto.querySelectorAll = (...args) => {
+            if (typeof args[0] === 'string')
+                args[0] = NodeSandbox.processSelector(args[0]);
 
-            return ShadowUI._filterNodeList(nativeMethods.querySelectorAll.call(document, selectors));
+            return ShadowUI._filterNodeList(nativeMethods.querySelectorAll.apply(document, args));
         };
 
         // NOTE: T195358
@@ -347,7 +349,7 @@ export default class ShadowUI extends SandboxBase {
             /*eslint-disable no-empty */
         catch (e) {
         }
-        /*eslint-disable no-empty */
+        /*eslint-enable no-empty */
 
         return false;
     }

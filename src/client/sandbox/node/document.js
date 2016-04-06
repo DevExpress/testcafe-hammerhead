@@ -47,9 +47,9 @@ export default class DocumentSandbox extends SandboxBase {
     _overridedDocumentWrite (args, ln) {
         args = arraySlice.call(args);
 
-        var lastArg   = args.length ? args[args.length - 1] : '';
-        var isBegin   = lastArg === INTERNAL_LITERAL.documentWriteBegin;
-        var isEnd     = lastArg === INTERNAL_LITERAL.documentWriteEnd;
+        var lastArg = args.length ? args[args.length - 1] : '';
+        var isBegin = lastArg === INTERNAL_LITERAL.documentWriteBegin;
+        var isEnd   = lastArg === INTERNAL_LITERAL.documentWriteEnd;
 
         if (isBegin)
             this.writeBlockCounter++;
@@ -117,13 +117,13 @@ export default class DocumentSandbox extends SandboxBase {
 
         var documentSandbox = this;
 
-        document.open = () => {
+        document.open = (...args) => {
             var isUninitializedIframe = this._isUninitializedIframeWithoutSrc(document);
 
             if (!isUninitializedIframe)
                 this._beforeDocumentCleaned();
 
-            var result = nativeMethods.documentOpen.call(document);
+            var result = nativeMethods.documentOpen.apply(document, args);
 
             if (!isUninitializedIframe)
                 this.nodeSandbox.mutation.onDocumentCleaned({ window, document });
@@ -135,14 +135,14 @@ export default class DocumentSandbox extends SandboxBase {
             return result;
         };
 
-        document.close = () => {
+        document.close = (...args) => {
             // NOTE: IE10 and IE9 raise the "load" event only when the document.close method is called. We need to
             // restore the overrided document.open and document.write methods before Hammerhead injection, if the
             // window is not initialized.
             if (isIE && !IframeSandbox.isWindowInited(window))
                 nativeMethods.restoreDocumentMeths(document);
 
-            var result = nativeMethods.documentClose.call(document);
+            var result = nativeMethods.documentClose.apply(document, args);
 
             if (!this._isUninitializedIframeWithoutSrc(document))
                 this._onDocumentClosed();
@@ -150,8 +150,8 @@ export default class DocumentSandbox extends SandboxBase {
             return result;
         };
 
-        document.createElement = tagName => {
-            var el = nativeMethods.createElement.call(document, tagName);
+        document.createElement = (...args) => {
+            var el = nativeMethods.createElement.apply(document, args);
 
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
             this.nodeSandbox.processNodes(el);
@@ -159,8 +159,8 @@ export default class DocumentSandbox extends SandboxBase {
             return el;
         };
 
-        document.createElementNS = (ns, tagName) => {
-            var el = nativeMethods.createElementNS.call(document, ns, tagName);
+        document.createElementNS = (...args) => {
+            var el = nativeMethods.createElementNS.apply(document, args);
 
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
             this.nodeSandbox.processNodes(el);
@@ -176,8 +176,8 @@ export default class DocumentSandbox extends SandboxBase {
             return documentSandbox._overridedDocumentWrite(arguments, true);
         };
 
-        document.createDocumentFragment = () => {
-            var fragment = nativeMethods.createDocumentFragment.call(document);
+        document.createDocumentFragment = (...args) => {
+            var fragment = nativeMethods.createDocumentFragment.apply(document, args);
 
             documentSandbox.nodeSandbox.processNodes(fragment);
 

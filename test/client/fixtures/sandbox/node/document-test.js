@@ -1,4 +1,4 @@
-var processScript    = hammerhead.get('../processing/script').processScript;
+var processScript = hammerhead.get('../processing/script').processScript;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -152,8 +152,8 @@ test('non-processed attributes', function () {
 
 //http://www.w3.org/TR/css3-selectors/#attribute-selectors
 test('attrubute types', function () {
-    var link = document.createElement('a');
-    var div  = document.createElement('div');
+    var link      = document.createElement('a');
+    var div       = document.createElement('div');
 
     link.setAttribute('href', 'http://some.domain.com');
     div.className = 'container';
@@ -228,9 +228,9 @@ test('javascript protocol', function () {
 });
 
 test('complex selector', function () {
-    var link     = document.createElement('a');
-    var divOuter = document.createElement('div');
-    var divInner = document.createElement('div');
+    var link           = document.createElement('a');
+    var divOuter       = document.createElement('div');
+    var divInner       = document.createElement('div');
 
     divOuter.setAttribute('data-id', '123456');
     divInner.className = 'inner';
@@ -256,6 +256,33 @@ test('special selectors', function () {
     /*eslint-disable no-undefined*/
     ok(div.querySelectorAll(undefined));
     /*eslint-enable no-undefined*/
+});
+
+test('parameters passed to the native function in its original form', function () {
+    checkNativeFunctionArgs('createElement', 'createElement', document);
+    checkNativeFunctionArgs('createElementNS', 'createElementNS', document);
+    checkNativeFunctionArgs('createDocumentFragment', 'createDocumentFragment', document);
+    checkNativeFunctionArgs('elementFromPoint', 'elementFromPoint', document);
+    checkNativeFunctionArgs('getElementById', 'getElementById', document);
+    checkNativeFunctionArgs('getElementsByClassName', 'getElementsByClassName', document);
+    checkNativeFunctionArgs('getElementsByName', 'getElementsByName', document);
+    checkNativeFunctionArgs('getElementsByTagName', 'getElementsByTagName', document);
+    checkNativeFunctionArgs('querySelector', 'querySelector', document);
+    checkNativeFunctionArgs('querySelectorAll', 'querySelectorAll', document);
+    checkNativeFunctionArgs('addEventListener', 'documentAddEventListener', document);
+    checkNativeFunctionArgs('removeEventListener', 'documentRemoveEventListener', document);
+
+    var storedBeforeDocumentCleaned = hammerhead.sandbox.node.doc._beforeDocumentCleaned;
+    var storedRestoreDocumentMeths  = nativeMethods.restoreDocumentMeths;
+
+    hammerhead.sandbox.node.doc._beforeDocumentCleaned = nativeMethods.restoreDocumentMeths = function () {
+    };
+
+    checkNativeFunctionArgs('close', 'documentClose', document);
+    checkNativeFunctionArgs('open', 'documentOpen', document);
+
+    storedBeforeDocumentCleaned = storedBeforeDocumentCleaned;
+    nativeMethods.restoreDocumentMeths = storedRestoreDocumentMeths;
 });
 
 module('resgression');
@@ -343,7 +370,7 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
 
 if (!browserUtils.isFirefox) {
     asyncTest('document.write([]) in iframe (T239131)', function () {
-        var iframe  = document.createElement('iframe');
+        var iframe = document.createElement('iframe');
 
         iframe.id = 'test04';
         window.QUnitGlobals.waitForIframe(iframe)
@@ -361,7 +388,7 @@ if (!browserUtils.isFirefox) {
 }
 
 asyncTest('document.write, document.writeln with multiple parameters (T232454)(GH-409)(GH-411)', function () {
-    var performTestWrite = function (doc) {
+    var performTestWrite             = function (doc) {
         doc.write('w1', 'w2', 'w3');
         doc.writeln('wl1', 'wl2', 'wl3');
         doc.writeln('wl4');
@@ -376,7 +403,7 @@ asyncTest('document.write, document.writeln with multiple parameters (T232454)(G
             iframe.id = 'iframe_for_getting_native_value';
             window.QUnitGlobals.waitForIframe(iframe)
                 .then(function () {
-                    var iframeDocument    = iframe.contentDocument;
+                    var iframeDocument = iframe.contentDocument;
 
                     performTestWrite(iframeDocument);
 
@@ -397,7 +424,7 @@ asyncTest('document.write, document.writeln with multiple parameters (T232454)(G
             return getNativeDocumentWriteResult();
         })
         .then(function (nativeDocumentWriteResult) {
-            var iframeDocument    = iframe.contentDocument;
+            var iframeDocument = iframe.contentDocument;
 
             performTestWrite(iframeDocument);
             strictEqual(iframeDocument.body.textContent, nativeDocumentWriteResult);
