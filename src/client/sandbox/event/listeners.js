@@ -122,16 +122,18 @@ export default class Listeners extends EventEmitter {
     }
 
     _createElementOverridedMethods (el) {
-        var listeners                 = this;
-        var nativeAddEventListener    = Listeners._getNativeAddEventListener(el);
-        var nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
+        var listeners = this;
 
         return {
-            addEventListener: function (type, listener, useCapture) {
-                var eventListeningInfo = listeningCtx.getEventCtx(el, type);
+            addEventListener: function (...args) {
+                var type                   = args[0];
+                var listener               = args[1];
+                var useCapture             = args[2];
+                var eventListeningInfo     = listeningCtx.getEventCtx(el, type);
+                var nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
                 if (!eventListeningInfo)
-                    return nativeAddEventListener.call(this, type, listener, useCapture);
+                    return nativeAddEventListener.apply(el, args);
 
                 // NOTE: T233158
                 var isDifferentHandler = Listeners._isDifferentHandler(eventListeningInfo.outerHandlers, listener, useCapture);
@@ -143,24 +145,33 @@ export default class Listeners extends EventEmitter {
 
                 listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
 
-                var res = nativeAddEventListener.call(this, type, wrapper, useCapture);
+                args[1] = wrapper;
+
+                var res = nativeAddEventListener.apply(el, args);
 
                 listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
-                    el:        this,
-                    eventType: type,
-                    listener:  listener
+                    el,
+                    listener,
+
+                    eventType: type
                 });
 
                 return res;
             },
 
-            removeEventListener: function (type, listener, useCapture) {
-                var eventCtx = listeningCtx.getEventCtx(this, type);
+            removeEventListener: function (...args) {
+                var type                      = args[0];
+                var listener                  = args[1];
+                var useCapture                = args[2];
+                var nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
+                var eventCtx                  = listeningCtx.getEventCtx(el, type);
 
                 if (!eventCtx)
-                    return nativeRemoveEventListener.call(this, type, listener, useCapture);
+                    return nativeRemoveEventListener.apply(el, args);
 
-                return nativeRemoveEventListener.call(this, type, listeningCtx.getWrapper(eventCtx, listener, useCapture), useCapture);
+                args[1] = listeningCtx.getWrapper(eventCtx, listener, useCapture);
+
+                return nativeRemoveEventListener.apply(el, args);
             }
         };
     }

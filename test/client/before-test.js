@@ -13,6 +13,7 @@
     var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
     var destLocation   = hammerhead.get('./utils/destination-location');
     var settings       = hammerhead.get('./settings');
+    var nativeMethods  = hammerhead.nativeMethods;
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
@@ -76,6 +77,63 @@
 
     window.getCrossDomainPageUrl = function (filePath) {
         return window.QUnitGlobals.crossDomainHostname + globals.getResourceUrl(filePath);
+    };
+
+    var MAX_ARG_COUNT = 3;
+
+    var checkNativeFunctionCalling = function (methodName, nativeMethodName, owner, args) {
+        var storedNative = nativeMethods[nativeMethodName];
+        var passed       = true;
+        var nativeCalled = false;
+
+        if (nativeMethods[nativeMethodName] === owner[methodName])
+            return false;
+
+        nativeMethods[nativeMethodName] = function () {
+            nativeMethods[nativeMethodName] = storedNative;
+
+            if (arguments.length !== args.length)
+                passed = false;
+
+            for (var i = 0; i < args.length; i++) {
+                if (typeof arguments[i] !== typeof args[i])
+                    passed = false;
+            }
+
+            nativeCalled = true;
+        };
+
+        try {
+            owner[methodName].apply(owner, args);
+        }
+            /*eslint-disable no-empty */
+        catch (e) {
+        }
+        /*eslint-enable no-empty */
+
+        return nativeCalled && passed;
+    };
+
+    window.checkNativeFunctionArgs = function (methodName, nativeMethodName, owner) {
+        var args              = [];
+        var passed            = true;
+        var possibleArgValues = [null, void 0, {}, [], '', true, 1, function () {
+        }];
+
+        passed = passed && checkNativeFunctionCalling(methodName, nativeMethodName, owner, args);
+
+        for (var i = 0; i < possibleArgValues.length * MAX_ARG_COUNT; i++) {
+            var argIndex = i / possibleArgValues.length >> 0;
+
+            if (args.length < argIndex)
+                args.push(0);
+
+            args[argIndex] = possibleArgValues[i % possibleArgValues.length];
+
+            passed = passed && checkNativeFunctionCalling(methodName, nativeMethodName, owner, args);
+        }
+
+        ok(passed);
     };
 
     QUnit.config.testTimeout = 30000;
