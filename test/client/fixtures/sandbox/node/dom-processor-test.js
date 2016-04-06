@@ -475,10 +475,12 @@ asyncTest('script error when a new element is added to a "body" element that is 
     document.body.appendChild(iframe);
 });
 
-test('xlink:href attribute of svg elements should be overriden (GH-434)', function () {
-    var use    = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    var svgUrl = 'http://domain.com/test.svg#rect';
-    var div    = document.createElement('div');
+test('xlink:href attribute of svg elements should be overriden (GH-434)(GH-514)', function () {
+    var svgNameSpaceUrl   = 'http://www.w3.org/2000/svg';
+    var xlinkNameSpaceUrl = 'http://www.w3.org/1999/xlink';
+    var use               = document.createElementNS(svgNameSpaceUrl, 'use');
+    var svgUrl            = 'http://domain.com/test.svg#rect';
+    var div               = document.createElement('div');
 
     use.setAttribute('xlink:href', '#svg-rect');
     strictEqual(nativeMethods.getAttribute.call(use, 'xlink:href'), '#svg-rect');
@@ -486,6 +488,13 @@ test('xlink:href attribute of svg elements should be overriden (GH-434)', functi
     use.setAttribute('xlink:href', svgUrl);
     strictEqual(nativeMethods.getAttribute.call(use, 'xlink:href'), urlUtils.getProxyUrl(svgUrl));
 
-    div.setAttribute('xlink:href', '#svg-rect');
-    strictEqual(nativeMethods.getAttribute.call(div, 'xlink:href'), '#svg-rect');
+    div.setAttribute('xlink:href', svgUrl);
+    strictEqual(nativeMethods.getAttribute.call(div, 'xlink:href'), svgUrl);
+
+    use.setAttributeNS(xlinkNameSpaceUrl, 'xlink:href', '#svg-rect');
+    strictEqual(nativeMethods.getAttributeNS.call(use, xlinkNameSpaceUrl, 'href'), '#svg-rect');
+
+    use.setAttributeNS(xlinkNameSpaceUrl, 'xlink:href', svgUrl);
+    strictEqual(nativeMethods.getAttributeNS.call(use, xlinkNameSpaceUrl, 'href'), urlUtils.getProxyUrl(svgUrl));
 });
+
