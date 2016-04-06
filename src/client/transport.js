@@ -188,14 +188,14 @@ class Transport extends EventEmitter {
 
             var intervalId = null;
             var timeoutId  = window.setTimeout(() => {
-                window.clearInterval(intervalId);
+                nativeMethods.clearInterval.call(window, intervalId);
                 resolve();
             }, timeout);
 
             intervalId = window.setInterval(() => {
                 if (!this.activeServiceMessagesCounter) {
-                    window.clearInterval(intervalId);
-                    window.clearTimeout(timeoutId);
+                    nativeMethods.clearInterval.call(window, intervalId);
+                    nativeMethods.clearTimeout.call(window, timeoutId);
                     resolve();
                 }
             }, this.SERVICE_MESSAGES_WAITING_INTERVAL);

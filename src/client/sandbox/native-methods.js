@@ -99,6 +99,8 @@ class NativeMethods {
         this.Blob                             = win.Blob;
         this.setTimeout                       = win.setTimeout || Window.prototype.setTimeout;
         this.setInterval                      = win.setInterval || Window.prototype.setInterval;
+        this.clearTimeout                     = win.clearTimeout || Window.prototype.clearTimeout;
+        this.clearInterval                    = win.clearInterval || Window.prototype.clearInterval;
         this.registerProtocolHandler          = win.navigator.registerProtocolHandler;
 
         // XHR

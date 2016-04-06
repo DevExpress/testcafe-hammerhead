@@ -131,7 +131,7 @@ export default class MessageSandbox extends SandboxBase {
             while (this.iframeInternalMsgQueue.length) {
                 var msgInfo = this.iframeInternalMsgQueue[0];
 
-                this.window.clearTimeout(msgInfo.timeoutId);
+                nativeMethods.clearTimeout.call(this.window, msgInfo.timeoutId);
                 msgInfo.sendFunc();
             }
         });
@@ -234,8 +234,8 @@ export default class MessageSandbox extends SandboxBase {
             };
 
             var cleanTimeouts = () => {
-                this.window.clearInterval(pingInterval);
-                this.window.clearTimeout(pingTimeout);
+                nativeMethods.clearInterval.call(this.window, pingInterval);
+                nativeMethods.clearTimeout.call(this.window, pingTimeout);
 
                 this.pingCallback = null;
                 this.pingCmd      = null;
