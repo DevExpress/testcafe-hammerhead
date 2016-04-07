@@ -54,7 +54,7 @@ export default class TimersSandbox extends SandboxBase {
             this.deferredFunctions = [];
 
             for (var j = 0; j < curTimeouts.length; j++) {
-                this.window.clearInterval(curTimeouts[j]);
+                nativeMethods.clearInterval.call(this.window, curTimeouts[j]);
                 curHandlers[j]();
             }
 
