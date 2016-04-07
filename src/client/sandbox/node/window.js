@@ -126,7 +126,8 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         window.Worker = scriptURL => {
-            scriptURL = getProxyUrl(scriptURL);
+            if (typeof scriptURL === 'string')
+                scriptURL = getProxyUrl(scriptURL);
 
             return new nativeMethods.Worker(scriptURL);
         };
@@ -174,10 +175,11 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (nativeMethods.registerServiceWorker) {
-            window.navigator.serviceWorker.register = url => {
-                url = getProxyUrl(url);
+            window.navigator.serviceWorker.register = (...args) => {
+                if (typeof args[0] === 'string')
+                    args[0] = getProxyUrl(args[0]);
 
-                return nativeMethods.registerServiceWorker.call(window.navigator.serviceWorker, url);
+                return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
             };
         }
 
@@ -197,35 +199,41 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
-            window.history.pushState = function (data, title, url) {
-                var args = [data, title];
+            window.history.pushState = function () {
+                if (typeof arguments[2] === 'string')
+                    arguments[2] = getProxyUrl(arguments[2]);
 
-                if (arguments.length > 2)
-                    args.push(url ? getProxyUrl(url) : url);
-
-                return nativeMethods.historyPushState.apply(history, args);
+                return nativeMethods.historyPushState.apply(history, arguments);
             };
 
-            window.history.replaceState = function (data, title, url) {
-                var args = [data, title];
+            window.history.replaceState = function () {
+                if (typeof arguments[2] === 'string')
+                    arguments[2] = getProxyUrl(arguments[2]);
 
-                if (arguments.length > 2)
-                    args.push(url ? getProxyUrl(url) : url);
-
-                return nativeMethods.historyReplaceState.apply(history, args);
+                return nativeMethods.historyReplaceState.apply(history, arguments);
             };
         }
 
         if (window.navigator.registerProtocolHandler) {
             window.navigator.registerProtocolHandler = function () {
-                var args         = arraySlice.call(arguments);
-                var urlIndex     = 1;
-                var destHostname = destLocation.getParsed().hostname;
-                var isDestUrl    = isFirefox ? isSubDomain(destHostname, parseUrl(args[urlIndex]).hostname) :
-                                   destLocation.sameOriginCheck(destLocation.get(), args[urlIndex]);
+                var args     = arraySlice.call(arguments);
+                var urlIndex = 1;
 
-                if (isDestUrl)
-                    args[urlIndex] = getProxyUrl(args[urlIndex]);
+                if (typeof args[urlIndex] === 'string') {
+                    var destHostname = destLocation.getParsed().hostname;
+                    var isDestUrl    = '';
+
+                    if (isFirefox) {
+                        var parsedUrl = parseUrl(args[urlIndex]);
+
+                        isDestUrl = parsedUrl.hostname && isSubDomain(destHostname, parsedUrl.hostname);
+                    }
+                    else
+                        isDestUrl = destLocation.sameOriginCheck(destLocation.get(), args[urlIndex]);
+
+                    if (isDestUrl)
+                        args[urlIndex] = getProxyUrl(args[urlIndex]);
+                }
 
                 return nativeMethods.registerProtocolHandler.apply(navigator, args);
             };

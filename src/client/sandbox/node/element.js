@@ -309,19 +309,21 @@ export default class ElementSandbox extends SandboxBase {
                 return sandbox._overridedRemoveAttributeCore(this, true, arguments);
             },
 
-            querySelector (selectors) {
-                selectors = NodeSandbox.processSelector(selectors);
+            querySelector () {
+                if (typeof arguments[0] === 'string')
+                    arguments[0] = NodeSandbox.processSelector(arguments[0]);
 
                 var nativeQuerySelector = domUtils.isDocumentFragmentNode(this) ? nativeMethods.documentFragmentQuerySelector
                     : nativeMethods.elementQuerySelector;
 
-                return nativeQuerySelector.call(this, selectors);
+                return nativeQuerySelector.apply(this, arguments);
             },
 
-            querySelectorAll (selectors) {
-                selectors = NodeSandbox.processSelector(selectors);
+            querySelectorAll () {
+                if (typeof arguments[0] === 'string')
+                    arguments[0] = NodeSandbox.processSelector(arguments[0]);
 
-                return getNativeQuerySelectorAll(this).call(this, selectors);
+                return getNativeQuerySelectorAll(this).apply(this, arguments);
             }
         };
     }
