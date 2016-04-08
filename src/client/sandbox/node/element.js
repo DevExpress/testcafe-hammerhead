@@ -29,25 +29,31 @@ export default class ElementSandbox extends SandboxBase {
         this.BEFORE_FORM_SUBMIT = 'hammerhead|event|before-form-submit';
     }
 
-    _overridedGetAttributeCore (el, attr, ns) {
-        var getAttrMeth = ns ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
+    _overridedGetAttributeCore (el, args, isNs) {
+        var attr        = args[isNs ? 1 : 0];
+        var ns          = isNs ? args[0] : null;
+        var getAttrMeth = isNs ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
 
         // OPTIMIZATION: The hasAttribute method is very slow.
         if (ElementSandbox._isUrlAttr(el, attr) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
             attr === 'autocomplete') {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
-            if (attr === 'autocomplete' && getAttrMeth.apply(el, ns ? [ns, storedAttr] : [storedAttr]) === 'none')
+            if (attr === 'autocomplete' && getAttrMeth.apply(el, isNs ? [ns, storedAttr] : [storedAttr]) === 'none')
                 return null;
             else if (el.hasAttribute(storedAttr))
-                attr = storedAttr;
+                args[isNs ? 1 : 0] = storedAttr;
         }
 
-        return getAttrMeth.apply(el, ns ? [ns, attr] : [attr]);
+        return getAttrMeth.apply(el, args);
     }
 
-    _overridedSetAttributeCore (el, attr, value, ns) {
-        var setAttrMeth         = ns ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
+    _overridedSetAttributeCore (el, args, isNs) {
+        var ns                  = isNs ? args[0] : null;
+        var attr                = args[isNs ? 1 : 0];
+        var valueIndex          = isNs ? 2 : 1;
+        var value               = args[valueIndex];
+        var setAttrMeth         = isNs ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
         var tagName             = domUtils.getTagName(el);
         var isSupportedProtocol = urlUtils.isSupportedProtocol(value);
         var urlAttr             = ElementSandbox._isUrlAttr(el, attr);
@@ -86,16 +92,16 @@ export default class ElementSandbox extends SandboxBase {
                     /*eslint-enable no-script-url */
                 }
 
-                setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                value                    = processedValue;
+                setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
+                args[valueIndex]         = processedValue;
             }
             else
-                setAttrMeth.apply(el, ns ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
+                setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
         }
         else if (urlAttr && isSupportedProtocol) {
             var storedUrlAttr = domProcessor.getStoredAttrName(attr);
 
-            setAttrMeth.apply(el, ns ? [ns, storedUrlAttr, value] : [storedUrlAttr, value]);
+            setAttrMeth.apply(el, isNs ? [ns, storedUrlAttr, value] : [storedUrlAttr, value]);
 
             if (tagName !== 'img') {
                 if (value !== '') {
@@ -109,28 +115,28 @@ export default class ElementSandbox extends SandboxBase {
                         domUtils.isElementInDocument(el, this.document))
                         urlResolver.updateBase(value, this.document);
 
-                    value = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
-                            urlUtils.getProxyUrl(value, null, null, null, resourceType, elCharset);
+                    args[valueIndex] = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
+                                       urlUtils.getProxyUrl(value, null, null, null, resourceType, elCharset);
                 }
             }
             else if (value && !urlUtils.parseProxyUrl(value))
-                value = urlUtils.resolveUrlAsDest(value);
+                args[valueIndex] = urlUtils.resolveUrlAsDest(value);
 
         }
         else if (attr === 'autocomplete') {
             var storedAutocompleteAttr = domProcessor.getStoredAttrName(attr);
 
-            setAttrMeth.apply(el, ns ? [ns, storedAutocompleteAttr, value] : [storedAutocompleteAttr, value]);
+            setAttrMeth.apply(el, isNs ? [ns, storedAutocompleteAttr, value] : [storedAutocompleteAttr, value]);
 
-            value = 'off';
+            args[valueIndex] = 'off';
         }
         else if (attr === 'target' && value === '_blank' && domProcessor.TARGET_ATTR_TAGS[tagName])
             return null;
         else if (attr === 'sandbox' && value.indexOf('allow-scripts') === -1) {
             var storedSandboxAttr = domProcessor.getStoredAttrName(attr);
 
-            setAttrMeth.apply(el, ns ? [ns, storedSandboxAttr, value] : [storedSandboxAttr, value]);
-            value += ' allow-scripts';
+            setAttrMeth.apply(el, isNs ? [ns, storedSandboxAttr, value] : [storedSandboxAttr, value]);
+            args[valueIndex] += ' allow-scripts';
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
         else if (tagName === 'meta' && ['http-equiv', 'content'].indexOf(attr) !== -1)
@@ -140,18 +146,18 @@ export default class ElementSandbox extends SandboxBase {
                  domUtils.isSVGElement(el)) {
             var storedXLinkHrefAttr = domProcessor.getStoredAttrName(attr);
 
-            setAttrMeth.apply(el, ns ? [ns, storedXLinkHrefAttr, value] : [storedXLinkHrefAttr, value]);
+            setAttrMeth.apply(el, isNs ? [ns, storedXLinkHrefAttr, value] : [storedXLinkHrefAttr, value]);
 
             if (!HASH_RE.test(value))
-                value = urlUtils.getProxyUrl(value);
+                args[valueIndex] = urlUtils.getProxyUrl(value);
         }
 
-        return setAttrMeth.apply(el, ns ? [ns, attr, value] : [attr, value]);
+        return setAttrMeth.apply(el, args);
     }
 
-    _overridedRemoveAttributeCore (el, ns, arg) {
-        var attr           = ns ? arg[1] : arg[0];
-        var removeAttrFunc = ns ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
+    _overridedRemoveAttributeCore (el, args, isNs) {
+        var attr           = args[isNs ? 1 : 0];
+        var removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
 
         if (ElementSandbox._isUrlAttr(el, attr) || attr === 'sandbox' || attr === 'autocomplete' ||
             domProcessor.EVENTS.indexOf(attr) !== -1) {
@@ -160,14 +166,14 @@ export default class ElementSandbox extends SandboxBase {
             if (attr === 'autocomplete')
                 nativeMethods.setAttribute.call(el, storedAttr, 'none');
             else
-                removeAttrFunc.apply(el, ns ? [arg[0], storedAttr] : [storedAttr]);
+                removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
         }
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
             urlResolver.updateBase(getDestLocation(), this.document);
 
         if (attr !== 'autocomplete')
-            return removeAttrFunc.apply(el, arg);
+            return removeAttrFunc.apply(el, args);
     }
 
     _prepareNodeForInsertion (node, parentNode) {
@@ -182,28 +188,30 @@ export default class ElementSandbox extends SandboxBase {
         var sandbox = this;
 
         this.overridedMethods = {
-            insertRow (index) {
+            insertRow () {
                 var nativeMeth = domUtils.isTableElement(this) ? nativeMethods.insertTableRow : nativeMethods.insertTBodyRow;
-                var row        = nativeMeth.call(this, index);
+                var row        = nativeMeth.apply(this, arguments);
 
                 sandbox.nodeSandbox.processNodes(row);
 
                 return row;
             },
 
-            insertCell (index) {
-                var cell = nativeMethods.insertCell.call(this, index);
+            insertCell () {
+                var cell = nativeMethods.insertCell.apply(this, arguments);
 
                 sandbox.nodeSandbox.processNodes(cell);
 
                 return cell;
             },
 
-            insertAdjacentHTML (pos, html) {
-                if (html !== null)
-                    html = processHtml('' + html, this.parentNode && this.parentNode.tagName);
+            insertAdjacentHTML () {
+                var html = arguments[1];
 
-                nativeMethods.insertAdjacentHTML.call(this, pos, html);
+                if (arguments.length > 1 && html !== null)
+                    arguments[1] = processHtml('' + html, this.parentNode && this.parentNode.tagName);
+
+                nativeMethods.insertAdjacentHTML.apply(this, arguments);
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);
             },
 
@@ -216,7 +224,10 @@ export default class ElementSandbox extends SandboxBase {
                 });
             },
 
-            insertBefore (newNode, refNode) {
+            insertBefore () {
+                var newNode = arguments[0];
+                var refNode = arguments[1];
+
                 sandbox._prepareNodeForInsertion(newNode, this);
 
                 var result = null;
@@ -228,14 +239,16 @@ export default class ElementSandbox extends SandboxBase {
                 if (domUtils.isBodyElementWithChildren(this) && !refNode && domUtils.isElementInDocument(this))
                     result = sandbox.shadowUI.insertBeforeRoot(newNode);
                 else
-                    result = nativeMethods.insertBefore.call(this, newNode, refNode);
+                    result = nativeMethods.insertBefore.apply(this, arguments);
 
                 sandbox._onElementAdded(newNode);
 
                 return result;
             },
 
-            appendChild (child) {
+            appendChild () {
+                var child = arguments[0];
+
                 sandbox._prepareNodeForInsertion(child, this);
 
                 var result = null;
@@ -247,66 +260,71 @@ export default class ElementSandbox extends SandboxBase {
                 if (domUtils.isBodyElementWithChildren(this) && domUtils.isElementInDocument(this))
                     result = sandbox.shadowUI.insertBeforeRoot(child);
                 else
-                    result = nativeMethods.appendChild.call(this, child);
+                    result = nativeMethods.appendChild.apply(this, arguments);
 
                 sandbox._onElementAdded(child);
 
                 return result;
             },
 
-            removeChild (child) {
+            removeChild () {
+                var child = arguments[0];
+
                 sandbox._onRemoveFileInputInfo(child);
 
-                var result = nativeMethods.removeChild.call(this, child);
+                var result = nativeMethods.removeChild.apply(this, arguments);
 
                 sandbox.onElementRemoved(child);
 
                 return result;
             },
 
-            replaceChild (newChild, oldChild) {
+            replaceChild () {
+                var newChild = arguments[0];
+                var oldChild = arguments[1];
+
                 if (domUtils.isTextNode(newChild))
                     ElementSandbox._processTextNodeContent(newChild, this);
 
                 sandbox._onRemoveFileInputInfo(oldChild);
 
-                var result = nativeMethods.replaceChild.call(this, newChild, oldChild);
+                var result = nativeMethods.replaceChild.apply(this, arguments);
 
                 sandbox._onAddFileInputInfo(newChild);
 
                 return result;
             },
 
-            cloneNode (deep) {
-                var clone = nativeMethods.cloneNode.call(this, deep);
+            cloneNode () {
+                var clone = nativeMethods.cloneNode.apply(this, arguments);
 
                 sandbox.nodeSandbox.processNodes(clone);
 
                 return clone;
             },
 
-            getAttribute (attr) {
-                return sandbox._overridedGetAttributeCore(this, attr);
+            getAttribute () {
+                return sandbox._overridedGetAttributeCore(this, arguments);
             },
 
-            getAttributeNS (ns, attr) {
-                return sandbox._overridedGetAttributeCore(this, attr, ns);
+            getAttributeNS () {
+                return sandbox._overridedGetAttributeCore(this, arguments, true);
             },
 
-            setAttribute (attr, value) {
-                return sandbox._overridedSetAttributeCore(this, attr, value);
+            setAttribute () {
+                return sandbox._overridedSetAttributeCore(this, arguments);
             },
 
-            setAttributeNS (ns, attr, value) {
-                return sandbox._overridedSetAttributeCore(this, attr, value, ns);
+            setAttributeNS () {
+                return sandbox._overridedSetAttributeCore(this, arguments, true);
             },
 
             removeAttribute () {
-                return sandbox._overridedRemoveAttributeCore(this, false, arguments);
+                return sandbox._overridedRemoveAttributeCore(this, arguments);
             },
 
             removeAttributeNS () {
-                return sandbox._overridedRemoveAttributeCore(this, true, arguments);
+                return sandbox._overridedRemoveAttributeCore(this, arguments, true);
             },
 
             querySelector () {

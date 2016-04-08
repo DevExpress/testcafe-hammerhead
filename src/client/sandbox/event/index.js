@@ -87,12 +87,18 @@ export default class EventSandbox extends SandboxBase {
                 return res;
             },
 
-            attachEvent: function (eventName, handler) {
-                nativeMethods.addEventListener.call(this, eventName.substring(2), handler);
+            attachEvent: function () {
+                if (typeof arguments[0] === 'string')
+                    arguments[0] = arguments[0].substring(2);
+
+                nativeMethods.addEventListener.apply(this, arguments);
             },
 
-            detachEvent: function (eventName, handler) {
-                nativeMethods.removeEventListener.call(this, eventName.substring(2), handler);
+            detachEvent: function () {
+                if (typeof arguments[0] === 'string')
+                    arguments[0] = arguments[0].substring(2);
+
+                nativeMethods.removeEventListener.apply(this, arguments);
             },
 
             click: function () {
