@@ -82,29 +82,27 @@ class NativeMethods {
         win = win || window;
         // Dom
         this.eval                             = win.eval;
-        this.EventSource                      = win.EventSource;
         this.formSubmit                       = win.HTMLFormElement.prototype.submit;
         this.documentFragmentQuerySelector    = win.DocumentFragment.prototype.querySelector;
         this.documentFragmentQuerySelectorAll = win.DocumentFragment.prototype.querySelectorAll;
-        this.historyPushState                 = win.history ? win.history.pushState : null;
-        this.historyReplaceState              = win.history ? win.history.replaceState : null;
-        this.Image                            = win.Image;
-        this.FontFace                         = win.FontFace;
-        this.StorageEvent                     = win.StorageEvent;
-        this.MutationObserver                 = win.MutationObserver;
-        this.windowDispatchEvent              = win.dispatchEvent;
-        this.postMessage                      = win.postMessage || Window.prototype.postMessage;
-        this.windowOpen                       = win.open || Window.prototype.open;
-        this.Worker                           = win.Worker;
-        this.Blob                             = win.Blob;
-        this.setTimeout                       = win.setTimeout || Window.prototype.setTimeout;
-        this.setInterval                      = win.setInterval || Window.prototype.setInterval;
-        this.clearTimeout                     = win.clearTimeout || Window.prototype.clearTimeout;
-        this.clearInterval                    = win.clearInterval || Window.prototype.clearInterval;
-        this.registerProtocolHandler          = win.navigator.registerProtocolHandler;
+
+        if (win.history) {
+            this.historyPushState    = win.history.pushState;
+            this.historyReplaceState = win.history.replaceState;
+        }
+
+        this.windowDispatchEvent = win.dispatchEvent;
+        this.postMessage         = win.postMessage || Window.prototype.postMessage;
+        this.windowOpen          = win.open || Window.prototype.open;
+        this.setTimeout          = win.setTimeout || Window.prototype.setTimeout;
+        this.setInterval         = win.setInterval || Window.prototype.setInterval;
+        this.clearTimeout        = win.clearTimeout || Window.prototype.clearTimeout;
+        this.clearInterval       = win.clearInterval || Window.prototype.clearInterval;
+
+        if (win.navigator.registerProtocolHandler)
+            this.registerProtocolHandler = win.navigator.registerProtocolHandler;
 
         // XHR
-        this.XMLHttpRequest                    = win.XMLHttpRequest;
         this.xmlHttpRequestAbort               = win.XMLHttpRequest.prototype.abort;
         this.xmlHttpRequestOpen                = win.XMLHttpRequest.prototype.open;
         this.xmlHttpRequestSend                = win.XMLHttpRequest.prototype.send;
@@ -139,12 +137,20 @@ class NativeMethods {
     refreshClasses (win) {
         var mock = () => null;
 
-        this.windowClass     = win.Window || mock;
-        this.documentClass   = win.Document || mock;
-        this.locationClass   = win.Location || mock;
-        this.styleClass      = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties || mock;
-        this.elementClass    = win.Element || mock;
-        this.svgElementClass = win.SVGElement || mock;
+        this.windowClass      = win.Window || mock;
+        this.documentClass    = win.Document || mock;
+        this.locationClass    = win.Location || mock;
+        this.styleClass       = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties || mock;
+        this.elementClass     = win.Element || mock;
+        this.svgElementClass  = win.SVGElement || mock;
+        this.Worker           = win.Worker || mock;
+        this.Blob             = win.Blob || mock;
+        this.XMLHttpRequest   = win.XMLHttpRequest || mock;
+        this.Image            = win.Image || mock;
+        this.FontFace         = win.FontFace || mock;
+        this.StorageEvent     = win.StorageEvent || mock;
+        this.MutationObserver = win.MutationObserver || mock;
+        this.EventSource      = win.EventSource || mock;
     }
 
     restoreDocumentMeths (document) {

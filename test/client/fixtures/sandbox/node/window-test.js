@@ -1,6 +1,7 @@
 var urlUtils = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 
 test('window.onerror setter/getter', function () {
     strictEqual(getProperty(window, 'onerror'), null);
@@ -33,6 +34,56 @@ if (window.FontFace) {
         return new FontFace('family', 'url("' + url + '")', desc);
     });
 }
+
+test('parameters passed to the native function in its original form', function () {
+    // XHR
+    var xhr = new nativeMethods.XMLHttpRequest();
+
+    checkNativeFunctionArgs('abort', 'xmlHttpRequestAbort', xhr);
+    checkNativeFunctionArgs('open', 'xmlHttpRequestOpen', xhr);
+    checkNativeFunctionArgs('addEventListener', 'xmlHttpRequestAddEventListener', xhr);
+    checkNativeFunctionArgs('removeEventListener', 'xmlHttpRequestRemoveEventListener', xhr);
+
+    xhr.setRequestHeader = function () {
+    };
+    checkNativeFunctionArgs('send', 'xmlHttpRequestSend', xhr);
+
+    // registerServiceWorker
+    if (nativeMethods.registerServiceWorker)
+        checkNativeFunctionArgs('register', 'registerServiceWorker', window.navigator.serviceWorker);
+
+    // Event
+    checkNativeFunctionArgs('addEventListener', 'windowAddEventListener', window);
+    checkNativeFunctionArgs('removeEventListener', 'windowRemoveEventListener', window);
+
+    // Canvas
+    var canvas = document.createElement('canvas');
+
+    checkNativeFunctionArgs('drawImage', 'canvasContextDrawImage', canvas.getContext('2d'));
+
+    // FormData
+    if (window.FormData)
+        checkNativeFunctionArgs('append', 'formDataAppend', new window.FormData());
+
+    if (window.navigator.registerProtocolHandler)
+        checkNativeFunctionArgs('registerProtocolHandler', 'registerProtocolHandler', window.navigator);
+
+    if (!browserUtils.isIE || browserUtils.version >= 12) {
+        checkNativeFunctionArgs('setTimeout', 'setTimeout', window);
+        checkNativeFunctionArgs('setTimeout', 'setTimeout', window);
+    }
+
+    if (window.history.pushState && window.history.replaceState) {
+        checkNativeFunctionArgs('pushState', 'historyPushState', window.history);
+        checkNativeFunctionArgs('replaceState', 'historyReplaceState', window.history);
+    }
+
+    var documentFragment = document.createDocumentFragment();
+
+    checkNativeFunctionArgs('querySelector', 'documentFragmentQuerySelector', documentFragment);
+    checkNativeFunctionArgs('querySelectorAll', 'documentFragmentQuerySelectorAll', documentFragment);
+    checkNativeFunctionArgs('dispatchEvent', 'windowDispatchEvent', window);
+});
 
 module('regression');
 

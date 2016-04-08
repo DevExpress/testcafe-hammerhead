@@ -40,12 +40,12 @@ export default class EventSandbox extends SandboxBase {
         var eventSimulator   = this.eventSimulator;
 
         this.overridedMethods = {
-            dispatchEvent: function (ev) {
+            dispatchEvent: function () {
                 Listeners.beforeDispatchEvent();
 
                 var isWindow = domUtils.isWindow(this);
-                var res      = isWindow ? nativeMethods.windowDispatchEvent.call(this, ev) :
-                               nativeMethods.dispatchEvent.call(this, ev);
+                var res      = isWindow ? nativeMethods.windowDispatchEvent.apply(this, arguments) :
+                               nativeMethods.dispatchEvent.apply(this, arguments);
 
                 Listeners.afterDispatchEvent();
 
@@ -164,9 +164,9 @@ export default class EventSandbox extends SandboxBase {
         window.Window.blur                                     = this.overridedMethods.blur;
 
         if (window.Document.prototype.fireEvent) {
-            window.Document.prototype.fireEvent                = this.overridedMethods.fireEvent;
-            window.Document.prototype.attachEvent              = this.overridedMethods.attachEvent;
-            window.Document.prototype.detachEvent              = this.overridedMethods.detachEvent;
+            window.Document.prototype.fireEvent      = this.overridedMethods.fireEvent;
+            window.Document.prototype.attachEvent    = this.overridedMethods.attachEvent;
+            window.Document.prototype.detachEvent    = this.overridedMethods.detachEvent;
             window.HTMLElement.prototype.fireEvent   = this.overridedMethods.fireEvent;
             window.HTMLElement.prototype.attachEvent = this.overridedMethods.attachEvent;
             window.HTMLElement.prototype.detachEvent = this.overridedMethods.detachEvent;

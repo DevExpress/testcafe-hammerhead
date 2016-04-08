@@ -40,7 +40,7 @@ export default class XhrSandbox extends SandboxBase {
         var xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
         xmlHttpRequestProto.abort = function () {
-            nativeMethods.xmlHttpRequestAbort.call(this);
+            nativeMethods.xmlHttpRequestAbort.apply(this, arguments);
             xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
                 err: new Error('XHR aborted'),
                 xhr: this
@@ -49,20 +49,16 @@ export default class XhrSandbox extends SandboxBase {
 
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
-        xmlHttpRequestProto.open = function (method, url, async, user, password) {
+        xmlHttpRequestProto.open = function () {
             // NOTE: Emulate CORS, so that 3rd party libs (e.g. jQuery) allow requests with the proxy host as well as
             // the destination page host.
             if (!xhrSandbox.corsSupported)
                 this.withCredentials = false;
 
-            url = getProxyUrl(url);
+            if (typeof arguments[1] === 'string')
+                arguments[1] = getProxyUrl(arguments[1]);
 
-            // NOTE: The 'async' argument is true by default. However, when the 'async' argument is set to undefined,
-            // a browser (Chrome, FireFox) sets it to 'false', and a request becomes synchronous (B238528).
-            if (arguments.length === 2)
-                nativeMethods.xmlHttpRequestOpen.call(this, method, url);
-            else
-                nativeMethods.xmlHttpRequestOpen.call(this, method, url, async, user, password);
+            nativeMethods.xmlHttpRequestOpen.apply(this, arguments);
         };
 
         xmlHttpRequestProto.send = function () {
