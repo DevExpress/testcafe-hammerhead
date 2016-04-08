@@ -118,7 +118,7 @@
         var args              = [];
         var passed            = true;
         var possibleArgValues = [null, void 0, {}, [], '', true, 1, function () {
-        }];
+        }, document.createElement('div')];
 
         passed = passed && checkNativeFunctionCalling(methodName, nativeMethodName, owner, args);
 

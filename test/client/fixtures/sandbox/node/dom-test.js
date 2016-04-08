@@ -5,6 +5,7 @@ var nativeMethods  = hammerhead.nativeMethods;
 var iframeSandbox  = hammerhead.sandbox.iframe;
 var nodeMutation   = hammerhead.sandbox.node.mutation;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
+var listeners      = hammerhead.sandbox.event.listeners;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -187,6 +188,40 @@ asyncTest('body created event', function () {
             start();
         });
     document.body.appendChild(iframe);
+});
+
+test('parameters passed to the native dom element function in its original form', function () {
+    var el = document.createElement('body');
+
+    checkNativeFunctionArgs('appendChild', 'appendChild', el);
+    checkNativeFunctionArgs('insertBefore', 'insertBefore', el);
+    checkNativeFunctionArgs('replaceChild', 'replaceChild', el);
+    checkNativeFunctionArgs('cloneNode', 'cloneNode', el);
+    checkNativeFunctionArgs('getElementsByClassName', 'elementGetElementsByClassName', el);
+    checkNativeFunctionArgs('getElementsByTagName', 'elementGetElementsByTagName', el);
+    checkNativeFunctionArgs('querySelector', 'elementQuerySelector', el);
+    checkNativeFunctionArgs('querySelectorAll', 'elementQuerySelectorAll', el);
+    checkNativeFunctionArgs('getAttribute', 'getAttribute', el);
+    checkNativeFunctionArgs('getAttributeNS', 'getAttributeNS', el);
+    checkNativeFunctionArgs('insertCell', 'insertCell', document.createElement('tr'));
+    checkNativeFunctionArgs('insertRow', 'insertTableRow', document.createElement('table'));
+    checkNativeFunctionArgs('insertRow', 'insertTBodyRow', document.createElement('tbody'));
+    checkNativeFunctionArgs('removeAttribute', 'removeAttribute', el);
+    checkNativeFunctionArgs('removeAttributeNS', 'removeAttributeNS', el);
+    checkNativeFunctionArgs('removeChild', 'removeChild', el);
+    checkNativeFunctionArgs('setAttribute', 'setAttribute', el);
+    checkNativeFunctionArgs('setAttributeNS', 'setAttributeNS', el);
+    checkNativeFunctionArgs('dispatchEvent', 'dispatchEvent', el);
+
+    if (el.attachEvent && el.detachEvent) {
+        checkNativeFunctionArgs('attachEvent', 'addEventListener', el);
+        checkNativeFunctionArgs('detachEvent', 'removeEventListener', el);
+    }
+
+    listeners.initElementListening(el, ['click']);
+
+    checkNativeFunctionArgs('addEventListener', 'addEventListener', el);
+    checkNativeFunctionArgs('removeEventListener', 'removeEventListener', el);
 });
 
 module('resgression');

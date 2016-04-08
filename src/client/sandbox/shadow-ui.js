@@ -130,24 +130,26 @@ export default class ShadowUI extends SandboxBase {
 
     _overrideElementMethods (window) {
         var overridedMethods = {
-            getElementsByClassName (names) {
-                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.call(this, names));
+            getElementsByClassName () {
+                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.apply(this, arguments));
             },
 
-            getElementsByTagName (name) {
-                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.call(this, name));
+            getElementsByTagName () {
+                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.apply(this, arguments));
             },
 
-            querySelector (selectors) {
-                selectors = NodeSandbox.processSelector(selectors);
+            querySelector () {
+                if (typeof arguments[0] === 'string')
+                    arguments[0] = NodeSandbox.processSelector(arguments[0]);
 
-                return ShadowUI._filterElement(nativeMethods.elementQuerySelector.call(this, selectors));
+                return ShadowUI._filterElement(nativeMethods.elementQuerySelector.apply(this, arguments));
             },
 
-            querySelectorAll (selectors) {
-                selectors = NodeSandbox.processSelector(selectors);
+            querySelectorAll () {
+                if (typeof arguments[0] === 'string')
+                    arguments[0] = NodeSandbox.processSelector(arguments[0]);
 
-                return ShadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.call(this, selectors));
+                return ShadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.apply(this, arguments));
             }
         };
 
