@@ -478,5 +478,7 @@ export default class ElementSandbox extends SandboxBase {
             this._setNonProxedSrcOnError(el);
         else if (domUtils.isIframeElement(el))
             this.iframeSandbox.processIframe(el);
+        else if (domUtils.isBaseElement(el))
+            urlResolver.updateBase(nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href')), this.document);
     }
 }
