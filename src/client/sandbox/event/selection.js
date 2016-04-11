@@ -165,14 +165,14 @@ export default class Selection {
             this.listeners.addInternalEventListener(document, ['focus'], focusHandler);
 
         // The focus and blur events
-        Listeners.beforeDispatchEvent();
-        Listeners.beforeDispatchEvent();
+        Listeners.beforeDispatchEvent(el);
+        Listeners.beforeDispatchEvent(el);
 
         result = selectionSetter();
 
         // The focus and blur events
-        Listeners.afterDispatchEvent();
-        Listeners.afterDispatchEvent();
+        Listeners.afterDispatchEvent(el);
+        Listeners.afterDispatchEvent(el);
 
         if (needFocus) {
             activeElement = domUtils.getActiveElement(curDocument);

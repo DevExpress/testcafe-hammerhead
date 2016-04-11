@@ -1,8 +1,9 @@
 var Listeners = hammerhead.get('./sandbox/event/listeners');
 
-var browserUtils = hammerhead.utils.browser;
-var domUtils     = hammerhead.utils.dom;
-var listeners    = hammerhead.sandbox.event.listeners;
+var browserUtils  = hammerhead.utils.browser;
+var domUtils      = hammerhead.utils.dom;
+var listeners     = hammerhead.sandbox.event.listeners;
+var iframeSandbox = hammerhead.sandbox.iframe;
 
 var containerCaptureEventRaised = false;
 var containerBubbleEventRaised  = false;
@@ -82,12 +83,17 @@ QUnit.testStart(function () {
     input      = $input[0];
     $uiElement = $('<div>').appendTo($container);
     uiElement  = $uiElement[0];
+
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
     $container.remove();
     $input.remove();
     $uiElement.remove();
+
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
 test('initElementListening', function () {
@@ -611,3 +617,126 @@ if (browserUtils.isIE && browserUtils.version >= 10) {
         }
     });
 }
+
+module('dispatched event flag should be written in the proper window (GH-529)');
+
+asyncTest('dispatchEvent, fireEvent, click', function () {
+    var iframe = document.createElement('iframe');
+    var link   = document.createElement('a');
+    // NOTE: To prevent the export of the constant and modification of the Listeners module export,
+    // we declare the constant in the test again.
+    var dispatchedEventFlag = 'hammerhead|event-sandbox-dispatch-event-flag';
+    // NOTE: After adding an element to a document which differs from the document where the element was created,
+    // some browsers automatically replace the element prototype's methods
+    // with methods of the element prototype from the different window.
+    var getListenersModule = function (iframeListenersModule, topLevelListenersModule) {
+        return browserUtils.isWebKit || browserUtils.isMSEdge ? topLevelListenersModule : iframeListenersModule;
+    };
+
+    iframe.id = 'test_unique_id_qrsdcz';
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument            = iframe.contentDocument;
+            var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
+            var iframeListeners           = iframeHammerhead.get('./sandbox/event/listeners');
+            var targetListeners           = getListenersModule(iframeListeners, Listeners);
+            var storedBeforeDispatchEvent = targetListeners.beforeDispatchEvent;
+            var storedAfterDispatchEvent  = targetListeners.afterDispatchEvent;
+
+            targetListeners.beforeDispatchEvent = function (el) {
+                ok(!iframe.contentWindow[dispatchedEventFlag]);
+                ok(!window[dispatchedEventFlag]);
+
+                storedBeforeDispatchEvent(el);
+
+                ok(iframe.contentWindow[dispatchedEventFlag]);
+                ok(!window[dispatchedEventFlag]);
+            };
+
+            targetListeners.afterDispatchEvent  = function (el) {
+                ok(iframe.contentWindow[dispatchedEventFlag]);
+                ok(!window[dispatchedEventFlag]);
+
+                storedAfterDispatchEvent(el);
+
+                ok(!iframe.contentWindow[dispatchedEventFlag]);
+                ok(!window[dispatchedEventFlag]);
+            };
+
+            iframeDocument.body.appendChild(link);
+
+            dispatchEvent(link, 'click');
+            link.click();
+
+            if (document.fireEvent)
+                link.fireEvent('click');
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
+});
+
+if (browserUtils.isIE && !browserUtils.isMSEdge) {
+    asyncTest('setSelection', function () {
+        var iframe    = document.createElement('iframe');
+        var testInput = document.createElement('input');
+        // NOTE: To prevent the export of the constant and modification of the Listeners module export,
+        // we declare the constant in the test again.
+        var dispatchedEventFlag = 'hammerhead|event-sandbox-dispatch-event-flag';
+        var counter             = 0;
+
+        testInput.addEventListener('focus', function () {
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
+        testInput.value = 'test';
+        iframe.id       = 'test_unique_id_qrsj12vbz';
+
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                var iframeDocument            = iframe.contentDocument;
+                var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
+                var iframeListeners           = iframeHammerhead.get('./sandbox/event/listeners');
+                var storedBeforeDispatchEvent = iframeListeners.beforeDispatchEvent;
+                var storedAfterDispatchEvent  = iframeListeners.afterDispatchEvent;
+
+                iframeListeners.beforeDispatchEvent = function (el) {
+                    strictEqual(!!counter, !!iframe.contentWindow[dispatchedEventFlag]);
+                    ok(!window[dispatchedEventFlag]);
+
+                    storedBeforeDispatchEvent(el);
+
+                    ok(iframe.contentWindow[dispatchedEventFlag]);
+                    ok(!window[dispatchedEventFlag]);
+
+                    counter++;
+                };
+
+                iframeListeners.afterDispatchEvent = function (el) {
+                    ok(iframe.contentWindow[dispatchedEventFlag]);
+                    ok(!window[dispatchedEventFlag]);
+
+                    storedAfterDispatchEvent(el);
+
+                    if (counter === 2)
+                        ok(iframe.contentWindow[dispatchedEventFlag]);
+                    else
+                        ok(!iframe.contentWindow[dispatchedEventFlag]);
+
+                    ok(!window[dispatchedEventFlag]);
+
+                    counter++;
+                };
+
+                iframeDocument.body.appendChild(testInput);
+                testInput.setSelectionRange(1, 2);
+            });
+
+        document.body.appendChild(iframe);
+    });
+}
+
