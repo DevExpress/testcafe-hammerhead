@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+    <script type="text/javascript">
+        var hammerhead = window['%hammerhead%'];
+
+        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://subdomain.example.com');
+        hammerhead.start({
+            sessionId: 'sessionId',
+            CROSS_DOMAIN_PROXY_PORT: 2000
+        });
+
+        document.write('<base href="http://example.com/">');
+    </script>
+</head>
+<body>
+    <script>
+        document.write('<a href="/relative"></a>');
+    </script>
+</body>
+</html>

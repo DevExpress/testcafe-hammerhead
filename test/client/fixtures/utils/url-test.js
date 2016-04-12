@@ -412,3 +412,20 @@ test('"base" tag with an href attribute that is set to a relative url (GH-422)',
 
     base.parentNode.removeChild(base);
 });
+
+asyncTest('resolving url after writing the "base" tag (GH-526)', function () {
+    var iframe = document.createElement('iframe');
+    var src    = window.QUnitGlobals.getResourceUrl('../../data/same-domain/resolving-url-after-writing-base-tag.html');
+
+    iframe.id = 'test';
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            strictEqual(iframe.contentDocument.querySelector('a').href,
+                urlUtils.getProxyUrl('http://example.com/relative', location.hostname, location.port, 'sessionId', 'i'));
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
+});
