@@ -50,6 +50,7 @@ export const PROPERTIES = [
     'protocol',
     'referrer',
     'sandbox',
+    'scripts',
     'search',
     'sessionStorage',
     'src',
