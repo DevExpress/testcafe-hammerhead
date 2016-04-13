@@ -7,6 +7,7 @@ import connectionResetGuard from './connection-reset-guard';
 import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
+import { isSpecialPage } from '../utils/url';
 
 // Stages
 var stages = {
@@ -17,7 +18,14 @@ var stages = {
 
     1: function sendDestinationRequest (ctx, next) {
         var opts = createReqOpts(ctx);
-        var req  = new DestinationRequest(opts);
+
+        if (isSpecialPage(opts.url)) {
+            ctx.isSpecialPage = true;
+            assignSpecialPageHeadersToDestRes(ctx);
+            next();
+        }
+
+        var req = new DestinationRequest(opts);
 
         req.on('response', res => {
             ctx.destRes = res;
@@ -54,7 +62,10 @@ var stages = {
     },
 
     4: async function fetchContent (ctx, next) {
-        ctx.destResBody = await fetchBody(ctx.destRes);
+        if (ctx.isSpecialPage)
+            ctx.destResBody = new Buffer(0);
+        else
+            ctx.destResBody = await fetchBody(ctx.destRes);
 
         // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
         // we can still process such requests. (B234324)
@@ -131,6 +142,16 @@ function error (ctx, err) {
 
 function isDestResBodyMalformed (ctx) {
     return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
+}
+
+function assignSpecialPageHeadersToDestRes (ctx) {
+    ctx.destRes = {
+        headers: {
+            'content-type': 'text/html'
+        },
+        statusCode: 200,
+        trailers:   {}
+    };
 }
 
 

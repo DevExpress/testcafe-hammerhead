@@ -44,10 +44,11 @@ export default class RequestPipelineContext {
         this.destResBody   = null;
         this.hasDestReqErr = false;
 
-        this.isXhr       = false;
-        this.isPage      = false;
-        this.isIframe    = false;
-        this.contentInfo = null;
+        this.isXhr         = false;
+        this.isPage        = false;
+        this.isIframe      = false;
+        this.isSpecialPage = false;
+        this.contentInfo   = null;
 
         var acceptHeader = req.headers['accept'];
 
@@ -56,8 +57,8 @@ export default class RequestPipelineContext {
     }
 
     _getDestFromReferer (parsedReferer) {
-        // NOTE: Browsers may send the default port in the ‘referer’ header. But since we compose the destination
-        // URL from it, we need to skip the port number if it's the protocol’s default port. Some servers have
+        // NOTE: Browsers may send the default port in the 'referer' header. But since we compose the destination
+        // URL from it, we need to skip the port number if it's the protocol's default port. Some servers have
         // host conditions that do not include a port number.
         var rDest         = parsedReferer.dest;
         var isDefaultPort = rDest.protocol === 'https:' && rDest.port === '443' ||
@@ -109,7 +110,7 @@ export default class RequestPipelineContext {
         parsedReqUrl  = flattenParsedProxyUrl(parsedReqUrl);
         parsedReferer = flattenParsedProxyUrl(parsedReferer);
 
-        // NOTE: Try to extract the destination from the ‘referer’ header.
+        // NOTE: Try to extract the destination from the 'referer' header.
         if (!parsedReqUrl && parsedReferer)
             parsedReqUrl = this._getDestFromReferer(parsedReferer);
 

@@ -1,5 +1,6 @@
 var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
+var sharedUrlUtils = hammerhead.get('../utils/url');
 var destLocation   = hammerhead.get('./utils/destination-location');
 
 var browserUtils  = hammerhead.utils.browser;
@@ -219,6 +220,14 @@ test('unexpected trailing slash (GH-342)', function () {
     ok(/\/$/.test(proxyUrl));
 });
 
+test('special pages (GH-339)', function () {
+    sharedUrlUtils.SPECIAL_PAGES.forEach(function (url) {
+        var proxyUrl = urlUtils.getProxyUrl(url, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+
+        strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + url);
+    });
+});
+
 module('parse proxy url');
 
 test('http', function () {
@@ -273,6 +282,21 @@ test('single question mark', function () {
     var proxyUtrl = urlUtils.getProxyUrl(url, 'hostname', 1111, 'sessionId');
 
     strictEqual(url, urlUtils.formatUrl(urlUtils.parseProxyUrl(proxyUtrl).destResourceInfo));
+});
+
+test('special pages (GH-339)', function () {
+    sharedUrlUtils.SPECIAL_PAGES.forEach(function (url) {
+        var proxyUrl      = 'http://' + PROXY_HOST + '/sessionId/' + url;
+        var parsingResult = urlUtils.parseProxyUrl(proxyUrl);
+
+        strictEqual(parsingResult.destUrl, url);
+        strictEqual(parsingResult.destResourceInfo.protocol, 'about:');
+        strictEqual(parsingResult.destResourceInfo.host, '');
+        strictEqual(parsingResult.destResourceInfo.hostname, '');
+        strictEqual(parsingResult.destResourceInfo.port, '');
+        strictEqual(parsingResult.destResourceInfo.partAfterHost, '');
+        strictEqual(parsingResult.sessionId, 'sessionId');
+    });
 });
 
 module('change proxy url');

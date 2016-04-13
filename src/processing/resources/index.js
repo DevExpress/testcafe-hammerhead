@@ -9,7 +9,7 @@ import { ensureTrailingSlash } from '../../utils/url';
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
-        if (!urlUtil.isSupportedProtocol(resourceUrl))
+        if (!urlUtil.isSupportedProtocol(resourceUrl) && !urlUtil.isSpecialPage(resourceUrl))
             return resourceUrl;
 
         // NOTE: Resolves base URLs without a protocol ('//google.com/path' for example).

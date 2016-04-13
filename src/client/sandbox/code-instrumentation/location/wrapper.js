@@ -6,7 +6,12 @@ import { getDomain, stringifyResourceType } from '../../../../utils/url';
 export default class LocationWrapper {
     constructor (window) {
         var resourceType   = stringifyResourceType(window !== window.top);
-        var getHref        = () => window.location.href === 'about:blank' ? 'about:blank' : getDestLocation();
+        var getHref        = () => {
+            if (window !== window.top && window.location.href === 'about:blank')
+                return 'about:blank';
+
+            return getDestLocation();
+        };
         var getProxiedHref = href => getProxyUrl(href, null, null, null, resourceType);
         var urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 

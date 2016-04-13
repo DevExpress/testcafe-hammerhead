@@ -5,6 +5,7 @@ var processScript  = hammerhead.get('../processing/script').processScript;
 var styleProcessor = hammerhead.get('../processing/style');
 var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
+var sharedUrlUtils = hammerhead.get('../utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -315,6 +316,27 @@ test('stylesheet after innerHTML', function () {
 
     eval(processScript('style.innerHTML = style.innerHTML;'));
     check(style.innerHTML);
+});
+
+test('special pages (GH-339)', function () {
+    var link   = document.createElement('a');
+    var image  = document.createElement('img');
+    var iframe = document.createElement('iframe');
+
+    sharedUrlUtils.SPECIAL_PAGES.forEach(function (specialPagUrl) {
+        link.setAttribute('href', specialPagUrl);
+        image.setAttribute('src', specialPagUrl);
+        iframe.setAttribute('src', specialPagUrl);
+
+        var linkHrefUrl  = nativeMethods.getAttribute.call(link, 'href');
+        var proxyUrl     = urlUtils.getProxyUrl(specialPagUrl);
+        var imageSrcUrl  = nativeMethods.getAttribute.call(image, 'src');
+        var iframeSrcUrl = nativeMethods.getAttribute.call(iframe, 'src');
+
+        strictEqual(linkHrefUrl, proxyUrl);
+        strictEqual(imageSrcUrl, specialPagUrl);
+        strictEqual(iframeSrcUrl, specialPagUrl);
+    });
 });
 
 module('regression');

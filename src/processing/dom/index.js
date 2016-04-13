@@ -416,14 +416,16 @@ export default class DomProcessor {
         if (urlReplacer && pattern.urlAttr) {
             var storedUrlAttr     = this.getStoredAttrName(pattern.urlAttr);
             var resourceUrl       = this.adapter.getAttr(el, pattern.urlAttr);
+            var isSpecialPage     = urlUtils.isSpecialPage(resourceUrl);
             var processedOnServer = this.adapter.hasAttr(el, storedUrlAttr);
 
             // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
-                if (urlUtils.isSupportedProtocol(resourceUrl) && !EMPTY_URL_REG_EX.test(resourceUrl)) {
+                if ((urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) && !EMPTY_URL_REG_EX.test(resourceUrl)) {
                     var elTagName = this.adapter.getTagName(el);
                     var isIframe  = elTagName === 'iframe';
                     var isScript  = elTagName === 'script';
+                    var isAnchor  = elTagName === 'a';
                     var target    = this.adapter.getAttr(el, 'target');
 
                     // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
@@ -438,7 +440,7 @@ export default class DomProcessor {
                     var charsetAttrValue  = isScript && this.adapter.getAttr(el, 'charset');
 
                     // NOTE: Only a non-relative iframe src can be cross-domain.
-                    if (isIframe && !isRelativePath) {
+                    if (isIframe && !isSpecialPage && !isRelativePath) {
                         var location    = urlReplacer('/');
                         var proxyUrlObj = urlUtils.parseProxyUrl(location);
                         var destUrl     = proxyUrlObj.destUrl;
@@ -457,12 +459,16 @@ export default class DomProcessor {
 
                     }
 
-                    proxyUrl = proxyUrl === '' &&
-                               resourceUrl ? urlReplacer(resourceUrl, resourceType, charsetAttrValue) : proxyUrl;
+                    if (isSpecialPage && !isAnchor)
+                        proxyUrl = resourceUrl;
+
+                    proxyUrl = proxyUrl === '' && resourceUrl ?
+                               urlReplacer(resourceUrl, resourceType, charsetAttrValue) :
+                               proxyUrl;
 
                     this.adapter.setAttr(el, storedUrlAttr, resourceUrl);
 
-                    if (elTagName === 'img' && proxyUrl !== '')
+                    if (elTagName === 'img' && proxyUrl !== '' && !isSpecialPage)
                         this.adapter.setAttr(el, pattern.urlAttr, urlUtils.resolveUrlAsDest(resourceUrl, urlReplacer));
                     else
                         this.adapter.setAttr(el, pattern.urlAttr, proxyUrl);

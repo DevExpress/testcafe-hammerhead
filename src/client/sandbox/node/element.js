@@ -58,10 +58,11 @@ export default class ElementSandbox extends SandboxBase {
         var isSupportedProtocol = urlUtils.isSupportedProtocol(value);
         var urlAttr             = ElementSandbox._isUrlAttr(el, attr);
         var isEventAttr         = domProcessor.EVENTS.indexOf(attr) !== -1;
+        var isSpecialPage       = urlUtils.isSpecialPage(value);
 
         value += '';
 
-        if (urlAttr && !isSupportedProtocol || isEventAttr) {
+        if (urlAttr && !isSupportedProtocol && !isSpecialPage || isEventAttr) {
             var isJsProtocol = domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(value);
             var storedJsAttr = domProcessor.getStoredAttrName(attr);
 
@@ -98,13 +99,13 @@ export default class ElementSandbox extends SandboxBase {
             else
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
         }
-        else if (urlAttr && isSupportedProtocol) {
+        else if (urlAttr && (isSupportedProtocol || isSpecialPage)) {
             var storedUrlAttr = domProcessor.getStoredAttrName(attr);
 
             setAttrMeth.apply(el, isNs ? [ns, storedUrlAttr, value] : [storedUrlAttr, value]);
 
             if (tagName !== 'img') {
-                if (value !== '') {
+                if (value !== '' && (!isSpecialPage || tagName === 'a')) {
                     var isIframe         = tagName === 'iframe';
                     var isScript         = tagName === 'script';
                     var isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
@@ -119,9 +120,8 @@ export default class ElementSandbox extends SandboxBase {
                                        urlUtils.getProxyUrl(value, null, null, null, resourceType, elCharset);
                 }
             }
-            else if (value && !urlUtils.parseProxyUrl(value))
+            else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value))
                 args[valueIndex] = urlUtils.resolveUrlAsDest(value);
-
         }
         else if (attr === 'autocomplete') {
             var storedAutocompleteAttr = domProcessor.getStoredAttrName(attr);
@@ -466,7 +466,10 @@ export default class ElementSandbox extends SandboxBase {
         img.addEventListener('error', e => {
             var storedAttr = nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src'));
 
-            if (storedAttr && !urlUtils.parseProxyUrl(img.src) && urlUtils.isSupportedProtocol(img.src)) {
+            if (storedAttr &&
+                !urlUtils.parseProxyUrl(img.src) &&
+                urlUtils.isSupportedProtocol(img.src) &&
+                !urlUtils.isSpecialPage(img.src)) {
                 nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
                 stopPropagation(e);
             }

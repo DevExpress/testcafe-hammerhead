@@ -1,5 +1,10 @@
 import Promise from 'pinkie';
 
+export function preventCaching (res) {
+    res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('pragma', 'no-cache');
+}
+
 export function respond404 (res) {
     res.statusCode = 404;
     res.end();
@@ -15,7 +20,7 @@ export function respondWithJSON (res, data, skipContentType) {
         res.setHeader('content-type', 'application/json');
 
     // NOTE: GH-105
-    res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
+    preventCaching(res);
     res.end(data ? JSON.stringify(data) : '');
 }
 

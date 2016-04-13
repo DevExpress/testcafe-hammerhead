@@ -79,7 +79,7 @@ describe('DOM processor', function () {
         img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
 
         expect(domAdapter.getAttr(img, 'src')).eql('about:blank');
-        expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).to.be.null;
+        expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).eql('about:blank');
     });
 
     it('Should process malformed <img> src', function () {

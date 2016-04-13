@@ -15,6 +15,7 @@ var Session                     = require('../../lib/session');
 var DestinationRequest          = require('../../lib/request-pipeline/destination-request');
 var requestAgent                = require('../../lib/request-pipeline/destination-request/agent');
 var scriptHeader                = require('../../lib/processing/script/header').HEADER;
+var urlUtils                    = require('../../lib/utils/url');
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
@@ -296,6 +297,29 @@ describe('Proxy', function () {
             var proxiedUrl = proxy.openSession('hTtp://ExaMple.Com:123/paTh/Image?Name=Value&#Hash', session);
 
             expect(proxiedUrl).to.have.string('http://example.com:123/paTh/Image?Name=Value&#Hash');
+        });
+
+        it('Should handle special pages', function () {
+            var specialPageProxyUrls   = urlUtils.SPECIAL_PAGES.map(function (url) {
+                return proxy.openSession(url, session);
+            });
+            var testSpecialPageRequest = function (url) {
+                return new Promise(function (resolve) {
+                    var options = {
+                        url:     url,
+                        headers: {
+                            accept: 'text/html'
+                        }
+                    };
+
+                    request(options, function (err, res, body) {
+                        expect(body).to.not.empty;
+                        resolve();
+                    });
+                });
+            };
+
+            return Promise.all(specialPageProxyUrls.map(testSpecialPageRequest));
         });
     });
 

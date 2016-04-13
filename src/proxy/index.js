@@ -2,7 +2,7 @@ import Router from './router';
 import http from 'http';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
-import { respond500, respondWithJSON, fetchBody } from '../utils/http';
+import { respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
 import { ie9FileReaderShim } from '../upload';
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
@@ -105,8 +105,7 @@ export default class Proxy extends Router {
 
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');
-            res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
-            res.setHeader('pragma', 'no-cache');
+            preventCaching(res);
             res.end(session.getTaskScript(referer, refererDest.destUrl, serverInfo, isIframe, true));
         }
         else
