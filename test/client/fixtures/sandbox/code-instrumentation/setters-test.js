@@ -1,8 +1,9 @@
-var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
-var urlUtils          = hammerhead.get('./utils/url');
-var domProcessor      = hammerhead.get('./dom-processor');
-var processScript     = hammerhead.get('../processing/script').processScript;
-var isScriptProcessed = hammerhead.get('../processing/script').isScriptProcessed;
+var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
+var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
+var urlUtils            = hammerhead.get('./utils/url');
+var domProcessor        = hammerhead.get('./dom-processor');
+var processScript       = hammerhead.get('../processing/script').processScript;
+var isScriptProcessed   = hammerhead.get('../processing/script').isScriptProcessed;
 
 var Promise               = hammerhead.Promise;
 var nativeMethods         = hammerhead.nativeMethods;
@@ -248,6 +249,18 @@ asyncTest('body.innerHTML in iframe', function () {
                 });
         });
     document.body.appendChild(iframe);
+});
+
+test('document.scripts', function () {
+    var scriptsCollectionLength = eval(processScript('document.scripts')).length;
+    var scriptEl                = document.createElement('script');
+
+    scriptEl.className = SHADOW_UI_CLASSNAME.script;
+    document.body.appendChild(scriptEl);
+
+    strictEqual(scriptsCollectionLength, eval(processScript('document.scripts')).length);
+
+    document.body.removeChild(scriptEl);
 });
 
 // NOTE: IE does not allow overriding the postMessage method.
