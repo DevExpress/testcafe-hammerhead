@@ -41,13 +41,13 @@ export default class EventSandbox extends SandboxBase {
 
         this.overridedMethods = {
             dispatchEvent: function () {
-                Listeners.beforeDispatchEvent();
+                Listeners.beforeDispatchEvent(this);
 
                 var isWindow = domUtils.isWindow(this);
                 var res      = isWindow ? nativeMethods.windowDispatchEvent.apply(this, arguments) :
                                nativeMethods.dispatchEvent.apply(this, arguments);
 
-                Listeners.afterDispatchEvent();
+                Listeners.afterDispatchEvent(this);
 
                 return res;
             },
@@ -57,7 +57,7 @@ export default class EventSandbox extends SandboxBase {
                 var createEventType;
                 var res;
 
-                Listeners.beforeDispatchEvent();
+                Listeners.beforeDispatchEvent(this);
 
                 // NOTE: Event is 'MSEventObj'.
                 if (!ev || !ev.target) {
@@ -82,7 +82,7 @@ export default class EventSandbox extends SandboxBase {
                 }
 
                 res = nativeMethods.dispatchEvent.call(this, ev);
-                Listeners.afterDispatchEvent();
+                Listeners.afterDispatchEvent(this);
 
                 return res;
             },
@@ -102,14 +102,14 @@ export default class EventSandbox extends SandboxBase {
             },
 
             click: function () {
-                Listeners.beforeDispatchEvent();
+                Listeners.beforeDispatchEvent(this);
 
                 if (domUtils.isFileInput(this))
                     eventSimulator.setClickedFileInput(this);
 
                 var res = eventSimulator.nativeClick(this, nativeMethods.click);
 
-                Listeners.afterDispatchEvent();
+                Listeners.afterDispatchEvent(this);
 
                 return res;
             },

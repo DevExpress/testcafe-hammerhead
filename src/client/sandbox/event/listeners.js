@@ -1,3 +1,4 @@
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import nativeMethods from '../native-methods';
 import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
@@ -86,6 +87,7 @@ export default class Listeners extends EventEmitter {
 
         return function (e) {
             var el                    = this;
+            var elWindow              = el[INTERNAL_PROPS.processedContext] || window;
             var eventPrevented        = false;
             var handlersCancelled     = false;
             var stopPropagationCalled = false;
@@ -113,7 +115,7 @@ export default class Listeners extends EventEmitter {
             };
 
             for (var i = 0; i < internalHandlers.length; i++) {
-                internalHandlers[i].call(el, e, !!window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG], preventEvent, cancelHandlers, stopEventPropagation);
+                internalHandlers[i].call(el, e, elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG], preventEvent, cancelHandlers, stopEventPropagation);
 
                 if (eventPrevented || stopPropagationCalled)
                     break;
@@ -265,15 +267,19 @@ export default class Listeners extends EventEmitter {
             this.listeningCtx.removeListeningElement(el.body);
     }
 
-    static beforeDispatchEvent () {
-        window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] = (window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] || 0) + 1;
+    static beforeDispatchEvent (el) {
+        var elWindow = el[INTERNAL_PROPS.processedContext] || window;
+
+        elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] = (elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG] || 0) + 1;
     }
 
-    static afterDispatchEvent () {
-        window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG]--;
+    static afterDispatchEvent (el) {
+        var elWindow = el[INTERNAL_PROPS.processedContext] || window;
 
-        if (!window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG])
-            delete window[EVENT_SANDBOX_DISPATCH_EVENT_FLAG];
+        elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG]--;
+
+        if (!elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG])
+            delete elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG];
     }
 
     setEventListenerWrapper (el, events, wrapper) {
