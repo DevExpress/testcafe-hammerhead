@@ -310,6 +310,22 @@ test('document.createDocumentFragment must be overriden (B237717)', function () 
     notEqual(clone.firstChild.getAttribute, nativeMethods.getAttribute);
 });
 
+if (!browserUtils.isIE || browserUtils.version > 9) {
+    test('Range.createContextualFragment must be overriden (GH-535)', function () {
+        var tagString = '<a href="http://some.domain.com/index.html"></a>';
+        var range     = document.createRange();
+        var container = document.createElement('div');
+
+        document.body.appendChild(container);
+
+        range.selectNode(container);
+
+        var fragment = range.createContextualFragment(tagString);
+
+        strictEqual(fragment.childNodes[0].href, urlUtils.getProxyUrl('http://some.domain.com/index.html'));
+    });
+}
+
 if (window.navigator.serviceWorker) {
     asyncTest('navigator.serviceWorker in the iframe is not available (GH-277)', function () {
         var iframe = document.createElement('iframe');
