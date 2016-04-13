@@ -29,6 +29,26 @@ export default class ElementSandbox extends SandboxBase {
         this.BEFORE_FORM_SUBMIT = 'hammerhead|event|before-form-submit';
     }
 
+    static _onTargetChanged (el, newTarget) {
+        var urlAttr        = domUtils.getTagName(el) === 'form' ? 'action' : 'href';
+        var url            = el[urlAttr];
+        var isIframeTarget = newTarget && newTarget !== '_self' && newTarget !== '_parent' && newTarget !== '_top';
+
+        if (url && urlUtils.isSupportedProtocol(url)) {
+            var parsedUrl = urlUtils.parseProxyUrl(url);
+
+            if (parsedUrl) {
+                var parsedResourceType = urlUtils.parseResourceType(parsedUrl.resourceType);
+
+                if (parsedResourceType.isIframe !== isIframeTarget) {
+                    var resourceType = urlUtils.stringifyResourceType(isIframeTarget, parsedResourceType.isForm, parsedResourceType.isScript);
+
+                    el[urlAttr] = urlUtils.getProxyUrl(parsedUrl.destUrl, null, null, null, resourceType);
+                }
+            }
+        }
+    }
+
     _overridedGetAttributeCore (el, args, isNs) {
         var attr        = args[isNs ? 1 : 0];
         var ns          = isNs ? args[0] : null;
@@ -130,8 +150,12 @@ export default class ElementSandbox extends SandboxBase {
 
             args[valueIndex] = 'off';
         }
-        else if (attr === 'target' && value === '_blank' && domProcessor.TARGET_ATTR_TAGS[tagName])
-            return null;
+        else if (attr === 'target' && domProcessor.TARGET_ATTR_TAGS[tagName]) {
+            if (value === '_blank')
+                return null;
+
+            ElementSandbox._onTargetChanged(el, value);
+        }
         else if (attr === 'sandbox' && value.indexOf('allow-scripts') === -1) {
             var storedSandboxAttr = domProcessor.getStoredAttrName(attr);
 
@@ -168,6 +192,9 @@ export default class ElementSandbox extends SandboxBase {
             else
                 removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
         }
+
+        if (attr === 'target')
+            ElementSandbox._onTargetChanged(el, null);
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
             urlResolver.updateBase(getDestLocation(), this.document);

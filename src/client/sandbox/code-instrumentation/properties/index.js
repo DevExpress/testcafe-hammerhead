@@ -404,13 +404,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             target: {
                 condition: el => domUtils.isDomElement(el) && TARGET_ATTR_TAGS[domUtils.getTagName(el)],
                 get:       el => el.target,
-
-                set: (el, value) => {
-                    if (value !== '_blank')
-                        el.target = value;
-
-                    return el.target;
-                }
+                set:       (el, value) => el.setAttribute('target', value)
             },
 
             text: {
@@ -428,7 +422,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             textContent: {
                 // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
                 condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el),
-                get:       el => typeof el.textContent === 'string' ? removeProcessingHeader(el.textContent) : el.textContent,
+                get:       el => typeof el.textContent ===
+                                 'string' ? removeProcessingHeader(el.textContent) : el.textContent,
 
                 set: (el, script) => {
                     el.textContent = script ? processScript(script, true, false) : script;
