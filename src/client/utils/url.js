@@ -110,3 +110,11 @@ export function isSupportedProtocol (url) {
 export function isSpecialPage (url) {
     return sharedUrlUtils.isSpecialPage(url);
 }
+
+export function parseResourceType (resourceType) {
+    return sharedUrlUtils.parseResourceType(resourceType);
+}
+
+export function stringifyResourceType (isIframe, isForm, isScript) {
+    return sharedUrlUtils.stringifyResourceType(isIframe, isForm, isScript);
+}

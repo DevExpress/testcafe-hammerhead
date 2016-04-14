@@ -452,6 +452,64 @@ test('anchor with target attribute', function () {
 
 module('regression');
 
+test('change href after target attribute changed (GH-534)', function () {
+    var check = function (setTarget, clearTarget) {
+        var form = document.createElement('form');
+        var link = document.createElement('a');
+        var base = document.createElement('base');
+        var area = document.createElement('area');
+        var url  = 'http://some.domain.com/index.html';
+
+        form.setAttribute('action', url);
+        link.setAttribute('href', url);
+        base.setAttribute('href', url);
+        area.setAttribute('href', url);
+
+        strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'f');
+        strictEqual(urlUtils.parseProxyUrl(link.href).resourceType, null);
+        strictEqual(urlUtils.parseProxyUrl(base.href).resourceType, null);
+        strictEqual(urlUtils.parseProxyUrl(area.href).resourceType, null);
+
+        setTarget(form);
+        setTarget(link);
+        setTarget(base);
+        setTarget(area);
+
+        strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'if');
+        strictEqual(urlUtils.parseProxyUrl(link.href).resourceType, 'i');
+        strictEqual(urlUtils.parseProxyUrl(base.href).resourceType, 'i');
+        strictEqual(urlUtils.parseProxyUrl(area.href).resourceType, 'i');
+
+        clearTarget(form);
+        clearTarget(link);
+        clearTarget(base);
+        clearTarget(area);
+
+        strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'f');
+        strictEqual(urlUtils.parseProxyUrl(link.href).resourceType, null);
+        strictEqual(urlUtils.parseProxyUrl(base.href).resourceType, null);
+        strictEqual(urlUtils.parseProxyUrl(area.href).resourceType, null);
+    };
+
+    check(function (el) {
+        el.setAttribute('target', 'fake-window');
+    }, function (el) {
+        el.removeAttribute('target');
+    });
+
+    check(function (el) {
+        el.setAttribute('target', 'fake-window');
+    }, function (el) {
+        el.setAttribute('target', '');
+    });
+
+    check(function (el) {
+        setProperty(el, 'target', 'fake-window');
+    }, function (el) {
+        setProperty(el, 'target', '');
+    });
+});
+
 test('setting function to the link.href attribute value (T230764)', function () {
     var a     = document.createElement('a');
     var error = false;
