@@ -6,6 +6,7 @@ import nativeMethods from '../native-methods';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
+import { processHtml } from '../../utils/html';
 import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl } from '../../utils/url';
 import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
@@ -180,6 +181,19 @@ export default class WindowSandbox extends SandboxBase {
                     args[0] = getProxyUrl(args[0]);
 
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
+            };
+        }
+
+        if (window.Range.prototype.createContextualFragment) {
+            window.Range.prototype.createContextualFragment = function () {
+                if (typeof arguments[0] === 'string')
+                    arguments[0] = processHtml(arguments[0]);
+
+                var fragment = nativeMethods.createContextualFragment.apply(this, arguments);
+
+                nodeSandbox.processNodes(fragment);
+
+                return fragment;
             };
         }
 

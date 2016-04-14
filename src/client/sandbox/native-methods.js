@@ -116,6 +116,8 @@ class NativeMethods {
             this.registerServiceWorker = null;
         }
 
+        this.createContextualFragment = win.Range.prototype.createContextualFragment;
+
         // Event
         this.windowAddEventListener    = win.addEventListener || Window.prototype.addEventListener;
         this.windowRemoveEventListener = win.removeEventListener || Window.prototype.removeEventListener;
