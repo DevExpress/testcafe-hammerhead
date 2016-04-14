@@ -45,6 +45,7 @@ export const PROPERTIES = [
     'onerror',
     'onmessage',
     'origin',
+    'outerHTML',
     'pathname',
     'port',
     'protocol',

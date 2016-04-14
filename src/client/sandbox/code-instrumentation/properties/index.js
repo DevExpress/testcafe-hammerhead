@@ -261,6 +261,40 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
+            outerHTML: {
+                condition: el => domUtils.isElementNode(el) && typeof el.outerHTML === 'string',
+                get:       el => cleanUpHtml(el.outerHTML, el.parentNode && el.parentNode.tagName),
+
+                set: (el, value) => {
+                    var parentEl = el.parentNode;
+
+                    if (parentEl) {
+                        var parentDocument = domUtils.findDocument(parentEl);
+                        var parentWindow   = parentDocument ? parentDocument.defaultView : null;
+
+                        el.outerHTML = processHtml('' + value, parentEl.tagName);
+
+                        // NOTE: For the iframe with an empty src.
+                        if (parentWindow && parentWindow !== window &&
+                            parentWindow[INTERNAL_PROPS.processDomMethodName])
+                            parentWindow[INTERNAL_PROPS.processDomMethodName](parentEl, parentDocument);
+                        else if (window[INTERNAL_PROPS.processDomMethodName])
+                            window[INTERNAL_PROPS.processDomMethodName](parentEl);
+
+                        // NOTE: This check is required for an element in an unavailable window.
+                        // NOTE: Use timeout, so that changes take effect.
+                        if (window.self && domUtils.isBodyElement(el))
+                            nativeMethods.setTimeout.call(window, () => this.shadowUI.onBodyElementMutation(), 0);
+
+                        return value;
+                    }
+
+                    el.outerHTML = value;
+
+                    return value;
+                }
+            },
+
             onerror: {
                 condition: domUtils.isWindow,
                 get:       owner => owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] || null,
