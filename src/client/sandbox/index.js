@@ -46,6 +46,19 @@ export default class Sandbox extends SandboxBase {
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
     }
 
+    // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,
+    // so that we cannot use a sandbox created earlier and we have to create a new one.
+    static _canUseSandbox (sandbox) {
+        try {
+            sandbox.off();
+        }
+        catch (e) {
+            return false;
+        }
+
+        return true;
+    }
+
     _refreshNativeMethods (window, document) {
         var tryToExecuteCode = func => {
             try {
@@ -111,7 +124,7 @@ export default class Sandbox extends SandboxBase {
             // NOTE: Try to find an existing iframe sandbox.
             var sandbox = getSandboxBackup(iframe.contentWindow);
 
-            if (sandbox)
+            if (sandbox && Sandbox._canUseSandbox(sandbox))
             // NOTE: Inform the sandbox so that it restores communication with the recreated document.
                 sandbox.reattach(iframe.contentWindow, iframe.contentDocument);
             else {
@@ -155,7 +168,7 @@ export default class Sandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        urlResolver.init(document);
+        urlResolver.init(this.document);
 
         // NOTE: Eval Hammerhead code script.
         this.iframe.on(this.iframe.EVAL_HAMMERHEAD_SCRIPT, e => initHammerheadClient(e.iframe.contentWindow, true));
