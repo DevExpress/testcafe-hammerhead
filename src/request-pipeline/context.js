@@ -155,6 +155,8 @@ export default class RequestPipelineContext {
         var requireProcessing       = !this.isXhr && !isFormWithEmptyResponse && !isRedirect &&
                                       (this.isPage || this.isIframe || requireAssetsProcessing);
 
+        var isFileDownload = this._isFileDownload();
+
         var isIframeWithImageSrc = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
         var charset             = null;
@@ -168,7 +170,7 @@ export default class RequestPipelineContext {
                 charset.fromUrl(this.dest.charset);
         }
 
-        if (this._isFileDownload())
+        if (isFileDownload)
             this.session.handleFileDownload();
 
         this.contentInfo = {
@@ -179,7 +181,8 @@ export default class RequestPipelineContext {
             isScript,
             isManifest,
             encoding,
-            contentTypeUrlToken
+            contentTypeUrlToken,
+            isFileDownload
         };
     }
 

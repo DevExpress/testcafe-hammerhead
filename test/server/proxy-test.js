@@ -17,6 +17,8 @@ var requestAgent                = require('../../lib/request-pipeline/destinatio
 var scriptHeader                = require('../../lib/processing/script/header').HEADER;
 var urlUtils                    = require('../../lib/utils/url');
 
+var EMPTY_PAGE = '<html></html>';
+
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
 }
@@ -103,6 +105,12 @@ describe('Proxy', function () {
             res.set('content-encoding', 'gzip');
             res.set('content-type', 'text/html; charset=utf-8');
             res.end('42');
+        });
+
+        app.get('/download', function (req, res) {
+            res.set('content-disposition', 'attachment;filename=DevExpressTestCafe-15.1.2.exe');
+            res.end(EMPTY_PAGE);
+
         });
 
         app.options('/preflight', function (req, res) {
@@ -203,6 +211,9 @@ describe('Proxy', function () {
 
         session.getAuthCredentials = function () {
             return null;
+        };
+
+        session.handleFileDownload = function () {
         };
 
         proxy = new Proxy('127.0.0.1', 1836, 1837);
@@ -549,6 +560,21 @@ describe('Proxy', function () {
                 done();
             });
         });
+
+        it('Should not process file download', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/download', session),
+                method:  'GET',
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                expect(body).eql(EMPTY_PAGE);
+                done();
+            });
+        });
     });
 
     describe('Basic authentication', function () {
@@ -840,7 +866,8 @@ describe('Proxy', function () {
                     var host = 'http://127.0.0.1:' + port;
 
                     session.handlePageError = function (ctx, err) {
-                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '">' + host + '</a>.');
+                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '">' +
+                                        host + '</a>.');
                         ctx.res.end();
                         done();
                         return true;
