@@ -2,7 +2,6 @@
 var domProcessor      = hammerhead.get('./dom-processor');
 var htmlUtils         = hammerhead.get('./utils/html');
 var processScript     = hammerhead.get('../processing/script').processScript;
-var PROCESSING_HEADER = hammerhead.get('../processing/script/header').HEADER;
 var urlUtils          = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
@@ -124,12 +123,6 @@ test('text node', function () {
     ok(!error);
 });
 
-test('script inner html', function () {
-    var html = htmlUtils.processHtml('var v = a && b;', 'script');
-
-    strictEqual(html.replace(/\s/g, ''), (PROCESSING_HEADER + 'var v = a && b;').replace(/\s/g, ''));
-});
-
 test('html fragment', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
     var htmlToProcess     = $('<a href="www.google.com">Link</a>')[0].innerHTML;
@@ -176,6 +169,11 @@ test('text nodes', function () {
           '</tr>textNode' +
           '</tbody>textNode' +
           '</table>');
+    check('<!--<h4>New Job</h4>-->' +
+          '<!--<table>-->' +
+          '<!--    <tr>-->' +
+          '<!--        <td>Customer:</td>-->' +
+          '<!--        <td>-->');
 });
 
 test('page html', function () {
@@ -190,7 +188,7 @@ test('page html', function () {
 
         ok(processedHtml.indexOf('replacedBodyScript.js') !== -1);
         ok(processedHtml.indexOf('replacedHeadScript.js') !== -1);
-        strictEqual(html, htmlUtils.cleanUpHtml(processedHtml));
+        strictEqual(html.toLowerCase(), htmlUtils.cleanUpHtml(processedHtml).toLowerCase());
     };
 
     check('<!DOCTYPE html><html><head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script></body></html>');
@@ -198,7 +196,8 @@ test('page html', function () {
     check('<head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script></body>');
     check('<head><script src="HeadScript.js"><\/script><script src="BodyScript.js"><\/script></head>');
     check('<body><script src="HeadScript.js"><\/script><script src="BodyScript.js"><\/script></body>');
-    check('<!DOCTYPE html><html><head><script src="HeadScript.js"><\/script></head><body>\u2028\u2029<script src="BodyScript.js"><\/script></body></html>');
+    check('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' +
+          '<html><head><script src="HeadScript.js"><\/script></head><body>\u2028\u2029<script src="BodyScript.js"><\/script></body></html>');
     check('<html><head><script src="HeadScript.js"><\/script></head><body>\u2028\u2029<script src="BodyScript.js"><\/script></body></html>');
     check('<head param="value"><script src="HeadScript.js"><\/script></head><body>\u2028\u2029<script src="BodyScript.js"><\/script></body>');
     check('<head>\u2028\u2029<script src="HeadScript.js"><\/script></head><body param="value"><script src="BodyScript.js"><\/script></body>');
@@ -209,8 +208,8 @@ test('page html', function () {
 });
 
 test('partial page html', function () {
-    strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml('<!DOCTYPE html><html><head></head><body>')),
-        '<!DOCTYPE html><html><head></head><body></body></html>');
+    strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml('<!doctype html><html><head></head><body>')),
+        '<!doctype html><html><head></head><body></body></html>');
 
     strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml('<html><head></head><body>')),
         '<html><head></head><body></body></html>');
@@ -232,98 +231,7 @@ test('init script for iframe template', function () {
     check('<body>{0}</body>');
 });
 
-module('is well formatted tag');
-
-test('special cases', function () {
-    // NOTE: Single tags with plain text.
-    strictEqual(htmlUtils.isWellFormattedHtml(''), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('test<div />blablabla'), true);
-
-    // NOTE: Script, style.
-    strictEqual(htmlUtils.isWellFormattedHtml('<script type="text/javascript" src="URL">alert("hello");<\/script>'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div><style type="text/css">div > h1 { font-size: 120%; }<\/style></div>'), true);
-
-    // NOTE: Html comments and ie-specific comments.
-    strictEqual(htmlUtils.isWellFormattedHtml('test<!--Html comment-->blablabla'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<head><style type="text/css">P { color: green; }</style><!--[if IE 7]><style type="text/css"> P { color: red; }</style><![endif]--></head>'), true);
-
-    // NOTE: Doctype.
-    strictEqual(htmlUtils.isWellFormattedHtml('<!DOCTYPE html> '), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<!DOCTYPE HTML PUBLIC \n "-//W3C//DTD HTML 4.01//EN" \n "http://www.w3.org/TR/html4/strict.dtd">'), true);
-
-    // NOTE: Empty tags.
-    strictEqual(htmlUtils.isWellFormattedHtml('<div><br></div>'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div><br /></div>'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div><input></input></div>'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div><input><img></input></div>'), false);
-
-    // NOTE: Self closed.
-    strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="1"><tr><td></td></tr></table>'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="1"><col span="1"><col span="1"></colgroup><tr><td></td></tr></table>'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<table><colgroup width="150"><colgroup><col span="1"><col span="2"></colgroup><tr><td></td></tr></table>'), true);
-
-    // NOTE: Upper case, new line.
-    strictEqual(htmlUtils.isWellFormattedHtml(' \n <div ></DIV>'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div id="test">\n <div class="inner">\n blablabla </div> \n </div>'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<script>if (mr.slidotype_on) \n {mr.logoTrigger = document.getElementById("logo"); \n mr.logoTrigger.onclick = "mr.slidotypeClicked = true;"; \n }<\/script>'), true);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div \n id="test" \n />'), true);
-
-    // NOTE: Negative scenarious.
-    strictEqual(htmlUtils.isWellFormattedHtml('test<div>blablabla'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div>'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div><span id="test"></span>'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div id="test"><span id="test">'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div /><span>'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div><span><input>'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div id="test"></span>'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<div class="some class" id="my_id"><span id="test"><input'), false);
-    strictEqual(htmlUtils.isWellFormattedHtml('<input id="id" class="some class"'), false);
-});
-
-asyncTest('real big page', function () {
-    function checkNode (node) {
-        var innerHTML = node.innerHTML;
-        var outerHTML = node.outerHTML;
-
-        ok(htmlUtils.isWellFormattedHtml(outerHTML));
-
-        if (innerHTML) {
-            var parts = outerHTML.split(innerHTML);
-
-            ok(!htmlUtils.isWellFormattedHtml(parts[0] + innerHTML));
-            ok(!htmlUtils.isWellFormattedHtml(innerHTML + parts[1]));
-        }
-
-        $(node).contents().each(function () {
-            checkNode(this);
-        });
-    }
-
-    var src    = window.QUnitGlobals.getResourceUrl('../../data/node-sandbox/is-well-formatted-html.html');
-    var iframe = document.createElement('iframe');
-
-    iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            checkNode(iframe.contentDocument.documentElement);
-            iframe.parentNode.removeChild(iframe);
-
-            start();
-        });
-    document.body.appendChild(iframe);
-});
-
-
 module('regression');
-
-test('script.innerHtml must be cleaned up (T226885)', function () {
-    var code    = 'var t = 1;';
-    var script  = document.createElement('script');
-
-    script.appendChild(document.createTextNode(code));
-    notEqual(script.innerHTML.replace(/^\s*|\s*$/g, ''), code);
-    strictEqual(eval(processScript('script.innerHTML')).replace(/^\s*|\s*$/g, ''), code);
-});
 
 test('markup with special characters must be cleaned up (T112153)', function () {
     var html =

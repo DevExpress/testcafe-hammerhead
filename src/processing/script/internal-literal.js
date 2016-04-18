@@ -4,8 +4,5 @@
 // -------------------------------------------------------------
 
 export default {
-    documentWriteBegin: '__begin$',
-    documentWriteEnd:   '__end$',
-    tempVar:            '__set$temp'
+    tempVar: '__set$temp'
 };
-

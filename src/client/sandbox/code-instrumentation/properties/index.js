@@ -22,6 +22,7 @@ import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
 import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-detection';
+import { getPendingElementContent } from '../../../sandbox/node/document/writer';
 
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
@@ -179,15 +180,33 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             innerHTML: {
                 condition: el => domUtils.isElementNode(el),
-                get:       el => cleanUpHtml(el.innerHTML, el.tagName),
+
+                get: el => {
+                    if (domUtils.isScriptElement(el))
+                        return getPendingElementContent(el) || removeProcessingHeader(el.innerHTML);
+                    else if (domUtils.isStyleElement(el))
+                        return getPendingElementContent(el) || styleProcessor.cleanUp(el.innerHTML, urlUtils.parseProxyUrl);
+
+                    return cleanUpHtml(el.innerHTML, el.tagName);
+                },
 
                 set: (el, value) => {
-                    if (domUtils.isStyleElement(el))
-                        value = styleProcessor.process('' + value, urlUtils.getProxyUrl, true);
-                    else if (value !== null)
-                        value = processHtml('' + value, el.tagName);
+                    var isStyleEl  = domUtils.isStyleElement(el);
+                    var isScriptEl = domUtils.isScriptElement(el);
+
+                    if (value) {
+                        if (isStyleEl)
+                            value = styleProcessor.process('' + value, urlUtils.getProxyUrl, true);
+                        else if (isScriptEl)
+                            value = processScript('' + value, true, false);
+                        else if (value !== null)
+                            value = processHtml('' + value, el.tagName);
+                    }
 
                     el.innerHTML = value;
+
+                    if (isStyleEl || isScriptEl)
+                        return value;
 
                     var parentDocument = domUtils.findDocument(el);
                     var parentWindow   = parentDocument ? parentDocument.defaultView : null;
@@ -217,15 +236,28 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             innerText: {
-                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el) &&
-                                 typeof el.innerText === 'string',
+                // NOTE: http://caniuse.com/#search=Node.innerText
+                condition: el => typeof el.innerText === 'string' &&
+                                 (domUtils.isScriptElement(el) || domUtils.isStyleElement(el)),
 
-                get: el => typeof el.innerText === 'string' ? removeProcessingHeader(el.innerText) : el.innerText,
+                get: el => {
+                    if (domUtils.isScriptElement(el))
+                        return getPendingElementContent(el) || removeProcessingHeader(el.innerText);
+                    else if (domUtils.isStyleElement(el))
+                        return getPendingElementContent(el) || styleProcessor.cleanUp(el.innerText, urlUtils.parseProxyUrl);
+                },
 
-                set: function (el, script) {
-                    el.innerText = script ? processScript(script, true, false) : script;
+                set: (el, text) => {
+                    if (text) {
+                        if (domUtils.isScriptElement(el))
+                            el.innerText = processScript(text, true, false);
+                        else if (domUtils.isStyleElement(el))
+                            el.innerText = styleProcessor.process(text, urlUtils.getProxyUrl, true);
+                    }
+                    else
+                        el.innerText = text;
 
-                    return script;
+                    return text;
                 }
             },
 
@@ -408,27 +440,50 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             text: {
-                // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
-                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el),
-                get:       el => typeof el.text === 'string' ? removeProcessingHeader(el.text) : el.text,
+                condition: el => domUtils.isScriptElement(el) || domUtils.isStyleElement(el),
 
-                set: (el, script) => {
-                    el.text = script ? processScript(script, true, false) : script;
+                get: el => {
+                    if (domUtils.isScriptElement(el))
+                        return getPendingElementContent(el) || removeProcessingHeader(el.text);
+                    else if (domUtils.isStyleElement(el))
+                        return getPendingElementContent(el) || styleProcessor.cleanUp(el.text, urlUtils.parseProxyUrl);
+                },
 
-                    return script;
+                set: (el, text) => {
+                    if (text) {
+                        if (domUtils.isScriptElement(el))
+                            el.text = processScript(text, true, false);
+                        else if (domUtils.isStyleElement(el))
+                            el.text = styleProcessor.process(text, urlUtils.getProxyUrl, true);
+                    }
+                    else
+                        el.text = text;
+
+                    return text;
                 }
             },
 
             textContent: {
-                // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
-                condition: el => typeof el.tagName === 'string' && domUtils.isScriptElement(el),
-                get:       el => typeof el.textContent ===
-                                 'string' ? removeProcessingHeader(el.textContent) : el.textContent,
+                condition: el => domUtils.isScriptElement(el) || domUtils.isStyleElement(el),
 
-                set: (el, script) => {
-                    el.textContent = script ? processScript(script, true, false) : script;
+                get: el => {
+                    if (domUtils.isScriptElement(el))
+                        return getPendingElementContent(el) || removeProcessingHeader(el.textContent);
+                    else if (domUtils.isStyleElement(el))
+                        return getPendingElementContent(el) || styleProcessor.cleanUp(el.textContent, urlUtils.parseProxyUrl);
+                },
 
-                    return script;
+                set: (el, text) => {
+                    if (text) {
+                        if (domUtils.isScriptElement(el))
+                            el.textContent = processScript(text, true, false);
+                        else if (domUtils.isStyleElement(el))
+                            el.textContent = styleProcessor.process(text, urlUtils.getProxyUrl, true);
+                    }
+                    else
+                        el.textContent = text;
+
+                    return text;
                 }
             },
 
@@ -501,7 +556,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             // Style
             background: {
                 condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.background, urlUtils.parseProxyUrl, urlUtils.formatUrl),
+                get:       style => styleProcessor.cleanUp(style.background, urlUtils.parseProxyUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
@@ -513,7 +568,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             backgroundImage: {
                 condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.backgroundImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
+                get:       style => styleProcessor.cleanUp(style.backgroundImage, urlUtils.parseProxyUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
@@ -525,7 +580,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             borderImage: {
                 condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.borderImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
+                get:       style => styleProcessor.cleanUp(style.borderImage, urlUtils.parseProxyUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
@@ -537,7 +592,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             cssText: {
                 condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.cssText, urlUtils.parseProxyUrl, urlUtils.formatUrl),
+                get:       style => styleProcessor.cleanUp(style.cssText, urlUtils.parseProxyUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
@@ -549,7 +604,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             cursor: {
                 condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.cursor, urlUtils.parseProxyUrl, urlUtils.formatUrl),
+                get:       style => styleProcessor.cleanUp(style.cursor, urlUtils.parseProxyUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
@@ -561,7 +616,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             listStyle: {
                 condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.listStyle, urlUtils.parseProxyUrl, urlUtils.formatUrl),
+                get:       style => styleProcessor.cleanUp(style.listStyle, urlUtils.parseProxyUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')
@@ -573,7 +628,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             listStyleImage: {
                 condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.listStyleImage, urlUtils.parseProxyUrl, urlUtils.formatUrl),
+                get:       style => styleProcessor.cleanUp(style.listStyleImage, urlUtils.parseProxyUrl),
 
                 set: (style, value) => {
                     if (typeof value === 'string')

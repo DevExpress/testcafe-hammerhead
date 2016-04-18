@@ -6,7 +6,6 @@
 import computedPropertyGetTransformer from './computed-property-get';
 import computedPropertySetTransformer from './computed-property-set';
 import concatOperatorTransformer from './concat-operator';
-import documentWriteTransformer from './document-write';
 import evalTransformer from './eval';
 import evalCallApplyTransformer from './eval-call-apply';
 import evalGetTransformer from './eval-get';
@@ -26,7 +25,6 @@ const TRANSFORMERS = [
     computedPropertyGetTransformer,
     computedPropertySetTransformer,
     concatOperatorTransformer,
-    documentWriteTransformer,
     evalTransformer,
     evalCallApplyTransformer,
     evalGetTransformer,

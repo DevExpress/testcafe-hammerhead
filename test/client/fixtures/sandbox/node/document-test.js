@@ -3,7 +3,6 @@ var processScript = hammerhead.get('../processing/script').processScript;
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
-var Promise       = hammerhead.Promise;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -386,53 +385,6 @@ if (!browserUtils.isFirefox) {
         document.body.appendChild(iframe);
     });
 }
-
-asyncTest('document.write, document.writeln with multiple parameters (T232454)(GH-409)(GH-411)', function () {
-    var performTestWrite             = function (doc) {
-        doc.write('w1', 'w2', 'w3');
-        doc.writeln('wl1', 'wl2', 'wl3');
-        doc.writeln('wl4');
-        doc.writeln();
-        doc.write();
-    };
-    var getNativeDocumentWriteResult = function () {
-        return new Promise(function (resolve) {
-            var iframe            = nativeMethods.createElement.call(document, 'iframe');
-            var nativeWriteResult = null;
-
-            iframe.id = 'iframe_for_getting_native_value';
-            window.QUnitGlobals.waitForIframe(iframe)
-                .then(function () {
-                    var iframeDocument = iframe.contentDocument;
-
-                    performTestWrite(iframeDocument);
-
-                    nativeWriteResult = iframeDocument.body.textContent;
-                    iframe.parentNode.removeChild(iframe);
-
-                    resolve(nativeWriteResult);
-                });
-            nativeMethods.appendChild.call(document.body, iframe);
-        });
-    };
-
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test_jksnv523';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            return getNativeDocumentWriteResult();
-        })
-        .then(function (nativeDocumentWriteResult) {
-            var iframeDocument = iframe.contentDocument;
-
-            performTestWrite(iframeDocument);
-            strictEqual(iframeDocument.body.textContent, nativeDocumentWriteResult);
-            iframe.parentNode.removeChild(iframe);
-            start();
-        });
-    document.body.appendChild(iframe);
-});
 
 asyncTest('the onDocumentCleaned event is not raised after calling document.write (GH-253)', function () {
     expect(1);

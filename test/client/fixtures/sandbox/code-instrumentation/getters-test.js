@@ -191,6 +191,20 @@ if (browserUtils.isWebKit) {
     });
 }
 
+test('get style body', function () {
+    var style     = document.createElement('style');
+    var styleText = 'div{background:url(http://some.domain.com/image.png)}';
+
+    eval(processScript('style.innerHTML = styleText'));
+
+    strictEqual(eval(processScript('style.innerHTML')), styleText);
+    strictEqual(eval(processScript('style.innerText')).replace(/\s/g, ''), styleText);
+    strictEqual(eval(processScript('style.textContent')), styleText);
+
+    if (typeof style.text === 'string')
+        strictEqual(eval(processScript('style.text')), styleText);
+});
+
 module('regression');
 
 test('changing the link.href property must affect the stored attribute value (T123960)', function () {
@@ -250,4 +264,13 @@ test('the getAttributesProperty function should work correctly if Function.proto
         Function.prototype.bind = storedBind;
         /* eslint-enable no-extend-native */
     }
+});
+
+test('script.innerHtml must be cleaned up (T226885)', function () {
+    var code   = 'var t = 1;';
+    var script = document.createElement('script');
+
+    script.appendChild(document.createTextNode(code));
+    notEqual(script.innerHTML.replace(/^\s*|\s*$/g, ''), code);
+    strictEqual(eval(processScript('script.innerHTML')).replace(/^\s*|\s*$/g, ''), code);
 });

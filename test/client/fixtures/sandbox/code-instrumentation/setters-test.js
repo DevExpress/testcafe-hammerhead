@@ -3,6 +3,7 @@ var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
 var urlUtils            = hammerhead.get('./utils/url');
 var domProcessor        = hammerhead.get('./dom-processor');
 var processScript       = hammerhead.get('../processing/script').processScript;
+var styleProcessor      = hammerhead.get('../processing/style');
 var isScriptProcessed   = hammerhead.get('../processing/script').isScriptProcessed;
 
 var Promise               = hammerhead.Promise;
@@ -19,16 +20,6 @@ QUnit.testStart(function () {
 
 QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
-});
-
-test('script.textContent', function () {
-    var script     = document.createElement('script');
-    var scriptCode = 'var test = window.href;';
-
-    eval(processScript('script.textContent="' + scriptCode + '"'));
-
-    notEqual(script.textContent, scriptCode);
-    strictEqual(script.textContent.replace(/\s/g, ''), processScript(scriptCode, true, false).replace(/\s/g, ''));
 });
 
 test('unsupported protocol', function () {
@@ -221,6 +212,36 @@ test('innerHTML', function () {
     strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl));
 
     document[INTERNAL_PROPS.documentCharset] = null;
+});
+
+test('innerHTML, innerText, text, textContent', function () {
+    var script              = document.createElement('script');
+    var style               = document.createElement('style');
+    var scriptText          = 'var test = window.href';
+    var styleText           = 'div {background:url(http://some.domain.com/image.png)}';
+    var processedScriptText = processScript(scriptText, true, false).replace(/\s/g, '');
+    var processedStyleText  = styleProcessor.process(styleText, urlUtils.getProxyUrl, true).replace(/\s/g, '');
+    var testProperties      = ['innerHTML', 'innerText', 'text', 'textContent'];
+
+    testProperties.forEach(function (property) {
+        eval(processScript('script.' + property + ' = scriptText'));
+
+        strictEqual(script[property].replace(/\s/g, ''), processedScriptText);
+
+        eval(processScript('script.' + property + ' = ""'));
+
+        strictEqual(script[property], '');
+    });
+
+    testProperties.forEach(function (property) {
+        eval(processScript('style.' + property + ' = styleText'));
+
+        strictEqual(style[property].replace(/\s/g, ''), processedStyleText);
+
+        eval(processScript('style.' + property + ' = ""'));
+
+        strictEqual(style[property], '');
+    });
 });
 
 asyncTest('body.innerHTML in iframe', function () {

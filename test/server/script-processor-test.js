@@ -563,6 +563,7 @@ describe('Script processor', function () {
                      '/* yo yo */\n' +
                      'slot = "43";\n' +
                      'width = 300;\n' +
+                     'e = eval;\n' +
                      'height = 250;\n' +
                      '//-->\n\n' +
                      '<!--End -->\n' +
@@ -570,31 +571,17 @@ describe('Script processor', function () {
                      'document.writeln("t = 2;");\n' +
                      'document.close();\n',
 
-                expected: 'document.writeln("<!--test123-->", \'__begin$\');' +
+                expected: 'document.writeln("<!--test123-->");' +
                           'client = "42";' +
                           'slot = "43";' +
                           'width = 300;' +
+                          'e = __get$Eval(eval);' +
                           'height = 250;' +
                           'document.writeln("var t = 1;");' +
-                          'document.writeln("t = 2;", \'__end$\');' +
+                          'document.writeln("t = 2;");' +
                           'document.close();'
             });
         });
-
-        it('Should collect document.write() and document.writeln() to get valid HTML for processing (T232454)',
-            function () {
-                testProcessing({
-                    src: 'if(true) {\n' +
-                         'document.write("<html>");\n' +
-                         'document.writeln("</html>");\n' +
-                         '}\n',
-
-                    expected: 'if (true) {\n' +
-                              'document.write("<html>", \'__begin$\');\n' +
-                              'document.writeln("</html>", \'__end$\');\n' +
-                              '}'
-                });
-            });
 
         it('Should handle malformed HTML comments (T239244)', function () {
             testProcessing({

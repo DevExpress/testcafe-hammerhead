@@ -17,16 +17,16 @@
 
 <p>Text text text text text text text text text text text text text text text text text text text text</p>
 <script>
-    __call$(document, "write", ['<html>\n', "__begin$"]);
-    __call$(document, "write", [' <body>\n']);
-    __call$(document, "write", ['  <table border="0" cellspacing="0" cellpadding="0">\n']);
-    __call$(document, "write", ['   <tr>\n']);
-    __call$(document, "write", ['       <td><a href="https://example.com/ad-url']);
-    __call$(document, "write", ['" target="_blank"><img border="0"></a></td>\n']);
-    __call$(document, "write", ['   </tr>\n']);
-    __call$(document, "write", ['</table>\n']);
-    __call$(document, "write", [' </body>\n']);
-    __call$(document, "write", ['</html>\n', "__end$"]);
+    document.write('<html>\n');
+    document.write(' <body>\n');
+    document.write('  <table border="0" cellspacing="0" cellpadding="0">\n');
+    document.write('   <tr>\n');
+    document.write('       <td><a href="https://example.com/ad-url');
+    document.write('" target="_blank"><img border="0"></a></td>\n');
+    document.write('   </tr>\n');
+    document.write('</table>\n');
+    document.write(' </body>\n');
+    document.write('</html>\n');
 </script>
 
 </body>

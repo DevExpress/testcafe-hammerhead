@@ -1,25 +1,19 @@
-import SandboxBase from '../base';
-import IframeSandbox from '../iframe';
-import INTERNAL_LITERAL from '../../../processing/script/internal-literal';
-import nativeMethods from '../native-methods';
-import domProcessor from '../../dom-processor';
-import * as htmlUtils from '../../utils/html';
-import * as urlUtils from '../../utils/url';
-import { isFirefox, isIE, isIE9, isIE10 } from '../../utils/browser';
-import { isIframeWithoutSrc, getFrameElement } from '../../utils/dom';
-
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-var arraySlice = Array.prototype.slice;
+import SandboxBase from '../../base';
+import IframeSandbox from '../../iframe';
+import nativeMethods from '../../native-methods';
+import domProcessor from '../../../dom-processor';
+import * as urlUtils from '../../../utils/url';
+import { isIE, isIE9, isIE10 } from '../../../utils/browser';
+import { isIframeWithoutSrc, getFrameElement } from '../../../utils/dom';
+import DocumentWriter from './writer';
 
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox) {
         super();
 
-        this.storedDocumentWriteContent = '';
-        this.writeBlockCounter          = 0;
-        this.nodeSandbox                = nodeSandbox;
-        this.readyStateForIE            = null;
+        this.nodeSandbox     = nodeSandbox;
+        this.readyStateForIE = null;
+        this.documentWriter  = null;
     }
 
     _isUninitializedIframeWithoutSrc (doc) {
@@ -45,49 +39,13 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _overridedDocumentWrite (args, ln) {
-        args = arraySlice.call(args);
-
-        var lastArg = args.length ? args[args.length - 1] : '';
-        var isBegin = lastArg === INTERNAL_LITERAL.documentWriteBegin;
-        var isEnd   = lastArg === INTERNAL_LITERAL.documentWriteEnd;
-
-        if (isBegin)
-            this.writeBlockCounter++;
-        else if (isEnd)
-            this.writeBlockCounter--;
-
-        if (isBegin || isEnd)
-            args.pop();
-
-        var str = args.join('');
-
-        var needWriteOnEndMarker = isEnd && !this.writeBlockCounter;
-
-        if (needWriteOnEndMarker || !this.storedDocumentWriteContent && htmlUtils.isWellFormattedHtml(str)) {
-            this.writeBlockCounter          = 0;
-            str                             = this.storedDocumentWriteContent + str;
-            this.storedDocumentWriteContent = '';
-        }
-        else if (isBegin || this.storedDocumentWriteContent) {
-            this.storedDocumentWriteContent += str;
-
-            return null;
-        }
-
         var shouldEmitEvents = (this.readyStateForIE || this.document.readyState) !== 'loading' &&
                                this.document.readyState !== 'uninitialized';
-
-        str = htmlUtils.processHtml('' + str);
 
         if (shouldEmitEvents)
             this._beforeDocumentCleaned();
 
-        // NOTE: Firefox and IE recreate a window instance during the document.write function execution (T213930).
-        if ((isFirefox || isIE) && !htmlUtils.isPageHtml(str))
-            str = htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + str;
-
-        var targetNativeMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
-        var result             = targetNativeMethod.call(this.document, str);
+        var result = this.documentWriter.write(args, ln);
 
         if (shouldEmitEvents) {
             this.nodeSandbox.mutation.onDocumentCleaned({
@@ -104,6 +62,9 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     attach (window, document) {
+        if (!this.documentWriter || this.window !== window || this.document !== document)
+            this.documentWriter = new DocumentWriter(window, document);
+
         super.attach(window, document);
 
         // NOTE: https://connect.microsoft.com/IE/feedback/details/792880/document-readystat
