@@ -1,10 +1,9 @@
-var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
-var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
-var urlUtils            = hammerhead.get('./utils/url');
-var domProcessor        = hammerhead.get('./dom-processor');
-var processScript       = hammerhead.get('../processing/script').processScript;
-var styleProcessor      = hammerhead.get('../processing/style');
-var isScriptProcessed   = hammerhead.get('../processing/script').isScriptProcessed;
+var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
+var urlUtils          = hammerhead.get('./utils/url');
+var domProcessor      = hammerhead.get('./dom-processor');
+var processScript     = hammerhead.get('../processing/script').processScript;
+var styleProcessor    = hammerhead.get('../processing/style');
+var isScriptProcessed = hammerhead.get('../processing/script').isScriptProcessed;
 
 var Promise               = hammerhead.Promise;
 var nativeMethods         = hammerhead.nativeMethods;
@@ -272,18 +271,6 @@ asyncTest('body.innerHTML in iframe', function () {
     document.body.appendChild(iframe);
 });
 
-test('document.scripts', function () {
-    var scriptsCollectionLength = eval(processScript('document.scripts')).length;
-    var scriptEl                = document.createElement('script');
-
-    scriptEl.className = SHADOW_UI_CLASSNAME.script;
-    document.body.appendChild(scriptEl);
-
-    strictEqual(scriptsCollectionLength, eval(processScript('document.scripts')).length);
-
-    document.body.removeChild(scriptEl);
-});
-
 // NOTE: IE does not allow overriding the postMessage method.
 if (!browserUtils.isIE) {
     asyncTest('postMessage', function () {
@@ -303,6 +290,26 @@ if (!browserUtils.isIE) {
         document.body.appendChild(iframe);
     });
 }
+
+test('outerHTML', function () {
+    var parentDiv = document.createElement('div');
+    var childDiv  = document.createElement('div');
+
+    /* eslint-disable no-unused-vars */
+    var htmlText = '<a href="http://domain.com/">link</a><script src="http://domain.com/script"><\/script>';
+    /* eslint-enable no-unused-vars */
+
+    parentDiv.appendChild(childDiv);
+
+    strictEqual(parentDiv.children.length, 1);
+    strictEqual(parentDiv.firstChild, childDiv);
+
+    eval(processScript('childDiv.outerHTML = htmlText', true, false));
+
+    strictEqual(parentDiv.children.length, 2);
+    strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl('http://domain.com/'));
+    strictEqual(parentDiv.lastChild.src, urlUtils.getProxyUrl('http://domain.com/script', null, null, null, 's'));
+});
 
 module('regression');
 

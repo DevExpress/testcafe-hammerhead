@@ -1,9 +1,11 @@
 var INTERNAL_PROPS         = hammerhead.get('../processing/dom/internal-properties');
+var SHADOW_UI_CLASSNAME    = hammerhead.get('../shadow-ui/class-name');
 var urlUtils               = hammerhead.get('./utils/url');
 var processScript          = hammerhead.get('../processing/script').processScript;
 var removeProcessingHeader = hammerhead.get('../processing/script/header').remove;
 var destLocation           = hammerhead.get('./utils/destination-location');
 var attributesProperty     = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
+var processHtml            = hammerhead.get('../client/utils/html').processHtml;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -203,6 +205,38 @@ test('get style body', function () {
 
     if (typeof style.text === 'string')
         strictEqual(eval(processScript('style.text')), styleText);
+});
+
+test('document.scripts', function () {
+    var scriptsCollectionLength = eval(processScript('document.scripts')).length;
+    var scriptEl                = document.createElement('script');
+
+    scriptEl.className = SHADOW_UI_CLASSNAME.script;
+    document.body.appendChild(scriptEl);
+
+    strictEqual(scriptsCollectionLength, eval(processScript('document.scripts')).length);
+
+    document.body.removeChild(scriptEl);
+});
+
+test('clean up outerHTML', function () {
+    var htmlText = '<a href="http://domain.com/">link</a>';
+    var div      = document.createElement('div');
+
+    eval(processScript('div.innerHTML = htmlText', true, false));
+
+    var a = div.firstChild;
+
+    strictEqual(a.outerHTML, processHtml(htmlText));
+    strictEqual(eval(processScript('a.outerHTML', true, false)), htmlText);
+
+    if (browserUtils.isIE) {
+        /* eslint-disable no-unused-vars */
+        var doc = document.implementation.createDocument(null, 'status', null);
+        /* eslint-enable no-unused-vars */
+
+        strictEqual(eval(processScript('doc.documentElement.outerHTML')), void 0);
+    }
 });
 
 module('regression');
