@@ -58,7 +58,7 @@ export default {
 
     updateBase (url, doc) {
         var resolverDocument = this._getResolver(doc);
-        var baseElement      = resolverDocument.head.getElementsByTagName('base')[0];
+        var baseElement      = nativeMethods.elementGetElementsByTagName.call(resolverDocument.head, 'base')[0];
 
         url = url || destLocation.get();
 
