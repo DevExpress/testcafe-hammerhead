@@ -26,6 +26,11 @@ export function check (ctx) {
     var allowedOrigins         = Array.isArray(allowOriginHeader) ? allowOriginHeader : [allowOriginHeader];
     var wildcardAllowed        = allowedOrigins.indexOf('*') > -1;
 
+    // FAILED: Destination server doesn't provide the Access-Control-Allow-Origin header.
+    // So cross-domain requests are denied
+    if (!allowOriginHeader)
+        return false;
+
     // FAILED: Credentialed requests are not allowed or wild carding was used
     // for the allowed origin (credentialed requests should specify the exact domain).
     if (withCredentials && (!allowCredentials || wildcardAllowed))

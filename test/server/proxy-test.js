@@ -656,6 +656,23 @@ describe('Proxy', function () {
     });
 
     describe('Regression', function () {
+        var crossDomainServer = null;
+
+        before(function () {
+            var crossDomainApp = express();
+
+            crossDomainApp.get('/without-access-control-allow-origin-header', function (req, res) {
+                res.set('content-type', 'text/html');
+                res.end(EMPTY_PAGE);
+            });
+
+            crossDomainServer = crossDomainApp.listen(2002);
+        });
+
+        after(function () {
+            crossDomainServer.close();
+        });
+
         it('Should force "Origin" header for the same-domain requests (B234325)', function (done) {
             var options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
@@ -909,6 +926,23 @@ describe('Proxy', function () {
                     });
                 })
                 .end();
+        });
+
+        it("Should close with error if destination server doesn't provide Access-Control-Allow-Origin header for cross-domain requests", function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2002/without-access-control-allow-origin-header', session),
+                headers: {
+                    referer: proxy.openSession('http://example.com', session)
+                }
+            };
+
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
+
+            request(options, function (err, res) {
+                expect(res.statusCode).eql(0);
+                done();
+            });
         });
     });
 });
