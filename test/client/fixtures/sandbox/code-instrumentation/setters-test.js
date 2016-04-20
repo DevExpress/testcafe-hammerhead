@@ -183,12 +183,35 @@ test('script text', function () {
 });
 
 test('iframe', function () {
-    var iframe = document.createElement('iframe');
+    var iframe     = document.createElement('iframe');
+    var storedAttr = domProcessor.getStoredAttrName('sandbox');
 
-    window[INTERNAL_PROPS.processDomMethodName](iframe);
+    eval(processScript('iframe.sandbox="allow-scripts"'));
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts');
+
+    eval(processScript('iframe.sandbox="allow-same-origin"'));
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-same-origin allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-same-origin');
+
+    eval(processScript('iframe.sandbox="allow-scripts allow-same-origin"'));
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts allow-same-origin');
+
+    eval(processScript('iframe.sandbox="allow-same-origin allow-forms"'));
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-same-origin allow-forms allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-same-origin allow-forms');
+
+    eval(processScript('iframe.sandbox="allow-scripts allow-forms"'));
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-forms allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts allow-forms');
+
+    eval(processScript('iframe.sandbox="allow-scripts allow-forms allow-same-origin"'));
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-forms allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts allow-forms allow-same-origin');
 
     eval(processScript('iframe.sandbox="allow-forms"'));
-    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-same-origin allow-scripts');
     strictEqual(nativeMethods.getAttribute.call(iframe, domProcessor.getStoredAttrName('sandbox')), 'allow-forms');
 
     var result = '';

@@ -329,8 +329,8 @@ if (window.navigator.serviceWorker) {
     asyncTest('navigator.serviceWorker in the iframe is not available (GH-277)', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.setAttribute('sandbox', '');
-        iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-worker-not-available.html');
+        iframe.sandbox = 'allow-scripts';
+        iframe.src     = window.getCrossDomainPageUrl('../../../data/cross-domain/service-worker-not-available.html');
 
         var onMessageHandler = function (e) {
             window.removeEventListener('message', onMessageHandler);

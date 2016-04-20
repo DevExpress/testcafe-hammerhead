@@ -111,8 +111,7 @@ export default class DomProcessor {
 
             HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
 
-            IS_SANDBOXED_IFRAME: el => adapter.getTagName(el) === 'iframe' &&
-                                       adapter.hasAttr(el, 'sandbox'),
+            IS_SANDBOXED_IFRAME: el => adapter.getTagName(el) === 'iframe' && adapter.hasAttr(el, 'sandbox'),
 
             IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR: el => {
                 return adapter.isSVGElement(el) &&
@@ -166,7 +165,7 @@ export default class DomProcessor {
             {
                 selector:          selectors.IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR,
                 urlAttr:           'xlink:href',
-                elementProcessors: [ this._processSVGXLinkHrefAttr, this._processUrlAttrs]
+                elementProcessors: [this._processSVGXLinkHrefAttr, this._processUrlAttrs]
             }
         ];
     }
@@ -324,14 +323,19 @@ export default class DomProcessor {
     }
 
     _processSandboxedIframe (el) {
-        var attrValue = this.adapter.getAttr(el, 'sandbox');
+        var attrValue       = this.adapter.getAttr(el, 'sandbox');
+        var allowSameOrigin = attrValue.indexOf('allow-same-origin') !== -1;
+        var allowScripts    = attrValue.indexOf('allow-scripts') !== -1;
+        var storedAttr      = this.getStoredAttrName('sandbox');
 
-        if (attrValue.indexOf('allow-scripts') === -1) {
-            var storedAttr = this.getStoredAttrName('sandbox');
+        this.adapter.setAttr(el, storedAttr, attrValue);
 
-            this.adapter.setAttr(el, storedAttr, attrValue);
-            this.adapter.setAttr(el, 'sandbox', attrValue + ' allow-scripts');
+        if (!allowSameOrigin || !allowScripts) {
+            attrValue += !allowSameOrigin ? ' allow-same-origin' : '';
+            attrValue += !allowScripts ? ' allow-scripts' : '';
         }
+
+        this.adapter.setAttr(el, 'sandbox', attrValue);
     }
 
     _processScriptElement (script) {
@@ -421,7 +425,8 @@ export default class DomProcessor {
 
             // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
-                if ((urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) && !EMPTY_URL_REG_EX.test(resourceUrl)) {
+                if ((urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) &&
+                    !EMPTY_URL_REG_EX.test(resourceUrl)) {
                     var elTagName = this.adapter.getTagName(el);
                     var isIframe  = elTagName === 'iframe';
                     var isScript  = elTagName === 'script';

@@ -42,7 +42,7 @@ describe('DOM processor', function () {
     it('Should process sandboxed <iframe>', function () {
         var root = process('<html><head></head><body><iframe sandbox="allow-forms"></iframe></body></html>');
 
-        expect(new parse5.Serializer().serialize(root)).contains('<iframe sandbox="allow-forms allow-scripts" ' +
+        expect(new parse5.Serializer().serialize(root)).contains('<iframe sandbox="allow-forms allow-same-origin allow-scripts" ' +
                                                                  domProcessor.getStoredAttrName('sandbox') +
                                                                  '="allow-forms">');
     });
