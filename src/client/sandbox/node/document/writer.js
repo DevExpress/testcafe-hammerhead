@@ -1,6 +1,6 @@
 import nativeMethods from '../../native-methods';
 import * as htmlUtils from '../../../utils/html';
-import { getTagName } from '../../../utils/dom';
+import { getTagName, isCommentNode, isStyleElement, isScriptElement } from '../../../utils/dom';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import { isFirefox, isIE } from '../../../utils/browser';
 
@@ -30,7 +30,7 @@ export default class DocumentWriter {
         this.needRemoveOpeningTag = false;
         this.isClosingContentEl   = false;
         this.needNewLine          = '';
-        this.isNonClocedComment   = false;
+        this.isNonClosedComment   = false;
     }
 
     _cutPending (htmlChunk) {
@@ -44,7 +44,7 @@ export default class DocumentWriter {
     _wrapHtmlChunk (htmlChunk) {
         var parentTagChainMarkup = this.parentTagChain.length ? '<' + this.parentTagChain.join('><') + '>' : '';
 
-        if (this.isNonClocedComment)
+        if (this.isNonClosedComment)
             parentTagChainMarkup += '<!--';
 
         var wrapedHtmlChunk = parentTagChainMarkup + BEGIN_MARKER_MARKUP + htmlChunk + END_MARKER_MARKUP;
@@ -66,13 +66,13 @@ export default class DocumentWriter {
             .replace(END_REMOVE_RE, '');
 
         if (this.needRemoveOpeningTag)
-            htmlChunk = this.isNonClocedComment ? htmlChunk.slice(4) : htmlChunk.replace(REMOVE_OPENING_TAG, '');
+            htmlChunk = this.isNonClosedComment ? htmlChunk.slice(4) : htmlChunk.replace(REMOVE_OPENING_TAG, '');
 
         if (this.needRemoveClosingTag)
-            htmlChunk = this.isNonClocedComment ? htmlChunk.slice(0, -3) : htmlChunk.replace(REMOVE_CLOSING_TAG, '');
+            htmlChunk = this.isNonClosedComment ? htmlChunk.slice(0, -3) : htmlChunk.replace(REMOVE_CLOSING_TAG, '');
 
         if (this.needRemoveOpeningTag && !this.needRemoveClosingTag)
-            this.isNonClocedComment = false;
+            this.isNonClosedComment = false;
 
         this.needRemoveClosingTag = false;
         this.needRemoveOpeningTag = false;
@@ -93,7 +93,7 @@ export default class DocumentWriter {
 
         if (beginMarker.parentNode.firstChild !== beginMarker)
             beginMarker = beginMarker.parentNode.firstChild;
-        else if (beginMarker.firstChild && beginMarker.firstChild.nodeType === 8)
+        else if (isCommentNode(beginMarker.firstChild))
             beginMarker = beginMarker.firstChild;
 
         return beginMarker;
@@ -112,7 +112,7 @@ export default class DocumentWriter {
 
         if (endMarker.parentNode.lastChild !== endMarker)
             endMarker = endMarker.parentNode.lastChild;
-        else if (endMarker.lastChild && endMarker.lastChild.nodeType === 8)
+        else if (isCommentNode(endMarker.lastChild))
             endMarker = endMarker.lastChild;
 
         return endMarker;
@@ -121,8 +121,8 @@ export default class DocumentWriter {
     _updateParentTagChain (container, endMarker) {
         var endMarkerParent = getTagName(endMarker) !== END_MARKER_TAG_NAME ? endMarker : endMarker.parentNode;
 
-        if (endMarker.nodeType === 8) {
-            this.isNonClocedComment = true;
+        if (isCommentNode(endMarker)) {
+            this.isNonClosedComment = true;
             endMarkerParent         = endMarker.parentNode;
         }
 
@@ -137,9 +137,13 @@ export default class DocumentWriter {
     _processBeginMarkerInContent (beginMarker) {
         var elWithContent = beginMarker;
 
-        if (!this.isNonClocedComment) {
-            elWithContent.textContent = this.storedContent + elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
-            this.storedContent      = '';
+        if (!this.isNonClosedComment) {
+            if (isScriptElement(elWithContent) || isStyleElement(elWithContent)) {
+                elWithContent.textContent = this.storedContent + elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
+                this.storedContent        = '';
+            }
+            else
+                elWithContent.textContent = elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
         }
         else
             elWithContent.textContent = elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
@@ -154,11 +158,14 @@ export default class DocumentWriter {
     _processEndMarkerInContent (endMarker) {
         var elWithContent = endMarker;
 
-        if (!this.isNonClocedComment) {
-            this.storedContent += elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending +
-                                  (this.needNewLine ? '\n' : '');
-
-            elWithContent.textContent = '';
+        if (!this.isNonClosedComment) {
+            if (isScriptElement(elWithContent) || isStyleElement(elWithContent)) {
+                this.storedContent += elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending +
+                                      (this.needNewLine ? '\n' : '');
+                elWithContent.textContent = '';
+            }
+            else
+                elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending;
         }
         else
             elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending;
@@ -179,15 +186,16 @@ export default class DocumentWriter {
         if (beginMarker !== endMarker)
             this._updateParentTagChain(container, endMarker);
 
-        if (beginMarker === endMarker && !this.isNonClocedComment) {
-            this.storedContent += beginMarker.innerHTML
+        if (beginMarker === endMarker && !this.isNonClosedComment &&
+            (isScriptElement(endMarker) || isStyleElement(endMarker))) {
+            this.storedContent += beginMarker.textContent
                 .replace(BEGIN_REMOVE_RE, '')
                 .replace(END_REMOVE_RE, '');
 
             if (this.needNewLine)
                 this.storedContent += '\n';
 
-            container.innerHTML = '';
+            container.textContent = '';
         }
         else if (!isBeginMarkerInDom && !isEndMarkerInDom) {
             this._processBeginMarkerInContent(beginMarker);
