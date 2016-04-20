@@ -667,6 +667,19 @@ describe('Proxy', function () {
                 res.end(EMPTY_PAGE);
             });
 
+            crossDomainApp.get('/echo-headers', function (req, res) {
+                res.setHeader('access-control-allow-origin', '*');
+
+                res.json(req.headers);
+            });
+
+            crossDomainApp.get('/echo-headers-with-credentials', function (req, res) {
+                res.setHeader('access-control-allow-origin', 'http://example.com');
+                res.setHeader('access-control-allow-credentials', 'true');
+
+                res.json(req.headers);
+            });
+
             crossDomainServer = crossDomainApp.listen(2002);
         });
 
@@ -942,6 +955,60 @@ describe('Proxy', function () {
 
             request(options, function (err, res) {
                 expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                done();
+            });
+        });
+
+        it('Should not send cookie and authorization headers to the destination server for the xhr request without credentials (GH-545)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
+                headers: {
+                    referer:               proxy.openSession('http://example.com', session),
+                    cookie:                'key=value',
+                    authorization:         'value',
+                    'authentication-info': 'value',
+                    'proxy-authenticate':  'value',
+                    'proxy-authorization': 'value'
+                }
+            };
+
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
+
+            request(options, function (err, res, body) {
+                var requestHeaders = JSON.parse(body);
+
+                expect(requestHeaders.cookie).to.be.undefined;
+                expect(requestHeaders.authorization).to.be.undefined;
+                expect(requestHeaders['authentication-info']).to.be.undefined;
+                expect(requestHeaders['proxy-authenticate']).to.be.undefined;
+                expect(requestHeaders['proxy-authorization']).to.be.undefined;
+
+                done();
+            });
+        });
+
+        it('Should remove hammerhead xhr headers before sending a request to the destination server', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
+                headers: {
+                    referer: proxy.openSession('http://example.com', session)
+                }
+            };
+
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
+            options.headers[XHR_HEADERS.withCredentials] = 'true';
+            options.headers[XHR_HEADERS.origin] = 'origin_value';
+
+            request(options, function (err, res, body) {
+                var requestHeaders = JSON.parse(body);
+
+                expect(requestHeaders[XHR_HEADERS.requestMarker]).to.be.undefined;
+                expect(requestHeaders[XHR_HEADERS.corsSupported]).to.be.undefined;
+                expect(requestHeaders[XHR_HEADERS.withCredentials]).to.be.undefined;
+                expect(requestHeaders[XHR_HEADERS.origin]).to.be.undefined;
+
                 done();
             });
         });

@@ -108,7 +108,7 @@ function createReqOpts (ctx) {
         ctx.reqBody = bodyWithUploads;
 
     // NOTE: All headers, including 'content-length', are built here.
-    var headers = headerTransforms.forRequest(ctx, this);
+    var headers = headerTransforms.forRequest(ctx);
 
     return {
         url:         ctx.dest.url,
