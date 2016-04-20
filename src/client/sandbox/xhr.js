@@ -71,8 +71,8 @@ export default class XhrSandbox extends SandboxBase {
                     xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr });
             };
 
-            // NOTE: If we're using the sync mode or the response is in cache and the object has been retrieved
-            // directly (IE6 & IE7), we need to raise the callback manually.
+            // NOTE: If we're using the sync mode or if the response is in cache,
+            // we need to raise the callback manually.
             if (this.readyState === 4)
                 orscHandler();
             else {
