@@ -202,3 +202,21 @@ test('write html comment', function () {
 
     strictEqual(getElems(iframeForWrite, '#nonexistent').length, getElems(iframeForNativeWrite, '#nonexistent').length);
 });
+
+test('write textarea', function () {
+    write('<textarea>');
+
+    strictEqual(getElems(iframeForWrite, 'textarea').length, getElems(iframeForNativeWrite, 'textarea').length);
+
+    writeln('test');
+
+    strictEqual(innerHTML(getElems(iframeForWrite, 'textarea')[0]), innerHTML(getElems(iframeForNativeWrite, 'textarea')[0]));
+
+    writeln('other text');
+
+    strictEqual(innerHTML(getElems(iframeForWrite, 'textarea')[0]), innerHTML(getElems(iframeForNativeWrite, 'textarea')[0]));
+
+    write('</textarea>');
+
+    strictEqual(innerHTML(getElems(iframeForWrite, 'textarea')[0]), innerHTML(getElems(iframeForNativeWrite, 'textarea')[0]));
+});
