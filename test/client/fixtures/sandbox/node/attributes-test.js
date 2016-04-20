@@ -309,19 +309,42 @@ test('iframe', function () {
     var storedAttr = domProcessor.getStoredAttrName(attr);
     var iframe     = document.createElement('iframe');
 
-    processDomMeth(iframe);
-
     ok(!nativeMethods.getAttribute.call(iframe, attr));
     ok(!nativeMethods.getAttribute.call(iframe, storedAttr));
     ok(!iframe.getAttribute(attr));
 
+    iframe.setAttribute(attr, 'allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts');
+    strictEqual(iframe.getAttribute(attr), 'allow-scripts');
+
+    iframe.setAttribute(attr, 'allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-same-origin allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-same-origin');
+    strictEqual(iframe.getAttribute(attr), 'allow-same-origin');
+
+    iframe.setAttribute(attr, 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts allow-same-origin');
+    strictEqual(iframe.getAttribute(attr), 'allow-scripts allow-same-origin');
+
+    iframe.setAttribute(attr, 'allow-same-origin allow-forms');
+    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-same-origin allow-forms allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-same-origin allow-forms');
+    strictEqual(iframe.getAttribute(attr), 'allow-same-origin allow-forms');
+
     iframe.setAttribute(attr, 'allow-scripts allow-forms');
-    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-scripts allow-forms');
-    ok(!nativeMethods.getAttribute.call(iframe, storedAttr));
+    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-scripts allow-forms allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts allow-forms');
     strictEqual(iframe.getAttribute(attr), 'allow-scripts allow-forms');
 
+    iframe.setAttribute(attr, 'allow-scripts allow-forms allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-scripts allow-forms allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts allow-forms allow-same-origin');
+    strictEqual(iframe.getAttribute(attr), 'allow-scripts allow-forms allow-same-origin');
+
     iframe.setAttribute(attr, 'allow-forms');
-    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-forms allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-forms allow-same-origin allow-scripts');
     strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-forms');
     strictEqual(iframe.getAttribute(attr), 'allow-forms');
 });

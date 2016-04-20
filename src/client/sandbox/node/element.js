@@ -156,11 +156,17 @@ export default class ElementSandbox extends SandboxBase {
 
             ElementSandbox._onTargetChanged(el, value);
         }
-        else if (attr === 'sandbox' && value.indexOf('allow-scripts') === -1) {
+        else if (attr === 'sandbox') {
             var storedSandboxAttr = domProcessor.getStoredAttrName(attr);
+            var allowSameOrigin   = value.indexOf('allow-same-origin') !== -1;
+            var allowScripts      = value.indexOf('allow-scripts') !== -1;
 
             setAttrMeth.apply(el, isNs ? [ns, storedSandboxAttr, value] : [storedSandboxAttr, value]);
-            args[valueIndex] += ' allow-scripts';
+
+            if (!allowSameOrigin || !allowScripts) {
+                args[valueIndex] += !allowSameOrigin ? ' allow-same-origin' : '';
+                args[valueIndex] += !allowScripts ? ' allow-scripts' : '';
+            }
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
         else if (tagName === 'meta' && ['http-equiv', 'content'].indexOf(attr) !== -1)
@@ -493,10 +499,8 @@ export default class ElementSandbox extends SandboxBase {
         img.addEventListener('error', e => {
             var storedAttr = nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src'));
 
-            if (storedAttr &&
-                !urlUtils.parseProxyUrl(img.src) &&
-                urlUtils.isSupportedProtocol(img.src) &&
-                !urlUtils.isSpecialPage(img.src)) {
+            if (storedAttr && !urlUtils.parseProxyUrl(img.src) &&
+                urlUtils.isSupportedProtocol(img.src) && !urlUtils.isSpecialPage(img.src)) {
                 nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
                 stopPropagation(e);
             }

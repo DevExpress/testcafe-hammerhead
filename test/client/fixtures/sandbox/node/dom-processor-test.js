@@ -25,10 +25,45 @@ test('iframe', function () {
     var iframe         = nativeMethods.createElement.call(document, 'iframe');
     var storedAttrName = domProcessor.getStoredAttrName('sandbox');
 
-    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-forms');
+    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts');
     domProcessor.processElement(iframe);
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-scripts');
 
-    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-scripts');
+    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-same-origin');
+    iframe['hammerhead|element-processed'] = false;
+    domProcessor.processElement(iframe);
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-same-origin allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-same-origin');
+
+    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts allow-same-origin');
+    iframe['hammerhead|element-processed'] = false;
+    domProcessor.processElement(iframe);
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-scripts allow-same-origin');
+
+    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-same-origin allow-forms');
+    iframe['hammerhead|element-processed'] = false;
+    domProcessor.processElement(iframe);
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-same-origin allow-forms allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-same-origin allow-forms');
+
+    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts allow-forms');
+    iframe['hammerhead|element-processed'] = false;
+    domProcessor.processElement(iframe);
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-forms allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-scripts allow-forms');
+
+    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts allow-forms allow-same-origin');
+    iframe['hammerhead|element-processed'] = false;
+    domProcessor.processElement(iframe);
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-forms allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-scripts allow-forms allow-same-origin');
+
+    nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-forms');
+    iframe['hammerhead|element-processed'] = false;
+    domProcessor.processElement(iframe);
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-same-origin allow-scripts');
     strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-forms');
 });
 
