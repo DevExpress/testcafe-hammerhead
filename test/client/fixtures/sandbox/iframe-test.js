@@ -1,5 +1,6 @@
-var urlUtils = hammerhead.get('./utils/url');
-var settings = hammerhead.get('./settings');
+var urlUtils       = hammerhead.get('./utils/url');
+var settings       = hammerhead.get('./settings');
+var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
@@ -127,6 +128,26 @@ asyncTest('element.setAttribute', function () {
                 });
             iframeBody.appendChild(nestedIframe);
         });
+    document.body.appendChild(iframe);
+});
+
+asyncTest('restore charset info after document.write', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test_unique_idlyuvd251';
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../data/dom-processor/iframe.html');
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe.contentDocument[INTERNAL_PROPS.documentCharset] = 'utf-8';
+
+            iframe.contentDocument.write('<a href="/index.html"></a>');
+
+            strictEqual('utf-8', iframe.contentDocument[INTERNAL_PROPS.documentCharset]);
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
     document.body.appendChild(iframe);
 });
 

@@ -192,6 +192,28 @@ test('special pages (GH-339)', function () {
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 });
 
+asyncTest('get location after document.write', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test_unique_idlmkd781';
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            strictEqual('https://example.com', eval(processScript('iframe.contentWindow.location.href')));
+            strictEqual('https://example.com', eval(processScript('iframe.contentDocument.location.href')));
+
+            iframe.contentDocument.write('<a href="/index.html"></a>');
+
+            strictEqual('https://example.com', eval(processScript('iframe.contentWindow.location.href')));
+            strictEqual('https://example.com', eval(processScript('iframe.contentDocument.location.href')));
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
+});
+
 module('regression');
 
 // NOTE The firefox does not provide access to the cross-domain location.
