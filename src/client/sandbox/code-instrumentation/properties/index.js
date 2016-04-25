@@ -1,4 +1,5 @@
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
+import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../../../request-pipeline/xhr/same-origin-policy';
 import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
@@ -184,8 +185,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => {
                     if (domUtils.isScriptElement(el))
                         return getPendingElementContent(el) || removeProcessingHeader(el.innerHTML);
-                    else if (domUtils.isStyleElement(el))
-                        return getPendingElementContent(el) || styleProcessor.cleanUp(el.innerHTML, urlUtils.parseProxyUrl);
+                    else if (domUtils.isStyleElement(el)) {
+                        return getPendingElementContent(el) ||
+                               styleProcessor.cleanUp(el.innerHTML, urlUtils.parseProxyUrl);
+                    }
 
                     return cleanUpHtml(el.innerHTML, el.tagName);
                 },
@@ -243,8 +246,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => {
                     if (domUtils.isScriptElement(el))
                         return getPendingElementContent(el) || removeProcessingHeader(el.innerText);
-                    else if (domUtils.isStyleElement(el))
-                        return getPendingElementContent(el) || styleProcessor.cleanUp(el.innerText, urlUtils.parseProxyUrl);
+                    else if (domUtils.isStyleElement(el)) {
+                        return getPendingElementContent(el) ||
+                               styleProcessor.cleanUp(el.innerText, urlUtils.parseProxyUrl);
+                    }
                 },
 
                 set: (el, text) => {
@@ -503,8 +508,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => {
                     if (domUtils.isScriptElement(el))
                         return getPendingElementContent(el) || removeProcessingHeader(el.textContent);
-                    else if (domUtils.isStyleElement(el))
-                        return getPendingElementContent(el) || styleProcessor.cleanUp(el.textContent, urlUtils.parseProxyUrl);
+                    else if (domUtils.isStyleElement(el)) {
+                        return getPendingElementContent(el) ||
+                               styleProcessor.cleanUp(el.textContent, urlUtils.parseProxyUrl);
+                    }
                 },
 
                 set: (el, text) => {
@@ -555,6 +562,16 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: domUtils.isDocument,
                 get:       doc => ShadowUI._filterNodeList(doc.scripts),
                 set:       (doc, value) => doc.scripts = value
+            },
+
+            status: {
+                condition: domUtils.isXhr,
+                // NOTE: The browser returns a 0 status code if the same-origin policy check is failed. Node.js v5.11 or higher
+                // (https://github.com/nodejs/node/blob/v5.11.0/CHANGELOG.md, https://github.com/nodejs/node/pull/6291/files)
+                // does not allow returning a response with this code. So, we use a valid unused 222 status code and change
+                // it to 0 on the client side.
+                get:       xhr => xhr.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : xhr.status,
+                set:       (xhr, value) => xhr.status = value
             },
 
             // Event

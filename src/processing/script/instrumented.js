@@ -55,6 +55,7 @@ export const PROPERTIES = [
     'search',
     'sessionStorage',
     'src',
+    'status',
     'target',
     'text',
     'textContent',

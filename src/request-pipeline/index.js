@@ -4,7 +4,7 @@ import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';
 import connectionResetGuard from './connection-reset-guard';
-import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
+import { check as checkSameOriginPolicy, SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from './xhr/same-origin-policy';
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 import { isSpecialPage } from '../utils/url';
@@ -38,7 +38,7 @@ var stages = {
 
     2: function checkSameOriginPolicyCompliance (ctx, next) {
         if (ctx.isXhr && !checkSameOriginPolicy(ctx)) {
-            ctx.closeWithError(0);
+            ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
             return;
         }
 

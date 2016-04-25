@@ -1,5 +1,7 @@
 import XHR_HEADERS from './headers';
 
+export const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = 222;
+
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 export function check (ctx) {
     var reqOrigin = ctx.dest.reqOrigin;

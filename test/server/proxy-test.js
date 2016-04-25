@@ -1,21 +1,22 @@
-var Promise                     = require('pinkie');
-var fs                          = require('fs');
-var http                        = require('http');
-var urlLib                      = require('url');
-var request                     = require('request');
-var expect                      = require('chai').expect;
-var express                     = require('express');
-var read                        = require('read-file-relative').readSync;
-var createSelfSignedHttpsServer = require('self-signed-https');
-var getFreePort                 = require('endpoint-utils').getFreePort;
-var COMMAND                     = require('../../lib/session/command');
-var XHR_HEADERS                 = require('../../lib/request-pipeline/xhr/headers');
-var Proxy                       = require('../../lib/proxy');
-var Session                     = require('../../lib/session');
-var DestinationRequest          = require('../../lib/request-pipeline/destination-request');
-var requestAgent                = require('../../lib/request-pipeline/destination-request/agent');
-var scriptHeader                = require('../../lib/processing/script/header').HEADER;
-var urlUtils                    = require('../../lib/utils/url');
+var Promise                              = require('pinkie');
+var fs                                   = require('fs');
+var http                                 = require('http');
+var urlLib                               = require('url');
+var request                              = require('request');
+var expect                               = require('chai').expect;
+var express                              = require('express');
+var read                                 = require('read-file-relative').readSync;
+var createSelfSignedHttpsServer          = require('self-signed-https');
+var getFreePort                          = require('endpoint-utils').getFreePort;
+var COMMAND                              = require('../../lib/session/command');
+var XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
+var SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-policy').SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
+var Proxy                                = require('../../lib/proxy');
+var Session                              = require('../../lib/session');
+var DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
+var requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
+var scriptHeader                         = require('../../lib/processing/script/header').HEADER;
+var urlUtils                             = require('../../lib/utils/url');
 
 var EMPTY_PAGE = '<html></html>';
 
@@ -378,7 +379,7 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
 
             request(options, function (err, res, body) {
-                expect(res.statusCode).eql(0);
+                expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                 expect(body).to.be.empty;
                 done();
             });
@@ -396,7 +397,7 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
 
             request(options, function (err, res, body) {
-                expect(res.statusCode).eql(0);
+                expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                 expect(body).to.be.empty;
                 done();
             });
@@ -940,7 +941,7 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
             request(options, function (err, res) {
-                expect(res.statusCode).eql(0);
+                expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                 done();
             });
         });
