@@ -59,6 +59,11 @@ module.exports = function (app) {
         res.send(req.headers['x-hammerhead|xhr|origin']);
     });
 
+    app.get('/xhr-222/', function (req, res) {
+        res.statusCode = 222;
+        res.send('true');
+    });
+
     app.post('/form-data', function (req, res) {
         var chunks = [];
 

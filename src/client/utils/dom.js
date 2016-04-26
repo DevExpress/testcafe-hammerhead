@@ -482,6 +482,10 @@ export function isShadowUIElement (element) {
     return false;
 }
 
+export function isXhr (instance) {
+    return instance instanceof window.XMLHttpRequest || instance.toString() === '[object XMLHttpRequest]';
+}
+
 export function isWindow (instance) {
     if (instance instanceof nativeMethods.windowClass)
         return true;
