@@ -65,21 +65,6 @@ test('isDomElement', function () {
     /* eslint-enable no-extra-parens */
 });
 
-asyncTest('isXhr', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id  = 'test5';
-    iframe.src = '';
-    ok(domUtils.isXhr(new window.XMLHttpRequest()));
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            ok(domUtils.isXhr(new iframe.contentWindow.XMLHttpRequest()));
-            iframe.parentNode.removeChild(iframe);
-            start();
-        });
-    document.body.appendChild(iframe);
-});
-
 asyncTest('isDomElement for iframe elements', function () {
     var iframe = document.createElement('iframe');
 

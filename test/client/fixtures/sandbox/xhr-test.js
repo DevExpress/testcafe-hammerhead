@@ -97,6 +97,7 @@ test('the internal 222 status code should be replaced to 0 on the client side', 
     var xhr = new XMLHttpRequest();
 
     xhr.open('GET', '/xhr-222/', false);
+    ok(XhrSandbox.isOpenedXhr(xhr));
     xhr.send();
 
     strictEqual(xhr.response || xhr.responseText, 'true');
