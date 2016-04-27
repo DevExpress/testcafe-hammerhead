@@ -4,6 +4,8 @@ import { getProxyUrl } from '../utils/url';
 import XHR_HEADERS from '../../request-pipeline/xhr/headers';
 import { getOrigin } from '../utils/destination-location';
 
+const IS_OPENED_XHR = 'hammerhead|xhr|is-opened-xhr';
+
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 var arraySlice = Array.prototype.slice;
@@ -19,6 +21,10 @@ export default class XhrSandbox extends SandboxBase {
         var xhr = new nativeMethods.XMLHttpRequest();
 
         this.corsSupported = typeof xhr.withCredentials !== 'undefined';
+    }
+
+    static isOpenedXhr (obj) {
+        return obj[IS_OPENED_XHR];
     }
 
     static createNativeXHR () {
@@ -50,6 +56,8 @@ export default class XhrSandbox extends SandboxBase {
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
         xmlHttpRequestProto.open = function () {
+            this[IS_OPENED_XHR] = true;
+
             // NOTE: Emulate CORS, so that 3rd party libs (e.g. jQuery) allow requests with the proxy host as well as
             // the destination page host.
             if (!xhrSandbox.corsSupported)

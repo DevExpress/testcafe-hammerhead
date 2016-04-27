@@ -6,6 +6,7 @@ import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
 import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
+import XhrSandbox from '../../xhr';
 import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
@@ -565,7 +566,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             status: {
-                condition: domUtils.isXhr,
+                condition: XhrSandbox.isOpenedXhr,
                 // NOTE: The browser returns a 0 status code if the same-origin policy check is failed. Node.js v5.11 or higher
                 // (https://github.com/nodejs/node/blob/v5.11.0/CHANGELOG.md, https://github.com/nodejs/node/pull/6291/files)
                 // does not allow returning a response with this code. So, we use a valid unused 222 status code and change
