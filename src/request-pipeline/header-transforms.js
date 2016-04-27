@@ -7,19 +7,34 @@ function skip () {
     return void 0;
 }
 
+// NOTE: Need to remove cookie and authorization headers manually if the request is sent without credentials
+function isXhrWithoutCredentials (ctx) {
+    return ctx.isXhr && !!ctx.req.headers[XHR_HEADERS.corsSupported] && !ctx.req.headers[XHR_HEADERS.withCredentials];
+}
+
+function transformAuthorizationHeader (src, ctx) {
+    return isXhrWithoutCredentials(ctx) ? void 0 : src;
+}
+
 // Request headers
 var requestTransforms = {
-    'host':           (src, ctx) => ctx.dest.host,
-    'referer':        (src, ctx) => ctx.dest.referer || void 0,
-    'origin':         (src, ctx) => ctx.dest.reqOrigin || src,
-    'content-length': (src, ctx) => ctx.reqBody.length,
-    'cookie':         skip,
-
-    [XHR_HEADERS.requestMarker]: skip
+    'host':                        (src, ctx) => ctx.dest.host,
+    'referer':                     (src, ctx) => ctx.dest.referer || void 0,
+    'origin':                      (src, ctx) => ctx.dest.reqOrigin || src,
+    'content-length':              (src, ctx) => ctx.reqBody.length,
+    'cookie':                      skip,
+    [XHR_HEADERS.requestMarker]:   skip,
+    [XHR_HEADERS.corsSupported]:   skip,
+    [XHR_HEADERS.withCredentials]: skip,
+    [XHR_HEADERS.origin]:          skip,
+    'authorization':               transformAuthorizationHeader,
+    'authentication-info':         transformAuthorizationHeader,
+    'proxy-authenticate':          transformAuthorizationHeader,
+    'proxy-authorization':         transformAuthorizationHeader
 };
 
 var requestForced = {
-    'cookie': (src, ctx) => ctx.session.cookies.getHeader(ctx.dest.url) || void 0,
+    'cookie': (src, ctx) => isXhrWithoutCredentials(ctx) ? void 0 : ctx.session.cookies.getHeader(ctx.dest.url) || void 0,
 
     // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
     // So, if the request is actually cross-domain, we need to force the 'Origin' header to support CORS. (B234325)
