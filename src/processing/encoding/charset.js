@@ -1,3 +1,5 @@
+import getEncodingName from './labels';
+
 const CHARSET_RE      = /(?:^|;)\s*charset=(.+)(?:;|$)/i;
 const META_CHARSET_RE = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
 
@@ -29,37 +31,6 @@ const PRIORITY_LIST = {
     META:         1,
     DEFAULT:      0
 };
-
-const CHARSETS = [
-    'iso-8859-1', 'iso-8859-2', 'iso-8859-3', 'iso-8859-4',
-    'iso-8859-5', 'iso-8859-6', 'iso-8859-7', 'iso-8859-8',
-    'iso-8859-9', 'iso-8859-10', 'iso-8859-11', 'iso-8859-12',
-    'iso-8859-13', 'iso-8859-14', 'iso-8859-15', 'iso-8859-16',
-    'windows-1250', 'windows-1251', 'windows-1252', 'windows-1253',
-    'windows-1254', 'windows-1255', 'windows-1256', 'windows-1257',
-    'windows-1258', 'windows-874', 'windows-866', 'koi8-r',
-    'koi8-u', 'utf-8', 'utf-16', 'utf-16le', 'utf-16be', 'utf-32',
-    'shift-jis', 'x-euc', 'big5', 'euc-kr'
-];
-
-// Normalized charset map
-var normalizedCharsetMap = {
-    map: {},
-
-    _getNormalizedCharsetMapKey (charset) {
-        return charset.replace(/-/g, '').toLowerCase();
-    },
-
-    add (charset) {
-        this.map[this._getNormalizedCharsetMapKey(charset)] = charset;
-    },
-
-    'get' (charset) {
-        return this.map[charset && this._getNormalizedCharsetMapKey(charset)];
-    }
-};
-
-CHARSETS.forEach(charset => normalizedCharsetMap.add(charset));
 
 // Charset
 export default class Charset {
@@ -113,7 +84,7 @@ export default class Charset {
             var charsetMatch = contentTypeHeader && contentTypeHeader.match(CHARSET_RE);
             var charset      = charsetMatch && charsetMatch[1];
 
-            return this.set(normalizedCharsetMap.get(charset), PRIORITY_LIST.CONTENT_TYPE);
+            return this.set(getEncodingName(charset), PRIORITY_LIST.CONTENT_TYPE);
         }
 
         return false;
@@ -121,7 +92,7 @@ export default class Charset {
 
     fromUrl (charsetFromUrl) {
         if (charsetFromUrl && this.priority <= PRIORITY_LIST.URL)
-            return this.set(normalizedCharsetMap.get(charsetFromUrl), PRIORITY_LIST.URL);
+            return this.set(getEncodingName(charsetFromUrl), PRIORITY_LIST.URL);
 
         return false;
     }
@@ -155,7 +126,7 @@ export default class Charset {
                 }
             });
 
-            return this.set(normalizedCharsetMap.get(charsetStr), PRIORITY_LIST.META);
+            return this.set(getEncodingName(charsetStr), PRIORITY_LIST.META);
         }
 
         return false;
