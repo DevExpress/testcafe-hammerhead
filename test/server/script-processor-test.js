@@ -73,19 +73,6 @@ var ESOTOPE_RAW_LITERAL_PATCH_WARNING = multiline(function () {/*
  */
 });
 
-var ESOTOPE_T170848_PATCH_WARNING = multiline(function () {/*
- ATTENTION! If this test fails, this may happen because you have updated esotope. We have patched esotope so
- that it inserts empty comments into a function with an empty body, which allows it to work around the T170848 issue.
-
- HOW TO FIX - go to esotope and add the following code to the BlockStatement
- gen before stmt body item generation:
- ```
- if (settings.functionBody && !$body.length)
-    _.js += "/**\/";'
- ```
- */
-});
-
 
 function normalizeCode (code) {
     return code
@@ -394,11 +381,11 @@ describe('Script processor', function () {
             },
             {
                 src:      '(function() {return eval;}, function(){return window.eval;}, function(){return window["eval"]})',
-                expected: '(function() {return __get$Eval(eval);}, function(){return __get$Eval(window.eval);}, function(){return __get$Eval(window["eval"]);})'
+                expected: '(function() {return __get$Eval(eval);}, function(){return __get$Eval(window.eval);}, function(){return __get$Eval(window["eval"])})'
             },
             {
                 src:      '(function a (eval) {}); a(eval, window.eval, window["eval"]);',
-                expected: '(function a (eval) {/**/}); a(__get$Eval(eval), __get$Eval(window.eval), __get$Eval(window["eval"]));'
+                expected: '(function a (eval) {}); a(__get$Eval(eval), __get$Eval(window.eval), __get$Eval(window["eval"]));'
             },
             {
                 src:      '__get$Eval(eval)("");__get$Eval(window.eval)("");__get$Eval(window["eval"])("");',
@@ -447,11 +434,11 @@ describe('Script processor', function () {
             },
             {
                 src:      '(function() {return sessionStorage;}, function(){return window.sessionStorage;}, function(){return window["sessionStorage"]})',
-                expected: '(function() {return __get$Storage(sessionStorage);}, function(){return __get$(window,"sessionStorage");}, function(){return __get$(window,"sessionStorage");})'
+                expected: '(function() {return __get$Storage(sessionStorage);}, function(){return __get$(window,"sessionStorage");}, function(){return __get$(window,"sessionStorage")})'
             },
             {
                 src:      '(function a (localStorage) {}); a(localStorage, window.localStorage, window["localStorage"]);',
-                expected: '(function a (localStorage) {/**/}); a(__get$Storage(localStorage),__get$(window,"localStorage"), __get$(window,"localStorage"));'
+                expected: '(function a (localStorage) {}); a(__get$Storage(localStorage),__get$(window,"localStorage"), __get$(window,"localStorage"));'
             },
             {
                 src:      '__get$Storage(sessionStorage).getItem("");__get$(window,"localStorage").getItem("");',
@@ -517,7 +504,7 @@ describe('Script processor', function () {
             },
             {
                 src:      '"use strict";var obj={yield:function(){}};obj.src;',
-                expected: '"use strict";var obj={yield:function(){/**/}};__get$(obj, "src");',
+                expected: '"use strict";var obj={yield:function(){}};__get$(obj, "src");',
                 msg:      ACORN_STRICT_MODE_PATCH_WARNING
             }
         ]);
@@ -525,12 +512,12 @@ describe('Script processor', function () {
 
     it('Should ignore HTML comments', function () {
         testProcessing([
-            { src: 'a[i];\n<!-- comment -->', expected: '__get$(a, i)' },
+            { src: 'a[i];\n<!-- comment -->', expected: '__get$(a, i);' },
             { src: '<!-- comment -->\n a[i];', expected: '__get$(a, i);' },
             { src: ' <!-- comment -->\n a[i];', expected: '__get$(a, i);' },
             { src: '\n<!-- comment -->\n a[i];', expected: '__get$(a, i);' },
             { src: '<!-- comment1 -->\n<!-- comment2 -->\n a[i];', expected: '__get$(a, i);' },
-            { src: '<!-- comment1 -->\n a[i];\n<!-- comment2 -->', expected: '__get$(a, i)' },
+            { src: '<!-- comment1 -->\n a[i];\n<!-- comment2 -->', expected: '__get$(a, i);' },
             {
                 src:      'var t = "<!-- comment1 -->\\n";\na[i];',
                 expected: 'var t = "<!-- comment1 -->\\n";\n__get$(a, i);'
@@ -539,18 +526,17 @@ describe('Script processor', function () {
     });
 
     describe('Regression', function () {
-        it('Should generate empty comment inside empty function body (T170848 workaround)', function () {
+        it('Should leave comments unchanged (T170848)', function () {
             testProcessing({
-                src:      'function test(){} a.src=function(){};',
-                expected: 'function test(){/**/}__set$(a,"src",function(){/**/});',
-                msg:      ESOTOPE_T170848_PATCH_WARNING
+                src:      'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } a.src=function(){};',
+                expected: 'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } __set$(a,"src",function(){});'
             });
         });
 
         it('Should process content in block statement (T209250)', function () {
             testProcessing({
                 src:      '{ (function() { a.src = "success"; })(); }',
-                expected: '{ (function() { __set$(a, "src", "success");}()); }'
+                expected: '{ (function() { __set$(a, "src", "success"); })(); }'
             });
         });
 
@@ -573,10 +559,12 @@ describe('Script processor', function () {
 
                 expected: 'document.writeln("<!--test123-->");' +
                           'client = "42";' +
+                          '/* yo yo */\n' +
                           'slot = "43";' +
                           'width = 300;' +
                           'e = __get$Eval(eval);' +
                           'height = 250;' +
+                          '//-->\n\n' +
                           'document.writeln("var t = 1;");' +
                           'document.writeln("t = 2;");' +
                           'document.close();'
@@ -592,17 +580,24 @@ describe('Script processor', function () {
                      '}\n' +
                      '//-->',
 
-                expected: 'function test(theURL,winName,features) {\n' +
+                expected: 'function test(theURL,winName,features) { //v2.0\n' +
                           '   __get$(a, i);\n' +
-                          '}'
+                          '}\n' +
+                          '//-->'
             });
         });
 
         it('Should handle malformed closing HTML comments (health monitor)', function () {
             testProcessing([
                 {
-                    src:      '<!--\n' + 'dn="SIDEX.RU";\n' + 'a[i]\n' + '// -->',
-                    expected: 'dn="SIDEX.RU";\n' + '__get$(a, i)\n'
+                    src: '<!--\n' +
+                         'dn="SIDEX.RU";\n' +
+                         'a[i]\n' +
+                         '// -->',
+
+                    expected: 'dn="SIDEX.RU";\n' +
+                              '__get$(a, i)\n' +
+                              '// -->'
                 },
                 {
                     src:      '<!--\n' + 'dn="SIDEX.RU";\n // -->',
@@ -621,7 +616,8 @@ describe('Script processor', function () {
 
                 expected: 'var rdm0 = "";\n' +
                           'var rdm1 = "";\n' +
-                          '__get$(a, i)'
+                          '__get$(a, i);' +
+                          '//-->'
             });
         });
     });

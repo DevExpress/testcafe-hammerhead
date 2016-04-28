@@ -508,7 +508,7 @@ describe('Proxy', function () {
             request(proxy.openSession('http://127.0.0.1:2000/script', session), function (err, res, body) {
                 var expected = fs.readFileSync('test/server/data/script/expected.js').toString();
 
-                compareCode(body, expected);
+                expect(body).eql(expected);
                 done();
             });
         });

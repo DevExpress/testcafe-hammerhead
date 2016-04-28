@@ -4,68 +4,80 @@
 // -------------------------------------------------------------
 
 import transformers from './transformers';
+import replaceNode from './transformers/replace-node';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 var objectToString = Object.prototype.toString;
 
-function replaceNode (node, newNode, parent, key) {
-    if (key === 'arguments' || key === 'elements' || key === 'expressions') {
-        var idx = parent[key].indexOf(node);
+function addChange (changes, change) {
+    if (changes.length) {
+        var lastChange  = changes[changes.length - 1];
+        var parsedStart = parseInt(change.start, 10);
+        var parsedEnd   = parseInt(lastChange.end, 10);
 
-        parent[key][idx] = newNode;
+        if (parsedStart > parsedEnd)
+            changes.push(change);
+        else if (change.start === lastChange.start && change.end === lastChange.end)
+            changes[changes.length - 1] = change;
     }
     else
-        parent[key] = newNode;
+        changes.push(change);
 }
 
-
-function transformChildNodes (node) {
-    var changed = false;
-
+function transformChildNodes (node, changes) {
     for (var key in node) {
         if (node.hasOwnProperty(key)) {
             var childNode = node[key];
 
             if (objectToString.call(childNode) === '[object Array]') {
                 for (var j = 0; j < childNode.length; j++)
-                    changed = transform(childNode[j], node, key) || changed;
+                    transform(childNode[j], node, key, changes);
             }
             else
-                changed = transform(childNode, node, key) || changed;
+                transform(childNode, node, key, changes);
         }
     }
-
-    return changed;
 }
 
-export default function transform (node, parent, key) {
+export default function transform (node, parent, key, changes) {
+    changes = changes || [];
+
     if (!node || typeof node !== 'object')
-        return false;
+        return changes;
 
-    var nodeTransformers = transformers[node.type];
-    var changed          = false;
+    var alreadyTransformed = node.originStart && node.originEnd;
 
-    if (nodeTransformers) {
-        for (var i = 0; i < nodeTransformers.length; i++) {
-            var transformer = nodeTransformers[i];
+    if (alreadyTransformed)
+        addChange(changes, { start: node.originStart, end: node.originEnd, replacement: node });
+    else {
+        var nodeTransformers = transformers[node.type];
 
-            if (transformer.condition(node, parent)) {
-                var replacement = transformer.run(node, parent, key);
+        if (nodeTransformers) {
+            for (var i = 0; i < nodeTransformers.length; i++) {
+                var transformer = nodeTransformers[i];
 
-                changed = true;
+                if (transformer.condition(node, parent)) {
+                    var replacement = transformer.run(node, parent, key);
 
-                if (replacement) {
-                    replaceNode(node, replacement, parent, key);
+                    if (replacement) {
+                        replaceNode(node, replacement, parent, key);
+                        addChange(changes, { start: replacement.originStart, end: replacement.originEnd, replacement });
 
-                    if (transformer.nodeReplacementRequireTransform)
-                        return transform(replacement, parent, key) || changed;
+                        if (transformer.nodeReplacementRequireTransform) {
+                            transform(replacement, parent, key, changes);
 
-                    break;
+                            return changes;
+                        }
+
+                        break;
+                    }
                 }
             }
         }
     }
 
-    return transformChildNodes(node) || changed;
+    transformChildNodes(node, changes);
+
+    return changes;
 }

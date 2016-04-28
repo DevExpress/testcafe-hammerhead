@@ -5,6 +5,7 @@
 
 import { createLocationGetWrapper } from '../node-builder';
 import { Syntax } from '../tools/esotope';
+import replaceNode from './replace-node';
 
 // Transform:
 // location.field; location[field] -->
@@ -24,7 +25,7 @@ export default {
     },
 
     run: node => {
-        node.object = createLocationGetWrapper();
+        replaceNode(node.object, createLocationGetWrapper(), node, 'object');
 
         return null;
     }

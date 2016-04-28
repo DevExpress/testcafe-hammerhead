@@ -1695,13 +1695,6 @@ var StmtRawGen = {
 
         _.js += '{' + _.newline;
 
-        //NOTE: extremely stupid solution for the T170848. We can't preserver all comments, because it's
-        //ultra slow, but we make a trick: if we have a function body without content then we add
-        //empty block comment into it. A lot of popular sites uses this ads library which fails if we don't
-        //do that.
-        if (settings.functionBody && !$body.length)
-            _.js += '/**/';
-
         for (var i = 0; i < len; i++) {
             var $item = $body[i];
 

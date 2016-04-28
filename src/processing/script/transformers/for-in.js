@@ -5,6 +5,7 @@
 
 import { Syntax } from '../tools/esotope';
 import { createTempVarIdentifier, createAssignmentExprStmt, createVarDeclaration } from '../node-builder';
+import replaceNode from './replace-node';
 
 // Transform:
 // for(obj[prop] in src), for(obj.prop in src) -->
@@ -18,11 +19,12 @@ export default {
     condition: node => node.left.type === Syntax.MemberExpression,
 
     run: node => {
-        var tempVarAst = createTempVarIdentifier();
+        var tempVarAst         = createTempVarIdentifier();
+        var varDeclaration     = createVarDeclaration(tempVarAst);
+        var assignmentExprStmt = createAssignmentExprStmt(node.left, tempVarAst);
 
-        node.body.body.unshift(createAssignmentExprStmt(node.left, tempVarAst));
-
-        node.left = createVarDeclaration(tempVarAst);
+        replaceNode(null, assignmentExprStmt, node.body, 'body');
+        replaceNode(node.left, varDeclaration, node, 'left');
 
         return null;
     }
