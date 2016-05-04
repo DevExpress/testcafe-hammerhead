@@ -17,7 +17,7 @@ export function isStyle (instance) {
     if (instance instanceof nativeMethods.styleClass)
         return true;
 
-    if (instance && typeof instance === 'object' && instance.border !== void 0) {
+    if (instance && typeof instance === 'object' && instance.border !== void 0 && typeof instance.toString === 'function') {
         instance = instance.toString();
 
         return instance === '[object CSSStyleDeclaration]' || instance === '[object CSS2Properties]' ||

@@ -214,7 +214,7 @@ test('getSelectElementSize', function () {
     strictEqual(size, 1);
 
     select.setAttribute('size', 4);
-    size = styleUtils.getSelectElementSize(select);
+    size       = styleUtils.getSelectElementSize(select);
 
     if (browserUtils.isSafari && browserUtils.hasTouchEvents || browserUtils.isAndroid)
         strictEqual(size, 1);
@@ -230,4 +230,10 @@ test('getSelectElementSize', function () {
         strictEqual(size, 4);
 
     document.body.removeChild(select);
+});
+
+module('regression');
+
+test('isStyle throws an error for objects without the toString method (GH-561)', function () {
+    ok(!styleUtils.isStyle({ border: 0, toString: void 0 }));
 });
