@@ -74,26 +74,21 @@ function getAst (src, isObject) {
     }
 }
 
-function getCode (ast, src, isObject, beautify) {
+function getCode (ast, src) {
     var code = generate(ast, {
         format: {
             quotes:     'double',
             escapeless: true,
-            compact:    !beautify
+            compact:    true
         }
     });
 
-    if (isObject)
-        code = code.replace(OBJECT_WRAPPER_RE, '$1');
-
-    return removeTrailingSemicolonIfNecessary(code, src);
+    return src ? removeTrailingSemicolonIfNecessary(code, src) : code;
 }
 
 
 // Analyze code
 function analyze (code) {
-    code = removeHtmlComments(code);
-
     var isObject = OBJECT_RE.test(code);
     var ast      = getAst(code, isObject);
 
@@ -117,19 +112,45 @@ export function isScriptProcessed (code) {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src, withHeader, beautify) {
+export function applyChanges (script, changes, isObject) {
+    var indexOffset = isObject ? -1 : 0;
+    var chunks      = [];
+    var index       = 0;
+
+    if (!changes.length)
+        return script;
+
+    for (var i = 0; i < changes.length; i++) {
+        var changeStart = changes[i].start + indexOffset;
+        var changeEnd   = changes[i].end + indexOffset;
+
+        chunks.push(script.substring(index, changeStart));
+        chunks.push(getCode(changes[i].replacement, script.substring(changeStart, changeEnd)));
+        index += changeEnd - index;
+    }
+
+    chunks.push(script.substring(index));
+
+    return chunks.join('');
+}
+
+export function processScript (src, withHeader) {
     var { bom, preprocessed } = preprocess(src);
-    var { ast, isObject }     = analyze(preprocessed);
+    var withoutHtmlComments = removeHtmlComments(preprocessed);
+    var { ast, isObject }     = analyze(withoutHtmlComments);
 
     if (!ast)
         return src;
 
     withHeader = withHeader && !isObject && !isArrayDataScript(ast);
 
-    if (!transform(ast))
-        return postprocess(preprocessed, withHeader, bom);
+    var changes   = transform(ast);
+    var processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
-    var processed = getCode(ast, preprocessed, isObject, beautify);
+    processed = postprocess(processed, withHeader, bom);
 
-    return postprocess(processed, withHeader, bom);
+    if (isObject)
+        processed = processed.replace(OBJECT_WRAPPER_RE, '$1');
+
+    return processed;
 }

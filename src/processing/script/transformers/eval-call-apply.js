@@ -5,6 +5,7 @@
 
 import { createProcessScriptMethCall } from '../node-builder';
 import { Syntax } from '../tools/esotope';
+import replaceNode from './replace-node';
 
 const INVOCATION_FUNC_NAME_RE = /^(call|apply)$/;
 
@@ -41,8 +42,9 @@ export default {
 
     run: node => {
         var isApply = node.callee.property.name === 'apply';
+        var newArg  = createProcessScriptMethCall(node.arguments[1], isApply);
 
-        node.arguments[1] = createProcessScriptMethCall(node.arguments[1], isApply);
+        replaceNode(node.arguments[1], newArg, node, 'arguments');
 
         return null;
     }

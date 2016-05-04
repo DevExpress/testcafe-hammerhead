@@ -5,6 +5,7 @@
 
 import { createProcessScriptMethCall } from '../node-builder';
 import { Syntax } from '../tools/esotope';
+import replaceNode from './replace-node';
 
 // Transform:
 // new Function(params..., body); -->
@@ -19,8 +20,9 @@ export default {
 
     run: node => {
         var lastArgIndex = node.arguments.length - 1;
+        var newArg       = createProcessScriptMethCall(node.arguments[lastArgIndex]);
 
-        node.arguments[lastArgIndex] = createProcessScriptMethCall(node.arguments[lastArgIndex]);
+        replaceNode(node.arguments[lastArgIndex], newArg, node, 'arguments');
 
         return null;
     }

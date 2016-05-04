@@ -4,6 +4,7 @@
 // -------------------------------------------------------------
 
 import { createProcessScriptMethCall } from '../node-builder';
+import replaceNode from './replace-node';
 import { Syntax } from '../tools/esotope';
 
 // Transform:
@@ -28,7 +29,9 @@ export default {
     },
 
     run: node => {
-        node.arguments[0] = createProcessScriptMethCall(node.arguments[0]);
+        var newArg = createProcessScriptMethCall(node.arguments[0]);
+
+        replaceNode(node.arguments[0], newArg, node, 'arguments');
 
         return null;
     }
