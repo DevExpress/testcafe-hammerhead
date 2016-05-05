@@ -3,8 +3,7 @@ import BaseDomAdapter from './base-dom-adapter';
 import events from 'events';
 import * as urlUtils from '../../utils/url';
 import * as parse5Utils from '../../utils/parse5';
-
-const SVG_NAMESPACE_URI = 'http://www.w3.org/2000/svg';
+import { SVG_NAMESPACE } from './namespaces';
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
     constructor (isIframe, crossDomainPort) {
@@ -31,7 +30,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     isSVGElement (el) {
-        return el.namespaceURI === SVG_NAMESPACE_URI;
+        return el.namespaceURI === SVG_NAMESPACE;
     }
 
     hasEventHandler (el) {

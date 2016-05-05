@@ -16,7 +16,7 @@ import { isStyle, isStyleSheet } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAnchorProperty, setAnchorProperty } from './anchor';
 import { getAttributesProperty } from './attributes';
-import { URL_ATTR_TAGS, TARGET_ATTR_TAGS } from '../../../dom-processor';
+import domProcessor from '../../../dom-processor';
 import styleProcessor from '../../../../processing/style';
 import { processScript } from '../../../../processing/script';
 import { remove as removeProcessingHeader } from '../../../../processing/script/header';
@@ -68,12 +68,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
         return {
             action: {
-                condition: el => {
-                    if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['action'].indexOf(domUtils.getTagName(el)) !== -1;
-
-                    return false;
-                },
+                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'action'),
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'action'),
                 set: (el, value) => el.setAttribute('action', value)
@@ -114,12 +109,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             data: {
-                condition: el => {
-                    if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['data'].indexOf(domUtils.getTagName(el)) !== -1;
-
-                    return false;
-                },
+                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'data'),
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'data'),
                 set: (el, value) => el.setAttribute('data', value)
@@ -176,7 +166,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (LocationAccessorsInstrumentation.isLocationWrapper(el))
                         return true;
                     if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['href'].indexOf(domUtils.getTagName(el)) !== -1;
+                        return domProcessor.isUrlAttr(el, 'href');
                     else if (isStyleSheet(el))
                         return true;
 
@@ -417,12 +407,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             manifest: {
-                condition: el => {
-                    if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['manifest'].indexOf(domUtils.getTagName(el)) !== -1;
-
-                    return false;
-                },
+                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'manifest'),
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'manifest'),
                 set: (el, value) => el.setAttribute('manifest', value)
@@ -491,19 +476,14 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             src: {
-                condition: el => {
-                    if (domUtils.isDomElement(el))
-                        return URL_ATTR_TAGS['src'].indexOf(domUtils.getTagName(el)) !== -1;
-
-                    return false;
-                },
+                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'src'),
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'src'),
                 set: (el, value) => el.setAttribute('src', value)
             },
 
             target: {
-                condition: el => domUtils.isDomElement(el) && TARGET_ATTR_TAGS[domUtils.getTagName(el)],
+                condition: el => domUtils.isDomElement(el) && domProcessor.TARGET_ATTR_TAGS[domUtils.getTagName(el)],
                 get:       el => el.target,
                 set:       (el, value) => el.setAttribute('target', value)
             },
