@@ -157,6 +157,8 @@ export default class UploadInfoManager {
 
             return HiddenInfo.removeInputInfo(input);
         }
+
+        return null;
     }
 
     getFiles (input) {

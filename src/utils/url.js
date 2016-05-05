@@ -6,11 +6,11 @@
 import trim from './string-trim';
 
 //Const
-const PROTOCOL_RE           = /(^([\w-]+?\:))/;
-const LEADING_SLASHES_RE    = /^(\/\/)/;
-const HOST_RE               = /^(.*?)(\/|%|\?|;|#|$)/;
-const PORT_RE               = /:([0-9]*)$/;
-const QUERY_AND_HASH_RE     = /(\?.+|#[^#]*)$/;
+const PROTOCOL_RE        = /(^([\w-]+?\:))/;
+const LEADING_SLASHES_RE = /^(\/\/)/;
+const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
+const PORT_RE            = /:([0-9]*)$/;
+const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 
 export const SUPPORTED_PROTOCOL_RE               = /^https?:/i;
 export const HASH_RE                             = /^#/;
@@ -140,14 +140,13 @@ export function parseProxyUrl (proxyUrl) {
     if (!isSpecialPage(destUrl) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
         return null;
 
-    var destResourceInfo = !isSpecialPage(destUrl) ? parseUrl(match[2]) :
-        {
-            protocol:      'about:',
-            host:          '',
-            hostname:      '',
-            port:          '',
-            partAfterHost: ''
-        };
+    var destResourceInfo = !isSpecialPage(destUrl) ? parseUrl(match[2]) : {
+        protocol:      'about:',
+        host:          '',
+        hostname:      '',
+        port:          '',
+        partAfterHost: ''
+    };
 
     return {
         destUrl:          destUrl,

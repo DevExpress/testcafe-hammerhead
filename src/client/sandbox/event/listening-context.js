@@ -91,4 +91,6 @@ export function getWrapper (eventCtx, listener, useCapture) {
             return wrapper;
         }
     }
+
+    return null;
 }

@@ -73,7 +73,9 @@ export default class DocumentSandbox extends SandboxBase {
         if (frameElement && !isIframeWithoutSrc(frameElement) && (isIE9 || isIE10)) {
             this.readyStateForIE = 'loading';
 
-            nativeMethods.addEventListener.call(this.document, 'DOMContentLoaded', () => this.readyStateForIE = null);
+            nativeMethods.addEventListener.call(this.document, 'DOMContentLoaded', () => {
+                this.readyStateForIE = null;
+            });
         }
 
         var documentSandbox = this;

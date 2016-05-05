@@ -209,6 +209,8 @@ export default class EventSandbox extends SandboxBase {
 
                 return preventDefault(e, true);
             }
+
+            return void 0;
         }, true);
     }
 

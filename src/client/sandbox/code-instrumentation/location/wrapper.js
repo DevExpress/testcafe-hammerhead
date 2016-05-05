@@ -40,7 +40,11 @@ export default class LocationWrapper {
 
         Object.defineProperty(this, 'hash', createPropertyDesc({
             get: () => window.location.hash,
-            set: hash => window.location.hash = hash
+            set: hash => {
+                window.location.hash = hash;
+
+                return hash;
+            }
         }));
 
         for (var i = 0, len = urlProps.length; i < len; i++)

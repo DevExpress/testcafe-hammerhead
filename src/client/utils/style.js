@@ -296,6 +296,8 @@ export function getOffsetParent (el) {
 
         return offsetParent;
     }
+
+    return void 0;
 }
 
 export function getOffset (el) {

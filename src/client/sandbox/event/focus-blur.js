@@ -307,6 +307,8 @@ export default class FocusBlurSandbox extends SandboxBase {
         }
         else
             raiseFocusEvent();
+
+        return null;
     }
 
     disableOuterFocusHandlers () {
