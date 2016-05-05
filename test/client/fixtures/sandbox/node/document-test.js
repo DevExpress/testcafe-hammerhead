@@ -280,8 +280,8 @@ test('parameters passed to the native function in its original form', function (
     checkNativeFunctionArgs('close', 'documentClose', document);
     checkNativeFunctionArgs('open', 'documentOpen', document);
 
-    storedBeforeDocumentCleaned = storedBeforeDocumentCleaned;
-    nativeMethods.restoreDocumentMeths = storedRestoreDocumentMeths;
+    hammerhead.sandbox.node.doc._beforeDocumentCleaned = storedBeforeDocumentCleaned;
+    nativeMethods.restoreDocumentMeths                 = storedRestoreDocumentMeths;
 });
 
 module('resgression');

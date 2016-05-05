@@ -50,7 +50,12 @@ export default class UnloadSandbox extends SandboxBase {
         }));
 
         Object.defineProperty(e, 'preventDefault', createPropertyDesc({
-            get: () => () => this.prevented = true,
+            get: () => () => {
+                this.prevented = true;
+
+                return true;
+            },
+
             set: () => void 0
         }));
 

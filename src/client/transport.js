@@ -27,7 +27,11 @@ class Transport extends EventEmitter {
             this.useAsyncXhr = false;
 
             // NOTE: If the unloading was canceled, switch back to asynchronous XHR.
-            nativeMethods.setTimeout.call(window, () => this.useAsyncXhr = true, this.SWITCH_BACK_TO_ASYNC_XHR_DELAY);
+            nativeMethods.setTimeout.call(window, () => {
+                this.useAsyncXhr = true;
+
+                return this.SWITCH_BACK_TO_ASYNC_XHR_DELAY;
+            });
         }, true);
     }
 

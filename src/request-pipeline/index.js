@@ -32,7 +32,10 @@ var stages = {
             next();
         });
 
-        req.on('error', () => ctx.hasDestReqErr = true);
+        req.on('error', () => {
+            ctx.hasDestReqErr = true;
+        });
+
         req.on('fatalError', err => error(ctx, err));
     },
 

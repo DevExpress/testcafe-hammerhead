@@ -62,6 +62,8 @@ function overridedAsyncServiceMsg (msg) {
             default:
                 return storedAsyncServiceMsg.call(transport, msg);
         }
+
+        return null;
     });
 }
 

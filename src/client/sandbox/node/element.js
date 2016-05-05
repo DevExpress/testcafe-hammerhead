@@ -207,6 +207,8 @@ export default class ElementSandbox extends SandboxBase {
 
         if (attr !== 'autocomplete')
             return removeAttrFunc.apply(el, args);
+
+        return void 0;
     }
 
     _prepareNodeForInsertion (node, parentNode) {

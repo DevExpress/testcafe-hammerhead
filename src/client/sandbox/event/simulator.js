@@ -174,7 +174,7 @@ export default class EventSimulator {
             if (userOptions && userOptions.button !== void 0)
                 opts = extend(opts, { button: userOptions.button });
 
-            args     = EventSimulator._getMouseEventArgs(event, opts);
+            args = EventSimulator._getMouseEventArgs(event, opts);
             /* eslint-disable no-shadow */
             dispatch = (el, args) => this._dispatchMouseEvent(el, args);
             /* eslint-enable no-shadow */
@@ -189,7 +189,7 @@ export default class EventSimulator {
                 });
             }
 
-            args     = EventSimulator._getKeyEventArgs(event, opts);
+            args = EventSimulator._getKeyEventArgs(event, opts);
             /* eslint-disable no-shadow */
             dispatch = (el, args) => this._dispatchKeyEvent(el, args);
             /* eslint-enable no-shadow */
@@ -295,6 +295,8 @@ export default class EventSimulator {
 
             return this._raiseDispatchEvent(el, ev, args);
         }
+
+        return null;
     }
 
     _dispatchMouseEvent (el, args) {
@@ -421,6 +423,8 @@ export default class EventSimulator {
 
             return this._raiseDispatchEvent(el, ev);
         }
+
+        return null;
     }
 
     _raiseDispatchEvent (el, ev, args) {
@@ -496,8 +500,13 @@ export default class EventSimulator {
                     });
 
                     Object.defineProperty(curWindowEvent, 'cancelBubble', {
-                        get:          () => cancelBubble,
-                        set:          value => ev.cancelBubble = cancelBubble = value,
+                        get: () => cancelBubble,
+                        set: value => {
+                            ev.cancelBubble = cancelBubble = value;
+
+                            return value;
+                        },
+
                         configurable: true
                     });
 

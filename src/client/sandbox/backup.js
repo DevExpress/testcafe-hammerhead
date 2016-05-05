@@ -30,8 +30,8 @@ export function get (window) {
             if (storage[i].iframe === iframe)
                 return storage[i].sandbox;
         }
-
-        return null;
     }
+
+    return null;
 }
 

@@ -27,6 +27,8 @@ function flattenParsedProxyUrl (parsed) {
             sessionId: parsed.sessionId
         };
     }
+
+    return null;
 }
 
 

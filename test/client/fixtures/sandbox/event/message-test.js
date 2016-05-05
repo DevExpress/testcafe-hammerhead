@@ -69,6 +69,7 @@ asyncTest('cross-domain post messages between different windows', function () {
 
     var iframe           = document.createElement('iframe');
     var result           = 0;
+    var onMessageHandler = null;
     var checkResult      = function () {
         if (result === 4) {
             iframe.parentNode.removeChild(iframe);
@@ -76,7 +77,8 @@ asyncTest('cross-domain post messages between different windows', function () {
             start();
         }
     };
-    var onMessageHandler = function (e) {
+
+    onMessageHandler = function (e) {
         if (parseInt(e.data, 10))
             result++;
 
@@ -259,8 +261,8 @@ asyncTest('iframe', function () {
 });
 
 asyncTest('timeout (non-added to DOM iframe)', function () {
-    var iframe               = document.createElement('iframe');
-    var storedDelay          = messageSandbox.PING_IFRAME_TIMEOUT;
+    var iframe      = document.createElement('iframe');
+    var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
 
     messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
@@ -279,8 +281,8 @@ asyncTest('timeout (non-added to DOM iframe)', function () {
 });
 
 asyncTest('timeout (added to DOM iframe)', function () {
-    var iframe               = document.createElement('iframe');
-    var storedDelay          = messageSandbox.PING_IFRAME_TIMEOUT;
+    var iframe      = document.createElement('iframe');
+    var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
 
     messageSandbox.PING_IFRAME_TIMEOUT = 5;
 

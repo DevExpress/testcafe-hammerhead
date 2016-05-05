@@ -84,6 +84,8 @@ export default class MessageSandbox extends SandboxBase {
                 return originListener.call(this.window, resultEvt);
             }
         }
+
+        return null;
     }
 
     static _wrapMessage (type, message, targetUrl) {

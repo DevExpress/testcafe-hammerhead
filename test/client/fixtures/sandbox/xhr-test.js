@@ -34,7 +34,9 @@ test('redirect requests to proxy', function () {
 module('regression');
 
 asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
-    var timeout = 100;
+    var timeout            = 100;
+    var syncActionExecuted = false;
+    var xhr                = new XMLHttpRequest();
 
     var ready = function () {
         if (this.readyState === this.DONE) {
@@ -42,10 +44,6 @@ asyncTest('unexpected text modifying during typing text in the search input on t
             start();
         }
     };
-
-    var syncActionExecuted = false;
-
-    var xhr = new XMLHttpRequest();
 
     xhr.onreadystatechange = ready;
     xhr.open('GET', '/xhr-test/' + timeout);

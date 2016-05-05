@@ -45,7 +45,9 @@ const ENCODING_LABELS = {
 };
 
 const LOOKUP_TABLE = Object.keys(ENCODING_LABELS).reduce((table, encoding) => {
-    ENCODING_LABELS[encoding].forEach(label => table[label] = encoding);
+    ENCODING_LABELS[encoding].forEach(label => {
+        table[label] = encoding;
+    });
 
     return table;
 }, {});

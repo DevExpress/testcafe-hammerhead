@@ -134,7 +134,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             domain: {
                 condition: domUtils.isDocument,
                 get:       () => storedDomain ? storedDomain : LocationAccessorsInstrumentation.getLocationWrapper(window).hostname,
-                set:       (doc, domain) => storedDomain = domain
+                set:       (doc, domain) => {
+                    storedDomain = domain;
+
+                    return domain;
+                }
             },
 
             files: {
@@ -247,10 +251,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => {
                     if (domUtils.isScriptElement(el))
                         return getPendingElementContent(el) || removeProcessingHeader(el.innerText);
-                    else if (domUtils.isStyleElement(el)) {
-                        return getPendingElementContent(el) ||
-                               styleProcessor.cleanUp(el.innerText, urlUtils.parseProxyUrl);
-                    }
+
+                    return getPendingElementContent(el) || styleProcessor.cleanUp(el.innerText, urlUtils.parseProxyUrl);
                 },
 
                 set: (el, text) => {
@@ -406,7 +408,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             origin: {
                 condition: domUtils.isAnchorElement,
                 get:       el => el.origin !== void 0 ? getAnchorProperty(el, 'origin') : el.origin,
-                set:       (el, origin) => el.origin = origin
+                set:       (el, origin) => {
+                    el.origin = origin;
+
+                    return origin;
+                }
             },
 
             pathname: {
@@ -485,8 +491,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => {
                     if (domUtils.isScriptElement(el))
                         return getPendingElementContent(el) || removeProcessingHeader(el.text);
-                    else if (domUtils.isStyleElement(el))
-                        return getPendingElementContent(el) || styleProcessor.cleanUp(el.text, urlUtils.parseProxyUrl);
+
+                    return getPendingElementContent(el) || styleProcessor.cleanUp(el.text, urlUtils.parseProxyUrl);
                 },
 
                 set: (el, text) => {
@@ -509,10 +515,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => {
                     if (domUtils.isScriptElement(el))
                         return getPendingElementContent(el) || removeProcessingHeader(el.textContent);
-                    else if (domUtils.isStyleElement(el)) {
-                        return getPendingElementContent(el) ||
-                               styleProcessor.cleanUp(el.textContent, urlUtils.parseProxyUrl);
-                    }
+
+                    return getPendingElementContent(el) ||
+                           styleProcessor.cleanUp(el.textContent, urlUtils.parseProxyUrl);
                 },
 
                 set: (el, text) => {
@@ -562,7 +567,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             scripts: {
                 condition: domUtils.isDocument,
                 get:       doc => ShadowUI._filterNodeList(doc.scripts),
-                set:       (doc, value) => doc.scripts = value
+                set:       (doc, value) => {
+                    doc.scripts = value;
+
+                    return value;
+                }
             },
 
             status: {
@@ -572,7 +581,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 // does not allow returning a response with this code. So, we use a valid unused 222 status code and change
                 // it to 0 on the client side.
                 get:       xhr => xhr.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : xhr.status,
-                set:       (xhr, value) => xhr.status = value
+                set:       (xhr, value) => {
+                    xhr.status = value;
+
+                    return value;
+                }
             },
 
             // Event
