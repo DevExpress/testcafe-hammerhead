@@ -85,7 +85,7 @@ function testProcessing (testCases) {
     testCases = Array.isArray(testCases) ? testCases : [testCases];
 
     testCases.forEach(function (testCase) {
-        var processed = processScript(testCase.src, false, false);
+        var processed = processScript(testCase.src, false);
         var actual    = normalizeCode(processed);
         var expected  = normalizeCode(testCase.expected);
         var msg       = 'Source: ' + testCase.src + '\n' +
@@ -246,6 +246,12 @@ describe('Script processor', function () {
             { src: 'new Function(\'return a.href;\');', expected: 'new Function(__proc$Script(\'return a.href;\'));' },
             { src: 'new Function("x", "y", body);', expected: 'new Function("x", "y", __proc$Script(body));' }
         ]);
+    });
+
+    it('Should add a space before the replacement string', function () {
+        var processed = processScript('if(true){;}else"0"[s]', false);
+
+        expect(processed).eql('if(true){;}else __get$("0",s)');
     });
 
     it('Should process properties', function () {
