@@ -125,6 +125,7 @@ export function applyChanges (script, changes, isObject) {
         var changeEnd   = changes[i].end + indexOffset;
 
         chunks.push(script.substring(index, changeStart));
+        chunks.push(' ');
         chunks.push(getCode(changes[i].replacement, script.substring(changeStart, changeEnd)));
         index += changeEnd - index;
     }
