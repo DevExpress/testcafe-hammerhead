@@ -453,3 +453,15 @@ asyncTest('resolving url after writing the "base" tag (GH-526)', function () {
         });
     document.body.appendChild(iframe);
 });
+
+test('"base" tag with an href attribute that is set to a protocol relative url (GH-568)', function () {
+    var base = document.createElement('base');
+
+    document.head.appendChild(base);
+    base.setAttribute('href', '//test.com');
+
+    strictEqual(urlUtils.getProxyUrl('/image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
+                'http://' + PROXY_HOST + '/sessionId/https://test.com/image.png');
+
+    base.parentNode.removeChild(base);
+});
