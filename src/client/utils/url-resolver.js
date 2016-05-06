@@ -62,10 +62,11 @@ export default {
 
         url = url || destLocation.get();
 
-        var parsedUrl        = parseUrl(url);
-        var isRelativeUrl    = !parsedUrl.host;
+        var parsedUrl             = parseUrl(url);
+        var isRelativeUrl         = !parsedUrl.host;
+        var isProtocolRelativeUrl = /^\/\//.test(url) && !!parsedUrl.host;
 
-        if (isRelativeUrl) {
+        if (isRelativeUrl || isProtocolRelativeUrl) {
             var destinationLocation = destLocation.get();
 
             this.updateBase(destinationLocation, doc);
