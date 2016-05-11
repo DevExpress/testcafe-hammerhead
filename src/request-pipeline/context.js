@@ -47,6 +47,7 @@ export default class RequestPipelineContext {
         this.hasDestReqErr = false;
 
         this.isXhr         = false;
+        this.isFetch       = false;
         this.isPage        = false;
         this.isIframe      = false;
         this.isSpecialPage = false;
@@ -54,8 +55,9 @@ export default class RequestPipelineContext {
 
         var acceptHeader = req.headers['accept'];
 
-        this.isXhr  = !!req.headers[XHR_HEADERS.requestMarker];
-        this.isPage = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader);
+        this.isXhr   = !!req.headers[XHR_HEADERS.requestMarker];
+        this.isFetch = !!req.headers[XHR_HEADERS.fetchRequestCredentials];
+        this.isPage  = !this.isXhr && !this.isFetch && acceptHeader && contentTypeUtils.isPage(acceptHeader);
     }
 
     _getDestFromReferer (parsedReferer) {

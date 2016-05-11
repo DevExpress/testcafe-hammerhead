@@ -200,6 +200,66 @@ asyncTest('isSVGElement for iframe elements', function () {
     document.body.appendChild(iframe);
 });
 
+if (window.fetch) {
+    test('isFetchHeaders', function () {
+        ok(!domUtils.isFetchHeaders(null));
+        ok(!domUtils.isFetchHeaders(document));
+        ok(!domUtils.isFetchHeaders(document.documentElement));
+        ok(!domUtils.isFetchHeaders(window.Headers));
+        ok(domUtils.isFetchHeaders(new window.Headers()));
+    });
+
+    asyncTest('isFetchHeaders in iframe', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.id  = 'test_unique_id_ydniv452';
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                var iframeDocument = iframe.contentDocument;
+                var iframeWindow   = iframe.contentWindow;
+
+                ok(!domUtils.isFetchHeaders(null));
+                ok(!domUtils.isFetchHeaders(iframeDocument));
+                ok(!domUtils.isFetchHeaders(iframeDocument.documentElement));
+                ok(!domUtils.isFetchHeaders(iframeWindow.Headers));
+                ok(domUtils.isFetchHeaders(new iframeWindow.Headers()));
+
+                iframe.parentNode.removeChild(iframe);
+                start();
+            });
+        document.body.appendChild(iframe);
+    });
+
+    test('isFetchRequest', function () {
+        ok(!domUtils.isFetchRequest(null));
+        ok(!domUtils.isFetchRequest(document));
+        ok(!domUtils.isFetchRequest(document.documentElement));
+        ok(!domUtils.isFetchRequest(window.Request));
+        ok(domUtils.isFetchRequest(new window.Request('http://domain.com')));
+    });
+
+    asyncTest('isFetchRequest in iframe', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.id  = 'test_unique_id_ydosn52v452';
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                var iframeDocument = iframe.contentDocument;
+                var iframeWindow   = iframe.contentWindow;
+
+                ok(!domUtils.isFetchRequest(null));
+                ok(!domUtils.isFetchRequest(iframeDocument));
+                ok(!domUtils.isFetchRequest(iframeDocument.documentElement));
+                ok(!domUtils.isFetchRequest(iframeWindow.Request));
+                ok(domUtils.isFetchRequest(new iframeWindow.Request('http://domain.com')));
+
+                iframe.parentNode.removeChild(iframe);
+                start();
+            });
+        document.body.appendChild(iframe);
+    });
+}
+
 test('isHammerheadAttr', function () {
     ok(!domUtils.isHammerheadAttr('href'));
     ok(!domUtils.isHammerheadAttr('class'));

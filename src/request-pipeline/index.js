@@ -40,7 +40,7 @@ var stages = {
     },
 
     2: function checkSameOriginPolicyCompliance (ctx, next) {
-        if (ctx.isXhr && !checkSameOriginPolicy(ctx)) {
+        if ((ctx.isXhr || ctx.isFetch) && !checkSameOriginPolicy(ctx)) {
             ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
             return;
         }

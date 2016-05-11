@@ -40,9 +40,10 @@ function newLineReplacer (content) {
 }
 
 describe('Proxy', function () {
-    var destServer = null;
-    var proxy      = null;
-    var session    = null;
+    var destServer        = null;
+    var crossDomainServer = null;
+    var proxy             = null;
+    var session           = null;
 
     // NOTE: Fixture setup/teardown.
     before(function () {
@@ -198,11 +199,39 @@ describe('Proxy', function () {
             });
         });
 
+        app.get('/echo-headers', function (req, res) {
+            res.json(req.headers);
+        });
+
         destServer = app.listen(2000);
+
+
+        var crossDomainApp = express();
+
+        crossDomainApp.get('/without-access-control-allow-origin-header', function (req, res) {
+            res.set('content-type', 'text/html');
+            res.end(EMPTY_PAGE);
+        });
+
+        crossDomainApp.get('/echo-headers', function (req, res) {
+            res.setHeader('access-control-allow-origin', '*');
+
+            res.json(req.headers);
+        });
+
+        crossDomainApp.get('/echo-headers-with-credentials', function (req, res) {
+            res.setHeader('access-control-allow-origin', 'http://127.0.0.1:2000');
+            res.setHeader('access-control-allow-credentials', 'true');
+
+            res.json(req.headers);
+        });
+
+        crossDomainServer = crossDomainApp.listen(2002);
     });
 
     after(function () {
         destServer.close();
+        crossDomainServer.close();
     });
 
 
@@ -460,6 +489,160 @@ describe('Proxy', function () {
         });
     });
 
+    describe('Fetch', function () {
+        describe('Credential modes', function () {
+            describe('Omit', function () {
+                it('Should omit cookie and pass authorization headers for same-domain request', function (done) {
+                    session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
+
+                    var options = {
+                        url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
+                        headers: {
+                            referer:       proxy.openSession('http://127.0.0.1:2000', session),
+                            cookie:        'key=value',
+                            authorization: 'value'
+                        }
+                    };
+
+                    options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
+
+                    request(options, function (err, res, body) {
+                        var requestHeaders = JSON.parse(body);
+
+                        expect(requestHeaders.cookie).to.be.undefined;
+                        expect(requestHeaders.authorization).eql('value');
+
+                        done();
+                    });
+                });
+
+                it('Should omit cookie and pass authorization headers for cross-domain request', function (done) {
+                    session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
+
+                    var options = {
+                        url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
+                        headers: {
+                            referer:       proxy.openSession('http://127.0.0.1:2000', session),
+                            cookie:        'key=value',
+                            authorization: 'value'
+                        }
+                    };
+
+                    options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
+
+                    request(options, function (err, res, body) {
+                        var requestHeaders = JSON.parse(body);
+
+                        expect(requestHeaders.cookie).to.be.undefined;
+                        expect(requestHeaders.authorization).eql('value');
+
+                        done();
+                    });
+                });
+            });
+
+            describe('Same-origin', function () {
+                it('Should pass cookie and pass authorization headers for same-domain request', function (done) {
+                    session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
+
+                    var options = {
+                        url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
+                        headers: {
+                            referer:       proxy.openSession('http://127.0.0.1:2000', session),
+                            cookie:        'key=value',
+                            authorization: 'value'
+                        }
+                    };
+
+                    options.headers[XHR_HEADERS.fetchRequestCredentials] = 'same-origin';
+
+                    request(options, function (err, res, body) {
+                        var requestHeaders = JSON.parse(body);
+
+                        expect(requestHeaders.cookie).eql('key=value');
+                        expect(requestHeaders.authorization).eql('value');
+
+                        done();
+                    });
+                });
+
+                it('Should omit cookie and pass authorization headers for cross-domain request', function (done) {
+                    session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
+
+                    var options = {
+                        url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
+                        headers: {
+                            referer:       proxy.openSession('http://127.0.0.1:2000', session),
+                            cookie:        'key=value',
+                            authorization: 'value'
+                        }
+                    };
+
+                    options.headers[XHR_HEADERS.fetchRequestCredentials] = 'same-origin';
+
+                    request(options, function (err, res, body) {
+                        var requestHeaders = JSON.parse(body);
+
+                        expect(requestHeaders.cookie).to.be.undefined;
+                        expect(requestHeaders.authorization).eql('value');
+
+                        done();
+                    });
+                });
+            });
+
+            describe('Include', function () {
+                it('Should pass cookie and authorization headers for same-domain request', function (done) {
+                    session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
+
+                    var options = {
+                        url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
+                        headers: {
+                            referer:       proxy.openSession('http://127.0.0.1:2000', session),
+                            cookie:        'key=value',
+                            authorization: 'value'
+                        }
+                    };
+
+                    options.headers[XHR_HEADERS.fetchRequestCredentials] = 'include';
+
+                    request(options, function (err, res, body) {
+                        var requestHeaders = JSON.parse(body);
+
+                        expect(requestHeaders.cookie).eql('key=value');
+                        expect(requestHeaders.authorization).eql('value');
+
+                        done();
+                    });
+                });
+
+                it('Should pass cookie and authorization headers for cross-domain request', function (done) {
+                    session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
+
+                    var options = {
+                        url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
+                        headers: {
+                            referer:       proxy.openSession('http://127.0.0.1:2000', session),
+                            cookie:        'key=value',
+                            authorization: 'value'
+                        }
+                    };
+
+                    options.headers[XHR_HEADERS.fetchRequestCredentials] = 'include';
+
+                    request(options, function (err, res, body) {
+                        var requestHeaders = JSON.parse(body);
+
+                        expect(requestHeaders.cookie).eql('key=value');
+                        expect(requestHeaders.authorization).eql('value');
+
+                        done();
+                    });
+                });
+            });
+        });
+    });
+
     describe('Content processing', function () {
         it('Should process pages', function (done) {
             session.id = 'sessionId';
@@ -657,36 +840,6 @@ describe('Proxy', function () {
     });
 
     describe('Regression', function () {
-        var crossDomainServer = null;
-
-        before(function () {
-            var crossDomainApp = express();
-
-            crossDomainApp.get('/without-access-control-allow-origin-header', function (req, res) {
-                res.set('content-type', 'text/html');
-                res.end(EMPTY_PAGE);
-            });
-
-            crossDomainApp.get('/echo-headers', function (req, res) {
-                res.setHeader('access-control-allow-origin', '*');
-
-                res.json(req.headers);
-            });
-
-            crossDomainApp.get('/echo-headers-with-credentials', function (req, res) {
-                res.setHeader('access-control-allow-origin', 'http://example.com');
-                res.setHeader('access-control-allow-credentials', 'true');
-
-                res.json(req.headers);
-            });
-
-            crossDomainServer = crossDomainApp.listen(2002);
-        });
-
-        after(function () {
-            crossDomainServer.close();
-        });
-
         it('Should force "Origin" header for the same-domain requests (B234325)', function (done) {
             var options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
@@ -959,7 +1112,9 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should not send cookie and authorization headers to the destination server for the xhr request without credentials (GH-545)', function (done) {
+        it('Should not send cookie and authorization headers to the cross-domain destination server for the xhr request without credentials (GH-545)', function (done) {
+            session.cookies.setByClient('http://example.com', 'key=value');
+
             var options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
                 headers: {
@@ -972,8 +1127,8 @@ describe('Proxy', function () {
                 }
             };
 
-            options.headers[XHR_HEADERS.requestMarker] = 'true';
-            options.headers[XHR_HEADERS.corsSupported] = 'true';
+            options.headers[XHR_HEADERS.requestMarker] = true;
+            options.headers[XHR_HEADERS.corsSupported] = true;
 
             request(options, function (err, res, body) {
                 var requestHeaders = JSON.parse(body);
@@ -992,14 +1147,15 @@ describe('Proxy', function () {
             var options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
                 headers: {
-                    referer: proxy.openSession('http://example.com', session)
+                    referer: proxy.openSession('http://127.0.0.1:2000', session)
                 }
             };
 
-            options.headers[XHR_HEADERS.requestMarker] = 'true';
-            options.headers[XHR_HEADERS.corsSupported] = 'true';
-            options.headers[XHR_HEADERS.withCredentials] = 'true';
-            options.headers[XHR_HEADERS.origin] = 'origin_value';
+            options.headers[XHR_HEADERS.requestMarker]           = 'true';
+            options.headers[XHR_HEADERS.corsSupported]           = 'true';
+            options.headers[XHR_HEADERS.withCredentials]         = 'true';
+            options.headers[XHR_HEADERS.origin]                  = 'origin_value';
+            options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
 
             request(options, function (err, res, body) {
                 var requestHeaders = JSON.parse(body);
@@ -1008,6 +1164,34 @@ describe('Proxy', function () {
                 expect(requestHeaders[XHR_HEADERS.corsSupported]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.withCredentials]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.origin]).to.be.undefined;
+                expect(requestHeaders[XHR_HEADERS.fetchRequestCredentials]).to.be.undefined;
+
+                done();
+            });
+        });
+
+        it('Should remove hammerhead xhr headers before sending a request to the destination server', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
+                headers: {
+                    referer: proxy.openSession('http://127.0.0.1:2000', session)
+                }
+            };
+
+            options.headers[XHR_HEADERS.requestMarker]           = 'true';
+            options.headers[XHR_HEADERS.corsSupported]           = 'true';
+            options.headers[XHR_HEADERS.withCredentials]         = 'true';
+            options.headers[XHR_HEADERS.origin]                  = 'origin_value';
+            options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
+
+            request(options, function (err, res, body) {
+                var requestHeaders = JSON.parse(body);
+
+                expect(requestHeaders[XHR_HEADERS.requestMarker]).to.be.undefined;
+                expect(requestHeaders[XHR_HEADERS.corsSupported]).to.be.undefined;
+                expect(requestHeaders[XHR_HEADERS.withCredentials]).to.be.undefined;
+                expect(requestHeaders[XHR_HEADERS.origin]).to.be.undefined;
+                expect(requestHeaders[XHR_HEADERS.fetchRequestCredentials]).to.be.undefined;
 
                 done();
             });
