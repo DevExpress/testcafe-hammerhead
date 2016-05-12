@@ -20,6 +20,10 @@ export default {
         if (node.name !== 'sessionStorage' && node.name !== 'localStorage')
             return false;
 
+        // Skip: function localStorage() {}
+        if (parent.type === Syntax.FunctionDeclaration && parent.id === node)
+            return false;
+
         // Skip: window.localStorage
         if (parent.type === Syntax.MemberExpression && parent.property === node)
             return false;

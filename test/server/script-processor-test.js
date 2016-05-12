@@ -256,6 +256,7 @@ describe('Script processor', function () {
 
     it('Should process properties', function () {
         testPropertyProcessing([
+            { src: 'function {0}(){}', expected: 'function {0}(){}' },
             { src: 'obj.{0}', expected: '__get$(obj, "{0}")' },
             { src: 'obj.{0} = value', expected: '__set$(obj, "{0}", value)' },
             { src: 'obj.{0}.subProp', expected: '__get$(obj, "{0}").subProp' },
@@ -423,6 +424,10 @@ describe('Script processor', function () {
 
     it('Should process storages', function () {
         testProcessing([
+            {
+                src:      'function localStorage(){}; function sessionStorage() {};',
+                expected: 'function localStorage(){}; function sessionStorage() {};'
+            },
             { src: 'localStorage()', expected: '__get$Storage(localStorage)()' },
             { src: 'window.sessionStorage()', expected: 'window.sessionStorage()' },
             { src: 'window["localStorage"]()', expected: 'window["localStorage"]()' },

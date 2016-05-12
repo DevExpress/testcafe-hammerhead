@@ -28,6 +28,10 @@ export default {
         if (parent.type === Syntax.AssignmentExpression && parent.left === node)
             return false;
 
+        // Skip: function location() {}
+        if (parent.type === Syntax.FunctionDeclaration && parent.id === node)
+            return false;
+
         // Skip: object.location || location.field
         if (parent.type === Syntax.MemberExpression)
             return false;
