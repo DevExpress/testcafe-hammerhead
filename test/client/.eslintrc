@@ -9,7 +9,8 @@
     "no-eval": 0,
     "no-implied-eval": 0,
     "max-nested-callbacks": 0,
-    "no-script-url": 0
+    "no-script-url": 0,
+    "no-loop-func": 0
   },
   "globals": {
     /* Utils */

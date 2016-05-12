@@ -20,6 +20,7 @@ import StorageSandbox from './storages';
 import { isIE, isWebKit } from '../utils/browser';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
+import FetchBarrier from './fetch-barrier';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
@@ -39,6 +40,7 @@ export default class Sandbox extends SandboxBase {
         this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
         this.xhr                 = new XhrSandbox();
         this.fetch               = new FetchSandbox();
+        this.fetchBarrier        = FetchBarrier;
         this.cookie              = new CookieSandbox();
         this.iframe              = new IframeSandbox(nodeMutation, this.cookie);
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe);

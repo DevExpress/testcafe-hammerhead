@@ -7,6 +7,11 @@ import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
 
 export default class FetchSandbox extends SandboxBase {
+    constructor () {
+        super();
+
+        this.FETCH_REQUEST_SEND_EVENT = 'hammerhead|event|fetch-request-send-event';
+    }
 
     static _processRequestInit (init) {
         var defaultRequest     = new nativeMethods.Request('');
@@ -121,6 +126,8 @@ export default class FetchSandbox extends SandboxBase {
                 FetchSandbox._processArguments(args);
 
                 var fetchPromise = nativeMethods.fetch.apply(this, args);
+
+                sandbox.emit(sandbox.FETCH_REQUEST_SEND_EVENT, fetchPromise);
 
                 FetchSandbox._processFetchPromise(fetchPromise);
 
