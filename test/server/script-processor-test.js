@@ -291,6 +291,7 @@ describe('Script processor', function () {
             },
             { src: 'result = $el[0].{0}', expected: 'result = __get$($el[0], "{0}")' },
             { src: 'obj.{0} = value, obj1 = value', expected: '__set$(obj,"{0}",value), obj1 = value' },
+            { src: '{}script.{0} += ""', expected: '{} __set$(script, "{0}", __get$(script,"{0}")+"")' },
 
             {
                 src: 'obj.{0}-=value;obj.{0}*=value;obj.{0}/=value;' +

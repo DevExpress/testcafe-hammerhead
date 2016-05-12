@@ -10,37 +10,35 @@ import replaceNode from './transformers/replace-node';
 // since they can be overriden by the client code. (GH-245)
 var objectToString = Object.prototype.toString;
 
-function addChange (changes, change) {
-    if (changes.length) {
-        var lastChange  = changes[changes.length - 1];
-        var parsedStart = parseInt(change.start, 10);
-        var parsedEnd   = parseInt(lastChange.end, 10);
+function getChange (node, parent, key) {
+    return {
+        start: node.originStart,
+        end:   node.originEnd,
+        index: Array.isArray(parent[key]) ? parent[key].indexOf(node) : -1,
 
-        if (parsedStart > parsedEnd)
-            changes.push(change);
-        else if (change.start === lastChange.start && change.end === lastChange.end)
-            changes[changes.length - 1] = change;
-    }
-    else
-        changes.push(change);
+        parent,
+        key
+    };
 }
 
-function transformChildNodes (node, changes) {
+function transformChildNodes (node, changes, parentChanged) {
     for (var key in node) {
         if (node.hasOwnProperty(key)) {
             var childNode = node[key];
 
             if (objectToString.call(childNode) === '[object Array]') {
                 for (var j = 0; j < childNode.length; j++)
-                    transform(childNode[j], node, key, changes);
+                    transform(childNode[j], node, key, changes, parentChanged);
             }
             else
-                transform(childNode, node, key, changes);
+                transform(childNode, node, key, changes, parentChanged);
         }
     }
 }
 
-export default function transform (node, parent, key, changes) {
+export default function transform (node, parent, key, changes, parentChanged) {
+    var nodeChanged = false;
+
     changes = changes || [];
 
     if (!node || typeof node !== 'object')
@@ -48,8 +46,10 @@ export default function transform (node, parent, key, changes) {
 
     var alreadyTransformed = node.originStart && node.originEnd;
 
-    if (alreadyTransformed)
-        addChange(changes, { start: node.originStart, end: node.originEnd, replacement: node });
+    if (alreadyTransformed && !parentChanged) {
+        changes.push(getChange(node, parent, key));
+        nodeChanged = true;
+    }
     else {
         var nodeTransformers = transformers[node.type];
 
@@ -62,10 +62,13 @@ export default function transform (node, parent, key, changes) {
 
                     if (replacement) {
                         replaceNode(node, replacement, parent, key);
-                        addChange(changes, { start: replacement.originStart, end: replacement.originEnd, replacement });
+                        nodeChanged = true;
+
+                        if (!parentChanged)
+                            changes.push(getChange(replacement, parent, key));
 
                         if (transformer.nodeReplacementRequireTransform) {
-                            transform(replacement, parent, key, changes);
+                            transform(replacement, parent, key, changes, nodeChanged || parentChanged);
 
                             return changes;
                         }
@@ -77,7 +80,7 @@ export default function transform (node, parent, key, changes) {
         }
     }
 
-    transformChildNodes(node, changes);
+    transformChildNodes(node, changes, nodeChanged || parentChanged);
 
     return changes;
 }
