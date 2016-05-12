@@ -121,12 +121,15 @@ export function applyChanges (script, changes, isObject) {
         return script;
 
     for (var i = 0; i < changes.length; i++) {
-        var changeStart = changes[i].start + indexOffset;
-        var changeEnd   = changes[i].end + indexOffset;
+        var change      = changes[i];
+        var changeStart = change.start + indexOffset;
+        var changeEnd   = change.end + indexOffset;
+        var replacement = change.parent[change.key];
 
+        replacement = change.index !== -1 ? replacement[change.index] : replacement;
         chunks.push(script.substring(index, changeStart));
         chunks.push(' ');
-        chunks.push(getCode(changes[i].replacement, script.substring(changeStart, changeEnd)));
+        chunks.push(getCode(replacement, script.substring(changeStart, changeEnd)));
         index += changeEnd - index;
     }
 
