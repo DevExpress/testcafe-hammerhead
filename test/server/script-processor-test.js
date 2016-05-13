@@ -256,6 +256,7 @@ describe('Script processor', function () {
 
     it('Should process properties', function () {
         testPropertyProcessing([
+            { src: 'switch(s){case a.{0}:b.{0}}', expected: 'switch(s){case __get$(a,"{0}"): __get$(b,"{0}")}' },
             { src: 'function {0}(){}', expected: 'function {0}(){}' },
             { src: 'obj.{0}', expected: '__get$(obj, "{0}")' },
             { src: 'obj.{0} = value', expected: '__set$(obj, "{0}", value)' },
