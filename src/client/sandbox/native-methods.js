@@ -118,10 +118,17 @@ class NativeMethods {
 
         this.createContextualFragment = win.Range.prototype.createContextualFragment;
 
+        if (win.Performance) {
+            var nativePerformance    = win.performance;
+            var nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
+
+            this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
+        }
+
         // Fetch
-        this.fetch    = win.fetch;
-        this.Request  = win.Request;
-        this.Headers  = win.Headers;
+        this.fetch   = win.fetch;
+        this.Request = win.Request;
+        this.Headers = win.Headers;
 
         // Event
         this.windowAddEventListener    = win.addEventListener || Window.prototype.addEventListener;
