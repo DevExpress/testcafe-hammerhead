@@ -120,6 +120,8 @@ export function applyChanges (script, changes, isObject) {
     if (!changes.length)
         return script;
 
+    changes.sort((a, b) => a.start - b.start);
+
     for (var i = 0; i < changes.length; i++) {
         var change      = changes[i];
         var changeStart = change.start + indexOffset;
