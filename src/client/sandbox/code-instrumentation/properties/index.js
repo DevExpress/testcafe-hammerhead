@@ -180,8 +180,14 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 },
 
                 get: el => LocationAccessorsInstrumentation.isLocationWrapper(el) ? el.href : PropertyAccessorsInstrumentation._getUrlAttr(el, 'href'),
-                set: (el, value) => LocationAccessorsInstrumentation.isLocationWrapper(el) ?
-                                    el.href = destLocation.resolveUrl(value, document) : el.setAttribute('href', value)
+                set: (el, value) => {
+                    if (LocationAccessorsInstrumentation.isLocationWrapper(el))
+                        el.href = destLocation.resolveUrl(value, document);
+                    else
+                        el.setAttribute('href', value);
+
+                    return el.href;
+                }
             },
 
             innerHTML: {
