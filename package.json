@@ -78,6 +78,5 @@
     "test": "gulp travis",
     "publish-please": "publish-please",
     "prepublish": "publish-please guard"
-  },
-  "readme": "ERROR: No README data found!"
+  }
 }
