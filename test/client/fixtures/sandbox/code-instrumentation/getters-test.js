@@ -151,6 +151,20 @@ test('document.documentURI', function () {
     strictEqual(getProperty(documentMock, 'documentURI'), url);
 });
 
+test('CSSStyleSheet.href', function () {
+    var storedGetProxyUrl = urlUtils.parseProxyUrl;
+    var styleSheet        = document.styleSheets[0];
+
+    urlUtils.parseProxyUrl = function () {
+        return { destUrl: 'expected-url' };
+    };
+
+    strictEqual(getProperty(styleSheet, 'href'), 'expected-url');
+    strictEqual(setProperty(styleSheet, 'href', 'http://some.domain.com/style.css'), 'http://some.domain.com/style.css');
+
+    urlUtils.parseProxyUrl = storedGetProxyUrl;
+});
+
 if (browserUtils.isWebKit) {
     test('url in stylesheet properties', function () {
         var el          = document.createElement('div');

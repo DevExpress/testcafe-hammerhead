@@ -17,12 +17,23 @@ export function isStyle (instance) {
     if (instance instanceof nativeMethods.styleClass)
         return true;
 
-    if (instance && typeof instance === 'object' && instance.border !== void 0 && typeof instance.toString === 'function') {
+    if (instance && typeof instance === 'object' && instance.border !== void 0 &&
+        typeof instance.toString === 'function') {
         instance = instance.toString();
 
         return instance === '[object CSSStyleDeclaration]' || instance === '[object CSS2Properties]' ||
                instance === '[object MSStyleCSSProperties]';
     }
+
+    return false;
+}
+
+export function isStyleSheet (instance) {
+    if (instance instanceof nativeMethods.styleSheetClass)
+        return true;
+
+    if (instance && typeof instance === 'object' && typeof instance.toString === 'function')
+        return instance.toString() === '[object CSSStyleSheet]';
 
     return false;
 }

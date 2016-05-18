@@ -12,7 +12,7 @@ import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
 import { stringifyResourceType, HASH_RE } from '../../../../utils/url';
-import { isStyle } from '../../../utils/style';
+import { isStyle, isStyleSheet } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAnchorProperty, setAnchorProperty } from './anchor';
 import { getAttributesProperty } from './attributes';
@@ -173,16 +173,33 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             href: {
                 condition: el => {
+                    if (LocationAccessorsInstrumentation.isLocationWrapper(el))
+                        return true;
                     if (domUtils.isDomElement(el))
                         return URL_ATTR_TAGS['href'].indexOf(domUtils.getTagName(el)) !== -1;
+                    else if (isStyleSheet(el))
+                        return true;
 
-                    return LocationAccessorsInstrumentation.isLocationWrapper(el);
+                    return false;
                 },
 
-                get: el => LocationAccessorsInstrumentation.isLocationWrapper(el) ? el.href : PropertyAccessorsInstrumentation._getUrlAttr(el, 'href'),
+                get: el => {
+                    if (LocationAccessorsInstrumentation.isLocationWrapper(el))
+                        return el.href;
+                    else if (isStyleSheet(el)) {
+                        var parsedUrl = urlUtils.parseProxyUrl(el.href);
+
+                        return parsedUrl ? parsedUrl.destUrl : el.href;
+                    }
+
+                    return PropertyAccessorsInstrumentation._getUrlAttr(el, 'href');
+                },
+
                 set: (el, value) => {
                     if (LocationAccessorsInstrumentation.isLocationWrapper(el))
                         el.href = destLocation.resolveUrl(value, document);
+                    else if (isStyleSheet(el))
+                        return value;
                     else
                         el.setAttribute('href', value);
 
