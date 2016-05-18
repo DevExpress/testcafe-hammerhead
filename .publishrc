@@ -1,0 +1,18 @@
+{
+  "validations": {
+    "vulnerableDependencies": true,
+    "uncommittedChanges": true,
+    "untrackedFiles": true,
+    "sensitiveData": {
+      "ignore": [
+        "src/client/sandbox/backup.js",
+        "test/client/fixtures/sandbox/backup-test.js"
+      ]
+    },
+    "branch": "master",
+    "gitTag": true
+  },
+  "confirm": true,
+  "publishTag": "latest",
+  "prePublishScript": "gulp test-server"
+}

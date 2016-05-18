@@ -3,12 +3,16 @@
   "description": "A powerful web-proxy used as a core for the TestCafe testing framework (https://github.com/DevExpress/testcafe).",
   "version": "8.3.1",
   "homepage": "https://github.com/DevExpress/testcafe-hammerhead",
-  "bugs": "https://github.com/DevExpress/testcafe-hammerhead/issues",
+  "bugs": {
+    "url": "https://github.com/DevExpress/testcafe-hammerhead/issues"
+  },
   "license": "https://github.com/DevExpress/testcafe-hammerhead/blob/master/LICENSE",
-  "author": "Developer Express Inc.",
+  "author": {
+    "name": "Developer Express Inc."
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/DevExpress/testcafe-hammerhead.git"
+    "url": "git+https://github.com/DevExpress/testcafe-hammerhead.git"
   },
   "dependencies": {
     "babel-runtime": "^6.3.19",
@@ -58,7 +62,7 @@
     "gulp-util": "3.0.6",
     "gulp-webmake": "0.0.4",
     "multiline": "^1.0.2",
-    "publish-please": "^1.0.1",
+    "publish-please": "^2.0.0",
     "request": "~2.27.0",
     "self-signed-https": "^1.0.5",
     "tmp": "0.0.26"
@@ -71,6 +75,9 @@
     "lib"
   ],
   "scripts": {
-    "test": "gulp travis"
-  }
+    "test": "gulp travis",
+    "publish-please": "publish-please",
+    "prepublish": "publish-please guard"
+  },
+  "readme": "ERROR: No README data found!"
 }

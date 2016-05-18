@@ -14,7 +14,6 @@ var uglify       = require('gulp-uglify');
 var gulpif       = require('gulp-if');
 var util         = require('gulp-util');
 var ll           = require('gulp-ll');
-var publish      = require('publish-please');
 var path         = require('path');
 
 ll
@@ -212,9 +211,3 @@ gulp.task('playground', ['build'], function () {
 });
 
 gulp.task('travis', [process.env.GULP_TASK || '']);
-
-
-// Publish
-gulp.task('publish', ['test-server'], function () {
-    return publish();
-});
