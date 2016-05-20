@@ -229,7 +229,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         if (isStyleEl)
                             value = styleProcessor.process('' + value, urlUtils.getProxyUrl, true);
                         else if (isScriptEl)
-                            value = processScript('' + value, true, false);
+                            value = processScript('' + value, true);
                         else if (value !== null)
                             value = processHtml('' + value, el.tagName);
                     }
@@ -281,7 +281,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, text) => {
                     if (text) {
                         if (domUtils.isScriptElement(el))
-                            el.innerText = processScript(text, true, false);
+                            el.innerText = processScript(text, true);
                         else if (domUtils.isStyleElement(el))
                             el.innerText = styleProcessor.process(text, urlUtils.getProxyUrl, true);
                     }
@@ -521,7 +521,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, text) => {
                     if (text) {
                         if (domUtils.isScriptElement(el))
-                            el.text = processScript(text, true, false);
+                            el.text = processScript(text, true);
                         else if (domUtils.isStyleElement(el))
                             el.text = styleProcessor.process(text, urlUtils.getProxyUrl, true);
                     }

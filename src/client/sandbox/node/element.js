@@ -109,7 +109,7 @@ export default class ElementSandbox extends SandboxBase {
                 else {
                     /*eslint-disable no-script-url */
                     processedValue = (isJsProtocol ? 'javascript:' : '') +
-                                     processScript(valueWithoutProtocol, false, false);
+                                     processScript(valueWithoutProtocol, false);
                     /*eslint-enable no-script-url */
                 }
 
@@ -386,7 +386,7 @@ export default class ElementSandbox extends SandboxBase {
             return;
 
         if (domUtils.isScriptElement(parentNode))
-            node.data = processScript(node.data, true, false);
+            node.data = processScript(node.data, true);
         else if (domUtils.isStyleElement(parentNode))
             node.data = styleProcessor.process(node.data, urlUtils.getProxyUrl);
     }

@@ -18,7 +18,7 @@ export default class TimersSandbox extends SandboxBase {
     _wrapTimeoutFunctionsArguments (args) {
         var isScriptFirstArg = typeof args[0] === 'string';
         var func             = !isScriptFirstArg ? args[0] : null;
-        var script           = isScriptFirstArg ? processScript(args[0], false, false) : null;
+        var script           = isScriptFirstArg ? processScript(args[0], false) : null;
 
         if (isIE && browserVersion < 12) {
             var timersSandbox = this;
