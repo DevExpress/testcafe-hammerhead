@@ -206,7 +206,7 @@ describe('Content charset', function () {
     });
 
     describe('Scripts', function () {
-        var processedScript = processScript(scriptSrc, true, true);
+        var processedScript = processScript(scriptSrc, true);
 
         function testScriptCharset (destUrl, expectedCharset, expectedBody, done) {
             var url = getProxyUrl('http://127.0.0.1:2000' +

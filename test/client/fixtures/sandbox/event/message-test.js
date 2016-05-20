@@ -28,7 +28,7 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
     };
 
     window.addEventListener('message', eventHandlerObject);
-    eval(processScript('window.postMessage(testMessage, "*");', true, false));
+    eval(processScript('window.postMessage(testMessage, "*");', true));
 });
 
 asyncTest('onmessage event', function () {
@@ -57,9 +57,9 @@ asyncTest('onmessage event', function () {
     iframe.setAttribute('src', src);
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
-            eval(processScript('window.onmessage = onMessageHandler;', true, false));
+            eval(processScript('window.onmessage = onMessageHandler;', true));
             window.addEventListener('message', onMessageHandler);
-            eval(processScript('iframe.contentWindow.postMessage(\'\', \'*\')', true, false));
+            eval(processScript('iframe.contentWindow.postMessage(\'\', \'*\')', true));
         });
     document.body.appendChild(iframe);
 });
@@ -85,7 +85,7 @@ asyncTest('cross-domain post messages between different windows', function () {
         checkResult();
     };
 
-    eval(processScript('window.onmessage = onMessageHandler;', true, false));
+    eval(processScript('window.onmessage = onMessageHandler;', true));
 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
@@ -106,8 +106,8 @@ asyncTest('message types', function () {
 
             /* eslint-enable no-unused-vars*/
 
-            eval(processScript('window.onmessage = onMessageHandler;', true, false));
-            eval(processScript('window.postMessage(value, "*");', true, false));
+            eval(processScript('window.onmessage = onMessageHandler;', true));
+            eval(processScript('window.postMessage(value, "*");', true));
         });
     };
 
@@ -226,7 +226,7 @@ asyncTest('service message handler should not call other handlers', function () 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
-            eval(processScript('window.onmessage = windowMessageHandler;', true, false));
+            eval(processScript('window.onmessage = windowMessageHandler;', true));
             window.addEventListener('message', windowMessageHandler);
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);

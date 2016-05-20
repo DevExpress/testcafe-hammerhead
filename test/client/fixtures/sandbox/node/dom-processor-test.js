@@ -103,7 +103,7 @@ test('link in iframe', function () {
 test('script text', function () {
     var div             = nativeMethods.createElement.call(document, 'div');
     var script          = 'var host = location.host';
-    var processedScript = processScript(script, true, false);
+    var processedScript = processScript(script, true);
 
     nativeMethods.appendChild.call(document.body, div);
     div.innerHTML = '\<script\>' + script + '\</script\>';

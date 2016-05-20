@@ -124,7 +124,7 @@ test('write script', function () {
 
     write('<\/script>');
 
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[1]), processScript('var x=a<b;', true, false));
+    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[1]), processScript('var x=a<b;', true));
 });
 
 test('write style', function () {

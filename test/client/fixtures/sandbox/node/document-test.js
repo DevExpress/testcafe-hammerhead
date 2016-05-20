@@ -311,7 +311,7 @@ test('document.write for page html (T190753)', function () {
     var $div            = $('<div>').appendTo('body');
     var $iframe         = $('<iframe id="test5">');
     var script          = 'var a = [1,2], b = 0; window.test = a[b];';
-    var processedScript = processScript(script, true, false).replace(/\s*/g, '');
+    var processedScript = processScript(script, true).replace(/\s*/g, '');
 
     processDomMeth($div[0]);
     $div[0].appendChild($iframe[0]);
