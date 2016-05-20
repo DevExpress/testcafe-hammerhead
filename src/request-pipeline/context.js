@@ -156,7 +156,7 @@ export default class RequestPipelineContext {
         var isRedirect              = this.destRes.headers['location'] &&
                                       REDIRECT_STATUS_CODES.indexOf(this.destRes.statusCode) > -1;
         var requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
-        var requireProcessing       = !this.isXhr && !isFormWithEmptyResponse && !isRedirect &&
+        var requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
                                       (this.isPage || this.isIframe || requireAssetsProcessing);
 
         var isFileDownload = this._isFileDownload();

@@ -685,6 +685,25 @@ describe('Proxy', function () {
             });
         });
 
+        it('Should not process Fetch page requests', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/page', session),
+                headers: {
+                    accept:  'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                    referer: proxy.openSession('http://127.0.0.1:2000/', session)
+                }
+            };
+
+            options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
+
+            request(options, function (err, res, body) {
+                var expected = fs.readFileSync('test/server/data/page/src.html').toString();
+
+                compareCode(body, expected);
+                done();
+            });
+        });
+
         it('Should process scripts', function (done) {
             session.id = 1337;
 

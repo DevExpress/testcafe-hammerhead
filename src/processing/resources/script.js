@@ -29,7 +29,7 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
     }
 
     shouldProcessResource (ctx) {
-        return ctx.contentInfo.isScript && !ctx.isXhr;
+        return ctx.contentInfo.isScript;
     }
 }
 
