@@ -5,5 +5,5 @@ import { processScript } from './processing/script';
 export default {
     Proxy:            Proxy,
     Session:          Session,
-    wrapDomAccessors: (code, beautify) => processScript(code, false, beautify)
+    wrapDomAccessors: code => processScript(code, false)
 };

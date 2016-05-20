@@ -146,7 +146,7 @@ export default class WindowSandbox extends SandboxBase {
                 // creating a new Blob instance is asynchronous. (GH-231)
                 if (!type || type === 'text/javascript' || type === 'application/javascript' ||
                     type === 'application/x-javascript')
-                    parts = [processScript(parts.join(''), true, false)];
+                    parts = [processScript(parts.join(''), true)];
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
                 // If the overridden function is called with one parameter, we need to call the original function

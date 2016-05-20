@@ -282,7 +282,7 @@ export default class DomProcessor {
 
         }
         else {
-            var processedCode      = processScript(code, false, false);
+            var processedCode      = processScript(code, false);
             var processedAttrValue = processedCode;
 
             /*eslint-disable no-script-url*/
@@ -379,7 +379,7 @@ export default class DomProcessor {
             if (hasCDATA)
                 result = result.replace(CDATA_REG_EX, '$2');
 
-            result = commentPrefix + processScript(result, true, false) + commentPostfix;
+            result = commentPrefix + processScript(result, true) + commentPostfix;
 
             if (hasCDATA)
                 result = '\n//<![CDATA[\n' + result + '//]]>';
