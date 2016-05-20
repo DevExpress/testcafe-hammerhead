@@ -114,7 +114,7 @@ function testPropertyProcessing (templates) {
 
 function assertHasHeader (expected, testCases) {
     testCases.forEach(function (src) {
-        var processed = processScript(src, true, false);
+        var processed = processScript(src, true);
         var hasHeader = processed.indexOf(HEADER) > -1;
         var msg       = 'Source: ' + src + '\n';
 
@@ -141,8 +141,8 @@ describe('Script processor', function () {
 
         it('Should not add processing header twice', function () {
             var src        = 'var a = 42;';
-            var processed1 = processScript(src, true, false);
-            var processed2 = processScript(processed1, true, false);
+            var processed1 = processScript(src, true);
+            var processed2 = processScript(processed1, true);
 
             expect(normalizeCode(processed1)).eql(normalizeCode(processed2));
         });
@@ -150,7 +150,7 @@ describe('Script processor', function () {
 
     it('Should determine if script was processed', function () {
         var src       = '//comment\n var temp = 0; \n var host = location.host; \n temp = 1; \n // comment';
-        var processed = processScript(src, false, false);
+        var processed = processScript(src, false);
 
         expect(isScriptProcessed(src)).to.be.false;
         expect(isScriptProcessed(processed)).to.be.true;

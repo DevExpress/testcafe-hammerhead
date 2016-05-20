@@ -241,7 +241,7 @@ test('innerHTML, innerText, text, textContent', function () {
     var style               = document.createElement('style');
     var scriptText          = 'var test = window.href';
     var styleText           = 'div {background:url(http://some.domain.com/image.png)}';
-    var processedScriptText = processScript(scriptText, true, false).replace(/\s/g, '');
+    var processedScriptText = processScript(scriptText, true).replace(/\s/g, '');
     var processedStyleText  = styleProcessor.process(styleText, urlUtils.getProxyUrl, true).replace(/\s/g, '');
     var testProperties      = ['innerHTML', 'innerText', 'text', 'textContent'];
 

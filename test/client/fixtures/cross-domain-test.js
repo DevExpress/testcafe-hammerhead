@@ -18,13 +18,13 @@ asyncTest('cross domain messaging between windows', function () {
 
         if (messageCounter >= 4) {
             iframe.parentNode.removeChild(iframe);
-            eval(processScript('window.onmessage = null;', true, false));
+            eval(processScript('window.onmessage = null;', true));
             start();
         }
     };
 
     /* eslint-enable no-unused-vars*/
 
-    eval(processScript('window.onmessage = onMessageHandler;', true, false));
+    eval(processScript('window.onmessage = onMessageHandler;', true));
 });
 

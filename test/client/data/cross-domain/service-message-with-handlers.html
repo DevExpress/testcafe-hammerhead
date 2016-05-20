@@ -26,7 +26,7 @@
         }, 100);
     };
 
-    eval(processScript("window.onmessage = windowMessageHandler;", true, false));
+    eval(processScript("window.onmessage = windowMessageHandler;", true));
     window.addEventListener("message", windowMessageHandler);
     messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
 </script>

@@ -16,10 +16,10 @@
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
     var onMessageHandler = function (evt) {
-        eval(processScript("top.postMessage({ msg: evt.origin + (evt.data ? ' failed' : '') }, '*');", true, false));
+        eval(processScript("top.postMessage({ msg: evt.origin + (evt.data ? ' failed' : '') }, '*');", true));
     };
 
-    eval(processScript("window.onmessage = onMessageHandler;", true, false));
+    eval(processScript("window.onmessage = onMessageHandler;", true));
 </script>
 </body>
 </html>

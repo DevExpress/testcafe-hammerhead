@@ -237,12 +237,12 @@ test('clean up outerHTML', function () {
     var htmlText = '<a href="http://domain.com/">link</a>';
     var div      = document.createElement('div');
 
-    eval(processScript('div.innerHTML = htmlText', true, false));
+    eval(processScript('div.innerHTML = htmlText', true));
 
     var a = div.firstChild;
 
     strictEqual(a.outerHTML, processHtml(htmlText));
-    strictEqual(eval(processScript('a.outerHTML', true, false)), htmlText);
+    strictEqual(eval(processScript('a.outerHTML', true)), htmlText);
 
     if (browserUtils.isIE) {
         /* eslint-disable no-unused-vars */
@@ -273,20 +273,20 @@ test('changing the link.href property must affect the stored attribute value (T1
 test('get script body (T296958) (GH-183)', function () {
     var script              = document.createElement('script');
     var scriptCode          = 'var test = window.href;';
-    var processedScriptCode = processScript(scriptCode, true, false);
+    var processedScriptCode = processScript(scriptCode, true);
     var cleanedScriptCode   = removeProcessingHeader(processedScriptCode);
 
-    eval(processScript('script.textContent="' + scriptCode + '"', true, false));
+    eval(processScript('script.textContent="' + scriptCode + '"', true));
 
     notEqual(script.textContent, scriptCode);
     strictEqual(script.textContent.replace(/\s/g, ''), processedScriptCode.replace(/\s/g, ''));
     strictEqual(cleanedScriptCode.indexOf(INTERNAL_PROPS.processDomMethodName), -1);
-    strictEqual(eval(processScript('script.text', true, false)), cleanedScriptCode);
-    strictEqual(eval(processScript('script.textContent', true, false)), cleanedScriptCode);
-    strictEqual(eval(processScript('script.innerHTML', true, false)), cleanedScriptCode);
+    strictEqual(eval(processScript('script.text', true)), cleanedScriptCode);
+    strictEqual(eval(processScript('script.textContent', true)), cleanedScriptCode);
+    strictEqual(eval(processScript('script.innerHTML', true)), cleanedScriptCode);
 
     if (typeof script.innerText === 'string')
-        strictEqual(eval(processScript('script.innerText', true, false)).replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
+        strictEqual(eval(processScript('script.innerText', true)).replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
 });
 
 test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
