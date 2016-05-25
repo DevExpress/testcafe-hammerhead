@@ -254,6 +254,26 @@ describe('Script processor', function () {
         expect(processed).eql('if(true){;}else __get$("0",s)');
     });
 
+    it('Should process a "new" expression if its body contains processed nodes', function () {
+        testPropertyProcessing([
+            { src: 'new a.{0}.b()', expected: 'new (__get$(a,"{0}")).b()' },
+            {
+                src:      'new function() { a.{0};a.{0};}();',
+                expected: 'new function() {__get$(a,"{0}");__get$(a,"{0}");}();'
+            },
+            {
+                src:      'new (function() { eval("");a.{0};})();',
+                expected: 'new function() {eval(__proc$Script(""));__get$(a,"{0}");}();'
+            },
+            {
+                src:      'new a(function() { b.{0}; new ok(b.{0}); })',
+                expected: 'new a(function() { __get$(b,"{0}"); new ok(__get$(b,"{0}")); })'
+            },
+            { src: 'new a.{0}.b(c.{0})', expected: 'new (__get$(a,"{0}")).b(__get$(c,"{0}"))' },
+            { src: 'func(new a.{0}.func())', expected: 'func(new (__get$(a,"{0}")).func())' }
+        ]);
+    });
+
     it('Should process properties', function () {
         testPropertyProcessing([
             { src: 'switch(s){case a.{0}:b.{0}}', expected: 'switch(s){case __get$(a,"{0}"): __get$(b,"{0}")}' },
@@ -265,7 +285,6 @@ describe('Script processor', function () {
             { src: 'delete obj.{0}', expected: 'delete obj.{0}' },
             { src: 'obj.{0}.method()', expected: '__get$(obj, "{0}").method()' },
             { src: 'new (obj.{0})()', expected: 'new (obj.{0})()' },
-
             { src: '--obj.{0}', expected: '--obj.{0}' },
             { src: 'obj.{0}--', expected: 'obj.{0}--' },
             { src: 'obj.{0}++', expected: 'obj.{0}++' },

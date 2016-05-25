@@ -5,6 +5,7 @@
 
 import transformers from './transformers';
 import replaceNode from './transformers/replace-node';
+import { Syntax } from './tools/esotope';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -21,33 +22,67 @@ function getChange (node, parent, key) {
     };
 }
 
-function transformChildNodes (node, changes, parentChanged) {
+// NOTE: There is an issue with processing `new` expressions. `new a.src.b()` will be transformed
+// to `new __get$(a, 'src').b()`, which is wrong. The correct result is `new (__get$(a, 'src')).b()`.
+// To solve this problem, we add a 'state' entity. This entity stores the "new" expression, so that
+// we can add it to the changes when the transformation is found.
+function createState (currState, node, parent, key, hasTransformedAncestor) {
+    var isNewExpression         = node.type === Syntax.NewExpression;
+    var isNewExpressionAncestor = isNewExpression && !currState.newExpressionAncestor;
+
+    return {
+        hasTransformedAncestor:      currState.hasTransformedAncestor || hasTransformedAncestor,
+        newExpressionAncestor:       isNewExpressionAncestor ? node : currState.newExpressionAncestor,
+        newExpressionAncestorParent: isNewExpressionAncestor ? parent : currState.newExpressionAncestorParent,
+        newExpressionAncestorKey:    isNewExpressionAncestor ? key : currState.newExpressionAncestorKey
+    };
+}
+
+function transformChildNodes (node, changes, state) {
     for (var key in node) {
         if (node.hasOwnProperty(key)) {
             var childNode = node[key];
 
             if (objectToString.call(childNode) === '[object Array]') {
                 for (var j = 0; j < childNode.length; j++)
-                    transform(childNode[j], node, key, changes, parentChanged);
+                    transform(childNode[j], node, key, changes, state);
             }
             else
-                transform(childNode, node, key, changes, parentChanged);
+                transform(childNode, node, key, changes, state);
         }
     }
 }
 
-export default function transform (node, parent, key, changes, parentChanged) {
-    var nodeChanged = false;
+function isNodeTransformed (node) {
+    return node.originStart !== void 0 && node.originEnd !== void 0;
+}
 
+function addChangeForTransformedNode (state, changes, replacement, parent, key) {
+    var hasTransformedAncestor = state.hasTransformedAncestor;
+
+    hasTransformedAncestor |= state.newExpressionAncestor && isNodeTransformed(state.newExpressionAncestor);
+
+    if (!hasTransformedAncestor) {
+        if (state.newExpressionAncestor) {
+            replaceNode(state.newExpressionAncestor, state.newExpressionAncestor, state.newExpressionAncestorParent, state.newExpressionAncestorKey);
+            changes.push(getChange(state.newExpressionAncestor, state.newExpressionAncestorParent, state.newExpressionAncestorKey));
+        }
+        else
+            changes.push(getChange(replacement, parent, key));
+    }
+}
+
+export default function transform (node, parent, key, changes, state, reTransform) {
+    state   = state || {};
     changes = changes || [];
 
     if (!node || typeof node !== 'object')
-        return changes;
+        return null;
 
-    var alreadyTransformed = node.originStart && node.originEnd;
+    var nodeChanged = false;
 
-    if (alreadyTransformed && !parentChanged) {
-        changes.push(getChange(node, parent, key));
+    if (isNodeTransformed(node) && !reTransform) {
+        addChangeForTransformedNode(state, changes, node, parent, key);
         nodeChanged = true;
     }
     else {
@@ -64,11 +99,12 @@ export default function transform (node, parent, key, changes, parentChanged) {
                         replaceNode(node, replacement, parent, key);
                         nodeChanged = true;
 
-                        if (!parentChanged)
-                            changes.push(getChange(replacement, parent, key));
+                        addChangeForTransformedNode(state, changes, replacement, parent, key);
 
                         if (transformer.nodeReplacementRequireTransform) {
-                            transform(replacement, parent, key, changes, nodeChanged || parentChanged);
+                            var newState = createState(state, replacement, parent, key, nodeChanged);
+
+                            transform(replacement, parent, key, changes, newState, true);
 
                             return changes;
                         }
@@ -80,7 +116,9 @@ export default function transform (node, parent, key, changes, parentChanged) {
         }
     }
 
-    transformChildNodes(node, changes, nodeChanged || parentChanged);
+    var childNodesState = createState(state, node, parent, key, nodeChanged);
+
+    transformChildNodes(node, changes, childNodesState);
 
     return changes;
 }
