@@ -93,8 +93,10 @@
 <iframe src="javascript:'<html><body><a id=&quot;link&quot; href=&quot;http://link.url&quot;></a></body></html>'"></iframe>
 <iframe src='javascript:"<html><body><a id=&#39;link&#39;   href=&#39;http://link.url&#39;>  </a></body></html>"'></iframe>
 <iframe src="javascript:'<div></div>'"></iframe>
-<svg>
-    <use xlink:href="#svg-rect"></use>
+<svg xml:base="http://domain.com/">
+    <rect xml:base="http://sub.domain.com/">
+        <use xlink:href="#svg-rect"></use>
+    </rect>
     <use xlink:href="http://domain.com/test.svg#rect"></use>
 </svg>
 <div xlink:href="http://domain.com/test.svg#rect"></div>

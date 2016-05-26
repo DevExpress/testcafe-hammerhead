@@ -55,7 +55,7 @@ export default class ElementSandbox extends SandboxBase {
         var getAttrMeth = isNs ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
 
         // OPTIMIZATION: The hasAttribute method is very slow.
-        if (ElementSandbox._isUrlAttr(el, attr) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
+        if (domProcessor.isUrlAttr(el, attr, ns) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
             attr === 'autocomplete') {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
@@ -76,7 +76,7 @@ export default class ElementSandbox extends SandboxBase {
         var setAttrMeth         = isNs ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
         var tagName             = domUtils.getTagName(el);
         var isSupportedProtocol = urlUtils.isSupportedProtocol(value);
-        var urlAttr             = ElementSandbox._isUrlAttr(el, attr);
+        var urlAttr             = domProcessor.isUrlAttr(el, attr, ns);
         var isEventAttr         = domProcessor.EVENTS.indexOf(attr) !== -1;
         var isSpecialPage       = urlUtils.isSpecialPage(value);
 
@@ -189,7 +189,7 @@ export default class ElementSandbox extends SandboxBase {
         var attr           = args[isNs ? 1 : 0];
         var removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
 
-        if (ElementSandbox._isUrlAttr(el, attr) || attr === 'sandbox' || attr === 'autocomplete' ||
+        if (domProcessor.isUrlAttr(el, attr, isNs ? args[0] : null) || attr === 'sandbox' || attr === 'autocomplete' ||
             domProcessor.EVENTS.indexOf(attr) !== -1) {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
@@ -389,11 +389,6 @@ export default class ElementSandbox extends SandboxBase {
             node.data = processScript(node.data, true);
         else if (domUtils.isStyleElement(parentNode))
             node.data = styleProcessor.process(node.data, urlUtils.getProxyUrl);
-    }
-
-    static _isUrlAttr (el, attr) {
-        return domProcessor.URL_ATTR_TAGS[attr] &&
-               domProcessor.URL_ATTR_TAGS[attr].indexOf(domUtils.getTagName(el)) !== -1;
     }
 
     static _isHrefAttrForBaseElement (el, attr) {

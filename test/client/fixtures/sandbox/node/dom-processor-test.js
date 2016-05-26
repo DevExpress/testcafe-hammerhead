@@ -555,3 +555,34 @@ test('xlink:href attribute of svg elements should be overriden (GH-434)(GH-514)'
     strictEqual(nativeMethods.getAttributeNS.call(use, xlinkNameSpaceUrl, 'href'), urlUtils.getProxyUrl(svgUrl));
 });
 
+test('xml:base attribute of svg element should be overriden (GH-477)', function () {
+    var xmlNameSpaceUrl = 'http://www.w3.org/XML/1998/namespace';
+    var svg             = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    var circle          = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    var url             = 'http://domain.com/';
+    var subDomainUrl    = 'http://sub.domain.com/';
+    var div             = document.createElement('div');
+
+    svg.appendChild(circle);
+
+    svg.setAttribute('xml:base', url);
+    strictEqual(nativeMethods.getAttribute.call(svg, 'xml:base'), urlUtils.getProxyUrl(url));
+
+    circle.setAttribute('xml:base', subDomainUrl);
+    strictEqual(nativeMethods.getAttribute.call(circle, 'xml:base'), urlUtils.getProxyUrl(subDomainUrl));
+
+    div.setAttribute('xml:base', url);
+    strictEqual(nativeMethods.getAttribute.call(div, 'xml:base'), url);
+
+    svg.setAttributeNS(xmlNameSpaceUrl, 'xml:base', url);
+    strictEqual(nativeMethods.getAttributeNS.call(svg, xmlNameSpaceUrl, 'base'), urlUtils.getProxyUrl(url));
+
+    circle.setAttributeNS(xmlNameSpaceUrl, 'xml:base', subDomainUrl);
+    strictEqual(nativeMethods.getAttributeNS.call(circle, xmlNameSpaceUrl, 'base'), urlUtils.getProxyUrl(subDomainUrl));
+
+    svg.setAttributeNS(xmlNameSpaceUrl, 'base', url);
+    strictEqual(nativeMethods.getAttributeNS.call(svg, xmlNameSpaceUrl, 'base'), urlUtils.getProxyUrl(url));
+
+    circle.setAttributeNS(xmlNameSpaceUrl, 'base', subDomainUrl);
+    strictEqual(nativeMethods.getAttributeNS.call(circle, xmlNameSpaceUrl, 'base'), urlUtils.getProxyUrl(subDomainUrl));
+});

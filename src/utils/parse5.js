@@ -1,5 +1,6 @@
+import { NAMESPACE_PREFIX_MAP } from '../processing/dom/namespaces';
+
 const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR = ':';
-const XLINK_NAMESPACE                     = 'http://www.w3.org/1999/xlink';
 
 function getAttrName (attr) {
     return attr.prefix ?
@@ -110,8 +111,8 @@ export function setAttr (el, name, value) {
     var parsedAttrName = parseAttrName(name);
     var newAttr        = { name: parsedAttrName.name, value: value };
 
-    if (parsedAttrName.prefix && parsedAttrName.prefix === 'xlink')
-        newAttr.namespace = XLINK_NAMESPACE;
+    if (parsedAttrName.prefix && NAMESPACE_PREFIX_MAP[parsedAttrName.prefix])
+        newAttr.namespace = NAMESPACE_PREFIX_MAP[parsedAttrName.prefix];
 
     el.attrs.push(newAttr);
 

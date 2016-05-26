@@ -7,6 +7,7 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
+import { XML_NAMESPACE } from './namespaces';
 
 const CDATA_REG_EX = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 // NOTE: Ignore '//:0/' url (http://www.myntra.com/).
@@ -50,7 +51,6 @@ export default class DomProcessor {
         this.HTML_STRING_REG_EX         = HTML_STRING_REG_EX;
         this.JAVASCRIPT_PROTOCOL_REG_EX = JAVASCRIPT_PROTOCOL_REG_EX;
         this.TARGET_ATTR_TAGS           = TARGET_ATTR_TAGS;
-        this.URL_ATTR_TAGS              = URL_ATTR_TAGS;
         this.URL_ATTRS                  = URL_ATTRS;
         this.SVG_XLINK_HREF_TAGS        = SVG_XLINK_HREF_TAGS;
 
@@ -63,35 +63,15 @@ export default class DomProcessor {
 
     _createProcessorPatterns (adapter) {
         var selectors = {
-            HAS_HREF_ATTR: el => {
-                var tagName = adapter.getTagName(el);
+            HAS_HREF_ATTR: el => this.isUrlAttr(el, 'href'),
 
-                return URL_ATTR_TAGS.href.indexOf(tagName) !== -1;
-            },
+            HAS_SRC_ATTR: el => this.isUrlAttr(el, 'src'),
 
-            HAS_SRC_ATTR: el => {
-                var tagName = adapter.getTagName(el);
+            HAS_ACTION_ATTR: el => this.isUrlAttr(el, 'action'),
 
-                return URL_ATTR_TAGS.src.indexOf(tagName) !== -1;
-            },
+            HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest'),
 
-            HAS_ACTION_ATTR: el => {
-                var tagName = adapter.getTagName(el);
-
-                return URL_ATTR_TAGS.action.indexOf(tagName) !== -1;
-            },
-
-            HAS_MANIFEST_ATTR: el => {
-                var tagName = adapter.getTagName(el);
-
-                return URL_ATTR_TAGS.manifest.indexOf(tagName) !== -1;
-            },
-
-            HAS_DATA_ATTR: el => {
-                var tagName = adapter.getTagName(el);
-
-                return URL_ATTR_TAGS.data.indexOf(tagName) !== -1;
-            },
+            HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data'),
 
             HTTP_EQUIV_META: el => {
                 var tagName = adapter.getTagName(el);
@@ -117,7 +97,9 @@ export default class DomProcessor {
                 return adapter.isSVGElement(el) &&
                        adapter.hasAttr(el, 'xlink:href') &&
                        SVG_XLINK_HREF_TAGS.indexOf(adapter.getTagName(el)) !== -1;
-            }
+            },
+
+            IS_SVG_ELEMENT_WITH_XML_BASE_ATTR: el => adapter.isSVGElement(el) && adapter.hasAttr(el, 'xml:base')
         };
 
         return [
@@ -166,6 +148,11 @@ export default class DomProcessor {
                 selector:          selectors.IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR,
                 urlAttr:           'xlink:href',
                 elementProcessors: [this._processSVGXLinkHrefAttr, this._processUrlAttrs]
+            },
+            {
+                selector:          selectors.IS_SVG_ELEMENT_WITH_XML_BASE_ATTR,
+                urlAttr:           'xml:base',
+                elementProcessors: [this._processUrlAttrs]
             }
         ];
     }
@@ -205,6 +192,18 @@ export default class DomProcessor {
 
     getStoredAttrName (attr) {
         return attr + INTERNAL_ATTRS.storedAttrPostfix;
+    }
+
+    isUrlAttr (el, attr, ns) {
+        var tagName = this.adapter.getTagName(el);
+
+        if (URL_ATTR_TAGS[attr] && URL_ATTR_TAGS[attr].indexOf(tagName) !== -1)
+            return true;
+
+        if (this.adapter.isSVGElement(el) && (attr === 'xml:base' || attr === 'base' && ns === XML_NAMESPACE))
+            return true;
+
+        return false;
     }
 
     _isOpenLinkInIframe (el) {
