@@ -68,6 +68,9 @@ export default class FetchSandbox extends SandboxBase {
             var originalThenHandler = args[0];
 
             args[0] = function (response) {
+                if (response.status === 500)
+                    throw new TypeError();
+
                 Object.defineProperty(response, 'type', {
                     get: function () {
                         return FetchSandbox._getResponseType(response);

@@ -309,6 +309,25 @@ if (window.fetch) {
             });
         });
     });
+
+    module('regression', function () {
+        asyncTest('request promise should be rejected for the 500 http status code (GH-602)', function () {
+            expect(1);
+
+            fetch('/respond-500')
+                .then(function (response) {
+                    return response.text();
+                })
+                .then(function () {
+                    ok(false, 'request promise should be rejected');
+                    start();
+                })
+                .catch(function (err) {
+                    ok(err instanceof TypeError);
+                    start();
+                });
+        });
+    });
 }
 
 

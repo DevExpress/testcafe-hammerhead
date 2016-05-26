@@ -64,6 +64,11 @@ module.exports = function (app) {
         res.send('true');
     });
 
+    app.get('/respond-500', function (req, res) {
+        res.statusCode = 500;
+        res.send('Server error');
+    });
+
     app.post('/form-data', function (req, res) {
         var chunks = [];
 
