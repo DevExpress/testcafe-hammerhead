@@ -107,12 +107,7 @@ function isArrayDataScript (ast) {
            ast.body[0].expression.type === Syntax.ArrayExpression;
 }
 
-
-export function isScriptProcessed (code) {
-    return PROCESSED_SCRIPT_RE.test(code);
-}
-
-export function applyChanges (script, changes, isObject) {
+function applyChanges (script, changes, isObject) {
     var indexOffset = isObject ? -1 : 0;
     var chunks      = [];
     var index       = 0;
@@ -138,6 +133,11 @@ export function applyChanges (script, changes, isObject) {
     chunks.push(script.substring(index));
 
     return chunks.join('');
+}
+
+
+export function isScriptProcessed (code) {
+    return PROCESSED_SCRIPT_RE.test(code);
 }
 
 export function processScript (src, withHeader) {

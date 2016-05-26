@@ -24,6 +24,10 @@ function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
 }
 
+function normalizeNewLine (str) {
+    return str.replace(/\r\n/g, '\n');
+}
+
 function normalizeCode (code) {
     return trim(code
         .replace(/(\r\n|\n|\r)/gm, ' ')
@@ -710,7 +714,7 @@ describe('Proxy', function () {
             request(proxy.openSession('http://127.0.0.1:2000/script', session), function (err, res, body) {
                 var expected = fs.readFileSync('test/server/data/script/expected.js').toString();
 
-                expect(body).eql(expected);
+                expect(normalizeNewLine(body)).eql(normalizeNewLine(expected));
                 done();
             });
         });
