@@ -46,6 +46,14 @@ describe('Content charset', function () {
     var manifestSrc        = fs.readFileSync('test/server/data/content-charset/manifest').toString();
     var stylesheetSrc      = fs.readFileSync('test/server/data/content-charset/style.css').toString();
 
+    function testMeta (html, expectedCharsetStr) {
+        var charset = new Charset();
+
+        pageProcessor.processResource(html, {}, charset, noop, {});
+
+        expect(charset.get()).eql(expectedCharsetStr);
+    }
+
     // NOTE: Fixture setup/teardown.
     before(function () {
         var app = express();
@@ -309,17 +317,17 @@ describe('Content charset', function () {
     });
 
     it('Should correctly determine the charset from meta', function () {
-        function testMeta (html, expectedCharsetStr) {
-            var charset = new Charset();
-
-            pageProcessor.processResource(html, {}, charset, noop, {});
-
-            expect(charset.get()).eql(expectedCharsetStr);
-        }
-
         testMeta('<meta http-equiv="Content-Type" content="text/html;charset=utf-8">', 'utf-8');
-        testMeta('<meta charset="windows-866">', 'windows-866');
+        testMeta('<meta charset="windows-874">', 'windows-874');
         testMeta('<meta http-equiv="Content-Type" content="text/html;charset=windows-1252"><meta charset="utf-8">', 'utf-8');
         testMeta('<meta charset="windows-1251"><meta http-equiv="Content-Type" content="text/html;charset=utf-8">', 'windows-1251');
+    });
+
+    describe('regression', function () {
+        it('Should ignore a wrong charset from meta (GH-604)', function () {
+            var defaultCharset = new Charset().get();
+
+            testMeta('<meta charset="wrong-encoding-name"', defaultCharset);
+        });
     });
 });
