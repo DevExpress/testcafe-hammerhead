@@ -652,5 +652,16 @@ describe('Script processor', function () {
                           '//-->'
             });
         });
+
+        it('Should not throw parser exceptions', function () {
+            var testParser = function (scriptStr) {
+                scriptStr += '\nx.src';
+
+                expect(processScript(scriptStr, false).indexOf('x.src') === -1).equal(true);
+            };
+
+            testParser('function a(){function b(){}/k/;}'); // GH-591
+            testParser('function s(){do var x = 9; while(false)return}'); // GH-567
+        });
     });
 });
