@@ -24,7 +24,7 @@
 // [dammit]: acorn_loose.js
 // [walk]: util/walk.js
 //
-// version 3.1.0
+// version 3.0.4
 
 import {Parser} from "./state"
 import "./parseutil"

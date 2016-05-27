@@ -87,17 +87,10 @@ pp.unexpected = function(pos) {
   this.raise(pos != null ? pos : this.start, "Unexpected token")
 }
 
-export class DestructuringErrors {
-  constructor() {
-    this.shorthandAssign = 0
-    this.trailingComma = 0
-  }
-}
-
 pp.checkPatternErrors = function(refDestructuringErrors, andThrow) {
-  let trailing = refDestructuringErrors && refDestructuringErrors.trailingComma
-  if (!andThrow) return !!trailing
-  if (trailing) this.raise(trailing, "Comma is not permitted after the rest element")
+  let pos = refDestructuringErrors && refDestructuringErrors.trailingComma
+  if (!andThrow) return !!pos
+  if (pos) this.raise(pos, "Trailing comma is not permitted in destructuring patterns")
 }
 
 pp.checkExpressionErrors = function(refDestructuringErrors, andThrow) {
