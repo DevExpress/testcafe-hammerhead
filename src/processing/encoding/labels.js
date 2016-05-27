@@ -56,8 +56,7 @@ export default function getEncodingName (label) {
     if (label) {
         label = trim(label.toLowerCase());
 
-        if (LOOKUP_TABLE[label])
-            return LOOKUP_TABLE[label];
+        return LOOKUP_TABLE[label];
     }
 
     return label;
