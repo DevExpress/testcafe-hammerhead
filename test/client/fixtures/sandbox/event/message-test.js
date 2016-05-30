@@ -36,7 +36,10 @@ asyncTest('onmessage event', function () {
     var src                   = window.getCrossDomainPageUrl('../../../data/cross-domain/get-message.html');
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var count                 = 0;
-    var onMessageHandler      = function (evt) {
+
+    iframe.id = 'test01';
+
+    var onMessageHandler = function (evt) {
         var data = typeof evt.data === 'string' ? JSON.parse(evt.data) : evt.data;
 
         strictEqual(evt.origin, 'http://origin_iframe_host');
@@ -77,6 +80,8 @@ asyncTest('cross-domain post messages between different windows', function () {
             start();
         }
     };
+
+    iframe.id = 'test02';
 
     onMessageHandler = function (e) {
         if (parseInt(e.data, 10))
@@ -178,6 +183,8 @@ asyncTest('crossdomain', function () {
         return serviceMsgReceived;
     };
 
+    iframe.id = 'test03';
+
     settings.get().crossDomainProxyPort = 2001;
 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message.html');
@@ -221,6 +228,8 @@ asyncTest('service message handler should not call other handlers', function () 
         }, 100);
     };
 
+    iframe.id = 'test04';
+
     settings.get().crossDomainProxyPort = 2001;
 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
@@ -249,6 +258,8 @@ asyncTest('iframe', function () {
         }
     };
 
+    iframe.id = 'test05';
+
     window.addEventListener('message', onMessageHandler);
 
     messageSandbox.pingIframe(iframe, 'pingCmd')
@@ -263,6 +274,8 @@ asyncTest('iframe', function () {
 asyncTest('timeout (non-added to DOM iframe)', function () {
     var iframe      = document.createElement('iframe');
     var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
+
+    iframe.id = 'test06';
 
     messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
@@ -283,6 +296,8 @@ asyncTest('timeout (non-added to DOM iframe)', function () {
 asyncTest('timeout (added to DOM iframe)', function () {
     var iframe      = document.createElement('iframe');
     var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
+
+    iframe.id = 'test07';
 
     messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
@@ -313,6 +328,8 @@ asyncTest('service message from removed iframe (GH-64)', function () {
     var isMessageReceived = function () {
         return messageReceived;
     };
+
+    iframe.id = 'test08';
 
     messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function () {
         messageReceived = true;

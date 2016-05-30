@@ -69,18 +69,19 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _overridedSetAttributeCore (el, args, isNs) {
-        var ns                  = isNs ? args[0] : null;
-        var attr                = args[isNs ? 1 : 0];
-        var valueIndex          = isNs ? 2 : 1;
-        var value               = args[valueIndex];
-        var setAttrMeth         = isNs ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
-        var tagName             = domUtils.getTagName(el);
-        var isSupportedProtocol = urlUtils.isSupportedProtocol(value);
-        var urlAttr             = domProcessor.isUrlAttr(el, attr, ns);
-        var isEventAttr         = domProcessor.EVENTS.indexOf(attr) !== -1;
-        var isSpecialPage       = urlUtils.isSpecialPage(value);
+        var ns          = isNs ? args[0] : null;
+        var attr        = args[isNs ? 1 : 0];
+        var valueIndex  = isNs ? 2 : 1;
+        var value       = args[valueIndex];
+        var setAttrMeth = isNs ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
+        var tagName     = domUtils.getTagName(el);
+        var urlAttr     = domProcessor.isUrlAttr(el, attr, ns);
+        var isEventAttr = domProcessor.EVENTS.indexOf(attr) !== -1;
 
-        value += '';
+        value = String(value);
+
+        var isSpecialPage       = urlUtils.isSpecialPage(value);
+        var isSupportedProtocol = urlUtils.isSupportedProtocol(value);
 
         if (urlAttr && !isSupportedProtocol && !isSpecialPage || isEventAttr) {
             var isJsProtocol = domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(value);
