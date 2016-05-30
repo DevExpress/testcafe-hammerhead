@@ -1,7 +1,7 @@
 {
   "name": "testcafe-hammerhead",
   "description": "A powerful web-proxy used as a core for the TestCafe testing framework (https://github.com/DevExpress/testcafe).",
-  "version": "9.0.1",
+  "version": "9.0.2",
   "homepage": "https://github.com/DevExpress/testcafe-hammerhead",
   "bugs": {
     "url": "https://github.com/DevExpress/testcafe-hammerhead/issues"

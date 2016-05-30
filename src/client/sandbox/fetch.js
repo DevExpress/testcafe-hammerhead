@@ -130,9 +130,8 @@ export default class FetchSandbox extends SandboxBase {
 
                 var fetchPromise = nativeMethods.fetch.apply(this, args);
 
-                sandbox.emit(sandbox.FETCH_REQUEST_SEND_EVENT, fetchPromise);
-
                 FetchSandbox._processFetchPromise(fetchPromise);
+                sandbox.emit(sandbox.FETCH_REQUEST_SEND_EVENT, fetchPromise);
 
                 return fetchPromise;
             };
