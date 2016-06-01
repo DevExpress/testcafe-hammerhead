@@ -65,6 +65,10 @@ describe('Proxy', function () {
             });
         });
 
+        app.get('/', function (req, res) {
+            res.end(req.url);
+        });
+
         app.get('/cookie/set-and-redirect', function (req, res) {
             res.statusCode = 302;
 
@@ -1216,6 +1220,17 @@ describe('Proxy', function () {
                 expect(requestHeaders[XHR_HEADERS.origin]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.fetchRequestCredentials]).to.be.undefined;
 
+                done();
+            });
+        });
+
+        it('Should add a leading slash to the pathname part of url (GH-608)', function (done) {
+            var options = {
+                url: proxy.openSession('http://127.0.0.1:2000?key=value', session)
+            };
+
+            request(options, function (err, res, body) {
+                expect(body).eql('/?key=value');
                 done();
             });
         });

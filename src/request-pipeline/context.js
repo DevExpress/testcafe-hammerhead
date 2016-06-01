@@ -125,6 +125,12 @@ export default class RequestPipelineContext {
                 return false;
 
             this.dest        = parsedReqUrl.dest;
+
+            // Browsers add a leading slash to the pathname part of url (GH-608)
+            // For example: url http://www.trovigo.com?gd=GID12082014 will be converted
+            // to http://www.trovigo.com/?gd=GID12082014
+            this.dest.partAfterHost = this.dest.partAfterHost[0] === '/' ? this.dest.partAfterHost : '/' + this.dest.partAfterHost;
+
             this.dest.domain = urlUtils.getDomain(this.dest);
 
             if (parsedReferer) {
