@@ -72,22 +72,18 @@ export default class FetchSandbox extends SandboxBase {
                     throw new TypeError();
 
                 Object.defineProperty(response, 'type', {
-                    get: function () {
-                        return FetchSandbox._getResponseType(response);
-                    },
-                    set: () => void 0
+                    get:          () => FetchSandbox._getResponseType(response),
+                    set:          () => void 0,
+                    configurable: true
                 });
 
                 var responseStatus = response.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : response.status;
 
                 Object.defineProperty(response, 'status', {
-                    get: function () {
-                        return responseStatus;
-                    },
-                    set: () => void 0
+                    get:          () => responseStatus,
+                    set:          () => void 0,
+                    configurable: true
                 });
-
-                arguments[0] = response;
 
                 return originalThenHandler.apply(this, arguments);
             };
