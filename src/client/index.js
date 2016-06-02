@@ -16,6 +16,7 @@ import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
 import { getProxyUrl } from './utils/url';
+import { processScript } from '../processing/script';
 import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
 
@@ -47,6 +48,8 @@ class Hammerhead {
         this.getOriginElementAttributes = CodeInstrumentation.getAttributesProperty;
         this.doUpload                   = (input, filePaths) => this.sandbox.upload.doUpload(input, filePaths);
         this.createNativeXHR            = XhrSandbox.createNativeXHR;
+
+        this.processScript = processScript;
 
         // NOTE: We should provide a function to retrieve modules, because hammerhead will be bundled into a single
         // file and we will not have access to the internal modules by default.
