@@ -166,7 +166,7 @@ export default class MessageSandbox extends SandboxBase {
 
         if (isCrossDomainWindows(this.window, contentWindow))
             args[1] = getCrossDomainProxyUrl();
-        else if (!isSupportedProtocol(contentWindow.location))
+        else if (!isSupportedProtocol(contentWindow.location.toString()))
             args[1] = '*';
         else {
             args[1] = formatUrl({
