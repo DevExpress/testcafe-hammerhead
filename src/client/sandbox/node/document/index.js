@@ -25,17 +25,11 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _beforeDocumentCleaned () {
-        this.nodeSandbox.mutation.onBeforeDocumentCleaned({
-            document:           this.document,
-            isIframeWithoutSrc: isIframeWithoutSrc
-        });
+        this.nodeSandbox.mutation.onBeforeDocumentCleaned({ document: this.document });
     }
 
     _onDocumentClosed () {
-        this.nodeSandbox.mutation.onDocumentClosed({
-            document:           this.document,
-            isIframeWithoutSrc: isIframeWithoutSrc
-        });
+        this.nodeSandbox.mutation.onDocumentClosed({ document: this.document });
     }
 
     _overridedDocumentWrite (args, ln) {
@@ -45,18 +39,11 @@ export default class DocumentSandbox extends SandboxBase {
         if (shouldEmitEvents)
             this._beforeDocumentCleaned();
 
-        var result = this.documentWriter.write(args, ln);
+        var result = this.documentWriter.write(args, ln, shouldEmitEvents);
 
-        if (shouldEmitEvents) {
-            this.nodeSandbox.mutation.onDocumentCleaned({
-                window:             this.window,
-                document:           this.document,
-                isIframeWithoutSrc: isIframeWithoutSrc
-            });
-        }
-
-        // NOTE: B234357
-        this.nodeSandbox.processNodes(null, this.document);
+        if (!shouldEmitEvents)
+            // NOTE: B234357
+            this.nodeSandbox.processNodes(null, this.document);
 
         return result;
     }
