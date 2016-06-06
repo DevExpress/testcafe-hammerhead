@@ -14,6 +14,9 @@ import { isPageHtml, processHtml } from '../../utils/html';
 import transport from '../../transport';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 import { HASH_RE } from '../../../utils/url';
+import * as windowsStorage from '../windows-storage';
+
+const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
@@ -29,10 +32,16 @@ export default class ElementSandbox extends SandboxBase {
         this.BEFORE_FORM_SUBMIT = 'hammerhead|event|before-form-submit';
     }
 
+    static _isKeywordTarget (value) {
+        value = value.toLowerCase();
+
+        return KEYWORD_TARGETS.indexOf(value) !== -1;
+    }
+
     static _onTargetChanged (el, newTarget) {
         var urlAttr        = domUtils.getTagName(el) === 'form' ? 'action' : 'href';
         var url            = el[urlAttr];
-        var isIframeTarget = newTarget && newTarget !== '_self' && newTarget !== '_parent' && newTarget !== '_top';
+        var isIframeTarget = newTarget && !ElementSandbox._isKeywordTarget(newTarget);
 
         if (url && urlUtils.isSupportedProtocol(url)) {
             var parsedUrl = urlUtils.parseProxyUrl(url);
@@ -152,8 +161,13 @@ export default class ElementSandbox extends SandboxBase {
             args[valueIndex] = 'off';
         }
         else if (attr === 'target' && domProcessor.TARGET_ATTR_TAGS[tagName]) {
-            if (value === '_blank')
+            if (/_blank/i.test(value))
                 return null;
+
+            if (!ElementSandbox._isKeywordTarget(value) && !windowsStorage.findByName(value)) {
+                value = '_self';
+                args[valueIndex] = value;
+            }
 
             ElementSandbox._onTargetChanged(el, value);
         }
@@ -307,6 +321,7 @@ export default class ElementSandbox extends SandboxBase {
                 var child = arguments[0];
 
                 sandbox._onRemoveFileInputInfo(child);
+                sandbox._onRemoveIframe(child);
 
                 var result = nativeMethods.removeChild.apply(this, arguments);
 
@@ -421,12 +436,20 @@ export default class ElementSandbox extends SandboxBase {
             domUtils.find(el, 'input[type=file]', ElementSandbox._removeFileInputInfo);
     }
 
+    _onRemoveIframe (el) {
+        if (domUtils.isDomElement(el) && domUtils.isIframeElement(el))
+            windowsStorage.remove(el.contentWindow);
+    }
+
     _onElementAdded (el) {
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             var iframes = domUtils.getIframes(el);
 
-            for (var i = 0; i < iframes.length; i++)
+            for (var i = 0; i < iframes.length; i++) {
                 this.onIframeAddedToDOM(iframes[i]);
+                windowsStorage.add(iframes[i].contentWindow);
+            }
+
         }
 
         if (domUtils.isBodyElement(el))

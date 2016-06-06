@@ -457,7 +457,12 @@ test('element.innerHTML', function () {
 test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
     var url      = 'http://url.com/';
+    var iframe   = document.createElement('iframe');
     var proxyUrl = urlUtils.getProxyUrl(url, null, null, null, 'i');
+
+    iframe.id   = 'test_unique_id_e16w9jnv5';
+    iframe.name = 'iframeName';
+    document.body.appendChild(iframe);
 
     anchor.setAttribute('target', 'iframeName');
 
@@ -471,12 +476,22 @@ test('anchor with target attribute', function () {
     strictEqual(nativeMethods.getAttribute.call(anchor, domProcessor.getStoredAttrName('href')), url);
     strictEqual(anchor.getAttribute('href'), url);
     strictEqual(urlUtils.parseProxyUrl(nativeHref).resourceType, 'i');
+
+    iframe.parentNode.removeChild(iframe);
+});
+
+test('case insensitive target="_blank"', function () {
+    var link = document.createElement('a');
+
+    link.setAttribute('target', '_Blank');
+    ok(!link.getAttribute('target'));
 });
 
 module('regression');
 
 test('change href after target attribute changed (GH-534)', function () {
-    var check = function (setTarget, clearTarget) {
+    var iframe = document.createElement('iframe');
+    var check  = function (setTarget, clearTarget) {
         var form = document.createElement('form');
         var link = document.createElement('a');
         var base = document.createElement('base');
@@ -514,23 +529,35 @@ test('change href after target attribute changed (GH-534)', function () {
         strictEqual(urlUtils.parseProxyUrl(area.href).resourceType, null);
     };
 
+    iframe.id   = 'test_unique_id_ispt7enuo';
+    iframe.name = 'test-window';
+    document.body.appendChild(iframe);
+
     check(function (el) {
-        el.setAttribute('target', 'fake-window');
+        el.setAttribute('target', 'test-window');
     }, function (el) {
         el.removeAttribute('target');
     });
 
     check(function (el) {
-        el.setAttribute('target', 'fake-window');
+        el.setAttribute('target', 'test-window');
     }, function (el) {
         el.setAttribute('target', '');
     });
 
     check(function (el) {
-        setProperty(el, 'target', 'fake-window');
+        setProperty(el, 'target', 'test-window');
     }, function (el) {
         setProperty(el, 'target', '');
     });
+
+    check(function (el) {
+        el.setAttribute('target', 'test-window');
+    }, function (el) {
+        el.setAttribute('target', '_Self');
+    });
+
+    iframe.parentNode.removeChild(iframe);
 });
 
 test('setting function to the link.href attribute value (T230764)', function () {

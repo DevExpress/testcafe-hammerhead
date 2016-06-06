@@ -20,12 +20,14 @@ import StorageSandbox from './storages';
 import { isIE, isWebKit } from '../utils/browser';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
+import { add as addWindowToStorage } from './windows-storage';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
         super();
 
         createSandboxBackup(window, this);
+        addWindowToStorage(window);
 
         var listeners             = new Listeners();
         var nodeMutation          = new NodeMutation();
