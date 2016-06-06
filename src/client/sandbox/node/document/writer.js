@@ -3,6 +3,7 @@ import * as htmlUtils from '../../../utils/html';
 import { getTagName, isCommentNode, isStyleElement, isScriptElement } from '../../../utils/dom';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import { isFirefox, isIE } from '../../../utils/browser';
+import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -18,6 +19,31 @@ const REMOVE_OPENING_TAG    = /^<[^>]+>/g;
 const REMOVE_CLOSING_TAG    = /<\/[^>]+>$/g;
 const PENDING_RE            = /<[A-Za-z][^>]*$/g;
 const STORED_WRITE_INFO     = 'hammerhead|stored-write-info';
+
+const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
+    <script class="${ SHADOW_UI_CLASSNAME.script }" type="text/javascript">
+        (function () {
+            var hammerhead = window["%hammerhead%"];
+            var sandbox = hammerhead && hammerhead.sandbox;
+            var script = document.currentScript || document.scripts[document.scripts.length - 1];
+            if (!sandbox) {
+                try {
+                    sandbox = window.parent["%hammerhead%"].get('./sandbox/backup').get(window);
+                } catch(e) {}
+            }
+            if (sandbox) {
+                sandbox.node.mutation.onDocumentCleaned({
+                    window: window,
+                    document: document
+                });
+
+                /* NOTE: B234357 */
+                sandbox.node.processNodes(null, document);
+            }
+
+            script.parentNode.removeChild(script);
+        })();
+    <\/script>`.replace(/\n\s*/g, '');
 
 export default class DocumentWriter {
     constructor (window, document) {
@@ -177,14 +203,26 @@ export default class DocumentWriter {
         nativeMethods.appendChild.call(elWithContent.parentNode, endMarker);
     }
 
-    _prepareDom (container) {
+    _addOnDocumentRecreationScript (endMarker) {
+        var span = nativeMethods.createElement.call(endMarker.ownerDocument, 'span');
+
+        nativeMethods.insertBefore.call(endMarker.parentNode, span, endMarker);
+
+        span.outerHTML = ON_WINDOW_RECREATION_SCRIPT_TEMPLATE;
+    }
+
+    _prepareDom (container, isDocumentCleaned) {
         var beginMarker        = DocumentWriter._searchBeginMarker(container);
         var endMarker          = DocumentWriter._searchEndMarker(container);
         var isBeginMarkerInDom = getTagName(beginMarker) === BEGIN_MARKER_TAG_NAME;
         var isEndMarkerInDom   = getTagName(endMarker) === END_MARKER_TAG_NAME;
 
-        if (beginMarker !== endMarker)
+        if (beginMarker !== endMarker) {
             this._updateParentTagChain(container, endMarker);
+
+            if (isDocumentCleaned)
+                this._addOnDocumentRecreationScript(endMarker);
+        }
 
         if (beginMarker === endMarker && !this.isNonClosedComment &&
             (isScriptElement(endMarker) || isStyleElement(endMarker))) {
@@ -207,14 +245,14 @@ export default class DocumentWriter {
             this._processBeginMarkerInContent(beginMarker);
     }
 
-    _processHtmlChunk (htmlChunk, ln) {
+    _processHtmlChunk (htmlChunk, ln, isDocumentCleaned) {
         htmlChunk               = this._cutPending(this.pending + htmlChunk);
         this.isClosingContentEl = false;
         this.needNewLine        = ln;
 
-        if (htmlChunk) {
+        if (htmlChunk || isDocumentCleaned) {
             htmlChunk = this._wrapHtmlChunk(htmlChunk);
-            htmlChunk = htmlUtils.processHtml(htmlChunk, null, container => this._prepareDom(container));
+            htmlChunk = htmlUtils.processHtml(htmlChunk, null, container => this._prepareDom(container, isDocumentCleaned));
             htmlChunk = this._unwrapHtmlChunk(htmlChunk);
         }
 
@@ -231,8 +269,8 @@ export default class DocumentWriter {
         return htmlChunk;
     }
 
-    write (args, ln) {
-        var htmlChunk         = this._processHtmlChunk(arrayJoin.call(args, ''), ln);
+    write (args, ln, isDocumentCleaned) {
+        var htmlChunk         = this._processHtmlChunk(arrayJoin.call(args, ''), ln, isDocumentCleaned);
         var nativeWriteMethod = ln && !this.storedContent ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
         var result            = nativeWriteMethod.call(this.document, htmlChunk);
 

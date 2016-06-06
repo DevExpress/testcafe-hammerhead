@@ -478,3 +478,26 @@ test('script error when adding a comment node to DOM (GH-435)', function () {
     strictEqual(textNode2, document.documentElement.lastChild);
     textNode2.parentNode.removeChild(textNode2);
 });
+
+asyncTest('"permission denied" error inside documentWriter (GH-384)', function () {
+    var iframe = document.createElement('iframe');
+    var src    = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
+
+    iframe.id = 'test_ojfnnhsg43';
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument = iframe.contentDocument;
+
+            try {
+                iframeDocument.write('<h1 id="testElement">test</h1>');
+                ok(nativeMethods.getElementById.call(iframeDocument, 'testElement'));
+            }
+            catch (err) {
+                ok(false, 'error is occured');
+            }
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
+});
