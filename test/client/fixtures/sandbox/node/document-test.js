@@ -82,8 +82,8 @@ if (!browserUtils.isFirefox) {
             }
 
             // NOTE: Stack overflow check.
-            ok(!document || document.getElementsByTagName('body'));
-            ok(window.top.document.getElementsByTagName('body'));
+            ok(!document || !!document.getElementsByTagName('body'));
+            ok(!!window.top.document.getElementsByTagName('body'));
 
             ok(result);
         };

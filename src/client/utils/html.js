@@ -17,13 +17,15 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.script }" type="text/javascript">
-        var parentHammerhead = null;
-        try {
-            parentHammerhead = window.parent["%hammerhead%"];
-        } catch(e) {}
-        if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
-        var script = document.currentScript || document.scripts[document.scripts.length - 1];
-        script.parentNode.removeChild(script);
+        (function () {
+            var parentHammerhead = null;
+            try {
+                parentHammerhead = window.parent["%hammerhead%"];
+            } catch(e) {}
+            if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
+            var script = document.currentScript || document.scripts[document.scripts.length - 1];
+            script.parentNode.removeChild(script);
+        })();
     <\/script>`.replace(/\n\s*/g, '');
 
 var htmlDocument = document.implementation.createHTMLDocument('title');
