@@ -40,22 +40,28 @@ export default class MethodCallInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        window[INSTRUCTION.callMethod] = (owner, methName, args) => {
-            if (typeUtils.isNullOrUndefined(owner))
-                MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
+        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
+        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
+        Object.defineProperty(window, INSTRUCTION.callMethod, {
+            value: (owner, methName, args) => {
+                if (typeUtils.isNullOrUndefined(owner))
+                    MethodCallInstrumentation._error(`Cannot call method '${methName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-            if (typeof owner[methName] !== 'function')
-                MethodCallInstrumentation._error(`'${methName}' is not a function`);
+                if (typeof owner[methName] !== 'function')
+                    MethodCallInstrumentation._error(`'${methName}' is not a function`);
 
-            // OPTIMIZATION: previously we've performed the
-            // `this.methodWrappers.hasOwnProperty(methName)`
-            // check which is quite slow. Now we use the
-            // fast RegExp check instead.
-            if (typeof methName === 'string' && shouldInstrumentMethod(methName) &&
-                this.methodWrappers[methName].condition(owner))
-                return this.methodWrappers[methName].method(owner, args);
+                // OPTIMIZATION: previously we've performed the
+                // `this.methodWrappers.hasOwnProperty(methName)`
+                // check which is quite slow. Now we use the
+                // fast RegExp check instead.
+                if (typeof methName === 'string' && shouldInstrumentMethod(methName) &&
+                    this.methodWrappers[methName].condition(owner))
+                    return this.methodWrappers[methName].method(owner, args);
 
-            return fastApply(owner, methName, args);
-        };
+                return fastApply(owner, methName, args);
+            },
+            configurable: true
+        });
+
     }
 }

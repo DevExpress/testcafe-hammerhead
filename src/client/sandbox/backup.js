@@ -7,8 +7,10 @@ export function create (window, sandbox) {
     var iframe              = window !== topSameDomainWindow ? getFrameElement(window) : null;
     var storage             = topSameDomainWindow[SANDBOX_BACKUP];
 
-    if (!storage)
-        storage = topSameDomainWindow[SANDBOX_BACKUP] = [];
+    if (!storage) {
+        storage = [];
+        Object.defineProperty(topSameDomainWindow, SANDBOX_BACKUP, { value: storage });
+    }
 
     for (var i = 0; i < storage.length; i++) {
         if (storage[i].iframe === iframe) {

@@ -81,7 +81,7 @@ export default class IframeSandbox extends SandboxBase {
                 this._ensureIframeNativeMethodsForIE(iframe);
 
                 // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
-                iframe.contentWindow[IFRAME_WINDOW_INITED] = true;
+                Object.defineProperty(iframe.contentWindow, IFRAME_WINDOW_INITED, { value: true });
 
                 // NOTE: Raise this internal event to eval the Hammerhead code script.
                 this.emit(this.EVAL_HAMMERHEAD_SCRIPT, { iframe });

@@ -317,17 +317,14 @@ if (!browserUtils.isIE) {
 test('outerHTML', function () {
     var parentDiv = document.createElement('div');
     var childDiv  = document.createElement('div');
-
-    /* eslint-disable no-unused-vars */
-    var htmlText = '<a href="http://domain.com/">link</a><script src="http://domain.com/script"><\/script>';
-    /* eslint-enable no-unused-vars */
+    var htmlText  = '<a href="http://domain.com/">link</a><script src="http://domain.com/script"><\/script>';
 
     parentDiv.appendChild(childDiv);
 
     strictEqual(parentDiv.children.length, 1);
     strictEqual(parentDiv.firstChild, childDiv);
 
-    eval(processScript('childDiv.outerHTML = htmlText', true, false));
+    setProperty(childDiv, 'outerHTML', htmlText);
 
     strictEqual(parentDiv.children.length, 2);
     strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl('http://domain.com/'));

@@ -14,8 +14,13 @@ export default class NodeSandbox extends SandboxBase {
     constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
         super();
 
-        this.raiseBodyCreatedEvent               = this._onBodyCreated;
-        document[INTERNAL_PROPS.documentCharset] = domUtils.parseDocumentCharset();
+        this.raiseBodyCreatedEvent = this._onBodyCreated;
+
+        // NOTE: We need to define the property with the 'writable' descriptor for testing purposes
+        Object.defineProperty(document, INTERNAL_PROPS.documentCharset, {
+            value:    domUtils.parseDocumentCharset(),
+            writable: true
+        });
 
         this.eventSandbox  = eventSandbox;
         this.iframeSandbox = iframeSandbox;
@@ -77,7 +82,12 @@ export default class NodeSandbox extends SandboxBase {
             this.doc.attach(e.iframe.contentWindow, e.iframe.contentDocument);
         });
 
-        window[INTERNAL_PROPS.processDomMethodName] = (el, doc) => this.processNodes(el, doc);
+        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
+        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
+        Object.defineProperty(window, INTERNAL_PROPS.processDomMethodName, {
+            value:        (el, doc) => this.processNodes(el, doc),
+            configurable: true
+        });
 
         // NOTE: In some browsers (for example Firefox), the 'window.document' object is different when iframe is
         // created and when the document’s ready event is raised. Therefore, we need to update the 'document' object

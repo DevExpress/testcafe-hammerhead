@@ -143,7 +143,13 @@ export default class MessageSandbox extends SandboxBase {
 
         this.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
         this.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
-        window[this.RECEIVE_MSG_FN] = isIframeWithoutSrc || this.topWindow === window.self ? onMessageHandler : null;
+
+        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
+        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
+        Object.defineProperty(window, this.RECEIVE_MSG_FN, {
+            value:        isIframeWithoutSrc || this.topWindow === window.self ? onMessageHandler : null,
+            configurable: true
+        });
     }
 
     setOnMessage (window, value) {

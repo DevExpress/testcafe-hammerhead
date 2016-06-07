@@ -12,13 +12,14 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://target_url');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var processScript = hammerhead.get('../processing/script').processScript;
+    var INSTRUCTION = hammerhead.get('../processing/script/instruction');
+    var callMethod  = window[INSTRUCTION.callMethod];
 
-    eval(processScript("top.postMessage('1', 'https://example.com');", true));
-    eval(processScript("top.postMessage('1');", true));
-    eval(processScript("top.postMessage('0', 'http://example.com');", true));
-    eval(processScript("top.postMessage('1', 'https://sub.example.com');", true));
-    eval(processScript("top.postMessage('1', '*');", true));
+    callMethod(top, 'postMessage', ['1', 'https://example.com']);
+    callMethod(top, 'postMessage', ['1']);
+    callMethod(top, 'postMessage', ['0', 'http://example.com']);
+    callMethod(top, 'postMessage', ['1', 'https://sub.example.com']);
+    callMethod(top, 'postMessage', ['1', '*']);
 </script>
 </body>
 </html>
