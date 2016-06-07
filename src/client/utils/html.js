@@ -9,11 +9,14 @@ import { convertToProxyUrl } from '../utils/url';
 const FAKE_TAG_NAME_PREFIX  = 'fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME = 'hammerhead_fake_doctype';
 const FAKE_TAG_NAME_RE      = new RegExp('(<\\/?)' + FAKE_TAG_NAME_PREFIX, 'ig');
-const WRAP_TAGS_RE          = /(<\/?)(html|head|body|table|tbody|tfoot|thead|tr|td|th|caption|colgroup|col)([^>]*>)/ig;
+const WRAP_TAGS_RE          = /(<\/?)(html|head|body|table|tbody|tfoot|thead|tr|td|th|caption|colgroup)([^>]*>)/ig;
 const WRAP_TAGS_TEMPLATE    = `$1${ FAKE_TAG_NAME_PREFIX }$2$3`;
+const WRAP_COL_TAG_RE       = /<(\/?(col)(?:[^A-Za-z_>][^>]*)?)>/ig;
+const WRAP_COL_TAG_TEMPLATE = `<${ FAKE_TAG_NAME_PREFIX }$2>$1</${ FAKE_TAG_NAME_PREFIX }$2>`;
 const WRAP_DOCTYPE_RE       = /<!doctype([^>]*)>/ig;
 const WRAP_DOCTYPE_TEMPLATE = `<${ FAKE_DOCTYPE_TAG_NAME }>$1</${ FAKE_DOCTYPE_TAG_NAME }>`;
 const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*?)</${ FAKE_DOCTYPE_TAG_NAME }>`, 'ig');
+const UNWRAP_COL_TAG_RE     = new RegExp(`<${ FAKE_TAG_NAME_PREFIX }col>([\\S\\s]*?)</${ FAKE_TAG_NAME_PREFIX }col>`, 'ig');
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.script }" type="text/javascript">
@@ -61,6 +64,7 @@ function processHtmlInternal (html, process) {
 
     html = html
         .replace(WRAP_DOCTYPE_RE, WRAP_DOCTYPE_TEMPLATE)
+        .replace(WRAP_COL_TAG_RE, WRAP_COL_TAG_TEMPLATE)
         .replace(WRAP_TAGS_RE, WRAP_TAGS_TEMPLATE);
 
     htmlParser.innerHTML = '';
@@ -73,6 +77,7 @@ function processHtmlInternal (html, process) {
 
     html = html
         .replace(UNWRAP_DOCTYPE_RE, '<!doctype$1>')
+        .replace(UNWRAP_COL_TAG_RE, '<$1>')
         .replace(FAKE_TAG_NAME_RE, '$1');
 
     return html;
