@@ -5,7 +5,7 @@
 
 import transform from './transform';
 import INSTRUCTION from './instruction';
-import { HEADER, remove as removeHeader } from './header';
+import { add as addHeader, remove as removeHeader } from './header';
 import { parse } from './tools/acorn';
 import { generate, Syntax } from './tools/esotope';
 import reEscape from '../../utils/regexp-escape';
@@ -50,7 +50,7 @@ function preprocess (code) {
 
 function postprocess (processed, withHeader, bom) {
     if (withHeader)
-        processed = HEADER + processed;
+        processed = addHeader(processed);
 
     return bom ? bom + processed : processed;
 }
