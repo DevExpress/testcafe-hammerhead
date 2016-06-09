@@ -174,6 +174,13 @@ test('text nodes', function () {
           '<!--    <tr>-->' +
           '<!--        <td>Customer:</td>-->' +
           '<!--        <td>-->');
+    check('<table>' +
+          '  <colgroup>' +
+          '    <col></col>' +
+          '    <col/>' +
+          '  </colgroup>' +
+          '  <tr><td></td></tr>' +
+          '</table>');
 });
 
 test('page html', function () {
