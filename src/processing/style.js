@@ -4,51 +4,55 @@
 // -------------------------------------------------------------
 /* eslint hammerhead/proto-methods: 2 */
 
+import reEscape from '../utils/regexp-escape';
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 
-const SOURCE_MAP_REG_EX              = /#\s*sourceMappingURL\s*=\s*[^\s]+(\s|\*\/)/i;
-const CSS_URL_PROPERTY_VALUE_PATTERN = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s\)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
+const SOURCE_MAP_RE                       = /#\s*sourceMappingURL\s*=\s*[^\s]+(\s|\*\/)/i;
+const CSS_URL_PROPERTY_VALUE_PATTERN      = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s\)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
+const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
+const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
+const HOVER_PSEUDO_CLASS_RE               = /\s*:\s*hover(\W)/gi;
+const PSEUDO_CLASS_RE                     = new RegExp(`\\[${ INTERNAL_ATTRS.hoverPseudoClass }\\](\\W)`, 'ig');
+const IS_STYLE_SHEET_PROCESSED_RE         = new RegExp(`^\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }`, 'gi');
+const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`^\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }\n?|` +
+                                                       `\n?${ reEscape(STYLESHEET_PROCESSING_END_COMMENT) }\\s*$`, 'gi');
 
 class StyleProcessor {
     constructor () {
-        this.IS_STYLESHEET_PROCESSED_COMMENT = '/* stylesheet processed via hammerhead */';
+        this.STYLESHEET_TEXT_START_COMMENT = STYLESHEET_PROCESSING_START_COMMENT;
+        this.STYLESHEET_TEXT_END_COMMENT   = STYLESHEET_PROCESSING_END_COMMENT;
     }
 
     process (css, urlReplacer, isStylesheetTable) {
-        var isStyleSheetProcessingRegEx = new RegExp('^\\s*' +
-                                                     this.IS_STYLESHEET_PROCESSED_COMMENT.replace(/\/|\*/g, '\\$&'));
-        var isStylesheetProcessed       = isStyleSheetProcessingRegEx.test(css);
+        if (typeof css !== 'string' || IS_STYLE_SHEET_PROCESSED_RE.test(css))
+            return css;
 
-        if (typeof css === 'string' && !isStylesheetProcessed) {
-            var prefix = isStylesheetTable ? this.IS_STYLESHEET_PROCESSED_COMMENT + '\n' : '';
+        var prefix  = isStylesheetTable ? STYLESHEET_PROCESSING_START_COMMENT + '\n' : '';
+        var postfix = isStylesheetTable ? '\n' + STYLESHEET_PROCESSING_END_COMMENT : '';
 
-            // NOTE: Replace the :hover pseudo-class.
-            css = css.replace(/\s*:\s*hover(\W)/gi, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']$1');
+        // NOTE: Replace the :hover pseudo-class.
+        css = css.replace(HOVER_PSEUDO_CLASS_RE, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']$1');
 
-            // NOTE: Remove the ‘source map’ directive.
-            css = css.replace(SOURCE_MAP_REG_EX, '$1');
+        // NOTE: Remove the ‘source map’ directive.
+        css = css.replace(SOURCE_MAP_RE, '$1');
 
-            // NOTE: Replace URLs in CSS rules with proxy URLs.
-            return prefix + this._replaceStylsheetUrls(css, urlReplacer);
-        }
-
-        return css;
+        // NOTE: Replace URLs in CSS rules with proxy URLs.
+        return prefix + this._replaceStylsheetUrls(css, urlReplacer) + postfix;
     }
 
     cleanUp (css, parseProxyUrl) {
-        if (typeof css === 'string') {
-            css = css
-                .replace(new RegExp('\\[' + INTERNAL_ATTRS.hoverPseudoClass + '\\](\\W)', 'ig'), ':hover$1')
-                .replace(new RegExp('^\\s*' + this.IS_STYLESHEET_PROCESSED_COMMENT.replace(/\/|\*/g, '\\$&') + '\n?'), '');
+        if (typeof css !== 'string')
+            return css;
 
-            return this._replaceStylsheetUrls(css, url => {
-                var parsedProxyUrl = parseProxyUrl(url);
+        css = css
+            .replace(PSEUDO_CLASS_RE, ':hover$1')
+            .replace(STYLESHEET_PROCESSING_COMMENTS_RE, '');
 
-                return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
-            });
-        }
+        return this._replaceStylsheetUrls(css, url => {
+            var parsedProxyUrl = parseProxyUrl(url);
 
-        return css;
+            return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
+        });
     }
 
     _replaceStylsheetUrls (css, processor) {

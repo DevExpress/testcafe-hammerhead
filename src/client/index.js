@@ -17,6 +17,8 @@ import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
 import { getProxyUrl } from './utils/url';
 import { processScript } from '../processing/script';
+import { SCRIPT_PROCESSING_START_COMMENT, SCRIPT_PROCESSING_END_HEADER_COMMENT, SCRIPT_PROCESSING_END_COMMENT } from '../processing/script/header';
+import { STYLESHEET_PROCESSING_START_COMMENT, STYLESHEET_PROCESSING_END_COMMENT } from '../processing/style';
 import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
 
@@ -40,6 +42,14 @@ class Hammerhead {
             xhrError:           this.sandbox.xhr.XHR_ERROR_EVENT,
             xhrSend:            this.sandbox.xhr.XHR_SEND_EVENT,
             fetchSend:          this.sandbox.fetch.FETCH_REQUEST_SEND_EVENT
+        };
+
+        this.PROCESSING_COMMENTS = {
+            stylesheetStart: STYLESHEET_PROCESSING_START_COMMENT,
+            stylesheetEnd:   STYLESHEET_PROCESSING_END_COMMENT,
+            scriptStart:     SCRIPT_PROCESSING_START_COMMENT,
+            scriptEndHeader: SCRIPT_PROCESSING_END_HEADER_COMMENT,
+            scriptEnd:       SCRIPT_PROCESSING_END_COMMENT
         };
 
         this.EventEmitter = EventEmitter;
