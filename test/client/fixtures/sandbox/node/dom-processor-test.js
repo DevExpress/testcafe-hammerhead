@@ -335,8 +335,8 @@ test('stylesheet after innerHTML', function () {
     nativeMethods.appendChild.call(document.body, style);
 
     var check = function (cssText) {
-        strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_TEXT_START_COMMENT), 0);
-        strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_TEXT_START_COMMENT, 1), -1);
+        strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT), 0);
+        strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT, 1), -1);
         strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://domain.com'));
     };
 

@@ -141,9 +141,9 @@ test('write style', function () {
 
     strictEqual(getElems(iframeForWrite, 'style').length, getElems(iframeForNativeWrite, 'style').length);
     strictEqual(innerHTML(getElems(iframeForWrite, 'style')[0], true), innerHTML(getElems(iframeForNativeWrite, 'style')[0]));
-    strictEqual(innerHTML(getElems(iframeForWrite, 'style')[0]), styleProcessor.STYLESHEET_TEXT_START_COMMENT +
+    strictEqual(innerHTML(getElems(iframeForWrite, 'style')[0]), styleProcessor.STYLESHEET_PROCESSING_START_COMMENT +
                                                                  '\n\ndiv {}\n\n' +
-                                                                 styleProcessor.STYLESHEET_TEXT_END_COMMENT);
+                                                                 styleProcessor.STYLESHEET_PROCESSING_END_COMMENT);
     strictEqual(innerHTML(getElems(iframeForWrite, 'style')[1], true), innerHTML(getElems(iframeForNativeWrite, 'style')[1]));
     strictEqual(innerHTML(getElems(iframeForWrite, 'style')[1]), '');
 
