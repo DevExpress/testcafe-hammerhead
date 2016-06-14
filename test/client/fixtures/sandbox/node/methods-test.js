@@ -141,17 +141,26 @@ test('table.insertRow, table.insertCell', function () {
 });
 
 asyncTest('form.submit', function () {
-    var form    = document.createElement('form');
-    var handler = function (e) {
-        strictEqual(e.form, form);
-        hammerhead.off(hammerhead.EVENTS.beforeFormSubmit, handler);
-        start();
-    };
+    var iframe = document.createElement('iframe');
 
-    hammerhead.on(hammerhead.EVENTS.beforeFormSubmit, handler);
+    iframe.id   = 'test_unique_id_27lkj6j79';
+    iframe.name = 'test-window';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var form             = iframe.contentDocument.createElement('form');
+            var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
+            var handler          = function (e) {
+                strictEqual(e.form, form);
+                iframeHammerhead.off(iframeHammerhead.EVENTS.beforeFormSubmit, handler);
+                iframe.parentNode.removeChild(iframe);
+                start();
+            };
 
-    form.target = 'fake-window';
-    form.submit();
+            iframeHammerhead.on(iframeHammerhead.EVENTS.beforeFormSubmit, handler);
+            form.target = 'test-window';
+            form.submit();
+        });
+    document.body.appendChild(iframe);
 });
 
 test('setAttribute: img src', function () {
