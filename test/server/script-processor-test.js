@@ -321,7 +321,8 @@ describe('Script processor', function () {
                 expected: 'obj.{0}-=value;obj.{0}*=value;obj.{0}/=value;' +
                           'obj.{0}>>=value;obj.{0}<<=value;obj.{0}>>>=value;' +
                           'obj.{0}&=value;obj.{0}|=value;obj.{0}^=value'
-            }
+            },
+            { src: 'obj.{0};let p = ""', expected: '__get$(obj, "{0}"); let p = ""' }
         ]);
     });
 
