@@ -22,7 +22,8 @@ const HEADER = [
     `${ INSTRUCTION.getProperty }=__w$?__w$.${ INSTRUCTION.getProperty }:function(o,p){return o[p]},`,
     `${ INSTRUCTION.callMethod }=__w$?__w$.${ INSTRUCTION.callMethod }:function(o,p,a){return o[p].apply(o,a)},`,
     `${ INSTRUCTION.getEval }=__w$?__w$.${ INSTRUCTION.getEval }:function(e){return e},`,
-    `${ INSTRUCTION.processScript }=__w$?__w$.${ INSTRUCTION.processScript }:function(s){return s};`,
+    `${ INSTRUCTION.processScript }=__w$?__w$.${ INSTRUCTION.processScript }:function(s){return s},`,
+    `${ INSTRUCTION.getStorage }=__w$?__w$.${ INSTRUCTION.getStorage }:function(s){return s};`,
     SCRIPT_PROCESSING_END_HEADER_COMMENT,
     '\n'
 ].join('');
