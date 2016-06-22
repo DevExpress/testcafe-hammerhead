@@ -31,7 +31,7 @@ class Hammerhead {
             beforeFormSubmit:   this.sandbox.node.element.BEFORE_FORM_SUBMIT,
             beforeBeforeUnload: this.sandbox.event.unload.BEFORE_BEFORE_UNLOAD_EVENT,
             beforeUnload:       this.sandbox.event.unload.BEFORE_UNLOAD_EVENT,
-            upload:             this.sandbox.event.unload.UNLOAD_EVENT,
+            unload:             this.sandbox.event.unload.UNLOAD_EVENT,
             bodyCreated:        this.sandbox.node.mutation.BODY_CREATED_EVENT,
             documentCleaned:    this.sandbox.node.mutation.DOCUMENT_CLEANED_EVENT,
             uncaughtJsError:    this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
