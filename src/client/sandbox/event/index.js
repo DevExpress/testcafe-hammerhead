@@ -163,6 +163,7 @@ export default class EventSandbox extends SandboxBase {
         window.Window.prototype.dispatchEvent                  = this.overridedMethods.dispatchEvent;
         window.Document.prototype.dispatchEvent                = this.overridedMethods.dispatchEvent;
         window.HTMLElement.prototype.dispatchEvent             = this.overridedMethods.dispatchEvent;
+        window.SVGElement.prototype.dispatchEvent              = this.overridedMethods.dispatchEvent;
         window.HTMLElement.prototype.focus                     = this.overridedMethods.focus;
         window.HTMLElement.prototype.blur                      = this.overridedMethods.blur;
         window.HTMLElement.prototype.click                     = this.overridedMethods.click;

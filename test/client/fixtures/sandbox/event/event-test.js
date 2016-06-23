@@ -283,3 +283,28 @@ test('the click event handler for the svg element must be overridden correctly (
 
     $svg.remove();
 });
+
+test('SVGElement.dispatchEvent should be overriden (GH-614)', function () {
+    var svg             = document.createElement('svg');
+    var handlerIsCalled = false;
+
+    document.body.appendChild(svg);
+
+    svg.addEventListener('click', function () {
+        handlerIsCalled = true;
+    });
+
+    listeners.initElementListening(svg, ['click']);
+    listeners.addFirstInternalHandler(svg, ['click'], function (event, isDispatchedEventFlag) {
+        ok(isDispatchedEventFlag);
+    });
+
+    var event = document.createEvent('MouseEvents');
+
+    event.initEvent('click', true, false);
+    svg.dispatchEvent(event);
+
+    ok(handlerIsCalled);
+
+    svg.parentNode.removeChild(svg);
+});
