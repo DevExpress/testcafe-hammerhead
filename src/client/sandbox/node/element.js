@@ -50,7 +50,11 @@ export default class ElementSandbox extends SandboxBase {
                 var parsedResourceType = urlUtils.parseResourceType(parsedUrl.resourceType);
 
                 if (parsedResourceType.isIframe !== isIframeTarget) {
-                    var resourceType = urlUtils.stringifyResourceType(isIframeTarget, parsedResourceType.isForm, parsedResourceType.isScript);
+                    var resourceType = urlUtils.stringifyResourceType({
+                        isIframe: isIframeTarget,
+                        isForm:   parsedResourceType.isForm,
+                        isScript: parsedResourceType.isScript
+                    });
 
                     el[urlAttr] = urlUtils.getProxyUrl(parsedUrl.destUrl, null, null, null, resourceType);
                 }

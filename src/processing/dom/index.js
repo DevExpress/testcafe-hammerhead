@@ -183,11 +183,12 @@ export default class DomProcessor {
     // Utils
     getElementResourceType (el) {
         var tagName  = this.adapter.getTagName(el);
-        var isScript = tagName === 'script';
-        var isForm   = tagName === 'form';
-        var isIframe = tagName === 'iframe' || this._isOpenLinkInIframe(el);
 
-        return urlUtils.stringifyResourceType(isIframe, isForm, isScript);
+        return urlUtils.getResourceTypeString({
+            isIframe: tagName === 'iframe' || this._isOpenLinkInIframe(el),
+            isForm:   tagName === 'form',
+            isScript: tagName === 'script'
+        });
     }
 
     getStoredAttrName (attr) {
@@ -455,7 +456,7 @@ export default class DomProcessor {
                         // NOTE: Cross-domain iframe.
                         if (!this.adapter.sameOriginCheck(destUrl, resourceUrl)) {
                             var proxyHostname      = urlUtils.parseUrl(location).hostname;
-                            var iframeResourceType = urlUtils.stringifyResourceType(true);
+                            var iframeResourceType = urlUtils.getResourceTypeString({ isIframe: true });
 
                             proxyUrl = resourceUrl ? this.adapter.getProxyUrl(resourceUrl, proxyHostname,
                                 this.adapter.getCrossDomainPort(), proxyUrlObj.sessionId, iframeResourceType) : '';

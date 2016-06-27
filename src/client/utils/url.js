@@ -58,7 +58,7 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
 }
 
 export function getCrossDomainIframeProxyUrl (url) {
-    return getProxyUrl(url, null, settings.get().crossDomainProxyPort, null, sharedUrlUtils.stringifyResourceType(true));
+    return getProxyUrl(url, null, settings.get().crossDomainProxyPort, null, sharedUrlUtils.getResourceTypeString({ isIframe: true }));
 }
 
 export function getCrossDomainProxyUrl () {
@@ -115,6 +115,6 @@ export function parseResourceType (resourceType) {
     return sharedUrlUtils.parseResourceType(resourceType);
 }
 
-export function stringifyResourceType (isIframe, isForm, isScript) {
-    return sharedUrlUtils.stringifyResourceType(isIframe, isForm, isScript);
+export function stringifyResourceType (resourceType) {
+    return sharedUrlUtils.getResourceTypeString(resourceType);
 }

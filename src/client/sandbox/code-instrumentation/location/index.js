@@ -2,6 +2,9 @@ import LocationWrapper from './wrapper';
 import SandboxBase from '../../base';
 import { isLocation } from '../../../utils/dom';
 import INSTRUCTION from '../../../../processing/script/instruction';
+import * as destLocation from '../../../utils/destination-location';
+import { getResourceTypeString } from '../../../../utils/url';
+import * as urlUtils from '../../../utils/url';
 
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 
@@ -44,11 +47,17 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
         Object.defineProperty(window, INSTRUCTION.setLocation, {
             value: (location, value) => {
                 if (isLocation(location)) {
-                    location = value;
+                    var resourceType = null;
 
-                    return location;
+                    if (window !== window.top) {
+                        value        = destLocation.resolveUrl(value, window.top.document);
+                        resourceType = getResourceTypeString({ isIframe: true });
+                    }
+
+                    window.location = urlUtils.getProxyUrl(value, null, null, null, resourceType);
+
+                    return window.location;
                 }
-
                 return null;
             },
             configurable: true
