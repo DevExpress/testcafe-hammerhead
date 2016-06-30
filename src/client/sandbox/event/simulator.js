@@ -29,7 +29,6 @@ export default class EventSimulator {
         this.DISPATCHED_EVENT_FLAG = 'hammerhead|dispatched-event';
 
         this.touchIdentifier  = nativeMethods.dateNow();
-        this.clickedFileInput = null;
         // NOTE: (IE only) If event dispatching calls a native click function, we should clear the window.event
         // property (which was set in the raiseDispatchEvent function). Otherwise, the window.event property will
         // contain the dispatched event, not the native click event. We should restore the window.event value after
@@ -428,9 +427,6 @@ export default class EventSimulator {
     }
 
     _raiseDispatchEvent (el, ev, args) {
-        if (domUtils.isFileInput(el) && ev.type === 'click')
-            this.clickedFileInput = el;
-
         if (browserUtils.isIE) {
             // NOTE: In IE, when we raise an event by using the dispatchEvent function, the window.event object is null.
             // If a real event happens, there is a window.event object, but it is not identical with the first argument
@@ -688,14 +684,5 @@ export default class EventSimulator {
 
     isSavedWindowsEventsExists () {
         return this.savedWindowEvents && this.savedWindowEvents.length;
-    }
-
-    // TODO: Remove these methods.
-    getClickedFileInput () {
-        return this.clickedFileInput;
-    }
-
-    setClickedFileInput (input) {
-        this.clickedFileInput = input;
     }
 }

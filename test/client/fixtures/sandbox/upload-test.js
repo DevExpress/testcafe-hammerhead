@@ -2,12 +2,13 @@ var COMMAND           = hammerhead.get('../session/command');
 var UploadInfoManager = hammerhead.get('./sandbox/upload/info-manager');
 var hiddenInfo        = hammerhead.get('./sandbox/upload/hidden-info');
 
-var Promise       = hammerhead.Promise;
-var nativeMethods = hammerhead.nativeMethods;
-var transport     = hammerhead.transport;
-var browserUtils  = hammerhead.utils.browser;
-var uploadSandbox = hammerhead.sandbox.upload;
-var infoManager   = hammerhead.sandbox.upload.infoManager;
+var Promise        = hammerhead.Promise;
+var nativeMethods  = hammerhead.nativeMethods;
+var transport      = hammerhead.transport;
+var browserUtils   = hammerhead.utils.browser;
+var uploadSandbox  = hammerhead.sandbox.upload;
+var infoManager    = hammerhead.sandbox.upload.infoManager;
+var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
 // ----- Server API mock ---------
 // Virtual file system:
@@ -732,3 +733,34 @@ test('document fragment', function () {
     document.body.insertBefore(documentFragment, null);
     checkHiddenInfo();
 });
+
+module('regression');
+
+if (browserUtils.isIE) {
+    asyncTest("prevent the browser's open file dialog (T394838)", function () {
+        var div                   = document.createElement('div');
+        var fileInput             = document.createElement('input');
+        var isInputAlreadyClicked = false;
+
+        fileInput.type = 'file';
+        div.appendChild(fileInput);
+        document.body.appendChild(div);
+
+        fileInput.addEventListener('click', function (e) {
+            ok(e.defaultPrevented);
+
+            if (isInputAlreadyClicked || !browserUtils.isMSEdge) {
+                document.body.removeChild(div);
+                start();
+            }
+
+            isInputAlreadyClicked = true;
+        }, true);
+
+        div.addEventListener('click', function () {
+            fileInput.click();
+        }, true);
+
+        eventSimulator.click(fileInput);
+    });
+}
