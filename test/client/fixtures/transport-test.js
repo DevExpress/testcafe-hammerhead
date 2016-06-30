@@ -12,7 +12,7 @@ var requestIsAsync = false;
 
 settings.get().serviceMsgUrl = '/service-msg/100';
 
-function reqisterAfterAjaxSendHook (callback) {
+function registerAfterAjaxSendHook (callback) {
     callback = callback || function () {};
 
     nativeMethods.xmlHttpRequestOpen = function () {
@@ -39,7 +39,7 @@ asyncTest('sendAsyncServiceMsg', function () {
         test: 'testValue'
     };
 
-    reqisterAfterAjaxSendHook();
+    registerAfterAjaxSendHook();
 
     transport.asyncServiceMsg(msg)
         .then(function (responseText, parsedResponseText) {
@@ -147,7 +147,7 @@ if (!browserUtils.isWebKit) {
             xhr.abort();
         };
 
-        reqisterAfterAjaxSendHook(onAjaxSend);
+        registerAfterAjaxSendHook(onAjaxSend);
 
         transport.asyncServiceMsg({})
             .then(function () {
@@ -181,7 +181,7 @@ else {
             xhr.abort();
         };
 
-        reqisterAfterAjaxSendHook(onAjaxSend);
+        registerAfterAjaxSendHook(onAjaxSend);
 
         var msg = {
             test: value
@@ -224,7 +224,7 @@ else {
             xhr.abort();
         };
 
-        reqisterAfterAjaxSendHook(onAjaxSend);
+        registerAfterAjaxSendHook(onAjaxSend);
 
         var msg = {
             test: value
@@ -254,6 +254,78 @@ else {
             });
     });
 }
+
+if (browserUtils.isWebKit) {
+    asyncTest("do not resend aborted async service msg if it contains 'disableResending' flag (WebKit)", function () {
+        settings.get().sessionId = '%%%testUid%%%';
+
+        var xhrCount      = 0;
+        var isMessageSent = false;
+
+        ok(!window.localStorage.getItem(settings.get().sessionId));
+
+        var onAjaxSend = function (xhr) {
+            xhrCount++;
+            xhr.abort();
+        };
+
+        registerAfterAjaxSendHook(onAjaxSend);
+
+        var msg = {
+            disableResending: true
+        };
+
+        transport.asyncServiceMsg(msg)
+            .then(function () {
+                isMessageSent = true;
+            });
+
+        window.setTimeout(function () {
+            strictEqual(xhrCount, 1);
+
+            var storedMsgStr   = window.localStorage.getItem(settings.get().sessionId);
+
+            notOk(isMessageSent);
+            strictEqual(storedMsgStr, '[]');
+
+            window.localStorage.removeItem(settings.get().sessionId);
+
+            unregisterAfterAjaxSendHook();
+            start();
+        }, 100);
+    });
+}
+else {
+    asyncTest("do not resend aborted async service msg if it contains 'disableResending' flag", function () {
+        var xhrCount      = 0;
+        var isMessageSent = false;
+
+        var onAjaxSend = function (xhr) {
+            xhrCount++;
+            xhr.abort();
+        };
+
+        registerAfterAjaxSendHook(onAjaxSend);
+
+        var msg = {
+            disableResending: true
+        };
+
+        transport.asyncServiceMsg(msg)
+            .then(function () {
+                isMessageSent = true;
+            });
+
+        window.setTimeout(function () {
+            notOk(isMessageSent);
+            strictEqual(xhrCount, 1);
+
+            unregisterAfterAjaxSendHook();
+            start();
+        }, 100);
+    });
+}
+
 
 module('regression');
 

@@ -116,6 +116,9 @@ class Transport extends EventEmitter {
                 callback(this.responseText && parseJSON(this.responseText));
             };
             var errorHandler = function () {
+                if (msg.disableResending)
+                    return;
+
                 if (isWebKit) {
                     Transport._storeMessage(msg);
                     msgCallback.call(this);
