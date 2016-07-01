@@ -179,7 +179,7 @@ test('special pages (GH-339)', function () {
         destLocation.forceLocation(urlUtils.getProxyUrl(specialPageUrl));
 
         var windowMock = {
-            location: { }
+            location: {}
         };
 
         var locationWrapper = new LocationWrapper(windowMock);
@@ -225,3 +225,26 @@ if (!browserUtils.isFirefox) {
         document.body.appendChild(iframe);
     });
 }
+
+test('change hash for the iframe location', function () {
+    var proxyUrl   = urlUtils.getProxyUrl('http://domain.com/index.html', null, null, null, 'if');
+    var windowMock = {
+        location: {
+            toString: function () {
+                return proxyUrl;
+            }
+        },
+
+        top: {
+            document: document
+        },
+
+        document: {}
+    };
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    locationWrapper.href = 'http://domain.com/index.html#hash';
+
+    strictEqual(windowMock.location.href, proxyUrl + '#hash');
+});
