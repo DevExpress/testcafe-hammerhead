@@ -58,6 +58,16 @@ export default class UploadSandbox extends SandboxBase {
                 }
             }
         });
+
+        if (isIE) {
+            // NOTE: Prevent the browser's open file dialog.
+            this.listeners.addInternalEventListener(window, ['click'], (e, dispatched) => {
+                var input = e.target || e.srcElement;
+
+                if (isFileInput(input) && dispatched)
+                    preventDefault(e, true);
+            });
+        }
     }
 
     /*eslint-enable max-nested-callbacks */

@@ -38,7 +38,6 @@ export default class NodeSandbox extends SandboxBase {
         if (el[INTERNAL_PROPS.processedContext] !== this.window) {
             el[INTERNAL_PROPS.processedContext] = this.window;
             this.element.processElement(el);
-            this.eventSandbox.processElement(el);
         }
     }
 

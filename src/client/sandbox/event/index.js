@@ -6,8 +6,7 @@ import SandboxBase from '../base';
 import extend from '../../utils/extend';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
-import { isIE } from '../../utils/browser';
-import { preventDefault, DOM_EVENTS } from '../../utils/event';
+import { DOM_EVENTS } from '../../utils/event';
 
 export default class EventSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
@@ -104,9 +103,6 @@ export default class EventSandbox extends SandboxBase {
             click: function () {
                 Listeners.beforeDispatchEvent(this);
 
-                if (domUtils.isFileInput(this))
-                    eventSimulator.setClickedFileInput(this);
-
                 var res = eventSimulator.nativeClick(this, nativeMethods.click);
 
                 Listeners.afterDispatchEvent(this);
@@ -195,24 +191,6 @@ export default class EventSandbox extends SandboxBase {
         this.timers.attach(window);
         this.focusBlur.attach(window);
         this.hover.attach(window);
-    }
-
-    processElement (el) {
-        if (isIE && domUtils.isFileInput(el))
-            this._preventOpenFileDialog(el);
-    }
-
-    _preventOpenFileDialog (fileInput) {
-        // NOTE: Prevent the browser's open file dialog.
-        nativeMethods.addEventListener.call(fileInput, 'click', e => {
-            if (this.eventSimulator.getClickedFileInput() === fileInput) {
-                this.eventSimulator.setClickedFileInput(null);
-
-                return preventDefault(e, true);
-            }
-
-            return void 0;
-        }, true);
     }
 
     initDocumentListening () {

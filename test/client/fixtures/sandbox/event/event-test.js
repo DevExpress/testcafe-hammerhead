@@ -1,7 +1,6 @@
 var browserUtils   = hammerhead.utils.browser;
 var nativeMethods  = hammerhead.nativeMethods;
 var iframeSandbox  = hammerhead.sandbox.iframe;
-var eventSandbox   = hammerhead.sandbox.event;
 var listeners      = hammerhead.sandbox.event.listeners;
 var focusBlur      = hammerhead.sandbox.event.focusBlur;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
@@ -183,8 +182,6 @@ test('attachEvent, fireEvent, detachEvent must be overriden (T239606)', function
     if (attachEventExist || fireEventExist || detachEventExist)
         ok(nativeMethods.attachEvent && nativeMethods.fireEvent && nativeMethods.detachEvent);
     else {
-        eventSandbox.processElement(el);
-
         ok(!el.attachEvent);
         ok(!el.fireEvent);
         ok(!el.detachEvent);
