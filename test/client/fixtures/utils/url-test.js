@@ -82,6 +82,11 @@ test('formatUrl', function () {
     strictEqual(urlUtils.formatUrl(parsedUrl), 'http://test:test@localhost:1400/path');
 });
 
+test('isRelativeUrl', function () {
+    ok(!sharedUrlUtils.isRelativeUrl('http://example.com'));
+    ok(sharedUrlUtils.isRelativeUrl('/test.html'));
+});
+
 module('parse url');
 
 test('newline characters', function () {

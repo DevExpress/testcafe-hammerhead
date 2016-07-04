@@ -298,3 +298,9 @@ export function ensureTrailingSlash (srcUrl, processedUrl) {
 export function isSpecialPage (url) {
     return SPECIAL_PAGES.indexOf(url) !== -1;
 }
+
+export function isRelativeUrl (url) {
+    var parsedUrl = parseUrl(url);
+
+    return !parsedUrl.host;
+}

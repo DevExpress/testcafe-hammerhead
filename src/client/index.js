@@ -15,6 +15,7 @@ import * as typeUtils from './utils/types';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
+import { isRelativeUrl, parseProxyUrl } from '../utils/url';
 import { getProxyUrl } from './utils/url';
 import { processScript } from '../processing/script';
 import { SCRIPT_PROCESSING_START_COMMENT, SCRIPT_PROCESSING_END_HEADER_COMMENT, SCRIPT_PROCESSING_END_COMMENT } from '../processing/script/header';
@@ -153,9 +154,26 @@ class Hammerhead {
     }
 
     navigateTo (url) {
+        // NOTE: For the 'about:blank' page, we perform url proxing only for the top window, 'location' object and links.
+        // For images and iframes, we keep urls as they were.
+        // See details in https://github.com/DevExpress/testcafe-hammerhead/issues/339
+        var destLocation    = null;
+        var isIframe        = this.win.top !== this.win;
+        var winLocation     = this.win.location.toString();
+
+        if (isIframe)
+            destLocation = winLocation;
+        else {
+            var parsedProxyUrl = parseProxyUrl(winLocation);
+
+            destLocation = parsedProxyUrl && parsedProxyUrl.destUrl;
+        }
+
+        if (destLocation === 'about:blank' && isRelativeUrl(url))
+            return;
+
         this.win.location = getProxyUrl(url);
     }
-
 
     start (initSettings, win) {
         this.win = win || window;
