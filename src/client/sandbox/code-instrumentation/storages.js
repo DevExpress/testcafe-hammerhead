@@ -11,13 +11,18 @@ export default class StoragesAccessorsInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        window[INSTRUCTION.getStorage] = storage => {
-            if (storage === this.window.sessionStorage)
-                return this.storageSandbox.sessionStorage;
-            else if (storage === this.window.localStorage)
-                return this.storageSandbox.localStorage;
+        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
+        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
+        Object.defineProperty(window, INSTRUCTION.getStorage, {
+            value: storage => {
+                if (storage === this.window.sessionStorage)
+                    return this.storageSandbox.sessionStorage;
+                else if (storage === this.window.localStorage)
+                    return this.storageSandbox.localStorage;
 
-            return storage;
-        };
+                return storage;
+            },
+            configurable: true
+        });
     }
 }

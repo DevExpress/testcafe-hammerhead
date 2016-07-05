@@ -27,19 +27,31 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
 
         var locationWrapper = new LocationWrapper(window);
 
-        window[LOCATION_WRAPPER]          = locationWrapper;
-        window.document[LOCATION_WRAPPER] = locationWrapper;
+        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
+        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
+        Object.defineProperty(window, LOCATION_WRAPPER, {
+            value:        locationWrapper,
+            configurable: true
+        });
+        Object.defineProperty(window.document, LOCATION_WRAPPER, {
+            value:        locationWrapper,
+            configurable: true
+        });
+        Object.defineProperty(window, INSTRUCTION.getLocation, {
+            value:        location => isLocation(location) ? locationWrapper : location,
+            configurable: true
+        });
+        Object.defineProperty(window, INSTRUCTION.setLocation, {
+            value: (location, value) => {
+                if (isLocation(location)) {
+                    location = value;
 
-        window[INSTRUCTION.getLocation] = location => isLocation(location) ? locationWrapper : location;
+                    return location;
+                }
 
-        window[INSTRUCTION.setLocation] = (location, value) => {
-            if (isLocation(location)) {
-                location = value;
-
-                return location;
-            }
-
-            return null;
-        };
+                return null;
+            },
+            configurable: true
+        });
     }
 }

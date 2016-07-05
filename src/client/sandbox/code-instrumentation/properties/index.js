@@ -717,29 +717,37 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
         var accessors = this._createPropertyAccessors(window, window.document);
 
-        window[INSTRUCTION.getProperty] = (owner, propName) => {
-            if (typeUtils.isNullOrUndefined(owner))
-                PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
+        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
+        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
+        Object.defineProperty(window, INSTRUCTION.getProperty, {
+            value: (owner, propName) => {
+                if (typeUtils.isNullOrUndefined(owner))
+                    PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-            if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
-                accessors[propName].condition(owner))
-                return accessors[propName].get(owner);
+                if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
+                    accessors[propName].condition(owner))
+                    return accessors[propName].get(owner);
 
-            return owner[propName];
-        };
+                return owner[propName];
+            },
+            configurable: true
+        });
 
-        window[INSTRUCTION.setProperty] = (owner, propName, value) => {
-            if (typeUtils.isNullOrUndefined(owner))
-                PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
+        Object.defineProperty(window, INSTRUCTION.setProperty, {
+            value: (owner, propName, value) => {
+                if (typeUtils.isNullOrUndefined(owner))
+                    PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-            if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
-                accessors[propName].condition(owner))
-                return accessors[propName].set(owner, value);
+                if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
+                    accessors[propName].condition(owner))
+                    return accessors[propName].set(owner, value);
 
-            /* eslint-disable no-return-assign */
-            return owner[propName] = value;
-            /* eslint-enable no-return-assign */
-        };
+                /* eslint-disable no-return-assign */
+                return owner[propName] = value;
+                /* eslint-enable no-return-assign */
+            },
+            configurable: true
+        });
 
         return accessors;
     }

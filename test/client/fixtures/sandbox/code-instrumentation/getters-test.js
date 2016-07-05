@@ -237,19 +237,17 @@ test('clean up outerHTML', function () {
     var htmlText = '<a href="http://domain.com/">link</a>';
     var div      = document.createElement('div');
 
-    eval(processScript('div.innerHTML = htmlText', true));
+    setProperty(div, 'innerHTML', htmlText);
 
     var a = div.firstChild;
 
     strictEqual(a.outerHTML, processHtml(htmlText));
-    strictEqual(eval(processScript('a.outerHTML', true)), htmlText);
+    strictEqual(getProperty(a, 'outerHTML'), htmlText);
 
     if (browserUtils.isIE) {
-        /* eslint-disable no-unused-vars */
         var doc = document.implementation.createDocument(null, 'status', null);
-        /* eslint-enable no-unused-vars */
 
-        strictEqual(eval(processScript('doc.documentElement.outerHTML')), void 0);
+        strictEqual(getProperty(doc.documentElement, 'outerHTML'), void 0);
     }
 });
 
@@ -276,17 +274,17 @@ test('get script body (T296958) (GH-183)', function () {
     var processedScriptCode = processScript(scriptCode, true);
     var cleanedScriptCode   = removeProcessingHeader(processedScriptCode);
 
-    eval(processScript('script.textContent="' + scriptCode + '"', true));
+    setProperty(script, 'textContent', scriptCode);
 
     notEqual(script.textContent, scriptCode);
     strictEqual(script.textContent.replace(/\s/g, ''), processedScriptCode.replace(/\s/g, ''));
     strictEqual(cleanedScriptCode.indexOf(INTERNAL_PROPS.processDomMethodName), -1);
-    strictEqual(eval(processScript('script.text', true)), cleanedScriptCode);
-    strictEqual(eval(processScript('script.textContent', true)), cleanedScriptCode);
-    strictEqual(eval(processScript('script.innerHTML', true)), cleanedScriptCode);
+    strictEqual(getProperty(script, 'text'), cleanedScriptCode);
+    strictEqual(getProperty(script, 'textContent'), cleanedScriptCode);
+    strictEqual(getProperty(script, 'innerHTML'), cleanedScriptCode);
 
     if (typeof script.innerText === 'string')
-        strictEqual(eval(processScript('script.innerText', true)).replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
+        strictEqual(getProperty(script, 'innerText').replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
 });
 
 test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {

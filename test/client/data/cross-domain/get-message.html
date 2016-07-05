@@ -9,17 +9,25 @@
 </head>
 <body>
 <script type="text/javascript">
-    var hammerhead = window['%hammerhead%'];
-    var processScript = hammerhead.get('../processing/script').processScript;
+    var hammerhead  = window['%hammerhead%'];
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
+    var INSTRUCTION = hammerhead.get('../processing/script/instruction');
+    var getProperty = window[INSTRUCTION.getProperty];
+    var setProperty = window[INSTRUCTION.setProperty];
+    var callMethod  = window[INSTRUCTION.callMethod];
+
     var onMessageHandler = function (evt) {
-        eval(processScript("top.postMessage({ msg: evt.origin + (evt.data ? ' failed' : '') }, '*');", true));
+        var data = {
+            msg: getProperty(evt,"origin")+( getProperty(evt,"data") ? ' failed' : '')
+        };
+
+        callMethod(top, 'postMessage', [data, '*']);
     };
 
-    eval(processScript("window.onmessage = onMessageHandler;", true));
+    setProperty(window, 'onmessage', onMessageHandler);
 </script>
 </body>
 </html>

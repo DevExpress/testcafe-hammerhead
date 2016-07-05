@@ -12,7 +12,8 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var processScript = hammerhead.get('../processing/script').processScript;
+    var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
+    var callMethod     = window[INSTRUCTION.callMethod];
     var messageSandbox = hammerhead.sandbox.event.message;
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -26,7 +27,7 @@
         });
 
         window.setTimeout(function () {
-            eval(processScript("top.postMessage('ready');", true));
+            callMethod(top, 'postMessage', ['ready']);
         }, 300);
     });
 </script>

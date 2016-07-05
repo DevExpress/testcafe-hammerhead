@@ -1,4 +1,3 @@
-var processScript = hammerhead.get('../processing/script').processScript;
 var settings      = hammerhead.get('./settings');
 
 var Promise        = hammerhead.Promise;
@@ -28,7 +27,7 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
     };
 
     window.addEventListener('message', eventHandlerObject);
-    eval(processScript('window.postMessage(testMessage, "*");', true));
+    callMethod(window, 'postMessage', [testMessage, '*']);
 });
 
 asyncTest('onmessage event', function () {
@@ -60,9 +59,9 @@ asyncTest('onmessage event', function () {
     iframe.setAttribute('src', src);
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
-            eval(processScript('window.onmessage = onMessageHandler;', true));
+            setProperty(window, 'onmessage', onMessageHandler);
             window.addEventListener('message', onMessageHandler);
-            eval(processScript('iframe.contentWindow.postMessage(\'\', \'*\')', true));
+            callMethod(iframe.contentWindow, 'postMessage', ['', '*']);
         });
     document.body.appendChild(iframe);
 });
@@ -90,7 +89,7 @@ asyncTest('cross-domain post messages between different windows', function () {
         checkResult();
     };
 
-    eval(processScript('window.onmessage = onMessageHandler;', true));
+    setProperty(window, 'onmessage', onMessageHandler);
 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
@@ -99,7 +98,6 @@ asyncTest('cross-domain post messages between different windows', function () {
 asyncTest('message types', function () {
     var checkValue = function (value, test) {
         return new Promise(function (resove) {
-            /* eslint-disable no-unused-vars*/
             var onMessageHandler = function (e) {
                 if (test)
                     ok(test(e.data));
@@ -109,10 +107,8 @@ asyncTest('message types', function () {
                 resove();
             };
 
-            /* eslint-enable no-unused-vars*/
-
-            eval(processScript('window.onmessage = onMessageHandler;', true));
-            eval(processScript('window.postMessage(value, "*");', true));
+            setProperty(window, 'onmessage', onMessageHandler);
+            callMethod(window, 'postMessage', [value, '*']);
         });
     };
 
@@ -235,7 +231,7 @@ asyncTest('service message handler should not call other handlers', function () 
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
-            eval(processScript('window.onmessage = windowMessageHandler;', true));
+            setProperty(window, 'onmessage', windowMessageHandler);
             window.addEventListener('message', windowMessageHandler);
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);

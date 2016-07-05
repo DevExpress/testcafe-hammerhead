@@ -34,38 +34,46 @@ export default class CodeInstrumentation extends SandboxBase {
         this.storagesAccessorsInstrumentation.attach(window);
         this.elementPropertyAccessors = this.propertyAccessorsInstrumentation.attach(window);
 
+        // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
+        // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         // NOTE: GH-260
-        window[INSTRUCTION.getEval] = evalFn => {
-            if (evalFn !== window.eval)
-                return evalFn;
+        Object.defineProperty(window, INSTRUCTION.getEval, {
+            value: evalFn => {
+                if (evalFn !== window.eval)
+                    return evalFn;
 
-            return script => {
-                if (typeof script === 'string')
-                    script = processScript(script);
+                return script => {
+                    if (typeof script === 'string')
+                        script = processScript(script);
 
-                return evalFn(script);
-            };
-        };
+                    return evalFn(script);
+                };
+            },
+            configurable: true
+        });
 
-        window[INSTRUCTION.processScript] = (script, isApply) => {
-            if (isApply) {
-                if (script && script.length && typeof script[0] === 'string') {
-                    var args = [processScript(script[0], false, false)];
+        Object.defineProperty(window, INSTRUCTION.processScript, {
+            value: (script, isApply) => {
+                if (isApply) {
+                    if (script && script.length && typeof script[0] === 'string') {
+                        var args = [processScript(script[0], false, false)];
 
-                    // NOTE: shallow-copy the remaining args. Don't use arr.slice(),
-                    // since it may leak the arguments object.
-                    // See: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments
-                    for (var i = 1; i < script.length; i++)
-                        args.push(script[i]);
+                        // NOTE: shallow-copy the remaining args. Don't use arr.slice(),
+                        // since it may leak the arguments object.
+                        // See: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments
+                        for (var i = 1; i < script.length; i++)
+                            args.push(script[i]);
 
-                    return args;
+                        return args;
+                    }
                 }
-            }
-            else if (typeof script === 'string')
-                return processScript(script, false, false);
+                else if (typeof script === 'string')
+                    return processScript(script, false, false);
 
-            return script;
-        };
+                return script;
+            },
+            configurable: true
+        });
     }
 }
 

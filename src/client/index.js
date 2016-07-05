@@ -192,10 +192,7 @@ class Hammerhead {
 var hammerhead = new Hammerhead();
 
 Object.defineProperty(window, '%hammerhead%', {
-    enumerable:   false,
-    configurable: false,
-    writable:     false,
-    value:        hammerhead
+    value: hammerhead
 });
 
 export default hammerhead;
