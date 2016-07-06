@@ -484,3 +484,28 @@ test('the client code gets access to the Hammerhead script (GH-479)', function (
     strictEqual(div.childNodes.length, 1);
     strictEqual(div.childNodes[0].id, 'test');
 });
+
+asyncTest("location assignment doesn't work (GH-640)", function () {
+    var iframe       = document.createElement('iframe');
+    var iframeSrc    = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
+    var iframeNewSrc = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var handler = function () {
+        iframe.removeEventListener('load', handler);
+        iframe.addEventListener('load', function () {
+            var parsedProxyUrl = urlUtils.parseProxyUrl(iframe.contentWindow.location);
+
+            strictEqual(parsedProxyUrl.resourceType, 'i');
+            strictEqual(parsedProxyUrl.destResourceInfo.partAfterHost, iframeNewSrc);
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
+        iframe.contentWindow.eval.call(iframe.contentWindow, processScript('location = "' + iframeNewSrc + '";'));
+    };
+
+    iframe.id  = 'test_unique_id_7iz9fi3td';
+    iframe.src = iframeSrc;
+    iframe.addEventListener('load', handler);
+    document.body.appendChild(iframe);
+});

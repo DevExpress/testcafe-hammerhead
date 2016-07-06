@@ -33,14 +33,16 @@ export function parseResourceType (resourceType) {
     };
 }
 
-export function stringifyResourceType (isIframe, isForm, isScript) {
-    if (!isIframe && !isForm && !isScript)
+export function getResourceTypeString (resourceType) {
+    resourceType = resourceType || {};
+
+    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript)
         return null;
 
     return [
-        isIframe ? 'i' : '',
-        isForm ? 'f' : '',
-        isScript ? 's' : ''
+        resourceType.isIframe ? 'i' : '',
+        resourceType.isForm ? 'f' : '',
+        resourceType.isScript ? 's' : ''
     ].join('');
 }
 

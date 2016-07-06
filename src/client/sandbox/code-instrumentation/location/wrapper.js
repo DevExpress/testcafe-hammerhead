@@ -1,7 +1,7 @@
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
 import { getProxyUrl, changeDestUrlPart, parseProxyUrl, parseResourceType } from '../../../utils/url';
-import { getDomain, stringifyResourceType } from '../../../../utils/url';
+import { getDomain, getResourceTypeString } from '../../../../utils/url';
 
 export default class LocationWrapper {
     constructor (window) {
@@ -24,7 +24,7 @@ export default class LocationWrapper {
         }
         /*eslint-enable no-empty */
 
-        var resourceType   = stringifyResourceType(isIframe, isForm);
+        var resourceType   = getResourceTypeString({ isIframe: isIframe, isForm: isForm });
         var getHref        = () => {
             if (window !== window.top && window.location.href === 'about:blank')
                 return 'about:blank';

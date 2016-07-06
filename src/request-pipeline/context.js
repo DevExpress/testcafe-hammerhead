@@ -170,7 +170,11 @@ export default class RequestPipelineContext {
         var isIframeWithImageSrc = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
         var charset             = null;
-        var contentTypeUrlToken = urlUtils.stringifyResourceType(this.isIframe, isForm, isScript);
+        var contentTypeUrlToken = urlUtils.getResourceTypeString({
+            isIframe: this.isIframe,
+            isForm:   isForm,
+            isScript: isScript
+        });
 
         // NOTE: We need charset information if we are going to process the resource.
         if (requireProcessing) {
