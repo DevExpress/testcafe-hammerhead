@@ -62,12 +62,13 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookie.secure && destProtocol !== 'https:')
             return false;
 
-        // NOTE: Add a protocol portion to the domain, so that we can use urlUtils for the same origin check.
-        var domain = parsedCookie.domain && 'http://' + parsedCookie.domain;
 
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
-        // according to a test url.
-        return !domain || destLocation.sameOriginCheck(document.location.toString(), domain);
+        // according to a destination url.
+        if (parsedCookie.domain && !cookieUtils.checkDomain(document, parsedCookie.domain))
+            return false;
+
+        return true;
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {

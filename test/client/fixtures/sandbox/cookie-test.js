@@ -1,6 +1,7 @@
-var cookieUtils = hammerhead.get('./utils/cookie');
-var settings    = hammerhead.get('./settings');
-var urlUtils    = hammerhead.get('./utils/url');
+var cookieUtils  = hammerhead.get('./utils/cookie');
+var settings     = hammerhead.get('./settings');
+var urlUtils     = hammerhead.get('./utils/url');
+var destLocation = hammerhead.get('./utils/destination-location');
 
 var Promise       = hammerhead.Promise;
 var transport     = hammerhead.transport;
@@ -58,12 +59,13 @@ test('get/set', function () {
     var cookieStrs = [
         'Test1=Basic; expires=Wed, 13-Jan-2021 22:23:01 GMT',
         'Test2=PathMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
-        'Test4=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.' + document.location.host.toString(),
+        'Test4=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.' + destLocation.getParsed().hostname,
         'Test5=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.cbf4e2d79.com',
         'Test6=HttpOnly; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; HttpOnly',
         'Test7=Secure; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; Secure',
         'Test8=Expired; expires=Wed, 13-Jan-1977 22:23:01 GMT; path=/',
-        'Test9=Duplicate; One=More; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/'
+        'Test9=Duplicate; One=More; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
+        'Test10=PublicSuffixDomain; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.com'
     ];
 
     for (var i = 0; i < cookieStrs.length; i++)
