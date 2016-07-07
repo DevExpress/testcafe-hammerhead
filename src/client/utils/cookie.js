@@ -1,8 +1,14 @@
+import LocationAccessorsInstrumentation from '../sandbox/code-instrumentation/location';
+import publicSuffixList from './public-suffix-list';
 import trim from '../../utils/string-trim';
 
 // NOTE: The name/key cannot be empty, but the value can.
 const COOKIE_PAIR_REGEX        = /^([^=;]+)\s*=\s*(("?)[^\n\r\0]*\3)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;
+
+function prepareDomain (domain) {
+    return domain.trim().replace(/^\./, '').toLowerCase();
+}
 
 export function parse (str) {
     str = trim(str);
@@ -120,4 +126,24 @@ export function del (document, parsedCookie) {
     parsedCookie.value   = '';
 
     document.cookie = format(parsedCookie);
+}
+
+export function checkDomain (document, domain) {
+    domain = prepareDomain(domain);
+
+    if (publicSuffixList[domain])
+        return false;
+
+    var locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(document);
+    var hostname        = prepareDomain(locationWrapper.hostname);
+
+    if (domain === hostname)
+        return true;
+
+    var index = hostname.indexOf(domain);
+
+    if (index === -1 || hostname.length !== domain.length + index || hostname.substr(index - 1, 1) !== '.')
+        return false;
+
+    return true;
 }
