@@ -520,7 +520,7 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLFormElement.prototype.submit            = this.overridedMethods.formSubmit;
     }
 
-    _setNonProxedSrcOnError (img) {
+    _setProxiedSrcUrlOnError (img) {
         img.addEventListener('error', e => {
             var storedAttr = nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src'));
 
@@ -534,7 +534,7 @@ export default class ElementSandbox extends SandboxBase {
 
     processElement (el) {
         if (domUtils.isImgElement(el))
-            this._setNonProxedSrcOnError(el);
+            this._setProxiedSrcUrlOnError(el);
         else if (domUtils.isIframeElement(el))
             this.iframeSandbox.processIframe(el);
         else if (domUtils.isBaseElement(el))
