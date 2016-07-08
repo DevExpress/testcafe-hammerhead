@@ -1,12 +1,9 @@
 var nativeMethods = hammerhead.nativeMethods;
 
-test('performanceNow', function () {
-    if (!nativeMethods.performanceNow) {
-        expect(0);
-        return;
-    }
+if (nativeMethods.performanceNow) {
+    test('performanceNow', function () {
+        var now = nativeMethods.performanceNow();
 
-    var now = nativeMethods.performanceNow();
-
-    ok(!isNaN(parseFloat(now)));
-});
+        ok(!isNaN(parseFloat(now)));
+    });
+}
