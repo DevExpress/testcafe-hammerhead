@@ -43,6 +43,7 @@ export const PROPERTIES = [
     'onbeforeunload',
     'onpagehide',
     'onerror',
+    'onload',
     'onmessage',
     'origin',
     'outerHTML',

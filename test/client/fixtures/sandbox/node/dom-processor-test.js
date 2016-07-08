@@ -374,6 +374,152 @@ test('special pages (GH-339)', function () {
     });
 });
 
+module('should create a proxy url for the img src attribute if the image has the load handler (GH-651)', function () {
+    module('onload property', function () {
+        asyncTest('attach the load handler before setting up the src', function () {
+            var img         = document.createElement('img');
+            var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+            var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+
+            document.body.appendChild(img);
+
+            setProperty(img, 'onload', function () {
+                strictEqual(img.src, imgProxyUrl);
+
+                setProperty(img, 'onload', null);
+                img.setAttribute('src', imgUrl);
+
+                strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+
+                img.parentNode.removeChild(img);
+                start();
+            });
+
+            img.setAttribute('src', imgUrl);
+        });
+
+        asyncTest('attach the load handler after setting up the src', function () {
+            var img         = document.createElement('img');
+            var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+            var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+
+            document.body.appendChild(img);
+
+            img.setAttribute('src', imgUrl);
+
+            setProperty(img, 'onload', function () {
+                strictEqual(img.src, imgProxyUrl);
+
+                setProperty(img, 'onload', null);
+                img.setAttribute('src', imgUrl);
+
+                strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+
+                img.parentNode.removeChild(img);
+
+                start();
+            });
+        });
+    });
+
+    module('addEventListener', function () {
+        asyncTest('attach the load handler before setting up the src', function () {
+            var img         = document.createElement('img');
+            var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+            var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+
+            document.body.appendChild(img);
+
+            var testLoadHandler = function () {
+                strictEqual(img.src, imgProxyUrl);
+
+                img.removeEventListener('load', testLoadHandler);
+                img.setAttribute('src', imgUrl);
+
+                strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+
+                img.parentNode.removeChild(img);
+                start();
+            };
+
+            img.addEventListener('load', testLoadHandler);
+            img.setAttribute('src', imgUrl);
+        });
+
+        asyncTest('attach the load handler after setting up the src', function () {
+            var img         = document.createElement('img');
+            var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+            var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+
+            document.body.appendChild(img);
+
+            var testLoadHandler = function () {
+                strictEqual(img.src, imgProxyUrl);
+
+                img.removeEventListener('load', testLoadHandler);
+                img.setAttribute('src', imgUrl);
+
+                strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+
+                img.parentNode.removeChild(img);
+                start();
+            };
+
+            img.setAttribute('src', imgUrl);
+            img.addEventListener('load', testLoadHandler);
+        });
+    });
+
+    if (window.attachEvent) {
+        module('attachEvent', function () {
+            asyncTest('attach the load handler before setting up the src', function () {
+                var img         = document.createElement('img');
+                var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+                var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+
+                document.body.appendChild(img);
+
+                var testHandler = function () {
+                    strictEqual(img.src, imgProxyUrl);
+
+                    img.detachEvent('onload', testHandler);
+                    img.setAttribute('src', imgUrl);
+
+                    strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+
+                    img.parentNode.removeChild(img);
+                    start();
+                };
+
+                img.attachEvent('onload', testHandler);
+                img.setAttribute('src', imgUrl);
+            });
+
+            asyncTest('attach the load handler after setting up the src', function () {
+                var img         = document.createElement('img');
+                var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+                var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+
+                document.body.appendChild(img);
+
+                var testHandler = function () {
+                    strictEqual(img.src, imgProxyUrl);
+
+                    img.detachEvent('onload', testHandler);
+                    img.setAttribute('src', imgUrl);
+
+                    strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+                    img.parentNode.removeChild(img);
+                    start();
+                };
+
+                img.setAttribute('src', imgUrl);
+                img.attachEvent('onload', testHandler);
+            });
+        });
+    }
+});
+
 module('regression');
 
 test('remove the "integrity" attribute from the link and script tags (GH-235)', function () {

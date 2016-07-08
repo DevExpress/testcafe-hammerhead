@@ -7,6 +7,7 @@ import SandboxBase from '../../base';
 import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
 import XhrSandbox from '../../xhr';
+import ElementSandbox from '../../node/element';
 import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
@@ -408,6 +409,30 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'manifest'),
                 set: (el, value) => el.setAttribute('manifest', value)
+            },
+
+            // NOTE: Cookie can be set up for the page by using the request initiated by img.
+            // For example: img.src = '<url that responds with the Set-Cookie header>'
+            // If img has the 'load' event handler, we redirect the request through proxy.
+            // For details, see https://github.com/DevExpress/testcafe-hammerhead/issues/651
+            onload: {
+                condition: el => domUtils.isDomElement(el) && domUtils.isImgElement(el),
+
+                get: el => el.onload,
+                set: (el, handler) => {
+                    if (typeof handler === 'function') {
+                        ElementSandbox.setHasLoadHandlerFlag(el);
+
+                        if (el.src)
+                            el.src = urlUtils.getProxyUrl(el.src);
+                    }
+                    else
+                        ElementSandbox.removeHasLoadHandlerFlag(el);
+
+                    el.onload = handler;
+
+                    return el.onload;
+                }
             },
 
             origin: {

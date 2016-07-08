@@ -21,6 +21,7 @@ export default class Listeners extends EventEmitter {
         super();
 
         this.EVENT_LISTENER_ATTACHED_EVENT = 'hammerhead|event|event-listener-attached';
+        this.EVENT_LISTENER_DETACHED_EVENT = 'hammerhead|event|event-listener-detached';
 
         this.listeningCtx = listeningCtx;
 
@@ -151,12 +152,7 @@ export default class Listeners extends EventEmitter {
 
                 var res = nativeAddEventListener.apply(el, args);
 
-                listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, {
-                    el,
-                    listener,
-
-                    eventType: type
-                });
+                listeners.emit(listeners.EVENT_LISTENER_ATTACHED_EVENT, { el, listener, eventType: type });
 
                 return res;
             },
@@ -173,7 +169,11 @@ export default class Listeners extends EventEmitter {
 
                 args[1] = listeningCtx.getWrapper(eventCtx, listener, useCapture);
 
-                return nativeRemoveEventListener.apply(el, args);
+                var res = nativeRemoveEventListener.apply(el, args);
+
+                listeners.emit(listeners.EVENT_LISTENER_DETACHED_EVENT, { el, listener, eventType: type });
+
+                return res;
             }
         };
     }
