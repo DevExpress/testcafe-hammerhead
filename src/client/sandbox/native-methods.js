@@ -122,7 +122,8 @@ class NativeMethods {
             var nativePerformance    = win.performance;
             var nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
 
-            this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
+            if (nativePerformanceNow)
+                this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
         }
 
         // Fetch
