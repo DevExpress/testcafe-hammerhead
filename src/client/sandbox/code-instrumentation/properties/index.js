@@ -24,7 +24,6 @@ import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
 import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-detection';
-import { getPendingElementContent } from '../../../sandbox/node/document/writer';
 
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
@@ -202,11 +201,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => {
                     if (domUtils.isScriptElement(el))
-                        return getPendingElementContent(el) || removeProcessingHeader(el.innerHTML);
-                    else if (domUtils.isStyleElement(el)) {
-                        return getPendingElementContent(el) ||
-                               styleProcessor.cleanUp(el.innerHTML, urlUtils.parseProxyUrl);
-                    }
+                        return removeProcessingHeader(el.innerHTML);
+                    else if (domUtils.isStyleElement(el))
+                        return styleProcessor.cleanUp(el.innerHTML, urlUtils.parseProxyUrl);
 
                     return cleanUpHtml(el.innerHTML, el.tagName);
                 },
@@ -263,9 +260,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => {
                     if (domUtils.isScriptElement(el))
-                        return getPendingElementContent(el) || removeProcessingHeader(el.innerText);
+                        return removeProcessingHeader(el.innerText);
 
-                    return getPendingElementContent(el) || styleProcessor.cleanUp(el.innerText, urlUtils.parseProxyUrl);
+                    return styleProcessor.cleanUp(el.innerText, urlUtils.parseProxyUrl);
                 },
 
                 set: (el, text) => {
@@ -493,9 +490,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => {
                     if (domUtils.isScriptElement(el))
-                        return getPendingElementContent(el) || removeProcessingHeader(el.text);
+                        return removeProcessingHeader(el.text);
 
-                    return getPendingElementContent(el) || styleProcessor.cleanUp(el.text, urlUtils.parseProxyUrl);
+                    return styleProcessor.cleanUp(el.text, urlUtils.parseProxyUrl);
                 },
 
                 set: (el, text) => {
@@ -517,10 +514,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => {
                     if (domUtils.isScriptElement(el))
-                        return getPendingElementContent(el) || removeProcessingHeader(el.textContent);
+                        return removeProcessingHeader(el.textContent);
 
-                    return getPendingElementContent(el) ||
-                           styleProcessor.cleanUp(el.textContent, urlUtils.parseProxyUrl);
+                    return styleProcessor.cleanUp(el.textContent, urlUtils.parseProxyUrl);
                 },
 
                 set: (el, text) => {

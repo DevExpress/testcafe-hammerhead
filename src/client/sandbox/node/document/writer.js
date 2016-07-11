@@ -1,24 +1,26 @@
 import nativeMethods from '../../native-methods';
 import * as htmlUtils from '../../../utils/html';
 import { getTagName, isCommentNode, isStyleElement, isScriptElement } from '../../../utils/dom';
-import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import { isFirefox, isIE } from '../../../utils/browser';
 import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
+import { processScript } from '../../../../processing/script';
+import styleProcessor from '../../../../processing/style';
+import { getProxyUrl } from '../../../utils/url';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 var arrayJoin = Array.prototype.join;
 
-const BEGIN_MARKER_TAG_NAME = 'hammerhead_write_marker_begin';
-const END_MARKER_TAG_NAME   = 'hammerhead_write_marker_end';
-const BEGIN_MARKER_MARKUP   = `<${ BEGIN_MARKER_TAG_NAME }></${ BEGIN_MARKER_TAG_NAME }>`;
-const END_MARKER_MARKUP     = `<${ END_MARKER_TAG_NAME }></${ END_MARKER_TAG_NAME }>`;
-const BEGIN_REMOVE_RE       = new RegExp(`^[\\S\\s]*${ BEGIN_MARKER_MARKUP }`, 'g');
-const END_REMOVE_RE         = new RegExp(`${ END_MARKER_MARKUP }[\\S\\s]*$`, 'g');
-const REMOVE_OPENING_TAG    = /^<[^>]+>/g;
-const REMOVE_CLOSING_TAG    = /<\/[^>]+>$/g;
-const PENDING_RE            = /<[A-Za-z][^>]*$/g;
-const STORED_WRITE_INFO     = 'hammerhead|stored-write-info';
+const BEGIN_MARKER_TAG_NAME  = 'hammerhead_write_marker_begin';
+const END_MARKER_TAG_NAME    = 'hammerhead_write_marker_end';
+const BEGIN_MARKER_MARKUP    = `<${ BEGIN_MARKER_TAG_NAME }></${ BEGIN_MARKER_TAG_NAME }>`;
+const END_MARKER_MARKUP      = `<${ END_MARKER_TAG_NAME }></${ END_MARKER_TAG_NAME }>`;
+const BEGIN_REMOVE_RE        = new RegExp(`^[\\S\\s]*${ BEGIN_MARKER_MARKUP }`, 'g');
+const END_REMOVE_RE          = new RegExp(`${ END_MARKER_MARKUP }[\\S\\s]*$`, 'g');
+const REMOVE_OPENING_TAG     = /^<[^>]+>/g;
+const REMOVE_CLOSING_TAG     = /<\/[^>]+>$/g;
+const PENDING_RE             = /<[A-Za-z][^>]*$/g;
+const IS_NOT_CLOSED_PROPERTY = 'hammerhead|is-not-closed-element';
 
 const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.script }" type="text/javascript">
@@ -51,12 +53,13 @@ export default class DocumentWriter {
         this.document             = document;
         this.pending              = '';
         this.parentTagChain       = [];
-        this.storedContent        = '';
-        this.needRemoveClosingTag = false;
-        this.needRemoveOpeningTag = false;
+        this.isBeginMarkerInDOM   = false;
+        this.isEndMarkerInDOM     = false;
         this.isClosingContentEl   = false;
-        this.needNewLine          = '';
         this.isNonClosedComment   = false;
+        this.isAddContentToEl     = false;
+        this.contentForProcessing = '';
+        this.nonClosedEl          = null;
     }
 
     _cutPending (htmlChunk) {
@@ -91,19 +94,25 @@ export default class DocumentWriter {
             .replace(BEGIN_REMOVE_RE, '')
             .replace(END_REMOVE_RE, '');
 
-        if (this.needRemoveOpeningTag)
+        if (!this.isBeginMarkerInDOM)
             htmlChunk = this.isNonClosedComment ? htmlChunk.slice(4) : htmlChunk.replace(REMOVE_OPENING_TAG, '');
 
-        if (this.needRemoveClosingTag)
+        if (!this.isEndMarkerInDOM)
             htmlChunk = this.isNonClosedComment ? htmlChunk.slice(0, -3) : htmlChunk.replace(REMOVE_CLOSING_TAG, '');
 
-        if (this.needRemoveOpeningTag && !this.needRemoveClosingTag)
+        if (!this.isBeginMarkerInDOM && this.isEndMarkerInDOM)
             this.isNonClosedComment = false;
 
-        this.needRemoveClosingTag = false;
-        this.needRemoveOpeningTag = false;
-
         return htmlChunk;
+    }
+
+    static _setIsNotClosedFlag (el) {
+        if (isScriptElement(el) || isStyleElement(el))
+            el[IS_NOT_CLOSED_PROPERTY] = true;
+    }
+
+    static hasIsNotClosedFlag (el) {
+        return !!el[IS_NOT_CLOSED_PROPERTY];
     }
 
     static _searchBeginMarker (container) {
@@ -163,20 +172,17 @@ export default class DocumentWriter {
     _processBeginMarkerInContent (beginMarker) {
         var elWithContent = beginMarker;
 
-        if (!this.isNonClosedComment) {
-            if (isScriptElement(elWithContent) || isStyleElement(elWithContent)) {
-                elWithContent.textContent = this.storedContent + elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
-                this.storedContent        = '';
-            }
-            else
-                elWithContent.textContent = elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
+        DocumentWriter._setIsNotClosedFlag(elWithContent);
+
+        if (this.isClosingContentEl && (isScriptElement(elWithContent) || isStyleElement(elWithContent))) {
+            this.contentForProcessing = this.nonClosedEl.textContent +
+                                        elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
+            elWithContent.textContent = '';
         }
         else
             elWithContent.textContent = elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
 
-        beginMarker               = nativeMethods.createElement.call(document, BEGIN_MARKER_TAG_NAME);
-        this.needRemoveOpeningTag = true;
-        this.isClosingContentEl   = true;
+        beginMarker = nativeMethods.createElement.call(document, BEGIN_MARKER_TAG_NAME);
 
         nativeMethods.insertBefore.call(elWithContent.parentNode, beginMarker, elWithContent);
     }
@@ -184,26 +190,16 @@ export default class DocumentWriter {
     _processEndMarkerInContent (endMarker) {
         var elWithContent = endMarker;
 
-        if (!this.isNonClosedComment) {
-            if (isScriptElement(elWithContent) || isStyleElement(elWithContent)) {
-                this.storedContent += elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending +
-                                      (this.needNewLine ? '\n' : '');
-                elWithContent.textContent = '';
-            }
-            else
-                elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending;
-        }
-        else
-            elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending;
+        DocumentWriter._setIsNotClosedFlag(elWithContent);
 
+        elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending;
         endMarker                 = nativeMethods.createElement.call(document, END_MARKER_TAG_NAME);
-        this.needRemoveClosingTag = true;
         this.pending              = '';
 
         nativeMethods.appendChild.call(elWithContent.parentNode, endMarker);
     }
 
-    _addOnDocumentRecreationScript (endMarker) {
+    static _addOnDocumentRecreationScript (endMarker) {
         var span = nativeMethods.createElement.call(endMarker.ownerDocument, 'span');
 
         nativeMethods.insertBefore.call(endMarker.parentNode, span, endMarker);
@@ -212,87 +208,68 @@ export default class DocumentWriter {
     }
 
     _prepareDom (container, isDocumentCleaned) {
-        var beginMarker        = DocumentWriter._searchBeginMarker(container);
-        var endMarker          = DocumentWriter._searchEndMarker(container);
-        var isBeginMarkerInDom = getTagName(beginMarker) === BEGIN_MARKER_TAG_NAME;
-        var isEndMarkerInDom   = getTagName(endMarker) === END_MARKER_TAG_NAME;
+        var beginMarker = DocumentWriter._searchBeginMarker(container);
+        var endMarker   = DocumentWriter._searchEndMarker(container);
 
-        if (beginMarker !== endMarker) {
+        this.isBeginMarkerInDOM = getTagName(beginMarker) === BEGIN_MARKER_TAG_NAME;
+        this.isEndMarkerInDOM   = getTagName(endMarker) === END_MARKER_TAG_NAME;
+        this.isAddContentToEl   = beginMarker === endMarker;
+        this.isClosingContentEl = !this.isBeginMarkerInDOM && !this.isAddContentToEl;
+
+        if (!this.isAddContentToEl) {
             this._updateParentTagChain(container, endMarker);
 
             if (isDocumentCleaned)
-                this._addOnDocumentRecreationScript(endMarker);
+                DocumentWriter._addOnDocumentRecreationScript(endMarker);
         }
 
-        if (beginMarker === endMarker && !this.isNonClosedComment &&
-            (isScriptElement(endMarker) || isStyleElement(endMarker))) {
-            this.storedContent += beginMarker.textContent
-                .replace(BEGIN_REMOVE_RE, '')
-                .replace(END_REMOVE_RE, '');
-
-            if (this.needNewLine)
-                this.storedContent += '\n';
-
-            container.textContent = '';
-        }
-        else if (!isBeginMarkerInDom && !isEndMarkerInDom) {
+        if (!this.isBeginMarkerInDOM && !this.isEndMarkerInDOM) {
             this._processBeginMarkerInContent(beginMarker);
             this._processEndMarkerInContent(endMarker);
         }
-        else if (isBeginMarkerInDom && !isEndMarkerInDom)
+        else if (this.isBeginMarkerInDOM && !this.isEndMarkerInDOM)
             this._processEndMarkerInContent(endMarker);
-        else if (!isBeginMarkerInDom && isEndMarkerInDom)
+        else if (!this.isBeginMarkerInDOM && this.isEndMarkerInDOM)
             this._processBeginMarkerInContent(beginMarker);
     }
 
-    _processHtmlChunk (htmlChunk, ln, isDocumentCleaned) {
-        htmlChunk               = this._cutPending(this.pending + htmlChunk);
-        this.isClosingContentEl = false;
-        this.needNewLine        = ln;
-
-        if (htmlChunk || isDocumentCleaned) {
-            htmlChunk = this._wrapHtmlChunk(htmlChunk);
-            htmlChunk = htmlUtils.processHtml(htmlChunk, null, container => this._prepareDom(container, isDocumentCleaned));
-            htmlChunk = this._unwrapHtmlChunk(htmlChunk);
-        }
-
-        if (this.window[STORED_WRITE_INFO] && this.storedContent)
-            this.window[STORED_WRITE_INFO].content = this.storedContent;
-
-        if (this.window[STORED_WRITE_INFO] && this.isClosingContentEl)
-            delete this.window[STORED_WRITE_INFO];
+    _processHtmlChunk (htmlChunk, isDocumentCleaned) {
+        htmlChunk = this._cutPending(this.pending + htmlChunk);
+        htmlChunk = this._wrapHtmlChunk(htmlChunk);
+        htmlChunk = htmlUtils.processHtml(htmlChunk, null, container => this._prepareDom(container, isDocumentCleaned));
+        htmlChunk = this._unwrapHtmlChunk(htmlChunk);
 
         // NOTE: Firefox and IE recreate a window instance during the document.write function execution (T213930).
-        if (htmlChunk && !this.isClosingContentEl && (isFirefox || isIE) && !htmlUtils.isPageHtml(htmlChunk))
+        if (htmlChunk && this.isBeginMarkerInDOM && (isFirefox || isIE) && !htmlUtils.isPageHtml(htmlChunk))
             htmlChunk = htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlChunk;
 
         return htmlChunk;
     }
 
     write (args, ln, isDocumentCleaned) {
-        var htmlChunk         = this._processHtmlChunk(arrayJoin.call(args, ''), ln, isDocumentCleaned);
-        var nativeWriteMethod = ln && !this.storedContent ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
+        var htmlChunk = this._processHtmlChunk(arrayJoin.call(args, ''), isDocumentCleaned);
+
+        if (this.nonClosedEl && this.contentForProcessing) {
+            if (isScriptElement(this.nonClosedEl))
+                this.nonClosedEl.textContent = processScript(this.contentForProcessing, true);
+            else if (isStyleElement(this.nonClosedEl))
+                this.nonClosedEl.textContent = styleProcessor.process(this.contentForProcessing, getProxyUrl, true);
+
+            this.contentForProcessing = '';
+        }
+
+        var nativeWriteMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
         var result            = nativeWriteMethod.call(this.document, htmlChunk);
 
-        if (this.storedContent && !this.window[STORED_WRITE_INFO]) {
+        if (!this.isEndMarkerInDOM && !this.isAddContentToEl) {
             var el = this.document.documentElement;
 
             while (el.lastElementChild)
                 el = el.lastElementChild;
 
-            this.window[STORED_WRITE_INFO] = {
-                element: el,
-                content: this.storedContent
-            };
+            this.nonClosedEl = el;
         }
 
         return result;
-    }
-
-    static getPendingElementContent (el) {
-        var window     = el[INTERNAL_PROPS.processedContext];
-        var storedInfo = window && window[STORED_WRITE_INFO];
-
-        return storedInfo && el === storedInfo.element ? storedInfo.content : void 0;
     }
 }

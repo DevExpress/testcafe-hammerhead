@@ -1,6 +1,4 @@
-var processScript  = hammerhead.get('../processing/script').processScript;
-var styleProcessor = hammerhead.get('../processing/style');
-var urlUtils       = hammerhead.get('./utils/url');
+var processScript = hammerhead.get('../processing/script').processScript;
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -27,16 +25,6 @@ nativeMethods.appendChild.call(document.body, iframeForNativeWrite);
 QUnit.testStart(open);
 QUnit.testDone(close);
 
-function write () {
-    iframeForWrite.contentDocument.write.apply(iframeForWrite.contentDocument, arguments);
-    nativeMethods.documentWrite.apply(iframeForNativeWrite.contentDocument, arguments);
-}
-
-function writeln () {
-    iframeForWrite.contentDocument.writeln.apply(iframeForWrite.contentDocument, arguments);
-    nativeMethods.documentWriteLn.apply(iframeForNativeWrite.contentDocument, arguments);
-}
-
 function open () {
     iframeForWrite.contentDocument.open();
     nativeMethods.documentOpen.call(iframeForNativeWrite.contentDocument);
@@ -47,177 +35,119 @@ function close () {
     nativeMethods.documentClose.call(iframeForNativeWrite.contentDocument);
 }
 
-function getElems (iframe, selector) {
-    return iframe.contentDocument.querySelectorAll(selector);
+function testHTML () {
+    strictEqual(eval(processScript('iframeForWrite.contentDocument.documentElement.innerHTML')),
+        iframeForNativeWrite.contentDocument.documentElement.innerHTML);
+    strictEqual(eval(processScript('iframeForWrite.contentDocument.documentElement.outerHTML')),
+        iframeForNativeWrite.contentDocument.documentElement.outerHTML);
 }
 
-function innerHTML (el, isProxy) {
-    if (!el)
-        return '';
+function testContent (selector) {
+    var elsFromNativeIframe = iframeForNativeWrite.contentDocument.querySelectorAll(selector);
+    var elsFromIframe       = iframeForWrite.contentDocument.querySelectorAll(selector);
 
-    return isProxy ? eval(processScript('el.innerHTML')) : el.innerHTML;
+    if (elsFromIframe.length === elsFromNativeIframe.length) {
+        for (var i = 0; i < elsFromIframe.length; i++) {
+            /* eslint-disable no-unused-vars */
+            var el = elsFromIframe[i];
+            /* eslint-enable no-unused-vars */
+            var nativeEl = elsFromNativeIframe[i];
+
+            strictEqual(eval(processScript('el.innerHTML')), nativeEl.innerHTML);
+            strictEqual(eval(processScript('el.innerText.trim()')), nativeEl.innerText.trim());
+            strictEqual(eval(processScript('el.textContent')), nativeEl.textContent);
+            strictEqual(eval(processScript('el.text')), nativeEl.text);
+        }
+    }
+    else
+        strictEqual(elsFromIframe.length, elsFromNativeIframe.length);
+}
+
+function testVariable (variableName) {
+    strictEqual(eval(processScript('iframeForWrite.contentWindow[variableName]')),
+        iframeForNativeWrite.contentWindow[variableName]);
+}
+
+function testWrite () {
+    iframeForWrite.contentDocument.write.apply(iframeForWrite.contentDocument, arguments);
+    nativeMethods.documentWrite.apply(iframeForNativeWrite.contentDocument, arguments);
+
+    testHTML();
+}
+
+function testWriteln () {
+    iframeForWrite.contentDocument.writeln.apply(iframeForWrite.contentDocument, arguments);
+    nativeMethods.documentWriteLn.apply(iframeForNativeWrite.contentDocument, arguments);
+
+    testHTML();
 }
 
 test('write incomplete tags', function () {
-    write('<div id="div1"></div>');
-
-    strictEqual(getElems(iframeForWrite, '#div1').length, getElems(iframeForNativeWrite, '#div1').length);
-
-    write('<div id="div2">');
-
-    strictEqual(getElems(iframeForWrite, '#div2').length, getElems(iframeForNativeWrite, '#div2').length);
-
-    write('</div>');
-
-    strictEqual(getElems(iframeForWrite, '#div2').length, getElems(iframeForNativeWrite, '#div2').length);
-
-    write('<div id="div3"');
-
-    strictEqual(getElems(iframeForWrite, '#div3').length, getElems(iframeForNativeWrite, '#div3').length);
-
-    write('>');
-
-    strictEqual(getElems(iframeForWrite, '#div3').length, getElems(iframeForNativeWrite, '#div3').length);
-
-    write('content');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, '#div3')[0]), innerHTML(getElems(iframeForNativeWrite, '#div3')[0]));
-
-    write('\nother content');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, '#div3')[0]), innerHTML(getElems(iframeForNativeWrite, '#div3')[0]));
-
-    write('</div>');
-    writeln('content');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, '#div3')[0]), innerHTML(getElems(iframeForNativeWrite, '#div3')[0]));
+    testWrite('<div id="div1"></div>');
+    testWrite('<div id="div2">');
+    testWrite('</div>');
+    testWrite('<div id="div3"');
+    testWrite('>');
+    testWrite('content');
+    testWrite('\nother content');
+    testWrite('</div>');
+    testWriteln('content');
 });
 
 test('write script', function () {
-    write('<script>');
-
-    strictEqual(getElems(iframeForWrite, 'script').length, getElems(iframeForNativeWrite, 'script').length);
-
-    write('var x = 5;');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[0], true), innerHTML(getElems(iframeForNativeWrite, 'script')[0]));
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[0]), '');
-
-    write('var y = x;');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[0], true), innerHTML(getElems(iframeForNativeWrite, 'script')[0]));
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[0]), '');
-
-    write('<\/script>');
-
-    write('var z = x + y;');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[0]).indexOf('var z = x + y;'),
-        innerHTML(getElems(iframeForNativeWrite, 'script')[0]).indexOf('var z = x + y;'));
-
-
-    write('<script>var x=a<b;');
-
-    strictEqual(getElems(iframeForWrite, 'script').length, getElems(iframeForNativeWrite, 'script').length);
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[1], true), innerHTML(getElems(iframeForNativeWrite, 'script')[1]));
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[1]), '');
-
-    write('<\/script>');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'script')[1]), processScript('var x=a<b;', true));
+    testWrite('<script>var a, b, c;<\/script>');
+    testWrite('<script id="scr1">');
+    testContent('#scr1');
+    testWrite('var a = 5;');
+    testContent('#scr1');
+    testVariable('a');
+    testWrite('var b = 6;');
+    testContent('#scr1');
+    testVariable('b');
+    testWrite('<\/script>');
+    testContent('#scr1');
+    testVariable('a');
+    testVariable('b');
+    testWrite('var c = x + y;');
+    testWrite('<script id="scr2">var c=a<b;');
+    testContent('#scr2');
+    testVariable('c');
+    testWrite('<\/script>');
+    testContent('#scr2');
+    testVariable('c');
 });
 
 test('write style', function () {
-    writeln('<style>');
-
-    strictEqual(getElems(iframeForWrite, 'style').length, getElems(iframeForNativeWrite, 'style').length);
-
-    writeln('div {}');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'style')[0], true), innerHTML(getElems(iframeForNativeWrite, 'style')[0]));
-    strictEqual(innerHTML(getElems(iframeForWrite, 'style')[0]), '');
-
-    writeln('</style><style>body {background-image: url(/image.png);}');
-
-    strictEqual(getElems(iframeForWrite, 'style').length, getElems(iframeForNativeWrite, 'style').length);
-    strictEqual(innerHTML(getElems(iframeForWrite, 'style')[0], true), innerHTML(getElems(iframeForNativeWrite, 'style')[0]));
-    strictEqual(innerHTML(getElems(iframeForWrite, 'style')[0]), styleProcessor.STYLESHEET_PROCESSING_START_COMMENT +
-                                                                 '\n\ndiv {}\n\n' +
-                                                                 styleProcessor.STYLESHEET_PROCESSING_END_COMMENT);
-    strictEqual(innerHTML(getElems(iframeForWrite, 'style')[1], true), innerHTML(getElems(iframeForNativeWrite, 'style')[1]));
-    strictEqual(innerHTML(getElems(iframeForWrite, 'style')[1]), '');
-
-    writeln('li {display:block;}</style><div></div>');
-
-    ok(innerHTML(getElems(iframeForWrite, 'style')[1]).indexOf(urlUtils.getProxyUrl('/image.png')) > -1);
-    strictEqual(iframeForWrite.contentDocument.body.children.length, iframeForNativeWrite.contentDocument.body.children.length);
+    testWriteln('<style id="stl1">');
+    testContent('#stl1');
+    testWriteln('div {}');
+    testContent('#stl1');
+    testWriteln('</style><style id="stl2">body {background-image: url(https://example.com/image.png);}');
+    testContent('#stl1, #stl2');
+    testWriteln('li {display:block;}</style><div></div>');
+    testContent('#stl2');
 });
 
 test('document.write, document.writeln with multiple parameters', function () {
-    write('w1', 'w2', 'w3');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'body')[0]), innerHTML(getElems(iframeForNativeWrite, 'body')[0]));
-
-    writeln('wl1', 'wl2', 'wl3');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'body')[0]), innerHTML(getElems(iframeForNativeWrite, 'body')[0]));
-
-    writeln('wl4');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'body')[0]), innerHTML(getElems(iframeForNativeWrite, 'body')[0]));
-
-    writeln();
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'body')[0]), innerHTML(getElems(iframeForNativeWrite, 'body')[0]));
-
-    write();
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'body')[0]), innerHTML(getElems(iframeForNativeWrite, 'body')[0]));
+    testWrite('w1', 'w2', 'w3');
+    testWriteln('wl1', 'wl2', 'wl3');
+    testWriteln('wl4');
+    testWriteln();
+    testWrite();
 });
 
 test('write html comment', function () {
-    write('<div id="main"><!--');
-
-    strictEqual(getElems(iframeForWrite, 'div').length, getElems(iframeForNativeWrite, 'div').length);
-    strictEqual(innerHTML(getElems(iframeForWrite, 'div')[0]), innerHTML(getElems(iframeForNativeWrite, 'div')[0]));
-
-    writeln('<div id="nonexistent">bla');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'div')[0]), innerHTML(getElems(iframeForNativeWrite, 'div')[0]));
-    strictEqual(getElems(iframeForWrite, 'div').length, getElems(iframeForNativeWrite, 'div').length);
-
-    writeln('this is comment');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'div')[0]), innerHTML(getElems(iframeForNativeWrite, 'div')[0]));
-
-    write('-->');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'div')[0]), innerHTML(getElems(iframeForNativeWrite, 'div')[0]));
-
-    write('<a href="/link"></a>');
-
-    strictEqual(getElems(iframeForWrite, 'div a').length, getElems(iframeForNativeWrite, 'div a').length);
-    strictEqual(getElems(iframeForWrite, 'div a')[0].href, urlUtils.getProxyUrl('/link', null, null, null, 'i'));
-
-    write('</div>');
-
-    strictEqual(getElems(iframeForWrite, '#nonexistent').length, getElems(iframeForNativeWrite, '#nonexistent').length);
+    testWrite('<div id="main"><!--');
+    testWriteln('<div id="nonexistent">bla');
+    testWriteln('this is comment');
+    testWrite('-->');
+    testWrite('<a href="/link"></a>');
+    testWrite('</div>');
 });
 
 test('write textarea', function () {
-    write('<textarea>');
-
-    strictEqual(getElems(iframeForWrite, 'textarea').length, getElems(iframeForNativeWrite, 'textarea').length);
-
-    writeln('test');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'textarea')[0]), innerHTML(getElems(iframeForNativeWrite, 'textarea')[0]));
-
-    writeln('other text');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'textarea')[0]), innerHTML(getElems(iframeForNativeWrite, 'textarea')[0]));
-
-    write('</textarea>');
-
-    strictEqual(innerHTML(getElems(iframeForWrite, 'textarea')[0]), innerHTML(getElems(iframeForNativeWrite, 'textarea')[0]));
+    testWrite('<textarea>');
+    testWriteln('test');
+    testWriteln('other text');
+    testWrite('</textarea>');
 });
