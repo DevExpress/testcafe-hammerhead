@@ -33,8 +33,16 @@ export function findByName (name) {
     var storage = getStorage();
 
     for (var i = 0; i < storage.length; i++) {
-        if (storage[i].name === name)
-            return storage[i];
+        try {
+            if (storage[i].name === name)
+                return storage[i];
+        }
+        catch (e) {
+            // NOTE: We remove a cross-domain window from this storage
+            // because it is already added to the cross-domain window storage
+            storage.splice(i, 1);
+            i--;
+        }
     }
 
     return null;
