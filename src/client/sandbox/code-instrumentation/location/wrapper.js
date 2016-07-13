@@ -1,12 +1,18 @@
+import EventEmiter from '../../../utils/event-emitter';
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
 import { getProxyUrl, changeDestUrlPart, parseProxyUrl, parseResourceType } from '../../../utils/url';
 import { getDomain, getResourceTypeString } from '../../../../utils/url';
 
-export default class LocationWrapper {
+export default class LocationWrapper extends EventEmiter {
     constructor (window) {
-        var isIframe = window !== window.top;
-        var isForm   = false;
+        super();
+
+        this.CHANGED_EVENT = 'hammerhead|event|location-changed';
+
+        var isIframe  = window !== window.top;
+        var isForm    = false;
+        var onChanged = value => this.emit(this.CHANGED_EVENT, value);
 
         // NOTE: cross-domain window
         try {
@@ -19,7 +25,7 @@ export default class LocationWrapper {
                 isForm |= locationResType.isForm;
             }
         }
-        /*eslint-disable no-empty */
+            /*eslint-disable no-empty */
         catch (e) {
         }
         /*eslint-enable no-empty */
@@ -37,7 +43,10 @@ export default class LocationWrapper {
         Object.defineProperty(this, 'href', createPropertyDesc({
             get: getHref,
             set: href => {
-                window.location.href = getProxiedHref(href);
+                var proxiedHref = getProxiedHref(href);
+
+                window.location.href = proxiedHref;
+                onChanged(proxiedHref);
 
                 return href;
             }
@@ -46,7 +55,10 @@ export default class LocationWrapper {
         Object.defineProperty(this, 'search', createPropertyDesc({
             get: () => window.location.search,
             set: search => {
-                window.location = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
+                var newLocation = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
+
+                window.location = newLocation;
+                onChanged(newLocation);
 
                 return search;
             }
@@ -66,23 +78,51 @@ export default class LocationWrapper {
             }
         }));
 
-        for (var i = 0, len = urlProps.length; i < len; i++)
-            LocationWrapper._defineUrlProp(this, window, urlProps[i], resourceType);
+        var overrideProperty = porperty => {
+            Object.defineProperty(this, porperty, createPropertyDesc({
+                get: () => getParsedDestLocation()[porperty],
+                set: value => {
+                    var newLocation = changeDestUrlPart(window.location.toString(), porperty, value, resourceType);
 
-        this.assign   = url => window.location.assign(getProxiedHref(url));
-        this.replace  = url => window.location.replace(getProxiedHref(url));
-        this.reload   = forceget => window.location.reload(forceget);
+                    window.location = newLocation;
+                    onChanged(newLocation);
+
+                    return value;
+                }
+            }));
+        };
+
+        for (var i = 0, len = urlProps.length; i < len; i++)
+            overrideProperty(urlProps[i]);
+
+        this.assign = url => {
+            var proxiedHref = getProxiedHref(url);
+            var result      = window.location.assign(proxiedHref);
+
+            onChanged(proxiedHref);
+
+            return result;
+        };
+
+        this.replace = url => {
+            var proxiedHref = getProxiedHref(url);
+            var result      = window.location.replace(proxiedHref);
+
+            onChanged(proxiedHref);
+
+            return result;
+        };
+
+        this.reload = forceget => {
+            var result = window.location.reload(forceget);
+
+            onChanged(window.location.toString());
+
+            return result;
+        };
+
         this.toString = () => getHref();
     }
 
-    static _defineUrlProp (wrapper, window, prop, resourceType) {
-        Object.defineProperty(wrapper, prop, createPropertyDesc({
-            get: () => getParsedDestLocation()[prop],
-            set: value => {
-                window.location = changeDestUrlPart(window.location.toString(), prop, value, resourceType);
 
-                return value;
-            }
-        }));
-    }
 }
