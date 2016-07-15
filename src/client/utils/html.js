@@ -3,8 +3,10 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import domProcessor from '../dom-processor';
 import { remove as removeProcessingHeader } from '../../processing/script/header';
+import styleProcessor from '../../processing/style';
 import { find, getTagName } from './dom';
-import { convertToProxyUrl } from '../utils/url';
+import { convertToProxyUrl, parseProxyUrl } from './url';
+import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
 
 const FAKE_TAG_NAME_PREFIX  = 'fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME = 'hammerhead_fake_doctype';
@@ -111,11 +113,22 @@ export function cleanUpHtml (html) {
         });
 
         find(container, 'script', el => {
-            var innerHTML        = el.innerHTML;
-            var cleanedInnerHTML = removeProcessingHeader(innerHTML);
+            var textContent        = el.textContent;
+            var cleanedTextContent = removeProcessingHeader(textContent);
 
-            if (innerHTML !== cleanedInnerHTML) {
-                el.innerHTML = cleanedInnerHTML;
+            if (textContent !== cleanedTextContent) {
+                el.textContent = cleanedTextContent;
+
+                changed = true;
+            }
+        });
+
+        find(container, 'style', el => {
+            var textContent        = el.textContent;
+            var cleanedTextContent = styleProcessor.cleanUp(textContent, parseProxyUrl);
+
+            if (textContent !== cleanedTextContent) {
+                el.textContent = cleanedTextContent;
 
                 changed = true;
             }
@@ -155,6 +168,9 @@ export function processHtml (html, parentTag, prepareDom) {
 
         for (var i = 0; i < children.length; i++) {
             var el = children[i];
+
+            if (hasIsNotClosedFlag(el))
+                continue;
 
             domProcessor.processElement(el, convertToProxyUrl);
 
