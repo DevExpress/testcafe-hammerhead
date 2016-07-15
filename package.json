@@ -6,7 +6,7 @@
   "bugs": {
     "url": "https://github.com/DevExpress/testcafe-hammerhead/issues"
   },
-  "license": "https://github.com/DevExpress/testcafe-hammerhead/blob/master/LICENSE",
+  "license": "MIT",
   "author": {
     "name": "Developer Express Inc."
   },
