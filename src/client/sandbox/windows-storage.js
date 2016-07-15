@@ -38,8 +38,11 @@ export function findByName (name) {
                 return storage[i];
         }
         catch (e) {
-            // NOTE: We remove a cross-domain window from this storage
-            // because it is already added to the cross-domain window storage
+            // NOTE: During loading, an iframe can be changed from same-domain to cross-domain.
+            // Iframe's window is reinitialized, and we add 2 windows to the window storages:
+            // one to the same-domain storage and another one to the cross-domain storage.
+            // We remove the cross-domain window from this storage
+            // because it is already added to the cross-domain window storage.
             storage.splice(i, 1);
             i--;
         }
