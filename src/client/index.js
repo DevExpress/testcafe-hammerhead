@@ -197,8 +197,11 @@ class Hammerhead {
 
 var hammerhead = new Hammerhead();
 
+// NOTE: The 'load' event is raised after calling document.close for a same-domain iframe
+// So, we need to define the '%hammerhead%' variable as 'configurable' so that it can be redefined.
 Object.defineProperty(window, '%hammerhead%', {
-    value: hammerhead
+    value:        hammerhead,
+    configurable: true
 });
 
 export default hammerhead;
