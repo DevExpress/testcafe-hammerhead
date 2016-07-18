@@ -7,6 +7,7 @@ import styleProcessor from '../../processing/style';
 import { find, getTagName } from './dom';
 import { convertToProxyUrl, parseProxyUrl } from './url';
 import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
+import * as urlResolver from './url-resolver';
 
 const FAKE_TAG_NAME_PREFIX  = 'fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME = 'hammerhead_fake_doctype';
@@ -154,8 +155,9 @@ export function cleanUpHtml (html) {
 
 export function processHtml (html, parentTag, prepareDom) {
     return processHtmlInternal(html, container => {
-        var htmlElements = [];
-        var children     = [];
+        var htmlElements  = [];
+        var children      = [];
+        var storedBaseUrl = urlResolver.resolve('', document);
 
         if (prepareDom)
             prepareDom(container);
@@ -165,6 +167,11 @@ export function processHtml (html, parentTag, prepareDom) {
             children = [container.children[0]];
         else if (container.children.length)
             children = nativeMethods.elementQuerySelectorAll.call(container, '*');
+
+        var base = nativeMethods.elementQuerySelector.call(container, 'base');
+
+        if (base)
+            urlResolver.updateBase(nativeMethods.getAttribute.call(base, 'href'), document);
 
         for (var i = 0; i < children.length; i++) {
             var el = children[i];
@@ -184,6 +191,8 @@ export function processHtml (html, parentTag, prepareDom) {
             for (var j = 0; j < htmlElements.length; j++)
                 htmlElements[j].innerHTML = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlElements[j].innerHTML;
         }
+
+        urlResolver.updateBase(storedBaseUrl, document);
 
         return true;
     });
