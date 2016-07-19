@@ -8,6 +8,7 @@ import { find, getTagName } from './dom';
 import { convertToProxyUrl, parseProxyUrl } from './url';
 import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
 import * as urlResolver from './url-resolver';
+import { isScriptElement } from './dom';
 
 const FAKE_TAG_NAME_PREFIX  = 'fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME = 'hammerhead_fake_doctype';
@@ -178,6 +179,13 @@ export function processHtml (html, parentTag, prepareDom) {
 
             if (hasIsNotClosedFlag(el))
                 continue;
+
+            if (isScriptElement(el)) {
+                el.textContent = el.textContent
+                    .replace(UNWRAP_DOCTYPE_RE, '<!doctype$1>')
+                    .replace(UNWRAP_COL_TAG_RE, '<$1>')
+                    .replace(FAKE_TAG_NAME_RE, '$1');
+            }
 
             domProcessor.processElement(el, convertToProxyUrl);
 

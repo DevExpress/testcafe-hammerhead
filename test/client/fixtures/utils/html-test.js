@@ -269,3 +269,18 @@ test('html and body attributes must be processed (T226655)', function () {
        -1);
 });
 
+test('html with special script is processed correctly (GH-684)', function () {
+    var htmlSrc = [
+        '<script>',
+        '    var x = y <this.length, y = 3 > 5;',
+        '<\/script>'
+    ].join('\n');
+
+    var htmlExpected = [
+        '<script>',
+        processScript('\n    var x = y <this.length, y = 3 > 5;\n', true),
+        '<\/script>'
+    ].join('');
+
+    strictEqual(htmlUtils.processHtml(htmlSrc), htmlExpected);
+});
