@@ -1,4 +1,3 @@
-/*eslint-disable no-native-reassign */
 import Promise from 'pinkie';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
@@ -10,8 +9,6 @@ import { isCrossDomainWindows } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import fnBind from '../../utils/fn-bind';
-
-/*eslint-enable no-native-reassign */
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
