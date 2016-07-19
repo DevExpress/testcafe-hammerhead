@@ -342,3 +342,30 @@ asyncTest('service message from removed iframe (GH-64)', function () {
         });
     document.body.appendChild(iframe);
 });
+
+asyncTest('should not raise an error for sendServiceMessage if window.top is a cross-domain window (GH-666)', function () {
+    var iframe            = document.createElement('iframe');
+    var messageData       = null;
+    var isMessageReceived = function () {
+        return !!messageData;
+    };
+    var onMessageHandler = function (e) {
+        messageData = e.data;
+    };
+
+    window.addEventListener('message', onMessageHandler);
+
+    iframe.src = window.getCrossDomainPageUrl('../../../data/event-sandbox/send-message-when-top-window-is-cross-domain.html');
+    iframe.id  = 'test_unique_id_edzyxob6s';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            return window.QUnitGlobals.wait(isMessageReceived);
+        })
+        .then(function () {
+            ok(!messageData.errorIsRaised);
+            window.removeEventListener('message', onMessageHandler);
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
+});

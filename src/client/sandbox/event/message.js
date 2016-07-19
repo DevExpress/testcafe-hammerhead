@@ -5,7 +5,7 @@ import * as destLocation from '../../utils/destination-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isIE9 } from '../../utils/browser';
-import { isCrossDomainWindows } from '../../utils/dom';
+import { isCrossDomainWindows, getTopSameDomainWindow } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 import fnBind from '../../utils/fn-bind';
@@ -211,7 +211,8 @@ export default class MessageSandbox extends SandboxBase {
             };
 
             // NOTE: Imitation of a delay for the postMessage method.
-            var timeoutId = nativeMethods.setTimeout.call(this.topWindow, sendFunc, 10);
+            var topSameDomainWindow = getTopSameDomainWindow(this.window);
+            var timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
 
             this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
 
