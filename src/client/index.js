@@ -5,9 +5,7 @@ import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
 import transport from './transport';
-/*eslint-disable no-native-reassign*/
 import * as JSON from './json';
-/*eslint-enable no-native-reassign*/
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
 import * as eventUtils from './utils/event';

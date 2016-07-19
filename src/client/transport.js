@@ -1,4 +1,3 @@
-/*eslint-disable no-native-reassign*/
 import EventEmitter from './utils/event-emitter';
 import COMMAND from '../session/command';
 import nativeMethods from './sandbox/native-methods';
@@ -7,8 +6,6 @@ import XhrSandbox from './sandbox/xhr';
 import { stringify as stringifyJSON, parse as parseJSON } from './json';
 import { isWebKit, isIE9 } from './utils/browser';
 import Promise from 'pinkie';
-
-/*eslint-enable no-native-reassign*/
 
 class Transport extends EventEmitter {
     constructor () {
