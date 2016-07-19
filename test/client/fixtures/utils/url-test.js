@@ -470,3 +470,25 @@ test('"base" tag with an href attribute that is set to a protocol relative url (
 
     base.parentNode.removeChild(base);
 });
+
+test('resolving a url in a tag that is written along with a "base" tag (GH-644)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test902345';
+
+    document.body.appendChild(iframe);
+
+    iframe.contentDocument.write(
+        '<base href="/subpath/"/>',
+        '<!DOCTYPE html>',
+        '<html>',
+        '<head><script src="scripts/scr.js"><\/script></head>',
+        '...',
+        '</html>'
+    );
+
+    strictEqual(iframe.contentDocument.querySelector('script').src,
+        'http://' + location.host + '/sessionId!s/https://example.com/subpath/scripts/scr.js');
+
+    document.body.removeChild(iframe);
+});
