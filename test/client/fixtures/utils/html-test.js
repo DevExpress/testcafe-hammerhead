@@ -272,15 +272,25 @@ test('html and body attributes must be processed (T226655)', function () {
 test('html with special script is processed correctly (GH-684)', function () {
     var htmlSrc = [
         '<script>',
-        '    var x = y <this.length, y = 3 > 5;',
+        // NOTE: We need some kind of table tags in js code e.g. <th .length, y = 3 >
+        // That's because the 'fake_tag_name_' prefix is added to some tags during html processing, e.g. <fake_tag_name_th .length, y = 3 >
+        '    var x = y <th .length, y = 3 > 5;',
         '<\/script>'
     ].join('\n');
 
     var htmlExpected = [
         '<script>',
-        processScript('\n    var x = y <this.length, y = 3 > 5;\n', true),
+        processScript('\n    var x = y <th .length, y = 3 > 5;\n', true),
         '<\/script>'
     ].join('');
 
     strictEqual(htmlUtils.processHtml(htmlSrc), htmlExpected);
+});
+
+test('process html with an unclosed "p" tag and the "header" tag (GH-688)', function () {
+    var div = document.createElement('div');
+
+    div.innerHTML = '<p><header></header>';
+
+    strictEqual(htmlUtils.processHtml('<p><header></header>'), div.innerHTML);
 });

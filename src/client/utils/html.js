@@ -13,7 +13,7 @@ import { isScriptElement } from './dom';
 const FAKE_TAG_NAME_PREFIX  = 'fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME = 'hammerhead_fake_doctype';
 const FAKE_TAG_NAME_RE      = new RegExp('(<\\/?)' + FAKE_TAG_NAME_PREFIX, 'ig');
-const WRAP_TAGS_RE          = /(<\/?)(html|head|body|table|tbody|tfoot|thead|tr|td|th|caption|colgroup)([^>]*>)/ig;
+const WRAP_TAGS_RE          = /(<\/?)(html|head|body|table|tbody|tfoot|thead|tr|td|th|caption|colgroup)((?:\s[^>]*)?>)/ig;
 const WRAP_TAGS_TEMPLATE    = `$1${ FAKE_TAG_NAME_PREFIX }$2$3`;
 const WRAP_COL_TAG_RE       = /<(\/?(col)(?:[^A-Za-z_>][^>]*)?)>/ig;
 const WRAP_COL_TAG_TEMPLATE = `<${ FAKE_TAG_NAME_PREFIX }$2>$1</${ FAKE_TAG_NAME_PREFIX }$2>`;
