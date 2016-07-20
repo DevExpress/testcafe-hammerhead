@@ -211,6 +211,8 @@ export default class MessageSandbox extends SandboxBase {
             };
 
             // NOTE: Imitation of a delay for the postMessage method.
+            // We use the same-domain top window
+            // so that the function called by setTimeout is executed after removing the iframe
             var topSameDomainWindow = getTopSameDomainWindow(this.window);
             var timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
 
