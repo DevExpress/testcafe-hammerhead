@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+    <script>
+        var hammerhead     = window['%hammerhead%'];
+        var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
+
+        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+        hammerhead.start({ crossDomainProxyPort: 2000 });
+
+        var iframeSandbox         = hammerhead.sandbox.iframe;
+        var initIframeTestHandler = function (e) {
+            e.iframe.contentWindow[INTERNAL_PROPS.processDomMethodName] = function () { }
+        };
+
+        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+        iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
+
+        var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
+        var setProperty    = window[INSTRUCTION.setProperty];
+        var messageSandbox = hammerhead.sandbox.event.message;
+        var postMessage    = hammerhead.sandbox.event.message.postMessage;
+
+        var iframe = document.createElement('iframe');
+
+        iframe.id = 'nested_iframe';
+        iframe.addEventListener('load', function () {
+            var iframeDocument = iframe.contentDocument;
+            var iframeWindow   = iframe.contentWindow;
+
+            iframeDocument.body[INTERNAL_PROPS.processedContext] = iframeWindow;
+            iframeWindow[messageSandbox.RECEIVE_MSG_FN] = function () { };
+
+            var errorIsRaised = false;
+            try {
+                setProperty(iframeDocument.body, "innerHTML", '...');
+            }
+            catch (e) {
+                errorIsRaised = true;
+            }
+
+            postMessage(window.top, [{ errorIsRaised: errorIsRaised }, '*']);
+        });
+        document.body.appendChild(iframe);
+    </script>
+</body>
+</html>
