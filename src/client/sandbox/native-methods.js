@@ -1,13 +1,45 @@
-/*global Document, Window */
 class NativeMethods {
     constructor (doc, win) {
-        this.refreshDocumentMeths(doc);
-        this.refreshElementMeths(doc, win);
-        this.refreshWindowMeths(win);
+        this.refresh(doc, win);
+    }
+
+    _tryToExecuteCode (func) {
+        try {
+            return func();
+        }
+        catch (e) {
+            return true;
+        }
+    }
+
+    _needToUpdateDocumentMeths (doc) {
+        return this._tryToExecuteCode(
+            () => !doc.createElement ||
+                  this.createElement.toString() === doc.createElement.toString()
+        );
+    }
+
+    _needToUpdateElementMeths (doc) {
+        return this._tryToExecuteCode(() => {
+            var nativeElement = this.createElement.call(doc, 'div');
+
+            return nativeElement.getAttribute.toString() === this.getAttribute.toString();
+        });
+    }
+
+    _needToUpdateWindowMeths (wnd) {
+        return this._tryToExecuteCode(() => {
+            this.setTimeout.call(wnd, () => void 0, 0);
+
+            return wnd.XMLHttpRequest.prototype.open.toString() === this.xmlHttpRequestOpen.toString();
+        });
     }
 
     refreshDocumentMeths (doc) {
         doc = doc || document;
+
+        if (!this._needToUpdateDocumentMeths(doc))
+            return;
 
         var docProto = doc.constructor.prototype;
 
@@ -35,6 +67,9 @@ class NativeMethods {
 
     refreshElementMeths (doc, win) {
         win = win || window;
+
+        if (!this._needToUpdateElementMeths(doc))
+            return;
 
         var createElement = tagName => this.createElement.call(doc || document, tagName);
         var nativeElement = createElement('div');
@@ -80,6 +115,10 @@ class NativeMethods {
 
     refreshWindowMeths (win) {
         win = win || window;
+
+        if (!this._needToUpdateWindowMeths(win))
+            return;
+
         // Dom
         this.eval                             = win.eval;
         this.formSubmit                       = win.HTMLFormElement.prototype.submit;
@@ -167,6 +206,12 @@ class NativeMethods {
         this.StorageEvent     = win.StorageEvent || mock;
         this.MutationObserver = win.MutationObserver || mock;
         this.EventSource      = win.EventSource || mock;
+    }
+
+    refresh (doc, win) {
+        this.refreshDocumentMeths(doc);
+        this.refreshElementMeths(doc, win);
+        this.refreshWindowMeths(win);
     }
 
     restoreDocumentMeths (document) {

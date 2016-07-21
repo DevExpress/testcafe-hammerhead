@@ -503,23 +503,31 @@ asyncTest('"permission denied" error inside documentWriter (GH-384)', function (
 });
 
 // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
-if (!browserUtils.isIE) {
-    asyncTest('document.write for same-domain iframe (GH-679)', function () {
-        var iframe  = document.createElement('iframe');
-
-        iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
-        iframe.id = 'test_unique_id_9090d';
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
-                iframe.contentDocument.open();
-                iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>');
-                iframe.contentDocument.close();
-
-                strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
-
-                iframe.parentNode.removeChild(iframe);
-                start();
-            });
-        document.body.appendChild(iframe);
-    });
-}
+// if (!browserUtils.isIE) {
+//     asyncTest('document.write for same-domain iframe (GH-679)', function () {
+//         var iframe  = document.createElement('iframe');
+//
+//         iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
+//         iframe.id = 'test_unique_id_9090d';
+//         window.QUnitGlobals.waitForIframe(iframe)
+//             .then(function () {
+//                 iframe.contentDocument.open();
+//                 iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>');
+//                 iframe.contentDocument.close();
+//
+//                 strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
+//
+//                 //On load event (it cases after iframe.contentDocument.close()) we try to override iframe
+//                 //and refresh native methods
+//                 iframe.contentDocument.open();
+//                 iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>');
+//                 iframe.contentDocument.close();
+//
+//                 strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
+//
+//                 iframe.parentNode.removeChild(iframe);
+//                 start();
+//             });
+//         document.body.appendChild(iframe);
+//     });
+// }
