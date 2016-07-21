@@ -35,7 +35,7 @@ asyncTest('iframe with empty src', function () {
 
         document.body.appendChild(iframe);
         return promise.then(function () {
-            new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
+            new CodeInstrumentation({}, {}, {}, {}, {}, {}, {}).attach(iframe.contentWindow);
 
             var hyperlink = iframe.contentDocument.createElement('a');
 
@@ -81,7 +81,7 @@ if (browserUtils.isWebKit) {
         iframe.setAttribute('src', 'javascript:void(0);');
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
-                new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
+                new CodeInstrumentation({}, {}, {}, {}, {}, {}, {}).attach(iframe.contentWindow);
 
                 var hyperlink = iframe.contentDocument.createElement('a');
 
@@ -129,7 +129,7 @@ test('iframe', function () {
 
     var windowMock = getWindowMock();
 
-    new CodeInstrumentation({}, {}).attach(windowMock);
+    new CodeInstrumentation({}, {}, {}, {}, {}, {}, {}).attach(windowMock);
 
     var wrapper = LocationInstrumentation.getLocationWrapper(windowMock);
 
@@ -147,7 +147,7 @@ test('iframe', function () {
     strictEqual(windowMock.location, getProxy('https://domain.com:1222/index.html?param=value'));
 
     windowMock = getWindowMock();
-    new CodeInstrumentation({}, {}).attach(windowMock);
+    new CodeInstrumentation({}, {}, {}, {}, {}, {}, {}).attach(windowMock);
     wrapper    = LocationInstrumentation.getLocationWrapper(windowMock);
 
     wrapper.assign('http://new.domain.com:1444');

@@ -34,6 +34,10 @@ module.exports = function (app) {
         res.send(fs.readFileSync('./test/client/data/redirect-watch/location-subject.html').toString());
     });
 
+    app.get('/' + unchangeableUrlSession + '!if/*', function (req, res) {
+        res.send(fs.readFileSync('./test/client/data/redirect-watch/location-subject.html').toString());
+    });
+
     app.get('/xhr-large-response', function (req, res) {
         var data = new Array(1000);
 
