@@ -1,3 +1,5 @@
+import * as nativeMethodEtalons from './native-methods/etalons';
+
 class NativeMethods {
     constructor (doc, win) {
         this.refresh(doc, win);
@@ -12,21 +14,6 @@ class NativeMethods {
         }
     }
 
-    _needToUpdateDocumentMeths (doc) {
-        return this._tryToExecuteCode(
-            () => !doc.createElement ||
-                  this.createElement.toString() === doc.createElement.toString()
-        );
-    }
-
-    _needToUpdateElementMeths (doc) {
-        return this._tryToExecuteCode(() => {
-            var nativeElement = this.createElement.call(doc, 'div');
-
-            return nativeElement.getAttribute.toString() === this.getAttribute.toString();
-        });
-    }
-
     _needToUpdateWindowMeths (wnd) {
         return this._tryToExecuteCode(() => {
             this.setTimeout.call(wnd, () => void 0, 0);
@@ -36,11 +23,6 @@ class NativeMethods {
     }
 
     _refreshDocumentMeths (doc) {
-        doc = doc || document;
-
-        if (!this._needToUpdateDocumentMeths(doc))
-            return;
-
         var docProto = doc.constructor.prototype;
 
         // Dom
@@ -66,11 +48,6 @@ class NativeMethods {
     }
 
     _refreshElementMeths (doc, win) {
-        win = win || window;
-
-        if (!this._needToUpdateElementMeths(doc))
-            return;
-
         var createElement = tagName => this.createElement.call(doc || document, tagName);
         var nativeElement = createElement('div');
 
@@ -114,11 +91,6 @@ class NativeMethods {
     }
 
     _refreshWindowMeths (win) {
-        win = win || window;
-
-        if (!this._needToUpdateWindowMeths(win))
-            return;
-
         // Dom
         this.eval                             = win.eval;
         this.formSubmit                       = win.HTMLFormElement.prototype.submit;
@@ -209,9 +181,15 @@ class NativeMethods {
     }
 
     refresh (doc, win) {
-        this._refreshDocumentMeths(doc);
-        this._refreshElementMeths(doc, win);
-        this._refreshWindowMeths(win);
+        doc = doc || document;
+        win = win || window;
+
+        if (!nativeMethodEtalons.isDocumentMethsOverriden(doc, win))
+            this._refreshDocumentMeths(doc);
+        if (!nativeMethodEtalons.isElementMethsOverriden(doc, win))
+            this._refreshElementMeths(doc, win);
+        if (!nativeMethodEtalons.isWindowMethsOverriden(doc, win))
+            this._refreshWindowMeths(win);
     }
 
     restoreDocumentMeths (document) {
