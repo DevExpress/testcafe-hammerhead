@@ -35,7 +35,7 @@ class NativeMethods {
         });
     }
 
-    refreshDocumentMeths (doc) {
+    _refreshDocumentMeths (doc) {
         doc = doc || document;
 
         if (!this._needToUpdateDocumentMeths(doc))
@@ -65,7 +65,7 @@ class NativeMethods {
         this.documentRemoveEventListener = doc.removeEventListener || docProto.removeEventListener;
     }
 
-    refreshElementMeths (doc, win) {
+    _refreshElementMeths (doc, win) {
         win = win || window;
 
         if (!this._needToUpdateElementMeths(doc))
@@ -113,7 +113,7 @@ class NativeMethods {
         this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;
     }
 
-    refreshWindowMeths (win) {
+    _refreshWindowMeths (win) {
         win = win || window;
 
         if (!this._needToUpdateWindowMeths(win))
@@ -185,10 +185,10 @@ class NativeMethods {
         this.date    = win.Date;
         this.dateNow = win.Date.now;
 
-        this.refreshClasses(win);
+        this._refreshClasses(win);
     }
 
-    refreshClasses (win) {
+    _refreshClasses (win) {
         var mock = () => null;
 
         this.windowClass      = win.Window || mock;
@@ -209,9 +209,9 @@ class NativeMethods {
     }
 
     refresh (doc, win) {
-        this.refreshDocumentMeths(doc);
-        this.refreshElementMeths(doc, win);
-        this.refreshWindowMeths(win);
+        this._refreshDocumentMeths(doc);
+        this._refreshElementMeths(doc, win);
+        this._refreshWindowMeths(win);
     }
 
     restoreDocumentMeths (document) {

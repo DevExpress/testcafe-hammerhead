@@ -63,45 +63,6 @@ export default class Sandbox extends SandboxBase {
         return true;
     }
 
-    _refreshNativeMethods (window, document) {
-        var tryToExecuteCode = func => {
-            try {
-                return func();
-            }
-            catch (e) {
-                return true;
-            }
-        };
-
-        var needToUpdateNativeDomMeths = tryToExecuteCode(
-            () => !document.createElement ||
-                  this.nativeMethods.createElement.toString() === document.createElement.toString()
-        );
-
-        var needToUpdateNativeElementMeths = tryToExecuteCode(() => {
-            var nativeElement = this.nativeMethods.createElement.call(document, 'div');
-
-            return nativeElement.getAttribute.toString() === this.nativeMethods.getAttribute.toString();
-        });
-
-        var needToUpdateNativeWindowMeths = tryToExecuteCode(() => {
-            this.nativeMethods.setTimeout.call(window, () => void 0, 0);
-
-            return window.XMLHttpRequest.prototype.open.toString() === this.nativeMethods.xmlHttpRequestOpen.toString();
-        });
-
-        // NOTE: T173709
-        if (needToUpdateNativeDomMeths)
-            this.nativeMethods.refreshDocumentMeths(document);
-
-        if (needToUpdateNativeElementMeths)
-            this.nativeMethods.refreshElementMeths(document);
-
-        // NOTE: T239109
-        if (needToUpdateNativeWindowMeths)
-            this.nativeMethods.refreshWindowMeths(window);
-    }
-
     _restoreDocumentMethodsFromProto (document) {
         var docProto = document.constructor.prototype;
 
