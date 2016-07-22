@@ -26,7 +26,7 @@ class Hammerhead {
     constructor () {
         this.win           = null;
         this.sandbox       = new Sandbox();
-        this.redirectWatch = new RedirectWatch(this.sandbox.codeInstrumentation, this.sandbox.event);
+        this.redirectWatch = new RedirectWatch(this.sandbox.event.listeners, this.sandbox.codeInstrumentation, this.sandbox.node.element);
 
         this.EVENTS = {
             beforeFormSubmit:   this.sandbox.node.element.BEFORE_FORM_SUBMIT,
@@ -43,7 +43,7 @@ class Hammerhead {
             xhrError:           this.sandbox.xhr.XHR_ERROR_EVENT,
             xhrSend:            this.sandbox.xhr.XHR_SEND_EVENT,
             fetchSend:          this.sandbox.fetch.FETCH_REQUEST_SEND_EVENT,
-            redirectDetected:   this.redirectWatch.DETECTED_EVENT
+            redirectDetected:   this.redirectWatch.REDIRECT_DETECTED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
@@ -190,7 +190,6 @@ class Hammerhead {
         }
 
         this.sandbox.attach(this.win);
-        this.redirectWatch.init();
     }
 }
 

@@ -28,7 +28,7 @@ import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-de
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox, elementSandbox) {
         super();
 
         this.LOCATION_CHANGED_EVENT = 'hammerhead|event|location-changed';
@@ -41,6 +41,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.unloadSandbox         = eventSandbox.unload;
         this.shadowUI              = shadowUI;
         this.storageSandbox        = storageSandbox;
+        this.elementSandbox        = elementSandbox;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
@@ -325,6 +326,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return handler;
                 }
+            },
+
+            onsubmit: {
+                condition: domUtils.isFormElement,
+                get:       owner => this.elementSandbox.getOnsubmit(owner),
+                set:       (owner, handler) => this.elementSandbox.setOnsubmit(owner, handler)
             },
 
             lastChild: {

@@ -44,6 +44,7 @@ export const PROPERTIES = [
     'onpagehide',
     'onerror',
     'onmessage',
+    'onsubmit',
     'origin',
     'outerHTML',
     'pathname',
