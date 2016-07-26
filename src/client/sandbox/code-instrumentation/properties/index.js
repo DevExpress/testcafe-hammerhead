@@ -316,6 +316,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
+            onclick: {
+                condition: domUtils.isAnchorElement,
+                get:       owner => this.elementSandbox.getEventHandler(owner, 'click'),
+                set:       (owner, handler) => this.elementSandbox.setEventHandler(owner, handler, 'click')
+            },
+
             onerror: {
                 condition: domUtils.isWindow,
                 get:       owner => owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] || null,
@@ -330,8 +336,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             onsubmit: {
                 condition: domUtils.isFormElement,
-                get:       owner => this.elementSandbox.getOnsubmit(owner),
-                set:       (owner, handler) => this.elementSandbox.setOnsubmit(owner, handler)
+                get:       owner => this.elementSandbox.getEventHandler(owner, 'submit'),
+                set:       (owner, handler) => this.elementSandbox.setEventHandler(owner, handler, 'submit')
             },
 
             lastChild: {

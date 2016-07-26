@@ -42,6 +42,7 @@ export const PROPERTIES = [
     'manifest',
     'onbeforeunload',
     'onpagehide',
+    'onclick',
     'onerror',
     'onmessage',
     'onsubmit',
