@@ -1,9 +1,9 @@
 import EventEmiter from './utils/event-emitter';
 import { parseProxyUrl } from '../utils/url';
-import { isShadowUIElement, isAnchorElement } from './utils/dom';
 import ElementSandbox from './sandbox/node/element';
 import * as windowsStorage from './sandbox/windows-storage';
 import domProcessor from './dom-processor/index';
+import { isAnchorElement } from './utils/dom';
 import nativeMethods from './sandbox/native-methods';
 
 const HASH_RE = /#.*$/;
@@ -14,24 +14,42 @@ export default class RedirectWatch extends EventEmiter {
 
         this.REDIRECT_DETECTED_EVENT = 'hammerhead|event|redirect-detected';
 
-        this.lastLocationValue = window.location.toString();
+        this.lastLocationValue     = window.location.toString();
+        this.redirectActions       = [];
+        this.cancelRedirectActions = [];
 
         this._locationWatch(codeInstrumentation);
-        this._linkWatch(listeners);
-        this._formWatch(elementSandbox);
+        this._linkWatch(elementSandbox, listeners);
+        this._formWatch(elementSandbox, listeners);
     }
 
-    _formWatch (elementSandbox) {
+    _formWatch (elementSandbox, listeners) {
         elementSandbox.on(elementSandbox.BEFORE_FORM_SUBMIT, e => {
-            var targetWindow = this._getTargetWindow(e.form);
+            if (e.form.action) {
+                var targetWindow = this._getTargetWindow(e.form);
 
-            this._redirectWindow(targetWindow, e.form.action);
+                this._windowRedirectAction(targetWindow, e.form.action, e.form);
+            }
+        });
+
+        listeners.on(listeners.EVENT_DEFAULT_PREVENTED, e => {
+            if (e.evt.type === 'submit' && e.evt.target.action) {
+                var form         = e.evt.target;
+                var targetWindow = this._getTargetWindow(form);
+
+                this._windowRedirectAction(targetWindow, form.action, form, true);
+            }
         });
     }
 
-    _redirectWindow (window, url) {
+    _windowRedirectAction (window, url, el, isCanceled) {
         try {
-            window['%hammerhead%'].redirectWatch.redirect(url);
+            var redirectWatch = window['%hammerhead%'].redirectWatch;
+
+            if (isCanceled)
+                redirectWatch.cancelRedirect(url, el);
+            else
+                redirectWatch.redirect(url, el);
         }
             /*eslint-disable no-empty */
         catch (e) {
@@ -56,16 +74,35 @@ export default class RedirectWatch extends EventEmiter {
         return targetWindow;
     }
 
-    _linkWatch (listeners) {
-        listeners.initElementListening(window, ['click']);
-        listeners.addInternalEventListener(window, ['click'], e => {
-            var link = e.target;
+    _linkWatch (elementSandbox, listeners) {
+        elementSandbox.on(elementSandbox.LINK_CLICKED, e => {
+            var link = e.el;
 
-            if (isAnchorElement(link) && !isShadowUIElement(link)) {
+            if (link.href) {
                 var targetWindow = this._getTargetWindow(link);
 
-                this._redirectWindow(targetWindow, link.href);
+                this._windowRedirectAction(targetWindow, link.href, e.evt.target);
             }
+        });
+
+        listeners.on(listeners.EVENT_DEFAULT_PREVENTED, e => {
+            /*eslint-disable no-sequences */
+            if (e.evt.type === 'click') {
+                var currEl = e.evt.target;
+
+                do {
+                    if (isAnchorElement(currEl)) {
+                        var targetWindow = this._getTargetWindow(currEl);
+
+                        if (currEl.href) {
+                            this._windowRedirectAction(targetWindow, currEl.href, e.evt.target, true);
+
+                            return;
+                        }
+                    }
+                } while (currEl !== e.el, currEl = currEl.parentElement);
+            }
+            /*eslint-enable no-sequences */
         });
     }
 
@@ -73,13 +110,38 @@ export default class RedirectWatch extends EventEmiter {
         var locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
         var propertyAccessorsInstrumentation = codeInstrumentation.propertyAccessorsInstrumentation;
 
-        var locationChangedHandler = newLocation => this.redirect(newLocation);
+        var locationChangedHandler = newLocation => this.redirect(newLocation, void 0, true);
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
         propertyAccessorsInstrumentation.on(propertyAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
     }
 
-    redirect (url) {
+    _neutralizeCanceledRedirections (url, el, isCanceled) {
+        var targetActions  = isCanceled ? this.redirectActions : this.cancelRedirectActions;
+        var inverseActions = isCanceled ? this.cancelRedirectActions : this.redirectActions;
+
+        for (var i = 0; i < targetActions.length; i++) {
+            if (targetActions[i].el === el && targetActions[i].url === url) {
+                targetActions.splice(i, 1);
+
+                return true;
+            }
+        }
+
+        inverseActions.push({ el, url });
+
+        return false;
+    }
+
+    _takeLastRedirect () {
+        return this.redirectActions.length ? this.redirectActions.pop() : null;
+    }
+
+    cancelRedirect (url, el) {
+        this._neutralizeCanceledRedirections(url, el, true);
+    }
+
+    redirect (url, el, force) {
         var currentLocation = this.lastLocationValue;
 
         this.lastLocationValue = window.location.toString();
@@ -87,6 +149,23 @@ export default class RedirectWatch extends EventEmiter {
         if (url !== currentLocation && url.replace(HASH_RE, '') === currentLocation.replace(HASH_RE, ''))
             return;
 
-        this.emit(this.REDIRECT_DETECTED_EVENT, parseProxyUrl(url).destUrl);
+        if (this._neutralizeCanceledRedirections(url, el))
+            return;
+
+        var raiseDetectedEvent = () => {
+            var lastRedirect = this._takeLastRedirect();
+
+            if (lastRedirect) {
+                var parsedUrl = parseProxyUrl(lastRedirect.url);
+
+                if (parsedUrl)
+                    this.emit(this.REDIRECT_DETECTED_EVENT, parsedUrl.destUrl);
+            }
+        };
+
+        if (force)
+            raiseDetectedEvent();
+        else
+            nativeMethods.setTimeout.call(window, raiseDetectedEvent, 0);
     }
 }

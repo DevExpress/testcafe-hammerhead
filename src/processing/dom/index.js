@@ -61,6 +61,10 @@ export default class DomProcessor {
         this.elementProcessorPatterns = this._createProcessorPatterns(this.adapter);
     }
 
+    static wrapInlineEventHandler (event) {
+        return `return this.executeHandlerWrapper(event, '${ event }');`;
+    }
+
     _createProcessorPatterns (adapter) {
         var selectors = {
             HAS_HREF_ATTR: el => this.isUrlAttr(el, 'href'),
@@ -93,6 +97,8 @@ export default class DomProcessor {
 
             HAS_ONSUBMIT_HANDLER: el => adapter.hasAttr(el, 'onsubmit'),
 
+            HAS_ONCLICK_HANDLER: el => adapter.hasAttr(el, 'onclick'),
+
             IS_SANDBOXED_IFRAME: el => adapter.getTagName(el) === 'iframe' && adapter.hasAttr(el, 'sandbox'),
 
             IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR: el => {
@@ -107,7 +113,13 @@ export default class DomProcessor {
         return [
             {
                 selector:          selectors.HAS_ONSUBMIT_HANDLER,
-                elementProcessors: [this._processOnsubmitAttr]
+                event:             'onsubmit',
+                elementProcessors: [this._processEventHandler]
+            },
+            {
+                selector:          selectors.HAS_ONCLICK_HANDLER,
+                event:             'onclick',
+                elementProcessors: [this._processEventHandler]
             },
             {
                 selector:          selectors.HAS_HREF_ATTR,
@@ -238,15 +250,15 @@ export default class DomProcessor {
     }
 
     // Element processors
-    _processOnsubmitAttr (form) {
-        var storedAttr = this.getStoredAttrName('onsubmit');
-        var processed  = this.adapter.hasAttr(form, storedAttr);
-        var attrValue  = this.adapter.getAttr(form, processed ? storedAttr : 'onsubmit');
+    _processEventHandler (el, urlReplacer, pattern) {
+        var storedAttr = this.getStoredAttrName(pattern.event);
+        var processed  = this.adapter.hasAttr(el, storedAttr);
+        var attrValue  = this.adapter.getAttr(el, processed ? storedAttr : pattern.event);
 
         if (!processed)
-            this.adapter.setAttr(form, storedAttr, attrValue);
+            this.adapter.setAttr(el, storedAttr, attrValue);
 
-        this.adapter.setAttr(form, 'onsubmit', '');
+        this.adapter.setAttr(el, pattern.event, DomProcessor.wrapInlineEventHandler(pattern.event));
     }
 
     _processAutoComplete (el) {

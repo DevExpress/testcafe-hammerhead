@@ -21,6 +21,7 @@ export default class Listeners extends EventEmitter {
         super();
 
         this.EVENT_LISTENER_ATTACHED_EVENT = 'hammerhead|event|event-listener-attached';
+        this.EVENT_DEFAULT_PREVENTED       = 'hammerhead|event|default-prevented';
 
         this.listeningCtx = listeningCtx;
 
@@ -52,7 +53,9 @@ export default class Listeners extends EventEmitter {
         return el.body !== void 0 ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
     }
 
-    static _getEventListenerWrapper (eventCtx, listener) {
+    getEventListenerWrapper (eventCtx, listener, isInlineHandler) {
+        var listeners = this;
+
         return function (e) {
             var isIEServiceHandler = listener.toString() === '[object FunctionWrapper]';
 
@@ -66,10 +69,21 @@ export default class Listeners extends EventEmitter {
             if (typeof eventCtx.outerHandlersWrapper === 'function')
                 return eventCtx.outerHandlersWrapper.call(this, e, listener);
 
-            if (isObjectEventListener(listener))
-                return listener.handleEvent.call(listener, e);
+            var result = void 0;
 
-            return listener.call(this, e);
+            if (isObjectEventListener(listener))
+                result = listener.handleEvent(e);
+            else if (typeof listener === 'function')
+                result = listener.call(this, e);
+
+            if (e.defaultPrevented || isInlineHandler && result === false) {
+                listeners.emit(listeners.EVENT_DEFAULT_PREVENTED, {
+                    evt: e,
+                    el:  this
+                });
+            }
+
+            return result;
         };
     }
 
@@ -143,7 +157,7 @@ export default class Listeners extends EventEmitter {
                 if (!isDifferentHandler)
                     return null;
 
-                var wrapper = Listeners._getEventListenerWrapper(eventListeningInfo, listener);
+                var wrapper = listeners.getEventListenerWrapper(eventListeningInfo, listener);
 
                 listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
 
