@@ -33,6 +33,12 @@ if (window.FontFace) {
 
         return new FontFace('family', 'url("' + url + '")', desc);
     });
+
+    test('should work with the operator "instanceof" (GH-690)', function () {
+        var fontFace = new FontFace('family', 'url("someUrl")', {});
+
+        ok(fontFace instanceof window.FontFace);
+    });
 }
 
 test('parameters passed to the native function in its original form', function () {
