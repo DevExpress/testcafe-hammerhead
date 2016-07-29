@@ -1,14 +1,28 @@
-/*global Document, Window */
+import * as nativeMethodEtalons from './native-methods/etalons';
+
 class NativeMethods {
     constructor (doc, win) {
-        this.refreshDocumentMeths(doc);
-        this.refreshElementMeths(doc, win);
-        this.refreshWindowMeths(win);
+        this.refresh(doc, win);
     }
 
-    refreshDocumentMeths (doc) {
-        doc = doc || document;
+    _tryToExecuteCode (func) {
+        try {
+            return func();
+        }
+        catch (e) {
+            return true;
+        }
+    }
 
+    _needToUpdateWindowMeths (wnd) {
+        return this._tryToExecuteCode(() => {
+            this.setTimeout.call(wnd, () => void 0, 0);
+
+            return wnd.XMLHttpRequest.prototype.open.toString() === this.xmlHttpRequestOpen.toString();
+        });
+    }
+
+    _refreshDocumentMeths (doc) {
         var docProto = doc.constructor.prototype;
 
         // Dom
@@ -33,9 +47,7 @@ class NativeMethods {
         this.documentRemoveEventListener = doc.removeEventListener || docProto.removeEventListener;
     }
 
-    refreshElementMeths (doc, win) {
-        win = win || window;
-
+    _refreshElementMeths (doc, win) {
         var createElement = tagName => this.createElement.call(doc || document, tagName);
         var nativeElement = createElement('div');
 
@@ -78,8 +90,7 @@ class NativeMethods {
         this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;
     }
 
-    refreshWindowMeths (win) {
-        win = win || window;
+    _refreshWindowMeths (win) {
         // Dom
         this.eval                             = win.eval;
         this.formSubmit                       = win.HTMLFormElement.prototype.submit;
@@ -146,10 +157,10 @@ class NativeMethods {
         this.date    = win.Date;
         this.dateNow = win.Date.now;
 
-        this.refreshClasses(win);
+        this._refreshClasses(win);
     }
 
-    refreshClasses (win) {
+    _refreshClasses (win) {
         var mock = () => null;
 
         this.windowClass      = win.Window || mock;
@@ -167,6 +178,18 @@ class NativeMethods {
         this.StorageEvent     = win.StorageEvent || mock;
         this.MutationObserver = win.MutationObserver || mock;
         this.EventSource      = win.EventSource || mock;
+    }
+
+    refresh (doc, win) {
+        doc = doc || document;
+        win = win || window;
+
+        if (!nativeMethodEtalons.isDocumentMethsOverriden(doc, win))
+            this._refreshDocumentMeths(doc);
+        if (!nativeMethodEtalons.isElementMethsOverriden(doc, win))
+            this._refreshElementMeths(doc, win);
+        if (!nativeMethodEtalons.isWindowMethsOverriden(doc, win))
+            this._refreshWindowMeths(win);
     }
 
     restoreDocumentMeths (document) {

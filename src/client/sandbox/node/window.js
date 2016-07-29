@@ -1,4 +1,3 @@
-/*global history, navigator*/
 import SandboxBase from '../base';
 import ShadowUI from '../shadow-ui';
 import CodeInstrumentation from '../code-instrumentation';

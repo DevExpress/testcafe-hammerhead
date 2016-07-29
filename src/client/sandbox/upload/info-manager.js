@@ -1,4 +1,3 @@
-/*global atob, Blob, FileReader*/
 import COMMAND from '../../../session/command';
 import FileListWrapper from './file-list-wrapper';
 import nativeMethods from '../native-methods';

@@ -112,8 +112,7 @@ export function getIframeLocation (iframe) {
         documentLocation = null;
     }
 
-    var srcLocation = nativeMethods.getAttribute.call(iframe, 'src' + INTERNAL_ATTRS.storedAttrPostfix) ||
-                      nativeMethods.getAttribute.call(iframe, 'src') || iframe.src;
+    var srcLocation = iframe['src' + INTERNAL_ATTRS.storedAttrPostfix] || iframe.src;
 
     var parsedProxyDocumentLocation = documentLocation && urlUtils.isSupportedProtocol(documentLocation) &&
                                       urlUtils.parseProxyUrl(documentLocation);
