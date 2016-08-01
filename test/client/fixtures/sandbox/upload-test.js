@@ -764,3 +764,13 @@ if (browserUtils.isIE) {
         eventSimulator.click(fileInput);
     });
 }
+
+if (window.FileList) {
+    test('the "instanceof FileList" operation works correctly with FileListWrapper instances (GH-689)', function () {
+        var input = document.createElement('input');
+
+        input.type = 'file';
+
+        ok(getProperty(input, 'files') instanceof FileList);
+    });
+}
