@@ -91,8 +91,6 @@ export default class DomProcessor {
 
             HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
 
-            HAS_ONSUBMIT_HANDLER: el => adapter.hasAttr(el, 'onsubmit'),
-
             IS_SANDBOXED_IFRAME: el => adapter.getTagName(el) === 'iframe' && adapter.hasAttr(el, 'sandbox'),
 
             IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR: el => {
@@ -105,10 +103,6 @@ export default class DomProcessor {
         };
 
         return [
-            {
-                selector:          selectors.HAS_ONSUBMIT_HANDLER,
-                elementProcessors: [this._processOnsubmitAttr]
-            },
             {
                 selector:          selectors.HAS_HREF_ATTR,
                 urlAttr:           'href',
@@ -188,7 +182,7 @@ export default class DomProcessor {
 
     // Utils
     getElementResourceType (el) {
-        var tagName = this.adapter.getTagName(el);
+        var tagName  = this.adapter.getTagName(el);
 
         return urlUtils.getResourceTypeString({
             isIframe: tagName === 'iframe' || this._isOpenLinkInIframe(el),
@@ -238,17 +232,6 @@ export default class DomProcessor {
     }
 
     // Element processors
-    _processOnsubmitAttr (form) {
-        var storedAttr = this.getStoredAttrName('onsubmit');
-        var processed  = this.adapter.hasAttr(form, storedAttr);
-        var attrValue  = this.adapter.getAttr(form, processed ? storedAttr : 'onsubmit');
-
-        if (!processed)
-            this.adapter.setAttr(form, storedAttr, attrValue);
-
-        this.adapter.setAttr(form, 'onsubmit', '');
-    }
-
     _processAutoComplete (el) {
         var storedUrlAttr = this.getStoredAttrName('autocomplete');
         var processed     = this.adapter.hasAttr(el, storedUrlAttr);

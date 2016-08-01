@@ -9,27 +9,23 @@ import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
 import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
-import { stopPropagation, preventDefault } from '../../utils/event';
+import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
 import transport from '../../transport';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 
-const KEYWORD_TARGETS                = ['_blank', '_self', '_parent', '_top'];
-const ORIGIN_ONSUBMIT_PROPERTY_VALUE = 'hammerhead|origin-onsubmit-property-value';
-const WAITING_FOR_RESUBMIT           = 'hammerhead|waiting-for-resubmit';
+const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
 export default class ElementSandbox extends SandboxBase {
-    constructor (nodeSandbox, listeners, uploadSandbox, iframeSandbox, shadowUI, eventSimulator) {
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
         super();
 
-        this.nodeSandbox    = nodeSandbox;
-        this.shadowUI       = shadowUI;
-        this.uploadSandbox  = uploadSandbox;
-        this.iframeSandbox  = iframeSandbox;
-        this.listeners      = listeners;
-        this.eventSimulator = eventSimulator;
+        this.nodeSandbox   = nodeSandbox;
+        this.shadowUI      = shadowUI;
+        this.uploadSandbox = uploadSandbox;
+        this.iframeSandbox = iframeSandbox;
 
         this.overridedMethods = null;
 
@@ -173,7 +169,7 @@ export default class ElementSandbox extends SandboxBase {
                 return null;
 
             if (!ElementSandbox._isKeywordTarget(value) && !windowsStorage.findByName(value)) {
-                value            = '_self';
+                value = '_self';
                 args[valueIndex] = value;
             }
 
@@ -205,11 +201,6 @@ export default class ElementSandbox extends SandboxBase {
                 args[valueIndex] = urlUtils.getProxyUrl(value);
         }
 
-        if (attr === 'onsubmit' && value)
-        /*eslint-disable no-new-func */
-            this.setOnsubmit(el, Function('event', value));
-        /*eslint-enable no-new-func */
-
         return setAttrMeth.apply(el, args);
     }
 
@@ -233,12 +224,10 @@ export default class ElementSandbox extends SandboxBase {
         if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        var result = attr !== 'autocomplete' ? removeAttrFunc.apply(el, args) : void 0;
+        if (attr !== 'autocomplete')
+            return removeAttrFunc.apply(el, args);
 
-        if (attr === 'onsubmit' && el.onsubmit === null)
-            this.setOnsubmit(el, null);
-
-        return result;
+        return void 0;
     }
 
     _prepareNodeForInsertion (node, parentNode) {
@@ -543,92 +532,6 @@ export default class ElementSandbox extends SandboxBase {
         }, false);
     }
 
-    _refreshOnsubmitWrapper (form) {
-        var handler                 = null;
-        var storedOnsubmitAttrValue = nativeMethods.getAttribute.call(form, domProcessor.getStoredAttrName('onsubmit'));
-
-        /*eslint-disable no-new-func */
-        if (storedOnsubmitAttrValue)
-            handler = Function('event', storedOnsubmitAttrValue);
-        else
-            handler = form[ORIGIN_ONSUBMIT_PROPERTY_VALUE];
-        /*eslint-enable no-new-func */
-
-        this.setOnsubmit(form, handler);
-    }
-
-    _createSubmitButton () {
-        var button = nativeMethods.createElement.call(this.document, 'input');
-
-        button.type = 'submit';
-        this.listeners.initElementListening(button, ['click']);
-        this.listeners.addInternalEventListener(button, ['click'], stopPropagation);
-
-        return button;
-    }
-
-    _resubmitForm (form) {
-        var tempSubmitButton = this._createSubmitButton();
-
-        nativeMethods.appendChild.call(form, tempSubmitButton);
-
-        window.setTimeout(() => {
-            this.eventSimulator.click(tempSubmitButton);
-            nativeMethods.removeChild.call(form, tempSubmitButton);
-        }, 0);
-    }
-
-    _processForm (form) {
-        // NOTE: Here we assign a handler that will be called first. The subsequent handlers added through
-        // addEventListener can cancel the submitting by using the preventDefault() method. The onsubmit event
-        // handlers can also do this by returning false. To track if the submit is actually cancelled, we need
-        // to add a handler that is guaranteed to be executed last, at the moment when we know the fate of the
-        // submit. To do this, we assign a new handler from within the first one, so that this new handler is
-        // guaranteed to be called last. Unfortunately, it will not be called in the context of the current submit,
-        // so we interrupt the current submit and send a new one.
-        this.listeners.initElementListening(form, ['submit']);
-        this.listeners.addInternalEventListener(form, ['submit'], e => {
-            if (!form[WAITING_FOR_RESUBMIT]) {
-                form[WAITING_FOR_RESUBMIT] = true;
-
-                stopPropagation(e);
-                preventDefault(e);
-
-                this._refreshOnsubmitWrapper(form);
-                this._resubmitForm(form);
-            }
-            else
-                form[WAITING_FOR_RESUBMIT] = false;
-        });
-    }
-
-    _createOnsubmitWrapper (form, originHandler) {
-        return e => {
-            if (originHandler && typeof originHandler === 'function') {
-                var result = originHandler(e);
-
-                if (result !== false && !e.defaultPrevented)
-                    this.emit(this.BEFORE_FORM_SUBMIT, { form: form });
-
-                return result;
-            }
-
-            if (!e.defaultPrevented)
-                this.emit(this.BEFORE_FORM_SUBMIT, { form: form });
-
-            return void 0;
-        };
-    }
-
-    getOnsubmit (form) {
-        return ORIGIN_ONSUBMIT_PROPERTY_VALUE in form ? form[ORIGIN_ONSUBMIT_PROPERTY_VALUE] : form.onsubmit;
-    }
-
-    setOnsubmit (form, handler) {
-        form[ORIGIN_ONSUBMIT_PROPERTY_VALUE] = handler;
-        form.onsubmit                        = this._createOnsubmitWrapper(form, form[ORIGIN_ONSUBMIT_PROPERTY_VALUE]);
-    }
-
     processElement (el) {
         if (domUtils.isImgElement(el))
             this._setProxiedSrcUrlOnError(el);
@@ -636,7 +539,5 @@ export default class ElementSandbox extends SandboxBase {
             this.iframeSandbox.processIframe(el);
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href')), this.document);
-        else if (domUtils.isFormElement(el))
-            this._processForm(el);
     }
 }

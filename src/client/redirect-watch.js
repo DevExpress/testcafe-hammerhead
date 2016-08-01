@@ -1,70 +1,55 @@
 import EventEmiter from './utils/event-emitter';
 import { parseProxyUrl } from '../utils/url';
-import { isShadowUIElement, isAnchorElement } from './utils/dom';
+import { isShadowUIElement } from './utils/dom';
 import ElementSandbox from './sandbox/node/element';
 import * as windowsStorage from './sandbox/windows-storage';
 import domProcessor from './dom-processor/index';
-import nativeMethods from './sandbox/native-methods';
 
 const HASH_RE = /#.*$/;
 
 export default class RedirectWatch extends EventEmiter {
-    constructor (listeners, codeInstrumentation, elementSandbox) {
+    constructor (codeInstrumentation, eventSandbox) {
         super();
 
-        this.REDIRECT_DETECTED_EVENT = 'hammerhead|event|redirect-detected';
+        this.DETECTED_EVENT = 'hammerhead|event|redirect-detected';
 
-        this.lastLocationValue = window.location.toString();
-
-        this._locationWatch(codeInstrumentation);
-        this._linkWatch(listeners);
-        this._formWatch(elementSandbox);
+        this.codeInstrumentation = codeInstrumentation;
+        this.eventSandbox        = eventSandbox;
     }
 
-    _formWatch (elementSandbox) {
-        elementSandbox.on(elementSandbox.BEFORE_FORM_SUBMIT, e => {
-            var targetWindow = this._getTargetWindow(e.form);
-
-            this._redirectWindow(targetWindow, e.form.action);
-        });
+    init () {
+        this._locationWatch(this.codeInstrumentation);
+        this._linkClickWatch(this.eventSandbox);
     }
 
-    _redirectWindow (window, url) {
-        try {
-            window['%hammerhead%'].redirectWatch.redirect(url);
-        }
-            /*eslint-disable no-empty */
-        catch (e) {
-        }
-        /*eslint-enable no-empty */
+    redirect (url) {
+        this.emit(this.DETECTED_EVENT, parseProxyUrl(url).destUrl);
     }
 
-    _getTargetWindow (el) {
-        var targetWindow = window;
-        var target       = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target')) ||
-                           nativeMethods.getAttribute.call(el, 'target');
-
-        if (target) {
-            if (!ElementSandbox._isKeywordTarget(target))
-                targetWindow = windowsStorage.findByName(target) || window;
-            else if (target === '_top')
-                targetWindow = window.top;
-            else if (target === '_parent')
-                targetWindow = window.parent;
-        }
-
-        return targetWindow;
-    }
-
-    _linkWatch (listeners) {
-        listeners.initElementListening(window, ['click']);
-        listeners.addInternalEventListener(window, ['click'], e => {
+    _linkClickWatch (eventSandbox) {
+        eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
             var link = e.target;
 
-            if (isAnchorElement(link) && !isShadowUIElement(link)) {
-                var targetWindow = this._getTargetWindow(link);
+            if (link.tagName && link.tagName.toLowerCase() === 'a' && !isShadowUIElement(link)) {
+                var target       = link.getAttribute(domProcessor.getStoredAttrName('target')) ||
+                                   link.getAttribute('target');
+                var targetWindow = window;
 
-                this._redirectWindow(targetWindow, link.href);
+                if (target) {
+                    if (!ElementSandbox._isKeywordTarget(target))
+                        targetWindow = windowsStorage.findByName(target) || window;
+                    else if (target === '_top')
+                        targetWindow = window.top;
+                    else if (target === '_parent')
+                        targetWindow = window.parent;
+                }
+                try {
+                    targetWindow['%hammerhead%'].redirectWatch.redirect(link.href);
+                }
+                    /*eslint-disable no-empty */
+                catch (ex) {
+                }
+                /*eslint-enable no-empty */
             }
         });
     }
@@ -72,21 +57,20 @@ export default class RedirectWatch extends EventEmiter {
     _locationWatch (codeInstrumentation) {
         var locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
         var propertyAccessorsInstrumentation = codeInstrumentation.propertyAccessorsInstrumentation;
+        var lastLocationValue                = window.location.toString();
+        var locationChangedHandler           = newLocation => {
+            var currentLocation = lastLocationValue;
 
-        var locationChangedHandler = newLocation => this.redirect(newLocation);
+            lastLocationValue = window.location.toString();
+
+            if (newLocation !== currentLocation &&
+                newLocation.replace(HASH_RE, '') === currentLocation.replace(HASH_RE, ''))
+                return;
+
+            this.redirect(newLocation);
+        };
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
         propertyAccessorsInstrumentation.on(propertyAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
-    }
-
-    redirect (url) {
-        var currentLocation = this.lastLocationValue;
-
-        this.lastLocationValue = window.location.toString();
-
-        if (url !== currentLocation && url.replace(HASH_RE, '') === currentLocation.replace(HASH_RE, ''))
-            return;
-
-        this.emit(this.REDIRECT_DETECTED_EVENT, parseProxyUrl(url).destUrl);
     }
 }

@@ -8,13 +8,13 @@ import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
 
 export default class CodeInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox, nodeSandbox) {
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
         super();
 
         this.methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
         this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation();
         this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(nodeMutation, eventSandbox,
-            cookieSandbox, uploadSandbox, shadowUI, storageSandbox, nodeSandbox.element);
+            cookieSandbox, uploadSandbox, shadowUI, storageSandbox);
         this.storagesAccessorsInstrumentation = new StoragesAccessorsInstrumentation(storageSandbox);
     }
 
