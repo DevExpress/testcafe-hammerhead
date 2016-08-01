@@ -1,10 +1,15 @@
 export default class FileListWrapper {
     constructor (fileList) {
-        this.length = fileList.length;
-        this.item   = index => this[index];
+        Object.defineProperty(this, 'length', {
+            get: () => fileList.length
+        });
 
         for (var i = 0; i < fileList.length; i++)
             this[i] = FileListWrapper._createFileWrapper(fileList[i]);
+    }
+
+    item (index) {
+        return this[index];
     }
 
     static _base64ToBlob (base64Data, mimeType, sliceSize) {
@@ -48,3 +53,6 @@ export default class FileListWrapper {
         return wrapper;
     }
 }
+
+if (window.FileList)
+    FileListWrapper.prototype = FileList.prototype;
