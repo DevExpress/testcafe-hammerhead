@@ -11,7 +11,7 @@ import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
-import { HASH_RE } from '../../../../utils/url';
+import { getResourceTypeString, HASH_RE } from '../../../../utils/url';
 import { isStyle, isStyleSheet } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAnchorProperty, setAnchorProperty } from './anchor';
@@ -30,8 +30,6 @@ const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-erro
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
         super();
-
-        this.LOCATION_CHANGED_EVENT = 'hammerhead|event|location-changed';
 
         this.nodeMutation          = nodeMutation;
         this.messageSandbox        = eventSandbox.message;
@@ -390,14 +388,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 set: (owner, location) => {
                     if (typeof location === 'string') {
-                        var ownerWindow = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                        if (window.self !== window.top)
+                            location = destLocation.resolveUrl(location, window.top.document);
 
-                        var locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
+                        var ownerWindow  = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                        var resourceType = getResourceTypeString({ isIframe: ownerWindow !== window.top });
 
-                        if (locationWrapper)
-                            locationWrapper.href = location;
-                        else
-                            owner.location = location;
+                        owner.location = urlUtils.getProxyUrl(location, null, null, null, resourceType);
 
                         return location;
                     }
@@ -729,7 +726,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 return owner[propName];
             },
-
             configurable: true
         });
 
@@ -746,7 +742,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 return owner[propName] = value;
                 /* eslint-enable no-return-assign */
             },
-
             configurable: true
         });
 

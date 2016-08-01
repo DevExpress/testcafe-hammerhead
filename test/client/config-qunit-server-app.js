@@ -1,13 +1,10 @@
 var urlParser = require('url');
-var fs        = require('fs');
-
-var unchangeableUrlSession = 'unchangeableUrlSession';
 
 // NOTE: Url rewrite proxied requests (e.g. for iframes), so they will hit our server.
 function urlRewriteProxyRequest (req, res, next) {
     var proxiedUrlPartRegExp = /^\/\S+?\/(https?:)/;
 
-    if (proxiedUrlPartRegExp.test(req.url) && req.url.indexOf(unchangeableUrlSession) === -1) {
+    if (proxiedUrlPartRegExp.test(req.url)) {
         // NOTE: Store the destination URL so we can send it back for testing purposes (see GET xhr-test route).
         req.originalUrl = req.url;
 
@@ -29,10 +26,6 @@ function urlRewriteProxyRequest (req, res, next) {
 
 module.exports = function (app) {
     app.use(urlRewriteProxyRequest);
-
-    app.get('/' + unchangeableUrlSession + '!i/*', function (req, res) {
-        res.send(fs.readFileSync('./test/client/data/redirect-watch/location-subject.html').toString());
-    });
 
     app.get('/xhr-large-response', function (req, res) {
         var data = new Array(1000);
@@ -92,6 +85,6 @@ module.exports = function (app) {
     });
 
     app.all('/echo-request-headers', function (req, res) {
-        res.json(req.headers);
+       res.json(req.headers);
     });
 };
