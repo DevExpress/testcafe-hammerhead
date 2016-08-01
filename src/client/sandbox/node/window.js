@@ -127,13 +127,15 @@ export default class WindowSandbox extends SandboxBase {
             window.FontFace.prototype = nativeMethods.FontFace.prototype;
         }
 
-        window.Worker = scriptURL => {
-            if (typeof scriptURL === 'string')
-                scriptURL = getProxyUrl(scriptURL);
+        if (window.Worker) {
+            window.Worker = scriptURL => {
+                if (typeof scriptURL === 'string')
+                    scriptURL = getProxyUrl(scriptURL);
 
-            return new nativeMethods.Worker(scriptURL);
-        };
-        window.Worker.prototype = nativeMethods.Worker.prototype;
+                return new nativeMethods.Worker(scriptURL);
+            };
+            window.Worker.prototype = nativeMethods.Worker.prototype;
+        }
 
         if (window.Blob) {
             window.Blob = function (parts, opts) {

@@ -25,6 +25,12 @@ test('window.Worker should be overridden', function () {
     notEqual(window.Worker, nativeMethods.Worker);
 });
 
+if (browserUtils.isIE9) {
+    test('should not create the window.Worker property in IE9', function () {
+        ok(!window.Worker);
+    });
+}
+
 if (!browserUtils.isIE || browserUtils.isIE11) {
     test('should work with the operator "instanceof" (GH-690)', function () {
         var blob   = new Blob(['if(true) {}'], { type: 'text/javascript' });
