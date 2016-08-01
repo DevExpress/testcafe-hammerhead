@@ -1,6 +1,5 @@
 var Listeners = hammerhead.get('./sandbox/event/listeners');
 
-var Promise       = hammerhead.Promise;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 var listeners     = hammerhead.sandbox.event.listeners;
@@ -202,76 +201,6 @@ test('add wrapper', function () {
 
 module('prevent event');
 
-asyncTest('click event was been prevented', function () {
-    var testHtml      = '<div id="parent"><div id="target"><div id="child"></div></div>';
-    var testContainer = document.createElement('div');
-    var wait          = function (target) {
-        return new Promise(function (resolve, reject) {
-            var timerId = null;
-
-            var handler = function (e) {
-                clearTimeout(timerId);
-                listeners.off(listeners.EVENT_DEFAULT_PREVENTED, handler);
-                resolve(e);
-            };
-
-            timerId = setTimeout(function () {
-                listeners.off(listeners.EVENT_DEFAULT_PREVENTED, handler);
-                reject();
-            }, 100);
-
-            listeners.on(listeners.EVENT_DEFAULT_PREVENTED, handler);
-
-            target.click();
-        });
-    };
-
-    testContainer.innerHTML = testHtml;
-    document.body.appendChild(testContainer);
-
-    var child  = document.getElementById('child');
-    var target = document.getElementById('target');
-    var parent = document.getElementById('parent');
-
-    target.addEventListener('click', function () {
-    });
-    target.addEventListener('click', function (e) {
-        e.preventDefault();
-    });
-    target.addEventListener('click', function () {
-    });
-
-    wait(child)
-        .then(function (e) {
-            strictEqual(e.evt.target, child);
-            return wait(target);
-        })
-        .then(function (e) {
-            strictEqual(e.evt.target, target);
-            return wait(parent);
-        })
-        .catch(start);
-});
-
-asyncTest('click event was been prevented - in the window handler', function () {
-    var el           = document.createElement('div');
-    var clickHandler = function (e) {
-        e.preventDefault();
-    };
-    var handler      = function (e) {
-        strictEqual(e.evt.target, el);
-        window.removeEventListener('click', clickHandler);
-        listeners.off(listeners.EVENT_DEFAULT_PREVENTED, handler);
-        document.body.removeChild(el);
-        start();
-    };
-
-    window.addEventListener('click', clickHandler);
-    document.body.appendChild(el);
-    listeners.on(listeners.EVENT_DEFAULT_PREVENTED, handler);
-    el.click();
-});
-
 test('preventer added before listener', function () {
     var event              = 'click';
     var preventEventRaised = false;
@@ -404,7 +333,7 @@ test('ie service handlers should be ignored (GH-379)', function () {
         }
     };
 
-    var listenerWrapper = listeners.getEventListenerWrapper({}, ieServiceHandlerMock);
+    var listenerWrapper = Listeners._getEventListenerWrapper({}, ieServiceHandlerMock);
 
     strictEqual(listenerWrapper(), null);
 });
@@ -725,7 +654,7 @@ asyncTest('dispatchEvent, fireEvent, click', function () {
                 ok(!window[dispatchedEventFlag]);
             };
 
-            targetListeners.afterDispatchEvent = function (el) {
+            targetListeners.afterDispatchEvent  = function (el) {
                 ok(iframe.contentWindow[dispatchedEventFlag]);
                 ok(!window[dispatchedEventFlag]);
 

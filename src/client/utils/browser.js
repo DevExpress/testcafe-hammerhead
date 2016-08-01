@@ -48,14 +48,3 @@ export var isMacPlatform     = /^Mac/.test(navigator.platform);
 // NOTE: We need to check touch points only for IE, because it has PointerEvent and MSPointerEvent (IE10, IE11)
 // instead of TouchEvent (T109295).
 export var isTouchDevice = hasTouchEvents || isIE && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
-
-// inlineHandlerResetsAfterAttrRemoving
-var form = document.createElement('form');
-
-form.onsubmit = function () {
-    return false;
-};
-form.setAttribute('onsubmit', 'return true;');
-form.removeAttribute('onsubmit');
-
-export var inlineHandlerResetsAfterAttrRemoving = !form.onsubmit;

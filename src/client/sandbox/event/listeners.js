@@ -21,7 +21,6 @@ export default class Listeners extends EventEmitter {
         super();
 
         this.EVENT_LISTENER_ATTACHED_EVENT = 'hammerhead|event|event-listener-attached';
-        this.EVENT_DEFAULT_PREVENTED       = 'hammerhead|event|default-prevented';
 
         this.listeningCtx = listeningCtx;
 
@@ -53,9 +52,7 @@ export default class Listeners extends EventEmitter {
         return el.body !== void 0 ? nativeMethods.documentRemoveEventListener : nativeMethods.removeEventListener;
     }
 
-    getEventListenerWrapper (eventCtx, listener, isInlineHandler) {
-        var listeners = this;
-
+    static _getEventListenerWrapper (eventCtx, listener) {
         return function (e) {
             var isIEServiceHandler = listener.toString() === '[object FunctionWrapper]';
 
@@ -69,21 +66,10 @@ export default class Listeners extends EventEmitter {
             if (typeof eventCtx.outerHandlersWrapper === 'function')
                 return eventCtx.outerHandlersWrapper.call(this, e, listener);
 
-            var result = void 0;
-
             if (isObjectEventListener(listener))
-                result = listener.handleEvent(e);
-            else if (typeof listener === 'function')
-                result = listener.call(this, e);
+                return listener.handleEvent.call(listener, e);
 
-            if (e.defaultPrevented || isInlineHandler && result === false) {
-                listeners.emit(listeners.EVENT_DEFAULT_PREVENTED, {
-                    evt: e,
-                    el:  this
-                });
-            }
-
-            return result;
+            return listener.call(this, e);
         };
     }
 
@@ -157,7 +143,7 @@ export default class Listeners extends EventEmitter {
                 if (!isDifferentHandler)
                     return null;
 
-                var wrapper = listeners.getEventListenerWrapper(eventListeningInfo, listener);
+                var wrapper = Listeners._getEventListenerWrapper(eventListeningInfo, listener);
 
                 listeningCtx.wrapEventListener(eventListeningInfo, listener, wrapper, useCapture);
 

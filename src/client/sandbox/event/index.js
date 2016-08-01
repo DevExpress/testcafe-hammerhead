@@ -181,7 +181,7 @@ export default class EventSandbox extends SandboxBase {
 
         this.initDocumentListening();
 
-        this.listeners.initElementListening(window, DOM_EVENTS.concat(['beforeunload', 'pagehide', 'unload', 'message', 'submit']));
+        this.listeners.initElementListening(window, DOM_EVENTS.concat(['beforeunload', 'pagehide', 'unload', 'message']));
 
         this.listeners.addInternalEventListener(window, ['focus'], this.onFocus);
         this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change'], this.cancelInternalEvents);

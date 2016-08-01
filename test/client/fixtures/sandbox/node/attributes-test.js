@@ -33,7 +33,7 @@ if (!browserUtils.isIE || browserUtils.version !== 11) {
 
             var onsubmit = getProperty(form, 'onsubmit');
 
-            strictEqual(onsubmit ? onsubmit.call(form, {}) : onsubmit, etalon.onsubmit ? etalon.onsubmit() : etalon.onsubmit);
+            strictEqual(onsubmit ? onsubmit() : onsubmit, etalon.onsubmit ? etalon.onsubmit() : etalon.onsubmit);
         };
 
         check();
@@ -62,55 +62,7 @@ if (!browserUtils.isIE || browserUtils.version !== 11) {
         etalon.onsubmit = null;
         check();
     });
-
-    test('onclick', function () {
-        var etalon     = nativeMethods.createElement.call(document, 'div');
-        var el         = document.createElement('div');
-        var check      = function () {
-            strictEqual(el.getAttribute('onclick'), nativeMethods.getAttribute.call(etalon, 'onclick'));
-
-            var onclick = getProperty(el, 'onclick');
-
-            strictEqual(onclick ? onclick.call(el, {}) : onclick, etalon.onclick ? etalon.onclick() : etalon.onclick);
-        };
-
-        check();
-
-        el.setAttribute('onclick', 'return 1;');
-        nativeMethods.setAttribute.call(etalon, 'onclick', 'return 1;');
-        check();
-
-        setProperty(el, 'onclick', function () {
-            return 3;
-        });
-        etalon.onclick = function () {
-            return 3;
-        };
-        check();
-
-        el.removeAttribute('onclick');
-        nativeMethods.removeAttribute.call(etalon, 'onclick');
-        check();
-
-        el.setAttribute('onclick', 'return 2;');
-        nativeMethods.setAttribute.call(etalon, 'onclick', 'return 2;');
-        check();
-
-        setProperty(el, 'onclick', null);
-        etalon.onclick = null;
-        check();
-    });
 }
-
-test('onclick - javascript protocol', function () {
-    var link = document.createElement('a');
-
-    document.body.appendChild(link);
-    link.setAttribute('onclick', 'javascript:window.onclickTest = true;');
-    link.click();
-    ok(window.onclickTest);
-    document.body.removeChild(link);
-});
 
 test('url', function () {
     var testUrlAttr = function (tagName, attr) {
@@ -348,34 +300,34 @@ test('target', function () {
     }
 });
 
-test('onselect', function () {
+test('onclick', function () {
     var link      = document.createElement('a');
     var attrValue = 'location.href="managers.aspx";';
 
-    link.setAttribute('onselect', attrValue);
+    link.setAttribute('onclick', attrValue);
 
-    var attr       = nativeMethods.getAttribute.call(link, 'onselect');
-    var storedAttr = nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('onselect'));
+    var attr       = nativeMethods.getAttribute.call(link, 'onclick');
+    var storedAttr = nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('onclick'));
 
     notEqual(attr, storedAttr);
     strictEqual(storedAttr, attrValue);
     strictEqual(attr, processScript(attrValue));
-    strictEqual(link.getAttribute('onselect'), attrValue);
+    strictEqual(link.getAttribute('onclick'), attrValue);
 });
 
 test('event - javascript protocol', function () {
     var link      = document.createElement('a');
     var attrValue = 'javascript:location.href="managers.aspx";';
 
-    link.setAttribute('onselect', attrValue);
+    link.setAttribute('onclick', attrValue);
 
-    var attr       = nativeMethods.getAttribute.call(link, 'onselect');
-    var storedAttr = nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('onselect'));
+    var attr       = nativeMethods.getAttribute.call(link, 'onclick');
+    var storedAttr = nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('onclick'));
 
     notEqual(attr, storedAttr);
     strictEqual(storedAttr, attrValue);
     strictEqual(attr, 'javascript:' + processScript(attrValue.replace('javascript:', '')));
-    strictEqual(link.getAttribute('onselect'), attrValue);
+    strictEqual(link.getAttribute('onclick'), attrValue);
 });
 
 test('url - javascript: protocol', function () {
