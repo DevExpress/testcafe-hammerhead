@@ -318,8 +318,8 @@ if (browserUtils.isIE) {
 
 if (!browserUtils.isFirefox) {
     asyncTest('window event should not be undefined inside iframe handler (B254199)', function () {
-        var src    = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
-        var iframe = document.createElement('iframe');
+        var src      = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+        var iframe   = document.createElement('iframe');
 
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
@@ -354,36 +354,25 @@ if (!browserUtils.isFirefox) {
         document.body.appendChild(iframe);
     });
 
-    asyncTest('"submit" should bubble (GH-318)', function () {
-        expect(0);
-
-        var form = document.createElement('form');
-
-        form.setAttribute('onsubmit', 'return false;');
-        document.body.appendChild(form);
-
-        function eventHandler () {
-            window.removeEventListener('submit', eventHandler);
-            start();
-        }
-
-        window.addEventListener('submit', eventHandler);
-        eventSimulator.submit(form);
-    });
-
-    test('"input" and "change" should bubble; "focus", "blur", "selectionchange" should not (GH-318)', function () {
+    test('"submit","input" and "change" should bubble; "focus", "blur", "selectionchange" should not (GH-318)', function () {
         var $input = $('<input>')
+            .appendTo('body');
+
+        var $form = $('<form>')
             .appendTo('body');
 
         var firedEvents = {};
 
-        var eventTypes = ['focus', 'blur', 'input', 'change', 'selectionchange'];
+        var eventTypes = ['focus', 'blur', 'input', 'change', 'selectionchange', 'submit'];
 
         function eventHandler (e) {
             firedEvents[e.type] = true;
         }
 
         function getEventTarget (eventType) {
+            if (eventType === 'submit')
+                return $form[0];
+
             if (eventType === 'selectionchange')
                 return window.document;
 
@@ -399,10 +388,12 @@ if (!browserUtils.isFirefox) {
         });
 
         $input.remove();
+        $form.remove();
 
         deepEqual(firedEvents, {
             input:  true,
-            change: true
+            change: true,
+            submit: true
         });
     });
 }

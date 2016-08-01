@@ -11,7 +11,7 @@ import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all
 const ATTRIBUTE_SELECTOR_REG_EX = /\[([\w-]+)(\^?=.+?)]/g;
 
 export default class NodeSandbox extends SandboxBase {
-    constructor (listeners, nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
+    constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
         super();
 
         this.raiseBodyCreatedEvent = this._onBodyCreated;
@@ -29,7 +29,7 @@ export default class NodeSandbox extends SandboxBase {
 
         this.doc     = new DocumentSandbox(this);
         this.win     = new WindowSandbox(this, eventSandbox.message);
-        this.element = new ElementSandbox(this, listeners, uploadSandbox, iframeSandbox, shadowUI, eventSandbox.eventSimulator);
+        this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI);
     }
 
     _onBodyCreated () {
@@ -105,7 +105,7 @@ export default class NodeSandbox extends SandboxBase {
 
         return selector.replace(ATTRIBUTE_SELECTOR_REG_EX, (str, name, operatorWithValue) => {
             if (domProcessor.URL_ATTRS.indexOf(name) !== -1) {
-                name = domProcessor.getStoredAttrName(name);
+                name  = domProcessor.getStoredAttrName(name);
 
                 return '[' + name + operatorWithValue + ']';
             }

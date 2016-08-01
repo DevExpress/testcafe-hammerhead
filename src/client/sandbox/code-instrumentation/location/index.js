@@ -2,16 +2,13 @@ import LocationWrapper from './wrapper';
 import SandboxBase from '../../base';
 import { isLocation } from '../../../utils/dom';
 import INSTRUCTION from '../../../../processing/script/instruction';
+import * as destLocation from '../../../utils/destination-location';
+import { getResourceTypeString } from '../../../../utils/url';
+import * as urlUtils from '../../../utils/url';
 
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 
 export default class LocationAccessorsInstrumentation extends SandboxBase {
-    constructor () {
-        super();
-
-        this.LOCATION_CHANGED_EVENT = 'hammerhead|event|location-changed';
-    }
-
     static isLocationWrapper (obj) {
         return obj instanceof LocationWrapper;
     }
@@ -33,8 +30,6 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
 
         var locationWrapper = new LocationWrapper(window);
 
-        locationWrapper.on(locationWrapper.CHANGED_EVENT, e => this.emit(this.LOCATION_CHANGED_EVENT, e));
-
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         Object.defineProperty(window, LOCATION_WRAPPER, {
@@ -51,15 +46,20 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
         });
         Object.defineProperty(window, INSTRUCTION.setLocation, {
             value: (location, value) => {
-                if (isLocation(location) && typeof value === 'string') {
-                    locationWrapper.href = value;
+                if (isLocation(location)) {
+                    var resourceType = null;
 
-                    return value;
+                    if (window !== window.top) {
+                        value        = destLocation.resolveUrl(value, window.top.document);
+                        resourceType = getResourceTypeString({ isIframe: true });
+                    }
+
+                    window.location = urlUtils.getProxyUrl(value, null, null, null, resourceType);
+
+                    return window.location;
                 }
-
                 return null;
             },
-
             configurable: true
         });
     }

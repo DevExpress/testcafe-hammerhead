@@ -1,12 +1,9 @@
-import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import SandboxBase from '../base';
 import NodeSandbox from '../node/index';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
-import DomProcessor from '../../../processing/dom';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
-import * as listeningCtx from '../event/listening-context';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
@@ -18,25 +15,21 @@ import transport from '../../transport';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
-import { inlineHandlerResetsAfterAttrRemoving } from '../../utils/browser';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
 export default class ElementSandbox extends SandboxBase {
-    constructor (nodeSandbox, listeners, uploadSandbox, iframeSandbox, shadowUI, eventSimulator) {
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
         super();
 
-        this.nodeSandbox    = nodeSandbox;
-        this.shadowUI       = shadowUI;
-        this.uploadSandbox  = uploadSandbox;
-        this.iframeSandbox  = iframeSandbox;
-        this.listeners      = listeners;
-        this.eventSimulator = eventSimulator;
+        this.nodeSandbox   = nodeSandbox;
+        this.shadowUI      = shadowUI;
+        this.uploadSandbox = uploadSandbox;
+        this.iframeSandbox = iframeSandbox;
 
         this.overridedMethods = null;
 
         this.BEFORE_FORM_SUBMIT = 'hammerhead|event|before-form-submit';
-        this.LINK_CLICKED       = 'hammerhead|event|link-clicked';
     }
 
     static _isKeywordTarget (value) {
@@ -176,7 +169,7 @@ export default class ElementSandbox extends SandboxBase {
                 return null;
 
             if (!ElementSandbox._isKeywordTarget(value) && !windowsStorage.findByName(value)) {
-                value            = '_self';
+                value = '_self';
                 args[valueIndex] = value;
             }
 
@@ -208,15 +201,6 @@ export default class ElementSandbox extends SandboxBase {
                 args[valueIndex] = urlUtils.getProxyUrl(value);
         }
 
-        if (attr === 'onsubmit' || attr === 'onclick') {
-            args[valueIndex] = DomProcessor.wrapInlineEventHandler(attr);
-
-            /*eslint-disable no-new-func */
-            if (attr === 'onsubmit')
-                this.setEventHandler(el, Function('event', value), 'submit');
-            /*eslint-enable no-new-func */
-        }
-
         return setAttrMeth.apply(el, args);
     }
 
@@ -240,12 +224,10 @@ export default class ElementSandbox extends SandboxBase {
         if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        var result = attr !== 'autocomplete' ? removeAttrFunc.apply(el, args) : void 0;
+        if (attr !== 'autocomplete')
+            return removeAttrFunc.apply(el, args);
 
-        if ((attr === 'onsubmit' || attr === 'onclick') && inlineHandlerResetsAfterAttrRemoving)
-            this.setEventHandler(el, null, attr.replace(/^on/, ''));
-
-        return result;
+        return void 0;
     }
 
     _prepareNodeForInsertion (node, parentNode) {
@@ -471,6 +453,7 @@ export default class ElementSandbox extends SandboxBase {
                 this.onIframeAddedToDOM(iframes[i]);
                 windowsStorage.add(iframes[i].contentWindow);
             }
+
         }
 
         if (domUtils.isBodyElement(el))
@@ -484,23 +467,6 @@ export default class ElementSandbox extends SandboxBase {
 
             urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
-    }
-
-    _setProxiedSrcUrlOnError (img) {
-        img.addEventListener('error', e => {
-            var storedAttr = nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src'));
-
-            if (storedAttr && !urlUtils.parseProxyUrl(img.src) &&
-                urlUtils.isSupportedProtocol(img.src) && !urlUtils.isSpecialPage(img.src)) {
-                nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
-                stopPropagation(e);
-            }
-        }, false);
-    }
-
-    _processForm (form) {
-        this.listeners.initElementListening(form, ['submit']);
-        this.listeners.addInternalEventListener(form, ['submit'], () => this.emit(this.BEFORE_FORM_SUBMIT, { form: form }));
     }
 
     onElementRemoved (el) {
@@ -552,51 +518,26 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLTableSectionElement.prototype.insertRow = this.overridedMethods.insertRow;
         window.HTMLTableRowElement.prototype.insertCell    = this.overridedMethods.insertCell;
         window.HTMLFormElement.prototype.submit            = this.overridedMethods.formSubmit;
-
-        var listeners = this.listeners;
-
-        window.Element.prototype.executeHandlerWrapper = function (event, name) {
-            var handlerValue = nativeMethods.getAttribute.call(this, domProcessor.getStoredAttrName(name));
-            /*eslint-disable no-new-func */
-            var handler = Function('event', handlerValue);
-            /*eslint-enable no-new-func */
-            var eventListeningInfo = listeningCtx.getEventCtx(this, name.replace(/^on/, ''));
-            var wrapper            = listeners.getEventListenerWrapper(eventListeningInfo, handler, true);
-
-            return wrapper.call(this, event);
-        };
     }
 
-    setEventHandler (el, handler, event) {
-        el[event + INTERNAL_ATTRS.storedAttrPostfix] = handler;
+    _setProxiedSrcUrlOnError (img) {
+        img.addEventListener('error', e => {
+            var storedAttr = nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src'));
 
-        if (handler) {
-            var eventListeningInfo = listeningCtx.getEventCtx(el, event);
-
-            el['on' + event] = this.listeners.getEventListenerWrapper(eventListeningInfo, handler, true);
-        }
-        else
-            el['on' + event] = handler;
-    }
-
-    getEventHandler (el, event) {
-        var storedPropertyName = event + INTERNAL_ATTRS.storedAttrPostfix;
-
-        return storedPropertyName in el ? el[storedPropertyName] : el['on' + event];
+            if (storedAttr && !urlUtils.parseProxyUrl(img.src) &&
+                urlUtils.isSupportedProtocol(img.src) && !urlUtils.isSpecialPage(img.src)) {
+                nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
+                stopPropagation(e);
+            }
+        }, false);
     }
 
     processElement (el) {
-        this.listeners.initElementListening(el, ['click']);
-
         if (domUtils.isImgElement(el))
             this._setProxiedSrcUrlOnError(el);
         else if (domUtils.isIframeElement(el))
             this.iframeSandbox.processIframe(el);
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href')), this.document);
-        else if (domUtils.isFormElement(el))
-            this._processForm(el);
-        else if (domUtils.isAnchorElement(el))
-            this.listeners.addInternalEventListener(el, ['click'], e => this.emit(this.LINK_CLICKED, { el, evt: e }));
     }
 }
