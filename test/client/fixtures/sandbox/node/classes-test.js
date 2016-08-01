@@ -7,17 +7,54 @@ var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
-test('window.Image', function () {
+module('Image');
+
+test('window.Image should be overridden', function () {
     notEqual(window.Image, nativeMethods.Image);
 });
 
-test('window.Worker', function () {
+test('should work with the operator "instanceof" (GH-690)', function () {
+    var img = new Image();
+
+    ok(img instanceof Image);
+});
+
+module('Worker');
+
+test('window.Worker should be overridden', function () {
     notEqual(window.Worker, nativeMethods.Worker);
 });
 
-test('window.EventSource', function () {
+if (!browserUtils.isIE || browserUtils.isIE11) {
+    test('should work with the operator "instanceof" (GH-690)', function () {
+        var blob   = new Blob(['if(true) {}'], { type: 'text/javascript' });
+        var url    = URL.createObjectURL(blob);
+        var worker = new Worker(url);
+
+        ok(worker instanceof Worker);
+    });
+}
+module('EventSource');
+
+test('window.EventSource should be overridden', function () {
     notEqual(window.EventSource, nativeMethods.EventSource);
 });
+
+test('should work with the operator "instanceof" (GH-690)', function () {
+    var eventSource = new EventSource('');
+
+    ok(eventSource instanceof EventSource);
+});
+
+if (window.MutationObserver) {
+    module('MutationObserver');
+
+    test('should work with the operator "instanceof" (GH-690)', function () {
+        var observer = new MutationObserver(function () { });
+
+        ok(observer instanceof MutationObserver);
+    });
+}
 
 module('regression');
 
@@ -53,6 +90,12 @@ if (window.Blob) {
             }
         });
     });
+
+    test('should work with the operator "instanceof" (GH-690)', function () {
+        var blob = new Blob();
+
+        ok(blob instanceof window.Blob);
+    });
 }
 
 if (window.FormData) {
@@ -83,6 +126,12 @@ if (window.FormData) {
             start();
         });
         xhr.send(formData);
+    });
+
+    test('should work with the operator "instanceof" (GH-690)', function () {
+        var formData = new FormData();
+
+        ok(formData instanceof FormData);
     });
 }
 

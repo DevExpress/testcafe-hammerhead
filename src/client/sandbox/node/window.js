@@ -124,6 +124,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 return new nativeMethods.FontFace(family, source, descriptors);
             };
+            window.FontFace.prototype = nativeMethods.FontFace.prototype;
         }
 
         window.Worker = scriptURL => {
@@ -132,6 +133,7 @@ export default class WindowSandbox extends SandboxBase {
 
             return new nativeMethods.Worker(scriptURL);
         };
+        window.Worker.prototype = nativeMethods.Worker.prototype;
 
         if (window.Blob) {
             window.Blob = function (parts, opts) {
@@ -153,9 +155,11 @@ export default class WindowSandbox extends SandboxBase {
                 // with one parameter as well.
                 return arguments.length === 1 ? new nativeMethods.Blob(parts) : new nativeMethods.Blob(parts, opts);
             };
+            window.Blob.prototype = nativeMethods.Blob.prototype;
         }
 
         window.EventSource = url => new nativeMethods.EventSource(getProxyUrl(url));
+        window.EventSource.prototype = nativeMethods.EventSource.prototype;
 
         if (window.MutationObserver) {
             window.MutationObserver = callback => {
@@ -173,6 +177,7 @@ export default class WindowSandbox extends SandboxBase {
 
                 return new nativeMethods.MutationObserver(wrapper);
             };
+            window.MutationObserver.prototype = nativeMethods.MutationObserver.prototype;
         }
 
         if (nativeMethods.registerServiceWorker) {
@@ -211,6 +216,7 @@ export default class WindowSandbox extends SandboxBase {
 
             return image;
         };
+        window.Image.prototype = nativeMethods.Image.prototype;
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             window.history.pushState = function () {
