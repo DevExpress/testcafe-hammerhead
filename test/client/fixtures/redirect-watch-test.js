@@ -1,7 +1,6 @@
 var urlUtils = hammerhead.get('./utils/url');
 var settings = hammerhead.get('./settings');
 
-var browserUtils   = hammerhead.utils.browser;
 var storageSandbox = hammerhead.sandbox.storageSandbox;
 var Promise        = hammerhead.Promise;
 var formatUrl      = urlUtils.formatUrl;
@@ -173,89 +172,3 @@ asyncTest('location.search = ...', function () {
         start();
     });
 });
-
-module('Click by link');
-
-asyncTest('Click by mouse', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id  = 'test' + Date.now();
-    iframe.src = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
-
-            iframeHammerhead.on(iframeHammerhead.EVENTS.redirectDetected, function (e) {
-                strictEqual(e, iframeLocation + 'index.html');
-                document.body.removeChild(iframe);
-                start();
-            });
-
-            iframe.contentWindow.eval(
-                'var link = document.createElement("a");' +
-                'link.href = "./index.html";' +
-                'document.body.appendChild(link);' +
-                'window["%hammerhead%"].eventSandbox.eventSimulator.click(link);'
-            );
-        });
-
-    document.body.appendChild(iframe);
-});
-
-asyncTest('Click via js', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id  = 'test' + Date.now();
-    iframe.src = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
-
-            iframeHammerhead.on(iframeHammerhead.EVENTS.redirectDetected, function (e) {
-                strictEqual(e, iframeLocation + 'index.html');
-                document.body.removeChild(iframe);
-                start();
-            });
-
-            iframe.contentWindow.eval(
-                'var link = document.createElement("a");' +
-                'link.href = "./index.html";' +
-                'document.body.appendChild(link);' +
-                'link.click();'
-            );
-        });
-
-    document.body.appendChild(iframe);
-});
-
-if (!browserUtils.isWebKit) {
-    asyncTest('Link with target attribute', function () {
-        var iframe = document.createElement('iframe');
-
-        iframe.id   = 'test' + Date.now();
-        iframe.name = 'iframeName';
-        iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
-
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
-                var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
-
-                iframeHammerhead.on(iframeHammerhead.EVENTS.redirectDetected, function (e) {
-                    strictEqual(e, iframeLocation + 'index.html');
-                    document.body.removeChild(iframe);
-                    start();
-                });
-
-                var link = document.createElement('a');
-
-                link.setAttribute('href', iframeLocation + 'index.html');
-                link.setAttribute('target', 'iframeName');
-                document.body.appendChild(link);
-                link.click();
-            });
-
-        document.body.appendChild(iframe);
-    });
-}
