@@ -227,24 +227,44 @@ if (!browserUtils.isFirefox) {
 }
 
 test('change hash for the iframe location', function () {
+    var setHref    = function (url) {
+        this.href = url;
+    };
     var proxyUrl   = urlUtils.getProxyUrl('http://domain.com/index.html', null, null, null, 'if');
     var windowMock = {
         location: {
+            replace:  setHref,
+            assign:   setHref,
             toString: function () {
                 return proxyUrl;
             }
         },
 
-        top: {
-            document: document
-        },
-
+        top:      { document: document },
         document: {}
     };
 
     var locationWrapper = new LocationWrapper(windowMock);
 
-    locationWrapper.href = 'http://domain.com/index.html#hash';
+    var testLocation = function () {
+        locationWrapper.href = 'http://domain.com/index.html#hash';
+        strictEqual(windowMock.location.href, proxyUrl + '#hash');
+        locationWrapper.replace('http://domain.com/index.html#hash');
+        strictEqual(windowMock.location.href, proxyUrl + '#hash');
+        locationWrapper.assign('http://domain.com/index.html#hash');
+        strictEqual(windowMock.location.href, proxyUrl + '#hash');
+    };
 
-    strictEqual(windowMock.location.href, proxyUrl + '#hash');
+    testLocation();
+
+    proxyUrl            = urlUtils.getProxyUrl('http://domain.com/index.html', null, null, null, '');
+    windowMock.toString = function () {
+        return proxyUrl;
+    };
+    locationWrapper     = new LocationWrapper(windowMock);
+
+    testLocation();
+
+    locationWrapper.href = 'http://domain.com/index#hash';
+    strictEqual(windowMock.location.href, urlUtils.getProxyUrl('http://domain.com/index#hash', null, null, null, 'i'));
 });
