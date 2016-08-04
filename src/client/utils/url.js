@@ -4,6 +4,8 @@ import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
 
+const HASH_RE = /#[\S\s]*$/;
+
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
 export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue) {
@@ -117,4 +119,11 @@ export function parseResourceType (resourceType) {
 
 export function stringifyResourceType (resourceType) {
     return sharedUrlUtils.getResourceTypeString(resourceType);
+}
+
+export function isChangedOnlyHash (currentUrl, newUrl) {
+    // NOTE: we compare proxied urls because urls passed into the function may be proxied, non-proxied
+    // or relative. The getProxyUrl function solves all the corresponding problems.
+    return getProxyUrl(currentUrl, null, null, null, '').replace(HASH_RE, '') ===
+           getProxyUrl(newUrl, null, null, null, '').replace(HASH_RE, '');
 }

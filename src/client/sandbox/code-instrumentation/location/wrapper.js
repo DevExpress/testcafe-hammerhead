@@ -1,37 +1,40 @@
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
-import { getProxyUrl, changeDestUrlPart, parseProxyUrl, parseResourceType } from '../../../utils/url';
+import { getProxyUrl, changeDestUrlPart, parseProxyUrl, parseResourceType, isChangedOnlyHash } from '../../../utils/url';
 import { getDomain, getResourceTypeString } from '../../../../utils/url';
+
+function getLocationUrl (window) {
+    try {
+        return window.location.toString();
+    }
+    catch (e) {
+        return void 0;
+    }
+}
 
 export default class LocationWrapper {
     constructor (window) {
-        var isIframe = window !== window.top;
-        var isForm   = false;
+        var locationUrl          = getLocationUrl(window);
+        var parsedLocation       = locationUrl && parseProxyUrl(locationUrl);
+        var locationResourceType = parsedLocation ? parsedLocation.resourceType : '';
+        var { isIframe, isForm } = parseResourceType(locationResourceType);
 
-        // NOTE: cross-domain window
-        try {
-            var parsedLocation = parseProxyUrl(window.location.toString());
+        isIframe |= window !== window.top;
 
-            if (parsedLocation) {
-                var locationResType = parseResourceType(parsedLocation.resourceType);
-
-                isIframe |= locationResType.isIframe;
-                isForm |= locationResType.isForm;
-            }
-        }
-        /*eslint-disable no-empty */
-        catch (e) {
-        }
-        /*eslint-enable no-empty */
-
-        var resourceType   = getResourceTypeString({ isIframe: isIframe, isForm: isForm });
+        var resourceType   = getResourceTypeString({ isIframe, isForm });
         var getHref        = () => {
             if (window !== window.top && window.location.href === 'about:blank')
                 return 'about:blank';
 
             return getDestLocation();
         };
-        var getProxiedHref = href => getProxyUrl(href, null, null, null, resourceType);
+        var getProxiedHref = href => {
+            locationUrl = getLocationUrl(window);
+
+            var changedOnlyHash = locationUrl && isChangedOnlyHash(locationUrl, href);
+
+            return getProxyUrl(href, null, null, null, changedOnlyHash ? locationResourceType : resourceType);
+        };
         var urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 
         Object.defineProperty(this, 'href', createPropertyDesc({
