@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<form id="form" target="iframe" method="POST" action="about:blank">
+    <input type="submit" id="submit" />
+</form>
+<script type="text/javascript">
+    /* __call$ */
+    window.finish = function (result) {
+        window.top.postMessage('{"form-test-finished" : ' + result + '}', '*');
+    };
+</script>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+    var iframe = document.createElement('iframe');
+    var loaded = false;
+
+    hammerhead.on(hammerhead.EVENTS.redirectDetected, function () {
+        window.finish(false);
+    });
+
+    iframe.name = 'iframe';
+    iframe.onload = function () {
+        if (!loaded) {
+            var form = document.getElementById('form');
+
+            loaded      = true;
+            window.setTimeout(function() {
+                document.getElementById('submit').click();
+            }, 100);
+        }
+    };
+
+    iframe.src = location.toString().replace('form.html', 'form-iframe.html');
+    document.body.appendChild(iframe);
+</script>
+</body>
+</html>

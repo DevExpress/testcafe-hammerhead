@@ -431,6 +431,7 @@ export default class DomProcessor {
                     var isIframe  = elTagName === 'iframe';
                     var isScript  = elTagName === 'script';
                     var isAnchor  = elTagName === 'a';
+                    var isForm    = elTagName === 'form';
                     var target    = this.adapter.getAttr(el, 'target');
 
                     // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
@@ -464,17 +465,18 @@ export default class DomProcessor {
                                 proxyPort,
 
                                 sessionId:    proxyUrlObj.sessionId,
-                                resourceType: iframeResourceType
+                                resourceType: iframeResourceType,
+                                target:       isForm || isAnchor ? target : null
                             }) : '';
                         }
 
                     }
 
-                    if (isSpecialPage && !isAnchor)
+                    if (isSpecialPage && !isAnchor && !isForm)
                         proxyUrl = resourceUrl;
 
                     proxyUrl = proxyUrl === '' && resourceUrl ?
-                               urlReplacer(resourceUrl, resourceType, charsetAttrValue) :
+                               urlReplacer(resourceUrl, resourceType, charsetAttrValue, target) :
                                proxyUrl;
 
                     this.adapter.setAttr(el, storedUrlAttr, resourceUrl);

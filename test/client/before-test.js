@@ -46,6 +46,7 @@
         if (e.iframe.id.indexOf('test') !== -1) {
             e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
                 'window["%hammerhead%"].get("./utils/destination-location").forceLocation("' + location + '");',
+                'window["%hammerhead%"].redirectWatch.init = function () {};' +
                 'window["%hammerhead%"].start({',
                 '    referer : "' + referer + '",',
                 '    serviceMsgUrl : "' + serviceMsgUrl + '",',
@@ -57,6 +58,8 @@
         }
     };
 
+    hammerhead.redirectWatch.init = function () {
+    };
     hammerhead.start({ sessionId: 'sessionId', cookie: '' });
 
     window.processDomMeth = window[INTERNAL_PROPS.processDomMethodName];

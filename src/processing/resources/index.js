@@ -7,7 +7,7 @@ import * as urlUtil from '../../utils/url';
 import { encodeContent, decodeContent } from '../encoding';
 
 function getResourceUrlReplacer (ctx) {
-    return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
+    return function (resourceUrl, resourceType, charsetAttrValue, target, baseUrl) {
         if (!urlUtil.isSupportedProtocol(resourceUrl) && !urlUtil.isSpecialPage(resourceUrl))
             return resourceUrl;
 
@@ -21,7 +21,7 @@ function getResourceUrlReplacer (ctx) {
 
         resolvedUrl = urlUtil.ensureTrailingSlash(resourceUrl, resolvedUrl);
 
-        return ctx.toProxyUrl(resolvedUrl, false, resourceType, charsetStr);
+        return ctx.toProxyUrl(resolvedUrl, false, resourceType, charsetStr, target);
     };
 }
 

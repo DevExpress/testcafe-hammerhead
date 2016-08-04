@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<a id="link" href="./static/file.swf"></a>
+<script type="text/javascript">
+    /* __call$ */
+    window.finish = function (result) {
+        window.top.postMessage('{"download-test-finished" : ' + result + '}', '*');
+    };
+</script>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.on(hammerhead.EVENTS.redirectDetected, function () {
+        window.finish(false);
+    });
+
+    document.getElementById('link').click();
+    window.setTimeout(function () {
+        window.finish(true);
+    }, 1000)
+</script>
+</body>
+</html>

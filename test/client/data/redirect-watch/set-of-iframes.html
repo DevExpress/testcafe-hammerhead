@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<iframe id="iframe1" name="iframe1"></iframe>
+<iframe id="iframe2"></iframe>
+<iframe id="iframe3" name="iframe3"></iframe>
+<iframe id="iframe4" name="iframe5"></iframe>
+<iframe id="iframe5"></iframe>
+<iframe id="iframe6" name="iframe6"></iframe>
+
+<a id="link" href="about:blank"></a>
+<script type="text/javascript">
+    /* __call$ */
+    window.finish = function (result) {
+        window.top.postMessage('{"set-of-iframes-test-finished" : ' + result + '}', '*');
+    };
+
+    window.result = [];
+    window.redirected = function (name) {
+        if (window.result.indexOf(name) === -1)
+            window.result.push(name);
+
+        if (window.result.length === 6)
+            document.getElementById('link').click();
+    }
+</script>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.on(hammerhead.EVENTS.redirectDetected, function () {
+        window.finish(true);
+    });
+
+    var iframeSrc = location.toString().replace('set-of-iframes.html', 'simple-page.html');
+
+    document.getElementById('iframe1').src = iframeSrc;
+    document.getElementById('iframe2').src = iframeSrc;
+    document.getElementById('iframe3').src = iframeSrc;
+    document.getElementById('iframe4').src = iframeSrc;
+    document.getElementById('iframe5').src = iframeSrc;
+    document.getElementById('iframe6').src = iframeSrc;
+</script>
+</body>
+</html>

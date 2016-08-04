@@ -125,7 +125,7 @@ test('comment inside script', function () {
         domProcessor.processElement(script);
         nativeMethods.appendChild.call(document.head, script);
 
-        strictEqual(nativeMethods.getAttribute.call(window.commentTest, 'href'), urlUtils.getProxyUrl('http://domain.com'));
+        strictEqual(nativeMethods.getAttribute.call(window.commentTest, 'href'), urlUtils.getProxyUrl('http://domain.com', { target: window.name }));
 
         nativeMethods.removeAttribute.call(window.commentTest, 'href');
         document.head.removeChild(script);
@@ -340,17 +340,17 @@ test('stylesheet after innerHTML', function () {
 
     nativeMethods.appendChild.call(document.body, style);
 
-    var check = function (cssText) {
+    var check = function (cssText, target) {
         strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT), 0);
         strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT, 1), -1);
-        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://domain.com'));
+        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://domain.com', { target: target }));
     };
 
     eval(processScript('div.innerHTML = "<style>.rule { background: url(http://domain.com) }</style>";'));
-    check(div.children[0].innerHTML);
+    check(div.children[0].innerHTML, window.name);
 
     eval(processScript('div.innerHTML = div.innerHTML;'));
-    check(div.children[0].innerHTML);
+    check(div.children[0].innerHTML, window.name);
 
     eval(processScript('style.innerHTML = ".rule { background: url(http://domain.com) }";'));
     check(style.innerHTML);
@@ -370,7 +370,7 @@ test('special pages (GH-339)', function () {
         iframe.setAttribute('src', specialPagUrl);
 
         var linkHrefUrl  = nativeMethods.getAttribute.call(link, 'href');
-        var proxyUrl     = urlUtils.getProxyUrl(specialPagUrl);
+        var proxyUrl     = urlUtils.getProxyUrl(specialPagUrl, { target: window.name });
         var imageSrcUrl  = nativeMethods.getAttribute.call(image, 'src');
         var iframeSrcUrl = nativeMethods.getAttribute.call(iframe, 'src');
 

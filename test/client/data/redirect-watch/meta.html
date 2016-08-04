@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<a id="link" target="iframe"></a>
+<script type="text/javascript">
+    /* __call$ */
+    window.finish = function (result) {
+        window.top.postMessage('{"meta-test-finished" : ' + result + '}', '*');
+    };
+</script>
+<script type="text/javascript">
+    var iframe = document.createElement('iframe');
+
+    window.redirect = function () {
+        window.finish(true);
+    };
+
+    iframe.name = 'iframe';
+    iframe.src = location.toString().replace('meta.html', 'meta-iframe.html');
+    document.body.appendChild(iframe);
+</script>
+</body>
+</html>

@@ -228,8 +228,9 @@ describe('Content charset', function () {
                 isForm:   false,
                 isScript: true
             };
-            var url          = getProxyUrl('http://127.0.0.1:2000' +
-                                           destUrl, urlUtils.getResourceTypeString(resourceType), expectedCharset);
+
+            var url = getProxyUrl('http://127.0.0.1:2000' +
+                                  destUrl, urlUtils.getResourceTypeString(resourceType), expectedCharset);
 
             request(url, function (err, res, body) {
                 compareCode(body, expectedBody);

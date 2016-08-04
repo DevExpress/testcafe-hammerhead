@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<a id="link" target="iframe"></a>
+<script type="text/javascript">
+    /* __call$ */
+    window.finish = function (result) {
+        window.top.postMessage('{"location-test-finished" : ' + result + '}', '*');
+    };
+</script>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+    var iframe = document.createElement('iframe');
+    var actions = [
+        'location.href += "&l=1"',
+        //'location = location.toString() + "&l=2"',
+        //'window.location = location.toString() + "&l=3"',
+        //'location.reload()',
+        'location.assign(location.toString() + "&l=4")',
+        'location.replace(location.toString() + "&l=5")',
+        'location.pathname = location.pathname + "&l=6"',
+        'location.search = location.search + "&l=7"'
+    ];
+    var redirects = 0;
+
+    window.redirect = function () {
+        redirects++;
+    };
+
+    iframe.onload = function () {
+        if (redirects < actions.length - 1)
+            iframe.contentWindow.eval.call(iframe.contentWindow, actions[redirects]);
+        else
+            finish(true);
+    };
+
+    iframe.src = location.toString().replace('location.html', 'location-iframe.html');
+    document.body.appendChild(iframe);
+</script>
+</body>
+</html>

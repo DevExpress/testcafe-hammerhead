@@ -283,7 +283,7 @@ if (browserUtils.isWebKit) {
         window.setTimeout(function () {
             strictEqual(xhrCount, 1);
 
-            var storedMsgStr   = window.localStorage.getItem(settings.get().sessionId);
+            var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
 
             notOk(isMessageSent);
             strictEqual(storedMsgStr, '[]');
@@ -340,6 +340,8 @@ test('hammerhead should remove service data from local storage on the first sess
 
     var hh = new hammerhead.constructor(window);
 
+    hh.redirectWatch.init = function () {
+    };
     hh.start(settings.get(), window);
 
     ok(!window.localStorage.getItem(sessionId));

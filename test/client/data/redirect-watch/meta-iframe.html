@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <script type="text/javascript">
+        var hammerhead = window['%hammerhead%'];
+
+        hammerhead.on(hammerhead.EVENTS.redirectDetected, function () {
+            window.parent.redirect();
+        });
+
+        document.write('<meta http-equiv="refresh" content="1;URL=about:blank">');
+    </script>
+</head>
+<body>
+</body>
+</html>

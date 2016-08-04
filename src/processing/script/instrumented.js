@@ -39,6 +39,7 @@ export const PROPERTIES = [
     'listStyleImage',
     'localStorage',
     'location',
+    'name',
     'manifest',
     'onbeforeunload',
     'onpagehide',

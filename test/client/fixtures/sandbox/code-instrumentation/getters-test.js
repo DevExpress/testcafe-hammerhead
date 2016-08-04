@@ -275,7 +275,7 @@ module('regression');
 test('changing the link.href property must affect the stored attribute value (T123960)', function () {
     var link     = $('<a>')[0];
     var url      = '/path?param=value';
-    var proxyUrl = urlUtils.getProxyUrl(url);
+    var proxyUrl = urlUtils.getProxyUrl(url, { target: window.name });
 
     setProperty(link, 'href', url);
     strictEqual(link.href, proxyUrl);
@@ -283,7 +283,7 @@ test('changing the link.href property must affect the stored attribute value (T1
 
     eval(processScript('link.pathname="newPath"'));
     ok(/newPath$/.test(getProperty(link, 'pathname')));
-    strictEqual(link.href, urlUtils.getProxyUrl('/newPath?param=value'));
+    strictEqual(link.href, urlUtils.getProxyUrl('/newPath?param=value', { target: window.name }));
     ok(/\/newPath\?param=value$/.test(getProperty(link, 'href')));
 });
 

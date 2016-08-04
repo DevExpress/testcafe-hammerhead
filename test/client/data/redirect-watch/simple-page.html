@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<a id="link" href="about:blank"></a>
+<script type="text/javascript">
+    /* __call$ */
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.on(hammerhead.EVENTS.redirectDetected, function () {
+        window.parent.redirected(window.name);
+        if (window.frameElement.parent)
+            window.frameElement.parent.removeChild(window.frameElement);
+    });
+</script>
+<script type="text/javascript">
+    var link = document.createElement('a');
+
+    link.href = 'about:blank';
+    document.body.appendChild(link);
+    window.setTimeout(function () {
+        link.click();
+    }, 100);
+</script>
+</body>
+</html>

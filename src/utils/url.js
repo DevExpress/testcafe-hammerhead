@@ -101,8 +101,12 @@ export function convertHostToLowerCase (url) {
 export function getProxyUrl (url, opts) {
     var params = [opts.sessionId];
 
-    if (opts.resourceType)
-        params.push(opts.resourceType);
+    if (opts.resourceType || opts.target) {
+        params.push(opts.resourceType || '');
+
+        if (opts.target || opts.charset)
+            params.push(opts.target);
+    }
 
     if (opts.charset)
         params.push(opts.charset.toLowerCase());
@@ -164,7 +168,8 @@ export function parseProxyUrl (proxyUrl) {
 
         sessionId:    params[0],
         resourceType: params[1] || null,
-        charset:      params[2] || null
+        target:       params[2] || null,
+        charset:      params[3] || null
     };
 }
 

@@ -50,6 +50,7 @@ export default class RequestPipelineContext {
                 isIframe:      parsedResourceType.isIframe,
                 isForm:        parsedResourceType.isForm,
                 isScript:      parsedResourceType.isScript,
+                target:        parsed.target,
                 charset:       parsed.charset
             };
 
@@ -236,7 +237,7 @@ export default class RequestPipelineContext {
             this.res.end();
     }
 
-    toProxyUrl (url, isCrossDomain, resourceType, charset) {
+    toProxyUrl (url, isCrossDomain, resourceType, charset, target) {
         var proxyHostname = this.serverInfo.hostname;
         var proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
         var sessionId     = this.session.id;
@@ -246,7 +247,8 @@ export default class RequestPipelineContext {
             proxyPort,
             sessionId,
             resourceType,
-            charset
+            charset,
+            target
         });
     }
 }

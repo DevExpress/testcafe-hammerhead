@@ -53,13 +53,14 @@ export default class ElementSandbox extends SandboxBase {
                 var parsedResourceType = urlUtils.parseResourceType(parsedUrl.resourceType);
 
                 if (parsedResourceType.isIframe !== isIframeTarget) {
+                    var target       = isIframeTarget ? newTarget : null;
                     var resourceType = urlUtils.stringifyResourceType({
                         isIframe: isIframeTarget,
                         isForm:   parsedResourceType.isForm,
                         isScript: parsedResourceType.isScript
                     });
 
-                    el[urlAttr] = urlUtils.getProxyUrl(parsedUrl.destUrl, { resourceType });
+                    el[urlAttr] = urlUtils.getProxyUrl(parsedUrl.destUrl, { resourceType, target });
                 }
             }
         }
@@ -161,17 +162,23 @@ export default class ElementSandbox extends SandboxBase {
             if (tagName !== 'img' || el[HAS_LOAD_HANDLER_FLAG]) {
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
                     var isIframe         = tagName === 'iframe';
+                    var isForm           = tagName === 'form';
+                    var isAnchor         = tagName === 'a';
                     var isScript         = tagName === 'script';
                     var isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
                     var resourceType     = domProcessor.getElementResourceType(el);
                     var elCharset        = isScript && el.charset;
+                    var target           = isForm || isAnchor ? el.target || this.window.name : null;
+
+                    if (isIframe)
+                        target = Date.now();
 
                     if (ElementSandbox._isHrefAttrForBaseElement(el, attr) &&
                         domUtils.isElementInDocument(el, this.document))
                         urlResolver.updateBase(value, this.document);
 
                     args[valueIndex] = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
-                                       urlUtils.getProxyUrl(value, { resourceType, charset: elCharset });
+                                       urlUtils.getProxyUrl(value, { resourceType, target, charset: elCharset });
                 }
             }
             else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value))

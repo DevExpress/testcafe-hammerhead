@@ -10,6 +10,7 @@
     var hammerhead = window['%hammerhead%'];
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.redirectWatch.init = function () {};
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
     window.activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;

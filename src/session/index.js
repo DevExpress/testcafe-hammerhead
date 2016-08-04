@@ -6,6 +6,7 @@ import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import { parseProxyUrl } from '../utils/url';
+import RedirectWatch from './redirect-watch';
 
 // Const
 const TASK_TEMPLATE = read('../client/task.js.mustache');
@@ -25,6 +26,8 @@ export default class Session extends EventEmitter {
             scripts: ['/hammerhead.js'],
             styles:  []
         };
+
+        this.redirectWatch = new RedirectWatch();
     }
 
     static _generateSessionId () {
@@ -103,7 +106,7 @@ export default class Session extends EventEmitter {
 // Service message handlers
 var ServiceMessages = Session.prototype;
 
-ServiceMessages[COMMAND.setCookie] = function (msg) {
+ServiceMessages [COMMAND.setCookie] = function (msg) {
     var parsedUrl = parseProxyUrl(msg.url);
     var cookieUrl = parsedUrl ? parsedUrl.destUrl : msg.url;
 
@@ -112,10 +115,24 @@ ServiceMessages[COMMAND.setCookie] = function (msg) {
     return this.cookies.getClientString(cookieUrl);
 };
 
-ServiceMessages[COMMAND.uploadFiles] = async function (msg) {
+ServiceMessages [COMMAND.uploadFiles] = async function (msg) {
     return await this.uploadStorage.store(msg.fileNames, msg.data);
 };
 
 ServiceMessages[COMMAND.getUploadedFiles] = async function (msg) {
     return await this.uploadStorage.get(msg.filePaths);
+};
+
+ServiceMessages [COMMAND.waitRedirect] = async function (msg) {
+    var referer = msg.data.referer;
+    var window  = msg.data.window;
+
+    var result = '';
+
+    if (msg.data.confirmation)
+        result = this.redirectWatch.clientConfirmation(window);
+    else
+        result = await this.redirectWatch.clientRequest(referer, window, msg.data.conformationNeeded);
+
+    return result;
 };

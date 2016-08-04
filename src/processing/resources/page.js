@@ -168,7 +168,7 @@ class PageProcessor extends ResourceProcessorBase {
         };
 
         var domProcessor = new DomProcessor(domAdapter);
-        var replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
+        var replacer     = (resourceUrl, resourceType, charsetAttrValue, target) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, target, baseUrl);
 
         domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));

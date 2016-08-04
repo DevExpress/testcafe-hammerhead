@@ -99,7 +99,7 @@ test('encoded symbols', function () {
     var urlDecoded     = 'http://example.com/?x=<&y=5';
     var divForEncoding = document.createElement('div');
 
-    divForEncoding.textContent = urlUtils.getProxyUrl(urlDecoded);
+    divForEncoding.textContent = urlUtils.getProxyUrl(urlDecoded, { target: window.name });
 
     var proxyEncoded  = divForEncoding.innerHTML;
     var html          = '<' + tag + ' ' + attr + '="' + urlEncoded + '"></' + tag + '>';
