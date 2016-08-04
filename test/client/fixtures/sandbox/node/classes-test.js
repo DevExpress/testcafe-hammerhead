@@ -42,15 +42,19 @@ if (!browserUtils.isIE || browserUtils.isIE11) {
 }
 module('EventSource');
 
-test('window.EventSource should be overridden', function () {
-    notEqual(window.EventSource, nativeMethods.EventSource);
-});
+if (browserUtils.isIE) {
+    test('should not create the window.EventSource property in IE (GH-716)', function () {
+        ok(!window.EventSource);
+    });
+}
 
-test('should work with the operator "instanceof" (GH-690)', function () {
-    var eventSource = new EventSource('');
+if (window.EventSource) {
+    test('should work with the operator "instanceof" (GH-690)', function () {
+        var eventSource = new EventSource('');
 
-    ok(eventSource instanceof EventSource);
-});
+        ok(eventSource instanceof EventSource);
+    });
+}
 
 if (window.MutationObserver) {
     module('MutationObserver');
