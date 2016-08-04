@@ -166,7 +166,7 @@ class NativeMethods {
         this.FontFace         = win.FontFace || mock;
         this.StorageEvent     = win.StorageEvent || mock;
         this.MutationObserver = win.MutationObserver || mock;
-        this.EventSource      = win.EventSource || mock;
+        this.EventSource      = win.EventSource;
     }
 
     restoreDocumentMeths (document) {

@@ -160,8 +160,10 @@ export default class WindowSandbox extends SandboxBase {
             window.Blob.prototype = nativeMethods.Blob.prototype;
         }
 
-        window.EventSource = url => new nativeMethods.EventSource(getProxyUrl(url));
-        window.EventSource.prototype = nativeMethods.EventSource.prototype;
+        if (window.EventSource) {
+            window.EventSource = url => new nativeMethods.EventSource(getProxyUrl(url));
+            window.EventSource.prototype = nativeMethods.EventSource.prototype;
+        }
 
         if (window.MutationObserver) {
             window.MutationObserver = callback => {
