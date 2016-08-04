@@ -158,7 +158,7 @@ export function processHtml (html, parentTag, prepareDom) {
     return processHtmlInternal(html, container => {
         var htmlElements  = [];
         var children      = [];
-        var storedBaseUrl = urlResolver.resolve('', document);
+        var storedBaseUrl = urlResolver.getBaseUrl(document);
 
         if (prepareDom)
             prepareDom(container);

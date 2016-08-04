@@ -76,6 +76,12 @@ export default {
         nativeMethods.setAttribute.call(baseElement, 'href', url);
     },
 
+    getBaseUrl (doc) {
+        var baseElement = nativeMethods.elementGetElementsByTagName.call(this._getResolver(doc).head, 'base')[0];
+
+        return nativeMethods.getAttribute.call(baseElement, 'href');
+    },
+
     changeUrlPart (url, prop, value, doc) {
         var resolver  = this.getResolverElement(doc);
 
