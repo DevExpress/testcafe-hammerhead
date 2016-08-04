@@ -3,6 +3,7 @@ var domProcessor      = hammerhead.get('./dom-processor');
 var htmlUtils         = hammerhead.get('./utils/html');
 var processScript     = hammerhead.get('../processing/script').processScript;
 var urlUtils          = hammerhead.get('./utils/url');
+var urlResolver       = hammerhead.get('./utils/url-resolver');
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -293,4 +294,12 @@ test('process html with an unclosed "p" tag and the "header" tag (GH-688)', func
     div.innerHTML = '<p><header></header>';
 
     strictEqual(htmlUtils.processHtml('<p><header></header>'), div.innerHTML);
+});
+
+test('get a proxy url from a relative url after html processing (GH-718)', function () {
+    urlResolver.updateBase('http://example.com/path/path/', document);
+    htmlUtils.processHtml('<div></div>');
+    strictEqual(urlUtils.getProxyUrl('index.html', '127.0.0.1', 1337, 'sessionId'),
+        'http://127.0.0.1:1337/sessionId/http://example.com/path/path/index.html');
+    urlResolver.updateBase(null, document);
 });
