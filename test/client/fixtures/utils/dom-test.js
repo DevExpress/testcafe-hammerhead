@@ -332,6 +332,9 @@ asyncTest('samedomain src', function () {
 
     iframe.id  = 'test9';
     iframe.src = 'http://' + location.host + '/';
+
+    ok(!domUtils.isIframeWithoutSrc(iframe));
+
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             iframe[INTERNAL_PROPS.processedContext] = window;
@@ -342,6 +345,8 @@ asyncTest('samedomain src', function () {
             start();
         });
     document.body.appendChild(iframe);
+
+    ok(!domUtils.isIframeWithoutSrc(iframe));
 });
 
 asyncTest('without src attribute', function () {

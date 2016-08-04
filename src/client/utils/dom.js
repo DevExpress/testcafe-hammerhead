@@ -355,24 +355,25 @@ export function isIframeWithoutSrc (iframe) {
 
     var iframeDocumentLocationHaveSupportedProtocol = urlUtils.isSupportedProtocol(iframeDocumentLocation);
 
-    // NOTE: When an iframe has an empty src attribute (<iframe src></iframe>), the iframe.src property is not
-    // empty but has different values in different browsers. Its document location is 'about:blank'. Therefore,
-    // we should check the src attribute.
+    // NOTE: When an iframe has an empty src attribute (<iframe src></iframe>) or has no src attribute (<iframe></iframe>),
+    // the iframe.src property is not empty but has different values in different browsers.
+    // Its document location is 'about:blank'. Therefore, we should check the src attribute.
     if (!iframeDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
         return true;
 
-    var parentWindowWithSrc  = getParentWindowWithSrc(iframe.contentWindow);
-    var parsedWindowLocation = urlUtils.parseProxyUrl(parentWindowWithSrc.location.toString());
-    var windowLocation       = parsedWindowLocation ? parsedWindowLocation.destUrl : parentWindowWithSrc.location.toString();
+    var parentWindowWithSrc        = getParentWindowWithSrc(iframe.contentWindow);
+    var parsedParentWindowLocation = urlUtils.parseProxyUrl(parentWindowWithSrc.location.toString());
+    var parentWindowLocation       = parsedParentWindowLocation ? parsedParentWindowLocation.destUrl : parentWindowWithSrc.location.toString();
 
     if (iframeDocumentLocationHaveSupportedProtocol)
-        return iframeDocumentLocation === windowLocation;
+        return iframeDocumentLocation === parentWindowLocation;
 
-    if (iframeSrcLocation === windowLocation)
+    if (iframeSrcLocation === parentWindowLocation)
         return true;
 
-    // NOTE: In Chrome, an iframe with an src has its documentLocation set to 'about:blank' when it is created. So,
-    // we should check srcLocation in this case.
+    // In Chrome, when an iframe with the src attribute is added to DOM,
+    // its documentLocation is set to "about:blank" until the iframe has been loaded.
+    // So, we should check srcLocation in this case.
     if (iframeSrcLocation && urlUtils.isSupportedProtocol(iframeSrcLocation))
         return false;
 
