@@ -258,6 +258,12 @@ if (window.fetch) {
             });
         document.body.appendChild(iframe);
     });
+
+    test('window.Request should work with the operator "instanceof" (GH-690)', function () {
+        var request = new Request();
+
+        ok(request instanceof window.Request);
+    });
 }
 
 test('isHammerheadAttr', function () {
