@@ -37,29 +37,37 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     _onBeforeUnloadHandler (e, originListener) {
-        // NOTE: Overriding the returnValue property to prevent a native dialog.
-        Object.defineProperty(e, 'returnValue', createPropertyDesc({
-            get: () => this.storedBeforeUnloadReturnValue,
-            set: value => {
-                // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
-                // only if a value is set to an empty string, the unload operation is prevented.
-                this.storedBeforeUnloadReturnValue = value;
+        var eventObj = e;
 
-                this.prevented = isFirefox ? value !== '' : true;
-            }
-        }));
+        // NOTE: 'window.event' required for safari 9.0 because it calls the handler without 'e' (GH-698)
+        if (!e && window.event && window.event.type === this.beforeUnloadEventName)
+            eventObj = window.event;
 
-        Object.defineProperty(e, 'preventDefault', createPropertyDesc({
-            get: () => () => {
-                this.prevented = true;
+        if (eventObj) {
+            // NOTE: Overriding the returnValue property to prevent a native dialog.
+            Object.defineProperty(eventObj, 'returnValue', createPropertyDesc({
+                get: () => this.storedBeforeUnloadReturnValue,
+                set: value => {
+                    // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
+                    // only if a value is set to an empty string, the unload operation is prevented.
+                    this.storedBeforeUnloadReturnValue = value;
 
-                return true;
-            },
+                    this.prevented = isFirefox ? value !== '' : true;
+                }
+            }));
 
-            set: () => void 0
-        }));
+            Object.defineProperty(eventObj, 'preventDefault', createPropertyDesc({
+                get: () => () => {
+                    this.prevented = true;
 
-        var res = originListener(e);
+                    return true;
+                },
+
+                set: () => void 0
+            }));
+        }
+
+        var res = e ? originListener(e) : originListener();
 
         if (res !== void 0) {
             this.storedBeforeUnloadReturnValue = res;
@@ -106,7 +114,6 @@ export default class UnloadSandbox extends SandboxBase {
 
     setOnBeforeUnload (window, value) {
         if (typeof value === 'function') {
-
             this.storedBeforeUnloadHandler = value;
 
             window['on' + this.beforeUnloadEventName] = e => this._onBeforeUnloadHandler(e, value);
