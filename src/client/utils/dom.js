@@ -365,8 +365,16 @@ export function isIframeWithoutSrc (iframe) {
     var parsedParentWindowLocation = urlUtils.parseProxyUrl(parentWindowWithSrc.location.toString());
     var parentWindowLocation       = parsedParentWindowLocation ? parsedParentWindowLocation.destUrl : parentWindowWithSrc.location.toString();
 
-    if (iframeDocumentLocationHaveSupportedProtocol)
+    if (iframeDocumentLocationHaveSupportedProtocol) {
+        // NOTE: After document.open is called for a same-domain iframe,
+        // the iframe window location becomes equal to the location of the parent window with a src.
+        var parsedIframeSrcLocation = urlUtils.parseUrl(iframeSrcLocation);
+
+        if (parsedIframeSrcLocation.partAfterHost && iframeDocumentLocation === parentWindowLocation)
+            return false;
+
         return iframeDocumentLocation === parentWindowLocation;
+    }
 
     if (iframeSrcLocation === parentWindowLocation)
         return true;
