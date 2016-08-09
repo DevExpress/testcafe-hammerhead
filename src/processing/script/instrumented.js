@@ -50,6 +50,7 @@ export const PROPERTIES = [
     'port',
     'protocol',
     'referrer',
+    'responseURL',
     'sandbox',
     'scripts',
     'search',

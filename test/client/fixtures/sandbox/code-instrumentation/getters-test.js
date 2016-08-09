@@ -251,6 +251,25 @@ test('clean up outerHTML', function () {
     }
 });
 
+asyncTest('xhr.responseURL', function () {
+    var xhr       = new XMLHttpRequest();
+    var testCount = 0;
+
+    xhr.addEventListener('readystatechange', function () {
+        if (this.responseURL) {
+            strictEqual(getProperty(this, 'responseURL'), 'https://example.com/xhr-large-response');
+            ++testCount;
+        }
+
+        if (this.readyState === XMLHttpRequest.DONE) {
+            expect(testCount);
+            start();
+        }
+    });
+    xhr.open('GET', '/redirect/', true);
+    xhr.send(null);
+});
+
 module('regression');
 
 test('changing the link.href property must affect the stored attribute value (T123960)', function () {

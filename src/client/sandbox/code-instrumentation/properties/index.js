@@ -700,6 +700,17 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return style.listStyleImage;
                 }
+            },
+
+            // xhr
+            responseURL: {
+                condition: domUtils.isXMLHttpRequest,
+                get:       xhr => xhr.responseURL ? urlUtils.parseProxyUrl(xhr.responseURL).destUrl : xhr.responseURL,
+                set:       (xhr, url) => {
+                    xhr.responseURL = url;
+
+                    return url;
+                }
             }
         };
     }

@@ -64,6 +64,12 @@ module.exports = function (app) {
         res.send('true');
     });
 
+    app.get('/redirect/', function (req, res) {
+        res.statusCode = 302;
+        res.setHeader('location', req.originalUrl.replace('redirect/' , 'xhr-large-response'));
+        res.send();
+    });
+
     app.get('/respond-500', function (req, res) {
         res.statusCode = 500;
         res.send('Server error');

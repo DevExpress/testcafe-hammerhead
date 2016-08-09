@@ -125,6 +125,20 @@ test('isWindow', function () {
     window.toString = storedToString;
 });
 
+test('isXMLHttpRequest', function () {
+    ok(domUtils.isXMLHttpRequest(new XMLHttpRequest()));
+    ok(!domUtils.isXMLHttpRequest({ responseTest: '' }));
+
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test087';
+    document.body.appendChild(iframe);
+
+    ok(domUtils.isXMLHttpRequest(new iframe.contentWindow.XMLHttpRequest()));
+
+    document.body.removeChild(iframe);
+});
+
 test('closest element', function () {
     var div = document.createElement('div');
 
