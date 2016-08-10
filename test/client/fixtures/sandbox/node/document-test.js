@@ -517,6 +517,12 @@ if (!browserUtils.isIE) {
 
                 strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
 
+                iframe.contentDocument.open();
+                iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>');
+                iframe.contentDocument.close();
+
+                strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
+
                 iframe.parentNode.removeChild(iframe);
                 start();
             });
