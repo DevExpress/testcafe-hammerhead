@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+aaa
+<iframe src="javascript:'<html><body>Empty</body></html>'" id="nestedIframe"></iframe>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.sandbox.storageSandbox.attach = function () {
+    };
+    hammerhead.start({
+        crossDomainProxyPort:     2000,
+        iframeTaskScriptTemplate: window.top.getIframeTaskScript('', '/service-msg/100', 'http://localhost/sessionId/https://example.com')
+    });
+</script>
+</body>
+</html>

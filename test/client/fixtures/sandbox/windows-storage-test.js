@@ -76,6 +76,38 @@ test('remove iframe from DOM', function () {
 
 module('regression');
 
+asyncTest('"permission denied" error is raised when an iframe with a nested iframe is reloaded (GH-727)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../data/window-storage/iframe.html');
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe.contentWindow.location.reload();
+
+            window.QUnitGlobals.wait(function () {
+                if (iframe.contentDocument) {
+                    var nestedIframe = iframe.contentDocument.getElementById('nestedIframe');
+
+                    if (nestedIframe && nestedIframe.contentWindow)
+                        return !!nestedIframe.contentWindow['%hammerhead%'];
+                }
+
+                return false;
+            })
+                .then(function () {
+                    var nestedIframe = iframe.contentDocument.getElementById('nestedIframe');
+
+                    ok(nestedIframe.contentWindow['%hammerhead%']);
+                    iframe.parentElement.removeChild(iframe);
+
+                    start();
+                });
+        });
+
+    document.body.appendChild(iframe);
+});
+
 asyncTest('should not raise an error for a cross-domain iframe (GH-669)', function () {
     var sameDomainIframe  = document.createElement('iframe');
     var crossDomainIframe = document.createElement('iframe');
