@@ -47,8 +47,6 @@ test('parameters passed to the native function in its original form', function (
 
     checkNativeFunctionArgs('abort', 'xmlHttpRequestAbort', xhr);
     checkNativeFunctionArgs('open', 'xmlHttpRequestOpen', xhr);
-    checkNativeFunctionArgs('addEventListener', 'xmlHttpRequestAddEventListener', xhr);
-    checkNativeFunctionArgs('removeEventListener', 'xmlHttpRequestRemoveEventListener', xhr);
 
     xhr.setRequestHeader = function () {
     };

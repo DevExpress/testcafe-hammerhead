@@ -6,10 +6,6 @@ import { getOrigin } from '../utils/destination-location';
 
 const IS_OPENED_XHR = 'hammerhead|xhr|is-opened-xhr';
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-var arraySlice = Array.prototype.slice;
-
 export default class XhrSandbox extends SandboxBase {
     constructor (sandbox) {
         super(sandbox);
@@ -120,51 +116,6 @@ export default class XhrSandbox extends SandboxBase {
                 this.setRequestHeader(XHR_HEADERS.withCredentials, 'true');
 
             nativeMethods.xmlHttpRequestSend.apply(this, arguments);
-        };
-
-        xmlHttpRequestProto.addEventListener = function () {
-            var xhr  = this;
-            var args = arraySlice.call(arguments);
-
-            if (typeof args[1] === 'function') {
-                this.eventHandlers = this.eventHandlers || [];
-
-                var eventHandlers  = this.eventHandlers;
-                var originHandler  = args[1];
-                var wrappedHandler = function () {
-                    originHandler.apply(xhr, arguments);
-                };
-
-                args[1] = wrappedHandler;
-
-                eventHandlers.push({
-                    origin:  originHandler,
-                    wrapped: wrappedHandler
-                });
-            }
-
-            return nativeMethods.xmlHttpRequestAddEventListener.apply(this, args);
-        };
-
-        xmlHttpRequestProto.removeEventListener = function () {
-            var args = arraySlice.call(arguments);
-
-            if (typeof args[1] === 'function') {
-                this.eventHandlers = this.eventHandlers || [];
-
-                var eventHandlers = this.eventHandlers;
-
-                for (var i = 0; i < eventHandlers.length; i++) {
-                    if (eventHandlers[i].origin === args[1]) {
-                        args[1] = eventHandlers[i].wrapped;
-                        eventHandlers.splice(i, 1);
-
-                        break;
-                    }
-                }
-            }
-
-            return nativeMethods.xmlHttpRequestRemoveEventListener.apply(this, args);
         };
     }
 }
