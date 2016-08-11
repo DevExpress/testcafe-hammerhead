@@ -320,15 +320,15 @@ module('regression');
 
 asyncTest('service message from removed iframe (GH-64)', function () {
     var iframe            = document.createElement('iframe');
-    var messageReceived   = false;
+    var receivedMessages  = 0;
     var isMessageReceived = function () {
-        return messageReceived;
+        return receivedMessages === 2;
     };
 
     iframe.id = 'test08';
 
     messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function () {
-        messageReceived = true;
+        ++receivedMessages;
     });
 
     iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
@@ -337,7 +337,7 @@ asyncTest('service message from removed iframe (GH-64)', function () {
             return window.QUnitGlobals.wait(isMessageReceived);
         })
         .then(function () {
-            ok(messageReceived, 'message received');
+            strictEqual(receivedMessages, 2);
             start();
         });
     document.body.appendChild(iframe);
