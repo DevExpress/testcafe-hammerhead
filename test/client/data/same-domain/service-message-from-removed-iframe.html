@@ -15,14 +15,19 @@
 
     var messageSandbox = hammerhead.sandbox.event.message;
 
-    var iframe = window.top.document.getElementsByTagName('iframe')[0];
+    var topWindow = window.top;
+    var iframe    = topWindow.document.getElementsByTagName('iframe')[0];
 
     window.addEventListener('load', function () {
         setTimeout(function () {
-            messageSandbox.sendServiceMsg('', window.top);
+            messageSandbox.sendServiceMsg('', topWindow);
 
             iframe.parentNode.removeChild(iframe);
         }, 50);
+    });
+
+    window.addEventListener('unload', function() {
+        messageSandbox.sendServiceMsg('', topWindow);
     });
 </script>
 <div></div>

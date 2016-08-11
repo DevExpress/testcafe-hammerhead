@@ -36,6 +36,7 @@ export default class MessageSandbox extends SandboxBase {
         this.unloadSandbox = unloadSandbox;
 
         this.storedOnMessageHandler = null;
+        this.isWindowUnloaded       = false;
 
         this.iframeInternalMsgQueue = [];
     }
@@ -104,11 +105,6 @@ export default class MessageSandbox extends SandboxBase {
         return isIE9 ? stringifyJSON(result) : result;
     }
 
-    // NOTE: In IE, after an iframe is removed from DOM, the window.top property is equal to window.self.
-    _isIframeRemoved () {
-        return this.window.top === this.window.self && this.window !== this.topWindow;
-    }
-
     _removeInternalMsgFromQueue (sendFunc) {
         for (var index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
             if (this.iframeInternalMsgQueue[index].sendFunc === sendFunc) {
@@ -124,9 +120,12 @@ export default class MessageSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
         // NOTE: The window.top property may be changed after an iframe is removed from DOM in IE, so we save it.
-        this.topWindow = window.top;
+        this.topWindow        = window.top;
+        this.isWindowUnloaded = false;
 
         this.unloadSandbox.on(this.unloadSandbox.UNLOAD_EVENT, () => {
+            this.isWindowUnloaded = true;
+
             while (this.iframeInternalMsgQueue.length) {
                 var msgInfo = this.iframeInternalMsgQueue[0];
 
@@ -135,8 +134,8 @@ export default class MessageSandbox extends SandboxBase {
             }
         });
 
-        var onMessageHandler        = (...args) => fastApply(this, '_onMessage', args);
-        var onWindowMessageHandler  = (...args) => fastApply(this, '_onWindowMessage', args);
+        var onMessageHandler       = (...args) => fastApply(this, '_onMessage', args);
+        var onWindowMessageHandler = (...args) => fastApply(this, '_onWindowMessage', args);
 
         this.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
         this.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
@@ -196,12 +195,11 @@ export default class MessageSandbox extends SandboxBase {
         var message = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
 
         // NOTE: For iframes without src.
-        if (!this._isIframeRemoved() && (isIframeWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) &&
-                                                               targetWindow[this.RECEIVE_MSG_FN])) {
-            var sendFunc = () => {
+        if (isIframeWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) && targetWindow[this.RECEIVE_MSG_FN]) {
+            var sendFunc = force => {
                 // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
                 // in the unload event handler, so we check whether the function is in the queue
-                if (this._removeInternalMsgFromQueue(sendFunc)) {
+                if (force || this._removeInternalMsgFromQueue(sendFunc)) {
                     targetWindow[this.RECEIVE_MSG_FN]({
                         // NOTE: Cloning a message to prevent this modification.
                         data:   parseJSON(stringifyJSON(message)),
@@ -210,13 +208,17 @@ export default class MessageSandbox extends SandboxBase {
                 }
             };
 
-            // NOTE: Imitation of a delay for the postMessage method.
-            // We use the same-domain top window
-            // so that the function called by setTimeout is executed after removing the iframe
-            var topSameDomainWindow = getTopSameDomainWindow(this.window);
-            var timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
+            if (!this.isWindowUnloaded) {
+                // NOTE: Imitation of a delay for the postMessage method.
+                // We use the same-domain top window
+                // so that the function called by setTimeout is executed after removing the iframe
+                var topSameDomainWindow = getTopSameDomainWindow(this.window);
+                var timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
 
-            this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
+                this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
+            }
+            else
+                sendFunc(true);
 
             return null;
         }
