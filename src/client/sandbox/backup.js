@@ -2,6 +2,21 @@ import { getTopSameDomainWindow, getFrameElement } from '../utils/dom';
 
 const SANDBOX_BACKUP = 'hammerhead|sandbox-backup';
 
+
+function findRecord (storage, iframe) {
+    for (var i = storage.length - 1; i >= 0; i--) {
+        try {
+            if (storage[i].iframe === iframe)
+                return storage[i];
+        }
+        catch (e) {
+            storage.splice(i, 1);
+        }
+    }
+
+    return void 0;
+}
+
 export function create (window, sandbox) {
     var topSameDomainWindow = getTopSameDomainWindow(window);
     var iframe              = window !== topSameDomainWindow ? getFrameElement(window) : null;
@@ -12,14 +27,12 @@ export function create (window, sandbox) {
         Object.defineProperty(topSameDomainWindow, SANDBOX_BACKUP, { value: storage });
     }
 
-    for (var i = 0; i < storage.length; i++) {
-        if (storage[i].iframe === iframe) {
-            storage[i].sandbox = sandbox;
-            return;
-        }
-    }
+    var record = findRecord(storage, iframe);
 
-    storage.push({ iframe, sandbox });
+    if (record)
+        record.sandbox = sandbox;
+    else
+        storage.push({ iframe, sandbox });
 }
 
 export function get (window) {
@@ -28,10 +41,9 @@ export function get (window) {
     var iframe              = window !== topSameDomainWindow ? window.frameElement : null;
 
     if (storage) {
-        for (var i = 0; i < storage.length; i++) {
-            if (storage[i].iframe === iframe)
-                return storage[i].sandbox;
-        }
+        var record = findRecord(storage, iframe);
+
+        return record ? record.sandbox : null;
     }
 
     return null;

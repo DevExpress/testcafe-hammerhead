@@ -7,7 +7,7 @@ function getStorage () {
     var storage             = topSameDomainWindow[WINDOWS_STORAGE];
 
     if (!storage) {
-        storage = [];
+        storage                              = [];
         topSameDomainWindow[WINDOWS_STORAGE] = storage;
     }
 
@@ -17,13 +17,22 @@ function getStorage () {
 export function add (wnd) {
     var storage = getStorage();
 
-    if (storage.indexOf(wnd) === -1)
-        storage.push(wnd);
+    for (var i = storage.length - 1; i >= 0; i--) {
+        try {
+            if (storage[i] === wnd)
+                return;
+        }
+        catch (e) {
+            storage.splice(i, 1);
+        }
+    }
+
+    storage.push(wnd);
 }
 
 export function remove (wnd) {
-    var storage   = getStorage();
-    var index     = storage.indexOf(wnd);
+    var storage = getStorage();
+    var index   = storage.indexOf(wnd);
 
     if (index !== -1)
         storage.splice(index, 1);
