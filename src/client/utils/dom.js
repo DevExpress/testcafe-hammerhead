@@ -521,6 +521,12 @@ export function isDocument (instance) {
     }
 }
 
+export function isXMLHttpRequest (instance) {
+    return instance && (instance instanceof XMLHttpRequest ||
+                        typeof instance === 'object' && instance.toString &&
+                        instance.toString() === '[object XMLHttpRequest]');
+}
+
 export function isBlob (instance) {
     return instance && typeof instance === 'object' && typeof instance.slice === 'function' &&
            instance.toString && instance.toString() === '[object Blob]';
