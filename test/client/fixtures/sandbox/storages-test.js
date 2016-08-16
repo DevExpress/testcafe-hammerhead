@@ -416,3 +416,23 @@ asyncTest('event argument parameters', function () {
             start();
         });
 });
+
+module('regression');
+
+test("should work with keys named as wrapper's internal members (GH-735)", function () {
+    var storageWrapper = storageSandbox.sessionStorage;
+
+    storageWrapper.initialProperties.forEach(function (property) {
+        storageWrapper.setItem(property, 'test');
+
+        ok(storageWrapper[property] !== 'test');
+        strictEqual(storageWrapper.getItem(property), 'test');
+    });
+
+    storageWrapper.wrapperMethods.forEach(function (method) {
+        storageWrapper.setItem(method, 'test');
+
+        ok(storageWrapper[method] !== 'test');
+        strictEqual(storageWrapper.getItem(method), 'test');
+    });
+});
