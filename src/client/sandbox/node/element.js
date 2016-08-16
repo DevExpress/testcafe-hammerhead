@@ -18,14 +18,17 @@ import * as windowsStorage from '../windows-storage';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
+const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
+
 export default class ElementSandbox extends SandboxBase {
-    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI) {
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {
         super();
 
         this.nodeSandbox   = nodeSandbox;
         this.shadowUI      = shadowUI;
         this.uploadSandbox = uploadSandbox;
         this.iframeSandbox = iframeSandbox;
+        this.eventSandbox  = eventSandbox;
 
         this.overridedMethods = null;
 
@@ -59,6 +62,23 @@ export default class ElementSandbox extends SandboxBase {
                     el[urlAttr] = urlUtils.getProxyUrl(parsedUrl.destUrl, null, null, null, resourceType);
                 }
             }
+        }
+    }
+
+    static setHasLoadHandlerFlag (el) {
+        el[HAS_LOAD_HANDLER_FLAG] = true;
+    }
+
+    static removeHasLoadHandlerFlag (el) {
+        delete el[HAS_LOAD_HANDLER_FLAG];
+    }
+
+    static _setProxiedSrc (img) {
+        if (!img[HAS_LOAD_HANDLER_FLAG]) {
+            ElementSandbox.setHasLoadHandlerFlag(img);
+
+            if (img.src)
+                img.setAttribute('src', img.src);
         }
     }
 
@@ -138,7 +158,7 @@ export default class ElementSandbox extends SandboxBase {
 
             setAttrMeth.apply(el, isNs ? [ns, storedUrlAttr, value] : [storedUrlAttr, value]);
 
-            if (tagName !== 'img') {
+            if (tagName !== 'img' || el[HAS_LOAD_HANDLER_FLAG]) {
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
                     var isIframe         = tagName === 'iframe';
                     var isScript         = tagName === 'script';
@@ -518,6 +538,27 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLTableSectionElement.prototype.insertRow = this.overridedMethods.insertRow;
         window.HTMLTableRowElement.prototype.insertCell    = this.overridedMethods.insertCell;
         window.HTMLFormElement.prototype.submit            = this.overridedMethods.formSubmit;
+
+        // NOTE: Cookie can be set up for the page by using the request initiated by img.
+        // For example: img.src = '<url that responds with the Set-Cookie header>'
+        // If img has the 'load' event handler, we redirect the request through proxy.
+        // For details, see https://github.com/DevExpress/testcafe-hammerhead/issues/651
+        this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
+            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
+                ElementSandbox._setProxiedSrc(e.el);
+        });
+        this.eventSandbox.on(this.eventSandbox.EVENT_ATTACHED_EVENT, e => {
+            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
+                ElementSandbox._setProxiedSrc(e.el);
+        });
+        this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_DETACHED_EVENT, e => {
+            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
+                ElementSandbox.removeHasLoadHandlerFlag(e.el);
+        });
+        this.eventSandbox.on(this.eventSandbox.EVENT_DETACHED_EVENT, e => {
+            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
+                ElementSandbox.removeHasLoadHandlerFlag(e.el);
+        });
     }
 
     _setProxiedSrcUrlOnError (img) {

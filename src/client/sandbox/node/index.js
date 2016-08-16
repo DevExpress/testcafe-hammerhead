@@ -29,7 +29,7 @@ export default class NodeSandbox extends SandboxBase {
 
         this.doc     = new DocumentSandbox(this);
         this.win     = new WindowSandbox(this, eventSandbox.message);
-        this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI);
+        this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI, eventSandbox);
     }
 
     _onBodyCreated () {

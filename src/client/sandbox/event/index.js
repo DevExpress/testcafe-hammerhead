@@ -12,6 +12,9 @@ export default class EventSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
         super();
 
+        this.EVENT_ATTACHED_EVENT = 'hammerhead|event|event-attached';
+        this.EVENT_DETACHED_EVENT = 'hammerhead|event|event-detached';
+
         this.listeners             = listeners;
         this.eventSimulator        = eventSimulator;
         this.elementEditingWatcher = elementEditingWatcher;
@@ -37,6 +40,7 @@ export default class EventSandbox extends SandboxBase {
         var selection        = this.selection;
         var focusBlurSandbox = this.focusBlur;
         var eventSimulator   = this.eventSimulator;
+        var sandbox          = this;
 
         this.overridedMethods = {
             dispatchEvent: function () {
@@ -86,18 +90,28 @@ export default class EventSandbox extends SandboxBase {
                 return res;
             },
 
-            attachEvent: function () {
-                if (typeof arguments[0] === 'string')
-                    arguments[0] = arguments[0].substring(2);
+            attachEvent: function (...args) {
+                if (typeof args[0] === 'string')
+                    args[0] = args[0].substring(2);
 
-                nativeMethods.addEventListener.apply(this, arguments);
+                nativeMethods.addEventListener.apply(this, args);
+
+                var type     = args[0];
+                var listener = args[1];
+
+                sandbox.emit(sandbox.EVENT_ATTACHED_EVENT, { el: this, listener, eventType: type });
             },
 
-            detachEvent: function () {
-                if (typeof arguments[0] === 'string')
-                    arguments[0] = arguments[0].substring(2);
+            detachEvent: function (...args) {
+                if (typeof args[0] === 'string')
+                    args[0] = args[0].substring(2);
 
-                nativeMethods.removeEventListener.apply(this, arguments);
+                nativeMethods.removeEventListener.apply(this, args);
+
+                var type     = args[0];
+                var listener = args[1];
+
+                sandbox.emit(sandbox.EVENT_DETACHED_EVENT, { el: this, listener, eventType: type });
             },
 
             click: function () {
