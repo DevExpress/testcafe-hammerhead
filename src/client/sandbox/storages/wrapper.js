@@ -3,7 +3,6 @@ import { isIE } from '../../utils/browser';
 import * as destLocation from '../../utils/destination-location';
 
 const STORAGES_SANDBOX_TEMP = 'hammerhead|storages-sandbox-temp';
-const API_KEY_PREFIX        = 'hammerhead|api-key-prefix|';
 const KEY                   = 0;
 const VALUE                 = 1;
 
@@ -16,7 +15,6 @@ export default class StorageWrapper extends EventEmitter {
         this.lastState         = null;
         this.window            = window;
         this.initialProperties = [];
-        this.wrapperMethods    = [];
 
         this.STORAGE_CHANGED_EVENT = 'hammerhead|event|storage-changed';
         this.EMPTY_OLD_VALUE_ARG   = isIE ? '' : null;
@@ -26,21 +24,11 @@ export default class StorageWrapper extends EventEmitter {
             set: () => void 0
         });
 
-        // NOTE: Save wrapper properties and methods to be able to distinguish them from
+        // NOTE: Save wrapper properties to be able to distinguish them from
         // properties that will be created from the outside.
         this.initialProperties = Object.getOwnPropertyNames(this);
-        this.wrapperMethods    = StorageWrapper._getWrapperMethods();
 
         this._init();
-    }
-
-    static _getWrapperMethods () {
-        var methods = [];
-
-        for (var key in StorageWrapper.prototype)
-            methods.push(key);
-
-        return methods;
     }
 
     _init () {
@@ -127,14 +115,6 @@ export default class StorageWrapper extends EventEmitter {
             this[storage[KEY][i]] = storage[VALUE][i];
     }
 
-    _getValidKey (key) {
-        var isWrapperMember = this.wrapperMethods.indexOf(name) !== -1 || this.initialProperties.indexOf(name) !== -1;
-
-        key = isWrapperMember ? API_KEY_PREFIX + key : key;
-
-        return this._castToString(key);
-    }
-
     saveToNativeStorage () {
         var state = JSON.stringify(this._getCurrentState());
 
@@ -162,7 +142,7 @@ export default class StorageWrapper extends EventEmitter {
         if (arguments.length === 0)
             throw new TypeError();
 
-        key = this._getValidKey(key);
+        key = this._castToString(key);
 
         return this.hasOwnProperty(key) ? this[key] : null;
     }
@@ -183,7 +163,7 @@ export default class StorageWrapper extends EventEmitter {
         if (arguments.length === 0)
             throw new TypeError();
 
-        key = this._getValidKey(key);
+        key = this._castToString(key);
 
         delete this[key];
         this._checkStorageChanged();
@@ -193,7 +173,7 @@ export default class StorageWrapper extends EventEmitter {
         if (arguments.length < 2)
             throw new TypeError();
 
-        key   = this._getValidKey(key);
+        key   = this._castToString(key);
         value = this._castToString(value);
 
         this[key] = value;
