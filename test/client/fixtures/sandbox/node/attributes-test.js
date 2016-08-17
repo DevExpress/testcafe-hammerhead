@@ -107,8 +107,6 @@ test('script src', function () {
 
     var script = document.createElement('script');
 
-    processDomMeth(script);
-
     document[INTERNAL_PROPS.documentCharset] = 'utf-8';
 
     script.setAttribute('src', 'http://google.com');
@@ -126,8 +124,6 @@ asyncTest('iframe with "javascript: <html>...</html>" src', function () {
     var src    = 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<\/script>"';
 
     iframe.id = 'test55';
-    processDomMeth(iframe);
-
     iframe.setAttribute('src', src);
 
     iframe.onload = function () {
@@ -147,8 +143,6 @@ asyncTest('iframe html src', function () {
     var src    = 'javascript:\'<html><body><a id=\\\'test\\\' data-attr=\"123\">link</a></body></html>\'';
 
     iframe.id = 'test56';
-    processDomMeth(iframe);
-
     iframe.setAttribute('src', src);
 
     var srcAttr       = nativeMethods.getAttribute.call(iframe, 'src');

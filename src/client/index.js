@@ -20,6 +20,7 @@ import { SCRIPT_PROCESSING_START_COMMENT, SCRIPT_PROCESSING_END_HEADER_COMMENT, 
 import { STYLESHEET_PROCESSING_START_COMMENT, STYLESHEET_PROCESSING_END_COMMENT } from '../processing/style';
 import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
+import throttle from './utils/throttle';
 
 class Hammerhead {
     constructor () {
@@ -92,7 +93,8 @@ class Hammerhead {
             types:       typeUtils,
             trim:        trim,
             isJQueryObj: isJQueryObj,
-            extend:      extend
+            extend:      extend,
+            throttle:    throttle
         };
     }
 
