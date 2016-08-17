@@ -2,7 +2,7 @@ import EventEmitter from '../../utils/event-emitter';
 import { isIE } from '../../utils/browser';
 import * as destLocation from '../../utils/destination-location';
 
-const STORAGES_SANDBOX_TEMP = 'hammerhead|storeges-sandbox-temp';
+const STORAGES_SANDBOX_TEMP = 'hammerhead|storages-sandbox-temp';
 const API_KEY_PREFIX        = 'hammerhead|api-key-prefix|';
 const KEY                   = 0;
 const VALUE                 = 1;
@@ -28,7 +28,7 @@ export default class StorageWrapper extends EventEmitter {
 
         // NOTE: Save wrapper properties and methods to be able to distinguish them from
         // properties that will be created from the outside.
-        this.initialProperties = this._getInitialProperties();
+        this.initialProperties = Object.getOwnPropertyNames(this);
         this.wrapperMethods    = StorageWrapper._getWrapperMethods();
 
         this._init();
@@ -48,17 +48,6 @@ export default class StorageWrapper extends EventEmitter {
         this.lastState = this._getCurrentState();
 
         window.setInterval(() => this._checkStorageChanged(), 10);
-    }
-
-    _getInitialProperties () {
-        var properties = ['length'];
-
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                properties.push(property);
-        }
-
-        return properties;
     }
 
     _checkStorageChanged () {
@@ -100,6 +89,10 @@ export default class StorageWrapper extends EventEmitter {
     }
 
     _getAddedProperties () {
+        // NOTE: The standard doesn't regulate the order in which properties are enumerated.
+        // But we rely on the fact that they are enumerated in the order they were created in all the supported browsers.
+        // In this case we cannot use Object.getOwnPropertyNames
+        // because the enumeration order in Android 5.1 is different from all other browsers.
         var properties = [];
 
         for (var property in this) {
@@ -135,7 +128,7 @@ export default class StorageWrapper extends EventEmitter {
     }
 
     _getValidKey (key) {
-        var isWrapperMember = this.wrapperMethods.indexOf(name) !== -1 || this.initialProperties.indexOf(name) !== -1;
+        var isWrapperMember = this.wrapperMethods.indexOf(key) !== -1 || this.initialProperties.indexOf(key) !== -1;
 
         key = isWrapperMember ? API_KEY_PREFIX + key : key;
 
