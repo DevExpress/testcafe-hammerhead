@@ -5,6 +5,7 @@ var settings            = hammerhead.get('./settings');
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var domUtils      = hammerhead.utils.dom;
+var positionUtils = hammerhead.utils.position;
 var nativeMethods = hammerhead.nativeMethods;
 
 QUnit.testStart(function () {
@@ -347,6 +348,26 @@ test('body.querySelectorAll', function () {
 
 module('document methods');
 
+test('elementFromPoint', function () {
+    var testDiv   = document.querySelector('#testDiv');
+    var simpleDiv = document.createElement('div');
+    var shadowDiv = document.createElement('div');
+
+    simpleDiv.style.height = '10px';
+    shadowDiv.style.height = '10px';
+
+    shadowUI.addClass(shadowDiv, 'root');
+
+    testDiv.appendChild(simpleDiv);
+    testDiv.appendChild(shadowDiv);
+
+    var simpleDivPos = positionUtils.getOffsetPosition(simpleDiv);
+    var shadowDivPos = positionUtils.getOffsetPosition(shadowDiv);
+
+    strictEqual(document.elementFromPoint(simpleDivPos.left + 1, simpleDivPos.top + 1), simpleDiv);
+    strictEqual(document.elementFromPoint(shadowDivPos.left + 1, shadowDivPos.top + 1), null);
+});
+
 test('getElementById', function () {
     var $testDiv = $('#testDiv');
     var $uiRoot  = $('<div>').appendTo($testDiv);
@@ -628,3 +649,11 @@ asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow mus
         });
     document.body.appendChild(crossDomainIframe);
 });
+
+if (document.implementation && document.implementation.createHTMLDocument) {
+    test('the getElementsByTagName function must return the body of htmlDoc (GH-741)', function () {
+        var htmlDoc = document.implementation.createHTMLDocument('title');
+
+        strictEqual(htmlDoc.getElementsByTagName('body')[0], nativeMethods.getElementsByTagName.call(htmlDoc, 'body')[0]);
+    });
+}

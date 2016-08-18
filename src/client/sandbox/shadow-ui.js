@@ -86,41 +86,45 @@ export default class ShadowUI extends SandboxBase {
         var shadowUI = this;
         var docProto = document.constructor.prototype;
 
-        document.elementFromPoint = (...args) => {
+        docProto.elementFromPoint = function (...args) {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-            var res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(document, args));
+            var res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(this, args));
 
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
             return res;
         };
 
-        docProto.getElementById = (...args) =>
-            ShadowUI._filterElement(nativeMethods.getElementById.apply(document, args));
-
-        docProto.getElementsByClassName = (...args) =>
-            ShadowUI._filterNodeList(nativeMethods.getElementsByClassName.apply(document, args));
-
-        docProto.getElementsByName = (...args) =>
-            ShadowUI._filterNodeList(nativeMethods.getElementsByName.apply(document, args));
-
-        docProto.getElementsByTagName = (...args) =>
-            ShadowUI._filterNodeList(nativeMethods.getElementsByTagName.apply(document, args));
-
-        docProto.querySelector = (...args) => {
-            if (typeof args[0] === 'string')
-                args[0] = NodeSandbox.processSelector(args[0]);
-
-            return ShadowUI._filterElement(nativeMethods.querySelector.apply(document, args));
+        docProto.getElementById = function (...args) {
+            return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args));
         };
 
-        docProto.querySelectorAll = (...args) => {
+        docProto.getElementsByClassName = function (...args) {
+            return ShadowUI._filterNodeList(nativeMethods.getElementsByClassName.apply(this, args));
+        };
+
+        docProto.getElementsByName = function (...args) {
+            return ShadowUI._filterNodeList(nativeMethods.getElementsByName.apply(this, args));
+        };
+
+        docProto.getElementsByTagName = function (...args) {
+            return ShadowUI._filterNodeList(nativeMethods.getElementsByTagName.apply(this, args));
+        };
+
+        docProto.querySelector = function (...args) {
             if (typeof args[0] === 'string')
                 args[0] = NodeSandbox.processSelector(args[0]);
 
-            return ShadowUI._filterNodeList(nativeMethods.querySelectorAll.apply(document, args));
+            return ShadowUI._filterElement(nativeMethods.querySelector.apply(this, args));
+        };
+
+        docProto.querySelectorAll = function (...args) {
+            if (typeof args[0] === 'string')
+                args[0] = NodeSandbox.processSelector(args[0]);
+
+            return ShadowUI._filterNodeList(nativeMethods.querySelectorAll.apply(this, args));
         };
 
         // NOTE: T195358
