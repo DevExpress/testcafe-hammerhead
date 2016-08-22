@@ -129,6 +129,22 @@ test('question mark disappears', function () {
     strictEqual(urlUtils.formatUrl(parsedUrl), url);
 });
 
+test('additional slashes after scheme (GH-739)', function () {
+    var url           = 'http://///example.com/';
+    var parsingResult = urlUtils.parseUrl(url);
+
+    strictEqual(parsingResult.hostname, 'example.com');
+
+    urlUtils.parseUrl('////mail.ru');
+});
+
+test('additional slashes before path', function () {
+    var url           = '/////example.com/';
+    var parsingResult = urlUtils.parseUrl(url);
+
+    strictEqual(parsingResult.hostname, 'example.com');
+});
+
 module('get proxy url');
 
 test('already proxied', function () {
