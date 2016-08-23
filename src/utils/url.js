@@ -281,11 +281,14 @@ export function prepareUrl (url) {
         return '';
     /* eslint-enable no-undef */
 
-    url = (url + '').replace(/\n|\t/g, '');
+    url = String(url);
+    url = url.replace(/\n|\t/g, '');
 
-    // NOTE: Remove unnecessary slashes from the beginning of the url.
-    // For example, the "//////google.com" url is equal to "//google.com".
-    return url.replace(/^\/+(\/\/.*$)/, '$1');
+    // NOTE: Remove unnecessary slashes from the beginning of the url and after scheme.
+    // For example:
+    // "//////example.com" -> "//example.com".
+    // "http:///example.com" -> "http://example.com"
+    return url.replace(/^(https?:)?\/+(\/\/.*$)/i, '$1$2');
 }
 
 export function ensureTrailingSlash (srcUrl, processedUrl) {
