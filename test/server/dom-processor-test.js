@@ -20,7 +20,12 @@ function process (html, isIframe) {
     var urlReplacer      = function (url, resourceType) {
         url = url.indexOf('/') === 0 ? 'http://example.com' + url : url;
 
-        return urlUtils.getProxyUrl(url, 'localhost', '80', 'sessionId', resourceType);
+        return urlUtils.getProxyUrl(url, {
+            proxyHostname: 'localhost',
+            proxyPort:     '80',
+            sessionId:     'sessionId',
+            resourceType:  resourceType
+        });
     };
 
     parse5Utils.walkElements(root, function (el) {
@@ -145,9 +150,19 @@ describe('DOM processor', function () {
         var root                 = process('<iframe src="//cross.domain.com/"></iframe><iframe src="//example.com/"></iframe>');
         var iframes              = parse5Utils.findElementsByTagNames(root, 'iframe').iframe;
         var crossDomainIframeSrc = domAdapter.getAttr(iframes[0], 'src');
-        var crossDomainProxyUrl  = urlUtils.getProxyUrl('http://cross.domain.com/', testProxyHostName, testCrossDomainPort, 'sessionId', 'i');
+        var crossDomainProxyUrl  = urlUtils.getProxyUrl('http://cross.domain.com/', {
+            proxyHostname: testProxyHostName,
+            proxyPort:     testCrossDomainPort,
+            sessionId:     'sessionId',
+            resourceType:  'i'
+        });
         var iframeSrc            = domAdapter.getAttr(iframes[1], 'src');
-        var proxyUrl             = urlUtils.getProxyUrl('http://example.com/', testProxyHostName, testProxyPort, 'sessionId', 'i');
+        var proxyUrl             = urlUtils.getProxyUrl('http://example.com/', {
+            proxyHostname: testProxyHostName,
+            proxyPort:     testProxyPort,
+            sessionId:     'sessionId',
+            resourceType:  'i'
+        });
 
         expect(crossDomainIframeSrc).eql(crossDomainProxyUrl);
         expect(iframeSrc).eql(proxyUrl);

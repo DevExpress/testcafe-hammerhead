@@ -395,7 +395,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         var ownerWindow  = domUtils.isWindow(owner) ? owner : owner.defaultView;
                         var resourceType = getResourceTypeString({ isIframe: ownerWindow !== window.top });
 
-                        owner.location = urlUtils.getProxyUrl(location, null, null, null, resourceType);
+                        owner.location = urlUtils.getProxyUrl(location, { resourceType });
 
                         return location;
                     }
@@ -762,6 +762,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 return owner[propName];
             },
+
             configurable: true
         });
 
@@ -778,6 +779,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 return owner[propName] = value;
                 /* eslint-enable no-return-assign */
             },
+
             configurable: true
         });
 

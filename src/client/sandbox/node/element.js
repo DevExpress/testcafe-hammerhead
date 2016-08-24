@@ -59,7 +59,7 @@ export default class ElementSandbox extends SandboxBase {
                         isScript: parsedResourceType.isScript
                     });
 
-                    el[urlAttr] = urlUtils.getProxyUrl(parsedUrl.destUrl, null, null, null, resourceType);
+                    el[urlAttr] = urlUtils.getProxyUrl(parsedUrl.destUrl, { resourceType });
                 }
             }
         }
@@ -171,7 +171,7 @@ export default class ElementSandbox extends SandboxBase {
                         urlResolver.updateBase(value, this.document);
 
                     args[valueIndex] = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
-                                       urlUtils.getProxyUrl(value, null, null, null, resourceType, elCharset);
+                                       urlUtils.getProxyUrl(value, { resourceType, charset: elCharset });
                 }
             }
             else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value))
@@ -189,7 +189,7 @@ export default class ElementSandbox extends SandboxBase {
                 return null;
 
             if (!ElementSandbox._isKeywordTarget(value) && !windowsStorage.findByName(value)) {
-                value = '_self';
+                value            = '_self';
                 args[valueIndex] = value;
             }
 

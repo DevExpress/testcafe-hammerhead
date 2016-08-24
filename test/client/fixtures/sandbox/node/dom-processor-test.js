@@ -22,8 +22,8 @@ QUnit.testDone(function () {
 });
 
 test('iframe', function () {
-    var iframe         = nativeMethods.createElement.call(document, 'iframe');
-    var storedAttrName = domProcessor.getStoredAttrName('sandbox');
+    var iframe                             = nativeMethods.createElement.call(document, 'iframe');
+    var storedAttrName                     = domProcessor.getStoredAttrName('sandbox');
 
     nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts');
     domProcessor.processElement(iframe);
@@ -106,13 +106,13 @@ test('script text', function () {
     var processedScript = processScript(script, true);
 
     nativeMethods.appendChild.call(document.body, div);
-    div.innerHTML = '\<script\>' + script + '\</script\>';
+    div.innerHTML       = '\<script\>' + script + '\</script\>';
 
     domProcessor.processElement(div.firstChild);
 
     notEqual(script, processedScript);
     strictEqual(div.innerHTML.replace(/\s/g, ''), ('\<script\>' + processedScript +
-                                                       '\</script\>').replace(/\s/g, ''));
+                                                   '\</script\>').replace(/\s/g, ''));
 
     div.parentNode.removeChild(div);
 });
@@ -200,7 +200,8 @@ test('event attributes', function () {
 
     nativeMethods.setAttribute.call(div, 'onclick', attrValue);
 
-    domProcessor.processElement(div, function () { });
+    domProcessor.processElement(div, function () {
+    });
 
     strictEqual(nativeMethods.getAttribute.call(div, 'onclick'), processedValue);
     strictEqual(nativeMethods.getAttribute.call(div, storedAttrName), attrValue);
@@ -216,7 +217,8 @@ test('javascript protocol', function () {
     nativeMethods.setAttribute.call(link, 'onclick', attrValue);
     nativeMethods.setAttribute.call(link, 'href', attrValue);
 
-    domProcessor.processElement(link, function () { });
+    domProcessor.processElement(link, function () {
+    });
 
     strictEqual(nativeMethods.getAttribute.call(link, 'onclick'), processedValue);
     strictEqual(nativeMethods.getAttribute.call(link, 'href'), processedValue);
@@ -227,13 +229,13 @@ test('javascript protocol', function () {
 test('anchor with target attribute', function () {
     var anchor   = nativeMethods.createElement.call(document, 'a');
     var testUrl  = 'http://url.com/';
-    var proxyUrl = urlUtils.getProxyUrl(testUrl, null, null, null, 'i');
+    var proxyUrl = urlUtils.getProxyUrl(testUrl, { resourceType: 'i' });
 
     nativeMethods.setAttribute.call(anchor, 'href', testUrl);
     nativeMethods.setAttribute.call(anchor, 'target', 'iframeName');
 
     domProcessor.processElement(anchor, function (url, resourceType) {
-        return urlUtils.getProxyUrl(url, null, null, null, resourceType);
+        return urlUtils.getProxyUrl(url, { resourceType: resourceType });
     });
 
     strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), proxyUrl);
@@ -272,7 +274,11 @@ test('autocomplete attribute', function () {
 
 test('crossdomain src', function () {
     var url                   = 'http://cross.domain.com/';
-    var proxyUrl              = urlUtils.getProxyUrl(url, location.hostname, 2001, null, 'i');
+    var proxyUrl              = urlUtils.getProxyUrl(url, {
+        proxyHostname: location.hostname,
+        proxyPort:     2001,
+        resourceType:  'i'
+    });
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
 
     settings.get().crossDomainProxyPort = 2001;

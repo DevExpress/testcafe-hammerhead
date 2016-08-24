@@ -230,7 +230,7 @@ test('innerHTML', function () {
     eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><\/script><a href=\\"" + linkUrl + "\\"></a>";'));
 
     strictEqual(div.children.length, 2);
-    strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, null, null, null, 's', 'utf-8'));
+    strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, { resourceType: 's', charset: 'utf-8' }));
     strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl));
 
     document[INTERNAL_PROPS.documentCharset] = null;
@@ -328,7 +328,7 @@ test('outerHTML', function () {
 
     strictEqual(parentDiv.children.length, 2);
     strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl('http://domain.com/'));
-    strictEqual(parentDiv.lastChild.src, urlUtils.getProxyUrl('http://domain.com/script', null, null, null, 's'));
+    strictEqual(parentDiv.lastChild.src, urlUtils.getProxyUrl('http://domain.com/script', { resourceType: 's' }));
 });
 
 module('regression');
@@ -489,7 +489,7 @@ asyncTest("location assignment doesn't work (GH-640)", function () {
     var iframe       = document.createElement('iframe');
     var iframeSrc    = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
     var iframeNewSrc = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-    var handler = function () {
+    var handler      = function () {
         iframe.removeEventListener('load', handler);
         iframe.addEventListener('load', function () {
             var parsedProxyUrl = urlUtils.parseProxyUrl(iframe.contentWindow.location);

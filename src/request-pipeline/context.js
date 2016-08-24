@@ -124,12 +124,13 @@ export default class RequestPipelineContext {
             if (!this.session)
                 return false;
 
-            this.dest        = parsedReqUrl.dest;
+            this.dest = parsedReqUrl.dest;
 
             // Browsers add a leading slash to the pathname part of url (GH-608)
             // For example: url http://www.trovigo.com?gd=GID12082014 will be converted
             // to http://www.trovigo.com/?gd=GID12082014
-            this.dest.partAfterHost = this.dest.partAfterHost[0] === '/' ? this.dest.partAfterHost : '/' + this.dest.partAfterHost;
+            this.dest.partAfterHost = this.dest.partAfterHost[0] === '/' ? this.dest.partAfterHost : '/' +
+                                                                                                     this.dest.partAfterHost;
 
             this.dest.domain = urlUtils.getDomain(this.dest);
 
@@ -228,9 +229,17 @@ export default class RequestPipelineContext {
             this.res.end();
     }
 
-    toProxyUrl (url, isCrossDomain, resourceType, charsetAttrValue) {
-        var port = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
+    toProxyUrl (url, isCrossDomain, resourceType, charset) {
+        var proxyHostname = this.serverInfo.hostname;
+        var proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
+        var sessionId     = this.session.id;
 
-        return urlUtils.getProxyUrl(url, this.serverInfo.hostname, port, this.session.id, resourceType, charsetAttrValue);
+        return urlUtils.getProxyUrl(url, {
+            proxyHostname,
+            proxyPort,
+            sessionId,
+            resourceType,
+            charset
+        });
     }
 }

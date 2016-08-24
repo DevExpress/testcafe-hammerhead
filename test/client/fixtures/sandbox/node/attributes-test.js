@@ -50,7 +50,7 @@ test('url', function () {
         else if (tagName === 'form')
             resourceType = 'f';
 
-        var proxy = urlUtils.getProxyUrl(dest, null, null, null, resourceType);
+        var proxy = urlUtils.getProxyUrl(dest, { resourceType: resourceType });
 
         setProperty(el, attr, dest);
         strictEqual(el[attr], proxy);
@@ -59,7 +59,7 @@ test('url', function () {
         strictEqual(getWrapAttr(), dest);
 
         var newUrl      = '/image';
-        var proxyNewUrl = urlUtils.getProxyUrl('/image', null, null, null, resourceType);
+        var proxyNewUrl = urlUtils.getProxyUrl('/image', { resourceType: resourceType });
 
         el.setAttribute(attr, newUrl);
         strictEqual(el[attr], proxyNewUrl);
@@ -458,7 +458,7 @@ test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
     var url      = 'http://url.com/';
     var iframe   = document.createElement('iframe');
-    var proxyUrl = urlUtils.getProxyUrl(url, null, null, null, 'i');
+    var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i' });
 
     iframe.id   = 'test_unique_id_e16w9jnv5';
     iframe.name = 'iframeName';
