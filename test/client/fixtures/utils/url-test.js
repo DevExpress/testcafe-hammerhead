@@ -23,6 +23,15 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
+function getProxyUrl (url, resourceType) {
+    return urlUtils.getProxyUrl(url, {
+        proxyHostname: PROXY_HOSTNAME,
+        proxyPort:     PROXY_PORT,
+        sessionId:     'sessionId',
+        resourceType:  resourceType
+    });
+}
+
 test('getCrossDomainProxyUrl', function () {
     var storedCrossDomainport = settings.get().crossDomainProxyPort;
 
@@ -59,7 +68,11 @@ test('isSupportedProtocol', function () {
 test('formatUrl', function () {
     strictEqual(urlUtils.formatUrl({ hostname: 'localhost', partAfterHost: '/path' }), '/path');
     strictEqual(urlUtils.formatUrl({ port: '1400', partAfterHost: '/path' }), '/path');
-    strictEqual(urlUtils.formatUrl({ hostname: 'localhost', port: '1400', protocol: 'http:' }), 'http://localhost:1400');
+    strictEqual(urlUtils.formatUrl({
+        hostname: 'localhost',
+        port:     '1400',
+        protocol: 'http:'
+    }), 'http://localhost:1400');
 
     var parsedUrl = {
         hostname: 'localhost',
@@ -149,8 +162,8 @@ module('get proxy url');
 
 test('already proxied', function () {
     var destUrl  = 'http://test.example.com/';
-    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
-    var newUrl   = urlUtils.getProxyUrl(proxyUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId', 'i');
+    var proxyUrl = getProxyUrl(destUrl);
+    var newUrl   = getProxyUrl(proxyUrl, 'i');
 
     strictEqual(urlUtils.parseProxyUrl(newUrl).resourceType, 'i');
 
@@ -158,21 +171,21 @@ test('already proxied', function () {
 
 test('destination with query, path, hash and host', function () {
     var destUrl  = 'http://test.example.com/pa/th/Page?param1=value&param2=&param3#testHash';
-    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+    var proxyUrl = getProxyUrl(destUrl);
 
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
 test('destination with host only', function () {
     var destUrl  = 'http://test.example.com/';
-    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+    var proxyUrl = getProxyUrl(destUrl);
 
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
 test('destination with https protocol', function () {
     var destUrl  = 'https://test.example.com:53/';
-    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+    var proxyUrl = getProxyUrl(destUrl);
 
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
@@ -196,54 +209,60 @@ test('relative path', function () {
 
 test('contains successive question marks in query', function () {
     var destUrl  = 'http://test.example.com/??dirs/???files/';
-    var proxyUrl = urlUtils.getProxyUrl(destUrl, '127.0.0.1', PROXY_PORT, 'sessionId');
+    var proxyUrl = urlUtils.getProxyUrl(destUrl, {
+        proxyHostname: '127.0.0.1',
+        proxyPort:     PROXY_PORT,
+        sessionId:     'sessionId'
+    });
 
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
 test('destination with port', function () {
     var destUrl  = 'http://test.example.com:53/';
-    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+    var proxyUrl = getProxyUrl(destUrl);
 
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
 test('undefined or null', function () {
     // NOTE: In Safari, a.href = null  leads to the empty url, not <current_url>/null.
-    if (!browserUtils.isSafari) {
-        strictEqual(urlUtils.getProxyUrl(null, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                    'http://' + PROXY_HOST + '/sessionId/https://example.com/null');
-    }
+    if (!browserUtils.isSafari)
+        strictEqual(getProxyUrl(null), 'http://' + PROXY_HOST + '/sessionId/https://example.com/null');
 
-    strictEqual(urlUtils.getProxyUrl(void 0, PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/undefined');
+    strictEqual(getProxyUrl(void 0), 'http://' + PROXY_HOST + '/sessionId/https://example.com/undefined');
 });
 
 test('remove unnecessary slashes form the begin of the url', function () {
-    var proxy = urlUtils.getProxyUrl('/////example.com', 'localhost', '5555', 'sessionId', 'resourceType');
+    var proxy = urlUtils.getProxyUrl('/////example.com', {
+        proxyHostname: 'localhost',
+        proxyPort:     '5555',
+        sessionId:     'sessionId',
+        resourceType:  'resourceType'
+    });
 
     strictEqual(proxy, 'http://localhost:5555/sessionId!resourceType/https://example.com');
 });
 
 test('convert destination host and protocol to lower case', function () {
     // BUG: GH-1
-    var proxy = urlUtils.getProxyUrl('hTtp://eXamPle.Com:123/paTh/Image?Name=Value&#Hash');
+    var proxy = getProxyUrl('hTtp://eXamPle.Com:123/paTh/Image?Name=Value&#Hash');
 
     ok(proxy.indexOf('http://example.com:123/paTh/Image?Name=Value&#Hash') !== -1);
 });
 
 test('unexpected trailing slash (GH-342)', function () {
-    var proxyUrl = urlUtils.getProxyUrl('http://example.com');
+    var proxyUrl = getProxyUrl('http://example.com');
 
     ok(!/\/$/.test(proxyUrl));
 
-    proxyUrl = urlUtils.getProxyUrl('http://example.com/');
+    proxyUrl = getProxyUrl('http://example.com/');
     ok(/\/$/.test(proxyUrl));
 });
 
 test('special pages (GH-339)', function () {
     sharedUrlUtils.SPECIAL_PAGES.forEach(function (url) {
-        var proxyUrl = urlUtils.getProxyUrl(url, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+        var proxyUrl = getProxyUrl(url);
 
         strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + url);
     });
@@ -278,7 +297,7 @@ test('https', function () {
 });
 
 test('non-proxy URL', function () {
-    var proxyUrl      = 'http://' + PROXY_HOST + '/PA/TH/?someParam=value';
+    var proxyUrl    = 'http://' + PROXY_HOST + '/PA/TH/?someParam=value';
     var destUrlInfo = urlUtils.parseProxyUrl(proxyUrl);
 
     ok(!destUrlInfo);
@@ -300,7 +319,11 @@ test('successive question marks', function () {
 
 test('single question mark', function () {
     var url       = 'http://ac-gb.marketgid.com/p/j/2865/11?';
-    var proxyUtrl = urlUtils.getProxyUrl(url, 'hostname', 1111, 'sessionId');
+    var proxyUtrl = urlUtils.getProxyUrl(url, {
+        proxyHostname: 'hostname',
+        proxyPort:     1111,
+        sessionId:     'sessionId'
+    });
 
     strictEqual(url, urlUtils.formatUrl(urlUtils.parseProxyUrl(proxyUtrl).destResourceInfo));
 });
@@ -367,7 +390,7 @@ test('location.port must return the empty string (T262593)', function () {
 
 test('a correct proxy URL should be obtained from a destination that has a URL in its path (GH-471)', function () {
     var destUrl  = 'https://example.com/path/path/sdfjhsdkjf/http://example.com/image.png';
-    var proxyUrl = urlUtils.getProxyUrl(destUrl, PROXY_HOSTNAME, PROXY_PORT, 'sessionId');
+    var proxyUrl = getProxyUrl(destUrl);
 
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
@@ -375,32 +398,26 @@ test('a correct proxy URL should be obtained from a destination that has a URL i
 module('getProxyUrl in a document with "base" tag');
 
 test('add, update and remove the "base" tag (GH-371)', function () {
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 
     var baseEl = document.createElement('base');
 
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 
     baseEl.setAttribute('href', 'http://subdomain.example.com');
     document.head.appendChild(baseEl);
 
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/http://subdomain.example.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/http://subdomain.example.com/image.png');
 
     baseEl.setAttribute('href', 'http://example2.com');
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/http://example2.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/http://example2.com/image.png');
 
     baseEl.removeAttribute('href');
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 
     baseEl.parentNode.removeChild(baseEl);
 
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 });
 
 asyncTest('recreating a document with the "base" tag (GH-371)', function () {
@@ -428,8 +445,7 @@ test('setting up an href attribute for a non-added to DOM "base" tag should not 
 
     baseEl.setAttribute('href', 'http://subdomain.example.com');
 
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 });
 
 test('"base" tag with an empty href attribute (GH-422)', function () {
@@ -437,13 +453,11 @@ test('"base" tag with an empty href attribute (GH-422)', function () {
 
     document.head.appendChild(base);
 
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 
     base.setAttribute('href', '');
 
-    strictEqual(urlUtils.getProxyUrl('image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
+    strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 });
 
 test('"base" tag with an href attribute that is set to a relative url (GH-422)', function () {
@@ -452,8 +466,7 @@ test('"base" tag with an href attribute that is set to a relative url (GH-422)',
     document.head.appendChild(base);
     base.setAttribute('href', '/test1/test2/test3');
 
-    strictEqual(urlUtils.getProxyUrl('../image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://example.com/test1/image.png');
+    strictEqual(getProxyUrl('../image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/test1/image.png');
 
     base.parentNode.removeChild(base);
 });
@@ -467,7 +480,12 @@ asyncTest('resolving url after writing the "base" tag (GH-526)', function () {
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             strictEqual(iframe.contentDocument.querySelector('a').href,
-                urlUtils.getProxyUrl('http://example.com/relative', location.hostname, location.port, 'sessionId', 'i'));
+                urlUtils.getProxyUrl('http://example.com/relative', {
+                    proxyHostname: location.hostname,
+                    proxyPort:     location.port,
+                    sessionId:     'sessionId',
+                    resourceType:  'i'
+                }));
 
             iframe.parentNode.removeChild(iframe);
             start();
@@ -481,8 +499,7 @@ test('"base" tag with an href attribute that is set to a protocol relative url (
     document.head.appendChild(base);
     base.setAttribute('href', '//test.com');
 
-    strictEqual(urlUtils.getProxyUrl('/image.png', PROXY_HOSTNAME, PROXY_PORT, 'sessionId'),
-                'http://' + PROXY_HOST + '/sessionId/https://test.com/image.png');
+    strictEqual(getProxyUrl('/image.png'), 'http://' + PROXY_HOST + '/sessionId/https://test.com/image.png');
 
     base.parentNode.removeChild(base);
 });

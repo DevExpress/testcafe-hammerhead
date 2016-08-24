@@ -8,16 +8,18 @@ const HASH_RE = /#[\S\s]*$/;
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
-export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue) {
+export function getProxyUrl (url, opts) {
     if (!isSupportedProtocol(url) && !isSpecialPage(url))
         return url;
 
     // NOTE: Resolves relative URLs.
     url = destLocation.resolveUrl(url);
 
-    proxyHostname = proxyHostname || location.hostname;
-    proxyPort     = proxyPort || location.port.toString();
-    sessionId     = sessionId || settings.get().sessionId;
+    var proxyHostname = opts && opts.proxyHostname || location.hostname;
+    var proxyPort     = opts && opts.proxyPort || location.port.toString();
+    var sessionId     = opts && opts.sessionId || settings.get().sessionId;
+    var resourceType  = opts && opts.resourceType;
+    var charset       = opts && opts.charset;
 
     var crossDomainPort = settings.get().crossDomainProxyPort === proxyPort ?
                           location.port.toString() : settings.get().crossDomainProxyPort;
@@ -36,12 +38,19 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
         // NOTE: Need to change the proxy URL resource type.
         var destUrl = sharedUrlUtils.formatUrl(parsedProxyUrl.destResourceInfo);
 
-        return getProxyUrl(destUrl, proxyHostname, proxyPort, sessionId, resourceType, charsetAttrValue);
+        return getProxyUrl(destUrl, {
+            proxyHostname,
+            proxyPort,
+            sessionId,
+            resourceType,
+            charset
+        });
     }
 
     var parsedUrl = sharedUrlUtils.parseUrl(url);
     var isScript  = sharedUrlUtils.parseResourceType(resourceType).isScript;
-    var charset   = charsetAttrValue || isScript && document[INTERNAL_PROPS.documentCharset];
+
+    charset = charset || isScript && document[INTERNAL_PROPS.documentCharset];
 
     // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
     // removed by the resolver and we have an origin URL with the incorrect host and protocol.
@@ -56,7 +65,13 @@ export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceT
         url = sharedUrlUtils.formatUrl(parsedUrl);
     }
 
-    return sharedUrlUtils.getProxyUrl(url, proxyHostname, proxyPort, sessionId, resourceType, charset);
+    return sharedUrlUtils.getProxyUrl(url, {
+        proxyHostname,
+        proxyPort,
+        sessionId,
+        resourceType,
+        charset
+    });
 }
 
 export function getCrossDomainIframeProxyUrl (url) {
@@ -83,8 +98,8 @@ export function parseUrl (url) {
     return sharedUrlUtils.parseUrl(url);
 }
 
-export function convertToProxyUrl (url, resourceType, charsetAttrValue) {
-    return getProxyUrl(url, null, null, null, resourceType, charsetAttrValue);
+export function convertToProxyUrl (url, resourceType, charset) {
+    return getProxyUrl(url, { resourceType, charset });
 }
 
 export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
@@ -95,7 +110,13 @@ export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
         var proxy     = parsed.proxy;
         var destUrl   = urlResolver.changeUrlPart(parsed.destUrl, prop, value, document);
 
-        return getProxyUrl(destUrl, proxy.hostname, proxy.port, sessionId, resourceType);
+        return getProxyUrl(destUrl, {
+            proxyHostname: proxy.hostname,
+            proxyPort:     proxy.port,
+
+            sessionId,
+            resourceType
+        });
     }
 
     return proxyUrl;
@@ -124,6 +145,5 @@ export function stringifyResourceType (resourceType) {
 export function isChangedOnlyHash (currentUrl, newUrl) {
     // NOTE: we compare proxied urls because urls passed into the function may be proxied, non-proxied
     // or relative. The getProxyUrl function solves all the corresponding problems.
-    return getProxyUrl(currentUrl, null, null, null, '').replace(HASH_RE, '') ===
-           getProxyUrl(newUrl, null, null, null, '').replace(HASH_RE, '');
+    return getProxyUrl(currentUrl).replace(HASH_RE, '') === getProxyUrl(newUrl).replace(HASH_RE, '');
 }

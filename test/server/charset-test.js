@@ -31,8 +31,14 @@ function noop () {
     // Do nothing =)
 }
 
-function getProxyUrl (url, type, charset) {
-    return urlUtils.getProxyUrl(url, '127.0.0.1', 1836, 'sessionId', type, charset);
+function getProxyUrl (url, resourceType, charset) {
+    return urlUtils.getProxyUrl(url, {
+        proxyHostname: '127.0.0.1',
+        proxyPort:     1836,
+        sessionId:     'sessionId',
+        resourceType:  resourceType,
+        charset:       charset
+    });
 }
 
 describe('Content charset', function () {
@@ -222,8 +228,8 @@ describe('Content charset', function () {
                 isForm:   false,
                 isScript: true
             };
-            var url = getProxyUrl('http://127.0.0.1:2000' +
-                                  destUrl, urlUtils.getResourceTypeString(resourceType), expectedCharset);
+            var url          = getProxyUrl('http://127.0.0.1:2000' +
+                                           destUrl, urlUtils.getResourceTypeString(resourceType), expectedCharset);
 
             request(url, function (err, res, body) {
                 compareCode(body, expectedBody);

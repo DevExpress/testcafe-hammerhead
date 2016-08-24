@@ -54,12 +54,13 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
                         resourceType = getResourceTypeString({ isIframe: true });
                     }
 
-                    window.location = urlUtils.getProxyUrl(value, null, null, null, resourceType);
+                    window.location = urlUtils.getProxyUrl(value, { resourceType });
 
                     return window.location;
                 }
                 return null;
             },
+
             configurable: true
         });
     }

@@ -124,7 +124,7 @@ test('iframe', function () {
     };
 
     var getProxy = function (url) {
-        return urlUtils.getProxyUrl(url, null, null, null, 'i');
+        return urlUtils.getProxyUrl(url, { resourceType: 'i' });
     };
 
     var windowMock = getWindowMock();
@@ -230,7 +230,7 @@ test('change hash for the iframe location', function () {
     var setHref    = function (url) {
         this.href = url;
     };
-    var proxyUrl   = urlUtils.getProxyUrl('http://domain.com/index.html', null, null, null, 'if');
+    var proxyUrl   = urlUtils.getProxyUrl('http://domain.com/index.html', { resourceType: 'if' });
     var windowMock = {
         location: {
             replace:  setHref,
@@ -257,7 +257,7 @@ test('change hash for the iframe location', function () {
 
     testLocation();
 
-    proxyUrl            = urlUtils.getProxyUrl('http://domain.com/index.html', null, null, null, '');
+    proxyUrl            = urlUtils.getProxyUrl('http://domain.com/index.html');
     windowMock.toString = function () {
         return proxyUrl;
     };
@@ -266,5 +266,5 @@ test('change hash for the iframe location', function () {
     testLocation();
 
     locationWrapper.href = 'http://domain.com/index#hash';
-    strictEqual(windowMock.location.href, urlUtils.getProxyUrl('http://domain.com/index#hash', null, null, null, 'i'));
+    strictEqual(windowMock.location.href, urlUtils.getProxyUrl('http://domain.com/index#hash', { resourceType: 'i' }));
 });

@@ -98,18 +98,18 @@ export function convertHostToLowerCase (url) {
     return (parsedUrl.protocol + protocolHostSeparator + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
 }
 
-export function getProxyUrl (url, proxyHostname, proxyPort, sessionId, resourceType, charset) {
-    var params = [sessionId];
+export function getProxyUrl (url, opts) {
+    var params = [opts.sessionId];
 
-    if (resourceType)
-        params.push(resourceType);
+    if (opts.resourceType)
+        params.push(opts.resourceType);
 
-    if (charset)
-        params.push(charset);
+    if (opts.charset)
+        params.push(opts.charset);
 
     params = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
-    return 'http://' + proxyHostname + ':' + proxyPort + '/' + params + '/' + convertHostToLowerCase(url);
+    return 'http://' + opts.proxyHostname + ':' + opts.proxyPort + '/' + params + '/' + convertHostToLowerCase(url);
 }
 
 export function getDomain (parsed) {
