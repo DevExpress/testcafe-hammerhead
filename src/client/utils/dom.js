@@ -3,8 +3,9 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
+import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE } from './browser';
+import { isFirefox, isWebKit, isIE, version } from './browser';
 import trim from '../../utils/string-trim';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
@@ -17,12 +18,7 @@ var scrollbarSize = null;
 function getFocusableSelector () {
     // NOTE: We don't take into account the case of embedded contentEditable elements, and we
     // specify the contentEditable attribute for focusable elements.
-    var selectorPostfix = 'input, select, textarea, button, [contenteditable="true"], [contenteditable=""], [tabIndex]';
-
-    if (isIE)
-        return 'a[href]:not([href = ""]), iframe, ' + selectorPostfix;
-
-    return 'a[href], iframe, ' + selectorPostfix;
+    return 'input, select, textarea, button, iframe, [contenteditable="true"], [contenteditable=""], [tabIndex]';
 }
 
 function isHidden (el) {
@@ -456,24 +452,46 @@ export function isRenderedNode (node) {
     return !(isProcessingInstructionNode(node) || isCommentNode(node) || /^(script|style)$/i.test(node.nodeName));
 }
 
+function getTabIndexAttributeIntValue (el) {
+    var tabIndex = el.getAttribute('tabIndex');
+
+    if (tabIndex !== null) {
+        tabIndex = parseInt(tabIndex, 10);
+        tabIndex = isNaN(tabIndex) ? null : tabIndex;
+    }
+
+    return tabIndex;
+}
+
 export function isElementFocusable (el) {
     if (!el)
         return false;
 
-    var isAnchorWithoutHref = isAnchorElement(el) && el.getAttribute('href') === '' && !el.getAttribute('tabIndex');
+    var tabIndex              = getTabIndexAttributeIntValue(el);
+    var isDisabledElement     = matches(el, ':disabled');
+    var isInvisibleElement    = getStyle(el, 'visibility') === 'hidden';
+    var isNotDisplayedElement = getStyle(el, 'display') === 'none';
+    var isHiddenElement       = isWebKit ? isHidden(el) && !isOptionElement(el) : isHidden(el);
 
-    var isFocusable = !isAnchorWithoutHref &&
-                      matches(el, getFocusableSelector() + ', body') && !matches(el, ':disabled') &&
-                      el.getAttribute('tabIndex') !== -1 &&
-                      getComputedStyle(el)['visibility'] !== 'hidden';
-
-    if (!isFocusable)
+    if (tabIndex !== null && tabIndex < 0)
         return false;
 
-    if (isWebKit)
-        return !isHidden(el) || isOptionElement(el);
+    if (isDisabledElement || isInvisibleElement || isNotDisplayedElement || isHiddenElement)
+        return false;
 
-    return !isHidden(el);
+    if (isOptionElement(el) && isIE)
+        return false;
+
+    if (isAnchorElement(el)) {
+        if (tabIndex > 0)
+            return true;
+
+        return isIE && version < 11 ?
+               matches(el, 'a[href]:not([href = ""])') :
+               matches(el, 'a[href]');
+    }
+
+    return matches(el, getFocusableSelector()) || tabIndex !== null;
 }
 
 export function isShadowUIElement (element) {
