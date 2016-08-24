@@ -4,33 +4,8 @@ import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307];
-
-// TODO: Rewrite parseProxyUrl instead.
-function flattenParsedProxyUrl (parsed) {
-    if (parsed) {
-        var parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
-
-        return {
-            dest: {
-                url:           parsed.destUrl,
-                protocol:      parsed.destResourceInfo.protocol,
-                host:          parsed.destResourceInfo.host,
-                hostname:      parsed.destResourceInfo.hostname,
-                port:          parsed.destResourceInfo.port,
-                partAfterHost: parsed.destResourceInfo.partAfterHost,
-                isIframe:      parsedResourceType.isIframe,
-                isForm:        parsedResourceType.isForm,
-                isScript:      parsedResourceType.isScript,
-                charset:       parsed.charset
-            },
-
-            sessionId: parsed.sessionId
-        };
-    }
-
-    return null;
-}
-
+const HTTP_DEFAUL_PORT      = '80';
+const HTTPS_DEFAUL_PORT     = '443';
 
 export default class RequestPipelineContext {
     constructor (req, res, serverInfo) {
@@ -60,23 +35,55 @@ export default class RequestPipelineContext {
         this.isPage  = !this.isXhr && !this.isFetch && acceptHeader && contentTypeUtils.isPage(acceptHeader);
     }
 
-    _getDestFromReferer (parsedReferer) {
+    // TODO: Rewrite parseProxyUrl instead.
+    _flattenParsedProxyUrl (parsed) {
+        if (parsed) {
+            var parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
+
+            var dest = {
+                url:           parsed.destUrl,
+                protocol:      parsed.destResourceInfo.protocol,
+                host:          parsed.destResourceInfo.host,
+                hostname:      parsed.destResourceInfo.hostname,
+                port:          parsed.destResourceInfo.port,
+                partAfterHost: parsed.destResourceInfo.partAfterHost,
+                isIframe:      parsedResourceType.isIframe,
+                isForm:        parsedResourceType.isForm,
+                isScript:      parsedResourceType.isScript,
+                charset:       parsed.charset
+            };
+
+            dest = this._omitDefaultPort(dest);
+
+            return {
+                dest:      dest,
+                sessionId: parsed.sessionId
+            };
+        }
+
+        return null;
+    }
+
+    _omitDefaultPort (dest) {
         // NOTE: Browsers may send the default port in the 'referer' header. But since we compose the destination
         // URL from it, we need to skip the port number if it's the protocol's default port. Some servers have
         // host conditions that do not include a port number.
-        var rDest         = parsedReferer.dest;
-        var isDefaultPort = rDest.protocol === 'https:' && rDest.port === '443' ||
-                            rDest.protocol === 'http:' && rDest.port === '80';
+        var hasDefaultPort = dest.protocol === 'https:' && dest.port === HTTPS_DEFAUL_PORT ||
+                             dest.protocol === 'http:' && dest.port === HTTP_DEFAUL_PORT;
 
-        var dest = {
-            protocol:      rDest.protocol,
-            host:          isDefaultPort ? rDest.host.split(':')[0] : rDest.host,
-            hostname:      rDest.hostname,
-            port:          isDefaultPort ? '' : rDest.port,
-            partAfterHost: this.req.url
-        };
+        if (hasDefaultPort) {
+            dest.host = dest.host.split(':')[0];
+            dest.port = '';
+        }
 
-        dest.url = urlUtils.formatUrl(dest);
+        return dest;
+    }
+
+    _getDestFromReferer (parsedReferer) {
+        var dest = parsedReferer.dest;
+
+        dest.partAfterHost = this.req.url;
+        dest.url           = urlUtils.formatUrl(dest);
 
         return {
             dest:      dest,
@@ -111,8 +118,8 @@ export default class RequestPipelineContext {
         var parsedReferer = referer && urlUtils.parseProxyUrl(referer);
 
         // TODO: Remove it after parseProxyURL is rewritten.
-        parsedReqUrl  = flattenParsedProxyUrl(parsedReqUrl);
-        parsedReferer = flattenParsedProxyUrl(parsedReferer);
+        parsedReqUrl  = this._flattenParsedProxyUrl(parsedReqUrl);
+        parsedReferer = this._flattenParsedProxyUrl(parsedReferer);
 
         // NOTE: Try to extract the destination from the 'referer' header.
         if (!parsedReqUrl && parsedReferer)
