@@ -6,6 +6,7 @@
 
 import reEscape from '../utils/regexp-escape';
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
+import { isSpecialPage } from '../utils/url';
 
 const SOURCE_MAP_RE                       = /#\s*sourceMappingURL\s*=\s*[^\s]+(\s|\*\/)/i;
 const CSS_URL_PROPERTY_VALUE_PATTERN      = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s\)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
@@ -67,7 +68,9 @@ class StyleProcessor {
 
                 postfix = postfix || '';
 
-                return url ? prefix + openQuote + processor(url) + closeQuote + postfix : match;
+                var processedUrl = isSpecialPage(url) ? url : processor(url);
+
+                return url ? prefix + openQuote + processedUrl + closeQuote + postfix : match;
             }
         );
     }
