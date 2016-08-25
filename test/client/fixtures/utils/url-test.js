@@ -42,6 +42,18 @@ test('getCrossDomainProxyUrl', function () {
     settings.get().crossDomainProxyPort = storedCrossDomainport;
 });
 
+test('getCrossDomainIframeProxyUrl (GH-749)', function () {
+    var destUrl               = 'test.html';
+    var storedCrossDomainport = settings.get().crossDomainProxyPort;
+
+    settings.get().crossDomainProxyPort = '5555';
+
+    strictEqual(urlUtils.getCrossDomainIframeProxyUrl(destUrl),
+                'http://' + location.hostname + ':5555' + '/sessionId!i/https://example.com/' + destUrl);
+
+    settings.get().crossDomainProxyPort = storedCrossDomainport;
+});
+
 test('resolveUrlAsDest', function () {
     strictEqual(urlUtils.resolveUrlAsDest('/index.html#hash'), 'https://example.com/index.html#hash');
     strictEqual(urlUtils.resolveUrlAsDest('javascript:0;'), 'javascript:0;');
