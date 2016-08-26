@@ -14,6 +14,7 @@ var SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/x
 var Proxy                                = require('../../lib/proxy');
 var Session                              = require('../../lib/session');
 var DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
+var RequestPipelineContext               = require('../../lib/request-pipeline/context');
 var requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
 var scriptHeader                         = require('../../lib/processing/script/header').HEADER;
 var urlUtils                             = require('../../lib/utils/url');
@@ -1233,6 +1234,72 @@ describe('Proxy', function () {
                 expect(body).eql('/?key=value');
                 done();
             });
+        });
+
+        it("Should omit default ports from destination request and 'referrer' header urls (GH-738)", function () {
+            var testCases              = [
+                {
+                    url:          'http://example.com:80',
+                    expectedHost: 'example.com',
+                    expectedPort: ''
+                },
+                {
+                    url:          'http://example.com:8080',
+                    expectedHost: 'example.com:8080',
+                    expectedPort: '8080'
+                },
+                {
+                    url:          'https://example.com:443',
+                    expectedHost: 'example.com',
+                    expectedPort: ''
+                },
+                {
+                    url:          'https://example.com:443443',
+                    expectedHost: 'example.com:443443',
+                    expectedPort: '443443'
+                },
+                {
+                    url:          '<value>',
+                    referer:      'http://example.com:80',
+                    expectedHost: 'example.com',
+                    expectedPort: ''
+                },
+                {
+                    url:          '<value>',
+                    referer:      'http://example.com:8080',
+                    expectedHost: 'example.com:8080',
+                    expectedPort: '8080'
+                },
+                {
+                    url:          '<value>',
+                    referer:      'https://example.com:443',
+                    expectedHost: 'example.com',
+                    expectedPort: ''
+                },
+                {
+                    url:          '<value>',
+                    referer:      'https://example.com:443443',
+                    expectedHost: 'example.com:443443',
+                    expectedPort: '443443'
+                }
+            ];
+            var req                    = {
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+            var requestPipelineContext = new RequestPipelineContext(req, {}, {});
+
+            for (var i = 0; i < testCases.length; i++) {
+                requestPipelineContext.req.url = proxy.openSession(testCases[i].url, session);
+                if (testCases[i].referer)
+                    requestPipelineContext.req.headers.referer = proxy.openSession(testCases[i].referer, session);
+
+                requestPipelineContext.dispatch(proxy.openSessions);
+
+                expect(requestPipelineContext.dest.host).eql(testCases[i].expectedHost);
+                expect(requestPipelineContext.dest.port).eql(testCases[i].expectedPort);
+            }
         });
     });
 });
