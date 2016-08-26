@@ -75,7 +75,10 @@ export function getProxyUrl (url, opts) {
 }
 
 export function getCrossDomainIframeProxyUrl (url) {
-    return getProxyUrl(url, null, settings.get().crossDomainProxyPort, null, sharedUrlUtils.getResourceTypeString({ isIframe: true }));
+    return getProxyUrl(url, {
+        proxyPort:    settings.get().crossDomainProxyPort,
+        resourceType: sharedUrlUtils.getResourceTypeString({ isIframe: true })
+    });
 }
 
 export function getCrossDomainProxyUrl () {
