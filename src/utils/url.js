@@ -105,7 +105,7 @@ export function getProxyUrl (url, opts) {
         params.push(opts.resourceType);
 
     if (opts.charset)
-        params.push(opts.charset);
+        params.push(opts.charset.toLowerCase());
 
     params = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 

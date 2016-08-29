@@ -280,6 +280,18 @@ test('special pages (GH-339)', function () {
     });
 });
 
+test('convert a charset to lower case (GH-752)', function () {
+    var url  = 'http://example.com';
+    var opts = {
+        sessionId:     'sessionId',
+        charset:       'UTF-8',
+        proxyHostname: 'localhost',
+        proxyPort:     '5555'
+    };
+
+    strictEqual(sharedUrlUtils.getProxyUrl(url, opts), 'http://localhost:5555/sessionId!utf-8/' + url);
+});
+
 module('parse proxy url');
 
 test('http', function () {
