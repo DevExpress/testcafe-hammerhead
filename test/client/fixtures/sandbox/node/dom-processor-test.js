@@ -7,8 +7,9 @@ var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
 
-var nativeMethods = hammerhead.nativeMethods;
-var iframeSandbox = hammerhead.sandbox.iframe;
+var nativeMethods  = hammerhead.nativeMethods;
+var iframeSandbox  = hammerhead.sandbox.iframe;
+var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -524,6 +525,177 @@ module('should create a proxy url for the img src attribute if the image has the
             });
         });
     }
+});
+
+module('should ensure that target contains the existing window name (GH-247) (GH-745)', function () {
+    test('link', function () {
+        var link = document.createElement('a');
+
+        link.href   = 'http://example.com';
+        link.target = 'wrong_window_name';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_self');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+        document.body.appendChild(link);
+
+        eventSimulator.click(link);
+    });
+
+    test('link with keyword target', function () {
+        var link = document.createElement('a');
+
+        link.href   = 'http://example.com';
+        link.target = '_Parent';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_Parent');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+        document.body.appendChild(link);
+
+        eventSimulator.click(link);
+    });
+
+    test('base', function () {
+        var link = document.createElement('a');
+        var base = document.createElement('base');
+
+        base.target = 'wrong_window_name';
+        link.href   = 'http://example.com';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_self');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+
+        document.body.appendChild(link);
+        document.body.appendChild(base);
+
+        eventSimulator.click(link);
+    });
+
+    test('base with keyword target', function () {
+        var link = document.createElement('a');
+        var base = document.createElement('base');
+
+        base.target = '_Parent';
+        link.href   = 'http://example.com';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_self');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+
+        document.body.appendChild(link);
+        document.body.appendChild(base);
+
+        eventSimulator.click(link);
+    });
+
+    test('effective target', function () {
+        var link = document.createElement('a');
+        var base = document.createElement('base');
+
+        base.target = '_Parent';
+        link.target = '_top';
+        link.href   = 'http://example.com';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_top');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+
+        document.body.appendChild(link);
+        document.body.appendChild(base);
+
+        eventSimulator.click(link);
+    });
+
+    test('area', function () {
+        var area = document.createElement('area');
+        var map  = document.createElement('map');
+        var img  = document.createElement('img');
+
+        map.name    = 'test_cafe_logo';
+        img.src     = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+        img.useMap  = 'test_cafe_logo';
+        area.coords = '0,0,100,100';
+        area.shape  = 'rect';
+        area.target = 'wrong_window_name';
+        area.href   = 'http://example.com';
+        area.addEventListener('click', function (e) {
+            strictEqual(area.target, '_self');
+
+            e.preventDefault();
+            map.parentNode.removeChild(map);
+            img.parentNode.removeChild(img);
+        });
+
+        map.appendChild(area);
+        document.body.appendChild(img);
+        document.body.appendChild(map);
+
+        eventSimulator.click(area);
+    });
+
+    test('form', function () {
+        var form  = document.createElement('form');
+        var input = document.createElement('input');
+
+        input.type  = 'submit';
+        form.target = 'wrong_window_name';
+        form.action = 'http://example.com';
+        form.appendChild(input);
+
+        form.addEventListener('submit', function (e) {
+            strictEqual(form.target, '_self');
+
+            e.preventDefault();
+            form.parentNode.removeChild(form);
+        });
+        document.body.appendChild(form);
+
+        eventSimulator.click(input);
+    });
+
+    test('input without form', function () {
+        var input = document.createElement('input');
+
+        input.addEventListener('click', function (e) {
+            ok(!input.target);
+
+            e.preventDefault();
+            input.parentNode.removeChild(input);
+        });
+        document.body.appendChild(input);
+
+        eventSimulator.click(input);
+    });
+
+    asyncTest('form.submit', function () {
+        var form                   = document.createElement('form');
+        var storedNativeFormSubmit = nativeMethods.formSubmit;
+
+        nativeMethods.formSubmit = function () {
+            strictEqual(form.target, '_self');
+
+            nativeMethods.formSubmit = storedNativeFormSubmit;
+            start();
+        };
+
+        form.target = 'wrong_window_name';
+        form.action = 'http://example.com';
+
+        document.body.appendChild(form);
+        form.submit();
+    });
 });
 
 module('regression');
