@@ -810,6 +810,17 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return window[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY];
     }
 
+    static _getSetPropertyInstructionByOwner (owner, window) {
+        try {
+            return owner && owner[INTERNAL_PROPS.processedContext] &&
+                   owner[INTERNAL_PROPS.processedContext] !== window &&
+                   owner[INTERNAL_PROPS.processedContext][INSTRUCTION.setProperty];
+        }
+        catch (e) {
+            return null;
+        }
+    }
+
     attach (window) {
         super.attach(window);
 
@@ -836,6 +847,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             value: (owner, propName, value) => {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
+
+                var ownerSetPropertyInstruction = PropertyAccessorsInstrumentation._getSetPropertyInstructionByOwner(owner, window);
+
+                if (ownerSetPropertyInstruction)
+                    return ownerSetPropertyInstruction(owner, propName, value);
 
                 if (typeof propName === 'string' && shouldInstrumentProperty(propName) &&
                     accessors[propName].condition(owner))
