@@ -4,11 +4,10 @@ import nativeMethods from '../sandbox/native-methods';
 import domProcessor from '../dom-processor';
 import { remove as removeProcessingHeader } from '../../processing/script/header';
 import styleProcessor from '../../processing/style';
-import { find, getTagName } from './dom';
+import { find, getTagName, isScriptElement } from './dom';
 import { convertToProxyUrl, parseProxyUrl } from './url';
 import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
 import * as urlResolver from './url-resolver';
-import { isScriptElement } from './dom';
 
 const FAKE_TAG_NAME_PREFIX  = 'fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME = 'hammerhead_fake_doctype';
