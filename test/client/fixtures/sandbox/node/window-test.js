@@ -2,6 +2,17 @@ var urlUtils = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
+var iframeSandbox = hammerhead.sandbox.iframe;
+
+QUnit.testStart(function () {
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
+});
+
+QUnit.testDone(function () {
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+});
+
 
 test('window.onerror setter/getter', function () {
     strictEqual(getProperty(window, 'onerror'), null);
@@ -24,7 +35,7 @@ if (window.FontFace) {
 
         nativeMethods.FontFace = function (family, source, descriptors) {
             strictEqual(family, 'family');
-            strictEqual(source, 'url("' + urlUtils.getProxyUrl(url) + '")');
+            strictEqual(source, 'url("' + urlUtils.getProxyUrl(url, { target: window.name }) + '")');
             ok(descriptors, desc);
 
             nativeMethods.FontFace = nativeFontFace;
@@ -87,6 +98,33 @@ test('parameters passed to the native function in its original form', function (
     checkNativeFunctionArgs('querySelector', 'documentFragmentQuerySelector', documentFragment);
     checkNativeFunctionArgs('querySelectorAll', 'documentFragmentQuerySelectorAll', documentFragment);
     checkNativeFunctionArgs('dispatchEvent', 'windowDispatchEvent', window);
+});
+
+asyncTest('window.name must be overriden', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.setAttribute('src', 'about:blank');
+    iframe.id  = 'test-' + Date.now();
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var window = iframe.contentWindow;
+
+            ok(window.name);
+            ok(!getProperty(window, 'name'));
+
+            setProperty(window, 'name', 'windowName');
+            strictEqual(window.name, 'windowName');
+            strictEqual(getProperty(window, 'name'), 'windowName');
+
+            setProperty(window, 'name', '');
+            strictEqual(window.name, 'windowName');
+            strictEqual(getProperty(window, 'name'), '');
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
 });
 
 module('regression');

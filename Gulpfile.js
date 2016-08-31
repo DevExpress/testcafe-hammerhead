@@ -15,6 +15,7 @@ var gulpif       = require('gulp-if');
 var util         = require('gulp-util');
 var ll           = require('gulp-ll');
 var path         = require('path');
+var hammerhead   = require('./test/client/hammerhead');
 
 ll
     .tasks('lint')
@@ -32,7 +33,9 @@ var CLIENT_TESTS_SETTINGS = {
         { src: '/before-test.js', path: './test/client/before-test.js' }
     ],
 
-    configApp: require('./test/client/config-qunit-server-app')
+    configApp: require('./test/client/config-qunit-server-app'),
+    before:    hammerhead.start,
+    after:     hammerhead.close
 };
 
 var CLIENT_TESTS_BROWSERS = [

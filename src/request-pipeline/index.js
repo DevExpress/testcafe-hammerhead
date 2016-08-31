@@ -54,6 +54,18 @@ var stages = {
         if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
             ctx.destRes.statusCode = 200;
 
+        if ((ctx.contentInfo.isRedirect || ctx.contentInfo.isForm || ctx.isPage || ctx.isIframe) &&
+            !ctx.contentInfo.isFileDownload) {
+            var referer = ctx.req.headers.referer;
+            var target  = ctx.dest.target;
+
+            if (ctx.session.redirectWatch.isExpectedResponse(referer, target)) {
+                ctx.session.redirectWatch.serverResponse(referer, target, next);
+
+                return;
+            }
+        }
+
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
         if (!ctx.contentInfo.requireProcessing) {
             sendResponseHeaders(ctx);
@@ -152,6 +164,7 @@ function assignSpecialPageHeadersToDestRes (ctx) {
         headers: {
             'content-type': 'text/html'
         },
+
         statusCode: 200,
         trailers:   {}
     };

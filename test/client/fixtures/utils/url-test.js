@@ -49,7 +49,7 @@ test('getCrossDomainIframeProxyUrl (GH-749)', function () {
     settings.get().crossDomainProxyPort = '5555';
 
     strictEqual(urlUtils.getCrossDomainIframeProxyUrl(destUrl),
-                'http://' + location.hostname + ':5555' + '/sessionId!i/https://example.com/' + destUrl);
+        'http://' + location.hostname + ':5555' + '/sessionId!i/https://example.com/' + destUrl);
 
     settings.get().crossDomainProxyPort = storedCrossDomainport;
 });
@@ -178,7 +178,6 @@ test('already proxied', function () {
     var newUrl   = getProxyUrl(proxyUrl, 'i');
 
     strictEqual(urlUtils.parseProxyUrl(newUrl).resourceType, 'i');
-
 });
 
 test('destination with query, path, hash and host', function () {
@@ -455,7 +454,8 @@ asyncTest('recreating a document with the "base" tag (GH-371)', function () {
             var iframeDocument = iframe.contentDocument;
             var link           = iframeDocument.getElementsByTagName('a')[0];
             var proxyUrl       = 'http://' + location.hostname + ':' + location.port +
-                                 '/sessionId!i/http://subdomain.example.com/index.html';
+                                 '/sessionId!i!' + iframe.contentWindow.name +
+                                 '/http://subdomain.example.com/index.html';
 
             strictEqual(link.href, proxyUrl);
             iframe.parentNode.removeChild(iframe);
@@ -489,9 +489,7 @@ test('"base" tag with an href attribute that is set to a relative url (GH-422)',
 
     document.head.appendChild(base);
     base.setAttribute('href', '/test1/test2/test3');
-
     strictEqual(getProxyUrl('../image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/test1/image.png');
-
     base.parentNode.removeChild(base);
 });
 
@@ -508,6 +506,7 @@ asyncTest('resolving url after writing the "base" tag (GH-526)', function () {
                     proxyHostname: location.hostname,
                     proxyPort:     location.port,
                     sessionId:     'sessionId',
+                    target:        iframe.contentWindow.name,
                     resourceType:  'i'
                 }));
 
@@ -524,11 +523,10 @@ test('"base" tag with an href attribute that is set to a protocol relative url (
     base.setAttribute('href', '//test.com');
 
     strictEqual(getProxyUrl('/image.png'), 'http://' + PROXY_HOST + '/sessionId/https://test.com/image.png');
-
     base.parentNode.removeChild(base);
 });
 
-test('resolving a url in a tag that is written along with a "base" tag (GH-644)', function () {
+asyncTest('resolving a url in a tag that is written along with a "base" tag (GH-644)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test902345';
@@ -544,8 +542,12 @@ test('resolving a url in a tag that is written along with a "base" tag (GH-644)'
         '</html>'
     );
 
-    strictEqual(iframe.contentDocument.querySelector('script').src,
-        'http://' + location.host + '/sessionId!s/https://example.com/subpath/scripts/scr.js');
+    window.setTimeout(function () {
+        strictEqual(iframe.contentDocument.querySelector('script').src,
+            'http://' + location.host + '/sessionId!s!' + iframe.contentWindow.name +
+            '/https://example.com/subpath/scripts/scr.js');
 
-    document.body.removeChild(iframe);
+        document.body.removeChild(iframe);
+        start();
+    }, 1000);
 });

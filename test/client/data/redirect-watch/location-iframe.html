@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.on(hammerhead.EVENTS.redirectDetected, function () {
+        window.parent.redirect();
+    });
+</script>
+</body>
+</html>

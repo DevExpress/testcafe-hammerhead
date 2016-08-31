@@ -15,14 +15,15 @@ export function getProxyUrl (url, opts) {
     // NOTE: Resolves relative URLs.
     url = destLocation.resolveUrl(url);
 
-    var proxyHostname = opts && opts.proxyHostname || location.hostname;
-    var proxyPort     = opts && opts.proxyPort || location.port.toString();
-    var sessionId     = opts && opts.sessionId || settings.get().sessionId;
-    var resourceType  = opts && opts.resourceType;
-    var charset       = opts && opts.charset;
-
+    var proxyHostname   = opts && opts.proxyHostname || location.hostname;
+    var proxyPort       = opts && opts.proxyPort || location.port.toString();
+    var sessionId       = opts && opts.sessionId || settings.get().sessionId;
+    var resourceType    = opts && opts.resourceType;
+    var charset         = opts && opts.charset;
+    var target          = opts && opts.target;
     var crossDomainPort = settings.get().crossDomainProxyPort === proxyPort ?
                           location.port.toString() : settings.get().crossDomainProxyPort;
+
 
     // NOTE: If the relative URL contains no slash (e.g. 'img123'), the resolver will keep
     // the original proxy information, so that we can return such URL as is.
@@ -43,6 +44,7 @@ export function getProxyUrl (url, opts) {
             proxyPort,
             sessionId,
             resourceType,
+            target,
             charset
         });
     }
@@ -70,6 +72,7 @@ export function getProxyUrl (url, opts) {
         proxyPort,
         sessionId,
         resourceType,
+        target,
         charset
     });
 }
@@ -101,8 +104,8 @@ export function parseUrl (url) {
     return sharedUrlUtils.parseUrl(url);
 }
 
-export function convertToProxyUrl (url, resourceType, charset) {
-    return getProxyUrl(url, { resourceType, charset });
+export function convertToProxyUrl (url, resourceType, charset, target) {
+    return getProxyUrl(url, { resourceType, charset, target: target || window.name });
 }
 
 export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
@@ -111,6 +114,8 @@ export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
     if (parsed) {
         var sessionId = parsed.sessionId;
         var proxy     = parsed.proxy;
+        var charset   = parsed.charset;
+        var target    = parsed.target;
         var destUrl   = urlResolver.changeUrlPart(parsed.destUrl, prop, value, document);
 
         return getProxyUrl(destUrl, {
@@ -118,7 +123,9 @@ export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
             proxyPort:     proxy.port,
 
             sessionId,
-            resourceType
+            resourceType,
+            charset,
+            target
         });
     }
 

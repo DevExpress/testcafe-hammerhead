@@ -12,6 +12,8 @@ import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 
+const ORIGIN_WINDOW_NAME_PROPERTY = 'hammerhead|window|name-property';
+
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 var arraySlice = Array.prototype.slice;
@@ -24,6 +26,10 @@ export default class WindowSandbox extends SandboxBase {
         this.messageSandbox = messageSandbox;
 
         this.UNCAUGHT_JS_ERROR_EVENT = 'hammerhead|event|uncaught-js-error';
+    }
+
+    static _getUniqWindowName () {
+        return Date.now();
     }
 
     _raiseUncaughtJsErrorEvent (msg, window, pageUrl) {
@@ -57,11 +63,25 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
+    static getWindowName (window) {
+        return window[ORIGIN_WINDOW_NAME_PROPERTY];
+    }
+
+    static setWindowName (window, name) {
+        if (name)
+            window.name = name;
+
+        window[ORIGIN_WINDOW_NAME_PROPERTY] = name;
+    }
+
     attach (window) {
         super.attach(window);
 
         var messageSandbox = this.messageSandbox;
         var nodeSandbox    = this.nodeSandbox;
+
+        if (!window.name)
+            window.name = WindowSandbox._getUniqWindowName();
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             var message = e.message;
@@ -119,7 +139,7 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         if (window.FontFace) {
-            window.FontFace = (family, source, descriptors) => {
+            window.FontFace           = (family, source, descriptors) => {
                 source = styleProcessor.process(source, convertToProxyUrl);
 
                 return new nativeMethods.FontFace(family, source, descriptors);
@@ -128,7 +148,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            window.Worker = scriptURL => {
+            window.Worker           = scriptURL => {
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL);
 
@@ -138,7 +158,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Blob) {
-            window.Blob = function (parts, opts) {
+            window.Blob           = function (parts, opts) {
                 if (arguments.length === 0)
                     return new nativeMethods.Blob();
 
@@ -161,12 +181,12 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.EventSource) {
-            window.EventSource = url => new nativeMethods.EventSource(getProxyUrl(url));
+            window.EventSource           = url => new nativeMethods.EventSource(getProxyUrl(url));
             window.EventSource.prototype = nativeMethods.EventSource.prototype;
         }
 
         if (window.MutationObserver) {
-            window.MutationObserver = callback => {
+            window.MutationObserver           = callback => {
                 var wrapper = mutations => {
                     var result = [];
 
@@ -206,7 +226,7 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
-        window.Image = function () {
+        window.Image           = function () {
             var image = null;
 
             if (!arguments.length)

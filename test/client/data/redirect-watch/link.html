@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<a id="link" target="iframe"></a>
+<script type="text/javascript">
+    /* __call$ */
+    window.finish = function (result) {
+        window.top.postMessage('{"link-test-finished" : ' + result + '}', '*');
+    };
+</script>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+    var iframe = document.createElement('iframe');
+
+    hammerhead.on(hammerhead.EVENTS.redirectDetected, function () {
+        window.finish(false);
+    });
+
+    iframe.name = 'iframe';
+    iframe.onload = function () {
+        var link = document.getElementById('link');
+
+        link.href = 'about:blank';
+        window.setTimeout(function () {
+            link.click();
+        }, 100);
+    };
+
+    iframe.src = location.toString().replace('link.html', 'link-iframe.html');
+    document.body.appendChild(iframe);
+</script>
+</body>
+</html>

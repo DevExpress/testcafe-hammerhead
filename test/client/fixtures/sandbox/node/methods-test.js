@@ -157,7 +157,7 @@ asyncTest('form.submit', function () {
             };
 
             iframeHammerhead.on(iframeHammerhead.EVENTS.beforeFormSubmit, handler);
-            form.target = 'test-window';
+            form.target          = 'test-window';
             form.submit();
         });
     document.body.appendChild(iframe);
@@ -330,7 +330,7 @@ if (!browserUtils.isIE || browserUtils.version > 9) {
 
         var fragment = range.createContextualFragment(tagString);
 
-        strictEqual(fragment.childNodes[0].href, urlUtils.getProxyUrl('http://some.domain.com/index.html'));
+        strictEqual(fragment.childNodes[0].href, urlUtils.getProxyUrl('http://some.domain.com/index.html', { target: window.name }));
     });
 }
 

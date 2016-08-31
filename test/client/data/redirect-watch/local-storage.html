@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+<script type="text/javascript">
+    /* __call$ */
+    window.finish = function (result) {
+        window.parent.postMessage('{"local-storage-test-finished" : ' + result + '}', '*');
+    };
+</script>
+
+<script type="text/javascript">
+    var matches = new RegExp("storageValue=([^#^&]*)").exec(location.toString());
+    var storageValue = matches ? matches[1] : null;
+
+    if (storageValue)
+        window.finish(storageValue === localStorage.nativeStorage['storageValue']);
+    else {
+        var link       = document.createElement('a');
+        var hammerhead = window['%hammerhead%'];
+
+        localStorage.nativeStorage.removeItem('storageValue');
+        storageValue   = Date.now();
+        link.href      = window.location.toString() + '&storageValue=' + storageValue;
+        hammerhead.on(hammerhead.EVENTS.redirectDetected, function () {
+            localStorage.nativeStorage['storageValue'] = storageValue;
+        });
+        document.body.appendChild(link);
+        window.setTimeout(function(){
+            link.click();
+        }, 100);
+    }
+</script>
+</body>
+</html>

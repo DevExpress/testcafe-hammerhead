@@ -8,6 +8,7 @@ import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
 import XhrSandbox from '../../xhr';
 import ElementSandbox from '../../node/element';
+import WindowSandbox from '../../node/window';
 import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
@@ -409,6 +410,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'manifest'),
                 set: (el, value) => el.setAttribute('manifest', value)
+            },
+
+            name: {
+                condition: domUtils.isWindow,
+
+                get: WindowSandbox.getWindowName,
+                set: WindowSandbox.setWindowName
             },
 
             // NOTE: Cookie can be set up for the page by using the request initiated by img.

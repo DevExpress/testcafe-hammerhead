@@ -7,7 +7,8 @@
 var ServiceCommands = {
     getUploadedFiles: 'hammerhead|command|get-uploaded-files',
     setCookie:        'hammerhead|command|set-cookie',
-    uploadFiles:      'hammerhead|command|upload-files'
+    uploadFiles:      'hammerhead|command|upload-files',
+    waitRedirect:     'hammerhead|command|wait-redirect'
 };
 
 export default ServiceCommands;

@@ -11,12 +11,14 @@
 
     hammerhead.get('./settings').set({ CROSS_DOMAIN_PROXY_PORT: 2000 });
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.redirectWatch.init = function () {
+    };
     hammerhead.start();
 
     var messageSandbox = hammerhead.sandbox.event.message;
 
     var topWindow = window.top;
-    var iframe    = topWindow.document.getElementsByTagName('iframe')[0];
+    var iframe = topWindow.document.getElementsByTagName('iframe')[0];
 
     window.addEventListener('load', function () {
         setTimeout(function () {
@@ -26,7 +28,7 @@
         }, 50);
     });
 
-    window.addEventListener('unload', function() {
+    window.addEventListener('unload', function () {
         messageSandbox.sendServiceMsg('', topWindow);
     });
 </script>

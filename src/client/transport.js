@@ -90,8 +90,53 @@ class Transport extends EventEmitter {
             });
     }
 
-    // TODO: Rewrite this using Promise after getting rid of syncServiceMsg.
-    _performRequest (msg, callback) {
+    waitCookieMsg () {
+        return new Promise(resolve => {
+            var handler = () => {
+                if (!this._cookieMsgInProgress()) {
+                    this.off(this.MSG_RECEIVED_EVENT, handler);
+
+                    resolve();
+                }
+            };
+
+            if (this._cookieMsgInProgress())
+                this.on(this.MSG_RECEIVED_EVENT, handler);
+            else
+                resolve();
+        });
+    }
+
+    waitForServiceMessagesCompleted (timeout) {
+        return new Promise(resolve => {
+            if (!this.activeServiceMessagesCounter) {
+                resolve();
+                return;
+            }
+
+            var intervalId = null;
+            var timeoutId  = window.setTimeout(() => {
+                nativeMethods.clearInterval.call(window, intervalId);
+                resolve();
+            }, timeout);
+
+            intervalId = window.setInterval(() => {
+                if (!this.activeServiceMessagesCounter) {
+                    nativeMethods.clearInterval.call(window, intervalId);
+                    nativeMethods.clearTimeout.call(window, timeoutId);
+                    resolve();
+                }
+            }, this.SERVICE_MESSAGES_WAITING_INTERVAL);
+        });
+    }
+
+    asyncServiceMsg (msg) {
+        return new Promise((resolve, reject) => {
+            this.asyncServiceMsgInternal(msg, resolve, reject);
+        });
+    }
+
+    asyncServiceMsgInternal (msg, resolve, reject) {
         msg.sessionId = settings.get().sessionId;
 
         if (isIframeWithoutSrc)
@@ -109,14 +154,12 @@ class Transport extends EventEmitter {
             var request      = Transport._createXMLHttpRequest(requestIsAsync);
             var msgCallback  = function () {
                 transport.activeServiceMessagesCounter--;
-
-                callback(this.responseText && parseJSON(this.responseText));
+                resolve(this.responseText && parseJSON(this.responseText));
             };
             var errorHandler = function () {
                 if (msg.disableResending)
-                    return;
-
-                if (isWebKit) {
+                    reject();
+                else if (isWebKit) {
                     Transport._storeMessage(msg);
                     msgCallback.call(this);
                 }
@@ -164,52 +207,6 @@ class Transport extends EventEmitter {
 
         Transport._removeMessageFromStore(msg.cmd);
         sendMsg();
-    }
-
-    waitCookieMsg () {
-        return new Promise(resolve => {
-            var handler = () => {
-                if (!this._cookieMsgInProgress()) {
-                    this.off(this.MSG_RECEIVED_EVENT, handler);
-
-                    resolve();
-                }
-            };
-
-            if (this._cookieMsgInProgress())
-                this.on(this.MSG_RECEIVED_EVENT, handler);
-            else
-                resolve();
-        });
-    }
-
-    waitForServiceMessagesCompleted (timeout) {
-        return new Promise(resolve => {
-            if (!this.activeServiceMessagesCounter) {
-                resolve();
-                return;
-            }
-
-            var intervalId = null;
-            var timeoutId  = window.setTimeout(() => {
-                nativeMethods.clearInterval.call(window, intervalId);
-                resolve();
-            }, timeout);
-
-            intervalId = window.setInterval(() => {
-                if (!this.activeServiceMessagesCounter) {
-                    nativeMethods.clearInterval.call(window, intervalId);
-                    nativeMethods.clearTimeout.call(window, timeoutId);
-                    resolve();
-                }
-            }, this.SERVICE_MESSAGES_WAITING_INTERVAL);
-        });
-    }
-
-    asyncServiceMsg (msg) {
-        return new Promise(resolve => {
-            this._performRequest(msg, data => resolve(data));
-        });
     }
 
     batchUpdate () {

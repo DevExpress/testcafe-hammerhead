@@ -1,4 +1,5 @@
-var urlParser = require('url');
+var urlParser  = require('url');
+var hammerhead = require('./hammerhead');
 
 // NOTE: Url rewrite proxied requests (e.g. for iframes), so they will hit our server.
 function urlRewriteProxyRequest (req, res, next) {
@@ -26,6 +27,22 @@ function urlRewriteProxyRequest (req, res, next) {
 
 module.exports = function (app) {
     app.use(urlRewriteProxyRequest);
+
+    app.get('/static/:file', function (req, res) {
+        var file = req.params.file;
+
+        res.setHeader('Content-disposition', 'attachment; filename=' + file);
+        res.setHeader('Content-type', 'text/plain');
+        res.end("File content!");
+    });
+
+    app.get('/redirect-to-hammerhead', function (req, res) {
+        var proxyUrl = hammerhead.openSession(decodeURIComponent(req.query.page));
+
+        res.statusCode = 303;
+        res.setHeader('Location', proxyUrl);
+        res.end('');
+    });
 
     app.get('/xhr-large-response', function (req, res) {
         var data = new Array(1000);
@@ -66,7 +83,7 @@ module.exports = function (app) {
 
     app.get('/redirect/', function (req, res) {
         res.statusCode = 302;
-        res.setHeader('location', req.originalUrl.replace('redirect/' , 'xhr-large-response'));
+        res.setHeader('location', req.originalUrl.replace('redirect/', 'xhr-large-response'));
         res.send();
     });
 
@@ -91,6 +108,6 @@ module.exports = function (app) {
     });
 
     app.all('/echo-request-headers', function (req, res) {
-       res.json(req.headers);
+        res.json(req.headers);
     });
 };

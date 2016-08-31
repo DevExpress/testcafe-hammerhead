@@ -33,7 +33,7 @@ export default class LocationWrapper {
 
             var changedOnlyHash = locationUrl && isChangedOnlyHash(locationUrl, href);
 
-            return getProxyUrl(href, { resourceType: changedOnlyHash ? locationResourceType : resourceType });
+            return getProxyUrl(href, { resourceType: changedOnlyHash ? locationResourceType : resourceType, target: window.name });
         };
         var urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 

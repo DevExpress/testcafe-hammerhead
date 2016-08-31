@@ -230,8 +230,8 @@ test('innerHTML', function () {
     eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><\/script><a href=\\"" + linkUrl + "\\"></a>";'));
 
     strictEqual(div.children.length, 2);
-    strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, { resourceType: 's', charset: 'utf-8' }));
-    strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl));
+    strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, { resourceType: 's', charset: 'utf-8', target: window.name }));
+    strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl, { target: window.name }));
 
     document[INTERNAL_PROPS.documentCharset] = null;
 });
@@ -327,8 +327,8 @@ test('outerHTML', function () {
     setProperty(childDiv, 'outerHTML', htmlText);
 
     strictEqual(parentDiv.children.length, 2);
-    strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl('http://domain.com/'));
-    strictEqual(parentDiv.lastChild.src, urlUtils.getProxyUrl('http://domain.com/script', { resourceType: 's' }));
+    strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl('http://domain.com/', { target: window.name }));
+    strictEqual(parentDiv.lastChild.src, urlUtils.getProxyUrl('http://domain.com/script', { resourceType: 's', target: window.name }));
 });
 
 module('regression');

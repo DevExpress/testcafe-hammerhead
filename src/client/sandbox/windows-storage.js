@@ -32,10 +32,16 @@ export function add (wnd) {
 
 export function remove (wnd) {
     var storage = getStorage();
-    var index   = storage.indexOf(wnd);
 
-    if (index !== -1)
-        storage.splice(index, 1);
+    for (var i = storage.length - 1; i >= 0; i--) {
+        try {
+            if (storage[i] === wnd)
+                storage.splice(i, 1);
+        }
+        catch (e) {
+            storage.splice(i, 1);
+        }
+    }
 }
 
 export function findByName (name) {

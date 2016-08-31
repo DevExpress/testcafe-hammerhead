@@ -24,7 +24,9 @@ QUnit.testDone(function () {
 });
 
 test('url', function () {
-    var testUrlAttr = function (tagName, attr) {
+    window.name = 'urlTest';
+
+    var testUrlAttr = function (tagName, attr, target) {
         var el         = nativeMethods.createElement.call(document, tagName);
         var storedAttr = domProcessor.getStoredAttrName(attr);
         var namespace  = 'http://www.w3.org/1999/xhtml';
@@ -50,7 +52,7 @@ test('url', function () {
         else if (tagName === 'form')
             resourceType = 'f';
 
-        var proxy = urlUtils.getProxyUrl(dest, { resourceType: resourceType });
+        var proxy = urlUtils.getProxyUrl(dest, { resourceType: resourceType, target: target });
 
         setProperty(el, attr, dest);
         strictEqual(el[attr], proxy);
@@ -59,7 +61,7 @@ test('url', function () {
         strictEqual(getWrapAttr(), dest);
 
         var newUrl      = '/image';
-        var proxyNewUrl = urlUtils.getProxyUrl('/image', { resourceType: resourceType });
+        var proxyNewUrl = urlUtils.getProxyUrl('/image', { resourceType: resourceType, target: target });
 
         el.setAttribute(attr, newUrl);
         strictEqual(el[attr], proxyNewUrl);
@@ -88,16 +90,16 @@ test('url', function () {
     };
 
     var testData = [
-        { tagName: 'a', attr: 'href' },
+        { tagName: 'a', attr: 'href', target: window.name },
         { tagName: 'script', attr: 'src' },
         { tagName: 'link', attr: 'href' },
-        { tagName: 'form', attr: 'action' },
+        { tagName: 'form', attr: 'action', target: window.name },
         { tagName: 'embed', attr: 'src' },
         { tagName: 'object', attr: 'data' }
     ];
 
     for (var i = 0; i < testData.length; i++)
-        testUrlAttr(testData[i].tagName, testData[i].attr);
+        testUrlAttr(testData[i].tagName, testData[i].attr, testData[i].target);
 });
 
 test('script src', function () {
@@ -432,10 +434,12 @@ test('element.innerHTML', function () {
     settings.get().sessionId = 'sessionId';
 
     var $container   = $('<div>');
-    var checkElement = function (el, attr, resourceType) {
+    var checkElement = function (el, attr, resourceType, target) {
         var storedAttr     = domProcessor.getStoredAttrName(attr);
-        var exprectedValue = 'http://' + location.host + '/sessionId' + resourceType +
-                             '/https://example.com/Images/1.png';
+        var exprectedValue = urlUtils.getProxyUrl('https://example.com/Images/1.png', {
+            target:       target,
+            resourceType: resourceType
+        });
 
         strictEqual(nativeMethods.getAttribute.call(el, storedAttr), '/Images/1.png', 'destination url stored');
         strictEqual(nativeMethods.getAttribute.call(el, attr), exprectedValue);
@@ -448,17 +452,17 @@ test('element.innerHTML', function () {
 
     setProperty($container[0], 'innerHTML', html);
 
-    checkElement($container.find('a')[0], 'href', '');
-    checkElement($container.find('form')[0], 'action', '!f');
-    checkElement($container.find('link')[0], 'href', '');
-    checkElement($container.find('script')[0], 'src', '!s');
+    checkElement($container.find('a')[0], 'href', '', window.name);
+    checkElement($container.find('form')[0], 'action', 'f', window.name);
+    checkElement($container.find('link')[0], 'href', '', window.name);
+    checkElement($container.find('script')[0], 'src', 's', window.name);
 });
 
 test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
     var url      = 'http://url.com/';
     var iframe   = document.createElement('iframe');
-    var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i' });
+    var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i', target: 'iframeName' });
 
     iframe.id   = 'test_unique_id_e16w9jnv5';
     iframe.name = 'iframeName';
