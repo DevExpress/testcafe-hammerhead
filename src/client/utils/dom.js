@@ -18,7 +18,7 @@ var scrollbarSize = null;
 function getFocusableSelector () {
     // NOTE: We don't take into account the case of embedded contentEditable elements, and we
     // specify the contentEditable attribute for focusable elements.
-    return 'input, select, textarea, button, iframe, [contenteditable="true"], [contenteditable=""], [tabIndex]';
+    return 'input, select, textarea, button, body, iframe, [contenteditable="true"], [contenteditable=""], [tabIndex]';
 }
 
 function isHidden (el) {
@@ -452,7 +452,7 @@ export function isRenderedNode (node) {
     return !(isProcessingInstructionNode(node) || isCommentNode(node) || /^(script|style)$/i.test(node.nodeName));
 }
 
-function getTabIndexAttributeIntValue (el) {
+export function getTabIndex (el) {
     // NOTE: we get tabIndex value by getting attribute because el.tabIndex property
     // returns -1 for some elements (e.g. for body) for not assigned tabIndex
     var tabIndex = nativeMethods.getAttribute.call(el, 'tabIndex');
@@ -466,7 +466,7 @@ export function isElementFocusable (el) {
     if (!el)
         return false;
 
-    var tabIndex              = getTabIndexAttributeIntValue(el);
+    var tabIndex              = getTabIndex(el);
     var isDisabledElement     = matches(el, ':disabled');
     var isInvisibleElement    = getStyle(el, 'visibility') === 'hidden';
     var isNotDisplayedElement = getStyle(el, 'display') === 'none';

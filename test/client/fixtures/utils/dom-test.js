@@ -565,8 +565,6 @@ asyncTest('isElementFocusable', function () {
     iframe.style.width  = '500px';
     iframe.style.height = '500px';
 
-    document.getElementById('qunit-tests').style.display = 'none';
-
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeDocument          = iframe.contentDocument;
@@ -591,7 +589,6 @@ asyncTest('isElementFocusable', function () {
             deepEqual(expectedFocusedElements, focusedElements);
 
             document.body.removeChild(iframe);
-            document.getElementById('qunit-tests').style.display = '';
             start();
         });
 
