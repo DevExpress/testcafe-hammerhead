@@ -466,7 +466,7 @@ export function isElementFocusable (el) {
     if (!el)
         return false;
 
-    var tabIndex              = el.tabIndex;
+    var tabIndex              = getTabIndexAttributeIntValue(el);
     var isDisabledElement     = matches(el, ':disabled');
     var isInvisibleElement    = getStyle(el, 'visibility') === 'hidden';
     var isNotDisplayedElement = getStyle(el, 'display') === 'none';
