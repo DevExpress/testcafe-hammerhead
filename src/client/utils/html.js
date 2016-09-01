@@ -8,6 +8,7 @@ import { find, getTagName, isScriptElement } from './dom';
 import { convertToProxyUrl, parseProxyUrl } from './url';
 import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
 import * as urlResolver from './url-resolver';
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 const FAKE_TAG_NAME_PREFIX  = 'fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME = 'hammerhead_fake_doctype';
@@ -26,7 +27,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
         (function () {
             var parentHammerhead = null;
             try {
-                parentHammerhead = window.parent["%hammerhead%"];
+                parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerheadPropertyName }"];
             } catch(e) {}
             if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
             var script = document.currentScript || document.scripts[document.scripts.length - 1];

@@ -6,11 +6,12 @@ import * as cookieUtils from '../utils/cookie';
 import { isCrossDomainWindows } from '../utils/dom';
 import transport from '../transport';
 import trim from '../../utils/string-trim';
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 export default class CookieSandbox extends SandboxBase {
     _getSettings () {
         var windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
-                             this.window.top['%hammerhead%'].get('./settings') : settings;
+                             this.window.top[INTERNAL_PROPS.hammerheadPropertyName].get('./settings') : settings;
 
         return windowSettings.get();
     }

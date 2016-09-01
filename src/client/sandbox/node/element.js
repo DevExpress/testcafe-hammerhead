@@ -1,5 +1,6 @@
 import SandboxBase from '../base';
 import NodeSandbox from '../node/index';
+import DomProcessor from '../../../processing/dom/index';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
 import { processScript } from '../../../processing/script';
@@ -184,7 +185,7 @@ export default class ElementSandbox extends SandboxBase {
 
             args[valueIndex] = 'off';
         }
-        else if (attr === 'target' && domProcessor.TARGET_ATTR_TAGS[tagName]) {
+        else if (attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
             if (/_blank/i.test(value))
                 return null;
 
