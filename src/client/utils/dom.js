@@ -453,8 +453,8 @@ export function isRenderedNode (node) {
 }
 
 export function getTabIndex (el) {
-    // NOTE: we get tabIndex value by getting attribute because el.tabIndex property
-    // returns -1 for some elements (e.g. for body) for not assigned tabIndex
+    // NOTE: we obtain the tabIndex value from an attribute because the el.tabIndex
+    // property returns -1 for some elements (e.g. for body) with no tabIndex assigned
     var tabIndex = nativeMethods.getAttribute.call(el, 'tabIndex');
 
     tabIndex = parseInt(tabIndex, 10);
