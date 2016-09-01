@@ -17,10 +17,7 @@ QUnit.testDone(function () {
 });
 
 test('document.write for iframe.src with javascript protocol', function () {
-    var $div = $('<div>').appendTo('body');
-
-    processDomMeth($div[0]);
-
+    var $div    = $('<div>').appendTo('body');
     var $iframe = $('<iframe id="test4" src="javascript:&quot;<html><body><a id=\'link\' href=\'http://google.com/\'></body></html>&quot;"></iframe>"');
 
     $div[0].appendChild($iframe[0]);
@@ -30,11 +27,8 @@ test('document.write for iframe.src with javascript protocol', function () {
 });
 
 asyncTest('document.write for iframe with empty url', function () {
-    var $div   = $('<div>').appendTo('body');
-    var cheked = false;
-
-    processDomMeth($div[0]);
-
+    var $div    = $('<div>').appendTo('body');
+    var cheked  = false;
     var $iframe = $('<iframe id="test3" src="about:blank">"');
 
     var check = function () {
@@ -313,7 +307,6 @@ test('document.write for page html (T190753)', function () {
     var script          = 'var a = [1,2], b = 0; window.test = a[b];';
     var processedScript = processScript(script, true).replace(/\s*/g, '');
 
-    processDomMeth($div[0]);
     $div[0].appendChild($iframe[0]);
 
     ok(script.replace(/\s*/g, '') !== processedScript);

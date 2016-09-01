@@ -164,9 +164,7 @@ asyncTest('form.submit', function () {
 });
 
 test('setAttribute: img src', function () {
-    var img = nativeMethods.createElement.call(document, 'img');
-
-    processDomMeth(img);
+    var img = document.createElement('img');
 
     img.setAttribute('src', '/image.gif?param=value');
 

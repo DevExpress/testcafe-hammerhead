@@ -6,8 +6,21 @@ import * as cookieUtils from '../utils/cookie';
 import { isCrossDomainWindows } from '../utils/dom';
 import transport from '../transport';
 import trim from '../../utils/string-trim';
+import throttle from '../utils/throttle';
+
+const MIN_COOKIE_SYNC_INTERVAL = 100;
 
 export default class CookieSandbox extends SandboxBase {
+    constructor () {
+        super();
+
+        this.throttledCookieSync = throttle(cookieMsg => {
+            transport.queuedAsyncServiceMsg(cookieMsg);
+        }, MIN_COOKIE_SYNC_INTERVAL);
+
+        this.MIN_COOKIE_SYNC_INTERVAL = MIN_COOKIE_SYNC_INTERVAL;
+    }
+
     _getSettings () {
         var windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
                              this.window.top['%hammerhead%'].get('./settings') : settings;
@@ -129,12 +142,11 @@ export default class CookieSandbox extends SandboxBase {
 
         var setCookieMsg = {
             cmd:    COMMAND.setCookie,
-            cookie: value,
+            cookie: this.getCookie(),
             url:    document.location.href
         };
 
-        // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
-        transport.queuedAsyncServiceMsg(setCookieMsg);
+        this.throttledCookieSync(setCookieMsg);
 
         return value;
     }

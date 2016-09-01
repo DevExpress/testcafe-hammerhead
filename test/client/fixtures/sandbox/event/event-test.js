@@ -246,8 +246,6 @@ if (browserUtils.isWebKit) {
             '<rect id="rect" width="300" height="300" fill="red" tabIndex="1"></rect>' +
             '</svg>').appendTo('body');
 
-        processDomMeth($svgElement[0]);
-
         var rectElement = document.getElementById('rect');
 
         rectElement.onfocus = function () {
