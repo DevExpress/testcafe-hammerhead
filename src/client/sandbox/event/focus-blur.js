@@ -56,7 +56,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             nativeMethods.removeAttribute.call(this.lastFocusedElement, INTERNAL_ATTRS.focusPseudoClass);
 
         if (domUtils.isElementFocusable(activeElement) && !(domUtils.isBodyElement(activeElement) &&
-            nativeMethods.getAttribute.call(activeElement, 'tabIndex') === null)) {
+            domUtils.getTabIndex(activeElement, 'tabIndex') === null)) {
             this.lastFocusedElement = activeElement;
             nativeMethods.setAttribute.call(activeElement, INTERNAL_ATTRS.focusPseudoClass, true);
         }

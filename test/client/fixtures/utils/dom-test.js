@@ -13,6 +13,16 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
+function toArray (arg) {
+    var arr    = [];
+    var length = arg.length;
+
+    for (var i = 0; i < length; i++)
+        arr.push(arg[i]);
+
+    return arr;
+}
+
 asyncTest('isCrossDomainWindows', function () {
     ok(!domUtils.isCrossDomainWindows(window, window));
 
@@ -226,7 +236,7 @@ if (window.fetch) {
     asyncTest('isFetchHeaders in iframe', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.id  = 'test_unique_id_ydniv452';
+        iframe.id = 'test_unique_id_ydniv452';
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 var iframeDocument = iframe.contentDocument;
@@ -255,7 +265,7 @@ if (window.fetch) {
     asyncTest('isFetchRequest in iframe', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.id  = 'test_unique_id_ydosn52v452';
+        iframe.id = 'test_unique_id_ydosn52v452';
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 var iframeDocument = iframe.contentDocument;
@@ -309,13 +319,13 @@ asyncTest('after the location is set to an iframe without src isIframeWithoutSrc
     document.body.appendChild(iframe);
 });
 
- // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
+// NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
 if (!browserUtils.isIE) {
     asyncTest('should return "false" after calling document.open, document.write, document.close for the same-domain iframe', function () {
-        var iframe  = document.createElement('iframe');
+        var iframe = document.createElement('iframe');
 
         iframe.src = window.QUnitGlobals.getResourceUrl('../../data/code-instrumentation/iframe.html');
-        iframe.id = 'test_unique_id_9090d';
+        iframe.id  = 'test_unique_id_9090d';
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 ok(!domUtils.isIframeWithoutSrc(iframe));
@@ -543,6 +553,46 @@ test('hasClass', function () {
     ok(domUtils.hasClass(div, 'test3'));
 
     div.parentNode.removeChild(div);
+});
+
+asyncTest('isElementFocusable', function () {
+    var iframe = document.createElement('iframe');
+    var src    = window.QUnitGlobals.getResourceUrl('../../data/is-focusable/iframe.html', 'is-focusable/iframe.html');
+
+    iframe.setAttribute('src', src);
+
+    iframe.id           = 'test_unique' + Date.now();
+    iframe.style.width  = '500px';
+    iframe.style.height = '500px';
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument          = iframe.contentDocument;
+            var allElements             = iframeDocument.querySelectorAll('*');
+            var expectedFocusedElements = toArray(iframeDocument.querySelectorAll('.expected'));
+            var focusedElements         = [];
+
+            if (browserUtils.isIE) {
+                expectedFocusedElements = expectedFocusedElements.filter(function (el) {
+                    if (browserUtils.version <= 10 && domUtils.isAnchorElement(el) && el.getAttribute('href') === '')
+                        return false;
+
+                    return !domUtils.isOptionElement(el);
+                });
+            }
+
+            for (var i = 0; i < allElements.length; i++) {
+                if (domUtils.isElementFocusable(allElements[i]))
+                    focusedElements.push(allElements[i]);
+            }
+
+            deepEqual(expectedFocusedElements, focusedElements);
+
+            document.body.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
 });
 
 module('regression');
