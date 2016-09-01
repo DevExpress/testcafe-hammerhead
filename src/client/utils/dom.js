@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE, version } from './browser';
+import { isFirefox, isWebKit, isIE, version as browserVersion } from './browser';
 import trim from '../../utils/string-trim';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
@@ -453,21 +453,20 @@ export function isRenderedNode (node) {
 }
 
 function getTabIndexAttributeIntValue (el) {
-    var tabIndex = el.getAttribute('tabIndex');
+    // NOTE: we get tabIndex value by getting attribute because el.tabIndex property
+    // returns -1 for some elements (e.g. for body) for not assigned tabIndex
+    var tabIndex = nativeMethods.getAttribute.call(el, 'tabIndex');
 
-    if (tabIndex !== null) {
-        tabIndex = parseInt(tabIndex, 10);
-        tabIndex = isNaN(tabIndex) ? null : tabIndex;
-    }
+    tabIndex = parseInt(tabIndex, 10);
 
-    return tabIndex;
+    return isNaN(tabIndex) ? null : tabIndex;
 }
 
 export function isElementFocusable (el) {
     if (!el)
         return false;
 
-    var tabIndex              = getTabIndexAttributeIntValue(el);
+    var tabIndex              = el.tabIndex;
     var isDisabledElement     = matches(el, ':disabled');
     var isInvisibleElement    = getStyle(el, 'visibility') === 'hidden';
     var isNotDisplayedElement = getStyle(el, 'display') === 'none';
@@ -486,7 +485,7 @@ export function isElementFocusable (el) {
         if (tabIndex > 0)
             return true;
 
-        return isIE && version < 11 ?
+        return isIE && browserVersion < 11 ?
                matches(el, 'a[href]:not([href = ""])') :
                matches(el, 'a[href]');
     }

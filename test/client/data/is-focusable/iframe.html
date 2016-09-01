@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+</head>
+<body>
+<input value="text input" class="expected"/>
+<textarea style="height: 100px;" class="expected">textarea</textarea>
+<a href="http://www.example.org/" tabindex="2" class="expected">Link with href</a>
+<div tabindex="1" class="expected">div tag with tabIndex</div>
+
+<div contenteditable="true" class="expected">
+    content editable div
+    <button tabindex="4" class="expected"></button>
+    <p>paragraph</p>
+</div>
+<div contenteditable="true" class="expected">
+    content editable div 2
+</div>
+<input type="submit" value="submit input" class="expected"/>
+<input type="checkbox" value="checkbox" class="expected"/>
+
+<select tabindex="0" class="expected">
+    <option>option one</option>
+    <option>option two</option>
+</select>
+
+<select multiple="multiple" class="expected">
+    <option tabindex="3" class="expected">option tab index 2</option>
+    <option tabindex="4" class="expected">option tab index 3</option>
+</select>
+
+<div style="visibility: hidden">
+    <input/>
+</div>
+
+<a href="" class="expected">Link with empty href</a>
+
+<a>Link without href</a>
+<div>div tag</div>
+<input type="button" value="button input" tabindex="-1"/>
+
+<iframe class="expected"></iframe>
+</body>
+</html>
