@@ -6,6 +6,7 @@ import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl } from '../../../utils/url';
+import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -25,12 +26,12 @@ const IS_NOT_CLOSED_PROPERTY = 'hammerhead|is-not-closed-element';
 const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.script }" type="text/javascript">
         (function () {
-            var hammerhead = window["%hammerhead%"];
+            var hammerhead = window["${ INTERNAL_PROPS.hammerheadPropertyName }"];
             var sandbox = hammerhead && hammerhead.sandbox;
             var script = document.currentScript || document.scripts[document.scripts.length - 1];
             if (!sandbox) {
                 try {
-                    sandbox = window.parent["%hammerhead%"].get('./sandbox/backup').get(window);
+                    sandbox = window.parent["${ INTERNAL_PROPS.hammerheadPropertyName }"].get('./sandbox/backup').get(window);
                 } catch(e) {}
             }
             if (sandbox) {

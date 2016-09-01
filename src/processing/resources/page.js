@@ -6,12 +6,13 @@ import DomAdapter from '../dom/parse5-dom-adapter';
 import ResourceProcessorBase from './resource-processor-base';
 import * as parse5Utils from '../../utils/parse5';
 import getBOM from '../../utils/get-bom';
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent(`
     <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.script }">
         (function () {
-            if (window["%hammerhead%"])
-                window["%hammerhead%"].sandbox.node.raiseBodyCreatedEvent();
+            if (window["${ INTERNAL_PROPS.hammerheadPropertyName }"])
+                window["${ INTERNAL_PROPS.hammerheadPropertyName }"].sandbox.node.raiseBodyCreatedEvent();
 
             var script = document.currentScript || document.scripts[document.scripts.length - 1];
             script.parentNode.removeChild(script);

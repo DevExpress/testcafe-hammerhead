@@ -1,6 +1,7 @@
 import EventEmitter from '../utils/event-emitter';
 import nativeMethods from './native-methods';
 import { findDocument, isElementInDocument, getFrameElement } from '../utils/dom';
+import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 export default class SandboxBase extends EventEmitter {
     constructor () {
@@ -13,7 +14,7 @@ export default class SandboxBase extends EventEmitter {
     // NOTE: The sandbox is deactivated when its window is removed from the DOM.
     isDeactivated () {
         try {
-            if (this.window['%hammerhead%']) {
+            if (this.window[INTERNAL_PROPS.hammerheadPropertyName]) {
                 var frameElement = getFrameElement(this.window);
 
                 return frameElement && !isElementInDocument(frameElement, findDocument(frameElement));

@@ -34,12 +34,7 @@ const SVG_XLINK_HREF_TAGS = [
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const TARGET_ATTR_TAGS = {
-    a:    true,
-    form: true,
-    area: true,
-    base: true
-};
+const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base'];
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -50,7 +45,6 @@ export default class DomProcessor {
 
         this.HTML_STRING_REG_EX         = HTML_STRING_REG_EX;
         this.JAVASCRIPT_PROTOCOL_REG_EX = JAVASCRIPT_PROTOCOL_REG_EX;
-        this.TARGET_ATTR_TAGS           = TARGET_ATTR_TAGS;
         this.URL_ATTRS                  = URL_ATTRS;
         this.SVG_XLINK_HREF_TAGS        = SVG_XLINK_HREF_TAGS;
 
@@ -59,6 +53,10 @@ export default class DomProcessor {
         this.EVENTS = this.adapter.EVENTS;
 
         this.elementProcessorPatterns = this._createProcessorPatterns(this.adapter);
+    }
+
+    static isTagWithTargetAttr (tagName) {
+        return TARGET_ATTR_TAGS.indexOf(tagName) !== -1;
     }
 
     _createProcessorPatterns (adapter) {

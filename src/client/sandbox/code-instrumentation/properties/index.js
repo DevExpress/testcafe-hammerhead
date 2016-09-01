@@ -8,6 +8,7 @@ import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
 import XhrSandbox from '../../xhr';
 import ElementSandbox from '../../node/element';
+import DomProcessor from '../../../../processing/dom/index';
 import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
@@ -505,7 +506,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             target: {
-                condition: el => domUtils.isDomElement(el) && domProcessor.TARGET_ATTR_TAGS[domUtils.getTagName(el)],
+                condition: el => domUtils.isDomElement(el) && DomProcessor.isTagWithTargetAttr(domUtils.getTagName(el)),
                 get:       el => el.target,
                 set:       (el, value) => el.setAttribute('target', value)
             },

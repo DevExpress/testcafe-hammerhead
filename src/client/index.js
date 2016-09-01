@@ -20,6 +20,7 @@ import { SCRIPT_PROCESSING_START_COMMENT, SCRIPT_PROCESSING_END_HEADER_COMMENT, 
 import { STYLESHEET_PROCESSING_START_COMMENT, STYLESHEET_PROCESSING_END_COMMENT } from '../processing/style';
 import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
+import INTERNAL_PROPS from '../processing/dom/internal-properties';
 
 class Hammerhead {
     constructor () {
@@ -191,7 +192,7 @@ var hammerhead = new Hammerhead();
 
 // NOTE: The 'load' event is raised after calling document.close for a same-domain iframe
 // So, we need to define the '%hammerhead%' variable as 'configurable' so that it can be redefined.
-Object.defineProperty(window, '%hammerhead%', {
+Object.defineProperty(window, INTERNAL_PROPS.hammerheadPropertyName, {
     value:        hammerhead,
     configurable: true
 });
