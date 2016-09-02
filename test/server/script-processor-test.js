@@ -436,6 +436,95 @@ describe('Script processor', function () {
         ]);
     });
 
+    it('Should process postMessage', function () {
+        testProcessing([
+            { src: 'window.postMessage("", "")', expected: '__call$(window, "postMessage", ["", ""])' },
+            { src: 'window["postMessage"]("", "")', expected: '__call$(window, "postMessage", ["", ""])' },
+            { src: 'window[postMessage]("", "")', expected: '__call$(window, postMessage, ["", ""])' },
+            { src: 'some.postMessage("", "")', expected: '__call$(some, "postMessage", ["", ""])' },
+            { src: 'window["some"]("", "")', expected: 'window["some"]("", "")' },
+            { src: 'window.some.("", "")', expected: 'window.some.("", "")' },
+
+            {
+                src:      'postMessage.call(window, "", location)',
+                expected: '__get$PostMessage(null, postMessage).call(window, "", __get$Loc(location))'
+            },
+            {
+                src:      'window["postMessage"].call(window, "", "")',
+                expected: '__get$PostMessage(window).call(window, "", "")'
+            },
+            {
+                src:      'postMessage.apply(some, ["", ""])',
+                expected: '__get$PostMessage(null, postMessage).apply(some, ["", ""])'
+            },
+            { src: 'postMessage.apply(window, args)', expected: '__get$PostMessage(null, postMessage).apply(window, args)' },
+            {
+                src:      'some.postMessage.apply(window, ["", ""])',
+                expected: '__get$PostMessage(some).apply(window, ["", ""])'
+            },
+            {
+                src:      'some.win["postMessage"].apply(window, ["", ""])',
+                expected: '__get$PostMessage(some.win).apply(window, ["", ""])'
+            },
+            {
+                src:      'window["postMessage"].apply(window, ["", location])',
+                expected: '__get$PostMessage(window).apply(window, ["", __get$Loc(location)])'
+            },
+            { src: 'postMessage.some(window, ["", ""])', expected: 'postMessage.some(window, ["", ""])' },
+            {
+                src:      'window["postMessage"].some(window, ["", ""])',
+                expected: 'window["postMessage"].some(window, ["", ""])'
+            },
+
+            { src: 'postMessage("", "")', expected: '__get$PostMessage(null, postMessage)("", "")' },
+            {
+                src:      'var a = postMessage, b = window.postMessage, c = window["postMessage"];',
+                expected: 'var a = __get$PostMessage(null, postMessage), b = __get$PostMessage(window), c = __get$PostMessage(window);'
+            },
+            {
+                src:      'a = postMessage, b = window.postMessage, c = window["postMessage"];',
+                expected: 'a = __get$PostMessage(null, postMessage), b = __get$PostMessage(window), c = __get$PostMessage(window);'
+            },
+            {
+                src:      '{a: postMessage, b:window.postMessage, c: window["postMessage"]}',
+                expected: '{a: __get$PostMessage(null, postMessage), b:__get$PostMessage(window), c: __get$PostMessage(window)}'
+            },
+            {
+                src:      '(function() {return postMessage;}, function(){return window.postMessage;}, function(){return window["postMessage"]})',
+                expected: '(function() {return __get$PostMessage(null, postMessage);}, function(){return __get$PostMessage(window);}, function(){return __get$PostMessage(window)})'
+            },
+            {
+                src:      '(function a (postMessage) {}); a(postMessage, window.postMessage, window["postMessage"]);',
+                expected: '(function a (postMessage) {}); a(__get$PostMessage(null, postMessage), __get$PostMessage(window), __get$PostMessage(window));'
+            },
+            {
+                src:      '__get$PostMessage(postMessage)("");__get$PostMessage(window)("");__get$PostMessage(window)("");',
+                expected: '__get$PostMessage(postMessage)("");__get$PostMessage(window)("");__get$PostMessage(window)("");'
+            },
+            {
+                src:      'postMessage++; postMessage--; ++postMessage; --postMessage;',
+                expected: 'postMessage++; postMessage--; ++postMessage; --postMessage;'
+            },
+            {
+                src:      'window.postMessage = 1; window["postMessage"] = 1;',
+                expected: 'window.postMessage = 1; window["postMessage"] = 1;'
+            },
+            {
+                src:      'var ob = {postMessage : 1};',
+                expected: 'var ob = {postMessage : 1};'
+            },
+
+            {
+                src:      'var postMessage = value; postMessage = newValue;',
+                expected: 'var postMessage = value; postMessage = newValue;'
+            },
+            {
+                src:      'window.postMessage.property',
+                expected: 'window.postMessage.property'
+            }
+        ]);
+    });
+
     it('Should process storages', function () {
         testProcessing([
             {
@@ -486,16 +575,6 @@ describe('Script processor', function () {
                 src:      'window.localStorage.key; window["localStorage"].key',
                 expected: '__get$(window,"localStorage").key;__get$(window,"localStorage").key'
             }
-        ]);
-    });
-
-    it('Should process window.postMessage()', function () {
-        testProcessing([
-            { src: 'window.postMessage("", "")', expected: '__call$(window, "postMessage", ["", ""])' },
-            { src: 'window["postMessage"]("", "")', expected: '__call$(window, "postMessage", ["", ""])' },
-            { src: 'window[postMessage]("", "")', expected: '__call$(window, postMessage, ["", ""])' },
-            { src: 'window["some"]("", "")', expected: 'window["some"]("", "")' },
-            { src: 'window.some.("", "")', expected: 'window.some.("", "")' }
         ]);
     });
 

@@ -8,7 +8,6 @@
 <button id="reload">reload</button>
 <script type="text/javascript">
     var hammerhead = window['%hammerhead%'];
-    var postMessage = hammerhead.sandbox.event.message.postMessage;
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
     hammerhead.start({ crossDomainProxyPort: 2000 });
@@ -19,7 +18,7 @@
     document.write(
         '<script>',
         '    window.onbeforeunload = function(e) {',
-        '        postMessage(window.top, [true, "*"]);',
+        '        window.top.postMessage(true, "*");',
         '    };',
         '    reload.addEventListener("click", function () {',
         '        document.location.reload();',

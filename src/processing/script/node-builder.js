@@ -291,6 +291,27 @@ export function createGetEvalMethCall (node) {
     };
 }
 
+export function createGetPostMessageMethCall (node) {
+    var parentObject = node.object;
+
+    return {
+        type: Syntax.CallExpression,
+
+        callee: {
+            type: Syntax.Identifier,
+            name: INSTRUCTION.getPostMessage
+        },
+
+        arguments: parentObject ? [parentObject] : [
+            {
+                type:  Syntax.Literal,
+                value: null
+            },
+            node
+        ]
+    };
+}
+
 export function createExpandedConcatOperation (left, right) {
     return {
         type:     Syntax.AssignmentExpression,

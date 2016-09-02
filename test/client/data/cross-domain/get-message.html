@@ -9,15 +9,16 @@
 </head>
 <body>
 <script type="text/javascript">
-    var hammerhead  = window['%hammerhead%'];
+    var hammerhead = window['%hammerhead%'];
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var INSTRUCTION = hammerhead.get('../processing/script/instruction');
-    var getProperty = window[INSTRUCTION.getProperty];
-    var setProperty = window[INSTRUCTION.setProperty];
-    var callMethod  = window[INSTRUCTION.callMethod];
+    var INSTRUCTION     = hammerhead.get('../processing/script/instruction');
+    var getProperty     = window[INSTRUCTION.getProperty];
+    var setProperty     = window[INSTRUCTION.setProperty];
+    var callMethod      = window[INSTRUCTION.callMethod];
+    var getPostMessage  = window[INSTRUCTION.getPostMessage];
 
     var onMessageHandler = function (evt) {
         var data = {
@@ -25,6 +26,7 @@
         };
 
         callMethod(top, 'postMessage', [data, '*']);
+        getPostMessage(top).call(top, data, '*');
     };
 
     setProperty(window, 'onmessage', onMessageHandler);
