@@ -25,7 +25,7 @@ class StyleProcessor {
     }
 
     process (css, urlReplacer, isStylesheetTable) {
-        if (typeof css !== 'string' || IS_STYLE_SHEET_PROCESSED_RE.test(css))
+        if (!css || typeof css !== 'string' || IS_STYLE_SHEET_PROCESSED_RE.test(css))
             return css;
 
         var prefix  = isStylesheetTable ? STYLESHEET_PROCESSING_START_COMMENT + '\n' : '';
