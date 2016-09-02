@@ -1,7 +1,7 @@
 {
   "name": "testcafe-hammerhead",
   "description": "A powerful web-proxy used as a core for the TestCafe testing framework (https://github.com/DevExpress/testcafe).",
-  "version": "9.3.2",
+  "version": "9.3.3",
   "homepage": "https://github.com/DevExpress/testcafe-hammerhead",
   "bugs": {
     "url": "https://github.com/DevExpress/testcafe-hammerhead/issues"
@@ -29,7 +29,7 @@
     "pinkie": "1.0.0",
     "read-file-relative": "^1.2.0",
     "shortid": "^2.2.4",
-    "tough-cookie": "1.1.0",
+    "tough-cookie": "2.3.0",
     "webauth": "0.1.1",
     "yakaa": "1.0.1"
   },
