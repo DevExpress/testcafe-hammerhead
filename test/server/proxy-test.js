@@ -212,6 +212,13 @@ describe('Proxy', function () {
             res.json(req.headers);
         });
 
+        app.get('/empty-response', function (req, res) {
+            for (var header in req.headers)
+                res.set(header, req.headers[header]);
+
+            res.end();
+        });
+
         destServer = app.listen(2000);
 
 
@@ -1301,5 +1308,36 @@ describe('Proxy', function () {
                 expect(requestPipelineContext.dest.port).eql(testCases[i].expectedPort);
             }
         });
+
+        describe('Should not change a reponse body if it is empty (GH-762)', function () {
+            it('script', function (done) {
+                var options = {
+                    url:     proxy.openSession('http://127.0.0.1:2000/empty-response', session),
+                    headers: {
+                        'content-type': 'application/javascript; charset=utf-8'
+                    }
+                };
+
+                request(options, function (err, res, body) {
+                    expect(body).is.empty;
+                    done();
+                });
+            });
+
+            it('style', function (done) {
+                var options = {
+                    url:     proxy.openSession('http://127.0.0.1:2000/empty-response', session),
+                    headers: {
+                        'content-type': 'text/css'
+                    }
+                };
+
+                request(options, function (err, res, body) {
+                    expect(body).is.empty;
+                    done();
+                });
+            });
+        });
+
     });
 });

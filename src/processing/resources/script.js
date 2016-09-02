@@ -18,6 +18,9 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
     }
 
     processResource (script) {
+        if (!script)
+            return script;
+
         var processedScript = this.jsCache.get(script);
 
         if (!processedScript) {
