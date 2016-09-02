@@ -5,10 +5,10 @@
 <body>
 <iframe id="iframe1" name="iframe1"></iframe>
 <iframe id="iframe2"></iframe>
-<iframe id="iframe3" name="iframe3"></iframe>
-<iframe id="iframe4" name="iframe5"></iframe>
-<iframe id="iframe5"></iframe>
-<iframe id="iframe6" name="iframe6"></iframe>
+<!--<iframe id="iframe3" name="iframe3"></iframe>-->
+<!--<iframe id="iframe4" name="iframe5"></iframe>-->
+<!--<iframe id="iframe5"></iframe>-->
+<!--<iframe id="iframe6" name="iframe6"></iframe>-->
 
 <a id="link" href="about:blank"></a>
 <script type="text/javascript">
@@ -22,8 +22,8 @@
         if (window.result.indexOf(name) === -1)
             window.result.push(name);
 
-        if (window.result.length === 6)
-            document.getElementById('link').click();
+        //if (window.result.length === 3)
+            //document.getElementById('link').click();
     }
 </script>
 <script type="text/javascript">
@@ -35,12 +35,15 @@
 
     var iframeSrc = location.toString().replace('set-of-iframes.html', 'simple-page.html');
 
+    debugger;
     document.getElementById('iframe1').src = iframeSrc;
     document.getElementById('iframe2').src = iframeSrc;
-    document.getElementById('iframe3').src = iframeSrc;
-    document.getElementById('iframe4').src = iframeSrc;
-    document.getElementById('iframe5').src = iframeSrc;
-    document.getElementById('iframe6').src = iframeSrc;
+    debugger;
+
+    //document.getElementById('iframe3').src = iframeSrc;
+//    document.getElementById('iframe4').src = iframeSrc;
+//    document.getElementById('iframe5').src = iframeSrc;
+//    document.getElementById('iframe6').src = iframeSrc;
 </script>
 </body>
 </html>

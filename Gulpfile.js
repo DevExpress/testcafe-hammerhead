@@ -130,7 +130,7 @@ gulp.task('client-scripts', ['client-scripts-bundle'], function () {
     return gulp.src('./src/client/index.js.wrapper.mustache')
         .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
         .pipe(rename('hammerhead.js'))
-        .pipe(gulpif(!util.env.dev, uglify()))
+        .pipe(gulpif(false, uglify()))
         .pipe(gulp.dest('./lib/client'));
 });
 
@@ -178,7 +178,7 @@ gulp.task('lint', function () {
         .pipe(eslint.failAfterError());
 });
 
-gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
+gulp.task('build', ['client-scripts', 'server-scripts', 'templates']);
 
 
 // Test

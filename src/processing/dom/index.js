@@ -311,7 +311,7 @@ export default class DomProcessor {
         if (httpEquivAttrValue === 'refresh') {
             var attr = this.adapter.getAttr(el, pattern.urlAttr);
 
-            attr = attr.replace(/(url=)(.*)$/i, (match, prefix, url) => prefix + urlReplacer(url));
+            attr = attr.replace(/(url=)(.*)$/i, (match, prefix, url) => prefix + urlReplacer(url, null, null, null, true));
 
             this.adapter.setAttr(el, pattern.urlAttr, attr);
         }
@@ -476,7 +476,7 @@ export default class DomProcessor {
                         proxyUrl = resourceUrl;
 
                     proxyUrl = proxyUrl === '' && resourceUrl ?
-                               urlReplacer(resourceUrl, resourceType, charsetAttrValue, target) :
+                               urlReplacer(resourceUrl, resourceType, charsetAttrValue, target, isAnchor, isForm) :
                                proxyUrl;
 
                     this.adapter.setAttr(el, storedUrlAttr, resourceUrl);

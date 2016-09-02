@@ -104,8 +104,11 @@ export function parseUrl (url) {
     return sharedUrlUtils.parseUrl(url);
 }
 
-export function convertToProxyUrl (url, resourceType, charset, target) {
-    return getProxyUrl(url, { resourceType, charset, target: target || window.name });
+export function convertToProxyUrl (url, resourceType, charset, target, isForm, isAnchor) {
+    if (isForm || isAnchor)
+        target = target || window.name;
+
+    return getProxyUrl(url, { resourceType, charset, target });
 }
 
 export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {

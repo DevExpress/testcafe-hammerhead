@@ -343,7 +343,7 @@ test('stylesheet after innerHTML', function () {
     var check = function (cssText, target) {
         strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT), 0);
         strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT, 1), -1);
-        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://domain.com', { target: target }));
+        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://domain.com'));
     };
 
     eval(processScript('div.innerHTML = "<style>.rule { background: url(http://domain.com) }</style>";'));

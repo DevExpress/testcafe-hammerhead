@@ -7,7 +7,9 @@ export default class RedirectWatch {
     }
 
     _sendClientResponse (referer, target) {
+        console.log('before callback: ' + target);
         this._getClientRequest(referer, target).callback();
+        console.log('_sendClientResponse: ' + target);
         this._removeClientRequest(referer, target);
     }
 
@@ -57,6 +59,7 @@ export default class RedirectWatch {
             conformationNeeded,
 
             callback: aborted => {
+                console.log('callback');
                 this._removeClientRequest(referer, window);
                 handler(aborted);
             }
@@ -70,6 +73,7 @@ export default class RedirectWatch {
         if (reqIndex !== -1)
             this.clientRequests[reqIndex].callback(true);
 
+        console.log('add: ' + window);
         this.clientRequests.push(req);
     }
 
@@ -82,18 +86,22 @@ export default class RedirectWatch {
         if (reqIndex === -1)
             reqIndex = this._findClientRequest(req => req.referer === referer);
 
-        if (reqIndex !== -1)
+        if (reqIndex !== -1) {
+            console.log('remove: ' + this.clientRequests[reqIndex].window);
             this.clientRequests.splice(reqIndex, 1);
+        }
     }
 
     async clientRequest (referer, window, conformationNeeded) {
         return new Promise(resolve => {
             var id = setTimeout(() => {
+                console.log('timeout');
                 this._removeClientRequest(referer, window);
                 clearTimeout(id);
                 resolve('tryAgain');
             }, CLIENT_REQUEST_TIMEOUT);
 
+            console.log('clientRequest: ' + window);
             this._addClientRequest(referer, window, conformationNeeded, aborted => {
                 clearTimeout(id);
                 resolve(aborted ? 'tryAgain' : 'detected');
@@ -104,6 +112,7 @@ export default class RedirectWatch {
     async serverResponse (referer, target, clientReady) {
         var conformationNeeded = this._getClientRequest(referer, target).conformationNeeded;
 
+        console.log('serverResponse: ' + target);
         this._sendClientResponse(referer, target);
 
         if (conformationNeeded) {

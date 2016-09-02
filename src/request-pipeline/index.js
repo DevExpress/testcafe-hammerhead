@@ -59,10 +59,17 @@ var stages = {
             var referer = ctx.req.headers.referer;
             var target  = ctx.dest.target;
 
-            if (ctx.session.redirectWatch.isExpectedResponse(referer, target)) {
-                ctx.session.redirectWatch.serverResponse(referer, target, next);
+            if (target) {
+                if (ctx.session.redirectWatch.isExpectedResponse(referer, target)) {
+                    console.log('found: ' + target);
+                    ctx.session.redirectWatch.serverResponse(referer, target, next);
 
-                return;
+                    return;
+                }
+                else {
+                    console.log('not found: ' + target);
+                    console.log(ctx.session.redirectWatch.clientRequests);
+                }
             }
         }
 

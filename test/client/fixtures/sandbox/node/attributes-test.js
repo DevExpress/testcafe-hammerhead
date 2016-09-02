@@ -454,8 +454,8 @@ test('element.innerHTML', function () {
 
     checkElement($container.find('a')[0], 'href', '', window.name);
     checkElement($container.find('form')[0], 'action', 'f', window.name);
-    checkElement($container.find('link')[0], 'href', '', window.name);
-    checkElement($container.find('script')[0], 'src', 's', window.name);
+    checkElement($container.find('link')[0], 'href');
+    checkElement($container.find('script')[0], 'src', 's');
 });
 
 test('anchor with target attribute', function () {

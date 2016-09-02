@@ -35,7 +35,7 @@ if (window.FontFace) {
 
         nativeMethods.FontFace = function (family, source, descriptors) {
             strictEqual(family, 'family');
-            strictEqual(source, 'url("' + urlUtils.getProxyUrl(url, { target: window.name }) + '")');
+            strictEqual(source, 'url("' + urlUtils.getProxyUrl(url) + '")');
             ok(descriptors, desc);
 
             nativeMethods.FontFace = nativeFontFace;

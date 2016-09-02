@@ -47,6 +47,7 @@ export default class RedirectWatch extends EventEmiter {
         },
 
         () => {
+            console.log('1');
             this.emit(this.REDIRECT_DETECTED_EVENT);
             this._sendConfirmationMessage();
         });

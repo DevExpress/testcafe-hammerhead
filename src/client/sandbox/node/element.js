@@ -170,9 +170,6 @@ export default class ElementSandbox extends SandboxBase {
                     var elCharset        = isScript && el.charset;
                     var target           = isForm || isAnchor ? el.target || this.window.name : null;
 
-                    if (isIframe)
-                        target = Date.now();
-
                     if (ElementSandbox._isHrefAttrForBaseElement(el, attr) &&
                         domUtils.isElementInDocument(el, this.document))
                         urlResolver.updateBase(value, this.document);
