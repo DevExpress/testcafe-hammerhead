@@ -181,7 +181,13 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.activeWindowTracker.attach(window);
         this.topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
 
-        this.listeners.addInternalEventListener(window, ['focus', 'blur'], () => this._onChangeActiveElement(this.document.activeElement));
+        this.listeners.addInternalEventListener(window, ['focus', 'blur'], () => {
+            // NOTE: Sometimes document.activeElement returns an empty object or null (IE11).
+            // https://github.com/DevExpress/testcafe-hammerhead/issues/768
+            var activeElement = domUtils.getActiveElement(this.document);
+
+            this._onChangeActiveElement(activeElement);
+        });
     }
 
     _callFocusCallback (callback, el) {
