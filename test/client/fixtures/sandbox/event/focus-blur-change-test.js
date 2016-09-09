@@ -1043,25 +1043,41 @@ asyncTest('focus() must not raise the event if the element is in an invisible if
     document.body.appendChild(iframe);
 });
 
-test('should correctly handle the case when document.activeElement is null or an empty object (GH-768)', function () {
-    var div      = document.createElement('div');
-    var innerDiv = document.createElement('div');
+asyncTest('should correctly handle the case when document.activeElement is null or an empty object (GH-768)', function () {
+    expect(1);
 
-    div.id = 'div';
-    innerDiv.id = 'innerDiv';
-    innerDiv.tabIndex = 0;
-    div.appendChild(innerDiv);
-    document.body.appendChild(div);
-
-    innerDiv.focus();
-
-    try {
-        div.innerHTML = '<span>Replaced</span>';
-        ok(true);
-    }
-    catch (e) {
+    var iframe       = document.createElement('iframe');
+    var errorHandler = function () {
         ok(false, 'error is reproduced');
-    }
+    };
 
-    div.parentNode.removeChild(div);
+    window.addEventListener('error', errorHandler);
+
+    iframe.id = 'test_unique_id_02pog0ra5';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument = iframe.contentDocument;
+            var iframeWindow   = iframe.contentWindow;
+            var div            = iframeDocument.createElement('div');
+            var innerDiv       = iframeDocument.createElement('div');
+
+            iframeWindow.addEventListener('focus', function () {
+                iframe.parentNode.removeChild(iframe);
+                window.removeEventListener('error', errorHandler);
+                ok(true, 'focus handler is called');
+
+                start();
+            }, true);
+
+            div.id = 'div';
+            innerDiv.id = 'innerDiv';
+            innerDiv.tabIndex = 0;
+            div.appendChild(innerDiv);
+            iframeDocument.body.appendChild(div);
+
+            innerDiv.focus();
+            div.innerHTML = '<span>Replaced</span>';
+        });
+
+    document.body.appendChild(iframe);
 });
