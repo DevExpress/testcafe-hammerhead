@@ -181,7 +181,11 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.activeWindowTracker.attach(window);
         this.topWindow = domUtils.isCrossDomainWindows(window, window.top) ? window : window.top;
 
-        this.listeners.addInternalEventListener(window, ['focus', 'blur'], () => this._onChangeActiveElement(this.document.activeElement));
+        this.listeners.addInternalEventListener(window, ['focus', 'blur'], () => {
+            var activeElement = domUtils.getActiveElement(this.document);
+
+            this._onChangeActiveElement(activeElement);
+        });
     }
 
     _callFocusCallback (callback, el) {
@@ -239,7 +243,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
                 // NOTE: If we call focus for an unfocusable element (like 'div' or 'image') in iframe, we should
                 // specify document.active for this iframe manually, so we call focus without handlers.
-                if (isElementInIframe && iframeElement && this.topWindow.document.activeElement !== iframeElement)
+                if (isElementInIframe && iframeElement && domUtils.getActiveElement(this.topWindow.document) !== iframeElement)
                     this._raiseEvent(iframeElement, 'focus', () => this._callFocusCallback(callback, el), true, isAsync);
                 else
                     this._callFocusCallback(callback, el);

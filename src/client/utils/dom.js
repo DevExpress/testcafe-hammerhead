@@ -80,8 +80,9 @@ function hasClassFallback (el, className) {
 }
 
 export function getActiveElement (currentDocument) {
+    // NOTE: Sometimes document.activeElement returns an empty object or null (IE11).
+    // https://github.com/DevExpress/testcafe-hammerhead/issues/768
     var doc = currentDocument || document;
-
 
     return isDomElement(doc.activeElement) ? doc.activeElement : doc.body;
 }
