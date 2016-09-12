@@ -1,8 +1,3 @@
-// -------------------------------------------------------------
-// WARNING: this file is used by both the client and the server.
-// Do not use any browser or node-specific API!
-// -------------------------------------------------------------
-
 // Acorn is a tiny, fast JavaScript parser written in JavaScript.
 //
 // Acorn was written by Marijn Haverbeke, Ingvar Stepanyan, and
@@ -23,8 +18,6 @@
 //
 // [dammit]: acorn_loose.js
 // [walk]: util/walk.js
-//
-// version 3.0.4
 
 import {Parser} from "./state"
 import "./parseutil"
@@ -32,9 +25,18 @@ import "./statement"
 import "./lval"
 import "./expression"
 import "./location"
-import "./node"
-import "./tokencontext"
-import "./tokenize"
+
+export {Parser, plugins} from "./state"
+export {defaultOptions} from "./options"
+export {Position, SourceLocation, getLineInfo} from "./locutil"
+export {Node} from "./node"
+export {TokenType, types as tokTypes} from "./tokentype"
+export {TokContext, types as tokContexts} from "./tokencontext"
+export {isIdentifierChar, isIdentifierStart} from "./identifier"
+export {Token} from "./tokenize"
+export {isNewLine, lineBreak, lineBreakG} from "./whitespace"
+
+export const version = "4.0.2"
 
 // The main exported interface (under `self.acorn` when in the
 // browser) is a `parse` function that takes a code string and
@@ -45,4 +47,31 @@ import "./tokenize"
 
 export function parse(input, options) {
   return new Parser(options, input).parse()
+}
+
+// This function tries to parse a single expression at a given
+// offset in a string. Useful for parsing mixed-language formats
+// that embed JavaScript expressions.
+
+export function parseExpressionAt(input, pos, options) {
+  let p = new Parser(options, input, pos)
+  p.nextToken()
+  return p.parseExpression()
+}
+
+// Acorn is organized as a tokenizer and a recursive-descent parser.
+// The `tokenizer` export provides an interface to the tokenizer.
+
+export function tokenizer(input, options) {
+  return new Parser(options, input)
+}
+
+// This is a terrible kludge to support the existing, pre-ES6
+// interface where the loose parser module retroactively adds exports
+// to this module.
+export let parse_dammit, LooseParser, pluginsLoose
+export function addLooseExports(parse, Parser, plugins) {
+  parse_dammit = parse
+  LooseParser = Parser
+  pluginsLoose = plugins
 }

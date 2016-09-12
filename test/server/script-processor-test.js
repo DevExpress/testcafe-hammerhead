@@ -664,5 +664,12 @@ describe('Script processor', function () {
             testParser('function a(){function b(){}/k/;}'); // GH-591
             testParser('function s(){do var x = 9; while(false)return}'); // GH-567
         });
+
+        it('Should process the content in the conditional function declaration', function () {
+            testProcessing({
+                src:      'function foo() { if(true) function bar() { obj.src; } }',
+                expected: 'function foo() { if(true) function bar() { __get$(obj, "src"); } }'
+            });
+        });
     });
 });
