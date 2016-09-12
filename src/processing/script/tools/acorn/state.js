@@ -36,7 +36,7 @@ export class Parser {
     // The current position of the tokenizer in the input.
     if (startPos) {
       this.pos = startPos
-      this.lineStart = Math.max(0, this.input.lastIndexOf("\n", startPos))
+      this.lineStart = this.input.lastIndexOf("\n", startPos - 1) + 1
       this.curLine = this.input.slice(0, this.lineStart).split(lineBreak).length
     } else {
       this.pos = this.lineStart = 0
@@ -70,8 +70,10 @@ export class Parser {
     // Used to signify the start of a potential arrow function
     this.potentialArrowAt = -1
 
-    // Flags to track whether we are in a function, a generator.
-    this.inFunction = this.inGenerator = false
+    // Flags to track whether we are in a function, a generator, an async function.
+    this.inFunction = this.inGenerator = this.inAsync = false
+    // Positions to delayed-check that yield/await does not exist in default parameters.
+    this.yieldPos = this.awaitPos = 0
     // Labels in scope.
     this.labels = []
 
