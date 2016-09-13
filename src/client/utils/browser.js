@@ -6,12 +6,10 @@ function getMSEdgeVersion (userAgent) {
 
 function calculateBrowserAndVersion (userAgent) {
     var webkitRegEx  = /(webkit)[ \/]([\w.]+)/;
-    var operaRegEx   = /(opera)(?:.*version)?[ \/]([\w.]+)/;
     var msieRegEx    = /(msie) ([\w.]+)/;
     var firefoxRegEx = /(firefox)/;
 
     var match = webkitRegEx.exec(userAgent) ||
-                operaRegEx.exec(userAgent) ||
                 msieRegEx.exec(userAgent) ||
                 userAgent.indexOf('compatible') < 0 && firefoxRegEx.exec(userAgent) ||
                 [];
