@@ -15,13 +15,20 @@ export default class StoragesAccessorsInstrumentation extends SandboxBase {
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         Object.defineProperty(window, INSTRUCTION.getStorage, {
             value: storage => {
-                if (storage === this.window.sessionStorage)
+                if (storage === this.window.sessionStorage) {
+                    this.storageSandbox.sessionStorage.setContext(window);
+
                     return this.storageSandbox.sessionStorage;
-                else if (storage === this.window.localStorage)
+                }
+                else if (storage === this.window.localStorage) {
+                    this.storageSandbox.localStorage.setContext(window);
+
                     return this.storageSandbox.localStorage;
+                }
 
                 return storage;
             },
+
             configurable: true
         });
     }

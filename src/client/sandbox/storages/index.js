@@ -89,11 +89,16 @@ export default class StorageSandbox extends SandboxBase {
 
         this._createStorageWrappers();
 
+        var storageChanged = (key, oldValue, newValue, url, storage) => {
+            if (storage.getContext() !== this.window)
+                this._simulateStorageEvent(key, oldValue, newValue, url, storage);
+        };
+
         this.localStorage.on(this.localStorage.STORAGE_CHANGED_EVENT, e =>
-            this._simulateStorageEvent(e.key, e.oldValue, e.newValue, e.url, this.localStorage));
+            storageChanged(e.key, e.oldValue, e.newValue, e.url, this.localStorage));
 
         this.sessionStorage.on(this.sessionStorage.STORAGE_CHANGED_EVENT, e =>
-            this._simulateStorageEvent(e.key, e.oldValue, e.newValue, e.url, this.sessionStorage));
+            storageChanged(e.key, e.oldValue, e.newValue, e.url, this.sessionStorage));
 
         this.listeners.initElementListening(window, ['storage']);
         this.listeners.addInternalEventListener(window, ['storage'], (e, dispatched, preventEvent) => {

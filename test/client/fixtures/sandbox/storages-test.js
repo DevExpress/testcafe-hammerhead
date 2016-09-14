@@ -294,10 +294,8 @@ test('storages save their state on the beforeunload event', function () {
 
 module('storage changed event');
 
-asyncTest('event firing in all same host windows', function () {
-    var topStorage    = storageSandbox.localStorage;
-    var iframeStorage = null;
-    var iframe        = document.createElement('iframe');
+asyncTest('event firing in all same host windows except current', function () {
+    var iframe = document.createElement('iframe');
 
     var topStorageEventArgs    = [];
     var iframeStorageEventArgs = [];
@@ -314,12 +312,24 @@ asyncTest('event firing in all same host windows', function () {
 
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
-            iframeStorage = iframe.contentWindow['%hammerhead%'].sandbox.storageSandbox.localStorage;
-
             window.addEventListener('storage', topWindowHandler);
             iframe.contentWindow.addEventListener('storage', iframeWindowHandler);
 
-            iframeStorage.key1 = 'value1';
+            iframe.contentWindow.eval(processScript('localStorage.key1 = "value1";'));
+
+            return waitStorageUpdated();
+        })
+        .then(function () {
+            strictEqual(topStorageEventArgs.length, 1);
+            strictEqual(iframeStorageEventArgs.length, 0);
+
+            strictEqual(topStorageEventArgs[0].key, 'key1');
+            strictEqual(topStorageEventArgs[0].oldValue, isIE ? '' : null);
+            strictEqual(topStorageEventArgs[0].newValue, 'value1');
+            strictEqual(topStorageEventArgs[0].url, 'https://example.com');
+            strictEqual(topStorageEventArgs[0].storageArea, iframe.contentWindow.eval(processScript('localStorage')));
+
+            eval(processScript('localStorage.key2 = "value2";'));
 
             return waitStorageUpdated();
         })
@@ -327,41 +337,11 @@ asyncTest('event firing in all same host windows', function () {
             strictEqual(topStorageEventArgs.length, 1);
             strictEqual(iframeStorageEventArgs.length, 1);
 
-            strictEqual(topStorageEventArgs[0].key, 'key1');
-            strictEqual(topStorageEventArgs[0].oldValue, isIE ? '' : null);
-            strictEqual(topStorageEventArgs[0].newValue, 'value1');
-            // NOTE: We can't detect who changed the storage.
-            // strictEqual(topStorageEventArgs[0].url, 'https://iframe.example.com');
-            strictEqual(topStorageEventArgs[0].storageArea, iframeStorage);
-
-            strictEqual(iframeStorageEventArgs[0].key, 'key1');
+            strictEqual(iframeStorageEventArgs[0].key, 'key2');
             strictEqual(iframeStorageEventArgs[0].oldValue, isIE ? '' : null);
-            strictEqual(iframeStorageEventArgs[0].newValue, 'value1');
-            // NOTE: We can't detect who changed the storage.
-            // strictEqual(iframeStorageEventArgs[0].url, 'https://iframe.example.com');
-            strictEqual(iframeStorageEventArgs[0].storageArea, iframeStorage);
-
-            topStorage.key2 = 'value2';
-
-            return waitStorageUpdated();
-        })
-        .then(function () {
-            strictEqual(topStorageEventArgs.length, 2);
-            strictEqual(iframeStorageEventArgs.length, 2);
-
-            strictEqual(topStorageEventArgs[1].key, 'key2');
-            strictEqual(topStorageEventArgs[1].oldValue, isIE ? '' : null);
-            strictEqual(topStorageEventArgs[1].newValue, 'value2');
-            // NOTE: We can't detect who changed the storage.
-            // strictEqual(topStorageEventArgs[1].url, 'https://example.com');
-            strictEqual(topStorageEventArgs[1].storageArea, topStorage);
-
-            strictEqual(iframeStorageEventArgs[1].key, 'key2');
-            strictEqual(iframeStorageEventArgs[1].oldValue, isIE ? '' : null);
-            strictEqual(iframeStorageEventArgs[1].newValue, 'value2');
-            // NOTE: We can't detect who changed the storage.
-            // strictEqual(iframeStorageEventArgs[1].url, 'https://example.com');
-            strictEqual(iframeStorageEventArgs[1].storageArea, topStorage);
+            strictEqual(iframeStorageEventArgs[0].newValue, 'value2');
+            strictEqual(iframeStorageEventArgs[0].url, 'https://example.com');
+            strictEqual(iframeStorageEventArgs[0].storageArea, eval(processScript('localStorage')));
 
             window.removeEventListener('storage', topWindowHandler);
             $(iframe).remove();
@@ -372,49 +352,57 @@ asyncTest('event firing in all same host windows', function () {
 });
 
 asyncTest('event argument parameters', function () {
-    storageSandbox.localStorage.clear();
+    var iframe = document.createElement('iframe');
 
-    var checkEventArg = function (e, key, oldValue, newValue) {
+    iframe.id = 'test-' + Date.now();
+
+    var iframeStorageSandbox = null;
+    var checkEventArg        = function (e, key, oldValue, newValue) {
         strictEqual(e.key, key);
         strictEqual(e.oldValue, oldValue);
         strictEqual(e.newValue, newValue);
-        // NOTE: We can't detect who changed the storage.
-        // strictEqual(e.url, 'https://example.com');
-        strictEqual(e.storageArea, storageSandbox.localStorage);
+        strictEqual(e.url, 'https://example.com');
+        strictEqual(e.storageArea, iframeStorageSandbox);
     };
 
-    waitStorageUpdated()
+    window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
+            iframeStorageSandbox = iframe.contentWindow.eval(processScript('localStorage'));
+            iframeStorageSandbox.clear();
+
             return waitStorageEvent(window, function () {
-                storageSandbox.localStorage.key1 = 'value1';
+                iframeStorageSandbox.key1 = 'value1';
             });
         })
         .then(function (e) {
             checkEventArg(e, 'key1', isIE ? '' : null, 'value1');
 
             return waitStorageEvent(window, function () {
-                storageSandbox.localStorage.key2 = 'value2';
+                iframeStorageSandbox.key2 = 'value2';
             });
         })
         .then(function (e) {
             checkEventArg(e, 'key2', isIE ? '' : null, 'value2');
 
             return waitStorageEvent(window, function () {
-                storageSandbox.localStorage.key1 = 'value3';
+                iframeStorageSandbox.key1 = 'value3';
             });
         })
         .then(function (e) {
             checkEventArg(e, 'key1', 'value1', 'value3');
 
             return waitStorageEvent(window, function () {
-                storageSandbox.localStorage.removeItem('key1');
+                iframeStorageSandbox.removeItem('key1');
             });
         })
         .then(function (e) {
             checkEventArg(e, 'key1', 'value3', isIE ? 'null' : null);
 
+            $(iframe).remove();
             start();
         });
+
+    document.body.appendChild(iframe);
 });
 
 module('regression');
