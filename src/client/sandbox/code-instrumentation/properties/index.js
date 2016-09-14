@@ -548,7 +548,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, text) => {
                     if (text) {
                         if (domUtils.isScriptElement(el))
-                            el.textContent = processScript(text, true, false);
+                            el.textContent = processScript(text, true);
                         else if (domUtils.isStyleElement(el))
                             el.textContent = styleProcessor.process(text, urlUtils.getProxyUrl, true);
                     }

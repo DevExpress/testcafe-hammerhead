@@ -150,22 +150,21 @@ class NativeMethods {
     }
 
     refreshClasses (win) {
-        var mock = () => null;
-
-        this.windowClass      = win.Window || mock;
-        this.documentClass    = win.Document || mock;
-        this.locationClass    = win.Location || mock;
-        this.styleClass       = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties || mock;
-        this.styleSheetClass  = win.CSSStyleSheet || mock;
-        this.elementClass     = win.Element || mock;
-        this.svgElementClass  = win.SVGElement || mock;
-        this.Worker           = win.Worker || mock;
-        this.Blob             = win.Blob || mock;
-        this.XMLHttpRequest   = win.XMLHttpRequest || mock;
-        this.Image            = win.Image || mock;
-        this.FontFace         = win.FontFace || mock;
-        this.StorageEvent     = win.StorageEvent || mock;
-        this.MutationObserver = win.MutationObserver || mock;
+        this.windowClass      = win.Window;
+        this.documentClass    = win.Document;
+        this.locationClass    = win.Location;
+        this.styleClass       = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties;
+        this.styleSheetClass  = win.CSSStyleSheet;
+        this.elementClass     = win.Element;
+        this.svgElementClass  = win.SVGElement;
+        this.Worker           = win.Worker;
+        this.Blob             = win.Blob;
+        this.XMLHttpRequest   = win.XMLHttpRequest;
+        this.Image            = win.Image;
+        this.Function         = win.Function;
+        this.FontFace         = win.FontFace;
+        this.StorageEvent     = win.StorageEvent;
+        this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
     }
 

@@ -222,6 +222,16 @@ export default class WindowSandbox extends SandboxBase {
         };
         window.Image.prototype = nativeMethods.Image.prototype;
 
+        window.Function = function (...args) {
+            var functionBodyArgIndex = args.length - 1;
+
+            if (typeof args[functionBodyArgIndex] === 'string')
+                args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false);
+
+            return nativeMethods.Function.apply(this, args);
+        };
+        window.Function.prototype = nativeMethods.Function.prototype;
+
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             window.history.pushState = function () {
                 if (typeof arguments[2] === 'string')
