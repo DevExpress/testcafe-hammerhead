@@ -20,14 +20,14 @@ import StorageSandbox from './storages';
 import { isIE, isWebKit } from '../utils/browser';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
-import { add as addWindowToStorage } from './windows-storage';
+import * as windowStorage from './windows-storage';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
         super();
 
         createSandboxBackup(window, this);
-        addWindowToStorage(window);
+        windowStorage.add(window);
 
         var listeners             = new Listeners();
         var nodeMutation          = new NodeMutation();
@@ -48,6 +48,8 @@ export default class Sandbox extends SandboxBase {
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
+
+        this.windowStorage       = windowStorage;
     }
 
     // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,

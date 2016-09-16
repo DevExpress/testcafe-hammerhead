@@ -189,11 +189,6 @@ export default class ElementSandbox extends SandboxBase {
             if (/_blank/i.test(value))
                 return null;
 
-            if (!ElementSandbox._isKeywordTarget(value) && !windowsStorage.findByName(value)) {
-                value            = '_self';
-                args[valueIndex] = value;
-            }
-
             ElementSandbox._onTargetChanged(el, value);
         }
         else if (attr === 'sandbox') {
@@ -293,6 +288,7 @@ export default class ElementSandbox extends SandboxBase {
             formSubmit () {
                 // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
                 transport.waitCookieMsg().then(() => {
+                    sandbox._ensureTargetContainsExistingBrowsingContext(this);
                     sandbox.emit(sandbox.BEFORE_FORM_SUBMIT, { form: this });
 
                     return nativeMethods.formSubmit.apply(this, arguments);
@@ -562,6 +558,36 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
+    _getEffectiveTargetValue (el) {
+        if (el.target)
+            return el.target;
+
+        var baseElement = nativeMethods.querySelector.call(this.document, 'base');
+
+        return baseElement && baseElement.target || el.target;
+    }
+
+    _ensureTargetContainsExistingBrowsingContext (el) {
+        if (domUtils.isInputElement(el)) {
+            if (el.form)
+                el = el.form;
+            else
+                return;
+        }
+
+        var target = this._getEffectiveTargetValue(el);
+
+        if (!ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target))
+            el.target = '_self';
+
+    }
+
+    _setValidBrowsingContextOnClick (el) {
+        el.addEventListener('click', () => {
+            this._ensureTargetContainsExistingBrowsingContext(el);
+        });
+    }
+
     _setProxiedSrcUrlOnError (img) {
         img.addEventListener('error', e => {
             var storedAttr = nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src'));
@@ -575,11 +601,23 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     processElement (el) {
-        if (domUtils.isImgElement(el))
-            this._setProxiedSrcUrlOnError(el);
-        else if (domUtils.isIframeElement(el))
-            this.iframeSandbox.processIframe(el);
-        else if (domUtils.isBaseElement(el))
-            urlResolver.updateBase(nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href')), this.document);
+        var tagName = domUtils.getTagName(el);
+
+        switch (tagName) {
+            case 'img':
+                this._setProxiedSrcUrlOnError(el);
+                break;
+            case 'iframe':
+                this.iframeSandbox.processIframe(el);
+                break;
+            case 'base':
+                urlResolver.updateBase(nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href')), this.document);
+                break;
+            case 'a':
+            case 'area':
+            case 'input':
+                this._setValidBrowsingContextOnClick(el);
+                break;
+        }
     }
 }
