@@ -1,5 +1,6 @@
 import EventEmitter from '../../utils/event-emitter';
 import { isIE } from '../../utils/browser';
+import { parseProxyUrl } from '../../utils/url';
 import * as destLocation from '../../utils/destination-location';
 
 const STORAGES_SANDBOX_TEMP = 'hammerhead|storages-sandbox-temp';
@@ -17,6 +18,7 @@ export default class StorageWrapper extends EventEmitter {
         this.window            = window;
         this.initialProperties = [];
         this.wrapperMethods    = [];
+        this.context           = window;
 
         this.STORAGE_CHANGED_EVENT = 'hammerhead|event|storage-changed';
         this.EMPTY_OLD_VALUE_ARG   = isIE ? '' : null;
@@ -113,7 +115,17 @@ export default class StorageWrapper extends EventEmitter {
     }
 
     _raiseStorageChanged (key, oldValue, newValue) {
-        var url = destLocation.get();
+        var url = null;
+
+        try {
+            var parsedContextUrl = parseProxyUrl(this.context.location.toString());
+
+            url = parsedContextUrl ? parsedContextUrl.destUrl : destLocation.get();
+        }
+        catch (e) {
+            this.context = this.window;
+            url          = destLocation.get();
+        }
 
         this.emit(this.STORAGE_CHANGED_EVENT, { key, oldValue, newValue, url });
     }
@@ -133,6 +145,14 @@ export default class StorageWrapper extends EventEmitter {
         key = isWrapperMember ? API_KEY_PREFIX + key : key;
 
         return this._castToString(key);
+    }
+
+    setContext (context) {
+        this.context = context;
+    }
+
+    getContext () {
+        return this.context;
     }
 
     saveToNativeStorage () {
