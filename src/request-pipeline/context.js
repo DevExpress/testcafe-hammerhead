@@ -2,6 +2,7 @@ import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
+import { isSpecialPage } from '../utils/url';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307];
 const HTTP_DEFAUL_PORT      = '80';
@@ -106,9 +107,10 @@ export default class RequestPipelineContext {
     _initRequestNatureInfo () {
         var acceptHeader = this.req.headers['accept'];
 
-        this.isXhr    = !!this.req.headers[XHR_HEADERS.requestMarker];
-        this.isPage   = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader);
-        this.isIframe = this.dest.isIframe;
+        this.isXhr         = !!this.req.headers[XHR_HEADERS.requestMarker];
+        this.isPage        = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader);
+        this.isIframe      = this.dest.isIframe;
+        this.isSpecialPage = isSpecialPage(this.dest.url);
     }
 
     // API
@@ -134,10 +136,11 @@ export default class RequestPipelineContext {
             this.dest = parsedReqUrl.dest;
 
             // Browsers add a leading slash to the pathname part of url (GH-608)
-            // For example: url http://www.trovigo.com?gd=GID12082014 will be converted
-            // to http://www.trovigo.com/?gd=GID12082014
-            this.dest.partAfterHost = this.dest.partAfterHost[0] === '/' ? this.dest.partAfterHost : '/' +
-                                                                                                     this.dest.partAfterHost;
+            // For example: url http://www.example.com?gd=GID12082014 will be converted
+            // to http://www.example.com/?gd=GID12082014
+            this.dest.partAfterHost = this.dest.partAfterHost[0] === '/' ?
+                                      this.dest.partAfterHost :
+                                      '/' + this.dest.partAfterHost;
 
             this.dest.domain = urlUtils.getDomain(this.dest);
 

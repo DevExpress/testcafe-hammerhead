@@ -1309,6 +1309,42 @@ describe('Proxy', function () {
             }
         });
 
+        it('Should not send destination request for special pages (GH-796)', function (done) {
+            var rejectionReason = null;
+
+            var options = {
+                url: proxy.openSession('about:blank', session),
+
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            process.once('unhandledRejection', function (reason) {
+                rejectionReason = reason;
+            });
+
+            request(options, function () {
+                expect(rejectionReason).to.be.null;
+                done();
+            });
+        });
+
+        it("Should handle `about:blank` requests for resources that doesn't require processing (GH-796)", function (done) {
+            var options = {
+                url: proxy.openSession('about:blank', session),
+
+                headers: {
+                    accept: 'application/font'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                expect(body).eql('');
+                done();
+            });
+        });
+
         describe('Should not change a reponse body if it is empty (GH-762)', function () {
             it('script', function (done) {
                 var options = {
