@@ -240,14 +240,6 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should process function body in Function ctor', function () {
-        testProcessing([
-            { src: 'new Function();', expected: 'new Function();' },
-            { src: 'new Function(\'return a.href;\');', expected: 'new Function(__proc$Script(\'return a.href;\'));' },
-            { src: 'new Function("x", "y", body);', expected: 'new Function("x", "y", __proc$Script(body));' }
-        ]);
-    });
-
     it('Should add a space before the replacement string', function () {
         var processed = processScript('if(true){;}else"0"[s]', false);
 

@@ -21,9 +21,11 @@ test('should work with the operator "instanceof" (GH-690)', function () {
 
 module('Worker');
 
-test('window.Worker should be overridden', function () {
-    notEqual(window.Worker, nativeMethods.Worker);
-});
+if (window.Worker) {
+    test('window.Worker should be overridden', function () {
+        notEqual(window.Worker, nativeMethods.Worker);
+    });
+}
 
 if (browserUtils.isIE9) {
     test('should not create the window.Worker property in IE9', function () {
@@ -209,4 +211,23 @@ if (navigator.registerProtocolHandler) {
         destLocation.get = savedGetOriginLocation;
     });
 }
+
+test('window.Function must be overriden (T423261) (GH-769)', function () {
+    var fnCtor           = Function;
+    var codeStr          = 'location.href="/page.htm";';
+    var processedCodeStr = processScript(codeStr).trim();
+    var getFnBody        = function (fn) {
+        return fn.toString().replace(/^[^{]+\{\s+|\s+}$/g, '');
+    };
+
+    /*eslint-disable no-new-func*/
+    strictEqual(getFnBody(new Function('arg1', 'arg2', codeStr)), processedCodeStr);
+    strictEqual(getFnBody(Function('arg1', 'arg2', codeStr)), processedCodeStr);
+    strictEqual(getFnBody(fnCtor('arg1', 'arg2', 'arg3', codeStr)), processedCodeStr);
+    strictEqual(getFnBody(Function.apply(null, ['arg1', codeStr])), processedCodeStr);
+    strictEqual(getFnBody(Function.call(null, 'arg1', codeStr)), processedCodeStr);
+
+    ok(Function() instanceof Function);
+    /*eslint-enable no-new-func*/
+});
 

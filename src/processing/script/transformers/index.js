@@ -11,7 +11,6 @@ import evalCallApplyTransformer from './eval-call-apply';
 import evalGetTransformer from './eval-get';
 import windowEvalGetTransformer from './window-eval-get';
 import forInTransformer from './for-in';
-import functionCtorTransformer from './function-ctor';
 import locationGetTransformer from './location-get';
 import storageGetTransformer from './storage-get';
 import locationPropertyGetTransformer from './location-property-get';
@@ -30,7 +29,6 @@ const TRANSFORMERS = [
     evalGetTransformer,
     windowEvalGetTransformer,
     forInTransformer,
-    functionCtorTransformer,
     locationGetTransformer,
     storageGetTransformer,
     locationPropertyGetTransformer,

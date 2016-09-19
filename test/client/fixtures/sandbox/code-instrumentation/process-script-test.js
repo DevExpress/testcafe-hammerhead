@@ -89,8 +89,8 @@ test('the eval method should switch its own context to global', function () {
 });
 
 test('the script processor should process eval\'s global', function () {
-    var link     = document.createElement('a');
-    var testUrl  = 'http://host/index.html';
+    var link    = document.createElement('a');
+    var testUrl = 'http://host/index.html';
 
     link.setAttribute('href', testUrl);
 

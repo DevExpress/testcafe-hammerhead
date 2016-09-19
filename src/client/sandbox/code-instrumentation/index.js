@@ -56,7 +56,7 @@ export default class CodeInstrumentation extends SandboxBase {
             value: (script, isApply) => {
                 if (isApply) {
                     if (script && script.length && typeof script[0] === 'string') {
-                        var args = [processScript(script[0], false, false)];
+                        var args = [processScript(script[0], false)];
 
                         // NOTE: shallow-copy the remaining args. Don't use arr.slice(),
                         // since it may leak the arguments object.
@@ -68,7 +68,7 @@ export default class CodeInstrumentation extends SandboxBase {
                     }
                 }
                 else if (typeof script === 'string')
-                    return processScript(script, false, false);
+                    return processScript(script, false);
 
                 return script;
             },
