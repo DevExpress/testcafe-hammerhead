@@ -7,7 +7,6 @@ import connectionResetGuard from './connection-reset-guard';
 import { check as checkSameOriginPolicy, SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from './xhr/same-origin-policy';
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
-import { isSpecialPage } from '../utils/url';
 
 // Stages
 var stages = {
@@ -19,24 +18,25 @@ var stages = {
     1: function sendDestinationRequest (ctx, next) {
         var opts = createReqOpts(ctx);
 
-        if (isSpecialPage(opts.url)) {
-            ctx.isSpecialPage = true;
-            assignSpecialPageHeadersToDestRes(ctx);
+        if (ctx.isSpecialPage) {
+            mockDestinationResponseForSpecialPage(ctx);
             next();
         }
 
-        var req = new DestinationRequest(opts);
+        else {
+            var req = new DestinationRequest(opts);
 
-        req.on('response', res => {
-            ctx.destRes = res;
-            next();
-        });
+            req.on('response', res => {
+                ctx.destRes = res;
+                next();
+            });
 
-        req.on('error', () => {
-            ctx.hasDestReqErr = true;
-        });
+            req.on('error', () => {
+                ctx.hasDestReqErr = true;
+            });
 
-        req.on('fatalError', err => error(ctx, err));
+            req.on('fatalError', err => error(ctx, err));
+        }
     },
 
     2: function checkSameOriginPolicyCompliance (ctx, next) {
@@ -57,7 +57,13 @@ var stages = {
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
         if (!ctx.contentInfo.requireProcessing) {
             sendResponseHeaders(ctx);
-            ctx.destRes.pipe(ctx.res);
+
+            if (ctx.isSpecialPage)
+                ctx.res.end('');
+
+            else
+                ctx.destRes.pipe(ctx.res);
+
             return;
         }
 
@@ -147,11 +153,13 @@ function isDestResBodyMalformed (ctx) {
     return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
 }
 
-function assignSpecialPageHeadersToDestRes (ctx) {
+function mockDestinationResponseForSpecialPage (ctx) {
     ctx.destRes = {
         headers: {
-            'content-type': 'text/html'
+            'content-type':   'text/html',
+            'content-length': '0'
         },
+
         statusCode: 200,
         trailers:   {}
     };
