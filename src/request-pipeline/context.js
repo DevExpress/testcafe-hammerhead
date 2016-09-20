@@ -2,7 +2,6 @@ import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
-import { isSpecialPage } from '../utils/url';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307];
 const HTTP_DEFAUL_PORT      = '80';
@@ -110,7 +109,7 @@ export default class RequestPipelineContext {
         this.isXhr         = !!this.req.headers[XHR_HEADERS.requestMarker];
         this.isPage        = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader);
         this.isIframe      = this.dest.isIframe;
-        this.isSpecialPage = isSpecialPage(this.dest.url);
+        this.isSpecialPage = urlUtils.isSpecialPage(this.dest.url);
     }
 
     // API
