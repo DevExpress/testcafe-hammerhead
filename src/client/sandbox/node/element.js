@@ -287,7 +287,7 @@ export default class ElementSandbox extends SandboxBase {
 
             formSubmit () {
                 // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
-                transport.waitCookieMsg().then(() => {
+                transport.waitCookieMsg(() => {
                     sandbox._ensureTargetContainsExistingBrowsingContext(this);
                     sandbox.emit(sandbox.BEFORE_FORM_SUBMIT, { form: this });
 

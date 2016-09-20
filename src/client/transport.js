@@ -166,21 +166,21 @@ class Transport extends EventEmitter {
         sendMsg();
     }
 
-    waitCookieMsg () {
-        return new Promise(resolve => {
-            var handler = () => {
-                if (!this._cookieMsgInProgress()) {
-                    this.off(this.MSG_RECEIVED_EVENT, handler);
+    // NOTE: We don't use a promise here because if the cookie message queue is empty,
+    // we need to call a callback function synchronously (GH-722)
+    waitCookieMsg (callback) {
+        var handler = () => {
+            if (!this._cookieMsgInProgress()) {
+                this.off(this.MSG_RECEIVED_EVENT, handler);
 
-                    resolve();
-                }
-            };
+                callback();
+            }
+        };
 
-            if (this._cookieMsgInProgress())
-                this.on(this.MSG_RECEIVED_EVENT, handler);
-            else
-                resolve();
-        });
+        if (this._cookieMsgInProgress())
+            this.on(this.MSG_RECEIVED_EVENT, handler);
+        else
+            callback();
     }
 
     waitForServiceMessagesCompleted (timeout) {

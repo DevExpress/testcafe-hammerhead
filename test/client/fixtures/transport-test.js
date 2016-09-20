@@ -345,3 +345,12 @@ test('hammerhead should remove service data from local storage on the first sess
     ok(!window.localStorage.getItem(sessionId));
 });
 
+test('call a callback of the waitCookieMsg function synchronously if the cookie message queue is empty (GH-722)', function () {
+    var isSync = false;
+
+    transport.waitCookieMsg(function () {
+        isSync = true;
+    });
+
+    ok(isSync);
+});
