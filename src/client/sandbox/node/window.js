@@ -289,5 +289,9 @@ export default class WindowSandbox extends SandboxBase {
                     nativeMethods.formDataAppend.apply(this, arguments);
             };
         }
+
+        // NOTE: stab for ie9 and ie10 (GH-801)
+        if (window.XDomainRequest)
+            window.XDomainRequest = window.XMLHttpRequest;
     }
 }
