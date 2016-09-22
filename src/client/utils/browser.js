@@ -1,19 +1,19 @@
 function calculateBrowserAndVersion (userAgent) {
-    var msEdgeRegEx   = /(edge)\/([\w.]+)/;
-    var chromeRegEx   = /(chrome)[\/]([\w.]+)/;
-    var safariRegEx   = /(webkit)[ \/]([\w.]+).*(version)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/;
-    var webkitRegEx   = /(webkit)[\/]([\w.]+)/;
-    var ie9And10RegEx = /(msie) ([\w.]+)/;
-    var ie11RegEx     = /(rv)(?::| )([\w.]+)/;
-    var firefoxRegEx  = /(mozilla)(?:.*? rv:([\w.]+)|)/;
-    var match         = msEdgeRegEx.exec(userAgent) ||
-                        chromeRegEx.exec(userAgent) ||
-                        safariRegEx.exec(userAgent) ||
-                        webkitRegEx.exec(userAgent) ||
-                        ie9And10RegEx.exec(userAgent) ||
-                        userAgent.indexOf('trident') >= 0 && ie11RegEx.exec(userAgent) ||
-                        userAgent.indexOf('compatible') < 0 && firefoxRegEx.exec(userAgent) ||
-                        [];
+    var msEdgeRegExp   = /(edge)\/([\w.]+)/;
+    var chromeRegExp   = /(chrome)[\/]([\w.]+)/;
+    var safariRegExp   = /(webkit)[ \/]([\w.]+).*(version)[ \/]([\w.]+).*(safari)[ \/]([\w.]+)/;
+    var webkitRegExp   = /(webkit)[\/]([\w.]+)/;
+    var ie9And10RegExp = /(msie) ([\w.]+)/;
+    var ie11RegExp     = /(rv)(?::| )([\w.]+)/;
+    var firefoxRegExp  = /(mozilla)(?:.*? rv:([\w.]+)|)/;
+    var match          = msEdgeRegExp.exec(userAgent) ||
+                         chromeRegExp.exec(userAgent) ||
+                         safariRegExp.exec(userAgent) ||
+                         webkitRegExp.exec(userAgent) ||
+                         ie9And10RegExp.exec(userAgent) ||
+                         userAgent.indexOf('trident') >= 0 && ie11RegExp.exec(userAgent) ||
+                         userAgent.indexOf('compatible') < 0 && firefoxRegExp.exec(userAgent) ||
+                         [];
 
     return {
         name:    match[5] || match[3] || match[1] || '',
