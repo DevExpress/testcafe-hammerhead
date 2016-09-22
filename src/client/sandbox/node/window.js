@@ -189,6 +189,9 @@ export default class WindowSandbox extends SandboxBase {
                 if (typeof args[0] === 'string')
                     args[0] = getProxyUrl(args[0]);
 
+                if (args[1] && typeof args[1].scope === 'string')
+                    args[1].scope = getProxyUrl(args[1].scope);
+
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
             };
         }

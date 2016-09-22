@@ -231,17 +231,19 @@ test('canvasRenderingContext2D.drawImage', function () {
 });
 
 if (window.navigator.serviceWorker) {
-    test('window.navigator.serviceWorker.register', function () {
+    test('window.navigator.serviceWorker.register (GH-797)', function () {
         var storedNative = nativeMethods.registerServiceWorker;
-        var srcUrl       = '/serviceWorker.js';
+        var scriptUrl    = '/serviceWorker.js';
+        var scopeUrl     = '/';
 
-        nativeMethods.registerServiceWorker = function (url) {
-            strictEqual(url, urlUtils.getProxyUrl(srcUrl));
+        nativeMethods.registerServiceWorker = function (url, options) {
+            strictEqual(url, urlUtils.getProxyUrl(scriptUrl));
+            strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl));
 
             nativeMethods.registerServiceWorker = storedNative;
         };
 
-        window.navigator.serviceWorker.register(srcUrl);
+        window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl });
     });
 }
 
