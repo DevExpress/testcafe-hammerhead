@@ -143,7 +143,7 @@ export default class MessageSandbox extends SandboxBase {
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         Object.defineProperty(window, this.RECEIVE_MSG_FN, {
-            value:        isIframeWithoutSrc || this.topWindow === window.self ? onMessageHandler : null,
+            value:        onMessageHandler,
             configurable: true
         });
     }
@@ -195,7 +195,7 @@ export default class MessageSandbox extends SandboxBase {
         var message = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
 
         // NOTE: For iframes without src.
-        if (isIframeWithoutSrc || !isCrossDomainWindows(targetWindow, this.window) && targetWindow[this.RECEIVE_MSG_FN]) {
+        if (!isCrossDomainWindows(targetWindow, this.window) && targetWindow[this.RECEIVE_MSG_FN]) {
             var sendFunc = force => {
                 // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
                 // in the unload event handler, so we check whether the function is in the queue

@@ -1,4 +1,4 @@
-var settings      = hammerhead.get('./settings');
+var settings = hammerhead.get('./settings');
 
 var Promise        = hammerhead.Promise;
 var browserUtils   = hammerhead.utils.browser;
@@ -318,6 +318,24 @@ asyncTest('timeout (added to DOM iframe)', function () {
 
 module('regression');
 
+asyncTest('service messages from embedded iframe (GH-803)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test-' + Date.now;
+
+    messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+        if (e.message.embeddedIframesTestPassed) {
+            iframe.parentNode.removeChild(iframe);
+            ok(true);
+            start();
+        }
+    });
+
+    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/embedded-iframes.html');
+
+    document.body.appendChild(iframe);
+});
+
 asyncTest('service message from removed iframe (GH-64)', function () {
     var iframe            = document.createElement('iframe');
     var receivedMessages  = 0;
@@ -349,7 +367,7 @@ asyncTest('should not raise an error for sendServiceMessage if window.top is a c
     var isMessageReceived = function () {
         return !!messageData;
     };
-    var onMessageHandler = function (e) {
+    var onMessageHandler  = function (e) {
         messageData = e.data;
     };
 
