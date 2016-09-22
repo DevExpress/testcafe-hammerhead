@@ -194,7 +194,6 @@ export default class MessageSandbox extends SandboxBase {
     sendServiceMsg (msg, targetWindow) {
         var message = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
 
-        // NOTE: For iframes without src.
         if (!isCrossDomainWindows(targetWindow, this.window) && targetWindow[this.RECEIVE_MSG_FN]) {
             var sendFunc = force => {
                 // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
