@@ -276,8 +276,22 @@ export default class FocusBlurSandbox extends SandboxBase {
                     // NOTE: The Blur event is raised for the body only in IE. In addition, we must not call the
                     // blur function for the body because this moves the browser window into the background.
                     if (!silent && browserUtils.isIE) {
-                        if (isAsync)
-                            this.timersSandbox.setTimeout.call(this.window, () => this.eventSimulator.blur(activeElement), 0);
+                        if (isAsync) {
+                            // NOTE: we should dispatch the blur event only if it wasn't raised by the browser
+                            var isNativeBlurRaised = false;
+
+                            var nativeBlurHandler = () => {
+                                isNativeBlurRaised = true;
+                            };
+
+                            this.listeners.addInternalEventListener(window, ['blur'], nativeBlurHandler);
+                            this.timersSandbox.deferFunction(() => {
+                                if (!isNativeBlurRaised)
+                                    this.eventSimulator.blur(activeElement);
+
+                                this.listeners.removeInternalEventListener(window, ['blur'], nativeBlurHandler);
+                            });
+                        }
                         else
                             this.eventSimulator.blur(activeElement);
                     }
@@ -324,7 +338,8 @@ export default class FocusBlurSandbox extends SandboxBase {
     }
 
     blur (el, callback, withoutHandlers, isNativeBlur) {
-        var activeElement = domUtils.getActiveElement(domUtils.findDocument(el));
+        var curDocument   = domUtils.findDocument(el);
+        var activeElement = domUtils.getActiveElement(curDocument);
         // NOTE: In IE, if you call the focus() or blur() method from script, an active element is changed
         // immediately but events are raised asynchronously after some timeout (in MSEdgethe focus/blur methods
         // are executed synchronously).
@@ -333,12 +348,30 @@ export default class FocusBlurSandbox extends SandboxBase {
         if (activeElement !== el)
             withoutHandlers = true;
 
+        // NOTE: we should prevent the native focus event that comes before
+        // the blur event, because it should be raised after blur
+        var onBodyFocus = (e, dispatched, preventEvent, cancelHandlers, stopPropagation) => {
+            preventEvent();
+            cancelHandlers();
+            stopPropagation();
+        };
+
         if (!withoutHandlers) {
             this.elementEditingWatcher.processElementChanging(el);
             this.elementEditingWatcher.stopWatching(el);
+
+            if (isAsync && activeElement !== curDocument.body)
+                this.listeners.addInternalEventListener(curDocument.body, ['focus'], onBodyFocus);
         }
 
         this._raiseEvent(el, 'blur', () => {
+            this.timersSandbox.deferFunction(() => {
+                if (!withoutHandlers && isAsync && activeElement !== curDocument.body) {
+                    this.listeners.removeInternalEventListener(curDocument.body, ['focus'], onBodyFocus);
+                    this.eventSimulator.focus(curDocument.body);
+                }
+            });
+
             if (typeof callback === 'function')
                 callback();
         }, withoutHandlers, isAsync);

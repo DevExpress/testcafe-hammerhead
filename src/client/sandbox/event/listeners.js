@@ -240,12 +240,7 @@ export default class Listeners extends EventEmitter {
     }
 
     initDocumentBodyListening (doc) {
-        listeningCtx.addListeningElement(doc.body, DOM_EVENTS);
-
-        var overridedMethods = this._createDocumentBodyOverridedMethods(doc);
-
-        doc.body.addEventListener    = overridedMethods.addEventListener;
-        doc.body.removeEventListener = overridedMethods.removeEventListener;
+        this.initElementListening(doc.body, DOM_EVENTS);
     }
 
     restartElementListening (el) {
