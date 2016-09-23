@@ -192,13 +192,15 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     sendServiceMsg (msg, targetWindow) {
-        var message = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
+        var message         = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
+        var canSendDirectly = () => !isCrossDomainWindows(targetWindow, this.window) &&
+                                    targetWindow[this.RECEIVE_MSG_FN];
 
-        if (!isCrossDomainWindows(targetWindow, this.window) && targetWindow[this.RECEIVE_MSG_FN]) {
+        if (canSendDirectly()) {
             var sendFunc = force => {
                 // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
                 // in the unload event handler, so we check whether the function is in the queue
-                if (force || this._removeInternalMsgFromQueue(sendFunc)) {
+                if (canSendDirectly() && (force || this._removeInternalMsgFromQueue(sendFunc))) {
                     targetWindow[this.RECEIVE_MSG_FN]({
                         // NOTE: Cloning a message to prevent this modification.
                         data:   parseJSON(stringifyJSON(message)),
