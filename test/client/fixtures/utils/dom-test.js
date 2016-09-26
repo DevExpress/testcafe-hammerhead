@@ -321,7 +321,7 @@ asyncTest('after the location is set to an iframe without src isIframeWithoutSrc
 
 // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
 if (!browserUtils.isIE) {
-    asyncTest('should return "false" after calling document.open, document.write, document.close for the same-domain iframe', function () {
+    asyncTest('should return "false" after calling document.open, document.write, document.close for the same-domain iframe (GH-703) (GH-704)', function () {
         var iframe = document.createElement('iframe');
 
         iframe.src = window.QUnitGlobals.getResourceUrl('../../data/code-instrumentation/iframe.html');
@@ -346,6 +346,32 @@ if (!browserUtils.isIE) {
         document.body.appendChild(iframe);
     });
 }
+
+asyncTest('should return "false" after calling document.open, document.write, document.close for the iframe with javascript src (GH-815)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.src = 'javascript:false;';
+    iframe.id  = 'test_unique_id_p3ebtcyk7';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            ok(domUtils.isIframeWithoutSrc(iframe));
+
+            iframe.contentDocument.open();
+
+            ok(domUtils.isIframeWithoutSrc(iframe));
+
+            iframe.contentDocument.write('<h1>test</h1>');
+            ok(domUtils.isIframeWithoutSrc(iframe));
+
+            iframe.contentDocument.close();
+            ok(domUtils.isIframeWithoutSrc(iframe));
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
+});
 
 asyncTest('changed location 2', function () {
     var iframe  = document.createElement('iframe');
