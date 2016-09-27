@@ -531,8 +531,8 @@ export default class EventSimulator {
 
             // NOTE: In IE11, iframe's window.event object is null. We need to set
             // iframe's window.event object manually by using window.event (B254199).
-            if (browserUtils.version === 11 && isElementInIframe) {
-                Object.defineProperty(domUtils.getIframeByElement(el).contentWindow, 'event', {
+            if (browserUtils.version === 11 && isElementInIframe && iframe) {
+                Object.defineProperty(iframe.contentWindow, 'event', {
                     get:          () => window.event,
                     configurable: true
                 });
