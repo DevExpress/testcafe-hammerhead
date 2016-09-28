@@ -425,3 +425,29 @@ asyncTest('hammerhead functions should not be in strict mode (GH-344)', function
 
     eventSimulator.click(button[0]);
 });
+asyncTest('should not define window.event property if event is raised in iframe for element of top window', function () {
+    var src    = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+    var iframe = document.createElement('iframe');
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeWindow         = iframe.contentWindow;
+            var iframeEventSimulator = iframeWindow['%hammerhead%'].sandbox.event.eventSimulator;
+            var error                = null;
+
+            try {
+                iframeEventSimulator.keydown(domElement, { keyCode: 13 });
+            }
+            catch (err) {
+                error = err;
+            }
+
+            iframe.parentNode.removeChild(iframe);
+            ok(!error);
+            start();
+        });
+
+    iframe.setAttribute('src', src);
+    document.body.appendChild(iframe);
+});
+
