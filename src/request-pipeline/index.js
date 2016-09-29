@@ -40,7 +40,9 @@ var stages = {
     },
 
     2: function checkSameOriginPolicyCompliance (ctx, next) {
-        if ((ctx.isXhr || ctx.isFetch) && !checkSameOriginPolicy(ctx)) {
+        ctx.buildContentInfo();
+
+        if ((ctx.isXhr || ctx.isFetch) && !ctx.contentInfo.isNotModified && !checkSameOriginPolicy(ctx)) {
             ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
             return;
         }
@@ -49,8 +51,6 @@ var stages = {
     },
 
     3: function decideOnProcessingStrategy (ctx, next) {
-        ctx.buildContentInfo();
-
         if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
             ctx.destRes.statusCode = 200;
 
