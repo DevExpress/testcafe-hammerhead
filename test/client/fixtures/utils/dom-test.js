@@ -347,30 +347,27 @@ if (!browserUtils.isIE) {
     });
 }
 
-asyncTest('should return "false" after calling document.open, document.write, document.close for the iframe with javascript src (GH-815)', function () {
+test('should return "false" after calling document.open, document.write, document.close for the iframe with javascript src (GH-815)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.src = 'javascript:false;';
     iframe.id  = 'test_unique_id_p3ebtcyk7';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            ok(domUtils.isIframeWithoutSrc(iframe));
-
-            iframe.contentDocument.open();
-
-            ok(domUtils.isIframeWithoutSrc(iframe));
-
-            iframe.contentDocument.write('<h1>test</h1>');
-            ok(domUtils.isIframeWithoutSrc(iframe));
-
-            iframe.contentDocument.close();
-            ok(domUtils.isIframeWithoutSrc(iframe));
-
-            iframe.parentNode.removeChild(iframe);
-            start();
-        });
 
     document.body.appendChild(iframe);
+
+    ok(domUtils.isIframeWithoutSrc(iframe));
+
+    iframe.contentDocument.open();
+
+    ok(domUtils.isIframeWithoutSrc(iframe));
+
+    iframe.contentDocument.write('<h1>test</h1>');
+    ok(domUtils.isIframeWithoutSrc(iframe));
+
+    iframe.contentDocument.close();
+    ok(domUtils.isIframeWithoutSrc(iframe));
+
+    iframe.parentNode.removeChild(iframe);
 });
 
 asyncTest('changed location 2', function () {
