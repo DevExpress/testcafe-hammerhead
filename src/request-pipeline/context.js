@@ -172,8 +172,10 @@ export default class RequestPipelineContext {
         var isRedirect              = this.destRes.headers['location'] &&
                                       REDIRECT_STATUS_CODES.indexOf(this.destRes.statusCode) > -1;
         var requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
+        var isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
+                                      (this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
         var requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
-                                      (this.isPage || this.isIframe || requireAssetsProcessing);
+                                      !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
 
         var isFileDownload = this._isFileDownload();
 
@@ -206,7 +208,8 @@ export default class RequestPipelineContext {
             isManifest,
             encoding,
             contentTypeUrlToken,
-            isFileDownload
+            isFileDownload,
+            isNotModified
         };
     }
 

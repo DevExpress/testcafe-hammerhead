@@ -66,6 +66,16 @@ describe('Proxy', function () {
             });
         });
 
+        app.get('/304', function (req, res) {
+            res.status(304);
+            res.set({
+                'content-type':     req.headers['x-content-type'],
+                'content-encoding': 'gzip',
+                'content-length':   0
+            });
+            res.end();
+        });
+
         app.get('/', function (req, res) {
             res.end(req.url);
         });
@@ -503,6 +513,23 @@ describe('Proxy', function () {
                 done();
             });
         });
+
+        it('Should allow requests from other domain if it is "not modified" (GH-617)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/304', session),
+                headers: {
+                    referer:             proxy.openSession('http://example.com', session),
+                    'if-modified-since': 'Thu, 01 Aug 2013 18:31:48 GMT'
+                }
+            };
+
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+
+            request(options, function (err, res) {
+                expect(res.statusCode).eql(304);
+                done();
+            });
+        });
     });
 
     describe('Fetch', function () {
@@ -793,6 +820,33 @@ describe('Proxy', function () {
                 expect(body).eql(EMPTY_PAGE);
                 done();
             });
+        });
+
+        it('Should not process "not modified" resources (GH-817)', function () {
+            var mimeTypes = ['text/cache-manifest', 'text/css', 'text/html', 'text/javascript'];
+
+            return Promise.all(mimeTypes.map(function (mimeType, index) {
+                return new Promise(function (resolve) {
+                    var options = {
+                        url:     proxy.openSession('http://127.0.0.1:2000/304', session),
+                        headers: {
+                            'x-content-type': mimeType
+                        }
+                    };
+
+                    if (index % 2)
+                        options.headers['if-modified-since'] = 'Thu, 01 Aug 2013 18:31:48 GMT';
+                    else
+                        options.headers['if-none-match'] = '42dc7c04442557f8937f89ecdc993077';
+
+                    request(options, function (err, res, body) {
+                        expect(body).eql('');
+                        expect(res.statusCode).eql(304);
+                        expect(res.headers['content-length']).eql('0');
+                        resolve();
+                    });
+                });
+            }));
         });
     });
 
