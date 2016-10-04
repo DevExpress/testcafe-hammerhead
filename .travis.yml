@@ -9,5 +9,9 @@ matrix:
      env: GULP_TASK="test-client-travis"
  fast_finish: true
 
+cache:
+ directories:
+   - node_modules
+
 notifications:
  email: false
