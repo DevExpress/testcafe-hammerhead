@@ -336,6 +336,43 @@ asyncTest('service messages from embedded iframe (GH-803)', function () {
     document.body.appendChild(iframe);
 });
 
+asyncTest('send service message to the recreated iframe (GH-814)', function () {
+    var iframe = document.createElement('iframe');
+
+    messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+        if (e.message.gh814) {
+            iframe.parentNode.removeChild(iframe);
+            ok(true);
+            start();
+        }
+    });
+
+    iframe.id = 'test-' + Date.now;
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument = iframe.contentDocument;
+
+            iframeDocument.open();
+            iframeDocument.write('<html><body></body></html>');
+            iframeDocument.close();
+
+            return window.QUnitGlobals.waitForIframe(iframe);
+        })
+        .then(function () {
+            var iframeWindow         = iframe.contentWindow;
+            var iframeMessageSandbox = iframeWindow['%hammerhead%'].sandbox.event.message;
+
+            iframeMessageSandbox.on(iframeMessageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+                if (e.message.gh814)
+                    iframeMessageSandbox.sendServiceMsg({ gh814: true }, iframeWindow.parent);
+            });
+
+            messageSandbox.sendServiceMsg({ gh814: true }, iframe.contentWindow);
+        });
+
+    document.body.appendChild(iframe);
+});
+
 asyncTest('service message from removed iframe (GH-64)', function () {
     var iframe            = document.createElement('iframe');
     var receivedMessages  = 0;
