@@ -240,7 +240,17 @@ export default class Listeners extends EventEmitter {
     }
 
     initDocumentBodyListening (doc) {
-        this.initElementListening(doc.body, DOM_EVENTS);
+        var nativeAddEventListener = Listeners._getNativeAddEventListener(doc.body);
+
+        this.listeningCtx.addListeningElement(doc.body, DOM_EVENTS);
+
+        for (var i = 0; i < DOM_EVENTS.length; i++)
+            nativeAddEventListener.call(doc.body, DOM_EVENTS[i], this._createEventHandler(), true);
+
+        var overridedMethods = this._createDocumentBodyOverridedMethods(doc);
+
+        doc.body.addEventListener    = overridedMethods.addEventListener;
+        doc.body.removeEventListener = overridedMethods.removeEventListener;
     }
 
     restartElementListening (el) {
