@@ -10,6 +10,8 @@ export default class MethodCallInstrumentation extends SandboxBase {
     constructor (messageSandbox) {
         super();
 
+        this.messageSandbox = messageSandbox;
+
         this.methodWrappers = {
             postMessage: {
                 condition: isWindow,
@@ -35,6 +37,14 @@ export default class MethodCallInstrumentation extends SandboxBase {
     // NOTE: Isolate throw statement into a separate function because JS engine doesn't optimize such functions.
     static _error (msg) {
         throw new Error(msg);
+    }
+
+    static _isPostMessageFn (win, fn) {
+        // NOTE: in iOS Safari 9.3 win.postMessage === win.postMessage equals false
+        if (win.postMessage === win.postMessage)
+            return win.postMessage === fn;
+
+        return fn && typeof fn.toString === 'function' && fn.toString() === win.postMessage.toString();
     }
 
     attach (window) {
@@ -63,5 +73,21 @@ export default class MethodCallInstrumentation extends SandboxBase {
             configurable: true
         });
 
+        var methodCallInstrumentation = this;
+
+        Object.defineProperty(window, INSTRUCTION.getPostMessage, {
+            value: function (win, postMessageFn) {
+                if (arguments.length === 1 && !isWindow(win))
+                    return win.postMessage;
+
+                if (arguments.length === 2 && !MethodCallInstrumentation._isPostMessageFn(this, postMessageFn))
+                    return postMessageFn;
+
+                return function (...args) {
+                    return methodCallInstrumentation.messageSandbox.postMessage(this, args);
+                };
+            },
+            configurable: true
+        });
     }
 }

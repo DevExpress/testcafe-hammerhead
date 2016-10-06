@@ -4,12 +4,13 @@
 // -------------------------------------------------------------
 
 export default {
-    getLocation:   '__get$Loc',
-    setLocation:   '__set$Loc',
-    getProperty:   '__get$',
-    setProperty:   '__set$',
-    callMethod:    '__call$',
-    processScript: '__proc$Script',
-    getEval:       '__get$Eval',
-    getStorage:    '__get$Storage'
+    getLocation:    '__get$Loc',
+    setLocation:    '__set$Loc',
+    getProperty:    '__get$',
+    setProperty:    '__set$',
+    callMethod:     '__call$',
+    processScript:  '__proc$Script',
+    getEval:        '__get$Eval',
+    getStorage:     '__get$Storage',
+    getPostMessage: '__get$PostMessage'
 };

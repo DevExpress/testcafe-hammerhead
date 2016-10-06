@@ -1,4 +1,5 @@
-var settings = hammerhead.get('./settings');
+var settings    = hammerhead.get('./settings');
+var INSTRUCTION = hammerhead.get('../processing/script/instruction');
 
 var Promise        = hammerhead.Promise;
 var browserUtils   = hammerhead.utils.browser;
@@ -46,7 +47,7 @@ asyncTest('onmessage event', function () {
 
         count++;
 
-        if (count === 2) {
+        if (count === 4) {
             settings.get().crossDomainProxyPort = storedCrossDomainPort;
             iframe.parentNode.removeChild(iframe);
             window.removeEventListener('message', onMessageHandler);
@@ -104,6 +105,8 @@ asyncTest('message types', function () {
                 else
                     strictEqual(e.data, value);
 
+                setProperty(window, 'onmessage', void 0);
+
                 resove();
             };
 
@@ -143,6 +146,28 @@ asyncTest('message types', function () {
             })
             .then(start);
     }
+});
+
+asyncTest('message to current window', function () {
+    var onMessageHandler = function (evt) {
+        strictEqual(evt.data, 'data123');
+
+        window.removeEventListener('message', onMessageHandler);
+        start();
+    };
+
+    window.addEventListener('message', onMessageHandler);
+    window[INSTRUCTION.getPostMessage](null, postMessage)('data123', '*');
+});
+
+test('fake postMessage', function () {
+    expect(1);
+
+    function postMessage () {
+        ok(true);
+    }
+
+    window[INSTRUCTION.getPostMessage](null, postMessage)('data123', '*');
 });
 
 module('service messages');

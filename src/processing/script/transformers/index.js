@@ -10,6 +10,9 @@ import evalTransformer from './eval';
 import evalCallApplyTransformer from './eval-call-apply';
 import evalGetTransformer from './eval-get';
 import windowEvalGetTransformer from './window-eval-get';
+import postMessageGetTransformer from './post-message-get';
+import windowPostMessageGetTransformer from './window-post-message-get';
+import postMessageCallApplyTransformer from './post-message-call-apply';
 import forInTransformer from './for-in';
 import locationGetTransformer from './location-get';
 import storageGetTransformer from './storage-get';
@@ -28,6 +31,9 @@ const TRANSFORMERS = [
     evalCallApplyTransformer,
     evalGetTransformer,
     windowEvalGetTransformer,
+    postMessageGetTransformer,
+    windowPostMessageGetTransformer,
+    postMessageCallApplyTransformer,
     forInTransformer,
     locationGetTransformer,
     storageGetTransformer,
