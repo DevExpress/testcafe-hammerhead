@@ -6,7 +6,7 @@
     <script type="text/javascript">
         window.eventListenersCount = {};
 
-        var origWindowAddEventListener = window.constructor.prototype.addEventListener;
+        var originWindowAddEventListener = window.constructor.prototype.addEventListener;
 
         window.constructor.prototype.addEventListener = function () {
             var eventName = arguments[0];
@@ -16,7 +16,7 @@
 
             eventListenersCount[eventName]++;
 
-            origWindowAddEventListener.apply(this, arguments);
+            originWindowAddEventListener.apply(this, arguments);
         };
 
         window.performWrite = function () {
