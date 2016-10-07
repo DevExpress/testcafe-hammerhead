@@ -160,7 +160,7 @@ export default class Sandbox extends SandboxBase {
 
         this.event.initDocumentListening();
 
-        if (isWebKit)
+        if (window.top === window.self && isWebKit)
             this.event.listeners.restartElementListening(window);
 
         this.shadowUI.attach(window);

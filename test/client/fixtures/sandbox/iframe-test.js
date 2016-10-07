@@ -384,3 +384,25 @@ test("'body.appendChild' method works incorrectly in the particular case (GH-421
     checkIframes();
 });
 
+if (browserUtils.isWebKit) {
+    asyncTest('event listeners added twice in an iframe after document.write (GH-839)', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.id  = 'test_jklfsd';
+        iframe.src = window.QUnitGlobals.getResourceUrl('../../data/iframe/window-event-listeners.html');
+
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                iframe.contentWindow.eventListenersCount = {};
+
+                iframe.contentWindow.performWrite();
+
+                deepEqual(iframe.contentWindow.eventListenersCount, {});
+
+                document.body.removeChild(iframe);
+                start();
+            });
+
+        document.body.appendChild(iframe);
+    });
+}

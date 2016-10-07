@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script type="text/javascript">
+        window.eventListenersCount = {};
+
+        var origWindowAddEventListener = window.constructor.prototype.addEventListener;
+
+        window.constructor.prototype.addEventListener = function () {
+            var eventName = arguments[0];
+
+            if (!eventListenersCount[eventName])
+                eventListenersCount[eventName] = 0;
+
+            eventListenersCount[eventName]++;
+
+            origWindowAddEventListener.apply(this, arguments);
+        };
+
+        window.performWrite = function () {
+            document.write([
+                '<head></head>',
+                '<body>',
+                    '<h1>Test</h1>',
+                '</body>'
+            ].join('\n'));
+        };
+    </script>
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+</script>
+</body>
+</html>
