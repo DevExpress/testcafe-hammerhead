@@ -210,7 +210,7 @@ export default class DomProcessor {
         var target  = this.adapter.getAttr(el, 'target');
 
         if (target !== '_top') {
-            var mustProcessTag = this.adapter.IFRAME_FLAG_TAGS.indexOf(tagName) !== -1;
+            var mustProcessTag = this.adapter.isIframeFlagTag(tagName);
             var isNameTarget   = target ? target[0] !== '_' : false;
 
             if (target === '_parent')

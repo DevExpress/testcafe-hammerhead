@@ -3,6 +3,8 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
+const IFRAME_FLAG_TAGS = ['a', 'form'];
+
 export default class BaseDomAdapter {
     constructor () {
         this.EVENTS = ['onblur', 'onchange', 'onclick', 'oncontextmenu', 'oncopy', 'oncut',
@@ -15,8 +17,10 @@ export default class BaseDomAdapter {
             'onmspointerdown', 'onmspointerup', 'onmspointercancel', 'onmspointermove', 'onmspointerover',
             'onmspointerout', 'onmspointerenter', 'onmspointerleave', 'onmsgotpointercapture', 'onmslostpointercapture'
         ];
+    }
 
-        this.IFRAME_FLAG_TAGS = ['a', 'form'];
+    isIframeFlagTag (tagName) {
+        return tagName && IFRAME_FLAG_TAGS.indexOf(tagName) !== -1;
     }
 
     removeAttr () {

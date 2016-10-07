@@ -71,7 +71,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     needToProcessUrl (tagName, target) {
-        if (this.IFRAME_FLAG_TAGS.indexOf(tagName) !== -1 && target === '_parent')
+        if (this.isIframeFlagTag(tagName) && target === '_parent')
             return false;
 
         return true;
