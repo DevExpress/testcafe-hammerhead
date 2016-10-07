@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
+    hammerhead.start({
+        crossDomainProxyPort: 2000,
+        sessionId:            'sessionId'
+    });
+</script>
+<a id="link" target="_parent" href="/link-action.html">link</a>
+<form id="form" target="_parent" action="/form-action.html"></form>
+</body>
+</html>

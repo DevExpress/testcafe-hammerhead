@@ -23,8 +23,8 @@ QUnit.testDone(function () {
 });
 
 test('iframe', function () {
-    var iframe                             = nativeMethods.createElement.call(document, 'iframe');
-    var storedAttrName                     = domProcessor.getStoredAttrName('sandbox');
+    var iframe         = nativeMethods.createElement.call(document, 'iframe');
+    var storedAttrName = domProcessor.getStoredAttrName('sandbox');
 
     nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts');
     domProcessor.processElement(iframe);
@@ -107,7 +107,7 @@ test('script text', function () {
     var processedScript = processScript(script, true);
 
     nativeMethods.appendChild.call(document.body, div);
-    div.innerHTML       = '\<script\>' + script + '\</script\>';
+    div.innerHTML = '\<script\>' + script + '\</script\>';
 
     domProcessor.processElement(div.firstChild);
 
@@ -909,4 +909,24 @@ test('xml:base attribute of svg element should be overriden (GH-477)', function 
 
     circle.setAttributeNS(xmlNameSpaceUrl, 'base', subDomainUrl);
     strictEqual(nativeMethods.getAttributeNS.call(circle, xmlNameSpaceUrl, 'base'), urlUtils.getProxyUrl(subDomainUrl));
+});
+
+asyncTest("should reprocess tags that doesn't processed on server side (GH-838)", function () {
+    var iframe = document.createElement('iframe');
+    var src    = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe-with-nonproceed-on-server-tags.html');
+
+    iframe.id = 'test_unique_id_an0izear5';
+    iframe.setAttribute('src', src);
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var linkHrefUrl   = iframe.contentDocument.querySelector('#link').href;
+            var formActionUrl = iframe.contentDocument.querySelector('#form').action;
+
+            strictEqual(linkHrefUrl, urlUtils.getProxyUrl('/link-action.html'));
+            strictEqual(formActionUrl, urlUtils.getProxyUrl('/form-action.html', { resourceType: 'f' }));
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
 });

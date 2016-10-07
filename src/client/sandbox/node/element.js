@@ -619,5 +619,10 @@ export default class ElementSandbox extends SandboxBase {
                 this._setValidBrowsingContextOnClick(el);
                 break;
         }
+
+        // NOTE: we need to reprocess on client side tags that doesn't processed on server
+        // see usage of the Parse5DomAdapter.needToProcessUrl
+        if (domProcessor.adapter.isIframeFlagTag(tagName))
+            domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 }
