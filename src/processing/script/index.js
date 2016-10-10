@@ -6,6 +6,7 @@
 import transform from './transform';
 import INSTRUCTION from './instruction';
 import { add as addHeader, remove as removeHeader } from './header';
+import { hasStrictDirective } from './strict';
 import { parse } from './tools/acorn';
 import { generate, Syntax } from './tools/esotope';
 import reEscape from '../../utils/regexp-escape';
@@ -49,9 +50,9 @@ function preprocess (code) {
     return { bom, preprocessed };
 }
 
-function postprocess (processed, withHeader, bom) {
+function postprocess (processed, withHeader, bom, isStrict) {
     if (withHeader)
-        processed = addHeader(processed);
+        processed = addHeader(processed, isStrict);
 
     return bom ? bom + processed : processed;
 }
@@ -136,7 +137,6 @@ function applyChanges (script, changes, isObject) {
     return chunks.join('');
 }
 
-
 export function isScriptProcessed (code) {
     return PROCESSED_SCRIPT_RE.test(code);
 }
@@ -152,9 +152,10 @@ export function processScript (src, withHeader) {
     withHeader = withHeader && !isObject && !isArrayDataScript(ast);
 
     var changes   = transform(ast);
+    var isStrict  = hasStrictDirective(ast);
     var processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
-    processed = postprocess(processed, withHeader, bom);
+    processed = postprocess(processed, withHeader, bom, isStrict);
 
     if (isObject)
         processed = processed.replace(OBJECT_WRAPPER_RE, '$1');
