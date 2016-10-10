@@ -622,7 +622,7 @@ export default class ElementSandbox extends SandboxBase {
 
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
         // See the usage of Parse5DomAdapter.needToProcessUrl
-        if (domProcessor.adapter.isIframeFlagTag(tagName))
+        if (domProcessor.adapter.isIframeFlagTag(tagName) && el.target === '_parent')
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 }
