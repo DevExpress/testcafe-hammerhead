@@ -925,8 +925,8 @@ asyncTest("should reprocess tags that doesn't processed on server side (GH-838)"
             strictEqual(processedLinkHrefUrl, urlUtils.getProxyUrl('http://localhost/link-action.html'));
             strictEqual(processedFormActionUrl, urlUtils.getProxyUrl('http://localhost/form-action.html', { resourceType: 'f' }));
 
-            // NOTE: These tags shouldn't reprocessed on client side
-            // because they already processed on server
+            // NOTE: These tags shouldn't be reprocessed on the client side
+            // because they are already processed on the server
             var nonProcessedLinkHrefUrl   = iframe.contentDocument.querySelector('#non-processed-link').href;
             var nonProcessedFormActionUrl = iframe.contentDocument.querySelector('#non-processed-form').action;
 
