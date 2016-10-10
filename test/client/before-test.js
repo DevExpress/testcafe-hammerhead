@@ -73,10 +73,8 @@
     window.getLocation   = window[INSTRUCTION.getLocation];
     window.hammerhead    = hammerhead;
 
-    var globals = window.QUnitGlobals;
-
     window.getCrossDomainPageUrl = function (filePath) {
-        return window.QUnitGlobals.crossDomainHostname + globals.getResourceUrl(filePath);
+        return window.QUnitGlobals.crossDomainHostname + window.QUnitGlobals.getResourceUrl(filePath);
     };
 
     var MAX_ARG_COUNT = 3;
@@ -136,5 +134,6 @@
         ok(passed);
     };
 
-    QUnit.config.testTimeout = 30000;
+    QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT = 20000;
+    QUnit.config.testTimeout             = window.QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT * 2 + 5000;
 })();
