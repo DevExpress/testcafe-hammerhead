@@ -919,11 +919,19 @@ asyncTest("should reprocess tags that doesn't processed on server side (GH-838)"
     iframe.setAttribute('src', src);
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
-            var linkHrefUrl   = iframe.contentDocument.querySelector('#link').href;
-            var formActionUrl = iframe.contentDocument.querySelector('#form').action;
+            var processedLinkHrefUrl   = iframe.contentDocument.querySelector('#processed-link').href;
+            var processedFormActionUrl = iframe.contentDocument.querySelector('#processed-form').action;
 
-            strictEqual(linkHrefUrl, urlUtils.getProxyUrl('/link-action.html'));
-            strictEqual(formActionUrl, urlUtils.getProxyUrl('/form-action.html', { resourceType: 'f' }));
+            strictEqual(processedLinkHrefUrl, urlUtils.getProxyUrl('http://localhost/link-action.html'));
+            strictEqual(processedFormActionUrl, urlUtils.getProxyUrl('http://localhost/form-action.html', { resourceType: 'f' }));
+
+            // NOTE: These tags shouldn't reprocessed on client side
+            // because they already processed on server
+            var nonProcessedLinkHrefUrl   = iframe.contentDocument.querySelector('#non-processed-link').href;
+            var nonProcessedFormActionUrl = iframe.contentDocument.querySelector('#non-processed-form').action;
+
+            strictEqual(nonProcessedLinkHrefUrl, 'http://localhost/link-action.html');
+            strictEqual(nonProcessedFormActionUrl, 'http://localhost/form-action.html');
 
             iframe.parentNode.removeChild(iframe);
             start();
