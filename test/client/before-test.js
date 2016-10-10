@@ -137,4 +137,8 @@
     };
 
     QUnit.config.testTimeout = 30000;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        hammerhead.sandbox.node.raiseBodyCreatedEvent();
+    });
 })();

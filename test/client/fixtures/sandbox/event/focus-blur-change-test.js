@@ -852,6 +852,65 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
     }, false, true);
 });
 
+// NOTE: blur and focus events are raised for the body only in IE
+if (browserUtils.isIE && !browserUtils.isMSEdge) {
+    asyncTest('Blur event should be raised earlier than focus if el.focus() is called only programmatically', function () {
+        var eventStorage = [];
+
+        function addEventToStorage (e) {
+            eventStorage.push(e.type + ' ' + e.target.tagName.toLowerCase());
+        }
+
+        document.body.addEventListener('focus', addEventToStorage, true);
+        document.body.addEventListener('blur', addEventToStorage, true);
+
+        document.body.focus();
+
+        setTimeout(function () {
+            input1.focus();
+
+            setTimeout(function () {
+                equal(eventStorage.length, 2);
+                equal(eventStorage[0], 'blur body');
+                equal(eventStorage[1], 'focus input');
+
+                document.body.removeEventListener('focus', addEventToStorage);
+                document.body.removeEventListener('blur', addEventToStorage);
+
+                start();
+            }, 100);
+        }, 100);
+    });
+
+    asyncTest('Focus event should be raised for the body if el.blur() is called only programmatically', function () {
+        var eventStorage = [];
+
+        function addEventToStorage (e) {
+            eventStorage.push(e.type + ' ' + e.target.tagName.toLowerCase());
+        }
+
+        input1.focus();
+
+        setTimeout(function () {
+            document.body.addEventListener('focus', addEventToStorage, true);
+            document.body.addEventListener('blur', addEventToStorage, true);
+
+            input1.blur();
+
+            setTimeout(function () {
+                equal(eventStorage.length, 2);
+                equal(eventStorage[0], 'blur input');
+                equal(eventStorage[1], 'focus body');
+
+                document.body.removeEventListener('focus', addEventToStorage);
+                document.body.removeEventListener('blur', addEventToStorage);
+
+                start();
+            }, 100);
+        }, 100);
+    });
+}
+
 module('regression');
 
 test('querySelector must return active element even when browser is not focused (T285078)', function () {
