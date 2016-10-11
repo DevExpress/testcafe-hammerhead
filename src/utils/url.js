@@ -91,7 +91,7 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
 }
 
 // NOTE: Convert the destination protocol and hostname to the lower case. (GH-1)
-export function convertHostToLowerCase (url) {
+function convertHostToLowerCase (url) {
     var parsedUrl             = parseUrl(url);
     var protocolHostSeparator = parsedUrl.protocol === 'about:' ? '' : '//';
 

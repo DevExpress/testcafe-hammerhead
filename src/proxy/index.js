@@ -134,8 +134,6 @@ export default class Proxy extends Router {
         session.proxy                 = this;
         this.openSessions[session.id] = session;
 
-        url = urlUtils.convertHostToLowerCase(url);
-
         return urlUtils.getProxyUrl(url, {
             proxyHostname: this.server1Info.hostname,
             proxyPort:     this.server1Info.port,
