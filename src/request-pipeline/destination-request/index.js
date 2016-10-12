@@ -75,7 +75,7 @@ export default class DestinationRequest extends EventEmitter {
         this.req.abort();
     }
 
-    isDNSErr (err) {
+    _isDNSErr (err) {
         return err.message && /ECONNREFUSED|ENOTFOUND/.test(err.message) ||
                !this.aborted && !this.hasResponse && err.code && /ECONNRESET/.test(err.code);
     }
@@ -95,7 +95,7 @@ export default class DestinationRequest extends EventEmitter {
             this._send();
         }
 
-        else if (this.isDNSErr(err))
+        else if (this._isDNSErr(err))
             this.emit('fatalError', getText(MESSAGE.cantResolveUrl, this.opts.url));
         else
             this.emit('error');
