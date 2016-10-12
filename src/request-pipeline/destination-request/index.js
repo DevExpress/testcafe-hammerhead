@@ -12,10 +12,6 @@ import { MESSAGE, getText } from '../../messages';
 // doesn't work (see: https://github.com/mikeal/request/issues/418).
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-// Utils
-function isDNSErr (err) {
-    return err.message && /ECONNREFUSED|ENOTFOUND/.test(err.message);
-}
 
 // DestinationRequest
 export default class DestinationRequest extends EventEmitter {
@@ -24,6 +20,7 @@ export default class DestinationRequest extends EventEmitter {
 
         this.req               = null;
         this.hasResponse       = false;
+        this.aborted           = false;
         this.opts              = opts;
         this.isHttps           = opts.protocol === 'https:';
         this.protocolInterface = this.isHttps ? https : http;
@@ -73,11 +70,21 @@ export default class DestinationRequest extends EventEmitter {
         }
     }
 
+    _abort () {
+        this.aborted = true;
+        this.req.abort();
+    }
+
+    _isDNSErr (err) {
+        return err.message && /ECONNREFUSED|ENOTFOUND/.test(err.message) ||
+               !this.aborted && !this.hasResponse && err.code && /ECONNRESET/.test(err.code);
+    }
+
     _onTimeout () {
         // NOTE: this handler is also called if we get an error response (for example, 404). So, we should check
         // for the response presence before raising the timeout error.
         if (!this.hasResponse) {
-            this.req.abort();
+            this._abort();
             this.emit('fatalError', getText(MESSAGE.destRequestTimeout, this.opts.url));
         }
     }
@@ -88,7 +95,7 @@ export default class DestinationRequest extends EventEmitter {
             this._send();
         }
 
-        else if (isDNSErr(err))
+        else if (this._isDNSErr(err))
             this.emit('fatalError', getText(MESSAGE.cantResolveUrl, this.opts.url));
         else
             this.emit('error');
