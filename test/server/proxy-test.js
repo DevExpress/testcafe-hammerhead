@@ -301,6 +301,24 @@ describe('Proxy', function () {
             request(options);
         });
 
+        it('Should pass protocol DNS errors for existing host to session', function (done) {
+            session.handlePageError = function (ctx, err) {
+                expect(err).eql('Failed to find a DNS-record for the resource at <a href="https://127.0.0.1:2000">https://127.0.0.1:2000</a>.');
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            var options = {
+                url:     proxy.openSession('https://127.0.0.1:2000', session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options);
+        });
+
         it('Should pass service message processing to session', function (done) {
             var options = {
                 method: 'POST',
