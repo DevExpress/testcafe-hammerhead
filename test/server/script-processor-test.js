@@ -157,7 +157,7 @@ describe('Script processor', function () {
         expect(isScriptProcessed(processed)).to.be.true;
     });
 
-    it('Should add strict mode directive', function () {
+    it('Should add the strict mode directive before the script header', function () {
         var src       = '/*comment*/\n' +
                         '"use strict";\n' +
                         'location.host = "host";';

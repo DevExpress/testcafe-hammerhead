@@ -6,18 +6,16 @@
 import reEscape from '../../utils/regexp-escape';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import INSTRUCTION from './instruction';
-import { USE_STRICT_DIRECTIVE } from './strict';
 
 export const SCRIPT_PROCESSING_START_COMMENT      = '/*hammerhead|script|start*/';
 export const SCRIPT_PROCESSING_END_COMMENT        = '/*hammerhead|script|end*/';
 export const SCRIPT_PROCESSING_END_HEADER_COMMENT = '/*hammerhead|script|processing-header-end*/';
 
-const USE_STRICT         = '"' + USE_STRICT_DIRECTIVE + '";';
-const STRICT_PLACEHOLDER = '{strict-placeholder}';
+const STRICT_MODE_PLACEHOLDER = '{strict-placeholder}';
 
 const HEADER = [
     SCRIPT_PROCESSING_START_COMMENT,
-    STRICT_PLACEHOLDER,
+    STRICT_MODE_PLACEHOLDER,
     'if(typeof window!=="undefined"&&window){',
     `window["${INTERNAL_PROPS.processDomMethodName}"] && window["${INTERNAL_PROPS.processDomMethodName}"]();`,
     '}',
@@ -47,8 +45,8 @@ export function remove (code) {
         .replace(PROCESSING_END_COMMENT_RE, '');
 }
 
-export function add (code, isStrict) {
-    var header = HEADER.replace(STRICT_PLACEHOLDER, isStrict ? USE_STRICT : '');
+export function add (code, isStrictMode) {
+    var header = HEADER.replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '');
 
     return header + code + '\n' + SCRIPT_PROCESSING_END_COMMENT;
 }

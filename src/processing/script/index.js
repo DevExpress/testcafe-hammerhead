@@ -6,7 +6,6 @@
 import transform from './transform';
 import INSTRUCTION from './instruction';
 import { add as addHeader, remove as removeHeader } from './header';
-import { hasStrictDirective } from './strict';
 import { parse } from './tools/acorn';
 import { generate, Syntax } from './tools/esotope';
 import reEscape from '../../utils/regexp-escape';
@@ -50,9 +49,9 @@ function preprocess (code) {
     return { bom, preprocessed };
 }
 
-function postprocess (processed, withHeader, bom, isStrict) {
+function postprocess (processed, withHeader, bom, strictMode) {
     if (withHeader)
-        processed = addHeader(processed, isStrict);
+        processed = addHeader(processed, strictMode);
 
     return bom ? bom + processed : processed;
 }
@@ -109,6 +108,17 @@ function isArrayDataScript (ast) {
            ast.body[0].expression.type === Syntax.ArrayExpression;
 }
 
+function isStrictMode (ast) {
+    if (ast.body.length) {
+        var firstChild = ast.body[0];
+
+        if (firstChild.type === Syntax.ExpressionStatement && firstChild.expression.type === Syntax.Literal)
+            return firstChild.expression.value === 'use strict';
+    }
+
+    return false;
+}
+
 function applyChanges (script, changes, isObject) {
     var indexOffset = isObject ? -1 : 0;
     var chunks      = [];
@@ -152,10 +162,9 @@ export function processScript (src, withHeader) {
     withHeader = withHeader && !isObject && !isArrayDataScript(ast);
 
     var changes   = transform(ast);
-    var isStrict  = hasStrictDirective(ast);
     var processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
-    processed = postprocess(processed, withHeader, bom, isStrict);
+    processed = postprocess(processed, withHeader, bom, isStrictMode(ast));
 
     if (isObject)
         processed = processed.replace(OBJECT_WRAPPER_RE, '$1');
