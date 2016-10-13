@@ -21,6 +21,9 @@ function getResourceUrlReplacer (ctx) {
 
         resolvedUrl = urlUtil.ensureTrailingSlash(resourceUrl, resolvedUrl);
 
+        if (!urlUtil.isValidUrl(resolvedUrl))
+            return resolvedUrl;
+
         return ctx.toProxyUrl(resolvedUrl, false, resourceType, charsetStr);
     };
 }

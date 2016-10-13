@@ -15,6 +15,9 @@ export function getProxyUrl (url, opts) {
     // NOTE: Resolves relative URLs.
     url = destLocation.resolveUrl(url);
 
+    if (!sharedUrlUtils.isValidUrl(url))
+        return url;
+
     var proxyHostname = opts && opts.proxyHostname || location.hostname;
     var proxyPort     = opts && opts.proxyPort || location.port.toString();
     var sessionId     = opts && opts.sessionId || settings.get().sessionId;

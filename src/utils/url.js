@@ -309,3 +309,18 @@ export function isRelativeUrl (url) {
 
     return !parsedUrl.host;
 }
+
+function isValidPort (port) {
+    var parsedPort = parseInt(port, 10);
+
+    return parsedPort > 0 && parsedPort <= 65535;
+}
+
+export function isValidUrl (url) {
+    var parsedUrl = parseUrl(url);
+
+    if (!parsedUrl.hostname || parsedUrl.port && !isValidPort(parsedUrl.port))
+        return false;
+
+    return true;
+}

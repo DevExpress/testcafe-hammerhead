@@ -340,3 +340,17 @@ test('script.innerHtml must be cleaned up (T226885)', function () {
     notEqual(script.innerHTML.replace(/^\s*|\s*$/g, ''), code);
     strictEqual(eval(processScript('script.innerHTML')).replace(/^\s*|\s*$/g, ''), code);
 });
+
+test('should not create proxy url for invalid url (GH-778)', function () {
+    var link       = document.createElement('a');
+    var nativeLink = nativeMethods.createElement.call(document, 'a');
+
+    var testCases = ['//:0', '//:0/', 'http://test:0', 'http://test:123456789'];
+
+    for (var i = 0; i < testCases.length; i++) {
+        var linkVal       = link.setAttribute('href', testCases[i]);
+        var nativeLinkVal = nativeLink.setAttribute('href', testCases[i]);
+
+        strictEqual(linkVal, nativeLinkVal);
+    }
+});
