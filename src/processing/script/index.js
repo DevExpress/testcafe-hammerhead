@@ -50,6 +50,9 @@ function preprocess (code) {
 }
 
 function postprocess (processed, withHeader, bom, strictMode) {
+    // NOTE: If the 'use strict' directive is not in the beginning of the file, it is ignored.
+    // As we insert our header in the beginning of the script, we must put a new 'use strict'
+    // before the header, otherwise it will be ignored.
     if (withHeader)
         processed = addHeader(processed, strictMode);
 
