@@ -18,6 +18,7 @@ export const PROPERTIES = [
     'background',
     'backgroundImage',
     'borderImage',
+    'childElementCount',
     'cookie',
     'cssText',
     'cursor',
