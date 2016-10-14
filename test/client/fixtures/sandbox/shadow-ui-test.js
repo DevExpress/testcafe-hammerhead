@@ -244,6 +244,12 @@ test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function
 
 module('element methods');
 
+test('Node.childElementCount', function () {
+    var bodyChildCount = document.body.children.length;
+
+    strictEqual(getProperty(document.body, 'childElementCount'), bodyChildCount - 1);
+});
+
 test('body.getElementsByClassName', function () {
     var root   = shadowUI.getRoot();
     var uiElem = document.createElement('div');

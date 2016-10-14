@@ -64,6 +64,29 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return urlUtils.resolveUrlAsDest(attrValue);
     }
 
+    static _getShadowUICollectionLength (collection) {
+        var elementCount = 0;
+
+        for (var i = 0; i < collection.length; i++) {
+            var className = collection[i].className;
+
+            if (className) {
+                // NOTE: SVG elements' className is of the SVGAnimatedString type instead
+                // of string (GH-354).
+                if (typeof className !== 'string')
+                    className = className.baseVal || '';
+
+                if (className.indexOf(SHADOW_UI_CLASSNAME.postfix) !== -1)
+                    elementCount++;
+            }
+        }
+
+        if (elementCount !== 0)
+            ShadowUI.checkElementsPosition(collection);
+
+        return collection.length - elementCount;
+    }
+
     _createPropertyAccessors (window, document) {
         var storedDomain = '';
 
@@ -101,6 +124,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: domUtils.isInputElement,
                 get:       input => input.getAttribute('autocomplete') || '',
                 set:       (input, value) => input.setAttribute('autocomplete', value)
+            },
+
+            childElementCount: {
+                condition: ShadowUI.isShadowContainer,
+                get:       el => PropertyAccessorsInstrumentation._getShadowUICollectionLength(el.children),
+                set:       () => void 0
             },
 
             cookie: {
@@ -341,29 +370,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             length: {
                 condition: ShadowUI.isShadowContainerCollection,
-
-                get: collection => {
-                    var elementCount = 0;
-
-                    for (var i = 0; i < collection.length; i++) {
-                        var className = collection[i].className;
-
-                        if (className) {
-                            // NOTE: SVG elements' className is of the SVGAnimatedString type instead
-                            // of string (GH-354).
-                            if (typeof className !== 'string')
-                                className = className.baseVal || '';
-
-                            if (className.indexOf(SHADOW_UI_CLASSNAME.postfix) !== -1)
-                                elementCount++;
-                        }
-                    }
-
-                    if (elementCount !== 0)
-                        ShadowUI.checkElementsPosition(collection);
-
-                    return collection.length - elementCount;
-                },
+                get:       PropertyAccessorsInstrumentation._getShadowUICollectionLength,
 
                 set: () => void 0
             },
