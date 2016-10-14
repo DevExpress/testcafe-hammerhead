@@ -93,7 +93,11 @@ export default class Listeners extends EventEmitter {
             var handlersCancelled     = false;
             var stopPropagationCalled = false;
             var eventCtx              = listeners.listeningCtx.getEventCtx(el, e.type);
-            var internalHandlers      = eventCtx ? eventCtx.internalHandlers : [];
+
+            if (!eventCtx)
+                return;
+
+            var internalHandlers = eventCtx.internalHandlers;
 
             eventCtx.cancelOuterHandlers = false;
 

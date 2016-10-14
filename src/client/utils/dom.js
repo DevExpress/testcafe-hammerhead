@@ -580,7 +580,7 @@ export function isFetchHeaders (instance) {
     if (nativeMethods.Headers && instance instanceof nativeMethods.Headers)
         return true;
 
-    return instance && typeof instance === 'object' && instance.getAll !== void 0 &&
+    return instance && typeof instance === 'object' && instance.append !== void 0 &&
            typeof instance.toString === 'function' && instance.toString() === '[object Headers]';
 }
 
