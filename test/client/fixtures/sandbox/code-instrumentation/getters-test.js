@@ -244,6 +244,7 @@ test('clean up outerHTML', function () {
     strictEqual(a.outerHTML, processHtml(htmlText));
     strictEqual(getProperty(a, 'outerHTML'), htmlText);
 
+    // NOTE: This code checks PropertyAccessorsInstrumentation.attach(window).outerHTML.condition
     if (browserUtils.isIE && !browserUtils.isMSEdge) {
         var doc = document.implementation.createDocument(null, 'status', null);
 
