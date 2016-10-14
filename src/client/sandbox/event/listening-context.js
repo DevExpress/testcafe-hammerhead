@@ -10,7 +10,9 @@ export function getElementCtx (el) {
 export function getEventCtx (el, event) {
     event = isIE && browserVersion > 10 && /MSPointer/.test(event) ? event.replace('MS', '').toLowerCase() : event;
 
-    return getElementCtx(el)[event] || null;
+    var elementCtx = getElementCtx(el);
+
+    return elementCtx && elementCtx[event];
 }
 
 export function isElementListening (el) {
