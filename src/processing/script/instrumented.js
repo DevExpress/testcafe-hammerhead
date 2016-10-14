@@ -41,6 +41,8 @@ export const PROPERTIES = [
     'localStorage',
     'location',
     'manifest',
+    'nextElementSibling',
+    'nextSibling',
     'onbeforeunload',
     'onpagehide',
     'onerror',
