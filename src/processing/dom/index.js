@@ -411,7 +411,7 @@ export default class DomProcessor {
         attrValue = attrValue && attrValue.replace(/\s/g, '');
 
         if (attrValue === '_blank' || attrValue === 'blank')
-            this.adapter.setAttr(el, 'target', '_top');
+            this.adapter.setAttr(el, 'target', '_self');
     }
 
     _processUrlAttrs (el, urlReplacer, pattern) {

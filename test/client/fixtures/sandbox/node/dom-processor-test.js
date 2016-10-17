@@ -534,7 +534,7 @@ module('should ensure that target contains the existing window name (GH-247) (GH
         link.href   = 'http://example.com';
         link.target = 'wrong_window_name';
         link.addEventListener('click', function (e) {
-            strictEqual(link.target, '_top');
+            strictEqual(link.target, '_self');
 
             e.preventDefault();
             link.parentNode.removeChild(link);
@@ -567,7 +567,7 @@ module('should ensure that target contains the existing window name (GH-247) (GH
         base.target = 'wrong_window_name';
         link.href   = 'http://example.com';
         link.addEventListener('click', function (e) {
-            strictEqual(link.target, '_top');
+            strictEqual(link.target, '_self');
 
             e.preventDefault();
             link.parentNode.removeChild(link);
@@ -586,7 +586,7 @@ module('should ensure that target contains the existing window name (GH-247) (GH
         base.target = '_Parent';
         link.href   = 'http://example.com';
         link.addEventListener('click', function (e) {
-            strictEqual(link.target, '_top');
+            strictEqual(link.target, '_self');
 
             e.preventDefault();
             link.parentNode.removeChild(link);
@@ -631,7 +631,7 @@ module('should ensure that target contains the existing window name (GH-247) (GH
         area.target = 'wrong_window_name';
         area.href   = 'http://example.com';
         area.addEventListener('click', function (e) {
-            strictEqual(area.target, '_top');
+            strictEqual(area.target, '_self');
 
             e.preventDefault();
             map.parentNode.removeChild(map);
@@ -655,7 +655,7 @@ module('should ensure that target contains the existing window name (GH-247) (GH
         form.appendChild(input);
 
         form.addEventListener('submit', function (e) {
-            strictEqual(form.target, '_top');
+            strictEqual(form.target, '_self');
 
             e.preventDefault();
             form.parentNode.removeChild(form);
@@ -684,7 +684,7 @@ module('should ensure that target contains the existing window name (GH-247) (GH
         var storedNativeFormSubmit = nativeMethods.formSubmit;
 
         nativeMethods.formSubmit = function () {
-            strictEqual(form.target, '_top');
+            strictEqual(form.target, '_self');
 
             nativeMethods.formSubmit = storedNativeFormSubmit;
             start();
