@@ -1,9 +1,10 @@
-var expect                  = require('chai').expect;
-var multiline               = require('multiline');
-var processScript           = require('../../lib/processing/script').processScript;
-var isScriptProcessed       = require('../../lib/processing/script').isScriptProcessed;
-var HEADER                  = require('../../lib/processing/script/header').HEADER;
-var INSTRUMENTED_PROPERTIES = require('../../lib/processing/script/instrumented').PROPERTIES;
+var expect                          = require('chai').expect;
+var multiline                       = require('multiline');
+var processScript                   = require('../../lib/processing/script').processScript;
+var isScriptProcessed               = require('../../lib/processing/script').isScriptProcessed;
+var HEADER                          = require('../../lib/processing/script/header').HEADER;
+var SCRIPT_PROCESSING_START_COMMENT = require('../../lib/processing/script/header').SCRIPT_PROCESSING_START_COMMENT;
+var INSTRUMENTED_PROPERTIES         = require('../../lib/processing/script/instrumented').PROPERTIES;
 
 
 var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
@@ -154,6 +155,16 @@ describe('Script processor', function () {
 
         expect(isScriptProcessed(src)).to.be.false;
         expect(isScriptProcessed(processed)).to.be.true;
+    });
+
+    it('Should add the strict mode directive before the script header', function () {
+        var src       = '/*comment*/\n' +
+                        '"use strict";\n' +
+                        'location.host = "host";';
+        var processed = processScript(src, true);
+
+        expect(isScriptProcessed(processed)).to.be.true;
+        expect(processed.indexOf(SCRIPT_PROCESSING_START_COMMENT + '"use strict";')).eql(0);
     });
 
     it('Should process location getters and setters', function () {

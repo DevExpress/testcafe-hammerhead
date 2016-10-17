@@ -49,9 +49,12 @@ function preprocess (code) {
     return { bom, preprocessed };
 }
 
-function postprocess (processed, withHeader, bom) {
+function postprocess (processed, withHeader, bom, strictMode) {
+    // NOTE: If the 'use strict' directive is not in the beginning of the file, it is ignored.
+    // As we insert our header in the beginning of the script, we must put a new 'use strict'
+    // before the header, otherwise it will be ignored.
     if (withHeader)
-        processed = addHeader(processed);
+        processed = addHeader(processed, strictMode);
 
     return bom ? bom + processed : processed;
 }
@@ -108,6 +111,17 @@ function isArrayDataScript (ast) {
            ast.body[0].expression.type === Syntax.ArrayExpression;
 }
 
+function isStrictMode (ast) {
+    if (ast.body.length) {
+        var firstChild = ast.body[0];
+
+        if (firstChild.type === Syntax.ExpressionStatement && firstChild.expression.type === Syntax.Literal)
+            return firstChild.expression.value === 'use strict';
+    }
+
+    return false;
+}
+
 function applyChanges (script, changes, isObject) {
     var indexOffset = isObject ? -1 : 0;
     var chunks      = [];
@@ -136,7 +150,6 @@ function applyChanges (script, changes, isObject) {
     return chunks.join('');
 }
 
-
 export function isScriptProcessed (code) {
     return PROCESSED_SCRIPT_RE.test(code);
 }
@@ -154,7 +167,7 @@ export function processScript (src, withHeader) {
     var changes   = transform(ast);
     var processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
-    processed = postprocess(processed, withHeader, bom);
+    processed = postprocess(processed, withHeader, bom, isStrictMode(ast));
 
     if (isObject)
         processed = processed.replace(OBJECT_WRAPPER_RE, '$1');
