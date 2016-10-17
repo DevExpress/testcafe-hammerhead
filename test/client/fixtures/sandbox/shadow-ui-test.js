@@ -242,6 +242,21 @@ test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function
     input.parentNode.removeChild(input);
 });
 
+test('Node.nextSibling, NonDocumentTypeChildNode.nextElementSibling', function () {
+    var bodyChildCount = document.body.childNodes.length;
+    var root           = document.body.childNodes[bodyChildCount - 1];
+    var previous       = document.body.childNodes[bodyChildCount - 2];
+
+    ok(domUtils.isShadowUIElement(root));
+    ok(!domUtils.isShadowUIElement(previous));
+
+    strictEqual(previous.nextSibling, root);
+    strictEqual(getProperty(previous, 'nextSibling'), null);
+
+    strictEqual(previous.nextElementSibling, root);
+    strictEqual(getProperty(previous, 'nextElementSibling'), null);
+});
+
 module('element methods');
 
 test('Node.childElementCount', function () {

@@ -310,6 +310,18 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
+            nextElementSibling: {
+                condition: node => node.nextElementSibling && domUtils.isDomElement(node.nextElementSibling),
+                get:       node => domUtils.isShadowUIElement(node.nextElementSibling) ? null : node.nextElementSibling,
+                set:       () => void 0
+            },
+
+            nextSibling: {
+                condition: node => node.nextSibling && domUtils.isDomElement(node.nextSibling),
+                get:       node => domUtils.isShadowUIElement(node.nextSibling) ? null : node.nextSibling,
+                set:       () => void 0
+            },
+
             outerHTML: {
                 condition: el => domUtils.isElementNode(el) && typeof el.outerHTML === 'string',
                 get:       el => cleanUpHtml(el.outerHTML, el.parentNode && el.parentNode.tagName),
