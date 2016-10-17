@@ -442,7 +442,7 @@ asyncTest('multiple document.write with html and body tags should not break mark
 
             strictEqual(doc.querySelector('h1').innerHTML, 'Header');
             ok(/Text( text){19}/.test(doc.querySelector('p').innerHTML));
-            strictEqual(doc.querySelector('a').target, '_self');
+            strictEqual(doc.querySelector('a').target, '_top');
             strictEqual(doc.querySelectorAll('body > table tr > td > a > img').length, 1);
 
             document.body.removeChild(iframe);

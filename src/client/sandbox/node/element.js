@@ -578,7 +578,7 @@ export default class ElementSandbox extends SandboxBase {
         var target = this._getEffectiveTargetValue(el);
 
         if (!ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target))
-            el.target = '_self';
+            el.target = '_top';
 
     }
 
