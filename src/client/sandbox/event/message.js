@@ -200,12 +200,21 @@ export default class MessageSandbox extends SandboxBase {
             var sendFunc = force => {
                 // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
                 // in the unload event handler, so we check whether the function is in the queue
-                if (canSendDirectly() && (force || this._removeInternalMsgFromQueue(sendFunc))) {
-                    targetWindow[this.RECEIVE_MSG_FN]({
-                        // NOTE: Cloning a message to prevent this modification.
-                        data:   parseJSON(stringifyJSON(message)),
-                        source: this.window
-                    });
+                if (force || this._removeInternalMsgFromQueue(sendFunc)) {
+                    // NOTE: The 'sendFunc' function may be called on timeout, so we must call 'canSendDirectly' again,
+                    // because the iframe could become cross-domain in the meantime. Unfortunately, Chrome hangs when
+                    // trying to call the 'isCrossDomainWindows' function, so we have to wrap it in 'try/catch'.
+                    try {
+                        targetWindow[this.RECEIVE_MSG_FN]({
+                            // NOTE: Cloning a message to prevent this modification.
+                            data:   parseJSON(stringifyJSON(message)),
+                            source: this.window
+                        });
+                    }
+                        /*eslint-disable no-empty */
+                    catch (e) {
+                    }
+                    /*eslint-enable no-empty */
                 }
             };
 
