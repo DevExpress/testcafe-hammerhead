@@ -108,7 +108,7 @@ export default class WindowSandbox extends SandboxBase {
             var newArgs = [];
 
             newArgs.push(getProxyUrl(arguments[0]));
-            newArgs.push('_top');
+            newArgs.push('_self');
 
             if (arguments.length > 2)
                 newArgs.push(arguments[2]);
