@@ -474,9 +474,6 @@ export function isElementFocusable (el) {
     var isNotDisplayedElement = getStyle(el, 'display') === 'none';
     var isHiddenElement       = isWebKit ? isHidden(el) && !isOptionElement(el) : isHidden(el);
 
-    if (tabIndex !== null && tabIndex < 0)
-        return false;
-
     if (isDisabledElement || isInvisibleElement || isNotDisplayedElement || isHiddenElement)
         return false;
 
