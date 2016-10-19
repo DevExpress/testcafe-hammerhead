@@ -404,14 +404,20 @@ export default class DomProcessor {
     }
 
     _processTargetBlank (el) {
-        // NOTE: Replace target='_blank' to avoid popups.
-        var attrValue = this.adapter.getAttr(el, 'target');
+        var storedTargetAttr = this.getStoredAttrName('target');
+        var processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
-        // NOTE: Value may have whitespace.
-        attrValue = attrValue && attrValue.replace(/\s/g, '');
+        if (!processed) {
+            var attrValue = this.adapter.getAttr(el, 'target');
 
-        if (attrValue === '_blank' || attrValue === 'blank')
-            this.adapter.setAttr(el, 'target', '_self');
+            // NOTE: Value may have whitespace.
+            attrValue = attrValue && attrValue.replace(/\s/g, '');
+
+            if (attrValue === '_blank' || attrValue === 'blank') {
+                this.adapter.setAttr(el, 'target', '_top');
+                this.adapter.setAttr(el, storedTargetAttr, attrValue);
+            }
+        }
     }
 
     _processUrlAttrs (el, urlReplacer, pattern) {
