@@ -105,7 +105,7 @@ export default class NodeSandbox extends SandboxBase {
 
         return selector.replace(ATTRIBUTE_SELECTOR_REG_EX, (str, name, operatorWithValue) => {
             if (domProcessor.URL_ATTRS.indexOf(name) !== -1) {
-                name  = domProcessor.getStoredAttrName(name);
+                name = domProcessor.getStoredAttrName(name);
 
                 return '[' + name + operatorWithValue + ']';
             }

@@ -106,9 +106,10 @@ export default class WindowSandbox extends SandboxBase {
 
         window.open = function () {
             var newArgs = [];
+            var target  = arguments[1] ? nodeSandbox.element.getTarget(null, arguments[1]) : '_self';
 
             newArgs.push(getProxyUrl(arguments[0]));
-            newArgs.push('_self');
+            newArgs.push(target);
 
             if (arguments.length > 2)
                 newArgs.push(arguments[2]);
@@ -119,7 +120,7 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         if (window.FontFace) {
-            window.FontFace = (family, source, descriptors) => {
+            window.FontFace           = (family, source, descriptors) => {
                 source = styleProcessor.process(source, convertToProxyUrl);
 
                 return new nativeMethods.FontFace(family, source, descriptors);
@@ -128,7 +129,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            window.Worker = scriptURL => {
+            window.Worker           = scriptURL => {
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL);
 
@@ -138,7 +139,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Blob) {
-            window.Blob = function (parts, opts) {
+            window.Blob           = function (parts, opts) {
                 if (arguments.length === 0)
                     return new nativeMethods.Blob();
 
@@ -161,12 +162,12 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.EventSource) {
-            window.EventSource = url => new nativeMethods.EventSource(getProxyUrl(url));
+            window.EventSource           = url => new nativeMethods.EventSource(getProxyUrl(url));
             window.EventSource.prototype = nativeMethods.EventSource.prototype;
         }
 
         if (window.MutationObserver) {
-            window.MutationObserver = callback => {
+            window.MutationObserver           = callback => {
                 var wrapper = mutations => {
                     var result = [];
 
@@ -209,7 +210,7 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
-        window.Image = function () {
+        window.Image           = function () {
             var image = null;
 
             if (!arguments.length)
@@ -225,7 +226,7 @@ export default class WindowSandbox extends SandboxBase {
         };
         window.Image.prototype = nativeMethods.Image.prototype;
 
-        window.Function = function (...args) {
+        window.Function           = function (...args) {
             var functionBodyArgIndex = args.length - 1;
 
             if (typeof args[functionBodyArgIndex] === 'string')

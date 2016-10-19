@@ -241,24 +241,6 @@ test('iframe javascript src', function () {
     }
 });
 
-test('target', function () {
-    var tagNames = ['a', 'form', 'area', 'base'];
-    var tag      = null;
-
-    for (var i = 0; i < tagNames.length; i++) {
-        tag = document.createElement(tagNames[i]);
-
-        tag.setAttribute('target', '_blank');
-        ok(!tag.getAttribute('target'));
-
-        tag.setAttribute('target', '_self');
-        ok(tag.getAttribute('target'));
-
-        setProperty(tag, 'target', '_blank');
-        ok(tag.target !== '_blank');
-    }
-});
-
 test('onclick', function () {
     var link      = document.createElement('a');
     var attrValue = 'location.href="managers.aspx";';
@@ -478,13 +460,6 @@ test('anchor with target attribute', function () {
     strictEqual(urlUtils.parseProxyUrl(nativeHref).resourceType, 'i');
 
     iframe.parentNode.removeChild(iframe);
-});
-
-test('case insensitive target="_blank"', function () {
-    var link = document.createElement('a');
-
-    link.setAttribute('target', '_Blank');
-    ok(!link.getAttribute('target'));
 });
 
 module('regression');

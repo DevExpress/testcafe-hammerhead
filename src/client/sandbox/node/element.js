@@ -90,7 +90,7 @@ export default class ElementSandbox extends SandboxBase {
 
         // OPTIMIZATION: The hasAttribute method is very slow.
         if (domProcessor.isUrlAttr(el, attr, ns) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
-            attr === 'autocomplete') {
+            attr === 'autocomplete' || attr === 'target') {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
             if (attr === 'autocomplete' && getAttrMeth.apply(el, isNs ? [ns, storedAttr] : [storedAttr]) === 'none')
@@ -186,9 +186,11 @@ export default class ElementSandbox extends SandboxBase {
             args[valueIndex] = 'off';
         }
         else if (attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
-            if (/_blank/i.test(value))
-                return null;
+            var storedTargetAttr = domProcessor.getStoredAttrName(attr);
 
+            setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
+
+            args[valueIndex] = this.getTarget(el, value);
             ElementSandbox._onTargetChanged(el, value);
         }
         else if (attr === 'sandbox') {
@@ -568,18 +570,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _ensureTargetContainsExistingBrowsingContext (el) {
-        if (domUtils.isInputElement(el)) {
-            if (el.form)
-                el = el.form;
-            else
-                return;
-        }
+        var storedAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target'));
 
-        var target = this._getEffectiveTargetValue(el);
-
-        if (!ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target))
-            el.target = '_self';
-
+        el.setAttribute('target', storedAttr || el.target);
     }
 
     _setValidBrowsingContextOnClick (el) {
@@ -598,6 +591,22 @@ export default class ElementSandbox extends SandboxBase {
                 stopPropagation(e);
             }
         }, false);
+    }
+
+    getTarget (el, currentTarget) {
+        if (el && domUtils.isInputElement(el)) {
+            if (el.form)
+                el = el.form;
+            else
+                return currentTarget;
+        }
+
+        var target = currentTarget || this._getEffectiveTargetValue(el);
+
+        if (!ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) || /_blank/i.test(target))
+            return '_top';
+
+        return currentTarget;
     }
 
     processElement (el) {
