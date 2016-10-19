@@ -24,7 +24,7 @@ const PENDING_RE             = /<[A-Za-z][^>]*$/g;
 const IS_NOT_CLOSED_PROPERTY = 'hammerhead|is-not-closed-element';
 
 const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
-    <script class="${ SHADOW_UI_CLASSNAME.script }" type="text/javascript">
+    <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
             var hammerhead = window["${ INTERNAL_PROPS.hammerheadPropertyName }"];
             var sandbox = hammerhead && hammerhead.sandbox;

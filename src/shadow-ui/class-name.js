@@ -7,8 +7,9 @@
 const POSTFIX = '-hammerhead-shadow-ui';
 
 export default {
-    postfix:      POSTFIX,
-    charset:      'charset' + POSTFIX,
-    script:       'script' + POSTFIX,
-    uiStylesheet: 'ui-stylesheet' + POSTFIX
+    postfix:            POSTFIX,
+    charset:            'charset' + POSTFIX,
+    script:             'script' + POSTFIX,
+    selfRemovingScript: 'self-removing-script' + POSTFIX,
+    uiStylesheet:       'ui-stylesheet' + POSTFIX
 };

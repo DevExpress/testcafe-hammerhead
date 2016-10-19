@@ -23,7 +23,7 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 const UNWRAP_COL_TAG_RE     = new RegExp(`<${ FAKE_TAG_NAME_PREFIX }col>([\\S\\s]*?)</${ FAKE_TAG_NAME_PREFIX }col>`, 'ig');
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
-    <script class="${ SHADOW_UI_CLASSNAME.script }" type="text/javascript">
+    <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
             var parentHammerhead = null;
             try {

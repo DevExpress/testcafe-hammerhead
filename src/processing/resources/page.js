@@ -9,7 +9,7 @@ import getBOM from '../../utils/get-bom';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent(`
-    <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.script }">
+    <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
         (function () {
             if (window["${ INTERNAL_PROPS.hammerheadPropertyName }"])
                 window["${ INTERNAL_PROPS.hammerheadPropertyName }"].sandbox.node.raiseBodyCreatedEvent();

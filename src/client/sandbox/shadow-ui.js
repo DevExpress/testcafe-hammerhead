@@ -374,6 +374,17 @@ export default class ShadowUI extends SandboxBase {
         return false;
     }
 
+    static removeSelfRemovingScripts (document) {
+        var selfRemovingScripts = nativeMethods.querySelectorAll.call(document,
+            '.' + SHADOW_UI_CLASS_NAME.selfRemovingScript);
+
+        for (var i = 0; i < selfRemovingScripts.length; i++) {
+            var script = selfRemovingScripts[i];
+
+            nativeMethods.removeChild.call(script.parentNode, script);
+        }
+    }
+
     // API
     // NOTE: this method cannot be static because it is a part of the public API
     addClass (el, value) {
