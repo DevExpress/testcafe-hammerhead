@@ -1,4 +1,5 @@
 var processScript = hammerhead.get('../processing/script').processScript;
+var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -529,3 +530,20 @@ if (!browserUtils.isIE) {
         document.body.appendChild(iframe);
     });
 }
+
+test('an iframe should not contain self-removing scripts after document.close (GH-871)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test-gh-871';
+
+    document.body.appendChild(iframe);
+
+    var iframeDocument = iframe.contentDocument;
+
+    iframeDocument.designMode = 'on';
+    iframeDocument.open();
+    iframeDocument.write('<body style=\"padding: 0; margin: 0; overflow: hidden;\"></body>');
+    iframeDocument.close();
+
+    strictEqual(nativeMethods.querySelectorAll.call(document, '.' + SHADOW_UI_CLASSNAME.selfRemovingScript).length, 0);
+});

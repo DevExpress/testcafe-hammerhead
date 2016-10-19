@@ -6,6 +6,7 @@ import * as urlUtils from '../../../utils/url';
 import { isIE, isIE9, isIE10 } from '../../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
+import ShadowUI from './../../shadow-ui';
 
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox) {
@@ -91,6 +92,10 @@ export default class DocumentSandbox extends SandboxBase {
             // window is not initialized.
             if (isIE && !IframeSandbox.isWindowInited(window))
                 nativeMethods.restoreDocumentMeths(document);
+
+            // NOTE: IE doesn't run scripts in iframe if iframe.documentContent.designMode equals 'on' (GH-871)
+            if (typeof document.designMode === 'string' && document.designMode.toLowerCase() === 'on')
+                ShadowUI.removeSelfRemovingScripts(document);
 
             var result = nativeMethods.documentClose.apply(document, args);
 
