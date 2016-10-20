@@ -192,6 +192,18 @@ describe('Script processor', function () {
             { src: 'location.host.toString()', expected: '__get$(__get$Loc(location), "host").toString()' },
             { src: 'location[host].toString()', expected: '__get$(__get$Loc(location), host).toString()' },
             {
+                src:      'obj.location = location = value;',
+                expected: '__set$(obj, "location", function() { return __set$Loc(location, value) || (location = value); }.apply(this));'
+            },
+            {
+                src:      'a(location = value)',
+                expected: 'a(function() { return __set$Loc(location, value) || (location = value); }.apply(this))'
+            },
+            {
+                src:      'obj.location = obj.location = obj.location',
+                expected: '__set$(obj,"location",__set$(obj,"location",__get$(obj,"location")))'
+            },
+            {
                 src:      'temp = { location: value, value: location }',
                 expected: 'temp = { location: value, value: __get$Loc(location) }'
             },
@@ -231,7 +243,6 @@ describe('Script processor', function () {
                 src:      'location["href"]+=value',
                 expected: '__set$(__get$Loc(location), "href", __get$(__get$Loc(location), "href") + value) '
             },
-
             {
                 src: 'location-=value;location*=value;location/=value;' +
                      'location>>=value;location<<=value;location>>>=value;' +
@@ -468,7 +479,10 @@ describe('Script processor', function () {
                 src:      'postMessage.apply(some, ["", ""])',
                 expected: '__get$PostMessage(null, postMessage).apply(some, ["", ""])'
             },
-            { src: 'postMessage.apply(window, args)', expected: '__get$PostMessage(null, postMessage).apply(window, args)' },
+            {
+                src:      'postMessage.apply(window, args)',
+                expected: '__get$PostMessage(null, postMessage).apply(window, args)'
+            },
             {
                 src:      'some.postMessage.apply(window, ["", ""])',
                 expected: '__get$PostMessage(some).apply(window, ["", ""])'
