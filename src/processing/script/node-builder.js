@@ -110,84 +110,90 @@ export function createLocationGetWrapper () {
     };
 }
 
-export function createLocationSetWrapper (value) {
-    return {
-        type: Syntax.ExpressionStatement,
+export function createLocationSetWrapper (value, isArgument) {
+    var wrapper = {
+        type: Syntax.CallExpression,
 
-        expression: {
-            type: Syntax.CallExpression,
+        callee: {
+            type:     Syntax.MemberExpression,
+            computed: false,
 
-            callee: {
-                type:     Syntax.MemberExpression,
-                computed: false,
+            object: {
+                type:     Syntax.FunctionExpression,
+                id:       null,
+                params:   [],
+                defaults: [],
 
-                object: {
-                    type:     Syntax.FunctionExpression,
-                    id:       null,
-                    params:   [],
-                    defaults: [],
+                body: {
+                    type: Syntax.BlockStatement,
+                    body: [
+                        {
+                            type: Syntax.ReturnStatement,
 
-                    body: {
-                        type: Syntax.BlockStatement,
-                        body: [
-                            {
-                                type: Syntax.ReturnStatement,
+                            argument: {
+                                type:     Syntax.LogicalExpression,
+                                operator: '||',
 
-                                argument: {
-                                    type:     Syntax.LogicalExpression,
-                                    operator: '||',
+                                left: {
+                                    type: Syntax.CallExpression,
 
-                                    left: {
-                                        type: Syntax.CallExpression,
-
-                                        callee: {
-                                            type: Syntax.Identifier,
-                                            name: INSTRUCTION.setLocation
-                                        },
-
-                                        arguments: [
-                                            {
-                                                type: Syntax.Identifier,
-                                                name: 'location'
-                                            },
-                                            value
-                                        ]
+                                    callee: {
+                                        type: Syntax.Identifier,
+                                        name: INSTRUCTION.setLocation
                                     },
 
-                                    right: {
-                                        type:     Syntax.AssignmentExpression,
-                                        operator: '=',
-
-                                        left: {
+                                    arguments: [
+                                        {
                                             type: Syntax.Identifier,
                                             name: 'location'
                                         },
+                                        value
+                                    ]
+                                },
 
-                                        right: value
-                                    }
+                                right: {
+                                    type:     Syntax.AssignmentExpression,
+                                    operator: '=',
+
+                                    left: {
+                                        type: Syntax.Identifier,
+                                        name: 'location'
+                                    },
+
+                                    right: value
                                 }
                             }
-                        ]
-                    },
-
-                    rest:       null,
-                    generator:  false,
-                    expression: false
+                        }
+                    ]
                 },
 
-                property: {
-                    type: Syntax.Identifier,
-                    name: 'apply'
-                }
+                rest:       null,
+                generator:  false,
+                expression: false
             },
 
-            arguments: [
-                {
-                    type: Syntax.ThisExpression
-                }
-            ]
-        }
+            property: {
+                type: Syntax.Identifier,
+                name: 'apply'
+            }
+        },
+
+        arguments: [
+            {
+                type: Syntax.ThisExpression
+            }
+        ]
     };
+
+    if (!isArgument) {
+        wrapper = {
+            type: Syntax.ExpressionStatement,
+
+            expression: wrapper
+        };
+    }
+
+    return wrapper;
 }
 
 export function createPropertySetWrapper (propertyName, obj, value) {
