@@ -186,12 +186,17 @@ export default class ElementSandbox extends SandboxBase {
             args[valueIndex] = 'off';
         }
         else if (attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
-            var storedTargetAttr = domProcessor.getStoredAttrName(attr);
+            var newTarget = this.getTarget(el, value);
 
-            setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
+            if (newTarget !== el.target) {
+                var storedTargetAttr = domProcessor.getStoredAttrName(attr);
 
-            args[valueIndex] = this.getTarget(el, value);
-            ElementSandbox._onTargetChanged(el, value);
+                setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
+                args[valueIndex]     = newTarget;
+                ElementSandbox._onTargetChanged(el, newTarget);
+            }
+            else
+                return;
         }
         else if (attr === 'sandbox') {
             var storedSandboxAttr = domProcessor.getStoredAttrName(attr);
@@ -560,13 +565,10 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    _getEffectiveTargetValue (el) {
-        if (el.target)
-            return el.target;
-
+    _getBaseTarget () {
         var baseElement = nativeMethods.querySelector.call(this.document, 'base');
 
-        return baseElement && baseElement.target || el.target;
+        return baseElement && baseElement.target;
     }
 
     _ensureTargetContainsExistingBrowsingContext (el) {
@@ -593,20 +595,20 @@ export default class ElementSandbox extends SandboxBase {
         }, false);
     }
 
-    getTarget (el, currentTarget) {
+    getTarget (el, newTarget) {
         if (el && domUtils.isInputElement(el)) {
             if (el.form)
                 el = el.form;
             else
-                return currentTarget;
+                return newTarget;
         }
 
-        var target = currentTarget || this._getEffectiveTargetValue(el);
+        var target = newTarget || this._getBaseTarget() || '';
 
         if (!ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) || /_blank/i.test(target))
             return '_top';
 
-        return currentTarget;
+        return target;
     }
 
     processElement (el) {

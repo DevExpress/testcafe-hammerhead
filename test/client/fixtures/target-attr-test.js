@@ -1,10 +1,18 @@
-var nativeMethods = hammerhead.nativeMethods;
+var urlUtils = hammerhead.get('./utils/url');
+
+var iframeSandbox  = hammerhead.sandbox.iframe;
+var nativeMethods  = hammerhead.nativeMethods;
+var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
 QUnit.testStart(function () {
     window.name = 'window_name';
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
 });
 
-module('"_blank" target attribute');
+QUnit.testDone(function () {
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+});
 
 function createTestedLink () {
     var link = document.createElement('a');
@@ -26,6 +34,8 @@ function checkLinkTarget (link, real, primary) {
 function provokeTargetCalculation (link) {
     link.click();
 }
+
+module('"_blank" target attribute');
 
 test('set attribute', function () {
     var link = createTestedLink();
@@ -177,4 +187,275 @@ test('all possible elements', function () {
         setProperty(el, 'target', '_blank');
         checkLinkTarget(el, '_top', '_blank');
     }
+});
+
+module('should ensure that target contains the existing window name (GH-247) (GH-745)', function () {
+    test('link', function () {
+        var link = document.createElement('a');
+
+        link.href   = 'http://example.com';
+        link.target = 'wrong_window_name';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_top');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+        document.body.appendChild(link);
+
+        eventSimulator.click(link);
+    });
+
+    test('link with keyword target', function () {
+        var link = document.createElement('a');
+
+        link.href   = 'http://example.com';
+        link.target = '_Parent';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_Parent');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+        document.body.appendChild(link);
+
+        eventSimulator.click(link);
+    });
+
+    test('base', function () {
+        var link = document.createElement('a');
+        var base = document.createElement('base');
+
+        base.target = 'wrong_window_name';
+        link.href   = 'http://example.com';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_top');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+
+        document.body.appendChild(link);
+        document.body.appendChild(base);
+
+        eventSimulator.click(link);
+    });
+
+    // TODO:
+    //test('base with keyword target', function () {
+    //    var link = document.createElement('a');
+    //    var base = document.createElement('base');
+    //
+    //    base.target = '_Parent';
+    //    link.href   = 'http://example.com';
+    //    link.addEventListener('click', function (e) {
+    //        strictEqual(link.target, '_self');
+    //
+    //        e.preventDefault();
+    //        link.parentNode.removeChild(link);
+    //    });
+    //
+    //    document.body.appendChild(link);
+    //    document.body.appendChild(base);
+    //
+    //    eventSimulator.click(link);
+    //});
+
+    test('effective target', function () {
+        var link = document.createElement('a');
+        var base = document.createElement('base');
+
+        base.target = '_Parent';
+        link.target = '_top';
+        link.href   = 'http://example.com';
+        link.addEventListener('click', function (e) {
+            strictEqual(link.target, '_top');
+
+            e.preventDefault();
+            link.parentNode.removeChild(link);
+        });
+
+        document.body.appendChild(link);
+        document.body.appendChild(base);
+
+        eventSimulator.click(link);
+    });
+
+    test('area', function () {
+        var area = document.createElement('area');
+        var map  = document.createElement('map');
+        var img  = document.createElement('img');
+
+        map.name    = 'test_cafe_logo';
+        img.src     = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
+        img.useMap  = 'test_cafe_logo';
+        area.coords = '0,0,100,100';
+        area.shape  = 'rect';
+        area.target = 'wrong_window_name';
+        area.href   = 'http://example.com';
+        area.addEventListener('click', function (e) {
+            strictEqual(area.target, '_top');
+
+            e.preventDefault();
+            map.parentNode.removeChild(map);
+            img.parentNode.removeChild(img);
+        });
+
+        map.appendChild(area);
+        document.body.appendChild(img);
+        document.body.appendChild(map);
+
+        eventSimulator.click(area);
+    });
+
+    // TODO:
+    //test('form', function () {
+    //    var form  = document.createElement('form');
+    //    var input = document.createElement('input');
+    //
+    //    input.type  = 'submit';
+    //    form.target = 'wrong_window_name';
+    //    form.action = 'http://example.com';
+    //    form.appendChild(input);
+    //
+    //    form.addEventListener('submit', function (e) {
+    //        strictEqual(form.target, '_top');
+    //
+    //        e.preventDefault();
+    //        form.parentNode.removeChild(form);
+    //    });
+    //    document.body.appendChild(form);
+    //    form.submit();
+    //});
+
+    test('input without form', function () {
+        var input = document.createElement('input');
+
+        input.addEventListener('click', function (e) {
+            ok(!input.target);
+
+            e.preventDefault();
+            input.parentNode.removeChild(input);
+        });
+        document.body.appendChild(input);
+
+        eventSimulator.click(input);
+    });
+
+    asyncTest('form.submit', function () {
+        var form                   = document.createElement('form');
+        var storedNativeFormSubmit = nativeMethods.formSubmit;
+
+        nativeMethods.formSubmit = function () {
+            strictEqual(form.target, '_top');
+
+            nativeMethods.formSubmit = storedNativeFormSubmit;
+            start();
+        };
+
+        form.target = 'wrong_window_name';
+        form.action = 'http://example.com';
+
+        document.body.appendChild(form);
+        form.submit();
+    });
+});
+
+module('regression');
+
+test('change href after target attribute changed (GH-534)', function () {
+    var iframe = document.createElement('iframe');
+    var check  = function (setTarget, clearTarget) {
+        var form = document.createElement('form');
+        var link = document.createElement('a');
+        var base = document.createElement('base');
+        var area = document.createElement('area');
+        var url  = 'http://some.domain.com/index.html';
+
+        form.setAttribute('action', url);
+        link.setAttribute('href', url);
+        base.setAttribute('href', url);
+        area.setAttribute('href', url);
+
+        strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'f');
+        strictEqual(urlUtils.parseProxyUrl(link.href).resourceType, null);
+        strictEqual(urlUtils.parseProxyUrl(base.href).resourceType, null);
+        strictEqual(urlUtils.parseProxyUrl(area.href).resourceType, null);
+
+        setTarget(form);
+        setTarget(link);
+        setTarget(base);
+        setTarget(area);
+
+        strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'if');
+        strictEqual(urlUtils.parseProxyUrl(link.href).resourceType, 'i');
+        strictEqual(urlUtils.parseProxyUrl(base.href).resourceType, 'i');
+        strictEqual(urlUtils.parseProxyUrl(area.href).resourceType, 'i');
+
+        clearTarget(form);
+        clearTarget(link);
+        clearTarget(base);
+        clearTarget(area);
+
+        strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'f');
+        strictEqual(urlUtils.parseProxyUrl(link.href).resourceType, null);
+        strictEqual(urlUtils.parseProxyUrl(base.href).resourceType, null);
+        strictEqual(urlUtils.parseProxyUrl(area.href).resourceType, null);
+    };
+
+    iframe.id   = 'test-' + Date.now();
+    iframe.name = 'test-window';
+    document.body.appendChild(iframe);
+
+    check(function (el) {
+        el.setAttribute('target', 'test-window');
+    }, function (el) {
+        el.removeAttribute('target');
+    });
+
+    check(function (el) {
+        el.setAttribute('target', 'test-window');
+    }, function (el) {
+        el.setAttribute('target', '');
+    });
+
+    check(function (el) {
+        setProperty(el, 'target', 'test-window');
+    }, function (el) {
+        setProperty(el, 'target', '');
+    });
+
+    check(function (el) {
+        el.setAttribute('target', 'test-window');
+    }, function (el) {
+        el.setAttribute('target', '_Self');
+    });
+
+    iframe.parentNode.removeChild(iframe);
+});
+
+asyncTest('The form in the iframe (GH-880)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test-' + Date.now();
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var form      = iframe.contentDocument.createElement('form');
+
+            iframe.contentDocument.body.appendChild(form);
+            form.setAttribute('action', 'http://some-domian.com/');
+            form.onsubmit = function () {
+                return false;
+            };
+
+            strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'if');
+            form.submit();
+            strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'if');
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
 });
