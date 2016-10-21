@@ -244,35 +244,35 @@ test('change href after target attribute changed (GH-534)', function () {
         strictEqual(urlUtils.parseProxyUrl(elUrl).resourceType, expected);
     };
 
-    var checkElement = function (el, attr, hasFormFlag) {
+    var checkElement = function (el, attr, hasFormFlag, hasIframeFlag) {
         el.setAttribute(attr, url);
         checkResourceType(el[attr], hasFormFlag);
 
         el.setAttribute('target', iframeName);
-        checkResourceType(el[attr], hasFormFlag, true);
+        checkResourceType(el[attr], hasFormFlag, hasIframeFlag);
         el.removeAttribute('target');
         checkResourceType(el[attr], hasFormFlag);
 
         el.setAttribute('target', iframeName);
-        checkResourceType(el[attr], hasFormFlag, true);
+        checkResourceType(el[attr], hasFormFlag, hasIframeFlag);
         el.setAttribute('target', '');
         checkResourceType(el[attr], hasFormFlag);
 
         setProperty(el, 'target', iframeName);
-        checkResourceType(el[attr], hasFormFlag, true);
+        checkResourceType(el[attr], hasFormFlag, hasIframeFlag);
         setProperty(el, 'target', '');
         checkResourceType(el[attr], hasFormFlag);
 
         el.setAttribute('target', iframeName);
-        checkResourceType(el[attr], hasFormFlag, true);
+        checkResourceType(el[attr], hasFormFlag, hasIframeFlag);
         el.setAttribute('target', '_Self');
         checkResourceType(el[attr], hasFormFlag);
     };
 
-    checkElement(document.createElement('form'), 'action', true);
-    checkElement(document.createElement('a'), 'href');
-    checkElement(document.createElement('base'), 'href');
-    checkElement(document.createElement('area'), 'href');
+    checkElement(document.createElement('form'), 'action', true, true);
+    checkElement(document.createElement('a'), 'href', false, true);
+    checkElement(document.createElement('base'), 'href', false, false);
+    checkElement(document.createElement('area'), 'href', false, true);
 
     iframe.parentNode.removeChild(iframe);
 });

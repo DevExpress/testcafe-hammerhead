@@ -4,6 +4,7 @@ import events from 'events';
 import * as urlUtils from '../../utils/url';
 import * as parse5Utils from '../../utils/parse5';
 import { SVG_NAMESPACE } from './namespaces';
+import { isIframeFlagTag } from './index';
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
     constructor (isIframe, crossDomainPort) {
@@ -71,7 +72,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     needToProcessUrl (tagName, target) {
-        if (this.isIframeFlagTag(tagName) && target === '_parent')
+        if (isIframeFlagTag(tagName) && target === '_parent')
             return false;
 
         return true;

@@ -33,6 +33,16 @@ const SVG_XLINK_HREF_TAGS = [
 ];
 
 const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base'];
+const IFRAME_FLAG_TAGS = (() => {
+    var arr = [];
+
+    for (var i = 0; i < TARGET_ATTR_TAGS.length; i++) {
+        if (TARGET_ATTR_TAGS[i] !== 'base')
+            arr.push(TARGET_ATTR_TAGS[i]);
+    }
+
+    return arr;
+})();
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -55,6 +65,10 @@ export default class DomProcessor {
 
     static isTagWithTargetAttr (tagName) {
         return TARGET_ATTR_TAGS.indexOf(tagName) !== -1;
+    }
+
+    static isIframeFlagTag (tagName) {
+        return tagName && IFRAME_FLAG_TAGS.indexOf(tagName) !== -1;
     }
 
     _createProcessorPatterns (adapter) {
@@ -208,7 +222,7 @@ export default class DomProcessor {
         var target  = this.adapter.getAttr(el, 'target');
 
         if (target !== '_top') {
-            var mustProcessTag = this.adapter.isIframeFlagTag(tagName);
+            var mustProcessTag = DomProcessor.isIframeFlagTag(tagName);
             var isNameTarget   = target ? target[0] !== '_' : false;
 
             if (target === '_parent')

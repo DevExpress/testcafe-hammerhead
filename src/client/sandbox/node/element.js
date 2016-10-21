@@ -42,27 +42,20 @@ export default class ElementSandbox extends SandboxBase {
         return KEYWORD_TARGETS.indexOf(value) !== -1;
     }
 
-    static _onTargetChanged (el, newTarget) {
-        var urlAttr        = domUtils.getTagName(el) === 'form' ? 'action' : 'href';
-        var url            = el[urlAttr];
-        var isIframeTarget = newTarget && !ElementSandbox._isKeywordTarget(newTarget);
+    static _onTargetChanged (el) {
+        var tagName = domUtils.getTagName(el);
 
-        if (url && urlUtils.isSupportedProtocol(url)) {
-            var parsedUrl = urlUtils.parseProxyUrl(url);
+        if (!DomProcessor.isIframeFlagTag(tagName))
+            return;
 
-            if (parsedUrl) {
-                var parsedResourceType = urlUtils.parseResourceType(parsedUrl.resourceType);
+        var urlAttr       = tagName === 'form' ? 'action' : 'href';
+        var storedUrlAttr = domProcessor.getStoredAttrName(urlAttr);
 
-                if (parsedResourceType.isIframe !== isIframeTarget) {
-                    var resourceType = urlUtils.stringifyResourceType({
-                        isIframe: isIframeTarget,
-                        isForm:   parsedResourceType.isForm,
-                        isScript: parsedResourceType.isScript
-                    });
+        if (el.hasAttribute(storedUrlAttr)) {
+            var url = el.getAttribute(storedUrlAttr);
 
-                    el[urlAttr] = urlUtils.getProxyUrl(parsedUrl.destUrl, { resourceType });
-                }
-            }
+            if (urlUtils.isSupportedProtocol(url))
+                el.setAttribute(urlAttr, url);
         }
     }
 
@@ -112,6 +105,8 @@ export default class ElementSandbox extends SandboxBase {
         var urlAttr     = domProcessor.isUrlAttr(el, attr, ns);
         var isEventAttr = domProcessor.EVENTS.indexOf(attr) !== -1;
 
+        var needToCallTargetChanged = false;
+
         value = String(value);
 
         var isSpecialPage       = urlUtils.isSpecialPage(value);
@@ -149,7 +144,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
 
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                args[valueIndex] = processedValue;
+                args[valueIndex]         = processedValue;
             }
             else
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
@@ -189,11 +184,11 @@ export default class ElementSandbox extends SandboxBase {
             var newTarget = this.getTarget(el, value);
 
             if (newTarget !== el.target) {
-                var storedTargetAttr = domProcessor.getStoredAttrName(attr);
+                var storedTargetAttr    = domProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
-                args[valueIndex] = newTarget;
-                ElementSandbox._onTargetChanged(el, newTarget);
+                args[valueIndex]        = newTarget;
+                needToCallTargetChanged = true;
             }
             else
                 return null;
@@ -224,13 +219,19 @@ export default class ElementSandbox extends SandboxBase {
                 args[valueIndex] = urlUtils.getProxyUrl(value);
         }
 
-        return setAttrMeth.apply(el, args);
+        var result = setAttrMeth.apply(el, args);
+
+        if (needToCallTargetChanged)
+            ElementSandbox._onTargetChanged(el);
+
+        return result;
     }
 
     _overridedRemoveAttributeCore (el, args, isNs) {
         var attr           = args[isNs ? 1 : 0];
         var removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
         var tagName        = domUtils.getTagName(el);
+        var result         = void 0;
 
         if (domProcessor.isUrlAttr(el, attr, isNs ? args[0] : null) || attr === 'sandbox' || attr === 'autocomplete' ||
             domProcessor.EVENTS.indexOf(attr) !== -1 ||
@@ -243,17 +244,16 @@ export default class ElementSandbox extends SandboxBase {
                 removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
         }
 
-        if (attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName))
-            ElementSandbox._onTargetChanged(el, null);
-
-
         if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
             urlResolver.updateBase(getDestLocation(), this.document);
 
         if (attr !== 'autocomplete')
-            return removeAttrFunc.apply(el, args);
+            result = removeAttrFunc.apply(el, args);
 
-        return void 0;
+        if (attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName))
+            ElementSandbox._onTargetChanged(el);
+
+        return result;
     }
 
     _prepareNodeForInsertion (node, parentNode) {
@@ -598,7 +598,8 @@ export default class ElementSandbox extends SandboxBase {
     getTarget (el, newTarget) {
         var target = newTarget || '';
 
-        if (target && !ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) || /_blank/i.test(target))
+        if (target && !ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) ||
+            /_blank/i.test(target))
             return '_top';
 
         return target;
@@ -626,7 +627,7 @@ export default class ElementSandbox extends SandboxBase {
 
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
         // See the usage of Parse5DomAdapter.needToProcessUrl
-        if (domProcessor.adapter.isIframeFlagTag(tagName) && el.target === '_parent')
+        if (DomProcessor.isIframeFlagTag(tagName) && el.target === '_parent')
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 }

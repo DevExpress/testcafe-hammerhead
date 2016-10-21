@@ -219,7 +219,7 @@ if (!browserUtils.isFirefox) {
                     start();
                 };
 
-                eval(processScript('iframe.contentWindow.location.assign("http://same-domain-url.com/")'));
+                eval(processScript('iframe.contentWindow.location.replace("http://same-domain-url.com/")'));
             });
 
         document.body.appendChild(iframe);

@@ -1,4 +1,3 @@
-var urlUtils = hammerhead.get('./utils/url');
 var settings = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -60,74 +59,6 @@ test('document.write', function () {
     ok(iframe.contentWindow.tempTestValue);
 
     iframe.parentNode.removeChild(iframe);
-});
-
-asyncTest('element.setAttribute', function () {
-    // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
-    var src    = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test20';
-    iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            var iframeHammerhead    = iframe.contentWindow['%hammerhead%'];
-            var iframeIframeSandbox = iframeHammerhead.sandbox.iframe;
-
-            iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
-            iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
-
-            var iframeDocument = iframe.contentDocument;
-            var iframeBody     = iframeDocument.body;
-            var nestedIframe   = iframeDocument.createElement('iframe');
-
-            nestedIframe.id = 'test21';
-
-            window.QUnitGlobals.waitForIframe(nestedIframe)
-                .then(function () {
-                    var nestedIframeHammerhead = nestedIframe.contentWindow['%hammerhead%'];
-
-                    ok(nestedIframeHammerhead);
-
-                    var nestedIframeDocument = nestedIframe.contentDocument;
-                    var nestedIframeBody     = nestedIframeDocument.body;
-                    var testData             = [
-                        [document.body, 'a', 'href', null, null],
-                        [iframeBody, 'a', 'href', null, 'i'],
-                        [document.body, 'form', 'action', null, 'f'],
-                        [iframeBody, 'form', 'action', null, 'if'],
-                        [document.body, 'area', 'href', null, null],
-                        [iframeBody, 'area', 'href', null, null],
-                        [document.body, 'a', 'href', '_top', null],
-                        [iframeBody, 'a', 'href', '_top', null],
-                        [nestedIframeBody, 'a', 'href', '_top', null],
-                        [document.body, 'a', 'href', '_parent', null],
-                        [iframeBody, 'a', 'href', '_parent', null],
-                        [nestedIframeBody, 'a', 'href', '_parent', 'i']
-                    ];
-
-                    var testIframeFlag = function (body, tag, urlAttr, target, resultFlag) {
-                        var element = iframeDocument.createElement(tag);
-
-                        body.appendChild(element);
-                        if (target)
-                            element.setAttribute('target', target);
-                        element.setAttribute(urlAttr, '/index.html');
-
-                        strictEqual(urlUtils.parseProxyUrl(element[urlAttr]).resourceType, resultFlag);
-
-                        body.removeChild(element);
-                    };
-
-                    for (var i = 0; i < testData.length; i++)
-                        testIframeFlag.apply(null, testData[i]);
-
-                    iframe.parentNode.removeChild(iframe);
-                    start();
-                });
-            iframeBody.appendChild(nestedIframe);
-        });
-    document.body.appendChild(iframe);
 });
 
 module('regression');
