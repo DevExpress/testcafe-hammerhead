@@ -9,7 +9,6 @@ var sharedUrlUtils = hammerhead.get('../utils/url');
 
 var nativeMethods  = hammerhead.nativeMethods;
 var iframeSandbox  = hammerhead.sandbox.iframe;
-var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
