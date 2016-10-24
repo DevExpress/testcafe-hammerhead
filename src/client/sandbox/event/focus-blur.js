@@ -198,7 +198,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             callback();
     }
 
-    focus (el, callback, silent, forMouseEvent, isNativeFocus) {
+    focus (el, callback, silent, forMouseEvent, isNativeFocus, preventScrolling) {
         if (this.shouldDisableOuterFocusHandlers && !domUtils.isShadowUIElement(el))
             return null;
 
@@ -248,7 +248,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                 else
                     this._callFocusCallback(callback, el);
 
-            }, withoutHandlers || silent, isAsync, forMouseEvent);
+            }, withoutHandlers || silent, isAsync, forMouseEvent, preventScrolling);
         };
 
         if (isNativeFocus && browserUtils.isIE) {

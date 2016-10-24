@@ -852,6 +852,33 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
     }, false, true);
 });
 
+asyncTest("focus() must not scroll to the element if 'preventScrolling' argument is true", function () {
+    var div = document.createElement('input');
+
+    $(div)
+        .css({
+            backgroundColor: 'grey',
+            width:           '500px',
+            height:          '500px',
+            top:             '2500px',
+            position:        'absolute'
+        })
+        .attr('tabIndex', 1);
+
+    document.body.appendChild(div);
+
+    var oldWindowScroll = styleUtil.getElementScroll(window);
+
+    focusBlur.focus(div, function () {
+        var currentWindowScroll = styleUtil.getElementScroll(window);
+
+        deepEqual(currentWindowScroll, oldWindowScroll);
+
+        document.body.removeChild(div);
+        start();
+    }, false, true, false, true);
+});
+
 module('regression');
 
 test('querySelector must return active element even when browser is not focused (T285078)', function () {
