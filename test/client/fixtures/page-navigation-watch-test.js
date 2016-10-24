@@ -1,7 +1,6 @@
 var urlUtils = hammerhead.get('./utils/url');
 var settings = hammerhead.get('./settings');
 
-var browserUtils   = hammerhead.utils.browser;
 var storageSandbox = hammerhead.sandbox.storageSandbox;
 var Promise        = hammerhead.Promise;
 var formatUrl      = urlUtils.formatUrl;
