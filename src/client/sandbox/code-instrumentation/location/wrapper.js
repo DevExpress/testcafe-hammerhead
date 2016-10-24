@@ -1,3 +1,4 @@
+import EventEmitter from '../../../utils/event-emitter';
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
 import { getProxyUrl, changeDestUrlPart, parseProxyUrl, parseResourceType, isChangedOnlyHash } from '../../../utils/url';
@@ -12,8 +13,13 @@ function getLocationUrl (window) {
     }
 }
 
-export default class LocationWrapper {
+export default class LocationWrapper extends EventEmitter {
     constructor (window) {
+        super();
+
+        this.CHANGED_EVENT = 'hammerhead|event|location-changed';
+
+        var onChanged            = value => this.emit(this.CHANGED_EVENT, value);
         var locationUrl          = getLocationUrl(window);
         var parsedLocation       = locationUrl && parseProxyUrl(locationUrl);
         var locationResourceType = parsedLocation ? parsedLocation.resourceType : '';
@@ -40,7 +46,10 @@ export default class LocationWrapper {
         Object.defineProperty(this, 'href', createPropertyDesc({
             get: getHref,
             set: href => {
-                window.location.href = getProxiedHref(href);
+                var proxiedHref = getProxiedHref(href);
+
+                window.location.href = proxiedHref;
+                onChanged(proxiedHref);
 
                 return href;
             }
@@ -49,7 +58,10 @@ export default class LocationWrapper {
         Object.defineProperty(this, 'search', createPropertyDesc({
             get: () => window.location.search,
             set: search => {
-                window.location = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
+                var newLocation = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
+
+                window.location = newLocation;
+                onChanged(newLocation);
 
                 return search;
             }
@@ -69,23 +81,49 @@ export default class LocationWrapper {
             }
         }));
 
+        var overrideProperty = property => {
+            Object.defineProperty(this, property, createPropertyDesc({
+                get: () => getParsedDestLocation()[property],
+                set: value => {
+                    var newLocation = changeDestUrlPart(window.location.toString(), property, value, resourceType);
+
+                    window.location = newLocation;
+                    onChanged(newLocation);
+
+                    return value;
+                }
+            }));
+        };
+
         for (var i = 0, len = urlProps.length; i < len; i++)
-            LocationWrapper._defineUrlProp(this, window, urlProps[i], resourceType);
+            overrideProperty(urlProps[i]);
 
-        this.assign   = url => window.location.assign(getProxiedHref(url));
-        this.replace  = url => window.location.replace(getProxiedHref(url));
-        this.reload   = forceget => window.location.reload(forceget);
+        this.assign = url => {
+            var proxiedHref = getProxiedHref(url);
+            var result      = window.location.assign(proxiedHref);
+
+            onChanged(proxiedHref);
+
+            return result;
+        };
+
+        this.replace = url => {
+            var proxiedHref = getProxiedHref(url);
+            var result      = window.location.replace(proxiedHref);
+
+            onChanged(proxiedHref);
+
+            return result;
+        };
+
+        this.reload = forceget => {
+            var result = window.location.reload(forceget);
+
+            onChanged(window.location.toString());
+
+            return result;
+        };
+
         this.toString = () => getHref();
-    }
-
-    static _defineUrlProp (wrapper, window, prop, resourceType) {
-        Object.defineProperty(wrapper, prop, createPropertyDesc({
-            get: () => getParsedDestLocation()[prop],
-            set: value => {
-                window.location = changeDestUrlPart(window.location.toString(), prop, value, resourceType);
-
-                return value;
-            }
-        }));
     }
 }

@@ -16,16 +16,22 @@ import trim from '../utils/string-trim';
 import { isRelativeUrl, parseProxyUrl } from '../utils/url';
 import { getProxyUrl } from './utils/url';
 import { processScript } from '../processing/script';
-import { SCRIPT_PROCESSING_START_COMMENT, SCRIPT_PROCESSING_END_HEADER_COMMENT, SCRIPT_PROCESSING_END_COMMENT } from '../processing/script/header';
+import {
+    SCRIPT_PROCESSING_START_COMMENT,
+    SCRIPT_PROCESSING_END_HEADER_COMMENT,
+    SCRIPT_PROCESSING_END_COMMENT
+} from '../processing/script/header';
 import { STYLESHEET_PROCESSING_START_COMMENT, STYLESHEET_PROCESSING_END_COMMENT } from '../processing/style';
 import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
+import RedirectWatch from './redirect-watch';
 
 class Hammerhead {
     constructor () {
-        this.win     = null;
-        this.sandbox = new Sandbox();
+        this.win           = null;
+        this.sandbox       = new Sandbox();
+        this.redirectWatch = new RedirectWatch(this.sandbox.codeInstrumentation);
 
         this.EVENTS = {
             beforeFormSubmit:   this.sandbox.node.element.BEFORE_FORM_SUBMIT,
@@ -41,7 +47,8 @@ class Hammerhead {
             xhrCompleted:       this.sandbox.xhr.XHR_COMPLETED_EVENT,
             xhrError:           this.sandbox.xhr.XHR_ERROR_EVENT,
             xhrSend:            this.sandbox.xhr.XHR_SEND_EVENT,
-            fetchSend:          this.sandbox.fetch.FETCH_REQUEST_SEND_EVENT
+            fetchSend:          this.sandbox.fetch.FETCH_REQUEST_SEND_EVENT,
+            redirectDetected:   this.redirectWatch.DETECTED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
@@ -99,6 +106,9 @@ class Hammerhead {
 
     _getEventOwner (evtName) {
         switch (evtName) {
+            case this.EVENTS.redirectDetected:
+                return this.redirectWatch;
+
             case this.EVENTS.beforeUnload:
             case this.EVENTS.beforeBeforeUnload:
             case this.EVENTS.upload:
@@ -156,9 +166,9 @@ class Hammerhead {
         // NOTE: For the 'about:blank' page, we perform url proxing only for the top window, 'location' object and links.
         // For images and iframes, we keep urls as they were.
         // See details in https://github.com/DevExpress/testcafe-hammerhead/issues/339
-        var destLocation    = null;
-        var isIframe        = this.win.top !== this.win;
-        var winLocation     = this.win.location.toString();
+        var destLocation = null;
+        var isIframe     = this.win.top !== this.win;
+        var winLocation  = this.win.location.toString();
 
         if (isIframe)
             destLocation = winLocation;
