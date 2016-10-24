@@ -434,7 +434,7 @@ test('change href after target attribute changed (GH-534)', function () {
     iframe.parentNode.removeChild(iframe);
 });
 
-asyncTest('The form in the iframe (GH-880)', function () {
+/*asyncTest('The form in the iframe (GH-880)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test-' + Date.now();
@@ -458,4 +458,4 @@ asyncTest('The form in the iframe (GH-880)', function () {
         });
 
     document.body.appendChild(iframe);
-});
+});*/

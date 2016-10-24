@@ -196,7 +196,7 @@ export default class ElementSandbox extends SandboxBase {
                 ElementSandbox._onTargetChanged(el, newTarget);
             }
             else
-                return;
+                return null;
         }
         else if (attr === 'sandbox') {
             var storedSandboxAttr = domProcessor.getStoredAttrName(attr);
