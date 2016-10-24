@@ -31,7 +31,7 @@ class Hammerhead {
     constructor () {
         this.win           = null;
         this.sandbox       = new Sandbox();
-        this.redirectWatch = new RedirectWatch(this.sandbox.codeInstrumentation);
+        this.redirectWatch = new RedirectWatch(this.sandbox.codeInstrumentation, this.sandbox.event);
 
         this.EVENTS = {
             beforeFormSubmit:   this.sandbox.node.element.BEFORE_FORM_SUBMIT,
@@ -195,6 +195,7 @@ class Hammerhead {
         }
 
         this.sandbox.attach(this.win);
+        this.redirectWatch.init();
     }
 }
 
