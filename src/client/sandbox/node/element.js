@@ -149,7 +149,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
 
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                args[valueIndex]         = processedValue;
+                args[valueIndex] = processedValue;
             }
             else
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
@@ -192,7 +192,7 @@ export default class ElementSandbox extends SandboxBase {
                 var storedTargetAttr = domProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
-                args[valueIndex]     = newTarget;
+                args[valueIndex] = newTarget;
                 ElementSandbox._onTargetChanged(el, newTarget);
             }
             else
@@ -230,9 +230,11 @@ export default class ElementSandbox extends SandboxBase {
     _overridedRemoveAttributeCore (el, args, isNs) {
         var attr           = args[isNs ? 1 : 0];
         var removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
+        var tagName        = domUtils.getTagName(el);
 
         if (domProcessor.isUrlAttr(el, attr, isNs ? args[0] : null) || attr === 'sandbox' || attr === 'autocomplete' ||
-            domProcessor.EVENTS.indexOf(attr) !== -1) {
+            domProcessor.EVENTS.indexOf(attr) !== -1 ||
+            attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
             if (attr === 'autocomplete')
@@ -241,8 +243,9 @@ export default class ElementSandbox extends SandboxBase {
                 removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
         }
 
-        if (attr === 'target')
+        if (attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName))
             ElementSandbox._onTargetChanged(el, null);
+
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
             urlResolver.updateBase(getDestLocation(), this.document);
@@ -565,12 +568,6 @@ export default class ElementSandbox extends SandboxBase {
         });
     }
 
-    _getBaseTarget () {
-        var baseElement = nativeMethods.querySelector.call(this.document, 'base');
-
-        return baseElement && baseElement.target;
-    }
-
     _ensureTargetContainsExistingBrowsingContext (el) {
         var storedAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target'));
 
@@ -579,6 +576,9 @@ export default class ElementSandbox extends SandboxBase {
 
     _setValidBrowsingContextOnClick (el) {
         el.addEventListener('click', () => {
+            if (domUtils.isInputElement(el) && el.form)
+                el = el.form;
+
             this._ensureTargetContainsExistingBrowsingContext(el);
         });
     }
@@ -596,16 +596,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     getTarget (el, newTarget) {
-        if (el && domUtils.isInputElement(el)) {
-            if (el.form)
-                el = el.form;
-            else
-                return newTarget;
-        }
+        var target = newTarget || '';
 
-        var target = newTarget || this._getBaseTarget() || '';
-
-        if (!ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) || /_blank/i.test(target))
+        if (target && !ElementSandbox._isKeywordTarget(target) && !windowsStorage.findByName(target) || /_blank/i.test(target))
             return '_top';
 
         return target;
