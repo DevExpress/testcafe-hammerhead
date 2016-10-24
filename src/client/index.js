@@ -48,7 +48,7 @@ class Hammerhead {
             xhrError:           this.sandbox.xhr.XHR_ERROR_EVENT,
             xhrSend:            this.sandbox.xhr.XHR_SEND_EVENT,
             fetchSend:          this.sandbox.fetch.FETCH_REQUEST_SEND_EVENT,
-            redirectDetected:   this.redirectWatch.DETECTED_EVENT
+            redirectTriggered:  this.redirectWatch.REDIRECT_TRIGGERED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
@@ -106,7 +106,7 @@ class Hammerhead {
 
     _getEventOwner (evtName) {
         switch (evtName) {
-            case this.EVENTS.redirectDetected:
+            case this.EVENTS.redirectTriggered:
                 return this.redirectWatch;
 
             case this.EVENTS.beforeUnload:

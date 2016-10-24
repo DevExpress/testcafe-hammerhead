@@ -29,7 +29,7 @@ function changeLocation (locationChangeScript) {
             .then(function () {
                 var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
 
-                iframeHammerhead.on(iframeHammerhead.EVENTS.redirectDetected, function (e) {
+                iframeHammerhead.on(iframeHammerhead.EVENTS.redirectTriggered, function (e) {
                     resolved = true;
                     document.body.removeChild(iframe);
                     resolve(e);

@@ -7,7 +7,7 @@ export default class RedirectWatch extends EventEmiter {
     constructor (codeInstrumentation) {
         super();
 
-        this.DETECTED_EVENT = 'hammerhead|event|redirect-detected';
+        this.REDIRECT_TRIGGERED_EVENT = 'hammerhead|event|redirect-triggered';
 
         var locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
         var propertyAccessorsInstrumentation = codeInstrumentation.propertyAccessorsInstrumentation;
@@ -21,7 +21,7 @@ export default class RedirectWatch extends EventEmiter {
                 newLocation.replace(HASH_RE, '') === currentLocation.replace(HASH_RE, ''))
                 return;
 
-            this.emit(this.DETECTED_EVENT, parseProxyUrl(newLocation).destUrl);
+            this.emit(this.REDIRECT_TRIGGERED_EVENT, parseProxyUrl(newLocation).destUrl);
         };
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
