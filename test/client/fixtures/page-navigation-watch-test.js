@@ -6,7 +6,7 @@ var storageSandbox = hammerhead.sandbox.storageSandbox;
 var Promise        = hammerhead.Promise;
 var formatUrl      = urlUtils.formatUrl;
 
-var iframeLocation  = 'http://example.com/redirect-watch/';
+var iframeLocation  = 'http://example.com/page-navigation-watch/';
 var storedSessionId = settings.get().sessionId;
 
 QUnit.testStart(function () {
@@ -30,7 +30,7 @@ function changeLocation (locationChangeScript) {
             .then(function () {
                 var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
 
-                iframeHammerhead.on(iframeHammerhead.EVENTS.redirectTriggered, function (e) {
+                iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
                     resolved = true;
                     document.body.removeChild(iframe);
                     resolve(e);
@@ -176,7 +176,6 @@ asyncTest('location.search = ...', function () {
 
 module('Click by link');
 asyncTest('Click by mouse', function () {
-    debugger;
     var iframe = document.createElement('iframe');
 
     iframe.id  = 'test' + Date.now();
@@ -186,7 +185,7 @@ asyncTest('Click by mouse', function () {
         .then(function () {
             var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
 
-            iframeHammerhead.on(iframeHammerhead.EVENTS.redirectTriggered, function (e) {
+            iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
                 strictEqual(e, iframeLocation + 'index.html');
                 document.body.removeChild(iframe);
                 start();
@@ -213,7 +212,7 @@ asyncTest('Click via js', function () {
         .then(function () {
             var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
 
-            iframeHammerhead.on(iframeHammerhead.EVENTS.redirectTriggered, function (e) {
+            iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
                 strictEqual(e, iframeLocation + 'index.html');
                 document.body.removeChild(iframe);
                 start();
@@ -242,7 +241,7 @@ if (!browserUtils.isWebKit) {
             .then(function () {
                 var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
 
-                iframeHammerhead.on(iframeHammerhead.EVENTS.redirectTriggered, function (e) {
+                iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
                     strictEqual(e, iframeLocation + 'index.html');
                     document.body.removeChild(iframe);
                     start();

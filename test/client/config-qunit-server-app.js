@@ -31,7 +31,7 @@ module.exports = function (app) {
     app.use(urlRewriteProxyRequest);
 
     app.get('/' + unchangeableUrlSession + '!i/*', function (req, res) {
-        res.send(fs.readFileSync('./test/client/data/redirect-watch/location-subject.html').toString());
+        res.send(fs.readFileSync('./test/client/data/page-navigation-watch/location-subject.html').toString());
     });
 
     app.get('/xhr-large-response', function (req, res) {

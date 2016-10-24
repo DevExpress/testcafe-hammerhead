@@ -7,11 +7,11 @@ import domProcessor from './dom-processor/index';
 
 const HASH_RE = /#.*$/;
 
-export default class RedirectWatch extends EventEmiter {
+export default class PageNavigationWatch extends EventEmiter {
     constructor (codeInstrumentation, eventSandbox) {
         super();
 
-        this.REDIRECT_TRIGGERED_EVENT = 'hammerhead|event|redirect-triggered';
+        this.PAGE_NAVIGATION_TRIGGERED_EVENT = 'hammerhead|event|page-navigation-triggered';
 
         this.codeInstrumentation = codeInstrumentation;
         this.eventSandbox        = eventSandbox;
@@ -22,13 +22,12 @@ export default class RedirectWatch extends EventEmiter {
         this._linkClickWatch();
     }
 
-    redirect (url) {
-        this.emit(this.REDIRECT_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
+    onNavigationTriggered (url) {
+        this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
     }
 
     _linkClickWatch () {
         this.eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
-            debugger;
             var link = e.target;
 
             if (link.tagName && link.tagName.toLowerCase() === 'a' && !isShadowUIElement(link)) {
@@ -46,7 +45,7 @@ export default class RedirectWatch extends EventEmiter {
                         targetWindow = window.parent;
                 }
                 try {
-                    targetWindow['%hammerhead%'].redirectWatch.redirect(link.href);
+                    targetWindow['%hammerhead%'].pageNavigationWatch.onNavigationTriggered(link.href);
                 }
                     /*eslint-disable no-empty */
                 catch (ex) {
@@ -69,7 +68,7 @@ export default class RedirectWatch extends EventEmiter {
                 newLocation.replace(HASH_RE, '') === currentLocation.replace(HASH_RE, ''))
                 return;
 
-            this.redirect(newLocation);
+            this.onNavigationTriggered(newLocation);
         };
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);

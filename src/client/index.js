@@ -25,30 +25,30 @@ import { STYLESHEET_PROCESSING_START_COMMENT, STYLESHEET_PROCESSING_END_COMMENT 
 import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
-import RedirectWatch from './redirect-watch';
+import PageNavigationWatch from './page-navigation-watch';
 
 class Hammerhead {
     constructor () {
-        this.win           = null;
-        this.sandbox       = new Sandbox();
-        this.redirectWatch = new RedirectWatch(this.sandbox.codeInstrumentation, this.sandbox.event);
+        this.win                 = null;
+        this.sandbox             = new Sandbox();
+        this.pageNavigationWatch = new PageNavigationWatch(this.sandbox.codeInstrumentation, this.sandbox.event);
 
         this.EVENTS = {
-            beforeFormSubmit:   this.sandbox.node.element.BEFORE_FORM_SUBMIT,
-            beforeBeforeUnload: this.sandbox.event.unload.BEFORE_BEFORE_UNLOAD_EVENT,
-            beforeUnload:       this.sandbox.event.unload.BEFORE_UNLOAD_EVENT,
-            unload:             this.sandbox.event.unload.UNLOAD_EVENT,
-            bodyCreated:        this.sandbox.node.mutation.BODY_CREATED_EVENT,
-            documentCleaned:    this.sandbox.node.mutation.DOCUMENT_CLEANED_EVENT,
-            uncaughtJsError:    this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
-            startFileUploading: this.sandbox.upload.START_FILE_UPLOADING_EVENT,
-            endFileUploading:   this.sandbox.upload.END_FILE_UPLOADING_EVENT,
-            evalIframeScript:   this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT,
-            xhrCompleted:       this.sandbox.xhr.XHR_COMPLETED_EVENT,
-            xhrError:           this.sandbox.xhr.XHR_ERROR_EVENT,
-            xhrSend:            this.sandbox.xhr.XHR_SEND_EVENT,
-            fetchSend:          this.sandbox.fetch.FETCH_REQUEST_SEND_EVENT,
-            redirectTriggered:  this.redirectWatch.REDIRECT_TRIGGERED_EVENT
+            beforeFormSubmit:        this.sandbox.node.element.BEFORE_FORM_SUBMIT,
+            beforeBeforeUnload:      this.sandbox.event.unload.BEFORE_BEFORE_UNLOAD_EVENT,
+            beforeUnload:            this.sandbox.event.unload.BEFORE_UNLOAD_EVENT,
+            unload:                  this.sandbox.event.unload.UNLOAD_EVENT,
+            bodyCreated:             this.sandbox.node.mutation.BODY_CREATED_EVENT,
+            documentCleaned:         this.sandbox.node.mutation.DOCUMENT_CLEANED_EVENT,
+            uncaughtJsError:         this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
+            startFileUploading:      this.sandbox.upload.START_FILE_UPLOADING_EVENT,
+            endFileUploading:        this.sandbox.upload.END_FILE_UPLOADING_EVENT,
+            evalIframeScript:        this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT,
+            xhrCompleted:            this.sandbox.xhr.XHR_COMPLETED_EVENT,
+            xhrError:                this.sandbox.xhr.XHR_ERROR_EVENT,
+            xhrSend:                 this.sandbox.xhr.XHR_SEND_EVENT,
+            fetchSend:               this.sandbox.fetch.FETCH_REQUEST_SEND_EVENT,
+            pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
@@ -106,8 +106,8 @@ class Hammerhead {
 
     _getEventOwner (evtName) {
         switch (evtName) {
-            case this.EVENTS.redirectTriggered:
-                return this.redirectWatch;
+            case this.EVENTS.pageNavigationTriggered:
+                return this.pageNavigationWatch;
 
             case this.EVENTS.beforeUnload:
             case this.EVENTS.beforeBeforeUnload:
@@ -195,7 +195,7 @@ class Hammerhead {
         }
 
         this.sandbox.attach(this.win);
-        this.redirectWatch.init();
+        this.pageNavigationWatch.init();
     }
 }
 
