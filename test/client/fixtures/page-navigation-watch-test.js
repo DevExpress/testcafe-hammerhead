@@ -229,32 +229,35 @@ asyncTest('Click via js', function () {
     document.body.appendChild(iframe);
 });
 
-if (!browserUtils.isWebKit) {
-    asyncTest('Link with target attribute', function () {
-        var iframe = document.createElement('iframe');
+asyncTest('Link with target attribute', function () {
+    var iframe = document.createElement('iframe');
 
-        iframe.id   = 'test' + Date.now();
-        iframe.name = 'iframeName';
-        iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
+    iframe.id   = 'test' + Date.now();
+    iframe.name = 'iframeName';
+    iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
 
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
-                var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
+            var link             = document.createElement('a');
 
-                iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
-                    strictEqual(e, iframeLocation + 'index.html');
+            iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
+                strictEqual(e, iframeLocation + 'index.html');
+
+                // NOTE: wait while all click handlers done
+                window.setTimeout(function () {
                     document.body.removeChild(iframe);
+                    document.body.removeChild(link);
                     start();
-                });
-
-                var link = document.createElement('a');
-
-                link.setAttribute('href', iframeLocation + 'index.html');
-                link.setAttribute('target', 'iframeName');
-                document.body.appendChild(link);
-                link.click();
+                }, 0);
             });
 
-        document.body.appendChild(iframe);
-    });
-}
+            link.textContent = 'test';
+            link.setAttribute('href', iframeLocation + 'index.html');
+            link.setAttribute('target', 'iframeName');
+            document.body.appendChild(link);
+            link.click();
+        });
+
+    document.body.appendChild(iframe);
+});
