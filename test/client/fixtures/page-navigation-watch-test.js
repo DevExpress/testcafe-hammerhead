@@ -17,31 +17,35 @@ QUnit.testDone(function () {
     settings.get().sessionId = storedSessionId;
 });
 
-function changeLocation (locationChangeScript) {
+function navigateIframe (navigationScript, keepIframe, iframeName) {
     return new Promise(function (resolve, reject) {
-        var iframe   = document.createElement('iframe');
-        var resolved = false;
+        var iframe = document.createElement('iframe');
 
-        iframe.id  = 'test' + Date.now();
-        iframe.src = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
+        iframe.id   = 'test' + Date.now();
+        iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
+        iframe.name = iframeName || 'iframeName';
 
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
+                var timerId          = null;
+                var finish           = function () {
+                    if (!keepIframe && iframe.parentNode)
+                        iframe.parentNode.removeChild(iframe);
+                };
 
                 iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
-                    resolved = true;
-                    document.body.removeChild(iframe);
+                    clearTimeout(timerId);
+                    finish();
                     resolve(e);
                 });
-                iframe.contentWindow.eval(processScript(locationChangeScript));
 
-                window.setTimeout(function () {
-                    if (!resolved) {
-                        document.body.removeChild(iframe);
-                        reject();
-                    }
-                }, 200);
+                iframe.contentWindow.eval(window.processScript(navigationScript));
+
+                timerId = window.setTimeout(function () {
+                    finish();
+                    reject();
+                }, 100);
             });
 
         document.body.appendChild(iframe);
@@ -51,53 +55,53 @@ function changeLocation (locationChangeScript) {
 module('Location changed');
 
 asyncTest('location.href = ...', function () {
-    changeLocation('location.href = "./index.html";').then(function (e) {
+    navigateIframe('location.href = "./index.html";').then(function (e) {
         strictEqual(e, iframeLocation + 'index.html');
         start();
     });
 });
 
 asyncTest('location = ...', function () {
-    changeLocation('location = "./index.html";').then(function (e) {
+    navigateIframe('location = "./index.html";').then(function (e) {
         strictEqual(e, iframeLocation + 'index.html');
         start();
     });
 });
 
 asyncTest('window.location = ...', function () {
-    changeLocation('window.location = "./index.html";').then(function (e) {
+    navigateIframe('window.location = "./index.html";').then(function (e) {
         strictEqual(e, iframeLocation + 'index.html');
         start();
     });
 });
 
 asyncTest('location.assing(...)', function () {
-    changeLocation('location.assign("./index.html");').then(function (e) {
+    navigateIframe('location.assign("./index.html");').then(function (e) {
         strictEqual(e, iframeLocation + 'index.html');
         start();
     });
 });
 
 asyncTest('location.replace(...)', function () {
-    changeLocation('location.replace("./index.html");').then(function (e) {
+    navigateIframe('location.replace("./index.html");').then(function (e) {
         strictEqual(e, iframeLocation + 'index.html');
         start();
     });
 });
 
 asyncTest('location.reload(...)', function () {
-    changeLocation('location.reload();').then(function (e) {
+    navigateIframe('location.reload();').then(function (e) {
         strictEqual(e, iframeLocation);
         start();
     });
 });
 
 asyncTest('Hash', function () {
-    changeLocation('location.href += "#hash";').then(function () {
+    navigateIframe('location.href += "#hash";').then(function () {
         ok(!true);
         start();
     }, function () {
-        changeLocation('location.hash = "hash";').then(function () {
+        navigateIframe('location.hash = "hash";').then(function () {
             ok(!true);
             start();
         }, function () {
@@ -108,7 +112,7 @@ asyncTest('Hash', function () {
 });
 
 asyncTest('location.port = ...', function () {
-    changeLocation('location.port = "8080";').then(function (e) {
+    navigateIframe('location.port = "8080";').then(function (e) {
         var parsedIframeLocation = urlUtils.parseUrl(iframeLocation);
 
         parsedIframeLocation.host += ':8080';
@@ -119,7 +123,7 @@ asyncTest('location.port = ...', function () {
 });
 
 asyncTest('location.host = ...', function () {
-    changeLocation('location.host = "host";').then(function (e) {
+    navigateIframe('location.host = "host";').then(function (e) {
         var parsedIframeLocation = urlUtils.parseUrl(iframeLocation);
 
         parsedIframeLocation.host = 'host';
@@ -130,7 +134,7 @@ asyncTest('location.host = ...', function () {
 });
 
 asyncTest('location.hostname = ...', function () {
-    changeLocation('location.hostname = "hostname";').then(function (e) {
+    navigateIframe('location.hostname = "hostname";').then(function (e) {
         var parsedIframeLocation = urlUtils.parseUrl(iframeLocation);
 
         parsedIframeLocation.hostname = parsedIframeLocation.host = 'hostname';
@@ -141,7 +145,7 @@ asyncTest('location.hostname = ...', function () {
 });
 
 asyncTest('location.pathname = ...', function () {
-    changeLocation('location.pathname = "/pathname/pathname";').then(function (e) {
+    navigateIframe('location.pathname = "/pathname/pathname";').then(function (e) {
         var parsedIframeLocation = urlUtils.parseUrl(iframeLocation);
 
         parsedIframeLocation.partAfterHost = '/pathname/pathname';
@@ -152,7 +156,7 @@ asyncTest('location.pathname = ...', function () {
 });
 
 asyncTest('location.protocol = ...', function () {
-    changeLocation('location.protocol = "https:";').then(function (e) {
+    navigateIframe('location.protocol = "https:";').then(function (e) {
         var parsedIframeLocation = urlUtils.parseUrl(iframeLocation);
 
         parsedIframeLocation.protocol = 'https:';
@@ -163,7 +167,7 @@ asyncTest('location.protocol = ...', function () {
 });
 
 asyncTest('location.search = ...', function () {
-    changeLocation('location.search = "?a=b";').then(function (e) {
+    navigateIframe('location.search = "?a=b";').then(function (e) {
         var parsedIframeLocation = urlUtils.parseUrl(iframeLocation);
 
         parsedIframeLocation.partAfterHost += '?a=b';
@@ -175,88 +179,171 @@ asyncTest('location.search = ...', function () {
 
 module('Click by link');
 asyncTest('Click by mouse', function () {
-    var iframe = document.createElement('iframe');
+    var navigationScript = 'var link = document.createElement("a");' +
+                           'link.href = "./index.html";' +
+                           'document.body.appendChild(link);' +
+                           'window["%hammerhead%"].eventSandbox.eventSimulator.click(link);';
 
-    iframe.id  = 'test' + Date.now();
-    iframe.src = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
-
-            iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
-                strictEqual(e, iframeLocation + 'index.html');
-                document.body.removeChild(iframe);
-                start();
-            });
-
-            iframe.contentWindow.eval(
-                'var link = document.createElement("a");' +
-                'link.href = "./index.html";' +
-                'document.body.appendChild(link);' +
-                'window["%hammerhead%"].eventSandbox.eventSimulator.click(link);'
-            );
-        });
-
-    document.body.appendChild(iframe);
+    navigateIframe(navigationScript).then(function (e) {
+        strictEqual(e, iframeLocation + 'index.html');
+        start();
+    });
 });
 
 asyncTest('Click via js', function () {
-    var iframe = document.createElement('iframe');
+    var navigationScript = 'var link = document.createElement("a");' +
+                           'link.href = "./index.html";' +
+                           'document.body.appendChild(link);' +
+                           'link.click(link);';
 
-    iframe.id  = 'test' + Date.now();
-    iframe.src = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
-
-            iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
-                strictEqual(e, iframeLocation + 'index.html');
-                document.body.removeChild(iframe);
-                start();
-            });
-
-            iframe.contentWindow.eval(
-                'var link = document.createElement("a");' +
-                'link.href = "./index.html";' +
-                'document.body.appendChild(link);' +
-                'link.click();'
-            );
-        });
-
-    document.body.appendChild(iframe);
+    navigateIframe(navigationScript).then(function (e) {
+        strictEqual(e, iframeLocation + 'index.html');
+        start();
+    });
 });
 
 asyncTest('Link with target attribute', function () {
-    var iframe = document.createElement('iframe');
+    var navigationScript = 'var link = window.top.document.createElement("a");' +
+                           'link.setAttribute("href", location.toString() + "index.html");' +
+                           'link.setAttribute("target", "linkIframe");' +
+                           'window.top.document.body.appendChild(link);' +
+                           'link.click();';
 
-    iframe.id   = 'test' + Date.now();
-    iframe.name = 'iframeName';
-    iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
-            var link             = document.createElement('a');
-
-            iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (e) {
-                strictEqual(e, iframeLocation + 'index.html');
-
-                // NOTE: wait while all click handlers done
-                window.setTimeout(function () {
-                    document.body.removeChild(iframe);
-                    document.body.removeChild(link);
-                    start();
-                }, 0);
-            });
-
-            link.textContent = 'test';
-            link.setAttribute('href', iframeLocation + 'index.html');
-            link.setAttribute('target', 'iframeName');
-            document.body.appendChild(link);
-            link.click();
-        });
-
-    document.body.appendChild(iframe);
+    navigateIframe(navigationScript, true, 'linkIframe').then(function (e) {
+        strictEqual(e, iframeLocation + 'index.html');
+        start();
+    });
 });
+
+module('Form submission');
+
+asyncTest('Submit form by submit button click', function () {
+    var navigationScript = 'var form = document.createElement("form");' +
+                           'var submit = document.createElement("input");' +
+                           'form.action = "./index.html";' +
+                           'submit.type = "submit";' +
+                           'form.appendChild(submit);' +
+                           'document.body.appendChild(form);' +
+                           'debugger;submit.click();';
+
+    navigateIframe(navigationScript).then(function (e) {
+        strictEqual(e, iframeLocation + 'index.html');
+        start();
+    });
+});
+
+asyncTest('Submit form via js', function () {
+    var navigationScript = 'var form = document.createElement("form");' +
+                           'form.action = "./index.html";' +
+                           'document.body.appendChild(form);' +
+                           'form.submit();';
+
+    navigateIframe(navigationScript).then(function (e) {
+        strictEqual(e, iframeLocation + 'index.html');
+        start();
+    });
+});
+
+asyncTest('Submit form with the target attribute', function () {
+    var navigationScript = 'var form = window.top.document.createElement("form");' +
+                           'form.setAttribute("action", location.toString() + "index.html");' +
+                           'form.setAttribute("target", "submitIframe");' +
+                           'window.top.document.body.appendChild(form);' +
+                           'form.submit();';
+
+    navigateIframe(navigationScript, true, 'submitIframe').then(function (e) {
+        strictEqual(e, iframeLocation + 'index.html');
+        start();
+    });
+});
+
+// TODO:
+/*asyncTest('Set handler as a object', function () {
+    var navigationScript = 'var form = document.createElement("form");' +
+                           'var submit = document.createElement("input");' +
+                           'form.action = "./index.html";' +
+                           'form.setAttribute("onsubmit", "return true;");' +
+                           'form.onsubmit = {};' +
+                           'submit.type = "submit";' +
+                           'form.appendChild(submit);' +
+                           'document.body.appendChild(form);' +
+                           'submit.click();';
+
+    navigateIframe(navigationScript).then(function () {
+        ok(true);
+        start();
+    });
+});
+
+asyncTest('Submission canceled in the "addEventListener" method', function () {
+    var navigationScript = 'var form = document.createElement("form");' +
+                           'var submit = document.createElement("input");' +
+                           'form.addEventListener("submit", function (e) { e.preventDefault(); });' +
+                           'form.action = "./index.html";' +
+                           'submit.type = "submit";' +
+                           'form.appendChild(submit);' +
+                           'document.body.appendChild(form);' +
+                           'submit.click();';
+
+    navigateIframe(navigationScript).then(function () {
+        ok(false);
+        start();
+    }, function () {
+        ok(true);
+        start();
+    });
+});
+
+asyncTest('Submission canceled in the "onsubmit" property', function () {
+    var navigationScript = 'var form = document.createElement("form");' +
+                           'var submit = document.createElement("input");' +
+                           'form.onsubmit = function () { return false; };' +
+                           'form.action = "./index.html";' +
+                           'submit.type = "submit";' +
+                           'form.appendChild(submit);' +
+                           'document.body.appendChild(form);' +
+                           'submit.click();';
+
+    navigateIframe(navigationScript).then(function () {
+        ok(false);
+        start();
+    }, function () {
+        ok(true);
+        start();
+    });
+});
+
+asyncTest('Submission canceled in the "onsubmit" attribute', function () {
+    var navigationScript = 'var form = document.createElement("form");' +
+                           'var submit = document.createElement("input");' +
+                           'form.action = "./index.html";' +
+                           'form.setAttribute("onsubmit", "return false;");' +
+                           'form.onsubmit = function() { return true; };' +
+                           'submit.type = "submit";' +
+                           'form.appendChild(submit);' +
+                           'document.body.appendChild(form);' +
+                           'submit.click();';
+
+    navigateIframe(navigationScript).then(function () {
+        ok(false);
+        start();
+    }, function () {
+        ok(true);
+        start();
+    });
+});
+
+asyncTest('Submission canceled in the html "onsubmit" handler', function () {
+    var navigationScript = 'var container = document.createElement("div");' +
+                           'container.innerHTML += \'<form action="./index.html" onsubmit="return false;"><input type="submit" id="submit"/></form>\';' +
+                           'document.body.appendChild(container);' +
+                           'document.getElementById("submit").click();';
+
+    navigateIframe(navigationScript).then(function () {
+        ok(false);
+        start();
+    }, function () {
+        ok(true);
+        start();
+    });
+});*/

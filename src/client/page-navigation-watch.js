@@ -1,77 +1,100 @@
 import EventEmiter from './utils/event-emitter';
 import { parseProxyUrl } from '../utils/url';
-import { isShadowUIElement } from './utils/dom';
+import { isChangedOnlyHash } from './utils/url';
+import { isShadowUIElement, isAnchorElement, isFormElement } from './utils/dom';
 import ElementSandbox from './sandbox/node/element';
 import * as windowsStorage from './sandbox/windows-storage';
 import domProcessor from './dom-processor/index';
+import nativeMethods from './sandbox/native-methods';
 
-const HASH_RE = /#.*$/;
 
 export default class PageNavigationWatch extends EventEmiter {
-    constructor (codeInstrumentation, eventSandbox) {
+    constructor (listeners, codeInstrumentation, elementSandbox) {
         super();
 
         this.PAGE_NAVIGATION_TRIGGERED_EVENT = 'hammerhead|event|page-navigation-triggered';
 
-        this.codeInstrumentation = codeInstrumentation;
-        this.eventSandbox        = eventSandbox;
+        this.lastLocationValue = window.location.toString();
+
+        this._locationWatch(codeInstrumentation);
+        this._linkWatch(listeners);
+        this._formWatch(elementSandbox, listeners);
     }
 
-    init () {
-        this._locationWatch();
-        this._linkClickWatch();
+    _formWatch (elementSandbox, listeners) {
+        var onFormSubmit = form => {
+            var targetWindow = PageNavigationWatch._getTargetWindow(form);
+
+            PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, form.action);
+        };
+
+        // NOTE: this raises when form.submit() was called
+        elementSandbox.on(elementSandbox.BEFORE_FORM_SUBMIT, e => onFormSubmit(e.form));
+
+        // NOTE: this raises when form submitting was triggered by a submit button click
+        listeners.initElementListening(window, ['submit']);
+        listeners.addInternalEventListener(window, ['submit'], e => isFormElement(e.target) && onFormSubmit(e.target));
     }
 
-    onNavigationTriggered (url) {
-        this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
+    static _getTargetWindow (el) {
+        var targetWindow = window;
+        var target       = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target')) ||
+                           nativeMethods.getAttribute.call(el, 'target');
+
+        if (target) {
+            if (!ElementSandbox._isKeywordTarget(target))
+                targetWindow = windowsStorage.findByName(target) || window;
+            else if (target === '_top' || target === '_blank')
+                targetWindow = window.top;
+            else if (target === '_parent')
+                targetWindow = window.parent;
+        }
+
+        return targetWindow;
     }
 
-    _linkClickWatch () {
-        this.eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
+    _linkWatch (listeners) {
+        listeners.initElementListening(window, ['click']);
+        listeners.addInternalEventListener(window, ['click'], e => {
             var link = e.target;
 
-            if (link.tagName && link.tagName.toLowerCase() === 'a' && !isShadowUIElement(link)) {
-                var target = link.getAttribute(domProcessor.getStoredAttrName('target')) ||
-                             link.getAttribute('target');
+            if (isAnchorElement(link) && !isShadowUIElement(link)) {
+                var targetWindow = PageNavigationWatch._getTargetWindow(link);
 
-                var targetWindow = window;
-
-                if (target) {
-                    if (!ElementSandbox._isKeywordTarget(target))
-                        targetWindow = windowsStorage.findByName(target) || window;
-                    else if (target === '_top')
-                        targetWindow = window.top;
-                    else if (target === '_parent')
-                        targetWindow = window.parent;
-                }
-                try {
-                    targetWindow['%hammerhead%'].pageNavigationWatch.onNavigationTriggered(link.href);
-                }
-                    /*eslint-disable no-empty */
-                catch (ex) {
-                }
-                /*eslint-enable no-empty */
+                PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, link.href);
             }
         });
     }
 
-    _locationWatch () {
-        var locationAccessorsInstrumentation = this.codeInstrumentation.locationAccessorsInstrumentation;
-        var propertyAccessorsInstrumentation = this.codeInstrumentation.propertyAccessorsInstrumentation;
-        var lastLocationValue                = window.location.toString();
-        var locationChangedHandler           = newLocation => {
-            var currentLocation = lastLocationValue;
+    _locationWatch (codeInstrumentation) {
+        var locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
+        var propertyAccessorsInstrumentation = codeInstrumentation.propertyAccessorsInstrumentation;
 
-            lastLocationValue = window.location.toString();
-
-            if (newLocation !== currentLocation &&
-                newLocation.replace(HASH_RE, '') === currentLocation.replace(HASH_RE, ''))
-                return;
-
-            this.onNavigationTriggered(newLocation);
-        };
+        var locationChangedHandler = newLocation => this.onNavigationTriggered(newLocation);
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
         propertyAccessorsInstrumentation.on(propertyAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
+    }
+
+    static _onNavigationTriggeredInWindow (win, url) {
+        try {
+            win['%hammerhead%'].pageNavigationWatch.onNavigationTriggered(url);
+        }
+            /*eslint-disable no-empty */
+        catch (e) {
+        }
+        /*eslint-enable no-empty */
+    }
+
+
+    onNavigationTriggered (url) {
+        var currentLocation = this.lastLocationValue;
+
+        this.lastLocationValue = window.location.toString();
+
+        if (url !== currentLocation && isChangedOnlyHash(currentLocation, url))
+            return;
+
+        this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
     }
 }
