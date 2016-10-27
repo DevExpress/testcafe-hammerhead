@@ -30,7 +30,7 @@
     "read-file-relative": "^1.2.0",
     "shortid": "^2.2.4",
     "tough-cookie": "2.3.0",
-    "webauth": "0.1.1",
+    "webauth": "^1.0.0",
     "yakaa": "1.0.1"
   },
   "devDependencies": {
@@ -41,6 +41,7 @@
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-es2015-hammerhead": "^0.0.1",
     "babel-preset-stage-2": "^6.3.13",
+    "basic-auth": "1.0.4",
     "chai": "^2.3.0",
     "del": "^0.1.2",
     "ejs": "0.8.4",
@@ -50,6 +51,7 @@
     "eslint-plugin-hammerhead": "^0.0.5",
     "eslint-plugin-import": "1.10.0",
     "express": "3.2.5",
+    "express-ntlm": "2.1.5",
     "gulp": "^3.8.7",
     "gulp-babel": "^6.1.1",
     "gulp-eslint": "^2.0.0",
