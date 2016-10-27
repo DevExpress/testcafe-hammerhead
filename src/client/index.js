@@ -31,7 +31,8 @@ class Hammerhead {
     constructor () {
         this.win                 = null;
         this.sandbox             = new Sandbox();
-        this.pageNavigationWatch = new PageNavigationWatch(this.sandbox.event.listeners, this.sandbox.codeInstrumentation, this.sandbox.node.element);
+        this.pageNavigationWatch = new PageNavigationWatch(this.sandbox.event, this.sandbox.codeInstrumentation,
+            this.sandbox.node.element);
 
         this.EVENTS = {
             beforeFormSubmit:        this.sandbox.node.element.BEFORE_FORM_SUBMIT,

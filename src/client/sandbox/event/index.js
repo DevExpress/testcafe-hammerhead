@@ -12,8 +12,9 @@ export default class EventSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
         super();
 
-        this.EVENT_ATTACHED_EVENT = 'hammerhead|event|event-attached';
-        this.EVENT_DETACHED_EVENT = 'hammerhead|event|event-detached';
+        this.EVENT_ATTACHED_EVENT  = 'hammerhead|event|event-attached';
+        this.EVENT_DETACHED_EVENT  = 'hammerhead|event|event-detached';
+        this.EVENT_PREVENTED_EVENT = 'hammerhead|event|event-prevented';
 
         this.listeners             = listeners;
         this.eventSimulator        = eventSimulator;
@@ -138,6 +139,12 @@ export default class EventSandbox extends SandboxBase {
 
             blur: function () {
                 return focusBlurSandbox.blur(this, null, false, true);
+            },
+
+            preventDefault: function () {
+                sandbox.emit(sandbox.EVENT_PREVENTED_EVENT, this);
+
+                return nativeMethods.preventDefault.call(this);
             }
         };
     }
@@ -192,6 +199,7 @@ export default class EventSandbox extends SandboxBase {
         if (window.TextRange && window.TextRange.prototype.select)
             window.TextRange.prototype.select = this.overridedMethods.select;
 
+        window.Event.prototype.preventDefault = this.overridedMethods.preventDefault;
 
         this.initDocumentListening();
 
