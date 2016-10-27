@@ -1,9 +1,10 @@
 var COMMAND           = hammerhead.get('../session/command');
 var UploadInfoManager = hammerhead.get('./sandbox/upload/info-manager');
 var hiddenInfo        = hammerhead.get('./sandbox/upload/hidden-info');
+var listeningContext  = hammerhead.get('./sandbox/event/listening-context');
+var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
 
 var Promise        = hammerhead.Promise;
-var nativeMethods  = hammerhead.nativeMethods;
 var transport      = hammerhead.transport;
 var browserUtils   = hammerhead.utils.browser;
 var uploadSandbox  = hammerhead.sandbox.upload;
@@ -104,49 +105,34 @@ function getFilesInfo (filePaths) {
     return result;
 }
 // -------------------------------
-
-function getFileWrapper (name) {
-    var res = new Blob([], { type: 'image/png' });
-
-    res.name             = name;
-    res.lastModifiedDate = Date.now();
-
-    return res;
-}
-
-function getInputWrapper (fileNames) {
+function getInputMock (fileNames) {
     var value = fileNames.join(',');
 
-    var fileWrappers = fileNames.map(function (name) {
-        return getFileWrapper(name);
+    var fileListWrapper = fileNames.map(function (name) {
+        var file = new Blob(['123'], { type: 'image/png' });
+
+        file.name             = name;
+        file.lastModifiedDate = Date.now();
+
+        return file;
     });
 
-    var fileListWrapper = {
-        length: fileWrappers.length,
+    fileListWrapper.item = function (index) {
+        return this[index];
+    };
 
-        item: function (index) {
-            return this[index];
+    var inputMock = {
+        value:         value,
+        files:         fileListWrapper,
+        tagName:       'input',
+        type:          'file',
+        dispatchEvent: function () {
         }
     };
 
-    for (var i = 0; i < fileWrappers.length; i++)
-        fileListWrapper[i] = fileWrappers[i];
+    inputMock[INTERNAL_PROPS.processedContext] = window;
 
-    var result = $('<input type="file">').appendTo('body')[0];
-
-    Object.defineProperty(result, 'value', {
-        get: function () {
-            return value;
-        }
-    });
-
-    Object.defineProperty(result, 'files', {
-        get: function () {
-            return fileListWrapper;
-        }
-    });
-
-    return result;
+    return inputMock;
 }
 
 function getFiles (filesInfo) {
@@ -380,17 +366,14 @@ asyncTest('upload error', function () {
         });
 });
 
-if (!browserUtils.isIE && !browserUtils.isIOS) {
+if (!browserUtils.isIE9) {
     asyncTest('get uploaded file error: single file', function () {
         var stFiles      = files;
-        var inputWrapper = getInputWrapper(['error']);
-        var ev           = document.createEvent('Events');
-
+        var inputMock    = getInputMock(['error']);
         var eventHandler = function (err) {
             strictEqual(err.length, 1);
             strictEqual(err[0].err, 34);
 
-            $(inputWrapper).remove();
             uploadSandbox.off(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
             files = stFiles;
 
@@ -398,23 +381,18 @@ if (!browserUtils.isIE && !browserUtils.isIOS) {
         };
 
         uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
-
-        ev.initEvent('change', true, true);
-        nativeMethods.dispatchEvent.call(inputWrapper, ev);
+        listeningContext.getElementCtx(window).change.internalHandlers[1].call(inputMock, { target: inputMock });
     });
 
     asyncTest('get uploaded file error: multi file', function () {
         var stFiles      = files;
-        var inputWrapper = getInputWrapper(['file1.txt', 'error', 'file2.txt']);
-        var ev           = document.createEvent('Events');
-
+        var inputMock    = getInputMock(['file1.txt', 'error', 'file2.txt']);
         var eventHandler = function (err) {
             strictEqual(err.length, 3);
             strictEqual(err[1].err, 34);
             ok(!err[0].err);
             ok(!err[2].err);
 
-            $(inputWrapper).remove();
             uploadSandbox.off(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
             files = stFiles;
 
@@ -422,9 +400,7 @@ if (!browserUtils.isIE && !browserUtils.isIOS) {
         };
 
         uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
-
-        ev.initEvent('change', true, true);
-        nativeMethods.dispatchEvent.call(inputWrapper, ev);
+        listeningContext.getElementCtx(window).change.internalHandlers[1].call(inputMock, { target: inputMock });
     });
 }
 
@@ -443,7 +419,7 @@ test('set value', function () {
 asyncTest('set empty value', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
     var value     = '';
-    var testFiles     = null;
+    var testFiles = null;
 
     eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
