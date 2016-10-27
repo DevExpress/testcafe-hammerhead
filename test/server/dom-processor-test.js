@@ -18,7 +18,10 @@ function process (html, isIframe) {
     var root             = parser.parse(html);
     var testDomProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
     var urlReplacer      = function (url, resourceType) {
-        url = url.indexOf('/') === 0 ? 'http://example.com' + url : url;
+        if (url.indexOf('//') === 0)
+            url = 'http:' + url;
+        else if (url.indexOf('/') === 0)
+            url = 'http://example.com' + url;
 
         return urlUtils.getProxyUrl(url, {
             proxyHostname: 'localhost',
@@ -85,24 +88,6 @@ describe('DOM processor', function () {
 
         expect(domAdapter.getAttr(img, 'src')).eql('about:blank');
         expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).eql('about:blank');
-    });
-
-    it('Should process malformed <img> src', function () {
-        var cases = [
-            { html: '<img src="//:0/">', expectedSrc: '//:0/' },
-            { html: '<img src="//:0">', expectedSrc: '//:0' },
-            { html: '<img src="http://:0/">', expectedSrc: 'http://:0/' },
-            { html: '<img src="https://:0">', expectedSrc: 'https://:0' }
-        ];
-
-        cases.forEach(function (testCase) {
-            var root = process(testCase.html);
-
-            var img = parse5Utils.findElementsByTagNames(root, 'img').img[0];
-
-            expect(domAdapter.getAttr(img, 'src')).eql(testCase.expectedSrc);
-            expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).to.be.null;
-        });
     });
 
     it.skip('Should process <iframe> with src', function () {

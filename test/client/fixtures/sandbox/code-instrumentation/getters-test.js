@@ -340,3 +340,38 @@ test('script.innerHtml must be cleaned up (T226885)', function () {
     notEqual(script.innerHTML.replace(/^\s*|\s*$/g, ''), code);
     strictEqual(eval(processScript('script.innerHTML')).replace(/^\s*|\s*$/g, ''), code);
 });
+
+test('should not create proxy url for invalid url (GH-778)', function () {
+    var link       = document.createElement('a');
+    var nativeLink = nativeMethods.createElement.call(document, 'a');
+
+    var testCases = [
+        {
+            value:     '//:0',
+            skipForIE: false
+        },
+        {
+            value:     '//:0/',
+            skipForIE: false
+        },
+        {
+            value:     'http://test:0',
+            skipForIE: false
+        },
+        {
+            value:     'http://test:123456789',
+            skipForIE: true
+        }
+    ];
+
+    for (var i = 0; i < testCases.length; i++) {
+        // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/9513048/
+        if (browserUtils.isIE && testCases[i].skipForIE)
+            continue;
+
+        var linkVal       = link.setAttribute('href', testCases[i]);
+        var nativeLinkVal = nativeLink.setAttribute('href', testCases[i]);
+
+        strictEqual(linkVal, nativeLinkVal);
+    }
+});

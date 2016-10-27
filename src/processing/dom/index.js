@@ -9,9 +9,7 @@ import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
 import { XML_NAMESPACE } from './namespaces';
 
-const CDATA_REG_EX = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
-// NOTE: Ignore '//:0/' url (http://www.myntra.com/).
-const EMPTY_URL_REG_EX                   = /^(\w+:)?\/\/\:0/;
+const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
 const HTML_COMMENT_PREFIX_REG_EX         = /^(\s)*<!--[^\n]*\n/;
 const HTML_COMMENT_SIMPLE_POSTFIX_REG_EX = /-->\s*$/;
@@ -429,8 +427,7 @@ export default class DomProcessor {
 
             // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
-                if ((urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) &&
-                    !EMPTY_URL_REG_EX.test(resourceUrl)) {
+                if (urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) {
                     var elTagName = this.adapter.getTagName(el);
                     var isIframe  = elTagName === 'iframe';
                     var isScript  = elTagName === 'script';
