@@ -10,6 +10,8 @@ var browserUtils   = hammerhead.utils.browser;
 var iframeLocation  = 'http://example.com/page-navigation-watch/';
 var storedSessionId = settings.get().sessionId;
 
+var iframe = null;
+
 QUnit.testStart(function () {
     settings.get().sessionId = 'unchangeableUrlSession';
     storageSandbox.attach(window);
@@ -17,11 +19,16 @@ QUnit.testStart(function () {
 
 QUnit.testDone(function () {
     settings.get().sessionId = storedSessionId;
+
+    if (iframe && iframe.parentNode)
+        iframe.parentNode.removeChild(iframe);
+
+    iframe = null;
 });
 
-function navigateIframe (navigationScript, keepIframe, iframeName) {
+function navigateIframe (navigationScript, iframeName) {
     return new Promise(function (resolve, reject) {
-        var iframe = document.createElement('iframe');
+        iframe = document.createElement('iframe');
 
         iframe.id   = 'test' + Date.now();
         iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
@@ -37,27 +44,18 @@ function navigateIframe (navigationScript, keepIframe, iframeName) {
                     unload = true;
                 });
 
-                var finish = function () {
-                    if (!keepIframe && iframe.parentNode)
-                        iframe.parentNode.removeChild(iframe);
-                };
-
                 iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (url) {
                     clearTimeout(timerId);
 
                     if (unload)
                         ok(false, 'unload was raised before the pageNavigationTriggered event');
 
-                    finish();
                     resolve(url);
                 });
 
                 iframe.contentWindow.eval(window.processScript(navigationScript));
 
-                timerId = window.setTimeout(function () {
-                    finish();
-                    reject();
-                }, 500);
+                timerId = window.setTimeout(reject, 500);
             });
 
         document.body.appendChild(iframe);
@@ -295,7 +293,7 @@ asyncTest('Link with target attribute', function () {
                            'window.top.document.body.appendChild(link);' +
                            'link.click();';
 
-    navigateIframe(navigationScript, true, 'linkIframe')
+    navigateIframe(navigationScript, 'linkIframe')
         .then(function (e) {
             strictEqual(e, iframeLocation + 'index.html');
             start();
@@ -499,7 +497,7 @@ asyncTest('Submit form with the target attribute', function () {
                            'window.top.document.body.appendChild(form);' +
                            'form.submit();';
 
-    navigateIframe(navigationScript, true, 'submitIframe')
+    navigateIframe(navigationScript, 'submitIframe')
         .then(function (e) {
             strictEqual(e, iframeLocation + 'index.html');
             start();
@@ -580,7 +578,7 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
         var navigationScript = 'var form = document.createElement("form");' +
                                'var submit = document.createElement("input");' +
                                'form.action = "./index.html";' +
-                               'form.setAttribute("onsubmit", "debugger;return false;");' +
+                               'form.setAttribute("onsubmit", "return false;");' +
                                'submit.type = "submit";' +
                                'form.appendChild(submit);' +
                                'document.body.appendChild(form);' +

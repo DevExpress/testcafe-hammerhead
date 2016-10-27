@@ -1,4 +1,3 @@
-import Promise from 'pinkie';
 import EventEmiter from './utils/event-emitter';
 import { parseProxyUrl } from '../utils/url';
 import { isChangedOnlyHash } from './utils/url';
@@ -6,10 +5,9 @@ import { isShadowUIElement, isAnchorElement, isFormElement, closest } from './ut
 import ElementSandbox from './sandbox/node/element';
 import * as windowsStorage from './sandbox/windows-storage';
 import domProcessor from './dom-processor/index';
+import nextTick from './utils/next-tick';
 import nativeMethods from './sandbox/native-methods';
 
-
-var nextTick = () => new Promise(resolve => nativeMethods.setTimeout.call(window, resolve, 0));
 
 export default class PageNavigationWatch extends EventEmiter {
     constructor (eventSandbox, codeInstrumentation, elementSandbox) {
@@ -117,10 +115,10 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     static _onNavigationTriggeredInWindow (win, url) {
+        /*eslint-disable no-empty */
         try {
             win['%hammerhead%'].pageNavigationWatch.onNavigationTriggered(url);
         }
-            /*eslint-disable no-empty */
         catch (e) {
         }
         /*eslint-enable no-empty */
