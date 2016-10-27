@@ -28,7 +28,8 @@ QUnit.testDone(function () {
 
 function navigateIframe (navigationScript, iframeName) {
     return new Promise(function (resolve, reject) {
-        iframe = document.createElement('iframe');
+        if (!iframe)
+            iframe = document.createElement('iframe');
 
         iframe.id   = 'test' + Date.now();
         iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
@@ -259,6 +260,11 @@ asyncTest('Click by mouse', function () {
                            'window["%hammerhead%"].eventSandbox.eventSimulator.click(link);';
 
     navigateIframe(navigationScript)
+        .then(function (e) {
+            strictEqual(e, iframeLocation + 'index.html');
+
+            return navigateIframe(navigationScript);
+        })
         .then(function (e) {
             strictEqual(e, iframeLocation + 'index.html');
             start();
