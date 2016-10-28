@@ -37,6 +37,12 @@ function navigateIframe (navigationScript, iframeName) {
 
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
+                // NOTE: wait for iframe initializing
+                return window.QUnitGlobals.wait(function () {
+                    return !!iframe.contentWindow['%hammerhead%'];
+                }, 5000);
+            })
+            .then(function () {
                 var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
                 var timerId          = null;
                 var unload           = false;
@@ -137,22 +143,27 @@ asyncTest('location.reload(...)', function () {
         });
 });
 
-asyncTest('Hash', function () {
+asyncTest('Hash via location.href', function () {
     navigateIframe('location.href += "#hash";')
         .then(function () {
             ok(false);
             start();
         })
         .catch(function () {
-            navigateIframe('location.hash = "hash";')
-                .then(function () {
-                    ok(false);
-                    start();
-                })
-                .catch(function () {
-                    ok(true);
-                    start();
-                });
+            ok(true);
+            start();
+        });
+});
+
+asyncTest('Hash via location.hash', function () {
+    navigateIframe('location.hash = "hash";')
+        .then(function () {
+            ok(false);
+            start();
+        })
+        .catch(function () {
+            ok(true);
+            start();
         });
 });
 
@@ -260,11 +271,6 @@ asyncTest('Click by mouse', function () {
                            'window["%hammerhead%"].eventSandbox.eventSimulator.click(link);';
 
     navigateIframe(navigationScript)
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-
-            return navigateIframe(navigationScript);
-        })
         .then(function (e) {
             strictEqual(e, iframeLocation + 'index.html');
             start();
