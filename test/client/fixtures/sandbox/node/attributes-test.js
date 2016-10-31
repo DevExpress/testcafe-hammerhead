@@ -23,6 +23,47 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
+// NOTE: IE11 has a strange bug that does not allow this test to pass
+if (!browserUtils.isIE || browserUtils.version !== 11) {
+    test('onsubmit', function () {
+        var etalon = nativeMethods.createElement.call(document, 'form');
+        var form   = document.createElement('form');
+        var check  = function () {
+            strictEqual(form.getAttribute('onsubmit'), nativeMethods.getAttribute.call(etalon, 'onsubmit'));
+
+            var onsubmit = getProperty(form, 'onsubmit');
+
+            strictEqual(onsubmit ? onsubmit() : onsubmit, etalon.onsubmit ? etalon.onsubmit() : etalon.onsubmit);
+        };
+
+        check();
+
+        form.setAttribute('onsubmit', 'return 1;');
+        nativeMethods.setAttribute.call(etalon, 'onsubmit', 'return 1;');
+        check();
+
+        setProperty(form, 'onsubmit', function () {
+            return 3;
+        });
+        etalon.onsubmit = function () {
+            return 3;
+        };
+        check();
+
+        form.removeAttribute('onsubmit');
+        nativeMethods.removeAttribute.call(etalon, 'onsubmit');
+        check();
+
+        form.setAttribute('onsubmit', 'return 2;');
+        nativeMethods.setAttribute.call(etalon, 'onsubmit', 'return 2;');
+        check();
+
+        setProperty(form, 'onsubmit', null);
+        etalon.onsubmit = null;
+        check();
+    });
+}
+
 test('url', function () {
     var testUrlAttr = function (tagName, attr) {
         var el         = nativeMethods.createElement.call(document, tagName);

@@ -79,12 +79,13 @@ class NativeMethods {
     }
 
     refreshWindowMeths (win) {
-        win = win || window;
+        win                                   = win || window;
         // Dom
         this.eval                             = win.eval;
         this.formSubmit                       = win.HTMLFormElement.prototype.submit;
         this.documentFragmentQuerySelector    = win.DocumentFragment.prototype.querySelector;
         this.documentFragmentQuerySelectorAll = win.DocumentFragment.prototype.querySelectorAll;
+        this.preventDefault                   = win.Event.prototype.preventDefault;
 
         if (win.history) {
             this.historyPushState    = win.history.pushState;
