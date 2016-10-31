@@ -23,7 +23,7 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
-// NOTE: IE11 has a strange bug that does not allow test
+// NOTE: IE11 has a strange bug that does not allow this test to pass
 if (!browserUtils.isIE || browserUtils.version !== 11) {
     test('onsubmit', function () {
         var etalon = nativeMethods.createElement.call(document, 'form');

@@ -448,7 +448,7 @@ asyncTest('Click prevented in the html "onclick" handler', function () {
 });
 
 if (!browserUtils.isIE || browserUtils.isMSEdge) {
-    // NOTE: we don't catch event preventing via "return false" in inline handlers in IE yet
+    // NOTE: we can't detect if default handling was cancelled by returning 'false' from an inline handler in IE yet
     asyncTest('Click prevented via "return false" in the html "onclick" handler', function () {
         var navigationScript = 'var container = document.createElement("div");' +
                                'container.innerHTML += \'<a id="link" href="./index.html" onclick="return false;">Link</a>\';' +
@@ -564,7 +564,7 @@ asyncTest('Submission canceled in the "addEventListener" method', function () {
 });
 
 if (!browserUtils.isIE || browserUtils.isMSEdge) {
-    // NOTE: we don't catch event preventing via "return false" in inline handlers in IE yet
+    // NOTE: we can't detect if default handling was cancelled by returning 'false' from an inline handler in IE yet
     asyncTest('Submission canceled in the "onsubmit" property', function () {
         var navigationScript = 'var form = document.createElement("form");' +
                                'var submit = document.createElement("input");' +

@@ -29,10 +29,10 @@ export default class PageNavigationWatch extends EventEmiter {
             PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, form.action);
         };
 
-        // NOTE: this raises when form.submit() was called
+        // NOTE: fires when form.submit() is called
         elementSandbox.on(elementSandbox.BEFORE_FORM_SUBMIT, e => onFormSubmit(e.form));
 
-        // NOTE: this raises when form submitting was triggered by a submit button click
+        // NOTE: fires when the form is submitted by clicking the submit button
         eventSandbox.listeners.initElementListening(window, ['submit']);
         eventSandbox.listeners.addInternalEventListener(window, ['submit'], e => {
             var prevented = false;
@@ -50,8 +50,8 @@ export default class PageNavigationWatch extends EventEmiter {
                 .then(() => {
                     eventSandbox.off(eventSandbox.EVENT_PREVENTED_EVENT, onPreventDefault);
 
-                    // NOTE: the event keep the defaultPrevented flag between event handlers in all
-                    // browsers except IE. In IE it is reset to false before the next handler execution.
+                    // NOTE: the defaultPrevented flag is saved between event raises in all browsers
+                    // except IE. In IE, it is reset to false before the next handler is executed.
                     if (!e.defaultPrevented && !prevented)
                         onFormSubmit(e.target);
                 });
@@ -95,8 +95,8 @@ export default class PageNavigationWatch extends EventEmiter {
                     .then(() => {
                         eventSandbox.off(eventSandbox.EVENT_PREVENTED_EVENT, onPreventDefault);
 
-                        // NOTE: the event keep the defaultPrevented flag between event handlers in all
-                        // browsers except IE. In IE it is reset to false before the next handler execution.
+                        // NOTE: the defaultPrevented flag is saved between event raises in all browsers
+                        // except IE. In IE, it is reset to false before the next handler is executed.
                         if (!e.defaultPrevented && !prevented)
                             PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, href);
                     });
