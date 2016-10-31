@@ -399,67 +399,6 @@ test('only one of several handlers must be called (document handlers) (T233158)'
     document.removeEventListener(event, clickHandler, false);
 });
 
-test('only one of several handlers must be called (document handlers) (T233158)', function () {
-    var event               = 'click';
-    var clickHandlerCounter = 0;
-
-    var clickHandler = function () {
-        clickHandlerCounter++;
-    };
-
-    listeners.initElementListening(document, [event]);
-
-    listeners.addInternalEventListener(document, [event], function () {
-    });
-
-    var $document = $(document);
-
-    document.addEventListener(event, clickHandler, true);
-    document.addEventListener(event, clickHandler, true);
-    document.addEventListener(event, clickHandler, true);
-    dispatchEvent(document, event);
-    strictEqual(clickHandlerCounter, 1);
-
-    document.removeEventListener(event, clickHandler, true);
-    dispatchEvent(document, event);
-    strictEqual(clickHandlerCounter, 1);
-
-    $document.bind('click', clickHandler);
-    $document.bind('click', clickHandler);
-    dispatchEvent(document, event);
-    strictEqual(clickHandlerCounter, 3);
-
-    $document.unbind('click', clickHandler);
-    dispatchEvent(document, event);
-    strictEqual(clickHandlerCounter, 3);
-
-    $document.on('click', clickHandler);
-    $document.on('click', clickHandler);
-    dispatchEvent(document, event);
-    strictEqual(clickHandlerCounter, 5);
-
-    $document.off('click', clickHandler);
-    dispatchEvent(document, event);
-    strictEqual(clickHandlerCounter, 5);
-
-    document.addEventListener(event, clickHandler, true);
-    $document.bind('click', clickHandler);
-    $document.on('click', clickHandler);
-    dispatchEvent(document, event);
-    strictEqual(clickHandlerCounter, 8);
-    document.removeEventListener(event, clickHandler, true);
-    $document.unbind('click', clickHandler);
-    $document.off('click', clickHandler);
-
-    document.addEventListener(event, clickHandler, true);
-    document.addEventListener(event, clickHandler, false);
-    dispatchEvent(document, event);
-    strictEqual(clickHandlerCounter, 10);
-
-    document.removeEventListener(event, clickHandler, true);
-    document.removeEventListener(event, clickHandler, false);
-});
-
 test('only one of several handlers must be called (body handlers) (T233158)', function () {
     var event               = 'click';
     var clickHandlerCounter = 0;
