@@ -577,7 +577,8 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _setValidBrowsingContextOnElementClick (window) {
-        window.addEventListener('click', e => {
+        this.eventSandbox.listeners.initElementListening(window, ['click']);
+        this.eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
             var el = e.target;
 
             if (domUtils.isInputElement(el) && el.form)
