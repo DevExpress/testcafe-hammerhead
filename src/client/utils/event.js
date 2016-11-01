@@ -46,3 +46,7 @@ export function isObjectEventListener (listener) {
     return typeof listener === 'object' && typeof listener.handleEvent === 'function';
 }
 
+export function hasPointerEvents () {
+    return !!(window.PointerEvent || window.MSPointerEvent);
+}
+
