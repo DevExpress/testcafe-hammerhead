@@ -603,6 +603,11 @@ asyncTest('isElementFocusable', function () {
                     return !domUtils.isOptionElement(el);
                 });
             }
+            else {
+                expectedFocusedElements = expectedFocusedElements.filter(function (el) {
+                    return !domUtils.isTableDataElement(el);
+                });
+            }
 
             for (var i = 0; i < allElements.length; i++) {
                 if (domUtils.isElementFocusable(allElements[i]))
