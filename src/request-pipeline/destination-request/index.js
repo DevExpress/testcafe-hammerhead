@@ -1,8 +1,9 @@
 import http from 'http';
 import https from 'https';
+import { noop } from 'lodash';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
-import { getAuthInfo, addCredentials } from 'webauth';
+import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 
@@ -38,7 +39,7 @@ export default class DestinationRequest extends EventEmitter {
 
             this.req = this.protocolInterface.request(this.opts, res => {
                 if (waitForData) {
-                    res.on('data', () => void 0);
+                    res.on('data', noop);
                     res.once('end', () => this._onResponse(res));
                 }
             });
@@ -80,12 +81,10 @@ export default class DestinationRequest extends EventEmitter {
         addCredentials(this.opts.credentials, this.opts, res, this.protocolInterface);
         this.credentialsSent = true;
 
-        var authInfo = getAuthInfo(res);
-
         // NOTE: NTLM authentication requires using the same socket for the "negotiate" and "authenticate" requests.
         // So, before sending the "authenticate" message, we should wait for data from the "challenge" response. It
         // will mean that the socket is free.
-        this._send(!authInfo.isChallengeMessage && authInfo.method.toLowerCase() === 'ntlm');
+        this._send(requiresResBody(res));
     }
 
     _abort () {
