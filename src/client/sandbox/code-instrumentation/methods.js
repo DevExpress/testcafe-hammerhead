@@ -4,7 +4,7 @@ import { shouldInstrumentMethod } from '../../../processing/script/instrumented'
 import { isWindow, isLocation } from '../../utils/dom';
 import fastApply from '../../utils/fast-apply';
 import * as typeUtils from '../../utils/types';
-import { getProxyUrl } from '../../utils/url';
+import { getProxyUrl, stringifyResourceType } from '../../utils/url';
 
 export default class MethodCallInstrumentation extends SandboxBase {
     constructor (messageSandbox) {
@@ -22,14 +22,18 @@ export default class MethodCallInstrumentation extends SandboxBase {
             // intercept calls to the native 'replace' method.
             replace: {
                 condition: isLocation,
-                method:    (location, args) => location.replace(getProxyUrl(args[0]))
+                method:    (location, args) => location.replace(getProxyUrl(args[0], {
+                    resourceType: MethodCallInstrumentation._getLocationResourceType(location)
+                }))
             },
 
             // NOTE: We cannot get the location wrapper for a cross-domain window. Therefore, we need to
             // intercept calls to the native 'assign' method.
             assign: {
                 condition: isLocation,
-                method:    (location, args) => location.replace(getProxyUrl(args[0]))
+                method:    (location, args) => location.assign(getProxyUrl(args[0], {
+                    resourceType: MethodCallInstrumentation._getLocationResourceType(location)
+                }))
             }
         };
     }
@@ -37,6 +41,10 @@ export default class MethodCallInstrumentation extends SandboxBase {
     // NOTE: Isolate throw statement into a separate function because JS engine doesn't optimize such functions.
     static _error (msg) {
         throw new Error(msg);
+    }
+
+    static _getLocationResourceType (location) {
+        return window.top.location === location ? null : stringifyResourceType({ isIframe: true });
     }
 
     static _isPostMessageFn (win, fn) {
