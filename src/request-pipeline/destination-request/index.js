@@ -1,10 +1,9 @@
 import http from 'http';
 import https from 'https';
-import OS from 'os-family';
+import { noop } from 'lodash';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
-import { auth as requestWithAuth } from 'webauth';
-import { assign as assignWindowsDomain } from './windows-domain';
+import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
 
@@ -20,6 +19,7 @@ export default class DestinationRequest extends EventEmitter {
 
         this.req               = null;
         this.hasResponse       = false;
+        this.credentialsSent   = false;
         this.aborted           = false;
         this.opts              = opts;
         this.isHttps           = opts.protocol === 'https:';
@@ -33,41 +33,58 @@ export default class DestinationRequest extends EventEmitter {
         this._send();
     }
 
-    _send () {
+    _send (waitForData) {
         connectionResetGuard(() => {
             var timeout = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
 
-            this.req = this.protocolInterface.request(this.opts);
+            this.req = this.protocolInterface.request(this.opts, res => {
+                if (waitForData) {
+                    res.on('data', noop);
+                    res.once('end', () => this._onResponse(res));
+                }
+            });
 
-            this.req.on('response', res => this._onResponse(res));
+            if (!waitForData)
+                this.req.on('response', res => this._onResponse(res));
+
             this.req.on('error', err => this._onError(err));
             this.req.setTimeout(timeout, () => this._onTimeout());
-
             this.req.write(this.opts.body);
             this.req.end();
         });
     }
 
-    _onResponse (res) {
-        this.hasResponse = true;
+    _shouldResendWithCredentials (res) {
+        if (res.statusCode === 401 && this.opts.credentials) {
+            var authInfo = getAuthInfo(res);
 
-        if (res.statusCode === 401)
-            this._sendWithCredentials(res);
+            // NOTE: If we get 401 status code after credentials are sent, we should stop trying to authenticate.
+            if (!authInfo.isChallengeMessage && this.credentialsSent)
+                return false;
 
-        else
-            this.emit('response', res);
+            return authInfo.canAuthorize;
+        }
+
+        return false;
     }
 
-    async _sendWithCredentials (res) {
-        if (this.opts.credentials) {
-            if (OS.win)
-                await assignWindowsDomain(this.opts.credentials);
-
-            //TODO !!!
-            requestWithAuth(this.opts, this.opts.credentials, [this.opts.body], response => {
-                this.emit('response', response);
-            }, this.isHttps, res);
+    _onResponse (res) {
+        if (this._shouldResendWithCredentials(res))
+            this._resendWithCredentials(res);
+        else {
+            this.hasResponse = true;
+            this.emit('response', res);
         }
+    }
+
+    async _resendWithCredentials (res) {
+        addCredentials(this.opts.credentials, this.opts, res, this.protocolInterface);
+        this.credentialsSent = true;
+
+        // NOTE: NTLM authentication requires using the same socket for the "negotiate" and "authenticate" requests.
+        // So, before sending the "authenticate" message, we should wait for data from the "challenge" response. It
+        // will mean that the socket is free.
+        this._send(requiresResBody(res));
     }
 
     _abort () {

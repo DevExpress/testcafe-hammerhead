@@ -868,38 +868,6 @@ describe('Proxy', function () {
         });
     });
 
-    describe('Basic authentication', function () {
-        it('Should perform basic authentication', function (done) {
-            session.getAuthCredentials = function () {
-                return {
-                    username: 'testUsername',
-                    password: 'testPassword'
-                };
-            };
-
-            request(proxy.openSession('http://127.0.0.1:2000/with-auth', session), function (err, res, body) {
-                expect(res.statusCode).eql(200);
-                expect(body).eql('42');
-                done();
-            });
-        });
-
-        it('Should return "401 - Unauthorized" for wrong credentials', function (done) {
-            session.getAuthCredentials = function () {
-                return {
-                    username: 'wrongUsername',
-                    password: 'wrongPassword'
-                };
-            };
-
-            request(proxy.openSession('http://127.0.0.1:2000/with-auth', session), function (err, res, body) {
-                expect(res.statusCode).eql(401);
-                expect(body).to.be.empty;
-                done();
-            });
-        });
-    });
-
     describe('Shadow UI', function () {
         it('Should process shadow ui stylesheet', function (done) {
             var src      = read('/data/shadow-ui-stylesheet/src.css').toString();
