@@ -196,6 +196,7 @@ class Hammerhead {
         }
 
         this.sandbox.attach(this.win);
+        this.pageNavigationWatch.start();
     }
 }
 

@@ -15,9 +15,9 @@ export default class PageNavigationWatch extends EventEmiter {
 
         this.lastLocationValue = window.location.toString();
 
-        this._locationWatch(codeInstrumentation);
-        this._linkWatch(eventSandbox);
-        this._formWatch(elementSandbox, eventSandbox);
+        this.codeInstrumentation = codeInstrumentation;
+        this.eventSandbox        = eventSandbox;
+        this.elementSandbox      = elementSandbox;
     }
 
     _formWatch (elementSandbox, eventSandbox) {
@@ -104,12 +104,9 @@ export default class PageNavigationWatch extends EventEmiter {
 
     _locationWatch (codeInstrumentation) {
         var locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
-        var propertyAccessorsInstrumentation = codeInstrumentation.propertyAccessorsInstrumentation;
-
-        var locationChangedHandler = newLocation => this.onNavigationTriggered(newLocation);
+        var locationChangedHandler           = newLocation => this.onNavigationTriggered(newLocation);
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
-        propertyAccessorsInstrumentation.on(propertyAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
     }
 
     static _onNavigationTriggeredInWindow (win, url) {
@@ -131,5 +128,11 @@ export default class PageNavigationWatch extends EventEmiter {
             return;
 
         this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
+    }
+
+    start () {
+        this._locationWatch(this.codeInstrumentation);
+        this._linkWatch(this.eventSandbox);
+        this._formWatch(this.elementSandbox, this.eventSandbox);
     }
 }

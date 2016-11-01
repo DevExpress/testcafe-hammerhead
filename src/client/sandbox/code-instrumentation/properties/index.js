@@ -33,8 +33,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
         super();
 
-        this.LOCATION_CHANGED_EVENT = 'hammerhead|event|location-changed';
-
         this.nodeMutation          = nodeMutation;
         this.messageSandbox        = eventSandbox.message;
         this.cookieSandbox         = cookieSandbox;

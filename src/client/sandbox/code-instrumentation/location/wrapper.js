@@ -1,7 +1,13 @@
 import EventEmitter from '../../../utils/event-emitter';
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
-import { getProxyUrl, changeDestUrlPart, parseProxyUrl, parseResourceType, isChangedOnlyHash } from '../../../utils/url';
+import {
+    getProxyUrl,
+    changeDestUrlPart,
+    parseProxyUrl,
+    parseResourceType,
+    isChangedOnlyHash
+} from '../../../utils/url';
 import { getDomain, getResourceTypeString } from '../../../../utils/url';
 
 function getLocationUrl (window) {
@@ -17,7 +23,7 @@ export default class LocationWrapper extends EventEmitter {
     constructor (window) {
         super();
 
-        this.CHANGED_EVENT = 'hammerhead|event|location-changed';
+        this.CHANGED_EVENT = 'hammerhead|location-wrapper|changed';
 
         var onChanged            = value => this.emit(this.CHANGED_EVENT, value);
         var locationUrl          = getLocationUrl(window);
