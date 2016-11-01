@@ -546,6 +546,8 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLTableRowElement.prototype.insertCell    = this.overridedMethods.insertCell;
         window.HTMLFormElement.prototype.submit            = this.overridedMethods.formSubmit;
 
+        this._setValidBrowsingContextOnElementClick(window);
+
         // NOTE: Cookie can be set up for the page by using the request initiated by img.
         // For example: img.src = '<url that responds with the Set-Cookie header>'
         // If img has the 'load' event handler, we redirect the request through proxy.
@@ -574,10 +576,18 @@ export default class ElementSandbox extends SandboxBase {
         el.setAttribute('target', storedAttr || el.target);
     }
 
-    _setValidBrowsingContextOnClick (el) {
-        el.addEventListener('click', () => {
+    _setValidBrowsingContextOnElementClick (window) {
+        this.eventSandbox.listeners.initElementListening(window, ['click']);
+        this.eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
+            var el = e.target;
+
             if (domUtils.isInputElement(el) && el.form)
                 el = el.form;
+
+            var tagName = domUtils.getTagName(el);
+
+            if (!DomProcessor.isTagWithTargetAttr(tagName))
+                return;
 
             this._ensureTargetContainsExistingBrowsingContext(el);
         });
@@ -617,11 +627,6 @@ export default class ElementSandbox extends SandboxBase {
                 break;
             case 'base':
                 urlResolver.updateBase(nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href')), this.document);
-                break;
-            case 'a':
-            case 'area':
-            case 'input':
-                this._setValidBrowsingContextOnClick(el);
                 break;
         }
 

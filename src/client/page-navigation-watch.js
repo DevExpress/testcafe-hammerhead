@@ -2,12 +2,10 @@ import EventEmiter from './utils/event-emitter';
 import { parseProxyUrl } from '../utils/url';
 import { isChangedOnlyHash } from './utils/url';
 import { isShadowUIElement, isAnchorElement, isFormElement, closest } from './utils/dom';
-import ElementSandbox from './sandbox/node/element';
 import * as windowsStorage from './sandbox/windows-storage';
 import domProcessor from './dom-processor/index';
 import nextTick from './utils/next-tick';
 import nativeMethods from './sandbox/native-methods';
-
 
 export default class PageNavigationWatch extends EventEmiter {
     constructor (eventSandbox, codeInstrumentation, elementSandbox) {
@@ -17,9 +15,9 @@ export default class PageNavigationWatch extends EventEmiter {
 
         this.lastLocationValue = window.location.toString();
 
-        this._locationWatch(codeInstrumentation);
-        this._linkWatch(eventSandbox);
-        this._formWatch(elementSandbox, eventSandbox);
+        this.codeInstrumentation = codeInstrumentation;
+        this.eventSandbox        = eventSandbox;
+        this.elementSandbox      = elementSandbox;
     }
 
     _formWatch (elementSandbox, eventSandbox) {
@@ -59,20 +57,20 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     static _getTargetWindow (el) {
-        var targetWindow = window;
-        var target       = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target')) ||
-                           nativeMethods.getAttribute.call(el, 'target');
+        var target = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target')) ||
+                     nativeMethods.getAttribute.call(el, 'target') ||
+                     '_self';
 
-        if (target) {
-            if (!ElementSandbox._isKeywordTarget(target))
-                targetWindow = windowsStorage.findByName(target) || window;
-            else if (target === '_top' || target === '_blank')
-                targetWindow = window.top;
-            else if (target === '_parent')
-                targetWindow = window.parent;
+        switch (target) {
+            case '_top':
+                return window.top;
+            case '_parent':
+                return window.parent;
+            case '_self':
+                return window;
+            default:
+                return windowsStorage.findByName(target);
         }
-
-        return targetWindow;
     }
 
     _linkWatch (eventSandbox) {
@@ -106,12 +104,9 @@ export default class PageNavigationWatch extends EventEmiter {
 
     _locationWatch (codeInstrumentation) {
         var locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
-        var propertyAccessorsInstrumentation = codeInstrumentation.propertyAccessorsInstrumentation;
-
-        var locationChangedHandler = newLocation => this.onNavigationTriggered(newLocation);
+        var locationChangedHandler           = newLocation => this.onNavigationTriggered(newLocation);
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
-        propertyAccessorsInstrumentation.on(propertyAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
     }
 
     static _onNavigationTriggeredInWindow (win, url) {
@@ -124,7 +119,6 @@ export default class PageNavigationWatch extends EventEmiter {
         /*eslint-enable no-empty */
     }
 
-
     onNavigationTriggered (url) {
         var currentLocation = this.lastLocationValue;
 
@@ -134,5 +128,11 @@ export default class PageNavigationWatch extends EventEmiter {
             return;
 
         this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
+    }
+
+    start () {
+        this._locationWatch(this.codeInstrumentation);
+        this._linkWatch(this.eventSandbox);
+        this._formWatch(this.elementSandbox, this.eventSandbox);
     }
 }
