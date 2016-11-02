@@ -42,8 +42,7 @@ var CLIENT_TESTS_BROWSERS = [
     },
     {
         platform:    'Windows 10',
-        browserName: 'chrome',
-        version:     '52.0'
+        browserName: 'chrome'
     },
     {
         platform:    'Windows 10',
@@ -98,12 +97,21 @@ var CLIENT_TESTS_BROWSERS = [
     }
 ];
 
+var SAUCELABS_TESTS_BROWSERS = CLIENT_TESTS_BROWSERS;
+
+SAUCELABS_TESTS_BROWSERS.push({
+    platform:    'Windows 10',
+    browserName: 'chrome',
+    version:     'beta'
+});
+
+
 var SAUCELABS_SETTINGS = {
     username:  process.env.SAUCE_USERNAME,
     accessKey: process.env.SAUCE_ACCESS_KEY,
     build:     process.env.TRAVIS_JOB_ID || '',
     tags:      [process.env.TRAVIS_BRANCH || 'master'],
-    browsers:  CLIENT_TESTS_BROWSERS,
+    browsers:  SAUCELABS_TESTS_BROWSERS,
     name:      'testcafe-hammerhead client tests',
     timeout:   300
 };
