@@ -407,6 +407,14 @@ if (!browserUtils.isFirefox) {
     });
 }
 
+if (eventUtils.hasPointerEvents) {
+    test('pointer down', function () {
+        bindMouseEvent('pointerdown', eventUtils.BUTTON.left);
+        eventSimulator.mousedown(domElement);
+        ok(raised);
+    });
+}
+
 asyncTest('hammerhead functions should not be in strict mode (GH-344)', function () {
     var button = $('<button>').appendTo('body');
 
