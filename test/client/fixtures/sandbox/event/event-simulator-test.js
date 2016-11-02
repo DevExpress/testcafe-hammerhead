@@ -409,7 +409,10 @@ if (!browserUtils.isFirefox) {
 
 if (eventUtils.hasPointerEvents) {
     test('pointer down', function () {
-        bindMouseEvent('pointerdown', eventUtils.BUTTON.left);
+        if (browserUtils.isIE10)
+            bindMouseEvent('mspointerdown', eventUtils.BUTTON.left);
+        else
+            bindMouseEvent('pointerdown', eventUtils.BUTTON.left);
         eventSimulator.mousedown(domElement);
         ok(raised);
     });

@@ -385,7 +385,7 @@ export default class EventSimulator {
             }
         }
 
-        if (eventUtils.hasPointerEvents() && pointerRegExp.test(args.type))
+        if (eventUtils.hasPointerEvents && pointerRegExp.test(args.type))
             this._dispatchPointerEvent(el, args);
 
         ev = document.createEvent('MouseEvents');
