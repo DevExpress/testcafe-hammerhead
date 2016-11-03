@@ -489,6 +489,9 @@ export function isElementFocusable (el) {
                matches(el, 'a[href]');
     }
 
+    if (isTableDataElement(el) && isIE)
+        return true;
+
     return matches(el, getFocusableSelector()) || tabIndex !== null;
 }
 
@@ -635,6 +638,10 @@ export function isAnchorElement (el) {
 
 export function isTableElement (el) {
     return getTagName(el) === 'table';
+}
+
+export function isTableDataElement (el) {
+    return getTagName(el) === 'td';
 }
 
 export function matches (el, selector) {
