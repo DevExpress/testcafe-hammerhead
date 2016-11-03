@@ -8,7 +8,8 @@ import domProcessor from '../../dom-processor';
 import * as domUtils from '../../utils/dom';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 
-const ATTRIBUTE_SELECTOR_REG_EX = /\[([\w-]+)(\^?=.+?)]/g;
+const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
+const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+#/;
 
 export default class NodeSandbox extends SandboxBase {
     constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
@@ -104,7 +105,7 @@ export default class NodeSandbox extends SandboxBase {
             return selector;
 
         return selector.replace(ATTRIBUTE_SELECTOR_REG_EX, (str, name, operatorWithValue) => {
-            if (domProcessor.URL_ATTRS.indexOf(name) !== -1) {
+            if (domProcessor.URL_ATTRS.indexOf(name) !== -1 && !ATTRIBUTE_OPERATOR_WITH_HASH_VALUE.test(operatorWithValue)) {
                 name = domProcessor.getStoredAttrName(name);
 
                 return '[' + name + operatorWithValue + ']';
