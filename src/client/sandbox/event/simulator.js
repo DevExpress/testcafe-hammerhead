@@ -13,6 +13,9 @@ const IE_BUTTONS_MAP = {
     2: 2
 };
 
+const TOUCH_EVENT_RADIUS = 25;
+const TOUCH_EVENT_FORCE  = 0.5;
+
 const POINTER_EVENT_BUTTON = {
     noButton:    -1,
     leftButton:  0,
@@ -63,27 +66,46 @@ export default class EventSimulator {
 
         // HACK: A test for iOS by using initTouchEvent arguments.
         // TODO: Replace it with a user agent analysis later.
-        if (browserUtils.isIOS) {
-            ev.initTouchEvent(args.type, args.canBubble, args.cancelable, args.view,
-                args.detail, args.screenX, args.screenY, args.pageX, args.pageY, args.ctrlKey,
-                args.altKey, args.shiftKey, args.metaKey, args.touches, args.targetTouches,
-                args.changedTouches,
-                args.scale === void 0 ? 1.0 : args.scale,
-                // NOTE: B237995
-                args.rotation === void 0 ? 0.0 : args.rotation);
+        if (ev.initTouchEvent) {
+            if (browserUtils.isIOS) {
+                ev.initTouchEvent(args.type, args.canBubble, args.cancelable, args.view,
+                    args.detail, args.screenX, args.screenY, args.pageX, args.pageY, args.ctrlKey,
+                    args.altKey, args.shiftKey, args.metaKey, args.touches, args.targetTouches,
+                    args.changedTouches,
+                    args.scale === void 0 ? 1.0 : args.scale,
+                    // NOTE: B237995
+                    args.rotation === void 0 ? 0.0 : args.rotation);
 
-        }
-        else if (ev.initTouchEvent.length === 12) {
-            // NOTE: The Firefox.
-            ev.initTouchEvent(args.type, args.canBubble, args.cancelable, args.view,
-                args.detail, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey, args.touches,
-                args.targetTouches, args.changedTouches);
+            }
+            else if (ev.initTouchEvent.length === 12) {
+                // NOTE: The Firefox.
+                ev.initTouchEvent(args.type, args.canBubble, args.cancelable, args.view,
+                    args.detail, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey, args.touches,
+                    args.targetTouches, args.changedTouches);
+            }
+            else {
+                // NOTE: The default Android browser, Dolphin.
+                ev.initTouchEvent(args.touches, args.targetTouches, args.changedTouches, args.type, args.view,
+                    args.screenX, args.screenY, args.pageX - args.view.pageXOffset, args.pageY - args.view.pageYOffset,
+                    args.ctrlKey, args.altKey, args.shiftKey, args.metaKey);
+            }
         }
         else {
-            // NOTE: The default Android browser, Dolphin.
-            ev.initTouchEvent(args.touches, args.targetTouches, args.changedTouches, args.type, args.view,
-                args.screenX, args.screenY, args.pageX - args.view.pageXOffset, args.pageY - args.view.pageYOffset,
-                args.ctrlKey, args.altKey, args.shiftKey, args.metaKey);
+            ev = new TouchEvent(args.type, {
+                touches:          args.touches,
+                targetTouches:    args.targetTouches,
+                changedTouches:   args.changedTouches,
+                ctrlKey:          args.ctrlKey,
+                altKey:           args.altKey,
+                shiftKey:         args.shiftKey,
+                metaKey:          args.metaKey,
+                bubbles:          args.canBubble,
+                cancelable:       args.cancelable,
+                cancelBubble:     false,
+                defaultPrevented: false,
+                detail:           args.detail,
+                view:             args.view
+            });
         }
 
         return el.dispatchEvent(ev);
@@ -205,30 +227,49 @@ export default class EventSimulator {
     _getTouchEventArgs (type, options) {
         var opts = options || {};
         var args = extend(EventSimulator._getUIEventArgs(type, opts), {
-            screenX: opts.screenX || 0,
-            screenY: opts.screenY || 0,
-            clientX: opts.clientX || 0,
-            clientY: opts.clientY || 0,
-            pageX:   opts.clientX || 0,
-            pageY:   opts.clientY || 0
+            screenX:    opts.screenX || 0,
+            screenY:    opts.screenY || 0,
+            clientX:    opts.clientX || 0,
+            clientY:    opts.clientY || 0,
+            pageX:      opts.clientX || 0,
+            pageY:      opts.clientY || 0,
+            identifier: this._getTouchIdentifier(type)
         });
 
-        if (browserUtils.isIOS) {
-            args.touch = nativeMethods.documentCreateTouch.call(document, args.view, options.target, this._getTouchIdentifier(args.type),
-                args.clientX, args.clientY, 0, 0);
+        if (nativeMethods.documentCreateTouch) {
+            if (browserUtils.isIOS)
+                args.touch = nativeMethods.documentCreateTouch.call(document, args.view, options.target, args.identifier, args.clientX, args.clientY, 0, 0);
+            else {
+                // NOTE: B237995
+                args.touch = nativeMethods.documentCreateTouch.call(document, args.view, options.target, args.identifier, args.pageX, args.pageY,
+                    args.screenX, args.screenY, args.clientX, args.clientY, null, null,
+                    args.rotation === void 0 ? 0 : args.rotation);
+            }
         }
-
         else {
-            // NOTE: B237995
-            args.touch = nativeMethods.documentCreateTouch.call(document, args.view, options.target, this._getTouchIdentifier(args.type), args.pageX,
-                args.pageY, args.screenX, args.screenY, args.clientX, args.clientY, null, null,
-                args.rotation === void 0 ? 0 : args.rotation);
+            args.touch = new Touch({
+                identifier:    args.identifier,
+                target:        options.target,
+                clientX:       args.clientX,
+                clientY:       args.clientY,
+                pageX:         args.pageX,
+                pageY:         args.pageY,
+                screenX:       args.screenX,
+                screenY:       args.screenY,
+                rotationAngle: 0,
+                radiusX:       TOUCH_EVENT_RADIUS,
+                radiusY:       TOUCH_EVENT_RADIUS,
+                force:         TOUCH_EVENT_FORCE
+            });
         }
 
-        args.changedTouches = nativeMethods.documentCreateTouchList.call(document, args.touch);
-        // NOTE: T170088
-        args.touches        = args.type === 'touchend' ? nativeMethods.documentCreateTouchList.call(document) : args.changedTouches;
-        args.targetTouches  = args.touches;
+        if (nativeMethods.documentCreateTouchList) {
+            args.changedTouches = nativeMethods.documentCreateTouchList.call(document, args.touch);
+            // NOTE: T170088
+            args.touches        = args.type ===
+                                  'touchend' ? nativeMethods.documentCreateTouchList.call(document) : args.changedTouches;
+            args.targetTouches  = args.touches;
+        }
 
         return args;
     }
