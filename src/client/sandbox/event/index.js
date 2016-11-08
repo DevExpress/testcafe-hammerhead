@@ -75,12 +75,12 @@ export default class EventSandbox extends SandboxBase {
                         createEventType = 'Events';
 
                     if (ev) {
-                        ev = extend(document.createEvent(createEventType), ev);
+                        ev = extend(nativeMethods.documentCreateEvent.call(document, createEventType), ev);
                         ev.initEvent(eventType, ev.cancelBubble !== void 0 ? ev.cancelBubble : false, true);
                     }
                     else {
                         // NOTE: The fireEvent method can be called with no arguments.
-                        ev = document.createEvent(createEventType);
+                        ev = nativeMethods.documentCreateEvent.call(document, createEventType);
                         ev.initEvent(eventType, true, true);
                     }
                 }

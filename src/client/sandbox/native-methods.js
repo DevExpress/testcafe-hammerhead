@@ -31,6 +31,9 @@ class NativeMethods {
         // Event
         this.documentAddEventListener    = doc.addEventListener || docProto.addEventListener;
         this.documentRemoveEventListener = doc.removeEventListener || docProto.removeEventListener;
+        this.documentCreateEvent         = doc.createEvent || docProto.createEvent;
+        this.documentCreateTouch         = doc.createTouch || docProto.createTouch;
+        this.documentCreateTouchList     = doc.createTouchList || docProto.createTouchList;
     }
 
     refreshElementMeths (doc, win) {
@@ -135,6 +138,8 @@ class NativeMethods {
         // Event
         this.windowAddEventListener    = win.addEventListener || Window.prototype.addEventListener;
         this.windowRemoveEventListener = win.removeEventListener || Window.prototype.removeEventListener;
+        this.WindowPointerEvent        = win.PointerEvent || Window.prototype.PointerEvent;
+        this.WindowMSPointerEvent      = win.MSPointerEvent || Window.prototype.MSPointerEvent;
 
         // Canvas
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
@@ -188,6 +193,9 @@ class NativeMethods {
         // Event
         document.addEventListener    = this.documentAddEventListener;
         document.removeEventListener = this.documentRemoveEventListener;
+        document.createEvent         = this.documentCreateEvent;
+        document.createTouch         = this.documentCreateTouch;
+        document.createTouchList     = this.documentCreateTouchList;
     }
 }
 

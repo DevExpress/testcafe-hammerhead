@@ -1,3 +1,6 @@
+import nativeMethods from '../sandbox/native-methods';
+
+
 export const BUTTON = {
     left:   0,
     middle: 1,
@@ -46,5 +49,5 @@ export function isObjectEventListener (listener) {
     return typeof listener === 'object' && typeof listener.handleEvent === 'function';
 }
 
-export var hasPointerEvents = !!(window.PointerEvent || window.MSPointerEvent);
+export var hasPointerEvents = !!(nativeMethods.WindowPointerEvent || nativeMethods.WindowMSPointerEvent);
 

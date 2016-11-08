@@ -38,7 +38,7 @@ export default class EventSimulator {
     }
 
     static _dispatchStorageEvent (el, args) {
-        var ev = document.createEvent('StorageEvent');
+        var ev = nativeMethods.documentCreateEvent.call(document, 'StorageEvent');
 
         ev.initStorageEvent('storage', args.canBubble, args.cancelable, args.key, args.oldValue,
             args.newValue, args.url, null);
@@ -59,7 +59,7 @@ export default class EventSimulator {
     }
 
     static _dispatchTouchEvent (el, args) {
-        var ev = document.createEvent('TouchEvent');
+        var ev = nativeMethods.documentCreateEvent.call(document, 'TouchEvent');
 
         // HACK: A test for iOS by using initTouchEvent arguments.
         // TODO: Replace it with a user agent analysis later.
@@ -214,20 +214,20 @@ export default class EventSimulator {
         });
 
         if (browserUtils.isIOS) {
-            args.touch = document.createTouch(args.view, options.target, this._getTouchIdentifier(args.type),
+            args.touch = nativeMethods.documentCreateTouch.call(document, args.view, options.target, this._getTouchIdentifier(args.type),
                 args.clientX, args.clientY, 0, 0);
         }
 
         else {
             // NOTE: B237995
-            args.touch = document.createTouch(args.view, options.target, this._getTouchIdentifier(args.type), args.pageX,
+            args.touch = nativeMethods.documentCreateTouch.call(document, args.view, options.target, this._getTouchIdentifier(args.type), args.pageX,
                 args.pageY, args.screenX, args.screenY, args.clientX, args.clientY, null, null,
                 args.rotation === void 0 ? 0 : args.rotation);
         }
 
-        args.changedTouches = document.createTouchList(args.touch);
+        args.changedTouches = nativeMethods.documentCreateTouchList.call(document, args.touch);
         // NOTE: T170088
-        args.touches        = args.type === 'touchend' ? document.createTouchList() : args.changedTouches;
+        args.touches        = args.type === 'touchend' ? nativeMethods.documentCreateTouchList.call(document) : args.changedTouches;
         args.targetTouches  = args.touches;
 
         return args;
@@ -277,8 +277,8 @@ export default class EventSimulator {
     _dispatchKeyEvent (el, args) {
         var ev = null;
 
-        if (document.createEvent) {
-            ev = document.createEvent('Events');
+        if (nativeMethods.documentCreateEvent) {
+            ev = nativeMethods.documentCreateEvent.call(document, 'Events');
             ev.initEvent(args.type, args.canBubble, args.cancelable);
             ev = extend(ev, {
                 view:     args.view,
@@ -332,7 +332,7 @@ export default class EventSimulator {
         if (browserUtils.isIE) {
             pointerArgs.rotation = 0;
 
-            pointEvent = document.createEvent(browserUtils.isIE10 ? 'MSPointerEvent' : 'PointerEvent');
+            pointEvent = nativeMethods.documentCreateEvent.call(document, browserUtils.isIE10 ? 'MSPointerEvent' : 'PointerEvent');
 
             // NOTE: We set the relatedTarget argument to null because IE has a memory leak.
             pointEvent.initPointerEvent(pointerArgs.type, pointerArgs.canBubble, pointerArgs.cancelable, window,
@@ -361,7 +361,7 @@ export default class EventSimulator {
             pointerArgs.bubbles    = true;
             pointerArgs.cancelable = true;
 
-            pointEvent = new window.PointerEvent(pointerEventType, pointerArgs);
+            pointEvent = new nativeMethods.WindowPointerEvent(pointerEventType, pointerArgs);
         }
 
         this._raiseDispatchEvent(el, pointEvent, pointerArgs);
@@ -376,9 +376,9 @@ export default class EventSimulator {
         // button, not a child, so the child does not receive the click event.
         if (browserUtils.isIE) {
             if (args.type === 'click' || args.type === 'mouseup' || args.type === 'mousedown') {
-                if (el.parentNode && domUtils.closest(el.parentNode, 'button')) {
-                    var closestButton = domUtils.closest(el.parentNode, 'button');
+                var closestButton = domUtils.closest(el.parentNode, 'button');
 
+                if (el.parentNode && closestButton) {
                     if (nativeMethods.getAttribute.call(closestButton, 'type') === 'submit')
                         el = closestButton;
                 }
@@ -388,7 +388,7 @@ export default class EventSimulator {
         if (eventUtils.hasPointerEvents && pointerRegExp.test(args.type))
             this._dispatchPointerEvent(el, args);
 
-        ev = document.createEvent('MouseEvents');
+        ev = nativeMethods.documentCreateEvent.call(document, 'MouseEvents');
         ev.initMouseEvent(args.type, args.canBubble, args.cancelable, window, args.detail, args.screenX,
             args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey,
             args.button, args.relatedTarget);
@@ -427,8 +427,8 @@ export default class EventSimulator {
     _dispatchEvent (el, name, shouldBubble, flag) {
         var ev = null;
 
-        if (document.createEvent) {
-            ev = document.createEvent('Events');
+        if (nativeMethods.documentCreateEvent) {
+            ev = nativeMethods.documentCreateEvent.call(document, 'Events');
 
             ev.initEvent(name, shouldBubble, true);
 
