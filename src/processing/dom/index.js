@@ -15,6 +15,7 @@ const HTML_COMMENT_PREFIX_REG_EX         = /^(\s)*<!--[^\n]*\n/;
 const HTML_COMMENT_SIMPLE_POSTFIX_REG_EX = /-->\s*$/;
 const HTML_STRING_REG_EX                 = /^\s*('|")\s*(<[\s\S]+>)\s*('|")\s*$/;
 const JAVASCRIPT_PROTOCOL_REG_EX         = /^\s*javascript\s*:/i;
+const EXECUTABLE_SCRIPT_TYPES_REG_EX     = /^\s*(application\/(x-)?(ecma|java)script|text\/(javascript(1\.[0-5])?|((x-)?ecma|x-java|js|live)script))\s*$/;
 const URL_ATTRS                          = ['href', 'src', 'action', 'manifest', 'data'];
 
 const URL_ATTR_TAGS = {
@@ -362,9 +363,8 @@ export default class DomProcessor {
         // NOTE: We do not process scripts that are not executed during page load. We process scripts of types like
         // text/javascript, application/javascript etc. (a complete list of MIME types is specified in the w3c.org
         // html5 specification). If the type is not set, it is considered 'text/javascript' by default.
-        var scriptType                 = this.adapter.getAttr(script, 'type');
-        var executableScriptTypesRegEx = /(application\/((x-)?ecma|(x-)?java)script)|(text\/)(javascript(1\.{0-5})?|((x-)?ecma|x-java|js|live)script)/;
-        var isExecutableScript         = !scriptType || executableScriptTypesRegEx.test(scriptType);
+        var scriptType         = this.adapter.getAttr(script, 'type');
+        var isExecutableScript = !scriptType || EXECUTABLE_SCRIPT_TYPES_REG_EX.test(scriptType);
 
         if (isExecutableScript) {
             var result              = scriptContent;

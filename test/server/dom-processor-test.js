@@ -1,9 +1,10 @@
-var expect       = require('chai').expect;
-var parse5       = require('parse5');
-var DomProcessor = require('../../lib/processing/dom');
-var DomAdapter   = require('../../lib/processing/dom/parse5-dom-adapter');
-var urlUtils     = require('../../lib/utils/url');
-var parse5Utils  = require('../../lib/utils/parse5');
+var expect        = require('chai').expect;
+var parse5        = require('parse5');
+var DomProcessor  = require('../../lib/processing/dom');
+var processScript = require('../../lib/processing/script').processScript;
+var DomAdapter    = require('../../lib/processing/dom/parse5-dom-adapter');
+var urlUtils      = require('../../lib/utils/url');
+var parse5Utils   = require('../../lib/utils/parse5');
 
 var domAdapter   = new DomAdapter();
 var domProcessor = new DomProcessor(domAdapter);
@@ -68,6 +69,34 @@ describe('DOM processor', function () {
         var script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
 
         expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!s/http://example.com/script.js');
+    });
+
+    it('Should process <script> with correct type', function () {
+        var casesWithCorrectType = [
+            'application/x-ecmascript', 'application/x-javascript', 'application/ecmascript', 'application/javascript',
+            'text/x-ecmascript', 'text/ecmascript', 'text/x-javascript', 'text/jsscript', 'text/livescript',
+            'text/javascript', 'text/javascript1.0', 'text/javascript1.1', 'text/javascript1.2',
+            'text/javascript1.3', 'text/javascript1.4', 'text/javascript1.5', '   text/javascript1.5   '
+        ];
+
+        var casesWithIncorrectType = [
+            '123', 'aplication/x-ecmascript', 'application/avacript', 'applica/ecmascr', 'test/javacript',
+            'text/javascript2.0', 'text/javascript1.6', 'text/javascript1.7'
+        ];
+
+        var script          = 'location.path = "/path";';
+        var processedScript = processScript(script, true);
+
+        var checkType = function (type) {
+            var result   = this.toString();
+            var root     = process('<script type="' + type + '">' + script + '</script>');
+            var scriptEl = parse5Utils.findElementsByTagNames(root, 'script').script[0];
+
+            expect(scriptEl.childNodes[0].value).eql(result);
+        };
+
+        casesWithCorrectType.forEach(checkType, processedScript);
+        casesWithIncorrectType.forEach(checkType, script);
     });
 
     it('Should process <img> src', function () {
