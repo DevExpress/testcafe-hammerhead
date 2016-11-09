@@ -66,7 +66,8 @@ export const PROPERTIES = [
     'textContent',
     'URL',
     'value',
-    'which'
+    'which',
+    'baseURI'
 ];
 
 const INSTRUMENTED_METHOD_RE   = new RegExp(`^(${METHODS.join('|')})$`);
