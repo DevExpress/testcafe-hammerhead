@@ -151,6 +151,19 @@ test('document.documentURI', function () {
     strictEqual(getProperty(documentMock, 'documentURI'), url);
 });
 
+test('document.baseURI (GH-920)', function () {
+    var url          = 'http://some.domain.com/index.html';
+    var documentMock = {
+        referrer: '',
+        baseURI:  urlUtils.getProxyUrl(url),
+        toString: function () {
+            return '[object HTMLDocument]';
+        }
+    };
+
+    strictEqual(getProperty(documentMock, 'baseURI'), url);
+});
+
 test('CSSStyleSheet.href', function () {
     var storedGetProxyUrl = urlUtils.parseProxyUrl;
     var styleSheet        = document.styleSheets[0];

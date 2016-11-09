@@ -584,6 +584,26 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set:       () => void 0
             },
 
+            baseURI: {
+                condition: domUtils.isDocument,
+
+                get: doc => {
+                    if (doc.baseURI) {
+                        var parsedURI = urlUtils.parseProxyUrl(doc.baseURI);
+
+                        if (parsedURI)
+                            return parsedURI.destUrl;
+                    }
+
+                    return doc.baseURI;
+                },
+                set: (doc, url) => {
+                    var result = doc.baseURI = url;
+
+                    return result;
+                }
+            },
+
             value: {
                 condition: el => domUtils.isDomElement(el) && (domUtils.isFileInput(el) ||
                                                                domUtils.isTextEditableElementAndEditingAllowed(el) &&
