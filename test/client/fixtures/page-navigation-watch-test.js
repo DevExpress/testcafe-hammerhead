@@ -155,6 +155,18 @@ asyncTest('Hash via location.href', function () {
         });
 });
 
+asyncTest('Hash via window.location (GH-917)', function () {
+    navigateIframe('window.location = "#hash";')
+        .then(function () {
+            ok(false);
+            start();
+        })
+        .catch(function () {
+            ok(true);
+            start();
+        });
+});
+
 asyncTest('Hash via location.hash', function () {
     navigateIframe('location.hash = "hash";')
         .then(function () {
