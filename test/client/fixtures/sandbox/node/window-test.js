@@ -136,11 +136,5 @@ test('the constructor field of a function should return a wrapped Function objec
     var f = function () {
     };
 
-    switch (f.constructor) {
-        case Function:
-            ok(true);
-            break;
-        default:
-            ok(false);
-    }
+    strictEqual(f.constructor, Function);
 });
