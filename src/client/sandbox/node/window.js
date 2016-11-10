@@ -234,7 +234,7 @@ export default class WindowSandbox extends SandboxBase {
 
             return nativeMethods.Function.apply(this, args);
         };
-        
+
         window.Function.prototype             = nativeMethods.Function.prototype;
         window.Function.prototype.constructor = window.Function;
 
