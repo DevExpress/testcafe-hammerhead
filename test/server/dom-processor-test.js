@@ -152,4 +152,14 @@ describe('DOM processor', function () {
         expect(crossDomainIframeSrc).eql(crossDomainProxyUrl);
         expect(iframeSrc).eql(proxyUrl);
     });
+
+    describe('Regression', function () {
+        it('Should not process documentFragment node (GH-912)', function () {
+            var root                 = process('<body><template><div></div></template></body>');
+            var templateNode         = parse5Utils.findElementsByTagNames(root, 'template').template[0];
+            var documentFragmentNode = templateNode.childNodes[0];
+
+            expect(documentFragmentNode['hammerhead|element-processed']).to.not.to.be.true;
+        });
+    });
 });
