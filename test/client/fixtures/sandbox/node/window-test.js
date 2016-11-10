@@ -132,3 +132,15 @@ test('window.onerror must be overriden (B238830)', function () {
     ok(!error);
 });
 
+test('the constructor field of a function should return wrapped Function object (GH-913)', function () {
+    var f = function () {
+    };
+
+    switch (f.constructor) {
+        case Function:
+            ok(true);
+            break;
+        default:
+            ok(false);
+    }
+});

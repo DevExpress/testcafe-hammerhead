@@ -226,7 +226,7 @@ export default class WindowSandbox extends SandboxBase {
         };
         window.Image.prototype = nativeMethods.Image.prototype;
 
-        window.Function           = function (...args) {
+        window.Function = function (...args) {
             var functionBodyArgIndex = args.length - 1;
 
             if (typeof args[functionBodyArgIndex] === 'string')
@@ -234,7 +234,9 @@ export default class WindowSandbox extends SandboxBase {
 
             return nativeMethods.Function.apply(this, args);
         };
-        window.Function.prototype = nativeMethods.Function.prototype;
+        
+        window.Function.prototype             = nativeMethods.Function.prototype;
+        window.Function.prototype.constructor = window.Function;
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             window.history.pushState = function () {
