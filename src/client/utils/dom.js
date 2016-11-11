@@ -9,6 +9,8 @@ import { isFirefox, isWebKit, isIE, version as browserVersion } from './browser'
 import trim from '../../utils/string-trim';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
+const NATIVE_METHOD_REG_EX = /^\s*function\s[\s\S]+()\s*\{\s*\[native\scode\]\s*\}\s*$/;
+
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 var arraySlice = Array.prototype.slice;
@@ -77,6 +79,13 @@ function hasClassFallback (el, className) {
     className = ' ' + className + ' ';
 
     return preparedElementClassName.indexOf(className) !== -1;
+}
+
+function nativeToString (obj) {
+    if (obj && obj.toString && typeof obj.toString === 'function' && NATIVE_METHOD_REG_EX.test(obj.toString.toString()))
+        return obj.toString();
+
+    return '';
 }
 
 export function getActiveElement (currentDocument) {
@@ -303,8 +312,7 @@ export function isDomElement (el) {
         return true;
 
     // NOTE: T184805
-    if (el && typeof el.toString === 'function' && el.toString.toString().indexOf('[native code]') !== -1 &&
-        el.constructor &&
+    if (el && nativeToString(el) && el.constructor &&
         (el.constructor.toString().indexOf(' Element') !== -1 || el.constructor.toString().indexOf(' Node') !== -1))
         return false;
 
@@ -366,9 +374,10 @@ export function isIframeWithoutSrc (iframe) {
         // NOTE: In IE, after document.open is called for a same-domain iframe or an iframe with a javascript src,
         // the iframe window location becomes equal to the location of the parent window with src.
         var parsedIframeSrcLocation = urlUtils.isSupportedProtocol(iframeSrcLocation) ? urlUtils.parseUrl(iframeSrcLocation)
-                                                                                      : null;
+            : null;
 
-        if (parsedIframeSrcLocation && parsedIframeSrcLocation.partAfterHost && iframeDocumentLocation === parentWindowLocation)
+        if (parsedIframeSrcLocation && parsedIframeSrcLocation.partAfterHost &&
+            iframeDocumentLocation === parentWindowLocation)
             return false;
 
         return iframeDocumentLocation === parentWindowLocation;
@@ -515,8 +524,10 @@ export function isWindow (instance) {
         return true;
 
     try {
-        return instance && typeof instance === 'object' && instance.top !== void 0 && instance.toString &&
-               (instance.toString() === '[object Window]' || instance.toString() === '[object global]');
+        var str = nativeToString(instance);
+
+        return instance && typeof instance === 'object' && instance.top !== void 0 &&
+               (str === '[object Window]' || str === '[object global]');
     }
     catch (e) {
         // NOTE: If a cross-domain object has the 'top' field, this object is a window
@@ -530,8 +541,10 @@ export function isDocument (instance) {
         return true;
 
     try {
-        return instance && typeof instance === 'object' && instance.toString &&
-               (instance.toString() === '[object HTMLDocument]' || instance.toString() === '[object Document]');
+        var str = nativeToString(instance);
+
+        return instance && typeof instance === 'object' &&
+               (str === '[object HTMLDocument]' || str === '[object Document]');
     }
     catch (e) {
         // NOTE: For cross-domain objects (windows, documents or locations), we return false because
@@ -542,13 +555,12 @@ export function isDocument (instance) {
 
 export function isXMLHttpRequest (instance) {
     return instance && (instance instanceof XMLHttpRequest ||
-                        typeof instance === 'object' && instance.toString &&
-                        instance.toString() === '[object XMLHttpRequest]');
+           typeof instance === 'object' && nativeToString(instance) === '[object XMLHttpRequest]');
 }
 
 export function isBlob (instance) {
     return instance && typeof instance === 'object' && typeof instance.slice === 'function' &&
-           instance.toString && instance.toString() === '[object Blob]';
+           nativeToString(instance) === '[object Blob]';
 }
 
 export function isLocation (instance) {
@@ -568,8 +580,8 @@ export function isSVGElement (instance) {
     if (instance instanceof nativeMethods.svgElementClass)
         return true;
 
-    return instance && typeof instance === 'object' && instance.ownerSVGElement !== void 0 && instance.toString &&
-           instance.toString().toLowerCase() === '[object svg' + getTagName(instance) + 'element]';
+    return instance && typeof instance === 'object' && instance.ownerSVGElement !== void 0 &&
+           nativeToString(instance).toLowerCase() === '[object svg' + getTagName(instance) + 'element]';
 }
 
 export function isSVGElementOrChild (el) {
@@ -581,7 +593,7 @@ export function isFetchHeaders (instance) {
         return true;
 
     return instance && typeof instance === 'object' && instance.append !== void 0 &&
-           typeof instance.toString === 'function' && instance.toString() === '[object Headers]';
+           nativeToString(instance) === '[object Headers]';
 }
 
 export function isFetchRequest (instance) {
@@ -589,7 +601,7 @@ export function isFetchRequest (instance) {
         return true;
 
     return instance && typeof instance === 'object' && typeof instance.json === 'function' &&
-           typeof instance.toString === 'function' && instance.toString() === '[object Request]';
+           nativeToString(instance) === '[object Request]';
 }
 
 export function isTextEditableInput (el) {

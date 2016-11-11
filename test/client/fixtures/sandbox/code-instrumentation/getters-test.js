@@ -135,6 +135,10 @@ test('document.referrer', function () {
         }
     };
 
+    documentMock.toString.toString = function () {
+        return 'function test() { [native code] }';
+    };
+
     strictEqual(getProperty(documentMock, 'referrer'), url);
 });
 
@@ -146,6 +150,10 @@ test('document.documentURI', function () {
         toString:    function () {
             return '[object HTMLDocument]';
         }
+    };
+
+    documentMock.toString.toString = function () {
+        return 'function test() { [native code] }';
     };
 
     strictEqual(getProperty(documentMock, 'documentURI'), url);
