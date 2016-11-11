@@ -212,7 +212,7 @@ export default class ShadowUI extends SandboxBase {
 
                 this._bringRootToWindowTopLeft();
                 nativeMethods.documentAddEventListener.call(this.document, 'DOMContentLoaded', () => {
-                    this.makeRootLastBodyChild();
+                    this.onBodyElementMutation();
                     this._bringRootToWindowTopLeft();
                 });
             }
@@ -257,32 +257,27 @@ export default class ShadowUI extends SandboxBase {
                 }, elContextWindow);
             }
             else
-                this.makeRootLastBodyChild();
+                this.onBodyElementMutation();
         });
 
         this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
-                this.makeRootLastBodyChild();
+                this.onBodyElementMutation();
         });
     }
 
-    makeRootLastBodyChild () {
+    onBodyElementMutation () {
         if (!this.root || !this.document.body)
             return;
 
-        if (!domUtils.closest(this.root, 'html')) {
-            this.nativeMethods.appendChild.call(this.document.body, this.root);
-            return;
-        }
+        var isRootInDom = domUtils.closest(this.root, 'html');
+        var isRootLastChild = !this.root.nextElementSibling;
+        // NOTE: Fix for B239138 - The 'Cannot read property 'document' of null' error
+        // is thrown on recording on the unroll.me site. There was an issue when
+        // document.body was replaced, so we need to reattach a UI to a new body manually.
+        var isRootInBody = this.root.parentNode === this.document.body;
 
-        if (this.root.nextElementSibling) {
-            this.nativeMethods.appendChild.call(this.document.body, this.root);
-            return;
-        }
-
-        // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
-        // There were an issue when document.body was replaced, so we need to reattach UI to a new body manually.
-        if (this.root.parentNode !== this.document.body)
+        if (!(isRootInDom && isRootLastChild && isRootInBody))
             this.nativeMethods.appendChild.call(this.document.body, this.root);
     }
 

@@ -68,7 +68,7 @@ export default class NodeSandbox extends SandboxBase {
     // resource, not from proxy, and also provide proxying for dynamically created elements.
     attach (window) {
         var document                    = window.document;
-        var DOMContentLoadedEventRaised = false;
+        var domContentLoadedEventRaised = false;
 
         super.attach(window, document);
 
@@ -87,12 +87,13 @@ export default class NodeSandbox extends SandboxBase {
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         Object.defineProperty(window, INTERNAL_PROPS.processDomMethodName, {
             value: (el, doc) => {
-                // NOTE: testcafe creates shadow-ui root before DOMContentLoaded event (once document.body is available).
-                // Sometimes for very heavy DOM or very slow loading at that moment body doesn't contain all elements
-                // and as a result after full page loading our root element become not the last child of body. So we need
-                // to make root last body child manually on every script loading until DOMContentLoaded event raise.
-                if (!DOMContentLoadedEventRaised)
-                    this.shadowUI.makeRootLastBodyChild();
+                // NOTE: TestCafe creates a shadow-ui root before the DOMContentLoaded event (once document.body is
+                // available). Sometimes for a very heavy DOM or a very slow loading the body doesn't contain all
+                // elements at that moment and as a result after a full page loading our root element becomes not
+                // the last child of the body. So we need to make the root last body child manually on every script
+                // loading until the DOMContentLoaded event is raised.
+                if (!domContentLoadedEventRaised)
+                    this.shadowUI.onBodyElementMutation();
 
                 this.processNodes(el, doc);
             },
@@ -104,7 +105,7 @@ export default class NodeSandbox extends SandboxBase {
         // created and when the document’s ready event is raised. Therefore, we need to update the 'document' object
         // to override its methods (Q527555).
         document.addEventListener('DOMContentLoaded', () => {
-            DOMContentLoadedEventRaised = true;
+            domContentLoadedEventRaised = true;
 
             this.processNodes(null, document);
         }, false);
