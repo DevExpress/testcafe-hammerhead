@@ -13,10 +13,14 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
             var uploadEventCounter = 0;
 
             unloadSandbox.on(unloadSandbox.BEFORE_UNLOAD_EVENT, function () {
-                strictEqual(uploadEventCounter, 2);
+                // NOTE: Removing an iframe on executing the beforeUnload
+                // handler occasionally causes problems with SourceLab
+                window.setTimeout(function () {
+                    strictEqual(uploadEventCounter, 2);
 
-                document.body.removeChild(iframe);
-                start();
+                    document.body.removeChild(iframe);
+                    start();
+                }, 0);
             });
 
             iframeWindow.addEventListener(unloadSandbox.beforeUnloadEventName, function () {

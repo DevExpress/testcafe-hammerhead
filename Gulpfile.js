@@ -42,8 +42,12 @@ var CLIENT_TESTS_BROWSERS = [
     },
     {
         platform:    'Windows 10',
+        browserName: 'chrome'
+    },
+    {
+        platform:    'Windows 10',
         browserName: 'chrome',
-        version:     '52.0'
+        version:     'beta'
     },
     {
         platform:    'Windows 10',

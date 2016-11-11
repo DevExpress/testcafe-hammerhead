@@ -28,7 +28,7 @@ export default class EventSimulator {
     constructor () {
         this.DISPATCHED_EVENT_FLAG = 'hammerhead|dispatched-event';
 
-        this.touchIdentifier  = nativeMethods.dateNow();
+        this.touchIdentifier = nativeMethods.dateNow();
         // NOTE: (IE only) If event dispatching calls a native click function, we should clear the window.event
         // property (which was set in the raiseDispatchEvent function). Otherwise, the window.event property will
         // contain the dispatched event, not the native click event. We should restore the window.event value after
@@ -38,7 +38,7 @@ export default class EventSimulator {
     }
 
     static _dispatchStorageEvent (el, args) {
-        var ev = document.createEvent('StorageEvent');
+        var ev = nativeMethods.documentCreateEvent.call(document, 'StorageEvent');
 
         ev.initStorageEvent('storage', args.canBubble, args.cancelable, args.key, args.oldValue,
             args.newValue, args.url, null);
@@ -59,7 +59,7 @@ export default class EventSimulator {
     }
 
     static _dispatchTouchEvent (el, args) {
-        var ev = document.createEvent('TouchEvent');
+        var ev = nativeMethods.documentCreateEvent.call(document, 'TouchEvent');
 
         // HACK: A test for iOS by using initTouchEvent arguments.
         // TODO: Replace it with a user agent analysis later.
@@ -214,21 +214,21 @@ export default class EventSimulator {
         });
 
         if (browserUtils.isIOS) {
-            args.touch = document.createTouch(args.view, options.target, this._getTouchIdentifier(args.type),
+            args.touch = nativeMethods.documentCreateTouch.call(document, args.view, options.target, this._getTouchIdentifier(args.type),
                 args.clientX, args.clientY, 0, 0);
         }
 
         else {
             // NOTE: B237995
-            args.touch = document.createTouch(args.view, options.target, this._getTouchIdentifier(args.type), args.pageX,
+            args.touch = nativeMethods.documentCreateTouch.call(document, args.view, options.target, this._getTouchIdentifier(args.type), args.pageX,
                 args.pageY, args.screenX, args.screenY, args.clientX, args.clientY, null, null,
                 args.rotation === void 0 ? 0 : args.rotation);
         }
 
-        args.changedTouches = document.createTouchList(args.touch);
+        args.changedTouches = nativeMethods.documentCreateTouchList.call(document, args.touch);
         // NOTE: T170088
-        args.touches       = args.type === 'touchend' ? document.createTouchList() : args.changedTouches;
-        args.targetTouches = args.touches;
+        args.touches        = args.type === 'touchend' ? nativeMethods.documentCreateTouchList.call(document) : args.changedTouches;
+        args.targetTouches  = args.touches;
 
         return args;
     }
@@ -277,8 +277,8 @@ export default class EventSimulator {
     _dispatchKeyEvent (el, args) {
         var ev = null;
 
-        if (document.createEvent) {
-            ev = document.createEvent('Events');
+        if (nativeMethods.documentCreateEvent) {
+            ev = nativeMethods.documentCreateEvent.call(document, 'Events');
             ev.initEvent(args.type, args.canBubble, args.cancelable);
             ev = extend(ev, {
                 view:     args.view,
@@ -298,62 +298,49 @@ export default class EventSimulator {
         return null;
     }
 
-    _dispatchMouseEvent (el, args) {
-        var ev            = null;
-        var pointerRegExp = /mouse(down|up|move|over|out)/;
+    _dispatchPointerEvent (el, args) {
+        var pointEvent       = null;
+        var elPosition       = getOffsetPosition(el);
+        var elBorders        = getBordersWidth(el);
+        var elClientPosition = offsetToClientCoords({
+            x: elPosition.left + elBorders.left,
+            y: elPosition.top + elBorders.top
+        });
+        var eventShortType   = args.type.replace('mouse', '');
+        var pointerEventType = !browserUtils.isIE10 ? 'pointer' + eventShortType :
+                               'MSPointer' + eventShortType.charAt(0).toUpperCase() + eventShortType.substring(1);
 
-        // NOTE: In IE, submit doesn't work if a click is simulated for some submit button's children (for example,
-        // img, B236676). In addition, if a test is being recorded in IE, the target of a click event is always a
-        // button, not a child, so the child does not receive the click event.
+        var pointerArgs = extend({
+            width:       !browserUtils.isIE10 ? 1 : 0,
+            height:      !browserUtils.isIE10 ? 1 : 0,
+            pressure:    0,
+            tiltX:       0,
+            tiltY:       0,
+            // NOTE: This parameter must be "1" for “mouse”.
+            pointerId:   1,
+            pointerType: browserUtils.isIE10 ? 4 : 'mouse',
+            timeStamp:   nativeMethods.dateNow(),
+            isPrimary:   true
+        }, args);
+
+        pointerArgs.type    = pointerEventType;
+        pointerArgs.offsetX = args.clientX - elClientPosition.x;
+        pointerArgs.offsetY = args.clientY - elClientPosition.y;
+        pointerArgs.button  = args.buttons === eventUtils.BUTTONS_PARAMETER.noButton ?
+                              POINTER_EVENT_BUTTON.noButton : pointerArgs.button;
+
         if (browserUtils.isIE) {
-            if (args.type === 'click' || args.type === 'mouseup' || args.type === 'mousedown') {
-                if (el.parentNode && domUtils.closest(el.parentNode, 'button')) {
-                    var closestButton = domUtils.closest(el.parentNode, 'button');
+            pointerArgs.rotation = 0;
 
-                    if (nativeMethods.getAttribute.call(closestButton, 'type') === 'submit')
-                        el = closestButton;
-                }
-            }
-        }
-
-        if (browserUtils.isIE && browserUtils.version > 9 && pointerRegExp.test(args.type)) {
-            var pointEvent       = browserUtils.version >
-                                   10 ? document.createEvent('PointerEvent') : document.createEvent('MSPointerEvent');
-            var elPosition       = getOffsetPosition(el);
-            var elBorders        = getBordersWidth(el);
-            var elClientPosition = offsetToClientCoords({
-                x: elPosition.left + elBorders.left,
-                y: elPosition.top + elBorders.top
-            });
-            var eventShortType   = args.type.replace('mouse', '');
-            var pArgs            = extend({
-                widthArg:       browserUtils.version > 10 ? 1 : 0,
-                heightArg:      browserUtils.version > 10 ? 1 : 0,
-                pressure:       0,
-                rotation:       0,
-                tiltX:          0,
-                tiltY:          0,
-                // NOTE: This parameter must be "1" for “mouse”.
-                pointerIdArg:   1,
-                pointerType:    browserUtils.version > 10 ? 'mouse' : 4,
-                hwTimestampArg: nativeMethods.dateNow(),
-                isPrimary:      true
-            }, args);
-
-            pArgs.type       = browserUtils.version > 10 ? 'pointer' + eventShortType : 'MSPointer' +
-                                                                                        eventShortType.charAt(0).toUpperCase() +
-                                                                                        eventShortType.substring(1);
-            pArgs.offsetXArg = args.clientX - elClientPosition.x;
-            pArgs.offsetYArg = args.clientY - elClientPosition.y;
-            pArgs.button     = args.buttons ===
-                               eventUtils.BUTTONS_PARAMETER.noButton ? POINTER_EVENT_BUTTON.noButton : pArgs.button;
+            pointEvent = nativeMethods.documentCreateEvent.call(document, browserUtils.isIE10 ? 'MSPointerEvent' : 'PointerEvent');
 
             // NOTE: We set the relatedTarget argument to null because IE has a memory leak.
-            pointEvent.initPointerEvent(pArgs.type, pArgs.canBubble, pArgs.cancelable, window, pArgs.detail, pArgs.screenX,
-                pArgs.screenY, pArgs.clientX, pArgs.clientY, pArgs.ctrlKey, pArgs.altKey, pArgs.shiftKey, pArgs.metaKey,
-                pArgs.button, null, pArgs.offsetXArg, pArgs.offsetYArg, pArgs.widthArg, pArgs.heightArg,
-                pArgs.pressure, pArgs.rotation, pArgs.tiltX, pArgs.tiltY, pArgs.pointerIdArg, pArgs.pointerType,
-                pArgs.hwTimestampArg, pArgs.isPrimary);
+            pointEvent.initPointerEvent(pointerArgs.type, pointerArgs.canBubble, pointerArgs.cancelable, window,
+                pointerArgs.detail, pointerArgs.screenX, pointerArgs.screenY, pointerArgs.clientX, pointerArgs.clientY,
+                pointerArgs.ctrlKey, pointerArgs.altKey, pointerArgs.shiftKey, pointerArgs.metaKey, pointerArgs.button,
+                null, pointerArgs.offsetX, pointerArgs.offsetY, pointerArgs.width, pointerArgs.height, pointerArgs.pressure,
+                pointerArgs.rotation, pointerArgs.tiltX, pointerArgs.tiltY, pointerArgs.pointerId, pointerArgs.pointerType,
+                pointerArgs.timeStamp, pointerArgs.isPrimary);
 
             // NOTE: After dispatching the pointer event, it doesn't contain the 'target' and 'relatedTarget' properties.
             Object.defineProperty(pointEvent, 'target', {
@@ -369,11 +356,39 @@ export default class EventSimulator {
             Object.defineProperty(pointEvent, 'buttons', {
                 get: () => args.buttons
             });
+        }
+        else {
+            pointerArgs.bubbles    = true;
+            pointerArgs.cancelable = true;
 
-            this._raiseDispatchEvent(el, pointEvent, pArgs);
+            pointEvent = new nativeMethods.WindowPointerEvent(pointerEventType, pointerArgs);
         }
 
-        ev = document.createEvent('MouseEvents');
+        this._raiseDispatchEvent(el, pointEvent, pointerArgs);
+    }
+
+    _dispatchMouseEvent (el, args) {
+        var ev            = null;
+        var pointerRegExp = /mouse(down|up|move|over|out)/;
+
+        // NOTE: In IE, submit doesn't work if a click is simulated for some submit button's children (for example,
+        // img, B236676). In addition, if a test is being recorded in IE, the target of a click event is always a
+        // button, not a child, so the child does not receive the click event.
+        if (browserUtils.isIE) {
+            if (args.type === 'click' || args.type === 'mouseup' || args.type === 'mousedown') {
+                var closestButton = domUtils.closest(el.parentNode, 'button');
+
+                if (el.parentNode && closestButton) {
+                    if (nativeMethods.getAttribute.call(closestButton, 'type') === 'submit')
+                        el = closestButton;
+                }
+            }
+        }
+
+        if (eventUtils.hasPointerEvents && pointerRegExp.test(args.type))
+            this._dispatchPointerEvent(el, args);
+
+        ev = nativeMethods.documentCreateEvent.call(document, 'MouseEvents');
         ev.initMouseEvent(args.type, args.canBubble, args.cancelable, window, args.detail, args.screenX,
             args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey,
             args.button, args.relatedTarget);
@@ -412,8 +427,8 @@ export default class EventSimulator {
     _dispatchEvent (el, name, shouldBubble, flag) {
         var ev = null;
 
-        if (document.createEvent) {
-            ev = document.createEvent('Events');
+        if (nativeMethods.documentCreateEvent) {
+            ev = nativeMethods.documentCreateEvent.call(document, 'Events');
 
             ev.initEvent(name, shouldBubble, true);
 
@@ -445,9 +460,9 @@ export default class EventSimulator {
 
                 var returnValue    = true;
                 var curWindowEvent = null; // NOTE: B254199
-                var onEvent       = 'on' + (MSPOINTER_EVENT_NAME_RE.test(ev.type) ? ev.type.toLowerCase() : ev.type);
-                var inlineHandler = el[onEvent];
-                var button        = args.button;
+                var onEvent        = 'on' + (MSPOINTER_EVENT_NAME_RE.test(ev.type) ? ev.type.toLowerCase() : ev.type);
+                var inlineHandler  = el[onEvent];
+                var button         = args.button;
 
                 // NOTE: If window.event is generated after the native click is raised.
                 if (typeof curWindow.event === 'object' && this.savedWindowEvents.length &&
