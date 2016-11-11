@@ -551,10 +551,12 @@ test('an iframe should not contain self-removing scripts after document.close (G
 test('querySelector should return an element if a selector contains the href attribute with hash as a value (GH-922)', function () {
     var testDiv = document.createElement('div');
 
-    testDiv.innerHTML = '<a href="#/"> Hash link </a>';
+    testDiv.innerHTML = '<a href="  #/"> Hash link </a>';
     document.body.appendChild(testDiv);
 
-    var element = document.querySelector('[href="#/"]');
+    ok(testDiv['hammerhead|element-processed']);
+
+    var element = document.querySelector('[href="  #/"]');
 
     ok(element);
 

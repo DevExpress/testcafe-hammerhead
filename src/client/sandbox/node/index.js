@@ -9,7 +9,7 @@ import * as domUtils from '../../utils/dom';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
-const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+#/;
+const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
 
 export default class NodeSandbox extends SandboxBase {
     constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
