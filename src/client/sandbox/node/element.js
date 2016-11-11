@@ -484,7 +484,7 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (domUtils.isBodyElement(el))
-            this.shadowUI.onBodyElementMutation();
+            this.shadowUI.makeRootLastBodyChild();
 
         this._onAddFileInputInfo(el);
 
@@ -498,7 +498,7 @@ export default class ElementSandbox extends SandboxBase {
 
     onElementRemoved (el) {
         if (domUtils.isBodyElement(el))
-            this.shadowUI.onBodyElementMutation();
+            this.shadowUI.makeRootLastBodyChild();
 
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(getDestLocation(), this.document);

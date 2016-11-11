@@ -211,7 +211,10 @@ export default class ShadowUI extends SandboxBase {
                     this.root.addEventListener(EVENTS[i], stopPropagation);
 
                 this._bringRootToWindowTopLeft();
-                nativeMethods.documentAddEventListener.call(this.document, 'DOMContentLoaded', () => this._bringRootToWindowTopLeft);
+                nativeMethods.documentAddEventListener.call(this.document, 'DOMContentLoaded', () => {
+                    this.makeRootLastBodyChild();
+                    this._bringRootToWindowTopLeft();
+                });
             }
             else
                 nativeMethods.appendChild.call(this.document.body, this.root);
@@ -254,36 +257,33 @@ export default class ShadowUI extends SandboxBase {
                 }, elContextWindow);
             }
             else
-                this.onBodyContentChanged();
+                this.makeRootLastBodyChild();
         });
 
         this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
-                this.onBodyContentChanged();
+                this.makeRootLastBodyChild();
         });
     }
 
-    onBodyContentChanged () {
-        if (this.root) {
-            if (!domUtils.closest(this.root, 'html'))
-                this.nativeMethods.appendChild.call(this.document.body, this.root);
-        }
-    }
-
     makeRootLastBodyChild () {
-        var isRootInDOM = this.root && domUtils.closest(this.root, 'html');
+        if (!this.root || !this.document.body)
+            return;
 
-        if (isRootInDOM && this.root.nextElementSibling)
+        if (!domUtils.closest(this.root, 'html')) {
             this.nativeMethods.appendChild.call(this.document.body, this.root);
-    }
-
-    // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
-    // There were an issue when document.body was replaced, so we need to reattach UI to a new body manually.
-    onBodyElementMutation () {
-        if (this.root) {
-            if (this.document.body && this.root.parentNode !== this.document.body)
-                this.nativeMethods.appendChild.call(this.document.body, this.root);
+            return;
         }
+
+        if (this.root.nextElementSibling) {
+            this.nativeMethods.appendChild.call(this.document.body, this.root);
+            return;
+        }
+
+        // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
+        // There were an issue when document.body was replaced, so we need to reattach UI to a new body manually.
+        if (this.root.parentNode !== this.document.body)
+            this.nativeMethods.appendChild.call(this.document.body, this.root);
     }
 
     // Accessors

@@ -345,7 +345,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         // NOTE: This check is required for an element in an unavailable window.
                         // NOTE: Use timeout, so that changes take effect.
                         if (window.self && domUtils.isBodyElement(el))
-                            nativeMethods.setTimeout.call(window, () => this.shadowUI.onBodyElementMutation(), 0);
+                            nativeMethods.setTimeout.call(window, () => this.shadowUI.makeRootLastBodyChild(), 0);
 
                         return value;
                     }
