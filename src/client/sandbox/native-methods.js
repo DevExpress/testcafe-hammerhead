@@ -140,6 +140,8 @@ class NativeMethods {
         this.windowRemoveEventListener = win.removeEventListener || Window.prototype.removeEventListener;
         this.WindowPointerEvent        = win.PointerEvent || Window.prototype.PointerEvent;
         this.WindowMSPointerEvent      = win.MSPointerEvent || Window.prototype.MSPointerEvent;
+        this.WindowTouch               = win.Touch || Window.prototype.Touch;
+        this.WindowTouchEvent          = win.TouchEvent || Window.prototype.TouchEvent;
 
         // Canvas
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;

@@ -91,7 +91,7 @@ export default class EventSimulator {
             }
         }
         else {
-            ev = new TouchEvent(args.type, {
+            ev = new nativeMethods.WindowTouchEvent(args.type, {
                 touches:          args.touches,
                 targetTouches:    args.targetTouches,
                 changedTouches:   args.changedTouches,
@@ -247,7 +247,7 @@ export default class EventSimulator {
             }
         }
         else {
-            args.touch = new Touch({
+            args.touch = new nativeMethods.WindowTouch({
                 identifier:    args.identifier,
                 target:        options.target,
                 clientX:       args.clientX,
