@@ -67,7 +67,8 @@ export default class NodeSandbox extends SandboxBase {
     // resources. Our goal is to make the native script think that all resources are fetched from the destination
     // resource, not from proxy, and also provide proxying for dynamically created elements.
     attach (window) {
-        var document = window.document;
+        var document                    = window.document;
+        var DOMContentLoadedEventRaised = false;
 
         super.attach(window, document);
 
@@ -85,14 +86,28 @@ export default class NodeSandbox extends SandboxBase {
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         Object.defineProperty(window, INTERNAL_PROPS.processDomMethodName, {
-            value:        (el, doc) => this.processNodes(el, doc),
+            value: (el, doc) => {
+                // NOTE: testcafe creates shadow-ui root before DOMContentLoaded event (once document.body is available).
+                // Sometimes for very heavy DOM or very slow loading at that moment body doesn't contain all elements
+                // and as a result after full page loading our root element become not the last child of body. So we need
+                // to make root last body child manually on every script loading until DOMContentLoaded event raise.
+                if (!DOMContentLoadedEventRaised)
+                    this.shadowUI.makeRootLastBodyChild();
+
+                this.processNodes(el, doc);
+            },
+
             configurable: true
         });
 
         // NOTE: In some browsers (for example Firefox), the 'window.document' object is different when iframe is
         // created and when the document’s ready event is raised. Therefore, we need to update the 'document' object
         // to override its methods (Q527555).
-        document.addEventListener('DOMContentLoaded', () => this.processNodes(null, document), false);
+        document.addEventListener('DOMContentLoaded', () => {
+            DOMContentLoadedEventRaised = true;
+
+            this.processNodes(null, document);
+        }, false);
 
         this.doc.attach(window, document);
         this.win.attach(window);

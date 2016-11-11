@@ -270,6 +270,13 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
+    makeRootLastBodyChild () {
+        var isRootInDOM = this.root && domUtils.closest(this.root, 'html');
+
+        if (isRootInDOM && this.root.nextElementSibling)
+            this.nativeMethods.appendChild.call(this.document.body, this.root);
+    }
+
     // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
     // There were an issue when document.body was replaced, so we need to reattach UI to a new body manually.
     onBodyElementMutation () {
@@ -421,7 +428,7 @@ export default class ShadowUI extends SandboxBase {
 
     select (selector, context) {
         var patchedSelector = selector.replace(this.CLASSNAME_REGEX,
-                className => className + SHADOW_UI_CLASS_NAME.postfix);
+            className => className + SHADOW_UI_CLASS_NAME.postfix);
 
         return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
                nativeMethods.querySelectorAll.call(this.document, patchedSelector);
