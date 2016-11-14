@@ -1,12 +1,19 @@
 import zlib from 'zlib';
+import iltorb from 'iltorb';
 import charsetEncoder from 'iconv-lite';
 import promisify from '../../utils/promisify';
 
-var gzip       = promisify(zlib.gzip);
-var deflate    = promisify(zlib.deflate);
-var gunzip     = promisify(zlib.gunzip);
-var inflate    = promisify(zlib.inflate);
-var inflateRaw = promisify(zlib.inflateRaw);
+var gzip             = promisify(zlib.gzip);
+var deflate          = promisify(zlib.deflate);
+var gunzip           = promisify(zlib.gunzip);
+var inflate          = promisify(zlib.inflate);
+var inflateRaw       = promisify(zlib.inflateRaw);
+var brotliCompress   = promisify(iltorb.compress);
+var brotliDecompress = promisify(iltorb.decompress);
+
+const GZIP_CONTENT_ENCODING    = 'gzip';
+const DEFLATE_CONTENT_ENCODING = 'deflate';
+const BROTLI_CONTENT_ENCODING  = 'br';
 
 // NOTE: IIS has a bug when it sends 'raw deflate' compressed data for the 'Deflate' Accept-Encoding header.
 // (see: http://zoompf.com/2012/02/lose-the-wait-http-compression)
@@ -23,11 +30,14 @@ async function inflateWithFallback (data) {
 }
 
 export async function decodeContent (content, encoding, charset) {
-    if (encoding === 'gzip')
+    if (encoding === GZIP_CONTENT_ENCODING)
         content = await gunzip(content);
 
-    else if (encoding === 'deflate')
+    else if (encoding === DEFLATE_CONTENT_ENCODING)
         content = await inflateWithFallback(content);
+
+    else if (encoding === BROTLI_CONTENT_ENCODING)
+        content = await brotliDecompress(content);
 
     charset.fromBOM(content);
 
@@ -37,11 +47,14 @@ export async function decodeContent (content, encoding, charset) {
 export async function encodeContent (content, encoding, charset) {
     content = charsetEncoder.encode(content, charset.get(), { addBOM: charset.isFromBOM() });
 
-    if (encoding === 'gzip')
+    if (encoding === GZIP_CONTENT_ENCODING)
         return gzip(content);
 
-    if (encoding === 'deflate')
+    if (encoding === DEFLATE_CONTENT_ENCODING)
         return deflate(content);
+
+    if (encoding === BROTLI_CONTENT_ENCODING)
+        return brotliCompress(content);
 
     return content;
 }
