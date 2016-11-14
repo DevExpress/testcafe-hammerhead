@@ -625,6 +625,12 @@ asyncTest('isElementFocusable', function () {
 
 module('regression');
 
+test('isDocument infinite recursion (GH-923)', function () {
+    var obj = eval(processScript('({ toString: function () { this.location = 1; } })'));
+
+    ok(!domUtils.isDocument(obj));
+});
+
 asyncTest('isDocument for a cross-domain object (GH-467)', function () {
     var iframe = document.createElement('iframe');
 
