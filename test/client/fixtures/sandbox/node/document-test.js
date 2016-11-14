@@ -298,8 +298,8 @@ asyncTest('document.write for several tags in iframe (T215136)', function () {
         .then(function () {
             var div = iframe.contentDocument.querySelector('#parent');
 
-            strictEqual(div.children.length, 3);
-            strictEqual(div.parentNode.lastElementChild, div);
+            strictEqual(getProperty(div.children, 'length'), 3);
+            strictEqual(getProperty(div.parentNode, 'lastElementChild'), div);
 
             iframe.parentNode.removeChild(iframe);
             start();

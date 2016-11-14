@@ -211,7 +211,10 @@ export default class ShadowUI extends SandboxBase {
                     this.root.addEventListener(EVENTS[i], stopPropagation);
 
                 this._bringRootToWindowTopLeft();
-                nativeMethods.documentAddEventListener.call(this.document, 'DOMContentLoaded', () => this._bringRootToWindowTopLeft);
+                nativeMethods.documentAddEventListener.call(this.document, 'DOMContentLoaded', () => {
+                    this.onBodyElementMutation();
+                    this._bringRootToWindowTopLeft();
+                });
             }
             else
                 nativeMethods.appendChild.call(this.document.body, this.root);
@@ -254,29 +257,28 @@ export default class ShadowUI extends SandboxBase {
                 }, elContextWindow);
             }
             else
-                this.onBodyContentChanged();
+                this.onBodyElementMutation();
         });
 
         this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
-                this.onBodyContentChanged();
+                this.onBodyElementMutation();
         });
     }
 
-    onBodyContentChanged () {
-        if (this.root) {
-            if (!domUtils.closest(this.root, 'html'))
-                this.nativeMethods.appendChild.call(this.document.body, this.root);
-        }
-    }
-
-    // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised during recording
-    // There were an issue when document.body was replaced, so we need to reattach UI to a new body manually.
     onBodyElementMutation () {
-        if (this.root) {
-            if (this.document.body && this.root.parentNode !== this.document.body)
-                this.nativeMethods.appendChild.call(this.document.body, this.root);
-        }
+        if (!this.root || !this.document.body)
+            return;
+
+        var isRootInDom = domUtils.closest(this.root, 'html');
+        var isRootLastChild = !this.root.nextElementSibling;
+        // NOTE: Fix for B239138 - The 'Cannot read property 'document' of null' error
+        // is thrown on recording on the unroll.me site. There was an issue when
+        // document.body was replaced, so we need to reattach a UI to a new body manually.
+        var isRootInBody = this.root.parentNode === this.document.body;
+
+        if (!(isRootInDom && isRootLastChild && isRootInBody))
+            this.nativeMethods.appendChild.call(this.document.body, this.root);
     }
 
     // Accessors
@@ -421,7 +423,7 @@ export default class ShadowUI extends SandboxBase {
 
     select (selector, context) {
         var patchedSelector = selector.replace(this.CLASSNAME_REGEX,
-                className => className + SHADOW_UI_CLASS_NAME.postfix);
+            className => className + SHADOW_UI_CLASS_NAME.postfix);
 
         return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
                nativeMethods.querySelectorAll.call(this.document, patchedSelector);
