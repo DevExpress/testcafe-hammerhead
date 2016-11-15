@@ -15,7 +15,7 @@ export default class AttributesWrapper {
 
         this.item = index => this[index];
 
-        var _wrapMethod = method => {
+        var wrapMethod = method => {
             this[method] = (...args) => {
                 var result = el.attributes[method].apply(el.attributes, args);
 
@@ -28,7 +28,7 @@ export default class AttributesWrapper {
         for (var field in el.attributes) {
             if (typeof this[field] === 'function' && field !== 'item') {
                 if (ATTRIBUTES_METHODS.indexOf(field) !== -1)
-                    _wrapMethod(field);
+                    wrapMethod(field);
                 else
                     this[field] = fnBind(el.attributes[field], el.attributes);
             }
@@ -36,8 +36,6 @@ export default class AttributesWrapper {
     }
 
     static _assignAttributes (attributes) {
-        AttributesWrapper._cleanAttributes();
-
         var length = 0;
 
         for (var i = 0; i < attributes.length; i++) {
@@ -71,8 +69,10 @@ export default class AttributesWrapper {
         var attrWrappers = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP];
 
         if (attrWrappers) {
-            for (var i = 0; i < attrWrappers.length; i++)
+            for (var i = 0; i < attrWrappers.length; i++) {
+                AttributesWrapper._cleanAttributes.call(attrWrappers[i], el.attributes);
                 AttributesWrapper._assignAttributes.call(attrWrappers[i], el.attributes);
+            }
         }
     }
 }

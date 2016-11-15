@@ -543,7 +543,7 @@ test('Instances of attributesWrapper should be synchronized (GH-924)', function 
     getProcessedAttributes().setNamedItem(attr);
     getProcessedAttributes().removeNamedItem('name');
 
-    for (var i = 0; i < eval(processScript('input.attributes')).length; i++) {
+    for (var i = 0; i < getProcessedAttributes().length; i++) {
         equal(getProcessedAttributes()[i].name, initialAttributesWrapper[i].name);
         equal(getProcessedAttributes()[i].value, initialAttributesWrapper[i].value);
     }
