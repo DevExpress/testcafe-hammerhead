@@ -8,11 +8,6 @@ matrix:
    - node_js: "stable"
      env: GULP_TASK="test-client-travis"
  fast_finish: true
-  
-addons:
- apt:
-  packages:
-    - g++-4.8
 
 notifications:
  email: false
