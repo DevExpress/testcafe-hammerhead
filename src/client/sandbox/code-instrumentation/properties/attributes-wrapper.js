@@ -8,39 +8,36 @@ const ATTRIBUTES_METHODS              = ['setNamedItem', 'setNamedItemNS', 'remo
 
 export default class AttributesWrapper {
     constructor (el) {
-        Object.defineProperty(this, 'element', { value: el, configurable: true, enumerable: false });
-
-        if (!el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP])
-            el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP] = [];
-
+        el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP] = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP] || [];
         el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP].push(this);
 
         AttributesWrapper._assignAttributes.call(this, el.attributes);
 
         this.item = index => this[index];
 
-        var wrapper = this;
+        var _wrapMethod = method => {
+            this[method] = (...args) => {
+                var result = el.attributes[method].apply(el.attributes, args);
 
-        for (var funcName in el.attributes) {
-            if (typeof this[funcName] === 'function' && funcName !== 'item') {
-                if (ATTRIBUTES_METHODS.indexOf(funcName) > -1) {
-                    (function (name) {
-                        wrapper[name] = function () {
-                            var result = el.attributes[name].apply(el.attributes, arguments);
+                AttributesWrapper.refreshWrappers(el);
 
-                            AttributesWrapper.refreshWrappers(el);
+                return result;
+            };
+        };
 
-                            return result;
-                        };
-                    })(funcName);
-                }
+        for (var field in el.attributes) {
+            if (typeof this[field] === 'function' && field !== 'item') {
+                if (ATTRIBUTES_METHODS.indexOf(field) !== -1)
+                    _wrapMethod(field);
                 else
-                    this[funcName] = fnBind(el.attributes[funcName], el.attributes);
+                    this[field] = fnBind(el.attributes[field], el.attributes);
             }
         }
     }
 
     static _assignAttributes (attributes) {
+        AttributesWrapper._cleanAttributes();
+
         var length = 0;
 
         for (var i = 0; i < attributes.length; i++) {
@@ -64,20 +61,18 @@ export default class AttributesWrapper {
     }
 
     static _cleanAttributes () {
-        var length = this.length;
-
-        for (var i = 0; i < length; i++)
-            delete this[i];
+        if (this.length) {
+            for (var i = this.length - 1; i >= 0; i--)
+                delete this[i];
+        }
     }
 
     static refreshWrappers (el) {
-        if (el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP]) {
-            var length = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP].length;
+        var attrWrappers = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP];
 
-            for (var i = 0; i < length; i++) {
-                AttributesWrapper._cleanAttributes.call(el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP][i]);
-                AttributesWrapper._assignAttributes.call(el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP][i], el.attributes);
-            }
+        if (attrWrappers) {
+            for (var i = 0; i < attrWrappers.length; i++)
+                AttributesWrapper._assignAttributes.call(attrWrappers[i], el.attributes);
         }
     }
 }
