@@ -27,7 +27,8 @@ describe('Content encoding', function () {
             testConfiguration('gzip', 'utf8'),
             testConfiguration('deflate', 'utf8'),
             testConfiguration('deflate', 'win1251'),
-            testConfiguration(null, 'iso-8859-1')
+            testConfiguration(null, 'iso-8859-1'),
+            testConfiguration('br', 'utf8')
         ]);
     });
 
