@@ -30,11 +30,15 @@ var bindMouseEvent = function (eventType, btn) {
     };
 };
 
-var bindKeyEvent = function (eventType, keyCode) {
+var bindKeyEvent = function (eventType, eventObj) {
     domElement['on' + eventType] = function (e) {
         var ev = e || window.event;
 
-        if (ev.keyCode === keyCode)
+        if (ev.keyCode === eventObj.keyCode &&
+            ev.charCode === (eventObj.charCode || 0) &&
+            ev.which === eventObj.keyCode &&
+            ev.shiftKey === (eventObj.shift || false) &&
+            ev.altKey === (eventObj.alt || false))
             raised = true;
     };
 };
@@ -107,21 +111,27 @@ test('mouse out', function () {
     ok(raised);
 });
 
+test('key down', function () {
+    var eventObj = { keyCode: 13, shift: true, alt: true };
+
+    bindKeyEvent('keydown', eventObj);
+    eventSimulator.keydown(domElement, eventObj);
+    ok(raised);
+});
+
 test('key press', function () {
-    bindKeyEvent('keypress', 13);
-    eventSimulator.keypress(domElement, { keyCode: 13 });
+    var eventObj = { keyCode: 97, charCode: 97 };
+
+    bindKeyEvent('keypress', eventObj);
+    eventSimulator.keypress(domElement, eventObj);
     ok(raised);
 });
 
 test('key up', function () {
-    bindKeyEvent('keyup', 13);
-    eventSimulator.keyup(domElement, { keyCode: 13 });
-    ok(raised);
-});
+    var eventObj = { keyCode: 13 };
 
-test('key down', function () {
-    bindKeyEvent('keydown', 13);
-    eventSimulator.keydown(domElement, { keyCode: 13 });
+    bindKeyEvent('keyup', eventObj);
+    eventSimulator.keyup(domElement, eventObj);
     ok(raised);
 });
 
@@ -445,6 +455,7 @@ asyncTest('hammerhead functions should not be in strict mode (GH-344)', function
 
     eventSimulator.click(button[0]);
 });
+
 asyncTest('should not define window.event property if event is raised in iframe for element of top window', function () {
     var src    = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
     var iframe = document.createElement('iframe');
@@ -469,5 +480,17 @@ asyncTest('should not define window.event property if event is raised in iframe 
 
     iframe.setAttribute('src', src);
     document.body.appendChild(iframe);
+});
+
+test('wrong type of key event (GH-941)', function () {
+    domElement.onkeydown = function (e) {
+        var ev = e || window.event;
+
+        if (ev instanceof Event && ev instanceof KeyboardEvent)
+            raised = true;
+    };
+
+    eventSimulator.keydown(domElement);
+    ok(raised);
 });
 

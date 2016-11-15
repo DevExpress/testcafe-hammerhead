@@ -142,6 +142,7 @@ class NativeMethods {
         this.WindowMSPointerEvent      = win.MSPointerEvent || Window.prototype.MSPointerEvent;
         this.WindowTouch               = win.Touch || Window.prototype.Touch;
         this.WindowTouchEvent          = win.TouchEvent || Window.prototype.TouchEvent;
+        this.WindowKeyboardEvent       = win.KeyboardEvent || Window.prototype.KeyboardEvent;
 
         // Canvas
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
