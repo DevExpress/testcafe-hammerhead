@@ -169,6 +169,10 @@ test('document.baseURI (GH-920)', function () {
         }
     };
 
+    documentMock.toString.toString = function () {
+        return 'function test() { [native code] }';
+    };
+
     strictEqual(getProperty(documentMock, 'baseURI'), url);
 });
 
