@@ -229,6 +229,12 @@ describe('Proxy', function () {
             res.end();
         });
 
+        app.get('/wait/:ms', function (req, res) {
+            setTimeout(function () {
+                res.end('text');
+            }, req.params.ms);
+        });
+
         destServer = app.listen(2000);
 
 
@@ -1415,5 +1421,41 @@ describe('Proxy', function () {
             });
         });
 
+        it('Should abort destination request after fatal error (GH-937)', function (done) {
+            var savedReqTimeout      = DestinationRequest.TIMEOUT;
+            var fatalErrorEventCount = 0;
+
+            DestinationRequest.TIMEOUT = 100;
+
+            var destReq = new DestinationRequest({
+                url:      'http://127.0.0.1:2000/wait/150',
+                protocol: 'http:',
+                hostname: '127.0.0.1',
+                host:     '127.0.0.1:2000',
+                port:     2000,
+                path:     '/wait/150',
+                method:   'GET',
+                body:     new Buffer([]),
+                isXhr:    false,
+                headers:  []
+            });
+
+            destReq.on('error', function () {
+            });
+            destReq.on('fatalError', function () {
+                fatalErrorEventCount++;
+            });
+
+            setTimeout(function () {
+                destReq._onError({ message: 'ECONNREFUSED' });
+            }, 50);
+
+            setTimeout(function () {
+                DestinationRequest.TIMEOUT = savedReqTimeout;
+
+                expect(fatalErrorEventCount).eql(1);
+                done();
+            }, 150);
+        });
     });
 });

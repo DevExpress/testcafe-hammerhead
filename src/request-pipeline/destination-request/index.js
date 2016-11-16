@@ -87,9 +87,12 @@ export default class DestinationRequest extends EventEmitter {
         this._send(requiresResBody(res));
     }
 
-    _abort () {
-        this.aborted = true;
-        this.req.abort();
+    _fatalError (msg) {
+        if (!this.aborted) {
+            this.aborted = true;
+            this.req.abort();
+            this.emit('fatalError', getText(msg, this.opts.url));
+        }
     }
 
     _isDNSErr (err) {
@@ -100,10 +103,8 @@ export default class DestinationRequest extends EventEmitter {
     _onTimeout () {
         // NOTE: this handler is also called if we get an error response (for example, 404). So, we should check
         // for the response presence before raising the timeout error.
-        if (!this.hasResponse) {
-            this._abort();
-            this.emit('fatalError', getText(MESSAGE.destRequestTimeout, this.opts.url));
-        }
+        if (!this.hasResponse)
+            this._fatalError(MESSAGE.destRequestTimeout);
     }
 
     _onError (err) {
@@ -113,7 +114,8 @@ export default class DestinationRequest extends EventEmitter {
         }
 
         else if (this._isDNSErr(err))
-            this.emit('fatalError', getText(MESSAGE.cantResolveUrl, this.opts.url));
+            this._fatalError(MESSAGE.cantResolveUrl);
+
         else
             this.emit('error');
     }
