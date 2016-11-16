@@ -5,6 +5,7 @@ var settings         = hammerhead.get('./settings');
 var urlUtils         = hammerhead.get('./utils/url');
 var destLocation     = hammerhead.get('./utils/destination-location');
 var featureDetection = hammerhead.get('./utils/feature-detection');
+var processScript    = hammerhead.get('../processing/script').processScript;
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
@@ -518,5 +519,32 @@ test('setting function to the link.href attribute value (T230764)', function () 
     }
     finally {
         ok(!error);
+    }
+});
+
+
+test('Instances of attributesWrapper should be synchronized (GH-924)', function () {
+    var input = document.createElement('input');
+
+    var getProcessedAttributes = function () {
+        return eval(processScript('input.attributes'));
+    };
+
+    input.setAttribute('name', 'test');
+
+    var initialAttributesWrapper = getProcessedAttributes();
+
+    input.setAttribute('maxLength', '10');
+
+    var attr = document.createAttribute('class');
+
+    attr.value = 'test';
+
+    getProcessedAttributes().setNamedItem(attr);
+    getProcessedAttributes().removeNamedItem('name');
+
+    for (var i = 0; i < getProcessedAttributes().length; i++) {
+        equal(getProcessedAttributes()[i].name, initialAttributesWrapper[i].name);
+        equal(getProcessedAttributes()[i].value, initialAttributesWrapper[i].value);
     }
 });

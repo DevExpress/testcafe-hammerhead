@@ -6,7 +6,7 @@ export function getAttributesProperty (el) {
         if (isHammerheadAttr(el.attributes[i].name)) {
             AttributesWrapper.prototype = el.attributes;
 
-            return new AttributesWrapper(el.attributes);
+            return new AttributesWrapper(el);
         }
     }
 

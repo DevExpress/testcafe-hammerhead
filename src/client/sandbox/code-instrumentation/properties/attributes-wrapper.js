@@ -3,8 +3,39 @@ import { getStoredAttrName } from '../../../dom-processor';
 import fnBind from '../../../utils/fn-bind';
 import nativeMethods from '../../native-methods';
 
+const ELEMENT_ATTRIBUTE_WRAPPERS_PROP = 'hammerhead|element-attribute-wrappers-prop';
+const ATTRIBUTES_METHODS              = ['setNamedItem', 'setNamedItemNS', 'removeNamedItem', 'removeNamedItemNS', 'getNamedItem', 'getNamedItemNS'];
+
 export default class AttributesWrapper {
-    constructor (attributes) {
+    constructor (el) {
+        el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP] = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP] || [];
+        el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP].push(this);
+
+        AttributesWrapper._assignAttributes.call(this, el.attributes);
+
+        this.item = index => this[index];
+
+        var wrapMethod = method => {
+            this[method] = (...args) => {
+                var result = el.attributes[method].apply(el.attributes, args);
+
+                AttributesWrapper.refreshWrappers(el);
+
+                return result;
+            };
+        };
+
+        for (var field in el.attributes) {
+            if (typeof this[field] === 'function' && field !== 'item') {
+                if (ATTRIBUTES_METHODS.indexOf(field) !== -1)
+                    wrapMethod(field);
+                else
+                    this[field] = fnBind(el.attributes[field], el.attributes);
+            }
+        }
+    }
+
+    static _assignAttributes (attributes) {
         var length = 0;
 
         for (var i = 0; i < attributes.length; i++) {
@@ -16,21 +47,32 @@ export default class AttributesWrapper {
                 if (storedAttrName) {
                     attr       = nativeMethods.cloneNode.call(attr);
                     attr.value = storedAttrName.value;
-                    Object.defineProperty(this, attr.name, { value: attr });
+                    Object.defineProperty(this, attr.name, { value: attr, configurable: true });
                 }
 
-                Object.defineProperty(this, length, { value: attr });
+                Object.defineProperty(this, length, { value: attr, configurable: true });
                 length++;
             }
         }
 
-        Object.defineProperty(this, 'length', { value: length });
+        Object.defineProperty(this, 'length', { value: length, configurable: true });
+    }
 
-        this.item = index => this[index];
+    static _cleanAttributes () {
+        if (this.length) {
+            for (var i = this.length - 1; i >= 0; i--)
+                delete this[i];
+        }
+    }
 
-        for (var funcName in attributes) {
-            if (typeof this[funcName] === 'function' && funcName !== 'item')
-                this[funcName] = fnBind(attributes[funcName], attributes);
+    static refreshWrappers (el) {
+        var attrWrappers = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP];
+
+        if (attrWrappers) {
+            for (var i = 0; i < attrWrappers.length; i++) {
+                AttributesWrapper._cleanAttributes.call(attrWrappers[i], el.attributes);
+                AttributesWrapper._assignAttributes.call(attrWrappers[i], el.attributes);
+            }
         }
     }
 }

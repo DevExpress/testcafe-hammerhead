@@ -16,6 +16,7 @@ import transport from '../../transport';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
+import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -144,7 +145,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
 
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                args[valueIndex]         = processedValue;
+                args[valueIndex] = processedValue;
             }
             else
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
@@ -184,7 +185,7 @@ export default class ElementSandbox extends SandboxBase {
             var newTarget = this.getTarget(el, value);
 
             if (newTarget !== el.target) {
-                var storedTargetAttr    = domProcessor.getStoredAttrName(attr);
+                var storedTargetAttr = domProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
                 args[valueIndex]        = newTarget;
@@ -394,19 +395,35 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             setAttribute () {
-                return sandbox._overridedSetAttributeCore(this, arguments);
+                var result = sandbox._overridedSetAttributeCore(this, arguments);
+
+                ElementSandbox._refreshAttributesWrappers(this);
+
+                return result;
             },
 
             setAttributeNS () {
-                return sandbox._overridedSetAttributeCore(this, arguments, true);
+                var result = sandbox._overridedSetAttributeCore(this, arguments, true);
+
+                ElementSandbox._refreshAttributesWrappers(this);
+
+                return result;
             },
 
             removeAttribute () {
-                return sandbox._overridedRemoveAttributeCore(this, arguments);
+                var result = sandbox._overridedRemoveAttributeCore(this, arguments);
+
+                ElementSandbox._refreshAttributesWrappers(this);
+
+                return result;
             },
 
             removeAttributeNS () {
-                return sandbox._overridedRemoveAttributeCore(this, arguments, true);
+                var result = sandbox._overridedRemoveAttributeCore(this, arguments, true);
+
+                ElementSandbox._refreshAttributesWrappers(this);
+
+                return result;
             },
 
             querySelector () {
@@ -444,6 +461,10 @@ export default class ElementSandbox extends SandboxBase {
 
     static _removeFileInputInfo (el) {
         hiddenInfo.removeInputInfo(el);
+    }
+
+    static _refreshAttributesWrappers (el) {
+        AttributesWrapper.refreshWrappers(el);
     }
 
     _onAddFileInputInfo (el) {
