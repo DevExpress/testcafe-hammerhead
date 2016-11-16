@@ -42,7 +42,13 @@ export default class FetchSandbox extends SandboxBase {
         args[1] = FetchSandbox._processRequestInit(init);
     }
 
+    static _isValidRequestArgs (args) {
+        return typeof args[0] === 'string' || isFetchRequest(args[0]);
+    }
     static _requestIsValid (args) {
+        if (!FetchSandbox._isValidRequestArgs(args))
+            return false;
+
         var url         = null;
         var requestMode = null;
 

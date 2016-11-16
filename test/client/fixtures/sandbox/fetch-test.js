@@ -48,13 +48,13 @@ if (window.fetch) {
             },
             body: JSON.stringify(data)
         })
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (json) {
-            strictEqual(JSON.stringify(json), JSON.stringify(data));
-            start();
-        });
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (json) {
+                strictEqual(JSON.stringify(json), JSON.stringify(data));
+                start();
+            });
     });
 
     asyncTest('the internal 222 status code should be replaced with 0 on the client side', function () {
@@ -167,13 +167,13 @@ if (window.fetch) {
                         'Content-Type': 'application/json; charset=UTF-8'
                     }
                 })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (headers) {
-                    strictEqual('omit', headers[xhrHeaders.fetchRequestCredentials]);
-                    start();
-                });
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual('omit', headers[xhrHeaders.fetchRequestCredentials]);
+                        start();
+                    });
             });
 
             asyncTest('headers is window.Headers', function () {
@@ -185,13 +185,13 @@ if (window.fetch) {
                     method:  'post',
                     headers: testHeaders
                 })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (headers) {
-                    strictEqual('omit', headers[xhrHeaders.fetchRequestCredentials]);
-                    start();
-                });
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual('omit', headers[xhrHeaders.fetchRequestCredentials]);
+                        start();
+                    });
             });
 
             module('non-default values');
@@ -202,13 +202,13 @@ if (window.fetch) {
                     headers:     { 'Content-Type': 'application/json; charset=UTF-8' },
                     credentials: 'same-origin'
                 })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (headers) {
-                    strictEqual('same-origin', headers[xhrHeaders.fetchRequestCredentials]);
-                    start();
-                });
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual('same-origin', headers[xhrHeaders.fetchRequestCredentials]);
+                        start();
+                    });
             });
 
             asyncTest('headers is window.Headers', function () {
@@ -221,13 +221,13 @@ if (window.fetch) {
                     headers:     testHeaders,
                     credentials: 'same-origin'
                 })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (headers) {
-                    strictEqual('same-origin', headers[xhrHeaders.fetchRequestCredentials]);
-                    start();
-                });
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual('same-origin', headers[xhrHeaders.fetchRequestCredentials]);
+                        start();
+                    });
             });
         });
 
@@ -241,13 +241,13 @@ if (window.fetch) {
                         'Content-Type': 'application/json; charset=UTF-8'
                     }
                 })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (headers) {
-                    strictEqual('https://example.com', headers[xhrHeaders.origin]);
-                    start();
-                });
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual('https://example.com', headers[xhrHeaders.origin]);
+                        start();
+                    });
             });
 
             asyncTest('headers is window.Headers', function () {
@@ -259,13 +259,13 @@ if (window.fetch) {
                     method:  'post',
                     headers: testHeaders
                 })
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (headers) {
-                    strictEqual('https://example.com', headers[xhrHeaders.origin]);
-                    start();
-                });
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual('https://example.com', headers[xhrHeaders.origin]);
+                        start();
+                    });
             });
 
             module('Request');
@@ -279,13 +279,13 @@ if (window.fetch) {
                 });
 
                 fetch(request)
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (headers) {
-                    strictEqual('https://example.com', headers[xhrHeaders.origin]);
-                    start();
-                });
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual('https://example.com', headers[xhrHeaders.origin]);
+                        start();
+                    });
             });
 
             asyncTest('headers is window.Headers', function () {
@@ -299,13 +299,13 @@ if (window.fetch) {
                 });
 
                 fetch(request)
-                .then(function (response) {
-                    return response.json();
-                })
-                .then(function (headers) {
-                    strictEqual('https://example.com', headers[xhrHeaders.origin]);
-                    start();
-                });
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual('https://example.com', headers[xhrHeaders.origin]);
+                        start();
+                    });
             });
         });
     });
@@ -326,6 +326,27 @@ if (window.fetch) {
                     ok(err instanceof TypeError);
                     start();
                 });
+        });
+
+        test('request promise should be rejected on invalid calling (GH-939)', function () {
+            var testCases = [
+                [],
+                [123],
+                [function () { }],
+                [null]
+            ];
+
+            var createTestCasePromise = function (args) {
+                return fetch.apply(window, args)
+                    .then(function () {
+                        ok(false, 'wrong state of the request promise');
+                    })
+                    .catch(function () {
+                        ok(true);
+                    });
+            };
+
+            return Promise.all(testCases.map(createTestCasePromise));
         });
     });
 }
