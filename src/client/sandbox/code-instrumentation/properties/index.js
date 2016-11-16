@@ -95,7 +95,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'action'),
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'action'),
-                set: (el, value) => el.setAttribute('action', value)
+                set: (el, value) => {
+                    el.setAttribute('action', value);
+
+                    return value;
+                }
             },
 
             activeElement: {
@@ -123,7 +127,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             autocomplete: {
                 condition: domUtils.isInputElement,
                 get:       input => input.getAttribute('autocomplete') || '',
-                set:       (input, value) => input.setAttribute('autocomplete', value)
+                set:       (input, value) => {
+                    input.setAttribute('autocomplete', value);
+
+                    return value;
+                }
             },
 
             childElementCount: {
@@ -142,7 +150,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'data'),
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'data'),
-                set: (el, value) => el.setAttribute('data', value)
+                set: (el, value) => {
+                    el.setAttribute('data', value);
+
+                    return value;
+                }
             },
 
             documentURI: {
@@ -218,12 +230,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, value) => {
                     if (LocationAccessorsInstrumentation.isLocationWrapper(el))
                         el.href = destLocation.resolveUrl(value, document);
-                    else if (isStyleSheet(el))
-                        return value;
-                    else
+                    else if (!isStyleSheet(el))
                         el.setAttribute('href', value);
 
-                    return el.href;
+                    return value;
                 }
             },
 
@@ -428,7 +438,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'manifest'),
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'manifest'),
-                set: (el, value) => el.setAttribute('manifest', value)
+                set: (el, value) => {
+                    el.setAttribute('manifest', value);
+
+                    return value;
+                }
             },
 
             // NOTE: Cookie can be set up for the page by using the request initiated by img.
@@ -502,7 +516,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             sandbox: {
                 condition: domUtils.isIframeElement,
                 get:       el => el.getAttribute('sandbox'),
-                set:       (el, value) => el.setAttribute('sandbox', value)
+                set:       (el, value) => {
+                    el.setAttribute('sandbox', value);
+
+                    return value;
+                }
             },
 
             search: {
@@ -521,13 +539,21 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'src'),
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'src'),
-                set: (el, value) => el.setAttribute('src', value)
+                set: (el, value) => {
+                    el.setAttribute('src', value);
+
+                    return value;
+                }
             },
 
             target: {
                 condition: el => domUtils.isDomElement(el) && DomProcessor.isTagWithTargetAttr(domUtils.getTagName(el)),
                 get:       el => el.target,
-                set:       (el, value) => el.setAttribute('target', value)
+                set:       (el, value) => {
+                    el.setAttribute('target', value);
+
+                    return value;
+                }
             },
 
             text: {

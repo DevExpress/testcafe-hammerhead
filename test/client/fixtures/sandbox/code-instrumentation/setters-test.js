@@ -509,3 +509,18 @@ asyncTest("location assignment doesn't work (GH-640)", function () {
     iframe.addEventListener('load', handler);
     document.body.appendChild(iframe);
 });
+
+test('setter returns a correct value (GH-907)', function () {
+    var checkReturnedValue = function (tagName, prop, value) {
+        strictEqual(setProperty(document.createElement(tagName), prop, value), value);
+    };
+
+    checkReturnedValue('form', 'action', './path');
+    checkReturnedValue('input', 'autocomplete', 'on');
+    checkReturnedValue('object', 'data', './path');
+    checkReturnedValue('a', 'href', './path');
+    checkReturnedValue('html', 'manifest', './path');
+    checkReturnedValue('iframe', 'sandbox', 'allow-scripts');
+    checkReturnedValue('img', 'src', './path');
+    checkReturnedValue('a', 'target', '_blank');
+});
