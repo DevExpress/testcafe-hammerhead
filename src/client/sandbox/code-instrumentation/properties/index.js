@@ -121,7 +121,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             autocomplete: {
-                condition: domUtils.isInputElement,
+                condition: input => domUtils.isInputElement(input) && domUtils.isDomElement(input),
                 get:       input => input.getAttribute('autocomplete') || '',
                 set:       (input, value) => input.setAttribute('autocomplete', value)
             },

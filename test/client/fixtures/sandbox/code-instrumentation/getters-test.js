@@ -400,3 +400,10 @@ test('should not create proxy url for invalid url (GH-778)', function () {
         strictEqual(linkVal, nativeLinkVal);
     }
 });
+
+test("Should not use 'autocomplete' getter if an object isn't DOM Element (GH-942)", function () {
+    var fakeInput = { tagName: 'input' };
+
+    // NOTE: This code checks PropertyAccessorsInstrumentation.attach(window).autocomplete.condition
+    strictEqual(getProperty(fakeInput, 'autocomplete'), void 0);
+});
