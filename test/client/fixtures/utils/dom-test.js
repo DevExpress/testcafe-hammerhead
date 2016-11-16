@@ -732,3 +732,24 @@ if (!browserUtils.isFirefox) {
         document.body.appendChild(parentIframe);
     });
 }
+
+test("An object with the 'tagName' property shouldn't be recognized as a dom element", function () {
+    notOk(domUtils.isIframeElement({ tagName: 'iframe' }));
+    notOk(domUtils.isImgElement({ tagName: 'img' }));
+    notOk(domUtils.isInputElement({ tagName: 'input' }));
+    notOk(domUtils.isHtmlElement({ tagName: 'html' }));
+    notOk(domUtils.isBodyElement({ tagName: 'body' }));
+    notOk(domUtils.isHeadElement({ tagName: 'head' }));
+    notOk(domUtils.isBaseElement({ tagName: 'base' }));
+    notOk(domUtils.isScriptElement({ tagName: 'script' }));
+    notOk(domUtils.isStyleElement({ tagName: 'style' }));
+    notOk(domUtils.isLabelElement({ tagName: 'label' }));
+    notOk(domUtils.isTextAreaElement({ tagName: 'textarea' }));
+    notOk(domUtils.isOptionElement({ tagName: 'option' }));
+    notOk(domUtils.isSelectElement({ tagName: 'select' }));
+    notOk(domUtils.isFormElement({ tagName: 'form' }));
+    notOk(domUtils.isMapElement({ tagName: 'map' }));
+    notOk(domUtils.isAnchorElement({ tagName: 'a' }));
+    notOk(domUtils.isTableElement({ tagName: 'table' }));
+    notOk(domUtils.isTableDataElement({ tagName: 'td' }));
+});

@@ -347,7 +347,7 @@ export function isHammerheadAttr (attr) {
 }
 
 export function isIframeElement (el) {
-    return getTagName(el) === 'iframe';
+    return getTagName(el) === 'iframe' && isDomElement(el);
 }
 
 export function isIframeWithoutSrc (iframe) {
@@ -396,55 +396,55 @@ export function isIframeWithoutSrc (iframe) {
 }
 
 export function isImgElement (el) {
-    return getTagName(el) === 'img';
+    return getTagName(el) === 'img' && isDomElement(el);
 }
 
 export function isInputElement (el) {
-    return getTagName(el) === 'input';
+    return getTagName(el) === 'input' && isDomElement(el);
 }
 
 export function isHtmlElement (el) {
-    return getTagName(el) === 'html';
+    return getTagName(el) === 'html' && isDomElement(el);
 }
 
 export function isBodyElement (el) {
-    return getTagName(el) === 'body';
+    return getTagName(el) === 'body' && isDomElement(el);
 }
 
 export function isHeadElement (el) {
-    return getTagName(el) === 'head';
+    return getTagName(el) === 'head' && isDomElement(el);
 }
 
 export function isBaseElement (el) {
-    return getTagName(el) === 'base';
+    return getTagName(el) === 'base' && isDomElement(el);
 }
 
 export function isScriptElement (el) {
-    return getTagName(el) === 'script';
+    return getTagName(el) === 'script' && isDomElement(el);
 }
 
 export function isStyleElement (el) {
-    return getTagName(el) === 'style';
+    return getTagName(el) === 'style' && isDomElement(el);
 }
 
 export function isLabelElement (el) {
-    return getTagName(el) === 'label';
+    return getTagName(el) === 'label' && isDomElement(el);
 }
 
 export function isTextAreaElement (el) {
-    return getTagName(el) === 'textarea';
+    return getTagName(el) === 'textarea' && isDomElement(el);
 }
 
 export function isOptionElement (el) {
-    return getTagName(el) === 'option';
+    return getTagName(el) === 'option' && isDomElement(el);
 }
 
 export function isSelectElement (el) {
-    return getTagName(el) === 'select';
+    return getTagName(el) === 'select' && isDomElement(el);
 }
 
 export function isFormElement (el) {
-    return getTagName(el) === 'form';
+    return getTagName(el) === 'form' && isDomElement(el);
 }
 
 export function isFileInput (el) {
@@ -456,7 +456,7 @@ export function isBodyElementWithChildren (el) {
 }
 
 export function isMapElement (el) {
-    return /^map$|^area$/i.test(getTagName(el));
+    return /^map$|^area$/i.test(getTagName(el)) && isDomElement(el);
 }
 
 export function isRenderedNode (node) {
@@ -645,15 +645,15 @@ export function isDocumentFragmentNode (el) {
 }
 
 export function isAnchorElement (el) {
-    return getTagName(el) === 'a';
+    return getTagName(el) === 'a' && isDomElement(el);
 }
 
 export function isTableElement (el) {
-    return getTagName(el) === 'table';
+    return getTagName(el) === 'table' && isDomElement(el);
 }
 
 export function isTableDataElement (el) {
-    return getTagName(el) === 'td';
+    return getTagName(el) === 'td' && isDomElement(el);
 }
 
 export function matches (el, selector) {
