@@ -45,6 +45,7 @@ export default class FetchSandbox extends SandboxBase {
     static _isValidRequestArgs (args) {
         return typeof args[0] === 'string' || isFetchRequest(args[0]);
     }
+
     static _requestIsValid (args) {
         if (!FetchSandbox._isValidRequestArgs(args))
             return false;
