@@ -87,7 +87,6 @@ test('link in iframe', function () {
         nativeMethods.appendChild.call(iframe.contentDocument, iframeBody);
     }
 
-
     iframeBody.innerHTML = '<a href="/index.html"></a>';
 
     domProcessor.processElement(iframeBody.childNodes[0], urlUtils.convertToProxyUrl);
