@@ -42,7 +42,18 @@ export default class NodeSandbox extends SandboxBase {
 
     _processElement (el) {
         if (el[INTERNAL_PROPS.processedContext] !== this.window) {
+            var urlAttrName  = null;
+
+            if (el[INTERNAL_PROPS.processedContext]) {
+                urlAttrName = domProcessor.getUrlAttr(el);
+                urlAttrName = el.hasAttribute(urlAttrName) ? urlAttrName : null;
+            }
+
             el[INTERNAL_PROPS.processedContext] = this.window;
+
+            if (urlAttrName)
+                el.setAttribute(urlAttrName, el.getAttribute(urlAttrName));
+
             this.element.processElement(el);
         }
     }

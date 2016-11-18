@@ -16,7 +16,6 @@ const HTML_COMMENT_SIMPLE_POSTFIX_REG_EX = /-->\s*$/;
 const HTML_STRING_REG_EX                 = /^\s*('|")\s*(<[\s\S]+>)\s*('|")\s*$/;
 const JAVASCRIPT_PROTOCOL_REG_EX         = /^\s*javascript\s*:/i;
 const EXECUTABLE_SCRIPT_TYPES_REG_EX     = /^\s*(application\/(x-)?(ecma|java)script|text\/(javascript(1\.[0-5])?|((x-)?ecma|x-java|js|live)script))\s*$/;
-const URL_ATTRS                          = ['href', 'src', 'action', 'manifest', 'data'];
 
 const URL_ATTR_TAGS = {
     href:     ['a', 'link', 'image', 'area', 'base'],
@@ -25,6 +24,8 @@ const URL_ATTR_TAGS = {
     manifest: ['html'],
     data:     ['object']
 };
+
+const URL_ATTRS = Object.keys(URL_ATTR_TAGS);
 
 const SVG_XLINK_HREF_TAGS = [
     'animate', 'animateColor', 'animateMotion', 'animateTransform', 'mpath', 'set', //animation elements
@@ -37,9 +38,9 @@ const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base'];
 const IFRAME_FLAG_TAGS = (() => {
     var arr = [];
 
-    for (var i = 0; i < TARGET_ATTR_TAGS.length; i++) {
-        if (TARGET_ATTR_TAGS[i] !== 'base')
-            arr.push(TARGET_ATTR_TAGS[i]);
+    for (var tagName of TARGET_ATTR_TAGS) {
+        if (tagName !== 'base')
+            arr.push(tagName);
     }
 
     return arr;
@@ -212,10 +213,18 @@ export default class DomProcessor {
         if (URL_ATTR_TAGS[attr] && URL_ATTR_TAGS[attr].indexOf(tagName) !== -1)
             return true;
 
-        if (this.adapter.isSVGElement(el) && (attr === 'xml:base' || attr === 'base' && ns === XML_NAMESPACE))
-            return true;
+        return this.adapter.isSVGElement(el) && (attr === 'xml:base' || attr === 'base' && ns === XML_NAMESPACE);
+    }
 
-        return false;
+    getUrlAttr (el) {
+        var tagName = this.adapter.getTagName(el);
+
+        for (var urlAttr of URL_ATTRS) {
+            if (URL_ATTR_TAGS[urlAttr].indexOf(tagName) !== -1)
+                return urlAttr;
+        }
+
+        return null;
     }
 
     _isOpenLinkInIframe (el) {

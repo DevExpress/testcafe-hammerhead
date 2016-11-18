@@ -175,45 +175,44 @@ asyncTest('assign a url attribute to elements with the "target" attribute in emb
     document.body.appendChild(iframe);
 });
 
-// TODO: GH-564
-//asyncTest('move elements between windows', function () {
-//    var iframe = document.createElement('iframe');
-//
-//    iframe.id = 'test' + Date.now();
-//
-//    window.QUnitGlobals.waitForIframe(iframe)
-//        .then(function () {
-//            var iframeDocument = iframe.contentDocument;
-//
-//            Object.keys(tagUrlAttr).forEach(function (tagName) {
-//                var el      = document.createElement(tagName);
-//                var urlAttr = tagUrlAttr[tagName];
-//
-//                document.body.appendChild(el);
-//
-//                setProperty(el, urlAttr, 'https://example.com/');
-//
-//                strictEqual(hasIframeFlag(el[urlAttr]), false, tagName + ' into top window');
-//
-//                document.body.removeChild(el);
-//                iframeDocument.body.appendChild(el);
-//
-//                strictEqual(hasIframeFlag(el[urlAttr]), tagName !== 'base', tagName + ' into iframe');
-//
-//                iframeDocument.body.removeChild(el);
-//                document.body.appendChild(el);
-//
-//                strictEqual(hasIframeFlag(el[urlAttr]), false, tagName + ' into top window');
-//
-//                document.body.removeChild(el);
-//            });
-//
-//            document.body.removeChild(iframe);
-//            start();
-//        });
-//
-//    document.body.appendChild(iframe);
-//});
+asyncTest('move elements between windows (GH-564)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test' + Date.now();
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument = iframe.contentDocument;
+
+            Object.keys(tagUrlAttr).forEach(function (tagName) {
+                var el      = document.createElement(tagName);
+                var urlAttr = tagUrlAttr[tagName];
+
+                document.body.appendChild(el);
+
+                setProperty(el, urlAttr, 'https://example.com/');
+
+                strictEqual(hasIframeFlag(el[urlAttr]), false, tagName + ' into top window');
+
+                document.body.removeChild(el);
+                iframeDocument.body.appendChild(el);
+
+                strictEqual(hasIframeFlag(el[urlAttr]), tagName !== 'base', tagName + ' into iframe');
+
+                iframeDocument.body.removeChild(el);
+                document.body.appendChild(el);
+
+                strictEqual(hasIframeFlag(el[urlAttr]), false, tagName + ' into top window');
+
+                document.body.removeChild(el);
+            });
+
+            document.body.removeChild(iframe);
+            start();
+        });
+
+    document.body.appendChild(iframe);
+});
 
 test('change iframe name', function () {
     var url    = 'https://example.com/';

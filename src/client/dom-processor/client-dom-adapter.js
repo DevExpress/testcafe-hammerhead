@@ -83,6 +83,9 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     hasIframeParent (el) {
         try {
+            if (el[INTERNAL_PROPS.processedContext])
+                return window.top !== el[INTERNAL_PROPS.processedContext];
+
             return window.top.document !== domUtils.findDocument(el);
         }
         catch (e) {
