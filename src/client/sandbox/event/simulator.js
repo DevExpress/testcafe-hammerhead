@@ -354,7 +354,8 @@ export default class EventSimulator {
         }
 
         if (ev) {
-            // NOTE: keyCode, charCode and which properties are not assigned after creation of KeyboardEvent
+            // NOTE: the window.event.keyCode, window.event.charCode and window.event.which
+            // properties are not assigned after KeyboardEvent is created
             Object.defineProperty(ev, 'keyCode', {
                 get: () => args.keyCode
             });
@@ -370,8 +371,8 @@ export default class EventSimulator {
             var prevented   = false;
             var returnValue = true;
 
-            // NOTE: dispatchEvent method does not return false in case of preventDefault was
-            // raised for events which were created due to KeyboardEvent constructor
+            // NOTE: the dispatchEvent method does not return false in the case when preventDefault
+            // was raised for events that were created with the KeyboardEvent constructor
             if (browserWithNewEventsStyle) {
                 Object.defineProperty(ev, 'preventDefault', {
                     get: () => () => {
@@ -384,7 +385,7 @@ export default class EventSimulator {
                 });
             }
 
-            // NOTE: dispatchEvent method does not return false in case of returnValue was assigned to false (only in MSEdge)
+            // NOTE: the dispatchEvent method does not return false when returnValue was set to false (only in MSEdge)
             if (browserUtils.isMSEdge) {
                 Object.defineProperty(ev, 'returnValue', {
                     get: () => returnValue,

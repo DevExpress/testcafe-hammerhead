@@ -456,7 +456,7 @@ asyncTest('hammerhead functions should not be in strict mode (GH-344)', function
     eventSimulator.click(button[0]);
 });
 
-asyncTest('should not define window.event property if event is raised in iframe for element of top window', function () {
+asyncTest('should not define the window.event property if the event is raised in iframe for the element of top window', function () {
     var src    = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
     var iframe = document.createElement('iframe');
 
@@ -482,7 +482,7 @@ asyncTest('should not define window.event property if event is raised in iframe 
     document.body.appendChild(iframe);
 });
 
-test('wrong type of key event (GH-941)', function () {
+test('wrong type of the key event (GH-941)', function () {
     domElement.onkeydown = function (e) {
         var ev = e || window.event;
 
