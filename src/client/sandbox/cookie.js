@@ -100,7 +100,7 @@ export default class CookieSandbox extends SandboxBase {
         return this._getSettings().cookie;
     }
 
-    setCookie (document, value) {
+    setCookie (document, value, syncWithServer) {
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
         var parsedCookie = cookieUtils.parse(value);
@@ -128,14 +128,14 @@ export default class CookieSandbox extends SandboxBase {
                 this._updateClientCookieStr(parsedCookie.key, clientCookieStr);
         }
 
-        var setCookieMsg = {
-            cmd:    COMMAND.setCookie,
-            cookie: value,
-            url:    document.location.href
-        };
-
-        // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
-        transport.queuedAsyncServiceMsg(setCookieMsg);
+        if (syncWithServer) {
+            // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
+            transport.queuedAsyncServiceMsg({
+                cmd:    COMMAND.setCookie,
+                cookie: value,
+                url:    document.location.href
+            });
+        }
 
         return value;
     }

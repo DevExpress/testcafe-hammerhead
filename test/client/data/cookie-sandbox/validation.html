@@ -6,8 +6,6 @@
         var hammerhead = window['%hammerhead%'];
 
         hammerhead.start();
-        hammerhead.get('./transport').queuedAsyncServiceMsg = function () {
-        };
 
         var cookieSandbox = hammerhead.sandbox.cookie;
 
@@ -33,28 +31,27 @@
                 'Invalid4=' + uniq + '; expires=Wed, 13-Jan-2021 22:23:01 GMT; path= /path/ '
             ];
 
-            for (var i = 0; i < validCookies.length; i++)
+            var i;
+
+            for (i = 0; i < validCookies.length; i++)
                 setCookie(validCookies[i]);
 
-            for (var i = 0; i < invalidCookies.length; i++)
+            for (i = 0; i < invalidCookies.length; i++)
                 setCookie(invalidCookies[i]);
 
             var cookie = cookieSandbox.getCookie();
 
-            for (var i = 1; i < validCookies.length + 1; i++) {
+            for (i = 1; i < validCookies.length + 1; i++) {
                 if (cookie.indexOf('Valid' + i) === -1)
                     return false;
             }
 
-            for (var i = 1; i < invalidCookies.length + 1; i++) {
+            for (i = 1; i < invalidCookies.length + 1; i++) {
                 if (cookie.indexOf('Invalid' + i) !== -1)
                     return false;
             }
 
-            if (document.cookie.indexOf(uniq) !== -1)
-                return false;
-
-            return true;
+            return document.cookie.indexOf(uniq) === -1;
         }
     </script>
 </head>

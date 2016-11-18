@@ -51,6 +51,7 @@ export default class NodeSandbox extends SandboxBase {
 
             el[INTERNAL_PROPS.processedContext] = this.window;
 
+            // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
             if (urlAttrName)
                 el.setAttribute(urlAttrName, el.getAttribute(urlAttrName));
 

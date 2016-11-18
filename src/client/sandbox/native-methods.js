@@ -107,11 +107,14 @@ class NativeMethods {
             this.registerProtocolHandler = win.navigator.registerProtocolHandler;
 
         // XHR
-        this.xmlHttpRequestAbort               = win.XMLHttpRequest.prototype.abort;
-        this.xmlHttpRequestOpen                = win.XMLHttpRequest.prototype.open;
-        this.xmlHttpRequestSend                = win.XMLHttpRequest.prototype.send;
-        this.xmlHttpRequestAddEventListener    = win.XMLHttpRequest.prototype.addEventListener;
-        this.xmlHttpRequestRemoveEventListener = win.XMLHttpRequest.prototype.removeEventListener;
+        this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
+        this.xhrOpen                  = win.XMLHttpRequest.prototype.open;
+        this.xhrSend                  = win.XMLHttpRequest.prototype.send;
+        this.xhrAddEventListener      = win.XMLHttpRequest.prototype.addEventListener;
+        this.xhrRemoveEventListener   = win.XMLHttpRequest.prototype.removeEventListener;
+        this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
+        this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
+        this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
 
         try {
             this.registerServiceWorker = win.navigator.serviceWorker.register;

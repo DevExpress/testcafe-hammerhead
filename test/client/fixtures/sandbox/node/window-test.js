@@ -45,12 +45,11 @@ test('parameters passed to the native function in its original form', function (
     // XHR
     var xhr = new nativeMethods.XMLHttpRequest();
 
-    checkNativeFunctionArgs('abort', 'xmlHttpRequestAbort', xhr);
-    checkNativeFunctionArgs('open', 'xmlHttpRequestOpen', xhr);
+    checkNativeFunctionArgs('abort', 'xhrAbort', xhr);
+    checkNativeFunctionArgs('open', 'xhrOpen', xhr);
 
-    xhr.setRequestHeader = function () {
-    };
-    checkNativeFunctionArgs('send', 'xmlHttpRequestSend', xhr);
+    nativeMethods.xhrOpen.call(xhr, 'GET', '/path', true);
+    checkNativeFunctionArgs('send', 'xhrSend', xhr);
 
     // registerServiceWorker
     if (nativeMethods.registerServiceWorker)

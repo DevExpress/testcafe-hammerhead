@@ -114,6 +114,19 @@ var responseTransforms = {
     }
 };
 
+var responseForced = {
+    [XHR_HEADERS.setCookie]: (src, ctx) => {
+        if (ctx.isXhr && ctx.destRes && ctx.destRes.headers && ctx.destRes.headers['set-cookie']) {
+            var setCookieHeader = ctx.destRes.headers['set-cookie'];
+            var cookieArr       = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+
+            return JSON.stringify(cookieArr);
+        }
+
+        return void 0;
+    }
+};
+
 // Transformation routine
 function transformHeaders (srcHeaders, ctx, transformList, forced) {
     var destHeaders = {};
@@ -141,5 +154,5 @@ export function forRequest (ctx) {
 }
 
 export function forResponse (ctx) {
-    return transformHeaders(ctx.destRes.headers, ctx, responseTransforms);
+    return transformHeaders(ctx.destRes.headers, ctx, responseTransforms, responseForced);
 }

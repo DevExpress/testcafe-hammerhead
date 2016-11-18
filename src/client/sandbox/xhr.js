@@ -3,16 +3,20 @@ import nativeMethods from './native-methods';
 import { getProxyUrl } from '../utils/url';
 import XHR_HEADERS from '../../request-pipeline/xhr/headers';
 import { getOrigin } from '../utils/destination-location';
+import reEscape from '../../utils/regexp-escape';
 
-const IS_OPENED_XHR = 'hammerhead|xhr|is-opened-xhr';
+const IS_OPENED_XHR               = 'hammerhead|xhr|is-opened-xhr';
+const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'g');
 
 export default class XhrSandbox extends SandboxBase {
-    constructor (sandbox) {
-        super(sandbox);
+    constructor (cookieSandbox) {
+        super();
 
         this.XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
         this.XHR_ERROR_EVENT     = 'hammerhead|event|xhr-error';
         this.XHR_SEND_EVENT      = 'hammerhead|event|xhr-send';
+
+        this.cookieSandbox = cookieSandbox;
 
         var xhr = new nativeMethods.XMLHttpRequest();
 
@@ -26,11 +30,11 @@ export default class XhrSandbox extends SandboxBase {
     static createNativeXHR () {
         var xhr = new window.XMLHttpRequest();
 
-        xhr.open                = nativeMethods.xmlHttpRequestOpen;
-        xhr.abort               = nativeMethods.xmlHttpRequestAbort;
-        xhr.send                = nativeMethods.xmlHttpRequestSend;
-        xhr.addEventListener    = nativeMethods.xmlHttpRequestAddEventListener;
-        xhr.removeEventListener = nativeMethods.xmlHttpRequestRemoveEventListener;
+        xhr.open                = nativeMethods.xhrOpen;
+        xhr.abort               = nativeMethods.xhrAbort;
+        xhr.send                = nativeMethods.xhrSend;
+        xhr.addEventListener    = nativeMethods.xhrAddEventListener;
+        xhr.removeEventListener = nativeMethods.xhrRemoveEventListener;
 
         return xhr;
     }
@@ -41,8 +45,24 @@ export default class XhrSandbox extends SandboxBase {
         var xhrSandbox          = this;
         var xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
+        var syncCookieWithClient = function () {
+            if (this.readyState < this.HEADERS_RECEIVED)
+                return;
+
+            var cookies = nativeMethods.xhrGetResponseHeader.call(this, XHR_HEADERS.setCookie);
+
+            if (cookies) {
+                cookies = JSON.parse(cookies);
+
+                for (var cookie of cookies)
+                    xhrSandbox.cookieSandbox.setCookie(window.document, cookie);
+            }
+
+            nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClient);
+        };
+
         xmlHttpRequestProto.abort = function () {
-            nativeMethods.xmlHttpRequestAbort.apply(this, arguments);
+            nativeMethods.xhrAbort.apply(this, arguments);
             xhrSandbox.emit(xhrSandbox.XHR_ERROR_EVENT, {
                 err: new Error('XHR aborted'),
                 xhr: this
@@ -62,7 +82,8 @@ export default class XhrSandbox extends SandboxBase {
             if (typeof arguments[1] === 'string')
                 arguments[1] = getProxyUrl(arguments[1]);
 
-            nativeMethods.xmlHttpRequestOpen.apply(this, arguments);
+            nativeMethods.xhrAddEventListener.call(this, 'readystatechange', syncCookieWithClient);
+            nativeMethods.xhrOpen.apply(this, arguments);
         };
 
         xmlHttpRequestProto.send = function () {
@@ -105,17 +126,30 @@ export default class XhrSandbox extends SandboxBase {
             // requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
             // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
-            this.setRequestHeader(XHR_HEADERS.requestMarker, 'true');
+            nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.requestMarker, 'true');
 
-            this.setRequestHeader(XHR_HEADERS.origin, getOrigin());
+            nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.origin, getOrigin());
 
             if (xhrSandbox.corsSupported)
-                this.setRequestHeader(XHR_HEADERS.corsSupported, 'true');
+                nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.corsSupported, 'true');
 
             if (this.withCredentials)
-                this.setRequestHeader(XHR_HEADERS.withCredentials, 'true');
+                nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.withCredentials, 'true');
 
-            nativeMethods.xmlHttpRequestSend.apply(this, arguments);
+            nativeMethods.xhrSend.apply(this, arguments);
+
+            // NOTE: For xhr with the sync mode
+            syncCookieWithClient.call(this);
+        };
+
+        xmlHttpRequestProto.getResponseHeader = function (name) {
+            return name === XHR_HEADERS.setCookie ? null : nativeMethods.xhrGetResponseHeader.call(this, name);
+        };
+
+        xmlHttpRequestProto.getAllResponseHeaders = function () {
+            var headers = nativeMethods.xhrGetAllResponseHeaders.call(this);
+
+            return headers ? headers.replace(REMOVE_SET_COOKIE_HH_HEADER, '') : headers;
         };
     }
 }
