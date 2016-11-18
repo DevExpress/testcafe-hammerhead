@@ -126,6 +126,7 @@ function getInputMock (fileNames) {
         files:         fileListWrapper,
         tagName:       'input',
         type:          'file',
+        nodeName:      'input',
         dispatchEvent: function () {
         }
     };
