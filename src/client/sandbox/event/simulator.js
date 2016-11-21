@@ -537,6 +537,33 @@ export default class EventSimulator {
         return this._raiseDispatchEvent(el, ev, args);
     }
 
+    _dispatchFocusEvent (el, name) {
+        var browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
+        var event                     = null;
+
+        if (browserWithNewEventsStyle && nativeMethods.WindowFocusEvent) {
+            event = new nativeMethods.WindowFocusEvent(name, {
+                bubbles:          false,
+                cancelable:       false,
+                cancelBubble:     false,
+                defaultPrevented: false
+            });
+        }
+        else if (nativeMethods.documentCreateEvent) {
+            event = nativeMethods.documentCreateEvent.call(document, 'FocusEvent');
+
+            event.initEvent(name, false, true);
+        }
+
+        if (event) {
+            event[this.DISPATCHED_EVENT_FLAG] = true;
+
+            return this._raiseDispatchEvent(el, event);
+        }
+
+        return null;
+    }
+
     _dispatchEvent (el, name, shouldBubble, flag) {
         var ev = null;
 
@@ -544,7 +571,9 @@ export default class EventSimulator {
             ev = nativeMethods.documentCreateEvent.call(document, 'Events');
 
             ev.initEvent(name, shouldBubble, true);
+        }
 
+        if (ev) {
             if (flag)
                 ev[flag] = true;
 
@@ -770,11 +799,11 @@ export default class EventSimulator {
     // NOTE: "focus", "blur" and "selectionchange" shouldn't bubble (T229732),
     // but "input", "change" and "submit" should do it (GH-318).
     blur (el) {
-        return this._dispatchEvent(el, 'blur', false, this.DISPATCHED_EVENT_FLAG);
+        return this._dispatchFocusEvent(el, 'blur');
     }
 
     focus (el) {
-        return this._dispatchEvent(el, 'focus', false, this.DISPATCHED_EVENT_FLAG);
+        return this._dispatchFocusEvent(el, 'focus');
     }
 
     storage (window, options) {

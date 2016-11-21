@@ -494,3 +494,27 @@ test('wrong type of the key event (GH-941)', function () {
     ok(raised);
 });
 
+test('wrong type of the focus event (GH-947)', function () {
+    domElement.onfocus = function (e) {
+        var ev = e || window.event;
+
+        if (ev instanceof Event && ev instanceof FocusEvent)
+            raised = true;
+    };
+
+    eventSimulator.focus(domElement);
+    ok(raised);
+});
+
+test('wrong type of the blur event (GH-947)', function () {
+    domElement.onblur = function (e) {
+        var ev = e || window.event;
+
+        if (ev instanceof Event && ev instanceof FocusEvent)
+            raised = true;
+    };
+
+    eventSimulator.blur(domElement);
+    ok(raised);
+});
+
