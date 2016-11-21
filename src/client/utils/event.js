@@ -20,6 +20,13 @@ export const WHICH_PARAMETER = {
     rightButton:  3
 };
 
+export const KEYBOARD_MODIFIERS_PARAMETER = {
+    altKey:   'Alt',
+    ctrlKey:  'Control',
+    shiftKey: 'Shift',
+    metaKey:  'Meta'
+};
+
 export const DOM_EVENTS = ['click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover',
     'mouseout', 'touchstart', 'touchmove', 'touchend', 'keydown', 'keypress', 'input', 'keyup', 'change', 'focus', 'blur',
     'MSPointerDown', 'MSPointerMove', 'MSPointerOver', 'MSPointerOut', 'MSPointerUp', 'pointerdown',

@@ -161,6 +161,17 @@ export default class EventSimulator {
         });
     }
 
+    static _getModifiersAsString (args) {
+        var modifiersString = '';
+
+        for (var modifier in eventUtils.KEYBOARD_MODIFIERS_PARAMETER) {
+            if (eventUtils.KEYBOARD_MODIFIERS_PARAMETER.hasOwnProperty(modifier) && args[modifier])
+                modifiersString += eventUtils.KEYBOARD_MODIFIERS_PARAMETER[modifier] + ' ';
+        }
+
+        return modifiersString;
+    }
+
     _simulateEvent (el, event, userOptions, options) {
         var args     = null;
         var dispatch = null;
@@ -316,24 +327,85 @@ export default class EventSimulator {
     }
 
     _dispatchKeyEvent (el, args) {
-        var ev = null;
+        var ev                        = null;
+        var browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
 
-        if (nativeMethods.documentCreateEvent) {
-            ev = nativeMethods.documentCreateEvent.call(document, 'Events');
-            ev.initEvent(args.type, args.canBubble, args.cancelable);
-            ev = extend(ev, {
-                view:     args.view,
-                detail:   args.detail,
-                ctrlKey:  args.ctrlKey,
-                altKey:   args.altKey,
-                shiftKey: args.shiftKey,
-                metaKey:  args.metaKey,
-                keyCode:  args.keyCode,
-                charCode: args.charCode,
-                which:    args.which
+        if (browserWithNewEventsStyle && nativeMethods.WindowKeyboardEvent) {
+            ev = new nativeMethods.WindowKeyboardEvent(args.type, {
+                bubbles:          args.canBubble,
+                cancelable:       args.cancelable,
+                cancelBubble:     false,
+                defaultPrevented: false,
+                view:             args.view,
+                detail:           args.detail,
+                ctrlKey:          args.ctrlKey,
+                altKey:           args.altKey,
+                shiftKey:         args.shiftKey,
+                metaKey:          args.metaKey,
+                keyCode:          args.keyCode,
+                charCode:         args.charCode,
+                which:            args.which
+            });
+        }
+        else if (nativeMethods.documentCreateEvent) {
+            ev = nativeMethods.documentCreateEvent.call(document, 'KeyboardEvent');
+
+            ev.initKeyboardEvent(args.type, args.canBubble, args.cancelable, args.view, '', 0, EventSimulator._getModifiersAsString(args), false, '');
+        }
+
+        if (ev) {
+            // NOTE: the window.event.keyCode, window.event.charCode and window.event.which
+            // properties are not assigned after KeyboardEvent is created
+            Object.defineProperty(ev, 'keyCode', {
+                get: () => args.keyCode
             });
 
-            return this._raiseDispatchEvent(el, ev, args);
+            Object.defineProperty(ev, 'charCode', {
+                get: () => args.charCode
+            });
+
+            Object.defineProperty(ev, 'which', {
+                get: () => args.which
+            });
+
+            var prevented   = false;
+            var returnValue = true;
+
+            // NOTE: the dispatchEvent method does not return false in the case when preventDefault
+            // was raised for events that were created with the KeyboardEvent constructor
+            if (browserWithNewEventsStyle) {
+                Object.defineProperty(ev, 'preventDefault', {
+                    get: () => () => {
+                        prevented = true;
+
+                        return false;
+                    },
+
+                    set: () => void 0
+                });
+            }
+
+            // NOTE: the dispatchEvent method does not return false when returnValue was set to false (only in MSEdge)
+            if (browserUtils.isMSEdge) {
+                Object.defineProperty(ev, 'returnValue', {
+                    get: () => returnValue,
+                    set: value => {
+                        if (value === false)
+                            ev.preventDefault();
+
+                        returnValue = value;
+                    }
+                });
+            }
+
+            var res = this._raiseDispatchEvent(el, ev, args);
+
+            if (browserUtils.isMSEdge)
+                return returnValue && !prevented;
+            else if (browserUtils.isIE)
+                return res;
+
+            return !prevented;
         }
 
         return null;
