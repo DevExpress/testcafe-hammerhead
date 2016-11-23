@@ -37,7 +37,7 @@ asyncTest('cookie must be to send to a server before form.submit', function () {
         start();
     };
 
-    cookieSandbox.setCookie(document, 'cookie=1');
+    cookieSandbox.setCookie(document, 'cookie=1', true);
 
     processDomMeth(form);
 

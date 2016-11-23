@@ -39,9 +39,9 @@ export default class Sandbox extends SandboxBase {
 
         // API
         this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
-        this.xhr                 = new XhrSandbox();
-        this.fetch               = new FetchSandbox();
         this.cookie              = new CookieSandbox();
+        this.xhr                 = new XhrSandbox(this.cookie);
+        this.fetch               = new FetchSandbox();
         this.iframe              = new IframeSandbox(nodeMutation, this.cookie);
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe);
         this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
@@ -89,7 +89,7 @@ export default class Sandbox extends SandboxBase {
         var needToUpdateNativeWindowMeths = tryToExecuteCode(() => {
             this.nativeMethods.setTimeout.call(window, () => void 0, 0);
 
-            return window.XMLHttpRequest.prototype.open.toString() === this.nativeMethods.xmlHttpRequestOpen.toString();
+            return window.XMLHttpRequest.prototype.open.toString() === this.nativeMethods.xhrOpen.toString();
         });
 
         // NOTE: T173709

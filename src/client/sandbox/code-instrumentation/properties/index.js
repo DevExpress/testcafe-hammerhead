@@ -143,7 +143,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             cookie: {
                 condition: domUtils.isDocument,
                 get:       () => this.cookieSandbox.getCookie(),
-                set:       (doc, cookie) => this.cookieSandbox.setCookie(doc, String(cookie))
+                set:       (doc, cookie) => this.cookieSandbox.setCookie(doc, String(cookie), true)
             },
 
             data: {

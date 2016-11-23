@@ -5,9 +5,10 @@
 /* eslint hammerhead/proto-methods: 2 */
 
 export default {
-    requestMarker:           'x-hammerhead|xhr|request-marker-header',
-    corsSupported:           'x-hammerhead|xhr|cors-supported-header',
-    withCredentials:         'x-hammerhead|xhr|with-credentials-header',
+    requestMarker:           'x-hammerhead|xhr|request-marker',
+    corsSupported:           'x-hammerhead|xhr|cors-supported',
+    withCredentials:         'x-hammerhead|xhr|with-credentials',
     origin:                  'x-hammerhead|xhr|origin',
+    setCookie:               'x-hammerhead|xhr|set-cookie',
     fetchRequestCredentials: 'x-hammerhead|fetch|request-credentials'
 };

@@ -76,6 +76,11 @@ module.exports = function (app) {
         res.send(req.headers['x-hammerhead|xhr|origin']);
     });
 
+    app.get('/xhr-set-cookie-header-test/', function (req, res) {
+        res.setHeader('x-hammerhead|xhr|set-cookie', '["hello=world"]');
+        res.send();
+    });
+
     app.get('/xhr-222/', function (req, res) {
         res.statusCode = 222;
         res.send('true');

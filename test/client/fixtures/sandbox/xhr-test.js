@@ -1,4 +1,6 @@
-var XhrSandbox = hammerhead.get('./sandbox/xhr');
+var XhrSandbox  = hammerhead.get('./sandbox/xhr');
+var XHR_HEADERS = hammerhead.get('./../request-pipeline/xhr/headers');
+var settings    = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
@@ -74,14 +76,14 @@ asyncTest('parameters must pass correctly in xhr event handlers (T239198)', func
 
 
 test('createNativeXHR returns an xhr with the native "open" method (GH-492)', function () {
-    var storedNativeOpen    = nativeMethods.xmlHttpRequestOpen;
+    var storedNativeOpen    = nativeMethods.xhrOpen;
     var storedPrototypeOpen = XMLHttpRequest.prototype.open;
 
     expect(1);
 
-    nativeMethods.xmlHttpRequestOpen = function () {
-        nativeMethods.xmlHttpRequestOpen = storedNativeOpen;
-        XMLHttpRequest.prototype.open    = storedPrototypeOpen;
+    nativeMethods.xhrOpen = function () {
+        nativeMethods.xhrOpen         = storedNativeOpen;
+        XMLHttpRequest.prototype.open = storedPrototypeOpen;
         ok(true);
     };
 
@@ -142,3 +144,24 @@ if (!browserUtils.isIE9) {
         document.body.appendChild(iframe);
     });
 }
+
+asyncTest('set cookie from a header of the XMLHttpRequest response (GH-905)', function () {
+    var xhr = new XMLHttpRequest();
+
+    strictEqual(getProperty(document, 'cookie'), '');
+
+    xhr.open('GET', '/xhr-set-cookie-header-test/', true);
+    xhr.addEventListener('readystatechange', function () {
+        if (this.readyState === this.DONE) {
+            strictEqual(getProperty(document, 'cookie'), 'hello=world');
+            strictEqual(xhr.getResponseHeader(XHR_HEADERS.setCookie), null);
+            strictEqual(xhr.getAllResponseHeaders().indexOf(XHR_HEADERS.setCookie), -1);
+            strictEqual(xhr.getAllResponseHeaders().indexOf('hello=world'), -1);
+
+            settings.get().cookie = '';
+
+            start();
+        }
+    });
+    xhr.send();
+});
