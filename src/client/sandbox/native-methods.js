@@ -159,6 +159,9 @@ class NativeMethods {
         this.date    = win.Date;
         this.dateNow = win.Date.now;
 
+        // Object
+        this.objectToString = win.Object.prototype.toString;
+
         this.refreshClasses(win);
     }
 

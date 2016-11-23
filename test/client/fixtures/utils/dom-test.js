@@ -131,6 +131,13 @@ test('isWindow', function () {
     };
 
     ok(domUtils.isWindow(window));
+    ok(!domUtils.isWindow([
+        {
+            toString: function () {
+                ok(false);
+            }
+        }
+    ]));
 
     window.toString = storedToString;
 });
@@ -145,6 +152,13 @@ test('isXMLHttpRequest', function () {
     document.body.appendChild(iframe);
 
     ok(domUtils.isXMLHttpRequest(new iframe.contentWindow.XMLHttpRequest()));
+    ok(!domUtils.isXMLHttpRequest([
+        {
+            toString: function () {
+                ok(false);
+            }
+        }
+    ]));
 
     document.body.removeChild(iframe);
 });
