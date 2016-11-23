@@ -48,15 +48,18 @@ const IFRAME_FLAG_TAGS = (() => {
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
+const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = 'none';
+
 export default class DomProcessor {
     constructor (adapter) {
         this.adapter = adapter;
         this.adapter.attachEventEmitter(this);
 
-        this.HTML_STRING_REG_EX         = HTML_STRING_REG_EX;
-        this.JAVASCRIPT_PROTOCOL_REG_EX = JAVASCRIPT_PROTOCOL_REG_EX;
-        this.URL_ATTRS                  = URL_ATTRS;
-        this.SVG_XLINK_HREF_TAGS        = SVG_XLINK_HREF_TAGS;
+        this.HTML_STRING_REG_EX                    = HTML_STRING_REG_EX;
+        this.JAVASCRIPT_PROTOCOL_REG_EX            = JAVASCRIPT_PROTOCOL_REG_EX;
+        this.URL_ATTRS                             = URL_ATTRS;
+        this.SVG_XLINK_HREF_TAGS                   = SVG_XLINK_HREF_TAGS;
+        this.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
 
         this.HTML_PROCESSING_REQUIRED_EVENT = 'hammerhead|event|html-processing-required';
 
@@ -71,6 +74,10 @@ export default class DomProcessor {
 
     static isIframeFlagTag (tagName) {
         return tagName && IFRAME_FLAG_TAGS.indexOf(tagName) !== -1;
+    }
+
+    static isAddedAutocompleteAttr (attrName, storedAttrValue) {
+        return attrName === 'autocomplete' && storedAttrValue === AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     }
 
     _createProcessorPatterns (adapter) {
@@ -258,7 +265,7 @@ export default class DomProcessor {
         var attrValue     = this.adapter.getAttr(el, processed ? storedUrlAttr : 'autocomplete');
 
         if (!processed)
-            this.adapter.setAttr(el, storedUrlAttr, attrValue || attrValue === '' ? attrValue : 'none');
+            this.adapter.setAttr(el, storedUrlAttr, attrValue || attrValue === '' ? attrValue : AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
 
         this.adapter.setAttr(el, 'autocomplete', 'off');
     }

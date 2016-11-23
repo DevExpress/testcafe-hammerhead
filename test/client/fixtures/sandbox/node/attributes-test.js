@@ -414,7 +414,7 @@ test('input.autocomplete', function () {
 
     strictEqual(input.getAttribute('autocomplete'), nativeMethods.getAttribute.call(etalon, 'autocomplete'));
     strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
-    strictEqual(nativeMethods.getAttribute.call(input, storedAttr), 'none');
+    strictEqual(nativeMethods.getAttribute.call(input, storedAttr), domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
 
     input.setAttribute('autocomplete', 'off');
     nativeMethods.setAttribute.call(etalon, 'autocomplete', 'off');
@@ -438,7 +438,7 @@ test('input.autocomplete', function () {
     nativeMethods.removeAttribute.call(etalon, 'autocomplete');
     strictEqual(input.getAttribute('autocomplete'), nativeMethods.getAttribute.call(etalon, 'autocomplete'));
     strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
-    strictEqual(nativeMethods.getAttribute.call(input, storedAttr), 'none');
+    strictEqual(nativeMethods.getAttribute.call(input, storedAttr), domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
 });
 
 test('window.onbeforeunload', function () {
@@ -522,8 +522,7 @@ test('setting function to the link.href attribute value (T230764)', function () 
     }
 });
 
-
-test('Instances of attributesWrapper should be synchronized (GH-924)', function () {
+test('instances of attributesWrapper should be synchronized (GH-924)', function () {
     var input = document.createElement('input');
 
     var getProcessedAttributes = function () {
@@ -547,4 +546,33 @@ test('Instances of attributesWrapper should be synchronized (GH-924)', function 
         equal(getProcessedAttributes()[i].name, initialAttributesWrapper[i].name);
         equal(getProcessedAttributes()[i].value, initialAttributesWrapper[i].value);
     }
+});
+
+test('should hide "autocomplete" attribute form enumeration and existence check (GH-955)', function () {
+    var input                 = document.createElement('input');
+    var attributeNamespaceURI = input.attributes.getNamedItem('autocomplete').namespaceURI;
+
+    ok(!input.hasAttribute('autocomplete'));
+    ok(!input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
+    ok(!input.hasAttributes());
+    strictEqual(getProperty(input, 'attributes').length, 0);
+
+    input.setAttribute('autocomplete', 'on');
+
+    ok(input.hasAttribute('autocomplete'));
+    ok(input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
+    ok(input.hasAttributes());
+    strictEqual(getProperty(input, 'attributes').length, 1);
+
+    input.removeAttribute('autocomplete');
+    ok(!input.hasAttribute('autocomplete'));
+    ok(!input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
+    ok(!input.hasAttributes());
+    strictEqual(getProperty(input, 'attributes').length, 0);
+
+    input.setAttribute('test', 'test');
+    ok(input.hasAttribute('test'));
+    ok(input.hasAttributeNS(attributeNamespaceURI, 'test'));
+    ok(input.hasAttributes());
+    strictEqual(getProperty(input, 'attributes').length, 1);
 });
