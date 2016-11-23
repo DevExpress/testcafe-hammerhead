@@ -407,6 +407,20 @@ asyncTest('event argument parameters', function () {
 
 module('regression');
 
+test('Storage wrapper should has Storage prototype (GH-955)', function () {
+    Object.defineProperty(window.Storage.prototype, 'gh955', {
+        get: function () {
+            return 'gh955';
+        },
+        set: function () {
+            return void 0;
+        }
+    });
+
+    strictEqual(storageSandbox.localStorage['gh955'], 'gh955');
+    strictEqual(storageSandbox.sessionStorage['gh955'], 'gh955');
+});
+
 test("should work with keys named as wrapper's internal members (GH-735)", function () {
     var storageWrapper = storageSandbox.sessionStorage;
 

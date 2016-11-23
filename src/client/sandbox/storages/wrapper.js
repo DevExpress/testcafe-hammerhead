@@ -8,89 +8,31 @@ const API_KEY_PREFIX        = 'hammerhead|api-key-prefix|';
 const KEY                   = 0;
 const VALUE                 = 1;
 
-export default class StorageWrapper extends EventEmitter {
-    constructor (window, nativeStorage, nativeStorageKey) {
-        super();
+function getWrapperMethods () {
+    var methods = [];
 
-        this.nativeStorage     = nativeStorage;
-        this.nativeStorageKey  = nativeStorageKey;
-        this.lastState         = null;
-        this.window            = window;
-        this.initialProperties = [];
-        this.wrapperMethods    = [];
-        this.context           = window;
+    for (var key in StorageWrapper.prototype)
+        methods.push(key);
 
-        this.STORAGE_CHANGED_EVENT = 'hammerhead|event|storage-changed';
-        this.EMPTY_OLD_VALUE_ARG   = isIE ? '' : null;
+    return methods;
+}
 
-        Object.defineProperty(this, 'length', {
-            get: () => this._getAddedProperties().length,
-            set: () => void 0
-        });
+export default function StorageWrapper (window, nativeStorage, nativeStorageKey) {
+    this.eventEmitter      = new EventEmitter();
+    this.on                = (ev, handler) => this.eventEmitter.on(ev, handler);
+    this.emit              = (ev, e) => this.eventEmitter.emit(ev, e);
+    this.nativeStorage     = nativeStorage;
+    this.nativeStorageKey  = nativeStorageKey;
+    this.lastState         = null;
+    this.window            = window;
+    this.initialProperties = [];
+    this.wrapperMethods    = [];
+    this.context           = window;
 
-        // NOTE: Save wrapper properties and methods to be able to distinguish them from
-        // properties that will be created from the outside.
-        this.initialProperties = Object.getOwnPropertyNames(this);
-        this.wrapperMethods    = StorageWrapper._getWrapperMethods();
+    this.STORAGE_CHANGED_EVENT = 'hammerhead|event|storage-changed';
+    this.EMPTY_OLD_VALUE_ARG   = isIE ? '' : null;
 
-        this._init();
-    }
-
-    static _getWrapperMethods () {
-        var methods = [];
-
-        for (var key in StorageWrapper.prototype)
-            methods.push(key);
-
-        return methods;
-    }
-
-    _init () {
-        this._loadFromNativeStorage();
-        this.lastState = this._getCurrentState();
-
-        window.setInterval(() => this._checkStorageChanged(), 10);
-    }
-
-    _checkStorageChanged () {
-        var currentState = this._getCurrentState();
-
-        for (var i = 0; i < this.lastState[KEY].length; i++) {
-            var lastStateKey   = this.lastState[KEY][i];
-            var lastStateValue = this.lastState[VALUE][i];
-
-            var keyIndex = currentState[KEY].indexOf(lastStateKey);
-
-            if (keyIndex !== -1) {
-                if (currentState[VALUE][keyIndex] !== lastStateValue)
-                    this._raiseStorageChanged(currentState[KEY][keyIndex], lastStateValue, currentState[VALUE][keyIndex]);
-
-                currentState[KEY].splice(keyIndex, 1);
-                currentState[VALUE].splice(keyIndex, 1);
-            }
-            else
-                this._raiseStorageChanged(lastStateKey, lastStateValue, null);
-        }
-
-        for (var j = 0; j < currentState[KEY].length; j++)
-            this._raiseStorageChanged(currentState[KEY][j], this.EMPTY_OLD_VALUE_ARG, currentState[VALUE][j]);
-
-        this.lastState = this._getCurrentState();
-    }
-
-    _getCurrentState () {
-        var addedProperties = this._getAddedProperties();
-        var state           = [[], []];
-
-        for (var i = 0; i < addedProperties.length; i++) {
-            state[KEY].push(addedProperties[i]);
-            state[VALUE].push(this[addedProperties[i]]);
-        }
-
-        return state;
-    }
-
-    _getAddedProperties () {
+    var getAddedProperties = () => {
         // NOTE: The standard doesn't regulate the order in which properties are enumerated.
         // But we rely on the fact that they are enumerated in the order they were created in all the supported browsers.
         // In this case we cannot use Object.getOwnPropertyNames
@@ -103,18 +45,35 @@ export default class StorageWrapper extends EventEmitter {
         }
 
         return properties;
-    }
+    };
 
-    _castToString (value) {
-        // NOTE: The browser automatically translates the key and the value to a string. To repeat this behavior,
-        // we use native storage:
-        // localStorage.setItem(null, null) equivalently to localStorage.setItem('null', 'null')
-        this.nativeStorage[STORAGES_SANDBOX_TEMP] = value;
+    Object.defineProperty(this, 'length', {
+        get: () => getAddedProperties().length,
+        set: () => void 0
+    });
 
-        return this.nativeStorage[STORAGES_SANDBOX_TEMP];
-    }
+    var loadFromNativeStorage = () => {
+        var storage = this.nativeStorage[this.nativeStorageKey];
 
-    _raiseStorageChanged (key, oldValue, newValue) {
+        storage = JSON.parse(storage || '[[],[]]');
+
+        for (var i = 0; i < storage[KEY].length; i++)
+            this[storage[KEY][i]] = storage[VALUE][i];
+    };
+
+    var getCurrentState = () => {
+        var addedProperties = getAddedProperties();
+        var state           = [[], []];
+
+        for (var i = 0; i < addedProperties.length; i++) {
+            state[KEY].push(addedProperties[i]);
+            state[VALUE].push(this[addedProperties[i]]);
+        }
+
+        return state;
+    };
+
+    var raiseStorageChanged = (key, oldValue, newValue) => {
         var url = null;
 
         try {
@@ -128,43 +87,74 @@ export default class StorageWrapper extends EventEmitter {
         }
 
         this.emit(this.STORAGE_CHANGED_EVENT, { key, oldValue, newValue, url });
-    }
+    };
 
-    _loadFromNativeStorage () {
-        var storage = this.nativeStorage[this.nativeStorageKey];
+    var checkStorageChanged = () => {
+        var currentState = getCurrentState();
 
-        storage = JSON.parse(storage || '[[],[]]');
+        for (var i = 0; i < this.lastState[KEY].length; i++) {
+            var lastStateKey   = this.lastState[KEY][i];
+            var lastStateValue = this.lastState[VALUE][i];
 
-        for (var i = 0; i < storage[KEY].length; i++)
-            this[storage[KEY][i]] = storage[VALUE][i];
-    }
+            var keyIndex = currentState[KEY].indexOf(lastStateKey);
 
-    _getValidKey (key) {
+            if (keyIndex !== -1) {
+                if (currentState[VALUE][keyIndex] !== lastStateValue)
+                    raiseStorageChanged(currentState[KEY][keyIndex], lastStateValue, currentState[VALUE][keyIndex]);
+
+                currentState[KEY].splice(keyIndex, 1);
+                currentState[VALUE].splice(keyIndex, 1);
+            }
+            else
+                raiseStorageChanged(lastStateKey, lastStateValue, null);
+        }
+
+        for (var j = 0; j < currentState[KEY].length; j++)
+            raiseStorageChanged(currentState[KEY][j], this.EMPTY_OLD_VALUE_ARG, currentState[VALUE][j]);
+
+        this.lastState = getCurrentState();
+    };
+
+    var init = () => {
+        loadFromNativeStorage();
+        this.lastState = getCurrentState();
+
+        window.setInterval(() => checkStorageChanged(), 10);
+    };
+
+    this.setContext = context => {
+        this.context = context;
+    };
+
+    this.getContext = () => this.context;
+
+    this.saveToNativeStorage = () => {
+        var state = JSON.stringify(getCurrentState());
+
+        if (this.nativeStorage[this.nativeStorageKey] !== state)
+            this.nativeStorage[this.nativeStorageKey] = state;
+    };
+
+    var castToString = value => {
+        // NOTE: The browser automatically translates the key and the value to a string. To repeat this behavior,
+        // we use native storage:
+        // localStorage.setItem(null, null) equivalently to localStorage.setItem('null', 'null')
+        this.nativeStorage[STORAGES_SANDBOX_TEMP] = value;
+
+        return this.nativeStorage[STORAGES_SANDBOX_TEMP];
+    };
+
+    var getValidKey = key => {
         var isWrapperMember = this.wrapperMethods.indexOf(key) !== -1 || this.initialProperties.indexOf(key) !== -1;
 
         key = isWrapperMember ? API_KEY_PREFIX + key : key;
 
-        return this._castToString(key);
-    }
-
-    setContext (context) {
-        this.context = context;
-    }
-
-    getContext () {
-        return this.context;
-    }
-
-    saveToNativeStorage () {
-        var state = JSON.stringify(this._getCurrentState());
-
-        if (this.nativeStorage[this.nativeStorageKey] !== state)
-            this.nativeStorage[this.nativeStorageKey] = state;
-    }
+        return castToString(key);
+    };
 
     // API
-    clear () {
-        var addedProperties = this._getAddedProperties();
+    this.clear = () => {
+        var addedProperties = getAddedProperties();
         var changed         = false;
 
         for (var i = 0; i < addedProperties.length; i++) {
@@ -173,50 +163,59 @@ export default class StorageWrapper extends EventEmitter {
         }
 
         if (changed) {
-            this._raiseStorageChanged(null, null, null);
-            this.lastState = this._getCurrentState();
+            raiseStorageChanged(null, null, null);
+            this.lastState = getCurrentState();
         }
-    }
+    };
 
-    getItem (key) {
+    this.getItem = key => {
         if (arguments.length === 0)
             throw new TypeError();
 
-        key = this._getValidKey(key);
+        key = getValidKey(key);
 
         return this.hasOwnProperty(key) ? this[key] : null;
-    }
+    };
 
-    key (keyNum) {
+    this.key = keyNum => {
         if (keyNum === void 0)
             throw new TypeError();
 
         // NOTE: http://w3c-test.org/webstorage/storage_key.html
         keyNum %= 0x100000000;
 
-        var addedProperties = this._getAddedProperties();
+        var addedProperties = getAddedProperties();
 
         return keyNum >= 0 && keyNum < addedProperties.length ? addedProperties[keyNum] : null;
-    }
+    };
 
-    removeItem (key) {
+    this.removeItem = key => {
         if (arguments.length === 0)
             throw new TypeError();
 
-        key = this._getValidKey(key);
+        key = getValidKey(key);
 
         delete this[key];
-        this._checkStorageChanged();
-    }
+        checkStorageChanged();
+    };
 
-    setItem (key, value) {
+    this.setItem = (key, value) => {
         if (arguments.length < 2)
             throw new TypeError();
 
-        key   = this._getValidKey(key);
-        value = this._castToString(value);
+        key   = getValidKey(key);
+        value = castToString(value);
 
         this[key] = value;
-        this._checkStorageChanged();
-    }
+        checkStorageChanged();
+    };
+
+    // NOTE: Save wrapper properties and methods to be able to distinguish them from
+    // properties that will be created from the outside.
+    this.initialProperties = Object.getOwnPropertyNames(this);
+    this.wrapperMethods    = getWrapperMethods();
+
+    init();
 }
+
+StorageWrapper.prototype = Storage.prototype;
