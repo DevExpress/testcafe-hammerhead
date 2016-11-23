@@ -169,6 +169,7 @@ class NativeMethods {
         this.styleClass       = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties;
         this.styleSheetClass  = win.CSSStyleSheet;
         this.elementClass     = win.Element;
+        this.nodeClass        = win.Node;
         this.svgElementClass  = win.SVGElement;
         this.Worker           = win.Worker;
         this.Blob             = win.Blob;

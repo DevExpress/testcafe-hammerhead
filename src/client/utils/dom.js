@@ -9,7 +9,9 @@ import { isFirefox, isWebKit, isIE, version as browserVersion } from './browser'
 import trim from '../../utils/string-trim';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
-const NATIVE_METHOD_REG_EX = /^\s*function\s[\s\S]+()\s*\{\s*\[native\scode\]\s*\}\s*$/;
+export const NATIVE_TO_STRING_TO_STRING = nativeMethods.windowClass.toString.toString();
+const NATIVE_ELEMENT_TO_STRING          = nativeMethods.elementClass.toString();
+const NATIVE_NODE_TO_STRING             = nativeMethods.nodeClass.toString();
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -82,7 +84,8 @@ function hasClassFallback (el, className) {
 }
 
 function nativeToString (obj) {
-    if (obj && obj.toString && typeof obj.toString === 'function' && NATIVE_METHOD_REG_EX.test(obj.toString.toString()))
+    if (obj && obj.toString && typeof obj.toString === 'function' &&
+        obj.toString.toString() === NATIVE_TO_STRING_TO_STRING)
         return obj.toString();
 
     return '';
@@ -312,8 +315,8 @@ export function isDomElement (el) {
         return true;
 
     // NOTE: T184805
-    if (el && nativeToString(el) && el.constructor &&
-        (el.constructor.toString().indexOf(' Element') !== -1 || el.constructor.toString().indexOf(' Node') !== -1))
+    if (el && el.constructor &&
+        [NATIVE_ELEMENT_TO_STRING, NATIVE_NODE_TO_STRING].indexOf(nativeToString(el.constructor)) !== -1)
         return false;
 
     // NOTE: B252941
@@ -524,10 +527,8 @@ export function isWindow (instance) {
         return true;
 
     try {
-        var str = nativeToString(instance);
-
         return instance && typeof instance === 'object' && instance.top !== void 0 &&
-               (str === '[object Window]' || str === '[object global]');
+               ['[object Window]', '[object global]'].indexOf(nativeToString(instance)) !== -1;
     }
     catch (e) {
         // NOTE: If a cross-domain object has the 'top' field, this object is a window
@@ -541,10 +542,8 @@ export function isDocument (instance) {
         return true;
 
     try {
-        var str = nativeToString(instance);
-
         return instance && typeof instance === 'object' &&
-               (str === '[object HTMLDocument]' || str === '[object Document]');
+               ['[object HTMLDocument]', '[object Document]'].indexOf(nativeToString(instance)) !== -1;
     }
     catch (e) {
         // NOTE: For cross-domain objects (windows, documents or locations), we return false because
@@ -555,7 +554,7 @@ export function isDocument (instance) {
 
 export function isXMLHttpRequest (instance) {
     return instance && (instance instanceof XMLHttpRequest ||
-           typeof instance === 'object' && nativeToString(instance) === '[object XMLHttpRequest]');
+                        typeof instance === 'object' && nativeToString(instance) === '[object XMLHttpRequest]');
 }
 
 export function isBlob (instance) {
