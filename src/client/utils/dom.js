@@ -16,10 +16,15 @@ const arraySlice = Array.prototype.slice;
 
 var scrollbarSize = null;
 
-const IS_NOT_DOM_ELEMENT_RE = /^\[object (Element|Node|EventTarget)(Prototype)?]$/;
-const IS_WINDOW_RE          = /^\[object (Window|global)]$/;
-const IS_DOCUMENT_RE        = /^\[object (HTML)?Document]$/;
-const IS_SVG_ELEMENT_RE     = /^\[object SVG\w+?Element]$/i;
+const NATIVE_ELEMENT_PROTOTYPE_STRINGS = [
+    instanceToString(nativeMethods.elementClass.prototype),
+    instanceToString(Object.getPrototypeOf(nativeMethods.elementClass.prototype))
+];
+
+const NATIVE_WINDOW_STR   = instanceToString(window);
+const NATIVE_DOCUMENT_STR = instanceToString(document);
+const IS_SVG_ELEMENT_RE   = /^\[object SVG\w+?Element]$/i;
+
 
 function getFocusableSelector () {
     // NOTE: We don't take into account the case of embedded contentEditable elements, and we
@@ -316,7 +321,7 @@ export function isDomElement (el) {
         return true;
 
     // NOTE: T184805
-    if (el && IS_NOT_DOM_ELEMENT_RE.test(instanceToString(el)))
+    if (el && NATIVE_ELEMENT_PROTOTYPE_STRINGS.indexOf(instanceToString(el)) !== -1)
         return false;
 
     // NOTE: B252941
@@ -527,7 +532,7 @@ export function isWindow (instance) {
         return true;
 
     try {
-        return instance && instance.toString && IS_WINDOW_RE.test(instanceToString(instance));
+        return instance && instance.toString && NATIVE_WINDOW_STR === instanceToString(instance);
     }
     catch (e) {
         // NOTE: If a cross-domain object has the 'top' field, this object is a window
@@ -541,7 +546,7 @@ export function isDocument (instance) {
         return true;
 
     try {
-        return instance && IS_DOCUMENT_RE.test(instanceToString(instance));
+        return instance && NATIVE_DOCUMENT_STR === instanceToString(instance);
     }
     catch (e) {
         // NOTE: For cross-domain objects (windows, documents or locations), we return false because

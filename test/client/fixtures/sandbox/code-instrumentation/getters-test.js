@@ -134,7 +134,7 @@ test('document.referrer', function () {
     };
 
     nativeMethods.objectToString = function () {
-        return '[object HTMLDocument]';
+        return Object.prototype.toString.call(document);
     };
 
     strictEqual(getProperty(documentMock, 'referrer'), url);
@@ -150,7 +150,7 @@ test('document.documentURI', function () {
     };
 
     nativeMethods.objectToString = function () {
-        return '[object HTMLDocument]';
+        return Object.prototype.toString.call(document);
     };
 
     strictEqual(getProperty(documentMock, 'documentURI'), url);
@@ -159,18 +159,14 @@ test('document.documentURI', function () {
 });
 
 test('document.baseURI (GH-920)', function () {
-    var url          = 'http://some.domain.com/index.html';
+    var url                  = 'http://some.domain.com/index.html';
     var storedObjectToString = nativeMethods.objectToString;
-    var documentMock = {
-        referrer: '',
-        baseURI:  urlUtils.getProxyUrl(url),
-        toString: function () {
-            return '[object HTMLDocument]';
-        }
+    var documentMock         = {
+        baseURI: urlUtils.getProxyUrl(url)
     };
 
     nativeMethods.objectToString = function () {
-        return '[object HTMLDocument]';
+        return Object.prototype.toString.call(document);
     };
 
     strictEqual(getProperty(documentMock, 'baseURI'), url);
