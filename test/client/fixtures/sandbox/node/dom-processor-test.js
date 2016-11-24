@@ -268,7 +268,7 @@ test('autocomplete attribute', function () {
     strictEqual(nativeMethods.getAttribute.call(input3, storedAutocompleteAttr), '');
 
     strictEqual(nativeMethods.getAttribute.call(input4, 'autocomplete'), 'off');
-    strictEqual(nativeMethods.getAttribute.call(input4, storedAutocompleteAttr), 'none');
+    strictEqual(nativeMethods.getAttribute.call(input4, storedAutocompleteAttr), domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
 });
 
 test('crossdomain src', function () {

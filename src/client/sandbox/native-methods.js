@@ -62,6 +62,9 @@ class NativeMethods {
         this.removeChild                   = nativeElement.removeChild;
         this.setAttribute                  = nativeElement.setAttribute;
         this.setAttributeNS                = nativeElement.setAttributeNS;
+        this.hasAttribute                  = nativeElement.hasAttribute;
+        this.hasAttributeNS                = nativeElement.hasAttributeNS;
+        this.hasAttributes                 = nativeElement.hasAttributes;
 
         // Event
         this.addEventListener          = nativeElement.addEventListener;

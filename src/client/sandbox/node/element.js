@@ -77,7 +77,7 @@ export default class ElementSandbox extends SandboxBase {
         }
     }
 
-    _overridedGetAttributeCore (el, args, isNs) {
+    _getAttributeCore (el, args, isNs) {
         var attr        = args[isNs ? 1 : 0];
         var ns          = isNs ? args[0] : null;
         var getAttrMeth = isNs ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
@@ -85,18 +85,19 @@ export default class ElementSandbox extends SandboxBase {
         // OPTIMIZATION: The hasAttribute method is very slow.
         if (domProcessor.isUrlAttr(el, attr, ns) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
             attr === 'autocomplete' || attr === 'target') {
-            var storedAttr = domProcessor.getStoredAttrName(attr);
+            var storedAttrName  = domProcessor.getStoredAttrName(attr);
+            var storedAttrValue = getAttrMeth.apply(el, isNs ? [ns, storedAttrName] : [storedAttrName]);
 
-            if (attr === 'autocomplete' && getAttrMeth.apply(el, isNs ? [ns, storedAttr] : [storedAttr]) === 'none')
+            if (DomProcessor.isAddedAutocompleteAttr(attr, storedAttrValue))
                 return null;
-            else if (el.hasAttribute(storedAttr))
-                args[isNs ? 1 : 0] = storedAttr;
+            else if (el.hasAttribute(storedAttrName))
+                args[isNs ? 1 : 0] = storedAttrName;
         }
 
         return getAttrMeth.apply(el, args);
     }
 
-    _overridedSetAttributeCore (el, args, isNs) {
+    _setAttributeCore (el, args, isNs) {
         var ns          = isNs ? args[0] : null;
         var attr        = args[isNs ? 1 : 0];
         var valueIndex  = isNs ? 2 : 1;
@@ -228,7 +229,20 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    _overridedRemoveAttributeCore (el, args, isNs) {
+    _hasAttributeCore (el, args, isNs) {
+        var attributeNameArgIndex       = isNs ? 1 : 0;
+        var hasAttrMeth                 = isNs ? nativeMethods.hasAttributeNS : nativeMethods.hasAttribute;
+        var storedAutocompleteAttrName  = domProcessor.getStoredAttrName('autocomplete');
+        var storedAutocompleteAttrValue = nativeMethods.getAttribute.call(el, storedAutocompleteAttrName);
+
+        if (typeof args[attributeNameArgIndex] === 'string' &&
+            DomProcessor.isAddedAutocompleteAttr(args[attributeNameArgIndex], storedAutocompleteAttrValue))
+            return false;
+
+        return hasAttrMeth.apply(el, args);
+    }
+
+    _removeAttributeCore (el, args, isNs) {
         var attr           = args[isNs ? 1 : 0];
         var removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
         var tagName        = domUtils.getTagName(el);
@@ -240,7 +254,7 @@ export default class ElementSandbox extends SandboxBase {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
             if (attr === 'autocomplete')
-                nativeMethods.setAttribute.call(el, storedAttr, 'none');
+                nativeMethods.setAttribute.call(el, storedAttr, domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
             else
                 removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
         }
@@ -387,15 +401,15 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             getAttribute () {
-                return sandbox._overridedGetAttributeCore(this, arguments);
+                return sandbox._getAttributeCore(this, arguments);
             },
 
             getAttributeNS () {
-                return sandbox._overridedGetAttributeCore(this, arguments, true);
+                return sandbox._getAttributeCore(this, arguments, true);
             },
 
             setAttribute () {
-                var result = sandbox._overridedSetAttributeCore(this, arguments);
+                var result = sandbox._setAttributeCore(this, arguments);
 
                 ElementSandbox._refreshAttributesWrappers(this);
 
@@ -403,7 +417,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             setAttributeNS () {
-                var result = sandbox._overridedSetAttributeCore(this, arguments, true);
+                var result = sandbox._setAttributeCore(this, arguments, true);
 
                 ElementSandbox._refreshAttributesWrappers(this);
 
@@ -411,7 +425,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeAttribute () {
-                var result = sandbox._overridedRemoveAttributeCore(this, arguments);
+                var result = sandbox._removeAttributeCore(this, arguments);
 
                 ElementSandbox._refreshAttributesWrappers(this);
 
@@ -419,7 +433,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             removeAttributeNS () {
-                var result = sandbox._overridedRemoveAttributeCore(this, arguments, true);
+                var result = sandbox._removeAttributeCore(this, arguments, true);
 
                 ElementSandbox._refreshAttributesWrappers(this);
 
@@ -441,6 +455,23 @@ export default class ElementSandbox extends SandboxBase {
                     arguments[0] = NodeSandbox.processSelector(arguments[0]);
 
                 return getNativeQuerySelectorAll(this).apply(this, arguments);
+            },
+
+            hasAttribute () {
+                return sandbox._hasAttributeCore(this, arguments, false);
+            },
+
+            hasAttributeNS () {
+                return sandbox._hasAttributeCore(this, arguments, true);
+            },
+
+            hasAttributes () {
+                if (this.attributes.length === 2 &&
+                    this.attributes.getNamedItem('autocomplete') &&
+                    this.attributes.getNamedItem(domProcessor.getStoredAttrName('autocomplete')))
+                    return sandbox._hasAttributeCore(this, ['autocomplete'], false);
+
+                return nativeMethods.hasAttributes.apply(this, arguments);
             }
         };
     }
@@ -555,6 +586,9 @@ export default class ElementSandbox extends SandboxBase {
         window.Element.prototype.querySelector             = this.overridedMethods.querySelector;
         window.Element.prototype.querySelectorAll          = this.overridedMethods.querySelectorAll;
         window.Element.prototype.insertAdjacentHTML        = this.overridedMethods.insertAdjacentHTML;
+        window.Element.prototype.hasAttribute              = this.overridedMethods.hasAttribute;
+        window.Element.prototype.hasAttributeNS            = this.overridedMethods.hasAttributeNS;
+        window.Element.prototype.hasAttributes             = this.overridedMethods.hasAttributes;
         window.Node.prototype.cloneNode                    = this.overridedMethods.cloneNode;
         window.Node.prototype.appendChild                  = this.overridedMethods.appendChild;
         window.Node.prototype.removeChild                  = this.overridedMethods.removeChild;
