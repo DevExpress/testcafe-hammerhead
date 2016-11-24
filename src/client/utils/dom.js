@@ -10,8 +10,12 @@ import trim from '../../utils/string-trim';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
 
 export const NATIVE_TO_STRING_TO_STRING = nativeMethods.windowClass.toString.toString();
-const NATIVE_ELEMENT_TO_STRING          = nativeMethods.elementClass.toString();
-const NATIVE_NODE_TO_STRING             = nativeMethods.nodeClass.toString();
+
+const NATIVE_ELEMENT_STRINGS  = [nativeMethods.elementClass.toString(), nativeMethods.nodeClass.toString()];
+const NATIVE_WINDOW_STRINGS   = ['[object Window]', '[object global]'];
+const NATIVE_DOCUMENT_STRINGS = ['[object HTMLDocument]', '[object Document]'];
+
+//вынести создание массивов на уровень модуля для isDomElement, isWindow, isDocument
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -316,7 +320,7 @@ export function isDomElement (el) {
 
     // NOTE: T184805
     if (el && el.constructor &&
-        [NATIVE_ELEMENT_TO_STRING, NATIVE_NODE_TO_STRING].indexOf(nativeToString(el.constructor)) !== -1)
+        NATIVE_ELEMENT_STRINGS.indexOf(nativeToString(el.constructor)) !== -1)
         return false;
 
     // NOTE: B252941
@@ -528,7 +532,7 @@ export function isWindow (instance) {
 
     try {
         return instance && typeof instance === 'object' && instance.top !== void 0 &&
-               ['[object Window]', '[object global]'].indexOf(nativeToString(instance)) !== -1;
+               NATIVE_WINDOW_STRINGS.indexOf(nativeToString(instance)) !== -1;
     }
     catch (e) {
         // NOTE: If a cross-domain object has the 'top' field, this object is a window
@@ -543,7 +547,7 @@ export function isDocument (instance) {
 
     try {
         return instance && typeof instance === 'object' &&
-               ['[object HTMLDocument]', '[object Document]'].indexOf(nativeToString(instance)) !== -1;
+               NATIVE_DOCUMENT_STRINGS.indexOf(nativeToString(instance)) !== -1;
     }
     catch (e) {
         // NOTE: For cross-domain objects (windows, documents or locations), we return false because
