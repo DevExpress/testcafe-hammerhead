@@ -8,6 +8,7 @@ var attributesProperty     = hammerhead.get('../client/sandbox/code-instrumentat
 var processHtml            = hammerhead.get('../client/utils/html').processHtml;
 
 var browserUtils  = hammerhead.utils.browser;
+var domUtils      = hammerhead.utils.dom;
 var nativeMethods = hammerhead.nativeMethods;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -136,7 +137,7 @@ test('document.referrer', function () {
     };
 
     documentMock.toString.toString = function () {
-        return 'function test() { [native code] }';
+        return domUtils.NATIVE_TO_STRING_TO_STRING;
     };
 
     strictEqual(getProperty(documentMock, 'referrer'), url);
@@ -153,7 +154,7 @@ test('document.documentURI', function () {
     };
 
     documentMock.toString.toString = function () {
-        return 'function test() { [native code] }';
+        return domUtils.NATIVE_TO_STRING_TO_STRING;
     };
 
     strictEqual(getProperty(documentMock, 'documentURI'), url);
@@ -170,7 +171,7 @@ test('document.baseURI (GH-920)', function () {
     };
 
     documentMock.toString.toString = function () {
-        return 'function test() { [native code] }';
+        return domUtils.NATIVE_TO_STRING_TO_STRING;
     };
 
     strictEqual(getProperty(documentMock, 'baseURI'), url);
