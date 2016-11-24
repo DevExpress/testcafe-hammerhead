@@ -48,7 +48,7 @@ const IFRAME_FLAG_TAGS = (() => {
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
-const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = 'none';
+const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = 'hammerhead|autocomplete-attribute-absence-marker';
 
 export default class DomProcessor {
     constructor (adapter) {
