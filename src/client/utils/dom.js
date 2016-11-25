@@ -535,9 +535,14 @@ export function isWindow (instance) {
         return instance && instance.toString && NATIVE_WINDOW_STR === instanceToString(instance);
     }
     catch (e) {
-        // NOTE: If a cross-domain object has the 'top' field, this object is a window
-        // (not a document or location).
-        return !!instance.top;
+        try {
+            // NOTE: If a cross-domain object has the 'top' field, this object is a window
+            // (not a document or location).
+            return !!instance.top;
+        }
+        catch (x) {
+            return false;
+        }
     }
 }
 

@@ -142,6 +142,28 @@ test('isWindow', function () {
     window.toString = storedToString;
 });
 
+asyncTest('isWindow for a cross-domain window', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id  = 'test' + Date.now();
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeWindow = iframe.contentWindow;
+
+            ok(domUtils.isWindow(iframeWindow));
+
+            // NOTE: The firefox does not provide access to the cross-domain location.
+            if (!browserUtils.isFirefox)
+                ok(!domUtils.isWindow(iframeWindow.location));
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
+});
+
 test('isXMLHttpRequest', function () {
     ok(domUtils.isXMLHttpRequest(new XMLHttpRequest()));
     ok(!domUtils.isXMLHttpRequest({ responseTest: '' }));
