@@ -367,6 +367,15 @@ test('special pages (GH-339)', function () {
     });
 });
 
+test('hash with whitespace (GH-971)', function () {
+    var url           = 'http://' + PROXY_HOST + '/sessionId/http://some.domain.com/path/#word word';
+    var parsingResult = urlUtils.parseProxyUrl(url);
+
+    strictEqual(parsingResult.sessionId, 'sessionId');
+    strictEqual(parsingResult.destUrl, 'http://some.domain.com/path/#word word');
+    strictEqual(parsingResult.destResourceInfo.partAfterHost, '/path/#word word');
+});
+
 module('change proxy url');
 
 test('destination URL part', function () {
