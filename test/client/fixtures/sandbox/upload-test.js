@@ -10,6 +10,7 @@ var browserUtils   = hammerhead.utils.browser;
 var uploadSandbox  = hammerhead.sandbox.upload;
 var infoManager    = hammerhead.sandbox.upload.infoManager;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
+var nativeMethods  = hammerhead.nativeMethods;
 
 // ----- Server API mock ---------
 // Virtual file system:
@@ -369,8 +370,10 @@ asyncTest('upload error', function () {
 
 if (!browserUtils.isIE9) {
     asyncTest('get uploaded file error: single file', function () {
-        var stFiles      = files;
-        var inputMock    = getInputMock(['error']);
+        var stFiles              = files;
+        var storedObjectToString = nativeMethods.objectToString;
+        var inputMock            = getInputMock(['error']);
+
         var eventHandler = function (err) {
             strictEqual(err.length, 1);
             strictEqual(err[0].err, 34);
@@ -378,7 +381,12 @@ if (!browserUtils.isIE9) {
             uploadSandbox.off(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
             files = stFiles;
 
+            nativeMethods.objectToString = storedObjectToString;
             start();
+        };
+
+        nativeMethods.objectToString = function () {
+            return '[object HTMLInputElement]';
         };
 
         uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
@@ -386,8 +394,10 @@ if (!browserUtils.isIE9) {
     });
 
     asyncTest('get uploaded file error: multi file', function () {
-        var stFiles      = files;
-        var inputMock    = getInputMock(['file1.txt', 'error', 'file2.txt']);
+        var stFiles              = files;
+        var storedObjectToString = nativeMethods.objectToString;
+        var inputMock            = getInputMock(['file1.txt', 'error', 'file2.txt']);
+
         var eventHandler = function (err) {
             strictEqual(err.length, 3);
             strictEqual(err[1].err, 34);
@@ -397,7 +407,12 @@ if (!browserUtils.isIE9) {
             uploadSandbox.off(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
             files = stFiles;
 
+            nativeMethods.objectToString = storedObjectToString;
             start();
+        };
+
+        nativeMethods.objectToString = function () {
+            return '[object HTMLInputElement]';
         };
 
         uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
