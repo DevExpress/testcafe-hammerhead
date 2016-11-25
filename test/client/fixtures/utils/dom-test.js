@@ -131,8 +131,37 @@ test('isWindow', function () {
     };
 
     ok(domUtils.isWindow(window));
+    ok(!domUtils.isWindow([
+        {
+            toString: function () {
+                ok(false);
+            }
+        }
+    ]));
 
     window.toString = storedToString;
+});
+
+asyncTest('isWindow for a cross-domain window', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id  = 'test' + Date.now();
+    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeWindow = iframe.contentWindow;
+
+            ok(domUtils.isWindow(iframeWindow));
+
+            // NOTE: The firefox does not provide access to the cross-domain location.
+            if (!browserUtils.isFirefox)
+                ok(!domUtils.isWindow(iframeWindow.location));
+
+            iframe.parentNode.removeChild(iframe);
+            start();
+        });
+    document.body.appendChild(iframe);
 });
 
 test('isXMLHttpRequest', function () {
@@ -145,6 +174,13 @@ test('isXMLHttpRequest', function () {
     document.body.appendChild(iframe);
 
     ok(domUtils.isXMLHttpRequest(new iframe.contentWindow.XMLHttpRequest()));
+    ok(!domUtils.isXMLHttpRequest([
+        {
+            toString: function () {
+                ok(false);
+            }
+        }
+    ]));
 
     document.body.removeChild(iframe);
 });

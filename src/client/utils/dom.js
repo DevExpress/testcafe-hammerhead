@@ -8,14 +8,23 @@ import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, version as browserVersion } from './browser';
 import trim from '../../utils/string-trim';
 import getNativeQuerySelectorAll from './get-native-query-selector-all';
-
-const NATIVE_METHOD_REG_EX = /^\s*function\s[\s\S]+()\s*\{\s*\[native\scode\]\s*\}\s*$/;
+import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-var arraySlice = Array.prototype.slice;
+const arraySlice = Array.prototype.slice;
 
 var scrollbarSize = null;
+
+const NATIVE_ELEMENT_PROTOTYPE_STRINGS = [
+    instanceToString(nativeMethods.elementClass.prototype),
+    instanceToString(Object.getPrototypeOf(nativeMethods.elementClass.prototype))
+];
+
+const NATIVE_WINDOW_STR   = instanceToString(window);
+const NATIVE_DOCUMENT_STR = instanceToString(document);
+const IS_SVG_ELEMENT_RE   = /^\[object SVG\w+?Element]$/i;
+
 
 function getFocusableSelector () {
     // NOTE: We don't take into account the case of embedded contentEditable elements, and we
@@ -81,11 +90,11 @@ function hasClassFallback (el, className) {
     return preparedElementClassName.indexOf(className) !== -1;
 }
 
-function nativeToString (obj) {
-    if (obj && obj.toString && typeof obj.toString === 'function' && NATIVE_METHOD_REG_EX.test(obj.toString.toString()))
-        return obj.toString();
+function instanceToString (instance) {
+    if (!instanceAndPrototypeToStringAreEqual)
+        return nativeMethods.objectToString.call(instance);
 
-    return '';
+    return typeof instance === 'object' ? nativeMethods.objectToString.call(Object.getPrototypeOf(instance)) : '';
 }
 
 export function getActiveElement (currentDocument) {
@@ -312,8 +321,7 @@ export function isDomElement (el) {
         return true;
 
     // NOTE: T184805
-    if (el && nativeToString(el) && el.constructor &&
-        (el.constructor.toString().indexOf(' Element') !== -1 || el.constructor.toString().indexOf(' Node') !== -1))
+    if (el && NATIVE_ELEMENT_PROTOTYPE_STRINGS.indexOf(instanceToString(el)) !== -1)
         return false;
 
     // NOTE: B252941
@@ -524,15 +532,17 @@ export function isWindow (instance) {
         return true;
 
     try {
-        var str = nativeToString(instance);
-
-        return instance && typeof instance === 'object' && instance.top !== void 0 &&
-               (str === '[object Window]' || str === '[object global]');
+        return instance && instance.toString && NATIVE_WINDOW_STR === instanceToString(instance);
     }
     catch (e) {
-        // NOTE: If a cross-domain object has the 'top' field, this object is a window
-        // (not a document or location).
-        return true;
+        try {
+            // NOTE: If a cross-domain object has the 'top' field, this object is a window
+            // (not a document or location).
+            return !!instance.top;
+        }
+        catch (x) {
+            return false;
+        }
     }
 }
 
@@ -541,10 +551,7 @@ export function isDocument (instance) {
         return true;
 
     try {
-        var str = nativeToString(instance);
-
-        return instance && typeof instance === 'object' &&
-               (str === '[object HTMLDocument]' || str === '[object Document]');
+        return instance && NATIVE_DOCUMENT_STR === instanceToString(instance);
     }
     catch (e) {
         // NOTE: For cross-domain objects (windows, documents or locations), we return false because
@@ -554,13 +561,11 @@ export function isDocument (instance) {
 }
 
 export function isXMLHttpRequest (instance) {
-    return instance && (instance instanceof XMLHttpRequest ||
-           typeof instance === 'object' && nativeToString(instance) === '[object XMLHttpRequest]');
+    return instance && (instance instanceof XMLHttpRequest || instanceToString(instance) === '[object XMLHttpRequest]');
 }
 
 export function isBlob (instance) {
-    return instance && typeof instance === 'object' && typeof instance.slice === 'function' &&
-           nativeToString(instance) === '[object Blob]';
+    return instance && instanceToString(instance) === '[object Blob]';
 }
 
 export function isLocation (instance) {
@@ -580,8 +585,7 @@ export function isSVGElement (instance) {
     if (instance instanceof nativeMethods.svgElementClass)
         return true;
 
-    return instance && typeof instance === 'object' && instance.ownerSVGElement !== void 0 &&
-           nativeToString(instance).toLowerCase() === '[object svg' + getTagName(instance) + 'element]';
+    return instance && IS_SVG_ELEMENT_RE.test(instanceToString(instance));
 }
 
 export function isSVGElementOrChild (el) {
@@ -592,16 +596,14 @@ export function isFetchHeaders (instance) {
     if (nativeMethods.Headers && instance instanceof nativeMethods.Headers)
         return true;
 
-    return instance && typeof instance === 'object' && instance.append !== void 0 &&
-           nativeToString(instance) === '[object Headers]';
+    return instance && instanceToString(instance) === '[object Headers]';
 }
 
 export function isFetchRequest (instance) {
     if (nativeMethods.Request && instance instanceof nativeMethods.Request)
         return true;
 
-    return instance && typeof instance === 'object' && typeof instance.json === 'function' &&
-           nativeToString(instance) === '[object Request]';
+    return instance && instanceToString(instance) === '[object Request]';
 }
 
 export function isTextEditableInput (el) {

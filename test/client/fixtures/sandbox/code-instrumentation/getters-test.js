@@ -127,53 +127,51 @@ test('document.URL', function () {
 });
 
 test('document.referrer', function () {
-    var url          = 'http://some.domain.com/index.html';
-    var documentMock = {
-        referrer: urlUtils.getProxyUrl(url),
-        toString: function () {
-            return '[object HTMLDocument]';
-        }
+    var url                  = 'http://some.domain.com/index.html';
+    var storedObjectToString = nativeMethods.objectToString;
+    var documentMock         = {
+        referrer: urlUtils.getProxyUrl(url)
     };
 
-    documentMock.toString.toString = function () {
-        return 'function test() { [native code] }';
+    nativeMethods.objectToString = function () {
+        return Object.prototype.toString.call(document);
     };
 
     strictEqual(getProperty(documentMock, 'referrer'), url);
+
+    nativeMethods.objectToString = storedObjectToString;
 });
 
 test('document.documentURI', function () {
-    var url          = 'http://some.domain.com/index.html';
-    var documentMock = {
-        referrer:    '',
-        documentURI: urlUtils.getProxyUrl(url),
-        toString:    function () {
-            return '[object HTMLDocument]';
-        }
+    var url                  = 'http://some.domain.com/index.html';
+    var storedObjectToString = nativeMethods.objectToString;
+    var documentMock         = {
+        documentURI: urlUtils.getProxyUrl(url)
     };
 
-    documentMock.toString.toString = function () {
-        return 'function test() { [native code] }';
+    nativeMethods.objectToString = function () {
+        return Object.prototype.toString.call(document);
     };
 
     strictEqual(getProperty(documentMock, 'documentURI'), url);
+
+    nativeMethods.objectToString = storedObjectToString;
 });
 
 test('document.baseURI (GH-920)', function () {
-    var url          = 'http://some.domain.com/index.html';
-    var documentMock = {
-        referrer: '',
-        baseURI:  urlUtils.getProxyUrl(url),
-        toString: function () {
-            return '[object HTMLDocument]';
-        }
+    var url                  = 'http://some.domain.com/index.html';
+    var storedObjectToString = nativeMethods.objectToString;
+    var documentMock         = {
+        baseURI: urlUtils.getProxyUrl(url)
     };
 
-    documentMock.toString.toString = function () {
-        return 'function test() { [native code] }';
+    nativeMethods.objectToString = function () {
+        return Object.prototype.toString.call(document);
     };
 
     strictEqual(getProperty(documentMock, 'baseURI'), url);
+
+    nativeMethods.objectToString = storedObjectToString;
 });
 
 test('CSSStyleSheet.href', function () {
