@@ -11,6 +11,7 @@ const LEADING_SLASHES_RE = /^(\/\/)/;
 const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
 const PORT_RE            = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
+const PATH_AFTER_HOST_RE = /^\/([^\/]+?)\/([\S\s]+)$/;
 
 export const SUPPORTED_PROTOCOL_RE               = /^https?:/i;
 export const HASH_RE                             = /^#/;
@@ -128,7 +129,7 @@ export function parseProxyUrl (proxyUrl) {
     if (!parsedUrl.partAfterHost)
         return null;
 
-    var match = parsedUrl.partAfterHost.match(/^\/(\S+?)\/(\S+)/);
+    var match = parsedUrl.partAfterHost.match(PATH_AFTER_HOST_RE);
 
     if (!match)
         return null;
