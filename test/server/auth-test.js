@@ -126,7 +126,8 @@ describe('Authentication', function () {
             request(proxy.openSession('http://127.0.0.1:1507/', session), function (err, res, body) {
                 expect(body).equal('Access denied');
                 expect(res.statusCode).equal(401);
-
+                // NOTE: prevent showing the native credentials window.
+                expect(res.headers['www-authenticate']).to.be.undefined;
                 done();
             });
         });
