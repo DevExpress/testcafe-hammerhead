@@ -21,9 +21,15 @@ const NATIVE_ELEMENT_PROTOTYPE_STRINGS = [
     instanceToString(Object.getPrototypeOf(nativeMethods.elementClass.prototype))
 ];
 
-const NATIVE_WINDOW_STR   = instanceToString(window);
-const NATIVE_DOCUMENT_STR = instanceToString(document);
-const IS_SVG_ELEMENT_RE   = /^\[object SVG\w+?Element]$/i;
+const NATIVE_MAP_ELEMENT_STRINGS = [
+    '[object HTMLMapElement]',
+    '[object HTMLAreaElement]'
+];
+
+const NATIVE_WINDOW_STR     = instanceToString(window);
+const NATIVE_DOCUMENT_STR   = instanceToString(document);
+const IS_SVG_ELEMENT_RE     = /^\[object SVG\w+?Element]$/i;
+const NATIVE_TABLE_CELL_STR = instanceToString(nativeMethods.createElement.call(document, 'td'));
 
 
 function getFocusableSelector () {
@@ -94,7 +100,9 @@ function instanceToString (instance) {
     if (!instanceAndPrototypeToStringAreEqual)
         return nativeMethods.objectToString.call(instance);
 
-    return typeof instance === 'object' ? nativeMethods.objectToString.call(Object.getPrototypeOf(instance)) : '';
+    return instance && typeof instance === 'object'
+        ? nativeMethods.objectToString.call(Object.getPrototypeOf(instance))
+        : '';
 }
 
 export function getActiveElement (currentDocument) {
@@ -355,7 +363,7 @@ export function isHammerheadAttr (attr) {
 }
 
 export function isIframeElement (el) {
-    return getTagName(el) === 'iframe' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLIFrameElement]';
 }
 
 export function isIframeWithoutSrc (iframe) {
@@ -404,55 +412,55 @@ export function isIframeWithoutSrc (iframe) {
 }
 
 export function isImgElement (el) {
-    return getTagName(el) === 'img' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLImageElement]';
 }
 
 export function isInputElement (el) {
-    return getTagName(el) === 'input' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLInputElement]';
 }
 
 export function isHtmlElement (el) {
-    return getTagName(el) === 'html' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLHtmlElement]';
 }
 
 export function isBodyElement (el) {
-    return getTagName(el) === 'body' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLBodyElement]';
 }
 
 export function isHeadElement (el) {
-    return getTagName(el) === 'head' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLHeadElement]';
 }
 
 export function isBaseElement (el) {
-    return getTagName(el) === 'base' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLBaseElement]';
 }
 
 export function isScriptElement (el) {
-    return getTagName(el) === 'script' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLScriptElement]';
 }
 
 export function isStyleElement (el) {
-    return getTagName(el) === 'style' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLStyleElement]';
 }
 
 export function isLabelElement (el) {
-    return getTagName(el) === 'label' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLLabelElement]';
 }
 
 export function isTextAreaElement (el) {
-    return getTagName(el) === 'textarea' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLTextAreaElement]';
 }
 
 export function isOptionElement (el) {
-    return getTagName(el) === 'option' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLOptionElement]';
 }
 
 export function isSelectElement (el) {
-    return getTagName(el) === 'select' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLSelectElement]';
 }
 
 export function isFormElement (el) {
-    return getTagName(el) === 'form' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLFormElement]';
 }
 
 export function isFileInput (el) {
@@ -464,7 +472,7 @@ export function isBodyElementWithChildren (el) {
 }
 
 export function isMapElement (el) {
-    return /^map$|^area$/i.test(getTagName(el)) && isDomElement(el);
+    return NATIVE_MAP_ELEMENT_STRINGS.indexOf(instanceToString(el)) !== -1;
 }
 
 export function isRenderedNode (node) {
@@ -506,7 +514,7 @@ export function isElementFocusable (el) {
                matches(el, 'a[href]');
     }
 
-    if (isTableDataElement(el) && isIE)
+    if (isTableDataCellElement(el) && isIE)
         return true;
 
     return matches(el, getFocusableSelector()) || tabIndex !== null;
@@ -647,15 +655,15 @@ export function isDocumentFragmentNode (el) {
 }
 
 export function isAnchorElement (el) {
-    return getTagName(el) === 'a' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLAnchorElement]';
 }
 
 export function isTableElement (el) {
-    return getTagName(el) === 'table' && isDomElement(el);
+    return instanceToString(el) === '[object HTMLTableElement]';
 }
 
-export function isTableDataElement (el) {
-    return getTagName(el) === 'td' && isDomElement(el);
+export function isTableDataCellElement (el) {
+    return instanceToString(el) === NATIVE_TABLE_CELL_STR;
 }
 
 export function matches (el, selector) {
