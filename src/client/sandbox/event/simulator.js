@@ -360,8 +360,8 @@ export default class EventSimulator {
         }
 
         if (ev) {
-            // NOTE: the window.event.keyCode, window.event.charCode and window.event.which
-            // properties are not assigned after KeyboardEvent is created
+            // NOTE: the window.event.keyCode, window.event.charCode, window.event.which and
+            // window.event.key properties are not assigned after KeyboardEvent is created
             Object.defineProperty(ev, 'keyCode', {
                 get: () => args.keyCode
             });
@@ -372,6 +372,10 @@ export default class EventSimulator {
 
             Object.defineProperty(ev, 'which', {
                 get: () => args.which
+            });
+
+            Object.defineProperty(ev, 'key', {
+                get: () => args.key
             });
 
             var prevented   = false;
