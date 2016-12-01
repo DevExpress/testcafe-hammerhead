@@ -155,9 +155,9 @@ export default class EventSimulator {
         var opts = options || {};
 
         return extend(EventSimulator._getUIEventArgs(type, options), {
-            key:           opts.key || '',
+            key:           opts.key || void 0,
             keyCode:       opts.keyCode || 0,
-            keyIdentifier: opts.keyIdentifier || '',
+            keyIdentifier: opts.keyIdentifier || void 0,
             charCode:      opts.charCode || 0,
             which:         type === 'press' ? opts.charCode : opts.keyCode
         });
@@ -218,9 +218,9 @@ export default class EventSimulator {
             if (userOptions &&
                 (userOptions.keyCode !== void 0 || userOptions.charCode !== void 0)) {
                 opts = extend(opts, {
-                    key:           userOptions.key || '',
+                    key:           userOptions.key || void 0,
                     keyCode:       userOptions.keyCode || 0,
-                    keyIdentifier: userOptions.keyIdentifier || '',
+                    keyIdentifier: userOptions.keyIdentifier || void 0,
                     charCode:      userOptions.charCode || 0
                 });
             }
