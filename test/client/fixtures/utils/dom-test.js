@@ -3,6 +3,7 @@ var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 var domUtils      = hammerhead.utils.dom;
 var browserUtils  = hammerhead.utils.browser;
 var iframeSandbox = hammerhead.sandbox.iframe;
+var nativeMethods = hammerhead.nativeMethods;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
@@ -641,7 +642,7 @@ asyncTest('isElementFocusable', function () {
             }
             else {
                 expectedFocusedElements = expectedFocusedElements.filter(function (el) {
-                    return !domUtils.isTableDataElement(el);
+                    return !domUtils.isTableDataCellElement(el);
                 });
             }
 
@@ -769,23 +770,46 @@ if (!browserUtils.isFirefox) {
     });
 }
 
-test("An object with the 'tagName' property shouldn't be recognized as a dom element", function () {
-    notOk(domUtils.isIframeElement({ tagName: 'iframe' }));
-    notOk(domUtils.isImgElement({ tagName: 'img' }));
-    notOk(domUtils.isInputElement({ tagName: 'input' }));
-    notOk(domUtils.isHtmlElement({ tagName: 'html' }));
-    notOk(domUtils.isBodyElement({ tagName: 'body' }));
-    notOk(domUtils.isHeadElement({ tagName: 'head' }));
-    notOk(domUtils.isBaseElement({ tagName: 'base' }));
-    notOk(domUtils.isScriptElement({ tagName: 'script' }));
-    notOk(domUtils.isStyleElement({ tagName: 'style' }));
-    notOk(domUtils.isLabelElement({ tagName: 'label' }));
-    notOk(domUtils.isTextAreaElement({ tagName: 'textarea' }));
-    notOk(domUtils.isOptionElement({ tagName: 'option' }));
-    notOk(domUtils.isSelectElement({ tagName: 'select' }));
-    notOk(domUtils.isFormElement({ tagName: 'form' }));
-    notOk(domUtils.isMapElement({ tagName: 'map' }));
-    notOk(domUtils.isAnchorElement({ tagName: 'a' }));
-    notOk(domUtils.isTableElement({ tagName: 'table' }));
-    notOk(domUtils.isTableDataElement({ tagName: 'td' }));
+test("An object with the 'tagName' and 'nodeName' properties shouldn't be recognized as a dom element", function () {
+    notOk(domUtils.isIframeElement({ tagName: 'iframe', nodeName: 'iframe' }), 'iframe');
+    notOk(domUtils.isImgElement({ tagName: 'img', nodeName: 'img' }), 'img');
+    notOk(domUtils.isInputElement({ tagName: 'input', nodeName: 'input' }), 'input');
+    notOk(domUtils.isHtmlElement({ tagName: 'html', nodeName: 'html' }), 'html');
+    notOk(domUtils.isBodyElement({ tagName: 'body', nodeName: 'body' }), 'body');
+    notOk(domUtils.isHeadElement({ tagName: 'head', nodeName: 'head' }), 'head');
+    notOk(domUtils.isBaseElement({ tagName: 'base', nodeName: 'base' }), 'base');
+    notOk(domUtils.isScriptElement({ tagName: 'script', nodeName: 'script' }), 'script');
+    notOk(domUtils.isStyleElement({ tagName: 'style', nodeName: 'style' }), 'style');
+    notOk(domUtils.isLabelElement({ tagName: 'label', nodeName: 'label' }), 'label');
+    notOk(domUtils.isTextAreaElement({ tagName: 'textarea', nodeName: 'textarea' }), 'textarea');
+    notOk(domUtils.isOptionElement({ tagName: 'option', nodeName: 'option' }), 'option');
+    notOk(domUtils.isSelectElement({ tagName: 'select', nodeName: 'select' }), 'select');
+    notOk(domUtils.isFormElement({ tagName: 'form', nodeName: 'form' }), 'form');
+    notOk(domUtils.isMapElement({ tagName: 'map', nodeName: 'map' }), 'map');
+    notOk(domUtils.isMapElement({ tagName: 'area', nodeName: 'area' }), 'area');
+    notOk(domUtils.isAnchorElement({ tagName: 'a', nodeName: 'a' }), 'a');
+    notOk(domUtils.isTableElement({ tagName: 'table', nodeName: 'table' }), 'table');
+    notOk(domUtils.isTableDataCellElement({ tagName: 'td', nodeName: 'td' }), 'td');
+});
+
+test('inspect html elements', function () {
+    ok(domUtils.isIframeElement(nativeMethods.createElement.call(document, 'iframe')), 'iframe');
+    ok(domUtils.isImgElement(nativeMethods.createElement.call(document, 'img')), 'img');
+    ok(domUtils.isInputElement(nativeMethods.createElement.call(document, 'input')), 'input');
+    ok(domUtils.isHtmlElement(nativeMethods.querySelector.call(document, 'html')), 'html');
+    ok(domUtils.isBodyElement(nativeMethods.querySelector.call(document, 'body')), 'body');
+    ok(domUtils.isHeadElement(nativeMethods.querySelector.call(document, 'head')), 'head');
+    ok(domUtils.isBaseElement(nativeMethods.createElement.call(document, 'base')), 'base');
+    ok(domUtils.isScriptElement(nativeMethods.querySelector.call(document, 'script')), 'script');
+    ok(domUtils.isStyleElement(nativeMethods.createElement.call(document, 'style')), 'style');
+    ok(domUtils.isLabelElement(nativeMethods.createElement.call(document, 'label')), 'label');
+    ok(domUtils.isTextAreaElement(nativeMethods.createElement.call(document, 'textarea')), 'textarea');
+    ok(domUtils.isOptionElement(nativeMethods.createElement.call(document, 'option')), 'option');
+    ok(domUtils.isSelectElement(nativeMethods.createElement.call(document, 'select')), 'select');
+    ok(domUtils.isFormElement(nativeMethods.createElement.call(document, 'form')), 'form');
+    ok(domUtils.isMapElement(nativeMethods.createElement.call(document, 'map')), 'map');
+    ok(domUtils.isMapElement(nativeMethods.createElement.call(document, 'area')), 'area');
+    ok(domUtils.isAnchorElement(nativeMethods.createElement.call(document, 'a')), 'a');
+    ok(domUtils.isTableElement(nativeMethods.createElement.call(document, 'table')), 'table');
+    ok(domUtils.isTableDataCellElement(nativeMethods.createElement.call(document, 'td')), 'td');
 });
