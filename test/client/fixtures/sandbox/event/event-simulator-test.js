@@ -272,6 +272,27 @@ if (eventUtils.hasPointerEvents) {
     });
 }
 
+
+asyncTest("keyboard methods should pass 'key' and 'keyIdentifier' event options", function () {
+    var eventOptions = browserUtils.isSafari || browserUtils.isAndroid ?
+                       { keyCode: 13, keyIdentifier: 'Enter' } : { keyCode: 13, key: 'Enter' };
+
+    var checkEvent = function (event) {
+        equal(browserUtils.isSafari || browserUtils.isAndroid ? event.keyIdentifier : event.key, 'Enter');
+    };
+
+    domElement.addEventListener('keydown', checkEvent);
+    domElement.addEventListener('keypress', checkEvent);
+    domElement.addEventListener('keyup', checkEvent);
+
+    eventSimulator.keydown(domElement, eventOptions);
+    eventSimulator.keypress(domElement, eventOptions);
+    eventSimulator.keyup(domElement, eventOptions);
+
+    window.setTimeout(start, 50);
+});
+
+
 module('regression');
 
 if (browserUtils.isIE) {

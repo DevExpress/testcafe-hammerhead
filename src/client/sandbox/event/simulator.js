@@ -155,9 +155,11 @@ export default class EventSimulator {
         var opts = options || {};
 
         return extend(EventSimulator._getUIEventArgs(type, options), {
-            keyCode:  opts.keyCode || 0,
-            charCode: opts.charCode || 0,
-            which:    type === 'press' ? opts.charCode : opts.keyCode
+            key:           opts.key || '',
+            keyCode:       opts.keyCode || 0,
+            keyIdentifier: opts.keyIdentifier || '',
+            charCode:      opts.charCode || 0,
+            which:         type === 'press' ? opts.charCode : opts.keyCode
         });
     }
 
@@ -216,8 +218,10 @@ export default class EventSimulator {
             if (userOptions &&
                 (userOptions.keyCode !== void 0 || userOptions.charCode !== void 0)) {
                 opts = extend(opts, {
-                    keyCode:  userOptions.keyCode || 0,
-                    charCode: userOptions.charCode || 0
+                    key:           userOptions.key || '',
+                    keyCode:       userOptions.keyCode || 0,
+                    keyIdentifier: userOptions.keyIdentifier || '',
+                    charCode:      userOptions.charCode || 0
                 });
             }
 
@@ -343,6 +347,8 @@ export default class EventSimulator {
                 shiftKey:         args.shiftKey,
                 metaKey:          args.metaKey,
                 keyCode:          args.keyCode,
+                key:              args.key,
+                keyIdentifier:    args.keyIdentifier,
                 charCode:         args.charCode,
                 which:            args.which
             });
@@ -354,8 +360,8 @@ export default class EventSimulator {
         }
 
         if (ev) {
-            // NOTE: the window.event.keyCode, window.event.charCode and window.event.which
-            // properties are not assigned after KeyboardEvent is created
+            // NOTE: the window.event.keyCode, window.event.charCode, window.event.which and
+            // window.event.key properties are not assigned after KeyboardEvent is created
             Object.defineProperty(ev, 'keyCode', {
                 get: () => args.keyCode
             });
@@ -366,6 +372,10 @@ export default class EventSimulator {
 
             Object.defineProperty(ev, 'which', {
                 get: () => args.which
+            });
+
+            Object.defineProperty(ev, 'key', {
+                get: () => args.key
             });
 
             var prevented   = false;
