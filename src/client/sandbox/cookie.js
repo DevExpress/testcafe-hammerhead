@@ -42,14 +42,18 @@ export default class CookieSandbox extends SandboxBase {
 
         cookieUtils.del(document, parsedCookieCopy);
 
-        if (processedByBrowserCookieStr)
-            return processedByBrowserCookieStr.substr(uniquePrefix.length);
+        if (processedByBrowserCookieStr) {
+            // NOTE: We need to remove the '=' char if the key is empty
+            var startCookiePos = parsedCookie.key === '' ? uniquePrefix.length + 1 : uniquePrefix.length;
+
+            return processedByBrowserCookieStr.substr(startCookiePos);
+        }
 
         return null;
     }
 
     // NOTE: Perform validations that can't be processed by a browser due to proxying.
-    static _isValidCookie (parsedCookie, document) {
+    static _isValidCookie (parsedCookie) {
         if (!parsedCookie)
             return false;
 
@@ -64,12 +68,13 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookie.secure && destProtocol !== 'https:')
             return false;
 
-        // NOTE: Add a protocol portion to the domain, so that we can use urlUtils for the same origin check.
-        var domain = parsedCookie.domain && 'http://' + parsedCookie.domain;
+        // NOTE: Add a relative protocol portion to the domain, so that we can use urlUtils for the same origin check.
+        var domain = parsedCookie.domain && '//' + parsedCookie.domain;
+
 
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
         // according to a test url.
-        return !domain || destLocation.sameOriginCheck(document.location.toString(), domain);
+        return !domain || destLocation.sameOriginCheck(destLocation.get(), domain);
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
@@ -80,7 +85,7 @@ export default class CookieSandbox extends SandboxBase {
         for (var i = 0; i < cookies.length; i++) {
             cookies[i] = trim(cookies[i]);
 
-            if (cookies[i].indexOf(cookieKey + '=') === 0 || cookies[i] === cookieKey) {
+            if (cookies[i].indexOf(cookieKey + '=') === 0 || cookies[i].indexOf('=') === -1) {
                 // NOTE: Delete or update a cookie string.
                 if (newCookieStr === null)
                     cookies.splice(i, 1);
@@ -109,14 +114,14 @@ export default class CookieSandbox extends SandboxBase {
         // so that sync code can immediately access cookies.
         var parsedCookie = cookieUtils.parse(value);
 
-        if (CookieSandbox._isValidCookie(parsedCookie, document)) {
+        if (CookieSandbox._isValidCookie(parsedCookie)) {
             // NOTE: These attributes don't have to be processed by a browser.
             delete parsedCookie.secure;
             delete parsedCookie.domain;
 
             var clientCookieStr = CookieSandbox._getBrowserProcessedCookie(parsedCookie, document);
 
-            if (!clientCookieStr) {
+            if (clientCookieStr === null) {
                 // NOTE: We have two options here:
                 // 1)cookie was invalid, so it was ignored;
                 // 2)cookie was deleted by setting the Expired attribute;
@@ -124,9 +129,8 @@ export default class CookieSandbox extends SandboxBase {
                 delete parsedCookie.expires;
 
                 // NOTE: We should delete a cookie.
-                if (CookieSandbox._getBrowserProcessedCookie(parsedCookie, document))
+                if (CookieSandbox._getBrowserProcessedCookie(parsedCookie, document) !== null)
                     this._updateClientCookieStr(parsedCookie.key, null);
-
             }
             else
                 this._updateClientCookieStr(parsedCookie.key, clientCookieStr);

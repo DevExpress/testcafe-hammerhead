@@ -85,6 +85,7 @@ describe('Proxy', function () {
 
             res.set('set-cookie', 'Test=value; Path=/cookie');
             res.set('set-cookie', 'Test2=' + new Array(350).join('(big cookie)'));
+            res.set('set-cookie', 'value without key');
             res.set('location', '/cookie/echo');
 
             res.end();
@@ -441,7 +442,7 @@ describe('Proxy', function () {
             };
 
             request(options, function (err, res, body) {
-                expect(body).eql('Test=value');
+                expect(body).eql('Test=value; value without key');
                 done();
             });
         });
