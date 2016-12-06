@@ -18,65 +18,83 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
 });
 
-function checkInnerHtmlOverrided (el) {
-    el.innerHtml = '<div></div>';
+var nativeMethodCalled;
 
-    notEqual(el.insertBefore, nativeMethods.insertBefore);
-    notEqual(el.appendChild, nativeMethods.appendChild);
+function wrapNativeFn (fnName) {
+    var storedFn = nativeMethods[fnName];
+
+    nativeMethodCalled    = false;
+    nativeMethods[fnName] = function () {
+        nativeMethodCalled    = true;
+        nativeMethods[fnName] = storedFn;
+
+        return storedFn.apply(this, arguments);
+    };
 }
 
 test('document.createElement', function () {
-    var el = document.createElement('div');
+    wrapNativeFn('createElement');
 
-    notEqual(el.insertBefore, nativeMethods.insertBefore);
-    notEqual(el.appendChild, nativeMethods.appendChild);
-    checkInnerHtmlOverrided(el);
+    var div = document.createElement('div');
+
+    ok(nativeMethodCalled);
+    strictEqual(div[INTERNAL_PROPS.processedContext], window);
 });
 
 test('element.insertAdjacentHTML', function () {
-    var el = document.createElement('DIV');
+    var parentDiv = document.createElement('div');
+    var childDiv  = parentDiv.appendChild(document.createElement('div'));
+    var url       = '/test';
 
-    el.insertAdjacentHTML('afterbegin', '<div></div>');
+    wrapNativeFn('insertAdjacentHTML');
 
-    var firstChild = el.childNodes[0];
+    childDiv.insertAdjacentHTML('beforebegin', '<a href="' + url + '1"></a>');
 
-    notEqual(firstChild.insertBefore, nativeMethods.insertBefore);
-    notEqual(firstChild.appendChild, nativeMethods.appendChild);
-    checkInnerHtmlOverrided(firstChild);
+    ok(nativeMethodCalled);
+    strictEqual(parentDiv.firstChild[INTERNAL_PROPS.processedContext], window);
+    strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl(url + 1));
 
-    el.childNodes[0].insertAdjacentHTML('beforebegin', '<span></span>');
+    childDiv.insertAdjacentHTML('afterend', '<a href="' + url + '2"></a>');
 
-    strictEqual(el.childNodes[0].tagName, 'SPAN');
-    strictEqual(el.childNodes.length, 2);
+    strictEqual(parentDiv.lastChild[INTERNAL_PROPS.processedContext], window);
+    strictEqual(parentDiv.lastChild.href, urlUtils.getProxyUrl(url + 2));
 
-    notEqual(el.childNodes[0].insertBefore, nativeMethods.insertBefore);
-    notEqual(el.childNodes[0].appendChild, nativeMethods.appendChild);
-    checkInnerHtmlOverrided(el.childNodes[0]);
+    parentDiv.insertAdjacentHTML('afterbegin', '<a href="' + url + '3"></a>');
+
+    strictEqual(parentDiv.firstChild[INTERNAL_PROPS.processedContext], window);
+    strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl(url + 3));
+
+    parentDiv.insertAdjacentHTML('beforeend', '<a href="' + url + '4"></a>');
+
+    strictEqual(parentDiv.lastChild[INTERNAL_PROPS.processedContext], window);
+    strictEqual(parentDiv.lastChild.href, urlUtils.getProxyUrl(url + 4));
 });
 
 test('element.insertBefore', function () {
-    var el          = document.createElement('div');
-    var firstChild  = nativeMethods.createElement.call(document, 'div');
-    var secondChild = nativeMethods.createElement.call(document, 'div');
+    var parentDiv    = document.createElement('div');
+    var lastChildDiv = parentDiv.appendChild(document.createElement('div'));
+    var nativeDiv    = nativeMethods.createElement.call(document, 'div');
 
-    ok(el.appendChild(secondChild), 'appended');
-    ok(el.insertBefore(firstChild, secondChild), 'inserted');
+    wrapNativeFn('insertBefore');
 
-    notEqual(firstChild.insertBefore, nativeMethods.insertBefore);
-    notEqual(firstChild.appendChild, nativeMethods.appendChild);
-    checkInnerHtmlOverrided(firstChild);
+    var result = parentDiv.insertBefore(nativeDiv, lastChildDiv);
+
+    ok(nativeMethodCalled);
+    strictEqual(nativeDiv[INTERNAL_PROPS.processedContext], window);
+    strictEqual(result, nativeDiv);
 });
 
 test('element.appendChild', function () {
-    var el = document.createElement('DIV');
+    var parentDiv = document.createElement('div');
+    var nativeDiv = nativeMethods.createElement.call(document, 'div');
 
-    ok(el.appendChild(nativeMethods.createElement.call(document, 'div')), 'appended');
+    wrapNativeFn('appendChild');
 
-    var child = el.childNodes[0];
+    var result = parentDiv.appendChild(nativeDiv);
 
-    notEqual(child.insertBefore, nativeMethods.insertBefore);
-    notEqual(child.appendChild, nativeMethods.appendChild);
-    checkInnerHtmlOverrided(child);
+    ok(nativeMethodCalled);
+    strictEqual(nativeDiv[INTERNAL_PROPS.processedContext], window);
+    strictEqual(result, nativeDiv);
 });
 
 test('element.removeAttribute, element.removeAttributeNS', function () {
@@ -84,22 +102,31 @@ test('element.removeAttribute, element.removeAttributeNS', function () {
     var attr       = 'href';
     var storedAttr = domProcessor.getStoredAttrName(attr);
     var namespace  = 'http://www.w3.org/1999/xhtml';
-    var urlExample = '/test.html';
+    var url        = '/test.html';
 
-    el.setAttribute(attr, urlExample);
-    el.setAttributeNS(namespace, attr, urlExample);
+    el.setAttribute(attr, url);
+    el.setAttributeNS(namespace, attr, url);
+
     ok(nativeMethods.getAttribute.call(el, attr));
     ok(nativeMethods.getAttribute.call(el, storedAttr));
     ok(nativeMethods.getAttributeNS.call(el, namespace, attr));
     ok(nativeMethods.getAttributeNS.call(el, namespace, storedAttr));
 
+    wrapNativeFn('removeAttributeNS');
+
     el.removeAttributeNS(namespace, attr);
+
+    ok(nativeMethodCalled);
     ok(nativeMethods.getAttribute.call(el, attr));
     ok(nativeMethods.getAttribute.call(el, storedAttr));
     ok(!nativeMethods.getAttributeNS.call(el, namespace, attr));
     ok(!nativeMethods.getAttributeNS.call(el, namespace, storedAttr));
 
+    wrapNativeFn('removeAttribute');
+
     el.removeAttribute(attr);
+
+    ok(nativeMethodCalled);
     ok(!nativeMethods.getAttribute.call(el, attr));
     ok(!nativeMethods.getAttribute.call(el, storedAttr));
     ok(!nativeMethods.getAttributeNS.call(el, namespace, attr));
@@ -107,37 +134,49 @@ test('element.removeAttribute, element.removeAttributeNS', function () {
 });
 
 test('element.getAttributeNS, element.setAttributeNS', function () {
-    var savedGetProxyUrl = urlUtils.getProxyUrl;
-    var elTagName        = 'image';
-    var attr             = 'href';
-    var storedAttr       = domProcessor.getStoredAttrName(attr);
+    var image = document.createElementNS('xlink', 'image');
 
-    urlUtils.getProxyUrl = function () {
-        return 'replaced';
-    };
+    wrapNativeFn('setAttributeNS');
 
-    var el = document.createElementNS('xlink', elTagName);
+    image.setAttributeNS('xlink', 'href', 'image.png');
 
-    strictEqual(el[INTERNAL_PROPS.processedContext], window);
+    ok(nativeMethodCalled);
+    strictEqual(nativeMethods.getAttributeNS.call(image, 'xlink', 'href'), urlUtils.getProxyUrl('image.png'));
+    strictEqual(nativeMethods.getAttributeNS.call(image, 'xlink', domProcessor.getStoredAttrName('href')), 'image.png');
 
-    el.setAttributeNS('xlink', attr, 'image.png');
-    strictEqual(nativeMethods.getAttributeNS.call(el, 'xlink', attr), 'replaced');
-    strictEqual(nativeMethods.getAttributeNS.call(el, 'xlink', storedAttr), 'image.png');
-    strictEqual(el.getAttributeNS('xlink', attr), 'image.png');
+    wrapNativeFn('getAttributeNS');
 
-    urlUtils.getProxyUrl = savedGetProxyUrl;
+    strictEqual(image.getAttributeNS('xlink', 'href'), 'image.png');
+    ok(nativeMethodCalled);
 });
 
 test('table.insertRow, table.insertCell', function () {
-    var table    = document.createElement('table');
-    var tbody    = document.createElement('tbody');
-    var tableRow = table.insertRow(0);
-    var tbodyRow = tbody.insertRow(0);
-    var cell     = tableRow.insertCell(0);
+    var table = document.createElement('table');
+    var tbody = document.createElement('tbody');
 
-    notEqual(tableRow.appendChild, nativeMethods.appendChild);
-    notEqual(tbodyRow.appendChild, nativeMethods.appendChild);
-    notEqual(cell.appendChild, nativeMethods.appendChild);
+    wrapNativeFn('insertTableRow');
+
+    var tableRow = table.insertRow(0);
+
+    ok(nativeMethodCalled);
+    ok(tableRow instanceof HTMLTableRowElement);
+    strictEqual(tableRow[INTERNAL_PROPS.processedContext], window);
+
+    wrapNativeFn('insertTBodyRow');
+
+    var tbodyRow = tbody.insertRow(0);
+
+    ok(nativeMethodCalled);
+    ok(tbodyRow instanceof HTMLTableRowElement);
+    strictEqual(tbodyRow[INTERNAL_PROPS.processedContext], window);
+
+    wrapNativeFn('insertCell');
+
+    var cell = tableRow.insertCell(0);
+
+    ok(nativeMethodCalled);
+    ok(cell instanceof HTMLTableCellElement);
+    strictEqual(cell[INTERNAL_PROPS.processedContext], window);
 });
 
 asyncTest('form.submit', function () {
@@ -157,6 +196,7 @@ asyncTest('form.submit', function () {
             };
 
             iframeHammerhead.on(iframeHammerhead.EVENTS.beforeFormSubmit, handler);
+
             form.target = 'test-window';
             form.submit();
         });
@@ -294,11 +334,14 @@ asyncTest('script must be executed after it is added to head tag (B237231)', fun
 });
 
 test('element.cloneNode must be overridden (B234291)', function () {
-    var el    = document.createElement('div');
-    var clone = el.cloneNode();
+    var div = document.createElement('div');
 
-    notEqual(clone.appendChild, nativeMethods.appendChild);
-    checkInnerHtmlOverrided(clone);
+    wrapNativeFn('cloneNode');
+
+    var clone = div.cloneNode();
+
+    ok(nativeMethodCalled);
+    strictEqual(clone[INTERNAL_PROPS.processedContext], window);
 });
 
 test('link.href with an empty value must return root site url (Q519748)', function () {
