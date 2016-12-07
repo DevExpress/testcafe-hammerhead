@@ -7,6 +7,7 @@ import { isCrossDomainWindows } from '../utils/dom';
 import transport from '../transport';
 import trim from '../../utils/string-trim';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
+import BYTES_PER_COOKIE_LIMIT from '../../session/cookie-limit';
 
 export default class CookieSandbox extends SandboxBase {
     _getSettings () {
@@ -101,6 +102,9 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     setCookie (document, value, syncWithServer) {
+        if (value.length > BYTES_PER_COOKIE_LIMIT)
+            return value;
+
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
         var parsedCookie = cookieUtils.parse(value);

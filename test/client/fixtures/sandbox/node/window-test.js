@@ -136,4 +136,5 @@ test('the constructor field of a function should return a wrapped Function objec
     };
 
     strictEqual(f.constructor, Function);
+    strictEqual(f.constructor.toString(), nativeMethods.Function.toString());
 });
