@@ -237,6 +237,9 @@ export default class WindowSandbox extends SandboxBase {
 
         window.Function.prototype             = nativeMethods.Function.prototype;
         window.Function.prototype.constructor = window.Function;
+        window.Function.toString              = function () {
+            return nativeMethods.Function.toString();
+        };
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             window.history.pushState = function () {

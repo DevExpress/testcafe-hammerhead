@@ -63,7 +63,8 @@ test('get/set', function () {
         'Test6=HttpOnly; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; HttpOnly',
         'Test7=Secure; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; Secure',
         'Test8=Expired; expires=Wed, 13-Jan-1977 22:23:01 GMT; path=/',
-        'Test9=Duplicate; One=More; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/'
+        'Test9=Duplicate; One=More; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
+        'Test10=' + new Array(350).join('(big cookie)')
     ];
 
     for (var i = 0; i < cookieStrs.length; i++)

@@ -84,6 +84,7 @@ describe('Proxy', function () {
             res.statusCode = 302;
 
             res.set('set-cookie', 'Test=value; Path=/cookie');
+            res.set('set-cookie', 'Test2=' + new Array(350).join('(big cookie)'));
             res.set('location', '/cookie/echo');
 
             res.end();
