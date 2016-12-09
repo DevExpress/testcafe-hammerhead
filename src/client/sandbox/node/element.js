@@ -585,7 +585,6 @@ export default class ElementSandbox extends SandboxBase {
         window.Element.prototype.cloneNode                 = this.overridedMethods.cloneNode;
         window.Element.prototype.querySelector             = this.overridedMethods.querySelector;
         window.Element.prototype.querySelectorAll          = this.overridedMethods.querySelectorAll;
-        window.Element.prototype.insertAdjacentHTML        = this.overridedMethods.insertAdjacentHTML;
         window.Element.prototype.hasAttribute              = this.overridedMethods.hasAttribute;
         window.Element.prototype.hasAttributeNS            = this.overridedMethods.hasAttributeNS;
         window.Element.prototype.hasAttributes             = this.overridedMethods.hasAttributes;
@@ -600,6 +599,12 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLTableSectionElement.prototype.insertRow = this.overridedMethods.insertRow;
         window.HTMLTableRowElement.prototype.insertCell    = this.overridedMethods.insertCell;
         window.HTMLFormElement.prototype.submit            = this.overridedMethods.formSubmit;
+
+        if (window.Element.prototype.insertAdjacentHTML)
+            window.Element.prototype.insertAdjacentHTML = this.overridedMethods.insertAdjacentHTML;
+        else if (window.HTMLElement.prototype.insertAdjacentHTML)
+            window.HTMLElement.prototype.insertAdjacentHTML = this.overridedMethods.insertAdjacentHTML;
+
 
         this._setValidBrowsingContextOnElementClick(window);
 
