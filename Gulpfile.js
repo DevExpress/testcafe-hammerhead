@@ -93,8 +93,7 @@ var CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'chrome',
-        platform:    'OS X 10.11',
-        version:     '52.0'
+        platform:    'OS X 10.11'
     },
     {
         browserName: 'firefox',
