@@ -179,6 +179,7 @@ test('text nodes', function () {
           '  <colgroup>' +
           '    <col></col>' +
           '    <col/>' +
+          '    <col style="background-color: red;" span="2" />' +
           '  </colgroup>' +
           '  <tr><td></td></tr>' +
           '</table>');
@@ -213,6 +214,12 @@ test('page html', function () {
     check('<body><script src="HeadScript.js"><\/script>\u2028\u2029<script src="BodyScript.js"><\/script></body>');
 
     urlUtils.convertToProxyUrl = storedConvertToProxyUrl;
+});
+
+test('noscript tag', function () {
+    var html = '<noscript><div></noscript> <span></span> <noscript></div></noscript>';
+
+    strictEqual(htmlUtils.processHtml(html), html);
 });
 
 test('partial page html', function () {
