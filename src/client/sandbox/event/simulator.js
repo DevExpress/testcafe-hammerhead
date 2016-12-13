@@ -378,26 +378,36 @@ export default class EventSimulator {
             // NOTE: the window.event.keyCode, window.event.charCode, window.event.which and
             // window.event.key properties are not assigned after KeyboardEvent is created
             Object.defineProperty(ev, 'keyCode', {
-                get: () => args.keyCode
+                configurable: true,
+                enumerable:   true,
+                get:          () => args.keyCode
             });
 
             Object.defineProperty(ev, 'charCode', {
-                get: () => args.charCode
+                configurable: true,
+                enumerable:   true,
+                get:          () => args.charCode
             });
 
             Object.defineProperty(ev, 'which', {
-                get: () => args.which
+                configurable: true,
+                enumerable:   true,
+                get:          () => args.which
             });
 
             if ('key' in args) {
                 Object.defineProperty(ev, 'key', {
-                    get: () => args.key
+                    configurable: true,
+                    enumerable:   true,
+                    get:          () => args.key
                 });
             }
 
             if ('keyIdentifier' in args) {
                 Object.defineProperty(ev, 'keyIdentifier', {
-                    get: () => args.keyIdentifier
+                    configurable: true,
+                    enumerable:   true,
+                    get:          () => args.keyIdentifier
                 });
             }
 
