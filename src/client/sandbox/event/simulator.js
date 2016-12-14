@@ -152,15 +152,19 @@ export default class EventSimulator {
     }
 
     static _getKeyEventArgs (type, options) {
-        var opts = options || {};
+        var keyOptions = {
+            keyCode:  options.keyCode || 0,
+            charCode: options.charCode || 0,
+            which:    type === 'press' ? options.charCode : options.keyCode
+        };
 
-        return extend(EventSimulator._getUIEventArgs(type, options), {
-            key:           opts.key || void 0,
-            keyCode:       opts.keyCode || 0,
-            keyIdentifier: opts.keyIdentifier || void 0,
-            charCode:      opts.charCode || 0,
-            which:         type === 'press' ? opts.charCode : opts.keyCode
-        });
+        if ('keyIdentifier' in options)
+            keyOptions.keyIdentifier = options.keyIdentifier;
+
+        if ('key' in options)
+            keyOptions.key = options.key;
+
+        return extend(EventSimulator._getUIEventArgs(type, options), keyOptions);
     }
 
     static _getModifiersAsString (args) {
@@ -218,11 +222,16 @@ export default class EventSimulator {
             if (userOptions &&
                 (userOptions.keyCode !== void 0 || userOptions.charCode !== void 0)) {
                 opts = extend(opts, {
-                    key:           userOptions.key || void 0,
-                    keyCode:       userOptions.keyCode || 0,
-                    keyIdentifier: userOptions.keyIdentifier || void 0,
-                    charCode:      userOptions.charCode || 0
+                    key:      userOptions.key || void 0,
+                    keyCode:  userOptions.keyCode || 0,
+                    charCode: userOptions.charCode || 0
                 });
+
+                if ('keyIdentifier' in userOptions)
+                    opts.keyIdentifier = userOptions.keyIdentifier;
+
+                if ('key' in userOptions)
+                    opts.key = userOptions.key;
             }
 
             args = EventSimulator._getKeyEventArgs(event, opts);
@@ -335,7 +344,7 @@ export default class EventSimulator {
         var browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
 
         if (browserWithNewEventsStyle && nativeMethods.WindowKeyboardEvent) {
-            ev = new nativeMethods.WindowKeyboardEvent(args.type, {
+            var eventArgs = {
                 bubbles:          args.canBubble,
                 cancelable:       args.cancelable,
                 cancelBubble:     false,
@@ -347,11 +356,17 @@ export default class EventSimulator {
                 shiftKey:         args.shiftKey,
                 metaKey:          args.metaKey,
                 keyCode:          args.keyCode,
-                key:              args.key,
-                keyIdentifier:    args.keyIdentifier,
                 charCode:         args.charCode,
                 which:            args.which
-            });
+            };
+
+            if ('keyIdentifier' in args)
+                eventArgs.keyIdentifier = args.keyIdentifier;
+
+            if ('key' in args)
+                eventArgs.key = args.key;
+
+            ev = new nativeMethods.WindowKeyboardEvent(args.type, eventArgs);
         }
         else if (nativeMethods.documentCreateEvent) {
             ev = nativeMethods.documentCreateEvent.call(document, 'KeyboardEvent');
@@ -363,20 +378,38 @@ export default class EventSimulator {
             // NOTE: the window.event.keyCode, window.event.charCode, window.event.which and
             // window.event.key properties are not assigned after KeyboardEvent is created
             Object.defineProperty(ev, 'keyCode', {
-                get: () => args.keyCode
+                configurable: true,
+                enumerable:   true,
+                get:          () => args.keyCode
             });
 
             Object.defineProperty(ev, 'charCode', {
-                get: () => args.charCode
+                configurable: true,
+                enumerable:   true,
+                get:          () => args.charCode
             });
 
             Object.defineProperty(ev, 'which', {
-                get: () => args.which
+                configurable: true,
+                enumerable:   true,
+                get:          () => args.which
             });
 
-            Object.defineProperty(ev, 'key', {
-                get: () => args.key
-            });
+            if ('key' in args) {
+                Object.defineProperty(ev, 'key', {
+                    configurable: true,
+                    enumerable:   true,
+                    get:          () => args.key
+                });
+            }
+
+            if ('keyIdentifier' in args) {
+                Object.defineProperty(ev, 'keyIdentifier', {
+                    configurable: true,
+                    enumerable:   true,
+                    get:          () => args.keyIdentifier
+                });
+            }
 
             var prevented   = false;
             var returnValue = true;
