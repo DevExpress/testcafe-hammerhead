@@ -137,4 +137,19 @@ test('the constructor field of a function should return a wrapped Function objec
 
     strictEqual(f.constructor, Function);
     strictEqual(f.constructor.toString(), nativeMethods.Function.toString());
+
+    var toString       = Function.toString;
+    var nativeToString = Function.prototype.toString;
+
+    /*eslint-disable no-extend-native*/
+    Function.prototype.toString = function () {
+        toString.call(this);
+
+        ok(true);
+    };
+
+    f.toString();
+
+    Function.prototype.toString = nativeToString;
+    /*eslint-enable no-extend-native*/
 });

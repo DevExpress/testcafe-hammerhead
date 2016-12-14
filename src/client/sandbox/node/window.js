@@ -16,6 +16,8 @@ import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 // since they can be overriden by the client code. (GH-245)
 var arraySlice = Array.prototype.slice;
 
+const nativeFunctionToString = nativeMethods.Function.toString();
+
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox) {
         super();
@@ -237,9 +239,10 @@ export default class WindowSandbox extends SandboxBase {
 
         window.Function.prototype             = nativeMethods.Function.prototype;
         window.Function.prototype.constructor = window.Function;
-        window.Function.toString              = function () {
-            return nativeMethods.Function.toString();
-        };
+
+        // NOTE: We need to create function which returns string without calling toString every time
+        // because if the Function.prototype.toString is overridden it can be the cause of recursion
+        window.Function.toString = () => nativeFunctionToString;
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             window.history.pushState = function () {
