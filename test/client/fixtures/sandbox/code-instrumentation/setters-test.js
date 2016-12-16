@@ -284,12 +284,11 @@ asyncTest('body.innerHTML in iframe', function () {
 
             eval(processScript('iframe.contentDocument.body.innerHTML = "";'));
 
-            window.QUnitGlobals.wait(hasShadowUIRoot)
-                .then(function () {
-                    ok(true);
-                    iframe.parentNode.removeChild(iframe);
-                    start();
-                });
+            return window.QUnitGlobals.wait(hasShadowUIRoot);
+        }).then(function () {
+            ok(true);
+            iframe.parentNode.removeChild(iframe);
+            start();
         });
     document.body.appendChild(iframe);
 });
@@ -332,6 +331,27 @@ test('outerHTML', function () {
 });
 
 module('regression');
+
+asyncTest('innerHTML in iframe (GH-620)', function () {
+    var iframe   = document.createElement('iframe');
+    var url      = 'somePage.html';
+    var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i' });
+
+    iframe.id = 'test' + Date.now();
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            eval(processScript('iframe.contentDocument.body.innerHTML = "<a href=\\"' + url + '\\">link</a>";'));
+
+            strictEqual(iframe.contentDocument.body.firstChild.href, proxyUrl);
+
+            start();
+
+            document.body.removeChild(iframe);
+        });
+
+    document.body.appendChild(iframe);
+});
 
 test('script block inserted via element.innerHtml must not be executed (B237015)', function () {
     var testPropertyName = 'testProperty';
