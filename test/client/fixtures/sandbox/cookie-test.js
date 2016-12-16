@@ -201,3 +201,30 @@ test('hammerhead crashes if client-side code contains "document.cookie=null" or 
 
     transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
+
+
+test('correct work with cookie with empty key (GH-899)', function () {
+    settings.get().cookie = '';
+
+    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
+
+    transport.queuedAsyncServiceMsg = function () {
+    };
+
+    setCookie('123');
+    strictEqual(getCookie(), '123');
+
+    setCookie('t=5');
+    strictEqual(getCookie(), '123; t=5');
+
+    setCookie('12');
+    strictEqual(getCookie(), '12; t=5');
+
+    setCookie('t=3');
+    strictEqual(getCookie(), '12; t=3');
+
+    setCookie('');
+    strictEqual(getCookie(), '; t=3');
+
+    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
+});

@@ -78,14 +78,17 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
-        var cookies  = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
-        var replaced = false;
+        var cookies   = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
+        var replaced  = false;
+        var searchStr = cookieKey === '' ? null : cookieKey + '=';
 
         // NOTE: Replace a cookie if it already exists.
         for (var i = 0; i < cookies.length; i++) {
             cookies[i] = trim(cookies[i]);
 
-            if (cookies[i].indexOf(cookieKey + '=') === 0 || cookies[i].indexOf('=') === -1) {
+            var isCookieExists = searchStr ? cookies[i].indexOf(searchStr) === 0 : cookies[i].indexOf('=') === -1;
+
+            if (isCookieExists) {
                 // NOTE: Delete or update a cookie string.
                 if (newCookieStr === null)
                     cookies.splice(i, 1);
