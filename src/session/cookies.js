@@ -15,7 +15,8 @@ export default class Cookies {
 
             this.cookieJar.setCookieSync(cookieStr, url, {
                 http:        !isClient,
-                ignoreError: true
+                ignoreError: true,
+                loose:       true
             });
         });
     }

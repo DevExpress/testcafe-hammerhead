@@ -58,19 +58,20 @@ test('get/set', function () {
     var cookieStrs = [
         'Test1=Basic; expires=Wed, 13-Jan-2021 22:23:01 GMT',
         'Test2=PathMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
-        'Test4=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.' + document.location.host.toString(),
+        'Test4=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.example.com',
         'Test5=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.cbf4e2d79.com',
         'Test6=HttpOnly; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; HttpOnly',
         'Test7=Secure; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; Secure',
         'Test8=Expired; expires=Wed, 13-Jan-1977 22:23:01 GMT; path=/',
         'Test9=Duplicate; One=More; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
-        'Test10=' + new Array(350).join('(big cookie)')
+        'Test10=' + new Array(350).join('(big cookie)'),
+        'value without key'
     ];
 
     for (var i = 0; i < cookieStrs.length; i++)
         setCookie(cookieStrs[i]);
 
-    strictEqual(getCookie(), 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate');
+    strictEqual(getCookie(), 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
 
     transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
@@ -184,19 +185,46 @@ test('hammerhead crashes if client-side code contains "document.cookie=null" or 
     };
 
     setCookie(null);
-    strictEqual(getCookie(), '');
+    strictEqual(getCookie(), 'null');
 
     setCookie(void 0);
-    strictEqual(getCookie(), '');
+    strictEqual(getCookie(), 'undefined');
 
     setCookie(true);
-    strictEqual(getCookie(), '');
+    strictEqual(getCookie(), 'true');
 
     setCookie('');
     strictEqual(getCookie(), '');
 
     setCookie(123);
-    strictEqual(getCookie(), '');
+    strictEqual(getCookie(), '123');
+
+    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
+});
+
+
+test('correct work with cookie with empty key (GH-899)', function () {
+    settings.get().cookie = '';
+
+    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
+
+    transport.queuedAsyncServiceMsg = function () {
+    };
+
+    setCookie('123');
+    strictEqual(getCookie(), '123');
+
+    setCookie('t=5');
+    strictEqual(getCookie(), '123; t=5');
+
+    setCookie('12');
+    strictEqual(getCookie(), '12; t=5');
+
+    setCookie('t=3');
+    strictEqual(getCookie(), '12; t=3');
+
+    setCookie('');
+    strictEqual(getCookie(), '; t=3');
 
     transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });

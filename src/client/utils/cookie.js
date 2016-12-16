@@ -1,7 +1,6 @@
 import trim from '../../utils/string-trim';
 
-// NOTE: The name/key cannot be empty, but the value can.
-const COOKIE_PAIR_REGEX        = /^([^=;]+)\s*=\s*(("?)[^\n\r\0]*\3)/;
+const COOKIE_PAIR_REGEX        = /^((?:=)?([^=;]*)\s*=\s*)?([^\n\r\0]*)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;
 
 export function parse (str) {
@@ -20,12 +19,9 @@ export function parse (str) {
         return null;
 
     var parsedCookie = {
-        key:   keyValueParsingResult[1],
-        value: keyValueParsingResult[2]
+        key:   keyValueParsingResult[1] ? trim(keyValueParsingResult[2]) : '',
+        value: trim(keyValueParsingResult[3])
     };
-
-    parsedCookie.key   = trim(parsedCookie.key);
-    parsedCookie.value = trim(parsedCookie.value);
 
     if (firstSemicolonIdx === -1)
         return parsedCookie;
@@ -78,10 +74,10 @@ export function parse (str) {
 }
 
 export function format (parsedCookie) {
-    var cookieStr = parsedCookie.key;
+    var cookieStr = parsedCookie.value || '';
 
-    if (parsedCookie.value !== null)
-        cookieStr += '=' + parsedCookie.value;
+    if (parsedCookie.key !== '')
+        cookieStr = parsedCookie.key + '=' + cookieStr;
 
     cookieStr += ';';
 
