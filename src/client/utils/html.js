@@ -10,17 +10,21 @@ import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
 import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
-const FAKE_TAG_NAME_PREFIX  = 'fake_tag_name_';
-const FAKE_DOCTYPE_TAG_NAME = 'hammerhead_fake_doctype';
-const FAKE_TAG_NAME_RE      = new RegExp('(<\\/?)' + FAKE_TAG_NAME_PREFIX, 'ig');
-const WRAP_TAGS_RE          = /(<\/?)(html|head|body|table|tbody|tfoot|thead|tr|td|th|caption|colgroup)((?:\s[^>]*)?>)/ig;
-const WRAP_TAGS_TEMPLATE    = `$1${ FAKE_TAG_NAME_PREFIX }$2$3`;
-const WRAP_COL_TAG_RE       = /<(\/?(col)(?:[^A-Za-z_>][^>]*)?)>/ig;
-const WRAP_COL_TAG_TEMPLATE = `<${ FAKE_TAG_NAME_PREFIX }$2>$1</${ FAKE_TAG_NAME_PREFIX }$2>`;
+const FAKE_TAG_NAME_PREFIX    = 'hh_fake_tag_name_';
+const FAKE_DOCTYPE_TAG_NAME   = 'hh_fake_doctype';
+const FAKE_ATTR_WITH_TAG_NAME = 'hh_fake_attr';
+
+const FAKE_TAG_NAME_RE   = new RegExp('(<\\/?)' + FAKE_TAG_NAME_PREFIX, 'ig');
+const WRAP_TAGS_RE       = /(<\/?)(html|head|body|table|tbody|tfoot|thead|tr|td|th|caption|colgroup)((?:\s[^>]*)?>)/ig;
+const WRAP_TAGS_TEMPLATE = `$1${ FAKE_TAG_NAME_PREFIX }$2$3`;
+
+const WRAP_COL_NOSCRIPT_TAGS_RE       = /<(\/?(?:col|noscript))(\s[^>]*?)?(\s?\/)?>/ig;
+const WRAP_COL_NOSCRIPT_TAGS_TEMPLATE = `<br ${ FAKE_ATTR_WITH_TAG_NAME }="$1|$3"$2>`;
+const UNWRAP_COL_NOSCRIPT_TAGS_RE     = new RegExp(`<br([^>]*?) ${ FAKE_ATTR_WITH_TAG_NAME }="([^|]+)\\|([^"]*)"([^>]*)`, 'ig');
+
 const WRAP_DOCTYPE_RE       = /<!doctype([^>]*)>/ig;
 const WRAP_DOCTYPE_TEMPLATE = `<${ FAKE_DOCTYPE_TAG_NAME }>$1</${ FAKE_DOCTYPE_TAG_NAME }>`;
 const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*?)</${ FAKE_DOCTYPE_TAG_NAME }>`, 'ig');
-const UNWRAP_COL_TAG_RE     = new RegExp(`<${ FAKE_TAG_NAME_PREFIX }col>([\\S\\s]*?)</${ FAKE_TAG_NAME_PREFIX }col>`, 'ig');
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
@@ -59,6 +63,20 @@ function getHtmlDocument () {
     return htmlDocument;
 }
 
+function wrapHtmlText (html) {
+    return html
+        .replace(WRAP_DOCTYPE_RE, WRAP_DOCTYPE_TEMPLATE)
+        .replace(WRAP_COL_NOSCRIPT_TAGS_RE, WRAP_COL_NOSCRIPT_TAGS_TEMPLATE)
+        .replace(WRAP_TAGS_RE, WRAP_TAGS_TEMPLATE);
+}
+
+function unwrapHtmlText (html) {
+    return html
+        .replace(UNWRAP_DOCTYPE_RE, '<!doctype$1>')
+        .replace(UNWRAP_COL_NOSCRIPT_TAGS_RE, '<$2$1$4$3')
+        .replace(FAKE_TAG_NAME_RE, '$1');
+}
+
 export function isPageHtml (html) {
     return /^\s*(<\s*(!doctype|html|head|body)[^>]*>)/i.test(html);
 }
@@ -66,10 +84,7 @@ export function isPageHtml (html) {
 function processHtmlInternal (html, process) {
     var container = getHtmlDocument().createElement('div');
 
-    html = html
-        .replace(WRAP_DOCTYPE_RE, WRAP_DOCTYPE_TEMPLATE)
-        .replace(WRAP_COL_TAG_RE, WRAP_COL_TAG_TEMPLATE)
-        .replace(WRAP_TAGS_RE, WRAP_TAGS_TEMPLATE);
+    html = wrapHtmlText(html);
 
     htmlParser.innerHTML = '';
     nativeMethods.appendChild.call(htmlParser, container);
@@ -79,10 +94,7 @@ function processHtmlInternal (html, process) {
     if (process(container))
         html = container.innerHTML;
 
-    html = html
-        .replace(UNWRAP_DOCTYPE_RE, '<!doctype$1>')
-        .replace(UNWRAP_COL_TAG_RE, '<$1>')
-        .replace(FAKE_TAG_NAME_RE, '$1');
+    html = unwrapHtmlText(html);
 
     return html;
 }
@@ -180,12 +192,8 @@ export function processHtml (html, parentTag, prepareDom) {
             if (hasIsNotClosedFlag(el))
                 continue;
 
-            if (isScriptElement(el)) {
-                el.textContent = el.textContent
-                    .replace(UNWRAP_DOCTYPE_RE, '<!doctype$1>')
-                    .replace(UNWRAP_COL_TAG_RE, '<$1>')
-                    .replace(FAKE_TAG_NAME_RE, '$1');
-            }
+            if (isScriptElement(el))
+                el.textContent = unwrapHtmlText(el.textContent);
 
             domProcessor.processElement(el, convertToProxyUrl);
 
