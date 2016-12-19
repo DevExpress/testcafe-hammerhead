@@ -1011,56 +1011,43 @@ asyncTest('focus() must not raise the event if the element is invisible (GH-442)
 });
 
 asyncTest('focus() must not raise the event if the element is in an invisible iframe (GH-442)', function () {
-    var iframe                 = document.createElement('iframe');
-    var overriddenInput        = document.createElement('input');
-    var cleanInput             = nativeMethods.createElement.call(document, 'input');
-    var isOverriddenInputFocus = false;
-    var isCleanInputFocus      = false;
+    var iframe = document.createElement('iframe');
+    var input  = document.createElement('input');
 
-    var onInputFocus = function (e) {
-        if (e.target.id === 'overridden')
-            isOverriddenInputFocus = true;
-        else if (e.target.id === 'clean')
-            isCleanInputFocus = true;
-    };
-
-    var checkFocus = function () {
+    var checkFocus = function (shouldRiseFocus) {
         return new Promise(function (resolve) {
-            setTimeout(function () {
-                strictEqual(isCleanInputFocus, isOverriddenInputFocus);
+            var timeoutId = setTimeout(function () {
+                input.removeEventListener('focus', focusHandler);
+                ok(!shouldRiseFocus);
                 resolve();
             }, 100);
+
+            function focusHandler () {
+                input.removeEventListener('focus', focusHandler);
+                clearTimeout(timeoutId);
+                ok(shouldRiseFocus);
+                resolve();
+            }
+
+            input.addEventListener('focus', focusHandler);
+            input.focus();
         });
     };
 
     iframe.id            = 'test';
     iframe.style.display = 'none';
-    overriddenInput.id   = 'overridden';
-    cleanInput.id        = 'clean';
 
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
-            iframe.contentDocument.body.appendChild(overriddenInput);
-            overriddenInput.addEventListener('focus', onInputFocus);
+            iframe.contentDocument.body.appendChild(input);
 
-            nativeMethods.appendChild.call(iframe.contentDocument.body, cleanInput);
-            nativeMethods.addEventListener.call(cleanInput, 'focus', onInputFocus);
-
-            overriddenInput.focus();
-            nativeMethods.focus.call(cleanInput);
-
-            return checkFocus();
+            return checkFocus(browserUtils.isWebKit);
         })
         .then(function () {
-            isOverriddenInputFocus  = false;
-            isCleanInputFocus       = false;
             iframe.style.display    = '';
             iframe.style.visibility = 'hidden';
 
-            overriddenInput.focus();
-            nativeMethods.focus.call(cleanInput);
-
-            return checkFocus();
+            return checkFocus(browserUtils.isWebKit);
         })
         .then(function () {
             document.body.removeChild(iframe);
