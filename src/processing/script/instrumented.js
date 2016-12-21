@@ -61,6 +61,7 @@ export const PROPERTIES = [
     'sessionStorage',
     'src',
     'status',
+    'styleSheets',
     'target',
     'text',
     'textContent',
