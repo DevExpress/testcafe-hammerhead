@@ -57,15 +57,11 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static _filterNodeList (nodeList) {
-        return ShadowUI._filterList(nodeList, item => {
-            return ShadowUI._filterElement(item);
-        });
+        return ShadowUI._filterList(nodeList, item => ShadowUI._filterElement(item));
     }
 
     static _filterStyleSheetList (styleSheetList) {
-        return ShadowUI._filterList(styleSheetList, item => {
-            return ShadowUI._filterElement(item.ownerNode);
-        });
+        return ShadowUI._filterList(styleSheetList, item => ShadowUI._filterElement(item.ownerNode));
     }
 
     _bringRootToWindowTopLeft () {
