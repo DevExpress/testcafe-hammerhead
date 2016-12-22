@@ -256,6 +256,25 @@ test('document.scripts', function () {
     document.body.removeChild(scriptEl);
 });
 
+test('document.styleSheets (GH-1000)', function () {
+    var styleSheetsCollectionLength = eval(processScript('document.styleSheets')).length;
+    var shadowStyleSheet            = document.createElement('style');
+
+    shadowStyleSheet.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+    document.body.appendChild(shadowStyleSheet);
+
+    strictEqual(styleSheetsCollectionLength, eval(processScript('document.styleSheets')).length);
+
+    var styleSheet = document.createElement('style');
+
+    document.body.appendChild(styleSheet);
+
+    strictEqual(styleSheet, eval(processScript('document.styleSheets')).item(0).ownerNode);
+
+    shadowStyleSheet.parentNode.removeChild(shadowStyleSheet);
+    styleSheet.parentNode.removeChild(styleSheet);
+});
+
 test('clean up outerHTML', function () {
     var htmlText = '<a href="http://domain.com/">link</a>';
     var div      = document.createElement('div');

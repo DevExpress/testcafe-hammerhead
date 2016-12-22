@@ -793,6 +793,16 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
+            styleSheets: {
+                condition: domUtils.isDocument,
+                get:       doc => ShadowUI._filterStyleSheetList(doc.styleSheets),
+                set:       (doc, value) => {
+                    doc.styleSheets = value;
+
+                    return value;
+                }
+            },
+
             // xhr
             responseURL: {
                 condition: domUtils.isXMLHttpRequest,

@@ -37,23 +37,31 @@ export default class ShadowUI extends SandboxBase {
         return domUtils.isShadowUIElement(el) ? null : el;
     }
 
-    static _filterNodeList (nodeList) {
+    static _filterList (list, predicate) {
         var filteredList = [];
-        var nlLength     = nodeList.length;
+        var nlLength     = list.length;
 
         for (var i = 0; i < nlLength; i++) {
-            var el = ShadowUI._filterElement(nodeList[i]);
+            var el = predicate(list[i]);
 
             if (el)
-                filteredList.push(el);
+                filteredList.push(list[i]);
         }
 
         filteredList.item = index => index >= filteredList.length ? null : filteredList[index];
 
-        if (nodeList.namedItem)
-            filteredList.namedItem = name => nodeList.namedItem(name);
+        if (list.namedItem)
+            filteredList.namedItem = name => list.namedItem(name);
 
-        return filteredList.length === nlLength ? nodeList : filteredList;
+        return filteredList.length === nlLength ? list : filteredList;
+    }
+
+    static _filterNodeList (nodeList) {
+        return ShadowUI._filterList(nodeList, item => ShadowUI._filterElement(item));
+    }
+
+    static _filterStyleSheetList (styleSheetList) {
+        return ShadowUI._filterList(styleSheetList, item => ShadowUI._filterElement(item.ownerNode));
     }
 
     _bringRootToWindowTopLeft () {
