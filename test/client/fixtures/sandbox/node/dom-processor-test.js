@@ -5,10 +5,11 @@ var processScript  = hammerhead.get('../processing/script').processScript;
 var styleProcessor = hammerhead.get('../processing/style');
 var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
+var browserUtils   = hammerhead.utils.browser;
 var sharedUrlUtils = hammerhead.get('../utils/url');
 
-var nativeMethods  = hammerhead.nativeMethods;
-var iframeSandbox  = hammerhead.sandbox.iframe;
+var nativeMethods = hammerhead.nativeMethods;
+var iframeSandbox = hammerhead.sandbox.iframe;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -22,8 +23,8 @@ QUnit.testDone(function () {
 });
 
 test('iframe', function () {
-    var iframe         = nativeMethods.createElement.call(document, 'iframe');
-    var storedAttrName = domProcessor.getStoredAttrName('sandbox');
+    var iframe                             = nativeMethods.createElement.call(document, 'iframe');
+    var storedAttrName                     = domProcessor.getStoredAttrName('sandbox');
 
     nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts');
     domProcessor.processElement(iframe);
@@ -105,7 +106,7 @@ test('script text', function () {
     var processedScript = processScript(script, true);
 
     nativeMethods.appendChild.call(document.body, div);
-    div.innerHTML = '\<script\>' + script + '\</script\>';
+    div.innerHTML       = '\<script\>' + script + '\</script\>';
 
     domProcessor.processElement(div.firstChild);
 
@@ -378,6 +379,21 @@ test('special pages (GH-339)', function () {
         strictEqual(iframeSrcUrl, specialPagUrl);
     });
 });
+
+if (!browserUtils.isIE || browserUtils.version > 9) {
+    test('add element with `formaction` tag to the form', function () {
+        var form  = document.createElement('form');
+        var input = document.createElement('input');
+
+        form.action = urlUtils.getProxyUrl('./form.html', { resourceType: 'if' });
+
+        input.setAttribute('formAction', './input.html');
+        strictEqual(input.formAction, urlUtils.getProxyUrl('./input.html', { resourceType: 'f' }));
+
+        form.appendChild(input);
+        strictEqual(input.formAction, urlUtils.getProxyUrl('./input.html', { resourceType: 'if' }));
+    });
+}
 
 module('should create a proxy url for the img src attribute if the image has the load handler (GH-651)', function () {
     module('onload property', function () {

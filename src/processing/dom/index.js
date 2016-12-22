@@ -18,11 +18,12 @@ const JAVASCRIPT_PROTOCOL_REG_EX         = /^\s*javascript\s*:/i;
 const EXECUTABLE_SCRIPT_TYPES_REG_EX     = /^\s*(application\/(x-)?(ecma|java)script|text\/(javascript(1\.[0-5])?|((x-)?ecma|x-java|js|live)script))\s*$/;
 
 const URL_ATTR_TAGS = {
-    href:     ['a', 'link', 'image', 'area', 'base'],
-    src:      ['img', 'embed', 'script', 'source', 'video', 'audio', 'input', 'frame', 'iframe'],
-    action:   ['form'],
-    manifest: ['html'],
-    data:     ['object']
+    href:       ['a', 'link', 'image', 'area', 'base'],
+    src:        ['img', 'embed', 'script', 'source', 'video', 'audio', 'input', 'frame', 'iframe'],
+    action:     ['form'],
+    formaction: ['button', 'input'],
+    manifest:   ['html'],
+    data:       ['object']
 };
 
 const URL_ATTRS = Object.keys(URL_ATTR_TAGS);
@@ -88,6 +89,8 @@ export default class DomProcessor {
 
             HAS_ACTION_ATTR: el => this.isUrlAttr(el, 'action'),
 
+            HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction'),
+
             HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest'),
 
             HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data'),
@@ -135,6 +138,11 @@ export default class DomProcessor {
             {
                 selector:          selectors.HAS_ACTION_ATTR,
                 urlAttr:           'action',
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+            },
+            {
+                selector:          selectors.HAS_FORMACTION_ATTR,
+                urlAttr:           'formaction',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
@@ -205,7 +213,7 @@ export default class DomProcessor {
 
         return urlUtils.getResourceTypeString({
             isIframe: tagName === 'iframe' || this._isOpenLinkInIframe(el),
-            isForm:   tagName === 'form',
+            isForm:   tagName === 'form' || tagName === 'input' || tagName === 'button',
             isScript: tagName === 'script'
         });
     }
@@ -216,6 +224,8 @@ export default class DomProcessor {
 
     isUrlAttr (el, attr, ns) {
         var tagName = this.adapter.getTagName(el);
+
+        attr = attr ? attr.toLowerCase() : attr;
 
         if (URL_ATTR_TAGS[attr] && URL_ATTR_TAGS[attr].indexOf(tagName) !== -1)
             return true;
@@ -264,8 +274,10 @@ export default class DomProcessor {
         var processed     = this.adapter.hasAttr(el, storedUrlAttr);
         var attrValue     = this.adapter.getAttr(el, processed ? storedUrlAttr : 'autocomplete');
 
-        if (!processed)
-            this.adapter.setAttr(el, storedUrlAttr, attrValue || attrValue === '' ? attrValue : AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
+        if (!processed) {
+            this.adapter.setAttr(el, storedUrlAttr, attrValue || attrValue ===
+                                                                 '' ? attrValue : AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
+        }
 
         this.adapter.setAttr(el, 'autocomplete', 'off');
     }

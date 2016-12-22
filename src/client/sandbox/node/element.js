@@ -78,17 +78,19 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _getAttributeCore (el, args, isNs) {
-        var attr        = args[isNs ? 1 : 0];
+        var attr        = String(args[isNs ? 1 : 0]);
+        var loweredAttr = attr.toLowerCase();
         var ns          = isNs ? args[0] : null;
         var getAttrMeth = isNs ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
 
         // OPTIMIZATION: The hasAttribute method is very slow.
-        if (domProcessor.isUrlAttr(el, attr, ns) || attr === 'sandbox' || domProcessor.EVENTS.indexOf(attr) !== -1 ||
-            attr === 'autocomplete' || attr === 'target') {
+        if (domProcessor.isUrlAttr(el, loweredAttr, ns) || loweredAttr === 'sandbox' ||
+            domProcessor.EVENTS.indexOf(loweredAttr) !== -1 ||
+            loweredAttr === 'autocomplete' || loweredAttr === 'target') {
             var storedAttrName  = domProcessor.getStoredAttrName(attr);
             var storedAttrValue = getAttrMeth.apply(el, isNs ? [ns, storedAttrName] : [storedAttrName]);
 
-            if (DomProcessor.isAddedAutocompleteAttr(attr, storedAttrValue))
+            if (DomProcessor.isAddedAutocompleteAttr(loweredAttr, storedAttrValue))
                 return null;
             else if (el.hasAttribute(storedAttrName))
                 args[isNs ? 1 : 0] = storedAttrName;
@@ -99,7 +101,8 @@ export default class ElementSandbox extends SandboxBase {
 
     _setAttributeCore (el, args, isNs) {
         var ns          = isNs ? args[0] : null;
-        var attr        = args[isNs ? 1 : 0];
+        var attr        = String(args[isNs ? 1 : 0]);
+        var loweredAttr = attr.toLowerCase();
         var valueIndex  = isNs ? 2 : 1;
         var value       = args[valueIndex];
         var setAttrMeth = isNs ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
@@ -146,7 +149,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
 
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                args[valueIndex] = processedValue;
+                args[valueIndex]         = processedValue;
             }
             else
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
@@ -164,6 +167,17 @@ export default class ElementSandbox extends SandboxBase {
                     var resourceType     = domProcessor.getElementResourceType(el);
                     var elCharset        = isScript && el.charset;
 
+                    if (loweredAttr === 'formaction') {
+                        resourceType = 'f';
+
+                        if (el.form) {
+                            var parsedFormAction = urlUtils.parseProxyUrl(el.form.action);
+
+                            if (parsedFormAction)
+                                resourceType = parsedFormAction.resourceType;
+                        }
+                    }
+
                     if (ElementSandbox._isHrefAttrForBaseElement(el, attr) &&
                         domUtils.isElementInDocument(el, this.document))
                         urlResolver.updateBase(value, this.document);
@@ -175,18 +189,18 @@ export default class ElementSandbox extends SandboxBase {
             else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value))
                 args[valueIndex] = urlUtils.resolveUrlAsDest(value);
         }
-        else if (attr === 'autocomplete') {
+        else if (loweredAttr === 'autocomplete') {
             var storedAutocompleteAttr = domProcessor.getStoredAttrName(attr);
 
             setAttrMeth.apply(el, isNs ? [ns, storedAutocompleteAttr, value] : [storedAutocompleteAttr, value]);
 
             args[valueIndex] = 'off';
         }
-        else if (attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
+        else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
             var newTarget = this.getTarget(el, value);
 
             if (newTarget !== el.target) {
-                var storedTargetAttr = domProcessor.getStoredAttrName(attr);
+                var storedTargetAttr    = domProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
                 args[valueIndex]        = newTarget;
@@ -210,7 +224,7 @@ export default class ElementSandbox extends SandboxBase {
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
         else if (tagName === 'meta' && ['http-equiv', 'content'].indexOf(attr) !== -1)
             return null;
-        else if (attr === 'xlink:href' &&
+        else if (loweredAttr === 'xlink:href' &&
                  domProcessor.SVG_XLINK_HREF_TAGS.indexOf(tagName) !== -1 &&
                  domUtils.isSVGElement(el)) {
             var storedXLinkHrefAttr = domProcessor.getStoredAttrName(attr);
@@ -243,29 +257,31 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _removeAttributeCore (el, args, isNs) {
-        var attr           = args[isNs ? 1 : 0];
+        var attr           = String(args[isNs ? 1 : 0]);
+        var formatedAttr   = attr.toLowerCase();
         var removeAttrFunc = isNs ? nativeMethods.removeAttributeNS : nativeMethods.removeAttribute;
         var tagName        = domUtils.getTagName(el);
         var result         = void 0;
 
-        if (domProcessor.isUrlAttr(el, attr, isNs ? args[0] : null) || attr === 'sandbox' || attr === 'autocomplete' ||
-            domProcessor.EVENTS.indexOf(attr) !== -1 ||
-            attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
+        if (domProcessor.isUrlAttr(el, formatedAttr, isNs ? args[0] : null) || formatedAttr === 'sandbox' ||
+            formatedAttr === 'autocomplete' ||
+            domProcessor.EVENTS.indexOf(formatedAttr) !== -1 ||
+            formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
             var storedAttr = domProcessor.getStoredAttrName(attr);
 
-            if (attr === 'autocomplete')
+            if (formatedAttr === 'autocomplete')
                 nativeMethods.setAttribute.call(el, storedAttr, domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
             else
                 removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
         }
 
-        if (ElementSandbox._isHrefAttrForBaseElement(el, attr))
+        if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        if (attr !== 'autocomplete')
+        if (formatedAttr !== 'autocomplete')
             result = removeAttrFunc.apply(el, args);
 
-        if (attr === 'target' && DomProcessor.isTagWithTargetAttr(tagName))
+        if (formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName))
             ElementSandbox._onTargetChanged(el);
 
         return result;
@@ -532,8 +548,11 @@ export default class ElementSandbox extends SandboxBase {
                 this.onIframeAddedToDOM(iframes[i]);
                 windowsStorage.add(iframes[i].contentWindow);
             }
-
         }
+
+        // NOTE: recalculate `formaction` attribute value if it placed in the dom
+        if (el.formAction && (domUtils.isInputElement(el) || domUtils.isButtonElement(el)) && el.form)
+            el.setAttribute('formaction', el.getAttribute('formaction'));
 
         if (domUtils.isBodyElement(el))
             this.shadowUI.onBodyElementMutation();
