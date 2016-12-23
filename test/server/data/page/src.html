@@ -82,6 +82,8 @@
 <div onclick="javascript:window.location='test'; return false;"></div>
 
 <form id="form" method="post" action="http://post.something.here">
+    <input formaction="http://input.formaction.com/" />
+    <button formaction="http://button.formaction.com/"></button>
 </form>
 <embed id="swf" src="http://some.nice.kitty.image">
 
@@ -104,5 +106,7 @@
 <a id="wrong-url-2" href="//:0/"></a>
 <a id="wrong-url-3" href="http://test:0"></a>
 <a id="wrong-url-4" href="http://test:123456789"></a>
+<input formaction="http://input.formaction.com/" />
+<button formaction="http://button.formaction.com/"></button>
 </body>
 </html>

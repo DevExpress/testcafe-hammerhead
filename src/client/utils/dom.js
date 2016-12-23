@@ -419,6 +419,10 @@ export function isInputElement (el) {
     return instanceToString(el) === '[object HTMLInputElement]';
 }
 
+export function isButtonElement (el) {
+    return instanceToString(el) === '[object HTMLButtonElement]';
+}
+
 export function isHtmlElement (el) {
     return instanceToString(el) === '[object HTMLHtmlElement]';
 }

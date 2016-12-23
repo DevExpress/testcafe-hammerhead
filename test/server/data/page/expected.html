@@ -84,6 +84,8 @@ __set$(window,"location",'test'); (function(){return __set$Loc(location,'test')|
 <div onclick="javascript: __set$(window,&quot;location&quot;,'test'); return false;" onclick-hammerhead-stored-value="javascript:window.location='test'; return false;"></div>
 
 <form id="form" method="post" action="http://127.0.0.1:1836/sessionId!f/http://post.something.here" action-hammerhead-stored-value="http://post.something.here">
+    <input formaction="http://127.0.0.1:1836/sessionId!f/http://input.formaction.com/" formaction-hammerhead-stored-value="http://input.formaction.com/" autocomplete-hammerhead-stored-value="hammerhead|autocomplete-attribute-absence-marker" autocomplete="off">
+    <button formaction="http://127.0.0.1:1836/sessionId!f/http://button.formaction.com/" formaction-hammerhead-stored-value="http://button.formaction.com/"></button>
 </form>
 <embed id="swf" src="http://127.0.0.1:1836/sessionId/http://some.nice.kitty.image" src-hammerhead-stored-value="http://some.nice.kitty.image">
 
@@ -130,4 +132,6 @@ __set$(window,"location",'test'); (function(){return __set$Loc(location,'test')|
 <a id="wrong-url-2" href="http://:0/" href-hammerhead-stored-value="//:0/"></a>
 <a id="wrong-url-3" href="http://test:0" href-hammerhead-stored-value="http://test:0"></a>
 <a id="wrong-url-4" href="http://test:123456789" href-hammerhead-stored-value="http://test:123456789"></a>
+<input formaction="http://127.0.0.1:1836/sessionId!f/http://input.formaction.com/" formaction-hammerhead-stored-value="http://input.formaction.com/" autocomplete-hammerhead-stored-value="hammerhead|autocomplete-attribute-absence-marker" autocomplete="off">
+<button formaction="http://127.0.0.1:1836/sessionId!f/http://button.formaction.com/" formaction-hammerhead-stored-value="http://button.formaction.com/"></button>
 </body></html>

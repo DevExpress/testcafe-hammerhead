@@ -17,11 +17,11 @@
     var INSTRUCTION = hammerhead.get('../processing/script/instruction');
 
     eval(window[INSTRUCTION.processScript]([
-        'var childs = [\'hello\', \'testcafe\', \'!!!\'];',
+        'var children = [\'hello\', \'testcafe\', \'!!!\'];',
         'document.write(\'<div id="parent">\');',
-        'for (var i = 0; i < childs.length; i++) {',
+        'for (var i = 0; i < children.length; i++) {',
         '    document.write("<p>");',
-        '    document.write(childs[i]);',
+        '    document.write(children[i]);',
         '    document.write("</p>");',
         '}',
         'document.write("</div>");'

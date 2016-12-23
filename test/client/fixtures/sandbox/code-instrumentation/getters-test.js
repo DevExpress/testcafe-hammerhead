@@ -275,6 +275,17 @@ test('document.styleSheets (GH-1000)', function () {
     styleSheet.parentNode.removeChild(styleSheet);
 });
 
+test('input.formaction, button.formaction', function () {
+    var button = document.createElement('button');
+    var input  = document.createElement('input');
+
+    setProperty(button, 'formAction', './button.html');
+    setProperty(input, 'formAction', './input.html');
+
+    strictEqual(nativeMethods.getAttribute.call(button, 'formaction'), urlUtils.getProxyUrl('./button.html', { resourceType: 'f' }));
+    strictEqual(nativeMethods.getAttribute.call(input, 'formaction'), urlUtils.getProxyUrl('./input.html', { resourceType: 'f' }));
+});
+
 test('clean up outerHTML', function () {
     var htmlText = '<a href="http://domain.com/">link</a>';
     var div      = document.createElement('div');

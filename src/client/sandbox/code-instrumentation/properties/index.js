@@ -191,6 +191,17 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set:       () => void 0
             },
 
+            formAction: {
+                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'formaction'),
+
+                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'formaction'),
+                set: (el, value) => {
+                    el.setAttribute('formaction', value);
+
+                    return value;
+                }
+            },
+
             host: {
                 condition: domUtils.isAnchorElement,
                 get:       el => getAnchorProperty(el, 'host'),

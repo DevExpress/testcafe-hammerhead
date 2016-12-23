@@ -27,9 +27,9 @@ QUnit.testDone(function () {
 // NOTE: IE11 has a strange bug that does not allow this test to pass
 if (!browserUtils.isIE || browserUtils.version !== 11) {
     test('onsubmit', function () {
-        var etalon = nativeMethods.createElement.call(document, 'form');
-        var form   = document.createElement('form');
-        var check  = function () {
+        var etalon      = nativeMethods.createElement.call(document, 'form');
+        var form        = document.createElement('form');
+        var check       = function () {
             strictEqual(form.getAttribute('onsubmit'), nativeMethods.getAttribute.call(etalon, 'onsubmit'));
 
             var onsubmit = getProperty(form, 'onsubmit');
@@ -89,7 +89,7 @@ test('url', function () {
 
         if (tagName === 'script')
             resourceType = 's';
-        else if (tagName === 'form')
+        else if (tagName === 'form' || attr === 'formAction')
             resourceType = 'f';
 
         var proxy = urlUtils.getProxyUrl(dest, { resourceType: resourceType });
@@ -138,9 +138,41 @@ test('url', function () {
         { tagName: 'object', attr: 'data' }
     ];
 
+    if (!browserUtils.isIE || browserUtils.version > 9) {
+        testData = testData.concat([
+            { tagName: 'input', attr: 'formAction' },
+            { tagName: 'button', attr: 'formAction' }
+        ]);
+    }
+
     for (var i = 0; i < testData.length; i++)
         testUrlAttr(testData[i].tagName, testData[i].attr);
 });
+
+if (!browserUtils.isIE || browserUtils.version > 9) {
+    test('formaction attribute in the form', function () {
+        var form   = document.createElement('form');
+        var input  = document.createElement('input');
+        var button = document.createElement('button');
+
+        input.type = 'submit';
+
+        form.appendChild(input);
+        form.appendChild(button);
+
+        nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'f' }));
+        input.setAttribute('formaction', './input.html');
+        button.setAttribute('formaction', './button.html');
+        strictEqual(urlUtils.parseProxyUrl(input.formAction).resourceType, 'f');
+        strictEqual(urlUtils.parseProxyUrl(button.formAction).resourceType, 'f');
+
+        nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'fi' }));
+        input.setAttribute('formaction', './input.html');
+        button.setAttribute('formaction', './button.html');
+        strictEqual(urlUtils.parseProxyUrl(input.formAction).resourceType, 'fi');
+        strictEqual(urlUtils.parseProxyUrl(button.formAction).resourceType, 'fi');
+    });
+}
 
 test('script src', function () {
     var storedSessionId = settings.get().sessionId;

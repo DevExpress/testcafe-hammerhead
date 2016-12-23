@@ -28,6 +28,7 @@ export const PROPERTIES = [
     'files',
     'firstChild',
     'firstElementChild',
+    'formAction',
     'host',
     'hostname',
     'href',
