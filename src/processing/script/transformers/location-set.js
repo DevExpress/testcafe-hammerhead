@@ -19,5 +19,6 @@ export default {
                        node.left.type === Syntax.Identifier &&
                        node.left.name === 'location',
 
-    run: (node, parent, key) => createLocationSetWrapper(node.right, key === 'arguments')
+    run: (node, parent, key) => createLocationSetWrapper(node.right, key !== 'arguments' &&
+                                                                     parent.type !== Syntax.SequenceExpression)
 };
