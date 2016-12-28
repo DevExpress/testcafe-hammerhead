@@ -132,7 +132,7 @@ test('window.onerror must be overriden (B238830)', function () {
 });
 
 test('the constructor field of a function should return a wrapped Function object (GH-913)', function () {
-    var f = function () {
+    var f = function f () {
     };
 
     strictEqual(f.constructor, Function);
@@ -143,12 +143,14 @@ test('the constructor field of a function should return a wrapped Function objec
 
     /*eslint-disable no-extend-native*/
     Function.prototype.toString = function () {
-        toString.call(this);
+        var str = toString.call(this);
 
         ok(true);
+
+        return str;
     };
 
-    f.toString();
+    strictEqual(f.toString().replace(/\s+/g, ''), 'functionf(){}');
 
     Function.prototype.toString = nativeToString;
     /*eslint-enable no-extend-native*/

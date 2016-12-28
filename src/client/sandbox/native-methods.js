@@ -181,6 +181,7 @@ class NativeMethods {
         this.XMLHttpRequest   = win.XMLHttpRequest;
         this.Image            = win.Image;
         this.Function         = win.Function;
+        this.functionToString = win.Function.toString;
         this.FontFace         = win.FontFace;
         this.StorageEvent     = win.StorageEvent;
         this.MutationObserver = win.MutationObserver;

@@ -228,7 +228,7 @@ export default class WindowSandbox extends SandboxBase {
         };
         window.Image.prototype = nativeMethods.Image.prototype;
 
-        window.Function = function (...args) {
+        var FunctionWrapper = function (...args) {
             var functionBodyArgIndex = args.length - 1;
 
             if (typeof args[functionBodyArgIndex] === 'string')
@@ -237,12 +237,15 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.Function.apply(this, args);
         };
 
+        window.Function                       = FunctionWrapper;
         window.Function.prototype             = nativeMethods.Function.prototype;
-        window.Function.prototype.constructor = window.Function;
+        window.Function.prototype.constructor = FunctionWrapper;
 
         // NOTE: We need to create function which returns string without calling toString every time
         // because if the Function.prototype.toString is overridden it can be the cause of recursion
-        window.Function.toString = () => nativeFunctionToString;
+        window.Function.toString = function () {
+            return this === FunctionWrapper ? nativeFunctionToString : nativeMethods.functionToString.call(this);
+        };
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
             window.history.pushState = function () {
