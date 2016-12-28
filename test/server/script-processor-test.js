@@ -172,7 +172,7 @@ describe('Script processor', function () {
             { src: 'var location = value', expected: 'var location = value' },
             {
                 src:      'location = value',
-                expected: '(function() { return __set$Loc(location, value) || (location = value); }.apply(this))'
+                expected: '0,function(){return __set$Loc(location,value)||(location=value);}.call(this)'
             },
             {
                 src:      '{ location: 123 }',
@@ -193,11 +193,11 @@ describe('Script processor', function () {
             { src: 'location[host].toString()', expected: '__get$(__get$Loc(location), host).toString()' },
             {
                 src:      'obj.location = location = value;',
-                expected: '__set$(obj, "location", function() { return __set$Loc(location, value) || (location = value); }.apply(this));'
+                expected: '__set$(obj, "location", function(){return __set$Loc(location,value)||(location=value);}.call(this));'
             },
             {
                 src:      'a(location = value)',
-                expected: 'a(function() { return __set$Loc(location, value) || (location = value); }.apply(this))'
+                expected: 'a(function() { return __set$Loc(location, value) || (location = value); }.call(this))'
             },
             {
                 src:      'obj.location = obj.location = obj.location',
@@ -215,13 +215,13 @@ describe('Script processor', function () {
 
             {
                 src:      'location+=value',
-                expected: '(function(){return __set$Loc(location,__get$Loc(location)+value)||' +
-                          '(location=__get$Loc(location)+value);}.apply(this))'
+                expected: '0,function(){return __set$Loc(location,__get$Loc(location)+value)||' +
+                          '(location=__get$Loc(location)+value);}.call(this)'
             },
             {
                 src:      'location+=location+value',
-                expected: '(function(){return __set$Loc(location,__get$Loc(location)+(__get$Loc(location)+value))||' +
-                          '(location=__get$Loc(location)+(__get$Loc(location)+value));}.apply(this))'
+                expected: '0,function(){return __set$Loc(location,__get$Loc(location)+(__get$Loc(location)+value))||' +
+                          '(location=__get$Loc(location)+(__get$Loc(location)+value));}.call(this)'
             },
             {
                 src:      'location.hostname+=value',
@@ -251,6 +251,18 @@ describe('Script processor', function () {
                 expected: 'location-=value;location*=value;location/=value;' +
                           'location>>=value;location<<=value;location>>>=value;' +
                           'location&=value;location|=value;location^=value'
+            },
+            {
+                src: 'new function(a){location=str,a.click();}();',
+
+                expected: 'new function(a) {(function(){return__set$Loc(location,str)||' +
+                          '(location=str);}.call(this), a.click());}();'
+            },
+            {
+                src: 'b.onerror = b.onload = function (a) { location = a; };',
+
+                expected: '__set$(b,"onerror",__set$(b,"onload",function(a){' +
+                          '0,function(){return__set$Loc(location,a)||(location=a);}.call(this);}));'
             }
         ]);
     });

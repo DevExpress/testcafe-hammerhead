@@ -110,7 +110,7 @@ export function createLocationGetWrapper () {
     };
 }
 
-export function createLocationSetWrapper (value, isArgument) {
+export function createLocationSetWrapper (value, wrapWithSequence) {
     var wrapper = {
         type: Syntax.CallExpression,
 
@@ -174,7 +174,7 @@ export function createLocationSetWrapper (value, isArgument) {
 
             property: {
                 type: Syntax.Identifier,
-                name: 'apply'
+                name: 'call'
             }
         },
 
@@ -185,11 +185,18 @@ export function createLocationSetWrapper (value, isArgument) {
         ]
     };
 
-    if (!isArgument) {
+    if (wrapWithSequence) {
         wrapper = {
-            type: Syntax.ExpressionStatement,
+            type: Syntax.SequenceExpression,
 
-            expression: wrapper
+            expressions: [
+                {
+                    type:  'Literal',
+                    value: 0,
+                    raw:   '0'
+                },
+                wrapper
+            ]
         };
     }
 
