@@ -34,7 +34,8 @@ export default class ElementSandbox extends SandboxBase {
 
         this.overridedMethods = null;
 
-        this.BEFORE_FORM_SUBMIT = 'hammerhead|event|before-form-submit';
+        this.BEFORE_FORM_SUBMIT   = 'hammerhead|event|before-form-submit';
+        this.SCRIPT_ELEMENT_ADDED = 'hammerhead|event|script-added-event';
     }
 
     static _isKeywordTarget (value) {
@@ -149,7 +150,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
 
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                args[valueIndex]         = processedValue;
+                args[valueIndex] = processedValue;
             }
             else
                 setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
@@ -200,7 +201,7 @@ export default class ElementSandbox extends SandboxBase {
             var newTarget = this.getTarget(el, value);
 
             if (newTarget !== el.target) {
-                var storedTargetAttr    = domProcessor.getStoredAttrName(attr);
+                var storedTargetAttr = domProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
                 args[valueIndex]        = newTarget;
@@ -565,6 +566,9 @@ export default class ElementSandbox extends SandboxBase {
 
             urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
+
+        if (domUtils.isScriptElement(el))
+            this.emit(this.SCRIPT_ELEMENT_ADDED, { el });
     }
 
     onElementRemoved (el) {
