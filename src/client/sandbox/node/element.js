@@ -35,7 +35,7 @@ export default class ElementSandbox extends SandboxBase {
         this.overridedMethods = null;
 
         this.BEFORE_FORM_SUBMIT   = 'hammerhead|event|before-form-submit';
-        this.SCRIPT_ELEMENT_ADDED = 'hammerhead|event|script-added-event';
+        this.SCRIPT_ELEMENT_ADDED = 'hammerhead|event|script-added';
     }
 
     static _isKeywordTarget (value) {
