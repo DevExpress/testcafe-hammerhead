@@ -100,6 +100,11 @@ describe('Proxy', function () {
             res.end(fs.readFileSync('test/server/data/page/src.html').toString());
         });
 
+        app.get('/page-with-frameset', function (req, res) {
+            res.set('content-type', 'text/html');
+            res.end(fs.readFileSync('test/server/data/page-with-frameset/src.html').toString());
+        });
+
         app.get('/script', function (req, res) {
             res.set('content-type', 'application/javascript; charset=utf-8');
             res.end(fs.readFileSync('test/server/data/script/src.js').toString());
@@ -1458,6 +1463,26 @@ describe('Proxy', function () {
                 expect(fatalErrorEventCount).eql(1);
                 done();
             }, 150);
+        });
+
+        it('Should process the top "frameset" element like the "body" element (GH-1009)', function (done) {
+            session.id = 'sessionId';
+            session.injectable.scripts.push('/script1.js');
+            session.injectable.scripts.push('/script2.js');
+
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/page-with-frameset', session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                var expected = fs.readFileSync('test/server/data/page-with-frameset/expected.html').toString();
+
+                compareCode(body, expected);
+                done();
+            });
         });
     });
 });

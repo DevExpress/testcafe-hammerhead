@@ -146,12 +146,12 @@ class PageProcessor extends ResourceProcessorBase {
 
         var root       = this.parser.parse(html);
         var domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort);
-        var elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body']);
+        var elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
         var base       = elements.base ? elements.base[0] : null;
         var baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';
         var metas      = elements.meta;
         var head       = elements.head[0];
-        var body       = elements.body[0];
+        var body       = elements.body ? elements.body[0] : elements.frameset[0];
 
         if (metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
             return this.RESTART_PROCESSING;
