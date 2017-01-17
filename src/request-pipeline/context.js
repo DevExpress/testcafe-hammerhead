@@ -163,6 +163,9 @@ export default class RequestPipelineContext {
         var accept      = this.req.headers['accept'] || '';
         var encoding    = this.destRes.headers['content-encoding'];
 
+        if (this.isPage && contentType)
+            this.isPage  = !this.isXhr && !this.isFetch && contentTypeUtils.isPage(contentType);
+
         var isCSS                   = contentTypeUtils.isCSSResource(contentType, accept);
         var isManifest              = contentTypeUtils.isManifest(contentType);
         var isScript                = this.dest.isScript || contentTypeUtils.isScriptResource(contentType, accept);

@@ -242,6 +242,15 @@ describe('Proxy', function () {
             }, req.params.ms);
         });
 
+        app.get('/GH-1014/pdf-content-type', function (req, res) {
+            res.set('content-type', 'content-type');
+            res.end('pdf');
+        });
+
+        app.get('/GH-1014/empty-page-without-content-type/', function (req, res) {
+            res.end('');
+        });
+
         destServer = app.listen(2000);
 
 
@@ -1481,6 +1490,38 @@ describe('Proxy', function () {
                 var expected = fs.readFileSync('test/server/data/page-with-frameset/expected.html').toString();
 
                 compareCode(body, expected);
+                done();
+            });
+        });
+
+        it('Should not process a page with the non-page content-type header (GH-1014)', function (done) {
+            session.id = 'sessionId';
+
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/GH-1014/pdf-content-type', session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                compareCode(body, 'pdf');
+                done();
+            });
+        });
+
+        it('Should process a page without the content-type header (GH-1014)', function (done) {
+            session.id = 'sessionId';
+
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/GH-1014/empty-page-without-content-type/', session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                expect(body).is.not.empty;
                 done();
             });
         });
