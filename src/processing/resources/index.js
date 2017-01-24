@@ -5,11 +5,18 @@ import scriptProcessor from './script';
 import stylesheetProcessor from './stylesheet';
 import * as urlUtil from '../../utils/url';
 import { encodeContent, decodeContent } from '../encoding';
+import { platform } from 'os';
+
+const IS_WIN32 = platform() === 'win32';
+const DISK_RE  = /^[A-Za-z]:/;
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
         if (!urlUtil.isSupportedProtocol(resourceUrl) && !urlUtil.isSpecialPage(resourceUrl))
             return resourceUrl;
+
+        if (IS_WIN32 && ctx.dest.protocol === 'file:' && DISK_RE.test(resourceUrl))
+            resourceUrl = '/' + resourceUrl;
 
         // NOTE: Resolves base URLs without a protocol ('//google.com/path' for example).
         baseUrl     = baseUrl ? url.resolve(ctx.dest.url, baseUrl) : '';

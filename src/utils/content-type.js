@@ -39,7 +39,7 @@ export function isPage (header) {
 
 export function isCSSResource (contentTypeHeader, acceptHeader) {
     return contentTypeHeader.toLowerCase().indexOf(CSS_MIME) > -1 ||
-           acceptHeader.toLowerCase() === CSS_MIME;
+           acceptHeader.toLowerCase().indexOf(CSS_MIME) > -1;
 }
 
 export function isScriptResource (contentTypeHeader, acceptHeader) {

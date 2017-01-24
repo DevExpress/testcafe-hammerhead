@@ -63,7 +63,7 @@ export default {
         url = url || destLocation.get();
 
         var parsedUrl             = parseUrl(url);
-        var isRelativeUrl         = !parsedUrl.host;
+        var isRelativeUrl         = parsedUrl.protocol !== 'file:' && !parsedUrl.host;
         var isProtocolRelativeUrl = /^\/\//.test(url) && !!parsedUrl.host;
 
         if (isRelativeUrl || isProtocolRelativeUrl) {

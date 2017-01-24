@@ -483,7 +483,7 @@ export default class DomProcessor {
 
                     var resourceType      = this.getElementResourceType(el);
                     var parsedResourceUrl = urlUtils.parseUrl(resourceUrl);
-                    var isRelativePath    = !parsedResourceUrl.host;
+                    var isRelativePath    = parsedResourceUrl.protocol !== 'file:' && !parsedResourceUrl.host;
                     var proxyUrl          = '';
                     var charsetAttrValue  = isScript && this.adapter.getAttr(el, 'charset');
 

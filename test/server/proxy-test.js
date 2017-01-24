@@ -3,6 +3,7 @@ var fs                                   = require('fs');
 var http                                 = require('http');
 var urlLib                               = require('url');
 var request                              = require('request');
+var path                                 = require('path');
 var expect                               = require('chai').expect;
 var express                              = require('express');
 var read                                 = require('read-file-relative').readSync;
@@ -931,6 +932,53 @@ describe('Proxy', function () {
 
             request(url, function (err, res, body) {
                 expect(body).eql('42');
+                done();
+            });
+        });
+    });
+
+    describe('file protocol', function () {
+        var getFileProtocolUrl = function (filePath) {
+            return path.resolve(__dirname, filePath).replace(/\\/g, '/');
+        };
+
+        it('Should process page and ignore search string', function (done) {
+            session.id = 'sessionId';
+            session.injectable.scripts.push('/script1.js');
+            session.injectable.scripts.push('/script2.js');
+            session.injectable.styles.push('/styles1.css');
+            session.injectable.styles.push('/styles2.css');
+
+            var options = {
+                url: proxy.openSession('file:///' + getFileProtocolUrl('./data/page/src.html') + '?a=1&b=3', session),
+
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                var expected = fs.readFileSync('test/server/data/page/expected.html').toString();
+
+                compareCode(body, expected);
+                done();
+            });
+        });
+
+        it('Should process stylesheets', function (done) {
+            session.id = 'sessionId';
+
+            var options = {
+                url:     proxy.openSession('file:///' + getFileProtocolUrl('./data/stylesheet/src.css'), session),
+                headers: {
+                    accept: 'text/css,*/*;q=0.1'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                var expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
+
+                compareCode(body, expected);
                 done();
             });
         });

@@ -1,4 +1,5 @@
 import DestinationRequest from './destination-request';
+import FileRequest from './file-request';
 import RequestPipelineContext from './context';
 import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
@@ -24,7 +25,7 @@ var stages = {
         }
 
         else {
-            var req = new DestinationRequest(opts);
+            var req = ctx.isFileProtocol ? new FileRequest(opts) : new DestinationRequest(opts);
 
             req.on('response', res => {
                 ctx.destRes = res;

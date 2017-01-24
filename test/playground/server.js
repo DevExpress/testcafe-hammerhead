@@ -58,8 +58,16 @@ exports.start = function () {
             res.render('403');
         }
         else {
-            if (url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0)
-                url = 'http://' + url;
+            if (url.indexOf('file://') !== 0 && url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
+                var matches = url.match(/^([A-Za-z]:)?(\/|\\)/);
+
+                if (matches && matches[0].length === 1)
+                    url = 'file://' + url;
+                else if (matches && matches[0].length > 1)
+                    url = 'file:///' + url;
+                else
+                    url = 'http://' + url;
+            }
 
             res.statusCode = 301;
 

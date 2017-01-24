@@ -49,7 +49,7 @@ test('getCrossDomainIframeProxyUrl (GH-749)', function () {
     settings.get().crossDomainProxyPort = '5555';
 
     strictEqual(urlUtils.getCrossDomainIframeProxyUrl(destUrl),
-                'http://' + location.hostname + ':5555' + '/sessionId!i/https://example.com/' + destUrl);
+        'http://' + location.hostname + ':5555' + '/sessionId!i/https://example.com/' + destUrl);
 
     settings.get().crossDomainProxyPort = storedCrossDomainport;
 });
@@ -66,6 +66,7 @@ test('resolveUrlAsDest', function () {
 test('isSupportedProtocol', function () {
     ok(urlUtils.isSupportedProtocol('http://example.org'));
     ok(urlUtils.isSupportedProtocol('https://example.org'));
+    ok(urlUtils.isSupportedProtocol('file:///C:/index.htm'));
     ok(urlUtils.isSupportedProtocol('//example.org'));
     ok(urlUtils.isSupportedProtocol('/some/path'));
     ok(urlUtils.isSupportedProtocol('path'));
@@ -110,6 +111,8 @@ test('formatUrl', function () {
 test('isRelativeUrl', function () {
     ok(!sharedUrlUtils.isRelativeUrl('http://example.com'));
     ok(sharedUrlUtils.isRelativeUrl('/test.html'));
+    ok(!sharedUrlUtils.isRelativeUrl('file:///C:/index.htm'));
+    ok(sharedUrlUtils.isRelativeUrl('C:\\index.htm'));
 });
 
 module('parse url');
@@ -218,6 +221,15 @@ test('relative path', function () {
     ok(!parsedUrl.protocol);
     strictEqual(parsedUrl.partAfterHost, 'share?id=1kjQMWh7IcHdTBbTv6otRvCGYr-p02q206M7aR7dmog0');
 });
+
+if (window.navigator.platform.toLowerCase() === 'win32' && !browserUtils.isFirefox) {
+    test('relative file path', function () {
+        var destUrl  = 'C:\\index.htm';
+        var proxyUrl = urlUtils.getProxyUrl(destUrl);
+
+        strictEqual(proxyUrl, 'http://' + location.host + '/sessionId/file:///C:/index.htm');
+    });
+}
 
 test('contains successive question marks in query', function () {
     var destUrl  = 'http://test.example.com/??dirs/???files/';
