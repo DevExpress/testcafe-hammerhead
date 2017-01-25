@@ -1,5 +1,6 @@
 var Promise                              = require('pinkie');
 var fs                                   = require('fs');
+var os                                   = require('os');
 var http                                 = require('http');
 var urlLib                               = require('url');
 var request                              = require('request');
@@ -977,6 +978,28 @@ describe('Proxy', function () {
 
             request(options, function (err, res, body) {
                 var expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
+
+                compareCode(body, expected);
+                done();
+            });
+        });
+
+        it('Should process page with absolute urls', function (done) {
+            session.id = 'sessionId';
+
+            var filePostfix = os.platform() === 'win32' ? 'win' : 'nix';
+            var filePath    = getFileProtocolUrl('./data/page-with-file-protocol/src-' + filePostfix + '.html');
+
+            var options = {
+                url:     proxy.openSession('file:///' + filePath, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                var expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-' + filePostfix +
+                                               '.html').toString();
 
                 compareCode(body, expected);
                 done();
