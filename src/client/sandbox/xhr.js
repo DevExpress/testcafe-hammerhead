@@ -2,6 +2,7 @@ import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import { getProxyUrl } from '../utils/url';
 import XHR_HEADERS from '../../request-pipeline/xhr/headers';
+import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
 import { getOrigin } from '../utils/destination-location';
 import reEscape from '../../utils/regexp-escape';
 
@@ -150,6 +151,13 @@ export default class XhrSandbox extends SandboxBase {
             var headers = nativeMethods.xhrGetAllResponseHeaders.call(this);
 
             return headers ? headers.replace(REMOVE_SET_COOKIE_HH_HEADER, '') : headers;
+        };
+
+        xmlHttpRequestProto.setRequestHeader = function (header, value) {
+            if (typeof header === 'string' && AUTHORIZATION.headers.indexOf(header.toLowerCase()) !== -1)
+                value = AUTHORIZATION.valuePrefix + value;
+
+            return nativeMethods.xhrSetRequestHeader.call(this, header, value);
         };
     }
 }

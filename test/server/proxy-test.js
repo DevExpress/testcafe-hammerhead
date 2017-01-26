@@ -10,6 +10,7 @@ var createSelfSignedHttpsServer          = require('self-signed-https');
 var getFreePort                          = require('endpoint-utils').getFreePort;
 var COMMAND                              = require('../../lib/session/command');
 var XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
+var AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
 var SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-policy').SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
 var Proxy                                = require('../../lib/proxy');
 var Session                              = require('../../lib/session');
@@ -1522,6 +1523,33 @@ describe('Proxy', function () {
 
             request(options, function (err, res, body) {
                 expect(body).is.not.empty;
+                done();
+            });
+        });
+
+        it('Should pass authorization headers which are defined by client for cross-domain request without credentials (GH-1016)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
+                headers: {
+                    'authorization':       AUTHORIZATION.valuePrefix + 'authorization',
+                    'authentication-info': AUTHORIZATION.valuePrefix + 'authentication-info',
+                    'proxy-authenticate':  'proxy-authenticate',
+                    'proxy-authorization': 'proxy-authorization',
+                    referer:               proxy.openSession('http://127.0.0.1:2000', session)
+                }
+            };
+
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
+
+            request(options, function (err, res, body) {
+                var requestHeaders = JSON.parse(body);
+
+                expect(requestHeaders['authorization']).eql('authorization');
+                expect(requestHeaders['authentication-info']).eql('authentication-info');
+                expect(requestHeaders['proxy-authenticate']).to.be.undefined;
+                expect(requestHeaders['proxy-authorization']).to.be.undefined;
+
                 done();
             });
         });
