@@ -6,14 +6,14 @@
 import trim from './string-trim';
 
 //Const
-const PROTOCOL_RE        = /(^([\w-]+?\:))/;
+const PROTOCOL_RE        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
 const LEADING_SLASHES_RE = /^(\/\/)/;
 const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
 const PORT_RE            = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 const PATH_AFTER_HOST_RE = /^\/([^\/]+?)\/([\S\s]+)$/;
 
-export const SUPPORTED_PROTOCOL_RE               = /^https?:/i;
+export const SUPPORTED_PROTOCOL_RE               = /^(https?|file):/i;
 export const HASH_RE                             = /^#/;
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
 export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
@@ -186,9 +186,9 @@ export function parseUrl (url) {
     // Protocol
     var hasImplicitProtocol = false;
     var remainder           = url
-        .replace(PROTOCOL_RE, (str, protocol) => {
+        .replace(PROTOCOL_RE, (str, protocol, strAfterProtocol) => {
             parsed.protocol = protocol;
-            return '';
+            return strAfterProtocol;
         })
         .replace(LEADING_SLASHES_RE, () => {
             hasImplicitProtocol = true;
@@ -208,12 +208,10 @@ export function parseUrl (url) {
             return restPartSeparator;
         });
 
-    if (parsed.host) {
-        parsed.hostname = parsed.host.replace(PORT_RE, (str, port) => {
-            parsed.port = port;
-            return '';
-        });
-    }
+    parsed.hostname = parsed.host ? parsed.host.replace(PORT_RE, (str, port) => {
+        parsed.port = port;
+        return '';
+    }) : '';
 
     return parsed;
 }
@@ -249,7 +247,7 @@ export function resolveUrlAsDest (url, getProxyUrlMeth) {
 
 export function formatUrl (parsedUrl) {
     // NOTE: the URL is relative.
-    if (!parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
+    if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost;
 
     var url = parsedUrl.protocol || '';
@@ -308,7 +306,7 @@ export function isSpecialPage (url) {
 export function isRelativeUrl (url) {
     var parsedUrl = parseUrl(url);
 
-    return !parsedUrl.host;
+    return parsedUrl.protocol !== 'file:' && !parsedUrl.host;
 }
 
 function isValidPort (port) {
@@ -320,8 +318,5 @@ function isValidPort (port) {
 export function isValidUrl (url) {
     var parsedUrl = parseUrl(url);
 
-    if (!parsedUrl.hostname || parsedUrl.port && !isValidPort(parsedUrl.port))
-        return false;
-
-    return true;
+    return parsedUrl.protocol === 'file:' || parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
 }
