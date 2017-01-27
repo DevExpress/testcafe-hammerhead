@@ -552,7 +552,8 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         // NOTE: recalculate `formaction` attribute value if it placed in the dom
-        if (el.formAction && (domUtils.isInputElement(el) || domUtils.isButtonElement(el)) && el.form)
+        if ((domUtils.isInputElement(el) || domUtils.isButtonElement(el)) && el.form &&
+            nativeMethods.hasAttribute.call(el, 'formaction'))
             el.setAttribute('formaction', el.getAttribute('formaction'));
 
         if (domUtils.isBodyElement(el))

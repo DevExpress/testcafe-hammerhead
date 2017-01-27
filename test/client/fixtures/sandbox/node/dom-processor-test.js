@@ -781,3 +781,14 @@ asyncTest("should reprocess tags that doesn't processed on server side (GH-838)"
         });
     document.body.appendChild(iframe);
 });
+
+test('the `formaction` attribute should not be overridden if it is missed (GH-1021)', function () {
+    var form  = document.createElement('form');
+    var input = document.createElement('input');
+
+    form.action = 'http://domain.com/path/';
+    form.appendChild(input);
+
+    strictEqual(nativeMethods.getAttribute.call(input, 'formaction'), null);
+    strictEqual(nativeMethods.getAttribute.call(input, domProcessor.getStoredAttrName('formaction')), null);
+});
