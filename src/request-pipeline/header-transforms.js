@@ -1,4 +1,5 @@
 import XHR_HEADERS from './xhr/headers';
+import AUTHORIZATION from './xhr/authorization';
 import * as urlUtils from '../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 
@@ -13,6 +14,9 @@ function isCrossDomainXhrWithoutCredentials (ctx) {
 }
 
 function transformAuthorizationHeader (src, ctx) {
+    if (src.indexOf(AUTHORIZATION.valuePrefix) !== -1)
+        return src.replace(AUTHORIZATION.valuePrefix, '');
+
     return isCrossDomainXhrWithoutCredentials(ctx) ? void 0 : src;
 }
 
@@ -41,7 +45,7 @@ function transformCookie (src, ctx) {
 }
 
 // Request headers
-var requestTransforms = {
+var requestTransforms = Object.assign({
     'host':                                (src, ctx) => ctx.dest.host,
     'referer':                             (src, ctx) => ctx.dest.referer || void 0,
     'origin':                              (src, ctx) => ctx.dest.reqOrigin || src,
@@ -51,12 +55,12 @@ var requestTransforms = {
     [XHR_HEADERS.corsSupported]:           skip,
     [XHR_HEADERS.withCredentials]:         skip,
     [XHR_HEADERS.origin]:                  skip,
-    [XHR_HEADERS.fetchRequestCredentials]: skip,
-    'authorization':                       transformAuthorizationHeader,
-    'authentication-info':                 transformAuthorizationHeader,
-    'proxy-authenticate':                  transformAuthorizationHeader,
-    'proxy-authorization':                 transformAuthorizationHeader
-};
+    [XHR_HEADERS.fetchRequestCredentials]: skip
+}, AUTHORIZATION.headers.reduce((obj, header) => {
+    obj[header] = transformAuthorizationHeader;
+
+    return obj;
+}, {}));
 
 var requestForced = {
     'cookie': (src, ctx) => transformCookie(ctx.session.cookies.getHeader(ctx.dest.url) || void 0, ctx),

@@ -1,6 +1,7 @@
-var XhrSandbox  = hammerhead.get('./sandbox/xhr');
-var XHR_HEADERS = hammerhead.get('./../request-pipeline/xhr/headers');
-var settings    = hammerhead.get('./settings');
+var XhrSandbox    = hammerhead.get('./sandbox/xhr');
+var XHR_HEADERS   = hammerhead.get('./../request-pipeline/xhr/headers');
+var AUTHORIZATION = hammerhead.get('./../request-pipeline/xhr/authorization');
+var settings      = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
@@ -159,6 +160,29 @@ asyncTest('set cookie from a header of the XMLHttpRequest response (GH-905)', fu
             strictEqual(xhr.getAllResponseHeaders().indexOf('hello=world'), -1);
 
             settings.get().cookie = '';
+
+            start();
+        }
+    });
+    xhr.send();
+});
+
+asyncTest('authorization headers by client should be processed (GH-1016)', function () {
+    var xhr = new XMLHttpRequest();
+
+    xhr.open('GET', '/echo-request-headers/', true);
+    xhr.setRequestHeader('Authorization', '123');
+    xhr.setRequestHeader('authentication-info', '123');
+    xhr.setRequestHeader('x-header1', '456');
+    xhr.setRequestHeader('x-header2', '789');
+    xhr.addEventListener('readystatechange', function () {
+        if (this.readyState === this.DONE) {
+            var headers = JSON.parse(this.responseText);
+
+            strictEqual(headers['authorization'], AUTHORIZATION.valuePrefix + '123');
+            strictEqual(headers['authentication-info'], AUTHORIZATION.valuePrefix + '123');
+            strictEqual(headers['x-header1'], '456');
+            strictEqual(headers['x-header2'], '789');
 
             start();
         }
