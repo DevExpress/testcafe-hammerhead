@@ -104,7 +104,8 @@ export default class Selection {
     }
 
     static _needChangeInputType (el) {
-        return domUtils.isInputElement(el) && browserUtils.isWebKit && /^(number|email)$/.test(el.type);
+        return (browserUtils.isWebKit || browserUtils.isFirefox && browserUtils.version > 50)
+               && domUtils.isInputElement(el) && /^(number|email)$/.test(el.type);
     }
 
     setSelection (el, start, end, direction) {
