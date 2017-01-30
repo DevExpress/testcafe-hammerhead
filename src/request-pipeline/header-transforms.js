@@ -118,6 +118,18 @@ var responseTransforms = {
         var isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
 
         return ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
+    },
+
+    'x-frame-options': (src, ctx) => {
+        if (src.indexOf('ALLOW-FROM') === -1)
+            return src;
+
+        src = src.replace('ALLOW-FROM', '').trim();
+
+        var isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
+        var proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
+
+        return 'ALLOW-FROM ' + proxiedUrl;
     }
 };
 

@@ -254,6 +254,13 @@ describe('Proxy', function () {
             res.end('');
         });
 
+        app.get('/x-frame-options/:value', function (req, res) {
+            var value = req.params.value;
+
+            res.setHeader('x-frame-options', value);
+            res.end('42');
+        });
+
         destServer = app.listen(2000);
 
 
@@ -1623,6 +1630,71 @@ describe('Proxy', function () {
 
                 done();
             });
+        });
+
+        it('Should procees "x-frame-options" header (GH-1017)', function () {
+            var getIframeProxyUrl            = function (url) {
+                return urlUtils.getProxyUrl(url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                    resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
+                });
+            };
+            var getCrossDomainIframeProxyUrl = function (url) {
+                return urlUtils.getProxyUrl(url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1837,
+                    sessionId:     session.id,
+                    resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
+                });
+            };
+
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            var testCases = [
+                {
+                    url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/DENY', session),
+                    expectedHeaderValue: 'DENY'
+                },
+                {
+                    url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/SAMEORIGIN', session),
+                    expectedHeaderValue: 'SAMEORIGIN'
+                },
+                {
+                    url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20https%3A%2F%2Fexample.com', session),
+                    expectedHeaderValue: 'ALLOW-FROM ' + proxy.openSession('https://example.com', session)
+                },
+                {
+                    url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20http%3A%2F%2F127.0.0.1%3A2000%2Fpage', session),
+                    expectedHeaderValue: 'ALLOW-FROM ' + proxy.openSession('http://127.0.0.1:2000/page', session)
+                },
+                {
+                    url:                 getIframeProxyUrl('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20https%3A%2F%2Fexample.com'),
+                    expectedHeaderValue: 'ALLOW-FROM ' + getCrossDomainIframeProxyUrl('https://example.com')
+                },
+                {
+                    url:                 getIframeProxyUrl('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20http%3A%2F%2F127.0.0.1%3A2000'),
+                    expectedHeaderValue: 'ALLOW-FROM ' + getIframeProxyUrl('http://127.0.0.1:2000')
+                }
+            ];
+
+
+            var testRequest = function (testCase) {
+                return new Promise(function (resolve) {
+                    var options = {
+                        url: testCase.url
+                    };
+
+                    request(options, function (err, req) {
+                        expect(req.headers['x-frame-options']).eql(testCase.expectedHeaderValue);
+
+                        resolve();
+                    });
+                });
+            };
+
+            return Promise.all(testCases.map(testRequest));
         });
     });
 });
