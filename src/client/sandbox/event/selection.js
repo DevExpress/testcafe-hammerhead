@@ -3,6 +3,7 @@ import Listeners from './listeners';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 
 export default class Selection {
     constructor (eventSandbox) {
@@ -26,12 +27,22 @@ export default class Selection {
             var isElementActive    = false;
 
             var selectionSetter = () => {
-                var changeType = Selection._needChangeInputType(el);
-                var savedType  = el.type;
+                var changeType        = Selection._needChangeInputType(el);
+                var useInternalSelection = Selection._needForInternalSelection();
+                var savedType         = el.type;
                 var res;
 
-                if (changeType)
+                if (changeType) {
                     el.type = 'text';
+
+                    if (useInternalSelection) {
+                        el[INTERNAL_PROPS.selectionProperty] = {
+                            selectionStart:     selectionStart,
+                            selectionEnd:       selectionEnd,
+                            selectionDirection: selection
+                        };
+                    }
+                }
 
                 // NOTE: In MSEdge, an error occurs  when the setSelectionRange method is called for an input with
                 // 'display = none' and selectionStart !== selectionEnd in other IEs, the error doesn't occur, but
@@ -44,12 +55,19 @@ export default class Selection {
                 }
 
                 if (changeType) {
+                    if (useInternalSelection) {
+                        el[INTERNAL_PROPS.selectionProperty].selectionStart     = el.selectionStart;
+                        el[INTERNAL_PROPS.selectionProperty].selectionEnd       = el.selectionEnd;
+                        el[INTERNAL_PROPS.selectionProperty].selectionDirection = el.selectionDirection;
+                    }
+
                     el.type = savedType;
                     // HACK: (A problem with input type = 'number' after Chrome is updated to v.33.0.1750.117 and
                     // in Firefox 29.0.  T101195) To set right selection: if the input type is 'number' or 'email',
                     // we need to change the type to text, and then restore it after setting selection.(B254340).
                     // However, the type is changed asynchronously in this case. To force type changing,we need to
                     // call blur, Then raise the focus event to make the element active.
+
                     if (isElementActive) {
                         selection.focusBlurSandbox.blur(el, null, true);
                         selection.focusBlurSandbox.focus(el, null, true);
@@ -104,7 +122,15 @@ export default class Selection {
     }
 
     static _needChangeInputType (el) {
-        return domUtils.isInputElement(el) && browserUtils.isWebKit && /^(number|email)$/.test(el.type);
+        return (browserUtils.isWebKit || Selection._needForInternalSelection())
+               && domUtils.isInputElement(el) && /^(number|email)$/.test(el.type);
+    }
+
+    // NOTE: input elements in Firefox since version 51 are needing
+    // for alternative selection properties, because original are
+    // clearing while input type changes to url, email etc
+    static _needForInternalSelection () {
+        return browserUtils.isFirefox && browserUtils.version > 50;
     }
 
     setSelection (el, start, end, direction) {
@@ -117,33 +143,46 @@ export default class Selection {
     }
 
     getSelection (el) {
-        var changeType      = Selection._needChangeInputType(el);
-        var activeElement   = domUtils.getActiveElement(domUtils.findDocument(el));
-        var isElementActive = activeElement === el;
-        var savedType       = el.type;
-        var selection       = null;
+        var changeType        = Selection._needChangeInputType(el);
+        var useInternalSelection = Selection._needForInternalSelection();
+        var activeElement     = domUtils.getActiveElement(domUtils.findDocument(el));
+        var isElementActive   = activeElement === el;
+        var savedType         = el.type;
+        var selection         = null;
 
         // HACK: (A problem with input type = ‘number’ after Chrome is updated to v.33.0.1750.117 and in
         // Firefox 29.0. T101195) To get selection, if the input type is  'number' or 'email', we need to change
         // the type to text (B254340). However, the type is changed asynchronously in this case. To force type changing,
         // we need to call blur.Then call focus to make the element active.
         if (changeType) {
-            if (isElementActive)
+            if (!useInternalSelection && isElementActive)
                 this.focusBlurSandbox.blur(el, null, true);
 
             el.type = 'text';
         }
 
-        selection = {
-            start:     el.selectionStart,
-            end:       el.selectionEnd,
-            direction: el.selectionDirection
-        };
+        if (useInternalSelection && changeType && el[INTERNAL_PROPS.selectionProperty]) {
+            selection = {
+                start:     el[INTERNAL_PROPS.selectionProperty].selectionStart,
+                end:       el[INTERNAL_PROPS.selectionProperty].selectionEnd,
+                direction: el[INTERNAL_PROPS.selectionProperty].selectionDirection
+            };
+        }
+        else {
+            selection = {
+                start:     el.selectionStart,
+                end:       el.selectionEnd,
+                direction: el.selectionDirection
+            };
+        }
+
 
         if (changeType) {
             el.type = savedType;
 
-            if (isElementActive)
+            // NOTE: In Firefox since version 51 element lost focus if we try to get its
+            // selection properties after changing its type and browser windows isn't in focus
+            if (isElementActive || domUtils.getActiveElement(domUtils.findDocument(el)) !== el)
                 this.focusBlurSandbox.focus(el, null, true);
         }
 
