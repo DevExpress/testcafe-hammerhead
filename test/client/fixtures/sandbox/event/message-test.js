@@ -343,6 +343,25 @@ asyncTest('timeout (added to DOM iframe)', function () {
 
 module('regression');
 
+asyncTest('send message from iframe with "about:blank" src (GH-1026)', function () {
+    var iframe = document.createElement('iframe');
+    var src    = 'javascript:\'<html><body><script>window.parent.postMessage("gh1026", "*")</sc' +
+                 'ript></body></html>\'';
+
+    iframe.id = 'test-' + Date.now;
+    setProperty(iframe, 'src', src);
+    setProperty(window, 'onmessage', function (e) {
+        if (e.data === 'gh1026') {
+            iframe.parentNode.removeChild(iframe);
+            window.onmessage = null;
+            ok(true);
+            start();
+        }
+    });
+
+    document.body.appendChild(iframe);
+});
+
 asyncTest('service messages from embedded iframe (GH-803)', function () {
     var iframe = document.createElement('iframe');
 
