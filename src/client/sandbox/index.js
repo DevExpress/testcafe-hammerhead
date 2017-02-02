@@ -17,7 +17,8 @@ import UploadSandbox from './upload';
 import XhrSandbox from './xhr';
 import FetchSandbox from './fetch';
 import StorageSandbox from './storages';
-import { isIE, isWebKit } from '../utils/browser';
+import ElectronSandbox from './electron';
+import { isIE, isWebKit, isElectron } from '../utils/browser';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
@@ -48,6 +49,9 @@ export default class Sandbox extends SandboxBase {
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
+
+        if (isElectron)
+            this.electron = new ElectronSandbox();
 
         this.windowStorage       = windowStorage;
     }
@@ -192,5 +196,8 @@ export default class Sandbox extends SandboxBase {
         this.node.attach(window);
         this.upload.attach(window);
         this.cookie.attach(window);
+
+        if (this.electron)
+            this.electron.attach(window);
     }
 }

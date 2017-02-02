@@ -23,6 +23,14 @@ export default {
             if (parent.type === Syntax.CallExpression && parent.callee === node)
                 return false;
 
+            // Skip: class X { eval () {} }
+            if (parent.type === Syntax.MethodDefinition)
+                return false;
+
+            // Skip: class eval { x () {} }
+            if (parent.type === Syntax.ClassDeclaration)
+                return false;
+
             // Skip: window.eval, eval.call
             if (parent.type === Syntax.MemberExpression)
                 return false;
