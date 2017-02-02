@@ -27,22 +27,13 @@ export default class Selection {
             var isElementActive    = false;
 
             var selectionSetter = () => {
-                var changeType        = Selection._needChangeInputType(el);
+                var changeType           = Selection._needChangeInputType(el);
                 var useInternalSelection = Selection._needForInternalSelection();
-                var savedType         = el.type;
+                var savedType            = el.type;
                 var res;
 
-                if (changeType) {
+                if (changeType)
                     el.type = 'text';
-
-                    if (useInternalSelection) {
-                        el[INTERNAL_PROPS.selectionProperty] = {
-                            selectionStart:     selectionStart,
-                            selectionEnd:       selectionEnd,
-                            selectionDirection: selection
-                        };
-                    }
-                }
 
                 // NOTE: In MSEdge, an error occurs  when the setSelectionRange method is called for an input with
                 // 'display = none' and selectionStart !== selectionEnd in other IEs, the error doesn't occur, but
@@ -56,9 +47,11 @@ export default class Selection {
 
                 if (changeType) {
                     if (useInternalSelection) {
-                        el[INTERNAL_PROPS.selectionProperty].selectionStart     = el.selectionStart;
-                        el[INTERNAL_PROPS.selectionProperty].selectionEnd       = el.selectionEnd;
-                        el[INTERNAL_PROPS.selectionProperty].selectionDirection = el.selectionDirection;
+                        el[INTERNAL_PROPS.selectionProperty] = {
+                            selectionStart:     el.selectionStart,
+                            selectionEnd:       el.selectionEnd,
+                            selectionDirection: el.selectionDirection
+                        };
                     }
 
                     el.type = savedType;
@@ -126,9 +119,8 @@ export default class Selection {
                && domUtils.isInputElement(el) && /^(number|email)$/.test(el.type);
     }
 
-    // NOTE: input elements in Firefox since version 51 are needing
-    // for alternative selection properties, because original are
-    // clearing while input type changes to url, email etc
+    // NOTE: We need to store the state of element's selection
+    // because it is cleared when element's type is changed
     static _needForInternalSelection () {
         return browserUtils.isFirefox && browserUtils.version > 50;
     }
@@ -143,12 +135,12 @@ export default class Selection {
     }
 
     getSelection (el) {
-        var changeType        = Selection._needChangeInputType(el);
+        var changeType           = Selection._needChangeInputType(el);
         var useInternalSelection = Selection._needForInternalSelection();
-        var activeElement     = domUtils.getActiveElement(domUtils.findDocument(el));
-        var isElementActive   = activeElement === el;
-        var savedType         = el.type;
-        var selection         = null;
+        var activeElement        = domUtils.getActiveElement(domUtils.findDocument(el));
+        var isElementActive      = activeElement === el;
+        var savedType            = el.type;
+        var selection            = null;
 
         // HACK: (A problem with input type = ‘number’ after Chrome is updated to v.33.0.1750.117 and in
         // Firefox 29.0. T101195) To get selection, if the input type is  'number' or 'email', we need to change
@@ -161,28 +153,18 @@ export default class Selection {
             el.type = 'text';
         }
 
-        if (useInternalSelection && changeType && el[INTERNAL_PROPS.selectionProperty]) {
-            selection = {
-                start:     el[INTERNAL_PROPS.selectionProperty].selectionStart,
-                end:       el[INTERNAL_PROPS.selectionProperty].selectionEnd,
-                direction: el[INTERNAL_PROPS.selectionProperty].selectionDirection
-            };
-        }
-        else {
-            selection = {
-                start:     el.selectionStart,
-                end:       el.selectionEnd,
-                direction: el.selectionDirection
-            };
-        }
+        var internalSelection = el[INTERNAL_PROPS.selectionProperty];
 
+        selection = {
+            start:     internalSelection ? internalSelection.selectionStart : el.selectionStart,
+            end:       internalSelection ? internalSelection.selectionEnd : el.selectionEnd,
+            direction: internalSelection ? internalSelection.selectionDirection : el.selectionDirection
+        };
 
         if (changeType) {
             el.type = savedType;
 
-            // NOTE: In Firefox since version 51 element lost focus if we try to get its
-            // selection properties after changing its type and browser windows isn't in focus
-            if (isElementActive || domUtils.getActiveElement(domUtils.findDocument(el)) !== el)
+            if (isElementActive)
                 this.focusBlurSandbox.focus(el, null, true);
         }
 
