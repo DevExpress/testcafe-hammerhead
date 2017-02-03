@@ -5,6 +5,8 @@ import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 
+const browserResetInputSelection = browserUtils.isFirefox && browserUtils.version > 50;
+
 export default class Selection {
     constructor (eventSandbox) {
         this.focusBlurSandbox = eventSandbox.focusBlur;
@@ -28,7 +30,7 @@ export default class Selection {
 
             var selectionSetter = () => {
                 var changeType           = Selection._needChangeInputType(el);
-                var useInternalSelection = Selection._needForInternalSelection();
+                var useInternalSelection = Selection._needForInternalSelection(el);
                 var savedType            = el.type;
                 var res;
 
@@ -45,15 +47,15 @@ export default class Selection {
                     res = fn.call(el, 0, 0, selectionDirection);
                 }
 
-                if (changeType) {
-                    if (useInternalSelection) {
-                        el[INTERNAL_PROPS.selectionProperty] = {
-                            selectionStart:     el.selectionStart,
-                            selectionEnd:       el.selectionEnd,
-                            selectionDirection: el.selectionDirection
-                        };
-                    }
+                if (useInternalSelection) {
+                    el[INTERNAL_PROPS.selectionProperty] = {
+                        selectionStart:     el.selectionStart,
+                        selectionEnd:       el.selectionEnd,
+                        selectionDirection: el.selectionDirection
+                    };
+                }
 
+                if (changeType) {
                     el.type = savedType;
                     // HACK: (A problem with input type = 'number' after Chrome is updated to v.33.0.1750.117 and
                     // in Firefox 29.0.  T101195) To set right selection: if the input type is 'number' or 'email',
@@ -114,15 +116,18 @@ export default class Selection {
         };
     }
 
+    static _isNumberOrEmailInput (el) {
+        return domUtils.isInputElement(el) && /^(number|email)$/.test(el.type);
+    }
+
     static _needChangeInputType (el) {
-        return (browserUtils.isWebKit || Selection._needForInternalSelection())
-               && domUtils.isInputElement(el) && /^(number|email)$/.test(el.type);
+        return (browserUtils.isWebKit || browserResetInputSelection) && Selection._isNumberOrEmailInput(el);
     }
 
     // NOTE: We need to store the state of element's selection
     // because it is cleared when element's type is changed
-    static _needForInternalSelection () {
-        return browserUtils.isFirefox && browserUtils.version > 50;
+    static _needForInternalSelection (el) {
+        return Selection._isNumberOrEmailInput(el) && browserResetInputSelection;
     }
 
     setSelection (el, start, end, direction) {
@@ -135,19 +140,21 @@ export default class Selection {
     }
 
     getSelection (el) {
-        var changeType           = Selection._needChangeInputType(el);
-        var useInternalSelection = Selection._needForInternalSelection();
-        var activeElement        = domUtils.getActiveElement(domUtils.findDocument(el));
-        var isElementActive      = activeElement === el;
-        var savedType            = el.type;
-        var selection            = null;
+        var changeType      = Selection._needChangeInputType(el);
+        var activeElement   = domUtils.getActiveElement(domUtils.findDocument(el));
+        var isElementActive = activeElement === el;
+        var savedType       = el.type;
+        var selection       = null;
 
         // HACK: (A problem with input type = ‘number’ after Chrome is updated to v.33.0.1750.117 and in
         // Firefox 29.0. T101195) To get selection, if the input type is  'number' or 'email', we need to change
         // the type to text (B254340). However, the type is changed asynchronously in this case. To force type changing,
         // we need to call blur.Then call focus to make the element active.
         if (changeType) {
-            if (!useInternalSelection && isElementActive)
+            // NOTE: We shouldn't call blur while changing element's type in Firefox, cause
+            // sometimes it can't be focused after. The reason of this behavior is hard to
+            // be determinated, this was found during execution testcafe client tests.
+            if (!browserResetInputSelection && isElementActive)
                 this.focusBlurSandbox.blur(el, null, true);
 
             el.type = 'text';
