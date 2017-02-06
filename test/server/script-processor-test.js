@@ -466,6 +466,14 @@ describe('Script processor', function () {
             {
                 src:      'window.eval.property',
                 expected: 'window.eval.property'
+            },
+            {
+                src:      'class X { eval () {} }',
+                expected: 'class X { eval () {} }'
+            },
+            {
+                src:      'class eval { x () {} }',
+                expected: 'class eval { x () {} }'
             }
         ]);
     });
@@ -558,6 +566,14 @@ describe('Script processor', function () {
             {
                 src:      'window.postMessage.property',
                 expected: 'window.postMessage.property'
+            },
+            {
+                src:      'class X { postMessage () {} }',
+                expected: 'class X { postMessage () {} }'
+            },
+            {
+                src:      'class postMessage { x () {} }',
+                expected: 'class postMessage { x () {} }'
             }
         ]);
     });

@@ -23,6 +23,14 @@ export default {
             if (parent.type === Syntax.MemberExpression)
                 return false;
 
+            // Skip: class X { postMessage () {} }
+            if (parent.type === Syntax.MethodDefinition)
+                return false;
+
+            // Skip: class postMessage { x () {} }
+            if (parent.type === Syntax.ClassDeclaration)
+                return false;
+
             // Skip: function (postMessage) { ... } || function func(postMessage) { ... }
             if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
                 parent.params.indexOf(node) !== -1)

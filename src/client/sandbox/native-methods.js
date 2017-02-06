@@ -188,6 +188,19 @@ class NativeMethods {
         this.EventSource      = win.EventSource;
     }
 
+    refreshElectronMeths (vmModule) {
+        if (this.createScript && this.createScript.toString() !== vmModule.createScript.toString())
+            return false;
+
+        this.createScript      = vmModule.createScript;
+        this.runInDebugContext = vmModule.runInDebugContext;
+        this.runInContext      = vmModule.runInContext;
+        this.runInNewContext   = vmModule.runInNewContext;
+        this.runInThisContext  = vmModule.runInThisContext;
+
+        return true;
+    }
+
     restoreDocumentMeths (document) {
         document.createDocumentFragment = this.createDocumentFragment;
         document.createElement          = this.createElement;
