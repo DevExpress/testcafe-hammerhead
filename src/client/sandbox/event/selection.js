@@ -3,6 +3,9 @@ import Listeners from './listeners';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
+
+const browserResetInputSelection = browserUtils.isFirefox && browserUtils.version > 50;
 
 export default class Selection {
     constructor (eventSandbox) {
@@ -26,8 +29,9 @@ export default class Selection {
             var isElementActive    = false;
 
             var selectionSetter = () => {
-                var changeType = Selection._needChangeInputType(el);
-                var savedType  = el.type;
+                var changeType           = Selection._needChangeInputType(el);
+                var useInternalSelection = Selection._needForInternalSelection(el);
+                var savedType            = el.type;
                 var res;
 
                 if (changeType)
@@ -43,6 +47,14 @@ export default class Selection {
                     res = fn.call(el, 0, 0, selectionDirection);
                 }
 
+                if (useInternalSelection) {
+                    el[INTERNAL_PROPS.selectionProperty] = {
+                        selectionStart:     el.selectionStart,
+                        selectionEnd:       el.selectionEnd,
+                        selectionDirection: el.selectionDirection
+                    };
+                }
+
                 if (changeType) {
                     el.type = savedType;
                     // HACK: (A problem with input type = 'number' after Chrome is updated to v.33.0.1750.117 and
@@ -50,6 +62,7 @@ export default class Selection {
                     // we need to change the type to text, and then restore it after setting selection.(B254340).
                     // However, the type is changed asynchronously in this case. To force type changing,we need to
                     // call blur, Then raise the focus event to make the element active.
+
                     if (isElementActive) {
                         selection.focusBlurSandbox.blur(el, null, true);
                         selection.focusBlurSandbox.focus(el, null, true);
@@ -103,8 +116,18 @@ export default class Selection {
         };
     }
 
+    static _isNumberOrEmailInput (el) {
+        return domUtils.isInputElement(el) && /^(number|email)$/.test(el.type);
+    }
+
     static _needChangeInputType (el) {
-        return domUtils.isInputElement(el) && browserUtils.isWebKit && /^(number|email)$/.test(el.type);
+        return (browserUtils.isWebKit || browserResetInputSelection) && Selection._isNumberOrEmailInput(el);
+    }
+
+    // NOTE: We need to store the state of element's selection
+    // because it is cleared when element's type is changed
+    static _needForInternalSelection (el) {
+        return Selection._isNumberOrEmailInput(el) && browserResetInputSelection;
     }
 
     setSelection (el, start, end, direction) {
@@ -128,16 +151,21 @@ export default class Selection {
         // the type to text (B254340). However, the type is changed asynchronously in this case. To force type changing,
         // we need to call blur.Then call focus to make the element active.
         if (changeType) {
-            if (isElementActive)
+            // NOTE: We shouldn't call blur while changing element's type in Firefox, cause
+            // sometimes it can't be focused after. The reason of this behavior is hard to
+            // be determinated, this was found during execution testcafe client tests.
+            if (!browserResetInputSelection && isElementActive)
                 this.focusBlurSandbox.blur(el, null, true);
 
             el.type = 'text';
         }
 
+        var internalSelection = el[INTERNAL_PROPS.selectionProperty];
+
         selection = {
-            start:     el.selectionStart,
-            end:       el.selectionEnd,
-            direction: el.selectionDirection
+            start:     internalSelection ? internalSelection.selectionStart : el.selectionStart,
+            end:       internalSelection ? internalSelection.selectionEnd : el.selectionEnd,
+            direction: internalSelection ? internalSelection.selectionDirection : el.selectionDirection
         };
 
         if (changeType) {

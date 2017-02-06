@@ -9,5 +9,6 @@ export default {
     whichPropertyWrapper:   'hammerhead|which-property-wrapper',
     documentCharset:        'hammerhead|document-charset',
     iframeNativeMethods:    'hammerhead|iframe-native-methods',
-    hammerheadPropertyName: '%hammerhead%'
+    hammerheadPropertyName: '%hammerhead%',
+    selectionProperty:      'hammerhead|selection-property'
 };
