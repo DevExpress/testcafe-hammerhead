@@ -6,7 +6,9 @@ var isIE            = browserUtils.isIE;
 var isMobileBrowser = browserUtils.isIOS || browserUtils.isAndroid;
 
 var createTestInput = function () {
-    var input = $('<input type="email">').appendTo(document.body)[0];
+    document.body.innerHTML = '<input type="email">';
+
+    var input = document.querySelector('input');
 
     input.value = inputTestValue;
 
@@ -26,11 +28,11 @@ test('Set and get selection on input with "email" type', function () {
 
     var selection = selectionSandbox.getSelection(input);
 
-    equal(selection.start, testSelection.start);
-    equal(selection.end, testSelection.end);
+    strictEqual(selection.start, testSelection.start);
+    strictEqual(selection.end, testSelection.end);
 
     if (!isIE)
-        equal(selection.direction, testSelection.direction);
+        strictEqual(selection.direction, testSelection.direction);
 
     document.body.removeChild(input);
 });
@@ -39,13 +41,13 @@ test('Get selection on input with "email" type', function () {
     var input     = createTestInput();
     var selection = selectionSandbox.getSelection(input);
 
-    equal(selection.start, browserUtils.isFirefox && browserUtils.version < 51 || isIE ? 0 : inputTestValue.length);
-    equal(selection.end, browserUtils.isFirefox && browserUtils.version < 51 || isIE ? 0 : inputTestValue.length);
+    strictEqual(selection.start, browserUtils.isFirefox && browserUtils.version < 51 || isIE ? 0 : inputTestValue.length);
+    strictEqual(selection.end, browserUtils.isFirefox && browserUtils.version < 51 || isIE ? 0 : inputTestValue.length);
 
     if (isMobileBrowser || browserUtils.isSafari || browserUtils.isChrome && browserUtils.isMacPlatform)
-        equal(selection.direction, 'none');
+        strictEqual(selection.direction, 'none');
     else if (!isIE)
-        equal(selection.direction, 'forward');
+        strictEqual(selection.direction, 'forward');
 
     document.body.removeChild(input);
 });
