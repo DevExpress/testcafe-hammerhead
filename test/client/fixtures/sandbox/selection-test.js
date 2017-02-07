@@ -4,11 +4,14 @@ var browserUtils     = hammerhead.utils.browser;
 var inputTestValue  = 'test@host.net';
 var isIE            = browserUtils.isIE;
 var isMobileBrowser = browserUtils.isIOS || browserUtils.isAndroid;
+var browserVersion  = browserUtils.version;
 
 var createTestInput = function () {
-    document.body.innerHTML = '<input type="email">';
+    var input = document.createElement('input');
 
-    var input = document.querySelector('input');
+    input.setAttribute('type', 'email');
+
+    document.body.appendChild(input);
 
     input.value = inputTestValue;
 
@@ -41,10 +44,10 @@ test('Get selection on input with "email" type', function () {
     var input     = createTestInput();
     var selection = selectionSandbox.getSelection(input);
 
-    strictEqual(selection.start, browserUtils.isFirefox && browserUtils.version < 51 || isIE ? 0 : inputTestValue.length);
-    strictEqual(selection.end, browserUtils.isFirefox && browserUtils.version < 51 || isIE ? 0 : inputTestValue.length);
+    strictEqual(selection.start, browserUtils.isFirefox && browserVersion < 51 || isIE ? 0 : inputTestValue.length);
+    strictEqual(selection.end, browserUtils.isFirefox && browserVersion < 51 || isIE ? 0 : inputTestValue.length);
 
-    if (isMobileBrowser || browserUtils.isSafari || browserUtils.isChrome && browserUtils.isMacPlatform)
+    if (isMobileBrowser || browserUtils.isSafari || browserUtils.isChrome && (browserUtils.isMacPlatform || browserVersion < 54))
         strictEqual(selection.direction, 'none');
     else if (!isIE)
         strictEqual(selection.direction, 'forward');
