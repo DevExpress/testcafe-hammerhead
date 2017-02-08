@@ -1,5 +1,7 @@
 import Agent from 'yakaa';
 import LRUCache from 'lru-cache';
+import HttpProxyAgent from 'http-proxy-agent';
+import HttpsProxyAgent from 'https-proxy-agent';
 
 // Const
 const SSL3_HOST_CACHE_SIZE = 1000;
@@ -56,6 +58,17 @@ function isSSLProtocolErr (err) {
 
 // API
 export function assign (reqOpts) {
+    var proxy = reqOpts.proxy;
+
+    if (proxy) {
+        if (reqOpts.protocol === 'http:')
+            reqOpts.agent = new HttpProxyAgent(proxy);
+        else
+            reqOpts.agent = new HttpsProxyAgent(proxy);
+
+        return;
+    }
+
     var type = void 0;
 
     if (reqOpts.protocol === 'http:')

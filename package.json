@@ -20,6 +20,8 @@
     "crypto-md5": "^1.0.0",
     "css": "2.2.1",
     "dedent": "0.4.0",
+    "http-proxy-agent": "1.0.0",
+    "https-proxy-agent": "1.0.0",
     "iconv-lite": "0.4.11",
     "lodash": "4.16.4",
     "lru-cache": "2.6.3",

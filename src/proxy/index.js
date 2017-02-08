@@ -130,9 +130,12 @@ export default class Proxy extends Router {
         this._closeSockets();
     }
 
-    openSession (url, session) {
+    openSession (url, session, externalProxySettings) {
         session.proxy                 = this;
         this.openSessions[session.id] = session;
+
+        if (externalProxySettings)
+            session.setExternalProxySettings(externalProxySettings.url, externalProxySettings.ignoreHosts);
 
         return urlUtils.getProxyUrl(url, {
             proxyHostname: this.server1Info.hostname,
