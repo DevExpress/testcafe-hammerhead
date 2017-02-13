@@ -29,7 +29,7 @@ export default class XhrSandbox extends SandboxBase {
     }
 
     static createNativeXHR () {
-        var xhr = new window.XMLHttpRequest();
+        var xhr = new nativeMethods.XMLHttpRequest();
 
         xhr.open                = nativeMethods.xhrOpen;
         xhr.abort               = nativeMethods.xhrAbort;
