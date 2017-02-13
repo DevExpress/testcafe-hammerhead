@@ -34,6 +34,16 @@ test('redirect requests to proxy', function () {
     jQuery.ajaxSetup({ async: true });
 });
 
+test('createNativeXHR', function () {
+    window.XMLHttpRequest = function () {};
+
+    var xhr = XhrSandbox.createNativeXHR();
+
+    ok(xhr instanceof nativeMethods.XMLHttpRequest);
+
+    window.XMLHttpRequest = nativeMethods.XMLHttpRequest;
+});
+
 module('regression');
 
 asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
