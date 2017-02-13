@@ -12,7 +12,7 @@ export default class ElectronSandbox extends SandboxBase {
         };
     }
 
-    static _fixModuleName (window) {
+    static _overrideElectronModulePaths (window) {
         // NOTE: Need this to avoid Webmake require
         /* eslint-disable no-eval */
         var electronRequire = eval('require');
@@ -54,7 +54,7 @@ export default class ElectronSandbox extends SandboxBase {
             vm.runInNewContext   = ElectronSandbox._createFnWrapper(vm, nativeMethods.runInNewContext);
             vm.runInThisContext  = ElectronSandbox._createFnWrapper(vm, nativeMethods.runInThisContext);
 
-            ElectronSandbox._fixModuleName(window);
+            ElectronSandbox._overrideElectronModulePaths(window);
         }
     }
 }
