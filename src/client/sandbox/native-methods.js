@@ -85,7 +85,10 @@ class NativeMethods {
     }
 
     refreshWindowMeths (win) {
-        win                                   = win || window;
+        win = win || window;
+
+        var winProto = win.constructor.prototype;
+
         // Dom
         this.eval                             = win.eval;
         this.formSubmit                       = win.HTMLFormElement.prototype.submit;
@@ -99,12 +102,12 @@ class NativeMethods {
         }
 
         this.windowDispatchEvent = win.dispatchEvent;
-        this.postMessage         = win.postMessage || Window.prototype.postMessage;
-        this.windowOpen          = win.open || Window.prototype.open;
-        this.setTimeout          = win.setTimeout || Window.prototype.setTimeout;
-        this.setInterval         = win.setInterval || Window.prototype.setInterval;
-        this.clearTimeout        = win.clearTimeout || Window.prototype.clearTimeout;
-        this.clearInterval       = win.clearInterval || Window.prototype.clearInterval;
+        this.postMessage         = win.postMessage || winProto.postMessage;
+        this.windowOpen          = win.open || winProto.open;
+        this.setTimeout          = win.setTimeout || winProto.setTimeout;
+        this.setInterval         = win.setInterval || winProto.setInterval;
+        this.clearTimeout        = win.clearTimeout || winProto.clearTimeout;
+        this.clearInterval       = win.clearInterval || winProto.clearInterval;
 
         if (win.navigator.registerProtocolHandler)
             this.registerProtocolHandler = win.navigator.registerProtocolHandler;
@@ -142,14 +145,14 @@ class NativeMethods {
         this.Headers = win.Headers;
 
         // Event
-        this.windowAddEventListener    = win.addEventListener || Window.prototype.addEventListener;
-        this.windowRemoveEventListener = win.removeEventListener || Window.prototype.removeEventListener;
-        this.WindowPointerEvent        = win.PointerEvent || Window.prototype.PointerEvent;
-        this.WindowMSPointerEvent      = win.MSPointerEvent || Window.prototype.MSPointerEvent;
-        this.WindowTouch               = win.Touch || Window.prototype.Touch;
-        this.WindowTouchEvent          = win.TouchEvent || Window.prototype.TouchEvent;
-        this.WindowKeyboardEvent       = win.KeyboardEvent || Window.prototype.KeyboardEvent;
-        this.WindowFocusEvent          = win.FocusEvent || Window.prototype.FocusEvent;
+        this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;
+        this.windowRemoveEventListener = win.removeEventListener || winProto.removeEventListener;
+        this.WindowPointerEvent        = win.PointerEvent || winProto.PointerEvent;
+        this.WindowMSPointerEvent      = win.MSPointerEvent || winProto.MSPointerEvent;
+        this.WindowTouch               = win.Touch || winProto.Touch;
+        this.WindowTouchEvent          = win.TouchEvent || winProto.TouchEvent;
+        this.WindowKeyboardEvent       = win.KeyboardEvent || winProto.KeyboardEvent;
+        this.WindowFocusEvent          = win.FocusEvent || winProto.FocusEvent;
 
         // Canvas
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
