@@ -10,6 +10,22 @@ var Session                     = require('../../lib/session');
 
 
 var proxyLogs = null;
+var sockets   = [];
+
+function startSocketsCollecting (server) {
+    server.on('connection', function (socket) {
+        sockets.push(socket);
+        socket.on('close', function () {
+            sockets.splice(sockets.indexOf(socket), 1);
+        });
+    });
+}
+
+function closeSockets () {
+    sockets.forEach(function (socket) {
+        socket.destroy();
+    });
+}
 
 function onRequest (req, res) {
     var options = urlLib.parse(req.url);
@@ -52,7 +68,9 @@ function onConnect (req, socketReq, head) {
     var socket = net.connect(parsedUrl.port, parsedUrl.hostname, function () {
         socket.write(head);
         socketReq.write('HTTP/' + req.httpVersion + ' 200 Connection established\r\n\r\n');
-    })
+    });
+
+    socket
         .on('data', function (chunk) {
             socketReq.write(chunk);
         })
@@ -64,15 +82,16 @@ function onConnect (req, socketReq, head) {
             socketReq.end();
         });
 
-    socketReq.on('data', function (chunk) {
-        socket.write(chunk);
-    });
-    socketReq.on('end', function () {
-        socket.end();
-    });
-    socketReq.on('error', function () {
-        socket.end();
-    });
+    socketReq
+        .on('data', function (chunk) {
+            socket.write(chunk);
+        })
+        .on('end', function () {
+            socket.end();
+        })
+        .on('error', function () {
+            socket.end();
+        });
 }
 
 describe('External proxy', function () {
@@ -113,6 +132,11 @@ describe('External proxy', function () {
         simpleHttpsProxy = createSelfSignedHttpsServer(onRequest)
             .on('connect', onConnect)
             .listen(2003);
+
+        startSocketsCollecting(httpServer);
+        startSocketsCollecting(httpsServer);
+        startSocketsCollecting(simpleHttpProxy);
+        startSocketsCollecting(simpleHttpsProxy);
     });
 
     beforeEach(function () {
@@ -129,6 +153,7 @@ describe('External proxy', function () {
         httpServer.close();
         httpsServer.close();
         proxy.close();
+        closeSockets();
     });
 
     it('Should set up a settings correctly', function () {
