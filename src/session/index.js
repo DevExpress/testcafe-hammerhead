@@ -2,6 +2,7 @@ import mustache from 'mustache';
 import shortId from 'shortid';
 import { readSync as read } from 'read-file-relative';
 import { EventEmitter } from 'events';
+import { parse as parseUrl } from 'url';
 import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
@@ -17,11 +18,12 @@ export default class Session extends EventEmitter {
 
         this.uploadStorage = new UploadStorage(uploadsRoot);
 
-        this.id            = Session._generateSessionId();
-        this.cookies       = new Cookies();
-        this.proxy         = null;
-        this.pageLoadCount = 0;
-        this.injectable    = {
+        this.id                    = Session._generateSessionId();
+        this.cookies               = new Cookies();
+        this.proxy                 = null;
+        this.externalProxySettings = null;
+        this.pageLoadCount         = 0;
+        this.injectable            = {
             scripts: ['/hammerhead.js'],
             styles:  []
         };
@@ -77,6 +79,43 @@ export default class Session extends EventEmitter {
         this.pageLoadCount++;
 
         return taskScript;
+    }
+
+    setExternalProxySettings (url, ignoreHosts) {
+        this.externalProxySettings = null;
+
+        if (typeof url !== 'string')
+            return;
+
+        url = url.replace(/^(https?:)?(\/\/)?/g, (match, protocol, slashes) => {
+            slashes  = slashes || !protocol ? '//' : '';
+            protocol = protocol || slashes && 'http:';
+
+            return protocol + slashes;
+        });
+
+        var parsedUrl = parseUrl(url);
+
+        if (!parsedUrl.host)
+            return;
+
+        var ignore = [];
+
+        if (ignoreHosts && Array.isArray(ignoreHosts)) {
+            for (var i = 0; i < ignoreHosts.length; i++) {
+                if (ignoreHosts[i] && typeof ignoreHosts[i] === 'string')
+                    ignore.push(ignoreHosts[i]);
+            }
+        }
+
+        this.externalProxySettings = {
+            protocol:    parsedUrl.protocol,
+            host:        parsedUrl.host,
+            hostname:    parsedUrl.hostname,
+            port:        parsedUrl.port,
+            auth:        parsedUrl.auth,
+            ignoreHosts: ignore
+        };
     }
 
     _getIframePayloadScript (/* iframeWithoutSrc */) {
