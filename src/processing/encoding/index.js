@@ -1,5 +1,4 @@
 import zlib from 'zlib';
-import brotli from 'brotli';
 import charsetEncoder from 'iconv-lite';
 import promisify from '../../utils/promisify';
 
@@ -35,7 +34,7 @@ export async function decodeContent (content, encoding, charset) {
         content = await inflateWithFallback(content);
 
     else if (encoding === BROTLI_CONTENT_ENCODING)
-        content = new Buffer(brotli.decompress(content));
+        content = new Buffer(require('brotli').decompress(content));
 
     charset.fromBOM(content);
 
@@ -52,7 +51,7 @@ export async function encodeContent (content, encoding, charset) {
         return deflate(content);
 
     if (encoding === BROTLI_CONTENT_ENCODING)
-        return new Buffer(brotli.compress(content));
+        return new Buffer(require('brotli').compress(content));
 
     return content;
 }
