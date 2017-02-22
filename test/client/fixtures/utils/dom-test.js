@@ -660,6 +660,28 @@ asyncTest('isElementFocusable', function () {
     document.body.appendChild(iframe);
 });
 
+test('isTextEditableInput', function () {
+    var textEditableTypes    = ['email', 'number', 'password', 'search', 'tel', 'text', 'url'];
+    var nonTextEditableTypes = ['date', 'week', 'month', 'datetime-local', 'range', 'color', 'time'];
+    var input                = nativeMethods.createElement.call(document, 'input');
+    var i                    = 0;
+
+    // NOTE: check element with empty "type" attribute
+    ok(domUtils.isTextEditableInput(input));
+
+    for (i = 0; i < textEditableTypes.length; i++) {
+        input.setAttribute('type', textEditableTypes[i]);
+
+        ok(domUtils.isTextEditableInput(input));
+    }
+
+    for (i = 0; i < nonTextEditableTypes.length; i++) {
+        input.setAttribute('type', nonTextEditableTypes[i]);
+
+        ok(!domUtils.isTextEditableInput(input));
+    }
+});
+
 module('regression');
 
 test('isDocument infinite recursion (GH-923)', function () {
