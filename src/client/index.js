@@ -90,7 +90,8 @@ class Hammerhead {
             elementEditingWatcher: this.sandbox.event.elementEditingWatcher,
             eventSimulator:        this.sandbox.event.eventSimulator,
             selection:             this.sandbox.event.selection,
-            message:               this.sandbox.event.message
+            message:               this.sandbox.event.message,
+            timers:                this.sandbox.event.timers
         };
 
         this.utils = {
