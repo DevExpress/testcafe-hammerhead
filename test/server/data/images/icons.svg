@@ -1,0 +1,10 @@
+<svg display="none" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <symbol id="hamburger-menu" viewBox="0 0 10 10">
+      <title>hamburger menu</title>
+      <rect y="0.5" width="10" height="1" fill="currentColor"/>
+      <rect y="4.5" width="10" height="1" fill="currentColor"/>
+      <rect y="8.5" width="10" height="1" fill="currentColor"/>
+    </symbol>
+  </defs>
+</svg>

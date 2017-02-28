@@ -1,4 +1,5 @@
 import fs from 'fs';
+import mime from 'mime';
 import { EventEmitter } from 'events';
 import { parse } from 'url';
 
@@ -16,13 +17,20 @@ export default class FileRequest extends EventEmitter {
         this.stream   = fs.createReadStream(path);
         this.headers  = {};
         this.trailers = {};
+        this.path     = path;
 
         this.stream.on('open', () => this._onOpen());
         this.stream.on('error', err => this._onOpen(err));
     }
 
     _onOpen (err) {
-        this.statusCode = err ? 404 : 200;
+        if (!err) {
+            this.statusCode = 200;
+            this.headers['content-type'] = mime.lookup(this.path);
+        }
+        else
+            this.statusCode = 404;
+
         this.emit('response', this);
     }
 
