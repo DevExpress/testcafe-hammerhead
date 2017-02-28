@@ -1013,6 +1013,22 @@ describe('Proxy', function () {
                 done();
             });
         });
+
+        it('Should set the correct content-type header', function (done) {
+            session.id = 'sessionId';
+
+            var options = {
+                url:     proxy.openSession('file:///' + getFileProtocolUrl('./data/images/icons.svg'), session),
+                headers: {
+                    accept: 'image/webp,image/*,*/*;q=0.8'
+                }
+            };
+
+            request(options, function (err, res) {
+                expect(res.headers['content-type']).eql('image/svg+xml');
+                done();
+            });
+        });
     });
 
     describe('Regression', function () {
