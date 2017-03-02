@@ -237,3 +237,11 @@ module('regression');
 test('isStyle throws an error for objects without the toString method (GH-561)', function () {
     ok(!styleUtils.isStyle({ border: 0, toString: void 0 }));
 });
+
+test('isStyleSheet function should not throw the "Maximum call stack size exceeded" error for objects with the overridden toString method (GH-1055)', function () {
+    ok(!styleUtils.isStyleSheet({
+        toString: function () {
+            return eval(processScript('this.href'));
+        }
+    }));
+});

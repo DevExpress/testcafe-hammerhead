@@ -96,7 +96,7 @@ function hasClassFallback (el, className) {
     return preparedElementClassName.indexOf(className) !== -1;
 }
 
-function instanceToString (instance) {
+export function instanceToString (instance) {
     if (!instanceAndPrototypeToStringAreEqual)
         return nativeMethods.objectToString.call(instance);
 
