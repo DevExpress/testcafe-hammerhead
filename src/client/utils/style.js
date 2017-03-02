@@ -5,6 +5,12 @@ import nativeMethods from '../sandbox/native-methods';
 // NOTE: For Chrome.
 const MIN_SELECT_SIZE_VALUE = 4;
 
+const NATIVE_STYLE_STRINGS = [
+    '[object CSSStyleDeclaration]',
+    '[object CSS2Properties]',
+    '[object MSStyleCSSProperties]'
+];
+
 function getIntValue (value) {
     value = value || '';
 
@@ -17,25 +23,14 @@ export function isStyle (instance) {
     if (instance instanceof nativeMethods.styleClass)
         return true;
 
-    if (instance && typeof instance === 'object' && instance.border !== void 0 &&
-        typeof instance.toString === 'function') {
-        instance = instance.toString();
-
-        return instance === '[object CSSStyleDeclaration]' || instance === '[object CSS2Properties]' ||
-               instance === '[object MSStyleCSSProperties]';
-    }
-
-    return false;
+    return NATIVE_STYLE_STRINGS.indexOf(domUtils.instanceToString(instance)) !== -1;
 }
 
 export function isStyleSheet (instance) {
     if (instance instanceof nativeMethods.styleSheetClass)
         return true;
 
-    if (instance && typeof instance === 'object' && typeof instance.toString === 'function')
-        return instance.toString() === '[object CSSStyleSheet]';
-
-    return false;
+    return domUtils.instanceToString(instance) === '[object CSSStyleSheet]';
 }
 
 export function get (el, property, doc) {
