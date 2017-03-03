@@ -23,7 +23,11 @@ export default class Session extends EventEmitter {
         this.proxy                 = null;
         this.externalProxySettings = null;
         this.pageLoadCount         = 0;
-        this.injectable            = {
+
+        this.requireStateSwitch   = false;
+        this.pendingStateSnapshot = null;
+
+        this.injectable = {
             scripts: ['/hammerhead.js'],
             styles:  []
         };
@@ -32,6 +36,19 @@ export default class Session extends EventEmitter {
     static _generateSessionId () {
         // NOTE: GH-116
         return shortId.generate();
+    }
+
+    // State
+    getStateSnapshot () {
+        return this.cookies.serializeJar();
+    }
+
+    useStateSnapshot (snapshot) {
+        // NOTE: we don't perform state switch immediately, since there might be
+        // pending requests from current page. Therefore, we perform switch in
+        // onPageRequest handler when new page is requested.
+        this.requireStateSwitch   = true;
+        this.pendingStateSnapshot = snapshot;
     }
 
     async handleServiceMessage (msg, serverInfo) {
@@ -116,6 +133,14 @@ export default class Session extends EventEmitter {
             auth:        parsedUrl.auth,
             ignoreHosts: ignore
         };
+    }
+
+    onPageRequest () {
+        if (this.requireStateSwitch) {
+            this.cookies.setJar(this.pendingStateSnapshot);
+            this.requireStateSwitch   = false;
+            this.pendingStateSnapshot = null;
+        }
     }
 
     _getIframePayloadScript (/* iframeWithoutSrc */) {

@@ -12,7 +12,11 @@ import { inject as injectUpload } from '../upload';
 // Stages
 var stages = {
     0: async function fetchProxyRequestBody (ctx, next) {
+        if (ctx.isPage && !ctx.isIframe)
+            ctx.session.onPageRequest();
+
         ctx.reqBody = await fetchBody(ctx.req);
+
         next();
     },
 
