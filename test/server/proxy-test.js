@@ -94,8 +94,22 @@ describe('Proxy', function () {
             res.end();
         });
 
+        app.get('/cookie/set1', function (req, res) {
+            res.set('set-cookie', 'Set1_1=value1');
+            res.set('set-cookie', 'Set1_2=value2');
+
+            res.end();
+        });
+
+        app.get('/cookie/set2', function (req, res) {
+            res.set('set-cookie', 'Set2_1=value1');
+            res.set('set-cookie', 'Set2_2=value2');
+
+            res.end();
+        });
+
         app.get('/cookie/echo', function (req, res) {
-            res.end(req.headers['cookie']);
+            res.end('%% ' + req.headers['cookie'] + ' %%');
         });
 
         app.get('/page', function (req, res) {
@@ -466,7 +480,7 @@ describe('Proxy', function () {
             };
 
             request(options, function (err, res, body) {
-                expect(body).eql('Test=value; value without key');
+                expect(body).eql('%% Test=value; value without key %%');
                 done();
             });
         });
@@ -946,7 +960,7 @@ describe('Proxy', function () {
         });
     });
 
-    describe('file protocol', function () {
+    describe('file:// protocol', function () {
         var getFileProtocolUrl = function (filePath) {
             return path.resolve(__dirname, filePath).replace(/\\/g, '/');
         };
@@ -1028,6 +1042,122 @@ describe('Proxy', function () {
                 expect(res.headers['content-type']).eql('image/svg+xml');
                 done();
             });
+        });
+    });
+
+    describe('State switching', function () {
+        function makeRequest (url, isResource) {
+            var options = {
+                url:     proxy.openSession(url, session),
+                headers: {}
+            };
+
+            if (!isResource)
+                options.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8';
+
+            return new Promise(function (resolve, reject) {
+                request(options, function (err, res, body) {
+                    if (err)
+                        reject(err);
+                    else
+                        resolve(body);
+                });
+            });
+        }
+
+        function forEachSequentially (arr, fn) {
+            return arr.reduce(function (promise, item) {
+                return promise.then(function () {
+                    return fn(item);
+                });
+            }, Promise.resolve());
+        }
+
+        it('Should switch states', function () {
+            var testCases = [
+                {
+                    state:    null,
+                    urls:     ['http://127.0.0.1:2000/cookie/set1'],
+                    expected: 'Set1_1=value1; Set1_2=value2'
+                },
+                {
+                    state:    null,
+                    urls:     ['http://127.0.0.1:2000/cookie/set2'],
+                    expected: 'Set2_1=value1; Set2_2=value2'
+                },
+                {
+                    state:    null,
+                    urls:     ['http://127.0.0.1:2000/cookie/set1', 'http://127.0.0.1:2000/cookie/set2'],
+                    expected: 'Set1_1=value1; Set1_2=value2; Set2_1=value1; Set2_2=value2'
+                }
+            ];
+
+            function initializeState (testCase) {
+                session.useStateSnapshot(null);
+
+                return forEachSequentially(testCase.urls, makeRequest).then(function () {
+                    testCase.state = session.getStateSnapshot();
+                });
+            }
+
+            function assertState (testCase) {
+                session.useStateSnapshot(testCase.state);
+
+                return makeRequest('http://127.0.0.1:2000/cookie/echo').then(function (body) {
+                    expect(body).contains('%% ' + testCase.expected + ' %%');
+                });
+            }
+
+            return Promise.resolve()
+                .then(function () {
+                    return forEachSequentially(testCases, initializeState);
+                })
+                .then(function () {
+                    return forEachSequentially(testCases, assertState);
+                });
+        });
+
+        it('Should switch state only on page requests', function () {
+            var state = null;
+
+            return makeRequest('http://127.0.0.1:2000/cookie/set1')
+                .then(function () {
+                    state = session.getStateSnapshot();
+
+                    session.useStateSnapshot(null);
+                })
+
+                // Try request empty state with non-page and page requests
+                .then(function () {
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', true);
+                })
+                .then(function (body) {
+                    expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
+                })
+                .then(function () {
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', false);
+                })
+                .then(function (body) {
+                    expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
+                })
+
+                .then(function () {
+                    session.useStateSnapshot(state);
+                })
+
+                // Try request Set1 state with non-page and page requests
+                .then(function () {
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', true);
+                })
+                .then(function (body) {
+                    expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
+                })
+                .then(function () {
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', false);
+                })
+                .then(function (body) {
+                    expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
+                });
         });
     });
 

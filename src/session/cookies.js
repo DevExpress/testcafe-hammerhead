@@ -21,6 +21,16 @@ export default class Cookies {
         });
     }
 
+    serializeJar () {
+        return JSON.stringify(this.cookieJar.serializeSync());
+    }
+
+    setJar (serializedJar) {
+        this.cookieJar = serializedJar ?
+                         CookieJar.deserializeSync(JSON.parse(serializedJar)) :
+                         new CookieJar();
+    }
+
     setByServer (url, cookies) {
         this._set(url, cookies, false);
     }
