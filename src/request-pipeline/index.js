@@ -84,7 +84,7 @@ var stages = {
         // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
         // we can still process such requests. (B234324)
         if (ctx.hasDestReqErr && isDestResBodyMalformed(ctx)) {
-            error(getText(MESSAGE.destConnectionTerminated, ctx.dest.url));
+            error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url));
 
             return;
         }
