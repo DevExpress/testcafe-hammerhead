@@ -68,7 +68,7 @@ var requestForced = {
     // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
     // So, if the request is actually cross-domain, we need to force the 'Origin' header to support CORS. (B234325)
     'origin': (src, ctx) => {
-        var force = ctx.isXhr && !src && ctx.dest.domain !== ctx.dest.reqOrigin;
+        var force = (ctx.isXhr || ctx.isFetch) && !src && ctx.dest.domain !== ctx.dest.reqOrigin;
 
         return force ? ctx.dest.reqOrigin : src;
     }
