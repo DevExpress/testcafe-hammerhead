@@ -185,6 +185,12 @@ describe('Proxy', function () {
             res.end(req.headers['origin']);
         });
 
+        app.get('/GH-1059/reply-with-origin', function (req, res) {
+            res.set('access-control-allow-origin', 'http://example.com');
+            res.set('access-control-allow-credentials', 'true');
+            res.end(req.headers['origin']);
+        });
+
         app.get('/Q557255/page-without-content-type', function (req, res) {
             res.set('content-encoding', 'gzip');
             res.end('42');
@@ -1178,6 +1184,22 @@ describe('Proxy', function () {
 
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
+
+            request(options, function (err, res, body) {
+                expect(body).eql('http://example.com');
+                done();
+            });
+        });
+
+        it('Should force "Origin" header for the cross-domain "fetch" requests (GH-1059)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/GH-1059/reply-with-origin', session),
+                headers: {
+                    referer: proxy.openSession('http://example.com', session)
+                }
+            };
+
+            options.headers[XHR_HEADERS.fetchRequestCredentials] = 'include';
 
             request(options, function (err, res, body) {
                 expect(body).eql('http://example.com');
