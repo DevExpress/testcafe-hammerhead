@@ -19,7 +19,7 @@ var Session                              = require('../../lib/session');
 var DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
 var RequestPipelineContext               = require('../../lib/request-pipeline/context');
 var requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
-var scriptHeader                         = require('../../lib/processing/script/header').HEADER;
+var scriptHeader                         = require('../../lib/processing/script/header');
 var urlUtils                             = require('../../lib/utils/url');
 
 var EMPTY_PAGE = '<html></html>';
@@ -273,6 +273,12 @@ describe('Proxy', function () {
 
             res.setHeader('x-frame-options', value);
             res.end('42');
+        });
+
+        app.get('/download-script', function (req, res) {
+            res.setHeader('content-disposition', 'attachment; filename="f.txt"');
+            res.setHeader('content-type', 'text/javascript; charset=UTF-8');
+            res.end('var i = 42;');
         });
 
         destServer = app.listen(2000);
@@ -1302,7 +1308,7 @@ describe('Proxy', function () {
 
             request(options, function (err, res, body) {
                 expect(res.statusCode).eql(200);
-                expect(body).to.contain(scriptHeader);
+                expect(body).to.contain(scriptHeader.SCRIPT_PROCESSING_START_COMMENT);
 
                 done();
             });
@@ -1841,6 +1847,37 @@ describe('Proxy', function () {
             };
 
             return Promise.all(testCases.map(testRequest));
+        });
+
+        it('Should not raise file download if resource is fetched by setting script src (GH-1062)', function (done) {
+            var getScriptProxyUrl          = function (url) {
+                return urlUtils.getProxyUrl(url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                    resourceType:  urlUtils.getResourceTypeString({ isScript: true })
+                });
+            };
+            var options                    = {
+                url:     getScriptProxyUrl('http://127.0.0.1:2000/download-script'),
+                referer: proxy.openSession('http://127.0.0.1:2000', session)
+            };
+            var storedHandleFileDownload   = session.handleFileDownload;
+            var handleFileDownloadIsRaised = false;
+
+            session.handleFileDownload = function () {
+                handleFileDownloadIsRaised = true;
+            };
+
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            request(options, function (err, res, body) {
+                expect(body).contains(scriptHeader.SCRIPT_PROCESSING_START_COMMENT);
+                expect(handleFileDownloadIsRaised).to.be.false;
+                session.handleFileDownload = storedHandleFileDownload;
+
+                done();
+            });
         });
     });
 });

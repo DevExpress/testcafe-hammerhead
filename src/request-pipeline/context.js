@@ -165,7 +165,7 @@ export default class RequestPipelineContext {
         var encoding    = this.destRes.headers['content-encoding'];
 
         if (this.isPage && contentType)
-            this.isPage  = !this.isXhr && !this.isFetch && contentTypeUtils.isPage(contentType);
+            this.isPage = !this.isXhr && !this.isFetch && contentTypeUtils.isPage(contentType);
 
         var isCSS                   = contentTypeUtils.isCSSResource(contentType, accept);
         var isManifest              = contentTypeUtils.isManifest(contentType);
@@ -180,10 +180,8 @@ export default class RequestPipelineContext {
                                       (this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
         var requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
                                       !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
-
-        var isFileDownload = this._isFileDownload();
-
-        var isIframeWithImageSrc = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
+        var isFileDownload          = this._isFileDownload() && !this.dest.isScript;
+        var isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
         var charset             = null;
         var contentTypeUrlToken = urlUtils.getResourceTypeString({
