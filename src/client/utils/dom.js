@@ -115,7 +115,7 @@ export function getActiveElement (currentDocument) {
     while (el && el.shadowRoot) {
         var shadowEl = el.shadowRoot.activeElement;
 
-        if (!shadowEl || !isDomElement(shadowEl))
+        if (!shadowEl)
             break;
 
         el = shadowEl;

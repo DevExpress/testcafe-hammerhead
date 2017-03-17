@@ -829,5 +829,23 @@ if (browserUtils.isChrome) {
 
         document.body.removeChild(host);
     });
+
+    test('should return active element inside nested shadow DOM', function () {
+        var hostParent = document.createElement('div');
+        var hostChild  = document.createElement('div');
+        var rootParent = hostParent.createShadowRoot();
+        var rootChild  = hostChild.createShadowRoot();
+        var input      = document.createElement('input');
+
+        document.body.appendChild(hostParent);
+        rootParent.appendChild(hostChild);
+        rootChild.appendChild(input);
+
+        nativeMethods.focus.call(input);
+
+        strictEqual(domUtils.getActiveElement(), input);
+
+        document.body.removeChild(hostParent);
+    });
 }
 
