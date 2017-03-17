@@ -112,20 +112,22 @@ if (isWorkerFromBlobSupported) {
     });
 }
 
-asyncTest('Navigator.sendBeacon must be overriden (GH-1035)', function () {
-    var originUrl    = 'http://example.com/index.html';
-    var originData   = 'some data';
-    var nativeMethod = nativeMethods.sendBeacon;
+if (window.navigator.sendBeacon) {
+    asyncTest('Navigator.sendBeacon must be overriden (GH-1035)', function () {
+        var originUrl    = 'http://example.com/index.html';
+        var originData   = 'some data';
+        var nativeMethod = nativeMethods.sendBeacon;
 
-    nativeMethods.sendBeacon = function (url, data) {
-        strictEqual(url, urlUtils.getProxyUrl(originUrl));
-        strictEqual(data, originData);
-        nativeMethods.sendBeacon = nativeMethod;
-        start();
-    };
+        nativeMethods.sendBeacon = function (url, data) {
+            strictEqual(url, urlUtils.getProxyUrl(originUrl));
+            strictEqual(data, originData);
+            nativeMethods.sendBeacon = nativeMethod;
+            start();
+        };
 
-    window.navigator.sendBeacon(originUrl, originData);
-});
+        window.navigator.sendBeacon(originUrl, originData);
+    });
+}
 
 test('window.onerror must be overriden (B238830)', function () {
     var error     = false;
