@@ -112,6 +112,9 @@ class NativeMethods {
         if (win.navigator.registerProtocolHandler)
             this.registerProtocolHandler = win.navigator.registerProtocolHandler;
 
+        if (win.navigator.sendBeacon)
+            this.sendBeacon = win.navigator.sendBeacon;
+
         // XHR
         this.xhrAbort                 = win.XMLHttpRequest.prototype.abort;
         this.xhrOpen                  = win.XMLHttpRequest.prototype.open;

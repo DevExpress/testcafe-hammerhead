@@ -263,6 +263,15 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
+        if (window.navigator.sendBeacon) {
+            window.navigator.sendBeacon = function () {
+                if (typeof arguments[0] === 'string')
+                    arguments[0] = getProxyUrl(arguments[0]);
+
+                return nativeMethods.sendBeacon.apply(this, arguments);
+            };
+        }
+
         if (window.navigator.registerProtocolHandler) {
             window.navigator.registerProtocolHandler = function () {
                 var args     = arraySlice.call(arguments);
