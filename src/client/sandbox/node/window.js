@@ -265,7 +265,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.navigator.sendBeacon) {
             window.navigator.sendBeacon = function () {
-                if (arguments.length && typeof arguments[0] === 'string')
+                if (typeof arguments[0] === 'string')
                     arguments[0] = getProxyUrl(arguments[0]);
 
                 return nativeMethods.sendBeacon.apply(this, arguments);
