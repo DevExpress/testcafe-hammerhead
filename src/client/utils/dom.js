@@ -110,7 +110,18 @@ export function getActiveElement (currentDocument) {
     // https://github.com/DevExpress/testcafe-hammerhead/issues/768
     var doc = currentDocument || document;
 
-    return isDomElement(doc.activeElement) ? doc.activeElement : doc.body;
+    var el = isDomElement(doc.activeElement) ? doc.activeElement : doc.body;
+
+    while (el && el.shadowRoot) {
+        var shadowEl = el.shadowRoot.activeElement;
+
+        if (!shadowEl)
+            break;
+
+        el = shadowEl;
+    }
+
+    return el;
 }
 
 export function getChildVisibleIndex (select, child) {

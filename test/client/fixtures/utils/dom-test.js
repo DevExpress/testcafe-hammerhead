@@ -813,3 +813,39 @@ test('inspect html elements', function () {
     ok(domUtils.isTableElement(nativeMethods.createElement.call(document, 'table')), 'table');
     ok(domUtils.isTableDataCellElement(nativeMethods.createElement.call(document, 'td')), 'td');
 });
+
+if (browserUtils.isChrome) {
+    test('should return active element inside shadow DOM', function () {
+        var host  = document.createElement('div');
+        var root  = host.createShadowRoot();
+        var input = document.createElement('input');
+
+        document.body.appendChild(host);
+        root.appendChild(input);
+
+        nativeMethods.focus.call(input);
+
+        strictEqual(domUtils.getActiveElement(), input);
+
+        document.body.removeChild(host);
+    });
+
+    test('should return active element inside nested shadow DOM', function () {
+        var hostParent = document.createElement('div');
+        var hostChild  = document.createElement('div');
+        var rootParent = hostParent.createShadowRoot();
+        var rootChild  = hostChild.createShadowRoot();
+        var input      = document.createElement('input');
+
+        document.body.appendChild(hostParent);
+        rootParent.appendChild(hostChild);
+        rootChild.appendChild(input);
+
+        nativeMethods.focus.call(input);
+
+        strictEqual(domUtils.getActiveElement(), input);
+
+        document.body.removeChild(hostParent);
+    });
+}
+
