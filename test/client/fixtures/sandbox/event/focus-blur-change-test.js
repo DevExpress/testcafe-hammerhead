@@ -9,16 +9,16 @@ var focusBlur           = hammerhead.sandbox.event.focusBlur;
 var nativeMethods       = hammerhead.nativeMethods;
 var iframeSandbox       = hammerhead.sandbox.iframe;
 
-var input1                             = null;
-var input2                             = null;
-var input1FocusHandlersExecutedAmount  = null;
-var input2FocusHandlersExecutedAmount  = null;
-var input1BlurHandlersExecutedAmount   = null;
-var input2BlurHandlersExecutedAmount   = null;
-var input1ChangeHandlersExecutedAmount = null;
-var input2ChangeHandlersExecutedAmount = null;
-var TEST_ELEMENT_CLASS                 = 'testElement';
-var testEndDelay                       = 25;
+var input1                            = null;
+var input2                            = null;
+var input1FocusHandlersExecutedCount  = 0;
+var input2FocusHandlersExecutedCount  = 0;
+var input1BlurHandlersExecutedCount   = 0;
+var input2BlurHandlersExecutedCount   = 0;
+var input1ChangeHandlersExecutedCount = 0;
+var input2ChangeHandlersExecutedCount = 0;
+var TEST_ELEMENT_CLASS                = 'testElement';
+var testEndDelay                      = 25;
 
 var enableLogging = false;
 
@@ -51,13 +51,13 @@ function getFocusHandler () {
     return function (e) {
         e = e || window.event;
 
-        var element = e.target || e.srcElement;
+        var element = e.target;
 
         if (element) {
             if (element.id === 'input1')
-                input1FocusHandlersExecutedAmount++;
+                input1FocusHandlersExecutedCount++;
             else if (element.id === 'input2')
-                input2FocusHandlersExecutedAmount++;
+                input2FocusHandlersExecutedCount++;
         }
         logMessage(' onfocus called for ' + element.id);
     };
@@ -67,13 +67,13 @@ function getBlurHandler () {
     return function (e) {
         e = e || window.event;
 
-        var element = e.target || e.srcElement;
+        var element = e.target;
 
         if (element) {
             if (element.id === 'input1')
-                input1BlurHandlersExecutedAmount++;
+                input1BlurHandlersExecutedCount++;
             else if (element.id === 'input2')
-                input2BlurHandlersExecutedAmount++;
+                input2BlurHandlersExecutedCount++;
         }
         logMessage(' onblur called for ' + element.id);
     };
@@ -83,13 +83,13 @@ function getChangeHandler () {
     return function (e) {
         e = e || window.event;
 
-        var element = e.target || e.srcElement;
+        var element = e.target;
 
         if (element) {
             if (element.id === 'input1')
-                input1ChangeHandlersExecutedAmount++;
+                input1ChangeHandlersExecutedCount++;
             else if (element.id === 'input2')
-                input2ChangeHandlersExecutedAmount++;
+                input2ChangeHandlersExecutedCount++;
         }
         logMessage(' onchange called for ' + element.id);
     };
@@ -110,8 +110,8 @@ var smallTestTimeout           = 3000;
 var modulesForSmallTestTimeout = ['focus', 'change', 'native methods replacing'];
 
 function clearExecutedHandlersCounter () {
-    input1FocusHandlersExecutedAmount = input2FocusHandlersExecutedAmount = input1BlurHandlersExecutedAmount =
-        input2BlurHandlersExecutedAmount = input1ChangeHandlersExecutedAmount = input2ChangeHandlersExecutedAmount = 0;
+    input1FocusHandlersExecutedCount = input2FocusHandlersExecutedCount = input1BlurHandlersExecutedCount =
+        input2BlurHandlersExecutedCount = input1ChangeHandlersExecutedCount = input2ChangeHandlersExecutedCount = 0;
 }
 
 function testFocusing (numberOfHandlers, next) {
@@ -140,11 +140,11 @@ function testFocusing (numberOfHandlers, next) {
     };
 
     var assertFocusing = function (element) {
-        strictEqual(document.activeElement, element, 'document.ActiveElement checked');
-        strictEqual(input1FocusHandlersExecutedAmount, input1FocusedCount, 'input1FocusHandlersExecutedAmount checked');
-        strictEqual(input2FocusHandlersExecutedAmount, input2FocusedCount, 'input2FocusHandlersExecutedAmount checked');
-        strictEqual(input1BlurHandlersExecutedAmount, input1BlurredCount, 'input1BlurHandlersExecutedAmount checked');
-        strictEqual(input2BlurHandlersExecutedAmount, input2BlurredCount, 'input2BlurHandlersExecutedAmount checked');
+        strictEqual(document.activeElement, element, 'document.activeElement checked');
+        strictEqual(input1FocusHandlersExecutedCount, input1FocusedCount, 'input1FocusHandlersExecutedAmount checked');
+        strictEqual(input2FocusHandlersExecutedCount, input2FocusedCount, 'input2FocusHandlersExecutedAmount checked');
+        strictEqual(input1BlurHandlersExecutedCount, input1BlurredCount, 'input1BlurHandlersExecutedAmount checked');
+        strictEqual(input2BlurHandlersExecutedCount, input2BlurredCount, 'input2BlurHandlersExecutedAmount checked');
     };
 
     focus(input1)
@@ -192,8 +192,8 @@ function testChanging (numberOfHandlers, next) {
     var input2ChangedCount = 0;
 
     var assertChanging = function () {
-        strictEqual(input1ChangeHandlersExecutedAmount, input1ChangedCount, 'input1ChangeHandlersExecutedAmount checked');
-        strictEqual(input2ChangeHandlersExecutedAmount, input2ChangedCount, 'input2ChangeHandlersExecutedAmount checked');
+        strictEqual(input1ChangeHandlersExecutedCount, input1ChangedCount, 'input1ChangeHandlersExecutedAmount checked');
+        strictEqual(input2ChangeHandlersExecutedCount, input2ChangedCount, 'input2ChangeHandlersExecutedAmount checked');
     };
 
     var focusAndType = function (element) {
@@ -389,8 +389,8 @@ asyncTest('attachEvent one per element', function () {
 
 asyncTest('handlers binded by ontype property, jQuery and addEventListener\\attachEvent together', function () {
     var unbindHandlersAndTest = function () {
-        var $input1    = $(input1);
-        var $input2    = $(input2);
+        var $input1 = $(input1);
+        var $input2 = $(input2);
 
         $input1.unbind('focus', onFocus);
         $input2.unbind('focus', onFocus);
@@ -424,10 +424,10 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         $input1.blur(onBlur);
         $input2.blur(onBlur);
         listenerCount++;
-        input1.onfocus    = onFocus;
-        input2.onfocus    = onFocus;
-        input1.onblur     = onBlur;
-        input2.onblur     = onBlur;
+        input1.onfocus = onFocus;
+        input2.onfocus = onFocus;
+        input1.onblur  = onBlur;
+        input2.onblur  = onBlur;
         listenerCount++;
         if (input1.attachEvent) {
             input1.attachEvent('onfocus', focusAttached);
@@ -491,8 +491,8 @@ asyncTest('jQuery handlers three per element', function () {
 
 asyncTest('handlers binded by ontype property, jQuery and addEventListener\\attachEvent together', function () {
     var unbindHandlersAndTest = function () {
-        var $input1     = $(input1);
-        var $input2     = $(input2);
+        var $input1 = $(input1);
+        var $input2 = $(input2);
 
         $input1.unbind('change', onChange);
         $input2.unbind('change', onChange);
@@ -516,8 +516,8 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         $input1.change(onChange);
         $input2.change(onChange);
         listenerCount++;
-        input1.onchange   = onChange;
-        input2.onchange   = onChange;
+        input1.onchange = onChange;
+        input2.onchange = onChange;
         listenerCount++;
         if (input1.attachEvent) {
             input1.attachEvent('onchange', changeAttached);
@@ -544,15 +544,15 @@ asyncTest('focus without handlers', function () {
     var blured  = false;
     var focused = false;
 
-    var onblur     = function () {
+    var onblur  = function () {
         blured = true;
     };
-    var onfocus    = function () {
+    var onfocus = function () {
         focused = true;
     };
 
     $input1.bind('blur', onblur);
-    input1.onblur  = onblur;
+    input1.onblur = onblur;
 
     $input2.bind('focus', onfocus);
     input2.onfocus = onfocus;
@@ -879,6 +879,71 @@ asyncTest("focus() must not scroll to the element if 'preventScrolling' argument
     }, false, true, false, true);
 });
 
+module('focusin/focusout');
+
+// Firefox supports focusin, focusout events starting with 52 version
+if (!browserUtils.isFirefox || browserUtils.version >= 52) {
+    asyncTest('events order', function () {
+        var eventLog       = '';
+        var nativeEventLog = '';
+        var input          = document.createElement('input');
+        var nativeInput    = nativeMethods.createElement.call(document, 'input');
+
+        document.body.appendChild(input);
+        nativeInput.focus = nativeMethods.focus;
+        nativeInput.blur  = nativeMethods.blur;
+        nativeMethods.appendChild.call(document.body, nativeInput);
+
+        var focusHandler                    = function () {
+            eventLog += 'focus|';
+        };
+        var focusInHandler                  = function () {
+            eventLog += 'focusin|';
+        };
+        var blurHandler                     = function () {
+            eventLog += 'blur|';
+        };
+        var focusOutHandler                 = function () {
+            eventLog += 'focusout|';
+        };
+        var focusHandlerForNativeElement    = function () {
+            nativeEventLog += 'focus|';
+        };
+        var focusInHandlerForNativeElement  = function () {
+            nativeEventLog += 'focusin|';
+        };
+        var blurHandlerForNativeElement     = function () {
+            nativeEventLog += 'blur|';
+        };
+        var focusOutHandlerForNativeElement = function () {
+            nativeEventLog += 'focusout|';
+        };
+
+        input.addEventListener('focus', focusHandler);
+        input.addEventListener('focusin', focusInHandler);
+        input.addEventListener('blur', blurHandler);
+        input.addEventListener('focusout', focusOutHandler);
+        nativeInput.addEventListener('focus', focusHandlerForNativeElement);
+        nativeInput.addEventListener('focusin', focusInHandlerForNativeElement);
+        nativeInput.addEventListener('blur', blurHandlerForNativeElement);
+        nativeInput.addEventListener('focusout', focusOutHandlerForNativeElement);
+
+        nativeInput.focus();
+        nativeInput.blur();
+
+        input.focus();
+        input.blur();
+
+        window.setTimeout(function () {
+            strictEqual(eventLog, nativeEventLog);
+
+            input.parentNode.removeChild(input);
+            nativeInput.parentNode.removeChild(nativeInput);
+            start();
+        }, 100);
+    });
+}
+
 module('regression');
 
 test('querySelector must return active element even when browser is not focused (T285078)', function () {
@@ -1083,8 +1148,8 @@ asyncTest('should correctly handle the case when document.activeElement is null 
                 start();
             }, true);
 
-            div.id = 'div';
-            innerDiv.id = 'innerDiv';
+            div.id            = 'div';
+            innerDiv.id       = 'innerDiv';
             innerDiv.tabIndex = 0;
             div.appendChild(innerDiv);
             iframeDocument.body.appendChild(div);

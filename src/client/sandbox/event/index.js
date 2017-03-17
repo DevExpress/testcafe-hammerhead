@@ -165,7 +165,12 @@ export default class EventSandbox extends SandboxBase {
         this.cancelInternalEvents = function (e, dispatched, preventEvent, cancelHandlers, stopPropagation) {
             // NOTE: We should cancel events raised by calling the native function (focus, blur) only if the
             // element has a flag. If an event is dispatched, we shouldn't cancel it.
-            var internalEventFlag = FocusBlurSandbox.getInternalEventFlag(e.type);
+            // After calling a native function two events were raised
+            // .focus() -> focus, focusin
+            // .blur() -> blur, focusout
+            // So we should prevent both events
+            var eventType         = FocusBlurSandbox.getFocusBlurEventType(e.type) || e.type;
+            var internalEventFlag = FocusBlurSandbox.getInternalEventFlag(eventType);
 
             if (e.target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])
                 stopPropagation();
@@ -206,7 +211,7 @@ export default class EventSandbox extends SandboxBase {
         this.listeners.initElementListening(window, DOM_EVENTS.concat(['beforeunload', 'pagehide', 'unload', 'message']));
 
         this.listeners.addInternalEventListener(window, ['focus'], this.onFocus);
-        this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change'], this.cancelInternalEvents);
+        this.listeners.addInternalEventListener(window, ['focus', 'blur', 'change', 'focusin', 'focusout'], this.cancelInternalEvents);
 
         this.unload.attach(window);
         this.message.attach(window);

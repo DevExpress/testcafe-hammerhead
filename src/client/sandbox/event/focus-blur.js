@@ -7,8 +7,7 @@ import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as styleUtils from '../../utils/style';
 
-const INTERNAL_FOCUS_FLAG = 'hammerhead|internal-focus';
-const INTERNAL_BLUR_FLAG  = 'hammerhead|internal-blur';
+const INTERNAL_FOCUS_BLUR_FLAG_PREFIX = 'hammerhead|event|internal-';
 
 export default class FocusBlurSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, messageSandbox, shadowUI, timersSandbox, elementEditingWatcher) {
@@ -64,85 +63,117 @@ export default class FocusBlurSandbox extends SandboxBase {
             this.lastFocusedElement = null;
     }
 
+    _isEventRaisedOnShadowUIRootInIE9 (el) {
+        // NOTE: T239149 - TD15.1? - An error occurs during assertion creation on
+        // http://knockoutjs.com/examples/helloWorld.html in IE9.
+        return browserUtils.isIE9 && this.shadowUI.getRoot() === el;
+    }
+
+    _ensureLabelHtmlForElement (el, type, callback) {
+        if (type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor) {
+            var htmlForElement = nativeMethods.getElementById.call(domUtils.findDocument(el), el.htmlFor);
+
+            if (htmlForElement)
+                el = htmlForElement;
+            else {
+                callback();
+                return;
+            }
+        }
+    }
+
+    _getElementNonScrollableParentsScrollState (el) {
+        var scrollState    = [];
+        var elementParents = domUtils.getParents(el);
+        var elementParent  = null;
+
+        for (var i = 0; i < elementParents.length; i++) {
+            elementParent = elementParents[i];
+
+            if (styleUtils.get(elementParent, 'overflow') === 'hidden') {
+                scrollState.push({
+                    element: elementParent,
+                    state:   styleUtils.getElementScroll(elementParent)
+                });
+            }
+        }
+
+        return scrollState;
+    }
+
+    _restoreElementNonScrollableParentsScrollState (scrollState) {
+        for (var j = 0, len = scrollState.length; j < len; j++)
+            FocusBlurSandbox._restoreElementScroll(scrollState[j].element, scrollState[j].state);
+    }
+
+    _ensureWindowScroll (el, preventScrolling, type, callback) {
+        var windowScroll                           = null;
+        var elementNonScrollableParentsScrollState = null;
+
+        if (preventScrolling)
+            windowScroll = styleUtils.getElementScroll(this.window);
+
+        if (browserUtils.isIE)
+            elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
+
+        this._ensureLabelHtmlForElement(el, type, callback);
+        el[FocusBlurSandbox.getInternalEventFlag(type)] = true;
+        // NOTE: We should guarantee that activeElement will be changed, therefore we need to call the native
+        // focus/blur event.
+        FocusBlurSandbox._getNativeMeth(el, type).call(el);
+
+        if (preventScrolling)
+            FocusBlurSandbox._restoreElementScroll(this.window, windowScroll);
+
+        if (browserUtils.isIE)
+            this._restoreElementNonScrollableParentsScrollState(elementNonScrollableParentsScrollState);
+
+    }
 
     _raiseEvent (el, type, callback, withoutHandlers, isAsync, forMouseEvent, preventScrolling) {
         // NOTE: We cannot use Promise because 'resolve' will be called async, but we need to resolve
         // immediately in IE9 and IE10.
 
-        // NOTE: The focus and blur events should be raised after activeElement is changed (B237489)
-        // in MSEdge, the focus/blur events are executed  synchronously.
         var simulateEvent = () => {
+            // NOTE: The focus and blur events should be raised after activeElement is changed (B237489)
+            // in MSEdge, the focus/blur events are executed  synchronously.
             if (browserUtils.isIE && browserUtils.version < 12) {
                 this.window.setTimeout(() => {
                     this.window.setTimeout(() => {
-                        if (el[FocusBlurSandbox.getInternalEventFlag(type)])
-                            delete el[FocusBlurSandbox.getInternalEventFlag(type)];
+                        delete el[FocusBlurSandbox.getInternalEventFlag(type)];
                     }, 0);
                 }, 0);
             }
-            else if (el[FocusBlurSandbox.getInternalEventFlag(type)])
+            else
                 delete el[FocusBlurSandbox.getInternalEventFlag(type)];
 
+            var focusInOutEventType = FocusBlurSandbox.getFocusInOutEventType(type);
+
             if (!withoutHandlers) {
-                if (isAsync)
+                if (isAsync) {
+                    // NOTE: focusin, focusout events are synchronously
+                    this.eventSimulator[focusInOutEventType](el);
                     this.timersSandbox.deferFunction(() => this.eventSimulator[type](el));
-                else
+                }
+                else if (browserUtils.isMSEdge && type === 'blur') {
+                    this.eventSimulator[focusInOutEventType](el);
                     this.eventSimulator[type](el);
+                }
+                else {
+                    this.eventSimulator[type](el);
+                    this.eventSimulator[focusInOutEventType](el);
+                }
             }
 
             callback();
         };
 
-        // NOTE: T239149 - TD15.1? - An error occurs during assertion creation on
-        // http://knockoutjs.com/examples/helloWorld.html in IE9.
-        if (browserUtils.isIE9 && this.shadowUI.getRoot() === el && (type === 'focus' || type === 'blur'))
+        if (this._isEventRaisedOnShadowUIRootInIE9(el))
             callback();
 
         if (el[type]) {
-            // NOTE: We should guarantee that activeElement will be changed, therefore we need to call the native
-            // focus/blur event. To guarantee that all focus/blur events are raised, we need to raise them manually.
-            var windowScroll                     = null;
-            var elementParents                   = [];
-            var nonScrollableParents             = [];
-            var nonScrollableParentsScrollValues = [];
-
-            if (preventScrolling)
-                windowScroll = styleUtils.getElementScroll(this.window);
-
-            if (browserUtils.isIE) {
-                elementParents = domUtils.getParents(el);
-
-                for (var i = 0; i < elementParents.length; i++) {
-                    if (styleUtils.get(elementParents[i], 'overflow') === 'hidden') {
-                        nonScrollableParents.push(elementParents[i]);
-                        nonScrollableParentsScrollValues.push(styleUtils.getElementScroll(elementParents[i]));
-                    }
-                }
-            }
-
-            var tempElement = null;
-
-            if (type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor) {
-                tempElement = nativeMethods.getElementById.call(domUtils.findDocument(el), el.htmlFor);
-                if (tempElement)
-                    el = tempElement;
-                else {
-                    callback();
-                    return;
-                }
-            }
-
-            el[FocusBlurSandbox.getInternalEventFlag(type)] = true;
-
-            FocusBlurSandbox._getNativeMeth(el, type).call(el);
-
-            if (preventScrolling)
-                FocusBlurSandbox._restoreElementScroll(this.window, windowScroll);
-
-            if (browserUtils.isIE && nonScrollableParents.length) {
-                for (var j = 0, len = nonScrollableParents.length; j < len; j++)
-                    FocusBlurSandbox._restoreElementScroll(nonScrollableParents[j], nonScrollableParentsScrollValues[j]);
-            }
+            // NOTE: To guarantee that all focus/blur events are raised, we need to raise them manually.
+            this._ensureWindowScroll(el, preventScrolling, type, callback);
 
             var curDocument   = domUtils.findDocument(el);
             var activeElement = domUtils.getActiveElement(curDocument);
@@ -172,7 +203,25 @@ export default class FocusBlurSandbox extends SandboxBase {
     }
 
     static getInternalEventFlag (type) {
-        return type === 'focus' ? INTERNAL_FOCUS_FLAG : INTERNAL_BLUR_FLAG;
+        return INTERNAL_FOCUS_BLUR_FLAG_PREFIX + type;
+    }
+
+    static getFocusBlurEventType (focusInOutEventType) {
+        if (focusInOutEventType === 'focusin')
+            return 'focus';
+        else if (focusInOutEventType === 'focusout')
+            return 'blur';
+
+        return null;
+    }
+
+    static getFocusInOutEventType (focusBlurEventType) {
+        if (focusBlurEventType === 'focus')
+            return 'focusin';
+        else if (focusBlurEventType === 'blur')
+            return 'focusout';
+
+        return null;
     }
 
     attach (window) {
@@ -188,10 +237,10 @@ export default class FocusBlurSandbox extends SandboxBase {
         });
     }
 
-    _callFocusCallback (callback, el) {
+    _raiseSelectionChange (callback, el) {
         // NOTE: In MSEdge, the 'selectionchange' event doesn't occur immediately (it occurs with a some delay)
         // so we should raise it right after the 'focus' event is raised.
-        if (browserUtils.isIE && browserUtils.version > 11 && el && domUtils.isTextEditableElement(el))
+        if (browserUtils.isMSEdge && el && domUtils.isTextEditableElement(el))
             this.eventSimulator.selectionchange(el);
 
         if (typeof callback === 'function')
@@ -243,10 +292,11 @@ export default class FocusBlurSandbox extends SandboxBase {
 
                 // NOTE: If we call focus for an unfocusable element (like 'div' or 'image') in iframe, we should
                 // specify document.active for this iframe manually, so we call focus without handlers.
-                if (isElementInIframe && iframeElement && domUtils.getActiveElement(this.topWindow.document) !== iframeElement)
-                    this._raiseEvent(iframeElement, 'focus', () => this._callFocusCallback(callback, el), true, isAsync);
+                if (isElementInIframe && iframeElement &&
+                    domUtils.getActiveElement(this.topWindow.document) !== iframeElement)
+                    this._raiseEvent(iframeElement, 'focus', () => this._raiseSelectionChange(callback, el), true, isAsync);
                 else
-                    this._callFocusCallback(callback, el);
+                    this._raiseSelectionChange(callback, el);
 
             }, withoutHandlers || silent, isAsync, forMouseEvent, preventScrolling);
         };
@@ -257,7 +307,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             if ((this.eventSimulator.isSavedWindowsEventsExists() || browserUtils.version > 10) &&
                 this.window.event &&
                 this.window.event.type === 'focus' && this.window.event.srcElement === el) {
-                this._callFocusCallback(callback);
+                this._raiseSelectionChange(callback, el);
 
                 return null;
             }
@@ -313,14 +363,6 @@ export default class FocusBlurSandbox extends SandboxBase {
             raiseFocusEvent();
 
         return null;
-    }
-
-    disableOuterFocusHandlers () {
-        this.shouldDisableOuterFocusHandlers = true;
-    }
-
-    enableOuterFocusHandlers () {
-        this.shouldDisableOuterFocusHandlers = false;
     }
 
     blur (el, callback, withoutHandlers, isNativeBlur) {
