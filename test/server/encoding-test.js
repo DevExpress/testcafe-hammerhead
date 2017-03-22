@@ -8,6 +8,8 @@ describe('Content encoding', function () {
     var src = new Buffer('Answer to the Ultimate Question of Life, the Universe, and Everything.');
 
     it('Should encode and decode content', function () {
+        this.timeout(4000);
+
         function testConfiguration (encoding, charsetStr) {
             var charset = new Charset();
 
