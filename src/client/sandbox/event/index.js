@@ -169,7 +169,7 @@ export default class EventSandbox extends SandboxBase {
             // .focus() -> focus, focusin
             // .blur() -> blur, focusout
             // So we should prevent both events
-            var eventType         = FocusBlurSandbox.getFocusBlurEventType(e.type) || e.type;
+            var eventType         = FocusBlurSandbox.getNonBubblesEventType(e.type) || e.type;
             var internalEventFlag = FocusBlurSandbox.getInternalEventFlag(eventType);
 
             if (e.target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])

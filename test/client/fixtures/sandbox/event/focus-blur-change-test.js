@@ -894,39 +894,21 @@ if (!browserUtils.isFirefox || browserUtils.version >= 52) {
         nativeInput.blur  = nativeMethods.blur;
         nativeMethods.appendChild.call(document.body, nativeInput);
 
-        var focusHandler                    = function () {
-            eventLog += 'focus|';
+        var handler                 = function (e) {
+            eventLog += e.type + '|';
         };
-        var focusInHandler                  = function () {
-            eventLog += 'focusin|';
-        };
-        var blurHandler                     = function () {
-            eventLog += 'blur|';
-        };
-        var focusOutHandler                 = function () {
-            eventLog += 'focusout|';
-        };
-        var focusHandlerForNativeElement    = function () {
-            nativeEventLog += 'focus|';
-        };
-        var focusInHandlerForNativeElement  = function () {
-            nativeEventLog += 'focusin|';
-        };
-        var blurHandlerForNativeElement     = function () {
-            nativeEventLog += 'blur|';
-        };
-        var focusOutHandlerForNativeElement = function () {
-            nativeEventLog += 'focusout|';
+        var handlerForNativeElement = function (e) {
+            nativeEventLog += e.type + '|';
         };
 
-        input.addEventListener('focus', focusHandler);
-        input.addEventListener('focusin', focusInHandler);
-        input.addEventListener('blur', blurHandler);
-        input.addEventListener('focusout', focusOutHandler);
-        nativeInput.addEventListener('focus', focusHandlerForNativeElement);
-        nativeInput.addEventListener('focusin', focusInHandlerForNativeElement);
-        nativeInput.addEventListener('blur', blurHandlerForNativeElement);
-        nativeInput.addEventListener('focusout', focusOutHandlerForNativeElement);
+        input.addEventListener('focus', handler);
+        input.addEventListener('focusin', handler);
+        input.addEventListener('blur', handler);
+        input.addEventListener('focusout', handler);
+        nativeInput.addEventListener('focus', handlerForNativeElement);
+        nativeInput.addEventListener('focusin', handlerForNativeElement);
+        nativeInput.addEventListener('blur', handlerForNativeElement);
+        nativeInput.addEventListener('focusout', handlerForNativeElement);
 
         nativeInput.focus();
         nativeInput.blur();
