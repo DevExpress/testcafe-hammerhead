@@ -211,7 +211,7 @@ export default class FocusBlurSandbox extends SandboxBase {
     }
 
     static getNonBubblesEventType (bubblesEventType) {
-        return eventsMap.nonBubbles[bubblesEventType] || null;
+        return eventsMap.nonBubbles[bubblesEventType];
     }
 
     attach (window) {
