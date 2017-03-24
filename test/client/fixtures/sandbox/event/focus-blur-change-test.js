@@ -926,6 +926,47 @@ if (!browserUtils.isFirefox || browserUtils.version >= 52) {
     });
 }
 
+test('label.htmlFor', function () {
+    var label    = document.createElement('label');
+    var input    = document.createElement('input');
+    var eventLog = '';
+    var handler  = function (e) {
+        eventLog += e.target.id + '-' + e.type;
+    };
+
+    label.id = 'testLabel';
+    input.id = 'testInput';
+
+    label.addEventListener('focus', handler);
+    input.addEventListener('focus', handler);
+
+    document.body.appendChild(label);
+    document.body.appendChild(input);
+
+    var focusLabel = function () {
+        return new Promise(function (resolve) {
+            focusBlur.focus(label, resolve);
+        });
+    };
+
+    label.htmlFor = 'testInput';
+
+    return focusLabel()
+        .then(function () {
+            strictEqual(eventLog, 'testInput-focus');
+            eventLog      = '';
+            label.htmlFor = 'wrong';
+
+            return focusLabel();
+        })
+        .then(function () {
+            strictEqual(eventLog, '');
+
+            label.parentNode.removeChild(label);
+            input.parentNode.removeChild(input);
+        });
+});
+
 module('regression');
 
 test('querySelector must return active element even when browser is not focused (T285078)', function () {

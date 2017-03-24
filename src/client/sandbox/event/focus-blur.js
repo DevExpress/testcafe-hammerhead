@@ -80,17 +80,8 @@ export default class FocusBlurSandbox extends SandboxBase {
         return browserUtils.isIE9 && this.shadowUI.getRoot() === el;
     }
 
-    _ensureLabelHtmlForElement (el, type, callback) {
-        if (type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor) {
-            const htmlForElement = nativeMethods.getElementById.call(domUtils.findDocument(el), el.htmlFor);
-
-            if (htmlForElement)
-                el = htmlForElement;
-            else {
-                callback();
-                return;
-            }
-        }
+    _shouldUseLabelHtmlForElement (el, type) {
+        return type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor;
     }
 
     _getElementNonScrollableParentsScrollState (el) {
@@ -112,30 +103,6 @@ export default class FocusBlurSandbox extends SandboxBase {
     _restoreElementNonScrollableParentsScrollState (scrollState) {
         for (const scrollStateEntry of scrollState)
             FocusBlurSandbox._restoreElementScroll(scrollStateEntry.element, scrollStateEntry.state);
-    }
-
-    _ensureWindowScroll (el, preventScrolling, type, callback) {
-        let windowScroll                           = null;
-        let elementNonScrollableParentsScrollState = null;
-
-        if (preventScrolling)
-            windowScroll = styleUtils.getElementScroll(this.window);
-
-        if (browserUtils.isIE)
-            elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
-
-        this._ensureLabelHtmlForElement(el, type, callback);
-        el[FocusBlurSandbox.getInternalEventFlag(type)] = true;
-        // NOTE: We should guarantee that activeElement will be changed, therefore we need to call the native
-        // focus/blur event.
-        FocusBlurSandbox._getNativeMeth(el, type).call(el);
-
-        if (preventScrolling)
-            FocusBlurSandbox._restoreElementScroll(this.window, windowScroll);
-
-        if (browserUtils.isIE)
-            this._restoreElementNonScrollableParentsScrollState(elementNonScrollableParentsScrollState);
-
     }
 
     _raiseEvent (el, type, callback, withoutHandlers, isAsync, forMouseEvent, preventScrolling) {
@@ -181,7 +148,36 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         if (el[type]) {
             // NOTE: To guarantee that all focus/blur events are raised, we need to raise them manually.
-            this._ensureWindowScroll(el, preventScrolling, type, callback);
+            let windowScroll                           = null;
+            let elementNonScrollableParentsScrollState = null;
+
+            if (preventScrolling)
+                windowScroll = styleUtils.getElementScroll(this.window);
+
+            if (browserUtils.isIE)
+                elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
+
+            if (this._shouldUseLabelHtmlForElement(el, type)) {
+                const htmlForElement = nativeMethods.getElementById.call(domUtils.findDocument(el), el.htmlFor);
+
+                if (htmlForElement)
+                    el = htmlForElement;
+                else {
+                    callback();
+                    return;
+                }
+            }
+            el[FocusBlurSandbox.getInternalEventFlag(type)] = true;
+            // NOTE: We should guarantee that activeElement will be changed, therefore we need to call the native
+            // focus/blur event.
+            FocusBlurSandbox._getNativeMeth(el, type).call(el);
+
+            if (preventScrolling)
+                FocusBlurSandbox._restoreElementScroll(this.window, windowScroll);
+
+            if (browserUtils.isIE)
+                this._restoreElementNonScrollableParentsScrollState(elementNonScrollableParentsScrollState);
+
 
             const curDocument   = domUtils.findDocument(el);
             const activeElement = domUtils.getActiveElement(curDocument);
