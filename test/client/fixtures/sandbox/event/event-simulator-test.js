@@ -170,6 +170,26 @@ test('blur', function () {
     ok(blured);
 });
 
+test('focusin', function () {
+    var focusInRaised = false;
+
+    domElement.addEventListener('focusin', function () {
+        focusInRaised = true;
+    });
+    eventSimulator.focusin(domElement);
+    ok(focusInRaised);
+});
+
+test('focusout', function () {
+    var focusOutRaised = false;
+
+    domElement.addEventListener('focusout', function () {
+        focusOutRaised = true;
+    });
+    eventSimulator.focusout(domElement);
+    ok(focusOutRaised);
+});
+
 if (!browserUtils.isFirefox) {
     test('window.event is not null', function () {
         var ev = null;
@@ -560,4 +580,3 @@ test('wrong type of the blur event (GH-947)', function () {
     eventSimulator.blur(domElement);
     ok(raised);
 });
-

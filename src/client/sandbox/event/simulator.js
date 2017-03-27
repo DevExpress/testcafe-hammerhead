@@ -22,10 +22,11 @@ const POINTER_EVENT_BUTTON = {
     rightButton: 2
 };
 
-const KEY_EVENT_NAME_RE       = /^key\w+$/;
-const MOUSE_EVENT_NAME_RE     = /^((mouse\w+)|((dbl)?click)|(contextmenu))$/;
-const TOUCH_EVENT_NAME_RE     = /^touch\w+$/;
-const MSPOINTER_EVENT_NAME_RE = /^MSPointer(Down|Up|Move|Over|Out)$/;
+const KEY_EVENT_NAME_RE          = /^key\w+$/;
+const MOUSE_EVENT_NAME_RE        = /^((mouse\w+)|((dbl)?click)|(contextmenu))$/;
+const TOUCH_EVENT_NAME_RE        = /^touch\w+$/;
+const MSPOINTER_EVENT_NAME_RE    = /^MSPointer(Down|Up|Move|Over|Out)$/;
+const FOCUS_IN_OUT_EVENT_NAME_RE = /^focus(in|out)$/;
 
 export default class EventSimulator {
     constructor () {
@@ -583,10 +584,11 @@ export default class EventSimulator {
     _dispatchFocusEvent (el, name) {
         var browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
         var event                     = null;
+        var bubbles                   = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
 
         if (browserWithNewEventsStyle && nativeMethods.WindowFocusEvent) {
             event = new nativeMethods.WindowFocusEvent(name, {
-                bubbles:          false,
+                bubbles:          bubbles,
                 cancelable:       false,
                 cancelBubble:     false,
                 defaultPrevented: false
@@ -595,7 +597,7 @@ export default class EventSimulator {
         else if (nativeMethods.documentCreateEvent) {
             event = nativeMethods.documentCreateEvent.call(document, 'FocusEvent');
 
-            event.initEvent(name, false, true);
+            event.initEvent(name, bubbles, true);
         }
 
         if (event) {
@@ -847,6 +849,14 @@ export default class EventSimulator {
 
     focus (el) {
         return this._dispatchFocusEvent(el, 'focus');
+    }
+
+    focusin (el) {
+        return this._dispatchFocusEvent(el, 'focusin');
+    }
+
+    focusout (el) {
+        return this._dispatchFocusEvent(el, 'focusout');
     }
 
     storage (window, options) {
