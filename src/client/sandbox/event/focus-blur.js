@@ -27,6 +27,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         this.shouldDisableOuterFocusHandlers = false;
         this.topWindow                       = null;
         this.lastFocusedElement              = null;
+        this.scrollState                     = {};
 
         this.eventSimulator        = eventSimulator;
         this.activeWindowTracker   = new ActiveWindowTracker(messageSandbox);
@@ -105,6 +106,22 @@ export default class FocusBlurSandbox extends SandboxBase {
             FocusBlurSandbox._restoreElementScroll(scrollStateEntry.element, scrollStateEntry.state);
     }
 
+    _saveScrollStateIfNecessary (el, preventScrolling) {
+        if (preventScrolling)
+            this.scrollState.windowScroll = styleUtils.getElementScroll(this.window);
+
+        if (browserUtils.isIE)
+            this.scrollState.elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
+    }
+
+    _restoreScrollStateIfNecessary (preventScrolling) {
+        if (preventScrolling)
+            FocusBlurSandbox._restoreElementScroll(this.window, this.scrollState.windowScroll);
+
+        if (browserUtils.isIE)
+            this._restoreElementNonScrollableParentsScrollState(this.scrollState.elementNonScrollableParentsScrollState);
+    }
+
     _raiseEvent (el, type, callback, withoutHandlers, isAsync, forMouseEvent, preventScrolling) {
         // NOTE: We cannot use Promise because 'resolve' will be called async, but we need to resolve
         // immediately in IE9 and IE10.
@@ -148,14 +165,7 @@ export default class FocusBlurSandbox extends SandboxBase {
 
         if (el[type]) {
             // NOTE: To guarantee that all focus/blur events are raised, we need to raise them manually.
-            let windowScroll                           = null;
-            let elementNonScrollableParentsScrollState = null;
-
-            if (preventScrolling)
-                windowScroll = styleUtils.getElementScroll(this.window);
-
-            if (browserUtils.isIE)
-                elementNonScrollableParentsScrollState = this._getElementNonScrollableParentsScrollState(el);
+            this._saveScrollStateIfNecessary(el, preventScrolling);
 
             if (this._shouldUseLabelHtmlForElement(el, type)) {
                 const htmlForElement = nativeMethods.getElementById.call(domUtils.findDocument(el), el.htmlFor);
@@ -171,13 +181,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             // NOTE: We should guarantee that activeElement will be changed, therefore we need to call the native
             // focus/blur event.
             FocusBlurSandbox._getNativeMeth(el, type).call(el);
-
-            if (preventScrolling)
-                FocusBlurSandbox._restoreElementScroll(this.window, windowScroll);
-
-            if (browserUtils.isIE)
-                this._restoreElementNonScrollableParentsScrollState(elementNonScrollableParentsScrollState);
-
+            this._restoreScrollStateIfNecessary(preventScrolling);
 
             const curDocument   = domUtils.findDocument(el);
             const activeElement = domUtils.getActiveElement(curDocument);
