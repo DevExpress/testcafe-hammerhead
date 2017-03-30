@@ -1,4 +1,5 @@
-var xhrHeaders = hammerhead.get('../request-pipeline/xhr/headers');
+var xhrHeaders   = hammerhead.get('../request-pipeline/xhr/headers');
+var destLocation = hammerhead.get('./utils/destination-location');
 
 if (window.fetch) {
     asyncTest('global fetch - redirect request to proxy', function () {
@@ -306,6 +307,50 @@ if (window.fetch) {
                         strictEqual('https://example.com', headers[xhrHeaders.origin]);
                         start();
                     });
+            });
+
+            module('location with file protocol');
+
+            asyncTest('headers is object', function () {
+                destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
+
+                fetch('/echo-request-headers', {
+                    method:  'post',
+                    headers: {
+                        'Content-Type': 'application/json; charset=UTF-8'
+                    }
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual(headers[xhrHeaders.origin], 'file:///path/index.html');
+                        start();
+                    });
+
+                destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+            });
+
+            asyncTest('headers is window.Headers', function () {
+                destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
+
+                var testHeaders = new Headers();
+
+                testHeaders.append('Content-Type', 'application/json; charset=UTF-8');
+
+                fetch('/echo-request-headers', {
+                    method:  'post',
+                    headers: testHeaders
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        strictEqual(headers[xhrHeaders.origin], 'file:///path/index.html');
+                        start();
+                    });
+
+                destLocation.forceLocation('http://localhost/sessionId/https://example.com');
             });
         });
     });

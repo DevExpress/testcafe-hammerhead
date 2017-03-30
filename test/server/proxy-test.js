@@ -47,6 +47,10 @@ function newLineReplacer (content) {
     return new Buffer(content.toString().replace(/\r\n|\n/gm, '\r\n'));
 }
 
+function getFileProtocolUrl (filePath) {
+    return 'file:///' + path.resolve(__dirname, filePath).replace(/\\/g, '/');
+}
+
 describe('Proxy', function () {
     var destServer        = null;
     var crossDomainServer = null;
@@ -516,6 +520,42 @@ describe('Proxy', function () {
             });
         });
 
+        it('Should restrict requests from file protocol to some domain', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
+                headers: {
+                    referer: proxy.openSession('file:///path/page.html', session)
+                }
+            };
+
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
+
+            request(options, function (err, res, body) {
+                expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                expect(body).to.be.empty;
+                done();
+            });
+        });
+
+        it('Should restrict requests between file urls', function (done) {
+            var options = {
+                url:     proxy.openSession(getFileProtocolUrl('./data/stylesheet/src.css'), session),
+                headers: {
+                    referer: proxy.openSession('file:///path/page.html', session)
+                }
+            };
+
+            options.headers[XHR_HEADERS.requestMarker] = 'true';
+            options.headers[XHR_HEADERS.corsSupported] = 'true';
+
+            request(options, function (err, res, body) {
+                expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                expect(body).to.be.empty;
+                done();
+            });
+        });
+
         it('Should restrict preflight requests from other domain', function (done) {
             var options = {
                 method:  'OPTIONS',
@@ -973,10 +1013,6 @@ describe('Proxy', function () {
     });
 
     describe('file:// protocol', function () {
-        var getFileProtocolUrl = function (filePath) {
-            return path.resolve(__dirname, filePath).replace(/\\/g, '/');
-        };
-
         it('Should process page and ignore search string', function (done) {
             session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
@@ -985,7 +1021,7 @@ describe('Proxy', function () {
             session.injectable.styles.push('/styles2.css');
 
             var options = {
-                url: proxy.openSession('file:///' + getFileProtocolUrl('./data/page/src.html') + '?a=1&b=3', session),
+                url: proxy.openSession(getFileProtocolUrl('./data/page/src.html') + '?a=1&b=3', session),
 
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
@@ -1004,7 +1040,7 @@ describe('Proxy', function () {
             session.id = 'sessionId';
 
             var options = {
-                url:     proxy.openSession('file:///' + getFileProtocolUrl('./data/stylesheet/src.css'), session),
+                url:     proxy.openSession(getFileProtocolUrl('./data/stylesheet/src.css'), session),
                 headers: {
                     accept: 'text/css,*/*;q=0.1'
                 }
@@ -1022,10 +1058,10 @@ describe('Proxy', function () {
             session.id = 'sessionId';
 
             var filePostfix = os.platform() === 'win32' ? 'win' : 'nix';
-            var filePath    = getFileProtocolUrl('./data/page-with-file-protocol/src-' + filePostfix + '.html');
+            var fileUrl     = getFileProtocolUrl('./data/page-with-file-protocol/src-' + filePostfix + '.html');
 
             var options = {
-                url:     proxy.openSession('file:///' + filePath, session),
+                url:     proxy.openSession(fileUrl, session),
                 headers: {
                     accept: 'text/html,*/*;q=0.1'
                 }
@@ -1044,7 +1080,7 @@ describe('Proxy', function () {
             session.id = 'sessionId';
 
             var options = {
-                url:     proxy.openSession('file:///' + getFileProtocolUrl('./data/images/icons.svg'), session),
+                url:     proxy.openSession(getFileProtocolUrl('./data/images/icons.svg'), session),
                 headers: {
                     accept: 'image/webp,image/*,*/*;q=0.8'
                 }

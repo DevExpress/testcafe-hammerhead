@@ -2,7 +2,7 @@ import SandboxBase from './base';
 import nativeMethods from './native-methods';
 import XHR_HEADERS from '../../request-pipeline/xhr/headers';
 import { getProxyUrl, parseProxyUrl } from '../utils/url';
-import { getOrigin, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
+import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
 
@@ -19,11 +19,11 @@ export default class FetchSandbox extends SandboxBase {
         var requestCredentials = init.credentials || defaultRequest.credentials;
 
         if (isFetchHeaders(headers)) {
-            headers.append(XHR_HEADERS.origin, getOrigin());
+            headers.append(XHR_HEADERS.origin, getOriginHeader());
             headers.append(XHR_HEADERS.fetchRequestCredentials, requestCredentials);
         }
         else {
-            headers[XHR_HEADERS.origin]                  = getOrigin();
+            headers[XHR_HEADERS.origin]                  = getOriginHeader();
             headers[XHR_HEADERS.fetchRequestCredentials] = requestCredentials;
         }
 
