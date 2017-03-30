@@ -3,7 +3,7 @@ import nativeMethods from './native-methods';
 import { getProxyUrl } from '../utils/url';
 import XHR_HEADERS from '../../request-pipeline/xhr/headers';
 import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
-import { getOrigin } from '../utils/destination-location';
+import { getOriginHeader } from '../utils/destination-location';
 import reEscape from '../../utils/regexp-escape';
 
 const IS_OPENED_XHR               = 'hammerhead|xhr|is-opened-xhr';
@@ -129,7 +129,7 @@ export default class XhrSandbox extends SandboxBase {
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
             nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.requestMarker, 'true');
 
-            nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.origin, getOrigin());
+            nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.origin, getOriginHeader());
 
             if (xhrSandbox.corsSupported)
                 nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.corsSupported, 'true');

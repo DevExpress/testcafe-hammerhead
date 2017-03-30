@@ -87,6 +87,8 @@ export function getParsed () {
     };
 }
 
-export function getOrigin () {
-    return sharedUrlUtils.getDomain(getParsed());
+export function getOriginHeader () {
+    var parsedDest = getParsed();
+
+    return parsedDest.protocol === 'file:' ? get() : sharedUrlUtils.getDomain(parsedDest);
 }

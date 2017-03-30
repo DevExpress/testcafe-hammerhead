@@ -110,7 +110,7 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     setCookie (document, value, syncWithServer) {
-        if (value.length > BYTES_PER_COOKIE_LIMIT)
+        if (value.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:')
             return value;
 
         // NOTE: First, update our client cookies cache with a client-validated cookie string,

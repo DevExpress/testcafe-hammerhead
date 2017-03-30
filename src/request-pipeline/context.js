@@ -146,7 +146,9 @@ export default class RequestPipelineContext {
 
             if (parsedReferer) {
                 this.dest.referer   = parsedReferer.dest.url;
-                this.dest.reqOrigin = urlUtils.getDomain(parsedReferer.dest);
+                this.dest.reqOrigin = parsedReferer.dest.protocol === 'file:' ?
+                                      parsedReferer.dest.url :
+                                      urlUtils.getDomain(parsedReferer.dest);
             }
             else if (this.req.headers[XHR_HEADERS.origin])
                 this.dest.reqOrigin = this.req.headers[XHR_HEADERS.origin];

@@ -1,6 +1,7 @@
 var XhrSandbox    = hammerhead.get('./sandbox/xhr');
 var XHR_HEADERS   = hammerhead.get('./../request-pipeline/xhr/headers');
 var AUTHORIZATION = hammerhead.get('./../request-pipeline/xhr/authorization');
+var destLocation  = hammerhead.get('./utils/destination-location');
 var settings      = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -129,6 +130,13 @@ if (!browserUtils.isIE9) {
         xhrTestFunc();
         strictEqual(window.response, 'https://example.com', 'top window');
 
+        destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
+
+        xhrTestFunc();
+        strictEqual(window.response, 'file:///path/index.html', 'location with file protocol');
+
+        destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+
         var iframe = document.createElement('iframe');
 
         iframe.id = 'test';
@@ -148,7 +156,7 @@ if (!browserUtils.isIE9) {
 
                 document.body.removeChild(iframe);
 
-                expect(2);
+                expect(3);
                 start();
             });
 
