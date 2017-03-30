@@ -661,24 +661,33 @@ asyncTest('isElementFocusable', function () {
 });
 
 test('isTextEditableInput', function () {
-    var textEditableTypes    = ['email', 'number', 'password', 'search', 'tel', 'text', 'url'];
-    var nonTextEditableTypes = ['date', 'week', 'month', 'datetime-local', 'range', 'color', 'time'];
-    var input                = nativeMethods.createElement.call(document, 'input');
-    var i                    = 0;
+    var editableTypes = {
+        'color':          false,
+        'date':           false,
+        'datetime-local': false,
+        'email':          true,
+        'month':          false,
+        'number':         true,
+        'password':       true,
+        'range':          false,
+        'search':         true,
+        'tel':            true,
+        'text':           true,
+        'time':           false,
+        'url':            true,
+        'week':           false
+    };
+
+    var input = nativeMethods.createElement.call(document, 'input');
 
     // NOTE: check element with empty "type" attribute
     ok(domUtils.isTextEditableInput(input));
 
-    for (i = 0; i < textEditableTypes.length; i++) {
-        input.setAttribute('type', textEditableTypes[i]);
-
-        ok(domUtils.isTextEditableInput(input));
-    }
-
-    for (i = 0; i < nonTextEditableTypes.length; i++) {
-        input.setAttribute('type', nonTextEditableTypes[i]);
-
-        ok(!domUtils.isTextEditableInput(input));
+    for (var type in editableTypes) {
+        if (editableTypes.hasOwnProperty(type)) {
+            input.setAttribute('type', type);
+            strictEqual(domUtils.isTextEditableInput(input), editableTypes[type]);
+        }
     }
 });
 
