@@ -97,7 +97,8 @@ var CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'firefox',
-        platform:    'OS X 10.11'
+        platform:    'OS X 10.11',
+        version:     '51'
     }
 ];
 
