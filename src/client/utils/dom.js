@@ -630,9 +630,11 @@ export function isFetchRequest (instance) {
 }
 
 export function isTextEditableInput (el) {
-    var editableInputTypesRegEx = /^(datetime|email|number|password|search|tel|text|url)$/;
+    var editableInputTypesRegEx = /^(email|number|password|search|tel|text|url)$/;
+    var attrType                = el.getAttribute('type');
 
-    return isInputElement(el) && editableInputTypesRegEx.test(el.type);
+    return isInputElement(el) &&
+           attrType ? editableInputTypesRegEx.test(attrType) : editableInputTypesRegEx.test(el.type);
 }
 
 export function isTextEditableElement (el) {

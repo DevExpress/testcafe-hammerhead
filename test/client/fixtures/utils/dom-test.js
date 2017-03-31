@@ -660,6 +660,37 @@ asyncTest('isElementFocusable', function () {
     document.body.appendChild(iframe);
 });
 
+test('isTextEditableInput', function () {
+    var editableTypes = {
+        'color':          false,
+        'date':           false,
+        'datetime-local': false,
+        'email':          true,
+        'month':          false,
+        'number':         true,
+        'password':       true,
+        'range':          false,
+        'search':         true,
+        'tel':            true,
+        'text':           true,
+        'time':           false,
+        'url':            true,
+        'week':           false
+    };
+
+    var input = nativeMethods.createElement.call(document, 'input');
+
+    // NOTE: check element with empty "type" attribute
+    ok(domUtils.isTextEditableInput(input));
+
+    for (var type in editableTypes) {
+        if (editableTypes.hasOwnProperty(type)) {
+            input.setAttribute('type', type);
+            strictEqual(domUtils.isTextEditableInput(input), editableTypes[type]);
+        }
+    }
+});
+
 module('regression');
 
 test('isDocument infinite recursion (GH-923)', function () {
