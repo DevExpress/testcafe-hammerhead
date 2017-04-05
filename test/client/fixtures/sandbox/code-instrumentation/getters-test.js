@@ -1,11 +1,15 @@
-var INTERNAL_PROPS         = hammerhead.get('../processing/dom/internal-properties');
-var SHADOW_UI_CLASSNAME    = hammerhead.get('../shadow-ui/class-name');
-var urlUtils               = hammerhead.get('./utils/url');
-var processScript          = hammerhead.get('../processing/script').processScript;
-var removeProcessingHeader = hammerhead.get('../processing/script/header').remove;
-var destLocation           = hammerhead.get('./utils/destination-location');
-var attributesProperty     = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
-var processHtml            = hammerhead.get('../client/utils/html').processHtml;
+var INTERNAL_PROPS                       = hammerhead.get('../processing/dom/internal-properties');
+var SHADOW_UI_CLASSNAME                  = hammerhead.get('../shadow-ui/class-name');
+var urlUtils                             = hammerhead.get('./utils/url');
+var processScript                        = hammerhead.get('../processing/script').processScript;
+var removeProcessingHeader               = hammerhead.get('../processing/script/header').remove;
+var SCRIPT_PROCESSING_START_COMMENT      = hammerhead.get('../processing/script/header').SCRIPT_PROCESSING_START_COMMENT;
+var SCRIPT_PROCESSING_END_COMMENT        = hammerhead.get('../processing/script/header').SCRIPT_PROCESSING_END_COMMENT;
+var SCRIPT_PROCESSING_END_HEADER_COMMENT = hammerhead.get('../processing/script/header').SCRIPT_PROCESSING_END_HEADER_COMMENT;
+var styleProcessor                       = hammerhead.get('../processing/style');
+var destLocation                         = hammerhead.get('./utils/destination-location');
+var attributesProperty                   = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
+var processHtml                          = hammerhead.get('../client/utils/html').processHtml;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -436,4 +440,44 @@ test('should not create proxy url for invalid url (GH-778)', function () {
 
         strictEqual(linkVal, nativeLinkVal);
     }
+});
+
+function checkProperty (text) {
+    return text.indexOf(SCRIPT_PROCESSING_START_COMMENT) === -1 &&
+           text.indexOf(SCRIPT_PROCESSING_END_COMMENT) === -1 &&
+           text.indexOf(SCRIPT_PROCESSING_END_HEADER_COMMENT) === -1 &&
+           text.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT) === -1 &&
+           text.indexOf(styleProcessor.STYLESHEET_PROCESSING_END_COMMENT) === -1;
+}
+
+test('we should clean up hammerhead script and style for all elements(GH-1079)', function () {
+    var head         = document.head;
+    var style        = document.createElement('style');
+    var styleText    = 'div{background:url(http://some.domain.com/image.png)}';
+    var firstScript  = document.createElement('script');
+    var secondScript = document.createElement('script');
+    var scriptCode   = 'var test = window.href;';
+
+    setProperty(style, 'textContent', styleText);
+    head.appendChild(style);
+    setProperty(firstScript, 'textContent', scriptCode);
+    head.appendChild(firstScript);
+    setProperty(secondScript, 'textContent', scriptCode);
+    head.appendChild(secondScript);
+
+    var text        = getProperty(firstScript, 'text') || '';
+    var textContent = getProperty(head, 'textContent');
+    var innerText   = getProperty(head, 'innerText') || '';
+    var innerHTML   = getProperty(head, 'innerHTML');
+    var outerHTML   = getProperty(head, 'outerHTML');
+
+    head.removeChild(style);
+    head.removeChild(firstScript);
+    head.removeChild(secondScript);
+
+    ok(checkProperty(text));
+    ok(checkProperty(textContent));
+    ok(checkProperty(innerText));
+    ok(checkProperty(innerHTML));
+    ok(checkProperty(outerHTML));
 });
