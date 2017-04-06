@@ -124,11 +124,7 @@ function createReqOpts (ctx) {
     // NOTE: All headers, including 'content-length', are built here.
     var headers = headerTransforms.forRequest(ctx);
     var proxy   = ctx.session.externalProxySettings;
-
-    if (proxy && proxy.ignoreHosts.indexOf(ctx.dest.host) !== -1 || ctx.dest.protocol === 'file:')
-        proxy = null;
-
-    return {
+    var options = {
         url:         ctx.dest.url,
         protocol:    ctx.dest.protocol,
         hostname:    ctx.dest.hostname,
@@ -143,6 +139,18 @@ function createReqOpts (ctx) {
         proxy,
         headers
     };
+
+    if (proxy && ctx.dest.protocol === 'http:') {
+        options.path     = options.protocol + '//' + options.host + options.path;
+        options.host     = proxy.host;
+        options.hostname = proxy.hostname;
+        options.port     = proxy.port;
+
+        if (proxy.authHeader)
+            headers['proxy-authorization'] = proxy.authHeader;
+    }
+
+    return options;
 }
 
 function sendResponseHeaders (ctx) {
