@@ -691,6 +691,24 @@ test('isTextEditableInput', function () {
     }
 });
 
+test('isElementReadOnly', function () {
+    var input = document.createElement('input');
+
+    ok(!domUtils.isElementReadOnly(input));
+
+    input.readOnly = true;
+
+    ok(domUtils.isElementReadOnly(input));
+
+    input.readOnly = false;
+
+    ok(!domUtils.isElementReadOnly(input));
+
+    input.setAttribute('readOnly', 'readOnly');
+
+    ok(domUtils.isElementReadOnly(input));
+});
+
 module('regression');
 
 test('isDocument infinite recursion (GH-923)', function () {
