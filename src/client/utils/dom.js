@@ -629,6 +629,10 @@ export function isFetchRequest (instance) {
     return instance && instanceToString(instance) === '[object Request]';
 }
 
+export function isElementReadOnly (el) {
+    return el.readOnly || el.getAttribute('readonly') === 'readonly';
+}
+
 export function isTextEditableInput (el) {
     var editableInputTypesRegEx = /^(email|number|password|search|tel|text|url)$/;
     var attrType                = el.getAttribute('type');
@@ -642,9 +646,7 @@ export function isTextEditableElement (el) {
 }
 
 export function isTextEditableElementAndEditingAllowed (el) {
-    var isElementEditingAllowed = () => !el.readOnly && el.getAttribute('readonly') !== 'readonly';
-
-    return isTextEditableElement(el) && isElementEditingAllowed();
+    return isTextEditableElement(el) && !isElementReadOnly(el);
 }
 
 export function isElementNode (node) {
