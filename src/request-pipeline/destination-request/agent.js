@@ -1,6 +1,6 @@
 import Agent from 'yakaa';
 import LRUCache from 'lru-cache';
-import tunnel from 'tunnel';
+import tunnel from 'tunnel-agent';
 
 // Const
 const SSL3_HOST_CACHE_SIZE = 1000;
