@@ -34,6 +34,8 @@ describe('External proxy', function () {
     var proxyServer = null;
     var proxyLogs   = null;
 
+    var proxyServerAuthorizationFail = false;
+
     var proxy   = null;
     var session = null;
 
@@ -64,6 +66,12 @@ describe('External proxy', function () {
                     auth: req.headers['proxy-authorization']
                 });
 
+                if (proxyServerAuthorizationFail) {
+                    res.writeHead(407, {});
+                    res.end();
+                    return;
+                }
+
                 var reqOptions = urlLib.parse(req.url);
 
                 reqOptions.method  = req.method;
@@ -81,6 +89,13 @@ describe('External proxy', function () {
                     url:  req.url,
                     auth: req.headers['proxy-authorization']
                 });
+
+                if (proxyServerAuthorizationFail) {
+                    clientSocket.write('HTTP/1.1 407 Proxy Authentication Required\r\n' +
+                                       'Proxy-agent: Node.js-Proxy\r\n' +
+                                       '\r\n');
+                    return;
+                }
 
                 var serverUrl    = urlLib.parse('http://' + req.url);
                 var serverSocket = net.connect(serverUrl.port, serverUrl.hostname, function () {
@@ -203,12 +218,69 @@ describe('External proxy', function () {
 
     it('Should raise the tunneling error', function (done) {
         session.handlePageError = function (ctx, err) {
-            expect(err).eql('Failed to establish tunneling connection to the host at <a href="127.0.0.1:2055">127.0.0.1:2055</a>.');
+            expect(err).eql('Failed to connect to the proxy. Cannot establish tunneling connection to the host at <a href="127.0.0.1:2055">127.0.0.1:2055</a>.');
             ctx.res.end();
             done();
         };
 
         var proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, '127.0.0.1:2055');
+
+        request({
+            url:     proxyUrl,
+            headers: {
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+            }
+        });
+    });
+
+    it('Should raise the proxy connection error', function (done) {
+        session.handlePageError = function (ctx, err) {
+            expect(err).eql('Failed to connect to the proxy host at <a href="127.0.0.1:2055">127.0.0.1:2055</a>.');
+            ctx.res.end();
+            done();
+        };
+
+        var proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'x:y@127.0.0.1:2055');
+
+        request({
+            url:     proxyUrl,
+            headers: {
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+            }
+        });
+    });
+
+    it('Should raise the error for non-authorized proxy', function (done) {
+        proxyServerAuthorizationFail = true;
+
+        session.handlePageError = function (ctx, err) {
+            expect(err).eql('Failed to authorize to the proxy at <a href="127.0.0.1:2002">127.0.0.1:2002</a>.');
+            ctx.res.end();
+            proxyServerAuthorizationFail = false;
+            done();
+        };
+
+        var proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:passwd@127.0.0.1:2002');
+
+        request({
+            url:     proxyUrl,
+            headers: {
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+            }
+        });
+    });
+
+    it('Should raise the error for non-authorized tunneling proxy', function (done) {
+        proxyServerAuthorizationFail = true;
+
+        session.handlePageError = function (ctx, err) {
+            expect(err).eql('Failed to authorize to the proxy at <a href="127.0.0.1:2002">127.0.0.1:2002</a>.');
+            ctx.res.end();
+            proxyServerAuthorizationFail = false;
+            done();
+        };
+
+        var proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:passwd@127.0.0.1:2002');
 
         request({
             url:     proxyUrl,

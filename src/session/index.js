@@ -99,10 +99,10 @@ export default class Session extends EventEmitter {
     }
 
     setExternalProxySettings (proxyUrl) {
-        var parsedUrl = typeof proxyUrl === 'string' && parseUrl('http://' + proxyUrl);
+        var parsedUrl = typeof proxyUrl === 'string' ? parseUrl('http://' + proxyUrl) : null;
         var settings  = null;
 
-        if (parsedUrl.host) {
+        if (parsedUrl && parsedUrl.host) {
             settings = {
                 host:     parsedUrl.host,
                 hostname: parsedUrl.hostname
