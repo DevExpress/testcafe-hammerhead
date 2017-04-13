@@ -25,7 +25,8 @@ export default class WindowSandbox extends SandboxBase {
         this.nodeSandbox    = nodeSandbox;
         this.messageSandbox = messageSandbox;
 
-        this.UNCAUGHT_JS_ERROR_EVENT = 'hammerhead|event|uncaught-js-error';
+        this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
+        this.FORCE_PROXY_SRC_FOR_IMAGE = 'hammerhead|image|force-proxy-src-flag';
     }
 
     _raiseUncaughtJsErrorEvent (msg, window, pageUrl) {
@@ -64,6 +65,7 @@ export default class WindowSandbox extends SandboxBase {
 
         var messageSandbox = this.messageSandbox;
         var nodeSandbox    = this.nodeSandbox;
+        var windowSandbox  = this;
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             var message = e.message;
@@ -75,7 +77,7 @@ export default class WindowSandbox extends SandboxBase {
         window.CanvasRenderingContext2D.prototype.drawImage = function () {
             var image = arguments[0];
 
-            if (isImgElement(image)) {
+            if (isImgElement(image) && !image[windowSandbox.FORCE_PROXY_SRC_FOR_IMAGE]) {
                 var changedArgs = arraySlice.call(arguments);
                 var src         = image.src;
 
@@ -221,6 +223,8 @@ export default class WindowSandbox extends SandboxBase {
                 image = new nativeMethods.Image(arguments[0]);
             else
                 image = new nativeMethods.Image(arguments[0], arguments[1]);
+
+            image[windowSandbox.FORCE_PROXY_SRC_FOR_IMAGE] = true;
 
             nodeSandbox.processNodes(image);
 

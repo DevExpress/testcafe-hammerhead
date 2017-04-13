@@ -214,16 +214,17 @@ test('setAttribute: img src', function () {
 });
 
 test('canvasRenderingContext2D.drawImage', function () {
-    var storedNativeMethod = nativeMethods.canvasContextDrawImage;
-    var crossDomainUrl     = 'http://crossdomain.com/image.png';
-    var localUrl           = 'http://' + location.host + '/';
-    var crossDomainImg     = nativeMethods.createElement.call(document, 'img');
-    var localImg           = nativeMethods.createElement.call(document, 'img');
-    var canvasContext      = $('<canvas>')[0].getContext('2d');
-    var otherCanvas        = $('<canvas>')[0];
-    var otherCanvasContext = otherCanvas.getContext('2d');
-    var slice              = Array.prototype.slice;
-    var testCases          = [
+    var storedNativeMethod  = nativeMethods.canvasContextDrawImage;
+    var crossDomainUrl      = 'http://crossdomain.com/image.png';
+    var localUrl            = 'http://' + location.host + '/';
+    var crossDomainImg      = nativeMethods.createElement.call(document, 'img');
+    var localImg            = nativeMethods.createElement.call(document, 'img');
+    var imgCreatedViaConstr = new Image();
+    var canvasContext       = $('<canvas>')[0].getContext('2d');
+    var otherCanvas         = $('<canvas>')[0];
+    var otherCanvasContext  = otherCanvas.getContext('2d');
+    var slice               = Array.prototype.slice;
+    var testCases           = [
         {
             description: 'image with cross-domain url',
             args:        [crossDomainImg, 1, 2],
@@ -236,6 +237,13 @@ test('canvasRenderingContext2D.drawImage', function () {
             args:        [localImg, 4, 3, 2, 1],
             testImgFn:   function (img) {
                 return img.src === urlUtils.getProxyUrl(localUrl);
+            }
+        },
+        {
+            description: 'image created with Image constructor',
+            args:        [imgCreatedViaConstr, 4, 3, 2],
+            testImgFn:   function (img) {
+                return img === imgCreatedViaConstr;
             }
         },
         {
