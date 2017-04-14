@@ -31,7 +31,7 @@ test('add UI class and get UI element with selector', function () {
 
     shadowUI.addClass(uiElem, 'ui-elem-class');
     $('#testDiv').append(uiElem);
-    uiElem    = shadowUI.select('div.ui-elem-class')[0];
+    uiElem = shadowUI.select('div.ui-elem-class')[0];
 
     strictEqual(uiElem.id, 'uiElem');
 
@@ -388,6 +388,61 @@ test('elementFromPoint', function () {
     strictEqual(document.elementFromPoint(simpleDivPos.left + 1, simpleDivPos.top + 1), simpleDiv);
     strictEqual(document.elementFromPoint(shadowDivPos.left + 1, shadowDivPos.top + 1), null);
 });
+
+if (document.caretPositionFromPoint) {
+    test('caretPositionFromPoint', function () {
+        var testDiv   = document.querySelector('#testDiv');
+        var simpleDiv = document.createElement('div');
+        var shadowDiv = document.createElement('div');
+
+        simpleDiv.style.height = '10px';
+        shadowDiv.style.height = '10px';
+
+        shadowUI.addClass(shadowDiv, 'root');
+
+        testDiv.appendChild(simpleDiv);
+        testDiv.appendChild(shadowDiv);
+
+        var simpleDivPos = positionUtils.getOffsetPosition(simpleDiv);
+        var shadowDivPos = positionUtils.getOffsetPosition(shadowDiv);
+
+        var caretPosition         = document.caretPositionFromPoint(simpleDivPos.left + 1, simpleDivPos.top + 1);
+        var shadowUICaretPosition = document.caretPositionFromPoint(shadowDivPos.left + 1, shadowDivPos.top + 1);
+
+        strictEqual(caretPosition.offsetNode, simpleDiv);
+        strictEqual(caretPosition.offset, 0);
+        strictEqual(shadowUICaretPosition, null);
+    });
+}
+
+if (document.caretRangeFromPoint) {
+    test('caretRangeFromPoint', function () {
+        var testDiv   = document.querySelector('#testDiv');
+        var simpleDiv = document.createElement('div');
+        var shadowDiv = document.createElement('div');
+
+        simpleDiv.style.height    = '20px';
+        simpleDiv.contentEditable = true;
+        shadowDiv.style.height    = '20px';
+        shadowDiv.contentEditable = true;
+
+        shadowUI.addClass(shadowDiv, 'root');
+
+        testDiv.appendChild(simpleDiv);
+        testDiv.appendChild(shadowDiv);
+
+        var simpleDivPos = positionUtils.getOffsetPosition(simpleDiv);
+        var shadowDivPos = positionUtils.getOffsetPosition(shadowDiv);
+
+        var caretRange         = document.caretRangeFromPoint(simpleDivPos.left + 1, simpleDivPos.top + 1);
+        var shadowUICaretRange = document.caretRangeFromPoint(shadowDivPos.left + 1, shadowDivPos.top + 1);
+
+        strictEqual(caretRange.startContainer, simpleDiv);
+        strictEqual(caretRange.endContainer, simpleDiv);
+        strictEqual(caretRange.startOffset, 0);
+        strictEqual(shadowUICaretRange, null);
+    });
+}
 
 test('getElementById', function () {
     var $testDiv = $('#testDiv');

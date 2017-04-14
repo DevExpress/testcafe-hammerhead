@@ -20,6 +20,8 @@ class NativeMethods {
         this.documentWrite          = doc.write || docProto.write;
         this.documentWriteLn        = doc.writeln || docProto.writeln;
         this.elementFromPoint       = doc.elementFromPoint || docProto.elementFromPoint;
+        this.caretRangeFromPoint    = doc.caretRangeFromPoint || docProto.caretRangeFromPoint;
+        this.caretPositionFromPoint = doc.caretPositionFromPoint || docProto.caretPositionFromPoint;
         this.getElementById         = doc.getElementById || docProto.getElementById;
         this.getElementsByClassName = doc.getElementsByClassName || docProto.getElementsByClassName;
         this.getElementsByName      = doc.getElementsByName || docProto.getElementsByName;
@@ -216,6 +218,8 @@ class NativeMethods {
         document.write                  = this.documentWrite;
         document.writeln                = this.documentWriteLn;
         document.elementFromPoint       = this.elementFromPoint;
+        document.caretRangeFromPoint    = this.caretRangeFromPoint;
+        document.caretPositionFromPoint = this.caretPositionFromPoint;
         document.getElementById         = this.getElementById;
         document.getElementsByClassName = this.getElementsByClassName;
         document.getElementsByName      = this.getElementsByName;

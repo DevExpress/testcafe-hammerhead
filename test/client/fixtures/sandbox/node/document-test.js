@@ -1,4 +1,4 @@
-var processScript = hammerhead.get('../processing/script').processScript;
+var processScript       = hammerhead.get('../processing/script').processScript;
 var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
 
 var browserUtils  = hammerhead.utils.browser;
@@ -63,7 +63,7 @@ asyncTest('document.write for iframe with empty url', function () {
 
     $div[0].appendChild($iframe[0]);
     check();
-    cheked    = true;
+    cheked = true;
 });
 
 if (!browserUtils.isFirefox) {
@@ -152,8 +152,8 @@ test('non-processed attributes', function () {
 
 //http://www.w3.org/TR/css3-selectors/#attribute-selectors
 test('attrubute types', function () {
-    var link      = document.createElement('a');
-    var div       = document.createElement('div');
+    var link = document.createElement('a');
+    var div  = document.createElement('div');
 
     link.setAttribute('href', 'http://some.domain.com');
     div.className = 'container';
@@ -228,9 +228,9 @@ test('javascript protocol', function () {
 });
 
 test('complex selector', function () {
-    var link           = document.createElement('a');
-    var divOuter       = document.createElement('div');
-    var divInner       = document.createElement('div');
+    var link     = document.createElement('a');
+    var divOuter = document.createElement('div');
+    var divInner = document.createElement('div');
 
     divOuter.setAttribute('data-id', '123456');
     divInner.className = 'inner';
@@ -263,6 +263,13 @@ test('parameters passed to the native function in its original form', function (
     checkNativeFunctionArgs('createElementNS', 'createElementNS', document);
     checkNativeFunctionArgs('createDocumentFragment', 'createDocumentFragment', document);
     checkNativeFunctionArgs('elementFromPoint', 'elementFromPoint', document);
+
+    if (document.caretRangeFromPoint)
+        checkNativeFunctionArgs('caretRangeFromPoint', 'caretRangeFromPoint', document);
+
+    if (document.caretPositionFromPoint)
+        checkNativeFunctionArgs('caretPositionFromPoint', 'caretPositionFromPoint', document);
+
     checkNativeFunctionArgs('getElementById', 'getElementById', document);
     checkNativeFunctionArgs('getElementsByClassName', 'getElementsByClassName', document);
     checkNativeFunctionArgs('getElementsByName', 'getElementsByName', document);
@@ -506,10 +513,10 @@ asyncTest('"permission denied" error inside documentWriter (GH-384)', function (
 // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
 if (!browserUtils.isIE) {
     asyncTest('document.write for same-domain iframe (GH-679)', function () {
-        var iframe  = document.createElement('iframe');
+        var iframe = document.createElement('iframe');
 
         iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
-        iframe.id = 'test_unique_id_9090d';
+        iframe.id  = 'test_unique_id_9090d';
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 iframe.contentDocument.open();

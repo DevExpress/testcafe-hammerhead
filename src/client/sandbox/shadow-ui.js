@@ -105,6 +105,36 @@ export default class ShadowUI extends SandboxBase {
             return res;
         };
 
+        if (document.caretRangeFromPoint) {
+            docProto.caretRangeFromPoint = function (...args) {
+                shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
+
+                var res = nativeMethods.caretRangeFromPoint.apply(this, args);
+
+                if (res && res.startContainer && !ShadowUI._filterElement(res.startContainer))
+                    res = null;
+
+                shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
+
+                return res;
+            };
+        }
+
+        if (document.caretPositionFromPoint) {
+            docProto.caretPositionFromPoint = function (...args) {
+                shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
+
+                var res = nativeMethods.caretPositionFromPoint.apply(this, args);
+
+                if (res && res.offsetNode && !ShadowUI._filterElement(res.offsetNode))
+                    res = null;
+
+                shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
+
+                return res;
+            };
+        }
+
         docProto.getElementById = function (...args) {
             return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args));
         };
@@ -278,7 +308,7 @@ export default class ShadowUI extends SandboxBase {
         if (!this.root || !this.document.body)
             return;
 
-        var isRootInDom = domUtils.closest(this.root, 'html');
+        var isRootInDom     = domUtils.closest(this.root, 'html');
         var isRootLastChild = !this.root.nextElementSibling;
         // NOTE: Fix for B239138 - The 'Cannot read property 'document' of null' error
         // is thrown on recording on the unroll.me site. There was an issue when
