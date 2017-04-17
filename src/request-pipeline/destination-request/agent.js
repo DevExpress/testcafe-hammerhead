@@ -1,7 +1,6 @@
 import Agent from 'yakaa';
 import LRUCache from 'lru-cache';
-import HttpProxyAgent from 'http-proxy-agent';
-import HttpsProxyAgent from 'https-proxy-agent';
+import tunnel from 'tunnel-agent';
 
 // Const
 const SSL3_HOST_CACHE_SIZE = 1000;
@@ -60,11 +59,8 @@ function isSSLProtocolErr (err) {
 export function assign (reqOpts) {
     var proxy = reqOpts.proxy;
 
-    if (proxy) {
-        if (reqOpts.protocol === 'http:')
-            reqOpts.agent = new HttpProxyAgent(proxy);
-        else
-            reqOpts.agent = new HttpsProxyAgent(proxy);
+    if (proxy && reqOpts.protocol === 'https:') {
+        reqOpts.agent = tunnel.httpsOverHttp({ proxy });
 
         return;
     }

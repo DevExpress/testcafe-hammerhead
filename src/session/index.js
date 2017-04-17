@@ -98,41 +98,26 @@ export default class Session extends EventEmitter {
         return taskScript;
     }
 
-    setExternalProxySettings (url, ignoreHosts) {
-        this.externalProxySettings = null;
+    setExternalProxySettings (proxyUrl) {
+        var parsedUrl = typeof proxyUrl === 'string' ? parseUrl('http://' + proxyUrl) : null;
+        var settings  = null;
 
-        if (typeof url !== 'string')
-            return;
+        if (parsedUrl && parsedUrl.host) {
+            settings = {
+                host:     parsedUrl.host,
+                hostname: parsedUrl.hostname
+            };
 
-        url = url.replace(/^(https?:)?(\/\/)?/g, (match, protocol, slashes) => {
-            slashes  = slashes || !protocol ? '//' : '';
-            protocol = protocol || slashes && 'http:';
+            if (parsedUrl.port)
+                settings.port = parsedUrl.port;
 
-            return protocol + slashes;
-        });
-
-        var parsedUrl = parseUrl(url);
-
-        if (!parsedUrl.host)
-            return;
-
-        var ignore = [];
-
-        if (ignoreHosts && Array.isArray(ignoreHosts)) {
-            for (var i = 0; i < ignoreHosts.length; i++) {
-                if (ignoreHosts[i] && typeof ignoreHosts[i] === 'string')
-                    ignore.push(ignoreHosts[i]);
+            if (parsedUrl.auth) {
+                settings.proxyAuth = parsedUrl.auth;
+                settings.authHeader = 'Basic ' + new Buffer(parsedUrl.auth).toString('base64');
             }
         }
 
-        this.externalProxySettings = {
-            protocol:    parsedUrl.protocol,
-            host:        parsedUrl.host,
-            hostname:    parsedUrl.hostname,
-            port:        parsedUrl.port,
-            auth:        parsedUrl.auth,
-            ignoreHosts: ignore
-        };
+        this.externalProxySettings = settings;
     }
 
     onPageRequest () {

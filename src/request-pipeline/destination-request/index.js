@@ -11,6 +11,9 @@ import { MESSAGE, getText } from '../../messages';
 // doesn't work (see: https://github.com/mikeal/request/issues/418).
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
+const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
+
 
 // DestinationRequest
 export default class DestinationRequest extends EventEmitter {
@@ -71,6 +74,8 @@ export default class DestinationRequest extends EventEmitter {
     _onResponse (res) {
         if (this._shouldResendWithCredentials(res))
             this._resendWithCredentials(res);
+        else if (!this.isHttps && this.opts.proxy && res.statusCode === 407)
+            this._fatalError(MESSAGE.cantAuthorizeToProxy, this.opts.proxy.host);
         else {
             this.hasResponse = true;
             this.emit('response', res);
@@ -87,17 +92,21 @@ export default class DestinationRequest extends EventEmitter {
         this._send(requiresResBody(res));
     }
 
-    _fatalError (msg) {
+    _fatalError (msg, url) {
         if (!this.aborted) {
             this.aborted = true;
             this.req.abort();
-            this.emit('fatalError', getText(msg, this.opts.url));
+            this.emit('fatalError', getText(msg, url || this.opts.url));
         }
     }
 
     _isDNSErr (err) {
         return err.message && /ECONNREFUSED|ENOTFOUND/.test(err.message) ||
                !this.aborted && !this.hasResponse && err.code && /ECONNRESET/.test(err.code);
+    }
+
+    _isTunnelingErr (err) {
+        return this.isHttps && this.opts.proxy && err.message && TUNNELING_SOCKET_ERR_RE.test(err.message);
     }
 
     _onTimeout () {
@@ -113,8 +122,19 @@ export default class DestinationRequest extends EventEmitter {
             this._send();
         }
 
-        else if (this._isDNSErr(err))
-            this._fatalError(MESSAGE.cantResolveUrl);
+        else if (this._isTunnelingErr(err)) {
+            if (TUNNELING_AUTHORIZE_ERR_RE.test(err.message))
+                this._fatalError(MESSAGE.cantAuthorizeToProxy, this.opts.proxy.host);
+            else
+                this._fatalError(MESSAGE.cantEstablishTunnelingConnection, this.opts.proxy.host);
+        }
+
+        else if (this._isDNSErr(err)) {
+            if (!this.isHttps && this.opts.proxy)
+                this._fatalError(MESSAGE.cantEstablishProxyConnection, this.opts.proxy.host);
+            else
+                this._fatalError(MESSAGE.cantResolveUrl);
+        }
 
         else
             this.emit('error');
