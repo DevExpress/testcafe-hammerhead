@@ -44,7 +44,7 @@ test('anchor', function () {
     etalonAnchor.href = url;
     anchor.href       = proxyUrl;
 
-    var execScript    = function (script) {
+    var execScript = function (script) {
         return eval(processScript(script));
     };
 
@@ -75,22 +75,22 @@ test('anchor', function () {
     etalonAnchor.port = '8080';
     strictEqual(execScript('anchor.port'), etalonAnchor.port);
 
-    etalonEmptyAnchor.port     = '8080';
+    etalonEmptyAnchor.port = '8080';
     execScript('emptyAnchor.port="8080";');
     strictEqual(execScript('emptyAnchor.port'), etalonEmptyAnchor.port);
 
     // Host
     execScript('anchor.host="yandex.com";');
-    etalonAnchor.host          = 'yandex.com';
+    etalonAnchor.host = 'yandex.com';
     strictEqual(execScript('anchor.host'), etalonAnchor.host);
 
     execScript('emptyAnchor.host="yandex.com";');
-    etalonEmptyAnchor.host     = 'yandex.com';
+    etalonEmptyAnchor.host = 'yandex.com';
     strictEqual(execScript('emptyAnchor.host'), etalonEmptyAnchor.host);
 
     // Hostname
     execScript('anchor.hostname="yandex.ru";');
-    etalonAnchor.hostname      = 'yandex.ru';
+    etalonAnchor.hostname = 'yandex.ru';
     strictEqual(execScript('anchor.hostname'), etalonAnchor.hostname);
 
     execScript('emptyAnchor.hostname="yandex.ru";');
@@ -99,7 +99,7 @@ test('anchor', function () {
 
     // Protocol
     execScript('anchor.protocol="http:";');
-    etalonAnchor.protocol      = 'http:';
+    etalonAnchor.protocol = 'http:';
     strictEqual(execScript('anchor.protocol'), etalonAnchor.protocol);
 
 
@@ -110,7 +110,7 @@ test('anchor', function () {
     }
 
     // Pathname
-    var newPathName       = etalonAnchor.pathname + '/index.php';
+    var newPathName = etalonAnchor.pathname + '/index.php';
 
     execScript('anchor.pathname="' + newPathName + '"');
     etalonAnchor.pathname = newPathName;
@@ -124,7 +124,7 @@ test('anchor', function () {
     // NOTE: IE has no origin property.
     if ('origin' in etalonEmptyAnchor) {
         execScript('anchor.origin="http://yandex.ru:2000"');
-        etalonAnchor.origin      = 'http://yandex.ru:2000';
+        etalonAnchor.origin = 'http://yandex.ru:2000';
         strictEqual(execScript('anchor.origin'), etalonAnchor.origin);
 
         execScript('emptyAnchor.origin="http://yandex.ru:2000";');
@@ -134,11 +134,11 @@ test('anchor', function () {
 
     // Search
     execScript('anchor.search="?test=temp"');
-    etalonAnchor.search        = '?test=temp';
+    etalonAnchor.search = '?test=temp';
     strictEqual(execScript('anchor.search'), etalonAnchor.search);
 
     execScript('emptyAnchor.search="?test=temp"');
-    etalonEmptyAnchor.search   = '?test=temp';
+    etalonEmptyAnchor.search = '?test=temp';
     strictEqual(execScript('emptyAnchor.search'), etalonEmptyAnchor.search);
 
     anchorWithNotSupportedProtocol.href       = 'javascript:;';
@@ -258,7 +258,11 @@ test('innerHTML, innerText, text, textContent', function () {
     testProperties.forEach(function (property) {
         eval(processScript('style.' + property + ' = styleText'));
 
-        strictEqual(style[property].replace(/\s/g, ''), processedStyleText);
+        // NOTE: text property is not supported for style element
+        if (property === 'text')
+            strictEqual(style[property], styleText);
+        else
+            strictEqual(style[property].replace(/\s/g, ''), processedStyleText);
 
         eval(processScript('style.' + property + ' = ""'));
 
@@ -285,11 +289,13 @@ asyncTest('body.innerHTML in iframe', function () {
             eval(processScript('iframe.contentDocument.body.innerHTML = "";'));
 
             return window.QUnitGlobals.wait(hasShadowUIRoot);
-        }).then(function () {
+        })
+        .then(function () {
             ok(true);
             iframe.parentNode.removeChild(iframe);
             start();
         });
+
     document.body.appendChild(iframe);
 });
 
@@ -360,7 +366,7 @@ test('script block inserted via element.innerHtml must not be executed (B237015)
     var script           = '<script>window.' + testPropertyName + ' = true;\<\/script>';
 
     body.appendChild(el);
-    el.innerHTML         = script;
+    el.innerHTML = script;
 
     ok(!window[testPropertyName]);
 });

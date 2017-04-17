@@ -87,6 +87,16 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return collection.length - elementCount;
     }
 
+    static removeProcessingInstructions (text) {
+        if (text) {
+            text = removeProcessingHeader(text);
+
+            return styleProcessor.cleanUp(text, urlUtils.parseProxyUrl);
+        }
+
+        return text;
+    }
+
     _createPropertyAccessors (window, document) {
         var storedDomain = '';
 
@@ -307,15 +317,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             innerText: {
                 // NOTE: http://caniuse.com/#search=Node.innerText
-                condition: el => typeof el.innerText === 'string' &&
-                                 (domUtils.isScriptElement(el) || domUtils.isStyleElement(el)),
+                condition: el => typeof el.innerText === 'string' && domUtils.isElementNode(el),
 
-                get: el => {
-                    if (domUtils.isScriptElement(el))
-                        return removeProcessingHeader(el.innerText);
-
-                    return styleProcessor.cleanUp(el.innerText, urlUtils.parseProxyUrl);
-                },
+                get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.innerText),
 
                 set: (el, text) => {
                     if (text) {
@@ -323,6 +327,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                             el.innerText = processScript(text, true);
                         else if (domUtils.isStyleElement(el))
                             el.innerText = styleProcessor.process(text, urlUtils.getProxyUrl, true);
+                        else
+                            el.innerText = text;
                     }
                     else
                         el.innerText = text;
@@ -344,7 +350,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             outerHTML: {
-                condition: el => domUtils.isElementNode(el) && typeof el.outerHTML === 'string',
+                condition: el => typeof el.outerHTML === 'string' && domUtils.isElementNode(el),
                 get:       el => cleanUpHtml(el.outerHTML, el.parentNode && el.parentNode.tagName),
 
                 set: (el, value) => {
@@ -568,14 +574,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             text: {
-                condition: el => domUtils.isScriptElement(el) || domUtils.isStyleElement(el),
+                // NOTE: only these elements have text property and their text may contain script or style tags
+                condition: el => domUtils.isScriptElement(el) || domUtils.isAnchorElement(el),
 
-                get: el => {
-                    if (domUtils.isScriptElement(el))
-                        return removeProcessingHeader(el.text);
-
-                    return styleProcessor.cleanUp(el.text, urlUtils.parseProxyUrl);
-                },
+                get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.text),
 
                 set: (el, text) => {
                     if (text) {
@@ -583,6 +585,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                             el.text = processScript(text, true);
                         else if (domUtils.isStyleElement(el))
                             el.text = styleProcessor.process(text, urlUtils.getProxyUrl, true);
+                        else
+                            el.text = text;
                     }
                     else
                         el.text = text;
@@ -592,14 +596,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             textContent: {
-                condition: el => domUtils.isScriptElement(el) || domUtils.isStyleElement(el),
+                condition: el => domUtils.isElementNode(el),
 
-                get: el => {
-                    if (domUtils.isScriptElement(el))
-                        return removeProcessingHeader(el.textContent);
-
-                    return styleProcessor.cleanUp(el.textContent, urlUtils.parseProxyUrl);
-                },
+                get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.textContent),
 
                 set: (el, text) => {
                     if (text) {
@@ -607,6 +606,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                             el.textContent = processScript(text, true);
                         else if (domUtils.isStyleElement(el))
                             el.textContent = styleProcessor.process(text, urlUtils.getProxyUrl, true);
+                        else
+                            el.textContent = text;
                     }
                     else
                         el.textContent = text;

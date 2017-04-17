@@ -14,9 +14,9 @@ const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
 const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
 const HOVER_PSEUDO_CLASS_RE               = /\s*:\s*hover(\W)/gi;
 const PSEUDO_CLASS_RE                     = new RegExp(`\\[${ INTERNAL_ATTRS.hoverPseudoClass }\\](\\W)`, 'ig');
-const IS_STYLE_SHEET_PROCESSED_RE         = new RegExp(`^\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }`, 'gi');
-const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`^\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }\n?|` +
-                                                       `\n?${ reEscape(STYLESHEET_PROCESSING_END_COMMENT) }\\s*$`, 'gi');
+const IS_STYLE_SHEET_PROCESSED_RE         = new RegExp(`\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }`, 'gi');
+const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`\\s*${ reEscape(STYLESHEET_PROCESSING_START_COMMENT) }\n?|` +
+                                                       `\n?${ reEscape(STYLESHEET_PROCESSING_END_COMMENT) }\\s*`, 'gi');
 
 class StyleProcessor {
     constructor () {
