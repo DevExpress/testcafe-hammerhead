@@ -1,0 +1,6 @@
+[
+  "dom/collections/HTMLCollection-empty-name.html",
+  "dom/collections/HTMLCollection-supported-property-names.html",
+  "dom/nodes/DOMImplementation-createHTMLDocument.html",
+  "dom/lists/DOMTokenList-stringifier.html"
+]

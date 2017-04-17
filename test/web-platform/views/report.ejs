@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.4/semantic.css" rel="stylesheet"
+          type="text/css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.4/semantic.js" type="text/javascript"></script>
+    <style type="text/css">
+        body > .grid {
+            margin-top: 50px;
+        }
+
+        body > .grid > .column {
+            width: 800px !important;
+        }
+
+        .statistic {
+            margin-bottom: 0px !important;
+        }
+    </style>
+</head>
+<body>
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <div class="ui basic center aligned segment">
+            <div class="ui small statistics">
+                <div class="green statistic">
+                    <div class="value">
+                        <%= passedTestsCount %>
+                    </div>
+                    <div class="label">
+                        Passed
+                    </div>
+                </div>
+                <div class="red statistic">
+                    <div class="value">
+                        <%= failedTests.length %>
+                    </div>
+                    <div class="label">
+                        Failed
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui basic left aligned segment">
+            <div class="ui styled accordion" style="width: 100%">
+                <% for (var i = 0; i < failedTests.length; i++) { %>
+                <div class="title">
+                    <i class="dropdown icon"></i>
+                    <%= failedTests[i].url %>
+                </div>
+                <div class="content">
+                    <div class="accordion">
+                        <% for (var j = 0; j < failedTests[i].subTests.length; j++) { %>
+                        <div class="title">
+                            <i class="dropdown icon"></i>
+                            <%= failedTests[i].subTests[j].subTestName %>
+                        </div>
+                        <div class="content">
+                            <div class="ui red message"><%= failedTests[i].subTests[j].message %></div>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+        <div class="ui basic center aligned segment">
+            <a href="/">
+                <button class="ui button">Go to top</button>
+            </a>
+            <a href="/start">
+                <button class="positive ui button">Restart</button>
+            </a>
+        </div>
+    </div>
+</div>
+<script type="application/javascript">
+    $(document).ready(function () {
+        $('.ui.accordion').accordion();
+    });
+</script>
+</body>
+</html>
