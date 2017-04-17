@@ -187,8 +187,11 @@ export default class ElementSandbox extends SandboxBase {
                                        urlUtils.getProxyUrl(value, { resourceType, charset: elCharset });
                 }
             }
-            else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value))
-                args[valueIndex] = urlUtils.resolveUrlAsDest(value);
+            else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value)) {
+                args[valueIndex] = el[this.nodeSandbox.win.FORCE_PROXY_SRC_FOR_IMAGE] ?
+                                   urlUtils.getProxyUrl(value) :
+                                   urlUtils.resolveUrlAsDest(value);
+            }
         }
         else if (loweredAttr === 'autocomplete') {
             var storedAutocompleteAttr = domProcessor.getStoredAttrName(attr);
@@ -704,7 +707,8 @@ export default class ElementSandbox extends SandboxBase {
 
         switch (tagName) {
             case 'img':
-                this._setProxiedSrcUrlOnError(el);
+                if (!el[this.nodeSandbox.win.FORCE_PROXY_SRC_FOR_IMAGE])
+                    this._setProxiedSrcUrlOnError(el);
                 break;
             case 'iframe':
                 this.iframeSandbox.processIframe(el);
