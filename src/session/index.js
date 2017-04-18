@@ -144,6 +144,10 @@ export default class Session extends EventEmitter {
         throw new Error('Not implemented');
     }
 
+    handleServiceRequestDisconnection (/* msg */) {
+        throw new Error('Not implemented');
+    }
+
     getAuthCredentials () {
         throw new Error('Not implemented');
     }

@@ -85,13 +85,27 @@ export default class Proxy extends Router {
         var session = msg && this.openSessions[msg.sessionId];
 
         if (session) {
+            var reqClosed       = false;
+            var reqCloseHandler = () => reqClosed = true;
+
+            req.once('close', reqCloseHandler);
+
             try {
                 var result = await session.handleServiceMessage(msg, serverInfo);
 
-                respondWithJSON(res, result || '');
+                // NOTE: postpone call to the disconnection handler to
+                // avoid side effects in the service message handler.
+                // Use `msg` as the request identifier.
+                if (reqClosed)
+                    session.handleServiceRequestDisconnection(msg);
+                else
+                    respondWithJSON(res, result || '');
             }
             catch (err) {
                 respond500(res, err.toString());
+            }
+            finally {
+                req.removeListener('close', reqCloseHandler);
             }
         }
         else
