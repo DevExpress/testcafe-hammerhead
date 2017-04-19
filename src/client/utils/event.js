@@ -34,10 +34,7 @@ export const DOM_EVENTS = ['click', 'mousedown', 'mouseup', 'dblclick', 'context
     'pointerenter', 'pointerleave'];
 
 export function preventDefault (ev, allowBubbling) {
-    if (ev.preventDefault)
-        ev.preventDefault();
-    else
-        ev.returnValue = false;
+    ev.preventDefault();
 
     if (!allowBubbling)
         stopPropagation(ev);
@@ -46,10 +43,8 @@ export function preventDefault (ev, allowBubbling) {
 export function stopPropagation (ev) {
     if (ev.stopImmediatePropagation)
         ev.stopImmediatePropagation();
-    else if (ev.stopPropagation)
+    else
         ev.stopPropagation();
-
-    ev.cancelBubble = true;
 }
 
 export function isObjectEventListener (listener) {
