@@ -87,6 +87,23 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return collection.length - elementCount;
     }
 
+    static _setTextProp (el, propName, text) {
+        var processedText = text !== null && text !== void 0 ? String(text) : text;
+
+        if (processedText) {
+            if (domUtils.isScriptElement(el))
+                el[propName] = processScript(processedText, true);
+            else if (domUtils.isStyleElement(el))
+                el[propName] = styleProcessor.process(processedText, urlUtils.getProxyUrl, true);
+            else
+                el[propName] = processedText;
+        }
+        else
+            el[propName] = processedText;
+
+        return text;
+    }
+
     static removeProcessingInstructions (text) {
         if (text) {
             text = removeProcessingHeader(text);
@@ -274,16 +291,18 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     var isStyleEl  = domUtils.isStyleElement(el);
                     var isScriptEl = domUtils.isScriptElement(el);
 
-                    if (value) {
+                    var processedValue = value !== null && value !== void 0 ? String(value) : value;
+
+                    if (processedValue) {
                         if (isStyleEl)
-                            value = styleProcessor.process('' + value, urlUtils.getProxyUrl, true);
+                            processedValue = styleProcessor.process(processedValue, urlUtils.getProxyUrl, true);
                         else if (isScriptEl)
-                            value = processScript('' + value, true);
-                        else if (value !== null)
-                            value = processHtml('' + value, el.tagName);
+                            processedValue = processScript(processedValue, true);
+                        else
+                            processedValue = processHtml(processedValue, el.tagName);
                     }
 
-                    el.innerHTML = value;
+                    el.innerHTML = processedValue;
 
                     if (isStyleEl || isScriptEl)
                         return value;
@@ -321,20 +340,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.innerText),
 
-                set: (el, text) => {
-                    if (text) {
-                        if (domUtils.isScriptElement(el))
-                            el.innerText = processScript(text, true);
-                        else if (domUtils.isStyleElement(el))
-                            el.innerText = styleProcessor.process(text, urlUtils.getProxyUrl, true);
-                        else
-                            el.innerText = text;
-                    }
-                    else
-                        el.innerText = text;
-
-                    return text;
-                }
+                set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'innerText', text)
             },
 
             nextElementSibling: {
@@ -356,7 +362,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, value) => {
                     var parentEl = el.parentNode;
 
-                    if (parentEl) {
+                    if (parentEl && value !== null && value !== void 0) {
                         var parentDocument = domUtils.findDocument(parentEl);
                         var parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
@@ -579,20 +585,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.text),
 
-                set: (el, text) => {
-                    if (text) {
-                        if (domUtils.isScriptElement(el))
-                            el.text = processScript(text, true);
-                        else if (domUtils.isStyleElement(el))
-                            el.text = styleProcessor.process(text, urlUtils.getProxyUrl, true);
-                        else
-                            el.text = text;
-                    }
-                    else
-                        el.text = text;
-
-                    return text;
-                }
+                set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'text', text)
             },
 
             textContent: {
@@ -600,20 +593,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.textContent),
 
-                set: (el, text) => {
-                    if (text) {
-                        if (domUtils.isScriptElement(el))
-                            el.textContent = processScript(text, true);
-                        else if (domUtils.isStyleElement(el))
-                            el.textContent = styleProcessor.process(text, urlUtils.getProxyUrl, true);
-                        else
-                            el.textContent = text;
-                    }
-                    else
-                        el.textContent = text;
-
-                    return text;
-                }
+                set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'textContent', text)
             },
 
             URL: {

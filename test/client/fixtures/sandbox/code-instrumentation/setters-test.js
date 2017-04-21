@@ -246,17 +246,21 @@ test('innerHTML, innerText, text, textContent', function () {
     var testProperties      = ['innerHTML', 'innerText', 'text', 'textContent'];
 
     testProperties.forEach(function (property) {
-        eval(processScript('script.' + property + ' = scriptText'));
+        var returnedValue = setProperty(script, property, scriptText);
 
+        strictEqual(returnedValue, scriptText);
         strictEqual(script[property].replace(/\s/g, ''), processedScriptText);
 
-        eval(processScript('script.' + property + ' = ""'));
+        returnedValue = setProperty(script, property, '');
 
+        strictEqual(returnedValue, '');
         strictEqual(script[property], '');
     });
 
     testProperties.forEach(function (property) {
-        eval(processScript('style.' + property + ' = styleText'));
+        var returnedValue = setProperty(style, property, styleText);
+
+        strictEqual(returnedValue, styleText);
 
         // NOTE: text property is not supported for style element
         if (property === 'text')
@@ -264,10 +268,40 @@ test('innerHTML, innerText, text, textContent', function () {
         else
             strictEqual(style[property].replace(/\s/g, ''), processedStyleText);
 
-        eval(processScript('style.' + property + ' = ""'));
+        returnedValue = setProperty(style, property, '');
 
+        strictEqual(returnedValue, '');
         strictEqual(style[property], '');
     });
+
+    testProperties.forEach(function (property) {
+        var obj           = { a: 1 };
+        var returnedValue = setProperty(script, property, obj);
+
+        strictEqual(returnedValue, obj);
+        strictEqual(script[property], '[object Object]');
+    });
+
+    testProperties.forEach(function (property) {
+        var returnedValue = setProperty(script, property, null);
+        var propertyValue = script[property];
+
+        script[property] = null;
+
+        strictEqual(returnedValue, null);
+        strictEqual(propertyValue, script[property]);
+    });
+
+    testProperties.forEach(function (property) {
+        var returnedValue = setProperty(script, property, void 0);
+        var propertyValue = script[property];
+
+        script[property] = void 0;
+
+        strictEqual(returnedValue, void 0);
+        strictEqual(propertyValue, script[property]);
+    });
+
 });
 
 asyncTest('body.innerHTML in iframe', function () {
@@ -323,6 +357,7 @@ test('outerHTML', function () {
     var parentDiv = document.createElement('div');
     var childDiv  = document.createElement('div');
     var htmlText  = '<a href="http://domain.com/">link</a><script src="http://domain.com/script"><\/script>';
+    var obj       = { b: 1 };
 
     parentDiv.appendChild(childDiv);
 
@@ -334,6 +369,43 @@ test('outerHTML', function () {
     strictEqual(parentDiv.children.length, 2);
     strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl('http://domain.com/'));
     strictEqual(parentDiv.lastChild.src, urlUtils.getProxyUrl('http://domain.com/script', { resourceType: 's' }));
+
+    parentDiv.innerHTML = '';
+    parentDiv.appendChild(childDiv);
+
+    var returnedValue = setProperty(childDiv, 'outerHTML', obj);
+
+    strictEqual(returnedValue, obj);
+    strictEqual(parentDiv.innerHTML, '[object Object]');
+
+    parentDiv.innerHTML = '';
+    parentDiv.appendChild(childDiv);
+
+    returnedValue = setProperty(childDiv, 'outerHTML', null);
+
+    var propertyValue = parentDiv.innerHTML;
+
+    parentDiv.innerHTML = '';
+    parentDiv.appendChild(childDiv);
+
+    childDiv.outerHTML = null;
+
+    strictEqual(returnedValue, null);
+    strictEqual(propertyValue, parentDiv.innerHTML);
+
+    parentDiv.innerHTML = '';
+    parentDiv.appendChild(childDiv);
+
+    returnedValue = setProperty(childDiv, 'outerHTML', void 0);
+    propertyValue = parentDiv.innerHTML;
+
+    parentDiv.innerHTML = '';
+    parentDiv.appendChild(childDiv);
+
+    childDiv.outerHTML = void 0;
+
+    strictEqual(returnedValue, void 0);
+    strictEqual(propertyValue, parentDiv.innerHTML);
 });
 
 module('regression');
