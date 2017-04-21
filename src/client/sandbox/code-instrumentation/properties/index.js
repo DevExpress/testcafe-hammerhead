@@ -87,6 +87,23 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return collection.length - elementCount;
     }
 
+    static _setTextProp (el, propName, text) {
+        var processedText = text !== null && text !== void 0 ? String(text) : text;
+
+        if (processedText) {
+            if (domUtils.isScriptElement(el))
+                el[propName] = processScript(processedText, true);
+            else if (domUtils.isStyleElement(el))
+                el[propName] = styleProcessor.process(processedText, urlUtils.getProxyUrl, true);
+            else
+                el[propName] = processedText;
+        }
+        else
+            el[propName] = processedText;
+
+        return text;
+    }
+
     static removeProcessingInstructions (text) {
         if (text) {
             text = removeProcessingHeader(text);
@@ -281,7 +298,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                             processedValue = styleProcessor.process(processedValue, urlUtils.getProxyUrl, true);
                         else if (isScriptEl)
                             processedValue = processScript(processedValue, true);
-                        else if (processedValue !== null)
+                        else
                             processedValue = processHtml(processedValue, el.tagName);
                     }
 
@@ -323,22 +340,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.innerText),
 
-                set: (el, text) => {
-                    var processedText = text !== null && text !== void 0 ? String(text) : text;
-
-                    if (processedText) {
-                        if (domUtils.isScriptElement(el))
-                            el.innerText = processScript(processedText, true);
-                        else if (domUtils.isStyleElement(el))
-                            el.innerText = styleProcessor.process(processedText, urlUtils.getProxyUrl, true);
-                        else
-                            el.innerText = processedText;
-                    }
-                    else
-                        el.innerText = processedText;
-
-                    return text;
-                }
+                set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'innerText', text)
             },
 
             nextElementSibling: {
@@ -583,22 +585,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.text),
 
-                set: (el, text) => {
-                    var processedText = text !== null && text !== void 0 ? String(text) : text;
-
-                    if (processedText) {
-                        if (domUtils.isScriptElement(el))
-                            el.text = processScript(processedText, true);
-                        else if (domUtils.isStyleElement(el))
-                            el.text = styleProcessor.process(processedText, urlUtils.getProxyUrl, true);
-                        else
-                            el.text = processedText;
-                    }
-                    else
-                        el.text = processedText;
-
-                    return text;
-                }
+                set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'text', text)
             },
 
             textContent: {
@@ -606,22 +593,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.textContent),
 
-                set: (el, text) => {
-                    var processedText = text !== null && text !== void 0 ? String(text) : text;
-
-                    if (processedText) {
-                        if (domUtils.isScriptElement(el))
-                            el.textContent = processScript(processedText, true);
-                        else if (domUtils.isStyleElement(el))
-                            el.textContent = styleProcessor.process(processedText, urlUtils.getProxyUrl, true);
-                        else
-                            el.textContent = processedText;
-                    }
-                    else
-                        el.textContent = processedText;
-
-                    return text;
-                }
+                set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'textContent', text)
             },
 
             URL: {
