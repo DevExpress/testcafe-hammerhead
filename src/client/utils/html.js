@@ -6,6 +6,7 @@ import { remove as removeProcessingHeader } from '../../processing/script/header
 import styleProcessor from '../../processing/style';
 import { find, getTagName, isScriptElement } from './dom';
 import { convertToProxyUrl, parseProxyUrl } from './url';
+import { isIE, isMSEdge } from './browser';
 import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
 import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
@@ -25,6 +26,9 @@ const UNWRAP_COL_NOSCRIPT_TAGS_RE     = new RegExp(`<br([^>]*?) ${ FAKE_ATTR_WIT
 const WRAP_DOCTYPE_RE       = /<!doctype([^>]*)>/ig;
 const WRAP_DOCTYPE_TEMPLATE = `<${ FAKE_DOCTYPE_TAG_NAME }>$1</${ FAKE_DOCTYPE_TAG_NAME }>`;
 const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*?)</${ FAKE_DOCTYPE_TAG_NAME }>`, 'ig');
+
+const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
+const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
@@ -91,12 +95,15 @@ function processHtmlInternal (html, process) {
 
     container.innerHTML = html;
 
-    if (process(container))
-        html = container.innerHTML;
+    var processedHtml = process(container) ? container.innerHTML : html;
 
-    html = unwrapHtmlText(html);
+    processedHtml = unwrapHtmlText(processedHtml);
 
-    return html;
+    // NOTE: hack for IE (GH-1083)
+    if (isIE && !isMSEdge && html !== processedHtml)
+        processedHtml = removeExtraSvgNamespeces(html, processedHtml);
+
+    return processedHtml;
 }
 
 export function cleanUpHtml (html) {
@@ -211,5 +218,30 @@ export function processHtml (html, parentTag, prepareDom) {
         urlResolver.updateBase(storedBaseUrl, document);
 
         return true;
+    });
+}
+
+function removeExtraSvgNamespeces (html, processedHtml) {
+    var initialSvgStrs = html.match(FIND_SVG_RE);
+    var index          = 0;
+
+    if (!initialSvgStrs)
+        return processedHtml;
+
+    return processedHtml.replace(FIND_SVG_RE, svgStr => {
+        var initialSvgStr  = initialSvgStrs[index];
+        var initialNSAttrs = initialSvgStr ? initialSvgStr.match(FIND_NS_ATTRS_RE) : null;
+
+        if (initialSvgStr)
+            index++;
+
+        return initialSvgStr ? svgStr.replace(FIND_NS_ATTRS_RE, () => {
+            var replacement = initialNSAttrs ? initialNSAttrs.join('') : '';
+
+            if (initialNSAttrs)
+                initialNSAttrs = null;
+
+            return replacement;
+        }) : svgStr;
     });
 }

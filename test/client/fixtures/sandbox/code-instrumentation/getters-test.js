@@ -481,3 +481,46 @@ test('we should clean up hammerhead script and style for all elements(GH-1079)',
     ok(checkProperty(innerHTML));
     ok(checkProperty(outerHTML));
 });
+
+test('we should clean up html and remove extra namespaces from svg (GH-1083)', function () {
+    var svg       = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    var a         = document.createElement('a');
+    var div       = document.createElement('div');
+    var nativeSvg = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg');
+    var nativeA   = nativeMethods.createElement.call(document, 'a');
+    var nativeDiv = nativeMethods.createElement.call(document, 'div');
+
+    a.setAttribute('href', '/path');
+    nativeMethods.setAttribute.call(nativeA, 'href', '/path');
+
+    a.innerText = nativeA.innerHTML = 'link';
+
+    svg.appendChild(a);
+    nativeMethods.appendChild.call(nativeSvg, nativeA);
+
+    div.appendChild(svg);
+    nativeMethods.appendChild.call(nativeDiv, nativeSvg);
+
+    strictEqual(getProperty(div, 'innerHTML'), nativeDiv.innerHTML);
+
+    div.innerHTML = nativeDiv.innerHTML = '';
+
+    svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+    nativeMethods.setAttribute.call(nativeSvg, 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+    div.appendChild(svg.cloneNode(true));
+    nativeMethods.appendChild.call(nativeDiv, nativeMethods.cloneNode.call(nativeSvg, true));
+
+    strictEqual(getProperty(div, 'innerHTML'), nativeDiv.innerHTML);
+
+    // NOTE: IE added additional attributes with namespaces
+    // such as 'xmlns:NS2=""', NS2:xmlns:ns1=""
+    // after setting div.innerHTML property
+    div.innerHTML       = div.innerHTML;
+    nativeDiv.innerHTML = nativeDiv.innerHTML;
+
+    div.appendChild(svg);
+    nativeMethods.appendChild.call(nativeDiv, nativeSvg);
+
+    strictEqual(getProperty(div, 'innerHTML'), nativeDiv.innerHTML);
+});
