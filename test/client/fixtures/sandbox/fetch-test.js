@@ -1,6 +1,8 @@
 var xhrHeaders   = hammerhead.get('../request-pipeline/xhr/headers');
 var destLocation = hammerhead.get('./utils/destination-location');
 
+var nativeMethods = hammerhead.nativeMethods;
+
 if (window.fetch) {
     asyncTest('global fetch - redirect request to proxy', function () {
         fetch('/xhr-test/100')
@@ -392,6 +394,21 @@ if (window.fetch) {
             };
 
             return Promise.all(testCases.map(createTestCasePromise));
+        });
+
+        test("on calling without parameters we should return the native result of 'fetch' function instead of window.Promise.reject (GH-1099)", function () {
+            var storedWindowPromise = window.Promise;
+
+            window.Promise = {
+                reject: function () {}
+            };
+
+            var result       = fetch();
+            var nativeResult = nativeMethods.fetch.apply(this);
+
+            strictEqual(result.constructor, nativeResult.constructor);
+
+            window.Promise = storedWindowPromise;
         });
     });
 }
