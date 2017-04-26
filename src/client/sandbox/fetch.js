@@ -128,7 +128,7 @@ export default class FetchSandbox extends SandboxBase {
 
             window.fetch = function (...args) {
                 if (!args.length)
-                    return nativeMethods.fetch.apply(this, args);
+                    return nativeMethods.fetch.apply(this);
 
                 if (!FetchSandbox._requestIsValid(args))
                     return sandbox.window.Promise.reject(new TypeError());
