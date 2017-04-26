@@ -63,6 +63,8 @@ export default class ShadowUI extends SandboxBase {
         if (!isLiveCollection)
             return ShadowUI._filterList(nodeList, filterItemFn);
 
+        NodeListWrapper.prototype = nodeList;
+
         return new NodeListWrapper(nodeList, ShadowUI._filterList, filterItemFn);
     }
 
