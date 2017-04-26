@@ -255,14 +255,38 @@ describe('Script processor', function () {
             {
                 src: 'new function(a){location=str,a.click();}();',
 
-                expected: 'new function(a) {(function(){return__set$Loc(location,str)||' +
-                          '(location=str);}.call(this), a.click());}();'
+                expected: 'new function(a) {(0,function(){return__set$Loc(location,str)||' +
+                          '(location=str);}.call(this)), a.click();}();'
             },
             {
                 src: 'b.onerror = b.onload = function (a) { location = a; };',
 
                 expected: '__set$(b,"onerror",__set$(b,"onload",function(a){' +
                           '0,function(){return__set$Loc(location,a)||(location=a);}.call(this);}));'
+            },
+            {
+                src: 'location = newLocation, x = 5;',
+
+                expected: '0,function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this), x = 5;'
+            },
+            {
+                src: 'x = 5, location = newLocation;',
+
+                expected: 'x = 5, function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this);'
+            },
+            {
+                src: 'location ? location = newLocation : location = "#123";',
+
+                expected: '__get$Loc(location)' +
+                          '? function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this)' +
+                          ': function(){return __set$Loc(location,"#123")||(location="#123");}.call(this);'
+            },
+            {
+                src: 'if (location) { location = newLocation; } else location = "#123";',
+
+                expected: 'if (__get$Loc(location)) {' +
+                          '0,function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this);}' +
+                          'else 0,function(){return __set$Loc(location,"#123")||(location="#123");}.call(this);'
             }
         ]);
     });
