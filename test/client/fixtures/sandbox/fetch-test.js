@@ -405,10 +405,9 @@ if (window.fetch) {
                     }
                 };
 
-                var result       = fetch();
-                var nativeResult = nativeMethods.fetch.apply(this);
+                var fetchPromise = fetch();
 
-                strictEqual(result.constructor, nativeResult.constructor);
+                strictEqual(fetchPromise.constructor, storedWindowPromise);
 
                 window.Promise = storedWindowPromise;
             });
