@@ -1,6 +1,9 @@
 var xhrHeaders   = hammerhead.get('../request-pipeline/xhr/headers');
 var destLocation = hammerhead.get('./utils/destination-location');
 
+var nativeMethods = hammerhead.nativeMethods;
+var browserUtis   = hammerhead.utils.browser;
+
 if (window.fetch) {
     asyncTest('global fetch - redirect request to proxy', function () {
         fetch('/xhr-test/100')
@@ -375,7 +378,6 @@ if (window.fetch) {
 
         test('request promise should be rejected on invalid calling (GH-939)', function () {
             var testCases = [
-                [],
                 [123],
                 [function () { }],
                 [null]
@@ -393,6 +395,47 @@ if (window.fetch) {
 
             return Promise.all(testCases.map(createTestCasePromise));
         });
+
+        if (!browserUtis.isMSEdge) {
+            test("should return non-overriden Promise on calling the 'fetch' without parameters (GH-1099)", function () {
+                var storedWindowPromise = window.Promise;
+
+                window.Promise = {
+                    reject: function () {
+                    }
+                };
+
+                var fetchPromise = fetch();
+
+                strictEqual(fetchPromise.constructor, storedWindowPromise);
+
+                window.Promise = storedWindowPromise;
+            });
+        }
+
+        if (browserUtis.isMSEdge) {
+            test("should throw an error on calling the 'fetch' without parameters (GH-1099)", function () {
+                var exceptionWasThrowForNative    = false;
+                var exceptionWasThrowForOverriden = false;
+
+                try {
+                    fetch();
+                }
+                catch (err) {
+                    exceptionWasThrowForOverriden = true;
+                }
+
+                try {
+                    nativeMethods.fetch.apply(this);
+                }
+                catch (err) {
+                    exceptionWasThrowForNative = true;
+                }
+
+                ok(exceptionWasThrowForOverriden);
+                ok(exceptionWasThrowForNative);
+            });
+        }
     });
 }
 
