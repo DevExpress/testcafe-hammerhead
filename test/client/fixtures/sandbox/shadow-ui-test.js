@@ -755,7 +755,7 @@ test('getElementsByClassName', function () {
     shadowUI.addClass(div3, 'el');
 
     var elements         = document.getElementsByClassName(testClassName);
-    var expectedInstance = browserUtils.isSafari ? NodeList : HTMLCollection;
+    var expectedInstance = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
 
     ok(elements instanceof expectedInstance);
 
@@ -818,7 +818,7 @@ test('getElementsByTagName', function () {
     testDiv.appendChild(shadowUIElement);
 
     var elements         = document.getElementsByTagName('textarea');
-    var expectedInstance = browserUtils.isSafari ? NodeList : HTMLCollection;
+    var expectedInstance = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
 
     ok(elements instanceof expectedInstance);
 
