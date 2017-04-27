@@ -1,42 +1,85 @@
 export default class NodeListWrapper {
     constructor (nodeList, filterListFn, filterItemFn) {
-        this.nodeList           = nodeList;
-        this.filterListFn       = filterListFn;
-        this.filterItemFn       = filterItemFn;
-        this.filteredNodeList   = this.filterListFn(this.nodeList, filterItemFn);
-        this.prevNodeListLength = this.nodeList.length;
-
-        this.item = index => this.filteredNodeList[index];
-
-        var wrapper = this;
+        Object.defineProperty(this, 'item', {
+            enumerable:   true,
+            configurable: false,
+            value:        index => this._filteredNodeList[index]
+        });
 
         Object.defineProperty(this, 'length', {
-            enumerable: false,
-            get:        () => {
+            enumerable:   true,
+            configurable: false,
+            get:          () => {
                 NodeListWrapper._refreshNodeList.call(this);
 
-                return wrapper.filteredNodeList.length;
+                return this._filteredNodeList.length;
             }
         });
 
-        if (this.namedItem)
-            this.namedItem = (...args) => this.nodeList.namedItem.apply(this.nodeList, args);
+        Object.defineProperty(this, '_nodeList', {
+            enumerable:   false,
+            configurable: false,
+            value:        nodeList
+        });
+
+        Object.defineProperty(this, '_filterListFn', {
+            enumerable:   false,
+            configurable: false,
+            value:        filterListFn
+        });
+
+        Object.defineProperty(this, '_filterItemFn', {
+            enumerable:   false,
+            configurable: false,
+            value:        filterItemFn
+        });
+
+        Object.defineProperty(this, '_filteredNodeList', {
+            enumerable:   false,
+            configurable: false,
+            get:          () => this._filterListFn(this._nodeList, this._filterItemFn)
+        });
+
+
+        Object.defineProperty(this, '_prevNodeListLength', {
+            enumerable:   false,
+            configurable: false,
+            value:        this._nodeList.length
+        });
+
+
+        if (this.namedItem) {
+            Object.defineProperty(this, 'namedItem', {
+                enumerable:   true,
+                configurable: false,
+                value:        (...args) => this._nodeList.namedItem.apply(this._nodeList, args)
+            });
+        }
 
         NodeListWrapper._refreshNodeList.call(this);
     }
 
     static _refreshNodeList () {
-        this.filteredNodeList = this.filterListFn(this.nodeList, this.filterItemFn);
+        this._filteredNodeList = this._filterListFn(this._nodeList, this._filterItemFn);
 
-        var wrapper = this;
         var i;
 
-        for (i = 0; i < this.filteredNodeList.length; i++)
-            Object.defineProperty(wrapper, i.toString(), { configurable: true, value: wrapper.filteredNodeList[i] });
+        for (i = 0; i < this._filteredNodeList.length; i++) {
+            Object.defineProperty(this, i, {
+                enumerable:   true,
+                configurable: true,
+                value:        this._filteredNodeList[i]
+            });
+        }
 
-        for (i = this.filteredNodeList.length; i < this.prevNodeListLength; i++)
-            Object.defineProperty(wrapper, i.toString(), { configurable: true, value: void 0 });
+        for (i = this._filteredNodeList.length; i < this._prevNodeListLength; i++) {
+            Object.defineProperty(this, i, {
+                enumerable:   false,
+                configurable: true,
+                value:        void 0
+            });
+        }
 
-        this.prevNodeListLength = this.nodeList.length;
+        this._prevNodeListLength = this._nodeList.length;
     }
 }

@@ -57,7 +57,7 @@ export default class ShadowUI extends SandboxBase {
         return filteredList.length === nlLength ? list : filteredList;
     }
 
-    static _filterNodeList (nodeList, isLiveCollection) {
+    static _filterNodeList ({ nodeList, isLiveCollection }) {
         var filterItemFn = item => ShadowUI._filterElement(item);
 
         if (!isLiveCollection)
@@ -148,15 +148,24 @@ export default class ShadowUI extends SandboxBase {
         };
 
         docProto.getElementsByClassName = function (...args) {
-            return ShadowUI._filterNodeList(nativeMethods.getElementsByClassName.apply(this, args), true);
+            return ShadowUI._filterNodeList({
+                nodeList:         nativeMethods.getElementsByClassName.apply(this, args),
+                isLiveCollection: true
+            });
         };
 
         docProto.getElementsByName = function (...args) {
-            return ShadowUI._filterNodeList(nativeMethods.getElementsByName.apply(this, args), true);
+            return ShadowUI._filterNodeList({
+                nodeList:         nativeMethods.getElementsByName.apply(this, args),
+                isLiveCollection: true
+            });
         };
 
         docProto.getElementsByTagName = function (...args) {
-            return ShadowUI._filterNodeList(nativeMethods.getElementsByTagName.apply(this, args), true);
+            return ShadowUI._filterNodeList({
+                nodeList:         nativeMethods.getElementsByTagName.apply(this, args),
+                isLiveCollection: true
+            });
         };
 
         docProto.querySelector = function (...args) {
@@ -170,7 +179,10 @@ export default class ShadowUI extends SandboxBase {
             if (typeof args[0] === 'string')
                 args[0] = NodeSandbox.processSelector(args[0]);
 
-            return ShadowUI._filterNodeList(nativeMethods.querySelectorAll.apply(this, args), false);
+            return ShadowUI._filterNodeList({
+                nodeList:         nativeMethods.querySelectorAll.apply(this, args),
+                isLiveCollection: false
+            });
         };
 
         // NOTE: T195358
@@ -181,11 +193,17 @@ export default class ShadowUI extends SandboxBase {
     _overrideElementMethods (window) {
         var overridedMethods = {
             getElementsByClassName () {
-                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.apply(this, arguments), true);
+                return ShadowUI._filterNodeList({
+                    nodeList:         nativeMethods.elementGetElementsByClassName.apply(this, arguments),
+                    isLiveCollection: true
+                });
             },
 
             getElementsByTagName () {
-                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.apply(this, arguments), true);
+                return ShadowUI._filterNodeList({
+                    nodeList:         nativeMethods.elementGetElementsByTagName.apply(this, arguments),
+                    isLiveCollection: true
+                });
             },
 
             querySelector () {
@@ -199,7 +217,10 @@ export default class ShadowUI extends SandboxBase {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = NodeSandbox.processSelector(arguments[0]);
 
-                return ShadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.apply(this, arguments), false);
+                return ShadowUI._filterNodeList({
+                    nodeList:         nativeMethods.elementQuerySelectorAll.apply(this, arguments),
+                    isLiveCollection: false
+                });
             }
         };
 
@@ -329,13 +350,13 @@ export default class ShadowUI extends SandboxBase {
 
     // Accessors
     getFirstChild (el) {
-        var childNodes = ShadowUI._filterNodeList(el.childNodes, false);
+        var childNodes = ShadowUI._filterNodeList({ nodeList: el.childNodes, isLiveCollection: false });
 
         return childNodes.length && childNodes[0] ? childNodes[0] : null;
     }
 
     getFirstElementChild (el) {
-        var childNodes = ShadowUI._filterNodeList(el.childNodes, false);
+        var childNodes = ShadowUI._filterNodeList({ nodeList: el.childNodes, isLiveCollection: false });
         var cnLength   = childNodes.length;
 
         for (var i = 0; i < cnLength; i++) {
@@ -347,14 +368,14 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getLastChild (el) {
-        var childNodes = ShadowUI._filterNodeList(el.childNodes, false);
+        var childNodes = ShadowUI._filterNodeList({ nodeList: el.childNodes, isLiveCollection: false });
         var index      = childNodes.length - 1;
 
         return index >= 0 ? childNodes[index] : null;
     }
 
     getLastElementChild (el) {
-        var childNodes = ShadowUI._filterNodeList(el.childNodes, false);
+        var childNodes = ShadowUI._filterNodeList({ nodeList: el.childNodes, isLiveCollection: false });
         var cnLength   = childNodes.length;
 
         for (var i = cnLength - 1; i >= 0; i--) {

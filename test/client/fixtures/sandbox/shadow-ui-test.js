@@ -6,6 +6,7 @@ var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var domUtils      = hammerhead.utils.dom;
 var positionUtils = hammerhead.utils.position;
+var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
 QUnit.testStart(function () {
@@ -753,7 +754,10 @@ test('getElementsByClassName', function () {
 
     shadowUI.addClass(div3, 'el');
 
-    var elements = document.getElementsByClassName(testClassName);
+    var elements         = document.getElementsByClassName(testClassName);
+    var expectedInstance = browserUtils.isSafari ? NodeList : HTMLCollection;
+
+    ok(elements instanceof expectedInstance);
 
     strictEqual(elements[0], div1);
     strictEqual(elements[1], div2);
@@ -784,7 +788,10 @@ test('getElementsByName', function () {
     testDiv.appendChild(input2);
     testDiv.appendChild(input3);
 
-    var elements = document.getElementsByName(testName);
+    var elements         = document.getElementsByName(testName);
+    var expectedInstance = browserUtils.isIE ? HTMLCollection : NodeList;
+
+    ok(elements instanceof expectedInstance);
 
     strictEqual(elements[0], input1);
     strictEqual(elements[1], input2);
@@ -810,7 +817,10 @@ test('getElementsByTagName', function () {
     testDiv.appendChild(textarea2);
     testDiv.appendChild(shadowUIElement);
 
-    var elements = document.getElementsByTagName('textarea');
+    var elements         = document.getElementsByTagName('textarea');
+    var expectedInstance = browserUtils.isSafari ? NodeList : HTMLCollection;
+
+    ok(elements instanceof expectedInstance);
 
     strictEqual(elements[0], textarea1);
     strictEqual(elements[1], textarea2);
