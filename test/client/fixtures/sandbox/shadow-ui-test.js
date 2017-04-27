@@ -754,10 +754,10 @@ test('getElementsByClassName', function () {
 
     shadowUI.addClass(div3, 'el');
 
-    var elements         = document.getElementsByClassName(testClassName);
-    var expectedInstance = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
+    var elements     = document.getElementsByClassName(testClassName);
+    var expectedType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
 
-    ok(elements instanceof expectedInstance);
+    ok(elements instanceof expectedType);
 
     strictEqual(elements[0], div1);
     strictEqual(elements[1], div2);
@@ -788,10 +788,10 @@ test('getElementsByName', function () {
     testDiv.appendChild(input2);
     testDiv.appendChild(input3);
 
-    var elements         = document.getElementsByName(testName);
-    var expectedInstance = browserUtils.isIE ? HTMLCollection : NodeList;
+    var elements     = document.getElementsByName(testName);
+    var expectedType = browserUtils.isIE ? HTMLCollection : NodeList;
 
-    ok(elements instanceof expectedInstance);
+    ok(elements instanceof expectedType);
 
     strictEqual(elements[0], input1);
     strictEqual(elements[1], input2);
@@ -817,10 +817,10 @@ test('getElementsByTagName', function () {
     testDiv.appendChild(textarea2);
     testDiv.appendChild(shadowUIElement);
 
-    var elements         = document.getElementsByTagName('textarea');
-    var expectedInstance = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
+    var elements     = document.getElementsByTagName('textarea');
+    var expectedType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
 
-    ok(elements instanceof expectedInstance);
+    ok(elements instanceof expectedType);
 
     strictEqual(elements[0], textarea1);
     strictEqual(elements[1], textarea2);
@@ -828,6 +828,31 @@ test('getElementsByTagName', function () {
     strictEqual(elements.length, 2);
 
     testDiv.removeChild(textarea2);
+
+    strictEqual(elements.length, 1);
+    strictEqual(elements[0], textarea1);
+    strictEqual(elements[1], void 0);
+});
+
+test('"querySelectorAll" should return "frozen" NodeList', function () {
+    var testDiv = $('#testDiv')[0];
+
+    var textarea1       = document.createElement('textarea');
+    var textarea2       = document.createElement('textarea');
+    var shadowUIElement = document.createElement('textarea');
+
+    shadowUI.addClass(shadowUIElement, 'el');
+
+    testDiv.appendChild(textarea1);
+    testDiv.appendChild(shadowUIElement);
+
+    var elements = document.querySelectorAll('textarea');
+
+    elements.constructor = NodeList;
+
+    ok(elements instanceof NodeList);
+
+    testDiv.appendChild(textarea2);
 
     strictEqual(elements.length, 1);
     strictEqual(elements[0], textarea1);

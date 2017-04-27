@@ -1,58 +1,46 @@
 export default class NodeListWrapper {
-    constructor (nodeList, filterListFn, filterItemFn) {
+    constructor (nodeList, filterListFn, filterItemFn, isLiveCollection) {
         Object.defineProperty(this, 'item', {
-            enumerable:   true,
-            configurable: false,
-            value:        index => this._filteredNodeList[index]
+            enumerable: true,
+            value:      index => this._filteredNodeList[index]
         });
 
         Object.defineProperty(this, 'length', {
-            enumerable:   true,
-            configurable: false,
-            get:          () => {
-                NodeListWrapper._refreshNodeList.call(this);
+            enumerable: true,
+            get:        () => {
+                if (isLiveCollection)
+                    NodeListWrapper._refreshNodeList.call(this);
 
                 return this._filteredNodeList.length;
             }
         });
 
         Object.defineProperty(this, '_nodeList', {
-            enumerable:   false,
-            configurable: false,
-            value:        nodeList
+            value: nodeList
         });
 
         Object.defineProperty(this, '_filterListFn', {
-            enumerable:   false,
-            configurable: false,
-            value:        filterListFn
+            value: filterListFn
         });
 
         Object.defineProperty(this, '_filterItemFn', {
-            enumerable:   false,
-            configurable: false,
-            value:        filterItemFn
+            value: filterItemFn
         });
 
         Object.defineProperty(this, '_filteredNodeList', {
-            enumerable:   false,
-            configurable: false,
-            get:          () => this._filterListFn(this._nodeList, this._filterItemFn)
+            get: () => this._filterListFn(this._nodeList, this._filterItemFn)
         });
 
 
         Object.defineProperty(this, '_prevNodeListLength', {
-            enumerable:   false,
-            configurable: false,
-            value:        this._nodeList.length
+            value: this._nodeList.length
         });
 
 
         if (this.namedItem) {
             Object.defineProperty(this, 'namedItem', {
-                enumerable:   true,
-                configurable: false,
-                value:        (...args) => this._nodeList.namedItem.apply(this._nodeList, args)
+                enumerable: true,
+                value:      (...args) => this._nodeList.namedItem.apply(this._nodeList, args)
             });
         }
 
@@ -74,7 +62,6 @@ export default class NodeListWrapper {
 
         for (i = this._filteredNodeList.length; i < this._prevNodeListLength; i++) {
             Object.defineProperty(this, i, {
-                enumerable:   false,
                 configurable: true,
                 value:        void 0
             });
