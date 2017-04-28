@@ -1,5 +1,5 @@
 export default class NodeListWrapper {
-    constructor (nodeList, filterListFn, filterItemFn, isLiveCollection) {
+    constructor ({ nodeList, filterListFn, filterItemFn, isLiveCollection }) {
         Object.defineProperty(this, 'item', {
             enumerable: true,
             value:      index => this._filteredNodeList[index]

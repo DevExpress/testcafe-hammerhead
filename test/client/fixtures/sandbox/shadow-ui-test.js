@@ -534,6 +534,8 @@ test('querySelectorAll', function () {
 
     var elems = document.querySelectorAll('.test-class');
 
+    ok(elems instanceof NodeList);
+
     strictEqual(elems.length, 1);
     strictEqual(elems[0].id, 'pageElem');
 });
@@ -735,7 +737,7 @@ if (document.implementation && document.implementation.createHTMLDocument) {
     });
 }
 
-module('"getElements" methods should return live node collections (GH-1096)');
+module('live node collections (GH-1096)');
 
 test('getElementsByClassName', function () {
     var testDiv       = $('#testDiv')[0];
@@ -828,31 +830,6 @@ test('getElementsByTagName', function () {
     strictEqual(elements.length, 2);
 
     testDiv.removeChild(textarea2);
-
-    strictEqual(elements.length, 1);
-    strictEqual(elements[0], textarea1);
-    strictEqual(elements[1], void 0);
-});
-
-test('"querySelectorAll" should return "frozen" NodeList', function () {
-    var testDiv = $('#testDiv')[0];
-
-    var textarea1       = document.createElement('textarea');
-    var textarea2       = document.createElement('textarea');
-    var shadowUIElement = document.createElement('textarea');
-
-    shadowUI.addClass(shadowUIElement, 'el');
-
-    testDiv.appendChild(textarea1);
-    testDiv.appendChild(shadowUIElement);
-
-    var elements = document.querySelectorAll('textarea');
-
-    elements.constructor = NodeList;
-
-    ok(elements instanceof NodeList);
-
-    testDiv.appendChild(textarea2);
 
     strictEqual(elements.length, 1);
     strictEqual(elements[0], textarea1);
