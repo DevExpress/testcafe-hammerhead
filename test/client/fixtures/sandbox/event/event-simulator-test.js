@@ -1,6 +1,7 @@
 var browserUtils   = hammerhead.utils.browser;
 var eventUtils     = hammerhead.utils.event;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
+var DataTransfer   = hammerhead.sandbox.event.DataTransfer;
 
 var $domElement = null;
 var domElement  = null;
@@ -621,4 +622,64 @@ test('wrong type of the blur event (GH-947)', function () {
 
     eventSimulator.blur(domElement);
     ok(raised);
+});
+
+module('Drag and Drop');
+test('drag and drop events', function () {
+    var link  = document.createElement('a');
+    var input = document.createElement('input');
+
+    link.href = 'http://example.com';
+    link.id   = 'link';
+    link.setAttribute('draggable', true);
+    input.id = 'input';
+
+    document.body.appendChild(link);
+    document.body.appendChild(input);
+
+    var eventLog     = [];
+    var dataTransfer = new DataTransfer();
+
+    function dragEventListener (e) {
+        eventLog.push(e.type + '-' + (e.currentTarget.id || 'document'));
+
+        ok(e.dataTransfer);
+    }
+
+    var tracedEvents = ['dragstart', 'drag', 'dragenter', 'dragover', 'dragleave', 'drop', 'dragend'];
+
+    for (var i = 0; i < tracedEvents.length; i++) {
+        var ev = tracedEvents[i];
+
+        document.addEventListener(ev, dragEventListener);
+        link.addEventListener(ev, dragEventListener);
+        input.addEventListener(ev, dragEventListener);
+    }
+
+    eventSimulator.dragstart(link, { dataTransfer: dataTransfer });
+    eventSimulator.drag(link, { dataTransfer: dataTransfer });
+    eventSimulator.dragenter(link, { dataTransfer: dataTransfer });
+    eventSimulator.dragover(link, { dataTransfer: dataTransfer });
+    eventSimulator.dragleave(link, { dataTransfer: dataTransfer });
+    eventSimulator.drop(input, { dataTransfer: dataTransfer });
+    eventSimulator.dragend(link, { dataTransfer: dataTransfer });
+
+    var expectedEvents = [
+        'dragstart-link',
+        'dragstart-document',
+        'drag-link',
+        'drag-document',
+        'dragenter-link',
+        'dragenter-document',
+        'dragover-link',
+        'dragover-document',
+        'dragleave-link',
+        'dragleave-document',
+        'drop-input',
+        'drop-document',
+        'dragend-link',
+        'dragend-document'
+    ];
+
+    strictEqual(eventLog.join('\n'), expectedEvents.join('\n'));
 });
