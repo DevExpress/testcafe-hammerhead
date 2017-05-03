@@ -1,6 +1,5 @@
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../../../request-pipeline/xhr/same-origin-policy';
-import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
@@ -70,15 +69,16 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         for (var i = 0; i < collection.length; i++) {
             var className = collection[i].className;
 
-            if (className) {
-                // NOTE: SVG elements' className is of the SVGAnimatedString type instead
-                // of string (GH-354).
-                if (typeof className !== 'string')
-                    className = className.baseVal || '';
+            // NOTE: SVG elements' className is of the SVGAnimatedString type instead
+            // of string (GH-354).
+            if (className && typeof className !== 'string') {
+                className = className.baseVal || '';
 
-                if (className.indexOf(SHADOW_UI_CLASSNAME.postfix) !== -1)
-                    elementCount++;
+                continue;
             }
+
+            if (collection[i][INTERNAL_PROPS.shadowUIElementProperty])
+                elementCount++;
         }
 
         if (elementCount !== 0)
@@ -303,6 +303,17 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     }
 
                     el.innerHTML = processedValue;
+
+                    if (el[INTERNAL_PROPS.shadowUIElementProperty])
+                        ShadowUI.markChildrenAsShadowUIElementsRecursively(el);
+                    else if (domUtils.isBodyElement(el)) {
+                        ShadowUI.markChildrenWithShadowUIClass(el);
+
+                        for (var i = 0; i < el.childNodes.length; i++) {
+                            if (domUtils.isShadowUIElement(el.childNodes[i]))
+                                ShadowUI.markChildrenAsShadowUIElementsRecursively(el.childNodes[i]);
+                        }
+                    }
 
                     if (isStyleEl || isScriptEl)
                         return value;
@@ -648,7 +659,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             scripts: {
                 condition: domUtils.isDocument,
-                get:       doc => ShadowUI._filterNodeList(doc.scripts),
+                get:       doc => ShadowUI._filterNodeList(doc.scripts, true),
                 set:       (doc, value) => {
                     doc.scripts = value;
 

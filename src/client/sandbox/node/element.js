@@ -5,6 +5,7 @@ import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
@@ -17,6 +18,7 @@ import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
+import ShadowUIClass from '../shadow-ui';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -573,6 +575,12 @@ export default class ElementSandbox extends SandboxBase {
 
         if (domUtils.isScriptElement(el))
             this.emit(this.SCRIPT_ELEMENT_ADDED, { el });
+
+        if (el.parentNode && el.parentNode[INTERNAL_PROPS.shadowUIElementProperty]) {
+            el[INTERNAL_PROPS.shadowUIElementProperty] = true;
+
+            ShadowUIClass.markChildrenAsShadowUIElementsRecursively(el);
+        }
     }
 
     onElementRemoved (el) {

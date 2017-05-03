@@ -1,5 +1,4 @@
 var INTERNAL_PROPS                       = hammerhead.get('../processing/dom/internal-properties');
-var SHADOW_UI_CLASSNAME                  = hammerhead.get('../shadow-ui/class-name');
 var urlUtils                             = hammerhead.get('./utils/url');
 var processScript                        = hammerhead.get('../processing/script').processScript;
 var removeProcessingHeader               = hammerhead.get('../processing/script/header').remove;
@@ -252,7 +251,7 @@ test('document.scripts', function () {
     var scriptsCollectionLength = eval(processScript('document.scripts')).length;
     var scriptEl                = document.createElement('script');
 
-    scriptEl.className = SHADOW_UI_CLASSNAME.script;
+    shadowUI.addClass(scriptEl, 'script');
     document.body.appendChild(scriptEl);
 
     strictEqual(scriptsCollectionLength, eval(processScript('document.scripts')).length);
@@ -264,7 +263,7 @@ test('document.styleSheets (GH-1000)', function () {
     var styleSheetsCollectionLength = eval(processScript('document.styleSheets')).length;
     var shadowStyleSheet            = document.createElement('style');
 
-    shadowStyleSheet.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+    shadowUI.addClass(shadowStyleSheet, 'ui-stylesheet');
     document.body.appendChild(shadowStyleSheet);
 
     strictEqual(styleSheetsCollectionLength, eval(processScript('document.styleSheets')).length);

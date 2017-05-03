@@ -6,6 +6,7 @@ var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var domUtils      = hammerhead.utils.dom;
 var positionUtils = hammerhead.utils.position;
+var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
 QUnit.testStart(function () {
@@ -147,7 +148,8 @@ test('head.children', function () {
     link1.rel       = 'stylesheet';
     link1.href      = '/test.css';
     link1.type      = 'text/css';
-    link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+
+    shadowUI.addClass(link1, 'ui-stylesheet');
     document.head.insertBefore(link1, document.head.firstChild);
 
     var link2 = document.createElement('link');
@@ -155,7 +157,8 @@ test('head.children', function () {
     link2.rel       = 'stylesheet';
     link2.href      = '/test.css';
     link2.type      = 'text/css';
-    link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+
+    shadowUI.addClass(link2, 'ui-stylesheet');
     document.head.insertBefore(link2, document.head.firstChild);
 
     var children       = document.head.children;
@@ -186,7 +189,8 @@ test('head.childNodes', function () {
     link1.rel       = 'stylesheet';
     link1.href      = '/test.css';
     link1.type      = 'text/css';
-    link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+
+    shadowUI.addClass(link1, 'ui-stylesheet');
     document.head.insertBefore(link1, document.head.firstChild);
 
     var link2 = document.createElement('link');
@@ -194,7 +198,8 @@ test('head.childNodes', function () {
     link2.rel       = 'stylesheet';
     link2.href      = '/test.css';
     link2.type      = 'text/css';
-    link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+
+    shadowUI.addClass(link2, 'ui-stylesheet');
     document.head.insertBefore(link2, document.head.firstChild);
 
     var childNodes       = document.head.childNodes;
@@ -312,7 +317,8 @@ test('head.getElementsByTagName', function () {
     link.rel       = 'stylesheet';
     link.href      = '/test.css';
     link.type      = 'text/css';
-    link.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+
+    shadowUI.addClass(link, 'ui-stylesheet');
     document.head.appendChild(link);
 
     var children = document.head.getElementsByTagName('link');
@@ -533,6 +539,8 @@ test('querySelectorAll', function () {
 
     var elems = document.querySelectorAll('.test-class');
 
+    ok(elems instanceof NodeList);
+
     strictEqual(elems.length, 1);
     strictEqual(elems[0].id, 'pageElem');
 });
@@ -647,7 +655,7 @@ asyncTest("do nothing if ShadowUIStylesheet doesn't exist", function () {
 module('regression');
 
 test('SVG elements\' className is of the SVGAnimatedString type instead of string (GH-354)', function () {
-    document.body.innerHTML = '<svg></svg>' + document.body.innerHTML;
+    setProperty(document.body, 'innerHTML', '<svg></svg>' + document.body.innerHTML);
 
     var svg = document.body.childNodes[0];
 
@@ -733,3 +741,207 @@ if (document.implementation && document.implementation.createHTMLDocument) {
         strictEqual(htmlDoc.getElementsByTagName('body')[0], nativeMethods.getElementsByTagName.call(htmlDoc, 'body')[0]);
     });
 }
+
+test('ShadowUI elements created via changing innerHTML should be recognized', function () {
+    var root = shadowUI.getRoot();
+
+    eval(processScript('root.innerHTML = "<div>\"'));
+
+    ok(domUtils.isShadowUIElement(root.childNodes[0]));
+});
+
+module('Handle existing shadowUI elements');
+
+asyncTest('head children', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test_unique_lsjisujf';
+
+    window.QUnitGlobals.waitForIframe(iframe)
+       .then(function () {
+           var childNodes = iframe.contentWindow.document.head.childNodes;
+
+           ok(domUtils.isShadowUIElement(childNodes[0]));
+
+           start();
+       });
+
+    document.body.appendChild(iframe);
+});
+
+asyncTest('body children', function () {
+    var iframe  = document.createElement('iframe');
+    var src     = window.QUnitGlobals.getResourceUrl('../../data/detect-shadow-ui-when-body-created/iframe.html');
+
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var iframeDocument = iframe.contentWindow.document;
+
+            ok(domUtils.isShadowUIElement(iframeDocument.body.children[0]));
+
+            start();
+        });
+
+    iframe.setAttribute('src', src);
+
+    iframe.id = 'test_unique' + Date.now();
+
+    document.body.appendChild(iframe);
+});
+
+module('live node collections (GH-1096)');
+
+test('getElementsByClassName', function () {
+    var testDiv       = $('#testDiv')[0];
+    var testClassName = 'test-class';
+    var div1          = document.createElement('div');
+    var div2          = document.createElement('div');
+    var div3          = document.createElement('div');
+
+    div1.className = testClassName;
+    div2.className = testClassName;
+    div3.className = testClassName;
+
+    testDiv.appendChild(div1);
+    testDiv.appendChild(div2);
+    testDiv.appendChild(div3);
+
+    shadowUI.addClass(div3, 'el');
+
+    var elements     = document.getElementsByClassName(testClassName);
+    var expectedType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
+
+    ok(elements instanceof expectedType);
+
+    strictEqual(elements[0], div1);
+    strictEqual(elements[1], div2);
+    strictEqual(elements[2], void 0);
+    strictEqual(elements.length, 2);
+
+    testDiv.removeChild(div2);
+
+    strictEqual(elements[0], div1);
+    strictEqual(elements[1], void 0);
+    strictEqual(elements.length, 1);
+});
+
+test('getElementsByName', function () {
+    var testDiv  = $('#testDiv')[0];
+    var testName = 'test-name';
+    var input1   = document.createElement('input');
+    var input2   = document.createElement('input');
+    var input3   = document.createElement('input');
+
+    input1.setAttribute('name', testName);
+    input2.setAttribute('name', testName);
+    input3.setAttribute('name', testName);
+
+    shadowUI.addClass(input3, 'el');
+
+    testDiv.appendChild(input1);
+    testDiv.appendChild(input2);
+    testDiv.appendChild(input3);
+
+    var elements     = document.getElementsByName(testName);
+    var expectedType = browserUtils.isIE ? HTMLCollection : NodeList;
+
+    ok(elements instanceof expectedType);
+
+    strictEqual(elements[0], input1);
+    strictEqual(elements[1], input2);
+    strictEqual(elements[2], void 0);
+    strictEqual(elements.length, 2);
+
+    testDiv.removeChild(input2);
+
+    strictEqual(elements[0], input1);
+    strictEqual(elements[1], void 0);
+    strictEqual(elements.length, 1);
+});
+
+test('getElementsByTagName', function () {
+    var testDiv         = $('#testDiv')[0];
+    var textarea1       = document.createElement('textarea');
+    var textarea2       = document.createElement('textarea');
+    var shadowUIElement = document.createElement('textarea');
+
+    shadowUI.addClass(shadowUIElement, 'el');
+
+    testDiv.appendChild(textarea1);
+    testDiv.appendChild(textarea2);
+    testDiv.appendChild(shadowUIElement);
+
+    var elements     = document.getElementsByTagName('textarea');
+    var expectedType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
+
+    ok(elements instanceof expectedType);
+
+    strictEqual(elements[0], textarea1);
+    strictEqual(elements[1], textarea2);
+    strictEqual(elements[2], void 0);
+    strictEqual(elements.length, 2);
+
+    testDiv.removeChild(textarea2);
+
+    strictEqual(elements[0], textarea1);
+    strictEqual(elements[1], void 0);
+    strictEqual(elements.length, 1);
+});
+
+test('live collection should properly change if element was added (gh-1111)', function () {
+    var testDiv         = $('#testDiv')[0];
+    var textarea1       = document.createElement('textarea');
+    var textarea2       = document.createElement('textarea');
+    var shadowUIElement = document.createElement('textarea');
+
+    shadowUI.addClass(shadowUIElement, 'el');
+
+    testDiv.appendChild(textarea1);
+    testDiv.appendChild(shadowUIElement);
+
+    var elements = document.getElementsByTagName('textarea');
+
+    strictEqual(elements.length, 1);
+    strictEqual(elements[0], textarea1);
+    strictEqual(elements[1], void 0);
+
+    testDiv.appendChild(textarea2);
+
+    strictEqual(elements[0], textarea1);
+    strictEqual(elements[1], textarea2);
+    strictEqual(elements[2], void 0);
+    strictEqual(elements.length, 2);
+});
+
+test('index elements should be enumerable after NodeListWrapper instance creation', function () {
+    var testDiv  = $('#testDiv')[0];
+
+    var input1   = document.createElement('input');
+    var input2   = document.createElement('input');
+
+    // NOTE: IE add random generated id as element index to HTMLCollection, so we should define it.
+    if (browserUtils.isIE) {
+        input1.id = '0';
+        input2.id = '1';
+    }
+
+    testDiv.appendChild(input1);
+    testDiv.appendChild(input2);
+
+    var nativeCollection   = nativeMethods.elementGetElementsByTagName.call(document.body, 'input');
+    var expectedProperties = [];
+
+    for (var prop in nativeCollection)
+        expectedProperties.push(prop);
+
+    var elements          = document.getElementsByTagName('input');
+    var wrapperProperties = [];
+
+    for (var element in elements) {
+        ok(expectedProperties.indexOf(element) > -1);
+
+        wrapperProperties.push(element);
+    }
+
+    strictEqual(expectedProperties.length, wrapperProperties.length);
+});
