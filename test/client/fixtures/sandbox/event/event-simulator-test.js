@@ -5,6 +5,7 @@ var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 var $domElement = null;
 var domElement  = null;
 var raised      = false;
+var bubbled     = false;
 
 var lastTouchIdentifier = null;
 
@@ -12,6 +13,7 @@ QUnit.testStart(function () {
     $domElement         = $('<input type="text">').attr('id', 'domElement').appendTo('body');
     domElement          = $domElement[0];
     raised              = false;
+    bubbled             = false;
     lastTouchIdentifier = null;
 });
 
@@ -41,6 +43,18 @@ var bindKeyEvent = function (eventType, eventObj) {
             ev.altKey === (eventObj.alt || false))
             raised = true;
     };
+};
+
+var bubbleEventListener = function () {
+    bubbled = true;
+};
+
+var bindBubbleListener = function (eventType) {
+    document.addEventListener(eventType, bubbleEventListener);
+};
+
+var removeBubbleListener = function (eventType) {
+    document.removeEventListener(eventType, bubbleEventListener);
 };
 
 test('mouse left button click', function () {
@@ -109,6 +123,34 @@ test('mouse out', function () {
     bindMouseEvent('mouseout');
     eventSimulator.mouseout(domElement);
     ok(raised);
+});
+
+test('mouse enter', function () {
+    var eventName = 'mouseenter';
+
+    bindMouseEvent(eventName);
+    bindBubbleListener(eventName);
+
+    eventSimulator.mouseenter(domElement);
+
+    ok(raised);
+    ok(!bubbled);
+
+    removeBubbleListener(eventName);
+});
+
+test('mouse leave', function () {
+    var eventName = 'mouseleave';
+
+    bindMouseEvent(eventName);
+    bindBubbleListener(eventName);
+
+    eventSimulator.mouseleave(domElement);
+
+    ok(raised);
+    ok(!bubbled);
+
+    removeBubbleListener(eventName);
 });
 
 test('key down', function () {

@@ -827,6 +827,14 @@ export default class EventSimulator {
         return this._simulateEvent(el, 'mouseout', options);
     }
 
+    mouseenter (el, options) {
+        return this._simulateEvent(el, 'mouseenter', options, { canBubble: false });
+    }
+
+    mouseleave (el, options) {
+        return this._simulateEvent(el, 'mouseleave', options, { canBubble: false });
+    }
+
     // NOTE: Keyboard events.
     keypress (el, options) {
         return this._simulateEvent(el, 'keypress', options);
