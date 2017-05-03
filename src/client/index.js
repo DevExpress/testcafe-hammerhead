@@ -91,7 +91,8 @@ class Hammerhead {
             eventSimulator:        this.sandbox.event.eventSimulator,
             selection:             this.sandbox.event.selection,
             message:               this.sandbox.event.message,
-            timers:                this.sandbox.event.timers
+            timers:                this.sandbox.event.timers,
+            DataTransfer:          this.sandbox.event.DataTransfer
         };
 
         this.utils = {
