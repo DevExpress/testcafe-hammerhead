@@ -56,6 +56,59 @@ if (window.EventSource) {
 
         ok(eventSource instanceof EventSource);
     });
+
+    test('should have static constants (GH-1106)', function () {
+        ok(EventSource.hasOwnProperty('CONNECTING'));
+        ok(EventSource.hasOwnProperty('OPEN'));
+        ok(EventSource.hasOwnProperty('CLOSED'));
+    });
+
+    test('should process url to proxy with special flag (GH-1106)', function () {
+        var nativeEventSource = nativeMethods.EventSource;
+
+        nativeMethods.EventSource = function (url) {
+            strictEqual(url, 'http://' + location.host + '/sessionId!e/http://localhost/event');
+        };
+
+        /* eslint-disable no-new */
+        new EventSource('http://localhost/event');
+        /* eslint-enable no-new */
+
+        nativeMethods.EventSource = nativeEventSource;
+    });
+
+    test('should call the constructor with the correct length of arguments (GH-1106)', function () {
+        var nativeEventSource = nativeMethods.EventSource;
+
+        nativeMethods.EventSource = function () {
+            strictEqual(arguments.length, 0);
+        };
+
+        /* eslint-disable no-new */
+        new EventSource();
+        /* eslint-enable no-new */
+
+        nativeMethods.EventSource = function (url) {
+            strictEqual(arguments.length, 1);
+            strictEqual(url, 'http://' + location.host + '/sessionId!e/http://localhost/event');
+        };
+
+        /* eslint-disable no-new */
+        new EventSource('http://localhost/event');
+        /* eslint-enable no-new */
+
+        nativeMethods.EventSource = function (url, opts) {
+            strictEqual(arguments.length, 2);
+            strictEqual(url, 'http://' + location.host + '/sessionId!e/http://localhost/event');
+            strictEqual(opts.withCredentials, true);
+        };
+
+        /* eslint-disable no-new */
+        new EventSource('http://localhost/event', { withCredentials: true });
+        /* eslint-enable no-new */
+
+        nativeMethods.EventSource = nativeEventSource;
+    });
 }
 
 if (window.MutationObserver) {

@@ -1937,5 +1937,39 @@ describe('Proxy', function () {
                 done();
             });
         });
+
+        it('Should destroy a destination connection after a proxy connection was closed (GH-1106)', function (done) {
+            var destConnectionClosed = false;
+            var simpleServer         = http.createServer(function (req, res) {
+                res.writeHead(200, { 'content-type': 'text/event-stream; charset=utf-8' });
+                res.write('\n');
+
+                req.on('close', function () {
+                    expect(destConnectionClosed).to.be.false;
+                    destConnectionClosed = true;
+                    simpleServer.close();
+                    done();
+                });
+            }).listen(2222);
+
+            proxy.openSession('http://127.0.0.1:2222/', session);
+
+            var url      = 'http://127.0.0.1:2222/';
+            var proxyUrl = urlUtils.getProxyUrl(url, {
+                proxyHostname: '127.0.0.1',
+                proxyPort:     1836,
+                sessionId:     session.id,
+                resourceType:  urlUtils.getResourceTypeString({ isEventSource: true })
+            });
+
+            var req = http.request(urlLib.parse(proxyUrl));
+
+            req.end();
+
+            setTimeout(function () {
+                expect(destConnectionClosed).to.be.false;
+                req.destroy();
+            }, 400);
+        });
     });
 });

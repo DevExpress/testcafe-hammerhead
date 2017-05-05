@@ -7,7 +7,7 @@ import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
 import { processHtml } from '../../utils/html';
-import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl } from '../../utils/url';
+import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
 import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
@@ -166,8 +166,22 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.EventSource) {
-            window.EventSource           = url => new nativeMethods.EventSource(getProxyUrl(url));
-            window.EventSource.prototype = nativeMethods.EventSource.prototype;
+            window.EventSource            = function (url, opts) {
+                if (arguments.length) {
+                    var proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isEventSource: true }) });
+
+                    if (arguments.length === 1)
+                        return new nativeMethods.EventSource(proxyUrl);
+
+                    return new nativeMethods.EventSource(proxyUrl, opts);
+                }
+
+                return new nativeMethods.EventSource();
+            };
+            window.EventSource.prototype  = nativeMethods.EventSource.prototype;
+            window.EventSource.CONNECTING = nativeMethods.EventSource.CONNECTING;
+            window.EventSource.OPEN       = nativeMethods.EventSource.OPEN;
+            window.EventSource.CLOSED     = nativeMethods.EventSource.CLOSED;
         }
 
         if (window.MutationObserver) {

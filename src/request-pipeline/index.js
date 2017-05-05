@@ -9,6 +9,8 @@ import { check as checkSameOriginPolicy, SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } 
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 
+const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
+
 // Stages
 var stages = {
     0: async function fetchProxyRequestBody (ctx, next) {
@@ -63,11 +65,17 @@ var stages = {
         if (!ctx.contentInfo.requireProcessing) {
             sendResponseHeaders(ctx);
 
-            if (ctx.isSpecialPage)
-                ctx.res.end('');
-
-            else
+            if (!ctx.isSpecialPage) {
                 ctx.destRes.pipe(ctx.res);
+
+                // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
+                if (ctx.dest.isEventSource) {
+                    ctx.req.setTimeout(EVENT_SOURCE_REQUEST_TIMEOUT);
+                    ctx.req.on('close', () => ctx.destRes.destroy());
+                }
+            }
+            else
+                ctx.res.end('');
 
             return;
         }
