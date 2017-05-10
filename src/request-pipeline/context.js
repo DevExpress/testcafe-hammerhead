@@ -50,6 +50,7 @@ export default class RequestPipelineContext {
                 isIframe:      parsedResourceType.isIframe,
                 isForm:        parsedResourceType.isForm,
                 isScript:      parsedResourceType.isScript,
+                isEventSource: parsedResourceType.isEventSource,
                 charset:       parsed.charset
             };
 

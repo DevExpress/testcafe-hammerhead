@@ -21,29 +21,32 @@ export const SPECIAL_PAGES                       = ['about:blank', 'about:error'
 export function parseResourceType (resourceType) {
     if (!resourceType) {
         return {
-            isIframe: false,
-            isForm:   false,
-            isScript: false
+            isIframe:      false,
+            isForm:        false,
+            isScript:      false,
+            isEventSource: false
         };
     }
 
     return {
-        isIframe: /i/.test(resourceType),
-        isForm:   /f/.test(resourceType),
-        isScript: /s/.test(resourceType)
+        isIframe:      /i/.test(resourceType),
+        isForm:        /f/.test(resourceType),
+        isScript:      /s/.test(resourceType),
+        isEventSource: /e/.test(resourceType)
     };
 }
 
 export function getResourceTypeString (resourceType) {
     resourceType = resourceType || {};
 
-    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript)
+    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript && !resourceType.isEventSource)
         return null;
 
     return [
         resourceType.isIframe ? 'i' : '',
         resourceType.isForm ? 'f' : '',
-        resourceType.isScript ? 's' : ''
+        resourceType.isScript ? 's' : '',
+        resourceType.isEventSource ? 'e' : ''
     ].join('');
 }
 
