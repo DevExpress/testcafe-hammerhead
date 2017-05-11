@@ -103,6 +103,16 @@ class DataTransferItemList {
         this._dataStore = dataStore;
     }
 
+    static processFormat (format) {
+        if (format === 'text')
+            return 'text/plain';
+
+        if (format === 'url')
+            return 'text/uri-list';
+
+        return format;
+    }
+
     get _types () {
         var res = [];
 
@@ -115,13 +125,10 @@ class DataTransferItemList {
     _getItem (format) {
         var convertToUrl = false;
 
-        if (format === 'text')
-            format = 'text/plain';
+        format = DataTransferItemList.processFormat(format);
 
-        if (format === 'url') {
-            format       = 'text/uri-list';
+        if (format === 'url')
             convertToUrl = true;
-        }
 
         var item = '';
 
@@ -137,11 +144,7 @@ class DataTransferItemList {
     }
 
     _removeItem (format) {
-        if (format === 'text')
-            format = 'text/plain';
-
-        if (format === 'url')
-            format = 'text/uri-list';
+        format = DataTransferItemList.processFormat(format);
 
         for (var i = 0; i < this._items.length; i++) {
             if (this._items[i].type === format) {
@@ -175,7 +178,7 @@ class DataTransferItemList {
             if (item)
                 this._removeItem(typeLowerCase);
 
-            newItem = new DataTransferItem(DATA_TRANSFER_ITEM_KIND.string, type, data);
+            newItem = new DataTransferItem(DATA_TRANSFER_ITEM_KIND.string, DataTransferItemList.processFormat(type), data);
         }
         else
             newItem = new DataTransferItem(DATA_TRANSFER_ITEM_KIND.file, null, data);

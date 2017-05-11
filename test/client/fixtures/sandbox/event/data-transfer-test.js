@@ -47,8 +47,8 @@ test('Manage items', function () {
     var dataTransfer = new DataTransfer();
 
     // Add items
-    dataTransfer.setData('text/plain', 'data');
-    dataTransfer.setData('text/uri-list', 'http://example.com#abc');
+    dataTransfer.setData('text', 'data');
+    dataTransfer.setData('url', 'http://example.com#abc');
 
     equal(dataTransfer.items.length, 2);
 
