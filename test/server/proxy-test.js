@@ -1091,6 +1091,61 @@ describe('Proxy', function () {
                 done();
             });
         });
+
+        it('Should pass an error to the session if target is a directory', function (done) {
+            var url = getFileProtocolUrl('./data');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = function (ctx, err) {
+                expect(err).eql([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'EISDIR: illegal operation on a directory, read'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            var options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
+        });
+
+        it('Should pass an error to the session if target does not exist', function (done) {
+            var testPath = path.join(__dirname, './data/non-exist-file');
+            var url      = getFileProtocolUrl('./data/non-exist-file');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = function (ctx, err) {
+                expect(err).eql([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'ENOENT: no such file or directory, open \'' + testPath + '\''
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            var options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
+        });
     });
 
     describe('State switching', function () {
