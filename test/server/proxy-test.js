@@ -256,6 +256,10 @@ describe('Proxy', function () {
             res.json(req.headers);
         });
 
+        app.post('/echo-headers', function (req, res) {
+            res.json(req.headers);
+        });
+
         app.get('/empty-response', function (req, res) {
             for (var header in req.headers)
                 res.set(header, req.headers[header]);
@@ -345,6 +349,50 @@ describe('Proxy', function () {
 
     // Tests
     describe('Session', function () {
+        it('Should log GET request params', function (done) {
+            session.requestLoggingEnabled = true;
+
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/echo-headers?param1=val1&param2=val2', session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options, function () {
+                expect(session.requestLog.length).eql(1);
+                expect(session.requestLog[0].url).eql('http://127.0.0.1:2000/echo-headers?param1=val1&param2=val2');
+                expect(session.requestLog[0].query['param1']).eql('val1');
+                expect(session.requestLog[0].query['param2']).eql('val2');
+                session.requestLoggingEnabled = false;
+                session.requestLog            = [];
+                done();
+            });
+        });
+
+        it('Should log POST request params', function (done) {
+            session.requestLoggingEnabled = true;
+
+            var options = {
+                url:    proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
+                method: 'POST',
+                form:   {
+                    param1: 'val1',
+                    param2: 'val2'
+                }
+            };
+
+            request(options, function () {
+                expect(session.requestLog.length).eql(1);
+                expect(session.requestLog[0].url).eql('http://127.0.0.1:2000/echo-headers');
+                expect(session.requestLog[0].query['param1']).eql('val1');
+                expect(session.requestLog[0].query['param2']).eql('val2');
+                session.requestLoggingEnabled = false;
+                session.requestLog            = [];
+                done();
+            });
+        });
+
         it('Should pass DNS errors to session', function (done) {
             session.handlePageError = function (ctx, err) {
                 expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url">http://www.some-unresolvable.url</a>.');

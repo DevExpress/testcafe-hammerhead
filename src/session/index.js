@@ -18,6 +18,8 @@ export default class Session extends EventEmitter {
 
         this.uploadStorage = new UploadStorage(uploadsRoot);
 
+        this.requestLog            = [];
+        this.requestLoggingEnabled = false;
         this.id                    = Session._generateSessionId();
         this.cookies               = new Cookies();
         this.proxy                 = null;
@@ -120,11 +122,22 @@ export default class Session extends EventEmitter {
         this.externalProxySettings = settings;
     }
 
-    onPageRequest () {
-        if (this.requireStateSwitch) {
+    onRequest (ctx) {
+        var isPageRequest = ctx.isPage && !ctx.isIframe;
+
+        if (isPageRequest && this.requireStateSwitch) {
             this.cookies.setJar(this.pendingStateSnapshot);
             this.requireStateSwitch   = false;
             this.pendingStateSnapshot = null;
+        }
+
+        if (this.requestLoggingEnabled) {
+            var queryString = ctx.req.method === 'GET' ? ctx.dest.url : '?' + ctx.reqBody.toString();
+
+            this.requestLog.push({
+                url:   ctx.dest.url,
+                query: parseUrl(queryString, true).query
+            });
         }
     }
 
