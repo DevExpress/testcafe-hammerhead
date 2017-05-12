@@ -6,7 +6,7 @@ import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../uti
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
 
-const DEFAULT_REQUEST_CREDENTIALS = new nativeMethods.Request('').credentials;
+const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request('').credentials : void 0;
 
 export default class FetchSandbox extends SandboxBase {
     constructor () {
