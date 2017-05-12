@@ -6,7 +6,6 @@ var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var domUtils      = hammerhead.utils.dom;
 var positionUtils = hammerhead.utils.position;
-var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
 QUnit.testStart(function () {
@@ -534,8 +533,6 @@ test('querySelectorAll', function () {
 
     var elems = document.querySelectorAll('.test-class');
 
-    ok(elems instanceof NodeList);
-
     strictEqual(elems.length, 1);
     strictEqual(elems[0].id, 'pageElem');
 });
@@ -736,102 +733,3 @@ if (document.implementation && document.implementation.createHTMLDocument) {
         strictEqual(htmlDoc.getElementsByTagName('body')[0], nativeMethods.getElementsByTagName.call(htmlDoc, 'body')[0]);
     });
 }
-
-module('live node collections (GH-1096)');
-
-test('getElementsByClassName', function () {
-    var testDiv       = $('#testDiv')[0];
-    var testClassName = 'test-class';
-    var div1          = document.createElement('div');
-    var div2          = document.createElement('div');
-    var div3          = document.createElement('div');
-
-    div1.className = testClassName;
-    div2.className = testClassName;
-    div3.className = testClassName;
-
-    testDiv.appendChild(div1);
-    testDiv.appendChild(div2);
-    testDiv.appendChild(div3);
-
-    shadowUI.addClass(div3, 'el');
-
-    var elements     = document.getElementsByClassName(testClassName);
-    var expectedType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
-
-    ok(elements instanceof expectedType);
-
-    strictEqual(elements[0], div1);
-    strictEqual(elements[1], div2);
-    strictEqual(elements[2], void 0);
-    strictEqual(elements.length, 2);
-
-    testDiv.removeChild(div2);
-
-    strictEqual(elements.length, 1);
-    strictEqual(elements[0], div1);
-    strictEqual(elements[1], void 0);
-});
-
-test('getElementsByName', function () {
-    var testDiv  = $('#testDiv')[0];
-    var testName = 'test-name';
-    var input1   = document.createElement('input');
-    var input2   = document.createElement('input');
-    var input3   = document.createElement('input');
-
-    input1.setAttribute('name', testName);
-    input2.setAttribute('name', testName);
-    input3.setAttribute('name', testName);
-
-    shadowUI.addClass(input3, 'el');
-
-    testDiv.appendChild(input1);
-    testDiv.appendChild(input2);
-    testDiv.appendChild(input3);
-
-    var elements     = document.getElementsByName(testName);
-    var expectedType = browserUtils.isIE ? HTMLCollection : NodeList;
-
-    ok(elements instanceof expectedType);
-
-    strictEqual(elements[0], input1);
-    strictEqual(elements[1], input2);
-    strictEqual(elements[2], void 0);
-    strictEqual(elements.length, 2);
-
-    testDiv.removeChild(input2);
-
-    strictEqual(elements.length, 1);
-    strictEqual(elements[0], input1);
-    strictEqual(elements[1], void 0);
-});
-
-test('getElementsByTagName', function () {
-    var testDiv         = $('#testDiv')[0];
-    var textarea1       = document.createElement('textarea');
-    var textarea2       = document.createElement('textarea');
-    var shadowUIElement = document.createElement('textarea');
-
-    shadowUI.addClass(shadowUIElement, 'el');
-
-    testDiv.appendChild(textarea1);
-    testDiv.appendChild(textarea2);
-    testDiv.appendChild(shadowUIElement);
-
-    var elements     = document.getElementsByTagName('textarea');
-    var expectedType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
-
-    ok(elements instanceof expectedType);
-
-    strictEqual(elements[0], textarea1);
-    strictEqual(elements[1], textarea2);
-    strictEqual(elements[2], void 0);
-    strictEqual(elements.length, 2);
-
-    testDiv.removeChild(textarea2);
-
-    strictEqual(elements.length, 1);
-    strictEqual(elements[0], textarea1);
-    strictEqual(elements[1], void 0);
-});
