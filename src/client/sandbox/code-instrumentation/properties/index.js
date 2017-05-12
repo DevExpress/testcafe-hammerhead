@@ -648,7 +648,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             scripts: {
                 condition: domUtils.isDocument,
-                get:       doc => ShadowUI._filterNodeList(doc.scripts, true),
+                get:       doc => ShadowUI._filterNodeList(doc.scripts),
                 set:       (doc, value) => {
                     doc.scripts = value;
 
