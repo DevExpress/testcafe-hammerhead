@@ -44,11 +44,12 @@ var CLIENT_TESTS_BROWSERS = [
         platform:    'Windows 10',
         browserName: 'chrome'
     },
-    {
-        platform:    'Windows 10',
-        browserName: 'chrome',
-        version:     'beta'
-    },
+    // NOTE: version: 'beta' don't work anymore
+    // {
+    //     platform:    'Windows 10',
+    //     browserName: 'chrome',
+    //     version:     'beta'
+    // },
     {
         platform:    'Windows 10',
         browserName: 'firefox'
