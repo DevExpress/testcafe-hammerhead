@@ -1098,10 +1098,10 @@ describe('Proxy', function () {
             session.id = 'sessionId';
 
             session.handlePageError = function (ctx, err) {
-                expect(err).eql([
+                expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
-                    'EISDIR: illegal operation on a directory, read'
+                    'EISDIR'
                 ].join('\n'));
 
                 ctx.res.end();
@@ -1120,16 +1120,15 @@ describe('Proxy', function () {
         });
 
         it('Should pass an error to the session if target does not exist', function (done) {
-            var testPath = path.join(__dirname, './data/non-exist-file');
             var url      = getFileProtocolUrl('./data/non-exist-file');
 
             session.id = 'sessionId';
 
             session.handlePageError = function (ctx, err) {
-                expect(err).eql([
+                expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
-                    'ENOENT: no such file or directory, open \'' + testPath + '\''
+                    'ENOENT'
                 ].join('\n'));
 
                 ctx.res.end();
