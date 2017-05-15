@@ -215,7 +215,7 @@ export default class EventSimulator {
 
             args = EventSimulator._getMouseEventArgs(event, opts);
             /* eslint-disable no-shadow */
-            dispatch = (el, args) => this._dispatchMouseEvent(el, args, userOptions.dataTransfer);
+            dispatch = (el, args) => this._dispatchMouseEvent(el, args, userOptions ? userOptions.dataTransfer : void 0);
             /* eslint-enable no-shadow */
         }
 
