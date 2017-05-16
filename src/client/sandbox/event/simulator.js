@@ -550,8 +550,13 @@ export default class EventSimulator {
             args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey,
             args.button, args.relatedTarget);
 
-        if (dataTransfer)
-            ev.dataTransfer = dataTransfer;
+        if (dataTransfer) {
+            Object.defineProperty(ev, 'dataTransfer', {
+                configurable: true,
+                enumerable:   true,
+                get:          () => dataTransfer
+            });
+        }
 
         if (browserUtils.isFirefox || browserUtils.isIE) {
             Object.defineProperty(ev, 'buttons', {
