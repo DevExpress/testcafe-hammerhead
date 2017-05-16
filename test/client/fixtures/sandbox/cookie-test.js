@@ -2,10 +2,8 @@ var cookieUtils = hammerhead.get('./utils/cookie');
 var settings    = hammerhead.get('./settings');
 var urlUtils    = hammerhead.get('./utils/url');
 
-var Promise       = hammerhead.Promise;
-var transport     = hammerhead.transport;
-var nativeMethods = hammerhead.nativeMethods;
-var cookieSandbox = hammerhead.sandbox.cookie;
+var transport    = hammerhead.transport;
+var browserUtils = hammerhead.utils.browser;
 
 function setCookie (value) {
     return setProperty(document, 'cookie', value);
@@ -14,38 +12,6 @@ function setCookie (value) {
 function getCookie () {
     return getProperty(document, 'cookie');
 }
-
-asyncTest('cookie must be to send to a server before form.submit', function () {
-    var form                          = document.body.appendChild(document.createElement('form'));
-    var storedAsyncServiceMsg         = transport.asyncServiceMsg;
-    var resolveAsyncServiceMsgPromise = null;
-    var storedNativeSubmit            = nativeMethods.formSubmit;
-    var msgReceived                   = false;
-
-    transport.asyncServiceMsg = function () {
-        return new Promise(function (resolve) {
-            resolveAsyncServiceMsgPromise = resolve;
-        });
-    };
-
-    nativeMethods.formSubmit = function () {
-        ok(msgReceived);
-
-        nativeMethods.formSubmit  = storedNativeSubmit;
-        transport.asyncServiceMsg = storedAsyncServiceMsg;
-
-        start();
-    };
-
-    cookieSandbox.setCookie(document, 'cookie=1', true);
-
-    processDomMeth(form);
-
-    form.submit();
-
-    msgReceived = true;
-    resolveAsyncServiceMsgPromise();
-});
 
 test('get/set', function () {
     settings.get().cookie = '';
@@ -228,3 +194,27 @@ test('correct work with cookie with empty key (GH-899)', function () {
 
     transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
+
+if (!browserUtils.isIOS) {
+    asyncTest('set cookie before unload (GH-1086)', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.setAttribute('id', 'test' + Date.now());
+        iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../data/cookie/set-cookie-messages.html'));
+
+        window.addEventListener('message', function onMessage (e) {
+            var expectedCookies = [];
+
+            for (var i = 0; i < 20; i++)
+                expectedCookies.push('value' + i + '=some value');
+
+            strictEqual(e.data, expectedCookies.join('; '));
+
+            window.removeEventListener('message', onMessage);
+            document.body.removeChild(iframe);
+            start();
+        });
+
+        document.body.appendChild(iframe);
+    });
+}

@@ -5,6 +5,11 @@ export function preventCaching (res) {
     res.setHeader('pragma', 'no-cache');
 }
 
+export function respond204 (res) {
+    res.statusCode = 204;
+    res.end();
+}
+
 export function respond404 (res) {
     res.statusCode = 404;
     res.end();

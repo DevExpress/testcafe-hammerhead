@@ -2,16 +2,17 @@ import Router from './router';
 import http from 'http';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
-import { respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
+import { respond204, respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
 import { ie9FileReaderShim } from '../upload';
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 
 // Const
-const CLIENT_SCRIPT = read('../client/hammerhead.js');
+const CLIENT_SCRIPT             = read('../client/hammerhead.js');
+const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
 // Static
-function parseServiceMsg (body) {
+function parseJsonBody (body) {
     body = body.toString();
 
     try {
@@ -75,13 +76,14 @@ export default class Proxy extends Router {
 
         this.POST('/ie9-file-reader-shim', ie9FileReaderShim);
         this.POST('/messaging', (req, res, serverInfo) => this._onServiceMessage(req, res, serverInfo));
+        this.POST('/cookie-sync', (req, res, serverInfo) => this._onCookieSync(req, res, serverInfo));
         this.GET('/task.js', (req, res, serverInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
         this.GET('/iframe-task.js', (req, res, serverInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
     }
 
     async _onServiceMessage (req, res, serverInfo) {
         var body    = await fetchBody(req);
-        var msg     = parseServiceMsg(body);
+        var msg     = parseJsonBody(body);
         var session = msg && this.openSessions[msg.sessionId];
 
         if (session) {
@@ -95,7 +97,26 @@ export default class Proxy extends Router {
             }
         }
         else
-            respond500(res, 'Session is not opened in proxy');
+            respond500(res, SESSION_IS_NOT_OPENED_ERR);
+    }
+
+    async _onCookieSync (req, res) {
+        var body    = await fetchBody(req);
+        var msg     = parseJsonBody(body);
+        var session = msg && this.openSessions[msg.sessionId];
+
+        if (session) {
+            try {
+                session.setCookie(msg.queue);
+
+                respond204(res);
+            }
+            catch (err) {
+                respond500(res, err.toString());
+            }
+        }
+        else
+            respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
     _onTaskScriptRequest (req, res, serverInfo, isIframe) {
@@ -109,7 +130,7 @@ export default class Proxy extends Router {
             res.end(session.getTaskScript(referer, refererDest.destUrl, serverInfo, isIframe, true));
         }
         else
-            respond500(res);
+            respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
     _onRequest (req, res, serverInfo) {
