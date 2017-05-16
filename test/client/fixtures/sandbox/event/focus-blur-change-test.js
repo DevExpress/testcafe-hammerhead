@@ -927,7 +927,7 @@ if (!browserUtils.isFirefox || browserUtils.version >= 52) {
 
         window.setTimeout(function () {
             // NOTE: if browser is not in focus then focus and blur events were not raised.
-            // In this case, we provide broser-specific fallback value
+            // In this case, we provide the browser-specific fallback value
             strictEqual(eventLog, nativeEventLog || getNativeEventLogFallbackValue());
             console.log(eventLog);
 
