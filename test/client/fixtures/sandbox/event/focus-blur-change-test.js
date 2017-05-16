@@ -929,7 +929,6 @@ if (!browserUtils.isFirefox || browserUtils.version >= 52) {
             // NOTE: if browser is not in focus then focus and blur events were not raised.
             // In this case, we provide the browser-specific fallback value
             strictEqual(eventLog, nativeEventLog || getNativeEventLogFallbackValue());
-            console.log(eventLog);
 
             input.parentNode.removeChild(input);
             nativeInput.parentNode.removeChild(nativeInput);
