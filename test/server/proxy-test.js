@@ -1076,6 +1076,28 @@ describe('Proxy', function () {
             });
         });
 
+        if (os.platform() === 'win32') {
+            it('Should process page with non-conforming Windows url', function (done) {
+                session.id = 'sessionId';
+
+                var fileUrl = 'file://' + path.join(__dirname, '/data/page-with-file-protocol/src-win.html');
+
+                var options = {
+                    url:     proxy.openSession(fileUrl, session),
+                    headers: {
+                        accept: 'text/html,*/*;q=0.1'
+                    }
+                };
+
+                request(options, function (err, res, body) {
+                    var expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-win.html').toString();
+
+                    compareCode(body, expected);
+                    done();
+                });
+            });
+        }
+
         it('Should set the correct content-type header', function (done) {
             session.id = 'sessionId';
 

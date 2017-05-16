@@ -290,7 +290,12 @@ export function prepareUrl (url) {
     // For example:
     // "//////example.com" -> "//example.com".
     // "http:///example.com" -> "http://example.com"
-    return url.replace(/^(https?:)?\/+(\/\/.*$)/i, '$1$2');
+    //
+    // And add missing slashes after the file scheme.
+    // "file://C:/document.txt" -> "file:///C:/document.txt"
+    return url
+        .replace(/^(https?:)?\/+(\/\/.*$)/i, '$1$2')
+        .replace(/^file:\/*([A-Za-z]):/, 'file:///$1:');
 }
 
 export function ensureTrailingSlash (srcUrl, processedUrl) {

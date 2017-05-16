@@ -11,13 +11,11 @@ export default class FileRequest extends EventEmitter {
     constructor (opts) {
         super();
 
-        var parsed = parse(opts.url);
-        var path   = decodeURIComponent(parsed.pathname);
+        var parsedUrl = parse(opts.url);
+        var path      = decodeURIComponent(parsedUrl.pathname);
 
         if (DISK_RE.test(path))
             path = path.substr(1);
-        else if (parsed.hostname)
-            path = parsed.hostname + ':' + path;
 
         this.url      = opts.url;
         this.stream   = fs.createReadStream(path);
