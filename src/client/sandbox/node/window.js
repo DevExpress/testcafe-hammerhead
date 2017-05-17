@@ -12,10 +12,6 @@ import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-var arraySlice = Array.prototype.slice;
-
 const nativeFunctionToString = nativeMethods.Function.toString();
 
 export default class WindowSandbox extends SandboxBase {
@@ -74,20 +70,19 @@ export default class WindowSandbox extends SandboxBase {
                 this._raiseUncaughtJsErrorEvent(message.msg, window, message.pageUrl);
         });
 
-        window.CanvasRenderingContext2D.prototype.drawImage = function () {
-            var image = arguments[0];
+        window.CanvasRenderingContext2D.prototype.drawImage = function (...args) {
+            var image = args[0];
 
             if (isImgElement(image) && !image[windowSandbox.FORCE_PROXY_SRC_FOR_IMAGE]) {
-                var changedArgs = arraySlice.call(arguments);
-                var src         = image.src;
+                var src = image.src;
 
                 if (destLocation.sameOriginCheck(location.toString(), src)) {
-                    changedArgs[0]     = nativeMethods.createElement.call(window.document, 'img');
-                    changedArgs[0].src = getProxyUrl(src);
+                    args[0]     = nativeMethods.createElement.call(window.document, 'img');
+                    args[0].src = getProxyUrl(src);
                 }
             }
 
-            return nativeMethods.canvasContextDrawImage.apply(this, changedArgs || arguments);
+            return nativeMethods.canvasContextDrawImage.apply(this, args);
         };
 
         // NOTE: Override uncaught error handling.
@@ -291,8 +286,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.navigator.registerProtocolHandler) {
-            window.navigator.registerProtocolHandler = function () {
-                var args     = arraySlice.call(arguments);
+            window.navigator.registerProtocolHandler = function (...args) {
                 var urlIndex = 1;
 
                 if (typeof args[urlIndex] === 'string') {
