@@ -6,6 +6,8 @@ import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../uti
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
 
+const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
+
 export default class FetchSandbox extends SandboxBase {
     constructor () {
         super();
@@ -13,17 +15,17 @@ export default class FetchSandbox extends SandboxBase {
         this.FETCH_REQUEST_SEND_EVENT = 'hammerhead|event|fetch-request-send-event';
     }
 
-    static _processRequestInit (init) {
-        var defaultRequest     = new nativeMethods.Request('');
+    static _addSpecialHeadersToRequestInit (init) {
         var headers            = init.headers || {};
-        var requestCredentials = init.credentials || defaultRequest.credentials;
+        var requestCredentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
+        var originHeaderValue  = getOriginHeader();
 
         if (isFetchHeaders(headers)) {
-            headers.append(XHR_HEADERS.origin, getOriginHeader());
+            headers.append(XHR_HEADERS.origin, originHeaderValue);
             headers.append(XHR_HEADERS.fetchRequestCredentials, requestCredentials);
         }
         else {
-            headers[XHR_HEADERS.origin]                  = getOriginHeader();
+            headers[XHR_HEADERS.origin]                  = originHeaderValue;
             headers[XHR_HEADERS.fetchRequestCredentials] = requestCredentials;
         }
 
@@ -33,13 +35,18 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _processArguments (args) {
-        var input = args[0];
-        var init  = args[1] || {};
+        var input               = args[0];
+        var inputIsString       = typeof input === 'string';
+        var inputIsFetchRequest = isFetchRequest(input);
+        var init                = args[1];
 
-        if (typeof input === 'string')
+        if (inputIsString) {
             args[0] = getProxyUrl(input);
-
-        args[1] = FetchSandbox._processRequestInit(init);
+            init    = init || {};
+            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
+        }
+        else if (inputIsFetchRequest && init)
+            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
     }
 
     static _isValidRequestArgs (args) {
@@ -116,7 +123,7 @@ export default class FetchSandbox extends SandboxBase {
         var sandbox = this;
 
         if (window.fetch) {
-            window.Request = function (...args) {
+            window.Request           = function (...args) {
                 FetchSandbox._processArguments(args);
 
                 if (args.length === 1)
