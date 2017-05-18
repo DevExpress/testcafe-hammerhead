@@ -173,6 +173,10 @@ class NativeMethods {
         // Object
         this.objectToString = win.Object.prototype.toString;
 
+        // DOMParser
+        if (win.DOMParser)
+            this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
+
         this.refreshClasses(win);
     }
 

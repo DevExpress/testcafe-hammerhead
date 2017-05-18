@@ -326,6 +326,15 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
+        if (window.DOMParser) {
+            window.DOMParser.prototype.parseFromString = function (...args) {
+                if (args.length > 1 && typeof args[0] === 'string' && args[1] === 'text/html')
+                    args[0] = processHtml(args[0]);
+
+                return nativeMethods.DOMParserParseFromString.apply(this, args);
+            };
+        }
+
         // NOTE: stab for ie9 and ie10 (GH-801)
         if (window.XDomainRequest)
             window.XDomainRequest = window.XMLHttpRequest;
