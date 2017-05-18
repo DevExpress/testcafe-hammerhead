@@ -20,130 +20,176 @@ function parseTextUriList (textUriList) {
     return res;
 }
 
+function processFormat (format) {
+    if (format === 'text')
+        return 'text/plain';
+
+    if (format === 'url')
+        return 'text/uri-list';
+
+    return format;
+}
+
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransferitemlist
 export default class DataTransferItemList {
     constructor (dataStore) {
-        this._items     = [];
-        this._dataStore = dataStore;
-    }
+        // Internals
+        var items     = [];
+        var itemsData = [];
 
-    static processFormat (format) {
-        if (format === 'text')
-            return 'text/plain';
+        var getTypes = () => {
+            var res = [];
 
-        if (format === 'url')
-            return 'text/uri-list';
+            for (var i = 0; i < items.length; i++)
+                res.push(items[i].type);
 
-        return format;
-    }
+            return res;
+        };
 
-    get _types () {
-        var res = [];
+        var updateIndexes = () => {
+            var idx = 0;
 
-        for (var i = 0; i < this._items.length; i++)
-            res.push(this._items[i].type);
+            while (items[idx] !== void 0 || this[idx] !== void 0) {
+                var item = items[idx];
 
-        return res;
-    }
+                Object.defineProperty(this, idx, {
+                    enumerable:   item !== void 0,
+                    configurable: true,
+                    value:        item
+                });
 
-    _getItem (format) {
-        var convertToUrl = false;
-
-        format = DataTransferItemList.processFormat(format);
-
-        if (format === 'url')
-            convertToUrl = true;
-
-        var item = '';
-
-        for (var i = 0; i < this._items.length; i++) {
-            if (this._items[i].type === format)
-                item = this._items[i]._data;
-        }
-
-        if (convertToUrl && item)
-            item = parseTextUriList(item)[0];
-
-        return item;
-    }
-
-    _removeItem (format) {
-        format = DataTransferItemList.processFormat(format);
-
-        for (var i = 0; i < this._items.length; i++) {
-            if (this._items[i].type === format) {
-                this._items.splice(i, 1);
-                break;
+                idx++;
             }
-        }
+        };
 
-        this._updateIndexes();
-    }
+        var getItemData = format => {
+            var convertToUrl = false;
 
-    _updateIndexes () {
-        var idx = 0;
+            format = processFormat(format);
 
-        while (this._items[idx] !== void 0 || this[idx] !== void 0) {
-            this[idx] = this._items[idx];
-            idx++;
-        }
-    }
+            if (format === 'url')
+                convertToUrl = true;
 
-    _addItem (data, type, allowReplace) {
-        var newItem = null;
+            var item = '';
 
-        if (typeof data === 'string') {
-            var typeLowerCase = type.toString().toLowerCase();
-            var item          = this._getItem(typeLowerCase);
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type === format)
+                    item = itemsData[i];
+            }
 
-            if (!allowReplace && item)
-                throw new Error(`Failed to execute 'add' on 'DataTransferItemList': An item already exists for type '${typeLowerCase}'.`);
+            if (convertToUrl && item)
+                item = parseTextUriList(item)[0];
 
-            if (item)
-                this._removeItem(typeLowerCase);
+            return item;
+        };
 
-            newItem = new DataTransferItem(DATA_TRANSFER_ITEM_KIND.string, DataTransferItemList.processFormat(type), data);
-        }
-        else
-            newItem = new DataTransferItem(DATA_TRANSFER_ITEM_KIND.file, null, data);
+        var removeItem = format => {
+            format = processFormat(format);
 
-        this._items.push(newItem);
-        this._updateIndexes();
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type === format) {
+                    items.splice(i, 1);
+                    itemsData.splice(i, 1);
+                    break;
+                }
+            }
 
-        return newItem;
-    }
+            updateIndexes();
+        };
 
+        var addItem = (data, type, allowReplace) => {
+            var newItem = null;
 
-    get length () {
-        return this._items.length;
-    }
+            if (typeof data === 'string') {
+                var typeLowerCase = type.toString().toLowerCase();
+                var itemData      = getItemData(typeLowerCase);
 
-    remove (idx) {
-        if (this._dataStore.mode !== DATA_STORE_MODE.readwrite)
-            return;
+                if (!allowReplace && itemData)
+                    throw new Error(`Failed to execute 'add' on 'DataTransferItemList': An item already exists for type '${typeLowerCase}'.`);
 
-        this._items.splice(idx, 1);
-        this._updateIndexes();
-    }
+                if (itemData)
+                    removeItem(typeLowerCase);
 
-    clear () {
-        if (this._dataStore.mode !== DATA_STORE_MODE.readwrite)
-            return;
+                newItem = new DataTransferItem(DATA_TRANSFER_ITEM_KIND.string, processFormat(type), data);
+            }
+            else
+                newItem = new DataTransferItem(DATA_TRANSFER_ITEM_KIND.file, null, data);
 
-        this._items = [];
-        this._updateIndexes();
-    }
+            items.push(newItem);
+            itemsData.push(data);
+            updateIndexes();
 
-    add (data, type) {
-        if (!arguments.length)
-            throw new Error("Failed to execute 'add' on 'DataTransferItemList': 1 argument required, but only 0 present.");
+            return newItem;
+        };
 
-        if (arguments.length === 1 && typeof data === 'string')
-            throw new Error("Failed to execute 'add' on 'DataTransferItemList': parameter 1 is not of type 'File'.");
+        // Internal API
+        this.getAndHideInternalMethods = () => {
+            var res = { getTypes, getItemData, removeItem, addItem };
 
-        if (this._dataStore.mode !== DATA_STORE_MODE.readwrite)
-            return void 0;
+            this.getAndHideInternalMethods = void 0;
 
-        return this._addItem(data, type, false);
+            return res;
+        };
+
+        // API
+        Object.defineProperty(this, 'length', {
+            enumerable: true,
+
+            get: () => items.length
+        });
+
+        Object.defineProperty(this, 'remove', {
+            configurable: true,
+            enumerable:   true,
+
+            get: () => {
+                return function (idx) {
+                    if (dataStore.mode !== DATA_STORE_MODE.readwrite)
+                        return;
+
+                    items.splice(idx, 1);
+                    itemsData.splice(idx, 1);
+                    updateIndexes();
+                };
+            }
+        });
+
+        Object.defineProperty(this, 'clear', {
+            configurable: true,
+            enumerable:   true,
+
+            get: () => {
+                return function () {
+                    if (dataStore.mode !== DATA_STORE_MODE.readwrite)
+                        return;
+
+                    items     = [];
+                    itemsData = [];
+                    updateIndexes();
+                };
+            }
+        });
+
+        Object.defineProperty(this, 'add', {
+            configurable: true,
+            enumerable:   true,
+
+            get: () => {
+                return function (data, type) {
+                    if (!arguments.length)
+                        throw new Error("Failed to execute 'add' on 'DataTransferItemList': 1 argument required, but only 0 present.");
+
+                    if (arguments.length === 1 && typeof data === 'string')
+                        throw new Error("Failed to execute 'add' on 'DataTransferItemList': parameter 1 is not of type 'File'.");
+
+                    if (dataStore.mode !== DATA_STORE_MODE.readwrite)
+                        return void 0;
+
+                    return addItem(data, type, false);
+                };
+            }
+        });
     }
 }
+
+DataTransferItemList.prototype = window.DataTransferItemList.prototype;

@@ -92,7 +92,8 @@ class Hammerhead {
             selection:             this.sandbox.event.selection,
             message:               this.sandbox.event.message,
             timers:                this.sandbox.event.timers,
-            DataTransfer:          this.sandbox.event.DataTransfer
+            DataTransfer:          this.sandbox.event.DataTransfer,
+            DragDataStore:         this.sandbox.event.DragDataStore
         };
 
         this.utils = {

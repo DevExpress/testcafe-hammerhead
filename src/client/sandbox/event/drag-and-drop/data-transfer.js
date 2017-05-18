@@ -2,116 +2,114 @@
 // create a useful DataTransfer object from script, since DataTransfer objects have a
 // processing and security model that is coordinated by the browser during drag-and-drops.
 // So we have to create a mock for it to use it in drag-and-drop events
-import DataStore from './data-store';
 import DataTransferItemList from './data-transfer-item-list';
 import DATA_STORE_MODE from './data-store-mode';
+import DROP_EFFECT from './drop-effect';
+import EFFECT_ALLOWED from './effect-allowed';
 
-// https://html.spec.whatwg.org/multipage/interaction.html#dom-datatransfer-dropeffect
-const DROP_EFFECT = {
-    none: 'none',
-    copy: 'copy',
-    link: 'link',
-    move: 'move'
-};
-
-// https://html.spec.whatwg.org/multipage/interaction.html#dom-datatransfer-effectallowed
-const EFFECT_ALLOWED = {
-    uninitialized: 'uninitialized',
-    none:          'none',
-    copy:          'copy',
-    copyLink:      'copyLink',
-    copyMove:      'copyMove',
-    link:          'link',
-    linkMove:      'linkMove',
-    move:          'move',
-    all:           'all'
-};
 
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransfer
 export default class DataTransfer {
-    constructor () {
-        this._dropEffect    = DROP_EFFECT.none;
-        this._effectAllowed = EFFECT_ALLOWED.uninitialized;
-        this._dataStore     = new DataStore();
+    constructor (dataStore) {
+        var dropEffect    = DROP_EFFECT.none;
+        var effectAllowed = EFFECT_ALLOWED.uninitialized;
 
-        this.itemList = new DataTransferItemList(this._dataStore);
-    }
+        var itemList          = new DataTransferItemList(dataStore);
+        var itemListInternals = itemList.getAndHideInternalMethods();
 
-    _setReadOnlyMode () {
-        this._dataStore.mode = DATA_STORE_MODE.readonly;
-    }
+        var emptyItemList      = new DataTransferItemList(dataStore);
+        var emptyListInternals = emptyItemList.getAndHideInternalMethods();
 
-    _setProtectedMode () {
-        this._dataStore.mode = DATA_STORE_MODE.protected;
-        this.itemList        = new DataTransferItemList(this._dataStore);
-    }
+        var getActualItemList = () => {
+            return dataStore.mode === DATA_STORE_MODE.protected ? emptyItemList : itemList;
+        };
 
-    get dropEffect () {
-        return this._dropEffect;
-    }
+        var getActualItemListInternals = () => {
+            return dataStore.mode === DATA_STORE_MODE.protected ? emptyListInternals : itemListInternals;
+        };
 
-    set dropEffect (value) {
-        if (DROP_EFFECT[value])
-            this._dropEffect = DROP_EFFECT[value];
+        Object.defineProperty(this, 'dropEffect', {
+            configurable: true,
+            enumerable:   true,
 
-        return value;
-    }
+            get: () => dropEffect,
+            set: value => {
+                if (DROP_EFFECT[value])
+                    dropEffect = DROP_EFFECT[value];
 
-    get effectAllowed () {
-        return this._effectAllowed;
-    }
+                return value;
+            }
+        });
 
-    set effectAllowed (value) {
-        if (EFFECT_ALLOWED[value])
-            this._effectAllowed = EFFECT_ALLOWED[value];
+        Object.defineProperty(this, 'effectAllowed', {
+            configurable: true,
+            enumerable:   true,
 
-        return value;
-    }
+            get: () => effectAllowed,
+            set: value => {
+                if (EFFECT_ALLOWED[value])
+                    effectAllowed = EFFECT_ALLOWED[value];
 
-    get items () {
-        return this.itemList;
-    }
+                return value;
+            }
+        });
 
-    setDragImage () {
-        // do nothing
-    }
+        Object.defineProperty(this, 'items', {
+            configurable: true,
+            enumerable:   true,
 
-    get types () {
-        return this.itemList._types;
-    }
+            get: getActualItemList
+        });
 
-    getData (format) {
-        if (!arguments.length)
-            throw new Error("Failed to execute 'getData' on 'DataTransfer': 1 argument required, but only 0 present.");
+        Object.defineProperty(this, 'types', {
+            configurable: true,
+            enumerable:   true,
 
-        format = format.toString().toLowerCase();
+            get: () => getActualItemListInternals().getTypes()
+        });
 
-        return this.itemList._getItem(format);
-    }
+        Object.defineProperty(this, 'files', {
+            configurable: true,
+            enumerable:   true,
 
-    setData (format, data) {
-        if (arguments.length < 2)
-            throw new Error(`Failed to execute 'setData' on 'DataTransfer': 2 argument required, but only ${arguments.length} present.`);
+            get: () => []
+        });
 
-        if (this._dataStore.mode !== DATA_STORE_MODE.readwrite)
-            return;
+        this.setDragImage = function () {
+            // do nothing
+        };
 
-        format = format.toString().toLowerCase();
+        this.getData = function (format) {
+            if (!arguments.length)
+                throw new Error("Failed to execute 'getData' on 'DataTransfer': 1 argument required, but only 0 present.");
 
-        this.itemList._addItem(data, format, true);
-    }
+            format = format.toString().toLowerCase();
 
-    clearData (format) {
-        if (this._dataStore.mode !== DATA_STORE_MODE.readwrite)
-            return;
+            return getActualItemListInternals().getItemData(format);
+        };
 
-        if (format === void 0)
-            this.itemList.clear();
-        else
-            this.itemList._removeItem(format);
-    }
+        this.setData = function (format, data) {
+            if (arguments.length < 2)
+                throw new Error(`Failed to execute 'setData' on 'DataTransfer': 2 argument required, but only ${arguments.length} present.`);
 
-    get files () {
-        return [];
+            if (dataStore.mode !== DATA_STORE_MODE.readwrite)
+                return;
+
+            format = format.toString().toLowerCase();
+
+            itemListInternals.addItem(data, format, true);
+        };
+
+        this.clearData = function (format) {
+            if (dataStore.mode !== DATA_STORE_MODE.readwrite)
+                return;
+
+            if (format === void 0)
+                itemList.clear();
+            else
+                itemListInternals.removeItem(format);
+        };
     }
 }
+
+DataTransfer.prototype = window.DataTransfer.prototype;
