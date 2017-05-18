@@ -152,8 +152,7 @@ if (window.MutationObserver) {
     module('MutationObserver');
 
     test('should work with the operator "instanceof" (GH-690)', function () {
-        var observer = new MutationObserver(function () {
-        });
+        var observer = new MutationObserver(function () { });
 
         ok(observer instanceof MutationObserver);
     });
