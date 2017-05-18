@@ -1076,6 +1076,28 @@ describe('Proxy', function () {
             });
         });
 
+        if (os.platform() === 'win32') {
+            it('Should process page with non-conforming Windows url', function (done) {
+                session.id = 'sessionId';
+
+                var fileUrl = 'file://' + path.join(__dirname, '/data/page-with-file-protocol/src-win.html');
+
+                var options = {
+                    url:     proxy.openSession(fileUrl, session),
+                    headers: {
+                        accept: 'text/html,*/*;q=0.1'
+                    }
+                };
+
+                request(options, function (err, res, body) {
+                    var expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-win.html').toString();
+
+                    compareCode(body, expected);
+                    done();
+                });
+            });
+        }
+
         it('Should set the correct content-type header', function (done) {
             session.id = 'sessionId';
 
@@ -1090,6 +1112,60 @@ describe('Proxy', function () {
                 expect(res.headers['content-type']).eql('image/svg+xml');
                 done();
             });
+        });
+
+        it('Should pass an error to the session if target is a directory', function (done) {
+            var url = getFileProtocolUrl('./data');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = function (ctx, err) {
+                expect(err).contains([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'EISDIR'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            var options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
+        });
+
+        it('Should pass an error to the session if target does not exist', function (done) {
+            var url      = getFileProtocolUrl('./data/non-exist-file');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = function (ctx, err) {
+                expect(err).contains([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'ENOENT'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            var options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
         });
     });
 

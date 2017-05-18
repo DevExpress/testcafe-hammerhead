@@ -238,7 +238,7 @@ export default class RequestPipelineContext {
     closeWithError (statusCode, resBody) {
         this.res.statusCode = statusCode;
 
-        if (resBody) {
+        if (resBody && !this.res.headersSent) {
             this.res.setHeader('content-type', 'text/html');
             this.res.end(resBody);
         }

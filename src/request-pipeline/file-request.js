@@ -2,6 +2,8 @@ import fs from 'fs';
 import mime from 'mime';
 import { EventEmitter } from 'events';
 import { parse } from 'url';
+import { MESSAGE, getText } from '../messages';
+
 
 const DISK_RE = /^\/[A-Za-z]:/;
 
@@ -9,27 +11,30 @@ export default class FileRequest extends EventEmitter {
     constructor (opts) {
         super();
 
-        var path = decodeURIComponent(parse(opts.url).pathname);
+        var parsedUrl = parse(opts.url);
+        var path      = decodeURIComponent(parsedUrl.pathname);
 
         if (DISK_RE.test(path))
             path = path.substr(1);
 
+        this.url      = opts.url;
         this.stream   = fs.createReadStream(path);
         this.headers  = {};
         this.trailers = {};
         this.path     = path;
 
-        this.stream.on('open', () => this._onOpen());
-        this.stream.on('error', err => this._onOpen(err));
+        this.stream.once('readable', () => this._onOpen());
+        this.stream.on('error', err => this._onError(err));
     }
 
-    _onOpen (err) {
-        if (!err) {
-            this.statusCode = 200;
-            this.headers['content-type'] = mime.lookup(this.path);
-        }
-        else
-            this.statusCode = 404;
+    _onError (err) {
+        this.statusCode = 404;
+        this.emit('fatalError', getText(MESSAGE.cantReadFile, this.url, err.message));
+    }
+
+    _onOpen () {
+        this.statusCode = 200;
+        this.headers['content-type'] = mime.lookup(this.path);
 
         this.emit('response', this);
     }
