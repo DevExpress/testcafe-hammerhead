@@ -1,3 +1,4 @@
+import nativeMethods from '../../native-methods';
 import DataTransferItem from './data-transfer-item';
 import DATA_STORE_MODE from './data-store-mode';
 import DATA_TRANSFER_ITEM_KIND from './data-transfer-item-kind';
@@ -192,5 +193,5 @@ export default class DataTransferItemList {
     }
 }
 
-if (window.DataTransferItemList)
-    DataTransferItemList.prototype = window.DataTransferItemList.prototype;
+if (nativeMethods.DataTransferItemList)
+    DataTransferItemList.prototype = nativeMethods.DataTransferItemList.prototype;

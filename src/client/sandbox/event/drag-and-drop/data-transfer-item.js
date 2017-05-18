@@ -1,4 +1,4 @@
-import { setTimeout } from '../../native-methods';
+import nativeMethods from '../../native-methods';
 import DATA_TRANSFER_ITEM_KIND from './data-transfer-item-kind';
 
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransferitem
@@ -29,7 +29,7 @@ export default class DataTransferItem {
                     if (kind !== DATA_TRANSFER_ITEM_KIND.string)
                         return;
 
-                    setTimeout(() => callback(data), 0);
+                    nativeMethods.setTimeout.call(window, () => callback(data), 0);
                 };
             }
         });
@@ -50,5 +50,5 @@ export default class DataTransferItem {
     }
 }
 
-if (window.DataTransferItem)
-    DataTransferItem.prototype = window.DataTransferItem.prototype;
+if (nativeMethods.DataTransferItem)
+    DataTransferItem.prototype = nativeMethods.DataTransferItem.prototype;

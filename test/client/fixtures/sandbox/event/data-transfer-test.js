@@ -57,7 +57,7 @@ test('DataTransfer interface', function () {
 
 if (isIE11) {
     // NOTE: ie11 has limited support of DataTransfer
-    test('Manage items', function () {
+    test('manage items', function () {
         var dataTransfer = new DataTransfer(new DragDataStore());
 
         // Add items
@@ -87,7 +87,7 @@ if (isIE11) {
     });
 }
 else {
-    test('Manage items', function () {
+    test('manage items', function () {
         var dataTransfer = new DataTransfer(new DragDataStore());
 
         // Add items
@@ -220,7 +220,7 @@ else {
         });
     });
 
-    test('DataStore mode', function () {
+    test('DragDataStore mode', function () {
         var dataStore    = new DragDataStore();
         var dataTransfer = new DataTransfer(dataStore);
 

@@ -194,6 +194,12 @@ class NativeMethods {
         this.StorageEvent     = win.StorageEvent;
         this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
+        this.DataTransfer     = win.DataTransfer;
+
+        if (win.DataTransferItem) {
+            this.DataTransferItem     = win.DataTransferItem;
+            this.DataTransferItemList = win.DataTransferItemList;
+        }
     }
 
     refreshElectronMeths (vmModule) {
