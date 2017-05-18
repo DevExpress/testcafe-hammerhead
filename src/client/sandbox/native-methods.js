@@ -196,10 +196,11 @@ class NativeMethods {
         this.EventSource      = win.EventSource;
         this.DataTransfer     = win.DataTransfer;
 
-        if (win.DataTransferItem) {
-            this.DataTransferItem     = win.DataTransferItem;
+        if (win.DataTransferItemList)
             this.DataTransferItemList = win.DataTransferItemList;
-        }
+
+        if (win.DataTransferItem)
+            this.DataTransferItem = win.DataTransferItem;
     }
 
     refreshElectronMeths (vmModule) {
