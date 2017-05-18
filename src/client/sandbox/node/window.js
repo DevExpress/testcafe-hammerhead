@@ -128,11 +128,17 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            window.Worker           = scriptURL => {
+            window.Worker           = function (scriptURL, options) {
+                if (this instanceof window.Worker === false)
+                    throw new TypeError();
+
+                if (arguments.length === 0)
+                    return new nativeMethods.Worker();
+
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL);
 
-                return new nativeMethods.Worker(scriptURL);
+                return arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
             };
             window.Worker.prototype = nativeMethods.Worker.prototype;
         }
