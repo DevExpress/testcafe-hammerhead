@@ -192,4 +192,5 @@ export default class DataTransferItemList {
     }
 }
 
-DataTransferItemList.prototype = window.DataTransferItemList.prototype;
+if (window.DataTransferItemList)
+    DataTransferItemList.prototype = window.DataTransferItemList.prototype;

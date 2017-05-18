@@ -6,7 +6,9 @@ test('DataTransfer interface', function () {
 
     // Check instance types
     ok(dataTransfer instanceof window.DataTransfer);
-    ok(dataTransfer.items instanceof window.DataTransferItemList);
+
+    if (window.DataTransferItemList)
+        ok(dataTransfer.items instanceof window.DataTransferItemList);
 
     equal(dataTransfer.dropEffect, 'none');
     equal(dataTransfer.effectAllowed, 'uninitialized');
@@ -56,7 +58,9 @@ test('Manage items', function () {
     dataTransfer.setData('url', 'http://example.com#abc');
 
     equal(dataTransfer.items.length, 2);
-    ok(dataTransfer.items[0] instanceof window.DataTransferItem);
+
+    if (window.DataTransferItem)
+        ok(dataTransfer.items[0] instanceof window.DataTransferItem);
 
     var types = dataTransfer.types;
 

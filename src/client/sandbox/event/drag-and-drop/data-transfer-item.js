@@ -50,4 +50,5 @@ export default class DataTransferItem {
     }
 }
 
-DataTransferItem.prototype = window.DataTransferItem.prototype;
+if (window.DataTransferItem)
+    DataTransferItem.prototype = window.DataTransferItem.prototype;
