@@ -35,7 +35,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
         (function () {
             var parentHammerhead = null;
             try {
-                parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerheadPropertyName }"];
+                parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];
             } catch(e) {}
             if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
             var script = document.currentScript || document.scripts[document.scripts.length - 1];

@@ -48,7 +48,7 @@ export default class Selection {
                 }
 
                 if (useInternalSelection) {
-                    el[INTERNAL_PROPS.selectionProperty] = {
+                    el[INTERNAL_PROPS.selection] = {
                         selectionStart:     el.selectionStart,
                         selectionEnd:       el.selectionEnd,
                         selectionDirection: el.selectionDirection
@@ -160,7 +160,7 @@ export default class Selection {
             el.type = 'text';
         }
 
-        var internalSelection = el[INTERNAL_PROPS.selectionProperty];
+        var internalSelection = el[INTERNAL_PROPS.selection];
 
         selection = {
             start:     internalSelection ? internalSelection.selectionStart : el.selectionStart,

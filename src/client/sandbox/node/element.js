@@ -18,7 +18,7 @@ import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
-import ShadowUIClass from '../shadow-ui';
+import ShadowUI from '../shadow-ui';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -579,7 +579,7 @@ export default class ElementSandbox extends SandboxBase {
         if (el.parentNode && el.parentNode[INTERNAL_PROPS.shadowUIElement]) {
             el[INTERNAL_PROPS.shadowUIElement] = true;
 
-            ShadowUIClass.markChildrenAsShadowUIElementsRecursively(el);
+            ShadowUI.markChildrenAsShadowUIRecursively(el);
         }
     }
 

@@ -1,6 +1,6 @@
 import { isShadowUIElement } from '../../utils/dom';
 
-const MAX_DEFINED_PROPERTIES = 10000;
+const MAX_DEFINED_PROPERTIES_COUNT = 10000;
 
 const arrayFilter = Array.prototype.filter;
 
@@ -19,7 +19,7 @@ class PropertiesDecorator {
             });
         };
 
-        for (var i = 0; i < MAX_DEFINED_PROPERTIES; i++)
+        for (var i = 0; i < MAX_DEFINED_PROPERTIES_COUNT; i++)
             defineProperty.call(this, i, false);
 
         Object.defineProperty(this, '_defineProperty', {

@@ -26,12 +26,12 @@ const IS_NOT_CLOSED_PROPERTY = 'hammerhead|is-not-closed-element';
 const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
-            var hammerhead = window["${ INTERNAL_PROPS.hammerheadPropertyName }"];
+            var hammerhead = window["${ INTERNAL_PROPS.hammerhead }"];
             var sandbox = hammerhead && hammerhead.sandbox;
             var script = document.currentScript || document.scripts[document.scripts.length - 1];
             if (!sandbox) {
                 try {
-                    sandbox = window.parent["${ INTERNAL_PROPS.hammerheadPropertyName }"].get('./sandbox/backup').get(window);
+                    sandbox = window.parent["${ INTERNAL_PROPS.hammerhead }"].get('./sandbox/backup').get(window);
                 } catch(e) {}
             }
             if (sandbox) {

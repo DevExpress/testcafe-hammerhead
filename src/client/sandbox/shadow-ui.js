@@ -444,7 +444,7 @@ export default class ShadowUI extends SandboxBase {
         if (!el[INTERNAL_PROPS.shadowUIElement])
             el[INTERNAL_PROPS.shadowUIElement] = true;
 
-        ShadowUI.markChildrenAsShadowUIElementsRecursively(el);
+        ShadowUI.markChildrenAsShadowUIRecursively(el);
 
         domUtils.addClass(el, patchedClass);
     }
@@ -504,7 +504,7 @@ export default class ShadowUI extends SandboxBase {
         return nativeMethods.insertBefore.call(rootParent, el, rootParent.lastChild);
     }
 
-    static markChildrenAsShadowUIElementsRecursively (el) {
+    static markChildrenAsShadowUIRecursively (el) {
         var childElements = getNativeQuerySelectorAll(el).call(el, '*');
 
         for (var i = 0; i < childElements.length; i++)
