@@ -23,7 +23,7 @@ const POINTER_EVENT_BUTTON = {
 };
 
 const KEY_EVENT_NAME_RE          = /^key\w+$/;
-const MOUSE_EVENT_NAME_RE        = /^((mouse\w+)|((dbl)?click)|(contextmenu))$/;
+const MOUSE_EVENT_NAME_RE        = /^((mouse\w+)|((dbl)?click)|(contextmenu)|(drag\w*)|(drop))$/;
 const TOUCH_EVENT_NAME_RE        = /^touch\w+$/;
 const MSPOINTER_EVENT_NAME_RE    = /^MSPointer(Down|Up|Move|Over|Out)$/;
 const FOCUS_IN_OUT_EVENT_NAME_RE = /^focus(in|out)$/;
@@ -215,7 +215,7 @@ export default class EventSimulator {
 
             args = EventSimulator._getMouseEventArgs(event, opts);
             /* eslint-disable no-shadow */
-            dispatch = (el, args) => this._dispatchMouseEvent(el, args);
+            dispatch = (el, args) => this._dispatchMouseEvent(el, args, userOptions ? userOptions.dataTransfer : void 0);
             /* eslint-enable no-shadow */
         }
 
@@ -524,7 +524,7 @@ export default class EventSimulator {
         this._raiseDispatchEvent(el, pointEvent, pointerArgs);
     }
 
-    _dispatchMouseEvent (el, args) {
+    _dispatchMouseEvent (el, args, dataTransfer) {
         var ev            = null;
         var pointerRegExp = /mouse(down|up|move|over|out)/;
 
@@ -549,6 +549,14 @@ export default class EventSimulator {
         ev.initMouseEvent(args.type, args.canBubble, args.cancelable, window, args.detail, args.screenX,
             args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey,
             args.button, args.relatedTarget);
+
+        if (dataTransfer) {
+            Object.defineProperty(ev, 'dataTransfer', {
+                configurable: true,
+                enumerable:   true,
+                get:          () => dataTransfer
+            });
+        }
 
         if (browserUtils.isFirefox || browserUtils.isIE) {
             Object.defineProperty(ev, 'buttons', {
@@ -899,6 +907,36 @@ export default class EventSimulator {
     touchmove (el, options) {
         return this._simulateEvent(el, 'touchmove', options);
     }
+
+    // NOTE: drag and drop
+    dragstart (el, options) {
+        return this._simulateEvent(el, 'dragstart', options);
+    }
+
+    drag (el, options) {
+        return this._simulateEvent(el, 'drag', options);
+    }
+
+    dragenter (el, options) {
+        return this._simulateEvent(el, 'dragenter', options);
+    }
+
+    dragover (el, options) {
+        return this._simulateEvent(el, 'dragover', options);
+    }
+
+    dragleave (el, options) {
+        return this._simulateEvent(el, 'dragleave', options);
+    }
+
+    drop (el, options) {
+        return this._simulateEvent(el, 'drop', options);
+    }
+
+    dragend (el, options) {
+        return this._simulateEvent(el, 'dragend', options);
+    }
+
 
     isSavedWindowsEventsExists () {
         return this.savedWindowEvents && this.savedWindowEvents.length;

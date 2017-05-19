@@ -7,6 +7,8 @@ import extend from '../../utils/extend';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 import { DOM_EVENTS } from '../../utils/event';
+import DataTransfer from './drag-and-drop/data-transfer';
+import DragDataStore from './drag-and-drop/drag-data-store';
 
 export default class EventSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
@@ -27,6 +29,9 @@ export default class EventSandbox extends SandboxBase {
         this.hover                 = new HoverSandbox(listeners);
         this.shadowUI              = shadowUI;
         this.message               = messageSandbox;
+
+        this.DataTransfer  = DataTransfer;
+        this.DragDataStore = DragDataStore;
 
         this.overridedMethods = null;
 
