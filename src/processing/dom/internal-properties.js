@@ -4,12 +4,12 @@
 // -------------------------------------------------------------
 
 export default {
-    processDomMethodName:    'hammerhead|process-dom-method',
-    processedContext:        'hammerhead|processed-context',
-    whichPropertyWrapper:    'hammerhead|which-property-wrapper',
-    documentCharset:         'hammerhead|document-charset',
-    iframeNativeMethods:     'hammerhead|iframe-native-methods',
-    hammerheadPropertyName:  '%hammerhead%',
-    selectionProperty:       'hammerhead|selection-property',
-    shadowUIElementProperty: 'hammerhead|shadow-ui-element'
+    processDomMethodName:   'hammerhead|process-dom-method',
+    processedContext:       'hammerhead|processed-context',
+    whichPropertyWrapper:   'hammerhead|which-property-wrapper',
+    documentCharset:        'hammerhead|document-charset',
+    iframeNativeMethods:    'hammerhead|iframe-native-methods',
+    hammerheadPropertyName: '%hammerhead%',
+    selectionProperty:      'hammerhead|selection-property',
+    shadowUIElement:        'hammerhead|shadow-ui-element'
 };

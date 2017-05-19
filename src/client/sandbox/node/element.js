@@ -576,8 +576,8 @@ export default class ElementSandbox extends SandboxBase {
         if (domUtils.isScriptElement(el))
             this.emit(this.SCRIPT_ELEMENT_ADDED, { el });
 
-        if (el.parentNode && el.parentNode[INTERNAL_PROPS.shadowUIElementProperty]) {
-            el[INTERNAL_PROPS.shadowUIElementProperty] = true;
+        if (el.parentNode && el.parentNode[INTERNAL_PROPS.shadowUIElement]) {
+            el[INTERNAL_PROPS.shadowUIElement] = true;
 
             ShadowUIClass.markChildrenAsShadowUIElementsRecursively(el);
         }

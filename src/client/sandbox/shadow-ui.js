@@ -249,7 +249,7 @@ export default class ShadowUI extends SandboxBase {
                 nativeMethods.appendChild.call(this.document.body, this.root);
                 this.addClass(this.root, this.ROOT_CLASS);
 
-                this.root[INTERNAL_PROPS.shadowUIElementProperty] = true;
+                this.root[INTERNAL_PROPS.shadowUIElement] = true;
 
                 for (var i = 0; i < EVENTS.length; i++)
                     this.root.addEventListener(EVENTS[i], stopPropagation);
@@ -441,8 +441,8 @@ export default class ShadowUI extends SandboxBase {
     addClass (el, value) {
         var patchedClass = ShadowUI.patchClassNames(value);
 
-        if (!el[INTERNAL_PROPS.shadowUIElementProperty])
-            el[INTERNAL_PROPS.shadowUIElementProperty] = true;
+        if (!el[INTERNAL_PROPS.shadowUIElement])
+            el[INTERNAL_PROPS.shadowUIElement] = true;
 
         ShadowUI.markChildrenAsShadowUIElementsRecursively(el);
 
@@ -508,15 +508,15 @@ export default class ShadowUI extends SandboxBase {
         var childElements = getNativeQuerySelectorAll(el).call(el, '*');
 
         for (var i = 0; i < childElements.length; i++)
-            childElements[i][INTERNAL_PROPS.shadowUIElementProperty] = true;
+            childElements[i][INTERNAL_PROPS.shadowUIElement] = true;
     }
 
     static markChildrenWithShadowUIClass (el) {
         var childElements = el.childNodes;
 
         for (var i = 0; i < childElements.length; i++) {
-            childElements[i][INTERNAL_PROPS.shadowUIElementProperty] = childElements[i][INTERNAL_PROPS.shadowUIElementProperty]
-            || hasShadowUIClass(childElements[i]);
+            childElements[i][INTERNAL_PROPS.shadowUIElement] = childElements[i][INTERNAL_PROPS.shadowUIElement]
+                                                               || hasShadowUIClass(childElements[i]);
         }
     }
 }

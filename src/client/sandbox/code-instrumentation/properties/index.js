@@ -77,7 +77,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 continue;
             }
 
-            if (collection[i][INTERNAL_PROPS.shadowUIElementProperty])
+            if (collection[i][INTERNAL_PROPS.shadowUIElement])
                 elementCount++;
         }
 
@@ -304,7 +304,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     el.innerHTML = processedValue;
 
-                    if (el[INTERNAL_PROPS.shadowUIElementProperty])
+                    if (el[INTERNAL_PROPS.shadowUIElement])
                         ShadowUI.markChildrenAsShadowUIElementsRecursively(el);
                     else if (domUtils.isBodyElement(el)) {
                         ShadowUI.markChildrenWithShadowUIClass(el);
