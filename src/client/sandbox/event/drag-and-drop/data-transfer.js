@@ -5,6 +5,7 @@
 import { isIE11 } from '../../../utils/browser';
 import nativeMethods from '../../native-methods';
 import DataTransferItemList from './data-transfer-item-list';
+import FileList from './file-list';
 import DATA_STORE_MODE from './data-store-mode';
 import DROP_EFFECT from './drop-effect';
 import EFFECT_ALLOWED from './effect-allowed';
@@ -18,6 +19,7 @@ export default class DataTransfer {
 
         var itemList          = new DataTransferItemList(dataStore);
         var itemListInternals = itemList.getAndHideInternalMethods();
+        var fileList          = new FileList();
 
         var emptyItemList      = new DataTransferItemList(dataStore);
         var emptyListInternals = emptyItemList.getAndHideInternalMethods();
@@ -76,7 +78,7 @@ export default class DataTransfer {
             configurable: true,
             enumerable:   true,
 
-            get: () => []
+            get: () => fileList
         });
 
         if (!isIE11) {

@@ -127,7 +127,7 @@ export default class DataTransferItemList {
         this.getAndHideInternalMethods = () => {
             var res = { getTypes, getItemData, removeItem, addItem };
 
-            this.getAndHideInternalMethods = void 0;
+            delete this.getAndHideInternalMethods;
 
             return res;
         };

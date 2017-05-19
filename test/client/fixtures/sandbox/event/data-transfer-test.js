@@ -30,11 +30,17 @@ test('DataTransfer interface', function () {
 
     if (isIE11)
         notOk(dataTransfer.items);
-    else
+    else {
         equal(dataTransfer.items.length, 0);
+        notOk(dataTransfer.items.hasOwnProperty('getAndHideInternalMethods'));
+    }
 
     equal(dataTransfer.types.length, 0);
     equal(dataTransfer.files.length, 0);
+    notOk(dataTransfer.files.item(0));
+
+    if (window.FileList)
+        ok(dataTransfer.files instanceof window.FileList);
 
     // Check the setDragImage function doesn't throw
     if (!isIE11)

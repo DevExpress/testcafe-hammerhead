@@ -201,6 +201,9 @@ class NativeMethods {
 
         if (win.DataTransferItem)
             this.DataTransferItem = win.DataTransferItem;
+
+        if (win.FileList)
+            this.FileList = win.FileList;
     }
 
     refreshElectronMeths (vmModule) {
