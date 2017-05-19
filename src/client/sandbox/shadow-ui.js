@@ -440,8 +440,8 @@ export default class ShadowUI extends SandboxBase {
     addClass (el, value) {
         var patchedClass = ShadowUI.patchClassNames(value);
 
-        if (!el[INTERNAL_PROPS.shadowUIElement])
-            el[INTERNAL_PROPS.shadowUIElement] = true;
+        if (!domUtils.isShadowUIElement(el))
+            ShadowUI.markElementAsShadow(el);
 
         ShadowUI.markElementChildrenAsShadowRecursively(el);
 
@@ -507,7 +507,7 @@ export default class ShadowUI extends SandboxBase {
         var childElements = getNativeQuerySelectorAll(el).call(el, '*');
 
         for (var i = 0; i < childElements.length; i++)
-            childElements[i][INTERNAL_PROPS.shadowUIElement] = true;
+            ShadowUI.markElementAsShadow(childElements[i]);
     }
 
     static markElementAsShadow (el) {
