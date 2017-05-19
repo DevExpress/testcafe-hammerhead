@@ -755,13 +755,14 @@ module('Handle existing shadowUI elements');
 asyncTest('head children', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.id = 'test_unique_lsjisujf';
+    iframe.id = 'test_unique_lsj23isujf';
 
     window.QUnitGlobals.waitForIframe(iframe)
        .then(function () {
            var childNodes = iframe.contentWindow.document.head.childNodes;
 
            ok(domUtils.isShadowUIElement(childNodes[0]));
+           iframe.parentNode.removeChild(iframe);
 
            start();
        });
@@ -778,6 +779,7 @@ asyncTest('body children', function () {
             var iframeDocument = iframe.contentWindow.document;
 
             ok(domUtils.isShadowUIElement(iframeDocument.body.children[0]));
+            iframe.parentNode.removeChild(iframe);
 
             start();
         });
