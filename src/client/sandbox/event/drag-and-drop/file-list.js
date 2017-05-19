@@ -22,4 +22,5 @@ export default class FileList {
     }
 }
 
-FileList.prototype = nativeMethods.FileList.prototype;
+if (nativeMethods.FileList)
+    FileList.prototype = nativeMethods.FileList.prototype;
