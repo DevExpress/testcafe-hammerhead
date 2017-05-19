@@ -11,32 +11,32 @@ test('DataTransfer interface', function () {
     if (window.DataTransferItemList)
         ok(dataTransfer.items instanceof window.DataTransferItemList);
 
-    equal(dataTransfer.dropEffect, 'none');
-    equal(dataTransfer.effectAllowed, 'uninitialized');
+    strictEqual(dataTransfer.dropEffect, 'none');
+    strictEqual(dataTransfer.effectAllowed, 'uninitialized');
 
     // Try to set not allowed values into properties
     dataTransfer.dropEffect    = 'a';
     dataTransfer.effectAllowed = 'b';
 
-    equal(dataTransfer.dropEffect, 'none');
-    equal(dataTransfer.effectAllowed, 'uninitialized');
+    strictEqual(dataTransfer.dropEffect, 'none');
+    strictEqual(dataTransfer.effectAllowed, 'uninitialized');
 
     // Change properties
     dataTransfer.dropEffect    = 'copy';
     dataTransfer.effectAllowed = 'none';
 
-    equal(dataTransfer.dropEffect, 'copy');
-    equal(dataTransfer.effectAllowed, 'none');
+    strictEqual(dataTransfer.dropEffect, 'copy');
+    strictEqual(dataTransfer.effectAllowed, 'none');
 
     if (isIE11)
         notOk(dataTransfer.items);
     else {
-        equal(dataTransfer.items.length, 0);
+        strictEqual(dataTransfer.items.length, 0);
         notOk(dataTransfer.items.hasOwnProperty('getAndHideInternalMethods'));
     }
 
-    equal(dataTransfer.types.length, 0);
-    equal(dataTransfer.files.length, 0);
+    strictEqual(dataTransfer.types.length, 0);
+    strictEqual(dataTransfer.files.length, 0);
     notOk(dataTransfer.files.item(0));
 
     if (window.FileList)
@@ -50,7 +50,7 @@ test('DataTransfer interface', function () {
         dataTransfer.getData();
     }, /Failed to execute 'getData' on 'DataTransfer'/);
 
-    equal(dataTransfer.getData('text'), '');
+    strictEqual(dataTransfer.getData('text'), '');
 
     throws(function () {
         dataTransfer.setData();
@@ -74,9 +74,9 @@ if (isIE11) {
 
         deepEqual(types, ['text/plain', 'text/uri-list']);
 
-        equal(dataTransfer.getData('text'), 'data');
-        equal(dataTransfer.getData('text/plain'), 'data');
-        equal(dataTransfer.getData('url'), 'http://example.com#abc');
+        strictEqual(dataTransfer.getData('text'), 'data');
+        strictEqual(dataTransfer.getData('text/plain'), 'data');
+        strictEqual(dataTransfer.getData('url'), 'http://example.com#abc');
 
         // Replace item
         dataTransfer.setData('text/plain', 'new data');
@@ -84,12 +84,12 @@ if (isIE11) {
         types = dataTransfer.types;
 
         deepEqual(types, ['text/uri-list', 'text/plain']);
-        equal(dataTransfer.getData('text/plain'), 'new data');
+        strictEqual(dataTransfer.getData('text/plain'), 'new data');
 
         // Remove items
         dataTransfer.clearData('text/uri-list');
 
-        equal(dataTransfer.getData('text/uri-list'), '');
+        strictEqual(dataTransfer.getData('text/uri-list'), '');
     });
 }
 else {
@@ -100,7 +100,7 @@ else {
         dataTransfer.setData('text', 'data');
         dataTransfer.setData('url', 'http://example.com#abc');
 
-        equal(dataTransfer.items.length, 2);
+        strictEqual(dataTransfer.items.length, 2);
 
         if (window.DataTransferItem)
             ok(dataTransfer.items[0] instanceof window.DataTransferItem);
@@ -121,15 +121,15 @@ else {
         }
 
         deepEqual(enumerabled, [0, 1]);
-        equal(dataTransfer.getData('text'), 'data');
-        equal(dataTransfer.getData('text/plain'), 'data');
-        equal(dataTransfer.getData('url'), 'http://example.com#abc');
+        strictEqual(dataTransfer.getData('text'), 'data');
+        strictEqual(dataTransfer.getData('text/plain'), 'data');
+        strictEqual(dataTransfer.getData('url'), 'http://example.com#abc');
 
-        equal(dataTransfer.items[0].kind, 'string');
-        equal(dataTransfer.items[0].type, 'text/plain');
+        strictEqual(dataTransfer.items[0].kind, 'string');
+        strictEqual(dataTransfer.items[0].type, 'text/plain');
 
-        equal(dataTransfer.items[1].kind, 'string');
-        equal(dataTransfer.items[1].type, 'text/uri-list');
+        strictEqual(dataTransfer.items[1].kind, 'string');
+        strictEqual(dataTransfer.items[1].type, 'text/uri-list');
 
         throws(function () {
             dataTransfer.items.add();
@@ -141,10 +141,10 @@ else {
 
         var newItem = dataTransfer.items.add('custom', 'text/custom');
 
-        equal(newItem.type, 'text/custom');
+        strictEqual(newItem.type, 'text/custom');
 
-        equal(dataTransfer.items.length, 3);
-        equal(dataTransfer.items[2].type, 'text/custom');
+        strictEqual(dataTransfer.items.length, 3);
+        strictEqual(dataTransfer.items[2].type, 'text/custom');
 
         enumerabled = [];
 
@@ -168,21 +168,21 @@ else {
 
         deepEqual(types, ['text/uri-list', 'text/custom', 'text/plain']);
 
-        equal(dataTransfer.items[0].type, 'text/uri-list');
-        equal(dataTransfer.items[1].type, 'text/custom');
-        equal(dataTransfer.items[2].type, 'text/plain');
+        strictEqual(dataTransfer.items[0].type, 'text/uri-list');
+        strictEqual(dataTransfer.items[1].type, 'text/custom');
+        strictEqual(dataTransfer.items[2].type, 'text/plain');
 
         dataTransfer.items[0] = {};
-        equal(types[0], 'text/uri-list');
-        equal(dataTransfer.items[0].type, 'text/uri-list');
+        strictEqual(types[0], 'text/uri-list');
+        strictEqual(dataTransfer.items[0].type, 'text/uri-list');
 
         // Remove items
         dataTransfer.clearData('text/uri-list');
 
-        equal(dataTransfer.items.length, 2);
-        equal(dataTransfer.getData('text/uri-list'), '');
-        equal(dataTransfer.items[1].type, 'text/plain');
-        equal(dataTransfer.items[2], void 0);
+        strictEqual(dataTransfer.items.length, 2);
+        strictEqual(dataTransfer.getData('text/uri-list'), '');
+        strictEqual(dataTransfer.items[1].type, 'text/plain');
+        strictEqual(dataTransfer.items[2], void 0);
 
         enumerabled = [];
 
@@ -196,15 +196,15 @@ else {
         deepEqual(enumerabled, [0, 1]);
 
         dataTransfer.items.remove(0);
-        equal(dataTransfer.items.length, 1);
-        equal(dataTransfer.getData('text/custom'), '');
-        equal(dataTransfer.items[0].type, 'text/plain');
-        equal(dataTransfer.items[1], void 0);
+        strictEqual(dataTransfer.items.length, 1);
+        strictEqual(dataTransfer.getData('text/custom'), '');
+        strictEqual(dataTransfer.items[0].type, 'text/plain');
+        strictEqual(dataTransfer.items[1], void 0);
 
         dataTransfer.clearData();
-        equal(dataTransfer.items.length, 0);
-        equal(dataTransfer.getData('text/plain'), '');
-        equal(dataTransfer.items[0], void 0);
+        strictEqual(dataTransfer.items.length, 0);
+        strictEqual(dataTransfer.getData('text/plain'), '');
+        strictEqual(dataTransfer.items[0], void 0);
     });
 
     asyncTest('DataTransferItem', function () {
@@ -214,14 +214,14 @@ else {
 
         var item = dataTransfer.items[0];
 
-        equal(item.getAsFile(), null);
+        strictEqual(item.getAsFile(), null);
 
         throws(function () {
             item.getAsString();
         }, /Failed to execute 'getAsString' on 'DataTransferItem'/);
 
         item.getAsString(function (res) {
-            equal(res, 'data');
+            strictEqual(res, 'data');
             start();
         });
     });
@@ -231,29 +231,29 @@ else {
         var dataTransfer = new DataTransfer(dataStore);
 
         dataTransfer.setData('text/plain', 'data');
-        equal(dataTransfer.items.length, 1);
+        strictEqual(dataTransfer.items.length, 1);
 
         dataStore.setReadOnlyMode();
         dataTransfer.setData('text/custom', 'custom');
         dataTransfer.items.add('custom', 'text/custom');
-        equal(dataTransfer.items.length, 1);
+        strictEqual(dataTransfer.items.length, 1);
 
         dataTransfer.clearData();
         dataTransfer.items.remove(0);
         dataTransfer.items.clear();
-        equal(dataTransfer.items.length, 1);
+        strictEqual(dataTransfer.items.length, 1);
 
         dataTransfer.dropEffect = 'copy';
-        equal(dataTransfer.dropEffect, 'copy');
+        strictEqual(dataTransfer.dropEffect, 'copy');
 
         dataStore.setProtectedMode();
-        equal(dataTransfer.getData('text/custom'), '');
-        equal(dataTransfer.items.length, 0);
-        equal(dataTransfer.items[0], void 0);
-        equal(dataTransfer.types.length, 0);
+        strictEqual(dataTransfer.getData('text/custom'), '');
+        strictEqual(dataTransfer.items.length, 0);
+        strictEqual(dataTransfer.items[0], void 0);
+        strictEqual(dataTransfer.types.length, 0);
 
         dataTransfer.setData('text/custom', 'custom');
         dataTransfer.items.add('custom', 'text/custom');
-        equal(dataTransfer.items.length, 0);
+        strictEqual(dataTransfer.items.length, 0);
     });
 }
