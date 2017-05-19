@@ -320,7 +320,7 @@ if (!browserUtils.isFirefox) {
     });
 }
 
-if (window.DOMParser) {
+if (window.DOMParser && !browserUtils.isIE9) {
     test('DOMParser.parseFromString', function () {
         var htmlStr        = '<a href="/path">Link</a>';
         var parsedDocument = new DOMParser().parseFromString(htmlStr, 'text/html');
