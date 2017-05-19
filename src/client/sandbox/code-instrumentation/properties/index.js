@@ -76,7 +76,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 continue;
             }
 
-            if (collection[i][INTERNAL_PROPS.shadowUIElement])
+            if (domUtils.isShadowUIElement(collection[i]))
                 elementCount++;
         }
 
@@ -303,14 +303,14 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     el.innerHTML = processedValue;
 
-                    if (el[INTERNAL_PROPS.shadowUIElement])
-                        ShadowUI.markChildrenAsShadowUIRecursively(el);
+                    if (domUtils.isShadowUIElement(el))
+                        ShadowUI.markElementChildrenAsShadowRecursively(el);
                     else if (domUtils.isBodyElement(el)) {
                         ShadowUI.markChildrenWithShadowUIClass(el);
 
                         for (var i = 0; i < el.childNodes.length; i++) {
                             if (domUtils.isShadowUIElement(el.childNodes[i]))
-                                ShadowUI.markChildrenAsShadowUIRecursively(el.childNodes[i]);
+                                ShadowUI.markElementChildrenAsShadowRecursively(el.childNodes[i]);
                         }
                     }
 

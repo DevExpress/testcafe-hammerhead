@@ -134,7 +134,7 @@ gulp.task('client-scripts', ['client-scripts-bundle'], function () {
     return gulp.src('./src/client/index.js.wrapper.mustache')
         .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
         .pipe(rename('hammerhead.js'))
-        .pipe(gulpif(!util.env.dev, uglify()))
+        .pipe(gulpif(util.env.dev, uglify()))
         .pipe(gulp.dest('./lib/client'));
 });
 

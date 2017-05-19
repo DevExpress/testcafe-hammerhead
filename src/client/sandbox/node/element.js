@@ -5,7 +5,6 @@ import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
-import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as urlUtils from '../../utils/url';
 import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
@@ -576,10 +575,9 @@ export default class ElementSandbox extends SandboxBase {
         if (domUtils.isScriptElement(el))
             this.emit(this.SCRIPT_ELEMENT_ADDED, { el });
 
-        if (el.parentNode && el.parentNode[INTERNAL_PROPS.shadowUIElement]) {
-            el[INTERNAL_PROPS.shadowUIElement] = true;
-
-            ShadowUI.markChildrenAsShadowUIRecursively(el);
+        if (el.parentNode && domUtils.isShadowUIElement(el.parentNode)) {
+            ShadowUI.markElementAsShadow(el);
+            ShadowUI.markElementChildrenAsShadowRecursively(el);
         }
     }
 

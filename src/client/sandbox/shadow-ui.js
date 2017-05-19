@@ -248,8 +248,7 @@ export default class ShadowUI extends SandboxBase {
                 nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
                 nativeMethods.appendChild.call(this.document.body, this.root);
                 this.addClass(this.root, this.ROOT_CLASS);
-
-                this.root[INTERNAL_PROPS.shadowUIElement] = true;
+                ShadowUI.markElementAsShadow(this.root);
 
                 for (var i = 0; i < EVENTS.length; i++)
                     this.root.addEventListener(EVENTS[i], stopPropagation);
@@ -444,7 +443,7 @@ export default class ShadowUI extends SandboxBase {
         if (!el[INTERNAL_PROPS.shadowUIElement])
             el[INTERNAL_PROPS.shadowUIElement] = true;
 
-        ShadowUI.markChildrenAsShadowUIRecursively(el);
+        ShadowUI.markElementChildrenAsShadowRecursively(el);
 
         domUtils.addClass(el, patchedClass);
     }
@@ -504,11 +503,15 @@ export default class ShadowUI extends SandboxBase {
         return nativeMethods.insertBefore.call(rootParent, el, rootParent.lastChild);
     }
 
-    static markChildrenAsShadowUIRecursively (el) {
+    static markElementChildrenAsShadowRecursively (el) {
         var childElements = getNativeQuerySelectorAll(el).call(el, '*');
 
         for (var i = 0; i < childElements.length; i++)
             childElements[i][INTERNAL_PROPS.shadowUIElement] = true;
+    }
+
+    static markElementAsShadow (el) {
+        el[INTERNAL_PROPS.shadowUIElement] = true;
     }
 
     static markChildrenWithShadowUIClass (el) {
