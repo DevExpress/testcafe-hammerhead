@@ -25,7 +25,7 @@ export var isMSEdge      = !!info.msedge;
 export var isChrome      = !!info.chrome;
 export var isSafari      = !!info.safari;
 export var isWebKit      = !!(info.webkit || info.blink);
-export var isElectron    = /electron/gi.test(userAgent);
+export var isElectron    = /electron/g.test(userAgent);
 
 //Feature detection
 export var hasTouchEvents = !!('ontouchstart' in window);
