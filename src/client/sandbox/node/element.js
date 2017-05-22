@@ -519,6 +519,10 @@ export default class ElementSandbox extends SandboxBase {
         AttributesWrapper.refreshWrappers(el);
     }
 
+    static _hasShadowUIParentOrContainsShadowUIClass (el) {
+        return el.parentNode && domUtils.isShadowUIElement(el.parentNode) || ShadowUI.containsShadowUIClassPostfix(el);
+    }
+
     _onAddFileInputInfo (el) {
         if (!domUtils.isDomElement(el))
             return;
@@ -575,7 +579,7 @@ export default class ElementSandbox extends SandboxBase {
         if (domUtils.isScriptElement(el))
             this.emit(this.SCRIPT_ELEMENT_ADDED, { el });
 
-        if (el.parentNode && domUtils.isShadowUIElement(el.parentNode) || ShadowUI.containsShadowUIClassPostfix(el)) {
+        if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClass(el)) {
             ShadowUI.markElementAsShadow(el);
             ShadowUI.markElementChildrenAsShadowRecursively(el);
         }

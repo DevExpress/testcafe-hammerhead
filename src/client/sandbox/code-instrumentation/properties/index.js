@@ -297,8 +297,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (domUtils.isBodyElement(el)) {
                         var shadowUIRoot = this.shadowUI.select('.' + this.shadowUI.ROOT_CLASS, el)[0];
 
-                        ShadowUI.markElementAsShadow(shadowUIRoot);
-                        ShadowUI.markElementChildrenAsShadowRecursively(shadowUIRoot);
+                        if (shadowUIRoot) {
+                            ShadowUI.markElementAsShadow(shadowUIRoot);
+                            ShadowUI.markElementChildrenAsShadowRecursively(shadowUIRoot);
+                        }
                     }
 
                     else if (domUtils.isShadowUIElement(el))
