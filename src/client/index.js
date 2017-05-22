@@ -14,7 +14,8 @@ import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
 import { isRelativeUrl, parseProxyUrl } from '../utils/url';
-import { getProxyUrl } from './utils/url';
+import * as urlUtils from './utils/url';
+import * as htmlUtils from './utils/html';
 import { processScript } from '../processing/script';
 import {
     SCRIPT_PROCESSING_START_COMMENT,
@@ -105,7 +106,9 @@ class Hammerhead {
             types:       typeUtils,
             trim:        trim,
             isJQueryObj: isJQueryObj,
-            extend:      extend
+            extend:      extend,
+            html:        htmlUtils,
+            url:         urlUtils
         };
     }
 
@@ -187,7 +190,7 @@ class Hammerhead {
         if (destLocation === 'about:blank' && isRelativeUrl(url))
             return;
 
-        this.win.location = getProxyUrl(url);
+        this.win.location = urlUtils.getProxyUrl(url);
     }
 
     start (initSettings, win) {
