@@ -8,7 +8,7 @@ import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
 import { processHtml } from '../../utils/html';
 import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
-import { isFirefox } from '../../utils/browser';
+import { isFirefox, isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
@@ -330,6 +330,16 @@ export default class WindowSandbox extends SandboxBase {
                     nativeMethods.formDataAppend.call(this, name, value, value.name);
                 else
                     nativeMethods.formDataAppend.apply(this, arguments);
+            };
+        }
+
+        // NOTE: DOMParser supports an HTML parsing for IE10 and later
+        if (window.DOMParser && !isIE9) {
+            window.DOMParser.prototype.parseFromString = function (...args) {
+                if (args.length > 1 && typeof args[0] === 'string' && args[1] === 'text/html')
+                    args[0] = processHtml(args[0]);
+
+                return nativeMethods.DOMParserParseFromString.apply(this, args);
             };
         }
 
