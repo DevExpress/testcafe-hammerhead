@@ -64,26 +64,17 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     }
 
     static _getShadowUICollectionLength (collection) {
-        var elementCount = 0;
+        var shadowUIElementCount = 0;
 
         for (var i = 0; i < collection.length; i++) {
-            var className = collection[i].className;
-
-            // NOTE: SVG elements' className is of the SVGAnimatedString type instead of string (GH-354).
-            if (className && typeof className !== 'string') {
-                className = className.baseVal || '';
-
-                continue;
-            }
-
             if (domUtils.isShadowUIElement(collection[i]))
-                elementCount++;
+                shadowUIElementCount++;
         }
 
-        if (elementCount !== 0)
+        if (shadowUIElementCount !== 0)
             ShadowUI.checkElementsPosition(collection);
 
-        return collection.length - elementCount;
+        return collection.length - shadowUIElementCount;
     }
 
     static _setTextProp (el, propName, text) {
@@ -303,16 +294,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     el.innerHTML = processedValue;
 
-                    if (domUtils.isShadowUIElement(el))
-                        ShadowUI.markElementChildrenAsShadowRecursively(el);
-                    else if (domUtils.isBodyElement(el)) {
-                        ShadowUI.markChildrenWithShadowUIClass(el);
+                    if (domUtils.isBodyElement(el)) {
+                        var shadowUIRoot = this.shadowUI.select('.' + this.shadowUI.ROOT_CLASS, el)[0];
 
-                        for (var i = 0; i < el.childNodes.length; i++) {
-                            if (domUtils.isShadowUIElement(el.childNodes[i]))
-                                ShadowUI.markElementChildrenAsShadowRecursively(el.childNodes[i]);
-                        }
+                        ShadowUI.markElementAsShadow(shadowUIRoot);
+                        ShadowUI.markElementChildrenAsShadowRecursively(shadowUIRoot);
                     }
+
+                    else if (domUtils.isShadowUIElement(el))
+                        ShadowUI.markElementChildrenAsShadowRecursively(el);
 
                     if (isStyleEl || isScriptEl)
                         return value;
@@ -326,7 +316,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         parentWindow[INTERNAL_PROPS.processDomMethodName](el, parentDocument);
                     else if (window[INTERNAL_PROPS.processDomMethodName])
                         window[INTERNAL_PROPS.processDomMethodName](el);
-
 
                     // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised
                     // during recording. There was an issue when the document.body was replaced, so we need to

@@ -4,7 +4,6 @@ import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
 import FocusBlurSandbox from '../event/focus-blur';
-import ShadowUI from '../shadow-ui';
 import domProcessor from '../../dom-processor';
 import * as domUtils from '../../utils/dom';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
@@ -35,8 +34,6 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     _onBodyCreated () {
-        ShadowUI.markChildrenWithShadowUIClass(this.document.body);
-
         this.eventSandbox.listeners.initDocumentBodyListening(this.document);
         this.mutation.onBodyCreated({
             body: this.document.body

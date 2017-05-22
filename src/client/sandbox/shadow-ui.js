@@ -11,11 +11,6 @@ import { stopPropagation } from '../utils/event';
 import createNodeListWrapper from './node/node-list-wrapper';
 import getNativeQuerySelectorAll from '../utils/get-native-query-selector-all';
 
-function hasShadowUIClass (element) {
-    return typeof element.className === 'string' && element.className.indexOf(SHADOW_UI_CLASS_NAME.postfix) > -1;
-}
-
-
 export default class ShadowUI extends SandboxBase {
     constructor (nodeMutation, messageSandbox, iframeSandbox) {
         super();
@@ -235,6 +230,7 @@ export default class ShadowUI extends SandboxBase {
             var refNode = head.children[i] || null;
             var newNode = nativeMethods.cloneNode.call(parser.children[i]);
 
+            ShadowUI.markElementAsShadow(newNode);
             this.nativeMethods.insertBefore.call(head, newNode, refNode);
         }
     }
@@ -244,7 +240,7 @@ export default class ShadowUI extends SandboxBase {
             if (!this.root) {
                 // NOTE: B254893
                 this.root = nativeMethods.createElement.call(this.document, 'div');
-                nativeMethods.setAttribute.call(this.root, 'id', ShadowUI.patchId(this.ROOT_ID));
+                nativeMethods.setAttribute.call(this.root, 'id', this.ROOT_ID);
                 nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
                 nativeMethods.appendChild.call(this.document.body, this.root);
                 this.addClass(this.root, this.ROOT_CLASS);
@@ -307,9 +303,6 @@ export default class ShadowUI extends SandboxBase {
             if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
                 this.onBodyElementMutation();
         });
-
-        if (window.document.head)
-            ShadowUI.markChildrenWithShadowUIClass(window.document.head);
     }
 
     onBodyElementMutation () {
@@ -325,8 +318,6 @@ export default class ShadowUI extends SandboxBase {
 
         if (!(isRootInDom && isRootLastChild && isRootInBody))
             this.nativeMethods.appendChild.call(this.document.body, this.root);
-
-        ShadowUI.markChildrenWithShadowUIClass(this.document.body);
     }
 
     // Accessors
@@ -440,11 +431,6 @@ export default class ShadowUI extends SandboxBase {
     addClass (el, value) {
         var patchedClass = ShadowUI.patchClassNames(value);
 
-        if (!domUtils.isShadowUIElement(el))
-            ShadowUI.markElementAsShadow(el);
-
-        ShadowUI.markElementChildrenAsShadowRecursively(el);
-
         domUtils.addClass(el, patchedClass);
     }
 
@@ -514,12 +500,8 @@ export default class ShadowUI extends SandboxBase {
         el[INTERNAL_PROPS.shadowUIElement] = true;
     }
 
-    static markChildrenWithShadowUIClass (el) {
-        var childElements = el.childNodes;
-
-        for (var i = 0; i < childElements.length; i++) {
-            childElements[i][INTERNAL_PROPS.shadowUIElement] = childElements[i][INTERNAL_PROPS.shadowUIElement]
-                                                               || hasShadowUIClass(childElements[i]);
-        }
+    static containsShadowUIClassPostfix (element) {
+        return typeof element.className === 'string' &&
+               element.className.indexOf(SHADOW_UI_CLASS_NAME.postfix) > -1;
     }
 }
