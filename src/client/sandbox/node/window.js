@@ -11,6 +11,7 @@ import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourc
 import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
+import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -128,11 +129,17 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            window.Worker           = scriptURL => {
+            window.Worker           = function (scriptURL, options) {
+                if (constructorIsCalledWithoutNewKeyword(this, window.Worker) )
+                    nativeMethods.Worker.apply(this, arguments);
+
+                if (arguments.length === 0)
+                    return new nativeMethods.Worker();
+
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL);
 
-                return new nativeMethods.Worker(scriptURL);
+                return arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
             };
             window.Worker.prototype = nativeMethods.Worker.prototype;
         }
