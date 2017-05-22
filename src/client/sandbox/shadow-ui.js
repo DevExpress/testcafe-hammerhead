@@ -240,11 +240,11 @@ export default class ShadowUI extends SandboxBase {
             if (!this.root) {
                 // NOTE: B254893
                 this.root = nativeMethods.createElement.call(this.document, 'div');
-                nativeMethods.setAttribute.call(this.root, 'id', this.ROOT_ID);
+                nativeMethods.setAttribute.call(this.root, 'id', ShadowUI.patchId(this.ROOT_ID));
                 nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
-                nativeMethods.appendChild.call(this.document.body, this.root);
                 this.addClass(this.root, this.ROOT_CLASS);
                 ShadowUI.markElementAsShadow(this.root);
+                nativeMethods.appendChild.call(this.document.body, this.root);
 
                 for (var i = 0; i < EVENTS.length; i++)
                     this.root.addEventListener(EVENTS[i], stopPropagation);
