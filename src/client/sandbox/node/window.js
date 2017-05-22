@@ -11,6 +11,7 @@ import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourc
 import { isFirefox } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
+import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -129,8 +130,8 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.Worker) {
             window.Worker           = function (scriptURL, options) {
-                if (this instanceof window.Worker === false)
-                    throw new TypeError();
+                if (constructorIsCalledWithoutNewKeyword(this, window.Worker) )
+                    nativeMethods.Worker.apply(this, arguments);
 
                 if (arguments.length === 0)
                     return new nativeMethods.Worker();
