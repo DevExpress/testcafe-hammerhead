@@ -1,6 +1,6 @@
 import { isShadowUIElement } from '../../utils/dom';
 
-const MAX_DEFINED_PROPERTIES_COUNT = 10000;
+const DEFINED_PROPERTIES_COUNT = 10000;
 
 const arrayFilter = Array.prototype.filter;
 
@@ -19,13 +19,10 @@ class PropertiesDecorator {
             });
         };
 
-        for (var i = 0; i < MAX_DEFINED_PROPERTIES_COUNT; i++)
+        for (var i = 0; i < DEFINED_PROPERTIES_COUNT; i++)
             defineProperty.call(this, i, false);
 
-        Object.defineProperty(this, '_defineProperty', {
-            enumerable: false,
-            value:      defineProperty
-        });
+        Object.defineProperty(this, '_defineProperty', { value: defineProperty });
     }
 }
 
@@ -46,13 +43,8 @@ class NodeListWrapper {
             }
         });
 
-        Object.defineProperty(this, '_isLiveCollection', {
-            enumerable: false,
-            value:      isLiveCollection
-        });
-
+        Object.defineProperty(this, '_isLiveCollection', { value: isLiveCollection });
         Object.defineProperty(this, '_nodeList', { value: nodeList });
-
         Object.defineProperty(this, '_filteredNodeList', { writable: true });
 
         if (this.namedItem) {
@@ -63,8 +55,7 @@ class NodeListWrapper {
         }
 
         Object.defineProperty(this, '_refreshNodeList', {
-            enumerable: false,
-            value:      () => {
+            value: () => {
                 this._filteredNodeList = arrayFilter.call(this._nodeList, element => !isShadowUIElement(element));
             }
         });
@@ -78,11 +69,11 @@ class NodeListWrapper {
 
 PropertiesDecorator.prototype = NodeList.prototype;
 
-const NODE_LIST_PROPERTIES_DECORATOR =  new PropertiesDecorator();
+const NODE_LIST_PROPERTIES_DECORATOR = new PropertiesDecorator();
 
 PropertiesDecorator.prototype = HTMLCollection.prototype;
 
-const HTML_COLLECTION_PROPERTIES_DECORATOR =  new PropertiesDecorator();
+const HTML_COLLECTION_PROPERTIES_DECORATOR = new PropertiesDecorator();
 
 export default function createNodeListWrapper (nodeList, isLiveCollection) {
     if (nodeList instanceof NodeList)
@@ -90,8 +81,9 @@ export default function createNodeListWrapper (nodeList, isLiveCollection) {
     else if (nodeList instanceof HTMLCollection)
         NodeListWrapper.prototype = HTML_COLLECTION_PROPERTIES_DECORATOR;
     else {
+        // Why we need this?
         PropertiesDecorator.prototype = nodeList;
-        NodeListWrapper.prototype = new PropertiesDecorator();
+        NodeListWrapper.prototype     = new PropertiesDecorator();
     }
 
     return new NodeListWrapper(nodeList, isLiveCollection);

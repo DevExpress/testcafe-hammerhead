@@ -793,26 +793,28 @@ test('ShadowUI elements created via changing innerHTML should be recognized', fu
 module('live node collections (GH-1096)');
 
 test('getElementsByClassName', function () {
-    var testDiv       = $('#testDiv')[0];
-    var testClassName = 'test-class';
-    var div1          = document.createElement('div');
-    var div2          = document.createElement('div');
-    var div3          = document.createElement('div');
+    var testDiv = document.querySelector(TEST_DIV_SELECTOR);
+    var root    = shadowUI.getRoot();
+    var div1    = document.createElement('div');
+    var div2    = document.createElement('div');
+    var div3    = document.createElement('div');
 
-    div1.className = testClassName;
-    div2.className = testClassName;
-    div3.className = testClassName;
-
-    testDiv.appendChild(div1);
-    testDiv.appendChild(div2);
-    testDiv.appendChild(div3);
+    div1.id        = 'div1';
+    div2.id        = 'div2';
+    div3.id        = 'div3';
+    div1.className = TEST_CLASS_NAME;
+    div2.className = TEST_CLASS_NAME;
+    div3.className = TEST_CLASS_NAME;
 
     shadowUI.addClass(div3, 'el');
+    root.appendChild(div3);
+    testDiv.appendChild(div1);
+    testDiv.appendChild(div2);
 
-    var elements     = document.getElementsByClassName(testClassName);
-    var expectedType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
+    var elements             = document.getElementsByClassName(TEST_CLASS_NAME);
+    var expectedNodeListType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
 
-    ok(elements instanceof expectedType);
+    ok(elements instanceof expectedNodeListType);
 
     strictEqual(elements[0], div1);
     strictEqual(elements[1], div2);
@@ -827,26 +829,29 @@ test('getElementsByClassName', function () {
 });
 
 test('getElementsByName', function () {
-    var testDiv  = $('#testDiv')[0];
-    var testName = 'test-name';
+    var testDiv  = document.querySelector(TEST_DIV_SELECTOR);
+    var root     = shadowUI.getRoot();
     var input1   = document.createElement('input');
     var input2   = document.createElement('input');
     var input3   = document.createElement('input');
+    var testName = 'test-name';
 
+    input1.id = 'input1';
+    input2.id = 'input2';
+    input3.id = 'input3';
     input1.setAttribute('name', testName);
     input2.setAttribute('name', testName);
     input3.setAttribute('name', testName);
 
     shadowUI.addClass(input3, 'el');
-
+    root.appendChild(input3);
     testDiv.appendChild(input1);
     testDiv.appendChild(input2);
-    testDiv.appendChild(input3);
 
-    var elements     = document.getElementsByName(testName);
-    var expectedType = browserUtils.isIE ? HTMLCollection : NodeList;
+    var elements             = document.getElementsByName(testName);
+    var expectedNodeListType = browserUtils.isIE ? HTMLCollection : NodeList;
 
-    ok(elements instanceof expectedType);
+    ok(elements instanceof expectedNodeListType);
 
     strictEqual(elements[0], input1);
     strictEqual(elements[1], input2);
@@ -858,24 +863,26 @@ test('getElementsByName', function () {
     strictEqual(elements[0], input1);
     strictEqual(elements[1], void 0);
     strictEqual(elements.length, 1);
+
+    input1.parentNode.removeChild(input1);
 });
 
 test('getElementsByTagName', function () {
-    var testDiv         = $('#testDiv')[0];
-    var textarea1       = document.createElement('textarea');
-    var textarea2       = document.createElement('textarea');
-    var shadowUIElement = document.createElement('textarea');
+    var testDiv   = document.querySelector(TEST_DIV_SELECTOR);
+    var root      = shadowUI.getRoot();
+    var textarea1 = document.createElement('textarea');
+    var textarea2 = document.createElement('textarea');
+    var textarea3 = document.createElement('textarea');
 
-    shadowUI.addClass(shadowUIElement, 'el');
-
+    shadowUI.addClass(textarea3, 'el');
+    root.appendChild(textarea3);
     testDiv.appendChild(textarea1);
     testDiv.appendChild(textarea2);
-    testDiv.appendChild(shadowUIElement);
 
-    var elements     = document.getElementsByTagName('textarea');
-    var expectedType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
+    var elements             = document.getElementsByTagName('textarea');
+    var expectedNodeListType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
 
-    ok(elements instanceof expectedType);
+    ok(elements instanceof expectedNodeListType);
 
     strictEqual(elements[0], textarea1);
     strictEqual(elements[1], textarea2);
@@ -887,18 +894,20 @@ test('getElementsByTagName', function () {
     strictEqual(elements[0], textarea1);
     strictEqual(elements[1], void 0);
     strictEqual(elements.length, 1);
+
+    textarea1.parentNode.removeChild(textarea1);
 });
 
-test('live collection should properly change if element was added (gh-1111)', function () {
-    var testDiv         = $('#testDiv')[0];
-    var textarea1       = document.createElement('textarea');
-    var textarea2       = document.createElement('textarea');
-    var shadowUIElement = document.createElement('textarea');
+test('collection change', function () {
+    var testDiv   = document.querySelector(TEST_DIV_SELECTOR);
+    var root      = shadowUI.getRoot();
+    var textarea1 = document.createElement('textarea');
+    var textarea2 = document.createElement('textarea');
+    var textarea3 = document.createElement('textarea');
 
-    shadowUI.addClass(shadowUIElement, 'el');
-
+    shadowUI.addClass(textarea3, 'el');
+    root.appendChild(textarea3);
     testDiv.appendChild(textarea1);
-    testDiv.appendChild(shadowUIElement);
 
     var elements = document.getElementsByTagName('textarea');
 
@@ -914,35 +923,27 @@ test('live collection should properly change if element was added (gh-1111)', fu
     strictEqual(elements.length, 2);
 });
 
-test('index elements should be enumerable after NodeListWrapper instance creation', function () {
-    var testDiv = $('#testDiv')[0];
+test('collection properties', function () {
+    var testDiv   = document.querySelector(TEST_DIV_SELECTOR);
+    var textarea1 = document.createElement('textarea');
 
-    var input1 = document.createElement('input');
-    var input2 = document.createElement('input');
+    testDiv.appendChild(textarea1);
+    textarea1.className = TEST_CLASS_NAME;
 
-    // NOTE: IE add random generated id as element index to HTMLCollection, so we should define it.
-    if (browserUtils.isIE) {
-        input1.id = '0';
-        input2.id = '1';
-    }
+    var nativeNodeList  = nativeMethods.getElementsByTagName.call(document, 'textarea');
+    var proxiedNodeList = document.getElementsByTagName('textarea');
 
-    testDiv.appendChild(input1);
-    testDiv.appendChild(input2);
+    var nativeNodeListEnumerableProperties  = [];
+    var proxiedNodeListEnumerableProperties = [];
 
-    var nativeCollection   = nativeMethods.elementGetElementsByTagName.call(document.body, 'input');
-    var expectedProperties = [];
+    for(var nativeNodeListProp in nativeNodeList)
+        nativeNodeListEnumerableProperties.push(nativeNodeListProp);
 
-    for (var prop in nativeCollection)
-        expectedProperties.push(prop);
+    for(var proxiedNodeListProp in proxiedNodeList)
+        proxiedNodeListEnumerableProperties.push(proxiedNodeListProp);
 
-    var elements          = document.getElementsByTagName('input');
-    var wrapperProperties = [];
+    nativeNodeListEnumerableProperties.sort();
+    proxiedNodeListEnumerableProperties.sort();
 
-    for (var element in elements) {
-        ok(expectedProperties.indexOf(element) > -1);
-
-        wrapperProperties.push(element);
-    }
-
-    strictEqual(expectedProperties.length, wrapperProperties.length);
+    deepEqual(nativeNodeListEnumerableProperties, proxiedNodeListEnumerableProperties);
 });
