@@ -251,6 +251,7 @@ export default class ShadowUI extends SandboxBase {
                 ShadowUI.markElementAsShadow(headChild);
         }
     }
+
     getRoot () {
         if (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root)) {
             if (!this.root) {
