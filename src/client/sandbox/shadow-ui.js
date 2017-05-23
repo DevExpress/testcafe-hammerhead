@@ -239,6 +239,18 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
+    _markScriptsAndStylesAsShadowInHead (head) {
+        // NOTE: document.head equals null after call 'document.open' function
+        if (!head)
+            return;
+
+        for (var i = 0; i < head.children.length; i++) {
+            var headChild = head.children[i];
+
+            if (ShadowUI.containsShadowUIClassPostfix(headChild))
+                ShadowUI.markElementAsShadow(headChild);
+        }
+    }
     getRoot () {
         if (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root)) {
             if (!this.root) {
@@ -271,6 +283,7 @@ export default class ShadowUI extends SandboxBase {
 
         this._overrideDocumentMethods(window.document);
         this._overrideElementMethods(window);
+        this._markScriptsAndStylesAsShadowInHead(window.document.head);
 
         this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT, e => {
             var iframeHead = e.iframe.contentDocument.head;
