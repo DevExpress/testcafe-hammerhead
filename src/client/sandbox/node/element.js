@@ -162,7 +162,7 @@ export default class ElementSandbox extends SandboxBase {
 
             if (tagName !== 'img' || el[HAS_LOAD_HANDLER_FLAG]) {
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
-                    var isIframe         = tagName === 'iframe';
+                    var isIframe         = tagName === 'iframe' || tagName === 'frame';
                     var isScript         = tagName === 'script';
                     var isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
                     var resourceType     = domProcessor.getElementResourceType(el);
@@ -711,6 +711,7 @@ export default class ElementSandbox extends SandboxBase {
                     this._setProxiedSrcUrlOnError(el);
                 break;
             case 'iframe':
+            case 'frame':
                 this.iframeSandbox.processIframe(el);
                 break;
             case 'base':

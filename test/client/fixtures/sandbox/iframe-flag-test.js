@@ -303,3 +303,14 @@ asyncTest('change a url via location from cross-domain window', function () {
 
     start();
 });
+
+module('regression');
+
+test('setAttribute: frame src (GH-1070)', function () {
+    var frame = document.createElement('frame');
+
+    frame.setAttribute('src', 'https://example.com/');
+
+    strictEqual(nativeMethods.getAttribute.call(frame, 'src'), 'http://' + location.host +
+                                                               '/sessionId!i/https://example.com/');
+});
