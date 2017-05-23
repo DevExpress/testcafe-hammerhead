@@ -6,7 +6,6 @@ var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var domUtils      = hammerhead.utils.dom;
 var positionUtils = hammerhead.utils.position;
-var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
 var TEST_DIV_SELECTOR   = '#testDiv';
