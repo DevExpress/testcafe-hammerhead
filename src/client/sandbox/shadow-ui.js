@@ -8,7 +8,7 @@ import { getOffsetPosition } from '../utils/position';
 import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
 import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
-import createNodeListWrapper from './node/node-list-wrapper';
+import createNodeListWrapper from './node/create-node-list-wrapper';
 import getNativeQuerySelectorAll from '../utils/get-native-query-selector-all';
 
 export default class ShadowUI extends SandboxBase {
@@ -56,11 +56,11 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static _filterLiveNodeList (nodeList) {
-        return createNodeListWrapper(nodeList, true);
+        return createNodeListWrapper({ nodeList, isLiveCollection: true });
     }
 
     static _filterNonLiveNodeList (nodeList) {
-        return createNodeListWrapper(nodeList, false);
+        return createNodeListWrapper({ nodeList, isLiveCollection: false });
     }
 
     static _filterStyleSheetList (styleSheetList) {

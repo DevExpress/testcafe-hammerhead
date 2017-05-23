@@ -75,13 +75,13 @@ PropertiesDecorator.prototype = HTMLCollection.prototype;
 
 const HTML_COLLECTION_PROPERTIES_DECORATOR = new PropertiesDecorator();
 
-export default function createNodeListWrapper (nodeList, isLiveCollection) {
+export default function createNodeListWrapper ({ nodeList, isLiveCollection }) {
     if (nodeList instanceof NodeList)
         NodeListWrapper.prototype = NODE_LIST_PROPERTIES_DECORATOR;
     else if (nodeList instanceof HTMLCollection)
         NodeListWrapper.prototype = HTML_COLLECTION_PROPERTIES_DECORATOR;
     else {
-        // Why we need this?
+        // NOTE: For iframe's collections
         PropertiesDecorator.prototype = nodeList;
         NodeListWrapper.prototype     = new PropertiesDecorator();
     }
