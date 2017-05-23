@@ -921,6 +921,12 @@ test('collection change', function () {
     strictEqual(elements[1], textarea2);
     strictEqual(elements[2], void 0);
     strictEqual(elements.length, 2);
+
+    textarea2.parentNode.removeChild(textarea2);
+
+    strictEqual(elements.length, 1);
+    strictEqual(elements[0], textarea1);
+    strictEqual(elements[1], void 0);
 });
 
 test('collection properties', function () {
