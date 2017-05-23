@@ -272,7 +272,9 @@ test('document.styleSheets (GH-1000)', function () {
 
     document.body.appendChild(styleSheet);
 
-    strictEqual(styleSheet, eval(processScript('document.styleSheets')).item(0).ownerNode);
+    var proxiedStyleSheetsCollection = getProperty(document, 'styleSheets');
+
+    strictEqual(styleSheet, proxiedStyleSheetsCollection.item(0).ownerNode);
 
     shadowStyleSheet.parentNode.removeChild(shadowStyleSheet);
     styleSheet.parentNode.removeChild(styleSheet);

@@ -936,10 +936,10 @@ test('collection properties', function () {
     var nativeNodeListEnumerableProperties  = [];
     var proxiedNodeListEnumerableProperties = [];
 
-    for(var nativeNodeListProp in nativeNodeList)
+    for (var nativeNodeListProp in nativeNodeList)
         nativeNodeListEnumerableProperties.push(nativeNodeListProp);
 
-    for(var proxiedNodeListProp in proxiedNodeList)
+    for (var proxiedNodeListProp in proxiedNodeList)
         proxiedNodeListEnumerableProperties.push(proxiedNodeListProp);
 
     nativeNodeListEnumerableProperties.sort();
