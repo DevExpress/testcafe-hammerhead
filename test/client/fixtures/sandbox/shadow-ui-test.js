@@ -811,10 +811,10 @@ test('getElementsByClassName', function () {
     testDiv.appendChild(div1);
     testDiv.appendChild(div2);
 
-    var elements             = document.getElementsByClassName(TEST_CLASS_NAME);
-    var expectedNodeListType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
+    var elements           = document.getElementsByClassName(TEST_CLASS_NAME);
+    var nativeNodeListType = nativeMethods.getElementsByClassName.call(document, TEST_CLASS_NAME).constructor;
 
-    ok(elements instanceof expectedNodeListType);
+    ok(elements instanceof nativeNodeListType);
 
     strictEqual(elements[0], div1);
     strictEqual(elements[1], div2);
@@ -848,10 +848,10 @@ test('getElementsByName', function () {
     testDiv.appendChild(input1);
     testDiv.appendChild(input2);
 
-    var elements             = document.getElementsByName(testName);
-    var expectedNodeListType = browserUtils.isIE ? HTMLCollection : NodeList;
+    var elements           = document.getElementsByName(testName);
+    var nativeNodeListType = document.getElementsByName.call(document, testName).constructor;
 
-    ok(elements instanceof expectedNodeListType);
+    ok(elements instanceof nativeNodeListType);
 
     strictEqual(elements[0], input1);
     strictEqual(elements[1], input2);
@@ -879,10 +879,10 @@ test('getElementsByTagName', function () {
     testDiv.appendChild(textarea1);
     testDiv.appendChild(textarea2);
 
-    var elements             = document.getElementsByTagName('textarea');
-    var expectedNodeListType = browserUtils.isSafari && browserUtils.version < 10 ? NodeList : HTMLCollection;
+    var elements           = document.getElementsByTagName('textarea');
+    var nativeNodeListType = nativeMethods.getElementsByTagName.call(document, 'textarea').constructor;
 
-    ok(elements instanceof expectedNodeListType);
+    ok(elements instanceof nativeNodeListType);
 
     strictEqual(elements[0], textarea1);
     strictEqual(elements[1], textarea2);
