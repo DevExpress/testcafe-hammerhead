@@ -12,11 +12,11 @@ const CLIENT_SCRIPT             = read('../client/hammerhead.js');
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
 // Static
-function parseJsonBody (body) {
-    body = body.toString();
+function parseAsJson (msg) {
+    msg = msg.toString();
 
     try {
-        return JSON.parse(body);
+        return JSON.parse(msg);
     }
     catch (err) {
         return null;
@@ -83,7 +83,7 @@ export default class Proxy extends Router {
 
     async _onServiceMessage (req, res, serverInfo) {
         var body    = await fetchBody(req);
-        var msg     = parseJsonBody(body);
+        var msg     = parseAsJson(body);
         var session = msg && this.openSessions[msg.sessionId];
 
         if (session) {
@@ -102,7 +102,7 @@ export default class Proxy extends Router {
 
     async _onCookieSync (req, res) {
         var body    = await fetchBody(req);
-        var msg     = parseJsonBody(body);
+        var msg     = parseAsJson(body);
         var session = msg && this.openSessions[msg.sessionId];
 
         if (session) {

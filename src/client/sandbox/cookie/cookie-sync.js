@@ -6,7 +6,7 @@ import { isIE9 } from '../../utils/browser';
 
 const SWITCH_BACK_TO_ASYNC_XHR_DELAY = 2000;
 
-export default class ServerSync {
+export default class CookieSync {
     constructor () {
         this.useAsyncXhr = true;
         this.queue       = [];
@@ -26,7 +26,7 @@ export default class ServerSync {
         return xhr;
     }
 
-    static _isNoContentStatus (request) {
+    static _has204StatusCode (request) {
         try {
             // NOTE: XMLHTTPRequest implementation in MSXML HTTP does not handle HTTP responses
             // with status code 204 (No Content) properly; the `status' property has the value 1223.
@@ -41,6 +41,7 @@ export default class ServerSync {
         if (this.useAsyncXhr) {
             this.useAsyncXhr = false;
 
+            // NOTE: When active request is aborted we will send message queue to the server
             if (this.activeReq)
                 this.activeReq.abort();
         }
@@ -51,19 +52,19 @@ export default class ServerSync {
         }, SWITCH_BACK_TO_ASYNC_XHR_DELAY);
     }
 
-    _loadHandler (request) {
-        if (ServerSync._isNoContentStatus(request)) {
+    _onRequestLoad (request) {
+        if (CookieSync._has204StatusCode(request)) {
             this.sendedQueue = null;
             this.activeReq   = null;
 
-            if (this.queue.length > 0)
+            if (this.queue.length)
                 this._sendQueue();
         }
         else
-            this._errorHandler(request);
+            this._onRequestError(request);
     }
 
-    _errorHandler (request) {
+    _onRequestError (request) {
         if (this.activeReq === request) {
             this.queue = this.sendedQueue.concat(this.queue);
 
@@ -71,32 +72,35 @@ export default class ServerSync {
         }
     }
 
+    _attachRequestHandlers (request) {
+        if (isIE9) {
+            // NOTE: Aborting ajax requests in IE9 does not raise the error, abort or timeout events.
+            // Getting the status code raises the c00c023f error.
+            request.addEventListener('readystatechange', () => {
+                if (request.readyState !== request.DONE)
+                    return;
+
+                this._onRequestLoad(request);
+            });
+        }
+        else {
+            request.addEventListener('load', () => this._onRequestLoad(request));
+            request.addEventListener('abort', () => this._onRequestError(request));
+            request.addEventListener('error', () => this._onRequestError(request));
+            request.addEventListener('timeout', () => this._onRequestError(request));
+        }
+    }
+
     _sendQueue () {
         var isAsyncRequest = this.useAsyncXhr;
-        var request        = ServerSync._createXMLHttpRequest(isAsyncRequest);
+        var request        = CookieSync._createXMLHttpRequest(isAsyncRequest);
 
         this.sendedQueue = this.queue;
         this.queue       = [];
         this.activeReq   = request;
 
-        if (isAsyncRequest) {
-            if (!isIE9) {
-                request.addEventListener('load', () => this._loadHandler(request));
-                request.addEventListener('abort', () => this._errorHandler(request));
-                request.addEventListener('error', () => this._errorHandler(request));
-                request.addEventListener('timeout', () => this._errorHandler(request));
-            }
-            else {
-                // NOTE: Aborting ajax requests in IE9 does not raise the error, abort or timeout events.
-                // Getting the status code raises the c00c023f error.
-                request.addEventListener('readystatechange', () => {
-                    if (request.readyState !== request.DONE)
-                        return;
-
-                    this._loadHandler(request);
-                });
-            }
-        }
+        if (isAsyncRequest)
+            this._attachRequestHandlers(request);
 
         try {
             request.send(stringifyJSON({
@@ -105,15 +109,15 @@ export default class ServerSync {
             }));
         }
         catch (e) {
-            this._errorHandler(request);
+            this._onRequestError(request);
             return;
         }
 
         if (!isAsyncRequest)
-            this._loadHandler(request);
+            this._onRequestLoad(request);
     }
 
-    synchronize (msg) {
+    perform (msg) {
         this.queue.push(msg);
 
         if (!this.activeReq)

@@ -195,6 +195,9 @@ test('correct work with cookie with empty key (GH-899)', function () {
     transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
 
+// NOTE: Browsers on iOS platform doesn't support beforeunload event.
+// We cann't use the pagehide event for cookie synchronization.
+// Request for a new page will be handled earlier than sync xhr request was sent from pagehide event handler.
 if (!browserUtils.isIOS) {
     asyncTest('set cookie before unload (GH-1086)', function () {
         var iframe = document.createElement('iframe');

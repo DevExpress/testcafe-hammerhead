@@ -1,6 +1,6 @@
 import SandboxBase from '../base';
 import settings from '../../settings';
-import ServerSync from './server-sync';
+import CookieSync from './cookie-sync';
 import * as destLocation from '../../utils/destination-location';
 import * as cookieUtils from '../../utils/cookie';
 import { isCrossDomainWindows } from '../../utils/dom';
@@ -12,7 +12,7 @@ export default class CookieSandbox extends SandboxBase {
     constructor () {
         super();
 
-        this.serverSync = new ServerSync();
+        this.serverSync = new CookieSync();
     }
 
     _getSettings () {
@@ -146,7 +146,7 @@ export default class CookieSandbox extends SandboxBase {
 
         if (syncWithServer) {
             // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
-            this.serverSync.synchronize({
+            this.serverSync.perform({
                 cookie: value,
                 url:    document.location.href
             });
