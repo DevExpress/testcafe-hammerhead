@@ -200,24 +200,37 @@ test('correct work with cookie with empty key (GH-899)', function () {
 // Request for a new page will be handled earlier than sync xhr request was sent from pagehide event handler.
 if (!browserUtils.isIOS) {
     asyncTest('set cookie before unload (GH-1086)', function () {
-        var iframe = document.createElement('iframe');
+        var iframe          = document.createElement('iframe');
+        var expectedCookies = [];
+        var testedPages     = [
+            '../../data/cookie/set-cookie-and-load-new-location.html',
+            '../../data/cookie/set-cookie-and-form-submit.html'
+        ];
 
-        iframe.setAttribute('id', 'test' + Date.now());
-        iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../data/cookie/set-cookie-messages.html'));
+        for (var i = 0; i < 20; i++)
+            expectedCookies.push('value' + i + '=some value');
 
-        window.addEventListener('message', function onMessage (e) {
-            var expectedCookies = [];
+        expectedCookies = expectedCookies.join('; ');
 
-            for (var i = 0; i < 20; i++)
-                expectedCookies.push('value' + i + '=some value');
+        var nextCookieTest = function (urlIndex) {
+            iframe.setAttribute('id', 'test' + Date.now());
+            iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl(testedPages[urlIndex]));
 
-            strictEqual(e.data, expectedCookies.join('; '));
+            window.addEventListener('message', function onMessage (e) {
+                strictEqual(e.data, expectedCookies, testedPages[urlIndex]);
 
-            window.removeEventListener('message', onMessage);
-            document.body.removeChild(iframe);
-            start();
-        });
+                window.removeEventListener('message', onMessage);
+                document.body.removeChild(iframe);
 
-        document.body.appendChild(iframe);
+                if (testedPages[urlIndex + 1])
+                    nextCookieTest(urlIndex + 1);
+                else
+                    start();
+            });
+
+            document.body.appendChild(iframe);
+        };
+
+        nextCookieTest(0);
     });
 }

@@ -5,6 +5,7 @@
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
 </head>
 <body>
+<form action="/get-cookies/"></form>
 <script type="text/javascript">
     var hammerhead    = window['%hammerhead%'];
 
@@ -17,7 +18,7 @@
     for (var i = 0; i < 20; i++)
         __set$(document, 'cookie', 'value' + i + '=some value');
 
-    location = '/get-cookies/';
+    document.querySelector('form').submit();
 </script>
 </body>
 </html>

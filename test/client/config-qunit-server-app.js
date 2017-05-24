@@ -152,7 +152,7 @@ module.exports = function (app) {
     });
 
     app.get('/get-cookies/', function (req, res) {
-        var pageMarkup = fs.readFileSync('./test/client/data/cookie/get-cookie-messages.html').toString();
+        var pageMarkup = fs.readFileSync('./test/client/data/cookie/get-cookie.html').toString();
         var userAgent  = req.headers['user-agent'];
         var cookieStr  = '';
 
