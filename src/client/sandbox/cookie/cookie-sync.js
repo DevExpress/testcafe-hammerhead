@@ -41,7 +41,7 @@ export default class CookieSync {
         if (this.useAsyncXhr) {
             this.useAsyncXhr = false;
 
-            // NOTE: When active request is aborted we will send message queue to the server
+            // NOTE: We abort the current async request and resend message queue to a server using sync request.
             if (this.activeReq)
                 this.activeReq.abort();
         }
@@ -77,10 +77,8 @@ export default class CookieSync {
             // NOTE: Aborting ajax requests in IE9 does not raise the error, abort or timeout events.
             // Getting the status code raises the c00c023f error.
             request.addEventListener('readystatechange', () => {
-                if (request.readyState !== request.DONE)
-                    return;
-
-                this._onRequestLoad(request);
+                if (request.readyState === request.DONE)
+                    this._onRequestLoad(request);
             });
         }
         else {

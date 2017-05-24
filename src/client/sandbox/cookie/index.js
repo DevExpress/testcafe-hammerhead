@@ -12,7 +12,7 @@ export default class CookieSandbox extends SandboxBase {
     constructor () {
         super();
 
-        this.serverSync = new CookieSync();
+        this.cookieSync = new CookieSync();
     }
 
     _getSettings () {
@@ -146,7 +146,7 @@ export default class CookieSandbox extends SandboxBase {
 
         if (syncWithServer) {
             // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
-            this.serverSync.perform({
+            this.cookieSync.perform({
                 cookie: value,
                 url:    document.location.href
             });
