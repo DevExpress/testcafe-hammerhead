@@ -126,6 +126,20 @@ export function cleanUpHtml (html) {
         }
         /*eslint-disable no-loop-func */
 
+        var autocompleteAttr       = 'autocomplete';
+        var storedAutocompleteAttr = domProcessor.getStoredAttrName(autocompleteAttr);
+
+        find(container, '[' + storedAutocompleteAttr + ']', el => {
+            if (el.hasAttribute(autocompleteAttr))
+                nativeMethods.setAttribute.call(el, autocompleteAttr, nativeMethods.getAttribute.call(el, storedAutocompleteAttr));
+            else
+                nativeMethods.removeAttribute.call(el, autocompleteAttr);
+
+            nativeMethods.removeAttribute.call(el, storedAutocompleteAttr);
+
+            changed = true;
+        });
+
         find(container, '[class*="' + SHADOW_UI_CLASSNAME.postfix + '"]', el => {
             if (el.parentNode) {
                 nativeMethods.removeChild.call(el.parentNode, el);
@@ -157,6 +171,12 @@ export function cleanUpHtml (html) {
 
         find(container, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']', el => {
             nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
+
+            changed = true;
+        });
+
+        find(container, '[' + INTERNAL_ATTRS.focusPseudoClass + ']', el => {
+            nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.focusPseudoClass);
 
             changed = true;
         });

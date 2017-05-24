@@ -31,12 +31,22 @@ test('hover marker', function () {
                '<div ' + INTERNAL_ATTRS.hoverPseudoClass + '></div>' +
                '<div ' + INTERNAL_ATTRS.hoverPseudoClass + '=""></div>';
 
-    var expexted     = '<a href="http://domain.com"></a><div></div><div></div>';
-    var pocessedHtml = htmlUtils.processHtml(html);
+    var expected      = '<a href="http://domain.com"></a><div></div><div></div>';
+    var processedHtml = htmlUtils.processHtml(html);
 
-    strictEqual(htmlUtils.cleanUpHtml(pocessedHtml), expexted);
+    strictEqual(htmlUtils.cleanUpHtml(processedHtml), expected);
 
     urlUtils.getProxyUrl = storedGetProxyUrl;
+});
+
+test('focus marker and autocomplete stored', function () {
+    var html = '<input ' + INTERNAL_ATTRS.focusPseudoClass + '>' +
+               '<input ' + INTERNAL_ATTRS.focusPseudoClass + '="">';
+
+    var expected      = '<input><input>';
+    var processedHtml = htmlUtils.processHtml(html);
+
+    strictEqual(htmlUtils.cleanUpHtml(processedHtml), expected);
 });
 
 test('shadow ui elements', function () {
