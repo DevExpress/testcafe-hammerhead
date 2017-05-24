@@ -39,14 +39,19 @@ test('hover marker', function () {
     urlUtils.getProxyUrl = storedGetProxyUrl;
 });
 
-test('focus marker and autocomplete stored', function () {
+test('focus marker', function () {
     var html = '<input ' + INTERNAL_ATTRS.focusPseudoClass + '>' +
                '<input ' + INTERNAL_ATTRS.focusPseudoClass + '="">';
 
-    var expected      = '<input><input>';
-    var processedHtml = htmlUtils.processHtml(html);
+    strictEqual(htmlUtils.cleanUpHtml(html), '<input><input>');
+});
 
-    strictEqual(htmlUtils.cleanUpHtml(processedHtml), expected);
+test('autocomplete attribute', function () {
+    var html = '<input ' + domProcessor.getStoredAttrName('autocomplete') +
+               '="' + domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER + '" autocomplete="off">' +
+               '<input ' + domProcessor.getStoredAttrName('autocomplete') + '="on" autocomplete="off">';
+
+    strictEqual(htmlUtils.cleanUpHtml(html), '<input><input autocomplete="on">');
 });
 
 test('shadow ui elements', function () {
