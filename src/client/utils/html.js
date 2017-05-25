@@ -30,6 +30,25 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
+const ATTRS_FOR_CLEANING    = (() => {
+    var attrs = [];
+
+    for (var attr of domProcessor.URL_ATTRS)
+        attrs.push({ attr, storedAttr: domProcessor.getStoredAttrName(attr) });
+
+    attrs.push({ attr: 'autocomplete', storedAttr: domProcessor.getStoredAttrName('autocomplete') });
+
+    return attrs;
+})();
+const STORED_ATTRS_SELECTOR = (() => {
+    var storedAttrs = [];
+
+    for (var { storedAttr } of ATTRS_FOR_CLEANING)
+        storedAttrs.push(storedAttr);
+
+    return '[' + storedAttrs.join('],[') + ']';
+})();
+
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
@@ -110,32 +129,15 @@ export function cleanUpHtml (html) {
     return processHtmlInternal(html, container => {
         var changed = false;
 
-        /*eslint-disable no-loop-func */
-        for (var i = 0; i < domProcessor.URL_ATTRS.length; i++) {
-            var attr       = domProcessor.URL_ATTRS[i];
-            var storedAttr = domProcessor.getStoredAttrName(attr);
-
-            find(container, '[' + storedAttr + ']', el => {
-                if (el.hasAttribute(attr)) {
+        find(container, STORED_ATTRS_SELECTOR, el => {
+            for (var { attr, storedAttr } of ATTRS_FOR_CLEANING) {
+                if (el.hasAttribute(attr))
                     nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
-                    nativeMethods.removeAttribute.call(el, storedAttr);
+                else if (attr === 'autocomplete')
+                    nativeMethods.removeAttribute.call(el, attr);
 
-                    changed = true;
-                }
-            });
-        }
-        /*eslint-disable no-loop-func */
-
-        var autocompleteAttr       = 'autocomplete';
-        var storedAutocompleteAttr = domProcessor.getStoredAttrName(autocompleteAttr);
-
-        find(container, '[' + storedAutocompleteAttr + ']', el => {
-            if (el.hasAttribute(autocompleteAttr))
-                nativeMethods.setAttribute.call(el, autocompleteAttr, nativeMethods.getAttribute.call(el, storedAutocompleteAttr));
-            else
-                nativeMethods.removeAttribute.call(el, autocompleteAttr);
-
-            nativeMethods.removeAttribute.call(el, storedAutocompleteAttr);
+                nativeMethods.removeAttribute.call(el, storedAttr);
+            }
 
             changed = true;
         });
@@ -169,13 +171,8 @@ export function cleanUpHtml (html) {
             }
         });
 
-        find(container, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']', el => {
+        find(container, '[' + INTERNAL_ATTRS.hoverPseudoClass + '],[' + INTERNAL_ATTRS.focusPseudoClass + ']', el => {
             nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
-
-            changed = true;
-        });
-
-        find(container, '[' + INTERNAL_ATTRS.focusPseudoClass + ']', el => {
             nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.focusPseudoClass);
 
             changed = true;
