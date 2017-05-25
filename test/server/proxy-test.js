@@ -2049,7 +2049,7 @@ describe('Proxy', function () {
             }, 400);
         });
 
-        it('Should omit "sourcemap" header (GH-1052)', function (done) {
+        it('Should omit a "sourcemap" header from response (GH-1052)', function (done) {
             var options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/script', session),
                 headers: {
