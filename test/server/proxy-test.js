@@ -1773,7 +1773,7 @@ describe('Proxy', function () {
             });
         });
 
-        describe('Should not change a reponse body if it is empty (GH-762)', function () {
+        describe('Should not change a response body if it is empty (GH-762)', function () {
             it('script', function (done) {
                 var options = {
                     url:     proxy.openSession('http://127.0.0.1:2000/empty-response', session),
