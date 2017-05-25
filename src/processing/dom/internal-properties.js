@@ -10,5 +10,5 @@ export default {
     documentCharset:      'hammerhead|document-charset',
     iframeNativeMethods:  'hammerhead|iframe-native-methods',
     hammerhead:           '%hammerhead%',
-    selection:            'hammerhead|selection-property'
+    selection:            'hammerhead|selection'
 };
