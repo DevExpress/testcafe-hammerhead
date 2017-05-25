@@ -128,6 +128,7 @@ describe('Proxy', function () {
 
         app.get('/script', function (req, res) {
             res.set('content-type', 'application/javascript; charset=utf-8');
+            res.set('sourcemap', '/src.js.map');
             res.end(fs.readFileSync('test/server/data/script/src.js').toString());
         });
 
@@ -1142,7 +1143,7 @@ describe('Proxy', function () {
         });
 
         it('Should pass an error to the session if target does not exist', function (done) {
-            var url      = getFileProtocolUrl('./data/non-exist-file');
+            var url = getFileProtocolUrl('./data/non-exist-file');
 
             session.id = 'sessionId';
 
@@ -2046,6 +2047,20 @@ describe('Proxy', function () {
                 expect(destConnectionClosed).to.be.false;
                 req.destroy();
             }, 400);
+        });
+
+        it('Should omit "sourcemap" header (GH-1052)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/script', session),
+                headers: {
+                    'content-type': 'application/javascript; charset=utf-8'
+                }
+            };
+
+            request(options, function (err, res) {
+                expect(res.headers['sourcemap']).is.undefined;
+                done();
+            });
         });
     });
 });
