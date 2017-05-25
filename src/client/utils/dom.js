@@ -770,5 +770,5 @@ export function getFileInputs (el) {
 }
 
 export function getIframes (el) {
-    return isIframeElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'iframe');
+    return isIframeElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'iframe,frame');
 }

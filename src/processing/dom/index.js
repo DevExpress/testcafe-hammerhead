@@ -19,7 +19,7 @@ const EXECUTABLE_SCRIPT_TYPES_REG_EX     = /^\s*(application\/(x-)?(ecma|java)sc
 
 const URL_ATTR_TAGS = {
     href:       ['a', 'link', 'image', 'area', 'base'],
-    src:        ['img', 'embed', 'script', 'source', 'video', 'audio', 'input', 'frame', 'iframe'],
+    src:        ['img', 'embed', 'script', 'source', 'video', 'audio', 'input', 'frame', 'iframe', 'frame'],
     action:     ['form'],
     formaction: ['button', 'input'],
     manifest:   ['html'],
@@ -113,7 +113,11 @@ export default class DomProcessor {
 
             HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
 
-            IS_SANDBOXED_IFRAME: el => adapter.getTagName(el) === 'iframe' && adapter.hasAttr(el, 'sandbox'),
+            IS_SANDBOXED_IFRAME: el => {
+                var tagName = adapter.getTagName(el);
+
+                return (tagName === 'iframe' || tagName === 'frame') && adapter.hasAttr(el, 'sandbox');
+            },
 
             IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR: el => {
                 return adapter.isSVGElement(el) &&
@@ -212,7 +216,7 @@ export default class DomProcessor {
         var tagName = this.adapter.getTagName(el);
 
         return urlUtils.getResourceTypeString({
-            isIframe: tagName === 'iframe' || this._isOpenLinkInIframe(el),
+            isIframe: tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),
             isForm:   tagName === 'form' || tagName === 'input' || tagName === 'button',
             isScript: tagName === 'script'
         });
@@ -471,7 +475,7 @@ export default class DomProcessor {
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
                 if (urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) {
                     var elTagName = this.adapter.getTagName(el);
-                    var isIframe  = elTagName === 'iframe';
+                    var isIframe  = elTagName === 'iframe' || elTagName === 'frame';
                     var isScript  = elTagName === 'script';
                     var isAnchor  = elTagName === 'a';
                     var target    = this.adapter.getAttr(el, 'target');
