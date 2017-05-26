@@ -130,7 +130,9 @@ var responseTransforms = {
         var proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 
         return 'ALLOW-FROM ' + proxiedUrl;
-    }
+    },
+
+    'sourcemap': skip
 };
 
 var responseForced = {

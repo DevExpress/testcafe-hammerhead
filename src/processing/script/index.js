@@ -17,6 +17,7 @@ const HTML_COMMENT_RE       = /(^|\n)\s*<!--[^\n]*(\n|$)/g;
 const OBJECT_RE             = /^\s*\{.*\}\s*$/;
 const TRAILING_SEMICOLON_RE = /;\s*$/;
 const OBJECT_WRAPPER_RE     = /^\s*\((.*)\);\s*$/;
+const SOURCEMAP_RE          = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)/gm;
 
 const PROCESSED_SCRIPT_RE = new RegExp([
     reEscape(INSTRUCTION.getLocation),
@@ -45,8 +46,13 @@ function preprocess (code) {
     var preprocessed = bom ? code.substring(bom.length) : code;
 
     preprocessed = removeHeader(preprocessed);
+    preprocessed = removeSourceMapIfNecessary(preprocessed);
 
     return { bom, preprocessed };
+}
+
+function removeSourceMapIfNecessary (code) {
+    return SOURCEMAP_RE.test(code) ? code.replace(SOURCEMAP_RE, '') : code;
 }
 
 function postprocess (processed, withHeader, bom, strictMode) {
@@ -156,7 +162,7 @@ export function isScriptProcessed (code) {
 
 export function processScript (src, withHeader) {
     var { bom, preprocessed } = preprocess(src);
-    var withoutHtmlComments = removeHtmlComments(preprocessed);
+    var withoutHtmlComments   = removeHtmlComments(preprocessed);
     var { ast, isObject }     = analyze(withoutHtmlComments);
 
     if (!ast)
