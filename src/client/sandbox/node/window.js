@@ -268,7 +268,7 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
-            var createHistoryStateManipulationWrapper = function (nativeFn) {
+            var createWrapperForHistoryStateManipulationFn = function (nativeFn) {
                 return function (...args) {
                     var url = args[2];
 
@@ -279,8 +279,8 @@ export default class WindowSandbox extends SandboxBase {
                 };
             };
 
-            window.history.pushState    = createHistoryStateManipulationWrapper(nativeMethods.historyPushState);
-            window.history.replaceState = createHistoryStateManipulationWrapper(nativeMethods.historyReplaceState);
+            window.history.pushState    = createWrapperForHistoryStateManipulationFn(nativeMethods.historyPushState);
+            window.history.replaceState = createWrapperForHistoryStateManipulationFn(nativeMethods.historyReplaceState);
         }
 
         if (window.navigator.sendBeacon) {

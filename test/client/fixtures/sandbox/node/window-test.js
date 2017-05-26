@@ -83,8 +83,8 @@ test('parameters passed to the native function in its original form', function (
     checkNativeFunctionArgs('dispatchEvent', 'windowDispatchEvent', window);
 });
 
-if (window.history.replaceState) {
-    asyncTest('replace history state with a various types of url', function () {
+if (window.history.replaceState && window.history.pushState) {
+    asyncTest('window.history.replaceState, window.history.pushState', function () {
         function SomeClass () {
             this.url = 'url';
         }
@@ -122,19 +122,15 @@ if (window.history.replaceState) {
                 iframeHammerhead.get('./utils/destination-location')
                     .forceLocation('http://' + iframeLocation.host + '/sessionId/' + baseUrl);
 
-                for (var i = 0; i < urlValues.length; i++) {
-                    iframeNativeMethods.historyReplaceState.call(iframeHistory, null, null, baseUrl);
-
-                    var url = urlValues[i];
-
-                    iframeNativeMethods.historyReplaceState.call(iframeHistory, null, null, url);
+                var testUrl = function (url, fn, nativeFn) {
+                    nativeFn.call(iframeHistory, null, null, baseUrl);
+                    nativeFn.call(iframeHistory, null, null, url);
 
                     var destUrl           = iframeLocation.toString();
                     var destUrlNotChanged = destUrl === baseUrl;
 
-                    iframeNativeMethods.historyReplaceState.call(iframeHistory, null, null, baseUrl);
-
-                    iframeHistory.replaceState(null, null, url);
+                    nativeFn.call(iframeHistory, null, null, baseUrl);
+                    fn.call(iframeHistory, null, null, url);
 
                     var parsedProxyUrl = urlUtils.parseProxyUrl(iframeLocation.toString());
 
@@ -142,6 +138,13 @@ if (window.history.replaceState) {
                         strictEqual(destUrl, parsedProxyUrl.destUrl);
                     else
                         ok(destUrlNotChanged);
+                };
+
+                for (var i = 0; i < urlValues.length; i++) {
+                    var url = urlValues[i];
+
+                    testUrl(url, iframeHistory.replaceState, iframeNativeMethods.historyReplaceState);
+                    testUrl(url, iframeHistory.pushState, iframeNativeMethods.historyPushState);
                 }
 
                 document.body.removeChild(iframe);
