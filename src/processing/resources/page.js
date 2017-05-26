@@ -11,8 +11,8 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 const BODY_CREATED_EVENT_SCRIPT = dedent(`
     <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
         (function () {
-            if (window["${ INTERNAL_PROPS.hammerhead }"])
-                window["${ INTERNAL_PROPS.hammerhead }"].sandbox.node.raiseBodyCreatedEvent();
+            if (window["${ INTERNAL_PROPS.hammerheadPropertyName }"])
+                window["${ INTERNAL_PROPS.hammerheadPropertyName }"].sandbox.node.raiseBodyCreatedEvent();
 
             var script = document.currentScript || document.scripts[document.scripts.length - 1];
             script.parentNode.removeChild(script);

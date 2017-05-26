@@ -36,7 +36,7 @@ export default class StorageSandbox extends SandboxBase {
         var host                  = destLocation.getParsed().host;
         var storageKey            = StorageSandbox._getStorageKey(sessionId, host);
         var topSameDomainWindow   = getTopSameDomainWindow(this.window);
-        var topSameDomainStorages = topSameDomainWindow[INTERNAL_PROPS.hammerhead].sandbox.storageSandbox.storages;
+        var topSameDomainStorages = topSameDomainWindow[INTERNAL_PROPS.hammerheadPropertyName].sandbox.storageSandbox.storages;
 
         // NOTE: Use the already created wrappers.
         if (topSameDomainStorages[storageKey]) {

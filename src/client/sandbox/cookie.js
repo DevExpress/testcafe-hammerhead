@@ -12,7 +12,7 @@ import BYTES_PER_COOKIE_LIMIT from '../../session/cookie-limit';
 export default class CookieSandbox extends SandboxBase {
     _getSettings () {
         var windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
-                             this.window.top[INTERNAL_PROPS.hammerhead].get('./settings') : settings;
+                             this.window.top[INTERNAL_PROPS.hammerheadPropertyName].get('./settings') : settings;
 
         return windowSettings.get();
     }
