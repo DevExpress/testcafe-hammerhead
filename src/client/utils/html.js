@@ -49,6 +49,10 @@ const STORED_ATTRS_SELECTOR = (() => {
     return '[' + storedAttrs.join('],[') + ']';
 })();
 
+const SHADOW_UI_ELEMENTS_SELECTOR                    = `[class*="${SHADOW_UI_CLASSNAME.postfix}"]`;
+const HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR = `[${INTERNAL_ATTRS.hoverPseudoClass}],[${INTERNAL_ATTRS.focusPseudoClass}]`;
+const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_TAG_NAME_PREFIX}head, ${FAKE_TAG_NAME_PREFIX}body`;
+
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
@@ -142,7 +146,7 @@ export function cleanUpHtml (html) {
             changed = true;
         });
 
-        find(container, '[class*="' + SHADOW_UI_CLASSNAME.postfix + '"]', el => {
+        find(container, SHADOW_UI_ELEMENTS_SELECTOR, el => {
             if (el.parentNode) {
                 nativeMethods.removeChild.call(el.parentNode, el);
                 changed = true;
@@ -171,14 +175,14 @@ export function cleanUpHtml (html) {
             }
         });
 
-        find(container, '[' + INTERNAL_ATTRS.hoverPseudoClass + '],[' + INTERNAL_ATTRS.focusPseudoClass + ']', el => {
+        find(container, HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR, el => {
             nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
             nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.focusPseudoClass);
 
             changed = true;
         });
 
-        find(container, `${FAKE_TAG_NAME_PREFIX}head, ${FAKE_TAG_NAME_PREFIX}body`, el => {
+        find(container, FAKE_ELEMENTS_SELECTOR, el => {
             if (el.innerHTML.indexOf(INIT_SCRIPT_FOR_IFRAME_TEMPLATE) !== -1) {
                 el.innerHTML = el.innerHTML.replace(INIT_SCRIPT_FOR_IFRAME_TEMPLATE, '');
 
