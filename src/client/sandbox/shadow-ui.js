@@ -8,6 +8,7 @@ import { getOffsetPosition } from '../utils/position';
 import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
 import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
+import getNativeQuerySelectorAll from '../utils/get-native-query-selector-all';
 
 export default class ShadowUI extends SandboxBase {
     constructor (nodeMutation, messageSandbox, iframeSandbox) {
@@ -31,10 +32,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static _filterElement (el) {
-        if (!el || domUtils.isDocument(el) || domUtils.isWindow(el))
-            return el;
-
-        return domUtils.isShadowUIElement(el) ? null : el;
+        return el && domUtils.isShadowUIElement(el) ? null : el;
     }
 
     static _filterList (list, predicate) {
@@ -235,6 +233,19 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
+    _markScriptsAndStylesAsShadowInHead (head) {
+        // NOTE: document.head equals null after call 'document.open' function
+        if (!head)
+            return;
+
+        for (var i = 0; i < head.children.length; i++) {
+            var headChild = head.children[i];
+
+            if (ShadowUI.containsShadowUIClassPostfix(headChild))
+                ShadowUI.markElementAsShadow(headChild);
+        }
+    }
+
     getRoot () {
         if (!this.root || /* NOTE: T225944 */ !this.document.body.contains(this.root)) {
             if (!this.root) {
@@ -243,6 +254,7 @@ export default class ShadowUI extends SandboxBase {
                 nativeMethods.setAttribute.call(this.root, 'id', ShadowUI.patchId(this.ROOT_ID));
                 nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
                 this.addClass(this.root, this.ROOT_CLASS);
+                ShadowUI.markElementAsShadow(this.root);
                 nativeMethods.appendChild.call(this.document.body, this.root);
 
                 for (var event of EVENTS)
@@ -266,6 +278,7 @@ export default class ShadowUI extends SandboxBase {
 
         this._overrideDocumentMethods(window.document);
         this._overrideElementMethods(window);
+        this._markScriptsAndStylesAsShadowInHead(window.document.head);
 
         this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT, e => {
             var iframeHead = e.iframe.contentDocument.head;
@@ -486,5 +499,21 @@ export default class ShadowUI extends SandboxBase {
         var rootParent = this.getRoot().parentNode;
 
         return nativeMethods.insertBefore.call(rootParent, el, rootParent.lastChild);
+    }
+
+    static markElementChildrenAsShadowRecursively (el) {
+        var childElements = getNativeQuerySelectorAll(el).call(el, '*');
+
+        for (var i = 0; i < childElements.length; i++)
+            ShadowUI.markElementAsShadow(childElements[i]);
+    }
+
+    static markElementAsShadow (el) {
+        el[INTERNAL_PROPS.shadowUIElement] = true;
+    }
+
+    static containsShadowUIClassPostfix (element) {
+        return typeof element.className === 'string' &&
+               element.className.indexOf(SHADOW_UI_CLASS_NAME.postfix) !== -1;
     }
 }
