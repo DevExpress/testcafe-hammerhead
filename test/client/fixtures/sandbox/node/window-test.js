@@ -76,17 +76,84 @@ test('parameters passed to the native function in its original form', function (
         checkNativeFunctionArgs('setTimeout', 'setTimeout', window);
     }
 
-    if (window.history.pushState && window.history.replaceState) {
-        checkNativeFunctionArgs('pushState', 'historyPushState', window.history);
-        checkNativeFunctionArgs('replaceState', 'historyReplaceState', window.history);
-    }
-
     var documentFragment = document.createDocumentFragment();
 
     checkNativeFunctionArgs('querySelector', 'documentFragmentQuerySelector', documentFragment);
     checkNativeFunctionArgs('querySelectorAll', 'documentFragmentQuerySelectorAll', documentFragment);
     checkNativeFunctionArgs('dispatchEvent', 'windowDispatchEvent', window);
 });
+
+if (window.history.replaceState && window.history.pushState) {
+    asyncTest('window.history.replaceState, window.history.pushState', function () {
+        function SomeClass () {
+            this.url = 'url';
+        }
+
+        SomeClass.prototype.toString = function () {
+            return this.url;
+        };
+
+        var urlValues = [
+            'string',
+            12345,
+            true,
+            false,
+            NaN,
+            Infinity,
+            null,
+            void 0,
+            new SomeClass()
+        ];
+
+        var iframe  = document.createElement('iframe');
+
+        iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../../data/history/iframe.html'));
+
+        window.QUnitGlobals.waitForIframe(iframe)
+            .then(function () {
+                var iframeWindow        = iframe.contentWindow;
+                var iframeHammerhead    = iframeWindow['%hammerhead%'];
+                var iframeHistory       = iframeWindow.history;
+                var iframeNativeMethods = iframeHammerhead.nativeMethods;
+                var iframeLocation      = iframeWindow.location;
+                var baseUrl             = 'http://' + location.host + '/some/path';
+
+                iframeHammerhead.get('./utils/url-resolver').updateBase(baseUrl, iframe.contentDocument);
+                iframeHammerhead.get('./utils/destination-location')
+                    .forceLocation('http://' + iframeLocation.host + '/sessionId/' + baseUrl);
+
+                var testUrl = function (url, fn, nativeFn) {
+                    nativeFn.call(iframeHistory, null, null, baseUrl);
+                    nativeFn.call(iframeHistory, null, null, url);
+
+                    var destUrl           = iframeLocation.toString();
+                    var destUrlNotChanged = destUrl === baseUrl;
+
+                    nativeFn.call(iframeHistory, null, null, baseUrl);
+                    fn.call(iframeHistory, null, null, url);
+
+                    var parsedProxyUrl = urlUtils.parseProxyUrl(iframeLocation.toString());
+
+                    if (parsedProxyUrl)
+                        strictEqual(destUrl, parsedProxyUrl.destUrl);
+                    else
+                        ok(destUrlNotChanged);
+                };
+
+                for (var i = 0; i < urlValues.length; i++) {
+                    var url = urlValues[i];
+
+                    testUrl(url, iframeHistory.replaceState, iframeNativeMethods.historyReplaceState);
+                    testUrl(url, iframeHistory.pushState, iframeNativeMethods.historyPushState);
+                }
+
+                document.body.removeChild(iframe);
+                start();
+            });
+
+        document.body.appendChild(iframe);
+    });
+}
 
 module('regression');
 

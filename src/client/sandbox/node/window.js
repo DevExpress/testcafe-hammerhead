@@ -8,7 +8,7 @@ import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
 import { processHtml } from '../../utils/html';
 import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
-import { isFirefox, isIE9 } from '../../utils/browser';
+import { isFirefox, isIE9, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
@@ -268,19 +268,19 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
-            window.history.pushState = function () {
-                if (typeof arguments[2] === 'string')
-                    arguments[2] = getProxyUrl(arguments[2]);
+            var createWrapperForHistoryStateManipulationFn = function (nativeFn) {
+                return function (...args) {
+                    var url = args[2];
 
-                return nativeMethods.historyPushState.apply(history, arguments);
+                    if (args.length > 2 && (url !== null && (isIE || url !== void 0)))
+                        args[2] = getProxyUrl(String(url));
+
+                    return nativeFn.apply(this, args);
+                };
             };
 
-            window.history.replaceState = function () {
-                if (typeof arguments[2] === 'string')
-                    arguments[2] = getProxyUrl(arguments[2]);
-
-                return nativeMethods.historyReplaceState.apply(history, arguments);
-            };
+            window.history.pushState    = createWrapperForHistoryStateManipulationFn(nativeMethods.historyPushState);
+            window.history.replaceState = createWrapperForHistoryStateManipulationFn(nativeMethods.historyReplaceState);
         }
 
         if (window.navigator.sendBeacon) {
