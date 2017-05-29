@@ -66,9 +66,9 @@ function addClassFallback (el, className) {
         var classNames = className.split(/\s+/);
         var setClass   = ' ' + el.className + ' ';
 
-        for (var i = 0; i < classNames.length; i++) {
-            if (setClass.indexOf(' ' + classNames[i] + ' ') === -1)
-                setClass += classNames[i] + ' ';
+        for (var currentClassName of classNames) {
+            if (setClass.indexOf(' ' + currentClassName + ' ') === -1)
+                setClass += currentClassName + ' ';
         }
 
         el.className = trim(setClass);
@@ -712,8 +712,8 @@ export function addClass (el, className) {
     if (el && el.classList) {
         var classNames = className.split(/\s+/);
 
-        for (var i = 0, len = classNames.length; i < len; i++)
-            el.classList.add(classNames[i]);
+        for (var currentClassName of classNames)
+            el.classList.add(currentClassName);
     }
     else
         addClassFallback(el, className);
@@ -727,8 +727,8 @@ export function removeClass (el, className) {
     if (el.classList) {
         var classNames = className.split(/\s+/);
 
-        for (var i = 0, len = classNames.length; i < len; i++)
-            el.classList.remove(classNames[i]);
+        for (var currentClassName of classNames)
+            el.classList.remove(currentClassName);
     }
     else
         removeClassFallback(el, className);
