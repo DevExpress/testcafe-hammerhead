@@ -90,8 +90,8 @@ export default class UploadInfoManager {
             else if (Browser.isIE9 || Browser.isIE10) {
                 var filePaths = [];
 
-                for (var i = 0; i < fileNames.length; i++)
-                    filePaths.push(FAKE_PATH_STRING + fileNames[i].split('/').pop());
+                for (var fileName of fileNames)
+                    filePaths.push(FAKE_PATH_STRING + fileName.split('/').pop());
 
                 value = filePaths.join(', ');
             }
@@ -167,9 +167,9 @@ export default class UploadInfoManager {
     }
 
     getUploadInfo (input) {
-        for (var i = 0; i < this.uploadInfo.length; i++) {
-            if (this.uploadInfo[i].input === input)
-                return this.uploadInfo[i];
+        for (var uploadInfoItem of this.uploadInfo) {
+            if (uploadInfoItem.input === input)
+                return uploadInfoItem;
         }
 
         return null;
