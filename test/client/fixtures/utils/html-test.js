@@ -31,12 +31,27 @@ test('hover marker', function () {
                '<div ' + INTERNAL_ATTRS.hoverPseudoClass + '></div>' +
                '<div ' + INTERNAL_ATTRS.hoverPseudoClass + '=""></div>';
 
-    var expexted     = '<a href="http://domain.com"></a><div></div><div></div>';
-    var pocessedHtml = htmlUtils.processHtml(html);
+    var expected      = '<a href="http://domain.com"></a><div></div><div></div>';
+    var processedHtml = htmlUtils.processHtml(html);
 
-    strictEqual(htmlUtils.cleanUpHtml(pocessedHtml), expexted);
+    strictEqual(htmlUtils.cleanUpHtml(processedHtml), expected);
 
     urlUtils.getProxyUrl = storedGetProxyUrl;
+});
+
+test('focus marker', function () {
+    var html = '<input ' + INTERNAL_ATTRS.focusPseudoClass + '>' +
+               '<input ' + INTERNAL_ATTRS.focusPseudoClass + '="">';
+
+    strictEqual(htmlUtils.cleanUpHtml(html), '<input><input>');
+});
+
+test('autocomplete attribute', function () {
+    var html = '<input ' + domProcessor.getStoredAttrName('autocomplete') +
+               '="' + domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER + '" autocomplete="off">' +
+               '<input ' + domProcessor.getStoredAttrName('autocomplete') + '="on" autocomplete="off">';
+
+    strictEqual(htmlUtils.cleanUpHtml(html), '<input><input autocomplete="on">');
 });
 
 test('shadow ui elements', function () {
