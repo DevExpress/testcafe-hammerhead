@@ -12,7 +12,6 @@ import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
-import transport from '../../transport';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
@@ -331,13 +330,10 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             formSubmit () {
-                // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
-                transport.waitCookieMsg(() => {
-                    sandbox._ensureTargetContainsExistingBrowsingContext(this);
-                    sandbox.emit(sandbox.BEFORE_FORM_SUBMIT, { form: this });
+                sandbox._ensureTargetContainsExistingBrowsingContext(this);
+                sandbox.emit(sandbox.BEFORE_FORM_SUBMIT, { form: this });
 
-                    return nativeMethods.formSubmit.apply(this, arguments);
-                });
+                return nativeMethods.formSubmit.apply(this, arguments);
             },
 
             insertBefore () {

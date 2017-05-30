@@ -1,5 +1,3 @@
-import EventEmitter from './utils/event-emitter';
-import COMMAND from '../session/command';
 import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
 import XhrSandbox from './sandbox/xhr';
@@ -7,38 +5,12 @@ import { stringify as stringifyJSON, parse as parseJSON } from './json';
 import { isWebKit, isIE9 } from './utils/browser';
 import Promise from 'pinkie';
 
-class Transport extends EventEmitter {
+const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
+
+class Transport {
     constructor () {
-        super();
-
-        this.SWITCH_BACK_TO_ASYNC_XHR_DELAY    = 2000;
-        this.SERVICE_MESSAGES_WAITING_INTERVAL = 50;
-        this.MSG_RECEIVED_EVENT                = 'hammerhead|event|message-received';
-
         this.msgQueue                     = {};
-        this.useAsyncXhr                  = true;
         this.activeServiceMessagesCounter = 0;
-
-        // NOTE: When unloading, we should switch to synchronous XHR to be sure that we won’t lose any service messages.
-        window.addEventListener('beforeunload', () => {
-            this.useAsyncXhr = false;
-
-            // NOTE: If the unloading was canceled, switch back to asynchronous XHR.
-            nativeMethods.setTimeout.call(window, () => {
-                this.useAsyncXhr = true;
-
-                return this.SWITCH_BACK_TO_ASYNC_XHR_DELAY;
-            });
-        }, true);
-    }
-
-    static _createXMLHttpRequest (async) {
-        var xhr = XhrSandbox.createNativeXHR();
-
-        xhr.open('POST', settings.get().serviceMsgUrl, async);
-        xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-
-        return xhr;
     }
 
     static _storeMessage (msg) {
@@ -69,10 +41,6 @@ class Transport extends EventEmitter {
         window.localStorage.setItem(settings.get().sessionId, stringifyJSON(messages));
     }
 
-    _cookieMsgInProgress () {
-        return this.msgQueue[COMMAND.setCookie] && !!this.msgQueue[COMMAND.setCookie].length;
-    }
-
     _sendNextQueuedMsg (queueId) {
         var queueItem = this.msgQueue[queueId][0];
 
@@ -82,8 +50,6 @@ class Transport extends EventEmitter {
                     queueItem.callback(res);
 
                 this.msgQueue[queueId].shift();
-
-                this.emit(this.MSG_RECEIVED_EVENT, {});
 
                 if (this.msgQueue[queueId].length)
                     this._sendNextQueuedMsg(queueId);
@@ -100,19 +66,15 @@ class Transport extends EventEmitter {
         var sendMsg = forced => {
             this.activeServiceMessagesCounter++;
 
-            var requestIsAsync = this.useAsyncXhr;
-
-            if (forced)
-                requestIsAsync = false;
-
-            var transport    = this;
-            var request      = Transport._createXMLHttpRequest(requestIsAsync);
-            var msgCallback  = function () {
+            var isAsyncRequest = !forced;
+            var transport      = this;
+            var request        = XhrSandbox.createNativeXHR();
+            var msgCallback    = function () {
                 transport.activeServiceMessagesCounter--;
 
                 callback(this.responseText && parseJSON(this.responseText));
             };
-            var errorHandler = function () {
+            var errorHandler   = function () {
                 if (msg.disableResending)
                     return;
 
@@ -123,6 +85,8 @@ class Transport extends EventEmitter {
                 else
                     sendMsg(true);
             };
+
+            XhrSandbox.openNativeXhr(request, settings.get().serviceMsgUrl, isAsyncRequest);
 
             if (forced) {
                 request.addEventListener('readystatechange', function () {
@@ -166,23 +130,6 @@ class Transport extends EventEmitter {
         sendMsg();
     }
 
-    // NOTE: We don't use a promise here because if the cookie message queue is empty,
-    // we need to call a callback function synchronously (GH-722)
-    waitCookieMsg (callback) {
-        var handler = () => {
-            if (!this._cookieMsgInProgress()) {
-                this.off(this.MSG_RECEIVED_EVENT, handler);
-
-                callback();
-            }
-        };
-
-        if (this._cookieMsgInProgress())
-            this.on(this.MSG_RECEIVED_EVENT, handler);
-        else
-            callback();
-    }
-
     waitForServiceMessagesCompleted (timeout) {
         return new Promise(resolve => {
             if (!this.activeServiceMessagesCounter) {
@@ -202,7 +149,7 @@ class Transport extends EventEmitter {
                     nativeMethods.clearTimeout.call(window, timeoutId);
                     resolve();
                 }
-            }, this.SERVICE_MESSAGES_WAITING_INTERVAL);
+            }, SERVICE_MESSAGES_WAITING_INTERVAL);
         });
     }
 
