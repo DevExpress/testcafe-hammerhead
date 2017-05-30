@@ -106,6 +106,14 @@ asyncTest('get root after body recreation', function () {
     document.body.appendChild(iframe);
 });
 
+test('set innerHTML for root', function () {
+    var root = shadowUI.getRoot();
+
+    eval(processScript('root.innerHTML = "<div>\"'));
+
+    ok(domUtils.isShadowUIElement(root.childNodes[0]));
+});
+
 module('childNodes');
 
 test('body.childNodes', function () {
@@ -779,10 +787,3 @@ if (document.implementation && document.implementation.createHTMLDocument) {
     });
 }
 
-test('ShadowUI elements created via changing innerHTML should be recognized', function () {
-    var root = shadowUI.getRoot();
-
-    eval(processScript('root.innerHTML = "<div>\"'));
-
-    ok(domUtils.isShadowUIElement(root.childNodes[0]));
-});
