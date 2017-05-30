@@ -75,8 +75,8 @@ export default class Listeners extends EventEmitter {
     }
 
     static _isDifferentHandler (outerHandlers, listener, useCapture) {
-        for (var i = 0, len = outerHandlers.length; i < len; i++) {
-            if (outerHandlers[i].fn === listener && outerHandlers[i].useCapture === useCapture)
+        for (var outerHandler of outerHandlers) {
+            if (outerHandler.fn === listener && outerHandler.useCapture === useCapture)
                 return false;
         }
 
@@ -119,8 +119,8 @@ export default class Listeners extends EventEmitter {
                 stopPropagation(e);
             };
 
-            for (var i = 0; i < internalHandlers.length; i++) {
-                internalHandlers[i].call(el, e, elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG], preventEvent, cancelHandlers, stopEventPropagation);
+            for (var internalHandler of internalHandlers) {
+                internalHandler.call(el, e, elWindow[EVENT_SANDBOX_DISPATCH_EVENT_FLAG], preventEvent, cancelHandlers, stopEventPropagation);
 
                 if (eventPrevented || stopPropagationCalled)
                     break;
@@ -234,8 +234,8 @@ export default class Listeners extends EventEmitter {
 
         this.listeningCtx.addListeningElement(el, events);
 
-        for (var i = 0; i < events.length; i++)
-            nativeAddEventListener.call(el, events[i], this._createEventHandler(), true);
+        for (var event of events)
+            nativeAddEventListener.call(el, event, this._createEventHandler(), true);
 
         var overridedMethods = this._createElementOverridedMethods(el);
 
@@ -259,8 +259,8 @@ export default class Listeners extends EventEmitter {
         if (elementCtx) {
             var eventNames = Object.keys(elementCtx);
 
-            for (var i = 0, len = eventNames.length; i < len; i++)
-                nativeAddEventListener.call(el, eventNames[i], this._createEventHandler(), true);
+            for (var eventName of eventNames)
+                nativeAddEventListener.call(el, eventName, this._createEventHandler(), true);
         }
     }
 
@@ -290,8 +290,8 @@ export default class Listeners extends EventEmitter {
         if (!this.listeningCtx.isElementListening(el))
             this.initElementListening(el, events);
 
-        for (var i = 0; i < events.length; i++) {
-            var eventListeningInfo = this.listeningCtx.getEventCtx(el, events[i]);
+        for (var event of events) {
+            var eventListeningInfo = this.listeningCtx.getEventCtx(el, event);
 
             eventListeningInfo.outerHandlersWrapper = wrapper;
         }

@@ -65,9 +65,9 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         var addedProperties = getAddedProperties();
         var state           = [[], []];
 
-        for (var i = 0; i < addedProperties.length; i++) {
-            state[KEY].push(addedProperties[i]);
-            state[VALUE].push(this[addedProperties[i]]);
+        for (var addedProperty of addedProperties) {
+            state[KEY].push(addedProperty);
+            state[VALUE].push(this[addedProperty]);
         }
 
         return state;
@@ -157,8 +157,8 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         var addedProperties = getAddedProperties();
         var changed         = false;
 
-        for (var i = 0; i < addedProperties.length; i++) {
-            delete this[addedProperties[i]];
+        for (var addedProperty of addedProperties) {
+            delete this[addedProperty];
             changed = true;
         }
 

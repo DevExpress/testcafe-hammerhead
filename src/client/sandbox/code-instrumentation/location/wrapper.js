@@ -101,8 +101,8 @@ export default class LocationWrapper extends EventEmitter {
             }));
         };
 
-        for (var i = 0, len = urlProps.length; i < len; i++)
-            overrideProperty(urlProps[i]);
+        for (var urlProp of urlProps)
+            overrideProperty(urlProp);
 
         this.assign = url => {
             var proxiedHref = getProxiedHref(url);
