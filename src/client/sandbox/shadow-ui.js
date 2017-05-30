@@ -242,7 +242,7 @@ export default class ShadowUI extends SandboxBase {
             var headChild = head.children[i];
 
             if (ShadowUI.containsShadowUIClassPostfix(headChild))
-                ShadowUI.markElementAsShadow(headChild);
+                ShadowUI._markElementAsShadow(headChild);
         }
     }
 
@@ -254,7 +254,7 @@ export default class ShadowUI extends SandboxBase {
                 nativeMethods.setAttribute.call(this.root, 'id', ShadowUI.patchId(this.ROOT_ID));
                 nativeMethods.setAttribute.call(this.root, 'contenteditable', 'false');
                 this.addClass(this.root, this.ROOT_CLASS);
-                ShadowUI.markElementAsShadow(this.root);
+                ShadowUI._markElementAsShadow(this.root);
                 nativeMethods.appendChild.call(this.document.body, this.root);
 
                 for (var event of EVENTS)
@@ -501,15 +501,17 @@ export default class ShadowUI extends SandboxBase {
         return nativeMethods.insertBefore.call(rootParent, el, rootParent.lastChild);
     }
 
-    static markElementChildrenAsShadowRecursively (el) {
+    static _markElementAsShadow (el) {
+        el[INTERNAL_PROPS.shadowUIElement] = true;
+    }
+
+    static markElementAndChildrenAsShadow (el) {
+        ShadowUI._markElementAsShadow(el);
+
         var childElements = getNativeQuerySelectorAll(el).call(el, '*');
 
         for (var i = 0; i < childElements.length; i++)
-            ShadowUI.markElementAsShadow(childElements[i]);
-    }
-
-    static markElementAsShadow (el) {
-        el[INTERNAL_PROPS.shadowUIElement] = true;
+            ShadowUI._markElementAsShadow(childElements[i]);
     }
 
     static containsShadowUIClassPostfix (element) {

@@ -71,7 +71,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 shadowUIElementCount++;
         }
 
-        if (shadowUIElementCount !== 0)
+        if (shadowUIElementCount)
             ShadowUI.checkElementsPosition(collection);
 
         return collection.length - shadowUIElementCount;
@@ -295,16 +295,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     el.innerHTML = processedValue;
 
                     if (domUtils.isBodyElement(el)) {
-                        var shadowUIRoot = this.shadowUI.select('.' + this.shadowUI.ROOT_CLASS, el)[0];
+                        var shadowUIRoot = this.shadowUI.getRoot();
 
-                        if (shadowUIRoot) {
-                            ShadowUI.markElementAsShadow(shadowUIRoot);
-                            ShadowUI.markElementChildrenAsShadowRecursively(shadowUIRoot);
-                        }
+                        ShadowUI.markElementAndChildrenAsShadow(shadowUIRoot);
                     }
 
                     else if (domUtils.isShadowUIElement(el))
-                        ShadowUI.markElementChildrenAsShadowRecursively(el);
+                        ShadowUI.markElementAndChildrenAsShadow(el);
 
                     if (isStyleEl || isScriptEl)
                         return value;
