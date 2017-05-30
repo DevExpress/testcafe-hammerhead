@@ -17,15 +17,6 @@ export default class CookieSync {
         nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._beforeUnloadHandler(), true);
     }
 
-    static _createXMLHttpRequest (isAsync) {
-        var xhr = XhrSandbox.createNativeXHR();
-
-        xhr.open('POST', settings.get().cookieSyncUrl, isAsync);
-        xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-
-        return xhr;
-    }
-
     static _has204StatusCode (request) {
         try {
             // NOTE: XMLHTTPRequest implementation in MSXML HTTP does not handle HTTP responses
@@ -91,7 +82,9 @@ export default class CookieSync {
 
     _sendQueue () {
         var isAsyncRequest = this.useAsyncXhr;
-        var request        = CookieSync._createXMLHttpRequest(isAsyncRequest);
+        var request        = XhrSandbox.createNativeXHR();
+
+        XhrSandbox.openNativeXhr(request, settings.get().cookieSyncUrl, isAsyncRequest);
 
         this.sendedQueue = this.queue;
         this.queue       = [];

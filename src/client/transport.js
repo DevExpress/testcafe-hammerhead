@@ -13,15 +13,6 @@ class Transport {
         this.activeServiceMessagesCounter = 0;
     }
 
-    static _createXMLHttpRequest (isAsync) {
-        var xhr = XhrSandbox.createNativeXHR();
-
-        xhr.open('POST', settings.get().serviceMsgUrl, isAsync);
-        xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-
-        return xhr;
-    }
-
     static _storeMessage (msg) {
         var storedMessages = Transport._getStoredMessages();
 
@@ -75,9 +66,9 @@ class Transport {
         var sendMsg = forced => {
             this.activeServiceMessagesCounter++;
 
-            var requestIsAsync = !forced;
+            var isAsyncRequest = !forced;
             var transport      = this;
-            var request        = Transport._createXMLHttpRequest(requestIsAsync);
+            var request        = XhrSandbox.createNativeXHR();
             var msgCallback    = function () {
                 transport.activeServiceMessagesCounter--;
 
@@ -94,6 +85,8 @@ class Transport {
                 else
                     sendMsg(true);
             };
+
+            XhrSandbox.openNativeXhr(request, settings.get().serviceMsgUrl, isAsyncRequest);
 
             if (forced) {
                 request.addEventListener('readystatechange', function () {
