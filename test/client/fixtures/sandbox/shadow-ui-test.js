@@ -586,28 +586,6 @@ test('querySelectorAll', function () {
     strictEqual(elems[0].id, 'pageElem');
 });
 
-test('document.querySelector and head.querySelector', function () {
-    var meta       = document.createElement('meta');
-    var shadowMeta = document.createElement('meta');
-
-    meta.className       = 'metas';
-    shadowMeta.className = 'metas ' + SHADOW_UI_CLASSNAME.charset;
-
-    document.head.insertBefore(meta, document.head.firstChild);
-    document.head.insertBefore(shadowMeta, meta);
-
-    var someMeta = document.querySelector('.metas');
-
-    strictEqual(someMeta.className, 'metas');
-
-    someMeta = document.head.querySelector('.metas');
-
-    strictEqual(someMeta.className, 'metas');
-
-    document.head.removeChild(meta);
-    document.head.removeChild(shadowMeta);
-});
-
 module('ui stylesheet');
 
 asyncTest('stylesheets are restored after the document is cleaned', function () {
@@ -809,3 +787,24 @@ if (document.implementation && document.implementation.createHTMLDocument) {
     });
 }
 
+test('querySelector call should return a first non-shadowUI element (GH-1131)', function () {
+    var meta       = document.createElement('meta');
+    var shadowMeta = document.createElement('meta');
+
+    meta.className       = 'metas';
+    shadowMeta.className = 'metas ' + SHADOW_UI_CLASSNAME.charset;
+
+    document.head.insertBefore(meta, document.head.firstChild);
+    document.head.insertBefore(shadowMeta, meta);
+
+    var someMeta = document.querySelector('.metas');
+
+    strictEqual(someMeta.className, 'metas');
+
+    someMeta = document.head.querySelector('.metas');
+
+    strictEqual(someMeta.className, 'metas');
+
+    document.head.removeChild(meta);
+    document.head.removeChild(shadowMeta);
+});

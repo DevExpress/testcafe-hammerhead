@@ -31,7 +31,7 @@ export default class ShadowUI extends SandboxBase {
         this.root                    = null;
         this.lastActiveElement       = null;
         this.uiStyleSheetsHtmlBackup = null;
-        this.createWrapperFor        = ShadowUI._generateWrapperFunctions();
+        this.wrapperCreators         = ShadowUI._createWrapperCreators();
     }
 
     static _filterElement (el) {
@@ -76,7 +76,7 @@ export default class ShadowUI extends SandboxBase {
         return null;
     }
 
-    static _generateWrapperFunctions () {
+    static _createWrapperCreators () {
         return {
             getElementsByClassName (nativeGetElementsByClassNameFnName) {
                 return function (...args) {
@@ -197,10 +197,10 @@ export default class ShadowUI extends SandboxBase {
             return ShadowUI._filterNodeList(nativeMethods.getElementsByName.apply(this, args));
         };
 
-        docProto.getElementsByClassName = this.createWrapperFor.getElementsByClassName('getElementsByClassName');
-        docProto.getElementsByTagName   = this.createWrapperFor.getElementsByTagName('getElementsByTagName');
-        docProto.querySelector          = this.createWrapperFor.querySelector('querySelector', 'querySelectorAll');
-        docProto.querySelectorAll       = this.createWrapperFor.querySelectorAll('querySelectorAll');
+        docProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('getElementsByClassName');
+        docProto.getElementsByTagName   = this.wrapperCreators.getElementsByTagName('getElementsByTagName');
+        docProto.querySelector          = this.wrapperCreators.querySelector('querySelector', 'querySelectorAll');
+        docProto.querySelectorAll       = this.wrapperCreators.querySelectorAll('querySelectorAll');
 
         // NOTE: T195358
         docProto.querySelectorAll.toString       = () => nativeMethods.querySelectorAll.toString();
@@ -211,10 +211,10 @@ export default class ShadowUI extends SandboxBase {
         var bodyProto = window.HTMLBodyElement.prototype;
         var headProto = window.HTMLHeadElement.prototype;
 
-        bodyProto.getElementsByClassName = this.createWrapperFor.getElementsByClassName('elementGetElementsByClassName');
-        bodyProto.getElementsByTagName   = this.createWrapperFor.getElementsByTagName('elementGetElementsByTagName');
-        bodyProto.querySelector          = this.createWrapperFor.querySelector('elementQuerySelector', 'elementQuerySelectorAll');
-        bodyProto.querySelectorAll       = this.createWrapperFor.querySelectorAll('elementQuerySelectorAll');
+        bodyProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('elementGetElementsByClassName');
+        bodyProto.getElementsByTagName   = this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName');
+        bodyProto.querySelector          = this.wrapperCreators.querySelector('elementQuerySelector', 'elementQuerySelectorAll');
+        bodyProto.querySelectorAll       = this.wrapperCreators.querySelectorAll('elementQuerySelectorAll');
 
         headProto.getElementsByClassName = bodyProto.getElementsByClassName;
         headProto.getElementsByTagName   = bodyProto.getElementsByTagName;
