@@ -341,8 +341,9 @@ test('document.write for page html (T190753)', function () {
 
 if (browserUtils.isFirefox || browserUtils.isIE11) {
     asyncTest('override window methods after document.write call (T239109)', function () {
-        var $iframe = $('<iframe id="test_wrapper">');
+        var iframe = document.createElement('iframe');
 
+        iframe.id = 'test_wrapper';
         window.top.onIframeInited = function (window) {
             var iframeIframeSandbox = window['%hammerhead%'].sandbox.iframe;
 
@@ -350,7 +351,7 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
             iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT, iframeIframeSandbox.iframeReadyToInitHandler);
         };
 
-        $iframe[0].setAttribute('src', 'javascript:\'' +
+        iframe.setAttribute('src', 'javascript:\'' +
                                        '   <html><body><script>' +
                                        '       window.top.onIframeInited(window);' +
                                        '       var quote = String.fromCharCode(34);' +
@@ -359,15 +360,16 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
                                        '   </sc' + 'ript></body></html>' +
                                        '\'');
 
-        $iframe.appendTo('body');
+        document.body.appendChild(iframe);
 
         var id = setInterval(function () {
-            var testIframe = $iframe[0].contentDocument.getElementById('test_iframe');
+            var testIframe = iframe.contentDocument.getElementById('test_iframe');
 
             if (testIframe && testIframe.contentDocument.body.children[0].tagName.toLowerCase() === 'div') {
                 clearInterval(id);
                 ok(true);
-                $iframe.remove();
+                iframe.parentNode.removeChild(iframe);
+
                 start();
             }
         }, 10);
@@ -553,6 +555,8 @@ test('an iframe should not contain self-removing scripts after document.close (G
     iframeDocument.close();
 
     strictEqual(nativeMethods.querySelectorAll.call(document, '.' + SHADOW_UI_CLASSNAME.selfRemovingScript).length, 0);
+
+    iframe.parentNode.removeChild(iframe);
 });
 
 test('querySelector should return an element if a selector contains the href attribute with hash as a value (GH-922)', function () {

@@ -63,6 +63,12 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _bringRootToWindowTopLeft () {
+        // NOTE: After document.write call into nested iframes with html src attribute value
+        // Firefox has document.defaultView equal null
+        // In this case we can not calculate the 'left' and 'top' style properties
+        if (!this.document.defaultView)
+            return;
+
         var rootHasParentWithNonStaticPosition = false;
         var parent                             = this.root.parentNode;
 
