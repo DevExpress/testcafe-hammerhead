@@ -10,17 +10,19 @@ import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
 import getNativeQuerySelectorAll from '../utils/get-native-query-selector-all';
 
+const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
+const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
+
 export default class ShadowUI extends SandboxBase {
     constructor (nodeMutation, messageSandbox, iframeSandbox) {
         super();
 
         this.BODY_CONTENT_CHANGED_COMMAND = 'hammerhead|command|body-content-changed';
 
-        this.CLASSNAME_REGEX = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
-        this.ROOT_CLASS      = 'root';
-        this.ROOT_ID         = 'root';
-        this.HIDDEN_CLASS    = 'hidden';
-        this.BLIND_CLASS     = 'blind';
+        this.ROOT_CLASS   = 'root';
+        this.ROOT_ID      = 'root';
+        this.HIDDEN_CLASS = 'hidden';
+        this.BLIND_CLASS  = 'blind';
 
         this.nodeMutation   = nodeMutation;
         this.messageSandbox = messageSandbox;
@@ -63,19 +65,13 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _bringRootToWindowTopLeft () {
-        // NOTE: After document.write call into nested iframes with html src attribute value
-        // Firefox has document.defaultView equal null
-        // In this case we can not calculate the 'left' and 'top' style properties
-        if (!this.document.defaultView)
-            return;
-
         var rootHasParentWithNonStaticPosition = false;
         var parent                             = this.root.parentNode;
 
         while (parent) {
             var elementPosition = getStyle(parent, 'position');
 
-            if (/fixed|relative|absolute/.test(elementPosition))
+            if (IS_NON_STATIC_POSITION_RE.test(elementPosition))
                 rootHasParentWithNonStaticPosition = true;
 
             parent = parent.parentNode;
@@ -481,7 +477,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     select (selector, context) {
-        var patchedSelector = selector.replace(this.CLASSNAME_REGEX,
+        var patchedSelector = selector.replace(CLASSNAME_RE,
             className => className + SHADOW_UI_CLASS_NAME.postfix);
 
         return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :

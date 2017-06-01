@@ -33,10 +33,10 @@ export function isStyleSheet (instance) {
     return domUtils.instanceToString(instance) === '[object CSSStyleSheet]';
 }
 
-export function get (el, property, doc) {
+export function get (el, property, doc, win) {
     el = el.documentElement || el;
 
-    var computedStyle = getComputedStyle(el, doc);
+    var computedStyle = getComputedStyle(el, doc, win);
 
     return computedStyle && computedStyle[property];
 }
@@ -55,10 +55,16 @@ export function getBordersWidth (el) {
     };
 }
 
-export function getComputedStyle (el, doc) {
+export function getComputedStyle (el, doc, win) {
+    // NOTE: In Firefox, after calling the 'document.write' function for nested iframes with html src value
+    // document.defaultView equals 'null'. But 'window.document' equals 'document'.
+    // This is why, we are forced to calculate the targetWindow instead of use document.defaultView.
     doc = doc || document;
+    win = win || window;
 
-    return doc.defaultView.getComputedStyle(el, null);
+    var targetWin = doc.defaultView || win;
+
+    return targetWin.getComputedStyle(el, null);
 }
 
 export function getElementMargin (el) {
