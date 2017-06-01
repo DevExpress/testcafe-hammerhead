@@ -85,11 +85,13 @@ export default class ShadowUI extends SandboxBase {
             var rootOffset = getOffsetPosition(this.root);
 
             if (rootOffset.left !== 0 || rootOffset.top !== 0) {
-                var newLeft = ((parseFloat(getStyle(this.root, 'left')) || 0) - rootOffset.left).toString() + 'px';
-                var newTop  = ((parseFloat(getStyle(this.root, 'top')) || 0) - rootOffset.top).toString() + 'px';
+                var currentRootLeft = parseFloat(getStyle(this.root, 'left')) || 0;
+                var currentRootTop  = parseFloat(getStyle(this.root, 'top')) || 0;
+                var newRootLeft     = currentRootLeft - rootOffset.left + 'px';
+                var newRootTop      = currentRootTop - rootOffset.top + 'px';
 
-                setStyle(this.root, 'left', newLeft);
-                setStyle(this.root, 'top', newTop);
+                setStyle(this.root, 'left', newRootLeft);
+                setStyle(this.root, 'top', newRootTop);
             }
         }
     }
