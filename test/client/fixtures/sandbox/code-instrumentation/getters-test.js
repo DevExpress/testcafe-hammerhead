@@ -366,12 +366,12 @@ test('get script body (T296958) (GH-183)', function () {
     notEqual(script.textContent, scriptCode);
     strictEqual(script.textContent.replace(/\s/g, ''), processedScriptCode.replace(/\s/g, ''));
     strictEqual(cleanedScriptCode.indexOf(INTERNAL_PROPS.processDomMethodName), -1);
-    strictEqual(getProperty(script, 'text'), cleanedScriptCode);
-    strictEqual(getProperty(script, 'textContent'), cleanedScriptCode);
-    strictEqual(getProperty(script, 'innerHTML'), cleanedScriptCode);
+    strictEqual(getProperty(script, 'text'), cleanedScriptCode, 'text');
+    strictEqual(getProperty(script, 'textContent'), cleanedScriptCode, 'textContent');
+    strictEqual(getProperty(script, 'innerHTML'), cleanedScriptCode, 'innerHTML');
 
     if (typeof script.innerText === 'string')
-        strictEqual(getProperty(script, 'innerText').replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''));
+        strictEqual(getProperty(script, 'innerText').replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''), 'innerText');
 });
 
 test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
@@ -524,4 +524,59 @@ test('we should clean up html and remove extra namespaces from svg (GH-1083)', f
     nativeMethods.appendChild.call(nativeDiv, nativeSvg);
 
     strictEqual(getProperty(div, 'innerHTML'), nativeDiv.innerHTML);
+});
+
+test('we should not process element\'s properties if they do not exist (GH-1164)', function () {
+    var div            = document.createElement('div');
+    var svg            = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    var html           = '<a href="/path">link</a>';
+    var processedHtml  = processHtml(html);
+    var style          = 'body {}';
+    var textProperties = ['innerText', 'textContent'];
+    var styleElement   = document.createElement('style');
+
+    div.appendChild(svg);
+
+    var svgHasInnerHTML = svg.innerHTML !== void 0;
+
+    if (svgHasInnerHTML)
+        strictEqual(getProperty(svg, 'innerHTML'), '');
+    else
+        strictEqual(getProperty(svg, 'innerHTML'), void 0);
+
+    setProperty(svg, 'innerHTML', html);
+
+    if (svgHasInnerHTML)
+        strictEqual(svg.innerHTML, processedHtml);
+    else
+        strictEqual(svg.innerHTML, html);
+
+    svg.innerHTML = '';
+
+    var svgHasOuterHTML = svg.outerHTML !== void 0;
+
+    if (svgHasOuterHTML)
+        strictEqual(getProperty(svg, 'outerHTML'), svg.outerHTML);
+    else
+        strictEqual(getProperty(svg, 'outerHTML'), void 0);
+
+    setProperty(svg, 'outerHTML', html);
+
+    if (svgHasOuterHTML)
+        strictEqual(div.innerHTML, processedHtml);
+    else
+        strictEqual(svg.outerHTML, html);
+
+    setProperty(styleElement, 'innerHTML', style);
+
+    svg.appendChild(styleElement);
+
+    textProperties.forEach(function (property) {
+        var svgHasProperty = svg[property] !== void 0;
+
+        if (svgHasProperty)
+            strictEqual(getProperty(svg, property), style, property);
+        else
+            strictEqual(getProperty(svg, property), void 0, property);
+    });
 });
