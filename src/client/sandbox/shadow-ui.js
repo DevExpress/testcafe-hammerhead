@@ -233,6 +233,7 @@ export default class ShadowUI extends SandboxBase {
             var refNode = head.children[i] || null;
             var newNode = nativeMethods.cloneNode.call(parser.children[i]);
 
+            ShadowUI._markElementAsShadow(newNode);
             this.nativeMethods.insertBefore.call(head, newNode, refNode);
         }
     }

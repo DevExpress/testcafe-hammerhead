@@ -614,7 +614,7 @@ asyncTest('stylesheets are restored after the document is cleaned', function () 
         for (var index = 0, length = iframeUIStylesheets.length; index < length; index++) {
             var iframeUIStylesheet = iframeUIStylesheets[index];
 
-            domUtils.isShadowUIElement(iframeUIStylesheet);
+            ok(domUtils.isShadowUIElement(iframeUIStylesheet));
             result += iframeUIStylesheet.id;
         }
 

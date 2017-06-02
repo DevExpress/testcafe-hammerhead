@@ -10,5 +10,6 @@ export default {
     documentCharset:      'hammerhead|document-charset',
     iframeNativeMethods:  'hammerhead|iframe-native-methods',
     hammerhead:           '%hammerhead%',
-    selection:            'hammerhead|selection'
+    selection:            'hammerhead|selection',
+    shadowUIElement:      'hammerhead|shadow-ui-element'
 };
