@@ -1,7 +1,9 @@
 var urlParser = require('url');
 var fs        = require('fs');
+var CookieJar = require('tough-cookie').CookieJar;
 
 var unchangeableUrlSession = 'unchangeableUrlSession';
+var cookies                = {};
 
 // NOTE: Url rewrite proxied requests (e.g. for iframes), so they will hit our server.
 function urlRewriteProxyRequest (req, res, next) {
@@ -64,6 +66,14 @@ module.exports = function (app) {
         }, delay);
     });
 
+    app.post('/cookie-sync/:delay', function (req, res) {
+        var delay = req.params.delay || 0;
+
+        setTimeout(function () {
+            res.status(204).send();
+        }, delay);
+    });
+
     app.get('/xhr-test/:delay', function (req, res) {
         var delay = req.params.delay || 0;
 
@@ -114,5 +124,43 @@ module.exports = function (app) {
 
     app.all('/echo-request-headers', function (req, res) {
         res.json(req.headers);
+    });
+
+    app.post('/set-cookie-msg/', function (req, res) {
+        var chunks = [];
+
+        req.on('data', function (chunk) {
+            chunks.push(chunk);
+        });
+
+        req.on('end', function () {
+            var msg       = JSON.parse(Buffer.concat(chunks).toString());
+            var userAgent = req.headers['user-agent'];
+
+            if (!cookies[userAgent])
+                cookies[userAgent] = new CookieJar();
+
+            for (var i = 0; i < msg.queue.length; i++) {
+                cookies[userAgent].setCookieSync(msg.queue[i].cookie, 'https://example.com/', {
+                    http:        false,
+                    ignoreError: true
+                });
+            }
+
+            res.status(204).send();
+        });
+    });
+
+    app.get('/get-cookies/', function (req, res) {
+        var pageMarkup = fs.readFileSync('./test/client/data/cookie/get-cookie.html').toString();
+        var userAgent  = req.headers['user-agent'];
+        var cookieStr  = '';
+
+        if (cookies[userAgent])
+            cookieStr = cookies[userAgent].getCookieStringSync('https://example.com/', { http: false });
+
+        res.send(pageMarkup.replace(/\$\{cookies}/, cookieStr));
+
+        delete cookies[userAgent];
     });
 };

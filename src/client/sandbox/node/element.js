@@ -12,7 +12,6 @@ import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
-import transport from '../../transport';
 import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
@@ -163,7 +162,7 @@ export default class ElementSandbox extends SandboxBase {
 
             if (tagName !== 'img' || el[HAS_LOAD_HANDLER_FLAG]) {
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
-                    var isIframe         = tagName === 'iframe';
+                    var isIframe         = tagName === 'iframe' || tagName === 'frame';
                     var isScript         = tagName === 'script';
                     var isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
                     var resourceType     = domProcessor.getElementResourceType(el);
@@ -332,13 +331,10 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             formSubmit () {
-                // TODO: Don't wait cookie, put them in a form hidden input and parse on the server (GH-199)
-                transport.waitCookieMsg(() => {
-                    sandbox._ensureTargetContainsExistingBrowsingContext(this);
-                    sandbox.emit(sandbox.BEFORE_FORM_SUBMIT, { form: this });
+                sandbox._ensureTargetContainsExistingBrowsingContext(this);
+                sandbox.emit(sandbox.BEFORE_FORM_SUBMIT, { form: this });
 
-                    return nativeMethods.formSubmit.apply(this, arguments);
-                });
+                return nativeMethods.formSubmit.apply(this, arguments);
             },
 
             insertBefore () {
@@ -721,6 +717,7 @@ export default class ElementSandbox extends SandboxBase {
                     this._setProxiedSrcUrlOnError(el);
                 break;
             case 'iframe':
+            case 'frame':
                 this.iframeSandbox.processIframe(el);
                 break;
             case 'base':

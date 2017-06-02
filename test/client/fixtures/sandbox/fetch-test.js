@@ -1,5 +1,6 @@
 var xhrHeaders   = hammerhead.get('../request-pipeline/xhr/headers');
 var destLocation = hammerhead.get('./utils/destination-location');
+var urlUtils     = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtis   = hammerhead.utils.browser;
@@ -9,7 +10,8 @@ if (window.fetch) {
         fetch('/xhr-test/100')
             .then(function (response) {
                 return response.text();
-            }).then(function (url) {
+            })
+            .then(function (url) {
                 strictEqual(url, '/sessionId/https://example.com/xhr-test/100');
                 start();
             });
@@ -21,7 +23,8 @@ if (window.fetch) {
         fetch(request)
             .then(function (response) {
                 return response.text();
-            }).then(function (url) {
+            })
+            .then(function (url) {
                 strictEqual(url, '/sessionId/https://example.com/xhr-test/100');
                 start();
             });
@@ -33,7 +36,8 @@ if (window.fetch) {
         fetch(new Request(request))
             .then(function (response) {
                 return response.text();
-            }).then(function (url) {
+            })
+            .then(function (url) {
                 strictEqual(url, '/sessionId/https://example.com/xhr-test/100');
                 start();
             });
@@ -47,10 +51,10 @@ if (window.fetch) {
 
         fetch('/echo-request-body', {
             method:  'post',
+            body:    JSON.stringify(data),
             headers: {
                 'Content-Type': 'application/json; charset=UTF-8'
-            },
-            body: JSON.stringify(data)
+            }
         })
             .then(function (response) {
                 return response.json();
@@ -379,7 +383,7 @@ if (window.fetch) {
         test('request promise should be rejected on invalid calling (GH-939)', function () {
             var testCases = [
                 [123],
-                [function () { }],
+                [function () {}],
                 [null]
             ];
 
@@ -436,6 +440,73 @@ if (window.fetch) {
                 ok(exceptionWasThrowForNative);
             });
         }
+
+        module('should emulate native behaviour on headers overwriting', function () {
+            var initWithHeader1           = {
+                headers: {
+                    header1: 'value1'
+                }
+            };
+            var initWithHeader3           = {
+                headers: {
+                    header3: 'value3'
+                }
+            };
+            var retrieveRequestBodyAsJson = function (fetchPromise) {
+                return fetchPromise
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (headers) {
+                        return headers;
+                    });
+            };
+
+            test('nested Requests', function () {
+                var request1       = new Request('/echo-request-headers', initWithHeader1);
+                var request2       = new Request(request1);
+                var request3       = new Request(request1, initWithHeader3);
+                var nativeRequest1 = new nativeMethods.Request('/echo-request-headers', initWithHeader1);
+                var nativeRequest2 = new nativeMethods.Request(nativeRequest1);
+                var nativeRequest3 = new nativeMethods.Request(nativeRequest1, initWithHeader3);
+
+                strictEqual(request1.headers.has('header1'), nativeRequest1.headers.has('header1'));
+                strictEqual(request2.headers.has('header1'), nativeRequest2.headers.has('header1'));
+                strictEqual(request3.headers.has('header1'), nativeRequest3.headers.has('header1'));
+                strictEqual(request3.headers.has('header3'), nativeRequest3.headers.has('header3'));
+            });
+
+            asyncTest('global fetch', function () {
+                var request       = new Request('/echo-request-headers', initWithHeader1);
+                var proxiedUrl    = urlUtils.getProxyUrl('/echo-request-headers');
+                var nativeRequest = new nativeMethods.Request(proxiedUrl, initWithHeader1);
+
+
+                Promise.all([
+                    retrieveRequestBodyAsJson(fetch('/echo-request-headers', initWithHeader1)),
+                    retrieveRequestBodyAsJson(fetch(request)),
+                    retrieveRequestBodyAsJson(fetch(request, initWithHeader3)),
+                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, proxiedUrl, initWithHeader1)),
+                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest)),
+                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest, initWithHeader3))
+                ])
+                    .then(function (data) {
+                        var request1Headers       = data[0];
+                        var request2Headers       = data[1];
+                        var request3Headers       = data[2];
+                        var nativeRequest1Headers = data[3];
+                        var nativeRequest2Headers = data[4];
+                        var nativeRequest3Headers = data[5];
+
+                        strictEqual(request1Headers['header1'], nativeRequest1Headers['header1']);
+                        strictEqual(request2Headers['header1'], nativeRequest2Headers['header1']);
+                        strictEqual(request3Headers['header1'], nativeRequest3Headers['header1']);
+                        strictEqual(request3Headers['header3'], nativeRequest3Headers['header3']);
+
+                        start();
+                    });
+            });
+        });
     });
 }
 

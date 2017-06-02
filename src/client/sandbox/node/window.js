@@ -8,13 +8,10 @@ import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
 import { processHtml } from '../../utils/html';
 import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
-import { isFirefox } from '../../utils/browser';
+import { isFirefox, isIE9, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
-
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-var arraySlice = Array.prototype.slice;
+import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -74,20 +71,19 @@ export default class WindowSandbox extends SandboxBase {
                 this._raiseUncaughtJsErrorEvent(message.msg, window, message.pageUrl);
         });
 
-        window.CanvasRenderingContext2D.prototype.drawImage = function () {
-            var image = arguments[0];
+        window.CanvasRenderingContext2D.prototype.drawImage = function (...args) {
+            var image = args[0];
 
             if (isImgElement(image) && !image[windowSandbox.FORCE_PROXY_SRC_FOR_IMAGE]) {
-                var changedArgs = arraySlice.call(arguments);
-                var src         = image.src;
+                var src = image.src;
 
                 if (destLocation.sameOriginCheck(location.toString(), src)) {
-                    changedArgs[0]     = nativeMethods.createElement.call(window.document, 'img');
-                    changedArgs[0].src = getProxyUrl(src);
+                    args[0]     = nativeMethods.createElement.call(window.document, 'img');
+                    args[0].src = getProxyUrl(src);
                 }
             }
 
-            return nativeMethods.canvasContextDrawImage.apply(this, changedArgs || arguments);
+            return nativeMethods.canvasContextDrawImage.apply(this, args);
         };
 
         // NOTE: Override uncaught error handling.
@@ -133,11 +129,17 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Worker) {
-            window.Worker           = scriptURL => {
+            window.Worker           = function (scriptURL, options) {
+                if (constructorIsCalledWithoutNewKeyword(this, window.Worker) )
+                    nativeMethods.Worker.apply(this, arguments);
+
+                if (arguments.length === 0)
+                    return new nativeMethods.Worker();
+
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL);
 
-                return new nativeMethods.Worker(scriptURL);
+                return arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
             };
             window.Worker.prototype = nativeMethods.Worker.prototype;
         }
@@ -266,19 +268,19 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
-            window.history.pushState = function () {
-                if (typeof arguments[2] === 'string')
-                    arguments[2] = getProxyUrl(arguments[2]);
+            var createWrapperForHistoryStateManipulationFn = function (nativeFn) {
+                return function (...args) {
+                    var url = args[2];
 
-                return nativeMethods.historyPushState.apply(history, arguments);
+                    if (args.length > 2 && (url !== null && (isIE || url !== void 0)))
+                        args[2] = getProxyUrl(String(url));
+
+                    return nativeFn.apply(this, args);
+                };
             };
 
-            window.history.replaceState = function () {
-                if (typeof arguments[2] === 'string')
-                    arguments[2] = getProxyUrl(arguments[2]);
-
-                return nativeMethods.historyReplaceState.apply(history, arguments);
-            };
+            window.history.pushState    = createWrapperForHistoryStateManipulationFn(nativeMethods.historyPushState);
+            window.history.replaceState = createWrapperForHistoryStateManipulationFn(nativeMethods.historyReplaceState);
         }
 
         if (window.navigator.sendBeacon) {
@@ -291,8 +293,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.navigator.registerProtocolHandler) {
-            window.navigator.registerProtocolHandler = function () {
-                var args     = arraySlice.call(arguments);
+            window.navigator.registerProtocolHandler = function (...args) {
                 var urlIndex = 1;
 
                 if (typeof args[urlIndex] === 'string') {
@@ -329,6 +330,16 @@ export default class WindowSandbox extends SandboxBase {
                     nativeMethods.formDataAppend.call(this, name, value, value.name);
                 else
                     nativeMethods.formDataAppend.apply(this, arguments);
+            };
+        }
+
+        // NOTE: DOMParser supports an HTML parsing for IE10 and later
+        if (window.DOMParser && !isIE9) {
+            window.DOMParser.prototype.parseFromString = function (...args) {
+                if (args.length > 1 && typeof args[0] === 'string' && args[1] === 'text/html')
+                    args[0] = processHtml(args[0]);
+
+                return nativeMethods.DOMParserParseFromString.apply(this, args);
             };
         }
 

@@ -30,12 +30,35 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
+const ATTRS_FOR_CLEANING    = (() => {
+    var attrs = [];
+
+    for (var attr of domProcessor.URL_ATTRS)
+        attrs.push({ attr, storedAttr: domProcessor.getStoredAttrName(attr) });
+
+    attrs.push({ attr: 'autocomplete', storedAttr: domProcessor.getStoredAttrName('autocomplete') });
+
+    return attrs;
+})();
+const STORED_ATTRS_SELECTOR = (() => {
+    var storedAttrs = [];
+
+    for (var { storedAttr } of ATTRS_FOR_CLEANING)
+        storedAttrs.push(storedAttr);
+
+    return '[' + storedAttrs.join('],[') + ']';
+})();
+
+const SHADOW_UI_ELEMENTS_SELECTOR                    = `[class*="${SHADOW_UI_CLASSNAME.postfix}"]`;
+const HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR = `[${INTERNAL_ATTRS.hoverPseudoClass}],[${INTERNAL_ATTRS.focusPseudoClass}]`;
+const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_TAG_NAME_PREFIX}head, ${FAKE_TAG_NAME_PREFIX}body`;
+
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
             var parentHammerhead = null;
             try {
-                parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerheadPropertyName }"];
+                parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];
             } catch(e) {}
             if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
             var script = document.currentScript || document.scripts[document.scripts.length - 1];
@@ -110,23 +133,20 @@ export function cleanUpHtml (html) {
     return processHtmlInternal(html, container => {
         var changed = false;
 
-        /*eslint-disable no-loop-func */
-        for (var i = 0; i < domProcessor.URL_ATTRS.length; i++) {
-            var attr       = domProcessor.URL_ATTRS[i];
-            var storedAttr = domProcessor.getStoredAttrName(attr);
-
-            find(container, '[' + storedAttr + ']', el => {
-                if (el.hasAttribute(attr)) {
+        find(container, STORED_ATTRS_SELECTOR, el => {
+            for (var { attr, storedAttr } of ATTRS_FOR_CLEANING) {
+                if (el.hasAttribute(attr))
                     nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
-                    nativeMethods.removeAttribute.call(el, storedAttr);
+                else if (attr === 'autocomplete')
+                    nativeMethods.removeAttribute.call(el, attr);
 
-                    changed = true;
-                }
-            });
-        }
-        /*eslint-disable no-loop-func */
+                nativeMethods.removeAttribute.call(el, storedAttr);
+            }
 
-        find(container, '[class*="' + SHADOW_UI_CLASSNAME.postfix + '"]', el => {
+            changed = true;
+        });
+
+        find(container, SHADOW_UI_ELEMENTS_SELECTOR, el => {
             if (el.parentNode) {
                 nativeMethods.removeChild.call(el.parentNode, el);
                 changed = true;
@@ -155,13 +175,14 @@ export function cleanUpHtml (html) {
             }
         });
 
-        find(container, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']', el => {
+        find(container, HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR, el => {
             nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.hoverPseudoClass);
+            nativeMethods.removeAttribute.call(el, INTERNAL_ATTRS.focusPseudoClass);
 
             changed = true;
         });
 
-        find(container, `${FAKE_TAG_NAME_PREFIX}head, ${FAKE_TAG_NAME_PREFIX}body`, el => {
+        find(container, FAKE_ELEMENTS_SELECTOR, el => {
             if (el.innerHTML.indexOf(INIT_SCRIPT_FOR_IFRAME_TEMPLATE) !== -1) {
                 el.innerHTML = el.innerHTML.replace(INIT_SCRIPT_FOR_IFRAME_TEMPLATE, '');
 

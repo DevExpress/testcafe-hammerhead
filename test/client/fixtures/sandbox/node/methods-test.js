@@ -320,6 +320,29 @@ if (!browserUtils.isFirefox) {
     });
 }
 
+if (window.DOMParser && !browserUtils.isIE9) {
+    test('DOMParser.parseFromString', function () {
+        var htmlStr        = '<a href="/path">Link</a>';
+        var domParser      = new DOMParser();
+        var parsedDocument = domParser.parseFromString(htmlStr, 'text/html');
+        var proxyUrl       = 'http://' + location.host + '/sessionId/https://example.com/path';
+
+        strictEqual(parsedDocument.querySelector('a').href, proxyUrl);
+
+        throws(function () {
+            domParser.parseFromString(htmlStr);
+        }, TypeError);
+
+        parsedDocument = domParser.parseFromString(htmlStr, 'application/xml');
+
+        strictEqual(nativeMethods.getAttribute.call(parsedDocument.querySelector('a'), 'href'), '/path');
+
+        parsedDocument = domParser.parseFromString(htmlStr, 'text/html', 'third argument');
+
+        strictEqual(parsedDocument.querySelector('a').href, proxyUrl);
+    });
+}
+
 module('regression');
 
 asyncTest('script must be executed after it is added to head tag (B237231)', function () {

@@ -25,6 +25,42 @@ if (window.Worker) {
     test('window.Worker should be overridden', function () {
         notEqual(window.Worker, nativeMethods.Worker);
     });
+
+    test('throwing errors (GH-1132)', function () {
+        throws(function () {
+            window.Worker();
+        }, TypeError);
+
+        throws(function () {
+            /*eslint-disable no-new*/
+            new Worker();
+            /*eslint-enable no-new*/
+        }, TypeError);
+    });
+
+    test('checking parameters (GH-1132', function () {
+        var savedNativeWorker = nativeMethods.Worker;
+        var workerOptions     = { name: 'test' };
+
+        nativeMethods.Worker = function (scriptURL) {
+            strictEqual(arguments.length, 1);
+            strictEqual(scriptURL, urlUtils.getProxyUrl('/test'));
+        };
+        /* eslint-disable no-new */
+        new Worker('/test');
+        /* eslint-enable no-new */
+
+        nativeMethods.Worker = function (scriptURL, options) {
+            strictEqual(arguments.length, 2);
+            strictEqual(scriptURL, urlUtils.getProxyUrl('/test'));
+            strictEqual(options, workerOptions);
+        };
+        /* eslint-disable no-new */
+        new Worker('/test', workerOptions);
+        /* eslint-enable no-new */
+
+        nativeMethods.Worker = savedNativeWorker;
+    });
 }
 
 if (browserUtils.isIE9) {
@@ -42,6 +78,7 @@ if (!browserUtils.isIE || browserUtils.isIE11) {
         ok(worker instanceof Worker);
     });
 }
+
 module('EventSource');
 
 if (browserUtils.isIE) {

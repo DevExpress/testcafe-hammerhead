@@ -144,7 +144,8 @@ if (!browserUtils.isWebKit) {
 
             strictEqual(requestIsAsync, expectedAsync);
 
-            xhr.abort();
+            if (xhrCount === 1)
+                xhr.abort();
         };
 
         registerAfterAjaxSendHook(onAjaxSend);
@@ -343,14 +344,4 @@ test('hammerhead should remove service data from local storage on the first sess
     hh.start(settings.get(), window);
 
     ok(!window.localStorage.getItem(sessionId));
-});
-
-test('call a callback of the waitCookieMsg function synchronously if the cookie message queue is empty (GH-722)', function () {
-    var isSync = false;
-
-    transport.waitCookieMsg(function () {
-        isSync = true;
-    });
-
-    ok(isSync);
 });

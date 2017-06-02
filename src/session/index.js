@@ -70,6 +70,7 @@ export default class Session extends EventEmitter {
             sessionId:                this.id,
             serviceMsgUrl:            serverInfo.domain + '/messaging',
             ie9FileReaderShimUrl:     serverInfo.domain + '/ie9-file-reader-shim',
+            cookieSyncUrl:            serverInfo.domain + '/cookie-sync',
             crossDomainPort:          serverInfo.crossDomainPort,
             isFirstPageLoad:          isFirstPageLoad,
             referer:                  referer,
@@ -128,6 +129,15 @@ export default class Session extends EventEmitter {
         }
     }
 
+    setCookie (queue) {
+        for (var msg of queue) {
+            var parsedUrl = parseProxyUrl(msg.url);
+            var cookieUrl = parsedUrl ? parsedUrl.destUrl : msg.url;
+
+            this.cookies.setByClient(cookieUrl, msg.cookie);
+        }
+    }
+
     _getIframePayloadScript (/* iframeWithoutSrc */) {
         throw new Error('Not implemented');
     }
@@ -151,15 +161,6 @@ export default class Session extends EventEmitter {
 
 // Service message handlers
 var ServiceMessages = Session.prototype;
-
-ServiceMessages[COMMAND.setCookie] = function (msg) {
-    var parsedUrl = parseProxyUrl(msg.url);
-    var cookieUrl = parsedUrl ? parsedUrl.destUrl : msg.url;
-
-    this.cookies.setByClient(cookieUrl, msg.cookie);
-
-    return this.cookies.getClientString(cookieUrl);
-};
 
 ServiceMessages[COMMAND.uploadFiles] = async function (msg) {
     return await this.uploadStorage.store(msg.fileNames, msg.data);

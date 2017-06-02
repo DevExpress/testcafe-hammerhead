@@ -10,7 +10,6 @@ var express                              = require('express');
 var read                                 = require('read-file-relative').readSync;
 var createSelfSignedHttpsServer          = require('self-signed-https');
 var getFreePort                          = require('endpoint-utils').getFreePort;
-var COMMAND                              = require('../../lib/session/command');
 var XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
 var AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
 var SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-policy').SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
@@ -128,6 +127,7 @@ describe('Proxy', function () {
 
         app.get('/script', function (req, res) {
             res.set('content-type', 'application/javascript; charset=utf-8');
+            res.set('sourcemap', '/src.js.map');
             res.end(fs.readFileSync('test/server/data/script/src.js').toString());
         });
 
@@ -474,17 +474,27 @@ describe('Proxy', function () {
         it('Should process SET_COOKIE service message', function (done) {
             var options = {
                 method: 'POST',
-                url:    'http://localhost:1836/messaging',
+                url:    'http://localhost:1836/cookie-sync',
                 body:   JSON.stringify({
-                    cmd:       COMMAND.setCookie,
-                    url:       proxy.openSession('http://example.com', session),
-                    cookie:    'Test=Data',
-                    sessionId: session.id
+                    sessionId: session.id,
+                    queue:     [
+                        {
+                            url:    proxy.openSession('http://example.com', session),
+                            cookie: 'Test1=Data1'
+                        },
+                        {
+                            url:    proxy.openSession('http://example.com', session),
+                            cookie: 'Test2=Data2'
+                        }
+                    ]
                 })
             };
 
             request(options, function (err, res, body) {
-                expect(JSON.parse(body)).eql('Test=Data');
+                expect(body).eql('');
+                expect(res.statusCode).eql(204);
+                expect(session.cookies.getClientString('http://example.com')).eql('Test1=Data1; Test2=Data2');
+
                 done();
             });
         });
@@ -1076,6 +1086,28 @@ describe('Proxy', function () {
             });
         });
 
+        if (os.platform() === 'win32') {
+            it('Should process page with non-conforming Windows url', function (done) {
+                session.id = 'sessionId';
+
+                var fileUrl = 'file://' + path.join(__dirname, '/data/page-with-file-protocol/src-win.html');
+
+                var options = {
+                    url:     proxy.openSession(fileUrl, session),
+                    headers: {
+                        accept: 'text/html,*/*;q=0.1'
+                    }
+                };
+
+                request(options, function (err, res, body) {
+                    var expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-win.html').toString();
+
+                    compareCode(body, expected);
+                    done();
+                });
+            });
+        }
+
         it('Should set the correct content-type header', function (done) {
             session.id = 'sessionId';
 
@@ -1090,6 +1122,60 @@ describe('Proxy', function () {
                 expect(res.headers['content-type']).eql('image/svg+xml');
                 done();
             });
+        });
+
+        it('Should pass an error to the session if target is a directory', function (done) {
+            var url = getFileProtocolUrl('./data');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = function (ctx, err) {
+                expect(err).contains([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'EISDIR'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            var options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
+        });
+
+        it('Should pass an error to the session if target does not exist', function (done) {
+            var url = getFileProtocolUrl('./data/non-exist-file');
+
+            session.id = 'sessionId';
+
+            session.handlePageError = function (ctx, err) {
+                expect(err).contains([
+                    'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
+                    '',
+                    'ENOENT'
+                ].join('\n'));
+
+                ctx.res.end();
+                done();
+                return true;
+            };
+
+            var options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,*/*;q=0.1'
+                }
+            };
+
+            request(options);
         });
     });
 
@@ -1696,7 +1782,7 @@ describe('Proxy', function () {
             });
         });
 
-        describe('Should not change a reponse body if it is empty (GH-762)', function () {
+        describe('Should not change a response body if it is empty (GH-762)', function () {
             it('script', function (done) {
                 var options = {
                     url:     proxy.openSession('http://127.0.0.1:2000/empty-response', session),
@@ -1970,6 +2056,20 @@ describe('Proxy', function () {
                 expect(destConnectionClosed).to.be.false;
                 req.destroy();
             }, 400);
+        });
+
+        it('Should omit a "sourcemap" header from response (GH-1052)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/script', session),
+                headers: {
+                    'content-type': 'application/javascript; charset=utf-8'
+                }
+            };
+
+            request(options, function (err, res) {
+                expect(res.headers['sourcemap']).is.undefined;
+                done();
+            });
         });
     });
 });

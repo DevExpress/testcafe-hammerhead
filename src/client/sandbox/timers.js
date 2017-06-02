@@ -70,25 +70,11 @@ export default class TimersSandbox extends SandboxBase {
 
         var timersSandbox = this;
 
-        window.setTimeout = function () {
-            // NOTE: shallow-copy the remaining args. Don't use arr.slice(), since it may leak the arguments object.
-            // See: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments
-            var args = new Array(arguments.length);
-
-            for (var i = 0; i < args.length; ++i)
-                args[i] = arguments[i];
-
+        window.setTimeout = function (...args) {
             return nativeMethods.setTimeout.apply(window, timersSandbox._wrapTimeoutFunctionsArguments(args));
         };
 
-        window.setInterval = function () {
-            // NOTE: shallow-copy the remaining args. Don't use arr.slice(), since it may leak the arguments object.
-            // See: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments
-            var args = new Array(arguments.length);
-
-            for (var i = 0; i < args.length; ++i)
-                args[i] = arguments[i];
-
+        window.setInterval = function (...args) {
             return nativeMethods.setInterval.apply(window, timersSandbox._wrapTimeoutFunctionsArguments(args));
         };
 

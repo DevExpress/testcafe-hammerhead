@@ -40,6 +40,11 @@ export default class XhrSandbox extends SandboxBase {
         return xhr;
     }
 
+    static openNativeXhr (xhr, url, isAsync) {
+        xhr.open('POST', url, isAsync);
+        xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+
     attach (window) {
         super.attach(window);
 

@@ -14,7 +14,8 @@ import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
 import { isRelativeUrl, parseProxyUrl } from '../utils/url';
-import { getProxyUrl } from './utils/url';
+import * as urlUtils from './utils/url';
+import * as htmlUtils from './utils/html';
 import { processScript } from '../processing/script';
 import {
     SCRIPT_PROCESSING_START_COMMENT,
@@ -91,7 +92,9 @@ class Hammerhead {
             eventSimulator:        this.sandbox.event.eventSimulator,
             selection:             this.sandbox.event.selection,
             message:               this.sandbox.event.message,
-            timers:                this.sandbox.event.timers
+            timers:                this.sandbox.event.timers,
+            DataTransfer:          this.sandbox.event.DataTransfer,
+            DragDataStore:         this.sandbox.event.DragDataStore
         };
 
         this.utils = {
@@ -103,7 +106,9 @@ class Hammerhead {
             types:       typeUtils,
             trim:        trim,
             isJQueryObj: isJQueryObj,
-            extend:      extend
+            extend:      extend,
+            html:        htmlUtils,
+            url:         urlUtils
         };
     }
 
@@ -185,7 +190,7 @@ class Hammerhead {
         if (destLocation === 'about:blank' && isRelativeUrl(url))
             return;
 
-        this.win.location = getProxyUrl(url);
+        this.win.location = urlUtils.getProxyUrl(url);
     }
 
     start (initSettings, win) {
@@ -207,7 +212,7 @@ var hammerhead = new Hammerhead();
 
 // NOTE: The 'load' event is raised after calling document.close for a same-domain iframe
 // So, we need to define the '%hammerhead%' variable as 'configurable' so that it can be redefined.
-Object.defineProperty(window, INTERNAL_PROPS.hammerheadPropertyName, {
+Object.defineProperty(window, INTERNAL_PROPS.hammerhead, {
     value:        hammerhead,
     configurable: true
 });

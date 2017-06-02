@@ -3,7 +3,7 @@ clone_depth: 1
 
 environment:
   GULP_TASK: "test-functional-local"
-  NODEJS_VERSION: "stable"
+  NODEJS_VERSION: "LTS"
 
 install:
 - ps: >-

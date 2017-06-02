@@ -35,9 +35,9 @@ export default class EventEmitter {
         if (listeners) {
             var filtered = [];
 
-            for (var i = 0, len = listeners.length; i < len; i++) {
-                if (listeners[i] !== listener)
-                    filtered.push(listeners[i]);
+            for (var currentListener of listeners) {
+                if (currentListener !== listener)
+                    filtered.push(currentListener);
             }
 
             this.eventsListeners[evt] = filtered;

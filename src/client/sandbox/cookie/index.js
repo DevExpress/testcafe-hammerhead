@@ -1,18 +1,23 @@
-import SandboxBase from './base';
-import COMMAND from '../../session/command';
-import settings from '../settings';
-import * as destLocation from '../utils/destination-location';
-import * as cookieUtils from '../utils/cookie';
-import { isCrossDomainWindows } from '../utils/dom';
-import transport from '../transport';
-import trim from '../../utils/string-trim';
-import INTERNAL_PROPS from '../../processing/dom/internal-properties';
-import BYTES_PER_COOKIE_LIMIT from '../../session/cookie-limit';
+import SandboxBase from '../base';
+import settings from '../../settings';
+import CookieSync from './cookie-sync';
+import * as destLocation from '../../utils/destination-location';
+import * as cookieUtils from '../../utils/cookie';
+import { isCrossDomainWindows } from '../../utils/dom';
+import trim from '../../../utils/string-trim';
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
+import BYTES_PER_COOKIE_LIMIT from '../../../session/cookie-limit';
 
 export default class CookieSandbox extends SandboxBase {
+    constructor () {
+        super();
+
+        this.cookieSync = new CookieSync();
+    }
+
     _getSettings () {
         var windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
-                             this.window.top[INTERNAL_PROPS.hammerheadPropertyName].get('./settings') : settings;
+                             this.window.top[INTERNAL_PROPS.hammerhead].get('./settings') : settings;
 
         return windowSettings.get();
     }
@@ -141,8 +146,7 @@ export default class CookieSandbox extends SandboxBase {
 
         if (syncWithServer) {
             // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
-            transport.queuedAsyncServiceMsg({
-                cmd:    COMMAND.setCookie,
+            this.cookieSync.perform({
                 cookie: value,
                 url:    document.location.href
             });
