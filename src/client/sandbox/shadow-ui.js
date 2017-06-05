@@ -31,6 +31,7 @@ export default class ShadowUI extends SandboxBase {
         this.root                    = null;
         this.lastActiveElement       = null;
         this.uiStyleSheetsHtmlBackup = null;
+        this.wrapperCreators         = ShadowUI._createWrapperCreators();
     }
 
     static _filterElement (el) {
@@ -62,6 +63,57 @@ export default class ShadowUI extends SandboxBase {
 
     static _filterStyleSheetList (styleSheetList) {
         return ShadowUI._filterList(styleSheetList, item => ShadowUI._filterElement(item.ownerNode));
+    }
+
+    static _getFirstNonShadowElement (nodeList) {
+        for (var i = 0; i < nodeList.length; i++) {
+            var el = ShadowUI._filterElement(nodeList[i]);
+
+            if (el)
+                return nodeList[i];
+        }
+
+        return null;
+    }
+
+    static _createWrapperCreators () {
+        return {
+            getElementsByClassName (nativeGetElementsByClassNameFnName) {
+                return function (...args) {
+                    return ShadowUI._filterNodeList(nativeMethods[nativeGetElementsByClassNameFnName].apply(this, args));
+                };
+            },
+
+            getElementsByTagName (nativeGetElementsByTagNameFnName) {
+                return function (...args) {
+                    return ShadowUI._filterNodeList(nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args));
+                };
+            },
+
+            querySelector (nativeQuerySelectorFnName, nativeQuerySelectorAllFnName) {
+                return function (...args) {
+                    if (typeof args[0] === 'string')
+                        args[0] = NodeSandbox.processSelector(args[0]);
+
+                    var element         = nativeMethods[nativeQuerySelectorFnName].apply(this, args);
+                    var filteredElement = ShadowUI._filterElement(element);
+
+                    if (!element || filteredElement)
+                        return filteredElement;
+
+                    return ShadowUI._getFirstNonShadowElement(nativeMethods[nativeQuerySelectorAllFnName].apply(this, args));
+                };
+            },
+
+            querySelectorAll (nativeQuerySelectorAllFnName) {
+                return function (...args) {
+                    if (typeof args[0] === 'string')
+                        args[0] = NodeSandbox.processSelector(args[0]);
+
+                    return ShadowUI._filterNodeList(nativeMethods[nativeQuerySelectorAllFnName].apply(this, args));
+                };
+            }
+        };
     }
 
     _bringRootToWindowTopLeft () {
@@ -141,31 +193,14 @@ export default class ShadowUI extends SandboxBase {
             return ShadowUI._filterElement(nativeMethods.getElementById.apply(this, args));
         };
 
-        docProto.getElementsByClassName = function (...args) {
-            return ShadowUI._filterNodeList(nativeMethods.getElementsByClassName.apply(this, args));
-        };
-
         docProto.getElementsByName = function (...args) {
             return ShadowUI._filterNodeList(nativeMethods.getElementsByName.apply(this, args));
         };
 
-        docProto.getElementsByTagName = function (...args) {
-            return ShadowUI._filterNodeList(nativeMethods.getElementsByTagName.apply(this, args));
-        };
-
-        docProto.querySelector = function (...args) {
-            if (typeof args[0] === 'string')
-                args[0] = NodeSandbox.processSelector(args[0]);
-
-            return ShadowUI._filterElement(nativeMethods.querySelector.apply(this, args));
-        };
-
-        docProto.querySelectorAll = function (...args) {
-            if (typeof args[0] === 'string')
-                args[0] = NodeSandbox.processSelector(args[0]);
-
-            return ShadowUI._filterNodeList(nativeMethods.querySelectorAll.apply(this, args));
-        };
+        docProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('getElementsByClassName');
+        docProto.getElementsByTagName   = this.wrapperCreators.getElementsByTagName('getElementsByTagName');
+        docProto.querySelector          = this.wrapperCreators.querySelector('querySelector', 'querySelectorAll');
+        docProto.querySelectorAll       = this.wrapperCreators.querySelectorAll('querySelectorAll');
 
         // NOTE: T195358
         docProto.querySelectorAll.toString       = () => nativeMethods.querySelectorAll.toString();
@@ -173,41 +208,18 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _overrideElementMethods (window) {
-        var overridedMethods = {
-            getElementsByClassName () {
-                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByClassName.apply(this, arguments));
-            },
-
-            getElementsByTagName () {
-                return ShadowUI._filterNodeList(nativeMethods.elementGetElementsByTagName.apply(this, arguments));
-            },
-
-            querySelector () {
-                if (typeof arguments[0] === 'string')
-                    arguments[0] = NodeSandbox.processSelector(arguments[0]);
-
-                return ShadowUI._filterElement(nativeMethods.elementQuerySelector.apply(this, arguments));
-            },
-
-            querySelectorAll () {
-                if (typeof arguments[0] === 'string')
-                    arguments[0] = NodeSandbox.processSelector(arguments[0]);
-
-                return ShadowUI._filterNodeList(nativeMethods.elementQuerySelectorAll.apply(this, arguments));
-            }
-        };
-
         var bodyProto = window.HTMLBodyElement.prototype;
         var headProto = window.HTMLHeadElement.prototype;
 
-        bodyProto.getElementsByClassName = overridedMethods.getElementsByClassName;
-        bodyProto.getElementsByTagName   = overridedMethods.getElementsByTagName;
-        bodyProto.querySelector          = overridedMethods.querySelector;
-        bodyProto.querySelectorAll       = overridedMethods.querySelectorAll;
-        headProto.getElementsByClassName = overridedMethods.getElementsByClassName;
-        headProto.getElementsByTagName   = overridedMethods.getElementsByTagName;
-        headProto.querySelector          = overridedMethods.querySelector;
-        headProto.querySelectorAll       = overridedMethods.querySelectorAll;
+        bodyProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('elementGetElementsByClassName');
+        bodyProto.getElementsByTagName   = this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName');
+        bodyProto.querySelector          = this.wrapperCreators.querySelector('elementQuerySelector', 'elementQuerySelectorAll');
+        bodyProto.querySelectorAll       = this.wrapperCreators.querySelectorAll('elementQuerySelectorAll');
+
+        headProto.getElementsByClassName = bodyProto.getElementsByClassName;
+        headProto.getElementsByTagName   = bodyProto.getElementsByTagName;
+        headProto.querySelector          = bodyProto.querySelector;
+        headProto.querySelectorAll       = bodyProto.querySelectorAll;
     }
 
     _getUIStyleSheetsHtml () {

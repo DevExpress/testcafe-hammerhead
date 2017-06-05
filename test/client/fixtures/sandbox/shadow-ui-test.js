@@ -358,7 +358,7 @@ test('body.querySelector', function () {
     pageElem.className = TEST_CLASS_NAME + ' cli2';
     document.body.appendChild(pageElem);
 
-    uiElem   = document.body.querySelector('.cl1');
+    uiElem   = document.body.querySelector('.cli');
     pageElem = document.body.querySelector('.cli2');
 
     ok(!uiElem);
@@ -787,3 +787,24 @@ if (document.implementation && document.implementation.createHTMLDocument) {
     });
 }
 
+test('querySelector call should return a first non-shadowUI element (GH-1131)', function () {
+    var meta       = document.createElement('meta');
+    var shadowMeta = document.createElement('meta');
+
+    meta.className       = 'metas';
+    shadowMeta.className = 'metas ' + SHADOW_UI_CLASSNAME.charset;
+
+    document.head.insertBefore(meta, document.head.firstChild);
+    document.head.insertBefore(shadowMeta, meta);
+
+    var someMeta = document.querySelector('.metas');
+
+    strictEqual(someMeta.className, 'metas');
+
+    someMeta = document.head.querySelector('.metas');
+
+    strictEqual(someMeta.className, 'metas');
+
+    document.head.removeChild(meta);
+    document.head.removeChild(shadowMeta);
+});
