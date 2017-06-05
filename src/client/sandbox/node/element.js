@@ -16,6 +16,7 @@ import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
+import ShadowUI from '../shadow-ui';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -514,6 +515,10 @@ export default class ElementSandbox extends SandboxBase {
         AttributesWrapper.refreshWrappers(el);
     }
 
+    static _hasShadowUIParentOrContainsShadowUIClassPostfix (el) {
+        return el.parentNode && domUtils.isShadowUIElement(el.parentNode) || ShadowUI.containsShadowUIClassPostfix(el);
+    }
+
     _onAddFileInputInfo (el) {
         if (!domUtils.isDomElement(el))
             return;
@@ -569,6 +574,9 @@ export default class ElementSandbox extends SandboxBase {
 
         if (domUtils.isScriptElement(el))
             this.emit(this.SCRIPT_ELEMENT_ADDED, { el });
+
+        if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
+            ShadowUI.markElementAndChildrenAsShadow(el);
     }
 
     onElementRemoved (el) {

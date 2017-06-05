@@ -1,6 +1,5 @@
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../../../request-pipeline/xhr/same-origin-policy';
-import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
@@ -65,26 +64,17 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     }
 
     static _getShadowUICollectionLength (collection) {
-        var elementCount = 0;
+        var shadowUIElementCount = 0;
 
         for (var i = 0; i < collection.length; i++) {
-            var className = collection[i].className;
-
-            if (className) {
-                // NOTE: SVG elements' className is of the SVGAnimatedString type instead
-                // of string (GH-354).
-                if (typeof className !== 'string')
-                    className = className.baseVal || '';
-
-                if (className.indexOf(SHADOW_UI_CLASSNAME.postfix) !== -1)
-                    elementCount++;
-            }
+            if (domUtils.isShadowUIElement(collection[i]))
+                shadowUIElementCount++;
         }
 
-        if (elementCount !== 0)
+        if (shadowUIElementCount)
             ShadowUI.checkElementsPosition(collection);
 
-        return collection.length - elementCount;
+        return collection.length - shadowUIElementCount;
     }
 
     static _setTextProp (el, propName, text) {
@@ -303,6 +293,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     }
 
                     el.innerHTML = processedValue;
+
+                    if (domUtils.isBodyElement(el)) {
+                        var shadowUIRoot = this.shadowUI.getRoot();
+
+                        ShadowUI.markElementAndChildrenAsShadow(shadowUIRoot);
+                    }
+
+                    else if (domUtils.isShadowUIElement(el))
+                        ShadowUI.markElementAndChildrenAsShadow(el);
 
                     if (isStyleEl || isScriptEl)
                         return value;
