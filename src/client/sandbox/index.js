@@ -22,6 +22,7 @@ import { isIE, isWebKit, isElectron } from '../utils/browser';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
+import LiveNodeListFactory from './node/live-node-list/factory';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
@@ -37,6 +38,7 @@ export default class Sandbox extends SandboxBase {
         const eventSimulator        = new EventSimulator();
         const elementEditingWatcher = new ElementEditingWatcher(eventSimulator);
         const timersSandbox         = new TimersSandbox();
+        const liveNodeListFactory   = new LiveNodeListFactory();
 
         // API
         this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
@@ -44,16 +46,16 @@ export default class Sandbox extends SandboxBase {
         this.xhr                 = new XhrSandbox(this.cookie);
         this.fetch               = new FetchSandbox();
         this.iframe              = new IframeSandbox(nodeMutation, this.cookie);
-        this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe);
+        this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe, liveNodeListFactory);
         this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
-        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox);
-        this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
+        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox, liveNodeListFactory);
+        this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, liveNodeListFactory);
 
         if (isElectron)
             this.electron = new ElectronSandbox();
 
-        this.windowStorage       = windowStorage;
+        this.windowStorage = windowStorage;
     }
 
     // NOTE: In some cases, IE raises the "Can't execute code from a freed script" exception,

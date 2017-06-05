@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script>
+    var domContentLoadedIsRaised = false;
+    var refreshNodeListCount     = 0;
+    var assertions               = [];
+
+    document.addEventListener('DOMContentLoaded', function () {
+        domContentLoadedIsRaised = true;
+    });
+
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
+    hammerhead.start({ crossDomainProxyPort: 2000 });
+
+    var testDiv = document.createElement('div');
+
+    document.body.appendChild(testDiv);
+
+    var root      = hammerhead.shadowUI.getRoot();
+    var textarea1 = document.createElement('textarea');
+    var textarea2 = document.createElement('textarea');
+    var textarea3 = document.createElement('textarea');
+
+    hammerhead.shadowUI.addClass(textarea3, 'el');
+    root.appendChild(textarea3);
+    testDiv.appendChild(textarea1);
+    testDiv.appendChild(textarea2);
+
+    var elements = document.getElementsByTagName('textarea');
+
+    var descriptor              = Object.getOwnPropertyDescriptor(elements, '_refreshNodeListInternal');
+    var storedDescriptorValueFn = descriptor.value;
+
+    Object.defineProperty(elements, '_refreshNodeListInternal',
+        {
+            value: function () {
+                refreshNodeListCount++;
+
+                return storedDescriptorValueFn.call(elements);
+            }
+        });
+
+    assertions.push(
+        {
+            name:  'elements[0]',
+            value: (function () {
+                return elements[0] === textarea1;
+            })()
+        },
+        {
+            name:  'elements[1]',
+            value: (function () {
+                return elements[1] === textarea2;
+            })()
+        },
+        {
+            name:  'elements[2]',
+            value: (function () {
+                return elements[2] === void 0;
+            })()
+        },
+        {
+            name:  'elements.length',
+            value: (function () {
+                return elements.length === 2;
+            })()
+        });
+
+    testDiv.removeChild(textarea2);
+
+    assertions.push({
+            name:  'elements[0] after remove textarea2',
+            value: (function () {
+                return elements[0] === textarea1;
+            })()
+        },
+        {
+            name:  'elements[1] after remove textarea2',
+            value: (function () {
+                return elements[1] === void 0;
+            })()
+        },
+        {
+            name:  'elements.length after remove textarea2',
+            value: (function () {
+                return elements.length === 1;
+            })()
+        },
+        {
+            name:  'count of the _refreshNodeList calls',
+            value: (function () {
+                return refreshNodeListCount === 7;
+            })()
+        },
+        {
+            name:  'domContentLoadedIsRaised',
+            value: (function () {
+                return domContentLoadedIsRaised === false;
+            })()
+        });
+</script>
+</body>
+</html>

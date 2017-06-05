@@ -42,7 +42,7 @@ const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.cr
 const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox, liveNodeListFactory) {
         super();
 
         this.nodeMutation          = nodeMutation;
@@ -53,6 +53,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.unloadSandbox         = eventSandbox.unload;
         this.shadowUI              = shadowUI;
         this.storageSandbox        = storageSandbox;
+        this.liveNodeListFactory   = liveNodeListFactory;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
@@ -326,6 +327,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     else if (domUtils.isShadowUIElement(el))
                         ShadowUI.markElementAndChildrenAsShadow(el);
+
+                    else if (!domUtils.isShadowUIElement(el))
+                        this.liveNodeListFactory.onInnerHtmlChanged();
 
                     if (isStyleEl || isScriptEl)
                         return value;
