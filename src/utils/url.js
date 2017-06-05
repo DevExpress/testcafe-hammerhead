@@ -24,7 +24,8 @@ export function parseResourceType (resourceType) {
             isIframe:      false,
             isForm:        false,
             isScript:      false,
-            isEventSource: false
+            isEventSource: false,
+            isImport:      false
         };
     }
 
@@ -32,21 +33,23 @@ export function parseResourceType (resourceType) {
         isIframe:      /i/.test(resourceType),
         isForm:        /f/.test(resourceType),
         isScript:      /s/.test(resourceType),
-        isEventSource: /e/.test(resourceType)
+        isEventSource: /e/.test(resourceType),
+        isImport:      /m/.test(resourceType)
     };
 }
 
 export function getResourceTypeString (resourceType) {
     resourceType = resourceType || {};
 
-    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript && !resourceType.isEventSource)
+    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript && !resourceType.isEventSource && !resourceType.isImport)
         return null;
 
     return [
         resourceType.isIframe ? 'i' : '',
         resourceType.isForm ? 'f' : '',
         resourceType.isScript ? 's' : '',
-        resourceType.isEventSource ? 'e' : ''
+        resourceType.isEventSource ? 'e' : '',
+        resourceType.isImport ? 'm' : ''
     ].join('');
 }
 

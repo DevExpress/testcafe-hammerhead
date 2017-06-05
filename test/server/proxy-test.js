@@ -120,6 +120,16 @@ describe('Proxy', function () {
             res.end(fs.readFileSync('test/server/data/page/src.html').toString());
         });
 
+        app.get('/import-page', function (req, res) {
+            res.set('content-type', 'text/html');
+            res.end(fs.readFileSync('test/server/data/import-page/src.html').toString());
+        });
+
+        app.get('/import-page-in-iframe', function (req, res) {
+            res.set('content-type', 'text/html');
+            res.end(fs.readFileSync('test/server/data/import-page/src-iframe.html').toString());
+        });
+
         app.get('/page-with-frameset', function (req, res) {
             res.set('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/page-with-frameset/src.html').toString());
@@ -834,6 +844,63 @@ describe('Proxy', function () {
                 done();
             });
         });
+
+        it('Should process import pages', function (done) {
+            session.id = 'sessionId';
+            session.injectable.scripts.push('/script1.js');
+            session.injectable.scripts.push('/script2.js');
+            session.injectable.styles.push('/styles1.css');
+            session.injectable.styles.push('/styles2.css');
+
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            var options = {
+                url: urlUtils.getProxyUrl('http://127.0.0.1:2000/import-page', {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                    resourceType:  urlUtils.getResourceTypeString({ isImport: true })
+                }),
+
+                headers: {
+                    accept: '*/*'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                var expected = fs.readFileSync('test/server/data/import-page/expected.html').toString();
+
+                compareCode(body, expected);
+                done();
+            });
+        });
+
+        it('Should process import pages in iframe', function (done) {
+            session.id = 'sessionId';
+
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            var options = {
+                url: urlUtils.getProxyUrl('http://127.0.0.1:2000/import-page-in-iframe', {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                    resourceType:  urlUtils.getResourceTypeString({ isImport: true, isIframe: true })
+                }),
+
+                headers: {
+                    accept: '*/*'
+                }
+            };
+
+            request(options, function (err, res, body) {
+                var expected = fs.readFileSync('test/server/data/import-page/expected-iframe.html').toString();
+
+                compareCode(body, expected);
+                done();
+            });
+        });
+
 
         it('Should not process XHR page requests', function (done) {
             var options = {

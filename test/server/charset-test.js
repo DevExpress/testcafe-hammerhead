@@ -55,7 +55,7 @@ describe('Content charset', function () {
     function testMeta (html, expectedCharsetStr) {
         var charset = new Charset();
 
-        pageProcessor.processResource(html, {}, charset, noop, {});
+        pageProcessor.processResource(html, { dest: {} }, charset, noop, {});
 
         expect(charset.get()).eql(expectedCharsetStr);
     }
@@ -181,7 +181,7 @@ describe('Content charset', function () {
                 styleUrl: null
             };
 
-            var processedResource = pageProcessor.processResource(src, {}, charset, noop, proxyResources);
+            var processedResource = pageProcessor.processResource(src, { dest: {} }, charset, noop, proxyResources);
 
             return iconv.encode(processedResource, charsetStr, { addBOM: addBOM }).toString();
         }
