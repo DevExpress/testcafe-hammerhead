@@ -536,18 +536,7 @@ export function isElementFocusable (el) {
 }
 
 export function isShadowUIElement (element) {
-    while (element) {
-        if (element.tagName === 'BODY' || element.tagName === 'HEAD')
-            return false;
-
-        // NOTE: Check the className type to avoid issues with a SVG element’s className property.
-        if (typeof element.className === 'string' && element.className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1)
-            return true;
-
-        element = element.parentNode;
-    }
-
-    return false;
+    return !!element[INTERNAL_PROPS.shadowUIElement];
 }
 
 export function isWindow (instance) {
