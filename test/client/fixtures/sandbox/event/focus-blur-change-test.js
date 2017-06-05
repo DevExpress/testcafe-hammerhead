@@ -881,61 +881,58 @@ asyncTest("focus() must not scroll to the element if 'preventScrolling' argument
 
 module('focusin/focusout');
 
-// Firefox supports focusin, focusout events starting with 52 version
-if (!browserUtils.isFirefox || browserUtils.version >= 52) {
-    asyncTest('events order', function () {
-        var eventLog                       = '';
-        var nativeEventLog                 = '';
-        var input                          = document.createElement('input');
-        var nativeInput                    = nativeMethods.createElement.call(document, 'input');
-        var getNativeEventLogFallbackValue = function () {
-            if (browserUtils.isMSEdge)
-                return 'focus|focusin|focusout|blur';
+asyncTest('events order', function () {
+    var eventLog                       = '';
+    var nativeEventLog                 = '';
+    var input                          = document.createElement('input');
+    var nativeInput                    = nativeMethods.createElement.call(document, 'input');
+    var getNativeEventLogFallbackValue = function () {
+        if (browserUtils.isMSEdge)
+            return 'focus|focusin|focusout|blur';
 
-            else if (browserUtils.isIE)
-                return 'focusin|focusout|focus|blur|';
+        else if (browserUtils.isIE)
+            return 'focusin|focusout|focus|blur|';
 
-            return 'focus|focusin|blur|focusout|';
-        };
+        return 'focus|focusin|blur|focusout|';
+    };
 
-        document.body.appendChild(input);
-        nativeInput.focus = nativeMethods.focus;
-        nativeInput.blur  = nativeMethods.blur;
-        nativeMethods.appendChild.call(document.body, nativeInput);
+    document.body.appendChild(input);
+    nativeInput.focus = nativeMethods.focus;
+    nativeInput.blur  = nativeMethods.blur;
+    nativeMethods.appendChild.call(document.body, nativeInput);
 
-        var handler                 = function (e) {
-            eventLog += e.type + '|';
-        };
-        var handlerForNativeElement = function (e) {
-            nativeEventLog += e.type + '|';
-        };
+    var handler                 = function (e) {
+        eventLog += e.type + '|';
+    };
+    var handlerForNativeElement = function (e) {
+        nativeEventLog += e.type + '|';
+    };
 
-        input.addEventListener('focus', handler);
-        input.addEventListener('focusin', handler);
-        input.addEventListener('blur', handler);
-        input.addEventListener('focusout', handler);
-        nativeInput.addEventListener('focus', handlerForNativeElement);
-        nativeInput.addEventListener('focusin', handlerForNativeElement);
-        nativeInput.addEventListener('blur', handlerForNativeElement);
-        nativeInput.addEventListener('focusout', handlerForNativeElement);
+    input.addEventListener('focus', handler);
+    input.addEventListener('focusin', handler);
+    input.addEventListener('blur', handler);
+    input.addEventListener('focusout', handler);
+    nativeInput.addEventListener('focus', handlerForNativeElement);
+    nativeInput.addEventListener('focusin', handlerForNativeElement);
+    nativeInput.addEventListener('blur', handlerForNativeElement);
+    nativeInput.addEventListener('focusout', handlerForNativeElement);
 
-        nativeInput.focus();
-        nativeInput.blur();
+    nativeInput.focus();
+    nativeInput.blur();
 
-        input.focus();
-        input.blur();
+    input.focus();
+    input.blur();
 
-        window.setTimeout(function () {
-            // NOTE: if browser is not in focus then focus and blur events were not raised.
-            // In this case, we provide the browser-specific fallback value
-            strictEqual(eventLog, nativeEventLog || getNativeEventLogFallbackValue());
+    window.setTimeout(function () {
+        // NOTE: if browser is not in focus then focus and blur events were not raised.
+        // In this case, we provide the browser-specific fallback value
+        strictEqual(eventLog, nativeEventLog || getNativeEventLogFallbackValue());
 
-            input.parentNode.removeChild(input);
-            nativeInput.parentNode.removeChild(nativeInput);
-            start();
-        }, 100);
-    });
-}
+        input.parentNode.removeChild(input);
+        nativeInput.parentNode.removeChild(nativeInput);
+        start();
+    }, 100);
+});
 
 test('label.htmlFor', function () {
     var label    = document.createElement('label');
