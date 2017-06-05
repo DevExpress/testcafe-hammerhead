@@ -1543,13 +1543,18 @@ describe('Proxy', function () {
         it('Should send a response without waiting for the end of the destination response and without processing its body (GH-390)', function (done) {
             var url           = proxy.openSession('http://127.0.0.1:2000/GH-390/redirect-302-with-body', session);
             var opts          = urlLib.parse(url);
-            var startTestTime = Date.now();
+            var startTestTime = process.hrtime();
+            var getTimeInMs   = function (hrtimeMark) {
+                return hrtimeMark[0] * 1000 + hrtimeMark[1] / 1000000;
+            };
 
             opts.method = 'GET';
 
             http.request(opts)
                 .on('response', function (res) {
-                    expect(Date.now() - startTestTime < 100).to.be.true;
+                    var responseStartInMs = getTimeInMs(process.hrtime(startTestTime));
+
+                    expect(responseStartInMs < 100).to.be.true;
 
                     var chunks = [];
 
@@ -1558,7 +1563,11 @@ describe('Proxy', function () {
                     });
 
                     res.on('end', function () {
-                        expect(Date.now() - startTestTime > 1000).to.be.true;
+                        var responseEndInMs = getTimeInMs(process.hrtime(startTestTime));
+                        // NOTE: Only in node 0.10 response 'end' event can happen earlier than 1000 ms
+                        var responseEndThresholdTimeout = 20;
+
+                        expect(responseEndInMs + responseEndThresholdTimeout > 1000).to.be.true;
                         expect(chunks.join('')).equal('body');
 
                         done();
