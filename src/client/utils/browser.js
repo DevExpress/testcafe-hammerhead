@@ -34,4 +34,5 @@ export var hasTouchEvents = !!('ontouchstart' in window);
 export var hasTouchPoints = isIE && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
 export var isTouchDevice  = !!(info.mobile || info.tablet) && hasTouchEvents;
 
+export var hasDataTransfer = !!window.DataTransfer;
 
