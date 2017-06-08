@@ -260,7 +260,7 @@ export default class DomProcessor {
     _isOpenLinkInIframe (el) {
         var tagName = this.adapter.getTagName(el);
         var target  = this.adapter.getAttr(el, 'target');
-        var rel     = String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase();
+        var rel     = this._getRelAttribute(el);
 
         if (target !== '_top') {
             var mustProcessTag = DomProcessor.isIframeFlagTag(tagName) || DomProcessor._isHtmlImportLink(tagName, rel);

@@ -120,14 +120,14 @@ describe('Proxy', function () {
             res.end(fs.readFileSync('test/server/data/page/src.html').toString());
         });
 
-        app.get('/import-page', function (req, res) {
+        app.get('/html-import-page', function (req, res) {
             res.set('content-type', 'text/html');
-            res.end(fs.readFileSync('test/server/data/import-page/src.html').toString());
+            res.end(fs.readFileSync('test/server/data/html-import-page/src.html').toString());
         });
 
-        app.get('/import-page-in-iframe', function (req, res) {
+        app.get('/html-import-page-in-iframe', function (req, res) {
             res.set('content-type', 'text/html');
-            res.end(fs.readFileSync('test/server/data/import-page/src-iframe.html').toString());
+            res.end(fs.readFileSync('test/server/data/html-import-page/src-iframe.html').toString());
         });
 
         app.get('/page-with-frameset', function (req, res) {
@@ -845,7 +845,7 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should process import pages', function (done) {
+        it('Should process html import pages', function (done) {
             session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
             session.injectable.scripts.push('/script2.js');
@@ -855,7 +855,7 @@ describe('Proxy', function () {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
             var options = {
-                url: urlUtils.getProxyUrl('http://127.0.0.1:2000/import-page', {
+                url: urlUtils.getProxyUrl('http://127.0.0.1:2000/html-import-page', {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
                     sessionId:     session.id,
@@ -868,20 +868,20 @@ describe('Proxy', function () {
             };
 
             request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/import-page/expected.html').toString();
+                var expected = fs.readFileSync('test/server/data/html-import-page/expected.html').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should process import pages in iframe', function (done) {
+        it('Should process html import pages in iframe', function (done) {
             session.id = 'sessionId';
 
             proxy.openSession('http://127.0.0.1:2000/', session);
 
             var options = {
-                url: urlUtils.getProxyUrl('http://127.0.0.1:2000/import-page-in-iframe', {
+                url: urlUtils.getProxyUrl('http://127.0.0.1:2000/html-import-page-in-iframe', {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
                     sessionId:     session.id,
@@ -894,7 +894,7 @@ describe('Proxy', function () {
             };
 
             request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/import-page/expected-iframe.html').toString();
+                var expected = fs.readFileSync('test/server/data/html-import-page/expected-iframe.html').toString();
 
                 compareCode(body, expected);
                 done();
