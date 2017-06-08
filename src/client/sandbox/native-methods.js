@@ -198,7 +198,9 @@ class NativeMethods {
         this.StorageEvent     = win.StorageEvent;
         this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
-        this.DataTransfer     = win.DataTransfer;
+
+        if (win.DataTransfer)
+            this.DataTransfer = win.DataTransfer;
 
         if (win.DataTransferItemList)
             this.DataTransferItemList = win.DataTransferItemList;
