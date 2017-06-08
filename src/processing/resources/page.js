@@ -84,7 +84,7 @@ class PageProcessor extends ResourceProcessorBase {
             });
         }
 
-        for (var i = result.length; i--;)
+        for (var i = result.length - 1; i > -1; i--)
             parse5Utils.insertElement(result[i], head);
     }
 
@@ -173,7 +173,7 @@ class PageProcessor extends ResourceProcessorBase {
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
         domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
 
-        if (!ctx.dest.isImport) {
+        if (!ctx.dest.isHtmlImport) {
             PageProcessor._addPageResources(head, processingOpts, domAdapter);
             this._addBodyCreatedEventScript(body, domAdapter);
         }

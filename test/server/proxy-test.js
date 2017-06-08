@@ -859,7 +859,7 @@ describe('Proxy', function () {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
                     sessionId:     session.id,
-                    resourceType:  urlUtils.getResourceTypeString({ isImport: true })
+                    resourceType:  urlUtils.getResourceTypeString({ isHtmlImport: true })
                 }),
 
                 headers: {
@@ -885,7 +885,7 @@ describe('Proxy', function () {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
                     sessionId:     session.id,
-                    resourceType:  urlUtils.getResourceTypeString({ isImport: true, isIframe: true })
+                    resourceType:  urlUtils.getResourceTypeString({ isHtmlImport: true, isIframe: true })
                 }),
 
                 headers: {

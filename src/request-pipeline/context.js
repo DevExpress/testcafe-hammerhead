@@ -51,7 +51,7 @@ export default class RequestPipelineContext {
                 isForm:        parsedResourceType.isForm,
                 isScript:      parsedResourceType.isScript,
                 isEventSource: parsedResourceType.isEventSource,
-                isImport:      parsedResourceType.isImport,
+                isHtmlImport:  parsedResourceType.isHtmlImport,
                 charset:       parsed.charset
             };
 
@@ -109,7 +109,8 @@ export default class RequestPipelineContext {
         var acceptHeader = this.req.headers['accept'];
 
         this.isXhr          = !!this.req.headers[XHR_HEADERS.requestMarker];
-        this.isPage         = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader) || this.dest.isImport;
+        this.isPage         = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader) ||
+                              this.dest.isHtmlImport;
         this.isIframe       = this.dest.isIframe;
         this.isSpecialPage  = urlUtils.isSpecialPage(this.dest.url);
         this.isFileProtocol = this.dest.protocol === 'file:';

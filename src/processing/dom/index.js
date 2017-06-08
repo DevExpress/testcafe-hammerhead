@@ -81,8 +81,12 @@ export default class DomProcessor {
         return attrName === 'autocomplete' && storedAttrValue === AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     }
 
-    static _isLinkImport (tagName, relAttr) {
+    static _isHtmlImportLink (tagName, relAttr) {
         return tagName && relAttr && tagName === 'link' && relAttr === 'import';
+    }
+
+    _getRelAttribute (el) {
+        return String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase();
     }
 
     _createProcessorPatterns (adapter) {
@@ -220,10 +224,10 @@ export default class DomProcessor {
         var tagName = this.adapter.getTagName(el);
 
         return urlUtils.getResourceTypeString({
-            isIframe: tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),
-            isForm:   tagName === 'form' || tagName === 'input' || tagName === 'button',
-            isScript: tagName === 'script',
-            isImport: tagName === 'link' && String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase() === 'import'
+            isIframe:     tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),
+            isForm:       tagName === 'form' || tagName === 'input' || tagName === 'button',
+            isScript:     tagName === 'script',
+            isHtmlImport: tagName === 'link' && this._getRelAttribute(el) === 'import'
         });
     }
 
@@ -259,7 +263,7 @@ export default class DomProcessor {
         var rel     = String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase();
 
         if (target !== '_top') {
-            var mustProcessTag = DomProcessor.isIframeFlagTag(tagName) || DomProcessor._isLinkImport(tagName, rel);
+            var mustProcessTag = DomProcessor.isIframeFlagTag(tagName) || DomProcessor._isHtmlImportLink(tagName, rel);
             var isNameTarget   = target ? target[0] !== '_' : false;
 
             if (target === '_parent')
