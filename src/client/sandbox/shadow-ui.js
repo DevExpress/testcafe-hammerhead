@@ -13,6 +13,8 @@ import getNativeQuerySelectorAll from '../utils/get-native-query-selector-all';
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
 
+const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|flag|shadow-container-collection';
+
 export default class ShadowUI extends SandboxBase {
     constructor (nodeMutation, messageSandbox, iframeSandbox) {
         super();
@@ -114,6 +116,19 @@ export default class ShadowUI extends SandboxBase {
                 };
             }
         };
+    }
+
+    static _markElementCollections (el) {
+        Object.defineProperty(el.children, IS_SHADOW_CONTAINER_COLLECTION_FLAG, {
+            configurable: false,
+            enumerable:   false,
+            value:        true
+        });
+        Object.defineProperty(el.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, {
+            configurable: false,
+            enumerable:   false,
+            value:        true
+        });
     }
 
     _bringRootToWindowTopLeft () {
@@ -293,6 +308,14 @@ export default class ShadowUI extends SandboxBase {
     attach (window) {
         super.attach(window, window.document);
 
+        var document = window.document;
+
+        if (document.head)
+            ShadowUI._markElementCollections(document.head);
+
+        if (document.body)
+            ShadowUI._markElementCollections(document.body);
+
         this._overrideDocumentMethods(window.document);
         this._overrideElementMethods(window);
         this._markScriptsAndStylesAsShadowInHead(window.document.head);
@@ -310,6 +333,12 @@ export default class ShadowUI extends SandboxBase {
         this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLEANED_EVENT, e => {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
+
+            if (document.head)
+                ShadowUI._markElementCollections(document.head);
+
+            if (document.body)
+                ShadowUI._markElementCollections(document.body);
         });
         this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, e => {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
@@ -332,6 +361,10 @@ export default class ShadowUI extends SandboxBase {
             if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
                 this.onBodyElementMutation();
         });
+
+        this.nodeMutation.on(this.nodeMutation.BODY_CREATED_EVENT, ({ body }) => {
+            ShadowUI._markElementCollections(body);
+        });
     }
 
     onBodyElementMutation () {
@@ -347,6 +380,9 @@ export default class ShadowUI extends SandboxBase {
 
         if (!(isRootInDom && isRootLastChild && isRootInBody))
             this.nativeMethods.appendChild.call(this.document.body, this.root);
+
+        if (this.document.body)
+            ShadowUI._markElementCollections(this.document.body);
     }
 
     // Accessors
@@ -406,28 +442,16 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static isShadowContainer (el) {
-        if (domUtils.isDomElement(el))
-            return domUtils.isBodyElement(el) || domUtils.isHeadElement(el);
-
-        return false;
+        return domUtils.isBodyElement(el) || domUtils.isHeadElement(el);
     }
 
     static isShadowContainerCollection (collection) {
         try {
-            if (collection && collection.length && !domUtils.isWindow(collection) && collection[0] &&
-                collection[0].nodeType) {
-                var parent = collection[0].parentNode;
-
-                if (parent && (parent.childNodes === collection || parent.children === collection))
-                    return ShadowUI.isShadowContainer(parent);
-            }
+            return collection[IS_SHADOW_CONTAINER_COLLECTION_FLAG];
         }
-            /*eslint-disable no-empty */
         catch (e) {
+            return false;
         }
-        /*eslint-enable no-empty */
-
-        return false;
     }
 
     static isShadowUIMutation (mutation) {
@@ -491,7 +515,7 @@ export default class ShadowUI extends SandboxBase {
 
     select (selector, context) {
         var patchedSelector = selector.replace(CLASSNAME_RE,
-            className => className + SHADOW_UI_CLASS_NAME.postfix);
+                className => className + SHADOW_UI_CLASS_NAME.postfix);
 
         return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
                nativeMethods.querySelectorAll.call(this.document, patchedSelector);

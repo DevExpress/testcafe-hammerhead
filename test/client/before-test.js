@@ -140,4 +140,8 @@
 
     QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT = 20000;
     QUnit.config.testTimeout             = window.QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT * 2 + 5000;
+
+    QUnit.moduleStart(function () {
+        hammerhead.sandbox.node.raiseBodyCreatedEvent();
+    });
 })();
