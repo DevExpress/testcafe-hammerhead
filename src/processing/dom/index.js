@@ -35,7 +35,7 @@ const SVG_XLINK_HREF_TAGS = [
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base'];
+const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base', 'button'];
 const IFRAME_FLAG_TAGS = (() => {
     var arr = [];
 
@@ -79,6 +79,14 @@ export default class DomProcessor {
 
     static isAddedAutocompleteAttr (attrName, storedAttrValue) {
         return attrName === 'autocomplete' && storedAttrValue === AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
+    }
+
+    static _isHtmlImportLink (tagName, relAttr) {
+        return tagName && relAttr && tagName === 'link' && relAttr === 'import';
+    }
+
+    _getRelAttribute (el) {
+        return String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase();
     }
 
     _createProcessorPatterns (adapter) {
@@ -216,9 +224,10 @@ export default class DomProcessor {
         var tagName = this.adapter.getTagName(el);
 
         return urlUtils.getResourceTypeString({
-            isIframe: tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),
-            isForm:   tagName === 'form' || tagName === 'input' || tagName === 'button',
-            isScript: tagName === 'script'
+            isIframe:     tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),
+            isForm:       tagName === 'form' || tagName === 'input' || tagName === 'button',
+            isScript:     tagName === 'script',
+            isHtmlImport: tagName === 'link' && this._getRelAttribute(el) === 'import'
         });
     }
 
@@ -251,9 +260,10 @@ export default class DomProcessor {
     _isOpenLinkInIframe (el) {
         var tagName = this.adapter.getTagName(el);
         var target  = this.adapter.getAttr(el, 'target');
+        var rel     = this._getRelAttribute(el);
 
         if (target !== '_top') {
-            var mustProcessTag = DomProcessor.isIframeFlagTag(tagName);
+            var mustProcessTag = DomProcessor.isIframeFlagTag(tagName) || DomProcessor._isHtmlImportLink(tagName, rel);
             var isNameTarget   = target ? target[0] !== '_' : false;
 
             if (target === '_parent')

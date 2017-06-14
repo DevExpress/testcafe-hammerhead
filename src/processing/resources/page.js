@@ -84,7 +84,7 @@ class PageProcessor extends ResourceProcessorBase {
             });
         }
 
-        for (var i = result.length; i--; i > -1)
+        for (var i = result.length - 1; i > -1; i--)
             parse5Utils.insertElement(result[i], head);
     }
 
@@ -134,8 +134,6 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     processResource (html, ctx, charset, urlReplacer, processingOpts) {
-        var pageProcessor = this;
-
         processingOpts = processingOpts || PageProcessor._getPageProcessingOptions(ctx, urlReplacer);
 
         var bom = getBOM(html);
@@ -156,12 +154,12 @@ class PageProcessor extends ResourceProcessorBase {
         if (metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
             return this.RESTART_PROCESSING;
 
-        var iframeHtmlProcessor = function (iframeHtml, callback) {
+        var iframeHtmlProcessor = (iframeHtml, callback) => {
             var storedIsIframe = processingOpts.isIframe;
 
             processingOpts.isIframe = true;
 
-            var result = pageProcessor.processResource(iframeHtml, ctx, charset, urlReplacer, processingOpts);
+            var result = this.processResource(iframeHtml, ctx, charset, urlReplacer, processingOpts);
 
             processingOpts.isIframe = storedIsIframe;
 
@@ -175,8 +173,11 @@ class PageProcessor extends ResourceProcessorBase {
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
         domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
 
-        PageProcessor._addPageResources(head, processingOpts, domAdapter);
-        this._addBodyCreatedEventScript(body, domAdapter);
+        if (!ctx.dest.isHtmlImport) {
+            PageProcessor._addPageResources(head, processingOpts, domAdapter);
+            this._addBodyCreatedEventScript(body, domAdapter);
+        }
+
         PageProcessor._changeMetas(metas, domAdapter);
         PageProcessor._addCharsetInfo(head, charset.get(), domAdapter);
         PageProcessor._addCompatibilityMeta(head, domAdapter);

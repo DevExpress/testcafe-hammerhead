@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html manifest="/some.url">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=7"/>
+    <link id="stylesheet" rel="stylesheet" type="text/css" href="http://stylesheet.url">
+    <script type="text/javascript" charset="utf-16be" src="http://link.url"></script>
+    <meta http-equiv="Refresh" content="0;URL=http://link.url/">
+    <base href="http://base.url">
+    <title></title>
+    <style type="text/css">
+        .someRule {
+            background-image: url(http://some.url);
+            background: repeat-y url(/some/other/url) #fc0;
+        }
+    </style>
+    <script type="text/javascript">
+        {
+            a : window.location
+        }
+    </script>
+    <script type="text/javascript">
+        <!--//-->
+        <![CDATA[//><!--
+        var someScript;
+        //--><!
+        ]]>
+    </script>
+    <!-- T217636: Health monitor - script incorrectly processes html-comments (flipkart.com) -->
+    <script type="text/javascript">
+        <!--<script type="text/javascript">-->
+        var someScript;
+    </script>
+    <link rel="import" href="http://link.url/some-imported-page.html">
+</head>
+<body>
+<a id="httpsLink" href="https://link.url"></a>
+
+<form id="form" method="post" action="http://post.something.here">
+    <button formaction="http://button.formaction.com/"></button>
+</form>
+</body>
+</html>
