@@ -28,12 +28,12 @@ import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-de
 
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
-function checkElementTextProperties (element) {
+function checkElementTextProperties (el) {
     var result         = {};
     var textProperties = ['innerHTML', 'outerHTML', 'innerText', 'textContent'];
 
     for (var textProperty of textProperties)
-        result[textProperty] = element[textProperty] !== void 0;
+        result[textProperty] = el[textProperty] !== void 0;
 
     return result;
 }

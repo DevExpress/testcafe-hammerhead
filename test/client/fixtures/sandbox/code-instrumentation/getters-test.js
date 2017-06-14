@@ -539,26 +539,17 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
 
     var svgHasInnerHTML = svg.innerHTML !== void 0;
 
-    if (svgHasInnerHTML)
-        strictEqual(getProperty(svg, 'innerHTML'), '');
-    else
-        strictEqual(getProperty(svg, 'innerHTML'), void 0);
+    strictEqual(getProperty(svg, 'innerHTML'), svgHasInnerHTML ? '' : void 0);
 
     setProperty(svg, 'innerHTML', html);
 
-    if (svgHasInnerHTML)
-        strictEqual(svg.innerHTML, processedHtml);
-    else
-        strictEqual(svg.innerHTML, html);
+    strictEqual(svg.innerHTML, svgHasInnerHTML ? processedHtml : html);
 
     svg.innerHTML = '';
 
     var svgHasOuterHTML = svg.outerHTML !== void 0;
 
-    if (svgHasOuterHTML)
-        strictEqual(getProperty(svg, 'outerHTML'), svg.outerHTML);
-    else
-        strictEqual(getProperty(svg, 'outerHTML'), void 0);
+    strictEqual(getProperty(svg, 'outerHTML'), svgHasOuterHTML ? svg.outerHTML : void 0);
 
     setProperty(svg, 'outerHTML', html);
 
@@ -574,9 +565,6 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
     textProperties.forEach(function (property) {
         var svgHasProperty = svg[property] !== void 0;
 
-        if (svgHasProperty)
-            strictEqual(getProperty(svg, property), style, property);
-        else
-            strictEqual(getProperty(svg, property), void 0, property);
+        strictEqual(getProperty(svg, property), svgHasProperty ? style : void 0, property);
     });
 });
