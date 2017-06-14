@@ -623,7 +623,7 @@ test('setter returns a correct value (GH-907)', function () {
     checkReturnedValue('a', 'target', '_blank');
 });
 
-test('body of new document implementation should not throw an error after set him innerHTML (GH-1172)', function () {
+test('should not throw an error on setting the body.innerHtml when document.body equals null (GH-1172)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test' + Date.now();
