@@ -541,9 +541,14 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
 
     strictEqual(getProperty(svg, 'innerHTML'), svg.innerHTML);
 
+    // NOTE: Only MSEdge puts additional 'xmlns' attribute for svg child nodes
+    svg.innerHTML = processedHtml;
+
+    var processedHtmlInsideSvg = svg.innerHTML;
+
     setProperty(svg, 'innerHTML', html);
 
-    strictEqual(svg.innerHTML, svgHasInnerHTML ? processedHtml : html);
+    strictEqual(svg.innerHTML, svgHasInnerHTML ? processedHtmlInsideSvg : html);
 
     svg.innerHTML = '';
 

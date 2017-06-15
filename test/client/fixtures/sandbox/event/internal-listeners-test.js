@@ -569,7 +569,9 @@ asyncTest('dispatchEvent, fireEvent, click', function () {
     // some browsers automatically replace the element prototype's methods
     // with methods of the element prototype from the different window.
     var getListenersModule = function (iframeListenersModule, topLevelListenersModule) {
-        return browserUtils.isWebKit || browserUtils.isMSEdge ? topLevelListenersModule : iframeListenersModule;
+        return browserUtils.isWebKit || browserUtils.isMSEdge && browserUtils.version < 15
+            ? topLevelListenersModule
+            : iframeListenersModule;
     };
 
     iframe.id = 'test_unique_id_qrsdcz';
@@ -593,7 +595,7 @@ asyncTest('dispatchEvent, fireEvent, click', function () {
                 ok(!window[dispatchedEventFlag]);
             };
 
-            targetListeners.afterDispatchEvent  = function (el) {
+            targetListeners.afterDispatchEvent = function (el) {
                 ok(iframe.contentWindow[dispatchedEventFlag]);
                 ok(!window[dispatchedEventFlag]);
 
