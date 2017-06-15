@@ -130,7 +130,7 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.Worker) {
             window.Worker           = function (scriptURL, options) {
-                if (constructorIsCalledWithoutNewKeyword(this, window.Worker) )
+                if (constructorIsCalledWithoutNewKeyword(this, window.Worker))
                     nativeMethods.Worker.apply(this, arguments);
 
                 if (arguments.length === 0)
@@ -187,8 +187,8 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.MutationObserver) {
-            window.MutationObserver           = callback => {
-                var wrapper = mutations => {
+            window.MutationObserver = callback => {
+                var wrapper = function (mutations) {
                     var result = [];
 
                     for (var i = 0; i < mutations.length; i++) {
@@ -197,11 +197,12 @@ export default class WindowSandbox extends SandboxBase {
                     }
 
                     if (result.length)
-                        callback(result);
+                        callback.call(this, result);
                 };
 
                 return new nativeMethods.MutationObserver(wrapper);
             };
+
             window.MutationObserver.prototype = nativeMethods.MutationObserver.prototype;
         }
 
