@@ -635,7 +635,7 @@ test('should not throw an error on setting the body.innerHtml when document.body
         '    <script>',
         '        var body = document.implementation.createHTMLDocument("").body;',
         '        try {',
-        '            window.__set$(body, "innerHTML", "<form><\/form>");',
+        '            body.innerHTML = "<form><\/form>";',
         '            window.hasError = false;',
         '        } catch (e) {',
         '            window.hasError = true;',
