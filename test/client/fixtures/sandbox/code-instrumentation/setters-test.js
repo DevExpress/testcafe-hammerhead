@@ -622,3 +622,29 @@ test('setter returns a correct value (GH-907)', function () {
     checkReturnedValue('img', 'src', './path');
     checkReturnedValue('a', 'target', '_blank');
 });
+
+test('should not throw an error on setting the body.innerHtml when document.body equals null (GH-1172)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test' + Date.now();
+
+    document.body.appendChild(iframe);
+
+    iframe.contentDocument.write(
+        '<head>',
+        '    <script>',
+        '        var body = document.implementation.createHTMLDocument("").body;',
+        '        try {',
+        '            body.innerHTML = "<form><\/form>";',
+        '            window.hasError = false;',
+        '        } catch (e) {',
+        '            window.hasError = true;',
+        '        }',
+        '    <\/script>',
+        '</head>'
+    );
+
+    ok(!iframe.contentWindow.hasError);
+
+    document.body.removeChild(iframe);
+});

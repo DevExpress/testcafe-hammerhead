@@ -294,7 +294,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     el.innerHTML = processedValue;
 
-                    if (domUtils.isBodyElement(el)) {
+                    if (this.document.body === el) {
                         var shadowUIRoot = this.shadowUI.getRoot();
 
                         ShadowUI.markElementAndChildrenAsShadow(shadowUIRoot);
