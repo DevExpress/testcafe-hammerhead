@@ -539,7 +539,7 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
 
     var svgHasInnerHTML = svg.innerHTML !== void 0;
 
-    strictEqual(getProperty(svg, 'innerHTML'), svgHasInnerHTML ? '' : void 0);
+    strictEqual(getProperty(svg, 'innerHTML'), svg.innerHTML);
 
     setProperty(svg, 'innerHTML', html);
 
@@ -549,7 +549,7 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
 
     var svgHasOuterHTML = svg.outerHTML !== void 0;
 
-    strictEqual(getProperty(svg, 'outerHTML'), svgHasOuterHTML ? svg.outerHTML : void 0);
+    strictEqual(getProperty(svg, 'outerHTML'), svg.outerHTML);
 
     setProperty(svg, 'outerHTML', html);
 
