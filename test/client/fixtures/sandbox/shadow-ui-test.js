@@ -53,6 +53,7 @@ if (window.MutationObserver) {
         var observer = new window.MutationObserver(function (mutations) {
             strictEqual(mutations.length, 1);
             strictEqual(mutations[0].addedNodes[0], el);
+            strictEqual(this, observer);
             observer.disconnect();
             uiEl.parentNode.removeChild(uiEl);
             el.parentNode.removeChild(el);
