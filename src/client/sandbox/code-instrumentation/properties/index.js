@@ -28,6 +28,19 @@ import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-de
 
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
+function checkElementTextProperties (el) {
+    var result         = {};
+    var textProperties = ['innerHTML', 'outerHTML', 'innerText', 'textContent'];
+
+    for (var textProperty of textProperties)
+        result[textProperty] = el[textProperty] !== void 0;
+
+    return result;
+}
+
+const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg'));
+const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
+
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
         super();
@@ -102,6 +115,16 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
 
         return text;
+    }
+
+    static _elementHasTextProperty (el, prop) {
+        if (typeof el[prop] !== 'string')
+            return false;
+
+        if (domUtils.isSVGElement(el))
+            return SVG_ELEMENT_TEXT_PROPERTIES[prop];
+
+        return HTML_ELEMENT_TEXT_PROPERTIES[prop];
     }
 
     _createPropertyAccessors (window, document) {
@@ -266,7 +289,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             innerHTML: {
-                condition: el => domUtils.isElementNode(el),
+                condition: el => domUtils.isElementNode(el) &&
+                                 PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'innerHTML'),
 
                 get: el => {
                     if (domUtils.isScriptElement(el))
@@ -335,7 +359,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             innerText: {
                 // NOTE: http://caniuse.com/#search=Node.innerText
-                condition: el => typeof el.innerText === 'string' && domUtils.isElementNode(el),
+                condition: el => domUtils.isElementNode(el) &&
+                                 PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'innerText'),
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.innerText),
 
@@ -355,8 +380,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             outerHTML: {
-                condition: el => typeof el.outerHTML === 'string' && domUtils.isElementNode(el),
-                get:       el => cleanUpHtml(el.outerHTML, el.parentNode && el.parentNode.tagName),
+                condition: el => domUtils.isElementNode(el) &&
+                                 PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'outerHTML'),
+
+                get: el => cleanUpHtml(el.outerHTML, el.parentNode && el.parentNode.tagName),
 
                 set: (el, value) => {
                     var parentEl = el.parentNode;
@@ -588,7 +615,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             textContent: {
-                condition: el => domUtils.isElementNode(el),
+                condition: el => domUtils.isElementNode(el) &&
+                                 PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'textContent'),
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.textContent),
 
