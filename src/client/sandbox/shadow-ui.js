@@ -364,6 +364,9 @@ export default class ShadowUI extends SandboxBase {
 
         this.nodeMutation.on(this.nodeMutation.BODY_CREATED_EVENT, ({ body }) => {
             ShadowUI._markElementCollections(body);
+
+            if (document.head)
+                ShadowUI._markElementCollections(document.head);
         });
     }
 
