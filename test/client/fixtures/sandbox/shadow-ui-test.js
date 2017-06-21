@@ -809,3 +809,16 @@ test('querySelector call should return a first non-shadowUI element (GH-1131)', 
     document.head.removeChild(meta);
     document.head.removeChild(shadowMeta);
 });
+
+test('collection gotten via the querySelectorAll function should not contains enumerable item and namedItem properties (GH-1141)', function () {
+    var collection     = document.querySelectorAll('div');
+    var collectionKeys = Object.keys(collection);
+
+    strictEqual(collectionKeys.indexOf('item'), -1, 'item');
+    strictEqual(collectionKeys.indexOf('namedItem'), -1, 'namedItem');
+
+    for (var prop in collection) {
+        if (prop === 'item' || prop === 'namedItem')
+            ok(!collection.hasOwnProperty(prop), prop);
+    }
+});

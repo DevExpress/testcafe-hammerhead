@@ -49,10 +49,15 @@ export default class ShadowUI extends SandboxBase {
                 filteredList.push(list[i]);
         }
 
-        filteredList.item = index => index >= filteredList.length ? null : filteredList[index];
+        Object.defineProperty(filteredList, 'item', {
+            value: index => index >= filteredList.length ? null : filteredList[index]
+        });
 
-        if (list.namedItem)
-            filteredList.namedItem = name => list.namedItem(name);
+        if (list.namedItem) {
+            Object.defineProperty(filteredList, 'namedItem', {
+                value: name => list.namedItem(name)
+            });
+        }
 
         return filteredList.length === nlLength ? list : filteredList;
     }
@@ -491,7 +496,7 @@ export default class ShadowUI extends SandboxBase {
 
     select (selector, context) {
         var patchedSelector = selector.replace(CLASSNAME_RE,
-            className => className + SHADOW_UI_CLASS_NAME.postfix);
+                className => className + SHADOW_UI_CLASS_NAME.postfix);
 
         return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
                nativeMethods.querySelectorAll.call(this.document, patchedSelector);
