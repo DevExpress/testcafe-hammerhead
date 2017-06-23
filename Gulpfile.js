@@ -71,19 +71,13 @@ var CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'safari',
-        platform:    'OS X 10.10',
-        version:     '8.0'
-    },
-    {
-        browserName:     'Safari',
-        deviceName:      'iPhone 6 Plus',
-        platformVersion: '9.3',
-        platformName:    'iOS'
+        platform:    'OS X 10.11',
+        version:     '9.0'
     },
     {
         browserName:     'Safari',
         deviceName:      'iPhone 7 Plus Simulator',
-        platformVersion: '10.0',
+        platformVersion: '10.3',
         platformName:    'iOS'
     },
     {

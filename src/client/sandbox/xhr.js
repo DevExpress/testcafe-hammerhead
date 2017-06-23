@@ -7,7 +7,7 @@ import { getOriginHeader } from '../utils/destination-location';
 import reEscape from '../../utils/regexp-escape';
 
 const IS_OPENED_XHR               = 'hammerhead|xhr|is-opened-xhr';
-const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'g');
+const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');
 
 export default class XhrSandbox extends SandboxBase {
     constructor (cookieSandbox) {

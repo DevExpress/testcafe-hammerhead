@@ -363,7 +363,8 @@ else {
         var checkEvent = function (event) {
             strictEqual(event.keyIdentifier, event.type === 'keypress' ? '' : 'Enter');
 
-            if (!browserUtils.isAndroid)
+            // NOTE: Until to Safari iOS 10.3
+            if (!browserUtils.isAndroid && browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1)
                 notOk('key' in event);
         };
 
