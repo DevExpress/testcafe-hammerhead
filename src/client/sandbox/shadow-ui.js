@@ -13,6 +13,9 @@ import getNativeQuerySelectorAll from '../utils/get-native-query-selector-all';
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
 
+const IS_SHADOW_CONTAINER_FLAG            = 'hammerhead|shadow-ui|container-flag';
+const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-collection-flag';
+
 export default class ShadowUI extends SandboxBase {
     constructor (nodeMutation, messageSandbox, iframeSandbox) {
         super();
@@ -119,6 +122,20 @@ export default class ShadowUI extends SandboxBase {
                 };
             }
         };
+    }
+
+    static _markShadowUIContainerAndCollections (containerEl) {
+        Object.defineProperty(containerEl, IS_SHADOW_CONTAINER_FLAG, { value: true });
+        Object.defineProperty(containerEl.children, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
+        Object.defineProperty(containerEl.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
+    }
+
+    static _markShadowUIContainers (head, body) {
+        if (head)
+            ShadowUI._markShadowUIContainerAndCollections(head);
+
+        if (body)
+            ShadowUI._markShadowUIContainerAndCollections(body);
     }
 
     _bringRootToWindowTopLeft () {
@@ -298,6 +315,8 @@ export default class ShadowUI extends SandboxBase {
     attach (window) {
         super.attach(window, window.document);
 
+        ShadowUI._markShadowUIContainers(this.document.head, this.document.body);
+
         this._overrideDocumentMethods(window.document);
         this._overrideElementMethods(window);
         this._markScriptsAndStylesAsShadowInHead(window.document.head);
@@ -315,6 +334,8 @@ export default class ShadowUI extends SandboxBase {
         this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLEANED_EVENT, e => {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
+
+            ShadowUI._markShadowUIContainers(this.document.head, this.document.body);
         });
         this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, e => {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
@@ -337,6 +358,9 @@ export default class ShadowUI extends SandboxBase {
             if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
                 this.onBodyElementMutation();
         });
+
+        this.nodeMutation.on(this.nodeMutation.BODY_CREATED_EVENT, ({ body }) =>
+            ShadowUI._markShadowUIContainers(this.document.head, body));
     }
 
     onBodyElementMutation () {
@@ -352,6 +376,8 @@ export default class ShadowUI extends SandboxBase {
 
         if (!(isRootInDom && isRootLastChild && isRootInBody))
             this.nativeMethods.appendChild.call(this.document.body, this.root);
+
+        ShadowUI._markShadowUIContainers(this.document.head, this.document.body);
     }
 
     // Accessors
@@ -410,29 +436,21 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
-    static isShadowContainer (el) {
-        if (domUtils.isDomElement(el))
-            return domUtils.isBodyElement(el) || domUtils.isHeadElement(el);
+    static _hasFlag (obj, flag) {
+        try {
+            return !!obj[flag];
+        }
+        catch (e) {
+            return false;
+        }
+    }
 
-        return false;
+    static isShadowContainer (el) {
+        return ShadowUI._hasFlag(el, IS_SHADOW_CONTAINER_FLAG);
     }
 
     static isShadowContainerCollection (collection) {
-        try {
-            if (collection && collection.length && !domUtils.isWindow(collection) && collection[0] &&
-                collection[0].nodeType) {
-                var parent = collection[0].parentNode;
-
-                if (parent && (parent.childNodes === collection || parent.children === collection))
-                    return ShadowUI.isShadowContainer(parent);
-            }
-        }
-            /*eslint-disable no-empty */
-        catch (e) {
-        }
-        /*eslint-enable no-empty */
-
-        return false;
+        return ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
     }
 
     static isShadowUIMutation (mutation) {
