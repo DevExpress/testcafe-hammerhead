@@ -177,6 +177,16 @@ class NativeMethods {
         if (win.DOMParser)
             this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
+        // Setters
+        var inputValueDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
+        var textAreaValueDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
+
+        if (inputValueDescriptor && typeof inputValueDescriptor.set === 'function')
+            this.inputValueSetter = inputValueDescriptor.set;
+
+        if (textAreaValueDescriptor && typeof textAreaValueDescriptor.set === 'function')
+            this.textAreaValueSetter = textAreaValueDescriptor.set;
+
         this.refreshClasses(win);
     }
 
