@@ -83,6 +83,7 @@ class Hammerhead {
         this.transport     = transport;
         this.nativeMethods = this.sandbox.nativeMethods;
         this.shadowUI      = this.sandbox.shadowUI;
+        this.storages      = this.sandbox.storageSandbox;
 
         this.eventSandbox = {
             listeners:             this.sandbox.event.listeners,
