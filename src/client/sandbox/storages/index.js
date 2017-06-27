@@ -18,6 +18,7 @@ export default class StorageSandbox extends SandboxBase {
         this.unloadSandbox  = unloadSandbox;
         this.eventSimulator = eventSimulator;
         this.storages       = {};
+        this.isLocked       = false;
     }
 
     static _getStorageKey (sessionId, host) {
@@ -49,8 +50,10 @@ export default class StorageSandbox extends SandboxBase {
             this.sessionStorage = new StorageWrapper(this.window, this.window.sessionStorage, storageKey);
 
             this.unloadSandbox.on(this.unloadSandbox.BEFORE_UNLOAD_EVENT, () => {
-                this.localStorage.saveToNativeStorage();
-                this.sessionStorage.saveToNativeStorage();
+                if (!this.isLocked) {
+                    this.localStorage.saveToNativeStorage();
+                    this.sessionStorage.saveToNativeStorage();
+                }
             });
 
             // NOTE: Push to the top same-domain sandbox.
@@ -82,6 +85,15 @@ export default class StorageSandbox extends SandboxBase {
 
             return event;
         };
+    }
+
+    clear () {
+        this.window.localStorage.removeItem(this.localStorage.nativeStorageKey);
+        this.window.sessionStorage.removeItem(this.sessionStorage.nativeStorageKey);
+    }
+
+    lock () {
+        this.isLocked = true;
     }
 
     attach (window) {

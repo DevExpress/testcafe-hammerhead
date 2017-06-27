@@ -41,6 +41,54 @@ function waitStorageEvent (window, action) {
     });
 }
 
+module('storage sandbox API');
+
+test('clear', function () {
+    var localStorageWrapper   = storageSandbox.localStorage;
+    var sessionStorageWrapper = storageSandbox.sessionStorage;
+
+    localStorageWrapper.setItem('key11', 'value1');
+    sessionStorageWrapper.setItem('key12', 'value2');
+
+    strictEqual(localStorageWrapper.length, 1);
+    strictEqual(sessionStorageWrapper.length, 1);
+    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
+    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+
+    storageSandbox.unloadSandbox.emit(storageSandbox.unloadSandbox.BEFORE_UNLOAD_EVENT);
+
+    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), '[["key11"],["value1"]]');
+    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), '[["key12"],["value2"]]');
+
+    storageSandbox.clear();
+
+    strictEqual(localStorageWrapper.length, 1);
+    strictEqual(sessionStorageWrapper.length, 1);
+    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
+    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+});
+
+test('lock', function () {
+    var localStorageWrapper   = storageSandbox.localStorage;
+    var sessionStorageWrapper = storageSandbox.sessionStorage;
+
+    localStorageWrapper.setItem('key11', 'value1');
+    sessionStorageWrapper.setItem('key12', 'value2');
+
+    strictEqual(localStorageWrapper.length, 1);
+    strictEqual(sessionStorageWrapper.length, 1);
+    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
+    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+
+    storageSandbox.lock();
+    storageSandbox.unloadSandbox.emit(storageSandbox.unloadSandbox.BEFORE_UNLOAD_EVENT);
+
+    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
+    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+
+    storageSandbox.isLocked = false;
+});
+
 module('storage API');
 
 test('argument types', function () {
