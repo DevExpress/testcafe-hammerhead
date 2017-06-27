@@ -47,8 +47,8 @@ test('clear', function () {
     var localStorageWrapper   = storageSandbox.localStorage;
     var sessionStorageWrapper = storageSandbox.sessionStorage;
 
-    localStorageWrapper.setItem('key1', 'value1');
-    sessionStorageWrapper.setItem('key2', 'value2');
+    localStorageWrapper.setItem('key11', 'value1');
+    sessionStorageWrapper.setItem('key12', 'value2');
 
     strictEqual(localStorageWrapper.length, 1);
     strictEqual(sessionStorageWrapper.length, 1);
@@ -57,8 +57,8 @@ test('clear', function () {
 
     storageSandbox.unloadSandbox.emit(storageSandbox.unloadSandbox.BEFORE_UNLOAD_EVENT);
 
-    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), '[["key1"],["value1"]]');
-    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), '[["key2"],["value2"]]');
+    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), '[["key11"],["value1"]]');
+    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), '[["key12"],["value2"]]');
 
     storageSandbox.clear();
 
@@ -72,8 +72,8 @@ test('lock', function () {
     var localStorageWrapper   = storageSandbox.localStorage;
     var sessionStorageWrapper = storageSandbox.sessionStorage;
 
-    localStorageWrapper.setItem('key1', 'value1');
-    sessionStorageWrapper.setItem('key2', 'value2');
+    localStorageWrapper.setItem('key11', 'value1');
+    sessionStorageWrapper.setItem('key12', 'value2');
 
     strictEqual(localStorageWrapper.length, 1);
     strictEqual(sessionStorageWrapper.length, 1);
@@ -85,6 +85,8 @@ test('lock', function () {
 
     strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
     strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+
+    storageSandbox.isLocked = false;
 });
 
 module('storage API');
