@@ -2,8 +2,21 @@ var cookieUtils = hammerhead.get('./utils/cookie');
 var settings    = hammerhead.get('./settings');
 var urlUtils    = hammerhead.get('./utils/url');
 
-var transport    = hammerhead.transport;
 var browserUtils = hammerhead.utils.browser;
+var cookieSync   = hammerhead.sandbox.cookie.cookieSync;
+
+function setCookieWithoutServerSync (value) {
+    var storedFn = cookieSync.perform;
+
+    cookieSync.perform = function () {
+    };
+
+    var result = setProperty(document, 'cookie', value);
+
+    cookieSync.perform = storedFn;
+
+    return result;
+}
 
 function setCookie (value) {
     return setProperty(document, 'cookie', value);
@@ -15,11 +28,6 @@ function getCookie () {
 
 test('get/set', function () {
     settings.get().cookie = '';
-
-    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
-
-    transport.queuedAsyncServiceMsg = function () {
-    };
 
     var cookieStrs = [
         'Test1=Basic; expires=Wed, 13-Jan-2021 22:23:01 GMT',
@@ -35,11 +43,9 @@ test('get/set', function () {
     ];
 
     for (var i = 0; i < cookieStrs.length; i++)
-        setCookie(cookieStrs[i]);
+        setCookieWithoutServerSync(cookieStrs[i]);
 
     strictEqual(getCookie(), 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
-
-    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
 
 asyncTest('path validation', function () {
@@ -59,11 +65,6 @@ asyncTest('path validation', function () {
 test('remove real cookie after browser processing', function () {
     settings.get().cookie = '';
 
-    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
-
-    transport.queuedAsyncServiceMsg = function () {
-    };
-
     var uniqKey = Math.floor(Math.random() * 1e10).toString() + '_test_key';
 
     var cookieStr = cookieUtils.format({
@@ -72,12 +73,10 @@ test('remove real cookie after browser processing', function () {
         path:  location.path || location.pathname.replace(/\/.*$/, '')
     });
 
-    setCookie(cookieStr);
+    setCookieWithoutServerSync(cookieStr);
 
     strictEqual(settings.get().cookie, uniqKey + '=value');
     ok(document.cookie.indexOf(uniqKey) === -1);
-
-    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
 
 module('regression');
@@ -85,8 +84,7 @@ module('regression');
 test('overwrite (B239496)', function () {
     settings.get().cookie = '';
 
-    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
-    var savedUrlUtilParseProxyUrl  = urlUtils.parseProxyUrl;
+    var savedUrlUtilParseProxyUrl = urlUtils.parseProxyUrl;
 
     urlUtils.parseProxyUrl = function (url) {
         return {
@@ -94,31 +92,26 @@ test('overwrite (B239496)', function () {
         };
     };
 
-    transport.queuedAsyncServiceMsg = function () {
-    };
-
-    setCookie('TestKey1=TestVal1');
-    setCookie('TestKey2=TestVal2');
+    setCookieWithoutServerSync('TestKey1=TestVal1');
+    setCookieWithoutServerSync('TestKey2=TestVal2');
     strictEqual(getCookie(), 'TestKey1=TestVal1; TestKey2=TestVal2');
 
-    setCookie('TestKey1=AnotherValue');
+    setCookieWithoutServerSync('TestKey1=AnotherValue');
     strictEqual(getCookie(), 'TestKey1=AnotherValue; TestKey2=TestVal2');
 
-    setCookie('TestKey2=12;');
+    setCookieWithoutServerSync('TestKey2=12;');
     strictEqual(getCookie(), 'TestKey1=AnotherValue; TestKey2=12');
 
-    setCookie('TestKey1=NewValue');
+    setCookieWithoutServerSync('TestKey1=NewValue');
     strictEqual(getCookie(), 'TestKey1=NewValue; TestKey2=12');
 
-    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
-    urlUtils.parseProxyUrl          = savedUrlUtilParseProxyUrl;
+    urlUtils.parseProxyUrl = savedUrlUtilParseProxyUrl;
 });
 
 test('delete (B239496)', function () {
     settings.get().cookie = '';
 
-    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
-    var savedUrlUtilParseProxyUrl  = urlUtils.parseProxyUrl;
+    var savedUrlUtilParseProxyUrl = urlUtils.parseProxyUrl;
 
     urlUtils.parseProxyUrl = function (url) {
         return {
@@ -126,73 +119,54 @@ test('delete (B239496)', function () {
         };
     };
 
-    transport.queuedAsyncServiceMsg = function () {
-    };
-
-    setCookie('CookieToDelete=DeleteMe');
+    setCookieWithoutServerSync('CookieToDelete=DeleteMe');
     strictEqual(getCookie(), 'CookieToDelete=DeleteMe');
 
-    setCookie('NotExistent=; expires=Thu, 01 Jan 1970 00:00:01 GMT;');
+    setCookieWithoutServerSync('NotExistent=; expires=Thu, 01 Jan 1970 00:00:01 GMT;');
     strictEqual(getCookie(), 'CookieToDelete=DeleteMe');
 
-    setCookie('CookieToDelete=; expires=Thu, 01 Jan 1970 00:00:01 GMT;');
+    setCookieWithoutServerSync('CookieToDelete=; expires=Thu, 01 Jan 1970 00:00:01 GMT;');
     strictEqual(getCookie(), '');
 
-    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
-    urlUtils.parseProxyUrl          = savedUrlUtilParseProxyUrl;
+    urlUtils.parseProxyUrl = savedUrlUtilParseProxyUrl;
 });
 
 test('hammerhead crashes if client-side code contains "document.cookie=null" or "document.cookie=undefined" (GH-444, T349254).', function () {
     settings.get().cookie = '';
 
-    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
-
-    transport.queuedAsyncServiceMsg = function () {
-    };
-
-    setCookie(null);
+    setCookieWithoutServerSync(null);
     strictEqual(getCookie(), 'null');
 
-    setCookie(void 0);
+    setCookieWithoutServerSync(void 0);
     strictEqual(getCookie(), 'undefined');
 
-    setCookie(true);
+    setCookieWithoutServerSync(true);
     strictEqual(getCookie(), 'true');
 
-    setCookie('');
+    setCookieWithoutServerSync('');
     strictEqual(getCookie(), '');
 
-    setCookie(123);
+    setCookieWithoutServerSync(123);
     strictEqual(getCookie(), '123');
-
-    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
-
 
 test('correct work with cookie with empty key (GH-899)', function () {
     settings.get().cookie = '';
 
-    var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
-
-    transport.queuedAsyncServiceMsg = function () {
-    };
-
-    setCookie('123');
+    setCookieWithoutServerSync('123');
     strictEqual(getCookie(), '123');
 
-    setCookie('t=5');
+    setCookieWithoutServerSync('t=5');
     strictEqual(getCookie(), '123; t=5');
 
-    setCookie('12');
+    setCookieWithoutServerSync('12');
     strictEqual(getCookie(), '12; t=5');
 
-    setCookie('t=3');
+    setCookieWithoutServerSync('t=3');
     strictEqual(getCookie(), '12; t=3');
 
-    setCookie('');
+    setCookieWithoutServerSync('');
     strictEqual(getCookie(), '; t=3');
-
-    transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
 });
 
 // NOTE: Browsers on iOS platform doesn't support beforeunload event.
@@ -234,3 +208,21 @@ if (!browserUtils.isIOS) {
         nextCookieTest(0);
     });
 }
+
+asyncTest('limit of the failed cookie-sync messages (GH-1193)', function () {
+    var storedCookieSyncUrl = settings.get().cookieSyncUrl;
+
+    settings.get().cookieSyncUrl = '/cookie-sync-fail/';
+
+    setCookie('a=b');
+
+    setTimeout(function () {
+        strictEqual(cookieSync.failsCount, 3);
+        strictEqual(cookieSync.queue.length, 1);
+        strictEqual(cookieSync.queue[0].cookie, 'a=b');
+
+        settings.get().cookieSyncUrl = storedCookieSyncUrl;
+
+        start();
+    }, 500);
+});
