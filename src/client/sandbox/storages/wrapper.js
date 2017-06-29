@@ -52,25 +52,14 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         set: () => void 0
     });
 
-    var loadFromNativeStorage = () => {
-        var storage = this.nativeStorage[this.nativeStorageKey];
+    var loadStorage = storage => {
+        if (!storage)
+            storage = this.nativeStorage[this.nativeStorageKey];
 
         storage = JSON.parse(storage || '[[],[]]');
 
         for (var i = 0; i < storage[KEY].length; i++)
             this[storage[KEY][i]] = storage[VALUE][i];
-    };
-
-    var getCurrentState = () => {
-        var addedProperties = getAddedProperties();
-        var state           = [[], []];
-
-        for (var addedProperty of addedProperties) {
-            state[KEY].push(addedProperty);
-            state[VALUE].push(this[addedProperty]);
-        }
-
-        return state;
     };
 
     var raiseStorageChanged = (key, oldValue, newValue) => {
@@ -90,7 +79,7 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
     };
 
     var checkStorageChanged = () => {
-        var currentState = getCurrentState();
+        var currentState = this.getCurrentState();
 
         for (var i = 0; i < this.lastState[KEY].length; i++) {
             var lastStateKey   = this.lastState[KEY][i];
@@ -112,12 +101,24 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         for (var j = 0; j < currentState[KEY].length; j++)
             raiseStorageChanged(currentState[KEY][j], this.EMPTY_OLD_VALUE_ARG, currentState[VALUE][j]);
 
-        this.lastState = getCurrentState();
+        this.lastState = this.getCurrentState();
+    };
+
+    var clearStorage = () => {
+        var addedProperties = getAddedProperties();
+        var changed         = false;
+
+        for (var addedProperty of addedProperties) {
+            delete this[addedProperty];
+            changed = true;
+        }
+
+        return changed;
     };
 
     var init = () => {
-        loadFromNativeStorage();
-        this.lastState = getCurrentState();
+        loadStorage();
+        this.lastState = this.getCurrentState();
 
         window.setInterval(() => checkStorageChanged(), 10);
     };
@@ -129,10 +130,29 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
     this.getContext = () => this.context;
 
     this.saveToNativeStorage = () => {
-        var state = JSON.stringify(getCurrentState());
+        var state = JSON.stringify(this.getCurrentState());
 
         if (this.nativeStorage[this.nativeStorageKey] !== state)
             this.nativeStorage[this.nativeStorageKey] = state;
+    };
+
+    this.getCurrentState = () => {
+        var addedProperties = getAddedProperties();
+        var state           = [[], []];
+
+        for (var addedProperty of addedProperties) {
+            state[KEY].push(addedProperty);
+            state[VALUE].push(this[addedProperty]);
+        }
+
+        return state;
+    };
+
+    this.restore = storage => {
+        clearStorage();
+        loadStorage(storage);
+
+        this.lastState = this.getCurrentState();
     };
 
     var castToString = value => {
@@ -154,17 +174,9 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
 
     // API
     this.clear = () => {
-        var addedProperties = getAddedProperties();
-        var changed         = false;
-
-        for (var addedProperty of addedProperties) {
-            delete this[addedProperty];
-            changed = true;
-        }
-
-        if (changed) {
+        if (clearStorage()) {
             raiseStorageChanged(null, null, null);
-            this.lastState = getCurrentState();
+            this.lastState = this.getCurrentState();
         }
     };
 

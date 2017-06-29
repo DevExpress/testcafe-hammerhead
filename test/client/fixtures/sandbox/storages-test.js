@@ -89,6 +89,34 @@ test('lock', function () {
     storageSandbox.isLocked = false;
 });
 
+test('backup/restore', function () {
+    var localStorageWrapper   = storageSandbox.localStorage;
+    var sessionStorageWrapper = storageSandbox.sessionStorage;
+
+    localStorageWrapper.setItem('key7', 'value');
+    sessionStorageWrapper.setItem('key8', 'value');
+
+    var backup = storageSandbox.backup();
+
+    strictEqual(localStorageWrapper.length, 1);
+    strictEqual(sessionStorageWrapper.length, 1);
+    strictEqual(backup.localStorage, '[["key7"],["value"]]');
+    strictEqual(backup.sessionStorage, '[["key8"],["value"]]');
+
+    localStorageWrapper.setItem('key9', 'value');
+    sessionStorageWrapper.removeItem('key8');
+
+    strictEqual(localStorageWrapper.length, 2);
+    strictEqual(sessionStorageWrapper.length, 0);
+
+    storageSandbox.restore(backup);
+
+    strictEqual(localStorageWrapper.length, 1);
+    strictEqual(sessionStorageWrapper.length, 1);
+    strictEqual(localStorageWrapper.getItem('key7'), 'value');
+    strictEqual(sessionStorageWrapper.getItem('key8'), 'value');
+});
+
 module('storage API');
 
 test('argument types', function () {
