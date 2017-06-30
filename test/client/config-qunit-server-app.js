@@ -74,6 +74,12 @@ module.exports = function (app) {
         }, delay);
     });
 
+    app.post('/cookie-sync-fail/', function (req, res) {
+        setTimeout(function () {
+            res.status(404).send();
+        }, 100);
+    });
+
     app.get('/xhr-test/:delay', function (req, res) {
         var delay = req.params.delay || 0;
 

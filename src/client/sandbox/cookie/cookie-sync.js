@@ -5,13 +5,15 @@ import { stringify as stringifyJSON } from '../../json';
 import { isIE9 } from '../../utils/browser';
 
 const SWITCH_BACK_TO_ASYNC_XHR_DELAY = 2000;
+const FAILED_REQUESTS_LIMIT          = 3;
 
 export default class CookieSync {
     constructor () {
-        this.useAsyncXhr = true;
-        this.queue       = [];
-        this.sendedQueue = null;
-        this.activeReq   = null;
+        this.useAsyncXhr    = true;
+        this.queue          = [];
+        this.sendedQueue    = null;
+        this.activeReq      = null;
+        this.failedReqCount = 0;
 
         // NOTE: When unloading, we should switch to synchronous XHR to be sure that we won't lose any cookies.
         nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._beforeUnloadHandler(), true);
@@ -45,8 +47,9 @@ export default class CookieSync {
 
     _onRequestLoad (request) {
         if (CookieSync._has204StatusCode(request)) {
-            this.sendedQueue = null;
-            this.activeReq   = null;
+            this.sendedQueue    = null;
+            this.activeReq      = null;
+            this.failedReqCount = 0;
 
             if (this.queue.length)
                 this._sendQueue();
@@ -59,7 +62,8 @@ export default class CookieSync {
         if (this.activeReq === request) {
             this.queue = this.sendedQueue.concat(this.queue);
 
-            this._sendQueue();
+            if (++this.failedReqCount < FAILED_REQUESTS_LIMIT)
+                this._sendQueue();
         }
     }
 
