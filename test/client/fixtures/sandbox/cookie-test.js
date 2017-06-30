@@ -209,20 +209,30 @@ if (!browserUtils.isIOS) {
     });
 }
 
-asyncTest('limit of the failed cookie-sync messages (GH-1193)', function () {
+asyncTest('limit of the failed cookie-sync requests (GH-1193)', function () {
     var storedCookieSyncUrl = settings.get().cookieSyncUrl;
+    var nativeOnRequestError = cookieSync._onRequestError;
+    var failReqCount = 0;
+
+    cookieSync._onRequestError = function () {
+        nativeOnRequestError.apply(this, arguments);
+
+        failReqCount++;
+
+        if (failReqCount === 3) {
+            strictEqual(cookieSync.activeReq.readyState, XMLHttpRequest.DONE);
+            strictEqual(cookieSync.activeReq.status, 404);
+            strictEqual(cookieSync.queue.length, 1);
+            strictEqual(cookieSync.queue[0].cookie, 'a=b');
+
+            settings.get().cookieSyncUrl = storedCookieSyncUrl;
+            cookieSync._onRequestError = nativeOnRequestError;
+
+            start();
+        }
+    };
 
     settings.get().cookieSyncUrl = '/cookie-sync-fail/';
 
     setCookie('a=b');
-
-    setTimeout(function () {
-        strictEqual(cookieSync.failsCount, 3);
-        strictEqual(cookieSync.queue.length, 1);
-        strictEqual(cookieSync.queue[0].cookie, 'a=b');
-
-        settings.get().cookieSyncUrl = storedCookieSyncUrl;
-
-        start();
-    }, 500);
 });
