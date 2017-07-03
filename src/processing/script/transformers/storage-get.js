@@ -21,7 +21,8 @@ export default {
             return false;
 
         // Skip: function localStorage() {}
-        if (parent.type === Syntax.FunctionDeclaration && parent.id === node)
+        if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
+            parent.id === node)
             return false;
 
         // Skip: window.localStorage
