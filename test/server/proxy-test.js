@@ -301,6 +301,11 @@ describe('Proxy', function () {
             res.end('var i = 42;');
         });
 
+        app.get('/redirect/:url', function (req, res) {
+            res.writeHead(200, { location: decodeURIComponent(req.params.url) });
+            res.end();
+        });
+
         destServer = app.listen(2000);
 
 
@@ -2146,6 +2151,61 @@ describe('Proxy', function () {
                 expect(res.headers['sourcemap']).is.undefined;
                 done();
             });
+        });
+
+        it('Should calculate a valid port for redirect in iframe (GH-1191)', function () {
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            function testRedirectRequest (opts) {
+                return new Promise(function (resolve) {
+                    var options = {
+                        url: urlUtils.getProxyUrl('http://127.0.0.1:2000/redirect/' + encodeURIComponent(opts.redirectLocation), {
+                            proxyHostname: '127.0.0.1',
+                            proxyPort:     1836,
+                            sessionId:     session.id,
+                            resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
+                        }),
+
+                        headers: {
+                            referer: urlUtils.getProxyUrl(opts.referer, {
+                                proxyHostname: '127.0.0.1',
+                                proxyPort:     1836,
+                                sessionId:     session.id
+                            })
+                        }
+                    };
+
+                    request(options, function (err, res) {
+                        var proxyPort = urlUtils.parseProxyUrl(res.headers['location']).proxy.port;
+
+                        expect(proxyPort).eql(opts.expectedProxyPort);
+                        resolve();
+                    });
+                });
+            }
+
+            return Promise.all([
+                testRedirectRequest({
+                    redirectLocation:  'http://127.0.0.1:2001/',
+                    referer:           'http://127.0.0.1:2002/',
+                    expectedProxyPort: '1836'
+                }),
+                testRedirectRequest({
+                    redirectLocation:  'http://127.0.0.1:2000/',
+                    referer:           'http://127.0.0.1:2000/',
+                    expectedProxyPort: '1836'
+                }),
+                testRedirectRequest({
+                    redirectLocation:  'http://127.0.0.1:2001/',
+                    referer:           'http://127.0.0.1:2001/',
+                    expectedProxyPort: '1837'
+                }),
+                testRedirectRequest({
+                    redirectLocation:  'http://127.0.0.1:2001/',
+                    referer:           'http://127.0.0.1:2000/',
+                    expectedProxyPort: '1837'
+                })
+            ]);
         });
     });
 });
