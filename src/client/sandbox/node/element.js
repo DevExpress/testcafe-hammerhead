@@ -34,8 +34,8 @@ export default class ElementSandbox extends SandboxBase {
 
         this.overridedMethods = null;
 
-        this.BEFORE_FORM_SUBMIT   = 'hammerhead|event|before-form-submit';
-        this.SCRIPT_ELEMENT_ADDED = 'hammerhead|event|script-added';
+        this.BEFORE_FORM_SUBMIT_EVENT   = 'hammerhead|event|before-form-submit';
+        this.SCRIPT_ELEMENT_ADDED_EVENT = 'hammerhead|event|script-added';
     }
 
     static _isKeywordTarget (value) {
@@ -332,7 +332,7 @@ export default class ElementSandbox extends SandboxBase {
 
             formSubmit () {
                 sandbox._ensureTargetContainsExistingBrowsingContext(this);
-                sandbox.emit(sandbox.BEFORE_FORM_SUBMIT, { form: this });
+                sandbox.emit(sandbox.BEFORE_FORM_SUBMIT_EVENT, { form: this });
 
                 return nativeMethods.formSubmit.apply(this, arguments);
             },
@@ -573,7 +573,7 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         if (domUtils.isScriptElement(el))
-            this.emit(this.SCRIPT_ELEMENT_ADDED, { el });
+            this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el });
 
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);

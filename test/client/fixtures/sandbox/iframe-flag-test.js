@@ -8,12 +8,12 @@ QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
     window.open       = nativeMethods.windowOpen;
     window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
 function hasIframeFlag (url) {
@@ -136,8 +136,8 @@ asyncTest('assign a url attribute to elements with the "target" attribute in emb
             var iframeHammerhead    = iframe.contentWindow['%hammerhead%'];
             var iframeIframeSandbox = iframeHammerhead.sandbox.iframe;
 
-            iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
-            iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
+            iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
+            iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 
             embeddedIframe = iframeDocument.createElement('iframe');
 

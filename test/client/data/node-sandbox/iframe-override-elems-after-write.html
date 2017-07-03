@@ -22,7 +22,7 @@
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
     var postMessage = hammerhead.sandbox.event.message.postMessage;
 
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, window.top.initIframeTestHandler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, window.top.initIframeTestHandler);
 
     document.write('<a>Link</a><iframe id="test"></iframe>');
 

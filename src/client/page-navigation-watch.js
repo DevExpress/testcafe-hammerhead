@@ -28,7 +28,7 @@ export default class PageNavigationWatch extends EventEmiter {
         };
 
         // NOTE: fires when form.submit() is called
-        elementSandbox.on(elementSandbox.BEFORE_FORM_SUBMIT, e => onFormSubmit(e.form));
+        elementSandbox.on(elementSandbox.BEFORE_FORM_SUBMIT_EVENT, e => onFormSubmit(e.form));
 
         // NOTE: fires when the form is submitted by clicking the submit button
         eventSandbox.listeners.initElementListening(window, ['submit']);
