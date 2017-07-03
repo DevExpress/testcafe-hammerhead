@@ -1,4 +1,5 @@
 import nativeMethods from '../sandbox/native-methods';
+import * as browserUtils from './browser';
 
 // NOTE: In some browsers, elements without the url attribute return the location url
 // when accessing this attribute directly. See form.action in Edge 25 as an example.
@@ -9,3 +10,12 @@ export const emptyActionAttrFallbacksToTheLocation = nativeMethods.createElement
 // this condition is also satisfied for Blob, Document, XMLHttpRequest, etc
 export const instanceAndPrototypeToStringAreEqual = nativeMethods.objectToString.call(window) ===
                                                     nativeMethods.objectToString.call(Window.prototype);
+
+export var hasTouchEvents = !!('ontouchstart' in window);
+
+// NOTE: We need to check touch points only for IE, because it has PointerEvent and MSPointerEvent (IE10, IE11)
+// instead of TouchEvent (T109295).
+export var hasTouchPoints = browserUtils.isIE && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
+export var isTouchDevice  = !!(browserUtils.isMobile || browserUtils.isTablet) && hasTouchEvents;
+
+export var hasDataTransfer = !!window.DataTransfer;

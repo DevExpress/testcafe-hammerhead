@@ -15,6 +15,7 @@ import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
 import { isRelativeUrl, parseProxyUrl } from '../utils/url';
 import * as urlUtils from './utils/url';
+import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
 import { processScript } from '../processing/script';
 import {
@@ -99,17 +100,18 @@ class Hammerhead {
         };
 
         this.utils = {
-            browser:     browserUtils,
-            dom:         domUtils,
-            event:       eventUtils,
-            position:    positionUtils,
-            style:       styleUtils,
-            types:       typeUtils,
-            trim:        trim,
-            isJQueryObj: isJQueryObj,
-            extend:      extend,
-            html:        htmlUtils,
-            url:         urlUtils
+            browser:          browserUtils,
+            dom:              domUtils,
+            event:            eventUtils,
+            position:         positionUtils,
+            style:            styleUtils,
+            types:            typeUtils,
+            trim:             trim,
+            isJQueryObj:      isJQueryObj,
+            extend:           extend,
+            html:             htmlUtils,
+            url:              urlUtils,
+            featureDetection: featureDetection
         };
     }
 

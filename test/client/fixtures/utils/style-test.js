@@ -1,5 +1,6 @@
-var styleUtils   = hammerhead.get('./utils/style');
-var browserUtils = hammerhead.get('./utils/browser');
+var styleUtils       = hammerhead.utils.style;
+var browserUtils     = hammerhead.utils.browser;
+var featureDetection = hammerhead.utils.featureDetection;
 
 test('getBordersWidth', function () {
     var $el = $('<div>')
@@ -214,9 +215,9 @@ test('getSelectElementSize', function () {
     strictEqual(size, 1);
 
     select.setAttribute('size', 4);
-    size       = styleUtils.getSelectElementSize(select);
+    size = styleUtils.getSelectElementSize(select);
 
-    if (browserUtils.isSafari && browserUtils.hasTouchEvents || browserUtils.isAndroid)
+    if (browserUtils.isSafari && featureDetection.hasTouchEvents || browserUtils.isAndroid)
         strictEqual(size, 1);
     else
         strictEqual(size, 4);
@@ -224,7 +225,7 @@ test('getSelectElementSize', function () {
     select.removeAttribute('size');
     select.setAttribute('multiple', 'multiple');
 
-    if (browserUtils.isSafari && browserUtils.hasTouchEvents || browserUtils.isAndroid)
+    if (browserUtils.isSafari && featureDetection.hasTouchEvents || browserUtils.isAndroid)
         strictEqual(size, 1);
     else
         strictEqual(size, 4);

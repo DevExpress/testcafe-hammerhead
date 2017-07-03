@@ -1,5 +1,6 @@
 import * as domUtils from './dom';
 import * as browserUtils from './browser';
+import * as featureDetection from './feature-detection';
 import nativeMethods from '../sandbox/native-methods';
 
 // NOTE: For Chrome.
@@ -221,7 +222,7 @@ export function getOptionHeight (select) {
 export function getSelectElementSize (select) {
     // NOTE: iOS and Android ignore 'size' and 'multiple' attributes,
     // all select elements behave like a select with size=1.
-    if (browserUtils.isSafari && browserUtils.hasTouchEvents || browserUtils.isAndroid)
+    if (browserUtils.isSafari && featureDetection.hasTouchEvents || browserUtils.isAndroid)
         return 1;
 
     var sizeAttr     = nativeMethods.getAttribute.call(select, 'size');
