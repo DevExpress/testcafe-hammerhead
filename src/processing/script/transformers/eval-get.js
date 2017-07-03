@@ -35,6 +35,11 @@ export default {
             if (parent.type === Syntax.MemberExpression)
                 return false;
 
+            // Skip: function eval () { ... }
+            if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
+                parent.id === node)
+                return false;
+
             // Skip: function (eval) { ... } || function func(eval) { ... }
             if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
                 parent.params.indexOf(node) !== -1)

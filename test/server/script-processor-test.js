@@ -287,6 +287,14 @@ describe('Script processor', function () {
                 expected: 'if (__get$Loc(location)) {' +
                           '0,function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this);}' +
                           'else 0,function(){return __set$Loc(location,"#123")||(location="#123");}.call(this);'
+            },
+            {
+                src:      'var obj = { location: function location() {} }',
+                expected: 'var obj = { location: function location() {} }'
+            },
+            {
+                src:      'function location(){}',
+                expected: 'function location(){}'
             }
         ]);
     });
@@ -498,6 +506,14 @@ describe('Script processor', function () {
             {
                 src:      'class eval { x () {} }',
                 expected: 'class eval { x () {} }'
+            },
+            {
+                src:      'var obj = { eval: function eval() {} }',
+                expected: 'var obj = { eval: function eval() {} }'
+            },
+            {
+                src:      'function eval(){}',
+                expected: 'function eval(){}'
             }
         ]);
     });
@@ -598,6 +614,14 @@ describe('Script processor', function () {
             {
                 src:      'class postMessage { x () {} }',
                 expected: 'class postMessage { x () {} }'
+            },
+            {
+                src:      'var obj = { postMessage: function postMessage() {} }',
+                expected: 'var obj = { postMessage: function postMessage() {} }'
+            },
+            {
+                src:      'function postMessage(){}',
+                expected: 'function postMessage(){}'
             }
         ]);
     });
@@ -651,6 +675,10 @@ describe('Script processor', function () {
             {
                 src:      'window.localStorage.key; window["localStorage"].key',
                 expected: '__get$(window,"localStorage").key;__get$(window,"localStorage").key'
+            },
+            {
+                src:      'var obj = { localStorage: function localStorage() {} }',
+                expected: 'var obj = { localStorage: function localStorage() {} }'
             }
         ]);
     });
