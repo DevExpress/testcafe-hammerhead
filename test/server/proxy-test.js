@@ -56,7 +56,6 @@ describe('Proxy', function () {
     var proxy             = null;
     var session           = null;
 
-    // NOTE: Fixture setup/teardown.
     before(function () {
         var app = express();
 
@@ -306,6 +305,11 @@ describe('Proxy', function () {
             res.end();
         });
 
+        app.get('/referrer-policy', function (req, res) {
+            res.setHeader('referrer-policy', 'no-referrer');
+            res.end('42');
+        });
+
         destServer = app.listen(2000);
 
 
@@ -337,8 +341,6 @@ describe('Proxy', function () {
         crossDomainServer.close();
     });
 
-
-    // NOTE: Test setup/teardown.
     beforeEach(function () {
         session = new Session();
 
@@ -357,8 +359,6 @@ describe('Proxy', function () {
         requestAgent.resetKeepAliveConnections();
     });
 
-
-    // Tests
     describe('Session', function () {
         it('Should pass DNS errors to session', function (done) {
             session.handlePageError = function (ctx, err) {
@@ -1635,7 +1635,7 @@ describe('Proxy', function () {
                     });
 
                     res.on('end', function () {
-                        var responseEndInMs = getTimeInMs(process.hrtime(startTestTime));
+                        var responseEndInMs             = getTimeInMs(process.hrtime(startTestTime));
                         // NOTE: Only in node 0.10 response 'end' event can happen earlier than 1000 ms
                         var responseEndThresholdTimeout = 20;
 
@@ -2159,12 +2159,14 @@ describe('Proxy', function () {
             function testRedirectRequest (opts) {
                 return new Promise(function (resolve) {
                     var options = {
-                        url: urlUtils.getProxyUrl('http://127.0.0.1:2000/redirect/' + encodeURIComponent(opts.redirectLocation), {
-                            proxyHostname: '127.0.0.1',
-                            proxyPort:     1836,
-                            sessionId:     session.id,
-                            resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
-                        }),
+                        url: urlUtils.getProxyUrl('http://127.0.0.1:2000/redirect/' +
+                                                  encodeURIComponent(opts.redirectLocation),
+                            {
+                                proxyHostname: '127.0.0.1',
+                                proxyPort:     1836,
+                                sessionId:     session.id,
+                                resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
+                            }),
 
                         headers: {
                             referer: urlUtils.getProxyUrl(opts.referer, {
@@ -2206,6 +2208,20 @@ describe('Proxy', function () {
                     expectedProxyPort: '1837'
                 })
             ]);
+        });
+
+        it('Should process a "referrer-policy" header (GH-1195)', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/referrer-policy', session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            request(options, function (err, res) {
+                expect(res.headers['referrer-policy']).eql('unsafe-url');
+                done();
+            });
         });
     });
 });
