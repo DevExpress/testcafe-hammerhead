@@ -13,14 +13,14 @@ export default class IframeSandbox extends SandboxBase {
     constructor (nodeMutation, cookieSandbox) {
         super();
 
-        this.RUN_TASK_SCRIPT               = 'hammerhead|event|run-task-script';
-        this.EVAL_HAMMERHEAD_SCRIPT        = 'hammerhead|event|eval-hammerhead-script';
-        this.EVAL_EXTERNAL_SCRIPT          = 'hammerhead|event|eval-external-script';
+        this.RUN_TASK_SCRIPT_EVENT         = 'hammerhead|event|run-task-script';
+        this.EVAL_HAMMERHEAD_SCRIPT_EVENT  = 'hammerhead|event|eval-hammerhead-script';
+        this.EVAL_EXTERNAL_SCRIPT_EVENT    = 'hammerhead|event|eval-external-script';
         this.IFRAME_DOCUMENT_CREATED_EVENT = 'hammerhead|event|iframe-document-created';
 
         this.cookieSandbox = cookieSandbox;
 
-        this.on(this.RUN_TASK_SCRIPT, this.iframeReadyToInitHandler);
+        this.on(this.RUN_TASK_SCRIPT_EVENT, this.iframeReadyToInitHandler);
         nodeMutation.on(nodeMutation.IFRAME_ADDED_TO_DOM_EVENT, e => this.processIframe(e.iframe));
 
         this.iframeNativeMethodsBackup = null;
@@ -84,14 +84,14 @@ export default class IframeSandbox extends SandboxBase {
                 Object.defineProperty(iframe.contentWindow, IFRAME_WINDOW_INITED, { value: true });
 
                 // NOTE: Raise this internal event to eval the Hammerhead code script.
-                this.emit(this.EVAL_HAMMERHEAD_SCRIPT, { iframe });
+                this.emit(this.EVAL_HAMMERHEAD_SCRIPT_EVENT, { iframe });
 
                 // NOTE: Raise this event to eval external code script.
-                this.emit(this.EVAL_EXTERNAL_SCRIPT, { iframe });
+                this.emit(this.EVAL_EXTERNAL_SCRIPT_EVENT, { iframe });
 
                 // NOTE: Raise this event to eval the "task" script and to call the Hammerhead initialization method
                 // and external script initialization code.
-                this.emit(this.RUN_TASK_SCRIPT, { iframe });
+                this.emit(this.RUN_TASK_SCRIPT_EVENT, { iframe });
 
                 iframe.contentWindow[INTERNAL_PROPS.processDomMethodName]();
             }

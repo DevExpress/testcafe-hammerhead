@@ -321,7 +321,7 @@ export default class ShadowUI extends SandboxBase {
         this._overrideElementMethods(window);
         this._markScriptsAndStylesAsShadowInHead(window.document.head);
 
-        this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT, e => {
+        this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT_EVENT, e => {
             var iframeHead = e.iframe.contentDocument.head;
 
             this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());

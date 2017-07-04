@@ -10,12 +10,12 @@ QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
     window.open       = nativeMethods.windowOpen;
     window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 });
 
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
 test('event should not raise before iframe is appended to DOM', function () {
@@ -25,12 +25,12 @@ test('event should not raise before iframe is appended to DOM', function () {
         eventRaised = true;
     };
 
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, handler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
 
     document.createElement('iframe');
 
     ok(!eventRaised);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, handler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
 });
 
 test('event should not raise if a cross-domain iframe is appended', function () {
@@ -40,12 +40,12 @@ test('event should not raise if a cross-domain iframe is appended', function () 
         eventRaised = true;
     };
 
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, handler);
+    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
 
     var $iframe = $('<iframe id="test7" src="http://cross.domain.com">').appendTo('body');
 
     ok(!eventRaised);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, handler);
+    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
     $iframe.remove();
 });
 
@@ -100,14 +100,14 @@ asyncTest('ready to init event must not raise for added iframe(B239643)', functi
                 iframeLoadingEventRaised = true;
             };
 
-            iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, handler);
+            iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
 
             /* eslint-disable no-unused-vars */
             var dummy = container.innerHTML;
 
             /* eslint-enable no-unused-vars */
             ok(!iframeLoadingEventRaised);
-            iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, handler);
+            iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
             container.parentNode.removeChild(container);
             start();
         });
@@ -204,9 +204,9 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
             xhr.send();
         };
 
-        iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT, iframeIframeSandbox.iframeReadyToInitHandler);
-        iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, checkXhrEventListeners);
-        iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
+        iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
+        iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, checkXhrEventListeners);
+        iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 
         nestedIframe.id = 'test_nestedIframe_klshgfn111';
         nestedIframe.setAttribute('src', 'about:blank');

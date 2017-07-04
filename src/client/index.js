@@ -37,7 +37,7 @@ class Hammerhead {
             this.sandbox.node.element);
 
         this.EVENTS = {
-            beforeFormSubmit:        this.sandbox.node.element.BEFORE_FORM_SUBMIT,
+            beforeFormSubmit:        this.sandbox.node.element.BEFORE_FORM_SUBMIT_EVENT,
             beforeBeforeUnload:      this.sandbox.event.unload.BEFORE_BEFORE_UNLOAD_EVENT,
             beforeUnload:            this.sandbox.event.unload.BEFORE_UNLOAD_EVENT,
             unload:                  this.sandbox.event.unload.UNLOAD_EVENT,
@@ -46,13 +46,13 @@ class Hammerhead {
             uncaughtJsError:         this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
             startFileUploading:      this.sandbox.upload.START_FILE_UPLOADING_EVENT,
             endFileUploading:        this.sandbox.upload.END_FILE_UPLOADING_EVENT,
-            evalIframeScript:        this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT,
+            evalIframeScript:        this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT_EVENT,
             xhrCompleted:            this.sandbox.xhr.XHR_COMPLETED_EVENT,
             xhrError:                this.sandbox.xhr.XHR_ERROR_EVENT,
-            xhrSend:                 this.sandbox.xhr.XHR_SEND_EVENT,
-            fetchSend:               this.sandbox.fetch.FETCH_REQUEST_SEND_EVENT,
+            beforeXhrSend:           this.sandbox.xhr.BEFORE_XHR_SEND_EVENT,
+            fetchSent:               this.sandbox.fetch.FETCH_REQUEST_SENT_EVENT,
             pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
-            scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED
+            scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
@@ -141,14 +141,14 @@ class Hammerhead {
 
             case this.EVENTS.xhrCompleted:
             case this.EVENTS.xhrError:
-            case this.EVENTS.xhrSend:
+            case this.EVENTS.beforeXhrSend:
                 return this.sandbox.xhr;
 
             case this.EVENTS.beforeFormSubmit:
             case this.EVENTS.scriptElementAdded:
                 return this.sandbox.node.element;
 
-            case this.EVENTS.fetchSend:
+            case this.EVENTS.fetchSent:
                 return this.sandbox.fetch;
 
             default:

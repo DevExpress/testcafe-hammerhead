@@ -17,8 +17,8 @@
             e.iframe.contentWindow[INTERNAL_PROPS.processDomMethodName] = function () { }
         };
 
-        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT, initIframeTestHandler);
-        iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT, iframeSandbox.iframeReadyToInitHandler);
+        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
+        iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 
         var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
         var setProperty    = window[INSTRUCTION.setProperty];

@@ -181,7 +181,7 @@ export default class Sandbox extends SandboxBase {
         urlResolver.init(this.document);
 
         // NOTE: Eval Hammerhead code script.
-        this.iframe.on(this.iframe.EVAL_HAMMERHEAD_SCRIPT, e => initHammerheadClient(e.iframe.contentWindow, true));
+        this.iframe.on(this.iframe.EVAL_HAMMERHEAD_SCRIPT_EVENT, e => initHammerheadClient(e.iframe.contentWindow, true));
 
         // NOTE: We need to reattach a sandbox to the recreated iframe document.
         this.node.mutation.on(this.node.mutation.DOCUMENT_CLEANED_EVENT, e => this.reattach(e.window, e.document));

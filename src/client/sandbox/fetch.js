@@ -12,7 +12,7 @@ export default class FetchSandbox extends SandboxBase {
     constructor () {
         super();
 
-        this.FETCH_REQUEST_SEND_EVENT = 'hammerhead|event|fetch-request-send-event';
+        this.FETCH_REQUEST_SENT_EVENT = 'hammerhead|event|fetch-request-sent-event';
     }
 
     static _addSpecialHeadersToRequestInit (init) {
@@ -145,7 +145,7 @@ export default class FetchSandbox extends SandboxBase {
                 var fetchPromise = nativeMethods.fetch.apply(this, args);
 
                 FetchSandbox._processFetchPromise(fetchPromise);
-                sandbox.emit(sandbox.FETCH_REQUEST_SEND_EVENT, fetchPromise);
+                sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
                 return fetchPromise;
             };
