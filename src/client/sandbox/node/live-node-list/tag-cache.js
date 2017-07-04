@@ -1,6 +1,6 @@
 export default class TagCache {
     constructor () {
-        this._cache = [];
+        this._cache = Object.create(null);
     }
 
     update (tagName) {
@@ -9,13 +9,12 @@ export default class TagCache {
         if (tagName === '*')
             return;
 
-        if (this._cache.indexOf(tagName) === -1)
-            this._cache.push(tagName);
+        this._cache[tagName] = true;
     }
 
     contains (tagName) {
         tagName = tagName.toLowerCase();
 
-        return this._cache.indexOf(tagName) !== -1;
+        return !!this._cache[tagName];
     }
 }

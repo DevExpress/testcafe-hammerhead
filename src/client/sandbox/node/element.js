@@ -580,7 +580,7 @@ export default class ElementSandbox extends SandboxBase {
             ShadowUI.markElementAndChildrenAsShadow(el);
 
         if (el.tagName && !domUtils.isShadowUIElement(el))
-            this.liveNodeListFactory.onElementMutation(el);
+            this.liveNodeListFactory.onElementAddedOrRemoved(el);
     }
 
     _onElementRemoved (el) {
@@ -591,7 +591,7 @@ export default class ElementSandbox extends SandboxBase {
             urlResolver.updateBase(getDestLocation(), this.document);
 
         if (el.tagName && !domUtils.isShadowUIElement(el))
-            this.liveNodeListFactory.onElementMutation(el);
+            this.liveNodeListFactory.onElementAddedOrRemoved(el);
     }
 
     addFileInputInfo (el) {

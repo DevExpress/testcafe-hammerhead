@@ -6,7 +6,8 @@ export default class LiveNodeListWrapper {
     constructor (nodeList, domContentLoadedEventRaised, tagName) {
         Object.defineProperty(this, 'item', {
             enumerable: true,
-            value:      index => {
+
+            value: index => {
                 this._refreshNodeList();
 
                 return this._filteredNodeList[index];
@@ -14,7 +15,8 @@ export default class LiveNodeListWrapper {
         });
         Object.defineProperty(this, 'length', {
             enumerable: true,
-            get:        () => {
+
+            get: () => {
                 this._refreshNodeList();
 
                 return this._filteredNodeList.length;
@@ -32,8 +34,9 @@ export default class LiveNodeListWrapper {
         if (this.namedItem) {
             Object.defineProperty(this, 'namedItem', {
                 enumerable: true,
-                value:      (...args) => {
-                    var findNamedItem = this._nodeList.namedItem.apply(this._nodeList, args);
+
+                value: (...args) => {
+                    const findNamedItem = this._nodeList.namedItem.apply(this._nodeList, args);
 
                     return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
                 }
@@ -60,7 +63,7 @@ export default class LiveNodeListWrapper {
 
         this._refreshNodeList();
 
-        for (var i = 0; i < this._filteredNodeList.length; i++)
+        for (let i = 0; i < this._filteredNodeList.length; i++)
             this._defineProperty(i, true);
     }
 }

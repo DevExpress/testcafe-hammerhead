@@ -328,7 +328,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     else if (domUtils.isShadowUIElement(el))
                         ShadowUI.markElementAndChildrenAsShadow(el);
 
-                    else if (!domUtils.isShadowUIElement(el))
+                    else
                         this.liveNodeListFactory.onInnerHtmlChanged();
 
                     if (isStyleEl || isScriptEl)

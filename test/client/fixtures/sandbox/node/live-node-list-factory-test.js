@@ -30,10 +30,10 @@ module('getElementsByTagName', function () {
         tagCache.update('DIV');
         tagCache.update('TEXTarea');
 
-        strictEqual(tagCache._cache.toString(), 'div,textarea');
         ok(tagCache.contains('div'));
         ok(tagCache.contains('DIV'));
         ok(tagCache.contains('TEXTAREA'));
+        ok(!tagCache.contains('constructor'));
     });
 
     test('wrong arguments', function () {

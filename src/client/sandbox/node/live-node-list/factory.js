@@ -8,8 +8,8 @@ import TagCache from './tag-cache';
 import { getTagName } from '../../../utils/dom';
 import nativeMethods from '../../native-methods';
 
-var arrayForEach = Array.prototype.forEach;
-var arrayFilter  = Array.prototype.filter;
+const arrayForEach = Array.prototype.forEach;
+const arrayFilter  = Array.prototype.filter;
 
 export default class LiveNodeListFactory {
     constructor () {
@@ -40,15 +40,16 @@ export default class LiveNodeListFactory {
         });
     }
 
-    onElementMutation (el) {
+    onElementAddedOrRemoved (el) {
         LiveNodeListFactory._markWrappersAsDirty(this.wrappersWithAsteriskTag);
 
-        var tagName = getTagName(el);
+        const tagName = getTagName(el);
 
         if (!this.tagCache.contains(tagName))
             return;
 
-        var wrappersWithSpecifiedTag = arrayFilter.call(this.wrappersWithReqularTag, wrapper => wrapper._tagName === tagName);
+        const wrappersWithSpecifiedTag = arrayFilter.call(this.wrappersWithReqularTag, wrapper => wrapper._tagName ===
+                                                                                                tagName);
 
         LiveNodeListFactory._markWrappersAsDirty(wrappersWithSpecifiedTag);
     }
@@ -73,7 +74,7 @@ export default class LiveNodeListFactory {
 
         this.tagCache.update(tagName);
 
-        var wrapper = this._createLiveNodeListWrapper(nodeList, this.domContentLoadedEventRaised, tagName);
+        const wrapper = this._createLiveNodeListWrapper(nodeList, this.domContentLoadedEventRaised, tagName);
 
         if (tagName === '*')
             this.wrappersWithAsteriskTag.push(wrapper);

@@ -2,11 +2,12 @@ const DEFINED_PROPERTIES_COUNT = 10000;
 
 export class NodeListPropertiesDecorator {
     constructor () {
-        var defineProperty = function (index, isEnumerable) {
+        const defineProperty = function (index, isEnumerable) {
             Object.defineProperty(this, index, {
                 enumerable:   isEnumerable,
                 configurable: true,
-                get:          function () {
+
+                get: function () {
                     this._refreshNodeList();
 
                     return this._filteredNodeList[index];
@@ -14,7 +15,7 @@ export class NodeListPropertiesDecorator {
             });
         };
 
-        for (var i = 0; i < DEFINED_PROPERTIES_COUNT; i++)
+        for (let i = 0; i < DEFINED_PROPERTIES_COUNT; i++)
             defineProperty.call(this, i, false);
 
         Object.defineProperty(this, '_defineProperty', { value: defineProperty });
