@@ -13,9 +13,9 @@ export default class XhrSandbox extends SandboxBase {
     constructor (cookieSandbox) {
         super();
 
-        this.XHR_COMPLETED_EVENT = 'hammerhead|event|xhr-completed';
-        this.XHR_ERROR_EVENT     = 'hammerhead|event|xhr-error';
-        this.XHR_SENT_EVENT      = 'hammerhead|event|xhr-sent';
+        this.XHR_COMPLETED_EVENT   = 'hammerhead|event|xhr-completed';
+        this.XHR_ERROR_EVENT       = 'hammerhead|event|xhr-error';
+        this.BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
 
         this.cookieSandbox = cookieSandbox;
 
@@ -95,7 +95,7 @@ export default class XhrSandbox extends SandboxBase {
         xmlHttpRequestProto.send = function () {
             var xhr = this;
 
-            xhrSandbox.emit(xhrSandbox.XHR_SENT_EVENT, { xhr });
+            xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr });
 
             var orscHandler = () => {
                 if (this.readyState === 4)

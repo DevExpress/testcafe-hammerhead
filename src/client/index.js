@@ -48,8 +48,8 @@ class Hammerhead {
             evalIframeScript:        this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT_EVENT,
             xhrCompleted:            this.sandbox.xhr.XHR_COMPLETED_EVENT,
             xhrError:                this.sandbox.xhr.XHR_ERROR_EVENT,
-            xhrSend:                 this.sandbox.xhr.XHR_SENT_EVENT,
-            fetchSend:               this.sandbox.fetch.FETCH_REQUEST_SENT_EVENT,
+            beforeXhrSend:           this.sandbox.xhr.BEFORE_XHR_SEND_EVENT,
+            fetchSent:               this.sandbox.fetch.FETCH_REQUEST_SENT_EVENT,
             pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
             scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT
         };
@@ -139,14 +139,14 @@ class Hammerhead {
 
             case this.EVENTS.xhrCompleted:
             case this.EVENTS.xhrError:
-            case this.EVENTS.xhrSend:
+            case this.EVENTS.beforeXhrSend:
                 return this.sandbox.xhr;
 
             case this.EVENTS.beforeFormSubmit:
             case this.EVENTS.scriptElementAdded:
                 return this.sandbox.node.element;
 
-            case this.EVENTS.fetchSend:
+            case this.EVENTS.fetchSent:
                 return this.sandbox.fetch;
 
             default:
