@@ -1,12 +1,12 @@
 var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
 
-var hover          = hammerhead.sandbox.event.hover;
-var browserUtils   = hammerhead.utils.browser;
-var eventSimulator = hammerhead.sandbox.event.eventSimulator;
-var hoverSandbox   = hammerhead.sandbox.event.hover;
+var hover            = hammerhead.sandbox.event.hover;
+var featureDetection = hammerhead.utils.featureDetection;
+var eventSimulator   = hammerhead.sandbox.event.eventSimulator;
+var hoverSandbox     = hammerhead.sandbox.event.hover;
 
 function hoverElement (el) {
-    if (browserUtils.hasTouchEvents)
+    if (featureDetection.hasTouchEvents)
         eventSimulator.touchstart(el, {});
     else
         eventSimulator.mouseover(el, {});

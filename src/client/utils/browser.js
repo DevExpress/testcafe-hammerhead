@@ -11,6 +11,8 @@ export var compareVersions = bowser.compareVersions;
 export var isMacPlatform = !!info.mac;
 export var isAndroid     = !!info.android;
 export var isIOS         = !!info.ios;
+export var isMobile      = !!info.mobile;
+export var isTablet      = !!info.tablet;
 
 //Browsers
 export var version       = parseInt(info.version, 10);
@@ -27,12 +29,4 @@ export var isSafari      = !!info.safari;
 export var isWebKit      = !!(info.webkit || info.blink);
 export var isElectron    = /electron/g.test(userAgent);
 
-//Feature detection
-export var hasTouchEvents = !!('ontouchstart' in window);
-// NOTE: We need to check touch points only for IE, because it has PointerEvent and MSPointerEvent (IE10, IE11)
-// instead of TouchEvent (T109295).
-export var hasTouchPoints = isIE && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
-export var isTouchDevice  = !!(info.mobile || info.tablet) && hasTouchEvents;
-
-export var hasDataTransfer = !!window.DataTransfer;
 

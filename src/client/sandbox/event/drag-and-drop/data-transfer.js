@@ -2,7 +2,8 @@
 // create a useful DataTransfer object from script, since DataTransfer objects have a
 // processing and security model that is coordinated by the browser during drag-and-drops.
 // So we have to create a mock for it to use it in drag-and-drop events
-import { isIE11, hasDataTransfer } from '../../../utils/browser';
+import { isIE11 } from '../../../utils/browser';
+import { hasDataTransfer } from '../../../utils/feature-detection';
 import nativeMethods from '../../native-methods';
 import DataTransferItemList from './data-transfer-item-list';
 import FileList from './file-list';

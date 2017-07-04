@@ -1,8 +1,9 @@
-var browserUtils   = hammerhead.utils.browser;
-var eventUtils     = hammerhead.utils.event;
-var eventSimulator = hammerhead.sandbox.event.eventSimulator;
-var DataTransfer   = hammerhead.sandbox.event.DataTransfer;
-var DragDataStore  = hammerhead.sandbox.event.DragDataStore;
+var browserUtils     = hammerhead.utils.browser;
+var eventUtils       = hammerhead.utils.event;
+var featureDetection = hammerhead.utils.featureDetection;
+var eventSimulator   = hammerhead.sandbox.event.eventSimulator;
+var DataTransfer     = hammerhead.sandbox.event.DataTransfer;
+var DragDataStore    = hammerhead.sandbox.event.DragDataStore;
 
 var $domElement = null;
 var domElement  = null;
@@ -247,7 +248,7 @@ if (!browserUtils.isFirefox) {
 }
 
 // NOTE: For touch devices.
-if (browserUtils.hasTouchEvents) {
+if (featureDetection.hasTouchEvents) {
     var bindTouchEvent = function (eventType) {
         domElement['on' + eventType] = function (e) {
             var touchIdentifier = e.changedTouches[0].identifier;
@@ -364,7 +365,8 @@ else {
             strictEqual(event.keyIdentifier, event.type === 'keypress' ? '' : 'Enter');
 
             // NOTE: Until to Safari iOS 10.3
-            if (!browserUtils.isAndroid && browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1)
+            if (!browserUtils.isAndroid &&
+                browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1)
                 notOk('key' in event);
         };
 
