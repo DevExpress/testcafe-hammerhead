@@ -96,6 +96,18 @@ export default class StorageSandbox extends SandboxBase {
         this.isLocked = true;
     }
 
+    backup () {
+        return {
+            localStorage:   JSON.stringify(this.localStorage.getCurrentState()),
+            sessionStorage: JSON.stringify(this.sessionStorage.getCurrentState())
+        };
+    }
+
+    restore ({ localStorage, sessionStorage }) {
+        this.localStorage.restore(localStorage);
+        this.sessionStorage.restore(sessionStorage);
+    }
+
     attach (window) {
         super.attach(window);
 
