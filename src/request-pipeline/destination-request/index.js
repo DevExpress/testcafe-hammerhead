@@ -38,7 +38,7 @@ export default class DestinationRequest extends EventEmitter {
 
     _send (waitForData) {
         connectionResetGuard(() => {
-            var timeout = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
+            const timeout = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
 
             this.req = this.protocolInterface.request(this.opts, res => {
                 if (waitForData) {
@@ -59,7 +59,7 @@ export default class DestinationRequest extends EventEmitter {
 
     _shouldResendWithCredentials (res) {
         if (res.statusCode === 401 && this.opts.credentials) {
-            var authInfo = getAuthInfo(res);
+            const authInfo = getAuthInfo(res);
 
             // NOTE: If we get 401 status code after credentials are sent, we should stop trying to authenticate.
             if (!authInfo.isChallengeMessage && this.credentialsSent)

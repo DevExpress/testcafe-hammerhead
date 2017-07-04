@@ -45,9 +45,9 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     static _getPageMetas (metaEls, domAdapter) {
-        var metas = [];
+        const metas = [];
 
-        for (var i = 0; i < metaEls.length; i++) {
+        for (let i = 0; i < metaEls.length; i++) {
             metas.push({
                 httpEquiv: domAdapter.getAttr(metaEls[i], 'http-equiv'),
                 content:   domAdapter.getAttr(metaEls[i], 'content'),
@@ -59,7 +59,7 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     static _addPageResources (head, processingOptions) {
-        var result = [];
+        const result = [];
 
         if (processingOptions.stylesheets) {
             processingOptions.stylesheets.forEach(stylesheetUrl => {
@@ -84,7 +84,7 @@ class PageProcessor extends ResourceProcessorBase {
             });
         }
 
-        for (var i = result.length - 1; i > -1; i--)
+        for (let i = result.length - 1; i > -1; i--)
             parse5Utils.insertElement(result[i], head);
     }
 
@@ -136,38 +136,38 @@ class PageProcessor extends ResourceProcessorBase {
     processResource (html, ctx, charset, urlReplacer, processingOpts) {
         processingOpts = processingOpts || PageProcessor._getPageProcessingOptions(ctx, urlReplacer);
 
-        var bom = getBOM(html);
+        const bom = getBOM(html);
 
         html = bom ? html.replace(bom, '') : html;
 
         PageProcessor._prepareHtml(html, processingOpts);
 
-        var root       = this.parser.parse(html);
-        var domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort);
-        var elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
-        var base       = elements.base ? elements.base[0] : null;
-        var baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';
-        var metas      = elements.meta;
-        var head       = elements.head[0];
-        var body       = elements.body ? elements.body[0] : elements.frameset[0];
+        const root       = this.parser.parse(html);
+        const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort);
+        const elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
+        const base       = elements.base ? elements.base[0] : null;
+        const baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';
+        const metas      = elements.meta;
+        const head       = elements.head[0];
+        const body       = elements.body ? elements.body[0] : elements.frameset[0];
 
         if (metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
             return this.RESTART_PROCESSING;
 
-        var iframeHtmlProcessor = (iframeHtml, callback) => {
-            var storedIsIframe = processingOpts.isIframe;
+        const iframeHtmlProcessor = (iframeHtml, callback) => {
+            const storedIsIframe = processingOpts.isIframe;
 
             processingOpts.isIframe = true;
 
-            var result = this.processResource(iframeHtml, ctx, charset, urlReplacer, processingOpts);
+            const result = this.processResource(iframeHtml, ctx, charset, urlReplacer, processingOpts);
 
             processingOpts.isIframe = storedIsIframe;
 
             callback(result);
         };
 
-        var domProcessor = new DomProcessor(domAdapter);
-        var replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
+        const domProcessor = new DomProcessor(domAdapter);
+        const replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
 
         domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));

@@ -29,7 +29,7 @@ export default {
         if (parent.type === Syntax.MemberExpression && parent.property === node)
             return false;
 
-        // Skip: var localStorage = value;
+        // Skip: const localStorage = value;
         if (parent.type === Syntax.VariableDeclarator && parent.id === node)
             return false;
 

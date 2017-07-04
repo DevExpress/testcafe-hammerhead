@@ -46,13 +46,13 @@ const TRANSFORMERS = [
 
 
 export default (function createTransformerMap () {
-    var transformerMap = {};
+    const transformerMap = {};
 
-    for (var i = 0; i < TRANSFORMERS.length; i++) {
-        var transformer = TRANSFORMERS[i];
+    for (let i = 0; i < TRANSFORMERS.length; i++) {
+        const transformer = TRANSFORMERS[i];
 
-        for (var j = 0; j < transformer.nodeTypes.length; j++) {
-            var nodeType = transformer.nodeTypes[j];
+        for (let j = 0; j < transformer.nodeTypes.length; j++) {
+            const nodeType = transformer.nodeTypes[j];
 
             if (!transformerMap[nodeType])
                 transformerMap[nodeType] = [];

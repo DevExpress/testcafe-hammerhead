@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 /* eslint hammerhead/proto-methods: 2 */
 
-var ServiceCommands = {
+const ServiceCommands = {
     getUploadedFiles: 'hammerhead|command|get-uploaded-files',
     setCookie:        'hammerhead|command|set-cookie',
     uploadFiles:      'hammerhead|command|upload-files'

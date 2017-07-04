@@ -15,21 +15,21 @@ import EFFECT_ALLOWED from './effect-allowed';
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransfer
 export default class DataTransfer {
     constructor (dataStore) {
-        var dropEffect    = DROP_EFFECT.none;
-        var effectAllowed = EFFECT_ALLOWED.uninitialized;
+        let dropEffect    = DROP_EFFECT.none;
+        let effectAllowed = EFFECT_ALLOWED.uninitialized;
 
-        var itemList          = new DataTransferItemList(dataStore);
-        var itemListInternals = itemList.getAndHideInternalMethods();
-        var fileList          = new FileList();
+        const itemList          = new DataTransferItemList(dataStore);
+        const itemListInternals = itemList.getAndHideInternalMethods();
+        const fileList          = new FileList();
 
-        var emptyItemList      = new DataTransferItemList(dataStore);
-        var emptyListInternals = emptyItemList.getAndHideInternalMethods();
+        const emptyItemList      = new DataTransferItemList(dataStore);
+        const emptyListInternals = emptyItemList.getAndHideInternalMethods();
 
-        var getActualItemList = () => {
+        const getActualItemList = () => {
             return dataStore.mode === DATA_STORE_MODE.protected ? emptyItemList : itemList;
         };
 
-        var getActualItemListInternals = () => {
+        const getActualItemListInternals = () => {
             return dataStore.mode === DATA_STORE_MODE.protected ? emptyListInternals : itemListInternals;
         };
 

@@ -61,7 +61,7 @@ export function isSubDomain (domain, subDomain) {
     if (domain === subDomain)
         return true;
 
-    var index = subDomain.lastIndexOf(domain);
+    const index = subDomain.lastIndexOf(domain);
 
     return subDomain[index - 1] === '.' && subDomain.length === index + domain.length;
 }
@@ -70,26 +70,26 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
     if (!checkedUrl)
         return true;
 
-    var parsedLocation      = parseUrl(location);
-    var parsedCheckedUrl    = parseUrl(checkedUrl);
-    var parsedProxyLocation = parseProxyUrl(location);
-    var parsedDestUrl       = parsedProxyLocation ? parsedProxyLocation.destResourceInfo : parsedLocation;
-    var isRelative          = !parsedCheckedUrl.host;
+    const parsedLocation      = parseUrl(location);
+    const parsedCheckedUrl    = parseUrl(checkedUrl);
+    const parsedProxyLocation = parseProxyUrl(location);
+    const parsedDestUrl       = parsedProxyLocation ? parsedProxyLocation.destResourceInfo : parsedLocation;
+    const isRelative          = !parsedCheckedUrl.host;
 
     if (isRelative ||
         parsedCheckedUrl.host === parsedLocation.host && parsedCheckedUrl.protocol === parsedLocation.protocol)
         return true;
 
     if (parsedDestUrl) {
-        var portsEq = !parsedDestUrl.port && !parsedCheckedUrl.port ||
-                      parsedDestUrl.port && parsedDestUrl.port.toString() === parsedCheckedUrl.port;
+        const portsEq = !parsedDestUrl.port && !parsedCheckedUrl.port ||
+                        parsedDestUrl.port && parsedDestUrl.port.toString() === parsedCheckedUrl.port;
 
         if (parsedDestUrl.protocol === parsedCheckedUrl.protocol && portsEq) {
             if (parsedDestUrl.hostname === parsedCheckedUrl.hostname)
                 return true;
 
-            var isSubDomainHostname = isSubDomain(parsedDestUrl.hostname, parsedCheckedUrl.hostname) ||
-                                      isSubDomain(parsedCheckedUrl.hostname, parsedDestUrl.hostname);
+            const isSubDomainHostname = isSubDomain(parsedDestUrl.hostname, parsedCheckedUrl.hostname) ||
+                                        isSubDomain(parsedCheckedUrl.hostname, parsedDestUrl.hostname);
 
             return !rejectForSubdomains && isSubDomainHostname;
         }
@@ -100,14 +100,14 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
 
 // NOTE: Convert the destination protocol and hostname to the lower case. (GH-1)
 function convertHostToLowerCase (url) {
-    var parsedUrl             = parseUrl(url);
-    var protocolHostSeparator = parsedUrl.protocol === 'about:' ? '' : '//';
+    const parsedUrl             = parseUrl(url);
+    const protocolHostSeparator = parsedUrl.protocol === 'about:' ? '' : '//';
 
     return (parsedUrl.protocol + protocolHostSeparator + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
 }
 
 export function getProxyUrl (url, opts) {
-    var params = [opts.sessionId];
+    let params = [opts.sessionId];
 
     if (opts.resourceType)
         params.push(opts.resourceType);
@@ -131,28 +131,28 @@ export function getDomain (parsed) {
 
 export function parseProxyUrl (proxyUrl) {
     // TODO: Remove it.
-    var parsedUrl = parseUrl(proxyUrl);
+    const parsedUrl = parseUrl(proxyUrl);
 
     if (!parsedUrl.partAfterHost)
         return null;
 
-    var match = parsedUrl.partAfterHost.match(PATH_AFTER_HOST_RE);
+    const match = parsedUrl.partAfterHost.match(PATH_AFTER_HOST_RE);
 
     if (!match)
         return null;
 
-    var params = match[1].split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
+    const params = match[1].split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
     // NOTE: We should have, at least, the job uid and the owner token.
     if (!params.length)
         return null;
 
-    var destUrl = match[2];
+    const destUrl = match[2];
 
     if (!isSpecialPage(destUrl) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
         return null;
 
-    var destResourceInfo = !isSpecialPage(destUrl) ? parseUrl(match[2]) : {
+    const destResourceInfo = !isSpecialPage(destUrl) ? parseUrl(match[2]) : {
         protocol:      'about:',
         host:          '',
         hostname:      '',
@@ -181,7 +181,7 @@ export function getPathname (path) {
 }
 
 export function parseUrl (url) {
-    var parsed = {};
+    const parsed = {};
 
     url = prepareUrl(url);
 
@@ -191,8 +191,8 @@ export function parseUrl (url) {
     url = trim(url);
 
     // Protocol
-    var hasImplicitProtocol = false;
-    var remainder           = url
+    let hasImplicitProtocol = false;
+    const remainder         = url
         .replace(PROTOCOL_RE, (str, protocol, strAfterProtocol) => {
             parsed.protocol = protocol;
             return strAfterProtocol;
@@ -226,12 +226,12 @@ export function parseUrl (url) {
 export function isSupportedProtocol (url) {
     url = trim(url || '');
 
-    var isHash = HASH_RE.test(url);
+    const isHash = HASH_RE.test(url);
 
     if (isHash)
         return false;
 
-    var protocol = url.match(PROTOCOL_RE);
+    const protocol = url.match(PROTOCOL_RE);
 
     if (!protocol)
         return true;
@@ -243,8 +243,8 @@ export function resolveUrlAsDest (url, getProxyUrlMeth) {
     getProxyUrlMeth = getProxyUrlMeth || getProxyUrl;
 
     if (isSupportedProtocol(url)) {
-        var proxyUrl       = getProxyUrlMeth(url);
-        var parsedProxyUrl = parseProxyUrl(proxyUrl);
+        const proxyUrl       = getProxyUrlMeth(url);
+        const parsedProxyUrl = parseProxyUrl(proxyUrl);
 
         return formatUrl(parsedProxyUrl.destResourceInfo);
     }
@@ -257,7 +257,7 @@ export function formatUrl (parsedUrl) {
     if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost;
 
-    var url = parsedUrl.protocol || '';
+    let url = parsedUrl.protocol || '';
 
     url += '//';
 
@@ -303,7 +303,7 @@ export function prepareUrl (url) {
 }
 
 export function ensureTrailingSlash (srcUrl, processedUrl) {
-    var hasTrailingSlash = /\/$/.test(srcUrl);
+    const hasTrailingSlash = /\/$/.test(srcUrl);
 
     if (!hasTrailingSlash)
         processedUrl = processedUrl.replace(/\/$/, '');
@@ -316,19 +316,19 @@ export function isSpecialPage (url) {
 }
 
 export function isRelativeUrl (url) {
-    var parsedUrl = parseUrl(url);
+    const parsedUrl = parseUrl(url);
 
     return parsedUrl.protocol !== 'file:' && !parsedUrl.host;
 }
 
 function isValidPort (port) {
-    var parsedPort = parseInt(port, 10);
+    const parsedPort = parseInt(port, 10);
 
     return parsedPort > 0 && parsedPort <= 65535;
 }
 
 export function isValidUrl (url) {
-    var parsedUrl = parseUrl(url);
+    const parsedUrl = parseUrl(url);
 
     return parsedUrl.protocol === 'file:' || parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
 }

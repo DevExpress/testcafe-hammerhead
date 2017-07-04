@@ -9,7 +9,7 @@ import { Syntax } from './tools/esotope';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-var objectToString = Object.prototype.toString;
+const objectToString = Object.prototype.toString;
 
 function getChange (node, parent, key) {
     return {
@@ -27,8 +27,8 @@ function getChange (node, parent, key) {
 // To solve this problem, we add a 'state' entity. This entity stores the "new" expression, so that
 // we can add it to the changes when the transformation is found.
 function createState (currState, node, parent, key, hasTransformedAncestor) {
-    var isNewExpression         = node.type === Syntax.NewExpression;
-    var isNewExpressionAncestor = isNewExpression && !currState.newExpressionAncestor;
+    const isNewExpression         = node.type === Syntax.NewExpression;
+    const isNewExpressionAncestor = isNewExpression && !currState.newExpressionAncestor;
 
     return {
         hasTransformedAncestor:      currState.hasTransformedAncestor || hasTransformedAncestor,
@@ -39,12 +39,12 @@ function createState (currState, node, parent, key, hasTransformedAncestor) {
 }
 
 function transformChildNodes (node, changes, state) {
-    for (var key in node) {
+    for (const key in node) {
         if (node.hasOwnProperty(key)) {
-            var childNode = node[key];
+            const childNode = node[key];
 
             if (objectToString.call(childNode) === '[object Array]') {
-                for (var j = 0; j < childNode.length; j++)
+                for (let j = 0; j < childNode.length; j++)
                     transform(childNode[j], node, key, changes, state);
             }
             else
@@ -58,7 +58,7 @@ function isNodeTransformed (node) {
 }
 
 function addChangeForTransformedNode (state, changes, replacement, parent, key) {
-    var hasTransformedAncestor = state.hasTransformedAncestor;
+    let hasTransformedAncestor = state.hasTransformedAncestor;
 
     hasTransformedAncestor |= state.newExpressionAncestor && isNodeTransformed(state.newExpressionAncestor);
 
@@ -79,21 +79,21 @@ export default function transform (node, parent, key, changes, state, reTransfor
     if (!node || typeof node !== 'object')
         return null;
 
-    var nodeChanged = false;
+    let nodeChanged = false;
 
     if (isNodeTransformed(node) && !reTransform) {
         addChangeForTransformedNode(state, changes, node, parent, key);
         nodeChanged = true;
     }
     else {
-        var nodeTransformers = transformers[node.type];
+        const nodeTransformers = transformers[node.type];
 
         if (nodeTransformers) {
-            for (var i = 0; i < nodeTransformers.length; i++) {
-                var transformer = nodeTransformers[i];
+            for (let i = 0; i < nodeTransformers.length; i++) {
+                const transformer = nodeTransformers[i];
 
                 if (transformer.condition(node, parent)) {
-                    var replacement = transformer.run(node, parent, key);
+                    const replacement = transformer.run(node, parent, key);
 
                     if (replacement) {
                         replaceNode(node, replacement, parent, key);
@@ -102,7 +102,7 @@ export default function transform (node, parent, key, changes, state, reTransfor
                         addChangeForTransformedNode(state, changes, replacement, parent, key);
 
                         if (transformer.nodeReplacementRequireTransform) {
-                            var newState = createState(state, replacement, parent, key, nodeChanged);
+                            const newState = createState(state, replacement, parent, key, nodeChanged);
 
                             transform(replacement, parent, key, changes, newState, true);
 
@@ -116,7 +116,7 @@ export default function transform (node, parent, key, changes, state, reTransfor
         }
     }
 
-    var childNodesState = createState(state, node, parent, key, nodeChanged);
+    const childNodesState = createState(state, node, parent, key, nodeChanged);
 
     transformChildNodes(node, changes, childNodesState);
 

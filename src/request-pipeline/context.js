@@ -28,7 +28,7 @@ export default class RequestPipelineContext {
         this.isSpecialPage = false;
         this.contentInfo   = null;
 
-        var acceptHeader = req.headers['accept'];
+        const acceptHeader = req.headers['accept'];
 
         this.isXhr   = !!req.headers[XHR_HEADERS.requestMarker];
         this.isFetch = !!req.headers[XHR_HEADERS.fetchRequestCredentials];
@@ -38,9 +38,9 @@ export default class RequestPipelineContext {
     // TODO: Rewrite parseProxyUrl instead.
     _flattenParsedProxyUrl (parsed) {
         if (parsed) {
-            var parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
+            const parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
 
-            var dest = {
+            let dest = {
                 url:           parsed.destUrl,
                 protocol:      parsed.destResourceInfo.protocol,
                 host:          parsed.destResourceInfo.host,
@@ -70,8 +70,8 @@ export default class RequestPipelineContext {
         // NOTE: Browsers may send the default port in the 'referer' header. But since we compose the destination
         // URL from it, we need to skip the port number if it's the protocol's default port. Some servers have
         // host conditions that do not include a port number.
-        var hasDefaultPort = dest.protocol === 'https:' && dest.port === HTTPS_DEFAUL_PORT ||
-                             dest.protocol === 'http:' && dest.port === HTTP_DEFAUL_PORT;
+        const hasDefaultPort = dest.protocol === 'https:' && dest.port === HTTPS_DEFAUL_PORT ||
+                               dest.protocol === 'http:' && dest.port === HTTP_DEFAUL_PORT;
 
         if (hasDefaultPort) {
             dest.host = dest.host.split(':')[0];
@@ -82,7 +82,7 @@ export default class RequestPipelineContext {
     }
 
     _getDestFromReferer (parsedReferer) {
-        var dest = parsedReferer.dest;
+        const dest = parsedReferer.dest;
 
         dest.partAfterHost = this.req.url;
         dest.url           = urlUtils.formatUrl(dest);
@@ -94,7 +94,7 @@ export default class RequestPipelineContext {
     }
 
     _isFileDownload () {
-        var contentDisposition = this.destRes.headers['content-disposition'];
+        const contentDisposition = this.destRes.headers['content-disposition'];
 
         return contentDisposition &&
                contentDisposition.indexOf('attachment') > -1 &&
@@ -106,7 +106,7 @@ export default class RequestPipelineContext {
     }
 
     _initRequestNatureInfo () {
-        var acceptHeader = this.req.headers['accept'];
+        const acceptHeader = this.req.headers['accept'];
 
         this.isXhr          = !!this.req.headers[XHR_HEADERS.requestMarker];
         this.isPage         = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader) ||
@@ -118,9 +118,9 @@ export default class RequestPipelineContext {
 
     // API
     dispatch (openSessions) {
-        var parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url);
-        var referer       = this.req.headers['referer'];
-        var parsedReferer = referer && urlUtils.parseProxyUrl(referer);
+        let parsedReqUrl  = urlUtils.parseProxyUrl(this.req.url);
+        const referer     = this.req.headers['referer'];
+        let parsedReferer = referer && urlUtils.parseProxyUrl(referer);
 
         // TODO: Remove it after parseProxyURL is rewritten.
         parsedReqUrl  = this._flattenParsedProxyUrl(parsedReqUrl);
@@ -165,31 +165,31 @@ export default class RequestPipelineContext {
     }
 
     buildContentInfo () {
-        var contentType = this.destRes.headers['content-type'] || '';
-        var accept      = this.req.headers['accept'] || '';
-        var encoding    = this.destRes.headers['content-encoding'];
+        const contentType = this.destRes.headers['content-type'] || '';
+        const accept      = this.req.headers['accept'] || '';
+        const encoding    = this.destRes.headers['content-encoding'];
 
         if (this.isPage && contentType)
             this.isPage = !this.isXhr && !this.isFetch && contentTypeUtils.isPage(contentType);
 
-        var isCSS                   = contentTypeUtils.isCSSResource(contentType, accept);
-        var isManifest              = contentTypeUtils.isManifest(contentType);
-        var isScript                = this.dest.isScript || contentTypeUtils.isScriptResource(contentType, accept);
-        var isForm                  = this.dest.isForm;
-        var isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
+        const isCSS                   = contentTypeUtils.isCSSResource(contentType, accept);
+        const isManifest              = contentTypeUtils.isManifest(contentType);
+        const isScript                = this.dest.isScript || contentTypeUtils.isScriptResource(contentType, accept);
+        const isForm                  = this.dest.isForm;
+        const isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
-        var isRedirect              = this.destRes.headers['location'] &&
-                                      REDIRECT_STATUS_CODES.indexOf(this.destRes.statusCode) > -1;
-        var requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
-        var isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
-                                      (this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
-        var requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
-                                      !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
-        var isFileDownload          = this._isFileDownload() && !this.dest.isScript;
-        var isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
+        const isRedirect              = this.destRes.headers['location'] &&
+                                        REDIRECT_STATUS_CODES.indexOf(this.destRes.statusCode) > -1;
+        const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
+        const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
+                                        (this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);
+        const requireProcessing       = !this.isXhr && !this.isFetch && !isFormWithEmptyResponse && !isRedirect &&
+                                        !isNotModified && (this.isPage || this.isIframe || requireAssetsProcessing);
+        const isFileDownload          = this._isFileDownload() && !this.dest.isScript;
+        const isIframeWithImageSrc    = this.isIframe && !this.isPage && /^\s*image\//.test(contentType);
 
-        var charset             = null;
-        var contentTypeUrlToken = urlUtils.getResourceTypeString({
+        let charset               = null;
+        const contentTypeUrlToken = urlUtils.getResourceTypeString({
             isIframe: this.isIframe,
             isForm:   isForm,
             isScript: isScript
@@ -221,8 +221,8 @@ export default class RequestPipelineContext {
     }
 
     getInjectableScripts () {
-        var taskScript = this.isIframe ? '/iframe-task.js' : '/task.js';
-        var scripts    = this.session.injectable.scripts.concat(taskScript);
+        const taskScript = this.isIframe ? '/iframe-task.js' : '/task.js';
+        const scripts    = this.session.injectable.scripts.concat(taskScript);
 
         return this._getInjectable(scripts);
     }
@@ -249,9 +249,9 @@ export default class RequestPipelineContext {
     }
 
     toProxyUrl (url, isCrossDomain, resourceType, charset) {
-        var proxyHostname = this.serverInfo.hostname;
-        var proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
-        var sessionId     = this.session.id;
+        const proxyHostname = this.serverInfo.hostname;
+        const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
+        const sessionId     = this.session.id;
 
         return urlUtils.getProxyUrl(url, {
             proxyHostname,

@@ -14,7 +14,7 @@ import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection
 // since they can be overriden by the client code. (GH-245)
 const arraySlice = Array.prototype.slice;
 
-var scrollbarSize = null;
+let scrollbarSize = null;
 
 const NATIVE_ELEMENT_PROTOTYPE_STRINGS = [
     instanceToString(nativeMethods.elementClass.prototype),
@@ -43,9 +43,9 @@ function isHidden (el) {
 }
 
 function isAlwaysNotEditableElement (el) {
-    var tagName                          = getTagName(el);
-    var notContentEditableElementsRegExp = /select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img/;
-    var inputElementsRegExp              = /input|textarea|button/;
+    const tagName                          = getTagName(el);
+    const notContentEditableElementsRegExp = /select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img/;
+    const inputElementsRegExp              = /input|textarea|button/;
 
     return tagName && (notContentEditableElementsRegExp.test(tagName) || inputElementsRegExp.test(tagName));
 }
@@ -63,10 +63,10 @@ function closestFallback (el, selector) {
 
 function addClassFallback (el, className) {
     if (className) {
-        var classNames = className.split(/\s+/);
-        var setClass   = ' ' + el.className + ' ';
+        const classNames = className.split(/\s+/);
+        let setClass     = ' ' + el.className + ' ';
 
-        for (var currentClassName of classNames) {
+        for (const currentClassName of classNames) {
             if (setClass.indexOf(' ' + currentClassName + ' ') === -1)
                 setClass += currentClassName + ' ';
         }
@@ -77,11 +77,11 @@ function addClassFallback (el, className) {
 
 function removeClassFallback (el, className) {
     if (el.className && className) {
-        var classNames = (className || '').split(/\s+/);
+        const classNames = (className || '').split(/\s+/);
 
         className = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
 
-        for (var i = 0; i < classNames.length; i++)
+        for (let i = 0; i < classNames.length; i++)
             className = className.replace(' ' + classNames[i] + ' ', ' ');
 
         el.className = trim(className);
@@ -89,7 +89,7 @@ function removeClassFallback (el, className) {
 }
 
 function hasClassFallback (el, className) {
-    var preparedElementClassName = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
+    const preparedElementClassName = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
 
     className = ' ' + className + ' ';
 
@@ -108,12 +108,12 @@ export function instanceToString (instance) {
 export function getActiveElement (currentDocument) {
     // NOTE: Sometimes document.activeElement returns an empty object or null (IE11).
     // https://github.com/DevExpress/testcafe-hammerhead/issues/768
-    var doc = currentDocument || document;
+    const doc = currentDocument || document;
 
-    var el = isDomElement(doc.activeElement) ? doc.activeElement : doc.body;
+    let el = isDomElement(doc.activeElement) ? doc.activeElement : doc.body;
 
     while (el && el.shadowRoot) {
-        var shadowEl = el.shadowRoot.activeElement;
+        const shadowEl = el.shadowRoot.activeElement;
 
         if (!shadowEl)
             break;
@@ -125,19 +125,19 @@ export function getActiveElement (currentDocument) {
 }
 
 export function getChildVisibleIndex (select, child) {
-    var childrenArray = getSelectVisibleChildren(select);
+    const childrenArray = getSelectVisibleChildren(select);
 
     return childrenArray.indexOf(child);
 }
 
 export function getIframeByElement (el) {
-    var elWindow = el[INTERNAL_PROPS.processedContext];
+    const elWindow = el[INTERNAL_PROPS.processedContext];
 
     return getFrameElement(elWindow);
 }
 
 export function getIframeLocation (iframe) {
-    var documentLocation = null;
+    let documentLocation = null;
 
     try {
         documentLocation = iframe.contentDocument.location.href;
@@ -146,13 +146,13 @@ export function getIframeLocation (iframe) {
         documentLocation = null;
     }
 
-    var srcLocation = nativeMethods.getAttribute.call(iframe, 'src' + INTERNAL_ATTRS.storedAttrPostfix) ||
-                      nativeMethods.getAttribute.call(iframe, 'src') || iframe.src;
+    const srcLocation = nativeMethods.getAttribute.call(iframe, 'src' + INTERNAL_ATTRS.storedAttrPostfix) ||
+                        nativeMethods.getAttribute.call(iframe, 'src') || iframe.src;
 
-    var parsedProxyDocumentLocation = documentLocation && urlUtils.isSupportedProtocol(documentLocation) &&
-                                      urlUtils.parseProxyUrl(documentLocation);
-    var parsedProxySrcLocation      = srcLocation && urlUtils.isSupportedProtocol(srcLocation) &&
-                                      urlUtils.parseProxyUrl(srcLocation);
+    const parsedProxyDocumentLocation = documentLocation && urlUtils.isSupportedProtocol(documentLocation) &&
+                                        urlUtils.parseProxyUrl(documentLocation);
+    const parsedProxySrcLocation      = srcLocation && urlUtils.isSupportedProtocol(srcLocation) &&
+                                        urlUtils.parseProxyUrl(srcLocation);
 
     return {
         documentLocation: parsedProxyDocumentLocation ? parsedProxyDocumentLocation.destUrl : documentLocation,
@@ -170,16 +170,16 @@ export function getFrameElement (win) {
 }
 
 export function getMapContainer (el) {
-    var closestMap        = closest(el, 'map');
-    var closestMapName    = nativeMethods.getAttribute.call(closestMap, 'name');
-    var containerSelector = '[usemap="#' + closestMapName + '"]';
+    const closestMap        = closest(el, 'map');
+    const closestMapName    = nativeMethods.getAttribute.call(closestMap, 'name');
+    const containerSelector = '[usemap="#' + closestMapName + '"]';
 
     return nativeMethods.querySelector.call(findDocument(el), containerSelector);
 }
 
 export function getParentWindowWithSrc (window) {
-    var parent             = window.parent;
-    var parentFrameElement = null;
+    const parent           = window.parent;
+    let parentFrameElement = null;
 
     if (window === window.top)
         return window;
@@ -202,7 +202,7 @@ export function getParentWindowWithSrc (window) {
 
 export function getScrollbarSize () {
     if (!scrollbarSize) {
-        var scrollDiv = nativeMethods.createElement.call(document, 'div');
+        const scrollDiv = nativeMethods.createElement.call(document, 'div');
 
         scrollDiv.style.height   = '100px';
         scrollDiv.style.overflow = 'scroll';
@@ -211,7 +211,7 @@ export function getScrollbarSize () {
         scrollDiv.style.width    = '100px';
         nativeMethods.appendChild.call(document.body, scrollDiv);
 
-        var scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+        const scrollbarWidth = scrollDiv.offsetWidth - scrollDiv.clientWidth;
 
         scrollbarSize = scrollbarWidth;
         scrollDiv.parentNode.removeChild(scrollDiv);
@@ -225,15 +225,15 @@ export function getSelectParent (child) {
 }
 
 export function getSelectVisibleChildren (select) {
-    var children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
+    let children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
 
     children = arraySlice.call(children);
 
     // NOTE: Firefox does not display groups without a label and with an empty label.
     if (isFirefox) {
-        var filtered = [];
+        const filtered = [];
 
-        for (var i = 0, len = children.length; i < len; i++) {
+        for (let i = 0, len = children.length; i < len; i++) {
             if (getTagName(children[i]) !== 'optgroup' || !!children[i].label)
                 filtered.push(children[i]);
         }
@@ -245,15 +245,15 @@ export function getSelectVisibleChildren (select) {
 }
 
 export function getTopSameDomainWindow (window) {
-    var result        = window;
-    var currentWindow = window.parent;
+    let result        = window;
+    let currentWindow = window.parent;
 
     if (result === window.top)
         return result;
 
     while (currentWindow) {
         if (!isCrossDomainWindows(window, currentWindow)) {
-            var frameElement = getFrameElement(currentWindow);
+            const frameElement = getFrameElement(currentWindow);
 
             if (!frameElement || !isIframeWithoutSrc(frameElement))
                 result = currentWindow;
@@ -266,10 +266,10 @@ export function getTopSameDomainWindow (window) {
 }
 
 export function find (parent, selector, handler) {
-    var elms = getNativeQuerySelectorAll(parent).call(parent, selector);
+    const elms = getNativeQuerySelectorAll(parent).call(parent, selector);
 
     if (handler) {
-        for (var i = 0; i < elms.length; i++)
+        for (let i = 0; i < elms.length; i++)
             handler(elms[i]);
     }
 
@@ -287,8 +287,8 @@ export function findDocument (el) {
 }
 
 export function isContentEditableElement (el) {
-    var isContentEditable = false;
-    var element           = null;
+    let isContentEditable = false;
+    let element           = null;
 
     if (isTextNode(el))
         element = el.parentElement || el.parentNode;
@@ -304,12 +304,12 @@ export function isContentEditableElement (el) {
 }
 
 export function isCrossDomainIframe (iframe, bySrc) {
-    var iframeLocation = getIframeLocation(iframe);
+    const iframeLocation = getIframeLocation(iframe);
 
     if (!bySrc && iframeLocation.documentLocation === null)
         return true;
 
-    var currentLocation = bySrc ? iframeLocation.srcLocation : iframeLocation.documentLocation;
+    const currentLocation = bySrc ? iframeLocation.srcLocation : iframeLocation.documentLocation;
 
     if (currentLocation && urlUtils.isSupportedProtocol(currentLocation))
         return !sameOriginCheck(location.toString(), currentLocation);
@@ -322,8 +322,8 @@ export function isCrossDomainWindows (window1, window2) {
         if (window1 === window2)
             return false;
 
-        var window1Location = window1.location.toString();
-        var window2Location = window2.location.toString();
+        const window1Location = window1.location.toString();
+        const window2Location = window2.location.toString();
 
         if (!urlUtils.isSupportedProtocol(window1Location) || !urlUtils.isSupportedProtocol(window2Location))
             return false;
@@ -357,13 +357,13 @@ export function getNodeType (node) {
 }
 
 export function isElementInDocument (el, currentDocument) {
-    var doc = currentDocument || document;
+    const doc = currentDocument || document;
 
     return doc.documentElement.contains(el);
 }
 
 export function isElementInIframe (el, currentDocument) {
-    var doc = currentDocument || findDocument(el);
+    const doc = currentDocument || findDocument(el);
 
     return window.document !== doc;
 }
@@ -378,14 +378,14 @@ export function isIframeElement (el) {
 }
 
 export function isIframeWithoutSrc (iframe) {
-    var iframeLocation         = getIframeLocation(iframe);
-    var iframeSrcLocation      = iframeLocation.srcLocation;
-    var iframeDocumentLocation = iframeLocation.documentLocation;
+    const iframeLocation         = getIframeLocation(iframe);
+    const iframeSrcLocation      = iframeLocation.srcLocation;
+    const iframeDocumentLocation = iframeLocation.documentLocation;
 
     if (iframeDocumentLocation === null) // is a cross-domain iframe
         return false;
 
-    var iframeDocumentLocationHaveSupportedProtocol = urlUtils.isSupportedProtocol(iframeDocumentLocation);
+    const iframeDocumentLocationHaveSupportedProtocol = urlUtils.isSupportedProtocol(iframeDocumentLocation);
 
     // NOTE: When an iframe has an empty src attribute (<iframe src></iframe>) or has no src attribute (<iframe></iframe>),
     // the iframe.src property is not empty but has different values in different browsers.
@@ -393,14 +393,14 @@ export function isIframeWithoutSrc (iframe) {
     if (!iframeDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
         return true;
 
-    var parentWindowWithSrc        = getParentWindowWithSrc(iframe.contentWindow);
-    var parsedParentWindowLocation = urlUtils.parseProxyUrl(parentWindowWithSrc.location.toString());
-    var parentWindowLocation       = parsedParentWindowLocation ? parsedParentWindowLocation.destUrl : parentWindowWithSrc.location.toString();
+    const parentWindowWithSrc        = getParentWindowWithSrc(iframe.contentWindow);
+    const parsedParentWindowLocation = urlUtils.parseProxyUrl(parentWindowWithSrc.location.toString());
+    const parentWindowLocation       = parsedParentWindowLocation ? parsedParentWindowLocation.destUrl : parentWindowWithSrc.location.toString();
 
     if (iframeDocumentLocationHaveSupportedProtocol) {
         // NOTE: In IE, after document.open is called for a same-domain iframe or an iframe with a javascript src,
         // the iframe window location becomes equal to the location of the parent window with src.
-        var parsedIframeSrcLocation = urlUtils.isSupportedProtocol(iframeSrcLocation) ? urlUtils.parseUrl(iframeSrcLocation)
+        const parsedIframeSrcLocation = urlUtils.isSupportedProtocol(iframeSrcLocation) ? urlUtils.parseUrl(iframeSrcLocation)
             : null;
 
         if (parsedIframeSrcLocation && parsedIframeSrcLocation.partAfterHost &&
@@ -497,7 +497,7 @@ export function isRenderedNode (node) {
 export function getTabIndex (el) {
     // NOTE: we obtain the tabIndex value from an attribute because the el.tabIndex
     // property returns -1 for some elements (e.g. for body) with no tabIndex assigned
-    var tabIndex = nativeMethods.getAttribute.call(el, 'tabIndex');
+    let tabIndex = nativeMethods.getAttribute.call(el, 'tabIndex');
 
     tabIndex = parseInt(tabIndex, 10);
 
@@ -508,11 +508,11 @@ export function isElementFocusable (el) {
     if (!el)
         return false;
 
-    var tabIndex              = getTabIndex(el);
-    var isDisabledElement     = matches(el, ':disabled');
-    var isInvisibleElement    = getStyle(el, 'visibility') === 'hidden';
-    var isNotDisplayedElement = getStyle(el, 'display') === 'none';
-    var isHiddenElement       = isWebKit ? isHidden(el) && !isOptionElement(el) : isHidden(el);
+    const tabIndex              = getTabIndex(el);
+    const isDisabledElement     = matches(el, ':disabled');
+    const isInvisibleElement    = getStyle(el, 'visibility') === 'hidden';
+    const isNotDisplayedElement = getStyle(el, 'display') === 'none';
+    const isHiddenElement       = isWebKit ? isHidden(el) && !isOptionElement(el) : isHidden(el);
 
     if (isDisabledElement || isInvisibleElement || isNotDisplayedElement || isHiddenElement)
         return false;
@@ -623,8 +623,8 @@ export function isElementReadOnly (el) {
 }
 
 export function isTextEditableInput (el) {
-    var editableInputTypesRegEx = /^(email|number|password|search|tel|text|url)$/;
-    var attrType                = el.getAttribute('type');
+    const editableInputTypesRegEx = /^(email|number|password|search|tel|text|url)$/;
+    const attrType                = el.getAttribute('type');
 
     return isInputElement(el) &&
            attrType ? editableInputTypesRegEx.test(attrType) : editableInputTypesRegEx.test(el.type);
@@ -678,7 +678,7 @@ export function matches (el, selector) {
     if (!el)
         return false;
 
-    var matchesSelector = el.matches || el.webkitMatchesSelector || el.msMatchesSelector;
+    const matchesSelector = el.matches || el.webkitMatchesSelector || el.msMatchesSelector;
 
     if (!matchesSelector)
         return false;
@@ -699,9 +699,9 @@ export function addClass (el, className) {
 
     // NOTE: IE10+
     if (el && el.classList) {
-        var classNames = className.split(/\s+/);
+        const classNames = className.split(/\s+/);
 
-        for (var currentClassName of classNames)
+        for (const currentClassName of classNames)
             el.classList.add(currentClassName);
     }
     else
@@ -714,9 +714,9 @@ export function removeClass (el, className) {
 
     // NOTE: IE10+
     if (el.classList) {
-        var classNames = className.split(/\s+/);
+        const classNames = className.split(/\s+/);
 
-        for (var currentClassName of classNames)
+        for (const currentClassName of classNames)
             el.classList.remove(currentClassName);
     }
     else
@@ -735,14 +735,14 @@ export function hasClass (el, className) {
 }
 
 export function parseDocumentCharset () {
-    var metaCharset = nativeMethods.querySelector.call(document, '.' + SHADOW_UI_CLASSNAME.charset);
+    const metaCharset = nativeMethods.querySelector.call(document, '.' + SHADOW_UI_CLASSNAME.charset);
 
     return metaCharset && metaCharset.getAttribute('charset');
 }
 
 export function getParents (el, selector) {
-    var parent  = el.parentNode;
-    var parents = [];
+    let parent  = el.parentNode;
+    const parents = [];
 
     while (parent) {
         if (isElementNode(parent) && !selector || selector && matches(parent, selector))

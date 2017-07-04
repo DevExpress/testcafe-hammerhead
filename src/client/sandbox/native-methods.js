@@ -9,7 +9,7 @@ class NativeMethods {
     refreshDocumentMeths (doc) {
         doc = doc || document;
 
-        var docProto = doc.constructor.prototype;
+        const docProto = doc.constructor.prototype;
 
         // Dom
         this.createDocumentFragment = doc.createDocumentFragment || docProto.createDocumentFragment;
@@ -41,8 +41,8 @@ class NativeMethods {
     refreshElementMeths (doc, win) {
         win = win || window;
 
-        var createElement = tagName => this.createElement.call(doc || document, tagName);
-        var nativeElement = createElement('div');
+        const createElement = tagName => this.createElement.call(doc || document, tagName);
+        const nativeElement = createElement('div');
 
         // Dom
         this.appendChild                   = nativeElement.appendChild;
@@ -89,7 +89,7 @@ class NativeMethods {
     refreshWindowMeths (win) {
         win = win || window;
 
-        var winProto = win.constructor.prototype;
+        const winProto = win.constructor.prototype;
 
         // Dom
         this.eval                             = win.eval;
@@ -137,8 +137,8 @@ class NativeMethods {
         this.createContextualFragment = win.Range.prototype.createContextualFragment;
 
         if (win.Performance) {
-            var nativePerformance    = win.performance;
-            var nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
+            const nativePerformance    = win.performance;
+            const nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
 
             if (nativePerformanceNow)
                 this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
@@ -178,8 +178,8 @@ class NativeMethods {
             this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
         // Setters
-        var inputValueDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
-        var textAreaValueDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
+        const inputValueDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
+        const textAreaValueDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
 
         if (inputValueDescriptor && typeof inputValueDescriptor.set === 'function')
             this.inputValueSetter = inputValueDescriptor.set;

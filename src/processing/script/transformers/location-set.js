@@ -20,7 +20,7 @@ export default {
                        node.left.name === 'location',
 
     run: (node, parent, key) => {
-        var wrapWithSequence = key !== 'arguments' && key !== 'consequent' && key !== 'alternate' &&
+        const wrapWithSequence = key !== 'arguments' && key !== 'consequent' && key !== 'alternate' &&
                                (parent.type !== Syntax.SequenceExpression || parent.expressions[0] === node);
 
         return createLocationSetWrapper(node.right, wrapWithSequence);

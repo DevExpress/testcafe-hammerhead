@@ -1,6 +1,6 @@
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-var arraySlice = Array.prototype.slice;
+const arraySlice = Array.prototype.slice;
 
 export default class EventEmitter {
     constructor () {
@@ -8,10 +8,10 @@ export default class EventEmitter {
     }
 
     emit (evt) {
-        var listeners = this.eventsListeners[evt];
+        const listeners = this.eventsListeners[evt];
 
         if (listeners) {
-            for (var i = 0; i < listeners.length; i++) {
+            for (let i = 0; i < listeners.length; i++) {
                 try {
                     if (listeners[i])
                         listeners[i].apply(this, arraySlice.apply(arguments, [1]));
@@ -30,12 +30,12 @@ export default class EventEmitter {
     }
 
     off (evt, listener) {
-        var listeners = this.eventsListeners[evt];
+        const listeners = this.eventsListeners[evt];
 
         if (listeners) {
-            var filtered = [];
+            const filtered = [];
 
-            for (var currentListener of listeners) {
+            for (const currentListener of listeners) {
                 if (currentListener !== listener)
                     filtered.push(currentListener);
             }

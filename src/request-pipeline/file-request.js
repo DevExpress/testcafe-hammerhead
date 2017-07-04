@@ -11,8 +11,8 @@ export default class FileRequest extends EventEmitter {
     constructor (opts) {
         super();
 
-        var parsedUrl = parse(opts.url);
-        var path      = decodeURIComponent(parsedUrl.pathname);
+        const parsedUrl = parse(opts.url);
+        let path        = decodeURIComponent(parsedUrl.pathname);
 
         if (DISK_RE.test(path))
             path = path.substr(1);
@@ -33,7 +33,7 @@ export default class FileRequest extends EventEmitter {
     }
 
     _onOpen () {
-        this.statusCode = 200;
+        this.statusCode              = 200;
         this.headers['content-type'] = mime.lookup(this.path);
 
         this.emit('response', this);

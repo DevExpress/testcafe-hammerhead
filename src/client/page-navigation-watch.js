@@ -21,8 +21,8 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     _formWatch (elementSandbox, eventSandbox) {
-        var onFormSubmit = form => {
-            var targetWindow = PageNavigationWatch._getTargetWindow(form);
+        const onFormSubmit = form => {
+            const targetWindow = PageNavigationWatch._getTargetWindow(form);
 
             PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, form.action);
         };
@@ -33,12 +33,12 @@ export default class PageNavigationWatch extends EventEmiter {
         // NOTE: fires when the form is submitted by clicking the submit button
         eventSandbox.listeners.initElementListening(window, ['submit']);
         eventSandbox.listeners.addInternalEventListener(window, ['submit'], e => {
-            var prevented = false;
+            let prevented = false;
 
             if (!isFormElement(e.target))
                 return;
 
-            var onPreventDefault = preventedEvent => {
+            const onPreventDefault = preventedEvent => {
                 prevented = prevented || preventedEvent === e;
             };
 
@@ -57,9 +57,9 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     static _getTargetWindow (el) {
-        var target = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target')) ||
-                     nativeMethods.getAttribute.call(el, 'target') ||
-                     '_self';
+        const target = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target')) ||
+                       nativeMethods.getAttribute.call(el, 'target') ||
+                       '_self';
 
         switch (target) {
             case '_top':
@@ -76,14 +76,14 @@ export default class PageNavigationWatch extends EventEmiter {
     _linkWatch (eventSandbox) {
         eventSandbox.listeners.initElementListening(window, ['click']);
         eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
-            var link = isAnchorElement(e.target) ? e.target : closest(e.target, 'a');
+            const link = isAnchorElement(e.target) ? e.target : closest(e.target, 'a');
 
             if (link && !isShadowUIElement(link)) {
-                var prevented    = false;
-                var targetWindow = PageNavigationWatch._getTargetWindow(link);
-                var href         = link.href;
+                let prevented      = false;
+                const targetWindow = PageNavigationWatch._getTargetWindow(link);
+                const href         = link.href;
 
-                var onPreventDefault = preventedEvent => {
+                const onPreventDefault = preventedEvent => {
                     prevented = prevented || preventedEvent === e;
                 };
 
@@ -103,8 +103,8 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     _locationWatch (codeInstrumentation) {
-        var locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
-        var locationChangedHandler           = newLocation => this.onNavigationTriggered(newLocation);
+        const locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
+        const locationChangedHandler           = newLocation => this.onNavigationTriggered(newLocation);
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
     }
@@ -120,7 +120,7 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     onNavigationTriggered (url) {
-        var currentLocation = this.lastLocationValue;
+        const currentLocation = this.lastLocationValue;
 
         this.lastLocationValue = window.location.toString();
 

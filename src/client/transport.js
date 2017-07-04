@@ -14,7 +14,7 @@ class Transport {
     }
 
     static _storeMessage (msg) {
-        var storedMessages = Transport._getStoredMessages();
+        const storedMessages = Transport._getStoredMessages();
 
         storedMessages.push(msg);
 
@@ -22,15 +22,15 @@ class Transport {
     }
 
     static _getStoredMessages () {
-        var storedMessagesStr = window.localStorage.getItem(settings.get().sessionId);
+        const storedMessagesStr = window.localStorage.getItem(settings.get().sessionId);
 
         return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
     }
 
     static _removeMessageFromStore (cmd) {
-        var messages = Transport._getStoredMessages();
+        const messages = Transport._getStoredMessages();
 
-        for (var i = 0; i < messages.length; i++) {
+        for (let i = 0; i < messages.length; i++) {
             if (messages[i].cmd === cmd) {
                 messages.splice(i, 1);
 
@@ -42,7 +42,7 @@ class Transport {
     }
 
     _sendNextQueuedMsg (queueId) {
-        var queueItem = this.msgQueue[queueId][0];
+        const queueItem = this.msgQueue[queueId][0];
 
         this.asyncServiceMsg(queueItem.msg)
             .then(res => {
@@ -63,18 +63,18 @@ class Transport {
         if (isIframeWithoutSrc)
             msg.referer = settings.get().referer;
 
-        var sendMsg = forced => {
+        const sendMsg = forced => {
             this.activeServiceMessagesCounter++;
 
-            var isAsyncRequest = !forced;
-            var transport      = this;
-            var request        = XhrSandbox.createNativeXHR();
-            var msgCallback    = function () {
+            const isAsyncRequest = !forced;
+            const transport      = this;
+            const request        = XhrSandbox.createNativeXHR();
+            const msgCallback    = function () {
                 transport.activeServiceMessagesCounter--;
 
                 callback(this.responseText && parseJSON(this.responseText));
             };
-            var errorHandler   = function () {
+            const errorHandler   = function () {
                 if (msg.disableResending)
                     return;
 
@@ -103,7 +103,7 @@ class Transport {
                     if (this.readyState !== 4)
                         return;
 
-                    var status = 0;
+                    let status = 0;
 
                     try {
                         status = this.status;
@@ -137,8 +137,8 @@ class Transport {
                 return;
             }
 
-            var intervalId = null;
-            var timeoutId  = window.setTimeout(() => {
+            let intervalId  = null;
+            const timeoutId = window.setTimeout(() => {
                 nativeMethods.clearInterval.call(window, intervalId);
                 resolve();
             }, timeout);
@@ -160,14 +160,14 @@ class Transport {
     }
 
     batchUpdate () {
-        var storedMessages = Transport._getStoredMessages();
+        const storedMessages = Transport._getStoredMessages();
 
         if (storedMessages.length) {
-            var tasks = [];
+            const tasks = [];
 
             window.localStorage.removeItem(settings.get().sessionId);
 
-            for (var storedMessage of storedMessages)
+            for (const storedMessage of storedMessages)
                 tasks.push(this.queuedAsyncServiceMsg(storedMessage));
 
             return Promise.all(tasks);

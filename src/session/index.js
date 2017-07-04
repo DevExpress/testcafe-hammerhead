@@ -85,13 +85,13 @@ export default class Session extends EventEmitter {
     }
 
     getTaskScript (referer, cookieUrl, serverInfo, isIframe, withPayload) {
-        var cookies       = JSON.stringify(this.cookies.getClientString(cookieUrl));
-        var payloadScript = '';
+        const cookies     = JSON.stringify(this.cookies.getClientString(cookieUrl));
+        let payloadScript = '';
 
         if (withPayload)
             payloadScript = isIframe ? this._getIframePayloadScript() : this._getPayloadScript();
 
-        var taskScript = this._fillTaskScriptTemplate(serverInfo, this.pageLoadCount === 0, referer,
+        const taskScript = this._fillTaskScriptTemplate(serverInfo, this.pageLoadCount === 0, referer,
             cookies, this.getIframeTaskScriptTemplate(serverInfo), payloadScript);
 
         this.pageLoadCount++;
@@ -100,8 +100,8 @@ export default class Session extends EventEmitter {
     }
 
     setExternalProxySettings (proxyUrl) {
-        var parsedUrl = typeof proxyUrl === 'string' ? parseUrl('http://' + proxyUrl) : null;
-        var settings  = null;
+        const parsedUrl = typeof proxyUrl === 'string' ? parseUrl('http://' + proxyUrl) : null;
+        let settings    = null;
 
         if (parsedUrl && parsedUrl.host) {
             settings = {
@@ -113,7 +113,7 @@ export default class Session extends EventEmitter {
                 settings.port = parsedUrl.port;
 
             if (parsedUrl.auth) {
-                settings.proxyAuth = parsedUrl.auth;
+                settings.proxyAuth  = parsedUrl.auth;
                 settings.authHeader = 'Basic ' + new Buffer(parsedUrl.auth).toString('base64');
             }
         }
@@ -130,9 +130,9 @@ export default class Session extends EventEmitter {
     }
 
     setCookie (queue) {
-        for (var msg of queue) {
-            var parsedUrl = parseProxyUrl(msg.url);
-            var cookieUrl = parsedUrl ? parsedUrl.destUrl : msg.url;
+        for (const msg of queue) {
+            const parsedUrl = parseProxyUrl(msg.url);
+            const cookieUrl = parsedUrl ? parsedUrl.destUrl : msg.url;
 
             this.cookies.setByClient(cookieUrl, msg.cookie);
         }
@@ -160,7 +160,7 @@ export default class Session extends EventEmitter {
 }
 
 // Service message handlers
-var ServiceMessages = Session.prototype;
+const ServiceMessages = Session.prototype;
 
 ServiceMessages[COMMAND.uploadFiles] = async function (msg) {
     return await this.uploadStorage.store(msg.fileNames, msg.data);

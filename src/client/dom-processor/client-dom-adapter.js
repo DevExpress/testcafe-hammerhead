@@ -31,9 +31,9 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     hasEventHandler (el) {
-        var attrs = el.attributes;
+        const attrs = el.attributes;
 
-        for (var i = 0; i < attrs.length; i++) {
+        for (let i = 0; i < attrs.length; i++) {
             if (this.EVENTS.indexOf(attrs[i]))
                 return true;
         }
@@ -67,7 +67,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     getElementForSelectorCheck (el) {
         if (isIE9 && domUtils.isScriptElement(el)) {
-            var clone = nativeMethods.cloneNode.call(el, false);
+            const clone = nativeMethods.cloneNode.call(el, false);
 
             clone.src = clone.innerHTML = '';
 
@@ -94,7 +94,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     attachEventEmitter (domProcessor) {
-        var eventEmitter = new EventEmitter();
+        const eventEmitter = new EventEmitter();
 
         domProcessor.on   = (evt, listener) => eventEmitter.on(evt, listener);
         domProcessor.off  = (evt, listener) => eventEmitter.off(evt, listener);
@@ -110,7 +110,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     isTopParentIframe (el) {
-        var elWindow = el[INTERNAL_PROPS.processedContext];
+        const elWindow = el[INTERNAL_PROPS.processedContext];
 
         return elWindow && window.top === elWindow.parent;
     }

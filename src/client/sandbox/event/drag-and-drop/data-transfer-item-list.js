@@ -6,14 +6,14 @@ import DATA_TRANSFER_ITEM_KIND from './data-transfer-item-kind';
 function parseTextUriList (textUriList) {
     textUriList = textUriList.replace(/\r\n$/, '');
 
-    var res = [];
+    const res = [];
 
     if (textUriList === '')
         return res;
 
     textUriList = textUriList.split(/\r\n/);
 
-    for (var i = 0; i < textUriList.length; i++) {
+    for (let i = 0; i < textUriList.length; i++) {
         if (textUriList[0] !== '#')
             res.push(textUriList[i]);
     }
@@ -35,23 +35,23 @@ function processFormat (format) {
 export default class DataTransferItemList {
     constructor (dataStore) {
         // Internals
-        var items     = [];
-        var itemsData = [];
+        let items     = [];
+        let itemsData = [];
 
-        var getTypes = () => {
-            var res = [];
+        const getTypes = () => {
+            const res = [];
 
-            for (var i = 0; i < items.length; i++)
+            for (let i = 0; i < items.length; i++)
                 res.push(items[i].type);
 
             return res;
         };
 
-        var updateIndexes = () => {
-            var idx = 0;
+        const updateIndexes = () => {
+            let idx = 0;
 
             while (items[idx] !== void 0 || this[idx] !== void 0) {
-                var item = items[idx];
+                const item = items[idx];
 
                 Object.defineProperty(this, idx, {
                     enumerable:   item !== void 0,
@@ -63,17 +63,17 @@ export default class DataTransferItemList {
             }
         };
 
-        var getItemData = format => {
-            var convertToUrl = false;
+        const getItemData = format => {
+            let convertToUrl = false;
 
             format = processFormat(format);
 
             if (format === 'url')
                 convertToUrl = true;
 
-            var item = '';
+            let item = '';
 
-            for (var i = 0; i < items.length; i++) {
+            for (let i = 0; i < items.length; i++) {
                 if (items[i].type === format)
                     item = itemsData[i];
             }
@@ -84,10 +84,10 @@ export default class DataTransferItemList {
             return item;
         };
 
-        var removeItem = format => {
+        const removeItem = format => {
             format = processFormat(format);
 
-            for (var i = 0; i < items.length; i++) {
+            for (let i = 0; i < items.length; i++) {
                 if (items[i].type === format) {
                     items.splice(i, 1);
                     itemsData.splice(i, 1);
@@ -98,12 +98,12 @@ export default class DataTransferItemList {
             updateIndexes();
         };
 
-        var addItem = (data, type, allowReplace) => {
-            var newItem = null;
+        const addItem = (data, type, allowReplace) => {
+            let newItem = null;
 
             if (typeof data === 'string') {
-                var typeLowerCase = type.toString().toLowerCase();
-                var itemData      = getItemData(typeLowerCase);
+                const typeLowerCase = type.toString().toLowerCase();
+                const itemData      = getItemData(typeLowerCase);
 
                 if (!allowReplace && itemData)
                     throw new Error(`Failed to execute 'add' on 'DataTransferItemList': An item already exists for type '${typeLowerCase}'.`);
@@ -125,7 +125,7 @@ export default class DataTransferItemList {
 
         // Internal API
         this.getAndHideInternalMethods = () => {
-            var res = { getTypes, getItemData, removeItem, addItem };
+            const res = { getTypes, getItemData, removeItem, addItem };
 
             delete this.getAndHideInternalMethods;
 

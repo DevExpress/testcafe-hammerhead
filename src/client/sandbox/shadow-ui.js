@@ -42,11 +42,11 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static _filterList (list, predicate) {
-        var filteredList = [];
-        var nlLength     = list.length;
+        const filteredList = [];
+        const nlLength     = list.length;
 
-        for (var i = 0; i < nlLength; i++) {
-            var el = predicate(list[i]);
+        for (let i = 0; i < nlLength; i++) {
+            const el = predicate(list[i]);
 
             if (el)
                 filteredList.push(list[i]);
@@ -74,8 +74,8 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static _getFirstNonShadowElement (nodeList) {
-        for (var i = 0; i < nodeList.length; i++) {
-            var el = ShadowUI._filterElement(nodeList[i]);
+        for (let i = 0; i < nodeList.length; i++) {
+            const el = ShadowUI._filterElement(nodeList[i]);
 
             if (el)
                 return nodeList[i];
@@ -103,8 +103,8 @@ export default class ShadowUI extends SandboxBase {
                     if (typeof args[0] === 'string')
                         args[0] = NodeSandbox.processSelector(args[0]);
 
-                    var element         = nativeMethods[nativeQuerySelectorFnName].apply(this, args);
-                    var filteredElement = ShadowUI._filterElement(element);
+                    const element         = nativeMethods[nativeQuerySelectorFnName].apply(this, args);
+                    const filteredElement = ShadowUI._filterElement(element);
 
                     if (!element || filteredElement)
                         return filteredElement;
@@ -139,11 +139,11 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _bringRootToWindowTopLeft () {
-        var rootHasParentWithNonStaticPosition = false;
-        var parent                             = this.root.parentNode;
+        let rootHasParentWithNonStaticPosition = false;
+        let parent                             = this.root.parentNode;
 
         while (parent) {
-            var elementPosition = getStyle(parent, 'position');
+            const elementPosition = getStyle(parent, 'position');
 
             if (IS_NON_STATIC_POSITION_RE.test(elementPosition))
                 rootHasParentWithNonStaticPosition = true;
@@ -152,13 +152,13 @@ export default class ShadowUI extends SandboxBase {
         }
 
         if (rootHasParentWithNonStaticPosition) {
-            var rootOffset = getOffsetPosition(this.root);
+            const rootOffset = getOffsetPosition(this.root);
 
             if (rootOffset.left !== 0 || rootOffset.top !== 0) {
-                var currentRootLeft = parseFloat(getStyle(this.root, 'left')) || 0;
-                var currentRootTop  = parseFloat(getStyle(this.root, 'top')) || 0;
-                var newRootLeft     = currentRootLeft - rootOffset.left + 'px';
-                var newRootTop      = currentRootTop - rootOffset.top + 'px';
+                const currentRootLeft = parseFloat(getStyle(this.root, 'left')) || 0;
+                const currentRootTop  = parseFloat(getStyle(this.root, 'top')) || 0;
+                const newRootLeft     = currentRootLeft - rootOffset.left + 'px';
+                const newRootTop      = currentRootTop - rootOffset.top + 'px';
 
                 setStyle(this.root, 'left', newRootLeft);
                 setStyle(this.root, 'top', newRootTop);
@@ -167,14 +167,14 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _overrideDocumentMethods (document) {
-        var shadowUI = this;
-        var docProto = document.constructor.prototype;
+        const shadowUI = this;
+        const docProto = document.constructor.prototype;
 
         docProto.elementFromPoint = function (...args) {
             // NOTE: T212974
             shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-            var res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(this, args));
+            const res = ShadowUI._filterElement(nativeMethods.elementFromPoint.apply(this, args));
 
             shadowUI.removeClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
@@ -185,7 +185,7 @@ export default class ShadowUI extends SandboxBase {
             docProto.caretRangeFromPoint = function (...args) {
                 shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-                var res = nativeMethods.caretRangeFromPoint.apply(this, args);
+                let res = nativeMethods.caretRangeFromPoint.apply(this, args);
 
                 if (res && res.startContainer && !ShadowUI._filterElement(res.startContainer))
                     res = null;
@@ -200,7 +200,7 @@ export default class ShadowUI extends SandboxBase {
             docProto.caretPositionFromPoint = function (...args) {
                 shadowUI.addClass(shadowUI.getRoot(), shadowUI.HIDDEN_CLASS);
 
-                var res = nativeMethods.caretPositionFromPoint.apply(this, args);
+                let res = nativeMethods.caretPositionFromPoint.apply(this, args);
 
                 if (res && res.offsetNode && !ShadowUI._filterElement(res.offsetNode))
                     res = null;
@@ -230,8 +230,8 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _overrideElementMethods (window) {
-        var bodyProto = window.HTMLBodyElement.prototype;
-        var headProto = window.HTMLHeadElement.prototype;
+        const bodyProto = window.HTMLBodyElement.prototype;
+        const headProto = window.HTMLHeadElement.prototype;
 
         bodyProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('elementGetElementsByClassName');
         bodyProto.getElementsByTagName   = this.wrapperCreators.getElementsByTagName('elementGetElementsByTagName');
@@ -245,11 +245,11 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _getUIStyleSheetsHtml () {
-        var stylesheets = this.nativeMethods.querySelectorAll.call(this.document, 'link.' +
-                                                                                  SHADOW_UI_CLASS_NAME.uiStylesheet);
-        var result      = '';
+        const stylesheets = this.nativeMethods.querySelectorAll.call(this.document, 'link.' +
+                                                                                    SHADOW_UI_CLASS_NAME.uiStylesheet);
+        let result        = '';
 
-        for (var i = 0; i < stylesheets.length; i++)
+        for (let i = 0; i < stylesheets.length; i++)
             result += stylesheets[i].outerHTML;
 
         return result;
@@ -259,13 +259,13 @@ export default class ShadowUI extends SandboxBase {
         if (!head || !uiStyleSheetsHtml)
             return;
 
-        var parser = this.nativeMethods.createElement.call(this.document, 'div');
+        const parser = this.nativeMethods.createElement.call(this.document, 'div');
 
         parser.innerHTML = uiStyleSheetsHtml;
 
-        for (var i = 0; i < parser.children.length; i++) {
-            var refNode = head.children[i] || null;
-            var newNode = nativeMethods.cloneNode.call(parser.children[i]);
+        for (let i = 0; i < parser.children.length; i++) {
+            const refNode = head.children[i] || null;
+            const newNode = nativeMethods.cloneNode.call(parser.children[i]);
 
             ShadowUI._markElementAsShadow(newNode);
             this.nativeMethods.insertBefore.call(head, newNode, refNode);
@@ -277,8 +277,8 @@ export default class ShadowUI extends SandboxBase {
         if (!head)
             return;
 
-        for (var i = 0; i < head.children.length; i++) {
-            var headChild = head.children[i];
+        for (let i = 0; i < head.children.length; i++) {
+            const headChild = head.children[i];
 
             if (ShadowUI.containsShadowUIClassPostfix(headChild))
                 ShadowUI._markElementAsShadow(headChild);
@@ -296,7 +296,7 @@ export default class ShadowUI extends SandboxBase {
                 ShadowUI._markElementAsShadow(this.root);
                 nativeMethods.appendChild.call(this.document.body, this.root);
 
-                for (var event of EVENTS)
+                for (const event of EVENTS)
                     this.root.addEventListener(event, stopPropagation);
 
                 this._bringRootToWindowTopLeft();
@@ -322,7 +322,7 @@ export default class ShadowUI extends SandboxBase {
         this._markScriptsAndStylesAsShadowInHead(window.document.head);
 
         this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT_EVENT, e => {
-            var iframeHead = e.iframe.contentDocument.head;
+            const iframeHead = e.iframe.contentDocument.head;
 
             this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());
         });
@@ -343,7 +343,7 @@ export default class ShadowUI extends SandboxBase {
         });
 
         this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, el => {
-            var elContextWindow = el[INTERNAL_PROPS.processedContext];
+            const elContextWindow = el[INTERNAL_PROPS.processedContext];
 
             if (elContextWindow !== window) {
                 this.messageSandbox.sendServiceMsg({
@@ -367,12 +367,12 @@ export default class ShadowUI extends SandboxBase {
         if (!this.root || !this.document.body)
             return;
 
-        var isRootInDom     = domUtils.closest(this.root, 'html');
-        var isRootLastChild = !this.root.nextElementSibling;
+        const isRootInDom     = domUtils.closest(this.root, 'html');
+        const isRootLastChild = !this.root.nextElementSibling;
         // NOTE: Fix for B239138 - The 'Cannot read property 'document' of null' error
         // is thrown on recording on the unroll.me site. There was an issue when
         // document.body was replaced, so we need to reattach a UI to a new body manually.
-        var isRootInBody = this.root.parentNode === this.document.body;
+        const isRootInBody = this.root.parentNode === this.document.body;
 
         if (!(isRootInDom && isRootLastChild && isRootInBody))
             this.nativeMethods.appendChild.call(this.document.body, this.root);
@@ -382,16 +382,16 @@ export default class ShadowUI extends SandboxBase {
 
     // Accessors
     getFirstChild (el) {
-        var childNodes = ShadowUI._filterNodeList(el.childNodes);
+        const childNodes = ShadowUI._filterNodeList(el.childNodes);
 
         return childNodes.length && childNodes[0] ? childNodes[0] : null;
     }
 
     getFirstElementChild (el) {
-        var childNodes = ShadowUI._filterNodeList(el.childNodes);
-        var cnLength   = childNodes.length;
+        const childNodes = ShadowUI._filterNodeList(el.childNodes);
+        const cnLength   = childNodes.length;
 
-        for (var i = 0; i < cnLength; i++) {
+        for (let i = 0; i < cnLength; i++) {
             if (domUtils.isElementNode(childNodes[i]))
                 return childNodes[i];
         }
@@ -400,17 +400,17 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getLastChild (el) {
-        var childNodes = ShadowUI._filterNodeList(el.childNodes);
-        var index      = childNodes.length - 1;
+        const childNodes = ShadowUI._filterNodeList(el.childNodes);
+        const index      = childNodes.length - 1;
 
         return index >= 0 ? childNodes[index] : null;
     }
 
     getLastElementChild (el) {
-        var childNodes = ShadowUI._filterNodeList(el.childNodes);
-        var cnLength   = childNodes.length;
+        const childNodes = ShadowUI._filterNodeList(el.childNodes);
+        const cnLength   = childNodes.length;
 
-        for (var i = cnLength - 1; i >= 0; i--) {
+        for (let i = cnLength - 1; i >= 0; i--) {
             if (domUtils.isElementNode(childNodes[i]))
                 return childNodes[i];
         }
@@ -421,16 +421,16 @@ export default class ShadowUI extends SandboxBase {
     // Utils
     static checkElementsPosition (collection) {
         if (collection.length) {
-            var parent           = collection[0].parentNode;
-            var shadowUIElements = [];
+            const parent           = collection[0].parentNode;
+            const shadowUIElements = [];
 
             if (parent) {
-                for (var i = 0; i < collection.length; i++) {
+                for (let i = 0; i < collection.length; i++) {
                     if (domUtils.isShadowUIElement(collection[i]))
                         shadowUIElements.push(collection[i]);
                 }
 
-                for (var j = 0; j < shadowUIElements.length; j++)
+                for (let j = 0; j < shadowUIElements.length; j++)
                     nativeMethods.appendChild.call(parent, shadowUIElements[j]);
             }
         }
@@ -468,11 +468,11 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static removeSelfRemovingScripts (document) {
-        var selfRemovingScripts = nativeMethods.querySelectorAll.call(document,
+        const selfRemovingScripts = nativeMethods.querySelectorAll.call(document,
             '.' + SHADOW_UI_CLASS_NAME.selfRemovingScript);
 
-        for (var i = 0; i < selfRemovingScripts.length; i++) {
-            var script = selfRemovingScripts[i];
+        for (let i = 0; i < selfRemovingScripts.length; i++) {
+            const script = selfRemovingScripts[i];
 
             nativeMethods.removeChild.call(script.parentNode, script);
         }
@@ -481,20 +481,20 @@ export default class ShadowUI extends SandboxBase {
     // API
     // NOTE: this method cannot be static because it is a part of the public API
     addClass (el, value) {
-        var patchedClass = ShadowUI.patchClassNames(value);
+        const patchedClass = ShadowUI.patchClassNames(value);
 
         domUtils.addClass(el, patchedClass);
     }
 
     // NOTE: this method cannot be static because it is a part of the public API
     removeClass (elem, value) {
-        var patchedClass = ShadowUI.patchClassNames(value);
+        const patchedClass = ShadowUI.patchClassNames(value);
 
         domUtils.removeClass(elem, patchedClass);
     }
 
     static hasClass (el, value) {
-        var patchedClass = ShadowUI.patchClassNames(value);
+        const patchedClass = ShadowUI.patchClassNames(value);
 
         return domUtils.hasClass(el, patchedClass);
     }
@@ -504,17 +504,17 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static patchClassNames (value) {
-        var names = value.split(/\s+/);
+        const names = value.split(/\s+/);
 
-        for (var i = 0; i < names.length; i++)
+        for (let i = 0; i < names.length; i++)
             names[i] += SHADOW_UI_CLASS_NAME.postfix;
 
         return names.join(' ');
     }
 
     select (selector, context) {
-        var patchedSelector = selector.replace(CLASSNAME_RE,
-                className => className + SHADOW_UI_CLASS_NAME.postfix);
+        const patchedSelector = selector.replace(CLASSNAME_RE,
+            className => className + SHADOW_UI_CLASS_NAME.postfix);
 
         return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
                nativeMethods.querySelectorAll.call(this.document, patchedSelector);
@@ -536,7 +536,7 @@ export default class ShadowUI extends SandboxBase {
     }
 
     insertBeforeRoot (el) {
-        var rootParent = this.getRoot().parentNode;
+        const rootParent = this.getRoot().parentNode;
 
         return nativeMethods.insertBefore.call(rootParent, el, rootParent.lastChild);
     }
@@ -548,9 +548,9 @@ export default class ShadowUI extends SandboxBase {
     static markElementAndChildrenAsShadow (el) {
         ShadowUI._markElementAsShadow(el);
 
-        var childElements = getNativeQuerySelectorAll(el).call(el, '*');
+        const childElements = getNativeQuerySelectorAll(el).call(el, '*');
 
-        for (var i = 0; i < childElements.length; i++)
+        for (let i = 0; i < childElements.length; i++)
             ShadowUI._markElementAsShadow(childElements[i]);
     }
 

@@ -8,9 +8,9 @@ import { createGetPostMessageMethCall } from '../node-builder';
 import { Syntax } from '../tools/esotope';
 
 // Transform:
-// var foo = postMessage; foo = postMessage; { _postMessage: postMessage }; return postMessage;
+// const foo = postMessage; foo = postMessage; { _postMessage: postMessage }; return postMessage;
 // -->
-// var foo = _get$PostMessage(postMessage); foo = _get$PostMessage(postMessage); { _postMessage: _get$PostMessage(postMessage) }; return _get$PostMessage(postMessage);
+// const foo = _get$PostMessage(postMessage); foo = _get$PostMessage(postMessage); { _postMessage: _get$PostMessage(postMessage) }; return _get$PostMessage(postMessage);
 
 export default {
     nodeReplacementRequireTransform: false,
@@ -49,7 +49,7 @@ export default {
             if (parent.type === Syntax.AssignmentExpression && parent.left === node)
                 return false;
 
-            // Skip: var postMessage = value;
+            // Skip: const postMessage = value;
             if (parent.type === Syntax.VariableDeclarator && parent.id === node)
                 return false;
 

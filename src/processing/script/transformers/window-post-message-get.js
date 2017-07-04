@@ -8,9 +8,9 @@ import { createGetPostMessageMethCall } from '../node-builder';
 import { Syntax } from '../tools/esotope';
 
 // Transform:
-// var foo = window.postMessage; foo = window.postMessage; { _postMessage: window.postMessage }; return window.postMessage;
+// const foo = window.postMessage; foo = window.postMessage; { _postMessage: window.postMessage }; return window.postMessage;
 // -->
-// var foo = _get$PostMessage(window.postMessage); foo = _get$PostMessage(window.postMessage); { _postMessage: _get$PostMessage(window.postMessage) }; return _get$PostMessage(window.postMessage);
+// const foo = _get$PostMessage(window.postMessage); foo = _get$PostMessage(window.postMessage); { _postMessage: _get$PostMessage(window.postMessage) }; return _get$PostMessage(window.postMessage);
 
 export default {
     nodeReplacementRequireTransform: false,

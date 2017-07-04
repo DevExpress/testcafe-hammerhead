@@ -20,7 +20,7 @@ export default class SandboxBase extends EventEmitter {
             /*eslint-enable no-unused-expressions */
 
             if (this.window[INTERNAL_PROPS.hammerhead]) {
-                var frameElement = getFrameElement(this.window);
+                const frameElement = getFrameElement(this.window);
 
                 return frameElement && !isElementInDocument(frameElement, findDocument(frameElement));
             }

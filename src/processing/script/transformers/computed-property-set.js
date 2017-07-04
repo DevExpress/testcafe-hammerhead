@@ -17,7 +17,7 @@ export default {
     nodeTypes: [Syntax.AssignmentExpression],
 
     condition: node => {
-        var left = node.left;
+        const left = node.left;
 
         if (node.operator === '=' && left.type === Syntax.MemberExpression && left.computed)
             return left.property.type === Syntax.Literal ? shouldInstrumentProperty(left.property.value) : true;

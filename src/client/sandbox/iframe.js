@@ -30,18 +30,18 @@ export default class IframeSandbox extends SandboxBase {
         if (!isWebKit)
             return false;
 
-        var iframeSrc = this.nativeMethods.getAttribute.call(iframe, 'src');
+        const iframeSrc = this.nativeMethods.getAttribute.call(iframe, 'src');
 
         if (!domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(iframeSrc))
             return false;
 
-        var iframeSrcValueWithoutProtocol = iframeSrc.replace(domProcessor.JAVASCRIPT_PROTOCOL_REG_EX, '');
-        var matches                       = iframeSrcValueWithoutProtocol.match(domProcessor.HTML_STRING_REG_EX);
+        const iframeSrcValueWithoutProtocol = iframeSrc.replace(domProcessor.JAVASCRIPT_PROTOCOL_REG_EX, '');
+        const matches                       = iframeSrcValueWithoutProtocol.match(domProcessor.HTML_STRING_REG_EX);
 
         if (!matches)
             return false;
 
-        var html = matches[2];
+        const html = matches[2];
 
         return isPageHtml(html);
     }
@@ -56,7 +56,7 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     _ensureIframeNativeMethodsForIE (iframe) {
-        var iframeNativeMethods = iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+        const iframeNativeMethods = iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
 
         if (iframeNativeMethods) {
             iframeNativeMethods.restoreDocumentMeths(iframe.contentDocument, iframe.contentWindow);
@@ -66,8 +66,8 @@ export default class IframeSandbox extends SandboxBase {
 
     _raiseReadyToInitEvent (iframe) {
         if (isIframeWithoutSrc(iframe)) {
-            var iframeInitialized       = IframeSandbox.isIframeInitialized(iframe);
-            var iframeWindowInitialized = iframe.contentWindow[IFRAME_WINDOW_INITED];
+            const iframeInitialized       = IframeSandbox.isIframeInitialized(iframe);
+            const iframeWindowInitialized = iframe.contentWindow[IFRAME_WINDOW_INITED];
 
             if (iframeInitialized && !iframeWindowInitialized) {
                 // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
@@ -106,7 +106,7 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     static isIframeInitialized (iframe) {
-        var isFFIframeUninitialized = isFirefox && iframe.contentWindow.document.readyState === 'uninitialized';
+        const isFFIframeUninitialized = isFirefox && iframe.contentWindow.document.readyState === 'uninitialized';
 
         return !isFFIframeUninitialized && !!iframe.contentDocument.documentElement;
     }
@@ -118,12 +118,12 @@ export default class IframeSandbox extends SandboxBase {
     iframeReadyToInitHandler (e) {
         // NOTE: We are using String.replace in order to avoid adding Mustache scripts on the client side.
         // If it is needed elsewhere in a certain place, we should consider using Mustache.
-        var taskScriptTemplate       = settings.get().iframeTaskScriptTemplate;
-        var escapeStringPatterns     = str => str.replace(/\$/g, '$$$$');
-        var cookie                   = JSON.stringify(this.cookieSandbox.getCookie());
-        var referer                  = settings.get().referer || this.window.location.toString();
-        var iframeTaskScriptTemplate = JSON.stringify(taskScriptTemplate);
-        var taskScript               = taskScriptTemplate
+        const taskScriptTemplate       = settings.get().iframeTaskScriptTemplate;
+        const escapeStringPatterns     = str => str.replace(/\$/g, '$$$$');
+        const cookie                   = JSON.stringify(this.cookieSandbox.getCookie());
+        const referer                  = settings.get().referer || this.window.location.toString();
+        const iframeTaskScriptTemplate = JSON.stringify(taskScriptTemplate);
+        const taskScript               = taskScriptTemplate
             .replace('{{{cookie}}}', escapeStringPatterns(cookie))
             .replace('{{{referer}}}', escapeStringPatterns(referer))
             .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
@@ -139,13 +139,13 @@ export default class IframeSandbox extends SandboxBase {
         if (isShadowUIElement(el))
             return;
 
-        var src = this.nativeMethods.getAttribute.call(el, 'src');
+        const src = this.nativeMethods.getAttribute.call(el, 'src');
 
         if (!src || !isSupportedProtocol(src)) {
             if (el.contentWindow) {
                 this._raiseReadyToInitEvent(el);
 
-                var readyHandler = () => {
+                const readyHandler = () => {
                     if (el.contentWindow)
                         this._raiseReadyToInitEvent(el);
                 };
@@ -156,7 +156,7 @@ export default class IframeSandbox extends SandboxBase {
                     this.nativeMethods.documentAddEventListener.call(el.contentDocument, 'ready', readyHandler);
             }
             else {
-                var handler = () => {
+                const handler = () => {
                     if (isCrossDomainIframe(el))
                         this.nativeMethods.removeEventListener.call(el, 'load', handler);
                     else

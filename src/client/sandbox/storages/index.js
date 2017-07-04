@@ -33,11 +33,11 @@ export default class StorageSandbox extends SandboxBase {
     // NOTE: We are using a single storage wrapper instance for all same-domain windows.
     // This wrapper is saved in the top same-domain window's sandbox.
     _createStorageWrappers () {
-        var sessionId             = settings.get().sessionId;
-        var host                  = destLocation.getParsed().host;
-        var storageKey            = StorageSandbox._getStorageKey(sessionId, host);
-        var topSameDomainWindow   = getTopSameDomainWindow(this.window);
-        var topSameDomainStorages = topSameDomainWindow[INTERNAL_PROPS.hammerhead].sandbox.storageSandbox.storages;
+        const sessionId             = settings.get().sessionId;
+        const host                  = destLocation.getParsed().host;
+        const storageKey            = StorageSandbox._getStorageKey(sessionId, host);
+        const topSameDomainWindow   = getTopSameDomainWindow(this.window);
+        const topSameDomainStorages = topSameDomainWindow[INTERNAL_PROPS.hammerhead].sandbox.storageSandbox.storages;
 
         // NOTE: Use the already created wrappers.
         if (topSameDomainStorages[storageKey]) {
@@ -69,12 +69,12 @@ export default class StorageSandbox extends SandboxBase {
             if (arguments.length === 0)
                 throw new TypeError();
 
-            var storedArea = opts.storageArea || null;
+            const storedArea = opts.storageArea || null;
 
             if (storedArea)
                 delete opts.storageArea;
 
-            var event = new nativeMethods.StorageEvent(type, opts);
+            const event = new nativeMethods.StorageEvent(type, opts);
 
             if (storedArea) {
                 Object.defineProperty(event, 'storageArea', {
@@ -113,7 +113,7 @@ export default class StorageSandbox extends SandboxBase {
 
         this._createStorageWrappers();
 
-        var storageChanged = (key, oldValue, newValue, url, storage) => {
+        const storageChanged = (key, oldValue, newValue, url, storage) => {
             if (storage.getContext() !== this.window)
                 this._simulateStorageEvent(key, oldValue, newValue, url, storage);
         };

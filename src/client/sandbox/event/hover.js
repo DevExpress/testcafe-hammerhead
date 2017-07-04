@@ -32,10 +32,10 @@ export default class HoverSandbox extends SandboxBase {
     // previous and new hovered elements. Processing is needed only until  that parent is found.
     // In this case, we'll reduce the number of dom calls.
     _clearHoverMarkerUntilJointParent (newHoveredElement) {
-        var jointParent = null;
+        let jointParent = null;
 
         if (this.lastHoveredElement) {
-            var el = this.lastHoveredElement;
+            let el = this.lastHoveredElement;
 
             while (el && el.tagName && el.contains) {
                 // NOTE: Check that the current element is a joint parent for the hovered elements.
@@ -58,7 +58,7 @@ export default class HoverSandbox extends SandboxBase {
 
     _hover (el) {
         if (!this.hoverElementFixed && !domUtils.isShadowUIElement(el)) {
-            var jointParent = this._clearHoverMarkerUntilJointParent(el);
+            const jointParent = this._clearHoverMarkerUntilJointParent(el);
 
             HoverSandbox._setHoverMarker(el, jointParent);
 

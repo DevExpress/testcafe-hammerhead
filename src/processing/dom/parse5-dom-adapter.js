@@ -35,7 +35,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     hasEventHandler (el) {
-        for (var i = 0; i < el.attrs.length; i++) {
+        for (let i = 0; i < el.attrs.length; i++) {
             if (this.EVENTS.indexOf(el.attrs[i].name))
                 return true;
         }
@@ -79,7 +79,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     }
 
     attachEventEmitter (domProcessor) {
-        var eventEmitter = new events.EventEmitter();
+        const eventEmitter = new events.EventEmitter();
 
         domProcessor.on   = eventEmitter.on.bind(eventEmitter);
         domProcessor.off  = eventEmitter.removeListener.bind(eventEmitter);

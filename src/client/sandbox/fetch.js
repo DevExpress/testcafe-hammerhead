@@ -16,9 +16,9 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _addSpecialHeadersToRequestInit (init) {
-        var headers            = init.headers || {};
-        var requestCredentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
-        var originHeaderValue  = getOriginHeader();
+        const headers            = init.headers || {};
+        const requestCredentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
+        const originHeaderValue  = getOriginHeader();
 
         if (isFetchHeaders(headers)) {
             headers.append(XHR_HEADERS.origin, originHeaderValue);
@@ -35,10 +35,10 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _processArguments (args) {
-        var input               = args[0];
-        var inputIsString       = typeof input === 'string';
-        var inputIsFetchRequest = isFetchRequest(input);
-        var init                = args[1];
+        const input               = args[0];
+        const inputIsString       = typeof input === 'string';
+        const inputIsFetchRequest = isFetchRequest(input);
+        let init                  = args[1];
 
         if (inputIsString) {
             args[0] = getProxyUrl(input);
@@ -57,8 +57,8 @@ export default class FetchSandbox extends SandboxBase {
         if (!FetchSandbox._isValidRequestArgs(args))
             return false;
 
-        var url         = null;
-        var requestMode = null;
+        let url         = null;
+        let requestMode = null;
 
         if (isFetchRequest(args[0])) {
             url         = parseProxyUrl(args[0].url).destUrl;
@@ -76,10 +76,10 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _processFetchPromise (promise) {
-        var originalThen = promise.then;
+        const originalThen = promise.then;
 
         promise.then = function (...args) {
-            var originalThenHandler = args[0];
+            const originalThenHandler = args[0];
 
             args[0] = function (response) {
                 if (response.status === 500)
@@ -91,7 +91,7 @@ export default class FetchSandbox extends SandboxBase {
                     configurable: true
                 });
 
-                var responseStatus = response.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : response.status;
+                const responseStatus = response.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : response.status;
 
                 Object.defineProperty(response, 'status', {
                     get:          () => responseStatus,
@@ -107,9 +107,9 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _getResponseType (response) {
-        var parsedResponseUrl = parseProxyUrl(response.url);
-        var destUrl           = parsedResponseUrl && parsedResponseUrl.destUrl;
-        var isSameOrigin      = sameOriginCheck(getDestLocation(), destUrl, true);
+        const parsedResponseUrl = parseProxyUrl(response.url);
+        const destUrl           = parsedResponseUrl && parsedResponseUrl.destUrl;
+        const isSameOrigin      = sameOriginCheck(getDestLocation(), destUrl, true);
 
         if (isSameOrigin)
             return 'basic';
@@ -120,7 +120,7 @@ export default class FetchSandbox extends SandboxBase {
     attach (window) {
         super.attach(window, window.document);
 
-        var sandbox = this;
+        const sandbox = this;
 
         if (window.fetch) {
             window.Request           = function (...args) {
@@ -142,7 +142,7 @@ export default class FetchSandbox extends SandboxBase {
 
                 FetchSandbox._processArguments(args);
 
-                var fetchPromise = nativeMethods.fetch.apply(this, args);
+                const fetchPromise = nativeMethods.fetch.apply(this, args);
 
                 FetchSandbox._processFetchPromise(fetchPromise);
                 sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);

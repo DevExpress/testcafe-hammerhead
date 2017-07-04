@@ -81,7 +81,7 @@ export default class MethodCallInstrumentation extends SandboxBase {
             configurable: true
         });
 
-        var methodCallInstrumentation = this;
+        const methodCallInstrumentation = this;
 
         Object.defineProperty(window, INSTRUCTION.getPostMessage, {
             value: function (win, postMessageFn) {

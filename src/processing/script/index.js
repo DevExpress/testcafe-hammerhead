@@ -42,8 +42,8 @@ function removeHtmlComments (code) {
 }
 
 function preprocess (code) {
-    var bom          = getBOM(code);
-    var preprocessed = bom ? code.substring(bom.length) : code;
+    const bom        = getBOM(code);
+    let preprocessed = bom ? code.substring(bom.length) : code;
 
     preprocessed = removeHeader(preprocessed);
     preprocessed = removeSourceMapIfNecessary(preprocessed);
@@ -85,7 +85,7 @@ function getAst (src, isObject) {
 }
 
 function getCode (ast, src) {
-    var code = generate(ast, {
+    const code = generate(ast, {
         format: {
             quotes:     'double',
             escapeless: true,
@@ -99,10 +99,10 @@ function getCode (ast, src) {
 
 // Analyze code
 function analyze (code) {
-    var isObject = OBJECT_RE.test(code);
-    var ast      = getAst(code, isObject);
+    let isObject = OBJECT_RE.test(code);
+    let ast      = getAst(code, isObject);
 
-    // NOTE: `{ var a = 'foo'; }` edge case
+    // NOTE: `{ const a = 'foo'; }` edge case
     if (!ast && isObject) {
         ast      = getAst(code, false);
         isObject = false;
@@ -119,7 +119,7 @@ function isArrayDataScript (ast) {
 
 function isStrictMode (ast) {
     if (ast.body.length) {
-        var firstChild = ast.body[0];
+        const firstChild = ast.body[0];
 
         if (firstChild.type === Syntax.ExpressionStatement && firstChild.expression.type === Syntax.Literal)
             return firstChild.expression.value === 'use strict';
@@ -129,20 +129,20 @@ function isStrictMode (ast) {
 }
 
 function applyChanges (script, changes, isObject) {
-    var indexOffset = isObject ? -1 : 0;
-    var chunks      = [];
-    var index       = 0;
+    const indexOffset = isObject ? -1 : 0;
+    const chunks      = [];
+    let index         = 0;
 
     if (!changes.length)
         return script;
 
     changes.sort((a, b) => a.start - b.start);
 
-    for (var i = 0; i < changes.length; i++) {
-        var change      = changes[i];
-        var changeStart = change.start + indexOffset;
-        var changeEnd   = change.end + indexOffset;
-        var replacement = change.parent[change.key];
+    for (let i = 0; i < changes.length; i++) {
+        const change      = changes[i];
+        const changeStart = change.start + indexOffset;
+        const changeEnd   = change.end + indexOffset;
+        let replacement   = change.parent[change.key];
 
         replacement = change.index !== -1 ? replacement[change.index] : replacement;
         chunks.push(script.substring(index, changeStart));
@@ -161,17 +161,17 @@ export function isScriptProcessed (code) {
 }
 
 export function processScript (src, withHeader) {
-    var { bom, preprocessed } = preprocess(src);
-    var withoutHtmlComments   = removeHtmlComments(preprocessed);
-    var { ast, isObject }     = analyze(withoutHtmlComments);
+    const { bom, preprocessed } = preprocess(src);
+    const withoutHtmlComments   = removeHtmlComments(preprocessed);
+    const { ast, isObject }     = analyze(withoutHtmlComments);
 
     if (!ast)
         return src;
 
     withHeader = withHeader && !isObject && !isArrayDataScript(ast);
 
-    var changes   = transform(ast);
-    var processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
+    const changes = transform(ast);
+    let processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
     processed = postprocess(processed, withHeader, bom, isStrictMode(ast));
 

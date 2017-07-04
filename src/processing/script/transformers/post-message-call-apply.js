@@ -26,7 +26,7 @@ export default {
             return false;
 
         if (node.callee.type === Syntax.MemberExpression && INVOCATION_FUNC_NAME_RE.test(node.callee.property.name)) {
-            var obj = node.callee.object;
+            const obj = node.callee.object;
 
             // obj.postMessage.<meth>(), obj[postMessage].<meth>(),
             if (obj.type === Syntax.MemberExpression && (obj.property.value || obj.property.name) === 'postMessage')
@@ -41,7 +41,7 @@ export default {
     },
 
     run: node => {
-        var nodeX = createGetPostMessageMethCall(node.callee.object);
+        const nodeX = createGetPostMessageMethCall(node.callee.object);
 
         replaceNode(node.callee.object, nodeX, node.callee, 'object');
 

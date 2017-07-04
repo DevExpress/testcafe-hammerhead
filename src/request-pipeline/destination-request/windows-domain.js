@@ -1,12 +1,12 @@
 import childProcess from 'child_process';
 import promisify from '../../utils/promisify';
 
-var exec   = promisify(childProcess.exec);
-var cached = null;
+const exec = promisify(childProcess.exec);
+let cached = null;
 
 async function queryOSForCredential (cmd) {
     try {
-        var credential = await exec(cmd);
+        const credential = await exec(cmd);
 
         return credential.replace(/\s/g, '');
     }

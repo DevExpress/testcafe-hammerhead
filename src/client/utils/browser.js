@@ -1,32 +1,32 @@
 import bowser from 'bowser';
 
-var userAgent          = navigator.userAgent.toLowerCase();
-var info               = bowser._detect(userAgent);
-var webkitVersionMatch = userAgent.match(/applewebkit\/(\d+(:?\.\d+)*)/);
+const userAgent          = navigator.userAgent.toLowerCase();
+const info               = bowser._detect(userAgent);
+const webkitVersionMatch = userAgent.match(/applewebkit\/(\d+(:?\.\d+)*)/);
 
 //Helper
-export var compareVersions = bowser.compareVersions;
+export const compareVersions = bowser.compareVersions;
 
 //Platforms
-export var isMacPlatform = !!info.mac;
-export var isAndroid     = !!info.android;
-export var isIOS         = !!info.ios;
-export var isMobile      = !!info.mobile;
-export var isTablet      = !!info.tablet;
+export const isMacPlatform = !!info.mac;
+export const isAndroid     = !!info.android;
+export const isIOS         = !!info.ios;
+export const isMobile      = !!info.mobile;
+export const isTablet      = !!info.tablet;
 
 //Browsers
-export var version       = parseInt(info.version, 10);
-export var fullVersion   = info.version;
-export var webkitVersion = webkitVersionMatch && webkitVersionMatch[1] || '';
-export var isIE          = !!(info.msie || info.msedge);
-export var isIE11        = isIE && version === 11;
-export var isIE10        = isIE && version === 10;
-export var isIE9         = isIE && version === 9;
-export var isFirefox     = !!info.firefox;
-export var isMSEdge      = !!info.msedge;
-export var isChrome      = !!info.chrome;
-export var isSafari      = !!info.safari;
-export var isWebKit      = !!(info.webkit || info.blink);
-export var isElectron    = /electron/g.test(userAgent);
+export const version       = parseInt(info.version, 10);
+export const fullVersion   = info.version;
+export const webkitVersion = webkitVersionMatch && webkitVersionMatch[1] || '';
+export const isIE          = !!(info.msie || info.msedge);
+export const isIE11        = isIE && version === 11;
+export const isIE10        = isIE && version === 10;
+export const isIE9         = isIE && version === 9;
+export const isFirefox     = !!info.firefox;
+export const isMSEdge      = !!info.msedge;
+export const isChrome      = !!info.chrome;
+export const isSafari      = !!info.safari;
+export const isWebKit      = !!(info.webkit || info.blink);
+export const isElectron    = /electron/g.test(userAgent);
 
 

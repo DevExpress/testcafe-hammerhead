@@ -4,9 +4,9 @@ import path from 'path';
 import promisify from '../utils/promisify';
 import Promise from 'pinkie';
 
-var readFile  = promisify(fs.readFile);
-var stat      = promisify(fs.stat);
-var writeFile = promisify(fs.writeFile);
+const readFile  = promisify(fs.readFile);
+const stat      = promisify(fs.stat);
+const writeFile = promisify(fs.writeFile);
 
 export default class UploadStorage {
     constructor (uploadsRoot) {
@@ -14,8 +14,8 @@ export default class UploadStorage {
     }
 
     static async _loadFile (filePath) {
-        var fileContent = await readFile(filePath);
-        var stats       = await stat(filePath);
+        const fileContent = await readFile(filePath);
+        const stats       = await stat(filePath);
 
         return {
             data: fileContent.toString('base64'),
@@ -28,7 +28,7 @@ export default class UploadStorage {
     }
 
     async _runFileProcessingTask (fileName, processor) {
-        var resolvedPath = path.resolve(this.uploadsRoot, fileName);
+        const resolvedPath = path.resolve(this.uploadsRoot, fileName);
 
         try {
             return await processor(resolvedPath, fileName);
@@ -42,8 +42,8 @@ export default class UploadStorage {
     }
 
     async _processFiles (fileNames, processor) {
-        var processTasks = fileNames.map(fileName => this._runFileProcessingTask(fileName, processor));
-        var result       = await Promise.all(processTasks);
+        const processTasks = fileNames.map(fileName => this._runFileProcessingTask(fileName, processor));
+        let result         = await Promise.all(processTasks);
 
         result = result.filter(value => !!value);
 
@@ -52,7 +52,7 @@ export default class UploadStorage {
 
     async store (fileNames, data) {
         return await this._processFiles(fileNames, async (resolvedPath, fileName) => {
-            var content = new Buffer(data[fileNames.indexOf(fileName)], 'base64');
+            const content = new Buffer(data[fileNames.indexOf(fileName)], 'base64');
 
             await writeFile(resolvedPath, content);
         });

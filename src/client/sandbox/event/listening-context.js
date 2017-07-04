@@ -10,7 +10,7 @@ export function getElementCtx (el) {
 export function getEventCtx (el, event) {
     event = isIE && browserVersion > 10 && /MSPointer/.test(event) ? event.replace('MS', '').toLowerCase() : event;
 
-    var elementCtx = getElementCtx(el);
+    const elementCtx = getElementCtx(el);
 
     return elementCtx && elementCtx[event];
 }
@@ -20,9 +20,9 @@ export function isElementListening (el) {
 }
 
 export function addListeningElement (el, events) {
-    var elementCtx = getElementCtx(el) || {};
+    const elementCtx = getElementCtx(el) || {};
 
-    for (var i = 0; i < events.length; i++) {
+    for (let i = 0; i < events.length; i++) {
         if (!elementCtx[events[i]]) {
             elementCtx[events[i]] = {
                 internalHandlers:     [],
@@ -43,25 +43,25 @@ export function removeListeningElement (el) {
 }
 
 export function addFirstInternalHandler (el, events, handler) {
-    var elementCtx = getElementCtx(el);
+    const elementCtx = getElementCtx(el);
 
-    for (var i = 0; i < events.length; i++)
+    for (let i = 0; i < events.length; i++)
         elementCtx[events[i]].internalHandlers.unshift(handler);
 }
 
 export function addInternalHandler (el, events, handler) {
-    var elementCtx = getElementCtx(el);
+    const elementCtx = getElementCtx(el);
 
-    for (var i = 0; i < events.length; i++)
+    for (let i = 0; i < events.length; i++)
         elementCtx[events[i]].internalHandlers.push(handler);
 }
 
 export function removeInternalHandler (el, events, handler) {
-    var elementCtx = getElementCtx(el);
+    const elementCtx = getElementCtx(el);
 
-    for (var i = 0; i < events.length; i++) {
-        var internalHandlers = elementCtx[events[i]].internalHandlers;
-        var handlerIndex     = internalHandlers.indexOf(handler);
+    for (let i = 0; i < events.length; i++) {
+        const internalHandlers = elementCtx[events[i]].internalHandlers;
+        const handlerIndex     = internalHandlers.indexOf(handler);
 
         if (handlerIndex > -1)
             internalHandlers.splice(handlerIndex, 1);
@@ -77,12 +77,12 @@ export function wrapEventListener (eventCtx, listener, wrapper, useCapture) {
 }
 
 export function getWrapper (eventCtx, listener, useCapture) {
-    var originListeners = eventCtx.outerHandlers;
-    var wrappers        = eventCtx.wrappers;
-    var wrapper         = null;
+    const originListeners = eventCtx.outerHandlers;
+    const wrappers        = eventCtx.wrappers;
+    let wrapper           = null;
 
-    for (var i = 0; i < originListeners.length; i++) {
-        var curListener = originListeners[i];
+    for (let i = 0; i < originListeners.length; i++) {
+        const curListener = originListeners[i];
 
         if (curListener.fn === listener && (curListener.useCapture || false) === (useCapture || false)) {
             wrapper = wrappers[i];

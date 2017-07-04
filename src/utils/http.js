@@ -45,7 +45,7 @@ export function respondStatic (req, res, resource) {
 
 export function fetchBody (r) {
     return new Promise(resolve => {
-        var chunks = [];
+        const chunks = [];
 
         r.on('data', chunk => chunks.push(chunk));
         r.on('end', () => resolve(Buffer.concat(chunks)));

@@ -59,7 +59,7 @@ export default class Proxy extends Router {
     }
 
     _startSocketsCollecting () {
-        var handler = socket => {
+        const handler = socket => {
             this.sockets.push(socket);
             socket.on('close', () => this.sockets.splice(this.sockets.indexOf(socket), 1));
         };
@@ -82,13 +82,13 @@ export default class Proxy extends Router {
     }
 
     async _onServiceMessage (req, res, serverInfo) {
-        var body    = await fetchBody(req);
-        var msg     = parseAsJson(body);
-        var session = msg && this.openSessions[msg.sessionId];
+        const body    = await fetchBody(req);
+        const msg     = parseAsJson(body);
+        const session = msg && this.openSessions[msg.sessionId];
 
         if (session) {
             try {
-                var result = await session.handleServiceMessage(msg, serverInfo);
+                const result = await session.handleServiceMessage(msg, serverInfo);
 
                 respondWithJSON(res, result || '');
             }
@@ -101,9 +101,9 @@ export default class Proxy extends Router {
     }
 
     async _onCookieSync (req, res) {
-        var body    = await fetchBody(req);
-        var msg     = parseAsJson(body);
-        var session = msg && this.openSessions[msg.sessionId];
+        const body    = await fetchBody(req);
+        const msg     = parseAsJson(body);
+        const session = msg && this.openSessions[msg.sessionId];
 
         if (session) {
             try {
@@ -120,9 +120,9 @@ export default class Proxy extends Router {
     }
 
     _onTaskScriptRequest (req, res, serverInfo, isIframe) {
-        var referer     = req.headers['referer'];
-        var refererDest = referer && urlUtils.parseProxyUrl(referer);
-        var session     = refererDest && this.openSessions[refererDest.sessionId];
+        const referer     = req.headers['referer'];
+        const refererDest = referer && urlUtils.parseProxyUrl(referer);
+        const session     = refererDest && this.openSessions[refererDest.sessionId];
 
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');

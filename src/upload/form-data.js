@@ -28,13 +28,13 @@ export default class FormData {
     }
 
     _injectFileInfo (fileInfo) {
-        var entries = this.getEntriesByName(fileInfo.name);
+        const entries = this.getEntriesByName(fileInfo.name);
 
         if (!fileInfo.files.length)
             return;
 
         while (entries.length < fileInfo.files.length) {
-            var newEntry = new FormDataEntry();
+            const newEntry = new FormDataEntry();
 
             this.entries.push(newEntry);
             entries.push(newEntry);
@@ -61,11 +61,11 @@ export default class FormData {
     }
 
     expandUploads () {
-        var uploadsEntry = this.getEntriesByName(INTERNAL_ATTRS.uploadInfoHiddenInputName)[0];
+        const uploadsEntry = this.getEntriesByName(INTERNAL_ATTRS.uploadInfoHiddenInputName)[0];
 
         if (uploadsEntry) {
-            var body  = Buffer.concat(uploadsEntry.body).toString();
-            var files = JSON.parse(body);
+            const body  = Buffer.concat(uploadsEntry.body).toString();
+            const files = JSON.parse(body);
 
             this._removeEntry(INTERNAL_ATTRS.uploadInfoHiddenInputName);
             files.forEach(fileInfo => this._injectFileInfo(fileInfo));
@@ -76,8 +76,8 @@ export default class FormData {
         header = String(header);
 
         if (header.indexOf('multipart/form-data') > -1) {
-            var boundaryMatch = header.match(BOUNDARY_RE);
-            var token         = boundaryMatch && boundaryMatch[1];
+            const boundaryMatch = header.match(BOUNDARY_RE);
+            const token         = boundaryMatch && boundaryMatch[1];
 
             if (token) {
                 this.boundary    = new Buffer('--' + token);
@@ -87,11 +87,11 @@ export default class FormData {
     }
 
     parseBody (body) {
-        var state        = PARSER_STATE.inPreamble;
-        var lines        = bufferUtils.createLineIterator(body);
-        var currentEntry = null;
+        let state        = PARSER_STATE.inPreamble;
+        const lines      = bufferUtils.createLineIterator(body);
+        let currentEntry = null;
 
-        for (var line of lines) {
+        for (const line of lines) {
             if (this._isBoundary(line)) {
                 if (currentEntry)
                     this.entries.push(currentEntry);
@@ -127,7 +127,7 @@ export default class FormData {
     }
 
     toBuffer () {
-        var chunks = this.preamble;
+        let chunks = this.preamble;
 
         if (chunks.length)
             chunks.push(bufferUtils.CRLF);

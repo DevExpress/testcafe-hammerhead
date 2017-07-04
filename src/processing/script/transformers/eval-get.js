@@ -8,9 +8,9 @@ import { createGetEvalMethCall } from '../node-builder';
 import { Syntax } from '../tools/esotope';
 
 // Transform:
-// var foo = eval; foo = eval; { _eval: eval }; return eval;
+// const foo = eval; foo = eval; { _eval: eval }; return eval;
 // -->
-// var foo = _get$Eval(eval); foo = _get$Eval(eval); { _eval: _get$Eval(eval) }; return _get$Eval(eval);
+// const foo = _get$Eval(eval); foo = _get$Eval(eval); { _eval: _get$Eval(eval) }; return _get$Eval(eval);
 
 export default {
     nodeReplacementRequireTransform: false,
@@ -53,7 +53,7 @@ export default {
             if (parent.type === Syntax.AssignmentExpression && parent.left === node)
                 return false;
 
-            // Skip: var eval = value;
+            // Skip: const eval = value;
             if (parent.type === Syntax.VariableDeclarator && parent.id === node)
                 return false;
 

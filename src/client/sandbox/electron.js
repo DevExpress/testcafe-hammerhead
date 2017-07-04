@@ -15,16 +15,16 @@ export default class ElectronSandbox extends SandboxBase {
     static _overrideElectronModulePaths (window) {
         // NOTE: Need this to avoid Webmake require
         /* eslint-disable no-eval */
-        var electronRequire = eval('require');
+        const electronRequire = eval('require');
         /* eslint-enable no-eval */
 
-        var path        = electronRequire('path');
-        var destination = destinationLocation.getParsed();
+        const path        = electronRequire('path');
+        const destination = destinationLocation.getParsed();
 
         if (destination.protocol !== 'file:')
             return;
 
-        var pathname = window.process.platform === 'win32' && destination.pathname[0] === '/' ? destination.pathname.substr(1) : destination.pathname;
+        const pathname = window.process.platform === 'win32' && destination.pathname[0] === '/' ? destination.pathname.substr(1) : destination.pathname;
 
         window.__filename = path.normalize(decodeURIComponent(pathname));
         window.__dirname = path.dirname(window.__filename);
@@ -40,12 +40,12 @@ export default class ElectronSandbox extends SandboxBase {
         if (!window.require)
             return;
 
-        var vm = window.require('vm');
+        const vm = window.require('vm');
 
         if (!vm)
             return;
 
-        var nativeMethods = this.nativeMethods;
+        const nativeMethods = this.nativeMethods;
 
         if (nativeMethods.refreshElectronMeths(vm)) {
             vm.createScript      = ElectronSandbox._createFnWrapper(vm, nativeMethods.createScript);

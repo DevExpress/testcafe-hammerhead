@@ -56,5 +56,5 @@ export function isObjectEventListener (listener) {
     return typeof listener === 'object' && typeof listener.handleEvent === 'function';
 }
 
-export var hasPointerEvents = !!(nativeMethods.WindowPointerEvent || nativeMethods.WindowMSPointerEvent);
+export const hasPointerEvents = !!(nativeMethods.WindowPointerEvent || nativeMethods.WindowMSPointerEvent);
 

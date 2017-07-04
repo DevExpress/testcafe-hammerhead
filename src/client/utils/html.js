@@ -31,9 +31,9 @@ const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
 const ATTRS_FOR_CLEANING    = (() => {
-    var attrs = [];
+    const attrs = [];
 
-    for (var attr of domProcessor.URL_ATTRS)
+    for (const attr of domProcessor.URL_ATTRS)
         attrs.push({ attr, storedAttr: domProcessor.getStoredAttrName(attr) });
 
     attrs.push({ attr: 'autocomplete', storedAttr: domProcessor.getStoredAttrName('autocomplete') });
@@ -41,9 +41,9 @@ const ATTRS_FOR_CLEANING    = (() => {
     return attrs;
 })();
 const STORED_ATTRS_SELECTOR = (() => {
-    var storedAttrs = [];
+    const storedAttrs = [];
 
-    for (var { storedAttr } of ATTRS_FOR_CLEANING)
+    for (const { storedAttr } of ATTRS_FOR_CLEANING)
         storedAttrs.push(storedAttr);
 
     return '[' + storedAttrs.join('],[') + ']';
@@ -56,18 +56,18 @@ const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_TAG_NAME_PREFIX}h
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
-            var parentHammerhead = null;
+            let parentHammerhead = null;
             try {
                 parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];
             } catch(e) {}
             if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
-            var script = document.currentScript || document.scripts[document.scripts.length - 1];
+            const script = document.currentScript || document.scripts[document.scripts.length - 1];
             script.parentNode.removeChild(script);
         })();
     <\/script>`.replace(/\n\s*/g, '');
 
-var htmlDocument = document.implementation.createHTMLDocument('title');
-var htmlParser   = htmlDocument.createDocumentFragment();
+let htmlDocument = document.implementation.createHTMLDocument('title');
+let htmlParser   = htmlDocument.createDocumentFragment();
 
 domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, (html, callback) => {
     if (!isPageHtml(html))
@@ -109,7 +109,7 @@ export function isPageHtml (html) {
 }
 
 function processHtmlInternal (html, process) {
-    var container = getHtmlDocument().createElement('div');
+    const container = getHtmlDocument().createElement('div');
 
     html = wrapHtmlText(html);
 
@@ -118,7 +118,7 @@ function processHtmlInternal (html, process) {
 
     container.innerHTML = html;
 
-    var processedHtml = process(container) ? container.innerHTML : html;
+    let processedHtml = process(container) ? container.innerHTML : html;
 
     processedHtml = unwrapHtmlText(processedHtml);
 
@@ -131,10 +131,10 @@ function processHtmlInternal (html, process) {
 
 export function cleanUpHtml (html) {
     return processHtmlInternal(html, container => {
-        var changed = false;
+        let changed = false;
 
         find(container, STORED_ATTRS_SELECTOR, el => {
-            for (var { attr, storedAttr } of ATTRS_FOR_CLEANING) {
+            for (const { attr, storedAttr } of ATTRS_FOR_CLEANING) {
                 if (el.hasAttribute(attr))
                     nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
                 else if (attr === 'autocomplete')
@@ -154,8 +154,8 @@ export function cleanUpHtml (html) {
         });
 
         find(container, 'script', el => {
-            var textContent        = el.textContent;
-            var cleanedTextContent = removeProcessingHeader(textContent);
+            const textContent        = el.textContent;
+            const cleanedTextContent = removeProcessingHeader(textContent);
 
             if (textContent !== cleanedTextContent) {
                 el.textContent = cleanedTextContent;
@@ -165,8 +165,8 @@ export function cleanUpHtml (html) {
         });
 
         find(container, 'style', el => {
-            var textContent        = el.textContent;
-            var cleanedTextContent = styleProcessor.cleanUp(textContent, parseProxyUrl);
+            const textContent        = el.textContent;
+            const cleanedTextContent = styleProcessor.cleanUp(textContent, parseProxyUrl);
 
             if (textContent !== cleanedTextContent) {
                 el.textContent = cleanedTextContent;
@@ -196,9 +196,9 @@ export function cleanUpHtml (html) {
 
 export function processHtml (html, parentTag, prepareDom) {
     return processHtmlInternal(html, container => {
-        var htmlElements  = [];
-        var children      = [];
-        var storedBaseUrl = urlResolver.getBaseUrl(document);
+        const htmlElements  = [];
+        let children        = [];
+        const storedBaseUrl = urlResolver.getBaseUrl(document);
 
         if (prepareDom)
             prepareDom(container);
@@ -209,13 +209,13 @@ export function processHtml (html, parentTag, prepareDom) {
         else if (container.children.length)
             children = nativeMethods.elementQuerySelectorAll.call(container, '*');
 
-        var base = nativeMethods.elementQuerySelector.call(container, 'base');
+        const base = nativeMethods.elementQuerySelector.call(container, 'base');
 
         if (base)
             urlResolver.updateBase(nativeMethods.getAttribute.call(base, 'href'), document);
 
-        for (var i = 0; i < children.length; i++) {
-            var el = children[i];
+        for (let i = 0; i < children.length; i++) {
+            const el = children[i];
 
             if (hasIsNotClosedFlag(el))
                 continue;
@@ -225,14 +225,14 @@ export function processHtml (html, parentTag, prepareDom) {
 
             domProcessor.processElement(el, convertToProxyUrl);
 
-            var elTagName = getTagName(el);
+            const elTagName = getTagName(el);
 
             if (elTagName === `${FAKE_TAG_NAME_PREFIX}head` || elTagName === `${FAKE_TAG_NAME_PREFIX}body`)
                 htmlElements.push(el);
         }
 
         if (!parentTag) {
-            for (var j = 0; j < htmlElements.length; j++)
+            for (let j = 0; j < htmlElements.length; j++)
                 htmlElements[j].innerHTML = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlElements[j].innerHTML;
         }
 
@@ -243,21 +243,21 @@ export function processHtml (html, parentTag, prepareDom) {
 }
 
 function removeExtraSvgNamespeces (html, processedHtml) {
-    var initialSvgStrs = html.match(FIND_SVG_RE);
-    var index          = 0;
+    const initialSvgStrs = html.match(FIND_SVG_RE);
+    let index            = 0;
 
     if (!initialSvgStrs)
         return processedHtml;
 
     return processedHtml.replace(FIND_SVG_RE, svgStr => {
-        var initialSvgStr  = initialSvgStrs[index];
-        var initialNSAttrs = initialSvgStr ? initialSvgStr.match(FIND_NS_ATTRS_RE) : null;
+        const initialSvgStr = initialSvgStrs[index];
+        let initialNSAttrs  = initialSvgStr ? initialSvgStr.match(FIND_NS_ATTRS_RE) : null;
 
         if (initialSvgStr)
             index++;
 
         return initialSvgStr ? svgStr.replace(FIND_NS_ATTRS_RE, () => {
-            var replacement = initialNSAttrs ? initialNSAttrs.join('') : '';
+            const replacement = initialNSAttrs ? initialNSAttrs.join('') : '';
 
             if (initialNSAttrs)
                 initialNSAttrs = null;

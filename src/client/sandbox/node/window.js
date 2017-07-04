@@ -28,7 +28,7 @@ export default class WindowSandbox extends SandboxBase {
 
     _raiseUncaughtJsErrorEvent (msg, window, pageUrl) {
         if (!isCrossDomainWindows(window, window.top)) {
-            var sendToTopWindow = window !== window.top;
+            const sendToTopWindow = window !== window.top;
 
             if (!pageUrl)
                 pageUrl = destLocation.get();
@@ -60,22 +60,22 @@ export default class WindowSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var messageSandbox = this.messageSandbox;
-        var nodeSandbox    = this.nodeSandbox;
-        var windowSandbox  = this;
+        const messageSandbox = this.messageSandbox;
+        const nodeSandbox    = this.nodeSandbox;
+        const windowSandbox  = this;
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
-            var message = e.message;
+            const message = e.message;
 
             if (message.cmd === this.UNCAUGHT_JS_ERROR_EVENT)
                 this._raiseUncaughtJsErrorEvent(message.msg, window, message.pageUrl);
         });
 
         window.CanvasRenderingContext2D.prototype.drawImage = function (...args) {
-            var image = args[0];
+            const image = args[0];
 
             if (isImgElement(image) && !image[windowSandbox.FORCE_PROXY_SRC_FOR_IMAGE]) {
-                var src = image.src;
+                const src = image.src;
 
                 if (destLocation.sameOriginCheck(location.toString(), src)) {
                     args[0]     = nativeMethods.createElement.call(window.document, 'img');
@@ -92,9 +92,9 @@ export default class WindowSandbox extends SandboxBase {
             if (msg.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
                 return true;
 
-            var originalOnErrorHandler = CodeInstrumentation.getOriginalErrorHandler(window);
-            var caught                 = originalOnErrorHandler &&
-                                         originalOnErrorHandler.call(window, msg, url, line, col, errObj) === true;
+            const originalOnErrorHandler = CodeInstrumentation.getOriginalErrorHandler(window);
+            const caught                 = originalOnErrorHandler &&
+                                           originalOnErrorHandler.call(window, msg, url, line, col, errObj) === true;
 
             if (caught)
                 return true;
@@ -105,8 +105,8 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         window.open = function () {
-            var newArgs = [];
-            var target  = arguments[1] ? nodeSandbox.element.getTarget(null, arguments[1]) : '_self';
+            const newArgs = [];
+            const target  = arguments[1] ? nodeSandbox.element.getTarget(null, arguments[1]) : '_self';
 
             newArgs.push(getProxyUrl(arguments[0]));
             newArgs.push(target);
@@ -139,7 +139,8 @@ export default class WindowSandbox extends SandboxBase {
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL);
 
-                return arguments.length === 1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
+                return arguments.length ===
+                       1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
             };
             window.Worker.prototype = nativeMethods.Worker.prototype;
         }
@@ -149,7 +150,7 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     return new nativeMethods.Blob();
 
-                var type = opts && opts.type && opts.type.toString().toLowerCase();
+                const type = opts && opts.type && opts.type.toString().toLowerCase();
 
                 // NOTE: If we cannot identify the content type of data, we're trying to process it as a script.
                 // Unfortunately, we do not have the ability to exactly identify a script. That's why we make such
@@ -170,7 +171,7 @@ export default class WindowSandbox extends SandboxBase {
         if (window.EventSource) {
             window.EventSource            = function (url, opts) {
                 if (arguments.length) {
-                    var proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isEventSource: true }) });
+                    const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isEventSource: true }) });
 
                     if (arguments.length === 1)
                         return new nativeMethods.EventSource(proxyUrl);
@@ -188,10 +189,10 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.MutationObserver) {
             window.MutationObserver = callback => {
-                var wrapper = function (mutations) {
-                    var result = [];
+                const wrapper = function (mutations) {
+                    const result = [];
 
-                    for (var i = 0; i < mutations.length; i++) {
+                    for (let i = 0; i < mutations.length; i++) {
                         if (!ShadowUI.isShadowUIMutation(mutations[i]))
                             result.push(mutations[i]);
                     }
@@ -223,7 +224,7 @@ export default class WindowSandbox extends SandboxBase {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = processHtml(arguments[0]);
 
-                var fragment = nativeMethods.createContextualFragment.apply(this, arguments);
+                const fragment = nativeMethods.createContextualFragment.apply(this, arguments);
 
                 nodeSandbox.processNodes(fragment);
 
@@ -232,7 +233,7 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         window.Image           = function () {
-            var image = null;
+            let image = null;
 
             if (!arguments.length)
                 image = new nativeMethods.Image();
@@ -249,8 +250,8 @@ export default class WindowSandbox extends SandboxBase {
         };
         window.Image.prototype = nativeMethods.Image.prototype;
 
-        var FunctionWrapper = function (...args) {
-            var functionBodyArgIndex = args.length - 1;
+        const FunctionWrapper = function (...args) {
+            const functionBodyArgIndex = args.length - 1;
 
             if (typeof args[functionBodyArgIndex] === 'string')
                 args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false);
@@ -269,9 +270,9 @@ export default class WindowSandbox extends SandboxBase {
         };
 
         if (typeof window.history.pushState === 'function' && typeof window.history.replaceState === 'function') {
-            var createWrapperForHistoryStateManipulationFn = function (nativeFn) {
+            const createWrapperForHistoryStateManipulationFn = function (nativeFn) {
                 return function (...args) {
-                    var url = args[2];
+                    const url = args[2];
 
                     if (args.length > 2 && (url !== null && (isIE || url !== void 0)))
                         args[2] = getProxyUrl(String(url));
@@ -295,14 +296,14 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.navigator.registerProtocolHandler) {
             window.navigator.registerProtocolHandler = function (...args) {
-                var urlIndex = 1;
+                const urlIndex = 1;
 
                 if (typeof args[urlIndex] === 'string') {
-                    var destHostname = destLocation.getParsed().hostname;
-                    var isDestUrl    = '';
+                    const destHostname = destLocation.getParsed().hostname;
+                    let isDestUrl      = '';
 
                     if (isFirefox) {
-                        var parsedUrl = parseUrl(args[urlIndex]);
+                        const parsedUrl = parseUrl(args[urlIndex]);
 
                         isDestUrl = parsedUrl.hostname && isSubDomain(destHostname, parsedUrl.hostname);
                     }

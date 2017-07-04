@@ -4,14 +4,14 @@ import { fetchBody, respondWithJSON } from '../utils/http';
 
 // Utils
 function getFileInfo (contentTypeHeader, body, inputName, fileName) {
-    var formData = new FormData();
+    const formData = new FormData();
 
     formData.parseContentTypeHeader(contentTypeHeader);
     formData.parseBody(body);
 
 
-    var entry = formData.getEntriesByName(inputName)[0];
-    var data  = Buffer.concat(entry.body);
+    const entry = formData.getEntriesByName(inputName)[0];
+    const data  = Buffer.concat(entry.body);
 
     fileName = fileName.substr(fileName.lastIndexOf('\\') + 1);
 
@@ -28,7 +28,7 @@ function getFileInfo (contentTypeHeader, body, inputName, fileName) {
 
 // API
 export function inject (contentTypeHeader, body) {
-    var formData = new FormData();
+    const formData = new FormData();
 
     formData.parseContentTypeHeader(contentTypeHeader);
 
@@ -42,12 +42,12 @@ export function inject (contentTypeHeader, body) {
 }
 
 export async function ie9FileReaderShim (req, res) {
-    var body              = await fetchBody(req);
-    var parsedUrl         = url.parse(req.url, true);
-    var contentTypeHeader = req.headers['content-type'];
-    var inputName         = parsedUrl.query['input-name'];
-    var filename          = parsedUrl.query['filename'];
-    var info              = getFileInfo(contentTypeHeader, body, inputName, filename);
+    const body              = await fetchBody(req);
+    const parsedUrl         = url.parse(req.url, true);
+    const contentTypeHeader = req.headers['content-type'];
+    const inputName         = parsedUrl.query['input-name'];
+    const filename          = parsedUrl.query['filename'];
+    const info              = getFileInfo(contentTypeHeader, body, inputName, filename);
 
     // NOTE: We should skip a content type, because IE9 can't handle content with the "application/json" content type
     // trying to download it as a file.

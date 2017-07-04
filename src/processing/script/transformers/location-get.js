@@ -20,7 +20,7 @@ export default {
         if (node.name !== 'location')
             return false;
 
-        // Skip: var location = value;
+        // Skip: const location = value;
         if (parent.type === Syntax.VariableDeclarator && parent.id === node)
             return false;
 

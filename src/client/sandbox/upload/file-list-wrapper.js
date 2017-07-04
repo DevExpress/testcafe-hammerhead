@@ -4,7 +4,7 @@ export default class FileListWrapper {
             get: () => fileList.length
         });
 
-        for (var i = 0; i < fileList.length; i++)
+        for (let i = 0; i < fileList.length; i++)
             this[i] = FileListWrapper._createFileWrapper(fileList[i]);
     }
 
@@ -16,14 +16,14 @@ export default class FileListWrapper {
         mimeType  = mimeType || '';
         sliceSize = sliceSize || 512;
 
-        var byteCharacters = atob(base64Data);
-        var byteArrays     = [];
+        const byteCharacters = atob(base64Data);
+        const byteArrays     = [];
 
-        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-            var slice       = byteCharacters.slice(offset, offset + sliceSize);
-            var byteNumbers = new Array(slice.length);
+        for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            const slice       = byteCharacters.slice(offset, offset + sliceSize);
+            const byteNumbers = new Array(slice.length);
 
-            for (var i = 0; i < slice.length; i++)
+            for (let i = 0; i < slice.length; i++)
                 byteNumbers[i] = slice.charCodeAt(i);
 
             byteArrays.push(new Uint8Array(byteNumbers));
@@ -33,7 +33,7 @@ export default class FileListWrapper {
     }
 
     static _createFileWrapper (fileInfo) {
-        var wrapper = null;
+        let wrapper = null;
 
         if (!window.Blob) {
             wrapper = {

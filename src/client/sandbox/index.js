@@ -30,13 +30,13 @@ export default class Sandbox extends SandboxBase {
         createSandboxBackup(window, this);
         windowStorage.add(window);
 
-        var listeners             = new Listeners();
-        var nodeMutation          = new NodeMutation();
-        var unloadSandbox         = new UnloadSandbox(listeners);
-        var messageSandbox        = new MessageSandbox(listeners, unloadSandbox);
-        var eventSimulator        = new EventSimulator();
-        var elementEditingWatcher = new ElementEditingWatcher(eventSimulator);
-        var timersSandbox         = new TimersSandbox();
+        const listeners             = new Listeners();
+        const nodeMutation          = new NodeMutation();
+        const unloadSandbox         = new UnloadSandbox(listeners);
+        const messageSandbox        = new MessageSandbox(listeners, unloadSandbox);
+        const eventSimulator        = new EventSimulator();
+        const elementEditingWatcher = new ElementEditingWatcher(eventSimulator);
+        const timersSandbox         = new TimersSandbox();
 
         // API
         this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
@@ -70,7 +70,7 @@ export default class Sandbox extends SandboxBase {
     }
 
     _refreshNativeMethods (window, document) {
-        var tryToExecuteCode = func => {
+        const tryToExecuteCode = func => {
             try {
                 return func();
             }
@@ -79,18 +79,18 @@ export default class Sandbox extends SandboxBase {
             }
         };
 
-        var needToUpdateNativeDomMeths = tryToExecuteCode(
+        const needToUpdateNativeDomMeths = tryToExecuteCode(
             () => !document.createElement ||
                   this.nativeMethods.createElement.toString() === document.createElement.toString()
         );
 
-        var needToUpdateNativeElementMeths = tryToExecuteCode(() => {
-            var nativeElement = this.nativeMethods.createElement.call(document, 'div');
+        const needToUpdateNativeElementMeths = tryToExecuteCode(() => {
+            const nativeElement = this.nativeMethods.createElement.call(document, 'div');
 
             return nativeElement.getAttribute.toString() === this.nativeMethods.getAttribute.toString();
         });
 
-        var needToUpdateNativeWindowMeths = tryToExecuteCode(() => {
+        const needToUpdateNativeWindowMeths = tryToExecuteCode(() => {
             this.nativeMethods.setTimeout.call(window, () => void 0, 0);
 
             return window.XMLHttpRequest.prototype.open.toString() === this.nativeMethods.xhrOpen.toString();
@@ -109,7 +109,7 @@ export default class Sandbox extends SandboxBase {
     }
 
     _restoreDocumentMethodsFromProto (document) {
-        var docProto = document.constructor.prototype;
+        const docProto = document.constructor.prototype;
 
         document.createDocumentFragment = document.createDocumentFragment || docProto.createDocumentFragment;
         document.createElement          = document.createElement || docProto.createElement;
@@ -132,7 +132,7 @@ export default class Sandbox extends SandboxBase {
     onIframeDocumentRecreated (iframe) {
         if (iframe) {
             // NOTE: Try to find an existing iframe sandbox.
-            var sandbox = getSandboxBackup(iframe.contentWindow);
+            const sandbox = getSandboxBackup(iframe.contentWindow);
 
             if (sandbox && Sandbox._canUseSandbox(sandbox))
             // NOTE: Inform the sandbox so that it restores communication with the recreated document.

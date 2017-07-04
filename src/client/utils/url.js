@@ -18,28 +18,28 @@ export function getProxyUrl (url, opts) {
     if (!sharedUrlUtils.isValidUrl(url))
         return url;
 
-    var proxyHostname = opts && opts.proxyHostname || location.hostname;
-    var proxyPort     = opts && opts.proxyPort || location.port.toString();
-    var sessionId     = opts && opts.sessionId || settings.get().sessionId;
-    var resourceType  = opts && opts.resourceType;
-    var charset       = opts && opts.charset;
+    const proxyHostname = opts && opts.proxyHostname || location.hostname;
+    const proxyPort     = opts && opts.proxyPort || location.port.toString();
+    const sessionId     = opts && opts.sessionId || settings.get().sessionId;
+    const resourceType  = opts && opts.resourceType;
+    let charset         = opts && opts.charset;
 
-    var crossDomainPort = settings.get().crossDomainProxyPort === proxyPort ?
-                          location.port.toString() : settings.get().crossDomainProxyPort;
+    const crossDomainPort = settings.get().crossDomainProxyPort === proxyPort ?
+                            location.port.toString() : settings.get().crossDomainProxyPort;
 
     // NOTE: If the relative URL contains no slash (e.g. 'img123'), the resolver will keep
     // the original proxy information, so that we can return such URL as is.
     // TODO: Implement the isProxyURL function.
-    var parsedProxyUrl  = sharedUrlUtils.parseProxyUrl(url);
-    var isValidProxyUrl = !!parsedProxyUrl && parsedProxyUrl.proxy.hostname === proxyHostname &&
-                          (parsedProxyUrl.proxy.port === proxyPort || parsedProxyUrl.proxy.port === crossDomainPort);
+    const parsedProxyUrl  = sharedUrlUtils.parseProxyUrl(url);
+    const isValidProxyUrl = !!parsedProxyUrl && parsedProxyUrl.proxy.hostname === proxyHostname &&
+                            (parsedProxyUrl.proxy.port === proxyPort || parsedProxyUrl.proxy.port === crossDomainPort);
 
     if (isValidProxyUrl) {
         if (resourceType && parsedProxyUrl.resourceType === resourceType)
             return url;
 
         // NOTE: Need to change the proxy URL resource type.
-        var destUrl = sharedUrlUtils.formatUrl(parsedProxyUrl.destResourceInfo);
+        const destUrl = sharedUrlUtils.formatUrl(parsedProxyUrl.destResourceInfo);
 
         return getProxyUrl(destUrl, {
             proxyHostname,
@@ -50,15 +50,15 @@ export function getProxyUrl (url, opts) {
         });
     }
 
-    var parsedUrl = sharedUrlUtils.parseUrl(url);
-    var isScript  = sharedUrlUtils.parseResourceType(resourceType).isScript;
+    const parsedUrl = sharedUrlUtils.parseUrl(url);
+    const isScript  = sharedUrlUtils.parseResourceType(resourceType).isScript;
 
     charset = charset || isScript && document[INTERNAL_PROPS.documentCharset];
 
     // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
     // removed by the resolver and we have an origin URL with the incorrect host and protocol.
     if (parsedUrl.protocol === 'http:' && parsedUrl.hostname === proxyHostname && parsedUrl.port === proxyPort) {
-        var parsedDestLocation = destLocation.getParsed();
+        const parsedDestLocation = destLocation.getParsed();
 
         parsedUrl.protocol = parsedDestLocation.protocol;
         parsedUrl.host     = parsedDestLocation.host;
@@ -109,12 +109,12 @@ export function convertToProxyUrl (url, resourceType, charset) {
 }
 
 export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
-    var parsed = sharedUrlUtils.parseProxyUrl(proxyUrl);
+    const parsed = sharedUrlUtils.parseProxyUrl(proxyUrl);
 
     if (parsed) {
-        var sessionId = parsed.sessionId;
-        var proxy     = parsed.proxy;
-        var destUrl   = urlResolver.changeUrlPart(parsed.destUrl, prop, value, document);
+        const sessionId = parsed.sessionId;
+        const proxy     = parsed.proxy;
+        const destUrl   = urlResolver.changeUrlPart(parsed.destUrl, prop, value, document);
 
         return getProxyUrl(destUrl, {
             proxyHostname: proxy.hostname,

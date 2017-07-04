@@ -24,7 +24,7 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     static _getCurrentInfoManager (input) {
-        var contextWindow = input[INTERNAL_PROPS.processedContext];
+        const contextWindow = input[INTERNAL_PROPS.processedContext];
 
         return getSandboxBackup(contextWindow).upload.infoManager;
     }
@@ -34,15 +34,15 @@ export default class UploadSandbox extends SandboxBase {
         super.attach(window);
 
         this.listeners.addInternalEventListener(window, ['change'], (e, dispatched) => {
-            var input              = e.target;
-            var currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
+            const input              = e.target;
+            const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
             if (isFileInput(input) && !dispatched) {
                 stopPropagation(e);
                 preventDefault(e);
 
                 if (!!input.value || !!currentInfoManager.getValue(input)) {
-                    var fileNames = UploadInfoManager.getFileNames(input.files, input.value);
+                    const fileNames = UploadInfoManager.getFileNames(input.files, input.value);
 
                     this.emit(this.START_FILE_UPLOADING_EVENT, fileNames, input);
 
@@ -62,7 +62,7 @@ export default class UploadSandbox extends SandboxBase {
         if (isIE) {
             // NOTE: Prevent the browser's open file dialog.
             this.listeners.addInternalEventListener(window, ['click'], (e, dispatched) => {
-                var input = e.target || e.srcElement;
+                const input = e.target || e.srcElement;
 
                 if (isFileInput(input) && dispatched)
                     preventDefault(e, true);
@@ -90,7 +90,7 @@ export default class UploadSandbox extends SandboxBase {
     }
 
     doUpload (input, filePaths) {
-        var currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
+        const currentInfoManager = UploadSandbox._getCurrentInfoManager(input);
 
         filePaths = filePaths || [];
 
@@ -98,7 +98,7 @@ export default class UploadSandbox extends SandboxBase {
             .then(filesInfo => UploadInfoManager.prepareFileListWrapper(filesInfo))
             .then(data => {
                 if (!data.errs.length) {
-                    var value = UploadInfoManager.formatValue(filePaths);
+                    const value = UploadInfoManager.formatValue(filePaths);
 
                     currentInfoManager.setUploadInfo(input, data.fileList, value);
                     this._riseChangeEvent(input);
