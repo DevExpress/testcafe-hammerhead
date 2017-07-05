@@ -406,6 +406,8 @@ export default class ElementSandbox extends SandboxBase {
                 const result = nativeMethods.replaceChild.apply(this, arguments);
 
                 sandbox._onAddFileInputInfo(newChild);
+                sandbox.liveNodeListFactory.onElementAddedOrRemoved(newChild);
+                sandbox.liveNodeListFactory.onElementAddedOrRemoved(oldChild);
 
                 return result;
             },
@@ -579,8 +581,7 @@ export default class ElementSandbox extends SandboxBase {
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
 
-        if (el.tagName && !domUtils.isShadowUIElement(el))
-            this.liveNodeListFactory.onElementAddedOrRemoved(el);
+        this.liveNodeListFactory.onElementAddedOrRemoved(el);
     }
 
     _onElementRemoved (el) {
@@ -590,8 +591,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        if (el.tagName && !domUtils.isShadowUIElement(el))
-            this.liveNodeListFactory.onElementAddedOrRemoved(el);
+        this.liveNodeListFactory.onElementAddedOrRemoved(el);
     }
 
     addFileInputInfo (el) {

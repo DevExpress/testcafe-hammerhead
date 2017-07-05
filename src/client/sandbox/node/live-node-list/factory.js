@@ -5,11 +5,10 @@ import {
     NODE_LIST_PROPERTIES_DECORATOR
 } from './property-decorator';
 import TagCache from './tag-cache';
-import { getTagName } from '../../../utils/dom';
+import { getTagName, isShadowUIElement } from '../../../utils/dom';
 import nativeMethods from '../../native-methods';
 
-const arrayForEach = Array.prototype.forEach;
-const arrayFilter  = Array.prototype.filter;
+const arrayFilter = Array.prototype.filter;
 
 export default class LiveNodeListFactory {
     constructor () {
@@ -29,18 +28,19 @@ export default class LiveNodeListFactory {
     }
 
     static _markWrappersAsDirty (wrappers) {
-        arrayForEach.call(wrappers, wrapper => {
+        for (const wrapper of wrappers)
             wrapper._isDirty = true;
-        });
     }
 
     static _notifyWrappersAboutDOMContentLoadedEvent (wrappers) {
-        arrayForEach.call(wrappers, wrapper => {
+        for (const wrapper of wrappers)
             wrapper._domContentLoadedEventRaised = true;
-        });
     }
 
     onElementAddedOrRemoved (el) {
+        if (!el.tagName || isShadowUIElement(el))
+            return;
+
         LiveNodeListFactory._markWrappersAsDirty(this.wrappersWithAsteriskTag);
 
         const tagName = getTagName(el);
@@ -49,7 +49,7 @@ export default class LiveNodeListFactory {
             return;
 
         const wrappersWithSpecifiedTag = arrayFilter.call(this.wrappersWithReqularTag, wrapper => wrapper._tagName ===
-                                                                                                tagName);
+                                                                                                  tagName);
 
         LiveNodeListFactory._markWrappersAsDirty(wrappersWithSpecifiedTag);
     }

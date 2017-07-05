@@ -232,11 +232,24 @@ module('getElementsByTagName', function () {
 
             setProperty(root, 'innerHTML', '<div></div>');
             assertions.push({
-                name:  "acsess after set shadowUI element's innerHTML",
+                name:  "access after set shadowUI element's innerHTML",
                 value: (function () {
                     elements[0];
 
                     return refreshNodeListCount === 3;
+                })()
+            });
+
+            var newDiv = document.createElement('div');
+
+            newDiv.id = 'newDiv';
+            testDiv.replaceChild(newDiv, testDiv.firstChild);
+            assertions.push({
+                name:  'access after replaceChild',
+                value: (function () {
+                    elements[0];
+
+                    return refreshNodeListCount === 4;
                 })()
             });
 
@@ -301,8 +314,18 @@ module('getElementsByTagName', function () {
                 })()
             });
 
+            document.body.replaceChild(input1, textarea1);
+
+            assertions.push({
+                name:  'replaceChild for tracking and non-tracking nodes',
+                value: (function () {
+                    elements[0];
+
+                    return refreshNodeListCount === 2;
+                })()
+            });
+
             checkAssertions(assertions);
         });
-
     });
 });
