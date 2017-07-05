@@ -22,7 +22,7 @@ export default {
         // we will use native methods from an actual document.
         // However, a document that contains an element for url resolving is created using a previous version of nativeMethods.
         if (!doc[DOCUMENT_URL_RESOLVER])
-            doc[DOCUMENT_URL_RESOLVER] = this._createResolver(doc);
+            Object.defineProperty(doc, DOCUMENT_URL_RESOLVER, { value: this._createResolver(doc) });
 
         return doc[DOCUMENT_URL_RESOLVER];
     },
@@ -83,7 +83,7 @@ export default {
     },
 
     changeUrlPart (url, prop, value, doc) {
-        const resolver  = this.getResolverElement(doc);
+        const resolver = this.getResolverElement(doc);
 
         resolver.href  = url;
         resolver[prop] = value;
