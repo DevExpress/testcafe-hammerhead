@@ -56,12 +56,16 @@ const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_TAG_NAME_PREFIX}h
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
-            let parentHammerhead = null;
+            var parentHammerhead = null;
+
             try {
                 parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];
             } catch(e) {}
+
             if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
-            const script = document.currentScript || document.scripts[document.scripts.length - 1];
+
+            var script = document.currentScript || document.scripts[document.scripts.length - 1];
+
             script.parentNode.removeChild(script);
         })();
     <\/script>`.replace(/\n\s*/g, '');
