@@ -50,8 +50,8 @@ export default class NodeSandbox extends SandboxBase {
             }
 
             Object.defineProperty(el, INTERNAL_PROPS.processedContext, {
-                value:        this.window,
-                configurable: true
+                value:    this.window,
+                writable: true
             });
 
             // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
