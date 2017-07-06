@@ -16,8 +16,8 @@ export default class FormDataEntry {
     }
 
     _parseContentDisposition (contentDisposition) {
-        var inputNameMatch = contentDisposition.match(INPUT_NAME_RE);
-        var fileNameMatch  = contentDisposition.match(FILE_NAME_RE);
+        const inputNameMatch = contentDisposition.match(INPUT_NAME_RE);
+        const fileNameMatch  = contentDisposition.match(FILE_NAME_RE);
 
         this.name     = inputNameMatch && inputNameMatch[1];
         this.fileName = fileNameMatch && fileNameMatch[1];
@@ -32,7 +32,7 @@ export default class FormDataEntry {
 
     // API
     addFileInfo (fileInfo, idx) {
-        var file = fileInfo.files[idx];
+        const file = fileInfo.files[idx];
 
         this._setContentDisposition(fileInfo.name, file.name);
 
@@ -41,9 +41,9 @@ export default class FormDataEntry {
     }
 
     setHeader (header, newValue) {
-        var headerMatch = header.match(HEADER_RE);
-        var name        = headerMatch[1];
-        var value       = newValue || headerMatch [2];
+        const headerMatch = header.match(HEADER_RE);
+        const name        = headerMatch[1];
+        const value       = newValue || headerMatch [2];
 
         this.headers[name] = value;
 
@@ -52,10 +52,10 @@ export default class FormDataEntry {
     }
 
     toBuffer () {
-        var chunks = [];
+        let chunks = [];
 
         Object.keys(this.headers).forEach(name => {
-            var value = this.headers[name];
+            const value = this.headers[name];
 
             chunks.push(new Buffer(`${name}: ${value}`));
             chunks.push(bufferUtils.CRLF);

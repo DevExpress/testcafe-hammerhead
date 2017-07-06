@@ -8,19 +8,21 @@ function f (n) {
     return n < 10 ? '0' + n : n;
 }
 
-var cx        = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-    escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-    gap,
-    indent,
-    meta      = {    // table of character substitutions
-        '\b': '\\b',
-        '\t': '\\t',
-        '\n': '\\n',
-        '\f': '\\f',
-        '\r': '\\r',
-        '"':  '\\"',
-        '\\': '\\\\'
-    };
+const cx        = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+const escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+
+let gap;
+let indent;
+
+const meta = {    // table of character substitutions
+    '\b': '\\b',
+    '\t': '\\t',
+    '\n': '\\n',
+    '\f': '\\f',
+    '\r': '\\r',
+    '"':  '\\"',
+    '\\': '\\\\'
+};
 
 
 function quote (string) {
@@ -32,11 +34,11 @@ function quote (string) {
 
     escapable.lastIndex = 0;
     return escapable.test(string) ? '"' + string.replace(escapable, function (a) {
-        var c = meta[a];
-        return typeof c === 'string'
-            ? c
-            : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-    }) + '"' : '"' + string + '"';
+                                      const c = meta[a];
+                                      return typeof c === 'string'
+                                          ? c
+                                          : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+                                  }) + '"' : '"' + string + '"';
 }
 
 
@@ -44,7 +46,7 @@ function str (key, holder) {
 
     // Produce a string from holder[key].
 
-    var i, // The loop counter.
+    let i, // The loop counter.
         k, // The member key.
         v, // The member value.
         length,
@@ -56,7 +58,7 @@ function str (key, holder) {
 
     if (value && typeof value === 'object') {
         //NOTE: determine exact object type instead of relying on prototype.toJSON like in original json2.js
-        var objToStrValue = Object.prototype.toString.apply(value);
+        const objToStrValue = Object.prototype.toString.apply(value);
         if (objToStrValue === '[object String]' ||
             objToStrValue === '[object Number]' ||
             objToStrValue === '[object Boolean]') {
@@ -172,7 +174,7 @@ function isSerializable (value) {
             return false;
 
         if (typeof value === 'object') {
-            for (var prop in value) {
+            for (const prop in value) {
                 if (value.hasOwnProperty(prop) && !isSerializable(value[prop]))
                     return false;
             }
@@ -199,14 +201,14 @@ export function parse (text, reviver) {
     // The parse method takes a text and an optional reviver function, and returns
     // a JavaScript value if the text is a valid JSON text.
 
-    var j;
+    let j;
 
     function walk (holder, key) {
 
         // The walk method is used to recursively walk the resulting structure so
         // that modifications can be made.
 
-        var k, v, value = holder[key];
+        let k, v, value = holder[key];
         if (value && typeof value === 'object') {
             for (k in value) {
                 if (Object.prototype.hasOwnProperty.call(value, k)) {
@@ -276,4 +278,4 @@ export function parse (text, reviver) {
 }
 
 //NOTE: one more addition - func below allows as to check is it possible to correctly serialize given value
-export {isSerializable as isSerializable};
+export { isSerializable as isSerializable };

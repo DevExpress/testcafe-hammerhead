@@ -25,34 +25,34 @@ export default class LocationWrapper extends EventEmitter {
 
         this.CHANGED_EVENT = 'hammerhead|location-wrapper|changed';
 
-        var onChanged            = value => this.emit(this.CHANGED_EVENT, value);
-        var locationUrl          = getLocationUrl(window);
-        var parsedLocation       = locationUrl && parseProxyUrl(locationUrl);
-        var locationResourceType = parsedLocation ? parsedLocation.resourceType : '';
-        var { isIframe, isForm } = parseResourceType(locationResourceType);
+        const onChanged            = value => this.emit(this.CHANGED_EVENT, value);
+        let locationUrl            = getLocationUrl(window);
+        const parsedLocation       = locationUrl && parseProxyUrl(locationUrl);
+        const locationResourceType = parsedLocation ? parsedLocation.resourceType : '';
+        const parsedResourceType   = parseResourceType(locationResourceType);
 
-        isIframe |= window !== window.top;
+        parsedResourceType.isIframe |= window !== window.top;
 
-        var resourceType   = getResourceTypeString({ isIframe, isForm });
-        var getHref        = () => {
+        const resourceType   = getResourceTypeString({ isIframe: parsedResourceType.isIframe, isForm: parsedResourceType.isForm });
+        const getHref        = () => {
             if (window !== window.top && window.location.href === 'about:blank')
                 return 'about:blank';
 
             return getDestLocation();
         };
-        var getProxiedHref = href => {
+        const getProxiedHref = href => {
             locationUrl = getLocationUrl(window);
 
-            var changedOnlyHash = locationUrl && isChangedOnlyHash(locationUrl, href);
+            const changedOnlyHash = locationUrl && isChangedOnlyHash(locationUrl, href);
 
             return getProxyUrl(href, { resourceType: changedOnlyHash ? locationResourceType : resourceType });
         };
-        var urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
+        const urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 
         Object.defineProperty(this, 'href', createPropertyDesc({
             get: getHref,
             set: href => {
-                var proxiedHref = getProxiedHref(href);
+                const proxiedHref = getProxiedHref(href);
 
                 window.location.href = proxiedHref;
                 onChanged(proxiedHref);
@@ -64,7 +64,7 @@ export default class LocationWrapper extends EventEmitter {
         Object.defineProperty(this, 'search', createPropertyDesc({
             get: () => window.location.search,
             set: search => {
-                var newLocation = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
+                const newLocation = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
 
                 window.location = newLocation;
                 onChanged(newLocation);
@@ -87,11 +87,11 @@ export default class LocationWrapper extends EventEmitter {
             }
         }));
 
-        var overrideProperty = property => {
+        const overrideProperty = property => {
             Object.defineProperty(this, property, createPropertyDesc({
                 get: () => getParsedDestLocation()[property],
                 set: value => {
-                    var newLocation = changeDestUrlPart(window.location.toString(), property, value, resourceType);
+                    const newLocation = changeDestUrlPart(window.location.toString(), property, value, resourceType);
 
                     window.location = newLocation;
                     onChanged(newLocation);
@@ -101,12 +101,12 @@ export default class LocationWrapper extends EventEmitter {
             }));
         };
 
-        for (var urlProp of urlProps)
+        for (const urlProp of urlProps)
             overrideProperty(urlProp);
 
         this.assign = url => {
-            var proxiedHref = getProxiedHref(url);
-            var result      = window.location.assign(proxiedHref);
+            const proxiedHref = getProxiedHref(url);
+            const result      = window.location.assign(proxiedHref);
 
             onChanged(proxiedHref);
 
@@ -114,8 +114,8 @@ export default class LocationWrapper extends EventEmitter {
         };
 
         this.replace = url => {
-            var proxiedHref = getProxiedHref(url);
-            var result      = window.location.replace(proxiedHref);
+            const proxiedHref = getProxiedHref(url);
+            const result      = window.location.replace(proxiedHref);
 
             onChanged(proxiedHref);
 
@@ -123,7 +123,7 @@ export default class LocationWrapper extends EventEmitter {
         };
 
         this.reload = forceget => {
-            var result = window.location.reload(forceget);
+            const result = window.location.reload(forceget);
 
             onChanged(window.location.toString());
 

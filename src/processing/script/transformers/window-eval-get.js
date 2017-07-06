@@ -8,9 +8,9 @@ import { createGetEvalMethCall } from '../node-builder';
 import { Syntax } from '../tools/esotope';
 
 // Transform:
-// var foo = window.eval; foo = window.eval; { _eval: window.eval }; return window.eval;
+// const foo = window.eval; foo = window.eval; { _eval: window.eval }; return window.eval;
 // -->
-// var foo = _get$Eval(window.eval); foo = _get$Eval(window.eval); { _eval: _get$Eval(window.eval) }; return _get$Eval(window.eval);
+// const foo = _get$Eval(window.eval); foo = _get$Eval(window.eval); { _eval: _get$Eval(window.eval) }; return _get$Eval(window.eval);
 
 export default {
     nodeReplacementRequireTransform: false,

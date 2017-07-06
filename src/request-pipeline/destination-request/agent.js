@@ -13,11 +13,11 @@ const TYPE = {
 
 
 // Static
-var ssl3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
+const ssl3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
 
 // NOTE: We need an agent with proper keep-alive behavior. Such an agent has landed in Node 0.12. Since we
 // still support Node 0.10, we will use a third-party agent that is the extraction of Node 0.12 Agent code.
-var agents = {
+const agents = {
     [TYPE.SSL3]: {
         instance:       null,
         Ctor:           Agent.SSL,
@@ -38,7 +38,7 @@ var agents = {
 
 // Utils
 function getAgent (type) {
-    var agent = agents[type];
+    const agent = agents[type];
 
     if (!agent.instance) {
         agent.instance = new agent.Ctor({
@@ -57,7 +57,7 @@ function isSSLProtocolErr (err) {
 
 // API
 export function assign (reqOpts) {
-    var proxy = reqOpts.proxy;
+    const proxy = reqOpts.proxy;
 
     if (proxy && reqOpts.protocol === 'https:') {
         reqOpts.agent = tunnel.httpsOverHttp({ proxy });
@@ -65,7 +65,7 @@ export function assign (reqOpts) {
         return;
     }
 
-    var type = void 0;
+    let type = void 0;
 
     if (reqOpts.protocol === 'http:')
         type = TYPE.HTTP;
@@ -92,7 +92,7 @@ export function regressHttps (reqOpts) {
 // switch between servers in tests.
 export function resetKeepAliveConnections () {
     Object.keys(agents).forEach(type => {
-        var agent = agents[type];
+        const agent = agents[type];
 
         if (agent.instance)
             agent.instance.destroy();

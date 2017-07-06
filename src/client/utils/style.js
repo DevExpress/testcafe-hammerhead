@@ -15,7 +15,7 @@ const NATIVE_STYLE_STRINGS = [
 function getIntValue (value) {
     value = value || '';
 
-    var parsedValue = parseInt(value.replace('px', ''), 10);
+    const parsedValue = parseInt(value.replace('px', ''), 10);
 
     return isNaN(parsedValue) ? 0 : parsedValue;
 }
@@ -37,7 +37,7 @@ export function isStyleSheet (instance) {
 export function get (el, property, doc, win) {
     el = el.documentElement || el;
 
-    var computedStyle = getComputedStyle(el, doc, win);
+    const computedStyle = getComputedStyle(el, doc, win);
 
     return computedStyle && computedStyle[property];
 }
@@ -63,7 +63,7 @@ export function getComputedStyle (el, doc, win) {
     doc = doc || document;
     win = win || window;
 
-    var targetWin = doc.defaultView || win;
+    const targetWin = doc.defaultView || win;
 
     return targetWin.getComputedStyle(el, null);
 }
@@ -87,17 +87,17 @@ export function getElementPadding (el) {
 }
 
 export function getElementScroll (el) {
-    var isHtmlElement = domUtils.isHtmlElement(el);
-    var currentWindow = window;
+    const isHtmlElement = domUtils.isHtmlElement(el);
+    let currentWindow   = window;
 
     if (isHtmlElement && domUtils.isElementInIframe(el)) {
-        var currentIframe = domUtils.getIframeByElement(el);
+        const currentIframe = domUtils.getIframeByElement(el);
 
         if (currentIframe)
             currentWindow = currentIframe.contentWindow;
     }
 
-    var targetEl = isHtmlElement ? currentWindow : el;
+    const targetEl = isHtmlElement ? currentWindow : el;
 
     return {
         left: getScrollLeft(targetEl),
@@ -113,10 +113,10 @@ export function getWidth (el) {
         return el.document.documentElement.clientWidth;
 
     if (domUtils.isDocumentNode(el)) {
-        var doc        = el.documentElement;
-        var clientProp = 'clientWidth';
-        var scrollProp = 'scrollWidth';
-        var offsetProp = 'offsetWidth';
+        const doc        = el.documentElement;
+        const clientProp = 'clientWidth';
+        const scrollProp = 'scrollWidth';
+        const offsetProp = 'offsetWidth';
 
         if (doc[clientProp] >= doc[scrollProp])
             return doc[clientProp];
@@ -127,7 +127,7 @@ export function getWidth (el) {
         );
     }
 
-    var value = el.offsetWidth;
+    let value = el.offsetWidth;
 
     value -= getIntValue(get(el, 'paddingLeft'));
     value -= getIntValue(get(el, 'paddingRight'));
@@ -145,10 +145,10 @@ export function getHeight (el) {
         return el.document.documentElement.clientHeight;
 
     if (domUtils.isDocumentNode(el)) {
-        var doc        = el.documentElement;
-        var clientProp = 'clientHeight';
-        var scrollProp = 'scrollHeight';
-        var offsetProp = 'offsetHeight';
+        const doc        = el.documentElement;
+        const clientProp = 'clientHeight';
+        const scrollProp = 'scrollHeight';
+        const offsetProp = 'offsetHeight';
 
         if (doc[clientProp] >= doc[scrollProp])
             return doc[clientProp];
@@ -159,7 +159,7 @@ export function getHeight (el) {
         );
     }
 
-    var value = el.offsetHeight;
+    let value = el.offsetHeight;
 
     value -= getIntValue(get(el, 'paddingTop'));
     value -= getIntValue(get(el, 'paddingBottom'));
@@ -179,7 +179,7 @@ export function getInnerWidth (el) {
     if (domUtils.isDocument(el))
         return el.documentElement.clientWidth;
 
-    var value = el.offsetWidth;
+    let value = el.offsetWidth;
 
     value -= getIntValue(get(el, 'borderLeftWidth'));
     value -= getIntValue(get(el, 'borderRightWidth'));
@@ -197,7 +197,7 @@ export function getInnerHeight (el) {
     if (domUtils.isDocument(el))
         return el.documentElement.clientHeight;
 
-    var value = el.offsetHeight;
+    let value = el.offsetHeight;
 
     value -= getIntValue(get(el, 'borderTopWidth'));
     value -= getIntValue(get(el, 'borderBottomWidth'));
@@ -206,10 +206,10 @@ export function getInnerHeight (el) {
 }
 
 export function getOptionHeight (select) {
-    var realSizeValue      = getSelectElementSize(select);
-    var selectPadding      = getElementPadding(select);
-    var selectScrollHeight = select.scrollHeight - (selectPadding.top + selectPadding.bottom);
-    var childrenCount      = domUtils.getSelectVisibleChildren(select).length;
+    const realSizeValue      = getSelectElementSize(select);
+    const selectPadding      = getElementPadding(select);
+    const selectScrollHeight = select.scrollHeight - (selectPadding.top + selectPadding.bottom);
+    const childrenCount      = domUtils.getSelectVisibleChildren(select).length;
 
     if (realSizeValue === 1)
         return getHeight(select);
@@ -225,9 +225,9 @@ export function getSelectElementSize (select) {
     if (browserUtils.isSafari && featureDetection.hasTouchEvents || browserUtils.isAndroid)
         return 1;
 
-    var sizeAttr     = nativeMethods.getAttribute.call(select, 'size');
-    var multipleAttr = nativeMethods.getAttribute.call(select, 'multiple');
-    var size         = !sizeAttr ? 1 : parseInt(sizeAttr, 10);
+    const sizeAttr     = nativeMethods.getAttribute.call(select, 'size');
+    const multipleAttr = nativeMethods.getAttribute.call(select, 'multiple');
+    let size           = !sizeAttr ? 1 : parseInt(sizeAttr, 10);
 
     if (multipleAttr && (!sizeAttr || size < 1))
         size = MIN_SELECT_SIZE_VALUE;
@@ -236,8 +236,8 @@ export function getSelectElementSize (select) {
 }
 
 export function isVisibleChild (el) {
-    var select  = domUtils.getSelectParent(el);
-    var tagName = domUtils.getTagName(el);
+    const select  = domUtils.getSelectParent(el);
+    const tagName = domUtils.getTagName(el);
 
     return domUtils.isSelectElement(select) && getSelectElementSize(select) > 1 &&
            (tagName === 'option' || tagName === 'optgroup') &&
@@ -276,8 +276,8 @@ export function setScrollLeft (el, value) {
         return;
 
     if (domUtils.isWindow(el) || domUtils.isDocument(el)) {
-        var win       = domUtils.findDocument(el).defaultView;
-        var scrollTop = getScrollTop(el);
+        const win       = domUtils.findDocument(el).defaultView;
+        const scrollTop = getScrollTop(el);
 
         win.scrollTo(value, scrollTop);
     }
@@ -290,8 +290,8 @@ export function setScrollTop (el, value) {
         return;
 
     if (domUtils.isWindow(el) || domUtils.isDocument(el)) {
-        var win        = domUtils.findDocument(el).defaultView;
-        var scrollLeft = getScrollLeft(el);
+        const win        = domUtils.findDocument(el).defaultView;
+        const scrollLeft = getScrollLeft(el);
 
         win.scrollTo(scrollLeft, value);
     }
@@ -301,7 +301,7 @@ export function setScrollTop (el, value) {
 
 export function getOffsetParent (el) {
     if (el) {
-        var offsetParent = el.offsetParent || document.body;
+        let offsetParent = el.offsetParent || document.body;
 
         while (offsetParent && (!/^(?:body|html)$/i.test(offsetParent.nodeName) &&
                get(offsetParent, 'position') === 'static'))
@@ -317,11 +317,11 @@ export function getOffset (el) {
     if (!el || domUtils.isWindow(el) || domUtils.isDocument(el))
         return null;
 
-    var clientRect = el.getBoundingClientRect();
+    let clientRect = el.getBoundingClientRect();
 
     // NOTE: A detached node or documentElement.
-    var doc        = el.ownerDocument;
-    var docElement = doc.documentElement;
+    const doc        = el.ownerDocument;
+    const docElement = doc.documentElement;
 
     if (!docElement.contains(el) || el === docElement) {
         return {
@@ -330,11 +330,11 @@ export function getOffset (el) {
         };
     }
 
-    var win        = doc.defaultView;
-    var clientTop  = docElement.clientTop || doc.body.clientTop || 0;
-    var clientLeft = docElement.clientLeft || doc.body.clientLeft || 0;
-    var scrollTop  = win.pageYOffset || docElement.scrollTop || doc.body.scrollTop;
-    var scrollLeft = win.pageXOffset || docElement.scrollLeft || doc.body.scrollLeft;
+    const win        = doc.defaultView;
+    const clientTop  = docElement.clientTop || doc.body.clientTop || 0;
+    const clientLeft = docElement.clientLeft || doc.body.clientLeft || 0;
+    const scrollTop  = win.pageYOffset || docElement.scrollTop || doc.body.scrollTop;
+    const scrollLeft = win.pageXOffset || docElement.scrollLeft || doc.body.scrollLeft;
 
     clientRect = el.getBoundingClientRect();
 
@@ -359,7 +359,7 @@ export function isElementVisible (el, doc) {
 }
 
 export function isElementInInvisibleIframe (el) {
-    var frameElement = domUtils.getIframeByElement(el);
+    const frameElement = domUtils.getIframeByElement(el);
 
     return frameElement && !isElementVisible(frameElement, domUtils.findDocument(frameElement));
 }

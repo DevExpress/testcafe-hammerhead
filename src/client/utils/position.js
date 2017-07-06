@@ -4,9 +4,9 @@ import * as styleUtils from './style';
 import { isFirefox, isIE } from './browser';
 
 function getAreaElementRectangle (el, mapContainer) {
-    var shape  = nativeMethods.getAttribute.call(el, 'shape');
-    var coords = nativeMethods.getAttribute.call(el, 'coords');
-    var i      = 0;
+    const shape = nativeMethods.getAttribute.call(el, 'shape');
+    let coords  = nativeMethods.getAttribute.call(el, 'coords');
+    let i       = 0;
 
     if (shape === 'default')
         return getElementRectangle(mapContainer);
@@ -26,7 +26,7 @@ function getAreaElementRectangle (el, mapContainer) {
             return null;
     }
 
-    var rectangle = null;
+    let rectangle = null;
 
     switch (shape) {
         case 'rect':
@@ -77,7 +77,7 @@ function getAreaElementRectangle (el, mapContainer) {
     }
 
     if (rectangle) {
-        var containerOffset = getOffsetPosition(mapContainer);
+        const containerOffset = getOffsetPosition(mapContainer);
 
         rectangle.left += containerOffset.left;
         rectangle.top += containerOffset.top;
@@ -87,13 +87,13 @@ function getAreaElementRectangle (el, mapContainer) {
 }
 
 function getMapElementRectangle (el) {
-    var mapContainer = domUtils.getMapContainer(el);
+    const mapContainer = domUtils.getMapContainer(el);
 
     if (mapContainer) {
         if (/^map$/i.test(el.tagName))
             return getElementRectangle(mapContainer);
         else if (/^area$/i.test(el.tagName)) {
-            var areaElementRectangle = getAreaElementRectangle(el, mapContainer);
+            const areaElementRectangle = getAreaElementRectangle(el, mapContainer);
 
             if (areaElementRectangle)
                 return areaElementRectangle;
@@ -109,15 +109,16 @@ function getMapElementRectangle (el) {
 }
 
 function getSelectChildRectangle (el) {
-    var select = domUtils.getSelectParent(el);
+    const select = domUtils.getSelectParent(el);
 
     if (select) {
-        var selectRectangle      = getElementRectangle(select);
-        var selectBorders        = styleUtils.getBordersWidth(select);
-        var selectRightScrollbar = styleUtils.getInnerWidth(select) === select.clientWidth ? 0 : domUtils.getScrollbarSize();
-        var optionHeight         = styleUtils.getOptionHeight(select);
-        var optionRealIndex      = domUtils.getChildVisibleIndex(select, el);
-        var optionVisibleIndex   = Math.max(optionRealIndex - styleUtils.getScrollTop(select) / optionHeight, 0);
+        const selectRectangle      = getElementRectangle(select);
+        const selectBorders        = styleUtils.getBordersWidth(select);
+        const selectRightScrollbar = styleUtils.getInnerWidth(select) ===
+                                     select.clientWidth ? 0 : domUtils.getScrollbarSize();
+        const optionHeight         = styleUtils.getOptionHeight(select);
+        const optionRealIndex      = domUtils.getChildVisibleIndex(select, el);
+        const optionVisibleIndex   = Math.max(optionRealIndex - styleUtils.getScrollTop(select) / optionHeight, 0);
 
         return {
             height: optionHeight,
@@ -133,10 +134,10 @@ function getSelectChildRectangle (el) {
 }
 
 function getSvgElementRelativeRectangle (el) {
-    var isSvgTextElement   = domUtils.matches(el, 'tspan') || domUtils.matches(el, 'tref') ||
-                             domUtils.getTagName(el) === 'textpath';
-    var boundingClientRect = el.getBoundingClientRect();
-    var elementRect        = {
+    const isSvgTextElement   = domUtils.matches(el, 'tspan') || domUtils.matches(el, 'tref') ||
+                               domUtils.getTagName(el) === 'textpath';
+    const boundingClientRect = el.getBoundingClientRect();
+    const elementRect        = {
         height: !isSvgTextElement ? boundingClientRect.height : el.offsetHeight,
         left:   boundingClientRect.left + (document.body.scrollLeft || document.documentElement.scrollLeft),
         top:    boundingClientRect.top + (document.body.scrollTop || document.documentElement.scrollTop),
@@ -144,10 +145,10 @@ function getSvgElementRelativeRectangle (el) {
     };
 
     if (isSvgTextElement) {
-        var offsetParent       = styleUtils.getOffsetParent(el);
-        var elOffset           = styleUtils.getOffset(el);
-        var offsetParentOffset = styleUtils.getOffset(offsetParent);
-        var offsetParentIsBody = domUtils.matches(offsetParent, 'body');
+        const offsetParent       = styleUtils.getOffsetParent(el);
+        const elOffset           = styleUtils.getOffset(el);
+        const offsetParentOffset = styleUtils.getOffset(offsetParent);
+        const offsetParentIsBody = domUtils.matches(offsetParent, 'body');
 
         return {
             height: elementRect.height || boundingClientRect.height,
@@ -161,7 +162,7 @@ function getSvgElementRelativeRectangle (el) {
     if (isFirefox || isIE)
         return elementRect;
 
-    var strokeWidth = nativeMethods.getAttribute.call(el, 'stroke-width') || styleUtils.get(el, 'stroke-width');
+    let strokeWidth = nativeMethods.getAttribute.call(el, 'stroke-width') || styleUtils.get(el, 'stroke-width');
 
     // NOTE: We assume that the 'stroke-width' attribute can only be set in pixels.
     strokeWidth = strokeWidth ? +strokeWidth.replace(/px|em|ex|pt|pc|cm|mm|in/, '') : 1;
@@ -199,15 +200,15 @@ function getSvgElementRelativeRectangle (el) {
 }
 
 export function getElementRectangle (el) {
-    var rectangle = {};
+    let rectangle = {};
 
     if (domUtils.isMapElement(el))
         rectangle = getMapElementRectangle(el);
     else if (styleUtils.isVisibleChild(el))
         rectangle = getSelectChildRectangle(el);
     else {
-        var elementOffset     = getOffsetPosition(el);
-        var relativeRectangle = domUtils.isSVGElementOrChild(el) ? getSvgElementRelativeRectangle(el) : el.getBoundingClientRect();
+        const elementOffset     = getOffsetPosition(el);
+        const relativeRectangle = domUtils.isSVGElementOrChild(el) ? getSvgElementRelativeRectangle(el) : el.getBoundingClientRect();
 
         rectangle = {
             height: relativeRectangle.height,
@@ -227,7 +228,7 @@ export function getElementRectangle (el) {
 
 export function getOffsetPosition (el) {
     if (domUtils.isMapElement(el)) {
-        var rectangle = getMapElementRectangle(el);
+        const rectangle = getMapElementRectangle(el);
 
         return {
             left: rectangle.left,
@@ -235,24 +236,24 @@ export function getOffsetPosition (el) {
         };
     }
 
-    var doc               = domUtils.findDocument(el);
-    var isInIframe        = domUtils.isElementInIframe(el, doc);
-    var currentIframe     = isInIframe ? domUtils.getIframeByElement(doc) : null;
-    var offsetPosition    = doc === el ? styleUtils.getOffset(doc.documentElement) : styleUtils.getOffset(el);
-    var relativeRectangle = null;
+    const doc             = domUtils.findDocument(el);
+    const isInIframe      = domUtils.isElementInIframe(el, doc);
+    const currentIframe   = isInIframe ? domUtils.getIframeByElement(doc) : null;
+    const offsetPosition  = doc === el ? styleUtils.getOffset(doc.documentElement) : styleUtils.getOffset(el);
+    let relativeRectangle = null;
 
     // NOTE: The jquery .offset() function doesn't take the body's border into account (except IE7)
     // http://bugs.jquery.com/ticket/7948.
 
     // NOTE: Sometimes, in IE, the getElementFromPoint method returns a cross-domain iframe's documentElement,
     // but there’s no way to access its body.
-    var borders = doc.body ? styleUtils.getBordersWidth(doc.body) : {
+    const borders = doc.body ? styleUtils.getBordersWidth(doc.body) : {
         left: 0,
         top:  0
     };
 
     if (!isInIframe || !currentIframe) {
-        var isSvg = domUtils.isSVGElementOrChild(el);
+        const isSvg = domUtils.isSVGElementOrChild(el);
 
         relativeRectangle = isSvg ? getSvgElementRelativeRectangle(el) : null;
 
@@ -262,14 +263,14 @@ export function getOffsetPosition (el) {
         };
     }
 
-    var iframeBorders = styleUtils.getBordersWidth(currentIframe);
+    const iframeBorders = styleUtils.getBordersWidth(currentIframe);
 
     borders.left += iframeBorders.left;
     borders.top += iframeBorders.top;
 
-    var iframeOffset   = getOffsetPosition(currentIframe);
-    var iframePadding  = styleUtils.getElementPadding(currentIframe);
-    var clientPosition = null;
+    const iframeOffset  = getOffsetPosition(currentIframe);
+    const iframePadding = styleUtils.getElementPadding(currentIframe);
+    let clientPosition  = null;
 
     if (domUtils.isSVGElementOrChild(el)) {
         relativeRectangle = getSvgElementRelativeRectangle(el);
@@ -294,7 +295,7 @@ export function getOffsetPosition (el) {
 }
 
 export function offsetToClientCoords (coords, currentDocument) {
-    var doc = currentDocument || document;
+    const doc = currentDocument || document;
 
     return {
         x: coords.x - styleUtils.getScrollLeft(doc),

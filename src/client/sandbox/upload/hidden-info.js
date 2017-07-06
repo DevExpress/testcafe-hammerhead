@@ -3,10 +3,10 @@ import nativeMethods from '../native-methods';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-var arraySlice = Array.prototype.slice;
+const arraySlice = Array.prototype.slice;
 
 function createInput (form) {
-    var hiddenInput = nativeMethods.createElement.call(document, 'input');
+    const hiddenInput = nativeMethods.createElement.call(document, 'input');
 
     hiddenInput.type  = 'hidden';
     hiddenInput.name  = INTERNAL_ATTRS.uploadInfoHiddenInputName;
@@ -18,13 +18,13 @@ function createInput (form) {
 }
 
 function getInput (form) {
-    var inputSelector = '[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]';
+    const inputSelector = '[name="' + INTERNAL_ATTRS.uploadInfoHiddenInputName + '"]';
 
     return nativeMethods.elementQuerySelector.call(form, inputSelector) || createInput(form);
 }
 
 function indexOf (info, input) {
-    for (var index = 0; index < info.length; index++) {
+    for (let index = 0; index < info.length; index++) {
         if (info[index].id === input.id || info[index].name === input.name)
             return index;
     }
@@ -33,15 +33,15 @@ function indexOf (info, input) {
 }
 
 export function addInputInfo (input, fileList, value) {
-    var formInfo = getFormInfo(input);
+    const formInfo = getFormInfo(input);
 
     if (formInfo) {
-        var files = [];
+        const files = [];
 
         fileList = arraySlice.call(fileList);
 
-        for (var i = 0, len = fileList.length; i < len; i++) {
-            var file = fileList[i];
+        for (let i = 0, len = fileList.length; i < len; i++) {
+            const file = fileList[i];
 
             files.push({
                 name: file.name,
@@ -50,8 +50,8 @@ export function addInputInfo (input, fileList, value) {
             });
         }
 
-        var inputInfoIndex = indexOf(formInfo, input);
-        var inputInfo      = {
+        const inputInfoIndex = indexOf(formInfo, input);
+        const inputInfo      = {
             id:    input.id,
             name:  input.name,
             files: files,
@@ -73,17 +73,17 @@ export function getFormInfo (input) {
 
 export function setFormInfo (input, info) {
     if (input.form) {
-        var hiddenInput = getInput(input.form);
+        const hiddenInput = getInput(input.form);
 
         hiddenInput.value = JSON.stringify(info);
     }
 }
 
 export function removeInputInfo (input) {
-    var uploadInfo = getFormInfo(input);
+    const uploadInfo = getFormInfo(input);
 
     if (uploadInfo) {
-        var inputInfoIndex = indexOf(uploadInfo, input);
+        const inputInfoIndex = indexOf(uploadInfo, input);
 
         if (inputInfoIndex !== -1) {
             uploadInfo.splice(inputInfoIndex, 1);

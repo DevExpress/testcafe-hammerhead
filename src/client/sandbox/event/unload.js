@@ -37,7 +37,7 @@ export default class UnloadSandbox extends SandboxBase {
     }
 
     _onBeforeUnloadHandler (e, originListener) {
-        var eventObj = e;
+        let eventObj = e;
 
         // NOTE: 'window.event' required for safari 9.0 because it calls the handler without 'e' (GH-698)
         if (!e && window.event && window.event.type === this.beforeUnloadEventName)
@@ -67,7 +67,7 @@ export default class UnloadSandbox extends SandboxBase {
             }));
         }
 
-        var res = e ? originListener(e) : originListener();
+        const res = e ? originListener(e) : originListener();
 
         if (res !== void 0) {
             this.storedBeforeUnloadReturnValue = res;
@@ -89,8 +89,8 @@ export default class UnloadSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var document  = window.document;
-        var listeners = this.listeners;
+        const document  = window.document;
+        const listeners = this.listeners;
 
         listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
         listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));

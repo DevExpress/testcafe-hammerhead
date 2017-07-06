@@ -2,18 +2,18 @@ import ResourceProcessorBase from './resource-processor-base';
 
 class ManifestProcessor extends ResourceProcessorBase {
     processResource (manifest, ctx, charset, urlReplacer) {
-        var lines = manifest.split('\n');
+        const lines = manifest.split('\n');
 
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].trim();
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
 
             if (line && line !== 'CACHE MANIFEST' && line !== 'NETWORK:' && line !== 'FALLBACK:' &&
                 line !== 'CACHE:' && line[0] !== '#' && line !== '*') {
 
-                var isFallbackItem = line.indexOf(' ') !== -1;
+                const isFallbackItem = line.indexOf(' ') !== -1;
 
                 if (isFallbackItem) {
-                    var urls = line.split(' ');
+                    const urls = line.split(' ');
 
                     lines[i] = urlReplacer(urls[0]) + ' ' + urlReplacer(urls[1]);
                 }

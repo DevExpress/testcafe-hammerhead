@@ -19,7 +19,7 @@ export default class XhrSandbox extends SandboxBase {
 
         this.cookieSandbox = cookieSandbox;
 
-        var xhr = new nativeMethods.XMLHttpRequest();
+        const xhr = new nativeMethods.XMLHttpRequest();
 
         this.corsSupported = typeof xhr.withCredentials !== 'undefined';
     }
@@ -29,7 +29,7 @@ export default class XhrSandbox extends SandboxBase {
     }
 
     static createNativeXHR () {
-        var xhr = new nativeMethods.XMLHttpRequest();
+        const xhr = new nativeMethods.XMLHttpRequest();
 
         xhr.open                = nativeMethods.xhrOpen;
         xhr.abort               = nativeMethods.xhrAbort;
@@ -48,19 +48,19 @@ export default class XhrSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var xhrSandbox          = this;
-        var xmlHttpRequestProto = window.XMLHttpRequest.prototype;
+        const xhrSandbox          = this;
+        const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
 
-        var syncCookieWithClient = function () {
+        const syncCookieWithClient = function () {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
-            var cookies = nativeMethods.xhrGetResponseHeader.call(this, XHR_HEADERS.setCookie);
+            let cookies = nativeMethods.xhrGetResponseHeader.call(this, XHR_HEADERS.setCookie);
 
             if (cookies) {
                 cookies = JSON.parse(cookies);
 
-                for (var cookie of cookies)
+                for (const cookie of cookies)
                     xhrSandbox.cookieSandbox.setCookie(window.document, cookie);
             }
 
@@ -93,11 +93,11 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         xmlHttpRequestProto.send = function () {
-            var xhr = this;
+            const xhr = this;
 
             xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr });
 
-            var orscHandler = () => {
+            const orscHandler = () => {
                 if (this.readyState === 4)
                     xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr });
             };
@@ -116,7 +116,7 @@ export default class XhrSandbox extends SandboxBase {
                         orscHandler();
 
                     else if (typeof this.onreadystatechange === 'function') {
-                        var originalHandler = this.onreadystatechange;
+                        const originalHandler = this.onreadystatechange;
 
                         this.onreadystatechange = progress => {
                             orscHandler();
@@ -153,7 +153,7 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         xmlHttpRequestProto.getAllResponseHeaders = function () {
-            var headers = nativeMethods.xhrGetAllResponseHeaders.call(this);
+            const headers = nativeMethods.xhrGetAllResponseHeaders.call(this);
 
             return headers ? headers.replace(REMOVE_SET_COOKIE_HH_HEADER, '') : headers;
         };

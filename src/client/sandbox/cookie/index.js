@@ -16,8 +16,8 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     _getSettings () {
-        var windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
-                             this.window.top[INTERNAL_PROPS.hammerhead].get('./settings') : settings;
+        const windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
+                               this.window.top[INTERNAL_PROPS.hammerhead].get('./settings') : settings;
 
         return windowSettings.get();
     }
@@ -25,14 +25,14 @@ export default class CookieSandbox extends SandboxBase {
     // NOTE: Let a browser validate other stuff (e.g. the Path attribute). For this purpose, we add a unique prefix
     // to the cookie key, pass cookies to the browser, then clean up the cookies and return a result.
     static _getBrowserProcessedCookie (parsedCookie, document) {
-        var parsedCookieCopy = {};
+        const parsedCookieCopy = {};
 
-        for (var prop in parsedCookie) {
+        for (const prop in parsedCookie) {
             if (parsedCookie.hasOwnProperty(prop))
                 parsedCookieCopy[prop] = parsedCookie[prop];
         }
 
-        var uniquePrefix = Math.floor(Math.random() * 1e10) + '|';
+        const uniquePrefix = Math.floor(Math.random() * 1e10) + '|';
 
         parsedCookieCopy.key = uniquePrefix + parsedCookieCopy.key;
 
@@ -43,13 +43,13 @@ export default class CookieSandbox extends SandboxBase {
 
         document.cookie = cookieUtils.format(parsedCookieCopy);
 
-        var processedByBrowserCookieStr = cookieUtils.get(document, parsedCookieCopy.key);
+        const processedByBrowserCookieStr = cookieUtils.get(document, parsedCookieCopy.key);
 
         cookieUtils.del(document, parsedCookieCopy);
 
         if (processedByBrowserCookieStr) {
             // NOTE: We need to remove the '=' char if the key is empty
-            var startCookiePos = parsedCookie.key === '' ? uniquePrefix.length + 1 : uniquePrefix.length;
+            const startCookiePos = parsedCookie.key === '' ? uniquePrefix.length + 1 : uniquePrefix.length;
 
             return processedByBrowserCookieStr.substr(startCookiePos);
         }
@@ -66,15 +66,15 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookie.httponly)
             return false;
 
-        var parsedDestLocation = destLocation.getParsed();
-        var destProtocol       = parsedDestLocation.protocol;
+        const parsedDestLocation = destLocation.getParsed();
+        const destProtocol       = parsedDestLocation.protocol;
 
         // NOTE: Hammerhead tunnels HTTPS requests via HTTP, so we need to validate the Secure attribute manually.
         if (parsedCookie.secure && destProtocol !== 'https:')
             return false;
 
         // NOTE: Add a relative protocol portion to the domain, so that we can use urlUtils for the same origin check.
-        var domain = parsedCookie.domain && '//' + parsedCookie.domain;
+        const domain = parsedCookie.domain && '//' + parsedCookie.domain;
 
 
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
@@ -83,15 +83,15 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
-        var cookies   = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
-        var replaced  = false;
-        var searchStr = cookieKey === '' ? null : cookieKey + '=';
+        const cookies   = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
+        let replaced    = false;
+        const searchStr = cookieKey === '' ? null : cookieKey + '=';
 
         // NOTE: Replace a cookie if it already exists.
-        for (var i = 0; i < cookies.length; i++) {
+        for (let i = 0; i < cookies.length; i++) {
             cookies[i] = trim(cookies[i]);
 
-            var isCookieExists = searchStr ? cookies[i].indexOf(searchStr) === 0 : cookies[i].indexOf('=') === -1;
+            const isCookieExists = searchStr ? cookies[i].indexOf(searchStr) === 0 : cookies[i].indexOf('=') === -1;
 
             if (isCookieExists) {
                 // NOTE: Delete or update a cookie string.
@@ -120,14 +120,14 @@ export default class CookieSandbox extends SandboxBase {
 
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
-        var parsedCookie = cookieUtils.parse(value);
+        const parsedCookie = cookieUtils.parse(value);
 
         if (CookieSandbox._isValidCookie(parsedCookie)) {
             // NOTE: These attributes don't have to be processed by a browser.
             delete parsedCookie.secure;
             delete parsedCookie.domain;
 
-            var clientCookieStr = CookieSandbox._getBrowserProcessedCookie(parsedCookie, document);
+            const clientCookieStr = CookieSandbox._getBrowserProcessedCookie(parsedCookie, document);
 
             if (clientCookieStr === null) {
                 // NOTE: We have two options here:

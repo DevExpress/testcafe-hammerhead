@@ -52,7 +52,7 @@ export function createVarDeclaration (identifier) {
 }
 
 export function createProcessScriptMethCall (arg, isApply) {
-    var ast = {
+    const ast = {
         type: Syntax.CallExpression,
 
         callee: {
@@ -111,7 +111,7 @@ export function createLocationGetWrapper () {
 }
 
 export function createLocationSetWrapper (value, wrapWithSequence) {
-    var wrapper = {
+    let wrapper = {
         type: Syntax.CallExpression,
 
         callee: {
@@ -305,7 +305,7 @@ export function createGetEvalMethCall (node) {
 }
 
 export function createGetPostMessageMethCall (node) {
-    var parentObject = node.object;
+    const parentObject = node.object;
 
     return {
         type: Syntax.CallExpression,

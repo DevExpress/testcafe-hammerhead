@@ -9,9 +9,9 @@ const KEY                   = 0;
 const VALUE                 = 1;
 
 function getWrapperMethods () {
-    var methods = [];
+    const methods = [];
 
-    for (var key in StorageWrapper.prototype)
+    for (const key in StorageWrapper.prototype)
         methods.push(key);
 
     return methods;
@@ -32,14 +32,14 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
     this.STORAGE_CHANGED_EVENT = 'hammerhead|event|storage-changed';
     this.EMPTY_OLD_VALUE_ARG   = isIE ? '' : null;
 
-    var getAddedProperties = () => {
+    const getAddedProperties = () => {
         // NOTE: The standard doesn't regulate the order in which properties are enumerated.
         // But we rely on the fact that they are enumerated in the order they were created in all the supported browsers.
         // In this case we cannot use Object.getOwnPropertyNames
         // because the enumeration order in Android 5.1 is different from all other browsers.
-        var properties = [];
+        const properties = [];
 
-        for (var property in this) {
+        for (const property in this) {
             if (this.hasOwnProperty(property) && this.initialProperties.indexOf(property) === -1)
                 properties.push(property);
         }
@@ -52,21 +52,21 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         set: () => void 0
     });
 
-    var loadStorage = storage => {
+    const loadStorage = storage => {
         if (!storage)
             storage = this.nativeStorage[this.nativeStorageKey];
 
         storage = JSON.parse(storage || '[[],[]]');
 
-        for (var i = 0; i < storage[KEY].length; i++)
+        for (let i = 0; i < storage[KEY].length; i++)
             this[storage[KEY][i]] = storage[VALUE][i];
     };
 
-    var raiseStorageChanged = (key, oldValue, newValue) => {
-        var url = null;
+    const raiseStorageChanged = (key, oldValue, newValue) => {
+        let url = null;
 
         try {
-            var parsedContextUrl = parseProxyUrl(this.context.location.toString());
+            const parsedContextUrl = parseProxyUrl(this.context.location.toString());
 
             url = parsedContextUrl ? parsedContextUrl.destUrl : destLocation.get();
         }
@@ -78,14 +78,14 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         this.emit(this.STORAGE_CHANGED_EVENT, { key, oldValue, newValue, url });
     };
 
-    var checkStorageChanged = () => {
-        var currentState = this.getCurrentState();
+    const checkStorageChanged = () => {
+        const currentState = this.getCurrentState();
 
-        for (var i = 0; i < this.lastState[KEY].length; i++) {
-            var lastStateKey   = this.lastState[KEY][i];
-            var lastStateValue = this.lastState[VALUE][i];
+        for (let i = 0; i < this.lastState[KEY].length; i++) {
+            const lastStateKey   = this.lastState[KEY][i];
+            const lastStateValue = this.lastState[VALUE][i];
 
-            var keyIndex = currentState[KEY].indexOf(lastStateKey);
+            const keyIndex = currentState[KEY].indexOf(lastStateKey);
 
             if (keyIndex !== -1) {
                 if (currentState[VALUE][keyIndex] !== lastStateValue)
@@ -98,17 +98,17 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
                 raiseStorageChanged(lastStateKey, lastStateValue, null);
         }
 
-        for (var j = 0; j < currentState[KEY].length; j++)
+        for (let j = 0; j < currentState[KEY].length; j++)
             raiseStorageChanged(currentState[KEY][j], this.EMPTY_OLD_VALUE_ARG, currentState[VALUE][j]);
 
         this.lastState = this.getCurrentState();
     };
 
-    var clearStorage = () => {
-        var addedProperties = getAddedProperties();
-        var changed         = false;
+    const clearStorage = () => {
+        const addedProperties = getAddedProperties();
+        let changed           = false;
 
-        for (var addedProperty of addedProperties) {
+        for (const addedProperty of addedProperties) {
             delete this[addedProperty];
             changed = true;
         }
@@ -116,7 +116,7 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         return changed;
     };
 
-    var init = () => {
+    const init = () => {
         loadStorage();
         this.lastState = this.getCurrentState();
 
@@ -130,17 +130,17 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
     this.getContext = () => this.context;
 
     this.saveToNativeStorage = () => {
-        var state = JSON.stringify(this.getCurrentState());
+        const state = JSON.stringify(this.getCurrentState());
 
         if (this.nativeStorage[this.nativeStorageKey] !== state)
             this.nativeStorage[this.nativeStorageKey] = state;
     };
 
     this.getCurrentState = () => {
-        var addedProperties = getAddedProperties();
-        var state           = [[], []];
+        const addedProperties = getAddedProperties();
+        const state           = [[], []];
 
-        for (var addedProperty of addedProperties) {
+        for (const addedProperty of addedProperties) {
             state[KEY].push(addedProperty);
             state[VALUE].push(this[addedProperty]);
         }
@@ -155,7 +155,7 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         this.lastState = this.getCurrentState();
     };
 
-    var castToString = value => {
+    const castToString = value => {
         // NOTE: The browser automatically translates the key and the value to a string. To repeat this behavior,
         // we use native storage:
         // localStorage.setItem(null, null) equivalently to localStorage.setItem('null', 'null')
@@ -164,8 +164,8 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         return this.nativeStorage[STORAGES_SANDBOX_TEMP];
     };
 
-    var getValidKey = key => {
-        var isWrapperMember = this.wrapperMethods.indexOf(key) !== -1 || this.initialProperties.indexOf(key) !== -1;
+    const getValidKey = key => {
+        const isWrapperMember = this.wrapperMethods.indexOf(key) !== -1 || this.initialProperties.indexOf(key) !== -1;
 
         key = isWrapperMember ? API_KEY_PREFIX + key : key;
 
@@ -196,7 +196,7 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         // NOTE: http://w3c-test.org/webstorage/storage_key.html
         keyNum %= 0x100000000;
 
-        var addedProperties = getAddedProperties();
+        const addedProperties = getAddedProperties();
 
         return keyNum >= 0 && keyNum < addedProperties.length ? addedProperties[keyNum] : null;
     };

@@ -161,14 +161,14 @@ class Hammerhead {
     }
 
     on (evtName, handler) {
-        var eventOwner = this._getEventOwner(evtName);
+        const eventOwner = this._getEventOwner(evtName);
 
         if (eventOwner)
             eventOwner.on(evtName, handler);
     }
 
     off (evtName, handler) {
-        var eventOwner = this._getEventOwner(evtName);
+        const eventOwner = this._getEventOwner(evtName);
 
         if (eventOwner)
             eventOwner.off(evtName, handler);
@@ -178,14 +178,14 @@ class Hammerhead {
         // NOTE: For the 'about:blank' page, we perform url proxing only for the top window, 'location' object and links.
         // For images and iframes, we keep urls as they were.
         // See details in https://github.com/DevExpress/testcafe-hammerhead/issues/339
-        var destLocation = null;
-        var isIframe     = this.win.top !== this.win;
-        var winLocation  = this.win.location.toString();
+        let destLocation  = null;
+        const isIframe    = this.win.top !== this.win;
+        const winLocation = this.win.location.toString();
 
         if (isIframe)
             destLocation = winLocation;
         else {
-            var parsedProxyUrl = parseProxyUrl(winLocation);
+            const parsedProxyUrl = parseProxyUrl(winLocation);
 
             destLocation = parsedProxyUrl && parsedProxyUrl.destUrl;
         }
@@ -211,7 +211,7 @@ class Hammerhead {
     }
 }
 
-var hammerhead = new Hammerhead();
+const hammerhead = new Hammerhead();
 
 // NOTE: The 'load' event is raised after calling document.close for a same-domain iframe
 // So, we need to define the '%hammerhead%' variable as 'configurable' so that it can be redefined.

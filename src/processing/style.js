@@ -28,8 +28,8 @@ class StyleProcessor {
         if (!css || typeof css !== 'string' || IS_STYLE_SHEET_PROCESSED_RE.test(css))
             return css;
 
-        var prefix  = isStylesheetTable ? STYLESHEET_PROCESSING_START_COMMENT + '\n' : '';
-        var postfix = isStylesheetTable ? '\n' + STYLESHEET_PROCESSING_END_COMMENT : '';
+        const prefix  = isStylesheetTable ? STYLESHEET_PROCESSING_START_COMMENT + '\n' : '';
+        const postfix = isStylesheetTable ? '\n' + STYLESHEET_PROCESSING_END_COMMENT : '';
 
         // NOTE: Replace the :hover pseudo-class.
         css = css.replace(HOVER_PSEUDO_CLASS_RE, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']$1');
@@ -50,7 +50,7 @@ class StyleProcessor {
             .replace(STYLESHEET_PROCESSING_COMMENTS_RE, '');
 
         return this._replaceStylsheetUrls(css, url => {
-            var parsedProxyUrl = parseProxyUrl(url);
+            const parsedProxyUrl = parseProxyUrl(url);
 
             return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
         });
@@ -61,14 +61,14 @@ class StyleProcessor {
             CSS_URL_PROPERTY_VALUE_PATTERN,
             (match, prefix1, openQuote1, url1, closeQuote1, openQuote2, url2, closeQuote2, url3, postfix,
              prefix2, openQuote3, url4, closeQuote3, openQuote4, url5, closeQuote4) => {
-                var prefix     = prefix1 || prefix2;
-                var openQuote  = openQuote1 || openQuote2 || openQuote3 || openQuote4 || '';
-                var url        = url1 || url2 || url3 || url4 || url5;
-                var closeQuote = closeQuote1 || closeQuote2 || closeQuote3 || closeQuote4 || '';
+                const prefix     = prefix1 || prefix2;
+                const openQuote  = openQuote1 || openQuote2 || openQuote3 || openQuote4 || '';
+                const url        = url1 || url2 || url3 || url4 || url5;
+                const closeQuote = closeQuote1 || closeQuote2 || closeQuote3 || closeQuote4 || '';
 
                 postfix = postfix || '';
 
-                var processedUrl = isSpecialPage(url) ? url : processor(url);
+                const processedUrl = isSpecialPage(url) ? url : processor(url);
 
                 return url ? prefix + openQuote + processedUrl + closeQuote + postfix : match;
             }

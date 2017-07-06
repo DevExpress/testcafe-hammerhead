@@ -37,9 +37,9 @@ const SVG_XLINK_HREF_TAGS = [
 
 const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base', 'button'];
 const IFRAME_FLAG_TAGS = (() => {
-    var arr = [];
+    const arr = [];
 
-    for (var tagName of TARGET_ATTR_TAGS) {
+    for (const tagName of TARGET_ATTR_TAGS) {
         if (tagName !== 'base')
             arr.push(tagName);
     }
@@ -90,7 +90,7 @@ export default class DomProcessor {
     }
 
     _createProcessorPatterns (adapter) {
-        var selectors = {
+        const selectors = {
             HAS_HREF_ATTR: el => this.isUrlAttr(el, 'href'),
 
             HAS_SRC_ATTR: el => this.isUrlAttr(el, 'src'),
@@ -104,7 +104,7 @@ export default class DomProcessor {
             HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data'),
 
             HTTP_EQUIV_META: el => {
-                var tagName = adapter.getTagName(el);
+                const tagName = adapter.getTagName(el);
 
                 return tagName === 'meta' && adapter.hasAttr(el, 'http-equiv');
             },
@@ -122,7 +122,7 @@ export default class DomProcessor {
             HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
 
             IS_SANDBOXED_IFRAME: el => {
-                var tagName = adapter.getTagName(el);
+                const tagName = adapter.getTagName(el);
 
                 return (tagName === 'iframe' || tagName === 'frame') && adapter.hasAttr(el, 'sandbox');
             },
@@ -206,13 +206,13 @@ export default class DomProcessor {
         // property, the script is executed immediately (even if this happens before the script is appended to a
         // document). The JQuery element's 'is' function reads the 'document' property and the script is executed
         // too early. Therefore, we should test a clone of the element instead of the element itself. (B237231)
-        var elementForSelectorCheck = this.adapter.getElementForSelectorCheck(el);
+        const elementForSelectorCheck = this.adapter.getElementForSelectorCheck(el);
 
-        for (var i = 0; i < this.elementProcessorPatterns.length; i++) {
-            var pattern = this.elementProcessorPatterns[i];
+        for (let i = 0; i < this.elementProcessorPatterns.length; i++) {
+            const pattern = this.elementProcessorPatterns[i];
 
             if (pattern.selector(elementForSelectorCheck) && !this._isShadowElement(el)) {
-                for (var j = 0; j < pattern.elementProcessors.length; j++)
+                for (let j = 0; j < pattern.elementProcessors.length; j++)
                     pattern.elementProcessors[j].call(this, el, urlReplacer, pattern);
                 el[ELEMENT_PROCESSED] = true;
             }
@@ -221,7 +221,7 @@ export default class DomProcessor {
 
     // Utils
     getElementResourceType (el) {
-        var tagName = this.adapter.getTagName(el);
+        const tagName = this.adapter.getTagName(el);
 
         return urlUtils.getResourceTypeString({
             isIframe:     tagName === 'iframe' || tagName === 'frame' || this._isOpenLinkInIframe(el),
@@ -236,7 +236,7 @@ export default class DomProcessor {
     }
 
     isUrlAttr (el, attr, ns) {
-        var tagName = this.adapter.getTagName(el);
+        const tagName = this.adapter.getTagName(el);
 
         attr = attr ? attr.toLowerCase() : attr;
 
@@ -247,9 +247,9 @@ export default class DomProcessor {
     }
 
     getUrlAttr (el) {
-        var tagName = this.adapter.getTagName(el);
+        const tagName = this.adapter.getTagName(el);
 
-        for (var urlAttr of URL_ATTRS) {
+        for (const urlAttr of URL_ATTRS) {
             if (URL_ATTR_TAGS[urlAttr].indexOf(tagName) !== -1)
                 return urlAttr;
         }
@@ -258,13 +258,14 @@ export default class DomProcessor {
     }
 
     _isOpenLinkInIframe (el) {
-        var tagName = this.adapter.getTagName(el);
-        var target  = this.adapter.getAttr(el, 'target');
-        var rel     = this._getRelAttribute(el);
+        const tagName = this.adapter.getTagName(el);
+        const target  = this.adapter.getAttr(el, 'target');
+        const rel     = this._getRelAttribute(el);
 
         if (target !== '_top') {
-            var mustProcessTag = DomProcessor.isIframeFlagTag(tagName) || DomProcessor._isHtmlImportLink(tagName, rel);
-            var isNameTarget   = target ? target[0] !== '_' : false;
+            const mustProcessTag = DomProcessor.isIframeFlagTag(tagName) ||
+                                   DomProcessor._isHtmlImportLink(tagName, rel);
+            const isNameTarget   = target ? target[0] !== '_' : false;
 
             if (target === '_parent')
                 return mustProcessTag && !this.adapter.isTopParentIframe(el);
@@ -277,16 +278,16 @@ export default class DomProcessor {
     }
 
     _isShadowElement (el) {
-        var className = this.adapter.getClassName(el);
+        const className = this.adapter.getClassName(el);
 
         return typeof className === 'string' && className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
     }
 
     // Element processors
     _processAutoComplete (el) {
-        var storedUrlAttr = this.getStoredAttrName('autocomplete');
-        var processed     = this.adapter.hasAttr(el, storedUrlAttr);
-        var attrValue     = this.adapter.getAttr(el, processed ? storedUrlAttr : 'autocomplete');
+        const storedUrlAttr = this.getStoredAttrName('autocomplete');
+        const processed     = this.adapter.hasAttr(el, storedUrlAttr);
+        const attrValue     = this.adapter.getAttr(el, processed ? storedUrlAttr : 'autocomplete');
 
         if (!processed) {
             this.adapter.setAttr(el, storedUrlAttr, attrValue || attrValue ===
@@ -304,16 +305,16 @@ export default class DomProcessor {
     }
 
     _processJsAttr (el, attr, jsProtocol) {
-        var storedUrlAttr = this.getStoredAttrName(attr);
-        var processed     = this.adapter.hasAttr(el, storedUrlAttr);
-        var attrValue     = this.adapter.getAttr(el, processed ? storedUrlAttr : attr);
+        const storedUrlAttr = this.getStoredAttrName(attr);
+        const processed     = this.adapter.hasAttr(el, storedUrlAttr);
+        const attrValue     = this.adapter.getAttr(el, processed ? storedUrlAttr : attr);
 
-        var code    = jsProtocol ? attrValue.replace(JAVASCRIPT_PROTOCOL_REG_EX, '') : attrValue;
-        var matches = code.match(HTML_STRING_REG_EX);
+        const code    = jsProtocol ? attrValue.replace(JAVASCRIPT_PROTOCOL_REG_EX, '') : attrValue;
+        const matches = code.match(HTML_STRING_REG_EX);
 
-        var domProc = this;
+        const domProc = this;
 
-        var setAttributes = function (value, processedValue, processedAttrValue) {
+        const setAttributes = function (value, processedValue, processedAttrValue) {
             if (value !== processedValue) {
                 if (!processed)
                     domProc.adapter.setAttr(el, storedUrlAttr, attrValue);
@@ -323,11 +324,11 @@ export default class DomProcessor {
         };
 
         if (matches && jsProtocol) {
-            var html = matches[2];
+            const html = matches[2];
 
             this.emit(this.HTML_PROCESSING_REQUIRED_EVENT, html, processedHTML => {
                 /*eslint-disable no-script-url*/
-                var processedAttrValue = 'javascript:\'' + processedHTML.replace(/'/g, "\\'") + '\'';
+                const processedAttrValue = 'javascript:\'' + processedHTML.replace(/'/g, "\\'") + '\'';
 
                 /*eslint-enable no-script-url*/
                 setAttributes(html, processedHTML, processedAttrValue);
@@ -335,8 +336,8 @@ export default class DomProcessor {
 
         }
         else {
-            var processedCode      = processScript(code, false);
-            var processedAttrValue = processedCode;
+            const processedCode    = processScript(code, false);
+            let processedAttrValue = processedCode;
 
             /*eslint-disable no-script-url*/
             if (jsProtocol)
@@ -348,10 +349,10 @@ export default class DomProcessor {
     }
 
     _processEvtAttr (el) {
-        var events = this.adapter.EVENTS;
+        const events = this.adapter.EVENTS;
 
-        for (var i = 0; i < events.length; i++) {
-            var attrValue = this.adapter.getAttr(el, events[i]);
+        for (let i = 0; i < events.length; i++) {
+            const attrValue = this.adapter.getAttr(el, events[i]);
 
             if (attrValue)
                 this._processJsAttr(el, events[i], JAVASCRIPT_PROTOCOL_REG_EX.test(attrValue));
@@ -359,10 +360,10 @@ export default class DomProcessor {
     }
 
     _processMetaElement (el, urlReplacer, pattern) {
-        var httpEquivAttrValue = this.adapter.getAttr(el, 'http-equiv').toLowerCase();
+        const httpEquivAttrValue = this.adapter.getAttr(el, 'http-equiv').toLowerCase();
 
         if (httpEquivAttrValue === 'refresh') {
-            var attr = this.adapter.getAttr(el, pattern.urlAttr);
+            let attr = this.adapter.getAttr(el, pattern.urlAttr);
 
             attr = attr.replace(/(url=)(.*)$/i, (match, prefix, url) => prefix + urlReplacer(url));
 
@@ -376,10 +377,10 @@ export default class DomProcessor {
     }
 
     _processSandboxedIframe (el) {
-        var attrValue       = this.adapter.getAttr(el, 'sandbox');
-        var allowSameOrigin = attrValue.indexOf('allow-same-origin') !== -1;
-        var allowScripts    = attrValue.indexOf('allow-scripts') !== -1;
-        var storedAttr      = this.getStoredAttrName('sandbox');
+        let attrValue         = this.adapter.getAttr(el, 'sandbox');
+        const allowSameOrigin = attrValue.indexOf('allow-same-origin') !== -1;
+        const allowScripts    = attrValue.indexOf('allow-scripts') !== -1;
+        const storedAttr      = this.getStoredAttrName('sandbox');
 
         this.adapter.setAttr(el, storedAttr, attrValue);
 
@@ -392,12 +393,12 @@ export default class DomProcessor {
     }
 
     _processScriptElement (script) {
-        var scriptContent = this.adapter.getScriptContent(script);
+        const scriptContent = this.adapter.getScriptContent(script);
 
         if (!scriptContent)
             return;
 
-        var scriptProcessedOnServer = isScriptProcessed(scriptContent);
+        const scriptProcessedOnServer = isScriptProcessed(scriptContent);
 
         if (scriptProcessedOnServer)
             return;
@@ -405,16 +406,16 @@ export default class DomProcessor {
         // NOTE: We do not process scripts that are not executed during page load. We process scripts of types like
         // text/javascript, application/javascript etc. (a complete list of MIME types is specified in the w3c.org
         // html5 specification). If the type is not set, it is considered 'text/javascript' by default.
-        var scriptType         = this.adapter.getAttr(script, 'type');
-        var isExecutableScript = !scriptType || EXECUTABLE_SCRIPT_TYPES_REG_EX.test(scriptType);
+        const scriptType         = this.adapter.getAttr(script, 'type');
+        const isExecutableScript = !scriptType || EXECUTABLE_SCRIPT_TYPES_REG_EX.test(scriptType);
 
         if (isExecutableScript) {
-            var result              = scriptContent;
-            var commentPrefix       = '';
-            var commentPrefixMatch  = result.match(HTML_COMMENT_PREFIX_REG_EX);
-            var commentPostfix      = '';
-            var commentPostfixMatch = null;
-            var hasCDATA            = CDATA_REG_EX.test(result);
+            let result               = scriptContent;
+            let commentPrefix        = '';
+            const commentPrefixMatch = result.match(HTML_COMMENT_PREFIX_REG_EX);
+            let commentPostfix       = '';
+            let commentPostfixMatch  = null;
+            const hasCDATA           = CDATA_REG_EX.test(result);
 
             if (commentPrefixMatch) {
                 commentPrefix       = commentPrefixMatch[0];
@@ -441,14 +442,14 @@ export default class DomProcessor {
     }
 
     _processStyleAttr (el, urlReplacer) {
-        var style = this.adapter.getAttr(el, 'style');
+        const style = this.adapter.getAttr(el, 'style');
 
         if (style)
             this.adapter.setAttr(el, 'style', styleProcessor.process(style, urlReplacer));
     }
 
     _processStylesheetElement (el, urlReplacer) {
-        var content = this.adapter.getStyleContent(el);
+        let content = this.adapter.getStyleContent(el);
 
         if (content && urlReplacer) {
             content = styleProcessor.process(content, urlReplacer, true);
@@ -458,11 +459,11 @@ export default class DomProcessor {
     }
 
     _processTargetBlank (el) {
-        var storedTargetAttr = this.getStoredAttrName('target');
-        var processed        = this.adapter.hasAttr(el, storedTargetAttr);
+        const storedTargetAttr = this.getStoredAttrName('target');
+        const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
         if (!processed) {
-            var attrValue = this.adapter.getAttr(el, 'target');
+            let attrValue = this.adapter.getAttr(el, 'target');
 
             // NOTE: Value may have whitespace.
             attrValue = attrValue && attrValue.replace(/\s/g, '');
@@ -476,45 +477,45 @@ export default class DomProcessor {
 
     _processUrlAttrs (el, urlReplacer, pattern) {
         if (urlReplacer && pattern.urlAttr) {
-            var storedUrlAttr     = this.getStoredAttrName(pattern.urlAttr);
-            var resourceUrl       = this.adapter.getAttr(el, pattern.urlAttr);
-            var isSpecialPage     = urlUtils.isSpecialPage(resourceUrl);
-            var processedOnServer = this.adapter.hasAttr(el, storedUrlAttr);
+            const storedUrlAttr     = this.getStoredAttrName(pattern.urlAttr);
+            let resourceUrl         = this.adapter.getAttr(el, pattern.urlAttr);
+            const isSpecialPage     = urlUtils.isSpecialPage(resourceUrl);
+            const processedOnServer = this.adapter.hasAttr(el, storedUrlAttr);
 
             // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
                 if (urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) {
-                    var elTagName = this.adapter.getTagName(el);
-                    var isIframe  = elTagName === 'iframe' || elTagName === 'frame';
-                    var isScript  = elTagName === 'script';
-                    var isAnchor  = elTagName === 'a';
-                    var target    = this.adapter.getAttr(el, 'target');
+                    const elTagName = this.adapter.getTagName(el);
+                    const isIframe  = elTagName === 'iframe' || elTagName === 'frame';
+                    const isScript  = elTagName === 'script';
+                    const isAnchor  = elTagName === 'a';
+                    const target    = this.adapter.getAttr(el, 'target');
 
                     // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
                     // know what is the parent of the processed page (an iframe or the top window).
                     if (!this.adapter.needToProcessUrl(elTagName, target))
                         return;
 
-                    var resourceType      = this.getElementResourceType(el);
-                    var parsedResourceUrl = urlUtils.parseUrl(resourceUrl);
-                    var isRelativePath    = parsedResourceUrl.protocol !== 'file:' && !parsedResourceUrl.host;
-                    var proxyUrl          = '';
-                    var charsetAttrValue  = isScript && this.adapter.getAttr(el, 'charset');
+                    const resourceType      = this.getElementResourceType(el);
+                    const parsedResourceUrl = urlUtils.parseUrl(resourceUrl);
+                    const isRelativePath    = parsedResourceUrl.protocol !== 'file:' && !parsedResourceUrl.host;
+                    let proxyUrl            = '';
+                    const charsetAttrValue  = isScript && this.adapter.getAttr(el, 'charset');
 
                     // NOTE: Only a non-relative iframe src can be cross-domain.
                     if (isIframe && !isSpecialPage && !isRelativePath) {
-                        var location    = urlReplacer('/');
-                        var proxyUrlObj = urlUtils.parseProxyUrl(location);
-                        var destUrl     = proxyUrlObj.destUrl;
+                        const location    = urlReplacer('/');
+                        const proxyUrlObj = urlUtils.parseProxyUrl(location);
+                        const destUrl     = proxyUrlObj.destUrl;
 
                         if (!parsedResourceUrl.protocol)
                             resourceUrl = proxyUrlObj.destResourceInfo.protocol + resourceUrl;
 
                         // NOTE: Cross-domain iframe.
                         if (!this.adapter.sameOriginCheck(destUrl, resourceUrl)) {
-                            var proxyHostname      = urlUtils.parseUrl(location).hostname;
-                            var proxyPort          = this.adapter.getCrossDomainPort();
-                            var iframeResourceType = urlUtils.getResourceTypeString({ isIframe: true });
+                            const proxyHostname      = urlUtils.parseUrl(location).hostname;
+                            const proxyPort          = this.adapter.getCrossDomainPort();
+                            const iframeResourceType = urlUtils.getResourceTypeString({ isIframe: true });
 
                             proxyUrl = resourceUrl ? this.adapter.getProxyUrl(resourceUrl, {
                                 proxyHostname,
@@ -551,10 +552,10 @@ export default class DomProcessor {
     }
 
     _processSVGXLinkHrefAttr (el, urlReplacer, pattern) {
-        var attrValue = this.adapter.getAttr(el, pattern.urlAttr);
+        const attrValue = this.adapter.getAttr(el, pattern.urlAttr);
 
         if (urlUtils.HASH_RE.test(attrValue)) {
-            var storedUrlAttr = this.getStoredAttrName(pattern.urlAttr);
+            const storedUrlAttr = this.getStoredAttrName(pattern.urlAttr);
 
             this.adapter.setAttr(el, storedUrlAttr, attrValue);
         }

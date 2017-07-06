@@ -21,14 +21,14 @@ export default class Router {
     }
 
     _registerRoute (route, method, handler) {
-        var tokens            = route.split('/');
-        var isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
+        const tokens            = route.split('/');
+        const isRouteWithParams = tokens.some(token => PARAM_RE.test(token));
 
         if (isRouteWithParams)
             this._registerRouteWithParams(tokens, method, handler);
 
         else {
-            var isStatic = typeof handler !== 'function';
+            const isStatic = typeof handler !== 'function';
 
             if (isStatic) {
                 this._processStaticContent(handler);
@@ -44,9 +44,9 @@ export default class Router {
     }
 
     _registerRouteWithParams (tokens, method, handler) {
-        var paramNames = [];
-        var reParts    = tokens.map(token => {
-            var paramMatch = token.match(PARAM_RE);
+        const paramNames = [];
+        const reParts    = tokens.map(token => {
+            const paramMatch = token.match(PARAM_RE);
 
             if (paramMatch) {
                 paramNames.push(paramMatch[1]);
@@ -65,8 +65,8 @@ export default class Router {
     }
 
     _route (req, res, serverInfo) {
-        var routerQuery = `${req.method} ${getPathname(req.url)}`;
-        var route       = this.routes[routerQuery];
+        const routerQuery = `${req.method} ${getPathname(req.url)}`;
+        let route         = this.routes[routerQuery];
 
         if (route) {
             if (route.isStatic)
@@ -79,13 +79,13 @@ export default class Router {
         }
 
 
-        for (var i = 0; i < this.routesWithParams.length; i++) {
+        for (let i = 0; i < this.routesWithParams.length; i++) {
             route = this.routesWithParams[i];
 
-            var routeMatch = routerQuery.match(route.re);
+            const routeMatch = routerQuery.match(route.re);
 
             if (routeMatch) {
-                var params = buildRouteParamsMap(routeMatch, route.paramNames);
+                const params = buildRouteParamsMap(routeMatch, route.paramNames);
 
                 route.handler(req, res, serverInfo, params);
                 return true;

@@ -85,8 +85,8 @@ export default class CookieSync {
     }
 
     _sendQueue () {
-        var isAsyncRequest = this.useAsyncXhr;
-        var request        = XhrSandbox.createNativeXHR();
+        const isAsyncRequest = this.useAsyncXhr;
+        const request        = XhrSandbox.createNativeXHR();
 
         XhrSandbox.openNativeXhr(request, settings.get().cookieSyncUrl, isAsyncRequest);
 

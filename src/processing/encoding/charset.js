@@ -43,7 +43,7 @@ export default class Charset {
         if (resBuf.length < bom.length)
             return false;
 
-        for (var i = 0; i < bom.length; i++) {
+        for (let i = 0; i < bom.length; i++) {
             if (resBuf[i] !== bom[i])
                 return false;
         }
@@ -71,7 +71,7 @@ export default class Charset {
     }
 
     fromBOM (resBuf) {
-        for (var i = 0; i < CHARSET_BOM_LIST.length; i++) {
+        for (let i = 0; i < CHARSET_BOM_LIST.length; i++) {
             if (Charset._bufferStartsWithBOM(resBuf, CHARSET_BOM_LIST[i].bom))
                 return this.set(CHARSET_BOM_LIST[i].charset, PRIORITY_LIST.BOM);
         }
@@ -81,8 +81,8 @@ export default class Charset {
 
     fromContentType (contentTypeHeader) {
         if (this.priority <= PRIORITY_LIST.CONTENT_TYPE) {
-            var charsetMatch = contentTypeHeader && contentTypeHeader.match(CHARSET_RE);
-            var charset      = charsetMatch && charsetMatch[1];
+            const charsetMatch = contentTypeHeader && contentTypeHeader.match(CHARSET_RE);
+            const charset      = charsetMatch && charsetMatch[1];
 
             return this.set(getEncodingName(charset), PRIORITY_LIST.CONTENT_TYPE);
         }
@@ -102,17 +102,17 @@ export default class Charset {
     // Each <meta> descriptor should contain values of the "http-equiv", "content" and "charset" attributes.
     fromMeta (metas) {
         if (this.priority < PRIORITY_LIST.META && metas.length) {
-            var needPragma = null;
-            var charsetStr = null;
+            let needPragma = null;
+            let charsetStr = null;
 
             metas.forEach(attrs => {
-                var shouldParseFromContentAttr = needPragma !== false &&
-                                                 attrs.content &&
-                                                 attrs.httpEquiv &&
-                                                 attrs.httpEquiv.toLowerCase() === 'content-type';
+                const shouldParseFromContentAttr = needPragma !== false &&
+                                                   attrs.content &&
+                                                   attrs.httpEquiv &&
+                                                   attrs.httpEquiv.toLowerCase() === 'content-type';
 
                 if (shouldParseFromContentAttr) {
-                    var charsetMatch = attrs.content.match(META_CHARSET_RE);
+                    const charsetMatch = attrs.content.match(META_CHARSET_RE);
 
                     if (charsetMatch) {
                         needPragma = true;

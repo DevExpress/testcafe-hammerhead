@@ -17,7 +17,7 @@ export default {
     nodeTypes: [Syntax.CallExpression],
 
     condition: node => {
-        var callee = node.callee;
+        const callee = node.callee;
 
         if (callee.type === Syntax.MemberExpression) {
             if (callee.computed) {
@@ -33,8 +33,8 @@ export default {
     },
 
     run: node => {
-        var callee = node.callee;
-        var method = callee.computed ? callee.property : createStringLiteral(callee.property.name);
+        const callee = node.callee;
+        const method = callee.computed ? callee.property : createStringLiteral(callee.property.name);
 
         return createMethCallWrapper(callee.object, method, node.arguments);
     }

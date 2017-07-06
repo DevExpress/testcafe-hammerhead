@@ -9,7 +9,7 @@ function getAttrName (attr) {
 }
 
 function parseAttrName (attr) {
-    var parts = attr.split(ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR);
+    const parts = attr.split(ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR);
 
     if (parts.length === 2) {
         return {
@@ -24,7 +24,7 @@ function parseAttrName (attr) {
 }
 
 function findAttr (el, name) {
-    for (var i = 0; i < el.attrs.length; i++) {
+    for (let i = 0; i < el.attrs.length; i++) {
         if (getAttrName(el.attrs[i]) === name)
             return el.attrs[i];
     }
@@ -47,14 +47,14 @@ export function insertElement (el, parent) {
 }
 
 export function removeNode (node) {
-    var parent  = node.parentNode;
-    var elIndex = parent.childNodes.indexOf(node);
+    const parent  = node.parentNode;
+    const elIndex = parent.childNodes.indexOf(node);
 
     parent.childNodes.splice(elIndex, 1);
 }
 
 export function findElementsByTagNames (root, tagNames) {
-    var elements = {};
+    const elements = {};
 
     walkElements(root, el => {
         if (tagNames.indexOf(el.tagName) !== -1) {
@@ -84,7 +84,7 @@ export function createTextNode (content, parent) {
 }
 
 export function removeAttr (el, name) {
-    for (var i = 0; i < el.attrs.length; i++) {
+    for (let i = 0; i < el.attrs.length; i++) {
         if (getAttrName(el.attrs[i]) === name) {
             el.attrs.splice(i, 1);
 
@@ -94,13 +94,13 @@ export function removeAttr (el, name) {
 }
 
 export function getAttr (el, name) {
-    var attr = findAttr(el, name);
+    const attr = findAttr(el, name);
 
     return attr ? attr.value : null;
 }
 
 export function setAttr (el, name, value) {
-    var attr = findAttr(el, name);
+    const attr = findAttr(el, name);
 
     if (attr) {
         attr.value = value;
@@ -108,8 +108,8 @@ export function setAttr (el, name, value) {
         return value;
     }
 
-    var parsedAttrName = parseAttrName(name);
-    var newAttr        = { name: parsedAttrName.name, value: value };
+    const parsedAttrName = parseAttrName(name);
+    const newAttr        = { name: parsedAttrName.name, value: value };
 
     if (parsedAttrName.prefix && NAMESPACE_PREFIX_MAP[parsedAttrName.prefix])
         newAttr.namespace = NAMESPACE_PREFIX_MAP[parsedAttrName.prefix];

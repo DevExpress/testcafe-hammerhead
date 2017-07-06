@@ -8,11 +8,11 @@ export const CRLF = new Buffer([CR, LF]);
 // API
 export function createLineIterator (buffer) {
     return {
-        [Symbol.iterator]: function*() {
-            var lastIdx = buffer.length - 1;
-            var start   = 0;
+        [Symbol.iterator]: function* () {
+            const lastIdx = buffer.length - 1;
+            let start     = 0;
 
-            for (var i = 0; i < buffer.length; i++) {
+            for (let i = 0; i < buffer.length; i++) {
                 if (i === lastIdx)
                     yield buffer.slice(start);
 
@@ -36,7 +36,7 @@ export function equals (buffer1, buffer2) {
     if (buffer1.length !== buffer2.length)
         return false;
 
-    for (var i = 0; i < buffer1.length; i++) {
+    for (let i = 0; i < buffer1.length; i++) {
         if (buffer1[i] !== buffer2[i])
             return false;
     }

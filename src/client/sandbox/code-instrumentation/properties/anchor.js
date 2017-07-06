@@ -1,12 +1,12 @@
 import { parseProxyUrl } from '../../../utils/url';
 import nativeMethods from '../../native-methods';
 
-var anchor      = nativeMethods.createElement.call(document, 'a');
-var emptyAnchor = nativeMethods.createElement.call(document, 'a');
+const anchor      = nativeMethods.createElement.call(document, 'a');
+const emptyAnchor = nativeMethods.createElement.call(document, 'a');
 
 export function getAnchorProperty (el, prop) {
     if (el.href) {
-        var parsedProxyUrl = parseProxyUrl(el.href);
+        const parsedProxyUrl = parseProxyUrl(el.href);
 
         anchor.href = parsedProxyUrl ? parsedProxyUrl.destUrl : el.href;
 

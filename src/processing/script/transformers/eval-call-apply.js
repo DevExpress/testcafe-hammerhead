@@ -26,7 +26,7 @@ export default {
             return false;
 
         if (node.callee.type === Syntax.MemberExpression && INVOCATION_FUNC_NAME_RE.test(node.callee.property.name)) {
-            var obj = node.callee.object;
+            const obj = node.callee.object;
 
             // obj.eval.<meth>(), obj[eval].<meth>(),
             if (obj.type === Syntax.MemberExpression && (obj.property.value || obj.property.name) === 'eval')
@@ -41,8 +41,8 @@ export default {
     },
 
     run: node => {
-        var isApply = node.callee.property.name === 'apply';
-        var newArg  = createProcessScriptMethCall(node.arguments[1], isApply);
+        const isApply = node.callee.property.name === 'apply';
+        const newArg  = createProcessScriptMethCall(node.arguments[1], isApply);
 
         replaceNode(node.arguments[1], newArg, node, 'arguments');
 

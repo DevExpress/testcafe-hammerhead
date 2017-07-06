@@ -6,19 +6,19 @@ const TRAILING_SEMICOLON_REGEX = /;+$/;
 export function parse (str) {
     str = trim(str);
 
-    var trailingSemicolonCheck = TRAILING_SEMICOLON_REGEX.exec(str);
+    const trailingSemicolonCheck = TRAILING_SEMICOLON_REGEX.exec(str);
 
     if (trailingSemicolonCheck)
         str = str.slice(0, trailingSemicolonCheck.index);
 
-    var firstSemicolonIdx     = str.indexOf(';');
-    var keyValueString        = firstSemicolonIdx > -1 ? str.substr(0, firstSemicolonIdx) : str;
-    var keyValueParsingResult = COOKIE_PAIR_REGEX.exec(keyValueString);
+    const firstSemicolonIdx     = str.indexOf(';');
+    const keyValueString        = firstSemicolonIdx > -1 ? str.substr(0, firstSemicolonIdx) : str;
+    const keyValueParsingResult = COOKIE_PAIR_REGEX.exec(keyValueString);
 
     if (!keyValueParsingResult)
         return null;
 
-    var parsedCookie = {
+    const parsedCookie = {
         key:   keyValueParsingResult[1] ? trim(keyValueParsingResult[2]) : '',
         value: trim(keyValueParsingResult[3])
     };
@@ -26,18 +26,18 @@ export function parse (str) {
     if (firstSemicolonIdx === -1)
         return parsedCookie;
 
-    var attributesString = trim(str.slice(firstSemicolonIdx).replace(/^\s*;\s*/, ''));
+    const attributesString = trim(str.slice(firstSemicolonIdx).replace(/^\s*;\s*/, ''));
 
     if (attributesString.length === 0)
         return parsedCookie;
 
-    var attrValStrings = attributesString.split(/\s*;\s*/);
+    const attrValStrings = attributesString.split(/\s*;\s*/);
 
     while (attrValStrings.length) {
-        var attrValueStr = attrValStrings.shift();
-        var separatorIdx = attrValueStr.indexOf('=');
-        var key          = null;
-        var value        = null;
+        const attrValueStr = attrValStrings.shift();
+        const separatorIdx = attrValueStr.indexOf('=');
+        let key            = null;
+        let value          = null;
 
         if (separatorIdx === -1)
             key = attrValueStr;
@@ -74,14 +74,14 @@ export function parse (str) {
 }
 
 export function format (parsedCookie) {
-    var cookieStr = parsedCookie.value || '';
+    let cookieStr = parsedCookie.value || '';
 
     if (parsedCookie.key !== '')
         cookieStr = parsedCookie.key + '=' + cookieStr;
 
     cookieStr += ';';
 
-    for (var attrName in parsedCookie) {
+    for (const attrName in parsedCookie) {
         if (parsedCookie.hasOwnProperty(attrName)) {
             if (attrName !== 'key' && attrName !== 'value') {
                 cookieStr += attrName;
@@ -99,10 +99,10 @@ export function format (parsedCookie) {
 }
 
 export function get (document, name) {
-    var cookies = document.cookie.split(';');
+    const cookies = document.cookie.split(';');
 
-    for (var i = 0; i < cookies.length; i++) {
-        var cookie = trim(cookies[i]);
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = trim(cookies[i]);
 
         if (cookie.indexOf(name + '=') === 0 || cookie === name)
             return cookie;

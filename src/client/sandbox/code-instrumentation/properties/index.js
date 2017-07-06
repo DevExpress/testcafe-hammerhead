@@ -29,10 +29,10 @@ import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-de
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
 function checkElementTextProperties (el) {
-    var result         = {};
-    var textProperties = ['innerHTML', 'outerHTML', 'innerText', 'textContent'];
+    const result         = {};
+    const textProperties = ['innerHTML', 'outerHTML', 'innerText', 'textContent'];
 
-    for (var textProperty of textProperties)
+    for (const textProperty of textProperties)
         result[textProperty] = el[textProperty] !== void 0;
 
     return result;
@@ -62,7 +62,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     }
 
     static _getUrlAttr (el, attr) {
-        var attrValue = nativeMethods.getAttribute.call(el, attr);
+        const attrValue = nativeMethods.getAttribute.call(el, attr);
 
         if (attrValue === '' || attrValue === null && attr === 'action' && emptyActionAttrFallbacksToTheLocation)
             return destLocation.get();
@@ -77,9 +77,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     }
 
     static _getShadowUICollectionLength (collection) {
-        var shadowUIElementCount = 0;
+        let shadowUIElementCount = 0;
 
-        for (var i = 0; i < collection.length; i++) {
+        for (let i = 0; i < collection.length; i++) {
             if (domUtils.isShadowUIElement(collection[i]))
                 shadowUIElementCount++;
         }
@@ -91,7 +91,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     }
 
     static _setTextProp (el, propName, text) {
-        var processedText = text !== null && text !== void 0 ? String(text) : text;
+        const processedText = text !== null && text !== void 0 ? String(text) : text;
 
         if (processedText) {
             if (domUtils.isScriptElement(el))
@@ -128,7 +128,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     }
 
     _createPropertyAccessors (window, document) {
-        var storedDomain = '';
+        let storedDomain = '';
 
         return {
             action: {
@@ -270,7 +270,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (LocationAccessorsInstrumentation.isLocationWrapper(el))
                         return el.href;
                     else if (isStyleSheet(el)) {
-                        var parsedUrl = urlUtils.parseProxyUrl(el.href);
+                        const parsedUrl = urlUtils.parseProxyUrl(el.href);
 
                         return parsedUrl ? parsedUrl.destUrl : el.href;
                     }
@@ -302,10 +302,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 },
 
                 set: (el, value) => {
-                    var isStyleEl  = domUtils.isStyleElement(el);
-                    var isScriptEl = domUtils.isScriptElement(el);
+                    const isStyleEl  = domUtils.isStyleElement(el);
+                    const isScriptEl = domUtils.isScriptElement(el);
 
-                    var processedValue = value !== null && value !== void 0 ? String(value) : value;
+                    let processedValue = value !== null && value !== void 0 ? String(value) : value;
 
                     if (processedValue) {
                         if (isStyleEl)
@@ -319,7 +319,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     el.innerHTML = processedValue;
 
                     if (this.document.body === el) {
-                        var shadowUIRoot = this.shadowUI.getRoot();
+                        const shadowUIRoot = this.shadowUI.getRoot();
 
                         ShadowUI.markElementAndChildrenAsShadow(shadowUIRoot);
                     }
@@ -330,8 +330,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (isStyleEl || isScriptEl)
                         return value;
 
-                    var parentDocument = domUtils.findDocument(el);
-                    var parentWindow   = parentDocument ? parentDocument.defaultView : null;
+                    const parentDocument = domUtils.findDocument(el);
+                    const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
                     // NOTE: For the iframe with an empty src.
                     if (parentWindow && parentWindow !== window &&
@@ -386,11 +386,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => cleanUpHtml(el.outerHTML, el.parentNode && el.parentNode.tagName),
 
                 set: (el, value) => {
-                    var parentEl = el.parentNode;
+                    const parentEl = el.parentNode;
 
                     if (parentEl && value !== null && value !== void 0) {
-                        var parentDocument = domUtils.findDocument(parentEl);
-                        var parentWindow   = parentDocument ? parentDocument.defaultView : null;
+                        const parentDocument = domUtils.findDocument(parentEl);
+                        const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
                         el.outerHTML = processHtml('' + value, parentEl.tagName);
 
@@ -456,20 +456,20 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: owner => domUtils.isDocument(owner) || domUtils.isWindow(owner),
 
                 get: owner => {
-                    var locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(owner);
+                    const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(owner);
 
                     if (locationWrapper)
                         return locationWrapper;
 
-                    var wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                    const wnd = domUtils.isWindow(owner) ? owner : owner.defaultView;
 
                     return new LocationWrapper(wnd);
                 },
 
                 set: (owner, location) => {
                     if (typeof location === 'string') {
-                        var ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
-                        var locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
+                        const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                        const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
                         if (locationWrapper)
                             locationWrapper.href = location;
@@ -550,7 +550,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: domUtils.isDocument,
 
                 get: doc => {
-                    var proxyUrl = urlUtils.parseProxyUrl(doc.referrer);
+                    const proxyUrl = urlUtils.parseProxyUrl(doc.referrer);
 
                     return proxyUrl ? proxyUrl.destUrl : '';
                 },
@@ -634,7 +634,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: doc => {
                     if (doc.baseURI) {
-                        var parsedURI = urlUtils.parseProxyUrl(doc.baseURI);
+                        const parsedURI = urlUtils.parseProxyUrl(doc.baseURI);
 
                         if (parsedURI)
                             return parsedURI.destUrl;
@@ -643,7 +643,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     return doc.baseURI;
                 },
                 set: (doc, url) => {
-                    var result = doc.baseURI = url;
+                    const result = doc.baseURI = url;
 
                     return result;
                 }
@@ -853,7 +853,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var accessors = this._createPropertyAccessors(window, window.document);
+        const accessors = this._createPropertyAccessors(window, window.document);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
@@ -877,7 +877,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
 
-                var ownerSetPropertyInstruction = PropertyAccessorsInstrumentation._getSetPropertyInstructionByOwner(owner, window);
+                const ownerSetPropertyInstruction = PropertyAccessorsInstrumentation._getSetPropertyInstructionByOwner(owner, window);
 
                 if (ownerSetPropertyInstruction)
                     return ownerSetPropertyInstruction(owner, propName, value);

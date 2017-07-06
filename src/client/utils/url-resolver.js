@@ -6,9 +6,9 @@ const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
 
 export default {
     _createResolver (doc) {
-        var htmlDocument = doc.implementation.createHTMLDocument('title');
-        var a            = nativeMethods.createElement.call(htmlDocument, 'a');
-        var base         = nativeMethods.createElement.call(htmlDocument, 'base');
+        const htmlDocument = doc.implementation.createHTMLDocument('title');
+        const a            = nativeMethods.createElement.call(htmlDocument, 'a');
+        const base         = nativeMethods.createElement.call(htmlDocument, 'base');
 
         nativeMethods.appendChild.call(htmlDocument.body, a);
         nativeMethods.appendChild.call(htmlDocument.head, base);
@@ -36,7 +36,7 @@ export default {
     },
 
     resolve (url, doc) {
-        var resolver = this.getResolverElement(doc);
+        const resolver = this.getResolverElement(doc);
 
         if (url === null)
             nativeMethods.removeAttribute.call(resolver, 'href');
@@ -46,7 +46,7 @@ export default {
             // NOTE: It looks like a Chrome bug: in a nested iframe without src (when an iframe is placed into another
             // iframe) you cannot set a relative link href while the iframe loading is not completed. So, we'll do it with
             // the parent's urlResolver Safari demonstrates similar behavior, but urlResolver.href has a relative URL value.
-            var needUseParentResolver = url && isIframeWithoutSrc && window.parent && window.parent.document &&
+            const needUseParentResolver = url && isIframeWithoutSrc && window.parent && window.parent.document &&
                                         (!resolver.href || resolver.href.indexOf('/') === 0);
 
             if (needUseParentResolver)
@@ -57,17 +57,17 @@ export default {
     },
 
     updateBase (url, doc) {
-        var resolverDocument = this._getResolver(doc);
-        var baseElement      = nativeMethods.elementGetElementsByTagName.call(resolverDocument.head, 'base')[0];
+        const resolverDocument = this._getResolver(doc);
+        const baseElement      = nativeMethods.elementGetElementsByTagName.call(resolverDocument.head, 'base')[0];
 
         url = url || destLocation.get();
 
-        var parsedUrl             = parseUrl(url);
-        var isRelativeUrl         = parsedUrl.protocol !== 'file:' && !parsedUrl.host;
-        var isProtocolRelativeUrl = /^\/\//.test(url) && !!parsedUrl.host;
+        const parsedUrl             = parseUrl(url);
+        const isRelativeUrl         = parsedUrl.protocol !== 'file:' && !parsedUrl.host;
+        const isProtocolRelativeUrl = /^\/\//.test(url) && !!parsedUrl.host;
 
         if (isRelativeUrl || isProtocolRelativeUrl) {
-            var destinationLocation = destLocation.get();
+            const destinationLocation = destLocation.get();
 
             this.updateBase(destinationLocation, doc);
             url = this.resolve(url, doc);
@@ -77,13 +77,13 @@ export default {
     },
 
     getBaseUrl (doc) {
-        var baseElement = nativeMethods.elementGetElementsByTagName.call(this._getResolver(doc).head, 'base')[0];
+        const baseElement = nativeMethods.elementGetElementsByTagName.call(this._getResolver(doc).head, 'base')[0];
 
         return nativeMethods.getAttribute.call(baseElement, 'href');
     },
 
     changeUrlPart (url, prop, value, doc) {
-        var resolver  = this.getResolverElement(doc);
+        const resolver  = this.getResolverElement(doc);
 
         resolver.href  = url;
         resolver[prop] = value;

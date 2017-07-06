@@ -18,8 +18,8 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _isUninitializedIframeWithoutSrc (doc) {
-        var wnd          = doc.defaultView;
-        var frameElement = getFrameElement(wnd);
+        const wnd          = doc.defaultView;
+        const frameElement = getFrameElement(wnd);
 
         return wnd !== wnd.top && frameElement && isIframeWithoutSrc(frameElement) &&
                !IframeSandbox.isIframeInitialized(frameElement);
@@ -34,13 +34,13 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _overridedDocumentWrite (args, ln) {
-        var shouldEmitEvents = (this.readyStateForIE || this.document.readyState) !== 'loading' &&
+        const shouldEmitEvents = (this.readyStateForIE || this.document.readyState) !== 'loading' &&
                                this.document.readyState !== 'uninitialized';
 
         if (shouldEmitEvents)
             this._beforeDocumentCleaned();
 
-        var result = this.documentWriter.write(args, ln, shouldEmitEvents);
+        const result = this.documentWriter.write(args, ln, shouldEmitEvents);
 
         if (!shouldEmitEvents)
             // NOTE: B234357
@@ -56,7 +56,7 @@ export default class DocumentSandbox extends SandboxBase {
         super.attach(window, document);
 
         // NOTE: https://connect.microsoft.com/IE/feedback/details/792880/document-readystat
-        var frameElement = getFrameElement(window);
+        const frameElement = getFrameElement(window);
 
         if (frameElement && !isIframeWithoutSrc(frameElement) && (isIE9 || isIE10)) {
             this.readyStateForIE = 'loading';
@@ -66,15 +66,15 @@ export default class DocumentSandbox extends SandboxBase {
             });
         }
 
-        var documentSandbox = this;
+        const documentSandbox = this;
 
         document.open = (...args) => {
-            var isUninitializedIframe = this._isUninitializedIframeWithoutSrc(document);
+            const isUninitializedIframe = this._isUninitializedIframeWithoutSrc(document);
 
             if (!isUninitializedIframe)
                 this._beforeDocumentCleaned();
 
-            var result = nativeMethods.documentOpen.apply(document, args);
+            const result = nativeMethods.documentOpen.apply(document, args);
 
             if (!isUninitializedIframe)
                 this.nodeSandbox.mutation.onDocumentCleaned({ window, document });
@@ -97,7 +97,7 @@ export default class DocumentSandbox extends SandboxBase {
             if (typeof document.designMode === 'string' && document.designMode.toLowerCase() === 'on')
                 ShadowUI.removeSelfRemovingScripts(document);
 
-            var result = nativeMethods.documentClose.apply(document, args);
+            const result = nativeMethods.documentClose.apply(document, args);
 
             if (!this._isUninitializedIframeWithoutSrc(document))
                 this._onDocumentClosed();
@@ -106,7 +106,7 @@ export default class DocumentSandbox extends SandboxBase {
         };
 
         document.createElement = (...args) => {
-            var el = nativeMethods.createElement.apply(document, args);
+            const el = nativeMethods.createElement.apply(document, args);
 
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
             this.nodeSandbox.processNodes(el);
@@ -115,7 +115,7 @@ export default class DocumentSandbox extends SandboxBase {
         };
 
         document.createElementNS = (...args) => {
-            var el = nativeMethods.createElementNS.apply(document, args);
+            const el = nativeMethods.createElementNS.apply(document, args);
 
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
             this.nodeSandbox.processNodes(el);
@@ -132,7 +132,7 @@ export default class DocumentSandbox extends SandboxBase {
         };
 
         document.createDocumentFragment = (...args) => {
-            var fragment = nativeMethods.createDocumentFragment.apply(document, args);
+            const fragment = nativeMethods.createDocumentFragment.apply(document, args);
 
             documentSandbox.nodeSandbox.processNodes(fragment);
 

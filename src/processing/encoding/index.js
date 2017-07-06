@@ -2,11 +2,11 @@ import zlib from 'zlib';
 import charsetEncoder from 'iconv-lite';
 import promisify from '../../utils/promisify';
 
-var gzip       = promisify(zlib.gzip);
-var deflate    = promisify(zlib.deflate);
-var gunzip     = promisify(zlib.gunzip);
-var inflate    = promisify(zlib.inflate);
-var inflateRaw = promisify(zlib.inflateRaw);
+const gzip       = promisify(zlib.gzip);
+const deflate    = promisify(zlib.deflate);
+const gunzip     = promisify(zlib.gunzip);
+const inflate    = promisify(zlib.inflate);
+const inflateRaw = promisify(zlib.inflateRaw);
 
 const GZIP_CONTENT_ENCODING    = 'gzip';
 const DEFLATE_CONTENT_ENCODING = 'deflate';

@@ -9,7 +9,7 @@ import replaceNode from './replace-node';
 
 // Transform:
 // for(obj[prop] in src), for(obj.prop in src) -->
-// for(var __set$temp in src) { obj[prop] = __set$temp; }
+// for(const __set$temp in src) { obj[prop] = __set$temp; }
 
 export default {
     nodeReplacementRequireTransform: false,
@@ -19,9 +19,9 @@ export default {
     condition: node => node.left.type === Syntax.MemberExpression,
 
     run: node => {
-        var tempVarAst         = createTempVarIdentifier();
-        var varDeclaration     = createVarDeclaration(tempVarAst);
-        var assignmentExprStmt = createAssignmentExprStmt(node.left, tempVarAst);
+        const tempVarAst         = createTempVarIdentifier();
+        const varDeclaration     = createVarDeclaration(tempVarAst);
+        const assignmentExprStmt = createAssignmentExprStmt(node.left, tempVarAst);
 
         replaceNode(null, assignmentExprStmt, node.body, 'body');
         replaceNode(node.left, varDeclaration, node, 'left');

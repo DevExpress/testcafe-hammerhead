@@ -3,8 +3,8 @@ import { getTopSameDomainWindow } from '../utils/dom';
 const WINDOWS_STORAGE = 'hammerhead|windows-storage';
 
 function getStorage () {
-    var topSameDomainWindow = getTopSameDomainWindow(window);
-    var storage             = topSameDomainWindow[WINDOWS_STORAGE];
+    const topSameDomainWindow = getTopSameDomainWindow(window);
+    let storage               = topSameDomainWindow[WINDOWS_STORAGE];
 
     if (!storage) {
         storage                              = [];
@@ -15,9 +15,9 @@ function getStorage () {
 }
 
 export function add (wnd) {
-    var storage = getStorage();
+    const storage = getStorage();
 
-    for (var i = storage.length - 1; i >= 0; i--) {
+    for (let i = storage.length - 1; i >= 0; i--) {
         try {
             if (storage[i] === wnd)
                 return;
@@ -31,17 +31,17 @@ export function add (wnd) {
 }
 
 export function remove (wnd) {
-    var storage = getStorage();
-    var index   = storage.indexOf(wnd);
+    const storage = getStorage();
+    const index   = storage.indexOf(wnd);
 
     if (index !== -1)
         storage.splice(index, 1);
 }
 
 export function findByName (name) {
-    var storage = getStorage();
+    const storage = getStorage();
 
-    for (var i = 0; i < storage.length; i++) {
+    for (let i = 0; i < storage.length; i++) {
         try {
             if (storage[i].name === name)
                 return storage[i];

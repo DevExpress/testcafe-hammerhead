@@ -21,7 +21,7 @@ function transformAuthorizationHeader (src, ctx) {
 }
 
 function transformCookieForFetch (src, ctx) {
-    var requestCredentials = ctx.req.headers[XHR_HEADERS.fetchRequestCredentials];
+    const requestCredentials = ctx.req.headers[XHR_HEADERS.fetchRequestCredentials];
 
     switch (requestCredentials) {
         case 'omit':
@@ -45,7 +45,7 @@ function transformCookie (src, ctx) {
 }
 
 // Request headers
-var requestTransforms = Object.assign({
+const requestTransforms = Object.assign({
     'host':                                (src, ctx) => ctx.dest.host,
     'referer':                             (src, ctx) => ctx.dest.referer || void 0,
     'origin':                              (src, ctx) => ctx.dest.reqOrigin || src,
@@ -62,13 +62,13 @@ var requestTransforms = Object.assign({
     return obj;
 }, {}));
 
-var requestForced = {
+const requestForced = {
     'cookie': (src, ctx) => transformCookie(ctx.session.cookies.getHeader(ctx.dest.url) || void 0, ctx),
 
     // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
     // So, if the request is actually cross-domain, we need to force the 'Origin' header to support CORS. (B234325)
     'origin': (src, ctx) => {
-        var force = (ctx.isXhr || ctx.isFetch) && !src && ctx.dest.domain !== ctx.dest.reqOrigin;
+        const force = (ctx.isXhr || ctx.isFetch) && !src && ctx.dest.domain !== ctx.dest.reqOrigin;
 
         return force ? ctx.dest.reqOrigin : src;
     }
@@ -76,10 +76,10 @@ var requestForced = {
 
 
 // Response headers
-var responseTransforms = {
+const responseTransforms = {
     'set-cookie': (src, ctx) => {
         if (src) {
-            var cookies = Array.isArray(src) ? src : [src];
+            let cookies = Array.isArray(src) ? src : [src];
 
             cookies = cookies.filter(cookieStr => !!cookieStr);
             ctx.session.cookies.setByServer(ctx.dest.url, cookies);
@@ -110,15 +110,15 @@ var responseTransforms = {
     'location': (src, ctx) => {
         // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
         // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.
-        var { host }      = parseUrl(src);
-        var isCrossDomain = false;
+        const { host }    = parseUrl(src);
+        let isCrossDomain = false;
 
         if (!host)
             src = resolveUrl(ctx.dest.url, src);
 
         if (ctx.isIframe && ctx.dest.referer) {
-            var isCrossDomainLocationBeforeRedirect = !urlUtils.sameOriginCheck(ctx.dest.referer, ctx.dest.url);
-            var isCrossDomainLocationAfterRedirect  = !urlUtils.sameOriginCheck(ctx.dest.referer, src);
+            const isCrossDomainLocationBeforeRedirect = !urlUtils.sameOriginCheck(ctx.dest.referer, ctx.dest.url);
+            const isCrossDomainLocationAfterRedirect  = !urlUtils.sameOriginCheck(ctx.dest.referer, src);
 
             isCrossDomain = isCrossDomainLocationBeforeRedirect !== isCrossDomainLocationAfterRedirect;
         }
@@ -132,8 +132,8 @@ var responseTransforms = {
 
         src = src.replace('ALLOW-FROM', '').trim();
 
-        var isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
-        var proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
+        const isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
+        const proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 
         return 'ALLOW-FROM ' + proxiedUrl;
     },
@@ -141,11 +141,11 @@ var responseTransforms = {
     'sourcemap': skip
 };
 
-var responseForced = {
+const responseForced = {
     [XHR_HEADERS.setCookie]: (src, ctx) => {
         if (ctx.isXhr && ctx.destRes && ctx.destRes.headers && ctx.destRes.headers['set-cookie']) {
-            var setCookieHeader = ctx.destRes.headers['set-cookie'];
-            var cookieArr       = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
+            const setCookieHeader = ctx.destRes.headers['set-cookie'];
+            const cookieArr       = Array.isArray(setCookieHeader) ? setCookieHeader : [setCookieHeader];
 
             return JSON.stringify(cookieArr);
         }
@@ -156,12 +156,12 @@ var responseForced = {
 
 // Transformation routine
 function transformHeaders (srcHeaders, ctx, transformList, forced) {
-    var destHeaders = {};
+    const destHeaders = {};
 
-    var applyTransform = function (headerName, headers, transforms) {
-        var src       = headers[headerName];
-        var transform = transforms[headerName];
-        var dest      = transform ? transform(src, ctx) : src;
+    const applyTransform = function (headerName, headers, transforms) {
+        const src       = headers[headerName];
+        const transform = transforms[headerName];
+        const dest      = transform ? transform(src, ctx) : src;
 
         if (dest !== void 0)
             destHeaders[headerName] = dest;

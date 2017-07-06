@@ -1,6 +1,6 @@
 // OPTIMIZATION: http://jsperf.com/call-apply-optimization
 export default function fastApply (owner, methName, args) {
-    var meth = owner[methName];
+    const meth = owner[methName];
 
     switch (args.length) {
         case 1:

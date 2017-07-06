@@ -32,7 +32,7 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var locationWrapper = new LocationWrapper(window);
+        const locationWrapper = new LocationWrapper(window);
 
         locationWrapper.on(locationWrapper.CHANGED_EVENT, e => this.emit(this.LOCATION_CHANGED_EVENT, e));
 

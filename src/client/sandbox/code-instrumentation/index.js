@@ -56,12 +56,12 @@ export default class CodeInstrumentation extends SandboxBase {
             value: (script, isApply) => {
                 if (isApply) {
                     if (script && script.length && typeof script[0] === 'string') {
-                        var args = [processScript(script[0], false)];
+                        const args = [processScript(script[0], false)];
 
                         // NOTE: shallow-copy the remaining args. Don't use arr.slice(),
                         // since it may leak the arguments object.
                         // See: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Functions/arguments
-                        for (var i = 1; i < script.length; i++)
+                        for (let i = 1; i < script.length; i++)
                             args.push(script[i]);
 
                         return args;

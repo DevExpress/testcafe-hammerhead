@@ -7,8 +7,8 @@ import * as urlUtil from '../../utils/url';
 import { encodeContent, decodeContent } from '../encoding';
 import { platform } from 'os';
 
-const IS_WIN = platform() === 'win32';
-const DISK_RE  = /^[A-Za-z]:/;
+const IS_WIN  = platform() === 'win32';
+const DISK_RE = /^[A-Za-z]:/;
 
 function getResourceUrlReplacer (ctx) {
     return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
@@ -22,9 +22,9 @@ function getResourceUrlReplacer (ctx) {
         baseUrl     = baseUrl ? url.resolve(ctx.dest.url, baseUrl) : '';
         resourceUrl = urlUtil.prepareUrl(resourceUrl);
 
-        var resolvedUrl = url.resolve(baseUrl || ctx.dest.url, resourceUrl);
-        var isScript    = urlUtil.parseResourceType(resourceType).isScript;
-        var charsetStr  = charsetAttrValue || isScript && ctx.contentInfo.charset.get();
+        let resolvedUrl  = url.resolve(baseUrl || ctx.dest.url, resourceUrl);
+        const isScript   = urlUtil.parseResourceType(resourceType).isScript;
+        const charsetStr = charsetAttrValue || isScript && ctx.contentInfo.charset.get();
 
         resolvedUrl = urlUtil.ensureTrailingSlash(resourceUrl, resolvedUrl);
 
@@ -36,18 +36,18 @@ function getResourceUrlReplacer (ctx) {
 }
 
 export async function process (ctx) {
-    var processors  = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
-    var body        = ctx.destResBody;
-    var contentInfo = ctx.contentInfo;
-    var encoding    = contentInfo.encoding;
-    var charset     = contentInfo.charset;
+    const processors  = [pageProcessor, manifestProcessor, scriptProcessor, stylesheetProcessor];
+    const body        = ctx.destResBody;
+    const contentInfo = ctx.contentInfo;
+    const encoding    = contentInfo.encoding;
+    const charset     = contentInfo.charset;
 
-    var decoded = await decodeContent(body, encoding, charset);
+    const decoded = await decodeContent(body, encoding, charset);
 
-    for (var i = 0; i < processors.length; i++) {
+    for (let i = 0; i < processors.length; i++) {
         if (processors[i].shouldProcessResource(ctx)) {
-            var urlReplacer = getResourceUrlReplacer(ctx);
-            var processed   = processors[i].processResource(decoded, ctx, charset, urlReplacer);
+            const urlReplacer = getResourceUrlReplacer(ctx);
+            const processed   = processors[i].processResource(decoded, ctx, charset, urlReplacer);
 
             if (processed === pageProcessor.RESTART_PROCESSING)
                 return await process(ctx);

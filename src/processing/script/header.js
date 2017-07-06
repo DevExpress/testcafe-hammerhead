@@ -46,7 +46,7 @@ export function remove (code) {
 }
 
 export function add (code, isStrictMode) {
-    var header = HEADER.replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '');
+    const header = HEADER.replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '');
 
     return header + code + '\n' + SCRIPT_PROCESSING_END_COMMENT;
 }

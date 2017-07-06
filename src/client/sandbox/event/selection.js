@@ -14,25 +14,25 @@ export default class Selection {
         this.listeners        = eventSandbox.listeners;
         this.eventSimulator   = eventSandbox.eventSimulator;
 
-        var selection      = this;
-        var eventSimulator = this.eventSimulator;
-        var listeners      = this.listeners;
-        var timersSandbox  = this.timersSandbox;
+        const selection      = this;
+        const eventSimulator = this.eventSimulator;
+        const listeners      = this.listeners;
+        const timersSandbox  = this.timersSandbox;
 
         this.setSelectionRangeWrapper = function () {
-            var selectionStart     = arguments[0];
-            var selectionEnd       = arguments[1];
-            var selectionDirection = arguments[2] || 'none';
-            var el                 = this;
-            var fn                 = domUtils.isTextAreaElement(el) ? nativeMethods.textAreaSetSelectionRange : nativeMethods.setSelectionRange;
-            var activeElement      = domUtils.getActiveElement(domUtils.findDocument(el));
-            var isElementActive    = false;
+            const selectionStart     = arguments[0];
+            const selectionEnd       = arguments[1];
+            const selectionDirection = arguments[2] || 'none';
+            const el                 = this;
+            const fn                 = domUtils.isTextAreaElement(el) ? nativeMethods.textAreaSetSelectionRange : nativeMethods.setSelectionRange;
+            const activeElement      = domUtils.getActiveElement(domUtils.findDocument(el));
+            let isElementActive      = false;
 
-            var selectionSetter = () => {
-                var changeType           = Selection._needChangeInputType(el);
-                var useInternalSelection = Selection._needForInternalSelection(el);
-                var savedType            = el.type;
-                var res;
+            const selectionSetter = () => {
+                const changeType           = Selection._needChangeInputType(el);
+                const useInternalSelection = Selection._needForInternalSelection(el);
+                const savedType            = el.type;
+                let res;
 
                 if (changeType)
                     el.type = 'text';
@@ -87,14 +87,14 @@ export default class Selection {
         };
 
         this.selectWrapper = function () {
-            var element = this.parentElement();
+            const element = this.parentElement();
 
             if (!element || domUtils.getActiveElement(domUtils.findDocument(element)) === element)
                 return nativeMethods.select.call(this);
 
-            var result       = null;
-            var focusRaised  = false;
-            var focusHandler = e => {
+            let result         = null;
+            let focusRaised    = false;
+            const focusHandler = e => {
                 if (e.target === element || element.style.display === 'none')
                     focusRaised = true;
             };
@@ -140,11 +140,11 @@ export default class Selection {
     }
 
     getSelection (el) {
-        var changeType      = Selection._needChangeInputType(el);
-        var activeElement   = domUtils.getActiveElement(domUtils.findDocument(el));
-        var isElementActive = activeElement === el;
-        var savedType       = el.type;
-        var selection       = null;
+        const changeType      = Selection._needChangeInputType(el);
+        const activeElement   = domUtils.getActiveElement(domUtils.findDocument(el));
+        const isElementActive = activeElement === el;
+        const savedType       = el.type;
+        let selection         = null;
 
         // HACK: (A problem with input type = ‘number’ after Chrome is updated to v.33.0.1750.117 and in
         // Firefox 29.0. T101195) To get selection, if the input type is  'number' or 'email', we need to change
@@ -160,7 +160,7 @@ export default class Selection {
             el.type = 'text';
         }
 
-        var internalSelection = el[INTERNAL_PROPS.selection];
+        const internalSelection = el[INTERNAL_PROPS.selection];
 
         selection = {
             start:     internalSelection ? internalSelection.selectionStart : el.selectionStart,
@@ -179,12 +179,12 @@ export default class Selection {
     }
 
     wrapSetterSelection (el, selectionSetter, needFocus, isContentEditable) {
-        var curDocument   = domUtils.findDocument(el);
-        var activeElement = null;
-        var result        = null;
-        var focusRaised   = false;
+        const curDocument = domUtils.findDocument(el);
+        let activeElement = null;
+        let result        = null;
+        let focusRaised   = false;
 
-        var focusHandler = e => {
+        const focusHandler = e => {
             if (e.target === el || el.style.display === 'none')
                 focusRaised = true;
         };

@@ -9,10 +9,10 @@ function transformSelector (selector) {
 }
 
 function addUIClassPostfix (rules) {
-    var ruleStack = rules.slice();
+    let ruleStack = rules.slice();
 
     while (ruleStack.length) {
-        var rule = ruleStack.pop();
+        const rule = ruleStack.pop();
 
         if (rule.type === 'rule' && rule.selectors)
             rule.selectors = rule.selectors.map(transformSelector);
@@ -23,7 +23,7 @@ function addUIClassPostfix (rules) {
 }
 
 export default function createShadowStylesheet (cssCode) {
-    var ast = css.parse(cssCode, { silent: true });
+    const ast = css.parse(cssCode, { silent: true });
 
     addUIClassPostfix(ast.stylesheet.rules);
 

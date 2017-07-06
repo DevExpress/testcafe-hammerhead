@@ -10,7 +10,7 @@ import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-var arrayJoin = Array.prototype.join;
+const arrayJoin = Array.prototype.join;
 
 const BEGIN_MARKER_TAG_NAME  = 'hammerhead_write_marker_begin';
 const END_MARKER_TAG_NAME    = 'hammerhead_write_marker_end';
@@ -27,13 +27,15 @@ const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
             var hammerhead = window["${ INTERNAL_PROPS.hammerhead }"];
-            var sandbox = hammerhead && hammerhead.sandbox;
-            var script = document.currentScript || document.scripts[document.scripts.length - 1];
+            var sandbox    = hammerhead && hammerhead.sandbox;
+            var script     = document.currentScript || document.scripts[document.scripts.length - 1];
+
             if (!sandbox) {
                 try {
                     sandbox = window.parent["${ INTERNAL_PROPS.hammerhead }"].get('./sandbox/backup').get(window);
                 } catch(e) {}
             }
+
             if (sandbox) {
                 sandbox.node.mutation.onDocumentCleaned({
                     window: window,
@@ -64,7 +66,7 @@ export default class DocumentWriter {
     }
 
     _cutPending (htmlChunk) {
-        var match = htmlChunk.match(PENDING_RE);
+        const match = htmlChunk.match(PENDING_RE);
 
         this.pending = match ? match[0] : '';
 
@@ -72,12 +74,12 @@ export default class DocumentWriter {
     }
 
     _wrapHtmlChunk (htmlChunk) {
-        var parentTagChainMarkup = this.parentTagChain.length ? '<' + this.parentTagChain.join('><') + '>' : '';
+        let parentTagChainMarkup = this.parentTagChain.length ? '<' + this.parentTagChain.join('><') + '>' : '';
 
         if (this.isNonClosedComment)
             parentTagChainMarkup += '<!--';
 
-        var wrapedHtmlChunk = parentTagChainMarkup + BEGIN_MARKER_MARKUP + htmlChunk + END_MARKER_MARKUP;
+        const wrapedHtmlChunk = parentTagChainMarkup + BEGIN_MARKER_MARKUP + htmlChunk + END_MARKER_MARKUP;
 
         // NOTE: IE9 strange behavior
         // div.innerHTML = "<div><!--<p></p><b></b>"
@@ -117,7 +119,7 @@ export default class DocumentWriter {
     }
 
     static _searchBeginMarker (container) {
-        var beginMarker = nativeMethods.elementQuerySelector.call(container, BEGIN_MARKER_TAG_NAME);
+        let beginMarker = nativeMethods.elementQuerySelector.call(container, BEGIN_MARKER_TAG_NAME);
 
         if (beginMarker)
             return beginMarker;
@@ -136,7 +138,7 @@ export default class DocumentWriter {
     }
 
     static _searchEndMarker (container) {
-        var endMarker = nativeMethods.elementQuerySelector.call(container, END_MARKER_TAG_NAME);
+        let endMarker = nativeMethods.elementQuerySelector.call(container, END_MARKER_TAG_NAME);
 
         if (endMarker)
             return endMarker;
@@ -155,7 +157,7 @@ export default class DocumentWriter {
     }
 
     _updateParentTagChain (container, endMarker) {
-        var endMarkerParent = getTagName(endMarker) !== END_MARKER_TAG_NAME ? endMarker : endMarker.parentNode;
+        let endMarkerParent = getTagName(endMarker) !== END_MARKER_TAG_NAME ? endMarker : endMarker.parentNode;
 
         if (isCommentNode(endMarker)) {
             this.isNonClosedComment = true;
@@ -171,7 +173,7 @@ export default class DocumentWriter {
     }
 
     _processBeginMarkerInContent (beginMarker) {
-        var elWithContent = beginMarker;
+        const elWithContent = beginMarker;
 
         DocumentWriter._setIsNotClosedFlag(elWithContent);
 
@@ -189,7 +191,7 @@ export default class DocumentWriter {
     }
 
     _processEndMarkerInContent (endMarker) {
-        var elWithContent = endMarker;
+        const elWithContent = endMarker;
 
         DocumentWriter._setIsNotClosedFlag(elWithContent);
 
@@ -201,7 +203,7 @@ export default class DocumentWriter {
     }
 
     static _addOnDocumentRecreationScript (endMarker) {
-        var span = nativeMethods.createElement.call(endMarker.ownerDocument, 'span');
+        const span = nativeMethods.createElement.call(endMarker.ownerDocument, 'span');
 
         nativeMethods.insertBefore.call(endMarker.parentNode, span, endMarker);
 
@@ -209,8 +211,8 @@ export default class DocumentWriter {
     }
 
     _prepareDom (container, isDocumentCleaned) {
-        var beginMarker = DocumentWriter._searchBeginMarker(container);
-        var endMarker   = DocumentWriter._searchEndMarker(container);
+        const beginMarker = DocumentWriter._searchBeginMarker(container);
+        const endMarker   = DocumentWriter._searchEndMarker(container);
 
         this.isBeginMarkerInDOM = getTagName(beginMarker) === BEGIN_MARKER_TAG_NAME;
         this.isEndMarkerInDOM   = getTagName(endMarker) === END_MARKER_TAG_NAME;
@@ -248,7 +250,7 @@ export default class DocumentWriter {
     }
 
     write (args, ln, isDocumentCleaned) {
-        var htmlChunk = this._processHtmlChunk(arrayJoin.call(args, ''), isDocumentCleaned);
+        const htmlChunk = this._processHtmlChunk(arrayJoin.call(args, ''), isDocumentCleaned);
 
         if (this.nonClosedEl && this.contentForProcessing) {
             if (isScriptElement(this.nonClosedEl))
@@ -259,11 +261,11 @@ export default class DocumentWriter {
             this.contentForProcessing = '';
         }
 
-        var nativeWriteMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
-        var result            = nativeWriteMethod.call(this.document, htmlChunk);
+        const nativeWriteMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
+        const result            = nativeWriteMethod.call(this.document, htmlChunk);
 
         if (!this.isEndMarkerInDOM && !this.isAddContentToEl) {
-            var el = this.document.documentElement;
+            let el = this.document.documentElement;
 
             while (el.lastElementChild)
                 el = el.lastElementChild;

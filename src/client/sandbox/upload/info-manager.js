@@ -15,24 +15,24 @@ const UPLOAD_IFRAME_FOR_IE9_ID = 'uploadIframeForIE9' + SHADOW_UI_CLASSNAME.post
 
 export default class UploadInfoManager {
     constructor (shadowUI) {
-        this.shadowUI = shadowUI;
+        this.shadowUI   = shadowUI;
         this.uploadInfo = [];
     }
 
     static _getFileListData (fileList) {
-        var data = [];
+        const data = [];
 
-        for (var i = 0; i < fileList.length; i++)
+        for (let i = 0; i < fileList.length; i++)
             data.push(fileList[i].base64);
 
         return data;
     }
 
     static _getUploadIframeForIE9 () {
-        var uploadIframe = nativeMethods.querySelector.call(document, '#' + UPLOAD_IFRAME_FOR_IE9_ID);
+        let uploadIframe = nativeMethods.querySelector.call(document, '#' + UPLOAD_IFRAME_FOR_IE9_ID);
 
         if (!uploadIframe) {
-            uploadIframe               = nativeMethods.createElement.call(document, 'iframe');
+            uploadIframe = nativeMethods.createElement.call(document, 'iframe');
 
             nativeMethods.setAttribute.call(uploadIframe, 'id', UPLOAD_IFRAME_FOR_IE9_ID);
             nativeMethods.setAttribute.call(uploadIframe, 'name', UPLOAD_IFRAME_FOR_IE9_ID);
@@ -46,16 +46,16 @@ export default class UploadInfoManager {
 
     _loadFileListDataForIE9 (input) {
         return Promise(resolve => {
-            var form = input.form;
+            const form = input.form;
 
             if (form && input.value) {
-                var sourceTarget       = form.target;
-                var sourceActionString = form.action;
-                var sourceMethod       = form.method;
-                var uploadIframe       = UploadInfoManager._getUploadIframeForIE9();
+                const sourceTarget       = form.target;
+                const sourceActionString = form.action;
+                const sourceMethod       = form.method;
+                const uploadIframe       = UploadInfoManager._getUploadIframeForIE9();
 
-                var loadHandler = () => {
-                    var fileListWrapper = new FileListWrapper([JSON.parse(uploadIframe.contentWindow.document.body.innerHTML)]);
+                const loadHandler = () => {
+                    const fileListWrapper = new FileListWrapper([JSON.parse(uploadIframe.contentWindow.document.body.innerHTML)]);
 
                     uploadIframe.removeEventListener('load', loadHandler);
                     resolve(fileListWrapper);
@@ -80,7 +80,7 @@ export default class UploadInfoManager {
     }
 
     static formatValue (fileNames) {
-        var value = '';
+        let value = '';
 
         fileNames = typeof fileNames === 'string' ? [fileNames] : fileNames;
 
@@ -88,9 +88,9 @@ export default class UploadInfoManager {
             if (Browser.isWebKit)
                 value = FAKE_PATH_STRING + fileNames[0].split('/').pop();
             else if (Browser.isIE9 || Browser.isIE10) {
-                var filePaths = [];
+                const filePaths = [];
 
-                for (var fileName of fileNames)
+                for (const fileName of fileNames)
                     filePaths.push(FAKE_PATH_STRING + fileName.split('/').pop());
 
                 value = filePaths.join(', ');
@@ -103,10 +103,10 @@ export default class UploadInfoManager {
     }
 
     static getFileNames (fileList, value) {
-        var result = [];
+        const result = [];
 
         if (fileList) {
-            for (var i = 0; i < fileList.length; i++)
+            for (let i = 0; i < fileList.length; i++)
                 result.push(fileList[i].name);
         }
         else if (value.lastIndexOf('\\') !== -1)
@@ -123,10 +123,10 @@ export default class UploadInfoManager {
     }
 
     static prepareFileListWrapper (filesInfo) {
-        var errs           = [];
-        var validFilesInfo = [];
+        const errs           = [];
+        const validFilesInfo = [];
 
-        for (var i = 0; i < filesInfo.length; i++) {
+        for (let i = 0; i < filesInfo.length; i++) {
             if (filesInfo[i].err)
                 errs.push(filesInfo[i]);
             else
@@ -148,7 +148,7 @@ export default class UploadInfoManager {
     }
 
     clearUploadInfo (input) {
-        var inputInfo = this.getUploadInfo(input);
+        const inputInfo = this.getUploadInfo(input);
 
         if (inputInfo) {
             inputInfo.files = new FileListWrapper([]);
@@ -161,13 +161,13 @@ export default class UploadInfoManager {
     }
 
     getFiles (input) {
-        var inputInfo = this.getUploadInfo(input);
+        const inputInfo = this.getUploadInfo(input);
 
         return inputInfo ? inputInfo.files : new FileListWrapper([]);
     }
 
     getUploadInfo (input) {
-        for (var uploadInfoItem of this.uploadInfo) {
+        for (const uploadInfoItem of this.uploadInfo) {
             if (uploadInfoItem.input === input)
                 return uploadInfoItem;
         }
@@ -176,7 +176,7 @@ export default class UploadInfoManager {
     }
 
     getValue (input) {
-        var inputInfo = this.getUploadInfo(input);
+        const inputInfo = this.getUploadInfo(input);
 
         return inputInfo ? inputInfo.value : '';
     }
@@ -189,10 +189,10 @@ export default class UploadInfoManager {
             return Promise.resolve(new FileListWrapper([]));
         else {
             return new Promise(resolve => {
-                var index       = 0;
-                var fileReader  = new FileReader();
-                var file        = fileList[index];
-                var readedFiles = [];
+                let index         = 0;
+                const fileReader  = new FileReader();
+                let file          = fileList[index];
+                const readedFiles = [];
 
                 fileReader.addEventListener('load', e => {
                     readedFiles.push({
@@ -219,7 +219,7 @@ export default class UploadInfoManager {
     }
 
     setUploadInfo (input, fileList, value) {
-        var inputInfo = this.getUploadInfo(input);
+        let inputInfo = this.getUploadInfo(input);
 
         if (!inputInfo) {
             inputInfo = { input: input };

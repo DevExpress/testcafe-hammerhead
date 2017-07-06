@@ -12,7 +12,7 @@ import { inject as injectUpload } from '../upload';
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
 // Stages
-var stages = {
+const stages = {
     0: async function fetchProxyRequestBody (ctx, next) {
         if (ctx.isPage && !ctx.isIframe)
             ctx.session.onPageRequest();
@@ -23,7 +23,7 @@ var stages = {
     },
 
     1: function sendDestinationRequest (ctx, next) {
-        var opts = createReqOpts(ctx);
+        const opts = createReqOpts(ctx);
 
         if (ctx.isSpecialPage) {
             mockDestinationResponseForSpecialPage(ctx);
@@ -31,7 +31,7 @@ var stages = {
         }
 
         else {
-            var req = ctx.isFileProtocol ? new FileRequest(opts) : new DestinationRequest(opts);
+            const req = ctx.isFileProtocol ? new FileRequest(opts) : new DestinationRequest(opts);
 
             req.on('response', res => {
                 ctx.destRes = res;
@@ -123,16 +123,16 @@ var stages = {
 
 // Utils
 function createReqOpts (ctx) {
-    var bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);
+    const bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);
 
     // NOTE: First, we should rewrite the request body, because the 'content-length' header will be built based on it.
     if (bodyWithUploads)
         ctx.reqBody = bodyWithUploads;
 
     // NOTE: All headers, including 'content-length', are built here.
-    var headers = headerTransforms.forRequest(ctx);
-    var proxy   = ctx.session.externalProxySettings;
-    var options = {
+    const headers = headerTransforms.forRequest(ctx);
+    const proxy   = ctx.session.externalProxySettings;
+    const options = {
         url:         ctx.dest.url,
         protocol:    ctx.dest.protocol,
         hostname:    ctx.dest.hostname,
@@ -162,7 +162,7 @@ function createReqOpts (ctx) {
 }
 
 function sendResponseHeaders (ctx) {
-    var headers = headerTransforms.forResponse(ctx);
+    const headers = headerTransforms.forResponse(ctx);
 
     ctx.res.writeHead(ctx.destRes.statusCode, headers);
     ctx.res.addTrailers(ctx.destRes.trailers);
@@ -194,11 +194,11 @@ function mockDestinationResponseForSpecialPage (ctx) {
 
 // API
 export function run (req, res, serverInfo, openSessions) {
-    var ctx = new RequestPipelineContext(req, res, serverInfo);
+    const ctx = new RequestPipelineContext(req, res, serverInfo);
 
     if (ctx.dispatch(openSessions)) {
-        var stageIdx = 0;
-        var next     = () => stages[++stageIdx](ctx, next);
+        let stageIdx = 0;
+        const next   = () => stages[++stageIdx](ctx, next);
 
         stages[0](ctx, next);
     }

@@ -42,7 +42,7 @@ export default class NodeSandbox extends SandboxBase {
 
     _processElement (el) {
         if (el[INTERNAL_PROPS.processedContext] !== this.window) {
-            var urlAttrName  = null;
+            let urlAttrName = null;
 
             if (el[INTERNAL_PROPS.processedContext]) {
                 urlAttrName = domProcessor.getUrlAttr(el);
@@ -69,9 +69,9 @@ export default class NodeSandbox extends SandboxBase {
         else if (el.querySelectorAll) {
             this._processElement(el);
 
-            var children = getNativeQuerySelectorAll(el).call(el, '*');
+            const children = getNativeQuerySelectorAll(el).call(el, '*');
 
-            for (var i = 0; i < children.length; i++)
+            for (let i = 0; i < children.length; i++)
                 this._processElement(children[i]);
         }
     }
@@ -80,15 +80,15 @@ export default class NodeSandbox extends SandboxBase {
     // resources. Our goal is to make the native script think that all resources are fetched from the destination
     // resource, not from proxy, and also provide proxying for dynamically created elements.
     attach (window) {
-        var document                    = window.document;
-        var domContentLoadedEventRaised = false;
+        const document                  = window.document;
+        let domContentLoadedEventRaised = false;
 
         super.attach(window, document);
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, e => {
             // NOTE: Before overriding the iframe, we must restore native document methods.
             // Therefore, we save them before they are overridden.
-            var iframeNativeMethods = new this.nativeMethods.constructor(e.iframe.contentDocument, e.iframe.contentWindow);
+            const iframeNativeMethods = new this.nativeMethods.constructor(e.iframe.contentDocument, e.iframe.contentWindow);
 
             e.iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods] = iframeNativeMethods;
 
@@ -133,7 +133,8 @@ export default class NodeSandbox extends SandboxBase {
             return selector;
 
         return selector.replace(ATTRIBUTE_SELECTOR_REG_EX, (str, name, operatorWithValue) => {
-            if (domProcessor.URL_ATTRS.indexOf(name) !== -1 && !ATTRIBUTE_OPERATOR_WITH_HASH_VALUE.test(operatorWithValue)) {
+            if (domProcessor.URL_ATTRS.indexOf(name) !== -1 &&
+                !ATTRIBUTE_OPERATOR_WITH_HASH_VALUE.test(operatorWithValue)) {
                 name = domProcessor.getStoredAttrName(name);
 
                 return '[' + name + operatorWithValue + ']';

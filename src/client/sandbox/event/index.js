@@ -43,18 +43,18 @@ export default class EventSandbox extends SandboxBase {
     }
 
     _createOverridedMethods () {
-        var selection        = this.selection;
-        var focusBlurSandbox = this.focusBlur;
-        var eventSimulator   = this.eventSimulator;
-        var sandbox          = this;
+        const selection        = this.selection;
+        const focusBlurSandbox = this.focusBlur;
+        const eventSimulator   = this.eventSimulator;
+        const sandbox          = this;
 
         this.overridedMethods = {
             dispatchEvent: function () {
                 Listeners.beforeDispatchEvent(this);
 
-                var isWindow = domUtils.isWindow(this);
-                var res      = isWindow ? nativeMethods.windowDispatchEvent.apply(this, arguments) :
-                               nativeMethods.dispatchEvent.apply(this, arguments);
+                const isWindow = domUtils.isWindow(this);
+                const res      = isWindow ? nativeMethods.windowDispatchEvent.apply(this, arguments) :
+                                 nativeMethods.dispatchEvent.apply(this, arguments);
 
                 Listeners.afterDispatchEvent(this);
 
@@ -62,9 +62,8 @@ export default class EventSandbox extends SandboxBase {
             },
 
             fireEvent: function (eventName, ev) {
-                var eventType = eventName.substring(0, 2) === 'on' ? eventName.substring(2) : eventName;
-                var createEventType;
-                var res;
+                const eventType = eventName.substring(0, 2) === 'on' ? eventName.substring(2) : eventName;
+                let createEventType;
 
                 Listeners.beforeDispatchEvent(this);
 
@@ -90,7 +89,8 @@ export default class EventSandbox extends SandboxBase {
                     }
                 }
 
-                res = nativeMethods.dispatchEvent.call(this, ev);
+                const res = nativeMethods.dispatchEvent.call(this, ev);
+
                 Listeners.afterDispatchEvent(this);
 
                 return res;
@@ -102,8 +102,8 @@ export default class EventSandbox extends SandboxBase {
 
                 nativeMethods.addEventListener.apply(this, args);
 
-                var type     = args[0];
-                var listener = args[1];
+                const type     = args[0];
+                const listener = args[1];
 
                 sandbox.emit(sandbox.EVENT_ATTACHED_EVENT, { el: this, listener, eventType: type });
             },
@@ -114,8 +114,8 @@ export default class EventSandbox extends SandboxBase {
 
                 nativeMethods.removeEventListener.apply(this, args);
 
-                var type     = args[0];
-                var listener = args[1];
+                const type     = args[0];
+                const listener = args[1];
 
                 sandbox.emit(sandbox.EVENT_DETACHED_EVENT, { el: this, listener, eventType: type });
             },
@@ -123,7 +123,7 @@ export default class EventSandbox extends SandboxBase {
             click: function () {
                 Listeners.beforeDispatchEvent(this);
 
-                var res = eventSimulator.nativeClick(this, nativeMethods.click);
+                const res = eventSimulator.nativeClick(this, nativeMethods.click);
 
                 Listeners.afterDispatchEvent(this);
 
@@ -155,13 +155,13 @@ export default class EventSandbox extends SandboxBase {
     }
 
     _createInternalHandlers () {
-        var shadowUI       = this.shadowUI;
-        var document       = this.document;
-        var eventSimulator = this.eventSimulator;
+        const shadowUI       = this.shadowUI;
+        const document       = this.document;
+        const eventSimulator = this.eventSimulator;
 
         this.onFocus = function (e) {
-            var focusedEl = e.target;
-            var activeEl  = domUtils.getActiveElement(document);
+            const focusedEl = e.target;
+            const activeEl  = domUtils.getActiveElement(document);
 
             if (!domUtils.isShadowUIElement(focusedEl) && !domUtils.isShadowUIElement(activeEl))
                 shadowUI.setLastActiveElement(activeEl);
@@ -174,8 +174,8 @@ export default class EventSandbox extends SandboxBase {
             // .focus() -> focus, focusin
             // .blur() -> blur, focusout
             // So we should prevent both events
-            var eventType         = FocusBlurSandbox.getNonBubblesEventType(e.type) || e.type;
-            var internalEventFlag = FocusBlurSandbox.getInternalEventFlag(eventType);
+            const eventType         = FocusBlurSandbox.getNonBubblesEventType(e.type) || e.type;
+            const internalEventFlag = FocusBlurSandbox.getInternalEventFlag(eventType);
 
             if (e.target[internalEventFlag] && !e[eventSimulator.DISPATCHED_EVENT_FLAG])
                 stopPropagation();

@@ -6,7 +6,7 @@
 export default function replaceNode (node, newNode, parent, key) {
     if (Array.isArray(parent[key])) {
         if (node) {
-            var idx = parent[key].indexOf(node);
+            const idx = parent[key].indexOf(node);
 
             parent[key][idx] = newNode;
         }
@@ -21,7 +21,7 @@ export default function replaceNode (node, newNode, parent, key) {
         newNode.originEnd = newNode.end = node.end;
     }
     else {
-        var parentStart = parseInt(parent.start, 10) + 1;
+        const parentStart = parseInt(parent.start, 10) + 1;
 
         newNode.originStart = newNode.originEnd = parentStart;
     }

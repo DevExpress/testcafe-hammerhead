@@ -42,7 +42,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onMessage (e) {
-        var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
+        const data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
         if (data.type === MESSAGE_TYPE.service && e.source) {
             if (this.pingCmd && data.message.cmd === this.pingCmd && data.message.isPingResponse) {
@@ -56,23 +56,23 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onWindowMessage (e, originListener) {
-        var resultEvt = {};
+        const resultEvt = {};
 
         /* jshint ignore:start */
-        for (var key in e)
+        for (const key in e)
             resultEvt[key] = typeof e[key] === 'function' ? fnBind(e[key], e) : e[key];
         /* jshint ignore:end */
 
-        var data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
+        const data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
         if (data.type !== MESSAGE_TYPE.service) {
-            var originUrl = destLocation.get();
+            const originUrl = destLocation.get();
 
             if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl)) {
                 resultEvt.origin = data.originUrl;
 
                 // NOTE: IE9 can send only string values.
-                var needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
+                const needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
 
                 resultEvt.data = needToStringify ? stringifyJSON(data.message) : data.message;
 
@@ -87,13 +87,13 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     static _wrapMessage (type, message, targetUrl) {
-        var parsedDest = destLocation.getParsed();
-        var originUrl  = formatUrl({
+        const parsedDest = destLocation.getParsed();
+        const originUrl  = formatUrl({
             protocol: parsedDest.protocol,
             host:     parsedDest.host
         });
 
-        var result = {
+        const result = {
             isStringMessage: typeof message === 'string',
             message:         message,
             originUrl:       originUrl,
@@ -106,7 +106,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _removeInternalMsgFromQueue (sendFunc) {
-        for (var index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
+        for (let index = 0, length = this.iframeInternalMsgQueue.length; index < length; index++) {
             if (this.iframeInternalMsgQueue[index].sendFunc === sendFunc) {
                 this.iframeInternalMsgQueue.splice(index, 1);
 
@@ -127,15 +127,15 @@ export default class MessageSandbox extends SandboxBase {
             this.isWindowUnloaded = true;
 
             while (this.iframeInternalMsgQueue.length) {
-                var msgInfo = this.iframeInternalMsgQueue[0];
+                const msgInfo = this.iframeInternalMsgQueue[0];
 
                 nativeMethods.clearTimeout.call(this.window, msgInfo.timeoutId);
                 msgInfo.sendFunc();
             }
         });
 
-        var onMessageHandler       = (...args) => fastApply(this, '_onMessage', args);
-        var onWindowMessageHandler = (...args) => fastApply(this, '_onWindowMessage', args);
+        const onMessageHandler       = (...args) => fastApply(this, '_onMessage', args);
+        const onWindowMessageHandler = (...args) => fastApply(this, '_onWindowMessage', args);
 
         this.listeners.addInternalEventListener(window, ['message'], onMessageHandler);
         this.listeners.setEventListenerWrapper(window, ['message'], onWindowMessageHandler);
@@ -164,7 +164,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     postMessage (contentWindow, args) {
-        var targetUrl = args[1];
+        const targetUrl = args[1];
 
         if (isCrossDomainWindows(this.window, contentWindow))
             args[1] = getCrossDomainProxyUrl();
@@ -193,12 +193,12 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     sendServiceMsg (msg, targetWindow) {
-        var message         = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
-        var canSendDirectly = () => !isCrossDomainWindows(targetWindow, this.window) &&
-                                    targetWindow[this.RECEIVE_MSG_FN];
+        const message         = MessageSandbox._wrapMessage(MESSAGE_TYPE.service, msg);
+        const canSendDirectly = () => !isCrossDomainWindows(targetWindow, this.window) &&
+                                      targetWindow[this.RECEIVE_MSG_FN];
 
         if (canSendDirectly()) {
-            var sendFunc = force => {
+            const sendFunc = force => {
                 // NOTE: In IE, this function is called on the timeout despite the fact that the timer has been cleared
                 // in the unload event handler, so we check whether the function is in the queue
                 if (force || this._removeInternalMsgFromQueue(sendFunc)) {
@@ -223,8 +223,8 @@ export default class MessageSandbox extends SandboxBase {
                 // NOTE: Imitation of a delay for the postMessage method.
                 // We use the same-domain top window
                 // so that the function called by setTimeout is executed after removing the iframe
-                var topSameDomainWindow = getTopSameDomainWindow(this.window);
-                var timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
+                const topSameDomainWindow = getTopSameDomainWindow(this.window);
+                const timeoutId           = nativeMethods.setTimeout.call(topSameDomainWindow, sendFunc, 10);
 
                 this.iframeInternalMsgQueue.push({ timeoutId, sendFunc });
             }
@@ -239,11 +239,11 @@ export default class MessageSandbox extends SandboxBase {
 
     pingIframe (targetIframe, pingMessageCommand, shortWaiting) {
         return new Promise((resolve, reject) => {
-            var pingInterval = null;
-            var pingTimeout  = null;
-            var targetWindow = null;
+            let pingInterval = null;
+            let pingTimeout  = null;
+            let targetWindow = null;
 
-            var sendPingRequest = () => {
+            const sendPingRequest = () => {
                 if (targetIframe.contentWindow) {
                     targetWindow = targetIframe.contentWindow;
 
@@ -254,7 +254,7 @@ export default class MessageSandbox extends SandboxBase {
                 }
             };
 
-            var cleanTimeouts = () => {
+            const cleanTimeouts = () => {
                 nativeMethods.clearInterval.call(this.window, pingInterval);
                 nativeMethods.clearTimeout.call(this.window, pingTimeout);
 

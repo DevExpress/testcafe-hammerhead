@@ -1,4 +1,4 @@
-var settings = {
+const settings = {
     settings: {},
 
     set: function (value) {

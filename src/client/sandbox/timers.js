@@ -16,16 +16,16 @@ export default class TimersSandbox extends SandboxBase {
     }
 
     _wrapTimeoutFunctionsArguments (args) {
-        var isScriptFirstArg = typeof args[0] === 'string';
-        var func             = !isScriptFirstArg ? args[0] : null;
-        var script           = isScriptFirstArg ? processScript(args[0], false) : null;
+        const isScriptFirstArg = typeof args[0] === 'string';
+        const func             = !isScriptFirstArg ? args[0] : null;
+        const script           = isScriptFirstArg ? processScript(args[0], false) : null;
 
         if (isIE && browserVersion < 12) {
-            var timersSandbox = this;
-            var fnToRun       = isScriptFirstArg ? () => {
+            const timersSandbox = this;
+            const fnToRun       = isScriptFirstArg ? () => {
                 // NOTE: We are switching eval to the global context with this assignment.
                 // Unlike eval, the setTimeout/setInterval functions always work in the global context.
-                var ev = this.window.eval;
+                const ev = this.window.eval;
 
                 return ev(script);
             } : func;
@@ -42,10 +42,10 @@ export default class TimersSandbox extends SandboxBase {
 
     _callDeferredFunction (fn, args) {
         if (this.timeouts.length) {
-            var curTimeouts = [];
-            var curHandlers = [];
+            const curTimeouts = [];
+            const curHandlers = [];
 
-            for (var i = 0; i < this.timeouts.length; i++) {
+            for (let i = 0; i < this.timeouts.length; i++) {
                 curTimeouts.push(this.timeouts[i]);
                 curHandlers.push(this.deferredFunctions[i]);
             }
@@ -53,7 +53,7 @@ export default class TimersSandbox extends SandboxBase {
             this.timeouts          = [];
             this.deferredFunctions = [];
 
-            for (var j = 0; j < curTimeouts.length; j++) {
+            for (let j = 0; j < curTimeouts.length; j++) {
                 nativeMethods.clearInterval.call(this.window, curTimeouts[j]);
                 curHandlers[j]();
             }
@@ -68,7 +68,7 @@ export default class TimersSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        var timersSandbox = this;
+        const timersSandbox = this;
 
         window.setTimeout = function (...args) {
             return nativeMethods.setTimeout.apply(window, timersSandbox._wrapTimeoutFunctionsArguments(args));
@@ -84,10 +84,10 @@ export default class TimersSandbox extends SandboxBase {
     }
 
     deferFunction (fn) {
-        var deferredFunction = () => {
+        const deferredFunction = () => {
             fn();
 
-            for (var i = 0; i < this.deferredFunctions.length; i++) {
+            for (let i = 0; i < this.deferredFunctions.length; i++) {
                 if (this.deferredFunctions[i] === deferredFunction) {
                     this.deferredFunctions.splice(i, 1);
                     this.timeouts.splice(i, 1);

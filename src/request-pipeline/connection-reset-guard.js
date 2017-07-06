@@ -1,6 +1,6 @@
 import domain from 'domain';
 
-var connectionResetDomain = domain.create();
+const connectionResetDomain = domain.create();
 
 connectionResetDomain.on('error', err => {
     if (err.code !== 'ECONNRESET') {

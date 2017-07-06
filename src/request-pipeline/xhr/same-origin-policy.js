@@ -4,14 +4,14 @@ export const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = 222;
 
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
 export function check (ctx) {
-    var reqOrigin = ctx.dest.reqOrigin;
+    const reqOrigin = ctx.dest.reqOrigin;
 
     // PASSED: Same origin.
     if (ctx.dest.domain === reqOrigin)
         return true;
 
     // NOTE: Ok, we have a cross-origin request.
-    var corsSupported = !!ctx.req.headers[XHR_HEADERS.corsSupported] || ctx.isFetch;
+    const corsSupported = !!ctx.req.headers[XHR_HEADERS.corsSupported] || ctx.isFetch;
 
     // FAILED: CORS not supported (IE9 only).
     if (!corsSupported)
@@ -21,13 +21,13 @@ export function check (ctx) {
     if (ctx.req.method === 'OPTIONS')
         return true;
 
-    var withCredentials        = !!ctx.req.headers[XHR_HEADERS.withCredentials] ||
+    const withCredentials        = !!ctx.req.headers[XHR_HEADERS.withCredentials] ||
                                  ctx.req.headers[XHR_HEADERS.fetchRequestCredentials] === 'include';
-    var allowOriginHeader      = ctx.destRes.headers['access-control-allow-origin'];
-    var allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
-    var allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
-    var allowedOrigins         = Array.isArray(allowOriginHeader) ? allowOriginHeader : [allowOriginHeader];
-    var wildcardAllowed        = allowedOrigins.indexOf('*') > -1;
+    const allowOriginHeader      = ctx.destRes.headers['access-control-allow-origin'];
+    const allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
+    const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
+    const allowedOrigins         = Array.isArray(allowOriginHeader) ? allowOriginHeader : [allowOriginHeader];
+    const wildcardAllowed        = allowedOrigins.indexOf('*') > -1;
 
     // FAILED: Destination server doesn't provide the Access-Control-Allow-Origin header.
     // So cross-domain requests are denied

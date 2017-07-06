@@ -16,9 +16,9 @@ export default class AttributesWrapper {
 
         this.item = index => this[index];
 
-        var wrapMethod = method => {
+        const wrapMethod = method => {
             this[method] = (...args) => {
-                var result = el.attributes[method].apply(el.attributes, args);
+                const result = el.attributes[method].apply(el.attributes, args);
 
                 AttributesWrapper.refreshWrappers(el);
 
@@ -26,7 +26,7 @@ export default class AttributesWrapper {
             };
         };
 
-        for (var field in el.attributes) {
+        for (const field in el.attributes) {
             if (typeof this[field] === 'function' && field !== 'item') {
                 if (ATTRIBUTES_METHODS.indexOf(field) !== -1)
                     wrapMethod(field);
@@ -37,13 +37,13 @@ export default class AttributesWrapper {
     }
 
     static _assignAttributes (attributes) {
-        var length = 0;
+        let length = 0;
 
-        for (var i = 0; i < attributes.length; i++) {
-            var attr = attributes[i];
+        for (let i = 0; i < attributes.length; i++) {
+            let attr = attributes[i];
 
             if (!isHammerheadAttr(attr.name)) {
-                var storedAttr = attributes[getStoredAttrName(attr.name)];
+                const storedAttr = attributes[getStoredAttrName(attr.name)];
 
                 if (storedAttr) {
                     if (DomProcessor.isAddedAutocompleteAttr(attr.name, storedAttr.value))
@@ -64,16 +64,16 @@ export default class AttributesWrapper {
 
     static _cleanAttributes () {
         if (this.length) {
-            for (var i = this.length - 1; i >= 0; i--)
+            for (let i = this.length - 1; i >= 0; i--)
                 delete this[i];
         }
     }
 
     static refreshWrappers (el) {
-        var attrWrappers = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP];
+        const attrWrappers = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP];
 
         if (attrWrappers) {
-            for (var i = 0; i < attrWrappers.length; i++) {
+            for (let i = 0; i < attrWrappers.length; i++) {
                 AttributesWrapper._cleanAttributes.call(attrWrappers[i], el.attributes);
                 AttributesWrapper._assignAttributes.call(attrWrappers[i], el.attributes);
             }
