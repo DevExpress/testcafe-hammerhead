@@ -95,7 +95,7 @@ export default class ShadowUI extends SandboxBase {
 
             getElementsByTagName (nativeGetElementsByTagNameFnName) {
                 return function (...args) {
-                    var nativeResult = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
+                    const nativeResult = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
 
                     return liveNodeListFactory.createNodeListForGetElementsByTagNameFn({
                         nodeList: nativeResult,
