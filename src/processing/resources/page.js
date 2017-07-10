@@ -99,8 +99,8 @@ class PageProcessor extends ResourceProcessorBase {
         if (metas) {
             metas.forEach(meta => {
                 // TODO: Figure out how to emulate the tag behavior.
-                if (domAdapter.getAttr(meta, 'name') === 'referrer' && domAdapter.getAttr(meta, 'content') === 'origin')
-                    parse5Utils.removeNode(meta);
+                if (domAdapter.getAttr(meta, 'name') === 'referrer')
+                    parse5Utils.setAttr(meta, 'content', 'unsafe-url');
                 // NOTE: Remove the existing ‘compatible’ meta tag and add a new one at the beginning of the head.
                 if (domAdapter.getAttr(meta, 'http-equiv') === 'X-UA-Compatible')
                     parse5Utils.removeNode(meta);

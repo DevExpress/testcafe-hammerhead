@@ -138,7 +138,9 @@ const responseTransforms = {
         return 'ALLOW-FROM ' + proxiedUrl;
     },
 
-    'sourcemap': skip
+    'sourcemap': skip,
+
+    'referrer-policy': () => 'unsafe-url'
 };
 
 const responseForced = {
