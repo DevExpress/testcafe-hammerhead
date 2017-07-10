@@ -35,7 +35,7 @@ export function addListeningElement (el, events) {
     }
 
     if (!isElementListening(el))
-        el[ELEMENT_LISTENING_EVENTS_STORAGE_PROP] = elementCtx;
+        Object.defineProperty(el, ELEMENT_LISTENING_EVENTS_STORAGE_PROP, { value: elementCtx, writable: true });
 }
 
 export function removeListeningElement (el) {

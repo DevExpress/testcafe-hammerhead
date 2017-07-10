@@ -7,8 +7,8 @@ function getStorage () {
     let storage               = topSameDomainWindow[WINDOWS_STORAGE];
 
     if (!storage) {
-        storage                              = [];
-        topSameDomainWindow[WINDOWS_STORAGE] = storage;
+        storage = [];
+        Object.defineProperty(topSameDomainWindow, WINDOWS_STORAGE, { value: storage });
     }
 
     return storage;

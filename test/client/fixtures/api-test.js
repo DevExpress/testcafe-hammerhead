@@ -12,8 +12,8 @@ QUnit.testDone(function () {
 module('regression');
 
 asyncTest('should prevent navigation from the about:blank page to the relative url (GH-645)', function () {
-    var iframe   = document.createElement('iframe');
-    var handler  = function () {
+    var iframe  = document.createElement('iframe');
+    var handler = function () {
         var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
         var timeoutId        = null;
         var finalize         = function () {
