@@ -17,6 +17,7 @@ import { isRelativeUrl, parseProxyUrl } from '../utils/url';
 import * as urlUtils from './utils/url';
 import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
+import nativeMethods from './sandbox/native-methods';
 import { processScript } from '../processing/script';
 import {
     SCRIPT_PROCESSING_START_COMMENT,
@@ -217,7 +218,7 @@ const hammerhead = new Hammerhead();
 
 // NOTE: The 'load' event is raised after calling document.close for a same-domain iframe
 // So, we need to define the '%hammerhead%' variable as 'configurable' so that it can be redefined.
-Object.defineProperty(window, INTERNAL_PROPS.hammerhead, {
+nativeMethods.objectDefineProperty.call(window, window, INTERNAL_PROPS.hammerhead, {
     value:        hammerhead,
     configurable: true
 });

@@ -1,5 +1,6 @@
 import SandboxBase from '../base';
 import INSTRUCTION from '../../../processing/script/instruction';
+import nativeMethods from '../native-methods';
 
 export default class StoragesAccessorsInstrumentation extends SandboxBase {
     constructor (storageSandbox) {
@@ -13,7 +14,7 @@ export default class StoragesAccessorsInstrumentation extends SandboxBase {
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        Object.defineProperty(window, INSTRUCTION.getStorage, {
+        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.getStorage, {
             value: storage => {
                 if (storage === this.window.sessionStorage) {
                     this.storageSandbox.sessionStorage.setContext(window);

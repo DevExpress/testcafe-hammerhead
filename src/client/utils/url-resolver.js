@@ -21,8 +21,12 @@ export default {
         // If we call urlResolve.updateBase after this,
         // we will use native methods from an actual document.
         // However, a document that contains an element for url resolving is created using a previous version of nativeMethods.
-        if (!doc[DOCUMENT_URL_RESOLVER])
-            Object.defineProperty(doc, DOCUMENT_URL_RESOLVER, { value: this._createResolver(doc), writable: true });
+        if (!doc[DOCUMENT_URL_RESOLVER]) {
+            nativeMethods.objectDefineProperty.call(window, doc, DOCUMENT_URL_RESOLVER, {
+                value:    this._createResolver(doc),
+                writable: true
+            });
+        }
 
         return doc[DOCUMENT_URL_RESOLVER];
     },
@@ -47,7 +51,7 @@ export default {
             // iframe) you cannot set a relative link href while the iframe loading is not completed. So, we'll do it with
             // the parent's urlResolver Safari demonstrates similar behavior, but urlResolver.href has a relative URL value.
             const needUseParentResolver = url && isIframeWithoutSrc && window.parent && window.parent.document &&
-                                        (!resolver.href || resolver.href.indexOf('/') === 0);
+                                          (!resolver.href || resolver.href.indexOf('/') === 0);
 
             if (needUseParentResolver)
                 return this.resolve(url, window.parent.document);

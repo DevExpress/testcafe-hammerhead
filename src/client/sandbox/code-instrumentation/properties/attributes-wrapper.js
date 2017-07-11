@@ -49,17 +49,20 @@ export default class AttributesWrapper {
                     if (DomProcessor.isAddedAutocompleteAttr(attr.name, storedAttr.value))
                         continue;
 
-                    attr       = nativeMethods.cloneNode.call(attr);
+                    attr = nativeMethods.cloneNode.call(attr);
                     attr.value = storedAttr.value;
-                    Object.defineProperty(this, attr.name, { value: attr, configurable: true });
+                    nativeMethods.objectDefineProperty.call(window, this, attr.name, {
+                        value:        attr,
+                        configurable: true
+                    });
                 }
 
-                Object.defineProperty(this, length, { value: attr, configurable: true });
+                nativeMethods.objectDefineProperty.call(window, this, length, { value: attr, configurable: true });
                 length++;
             }
         }
 
-        Object.defineProperty(this, 'length', { value: length, configurable: true });
+        nativeMethods.objectDefineProperty.call(window, this, 'length', { value: length, configurable: true });
     }
 
     static _cleanAttributes () {

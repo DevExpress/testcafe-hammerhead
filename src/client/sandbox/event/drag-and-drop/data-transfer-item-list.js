@@ -53,7 +53,7 @@ export default class DataTransferItemList {
             while (items[idx] !== void 0 || this[idx] !== void 0) {
                 const item = items[idx];
 
-                Object.defineProperty(this, idx, {
+                nativeMethods.objectDefineProperty.call(window, this, idx, {
                     enumerable:   item !== void 0,
                     configurable: true,
                     value:        item
@@ -133,13 +133,13 @@ export default class DataTransferItemList {
         };
 
         // API
-        Object.defineProperty(this, 'length', {
+        nativeMethods.objectDefineProperty.call(window, this, 'length', {
             enumerable: true,
 
             get: () => items.length
         });
 
-        Object.defineProperty(this, 'remove', {
+        nativeMethods.objectDefineProperty.call(window, this, 'remove', {
             configurable: true,
             enumerable:   true,
 
@@ -155,7 +155,7 @@ export default class DataTransferItemList {
             }
         });
 
-        Object.defineProperty(this, 'clear', {
+        nativeMethods.objectDefineProperty.call(window, this, 'clear', {
             configurable: true,
             enumerable:   true,
 
@@ -171,7 +171,7 @@ export default class DataTransferItemList {
             }
         });
 
-        Object.defineProperty(this, 'add', {
+        nativeMethods.objectDefineProperty.call(window, this, 'add', {
             configurable: true,
             enumerable:   true,
 

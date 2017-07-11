@@ -45,7 +45,7 @@ export default class UnloadSandbox extends SandboxBase {
 
         if (eventObj) {
             // NOTE: Overriding the returnValue property to prevent a native dialog.
-            Object.defineProperty(eventObj, 'returnValue', createPropertyDesc({
+            nativeMethods.objectDefineProperty.call(this.window, eventObj, 'returnValue', createPropertyDesc({
                 get: () => this.storedBeforeUnloadReturnValue,
                 set: value => {
                     // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
@@ -56,7 +56,7 @@ export default class UnloadSandbox extends SandboxBase {
                 }
             }));
 
-            Object.defineProperty(eventObj, 'preventDefault', createPropertyDesc({
+            nativeMethods.objectDefineProperty.call(this.window, eventObj, 'preventDefault', createPropertyDesc({
                 get: () => () => {
                     this.prevented = true;
 

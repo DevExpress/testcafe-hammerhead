@@ -1,7 +1,7 @@
 import { getTopSameDomainWindow, getFrameElement } from '../utils/dom';
+import nativeMethods from './native-methods';
 
 const SANDBOX_BACKUP = 'hammerhead|sandbox-backup';
-
 
 function findRecord (storage, iframe) {
     for (let i = storage.length - 1; i >= 0; i--) {
@@ -24,7 +24,7 @@ export function create (window, sandbox) {
 
     if (!storage) {
         storage = [];
-        Object.defineProperty(topSameDomainWindow, SANDBOX_BACKUP, { value: storage });
+        nativeMethods.objectDefineProperty.call(window, topSameDomainWindow, SANDBOX_BACKUP, { value: storage });
     }
 
     const record = findRecord(storage, iframe);

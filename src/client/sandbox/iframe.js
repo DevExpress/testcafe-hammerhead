@@ -1,6 +1,7 @@
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import settings from '../settings';
+import nativeMethods from '../sandbox/native-methods';
 import domProcessor from '../dom-processor';
 import { isShadowUIElement, isCrossDomainIframe, isElementInDocument, isIframeWithoutSrc } from '../utils/dom';
 import { isFirefox, isWebKit } from '../utils/browser';
@@ -81,7 +82,7 @@ export default class IframeSandbox extends SandboxBase {
                 this._ensureIframeNativeMethodsForIE(iframe);
 
                 // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
-                Object.defineProperty(iframe.contentWindow, IFRAME_WINDOW_INITED, { value: true });
+                nativeMethods.objectDefineProperty.call(this.window, iframe.contentWindow, IFRAME_WINDOW_INITED, { value: true });
 
                 // NOTE: Raise this internal event to eval the Hammerhead code script.
                 this.emit(this.EVAL_HAMMERHEAD_SCRIPT_EVENT, { iframe });
