@@ -1,6 +1,6 @@
 const DEFINED_PROPERTIES_COUNT = 10000;
 
-export class NodeListPropertiesDecorator {
+export class LiveNodeListWrapperBase {
     constructor () {
         const defineProperty = function (index, isEnumerable) {
             Object.defineProperty(this, index, {
@@ -27,10 +27,10 @@ export class NodeListPropertiesDecorator {
     }
 }
 
-NodeListPropertiesDecorator.prototype = NodeList.prototype;
+LiveNodeListWrapperBase.prototype = NodeList.prototype;
 
-export const NODE_LIST_PROPERTIES_DECORATOR = new NodeListPropertiesDecorator();
+export const NODE_LIST_WRAPPER = new LiveNodeListWrapperBase();
 
-NodeListPropertiesDecorator.prototype = HTMLCollection.prototype;
+LiveNodeListWrapperBase.prototype = HTMLCollection.prototype;
 
-export const HTML_COLLECTION_PROPERTIES_DECORATOR = new NodeListPropertiesDecorator();
+export const HTML_COLLECTION_WRAPPER = new LiveNodeListWrapperBase();

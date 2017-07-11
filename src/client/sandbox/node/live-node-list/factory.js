@@ -1,68 +1,44 @@
-import LiveNodeListWrapper from './wrapper';
 import {
-    NodeListPropertiesDecorator,
-    HTML_COLLECTION_PROPERTIES_DECORATOR,
-    NODE_LIST_PROPERTIES_DECORATOR
-} from './property-decorator';
-import TagCache from './tag-cache';
+    LiveNodeListWrapperBase,
+    HTML_COLLECTION_WRAPPER,
+    NODE_LIST_WRAPPER
+} from './wrapper-base';
+import LiveNodeListWrapper from './wrapper';
 import { getTagName, isShadowUIElement } from '../../../utils/dom';
 import nativeMethods from '../../native-methods';
-
-const arrayFilter = Array.prototype.filter;
+import WrapperStorage from './wrapper-storage';
 
 export default class LiveNodeListFactory {
     constructor () {
         // NOTE: Now there is an implementation only for the 'getElementsByTagName' function
         // Later we will have separate parts for all appropriate functions (getElementsByClassName, getElementsByName)
-        this.wrappersWithReqularTag      = [];
-        this.wrappersWithAsteriskTag     = [];
         this.domContentLoadedEventRaised = false;
-        this.tagCache                    = new TagCache();
+        this.wrapperStorage              = new WrapperStorage();
 
         nativeMethods.addEventListener.call(document, 'DOMContentLoaded', () => {
             this.domContentLoadedEventRaised = true;
-
-            LiveNodeListFactory._notifyWrappersAboutDOMContentLoadedEvent(this.wrappersWithAsteriskTag);
-            LiveNodeListFactory._notifyWrappersAboutDOMContentLoadedEvent(this.wrappersWithReqularTag);
+            this.wrapperStorage.notifyAllWrappersAboutDOMContentLoadedEvent();
         });
-    }
-
-    static _markWrappersAsDirty (wrappers) {
-        for (const wrapper of wrappers)
-            wrapper._isDirty = true;
-    }
-
-    static _notifyWrappersAboutDOMContentLoadedEvent (wrappers) {
-        for (const wrapper of wrappers)
-            wrapper._domContentLoadedEventRaised = true;
     }
 
     onElementAddedOrRemoved (el) {
         if (!el.tagName || isShadowUIElement(el))
             return;
 
-        LiveNodeListFactory._markWrappersAsDirty(this.wrappersWithAsteriskTag);
-
         const tagName = getTagName(el);
 
-        if (!this.tagCache.contains(tagName))
-            return;
-
-        const wrappersWithSpecifiedTag = arrayFilter.call(this.wrappersWithReqularTag, wrapper => wrapper._tagName ===
-                                                                                                  tagName);
-
-        LiveNodeListFactory._markWrappersAsDirty(wrappersWithSpecifiedTag);
+        this.wrapperStorage.markWrappersWithSpecifiedTagNameAsDirty(tagName);
     }
 
     _createLiveNodeListWrapper (nodeList, domContentLoadedEventRaised, tagName) {
         if (nodeList instanceof NodeList)
-            LiveNodeListWrapper.prototype = NODE_LIST_PROPERTIES_DECORATOR;
+            LiveNodeListWrapper.prototype = NODE_LIST_WRAPPER;
         else if (nodeList instanceof HTMLCollection)
-            LiveNodeListWrapper.prototype = HTML_COLLECTION_PROPERTIES_DECORATOR;
+            LiveNodeListWrapper.prototype = HTML_COLLECTION_WRAPPER;
         else {
             // NOTE: For iframe's collections
-            NodeListPropertiesDecorator.prototype = nodeList;
-            LiveNodeListWrapper.prototype         = new NodeListPropertiesDecorator();
+            LiveNodeListWrapperBase.prototype = nodeList;
+            LiveNodeListWrapper.prototype     = new LiveNodeListWrapperBase();
         }
 
         return new LiveNodeListWrapper(nodeList, domContentLoadedEventRaised, tagName);
@@ -72,20 +48,14 @@ export default class LiveNodeListFactory {
         if (typeof tagName !== 'string')
             return nodeList;
 
-        this.tagCache.update(tagName);
-
         const wrapper = this._createLiveNodeListWrapper(nodeList, this.domContentLoadedEventRaised, tagName);
 
-        if (tagName === '*')
-            this.wrappersWithAsteriskTag.push(wrapper);
-        else
-            this.wrappersWithReqularTag.push(wrapper);
+        this.wrapperStorage.add(wrapper);
 
         return wrapper;
     }
 
     onInnerHtmlChanged () {
-        LiveNodeListFactory._markWrappersAsDirty(this.wrappersWithAsteriskTag);
-        LiveNodeListFactory._markWrappersAsDirty(this.wrappersWithReqularTag);
+        this.wrapperStorage.markAllWrappersAsDirty();
     }
 }
