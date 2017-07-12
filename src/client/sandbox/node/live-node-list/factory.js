@@ -1,7 +1,7 @@
 import {
     LiveNodeListWrapperBase,
-    HTML_COLLECTION_WRAPPER,
-    NODE_LIST_WRAPPER
+    htmlCollectionWrapperBase,
+    nodeListWrapperBase
 } from './wrapper-base';
 import LiveNodeListWrapper from './wrapper';
 import { getTagName, isShadowUIElement } from '../../../utils/dom';
@@ -32,9 +32,9 @@ export default class LiveNodeListFactory {
 
     _createLiveNodeListWrapper (nodeList, domContentLoadedEventRaised, tagName) {
         if (nodeList instanceof NodeList)
-            LiveNodeListWrapper.prototype = NODE_LIST_WRAPPER;
+            LiveNodeListWrapper.prototype = nodeListWrapperBase;
         else if (nodeList instanceof HTMLCollection)
-            LiveNodeListWrapper.prototype = HTML_COLLECTION_WRAPPER;
+            LiveNodeListWrapper.prototype = htmlCollectionWrapperBase;
         else {
             // NOTE: For iframe's collections
             LiveNodeListWrapperBase.prototype = nodeList;

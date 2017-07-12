@@ -29,8 +29,8 @@ export class LiveNodeListWrapperBase {
 
 LiveNodeListWrapperBase.prototype = NodeList.prototype;
 
-export const NODE_LIST_WRAPPER = new LiveNodeListWrapperBase();
+export const nodeListWrapperBase = new LiveNodeListWrapperBase();
 
 LiveNodeListWrapperBase.prototype = HTMLCollection.prototype;
 
-export const HTML_COLLECTION_WRAPPER = new LiveNodeListWrapperBase();
+export const htmlCollectionWrapperBase = new LiveNodeListWrapperBase();
