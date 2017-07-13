@@ -219,8 +219,17 @@ export function processHtml (html, parentTag, prepareDom) {
             urlResolver.updateBase(nativeMethods.getAttribute.call(base, 'href'), document);
 
         for (const child of children) {
-            if (hasIsNotClosedFlag(child))
+            if (hasIsNotClosedFlag(child)) {
+                if (isScriptElement(child) && nativeMethods.hasAttribute.call(child, 'src')) {
+                    const storedTextContent = child.textContent;
+
+                    domProcessor.processElement(child, convertToProxyUrl);
+
+                    child.textContent = storedTextContent;
+                }
+
                 continue;
+            }
 
             if (isScriptElement(child))
                 child.textContent = unwrapHtmlText(child.textContent);
