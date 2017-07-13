@@ -137,7 +137,7 @@ export default class WindowSandbox extends SandboxBase {
                     return new nativeMethods.Worker();
 
                 if (typeof scriptURL === 'string')
-                    scriptURL = getProxyUrl(scriptURL);
+                    scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
                 return arguments.length ===
                        1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
@@ -210,7 +210,7 @@ export default class WindowSandbox extends SandboxBase {
         if (nativeMethods.registerServiceWorker) {
             window.navigator.serviceWorker.register = (...args) => {
                 if (typeof args[0] === 'string')
-                    args[0] = getProxyUrl(args[0]);
+                    args[0] = getProxyUrl(args[0], { resourceType: stringifyResourceType({ isScript: true }) });
 
                 if (args[1] && typeof args[1].scope === 'string')
                     args[1].scope = getProxyUrl(args[1].scope);

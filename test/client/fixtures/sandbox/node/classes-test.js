@@ -41,10 +41,11 @@ if (window.Worker) {
     test('checking parameters (GH-1132', function () {
         var savedNativeWorker = nativeMethods.Worker;
         var workerOptions     = { name: 'test' };
+        var resourceType      = urlUtils.stringifyResourceType({ isScript: true });
 
         nativeMethods.Worker = function (scriptURL) {
             strictEqual(arguments.length, 1);
-            strictEqual(scriptURL, urlUtils.getProxyUrl('/test'));
+            strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
         };
         /* eslint-disable no-new */
         new Worker('/test');
@@ -52,7 +53,7 @@ if (window.Worker) {
 
         nativeMethods.Worker = function (scriptURL, options) {
             strictEqual(arguments.length, 2);
-            strictEqual(scriptURL, urlUtils.getProxyUrl('/test'));
+            strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
             strictEqual(options, workerOptions);
         };
         /* eslint-disable no-new */
