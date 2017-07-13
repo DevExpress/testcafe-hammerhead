@@ -23,14 +23,15 @@ const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
 
 export default class ElementSandbox extends SandboxBase {
-    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox, liveNodeListFactory) {
         super();
 
-        this.nodeSandbox   = nodeSandbox;
-        this.shadowUI      = shadowUI;
-        this.uploadSandbox = uploadSandbox;
-        this.iframeSandbox = iframeSandbox;
-        this.eventSandbox  = eventSandbox;
+        this.nodeSandbox         = nodeSandbox;
+        this.shadowUI            = shadowUI;
+        this.uploadSandbox       = uploadSandbox;
+        this.iframeSandbox       = iframeSandbox;
+        this.eventSandbox        = eventSandbox;
+        this.liveNodeListFactory = liveNodeListFactory;
 
         this.overridedMethods = null;
 
@@ -388,7 +389,7 @@ export default class ElementSandbox extends SandboxBase {
 
                 const result = nativeMethods.removeChild.apply(this, arguments);
 
-                sandbox.onElementRemoved(child);
+                sandbox._onElementRemoved(child);
 
                 return result;
             },
@@ -405,6 +406,8 @@ export default class ElementSandbox extends SandboxBase {
                 const result = nativeMethods.replaceChild.apply(this, arguments);
 
                 sandbox._onAddFileInputInfo(newChild);
+                sandbox.liveNodeListFactory.onElementAddedOrRemoved(newChild);
+                sandbox.liveNodeListFactory.onElementAddedOrRemoved(oldChild);
 
                 return result;
             },
@@ -577,14 +580,18 @@ export default class ElementSandbox extends SandboxBase {
 
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
+
+        this.liveNodeListFactory.onElementAddedOrRemoved(el);
     }
 
-    onElementRemoved (el) {
+    _onElementRemoved (el) {
         if (domUtils.isBodyElement(el))
             this.shadowUI.onBodyElementMutation();
 
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(getDestLocation(), this.document);
+
+        this.liveNodeListFactory.onElementAddedOrRemoved(el);
     }
 
     addFileInputInfo (el) {

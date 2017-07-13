@@ -17,7 +17,7 @@ const IS_SHADOW_CONTAINER_FLAG            = 'hammerhead|shadow-ui|container-flag
 const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-collection-flag';
 
 export default class ShadowUI extends SandboxBase {
-    constructor (nodeMutation, messageSandbox, iframeSandbox) {
+    constructor (nodeMutation, messageSandbox, iframeSandbox, liveNodeListFactory) {
         super();
 
         this.BODY_CONTENT_CHANGED_COMMAND = 'hammerhead|command|body-content-changed';
@@ -27,14 +27,15 @@ export default class ShadowUI extends SandboxBase {
         this.HIDDEN_CLASS = 'hidden';
         this.BLIND_CLASS  = 'blind';
 
-        this.nodeMutation   = nodeMutation;
-        this.messageSandbox = messageSandbox;
-        this.iframeSandbox  = iframeSandbox;
+        this.nodeMutation        = nodeMutation;
+        this.messageSandbox      = messageSandbox;
+        this.iframeSandbox       = iframeSandbox;
+        this.liveNodeListFactory = liveNodeListFactory;
 
         this.root                    = null;
         this.lastActiveElement       = null;
         this.uiStyleSheetsHtmlBackup = null;
-        this.wrapperCreators         = ShadowUI._createWrapperCreators();
+        this.wrapperCreators         = ShadowUI._createWrapperCreators(this.liveNodeListFactory);
     }
 
     static _filterElement (el) {
@@ -84,7 +85,7 @@ export default class ShadowUI extends SandboxBase {
         return null;
     }
 
-    static _createWrapperCreators () {
+    static _createWrapperCreators (liveNodeListFactory) {
         return {
             getElementsByClassName (nativeGetElementsByClassNameFnName) {
                 return function (...args) {
@@ -94,7 +95,12 @@ export default class ShadowUI extends SandboxBase {
 
             getElementsByTagName (nativeGetElementsByTagNameFnName) {
                 return function (...args) {
-                    return ShadowUI._filterNodeList(nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args));
+                    const nativeResult = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
+
+                    return liveNodeListFactory.createNodeListForGetElementsByTagNameFn({
+                        nodeList: nativeResult,
+                        tagName:  args[0]
+                    });
                 };
             },
 
