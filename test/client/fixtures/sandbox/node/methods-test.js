@@ -285,7 +285,9 @@ if (window.navigator.serviceWorker) {
         var scopeUrl     = '/';
 
         nativeMethods.registerServiceWorker = function (url, options) {
-            strictEqual(url, urlUtils.getProxyUrl(scriptUrl));
+            var resourceType = urlUtils.stringifyResourceType({ isScript: true });
+
+            strictEqual(url, urlUtils.getProxyUrl(scriptUrl, { resourceType: resourceType }));
             strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl));
 
             nativeMethods.registerServiceWorker = storedNative;
