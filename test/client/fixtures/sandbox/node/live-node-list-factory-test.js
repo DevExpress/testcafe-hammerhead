@@ -72,8 +72,7 @@ module('getElementsByTagName', function () {
         root.appendChild(form3);
 
         var elements           = document.body.getElementsByTagName('form');
-        var nativeNodeList     = nativeMethods.getElementsByTagName.call(document, 'form');
-        var nativeNodeListType = nativeNodeList.constructor;
+        var nativeNodeListType = nativeMethods.getElementsByTagName.call(document, 'form').constructor;
 
         ok(elements instanceof nativeNodeListType);
         strictEqual(elements.length, 1);
@@ -86,7 +85,7 @@ module('getElementsByTagName', function () {
         strictEqual(elements.item(0), form1);
         strictEqual(elements.item(1), form2);
 
-        if (nativeNodeList.namedItem) {
+        if (elements.namedItem) {
             strictEqual(elements.namedItem(form1.id), form1);
             strictEqual(elements.namedItem(form3.id), null);
         }
