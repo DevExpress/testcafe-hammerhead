@@ -18,13 +18,17 @@ export default class LiveNodeListWrapper {
                 return this._filteredNodeList.length;
             }
         });
-        Object.defineProperty(this, 'namedItem', {
-            value: (...args) => {
-                const findNamedItem = this._nodeList.namedItem.apply(this._nodeList, args);
 
-                return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
-            }
-        });
+        if (this.namedItem) {
+            Object.defineProperty(this, 'namedItem', {
+                value: (...args) => {
+                    const findNamedItem = this._nodeList.namedItem.apply(this._nodeList, args);
+
+                    return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
+                }
+            });
+        }
+
         Object.defineProperty(this, '_nodeList', { value: nodeList });
         Object.defineProperty(this, '_filteredNodeList', { writable: true });
         Object.defineProperty(this, '_isDirty', { writable: true, value: true });

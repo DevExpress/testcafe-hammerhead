@@ -72,7 +72,8 @@ module('getElementsByTagName', function () {
         root.appendChild(form3);
 
         var elements           = document.body.getElementsByTagName('form');
-        var nativeNodeListType = nativeMethods.getElementsByTagName.call(document, 'form').constructor;
+        var nativeNodeList     = nativeMethods.getElementsByTagName.call(document, 'form');
+        var nativeNodeListType = nativeNodeList.constructor;
 
         ok(elements instanceof nativeNodeListType);
         strictEqual(elements.length, 1);
@@ -84,8 +85,11 @@ module('getElementsByTagName', function () {
         strictEqual(elements[1], form2);
         strictEqual(elements.item(0), form1);
         strictEqual(elements.item(1), form2);
-        strictEqual(elements.namedItem(form1.id), form1);
-        strictEqual(elements.namedItem(form3.id), null);
+
+        if (nativeNodeList.namedItem) {
+            strictEqual(elements.namedItem(form1.id), form1);
+            strictEqual(elements.namedItem(form3.id), null);
+        }
     });
 
     module('performance', function () {
