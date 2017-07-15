@@ -5,8 +5,6 @@ const arrayFilter = Array.prototype.filter;
 export default class LiveNodeListWrapper {
     constructor (nodeList, domContentLoadedEventRaised, tagName) {
         Object.defineProperty(this, 'item', {
-            enumerable: true,
-
             value: index => {
                 this._refreshNodeList();
 
@@ -14,12 +12,17 @@ export default class LiveNodeListWrapper {
             }
         });
         Object.defineProperty(this, 'length', {
-            enumerable: true,
-
             get: () => {
                 this._refreshNodeList();
 
                 return this._filteredNodeList.length;
+            }
+        });
+        Object.defineProperty(this, 'namedItem', {
+            value: (...args) => {
+                const findNamedItem = this._nodeList.namedItem.apply(this._nodeList, args);
+
+                return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
             }
         });
         Object.defineProperty(this, '_nodeList', { value: nodeList });
@@ -30,19 +33,6 @@ export default class LiveNodeListWrapper {
             value:    domContentLoadedEventRaised
         });
         Object.defineProperty(this, '_tagName', { value: tagName.toLowerCase() });
-
-        if (this.namedItem) {
-            Object.defineProperty(this, 'namedItem', {
-                enumerable: true,
-
-                value: (...args) => {
-                    const findNamedItem = this._nodeList.namedItem.apply(this._nodeList, args);
-
-                    return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
-                }
-            });
-        }
-
         Object.defineProperty(this, '_refreshNodeListInternal', {
             value: () => {
                 this._filteredNodeList = arrayFilter.call(this._nodeList, element => !isShadowUIElement(element));

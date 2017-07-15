@@ -84,11 +84,8 @@ module('getElementsByTagName', function () {
         strictEqual(elements[1], form2);
         strictEqual(elements.item(0), form1);
         strictEqual(elements.item(1), form2);
-
-        if (elements.namedItem) {
-            strictEqual(elements.namedItem(form1.id), form1);
-            strictEqual(elements.namedItem(form3.id), null);
-        }
+        strictEqual(elements.namedItem(form1.id), form1);
+        strictEqual(elements.namedItem(form3.id), null);
     });
 
     module('performance', function () {
