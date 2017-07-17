@@ -147,7 +147,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: domUtils.isDocument,
 
                 get: el => {
-                    if (domUtils.isShadowUIElement(el.activeElement))
+                    if (el.activeElement && domUtils.isShadowUIElement(el.activeElement))
                         return this.shadowUI.getLastActiveElement() || el.body;
 
                     return el.activeElement;

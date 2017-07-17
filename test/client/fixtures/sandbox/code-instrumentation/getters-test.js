@@ -573,3 +573,29 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
         strictEqual(getProperty(svg, property), svgHasProperty ? style : void 0, property);
     });
 });
+
+test('document.activeElement when it equals null (GH-1226)', function () {
+    expect(1);
+
+    var div      = document.createElement('div');
+    var innerDiv = document.createElement('div');
+
+    div.id            = 'div';
+    innerDiv.id       = 'innerDiv';
+    innerDiv.tabIndex = 0;
+    div.appendChild(innerDiv);
+    document.body.appendChild(div);
+    innerDiv.focus();
+    setProperty(div, 'innerHTML', '<span>Replaced</span>');
+
+    try {
+        var instrumentedValue = getProperty(document, 'activeElement');
+
+        strictEqual(instrumentedValue, document.activeElement);
+    }
+    catch (err) {
+        ok(false);
+    }
+
+    div.parentNode.removeChild(div);
+});
