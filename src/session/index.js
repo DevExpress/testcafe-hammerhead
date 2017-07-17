@@ -40,7 +40,10 @@ export default class Session extends EventEmitter {
 
     // State
     getStateSnapshot () {
-        return this.cookies.serializeJar();
+        return {
+            cookies:  this.cookies.serializeJar(),
+            storages: null
+        };
     }
 
     useStateSnapshot (snapshot) {
@@ -48,7 +51,13 @@ export default class Session extends EventEmitter {
         // pending requests from current page. Therefore, we perform switch in
         // onPageRequest handler when new page is requested.
         this.requireStateSwitch   = true;
-        this.pendingStateSnapshot = snapshot;
+        this.pendingStateSnapshot = snapshot || {
+            cookies:  null,
+            storages: {
+                localStorage:   '[[],[]]',
+                sessionStorage: '[[],[]]'
+            }
+        };
     }
 
     async handleServiceMessage (msg, serverInfo) {
@@ -121,9 +130,10 @@ export default class Session extends EventEmitter {
         this.externalProxySettings = settings;
     }
 
-    onPageRequest () {
+    onPageRequest (ctx) {
         if (this.requireStateSwitch) {
-            this.cookies.setJar(this.pendingStateSnapshot);
+            this.cookies.setJar(this.pendingStateSnapshot.cookies);
+            ctx.restoredStorages      = this.pendingStateSnapshot.storages;
             this.requireStateSwitch   = false;
             this.pendingStateSnapshot = null;
         }

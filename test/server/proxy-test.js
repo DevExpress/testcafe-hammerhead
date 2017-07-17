@@ -835,6 +835,14 @@ describe('Proxy', function () {
             session.injectable.styles.push('/styles1.css');
             session.injectable.styles.push('/styles2.css');
 
+            session.useStateSnapshot({
+                cookies:  null,
+                storages: {
+                    localStorage:   '[["key1"],[" \' \\" \\\\ \\n \\t \\b \\f "]]',
+                    sessionStorage: '[["key2"],["value"]]'
+                }
+            });
+
             var options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
@@ -1102,6 +1110,14 @@ describe('Proxy', function () {
             session.injectable.styles.push('/styles1.css');
             session.injectable.styles.push('/styles2.css');
 
+            session.useStateSnapshot({
+                cookies:  null,
+                storages: {
+                    localStorage:   '[["key1"],[" \' \\" \\\\ \\n \\t \\b \\f "]]',
+                    sessionStorage: '[["key2"],["value"]]'
+                }
+            });
+
             var options = {
                 url: proxy.openSession(getFileProtocolUrl('./data/page/src.html') + '?a=1&b=3', session),
 
@@ -1111,7 +1127,8 @@ describe('Proxy', function () {
             };
 
             request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/page/expected.html').toString();
+                var expected = fs.readFileSync('test/server/data/page/expected.html').toString()
+                    .replace(/(hammerhead\|storage-wrapper\|sessionId\|)127\.0\.0\.1:2000/g, '$1');
 
                 compareCode(body, expected);
                 done();
@@ -1252,14 +1269,21 @@ describe('Proxy', function () {
     });
 
     describe('State switching', function () {
-        function makeRequest (url, isResource) {
-            var options = {
-                url:     proxy.openSession(url, session),
-                headers: {}
-            };
+        function makeRequest (url, opts) {
+            opts = opts || { isPage: true };
 
-            if (!isResource)
-                options.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8';
+            var options = {
+                url: urlUtils.getProxyUrl(url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                    resourceType:  opts.resourceType
+                }),
+
+                headers: {
+                    accept: opts.isPage ? 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8' : '*/*'
+                }
+            };
 
             return new Promise(function (resolve, reject) {
                 request(options, function (err, res, body) {
@@ -1314,6 +1338,8 @@ describe('Proxy', function () {
                 });
             }
 
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
             return Promise.resolve()
                 .then(function () {
                     return forEachSequentially(testCases, initializeState);
@@ -1324,6 +1350,8 @@ describe('Proxy', function () {
         });
 
         it('Should switch state only on page requests', function () {
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
             var state = null;
 
             return makeRequest('http://127.0.0.1:2000/cookie/set1')
@@ -1335,13 +1363,25 @@ describe('Proxy', function () {
 
                 // Try request empty state with non-page and page requests
                 .then(function () {
-                    return makeRequest('http://127.0.0.1:2000/cookie/echo', true);
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: false });
                 })
                 .then(function (body) {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
                 .then(function () {
-                    return makeRequest('http://127.0.0.1:2000/cookie/echo', false);
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true, resourceType: 'i' });
+                })
+                .then(function (body) {
+                    expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
+                })
+                .then(function () {
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true, resourceType: 'h' });
+                })
+                .then(function (body) {
+                    expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
+                })
+                .then(function () {
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true });
                 })
                 .then(function (body) {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
@@ -1353,13 +1393,25 @@ describe('Proxy', function () {
 
                 // Try request Set1 state with non-page and page requests
                 .then(function () {
-                    return makeRequest('http://127.0.0.1:2000/cookie/echo', true);
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: false });
                 })
                 .then(function (body) {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
                 .then(function () {
-                    return makeRequest('http://127.0.0.1:2000/cookie/echo', false);
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true, resourceType: 'i' });
+                })
+                .then(function (body) {
+                    expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
+                })
+                .then(function () {
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true, resourceType: 'h' });
+                })
+                .then(function (body) {
+                    expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
+                })
+                .then(function () {
+                    return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true });
                 })
                 .then(function (body) {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
@@ -1635,7 +1687,7 @@ describe('Proxy', function () {
                     });
 
                     res.on('end', function () {
-                        var responseEndInMs             = getTimeInMs(process.hrtime(startTestTime));
+                        var responseEndInMs = getTimeInMs(process.hrtime(startTestTime));
                         // NOTE: Only in node 0.10 response 'end' event can happen earlier than 1000 ms
                         var responseEndThresholdTimeout = 20;
 
