@@ -141,7 +141,7 @@ class PageProcessor extends ResourceProcessorBase {
 
     _addRestoreStoragesScript (ctx, head) {
         const storageKey            = getStorageKey(ctx.session.id, ctx.dest.host);
-        const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoredStorages);
+        const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
 
         parse5Utils.insertElement(restoreStoragesScript, head);
     }
@@ -201,7 +201,7 @@ class PageProcessor extends ResourceProcessorBase {
             PageProcessor._addPageResources(head, processingOpts, domAdapter);
             this._addBodyCreatedEventScript(body, domAdapter);
 
-            if (ctx.restoredStorages && !processingOpts.isIframe)
+            if (ctx.restoringStorages && !processingOpts.isIframe)
                 this._addRestoreStoragesScript(ctx, head);
         }
 

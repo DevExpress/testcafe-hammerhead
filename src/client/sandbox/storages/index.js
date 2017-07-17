@@ -6,6 +6,7 @@ import * as nativeMethods from '../native-methods';
 import { getTopSameDomainWindow } from '../../utils/dom';
 import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
+import * as JSON from '../../json';
 
 export default class StorageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox, eventSimulator) {

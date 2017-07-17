@@ -133,7 +133,7 @@ export default class Session extends EventEmitter {
     onPageRequest (ctx) {
         if (this.requireStateSwitch) {
             this.cookies.setJar(this.pendingStateSnapshot.cookies);
-            ctx.restoredStorages      = this.pendingStateSnapshot.storages;
+            ctx.restoringStorages     = this.pendingStateSnapshot.storages;
             this.requireStateSwitch   = false;
             this.pendingStateSnapshot = null;
         }

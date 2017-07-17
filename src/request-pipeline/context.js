@@ -35,7 +35,7 @@ export default class RequestPipelineContext {
         this.isFetch = !!req.headers[XHR_HEADERS.fetchRequestCredentials];
         this.isPage  = !this.isXhr && !this.isFetch && acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
-        this.restoredStorages = null;
+        this.restoringStorages = null;
     }
 
     // TODO: Rewrite parseProxyUrl instead.
