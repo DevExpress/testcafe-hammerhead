@@ -4,9 +4,9 @@ import settings from '../../settings';
 import * as destLocation from '../../utils/destination-location';
 import * as nativeMethods from '../native-methods';
 import { getTopSameDomainWindow } from '../../utils/dom';
+import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
-
-const STORAGE_WRAPPER_PREFIX = 'hammerhead|storage-wrapper|';
+import * as JSON from '../../json';
 
 export default class StorageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox, eventSimulator) {
@@ -21,10 +21,6 @@ export default class StorageSandbox extends SandboxBase {
         this.isLocked       = false;
     }
 
-    static _getStorageKey (sessionId, host) {
-        return STORAGE_WRAPPER_PREFIX + sessionId + '|' + host;
-    }
-
     _simulateStorageEvent (key, oldValue, newValue, url, storageArea) {
         if (!this.isDeactivated())
             this.eventSimulator.storage(this.window, { key, oldValue, newValue, url, storageArea });
@@ -35,7 +31,7 @@ export default class StorageSandbox extends SandboxBase {
     _createStorageWrappers () {
         const sessionId             = settings.get().sessionId;
         const host                  = destLocation.getParsed().host;
-        const storageKey            = StorageSandbox._getStorageKey(sessionId, host);
+        const storageKey            = getStorageKey(sessionId, host);
         const topSameDomainWindow   = getTopSameDomainWindow(this.window);
         const topSameDomainStorages = topSameDomainWindow[INTERNAL_PROPS.hammerhead].sandbox.storageSandbox.storages;
 

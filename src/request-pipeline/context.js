@@ -24,6 +24,7 @@ export default class RequestPipelineContext {
         this.isXhr         = false;
         this.isFetch       = false;
         this.isPage        = false;
+        this.isHtmlImport  = false;
         this.isIframe      = false;
         this.isSpecialPage = false;
         this.contentInfo   = null;
@@ -33,6 +34,8 @@ export default class RequestPipelineContext {
         this.isXhr   = !!req.headers[XHR_HEADERS.requestMarker];
         this.isFetch = !!req.headers[XHR_HEADERS.fetchRequestCredentials];
         this.isPage  = !this.isXhr && !this.isFetch && acceptHeader && contentTypeUtils.isPage(acceptHeader);
+
+        this.restoringStorages = null;
     }
 
     // TODO: Rewrite parseProxyUrl instead.
@@ -111,6 +114,7 @@ export default class RequestPipelineContext {
         this.isXhr          = !!this.req.headers[XHR_HEADERS.requestMarker];
         this.isPage         = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader) ||
                               this.dest.isHtmlImport;
+        this.isHtmlImport   = this.dest.isHtmlImport;
         this.isIframe       = this.dest.isIframe;
         this.isSpecialPage  = urlUtils.isSpecialPage(this.dest.url);
         this.isFileProtocol = this.dest.protocol === 'file:';

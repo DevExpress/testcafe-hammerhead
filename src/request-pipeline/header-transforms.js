@@ -8,6 +8,10 @@ function skip () {
     return void 0;
 }
 
+function skipIfStateSnapshotIsApplied (src, ctx) {
+    return ctx.restoringStorages ? void 0 : src;
+}
+
 function isCrossDomainXhrWithoutCredentials (ctx) {
     return ctx.isXhr && !!ctx.req.headers[XHR_HEADERS.corsSupported] && !ctx.req.headers[XHR_HEADERS.withCredentials] &&
            ctx.dest.reqOrigin !== ctx.dest.domain;
@@ -51,6 +55,8 @@ const requestTransforms = Object.assign({
     'origin':                              (src, ctx) => ctx.dest.reqOrigin || src,
     'content-length':                      (src, ctx) => ctx.reqBody.length,
     'cookie':                              skip,
+    'if-modified-since':                   skipIfStateSnapshotIsApplied,
+    'if-none-match':                       skipIfStateSnapshotIsApplied,
     [XHR_HEADERS.requestMarker]:           skip,
     [XHR_HEADERS.corsSupported]:           skip,
     [XHR_HEADERS.withCredentials]:         skip,

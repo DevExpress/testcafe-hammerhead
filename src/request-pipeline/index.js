@@ -14,8 +14,8 @@ const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 // Stages
 const stages = {
     0: async function fetchProxyRequestBody (ctx, next) {
-        if (ctx.isPage && !ctx.isIframe)
-            ctx.session.onPageRequest();
+        if (ctx.isPage && !ctx.isIframe && !ctx.isHtmlImport)
+            ctx.session.onPageRequest(ctx);
 
         ctx.reqBody = await fetchBody(ctx.req);
 

@@ -7,6 +7,7 @@ import ResourceProcessorBase from './resource-processor-base';
 import * as parse5Utils from '../../utils/parse5';
 import getBOM from '../../utils/get-bom';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
+import getStorageKey from '../../utils/get-storage-key';
 
 const BODY_CREATED_EVENT_SCRIPT = dedent(`
     <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
@@ -31,6 +32,22 @@ class PageProcessor extends ResourceProcessorBase {
 
 
         this.serializer = new parse5.Serializer();
+    }
+
+    _createRestoreStoragesScript (storageKey, storages) {
+        const scriptStr = dedent(`
+            <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
+                (function () {
+                    window.localStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.localStorage) });
+                    window.sessionStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.sessionStorage) });
+
+                    var script = document.currentScript || document.scripts[document.scripts.length - 1];
+                    script.parentNode.removeChild(script);
+                })();
+            </script>
+        `);
+
+        return this.parser.parseFragment(scriptStr).childNodes[0];
     }
 
     static _getPageProcessingOptions (ctx, urlReplacer) {
@@ -122,6 +139,13 @@ class PageProcessor extends ResourceProcessorBase {
         return html;
     }
 
+    _addRestoreStoragesScript (ctx, head) {
+        const storageKey            = getStorageKey(ctx.session.id, ctx.dest.host);
+        const restoreStoragesScript = this._createRestoreStoragesScript(storageKey, ctx.restoringStorages);
+
+        parse5Utils.insertElement(restoreStoragesScript, head);
+    }
+
     _addBodyCreatedEventScript (body) {
         parse5Utils.insertElement(this.PARSED_BODY_CREATED_EVENT_SCRIPT, body);
     }
@@ -173,9 +197,12 @@ class PageProcessor extends ResourceProcessorBase {
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
         domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
 
-        if (!ctx.dest.isHtmlImport) {
+        if (!ctx.isHtmlImport) {
             PageProcessor._addPageResources(head, processingOpts, domAdapter);
             this._addBodyCreatedEventScript(body, domAdapter);
+
+            if (ctx.restoringStorages && !processingOpts.isIframe)
+                this._addRestoreStoragesScript(ctx, head);
         }
 
         PageProcessor._changeMetas(metas, domAdapter);
