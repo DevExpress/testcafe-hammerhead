@@ -262,7 +262,7 @@ describe('Proxy', function () {
         });
 
         app.get('/echo-headers', function (req, res) {
-            res.json(req.headers);
+            res.end(JSON.stringify(req.headers));
         });
 
         app.get('/empty-response', function (req, res) {
@@ -1127,6 +1127,8 @@ describe('Proxy', function () {
             };
 
             request(options, function (err, res, body) {
+                // NOTE: The host property is empty in url with file: protocol.
+                // The expected.html template is used for both tests with http: and file: protocol.
                 var expected = fs.readFileSync('test/server/data/page/expected.html').toString()
                     .replace(/(hammerhead\|storage-wrapper\|sessionId\|)127\.0\.0\.1:2000/g, '$1');
 
@@ -1416,6 +1418,25 @@ describe('Proxy', function () {
                 .then(function (body) {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 });
+        });
+
+        it('Should skip cache headers if state snapshot is applied', function (done) {
+            var options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
+                headers: {
+                    accept:              'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                    'if-modified-since': 'Mon, 17 Jul 2017 14:56:15 GMT',
+                    'if-none-match':     'W/"1322-15d510cbdf8"'
+                }
+            };
+
+            session.useStateSnapshot(null);
+
+            request(options, function (err, res, body) {
+                expect(body).not.contains('if-modified-since');
+                expect(body).not.contains('if-none-match');
+                done();
+            });
         });
     });
 
