@@ -821,4 +821,11 @@ test('processed nodeList should have non-enumerable "item" and "namedItem" prope
 
     strictEqual(collectionKeys.indexOf('item'), -1, 'item');
     strictEqual(collectionKeys.indexOf('namedItem'), -1, 'namedItem');
+
+    collection     = document.getElementsByTagName('div');
+    collectionKeys = Object.keys(collection);
+
+    strictEqual(collectionKeys.indexOf('item'), -1, 'item');
+    strictEqual(collectionKeys.indexOf('namedItem'), -1, 'namedItem');
+    strictEqual(collectionKeys.indexOf('length'), -1, 'length');
 });
