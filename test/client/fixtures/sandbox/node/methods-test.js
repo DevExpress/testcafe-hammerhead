@@ -279,18 +279,29 @@ test('canvasRenderingContext2D.drawImage', function () {
 });
 
 if (window.navigator.serviceWorker) {
-    test('window.navigator.serviceWorker.register (GH-797)', function () {
+    asyncTest('window.navigator.serviceWorker.register (GH-797)(GH-1233)', function () {
         var storedNative = nativeMethods.registerServiceWorker;
-        var scriptUrl    = '/serviceWorker.js';
+        var scriptUrl    = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
         var scopeUrl     = '/';
 
         nativeMethods.registerServiceWorker = function (url, options) {
             var resourceType = urlUtils.stringifyResourceType({ isScript: true });
 
             strictEqual(url, urlUtils.getProxyUrl(scriptUrl, { resourceType: resourceType }));
-            strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl));
+            strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl, { resourceType: resourceType }));
 
             nativeMethods.registerServiceWorker = storedNative;
+
+            nativeMethods.registerServiceWorker.apply(this, arguments)
+                .then(function () {
+                    ok(true);
+                })
+                .catch(function (err) {
+                    ok(false, err);
+                })
+                .then(function () {
+                    start();
+                });
         };
 
         window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl });

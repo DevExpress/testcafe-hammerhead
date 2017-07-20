@@ -213,7 +213,7 @@ export default class WindowSandbox extends SandboxBase {
                     args[0] = getProxyUrl(args[0], { resourceType: stringifyResourceType({ isScript: true }) });
 
                 if (args[1] && typeof args[1].scope === 'string')
-                    args[1].scope = getProxyUrl(args[1].scope);
+                    args[1].scope = getProxyUrl(args[1].scope, { resourceType: stringifyResourceType({ isScript: true }) });
 
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
             };
