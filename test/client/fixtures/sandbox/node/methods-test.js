@@ -299,6 +299,7 @@ if (window.navigator.serviceWorker) {
     // NOTE: Service workers are only accessible via https. The easiest way around it is
     // to go to http://localhost instead of the IP address of the computer you are running.
     // https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
+    // This condition works only for running on the local machine only. On Saucelabs url with a domain name is opened.
     if (location.hostname === 'localhost') {
         asyncTest('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
             var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
