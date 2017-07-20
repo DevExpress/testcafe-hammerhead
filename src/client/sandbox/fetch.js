@@ -99,7 +99,10 @@ export default class FetchSandbox extends SandboxBase {
                     configurable: true
                 });
 
-                return originalThenHandler.apply(this, arguments);
+                if (originalThenHandler)
+                    return originalThenHandler.apply(this, arguments);
+
+                return response;
             };
 
             return originalThen.apply(this, args);
