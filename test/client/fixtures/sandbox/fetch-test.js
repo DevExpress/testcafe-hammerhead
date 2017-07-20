@@ -480,6 +480,18 @@ if (window.fetch) {
                     });
             });
         });
+
+        asyncTest('should emulate native promise behaviour if the catch is first in chain (GH-1234)', function () {
+            fetch('/xhr-test/100')
+                .catch(function () {
+                })
+                .then(function (response) {
+                    strictEqual(response.status, 200);
+                    strictEqual(response.type, 'basic');
+
+                    start();
+                });
+        });
     });
 }
 
