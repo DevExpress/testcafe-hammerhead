@@ -279,9 +279,9 @@ test('canvasRenderingContext2D.drawImage', function () {
 });
 
 if (window.navigator.serviceWorker) {
-    asyncTest('window.navigator.serviceWorker.register (GH-797)(GH-1233)', function () {
+    test('window.navigator.serviceWorker.register (GH-797)', function () {
         var storedNative = nativeMethods.registerServiceWorker;
-        var scriptUrl    = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
+        var scriptUrl    = '/serviceWorker.js';
         var scopeUrl     = '/';
 
         nativeMethods.registerServiceWorker = function (url, options) {
@@ -291,8 +291,20 @@ if (window.navigator.serviceWorker) {
             strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl, { resourceType: resourceType }));
 
             nativeMethods.registerServiceWorker = storedNative;
+        };
 
-            nativeMethods.registerServiceWorker.apply(this, arguments)
+        window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl });
+    });
+
+    // NOTE: Service workers are only accessible via https. The easiest way around it is
+    // to go to http://localhost instead of the IP address of the computer you are running.
+    // https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
+    if (location.hostname === 'localhost') {
+        asyncTest('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
+            var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
+            var scopeUrl  = '/';
+
+            window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
                 .then(function () {
                     ok(true);
                 })
@@ -302,10 +314,8 @@ if (window.navigator.serviceWorker) {
                 .then(function () {
                     start();
                 });
-        };
-
-        window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl });
-    });
+        });
+    }
 }
 
 if (!browserUtils.isFirefox) {
