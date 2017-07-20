@@ -288,13 +288,35 @@ if (window.navigator.serviceWorker) {
             var resourceType = urlUtils.stringifyResourceType({ isScript: true });
 
             strictEqual(url, urlUtils.getProxyUrl(scriptUrl, { resourceType: resourceType }));
-            strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl));
+            strictEqual(options.scope, urlUtils.getProxyUrl(scopeUrl, { resourceType: resourceType }));
 
             nativeMethods.registerServiceWorker = storedNative;
         };
 
         window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl });
     });
+
+    // NOTE: Service workers are only accessible via https. The easiest way around it is
+    // to go to http://localhost instead of the IP address of the computer you are running.
+    // https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
+    // This condition works only for running on the local machine only. On Saucelabs url with a domain name is opened.
+    if (location.hostname === 'localhost') {
+        asyncTest('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
+            var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
+            var scopeUrl  = '/';
+
+            window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
+                .then(function () {
+                    ok(true);
+                })
+                .catch(function (err) {
+                    ok(false, err);
+                })
+                .then(function () {
+                    start();
+                });
+        });
+    }
 }
 
 if (!browserUtils.isFirefox) {
