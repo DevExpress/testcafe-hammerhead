@@ -307,6 +307,6 @@ export default class Listeners extends EventEmitter {
         if (!eventCtx)
             return null;
 
-        return arrayMap.apply(eventCtx.outerHandlers, [handler => handler.fn]);
+        return arrayMap.call(eventCtx.outerHandlers, handler => handler.fn);
     }
 }
