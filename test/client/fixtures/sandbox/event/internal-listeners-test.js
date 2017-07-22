@@ -165,7 +165,7 @@ test('getEventListeners', function () {
 
     listeners.initElementListening(container, ['mouseover']);
 
-    deepEqual(listeners.getEventListeners(container, 'click'), null);
+    strictEqual(listeners.getEventListeners(container, 'click'), null);
 
     listeners.initElementListening(container, ['click']);
 
