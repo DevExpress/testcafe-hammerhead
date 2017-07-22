@@ -226,7 +226,9 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
 
     // NOTE: Save wrapper properties and methods to be able to distinguish them from
     // properties that will be created from the outside.
+    /*eslint-disable no-restricted-globals*/
     this.initialProperties = Object.getOwnPropertyNames(this);
+    /*eslint-enable no-restricted-globals*/
     this.wrapperMethods    = getWrapperMethods();
 
     init();

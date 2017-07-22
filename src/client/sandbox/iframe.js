@@ -7,6 +7,7 @@ import { isShadowUIElement, isCrossDomainIframe, isElementInDocument, isIframeWi
 import { isFirefox, isWebKit } from '../utils/browser';
 import { isSupportedProtocol } from '../utils/url';
 import { isPageHtml } from '../utils/html';
+import JSON from '../json';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 

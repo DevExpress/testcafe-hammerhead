@@ -1,6 +1,8 @@
 export default class TagCache {
     constructor () {
+        /*eslint-disable no-restricted-globals*/
         this._cache = Object.create(null);
+        /*eslint-enable no-restricted-globals*/
     }
 
     update (tagName) {
