@@ -1,5 +1,6 @@
 import nativeMethods from '../../native-methods';
 import { isShadowUIElement } from '../../../utils/dom';
+import nativeMethods from '../../native-methods';
 
 const arrayFilter = Array.prototype.filter;
 
