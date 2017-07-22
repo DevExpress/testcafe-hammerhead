@@ -296,4 +296,18 @@ export default class Listeners extends EventEmitter {
             eventListeningInfo.outerHandlersWrapper = wrapper;
         }
     }
+
+    getEventListeners (el, event) {
+        const eventCtx = this.listeningCtx.getEventCtx(el, event);
+
+        if (!eventCtx)
+            return null;
+
+        const outerHandlers = [];
+
+        for (let i = 0; i < eventCtx.outerHandlers.length; i++)
+            outerHandlers.push(eventCtx.outerHandlers[i].fn);
+
+        return outerHandlers;
+    }
 }
