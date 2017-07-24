@@ -5,7 +5,7 @@ import XHR_HEADERS from '../../request-pipeline/xhr/headers';
 import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
 import { getOriginHeader } from '../utils/destination-location';
 import reEscape from '../../utils/regexp-escape';
-import JSON from '../json';
+import * as JSON from '../json';
 
 const IS_OPENED_XHR               = 'hammerhead|xhr|is-opened-xhr';
 const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');
