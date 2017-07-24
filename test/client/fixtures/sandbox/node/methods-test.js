@@ -367,6 +367,18 @@ if (window.DOMParser && !browserUtils.isIE9) {
     });
 }
 
+if (Object.assign) {
+    test('Object.assign (GH-1208)', function () {
+        var iframe = document.createElement('iframe');
+
+        Object.assign(iframe, { src: '/iframe' });
+
+        strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe', {
+            resourceType: urlUtils.stringifyResourceType({ isIframe: true })
+        }));
+    });
+}
+
 module('regression');
 
 asyncTest('script must be executed after it is added to head tag (B237231)', function () {

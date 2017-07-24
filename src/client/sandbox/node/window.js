@@ -13,6 +13,7 @@ import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
+import INSTRUCTION from '../../../processing/script/instruction';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -106,6 +107,34 @@ export default class WindowSandbox extends SandboxBase {
 
             return nativeMethods.canvasContextDrawImage.apply(this, args);
         };
+
+        if (nativeMethods.objectAssign) {
+            window.Object.assign = function (target, ...sources) {
+                const args = [];
+
+                args.push(target);
+
+                if (target && typeof target === 'object' && sources.length) {
+                    for (const source of sources) {
+                        if (!source || typeof source !== 'object') {
+                            args.push(source);
+                            continue;
+                        }
+
+                        const sourceKeys = nativeMethods.objectKeys.call(window.Object, source);
+
+                        for (const key of sourceKeys)
+                            window[INSTRUCTION.setProperty](target, key, source[key]);
+                    }
+                }
+                else {
+                    for (const source of sources)
+                        args.push(source);
+                }
+
+                return nativeMethods.objectAssign.apply(this, args);
+            };
+        }
 
         // NOTE: Override uncaught error handling.
         window.onerror = (msg, url, line, col, errObj) => {

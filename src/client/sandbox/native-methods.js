@@ -174,6 +174,8 @@ class NativeMethods {
 
         // Object
         this.objectToString = win.Object.prototype.toString;
+        this.objectAssign   = win.Object.assign;
+        this.objectKeys     = win.Object.keys;
 
         // DOMParser
         if (win.DOMParser)
