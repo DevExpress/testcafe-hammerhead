@@ -13,9 +13,9 @@ function parseTextUriList (textUriList) {
 
     textUriList = textUriList.split(/\r\n/);
 
-    for (let i = 0; i < textUriList.length; i++) {
-        if (textUriList[0] !== '#')
-            res.push(textUriList[i]);
+    for (const textUri of textUriList) {
+        if (textUri !== '#')
+            res.push(textUri);
     }
 
     return res;
@@ -41,8 +41,8 @@ export default class DataTransferItemList {
         const getTypes = () => {
             const res = [];
 
-            for (let i = 0; i < items.length; i++)
-                res.push(items[i].type);
+            for (const item of items)
+                res.push(item.type);
 
             return res;
         };

@@ -31,10 +31,8 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     hasEventHandler (el) {
-        const attrs = el.attributes;
-
-        for (let i = 0; i < attrs.length; i++) {
-            if (this.EVENTS.indexOf(attrs[i]))
+        for (const attr of el.attributes) {
+            if (this.EVENTS.indexOf(attr))
                 return true;
         }
 

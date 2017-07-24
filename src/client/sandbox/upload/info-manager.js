@@ -22,8 +22,8 @@ export default class UploadInfoManager {
     static _getFileListData (fileList) {
         const data = [];
 
-        for (let i = 0; i < fileList.length; i++)
-            data.push(fileList[i].base64);
+        for (const file of fileList)
+            data.push(file.base64);
 
         return data;
     }
@@ -106,8 +106,8 @@ export default class UploadInfoManager {
         const result = [];
 
         if (fileList) {
-            for (let i = 0; i < fileList.length; i++)
-                result.push(fileList[i].name);
+            for (const file of fileList)
+                result.push(file.name);
         }
         else if (value.lastIndexOf('\\') !== -1)
             result.push(value.substr(value.lastIndexOf('\\') + 1));
@@ -126,11 +126,11 @@ export default class UploadInfoManager {
         const errs           = [];
         const validFilesInfo = [];
 
-        for (let i = 0; i < filesInfo.length; i++) {
-            if (filesInfo[i].err)
-                errs.push(filesInfo[i]);
+        for (const fileInfo of filesInfo) {
+            if (fileInfo.err)
+                errs.push(fileInfo);
             else
-                validFilesInfo.push(filesInfo[i]);
+                validFilesInfo.push(fileInfo);
         }
 
         return {

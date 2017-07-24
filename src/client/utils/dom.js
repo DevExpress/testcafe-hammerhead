@@ -233,9 +233,9 @@ export function getSelectVisibleChildren (select) {
     if (isFirefox) {
         const filtered = [];
 
-        for (let i = 0, len = children.length; i < len; i++) {
-            if (getTagName(children[i]) !== 'optgroup' || !!children[i].label)
-                filtered.push(children[i]);
+        for (const child of children) {
+            if (getTagName(child) !== 'optgroup' || !!child.label)
+                filtered.push(child);
         }
 
         children = filtered;
@@ -269,8 +269,8 @@ export function find (parent, selector, handler) {
     const elms = getNativeQuerySelectorAll(parent).call(parent, selector);
 
     if (handler) {
-        for (let i = 0; i < elms.length; i++)
-            handler(elms[i]);
+        for (const elm of elms)
+            handler(elm);
     }
 
     return elms;

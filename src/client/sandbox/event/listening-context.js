@@ -45,22 +45,22 @@ export function removeListeningElement (el) {
 export function addFirstInternalHandler (el, events, handler) {
     const elementCtx = getElementCtx(el);
 
-    for (let i = 0; i < events.length; i++)
-        elementCtx[events[i]].internalHandlers.unshift(handler);
+    for (const event of events)
+        elementCtx[event].internalHandlers.unshift(handler);
 }
 
 export function addInternalHandler (el, events, handler) {
     const elementCtx = getElementCtx(el);
 
-    for (let i = 0; i < events.length; i++)
-        elementCtx[events[i]].internalHandlers.push(handler);
+    for (const event of events)
+        elementCtx[event].internalHandlers.push(handler);
 }
 
 export function removeInternalHandler (el, events, handler) {
     const elementCtx = getElementCtx(el);
 
-    for (let i = 0; i < events.length; i++) {
-        const internalHandlers = elementCtx[events[i]].internalHandlers;
+    for (const event of events) {
+        const internalHandlers = elementCtx[event].internalHandlers;
         const handlerIndex     = internalHandlers.indexOf(handler);
 
         if (handlerIndex > -1)

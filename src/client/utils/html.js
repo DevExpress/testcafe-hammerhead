@@ -218,26 +218,24 @@ export function processHtml (html, parentTag, prepareDom) {
         if (base)
             urlResolver.updateBase(nativeMethods.getAttribute.call(base, 'href'), document);
 
-        for (let i = 0; i < children.length; i++) {
-            const el = children[i];
-
-            if (hasIsNotClosedFlag(el))
+        for (const child of children) {
+            if (hasIsNotClosedFlag(child))
                 continue;
 
-            if (isScriptElement(el))
-                el.textContent = unwrapHtmlText(el.textContent);
+            if (isScriptElement(child))
+                child.textContent = unwrapHtmlText(child.textContent);
 
-            domProcessor.processElement(el, convertToProxyUrl);
+            domProcessor.processElement(child, convertToProxyUrl);
 
-            const elTagName = getTagName(el);
+            const elTagName = getTagName(child);
 
             if (elTagName === `${FAKE_TAG_NAME_PREFIX}head` || elTagName === `${FAKE_TAG_NAME_PREFIX}body`)
-                htmlElements.push(el);
+                htmlElements.push(child);
         }
 
         if (!parentTag) {
-            for (let j = 0; j < htmlElements.length; j++)
-                htmlElements[j].innerHTML = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlElements[j].innerHTML;
+            for (const htmlElement of htmlElements)
+                htmlElement.innerHTML = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlElement.innerHTML;
         }
 
         urlResolver.updateBase(storedBaseUrl, document);
