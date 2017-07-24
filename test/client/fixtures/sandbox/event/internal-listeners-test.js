@@ -157,6 +157,32 @@ test('initElementListening', function () {
     checkHandlerCounters(1, 2, 2, 1);
 });
 
+test('getEventListeners', function () {
+    var onClick        = function () {
+    };
+
+    strictEqual(listeners.getEventListeners(container, 'click'), null);
+
+    listeners.initElementListening(container, ['mouseover']);
+
+    strictEqual(listeners.getEventListeners(container, 'click'), null);
+
+    listeners.initElementListening(container, ['click']);
+
+    listeners.addInternalEventListener(container, ['click'], function () {
+    });
+
+    deepEqual(listeners.getEventListeners(container, 'click'), []);
+
+    container.addEventListener('click', onClick);
+
+    deepEqual(listeners.getEventListeners(container, 'click'), [onClick]);
+
+    container.removeEventListener('click', onClick);
+
+    deepEqual(listeners.getEventListeners(container, 'click'), []);
+});
+
 test('stop propagation', function () {
     var event = 'focus';
 
