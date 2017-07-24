@@ -136,7 +136,7 @@ export default class ShadowUI extends SandboxBase {
         Object.defineProperty(containerEl.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
     }
 
-    static _markShadowUIContainers (head, body) {
+    static markShadowUIContainers (head, body) {
         if (head)
             ShadowUI._markShadowUIContainerAndCollections(head);
 
@@ -321,7 +321,7 @@ export default class ShadowUI extends SandboxBase {
     attach (window) {
         super.attach(window, window.document);
 
-        ShadowUI._markShadowUIContainers(this.document.head, this.document.body);
+        ShadowUI.markShadowUIContainers(this.document.head, this.document.body);
 
         this._overrideDocumentMethods(window.document);
         this._overrideElementMethods(window);
@@ -329,8 +329,10 @@ export default class ShadowUI extends SandboxBase {
 
         this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT_EVENT, e => {
             const iframeHead = e.iframe.contentDocument.head;
+            const iframeBody = e.iframe.contentDocument.body;
 
             this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());
+            ShadowUI.markShadowUIContainers(iframeHead, iframeBody);
         });
 
         this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
@@ -341,11 +343,14 @@ export default class ShadowUI extends SandboxBase {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
-            ShadowUI._markShadowUIContainers(this.document.head, this.document.body);
+            ShadowUI.markShadowUIContainers(e.document.head, e.document.body);
         });
+
         this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, e => {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
+
+            ShadowUI.markShadowUIContainers(e.document.head, e.document.body);
         });
 
         this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, el => {
@@ -366,7 +371,7 @@ export default class ShadowUI extends SandboxBase {
         });
 
         this.nodeMutation.on(this.nodeMutation.BODY_CREATED_EVENT, ({ body }) =>
-            ShadowUI._markShadowUIContainers(this.document.head, body));
+            ShadowUI.markShadowUIContainers(this.document.head, body));
     }
 
     onBodyElementMutation () {
@@ -383,7 +388,7 @@ export default class ShadowUI extends SandboxBase {
         if (!(isRootInDom && isRootLastChild && isRootInBody))
             this.nativeMethods.appendChild.call(this.document.body, this.root);
 
-        ShadowUI._markShadowUIContainers(this.document.head, this.document.body);
+        ShadowUI.markShadowUIContainers(this.document.head, this.document.body);
     }
 
     // Accessors
