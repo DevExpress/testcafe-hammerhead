@@ -156,12 +156,13 @@ test('write textarea', function () {
 module('regression');
 
 test('write script with src and without closing tag', function () {
-    iframeForWrite.contentDocument.write('<script id="script" src="script.js">');
+    testWrite('<script id="script" src="script.js">');
 
     var script       = iframeForWrite.contentDocument.querySelector('#script');
     var resourceType = urlUtils.stringifyResourceType({ isScript: true });
 
     strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
 
-    iframeForWrite.contentDocument.write('<\/script>');
+    testWrite('var x = 5;');
+    testWrite('<\/script>');
 });

@@ -65,6 +65,10 @@ export default class BaseDomAdapter {
         throw new Error('Not implemented');
     }
 
+    needToProcessContent () {
+        throw new Error('Not implemented');
+    }
+
     needToProcessUrl () {
         throw new Error('Not implemented');
     }

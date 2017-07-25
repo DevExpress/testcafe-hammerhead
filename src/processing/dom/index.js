@@ -395,7 +395,7 @@ export default class DomProcessor {
     _processScriptElement (script) {
         const scriptContent = this.adapter.getScriptContent(script);
 
-        if (!scriptContent)
+        if (!scriptContent || !this.adapter.needToProcessContent(script))
             return;
 
         const scriptProcessedOnServer = isScriptProcessed(scriptContent);
@@ -451,7 +451,7 @@ export default class DomProcessor {
     _processStylesheetElement (el, urlReplacer) {
         let content = this.adapter.getStyleContent(el);
 
-        if (content && urlReplacer) {
+        if (content && urlReplacer && this.adapter.needToProcessContent(el)) {
             content = styleProcessor.process(content, urlReplacer, true);
 
             this.adapter.setStyleContent(el, content);
