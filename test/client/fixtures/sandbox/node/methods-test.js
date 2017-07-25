@@ -368,12 +368,90 @@ if (window.DOMParser && !browserUtils.isIE9) {
 }
 
 if (Object.assign) {
-    test('Object.assign (GH-1208)', function () {
+    test('Object.assign', function () {
+        var obj  = { a: 1 };
+        var copy = Object.assign({}, obj);
+
+        notEqual(copy, obj);
+        strictEqual(copy.a, 1);
+
+        var o1 = { a: 1 };
+        var o2 = { b: 2 };
+        var o3 = { c: 3 };
+
+        obj = Object.assign(o1, o2, o3);
+
+        strictEqual(obj, o1);
+        strictEqual(obj.b, 2);
+        strictEqual(obj.c, 3);
+
+        obj  = Object.create({ foo: 1 }, {
+            bar: { value: 2 },
+            baz: { value: 3, enumerable: true }
+        });
+        copy = Object.assign({}, obj);
+
+        notEqual(copy.foo, 1);
+        notEqual(copy.bar, 2);
+        strictEqual(copy.baz, 3);
+
+        obj = Object.assign({}, '123', null, true, void 0, 10);
+
+        strictEqual(JSON.stringify(obj), '{"0":"1","1":"2","2":"3"}');
+
+        obj = Object.defineProperty({}, 'foo', {
+            set () {
+                throw 'Cannot assign property "foo"';
+            },
+            get () {
+                return 4;
+            }
+        });
+
+        throws(
+            function () {
+                Object.assign(obj, { bar: 1 }, 'hi', { foo2: 2, foo: 2, foo3: 2 }, { baz: 3 });
+            },
+            /Cannot assign property "foo"/
+        );
+
+        strictEqual(obj[0], 'h');
+        strictEqual(obj[1], 'i');
+        strictEqual(obj.bar, 1);
+        strictEqual(obj.foo2, 2);
+        strictEqual(obj.foo, 4);
+        notEqual(obj.foo3, 2);
+        notEqual(obj.baz, 3);
+
+        throws(
+            function () {
+                Object.assign(null, { bar: 1 });
+            },
+            /Cannot convert undefined or null to object/
+        );
+
+        throws(
+            function () {
+                Object.assign(void 0, { bar: 1 });
+            },
+            /Cannot convert undefined or null to object/
+        );
+
+        // GH-1208
         var iframe = document.createElement('iframe');
 
-        Object.assign(iframe, { src: '/iframe' });
+        strictEqual(Object.assign(iframe, { src: '/iframe1' }), iframe);
+        strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe1', {
+            resourceType: urlUtils.stringifyResourceType({ isIframe: true })
+        }));
 
-        strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe', {
+        var fn = function () {
+        };
+
+        fn.src = '/iframe2';
+
+        Object.assign(iframe, { src: '/iframe2' });
+        strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe2', {
             resourceType: urlUtils.stringifyResourceType({ isIframe: true })
         }));
     });

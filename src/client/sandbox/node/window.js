@@ -17,6 +17,10 @@ import INSTRUCTION from '../../../processing/script/instruction';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+const arrayConcat = Array.prototype.concat;
+
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox) {
         super();
@@ -110,14 +114,16 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.objectAssign) {
             window.Object.assign = function (target, ...sources) {
-                const args = [];
+                let args = [];
 
                 args.push(target);
 
-                if (target && typeof target === 'object' && sources.length) {
+                const targetType = typeof target;
+
+                if (target && (targetType === 'object' || targetType === 'function') && sources.length) {
                     for (const source of sources) {
                         if (!source || typeof source !== 'object') {
-                            args.push(source);
+                            nativeMethods.objectAssign.call(this, target, source);
                             continue;
                         }
 
@@ -127,10 +133,8 @@ export default class WindowSandbox extends SandboxBase {
                             window[INSTRUCTION.setProperty](target, key, source[key]);
                     }
                 }
-                else {
-                    for (const source of sources)
-                        args.push(source);
-                }
+                else
+                    args = arrayConcat.call(args, sources);
 
                 return nativeMethods.objectAssign.apply(this, args);
             };
