@@ -400,10 +400,10 @@ if (Object.assign) {
         strictEqual(JSON.stringify(obj), '{"0":"1","1":"2","2":"3"}');
 
         obj = Object.defineProperty({}, 'foo', {
-            set () {
+            set: function () {
                 throw 'Cannot assign property "foo"';
             },
-            get () {
+            get: function () {
                 return 4;
             }
         });
@@ -427,14 +427,14 @@ if (Object.assign) {
             function () {
                 Object.assign(null, { bar: 1 });
             },
-            /Cannot convert undefined or null to object/
+            TypeError
         );
 
         throws(
             function () {
                 Object.assign(void 0, { bar: 1 });
             },
-            /Cannot convert undefined or null to object/
+            TypeError
         );
 
         // GH-1208
