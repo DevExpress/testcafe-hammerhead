@@ -368,92 +368,115 @@ if (window.DOMParser && !browserUtils.isIE9) {
 }
 
 if (Object.assign) {
-    test('Object.assign', function () {
-        var obj  = { a: 1 };
-        var copy = Object.assign({}, obj);
+    module('Object.assign', function () {
+        test('cloning an object', function () {
+            var obj  = { a: 1 };
+            var copy = Object.assign({}, obj);
 
-        notEqual(copy, obj);
-        strictEqual(copy.a, 1);
-
-        var o1 = { a: 1 };
-        var o2 = { b: 2 };
-        var o3 = { c: 3 };
-
-        obj = Object.assign(o1, o2, o3);
-
-        strictEqual(obj, o1);
-        strictEqual(obj.b, 2);
-        strictEqual(obj.c, 3);
-
-        obj  = Object.create({ foo: 1 }, {
-            bar: { value: 2 },
-            baz: { value: 3, enumerable: true }
-        });
-        copy = Object.assign({}, obj);
-
-        notEqual(copy.foo, 1);
-        notEqual(copy.bar, 2);
-        strictEqual(copy.baz, 3);
-
-        obj = Object.assign({}, '123', null, true, void 0, 10);
-
-        strictEqual(JSON.stringify(obj), '{"0":"1","1":"2","2":"3"}');
-
-        obj = Object.defineProperty({}, 'foo', {
-            set: function () {
-                throw 'Cannot assign property "foo"';
-            },
-            get: function () {
-                return 4;
-            }
+            notEqual(copy, obj);
+            strictEqual(copy.a, 1);
         });
 
-        throws(
-            function () {
-                Object.assign(obj, { bar: 1 }, 'hi', { foo2: 2, foo: 2, foo3: 2 }, { baz: 3 });
-            },
-            /Cannot assign property "foo"/
-        );
+        test('merging an objects', function () {
+            var o1  = { a: 1 };
+            var o2  = { b: 2 };
+            var o3  = { c: 3 };
+            var obj = Object.assign(o1, o2, o3);
 
-        strictEqual(obj[0], 'h');
-        strictEqual(obj[1], 'i');
-        strictEqual(obj.bar, 1);
-        strictEqual(obj.foo2, 2);
-        strictEqual(obj.foo, 4);
-        notEqual(obj.foo3, 2);
-        notEqual(obj.baz, 3);
+            strictEqual(obj, o1);
+            strictEqual(obj.b, 2);
+            strictEqual(obj.c, 3);
+        });
 
-        throws(
-            function () {
-                Object.assign(null, { bar: 1 });
-            },
-            TypeError
-        );
+        test('merging objects with same properties', function () {
+            var o1  = { a: 1, b: 1, c: 1 };
+            var o2  = { b: 2, c: 2 };
+            var o3  = { c: 3 };
+            var obj = Object.assign({}, o1, o2, o3);
 
-        throws(
-            function () {
-                Object.assign(void 0, { bar: 1 });
-            },
-            TypeError
-        );
+            strictEqual(obj.a, 1);
+            strictEqual(obj.b, 2);
+            strictEqual(obj.c, 3);
+        });
 
-        // GH-1208
-        var iframe = document.createElement('iframe');
+        test('properties on the prototype chain and non-enumerable properties cannot be copied', function () {
+            var obj  = Object.create({ foo: 1 }, {
+                bar: { value: 2 },
+                baz: { value: 3, enumerable: true }
+            });
+            var copy = Object.assign({}, obj);
 
-        strictEqual(Object.assign(iframe, { src: '/iframe1' }), iframe);
-        strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe1', {
-            resourceType: urlUtils.stringifyResourceType({ isIframe: true })
-        }));
+            notEqual(copy.foo, 1);
+            notEqual(copy.bar, 2);
+            strictEqual(copy.baz, 3);
+        });
 
-        var fn = function () {
-        };
+        test('primitives will be wrapped to objects', function () {
+            var obj = Object.assign({}, '123', null, true, void 0, 10);
 
-        fn.src = '/iframe2';
+            strictEqual(JSON.stringify(obj), '{"0":"1","1":"2","2":"3"}');
+        });
 
-        Object.assign(iframe, { src: '/iframe2' });
-        strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe2', {
-            resourceType: urlUtils.stringifyResourceType({ isIframe: true })
-        }));
+        test('exceptions will interrupt the ongoing copying task', function () {
+            var obj = Object.defineProperty({}, 'foo', {
+                set: function () {
+                    throw 'Cannot assign property "foo"';
+                },
+                get: function () {
+                    return 4;
+                }
+            });
+
+            throws(
+                function () {
+                    Object.assign(obj, { bar: 1 }, 'hi', { foo2: 2, foo: 2, foo3: 2 }, { baz: 3 });
+                },
+                /Cannot assign property "foo"/
+            );
+
+            strictEqual(obj[0], 'h');
+            strictEqual(obj[1], 'i');
+            strictEqual(obj.bar, 1);
+            strictEqual(obj.foo2, 2);
+            strictEqual(obj.foo, 4);
+            notEqual(obj.foo3, 2);
+            notEqual(obj.baz, 3);
+        });
+
+        test('throws error when target is null or undefined', function () {
+            throws(
+                function () {
+                    Object.assign(null, { bar: 1 });
+                },
+                TypeError
+            );
+
+            throws(
+                function () {
+                    Object.assign(void 0, { bar: 1 });
+                },
+                TypeError
+            );
+        });
+
+        test('the src attribute of iframe should be processed (GH-1208)', function () {
+            var iframe = document.createElement('iframe');
+
+            strictEqual(Object.assign(iframe, { src: '/iframe1' }), iframe);
+            strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe1', {
+                resourceType: urlUtils.stringifyResourceType({ isIframe: true })
+            }));
+
+            var fn = function () {
+            };
+
+            fn.src = '/iframe2';
+
+            Object.assign(iframe, { src: '/iframe2' });
+            strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe2', {
+                resourceType: urlUtils.stringifyResourceType({ isIframe: true })
+            }));
+        });
     });
 }
 
