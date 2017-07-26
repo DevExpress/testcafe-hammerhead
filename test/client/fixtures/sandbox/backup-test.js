@@ -36,26 +36,21 @@ asyncTest('"permission denied" error is raised when an iframe with a nested ifra
 
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
-            iframe.contentWindow.location.reload();
+            iframe.contentWindow.testFlag = true;
 
-            window.QUnitGlobals.wait(function () {
-                if (iframe.contentDocument) {
-                    var nestedIframe = iframe.contentDocument.getElementById('nestedIframe');
+            return new hammerhead.Promise(function (resolve) {
+                iframe.addEventListener('load', resolve);
+                iframe.contentWindow.location.reload();
+            });
+        })
+        .then(function () {
+            var nestedIframe = iframe.contentDocument.getElementById('nestedIframe');
 
-                    if (nestedIframe && nestedIframe.contentWindow)
-                        return !!nestedIframe.contentWindow['%hammerhead%'];
-                }
+            ok(!iframe.contentWindow.testFlag, 'page reloaded');
+            ok(nestedIframe.contentWindow['%hammerhead%']);
+            iframe.parentElement.removeChild(iframe);
 
-                return false;
-            })
-                .then(function () {
-                    var nestedIframe = iframe.contentDocument.getElementById('nestedIframe');
-
-                    ok(nestedIframe.contentWindow['%hammerhead%']);
-                    iframe.parentElement.removeChild(iframe);
-
-                    start();
-                });
+            start();
         });
 
     document.body.appendChild(iframe);
