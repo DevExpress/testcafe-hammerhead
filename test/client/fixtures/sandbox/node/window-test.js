@@ -20,10 +20,6 @@ test('window.onerror setter/getter', function () {
 if (featureDetection.hasUnhandledRejectionEvent) {
     module('window.onunhandledrejection', function () {
         asyncTest('must be overriden (GH-1247)', function () {
-            var circularErrObj = { msg: 'Error' };
-
-            circularErrObj.self = circularErrObj;
-
             strictEqual(getProperty(window, 'onunhandledrejection'), null);
 
             setProperty(window, 'onunhandledrejection', 123);
@@ -39,14 +35,14 @@ if (featureDetection.hasUnhandledRejectionEvent) {
             strictEqual(getProperty(window, 'onunhandledrejection'), handler);
 
             hammerhead.on(hammerhead.EVENTS.unhandledRejection, function onUnhandledRejection (event) {
-                strictEqual(event.msg, circularErrObj);
+                strictEqual(event.msg, 'unhandled rejection');
                 hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
                 start();
             });
 
             /*eslint-disable no-new*/
             new Promise(function (resolve, reject) {
-                reject(circularErrObj);
+                reject('unhandled rejection');
             });
             /*eslint-enable no-new*/
         });
