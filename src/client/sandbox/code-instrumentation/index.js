@@ -26,6 +26,10 @@ export default class CodeInstrumentation extends SandboxBase {
         return PropertyAccessorsInstrumentation.getOriginalErrorHandler(window);
     }
 
+    static getOriginalUnhandledRejectionHandler (window) {
+        return PropertyAccessorsInstrumentation.getOriginalUnhandledRejectionHandler(window);
+    }
+
     attach (window) {
         super.attach(window);
 

@@ -24,9 +24,10 @@ import { remove as removeProcessingHeader } from '../../../../processing/script/
 import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
-import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-detection';
+import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
 
-const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
+const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY              = 'hammerhead|original-window-on-error-handler-key';
+const ORIGINAL_WINDOW_ON_UNCAUGHT_REJECTION_HANDLER_KEY = 'hammerhead|original-window-on-uncaught-rejection-handler-key';
 
 function checkElementTextProperties (el) {
     const result         = {};
@@ -427,6 +428,18 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (owner, handler) => {
                     if (typeof handler === 'function')
                         owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] = handler;
+
+                    return handler;
+                }
+            },
+
+            onunhandledrejection: {
+                condition: owner => hasUnhandledRejectionEvent && domUtils.isWindow(owner),
+                get:       owner => owner[ORIGINAL_WINDOW_ON_UNCAUGHT_REJECTION_HANDLER_KEY] || null,
+
+                set: (owner, handler) => {
+                    if (typeof handler === 'function')
+                        owner[ORIGINAL_WINDOW_ON_UNCAUGHT_REJECTION_HANDLER_KEY] = handler;
 
                     return handler;
                 }
@@ -842,6 +855,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
     static getOriginalErrorHandler (window) {
         return window[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY];
+    }
+
+    static getOriginalUnhandledRejectionHandler (window) {
+        return window[ORIGINAL_WINDOW_ON_UNCAUGHT_REJECTION_HANDLER_KEY];
     }
 
     static _getSetPropertyInstructionByOwner (owner, window) {

@@ -44,6 +44,7 @@ class Hammerhead {
             bodyCreated:             this.sandbox.node.mutation.BODY_CREATED_EVENT,
             documentCleaned:         this.sandbox.node.mutation.DOCUMENT_CLEANED_EVENT,
             uncaughtJsError:         this.sandbox.node.win.UNCAUGHT_JS_ERROR_EVENT,
+            unhandledRejection:      this.sandbox.node.win.UNHANDLED_REJECTION_EVENT,
             startFileUploading:      this.sandbox.upload.START_FILE_UPLOADING_EVENT,
             endFileUploading:        this.sandbox.upload.END_FILE_UPLOADING_EVENT,
             evalIframeScript:        this.sandbox.iframe.EVAL_EXTERNAL_SCRIPT_EVENT,
@@ -130,6 +131,7 @@ class Hammerhead {
                 return this.sandbox.node.mutation;
 
             case this.EVENTS.uncaughtJsError:
+            case this.EVENTS.unhandledRejection:
                 return this.sandbox.node.win;
 
             case this.EVENTS.startFileUploading:

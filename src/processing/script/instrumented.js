@@ -47,6 +47,7 @@ export const PROPERTIES = [
     'onbeforeunload',
     'onpagehide',
     'onerror',
+    'onunhandledrejection',
     'onload',
     'onmessage',
     'origin',

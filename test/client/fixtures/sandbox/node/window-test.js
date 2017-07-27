@@ -1,7 +1,8 @@
 var urlUtils = hammerhead.get('./utils/url');
 
-var nativeMethods = hammerhead.nativeMethods;
-var browserUtils  = hammerhead.utils.browser;
+var nativeMethods    = hammerhead.nativeMethods;
+var browserUtils     = hammerhead.utils.browser;
+var featureDetection = hammerhead.utils.featureDetection;
 
 test('window.onerror setter/getter', function () {
     strictEqual(getProperty(window, 'onerror'), null);
@@ -15,6 +16,59 @@ test('window.onerror setter/getter', function () {
     setProperty(window, 'onerror', handler);
     strictEqual(getProperty(window, 'onerror'), handler);
 });
+
+if (featureDetection.hasUnhandledRejectionEvent) {
+    module('window.onunhandledrejection', function () {
+        asyncTest('must be overriden (GH-1247)', function () {
+            var circularErrObj = { msg: 'Error' };
+
+            circularErrObj.self = circularErrObj;
+
+            strictEqual(getProperty(window, 'onunhandledrejection'), null);
+
+            setProperty(window, 'onunhandledrejection', 123);
+            strictEqual(getProperty(window, 'onunhandledrejection'), null);
+
+            var handler = function (event) {
+                ok(true, 'origin event called');
+                ok(arguments.length, 1);
+                ok(event instanceof window.PromiseRejectionEvent);
+            };
+
+            setProperty(window, 'onunhandledrejection', handler);
+            strictEqual(getProperty(window, 'onunhandledrejection'), handler);
+
+            hammerhead.on(hammerhead.EVENTS.unhandledRejection, function onUnhandledRejection (event) {
+                strictEqual(event.msg, circularErrObj);
+                hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
+                start();
+            });
+
+            /*eslint-disable no-new*/
+            new Promise(function (resolve, reject) {
+                reject(circularErrObj);
+            });
+            /*eslint-enable no-new*/
+        });
+
+        asyncTest('service message with circular message structure', function () {
+            var iframe = document.createElement('iframe');
+
+            iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-with-unhandled-rejection-error.html'));
+
+            hammerhead.on(hammerhead.EVENTS.unhandledRejection, function onUnhandledRejection (event) {
+                strictEqual(event.msg.msg, 'Error');
+                strictEqual(event.msg.self, event.msg);
+
+                hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
+                document.body.removeChild(iframe);
+                start();
+            });
+
+            document.body.appendChild(iframe);
+        });
+    });
+}
 
 if (window.FontFace) {
     asyncTest('FontFace', function () {
@@ -105,7 +159,7 @@ if (window.history.replaceState && window.history.pushState) {
             new SomeClass()
         ];
 
-        var iframe  = document.createElement('iframe');
+        var iframe = document.createElement('iframe');
 
         iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../../data/history/iframe.html'));
 

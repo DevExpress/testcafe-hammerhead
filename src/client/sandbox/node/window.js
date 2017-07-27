@@ -23,10 +23,11 @@ export default class WindowSandbox extends SandboxBase {
         this.messageSandbox = messageSandbox;
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
+        this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
         this.FORCE_PROXY_SRC_FOR_IMAGE = 'hammerhead|image|force-proxy-src-flag';
     }
 
-    _raiseUncaughtJsErrorEvent (msg, window, pageUrl) {
+    _raiseUncaughtJsErrorEvent (type, msg, window, pageUrl) {
         if (!isCrossDomainWindows(window, window.top)) {
             const sendToTopWindow = window !== window.top;
 
@@ -34,26 +35,11 @@ export default class WindowSandbox extends SandboxBase {
                 pageUrl = destLocation.get();
 
             if (sendToTopWindow) {
-                this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
-                    msg,
-                    pageUrl,
-
-                    inIframe: true
-                });
-
-                this.messageSandbox.sendServiceMsg({
-                    msg,
-                    pageUrl,
-
-                    cmd: this.UNCAUGHT_JS_ERROR_EVENT
-                }, window.top);
+                this.emit(type, { msg, pageUrl, inIframe: true });
+                this.messageSandbox.sendServiceMsg({ msg, pageUrl, cmd: type }, window.top);
             }
-            else {
-                this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
-                    msg,
-                    pageUrl
-                });
-            }
+            else
+                this.emit(type, { msg, pageUrl });
         }
     }
 
@@ -67,8 +53,8 @@ export default class WindowSandbox extends SandboxBase {
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             const message = e.message;
 
-            if (message.cmd === this.UNCAUGHT_JS_ERROR_EVENT)
-                this._raiseUncaughtJsErrorEvent(message.msg, window, message.pageUrl);
+            if (message.cmd === this.UNCAUGHT_JS_ERROR_EVENT || message.cmd === this.UNHANDLED_REJECTION_EVENT)
+                this._raiseUncaughtJsErrorEvent(message.cmd, message.msg, window, message.pageUrl);
         });
 
         window.CanvasRenderingContext2D.prototype.drawImage = function (...args) {
@@ -99,9 +85,22 @@ export default class WindowSandbox extends SandboxBase {
             if (caught)
                 return true;
 
-            this._raiseUncaughtJsErrorEvent(msg, window);
+            this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, msg, window);
 
             return false;
+        };
+
+        window.onunhandledrejection = event => {
+            const originalOnUnhandledRejectionHandler = CodeInstrumentation.getOriginalUnhandledRejectionHandler(window);
+
+            let result = void 0;
+
+            if (originalOnUnhandledRejectionHandler)
+                result = originalOnUnhandledRejectionHandler.call(window, event);
+
+            this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, event.reason, window);
+
+            return result;
         };
 
         window.open = function () {
