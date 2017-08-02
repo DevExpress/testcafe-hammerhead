@@ -8,7 +8,7 @@ import { getProxyUrl } from '../utils/url';
 import { isIE9 } from '../utils/browser';
 import * as domUtils from '../utils/dom';
 import fastApply from '../utils/fast-apply';
-import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
+import { hasUnclosedElementFlag } from '../sandbox/node/document/writer';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
     removeAttr (el, attr) {
@@ -77,7 +77,7 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     needToProcessContent (el) {
-        return !hasIsNotClosedFlag(el);
+        return !hasUnclosedElementFlag(el);
     }
 
     needToProcessUrl () {
