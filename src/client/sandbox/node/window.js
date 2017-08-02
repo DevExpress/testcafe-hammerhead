@@ -49,24 +49,29 @@ export default class WindowSandbox extends SandboxBase {
         nativeMethods.windowAddEventListener.call(window, 'unhandledrejection', this);
     }
 
+    static _formatUnhandledRejectionReason (reason) {
+        const reasonType = typeof reason;
+        let reasonStr = '';
+
+        if (reason === null || reason === void 0 || reasonType === 'number' || reasonType === 'boolean')
+            reasonStr += reason;
+        else if (reasonType === 'symbol' || reasonType === 'object' || reasonType === 'function') {
+            reasonStr = nativeMethods.objectToString.call(reason);
+
+            if (reasonStr === '[object Error]')
+                reasonStr = reason.message;
+        }
+        else
+            reasonStr = reason;
+
+        return reasonStr;
+    }
+
     handleEvent (event) {
         if (event.type === 'unhandledrejection' && !event.defaultPrevented) {
-            const reason = event.reason;
-            const reasonType = typeof reason;
-            let reasonStr = '';
+            const reason = WindowSandbox._formatUnhandledRejectionReason(event.reason);
 
-            if (reason === null || reason === void 0 || reasonType === 'number' || reasonType === 'boolean')
-                reasonStr += reason;
-            else if (reasonType === 'symbol' || reasonType === 'object' || reasonType === 'function') {
-                reasonStr = nativeMethods.objectToString.call(reason);
-
-                if (reasonStr === '[object Error]')
-                    reasonStr = reason.message;
-            }
-            else
-                reasonStr = reason;
-
-            this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, reasonStr, this.window);
+            this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, reason, this.window);
         }
     }
 
