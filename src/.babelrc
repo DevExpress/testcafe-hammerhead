@@ -1,9 +1,9 @@
 {
    "compact": false,
-   "presets": [
-     "es2015-hammerhead",
-     "babel-preset-stage-2"
-   ],
+  "presets": [
+    "es2015-hammerhead",
+    "babel-preset-stage-2"
+  ],
    "plugins": [
      "transform-runtime",
      "add-module-exports"

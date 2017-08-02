@@ -1,66 +1,56 @@
-var http                        = require('http');
-var urlLib                      = require('url');
-var net                         = require('net');
-var request                     = require('request');
-var expect                      = require('chai').expect;
-var createSelfSignedHttpsServer = require('self-signed-https');
-var Proxy                       = require('../../lib/proxy');
-var Session                     = require('../../lib/session');
+'use strict';
 
-var sockets = [];
+const http                        = require('http');
+const urlLib                      = require('url');
+const net                         = require('net');
+const request                     = require('request');
+const expect                      = require('chai').expect;
+const createSelfSignedHttpsServer = require('self-signed-https');
+const Proxy                       = require('../../lib/proxy');
+const Session                     = require('../../lib/session');
+
+const sockets = [];
 
 function startSocketsCollecting (server) {
-    server.on('connection', function (socket) {
+    server.on('connection', socket => {
         sockets.push(socket);
-        socket.on('close', function () {
-            sockets.splice(sockets.indexOf(socket), 1);
-        });
+        socket.on('close', () => sockets.splice(sockets.indexOf(socket), 1));
     });
 }
 
 function closeSockets () {
-    sockets.forEach(function (socket) {
-        socket.destroy();
-    });
+    sockets.forEach(socket => socket.destroy());
 }
 
 function formatAuthHeader (auth) {
     return 'Basic ' + new Buffer(auth).toString('base64');
 }
 
-describe('External proxy', function () {
-    var httpServer  = null;
-    var httpsServer = null;
-    var proxyServer = null;
-    var proxyLogs   = null;
+describe('External proxy', () => {
+    let httpServer  = null;
+    let httpsServer = null;
+    let proxyServer = null;
+    let proxyLogs   = null;
 
-    var proxyServerAuthorizationFail = false;
+    let proxyServerAuthorizationFail = false;
 
-    var proxy   = null;
-    var session = null;
+    let proxy   = null;
+    let session = null;
 
-    before(function () {
+    before(() => {
         session = new Session();
 
-        session.getAuthCredentials = function () {
-            return null;
-        };
-
-        session.handleFileDownload = function () {
+        session.getAuthCredentials = () => null;
+        session.handleFileDownload = () => {
         };
 
         proxy = new Proxy('127.0.0.1', 1836, 1837);
 
-        httpServer = http.createServer(function (req, res) {
-            res.end(req.url);
-        }).listen(2000);
-
-        httpsServer = createSelfSignedHttpsServer(function (req, res) {
-            res.end(req.url);
-        }).listen(2001);
+        httpServer  = http.createServer((req, res) => res.end(req.url)).listen(2000);
+        httpsServer = createSelfSignedHttpsServer((req, res) => res.end(req.url)).listen(2001);
 
         proxyServer = http
-            .createServer(function (req, res) {
+            .createServer((req, res) => {
                 proxyLogs.push({
                     url:  req.url,
                     auth: req.headers['proxy-authorization']
@@ -72,19 +62,19 @@ describe('External proxy', function () {
                     return;
                 }
 
-                var reqOptions = urlLib.parse(req.url);
+                const reqOptions = urlLib.parse(req.url);
 
                 reqOptions.method  = req.method;
                 reqOptions.headers = req.headers;
 
-                var serverReq = http.request(reqOptions, function (serverRes) {
+                const serverReq = http.request(reqOptions, serverRes => {
                     res.writeHead(serverRes.statusCode, serverRes.headers);
                     serverRes.pipe(res);
                 });
 
                 req.pipe(serverReq);
             })
-            .on('connect', function (req, clientSocket, head) {
+            .on('connect', (req, clientSocket, head) => {
                 proxyLogs.push({
                     url:  req.url,
                     auth: req.headers['proxy-authorization']
@@ -97,8 +87,8 @@ describe('External proxy', function () {
                     return;
                 }
 
-                var serverUrl    = urlLib.parse('http://' + req.url);
-                var serverSocket = net.connect(serverUrl.port, serverUrl.hostname, function () {
+                const serverUrl    = urlLib.parse('http://' + req.url);
+                const serverSocket = net.connect(serverUrl.port, serverUrl.hostname, () => {
                     clientSocket.write('HTTP/1.1 200 Connection Established\r\n' +
                                        'Proxy-agent: Node.js-Proxy\r\n' +
                                        '\r\n');
@@ -114,11 +104,11 @@ describe('External proxy', function () {
         startSocketsCollecting(proxyServer);
     });
 
-    beforeEach(function () {
+    beforeEach(() => {
         proxyLogs = [];
     });
 
-    after(function () {
+    after(() => {
         proxyServer.close();
         httpServer.close();
         httpsServer.close();
@@ -126,7 +116,7 @@ describe('External proxy', function () {
         closeSockets();
     });
 
-    it('Should set up a settings correctly', function () {
+    it('Should set up a settings correctly', () => {
         session.setExternalProxySettings(null);
         expect(session.externalProxySettings).eql(null);
 
@@ -164,12 +154,12 @@ describe('External proxy', function () {
         });
     });
 
-    it('Should send the http request through the proxy', function (done) {
+    it('Should send the http request through the proxy', done => {
         session.setExternalProxySettings('127.0.0.1:2002');
 
-        var proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session);
+        const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session);
 
-        request(proxyUrl, function (err, res, body) {
+        request(proxyUrl, (err, res, body) => {
             expect(body).eql('/path');
             expect(proxyLogs.length).eql(1);
             expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
@@ -178,12 +168,12 @@ describe('External proxy', function () {
         });
     });
 
-    it('Should send the https request through the proxy', function (done) {
+    it('Should send the https request through the proxy', done => {
         session.setExternalProxySettings('127.0.0.1:2002');
 
-        var proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
+        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
 
-        request(proxyUrl, function (err, res, body) {
+        request(proxyUrl, (err, res, body) => {
             expect(body).eql('/path');
             expect(proxyLogs.length).eql(1);
             expect(proxyLogs[0].url).eql('127.0.0.1:2001');
@@ -192,10 +182,10 @@ describe('External proxy', function () {
         });
     });
 
-    it('Should send the http request through the proxy with auth', function (done) {
-        var proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:pass@127.0.0.1:2002');
+    it('Should send the http request through the proxy with auth', done => {
+        const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:pass@127.0.0.1:2002');
 
-        request(proxyUrl, function (err, res, body) {
+        request(proxyUrl, (err, res, body) => {
             expect(body).eql('/path');
             expect(proxyLogs.length).eql(1);
             expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
@@ -204,10 +194,10 @@ describe('External proxy', function () {
         });
     });
 
-    it('Should send the https request through the proxy with auth', function (done) {
-        var proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:pass@127.0.0.1:2002');
+    it('Should send the https request through the proxy with auth', done => {
+        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:pass@127.0.0.1:2002');
 
-        request(proxyUrl, function (err, res, body) {
+        request(proxyUrl, (err, res, body) => {
             expect(body).eql('/path');
             expect(proxyLogs.length).eql(1);
             expect(proxyLogs[0].url).eql('127.0.0.1:2001');
@@ -216,14 +206,14 @@ describe('External proxy', function () {
         });
     });
 
-    it('Should raise the tunneling error', function (done) {
-        session.handlePageError = function (ctx, err) {
+    it('Should raise the tunneling error', done => {
+        session.handlePageError = (ctx, err) => {
             expect(err).eql('Failed to connect to the proxy. Cannot establish tunneling connection to the host at <a href="127.0.0.1:2055">127.0.0.1:2055</a>.');
             ctx.res.end();
             done();
         };
 
-        var proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, '127.0.0.1:2055');
+        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, '127.0.0.1:2055');
 
         request({
             url:     proxyUrl,
@@ -233,14 +223,14 @@ describe('External proxy', function () {
         });
     });
 
-    it('Should raise the proxy connection error', function (done) {
-        session.handlePageError = function (ctx, err) {
+    it('Should raise the proxy connection error', done => {
+        session.handlePageError = (ctx, err) => {
             expect(err).eql('Failed to connect to the proxy host at <a href="127.0.0.1:2055">127.0.0.1:2055</a>.');
             ctx.res.end();
             done();
         };
 
-        var proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'x:y@127.0.0.1:2055');
+        const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'x:y@127.0.0.1:2055');
 
         request({
             url:     proxyUrl,
@@ -250,17 +240,17 @@ describe('External proxy', function () {
         });
     });
 
-    it('Should raise the error for non-authorized proxy', function (done) {
+    it('Should raise the error for non-authorized proxy', done => {
         proxyServerAuthorizationFail = true;
 
-        session.handlePageError = function (ctx, err) {
+        session.handlePageError = (ctx, err) => {
             expect(err).eql('Failed to authorize to the proxy at <a href="127.0.0.1:2002">127.0.0.1:2002</a>.');
             ctx.res.end();
             proxyServerAuthorizationFail = false;
             done();
         };
 
-        var proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:passwd@127.0.0.1:2002');
+        const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:passwd@127.0.0.1:2002');
 
         request({
             url:     proxyUrl,
@@ -270,17 +260,17 @@ describe('External proxy', function () {
         });
     });
 
-    it('Should raise the error for non-authorized tunneling proxy', function (done) {
+    it('Should raise the error for non-authorized tunneling proxy', done => {
         proxyServerAuthorizationFail = true;
 
-        session.handlePageError = function (ctx, err) {
+        session.handlePageError = (ctx, err) => {
             expect(err).eql('Failed to authorize to the proxy at <a href="127.0.0.1:2002">127.0.0.1:2002</a>.');
             ctx.res.end();
             proxyServerAuthorizationFail = false;
             done();
         };
 
-        var proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:passwd@127.0.0.1:2002');
+        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:passwd@127.0.0.1:2002');
 
         request({
             url:     proxyUrl,

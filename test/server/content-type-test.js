@@ -1,8 +1,10 @@
-var contentTypeUtils = require('../../lib/utils/content-type');
-var expect           = require('chai').expect;
+'use strict';
 
-it('Should detect scripts', function () {
-    var checkScript = function (contentType, accept) {
+const contentTypeUtils = require('../../lib/utils/content-type');
+const expect           = require('chai').expect;
+
+it('Should detect scripts', () => {
+    const checkScript = (contentType, accept) => {
         expect(contentTypeUtils.isScriptResource(contentType, accept)).to.be.true;
     };
 
@@ -41,16 +43,16 @@ it('Should detect scripts', function () {
     checkScript('text/plain', 'text/x-javascript');
 });
 
-it('Should detect css', function () {
+it('Should detect css', () => {
     expect(contentTypeUtils.isCSSResource('TEXT/CSS', '*/*')).to.be.true;
     expect(contentTypeUtils.isCSSResource('', 'TEXT/CSS')).to.be.true;
 });
 
-it('Should detect manifest', function () {
+it('Should detect manifest', () => {
     expect(contentTypeUtils.isManifest('text/CACHE-manifest')).to.be.true;
 });
 
-it('Should detect page', function () {
+it('Should detect page', () => {
     expect(contentTypeUtils.isPage('TEXT/HTML')).to.be.true;
     expect(contentTypeUtils.isPage('application/xhtml+xml')).to.be.true;
     expect(contentTypeUtils.isPage('application/xml')).to.be.true;

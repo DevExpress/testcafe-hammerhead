@@ -1,13 +1,15 @@
-var expect                          = require('chai').expect;
-var multiline                       = require('multiline');
-var processScript                   = require('../../lib/processing/script').processScript;
-var isScriptProcessed               = require('../../lib/processing/script').isScriptProcessed;
-var HEADER                          = require('../../lib/processing/script/header').HEADER;
-var SCRIPT_PROCESSING_START_COMMENT = require('../../lib/processing/script/header').SCRIPT_PROCESSING_START_COMMENT;
-var INSTRUMENTED_PROPERTIES         = require('../../lib/processing/script/instrumented').PROPERTIES;
+'use strict';
+
+const expect                          = require('chai').expect;
+const multiline                       = require('multiline');
+const processScript                   = require('../../lib/processing/script').processScript;
+const isScriptProcessed               = require('../../lib/processing/script').isScriptProcessed;
+const HEADER                          = require('../../lib/processing/script/header').HEADER;
+const SCRIPT_PROCESSING_START_COMMENT = require('../../lib/processing/script/header').SCRIPT_PROCESSING_START_COMMENT;
+const INSTRUMENTED_PROPERTIES         = require('../../lib/processing/script/instrumented').PROPERTIES;
 
 
-var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
+const ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  ATTENTION! If this test fails, this may happen because you have updated acorn.
  We have patched acorn to enable it to work with unicode identifiers.
 
@@ -32,7 +34,7 @@ var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
 */
 });
 
-var ACORN_STRICT_MODE_PATCH_WARNING = multiline(function () {/*
+const ACORN_STRICT_MODE_PATCH_WARNING = multiline(function () {/*
  ATTENTION! If this test fails, this may happen because you have updated acorn.
  We have patched acorn to enable it to work with ES6 syntax in strict mode.
 
@@ -54,7 +56,7 @@ var ACORN_STRICT_MODE_PATCH_WARNING = multiline(function () {/*
 */
 });
 
-var ESOTOPE_RAW_LITERAL_PATCH_WARNING = multiline(function () {/*
+const ESOTOPE_RAW_LITERAL_PATCH_WARNING = multiline(function () {/*
  ATTENTION! If this test fails, this may happen because you have updated esotope.
  We have patched esotope to enable it to work with raw literals without additional parsing.
 
@@ -85,13 +87,13 @@ function normalizeCode (code) {
 function testProcessing (testCases) {
     testCases = Array.isArray(testCases) ? testCases : [testCases];
 
-    testCases.forEach(function (testCase) {
-        var processed = processScript(testCase.src, false);
-        var actual    = normalizeCode(processed);
-        var expected  = normalizeCode(testCase.expected);
-        var msg       = 'Source: ' + testCase.src + '\n' +
-                        'Result: ' + processed + '\n' +
-                        'Expected: ' + testCase.expected + '\n';
+    testCases.forEach(testCase => {
+        const processed = processScript(testCase.src, false);
+        const actual    = normalizeCode(processed);
+        const expected  = normalizeCode(testCase.expected);
+        let msg         = 'Source: ' + testCase.src + '\n' +
+                          'Result: ' + processed + '\n' +
+                          'Expected: ' + testCase.expected + '\n';
 
         if (testCase.msg)
             msg += '\n\n' + testCase.msg;
@@ -101,8 +103,8 @@ function testProcessing (testCases) {
 }
 
 function testPropertyProcessing (templates) {
-    INSTRUMENTED_PROPERTIES.forEach(function (propName) {
-        var testCases = templates.map(function (template) {
+    INSTRUMENTED_PROPERTIES.forEach(propName => {
+        const testCases = templates.map(template => {
             return {
                 src:      template.src.replace(/\{0\}/g, propName),
                 expected: template.expected.replace(/\{0\}/g, propName)
@@ -114,18 +116,18 @@ function testPropertyProcessing (templates) {
 }
 
 function assertHasHeader (expected, testCases) {
-    testCases.forEach(function (src) {
-        var processed = processScript(src, true);
-        var hasHeader = processed.indexOf(HEADER) > -1;
-        var msg       = 'Source: ' + src + '\n';
+    testCases.forEach(src => {
+        const processed = processScript(src, true);
+        const hasHeader = processed.indexOf(HEADER) > -1;
+        const msg       = 'Source: ' + src + '\n';
 
         expect(hasHeader).eql(expected, msg);
     });
 }
 
-describe('Script processor', function () {
-    describe('Processing header', function () {
-        it('Should add processing header', function () {
+describe('Script processor', () => {
+    describe('Processing header', () => {
+        it('Should add processing header', () => {
             assertHasHeader(true, [
                 'var a = 42;',
                 '[]; var a = 42; []',
@@ -133,41 +135,41 @@ describe('Script processor', function () {
             ]);
         });
 
-        it('Should not add processing header for the data script', function () {
+        it('Should not add processing header for the data script', () => {
             assertHasHeader(false, [
                 '[1, 2, 3]',
                 '{ a: 42 }'
             ]);
         });
 
-        it('Should not add processing header twice', function () {
-            var src        = 'var a = 42;';
-            var processed1 = processScript(src, true);
-            var processed2 = processScript(processed1, true);
+        it('Should not add processing header twice', () => {
+            const src        = 'var a = 42;';
+            const processed1 = processScript(src, true);
+            const processed2 = processScript(processed1, true);
 
             expect(normalizeCode(processed1)).eql(normalizeCode(processed2));
         });
     });
 
-    it('Should determine if script was processed', function () {
-        var src       = '//comment\n var temp = 0; \n var host = location.host; \n temp = 1; \n // comment';
-        var processed = processScript(src, false);
+    it('Should determine if script was processed', () => {
+        const src       = '//comment\n var temp = 0; \n var host = location.host; \n temp = 1; \n // comment';
+        const processed = processScript(src, false);
 
         expect(isScriptProcessed(src)).to.be.false;
         expect(isScriptProcessed(processed)).to.be.true;
     });
 
-    it('Should add the strict mode directive before the script header', function () {
-        var src       = '/*comment*/\n' +
-                        '"use strict";\n' +
-                        'location.host = "host";';
-        var processed = processScript(src, true);
+    it('Should add the strict mode directive before the script header', () => {
+        const src       = '/*comment*/\n' +
+                          '"use strict";\n' +
+                          'location.host = "host";';
+        const processed = processScript(src, true);
 
         expect(isScriptProcessed(processed)).to.be.true;
         expect(processed.indexOf(SCRIPT_PROCESSING_START_COMMENT + '"use strict";')).eql(0);
     });
 
-    it('Should process location getters and setters', function () {
+    it('Should process location getters and setters', () => {
         testProcessing([
             { src: 'var location = value', expected: 'var location = value' },
             {
@@ -299,20 +301,20 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should expand concat operator', function () {
+    it('Should expand concat operator', () => {
         testProcessing([
             { src: 'prop += 1', expected: 'prop = prop + 1' },
             { src: 'prop += 2 + prop + 1', expected: 'prop = prop + (2 + prop + 1)' }
         ]);
     });
 
-    it('Should add a space before the replacement string', function () {
-        var processed = processScript('if(true){;}else"0"[s]', false);
+    it('Should add a space before the replacement string', () => {
+        const processed = processScript('if(true){;}else"0"[s]', false);
 
         expect(processed).eql('if(true){;}else __get$("0",s)');
     });
 
-    it('Should process a "new" expression if its body contains processed nodes', function () {
+    it('Should process a "new" expression if its body contains processed nodes', () => {
         testPropertyProcessing([
             { src: 'new a.{0}.b()', expected: 'new (__get$(a,"{0}")).b()' },
             {
@@ -332,7 +334,7 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should process properties', function () {
+    it('Should process properties', () => {
         testPropertyProcessing([
             { src: 'switch(s){case a.{0}:b.{0}}', expected: 'switch(s){case __get$(a,"{0}"): __get$(b,"{0}")}' },
             { src: 'function {0}(){}', expected: 'function {0}(){}' },
@@ -384,7 +386,7 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should process computed properties', function () {
+    it('Should process computed properties', () => {
         testPropertyProcessing([
             { src: 'var temp = "location"; obj[t]', expected: 'var temp = "location";__get$(obj, t)' },
             {
@@ -413,14 +415,14 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should process object expressions', function () {
+    it('Should process object expressions', () => {
         testProcessing({
             src:      '{ location: value, value: location, src: src }',
             expected: '{ location: value, value: __get$Loc(location), src: src }'
         });
     });
 
-    it('Should keep raw literals', function () {
+    it('Should keep raw literals', () => {
         testProcessing({
             src:      'obj["\\u003c/script>"]=location',
             expected: 'obj["\\u003c/script>"]=__get$Loc(location)',
@@ -428,7 +430,7 @@ describe('Script processor', function () {
         });
     });
 
-    it('Should process eval()', function () {
+    it('Should process eval()', () => {
         testProcessing([
             { src: 'eval(script)', expected: 'eval(__proc$Script(script))' },
             { src: 'eval("script")', expected: 'eval(__proc$Script("script"))' },
@@ -518,7 +520,7 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should process postMessage', function () {
+    it('Should process postMessage', () => {
         testProcessing([
             { src: 'window.postMessage("", "")', expected: '__call$(window, "postMessage", ["", ""])' },
             { src: 'window["postMessage"]("", "")', expected: '__call$(window, "postMessage", ["", ""])' },
@@ -626,7 +628,7 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should process storages', function () {
+    it('Should process storages', () => {
         testProcessing([
             {
                 src:      'function localStorage(){}; function sessionStorage() {};',
@@ -683,7 +685,7 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should process for..in iteration', function () {
+    it('Should process for..in iteration', () => {
         testProcessing([
             { src: 'for(obj.prop in src){}', expected: 'for(var __set$temp in src){obj.prop = __set$temp;}' },
             { src: 'for(obj["prop"] in src){}', expected: 'for(var __set$temp in src){obj["prop"] = __set$temp;}' },
@@ -696,7 +698,7 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should keep unicode identifiers', function () {
+    it('Should keep unicode identifiers', () => {
         testProcessing({
             src:      '({\\u00c0:"value"})[value]',
             expected: '__get$({\\u00c0:"value"}, value)',
@@ -704,7 +706,7 @@ describe('Script processor', function () {
         });
     });
 
-    it('Should allow ES6 syntax in strict mode', function () {
+    it('Should allow ES6 syntax in strict mode', () => {
         testProcessing([
             {
                 src:      '"use strict";var let=0;obj.src;',
@@ -719,7 +721,7 @@ describe('Script processor', function () {
         ]);
     });
 
-    it('Should ignore HTML comments', function () {
+    it('Should ignore HTML comments', () => {
         testProcessing([
             { src: 'a[i];\n<!-- comment -->', expected: '__get$(a, i);' },
             { src: '<!-- comment -->\n a[i];', expected: '__get$(a, i);' },
@@ -734,22 +736,22 @@ describe('Script processor', function () {
         ]);
     });
 
-    describe('Regression', function () {
-        it('Should leave comments unchanged (T170848)', function () {
+    describe('Regression', () => {
+        it('Should leave comments unchanged (T170848)', () => {
             testProcessing({
                 src:      'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } a.src=function(){};',
                 expected: 'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } __set$(a,"src",function(){});'
             });
         });
 
-        it('Should process content in block statement (T209250)', function () {
+        it('Should process content in block statement (T209250)', () => {
             testProcessing({
                 src:      '{ (function() { a.src = "success"; })(); }',
                 expected: '{ (function() { __set$(a, "src", "success"); })(); }'
             });
         });
 
-        it('Should keep script content inside HTML comments (T226589)', function () {
+        it('Should keep script content inside HTML comments (T226589)', () => {
             testProcessing({
                 src: 'document.writeln("<!--test123-->");\n' +
                      '<!--Begin -->\n' +
@@ -780,7 +782,7 @@ describe('Script processor', function () {
             });
         });
 
-        it('Should handle malformed HTML comments (T239244)', function () {
+        it('Should handle malformed HTML comments (T239244)', () => {
             testProcessing({
                 src: '<!-- rai_mm_tools -->\n' +
                      '<!--\n' +
@@ -796,7 +798,7 @@ describe('Script processor', function () {
             });
         });
 
-        it('Should handle malformed closing HTML comments (health monitor)', function () {
+        it('Should handle malformed closing HTML comments (health monitor)', () => {
             testProcessing([
                 {
                     src: '<!--\n' +
@@ -815,7 +817,7 @@ describe('Script processor', function () {
             ]);
         });
 
-        it('Should keep line after open HTML comments (health monitor)', function () {
+        it('Should keep line after open HTML comments (health monitor)', () => {
             testProcessing({
                 src: '<!--\n' +
                      'var rdm0 = "";\n' +
@@ -830,8 +832,8 @@ describe('Script processor', function () {
             });
         });
 
-        it('Should not throw parser exceptions', function () {
-            var testParser = function (scriptStr) {
+        it('Should not throw parser exceptions', () => {
+            const testParser = function (scriptStr) {
                 scriptStr += '\nx.src';
 
                 expect(processScript(scriptStr, false).indexOf('x.src') === -1).equal(true);
@@ -841,7 +843,7 @@ describe('Script processor', function () {
             testParser('function s(){do var x = 9; while(false)return}'); // GH-567
         });
 
-        it('Should process the content in the conditional function declaration', function () {
+        it('Should process the content in the conditional function declaration', () => {
             testProcessing({
                 src:      'function foo() { if(true) function bar() { obj.src; } }',
                 expected: 'function foo() { if(true) function bar() { __get$(obj, "src"); } }'

@@ -1,24 +1,26 @@
-var expect        = require('chai').expect;
-var parse5        = require('parse5');
-var DomProcessor  = require('../../lib/processing/dom');
-var processScript = require('../../lib/processing/script').processScript;
-var DomAdapter    = require('../../lib/processing/dom/parse5-dom-adapter');
-var urlUtils      = require('../../lib/utils/url');
-var parse5Utils   = require('../../lib/utils/parse5');
+'use strict';
 
-var domAdapter   = new DomAdapter();
-var domProcessor = new DomProcessor(domAdapter);
+const expect        = require('chai').expect;
+const parse5        = require('parse5');
+const DomProcessor  = require('../../lib/processing/dom');
+const processScript = require('../../lib/processing/script').processScript;
+const DomAdapter    = require('../../lib/processing/dom/parse5-dom-adapter');
+const urlUtils      = require('../../lib/utils/url');
+const parse5Utils   = require('../../lib/utils/parse5');
 
-var testCrossDomainPort = 1338;
-var testProxyHostName   = 'localhost';
-var testProxyPort       = 80;
+const domAdapter   = new DomAdapter();
+const domProcessor = new DomProcessor(domAdapter);
 
-var parser = new parse5.Parser();
+const testCrossDomainPort = 1338;
+const testProxyHostName   = 'localhost';
+const testProxyPort       = 80;
+
+const parser = new parse5.Parser();
 
 function process (html, isIframe) {
-    var root             = parser.parse(html);
-    var testDomProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
-    var urlReplacer      = function (url, resourceType) {
+    const root             = parser.parse(html);
+    const testDomProcessor = new DomProcessor(new DomAdapter(isIframe, testCrossDomainPort));
+    const urlReplacer      = (url, resourceType) => {
         if (url.indexOf('//') === 0)
             url = 'http:' + url;
         else if (url.indexOf('/') === 0)
@@ -32,65 +34,63 @@ function process (html, isIframe) {
         });
     };
 
-    parse5Utils.walkElements(root, function (el) {
-        testDomProcessor.processElement(el, urlReplacer);
-    });
+    parse5Utils.walkElements(root, el => testDomProcessor.processElement(el, urlReplacer));
 
     return root;
 }
 
-describe('DOM processor', function () {
-    it('Should process elements outside <html></html>', function () {
-        var root = process('<html></html><script src="http://example.com/script.js"></script>');
+describe('DOM processor', () => {
+    it('Should process elements outside <html></html>', () => {
+        const root = process('<html></html><script src="http://example.com/script.js"></script>');
 
-        var script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
+        const script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
 
         expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!s/http://example.com/script.js');
     });
 
-    it('Should process sandboxed <iframe>', function () {
-        var root = process('<html><head></head><body><iframe sandbox="allow-forms"></iframe></body></html>');
+    it('Should process sandboxed <iframe>', () => {
+        const root = process('<html><head></head><body><iframe sandbox="allow-forms"></iframe></body></html>');
 
         expect(new parse5.Serializer().serialize(root)).contains('<iframe sandbox="allow-forms allow-same-origin allow-scripts" ' +
                                                                  domProcessor.getStoredAttrName('sandbox') +
                                                                  '="allow-forms">');
     });
 
-    it('Should process style attribute', function () {
-        var root = process('<div style="background: url(\'http://example.com/style.css\')"></div>');
+    it('Should process style attribute', () => {
+        const root = process('<div style="background: url(\'http://example.com/style.css\')"></div>');
 
         expect(new parse5.Serializer().serialize(root)).eql('<html><head></head><body><div style="background: ' +
                                                             'url(\'http://localhost:80/sessionId/http://example.com/style.css\')"></div></body></html>');
     });
 
-    it('Should process <script> src', function () {
-        var root = process('<script src="http://example.com/script.js"></script>');
+    it('Should process <script> src', () => {
+        const root = process('<script src="http://example.com/script.js"></script>');
 
-        var script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
+        const script = parse5Utils.findElementsByTagNames(root, 'script').script[0];
 
         expect(domAdapter.getAttr(script, 'src')).eql('http://localhost:80/sessionId!s/http://example.com/script.js');
     });
 
-    it('Should process <script> with correct type', function () {
-        var casesWithCorrectType = [
+    it('Should process <script> with correct type', () => {
+        const casesWithCorrectType = [
             'application/x-ecmascript', 'application/x-javascript', 'application/ecmascript', 'application/javascript',
             'text/x-ecmascript', 'text/ecmascript', 'text/x-javascript', 'text/jsscript', 'text/livescript',
             'text/javascript', 'text/javascript1.0', 'text/javascript1.1', 'text/javascript1.2',
             'text/javascript1.3', 'text/javascript1.4', 'text/javascript1.5', '   text/javascript1.5   '
         ];
 
-        var casesWithIncorrectType = [
+        const casesWithIncorrectType = [
             '123', 'aplication/x-ecmascript', 'application/avacript', 'applica/ecmascr', 'test/javacript',
             'text/javascript2.0', 'text/javascript1.6', 'text/javascript1.7'
         ];
 
-        var script          = 'location.path = "/path";';
-        var processedScript = processScript(script, true);
+        const script          = 'location.path = "/path";';
+        const processedScript = processScript(script, true);
 
-        var checkType = function (type) {
-            var result   = this.toString();
-            var root     = process('<script type="' + type + '">' + script + '</script>');
-            var scriptEl = parse5Utils.findElementsByTagNames(root, 'script').script[0];
+        const checkType = function (type) {
+            const result   = this.toString();
+            const root     = process('<script type="' + type + '">' + script + '</script>');
+            const scriptEl = parse5Utils.findElementsByTagNames(root, 'script').script[0];
 
             expect(scriptEl.childNodes[0].value).eql(result);
         };
@@ -99,9 +99,9 @@ describe('DOM processor', function () {
         casesWithIncorrectType.forEach(checkType, script);
     });
 
-    it('Should process <img> src', function () {
-        var root = process('<img src="http://example.com/image.png">');
-        var img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
+    it('Should process <img> src', () => {
+        let root = process('<img src="http://example.com/image.png">');
+        let img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
 
         expect(domAdapter.getAttr(img, 'src')).eql('http://example.com/image.png');
         expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).eql('http://example.com/image.png');
@@ -119,7 +119,7 @@ describe('DOM processor', function () {
         expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).eql('about:blank');
     });
 
-    it.skip('Should process <iframe> with src', function () {
+    it.skip('Should process <iframe> with src', () => {
         // TODO: Rewrite moving url replacer to the page processor.
         //var $iframe                            = whacko.load('<iframe src="http://cross.domain.com/"></iframe>'),
         //    expectedHtml                       = '<iframe src="http://proxy.cross.domain.com/" src' +
@@ -146,13 +146,13 @@ describe('DOM processor', function () {
         //t.done();
     });
 
-    it('Should process target attribute for the elements in <iframe>', function () {
-        var root = process('<a id="a" href="http://example.com"></a>' +
+    it('Should process target attribute for the elements in <iframe>', () => {
+        const root = process('<a id="a" href="http://example.com"></a>' +
                            '<form id="form" action="http://example.com"></form>' +
                            '<a id="a_target_top" href="http://example.com" target="_top"></a>' +
                            '<a id="a_target_parent" href="http://example.com" target="_parent"></a>', true);
 
-        var elements = parse5Utils.findElementsByTagNames(root, ['a', 'form']);
+        const elements = parse5Utils.findElementsByTagNames(root, ['a', 'form']);
 
         expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.a[0], 'href')).resourceType).eql('i');
         expect(urlUtils.parseProxyUrl(domAdapter.getAttr(elements.form[0], 'action')).resourceType).eql('if');
@@ -160,18 +160,18 @@ describe('DOM processor', function () {
         expect(domAdapter.getAttr(elements.a[2], 'href')).eql('http://example.com');
     });
 
-    it('Should process <iframe> with src without protocol', function () {
-        var root                 = process('<iframe src="//cross.domain.com/"></iframe><iframe src="//example.com/"></iframe>');
-        var iframes              = parse5Utils.findElementsByTagNames(root, 'iframe').iframe;
-        var crossDomainIframeSrc = domAdapter.getAttr(iframes[0], 'src');
-        var crossDomainProxyUrl  = urlUtils.getProxyUrl('http://cross.domain.com/', {
+    it('Should process <iframe> with src without protocol', () => {
+        const root                 = process('<iframe src="//cross.domain.com/"></iframe><iframe src="//example.com/"></iframe>');
+        const iframes              = parse5Utils.findElementsByTagNames(root, 'iframe').iframe;
+        const crossDomainIframeSrc = domAdapter.getAttr(iframes[0], 'src');
+        const crossDomainProxyUrl  = urlUtils.getProxyUrl('http://cross.domain.com/', {
             proxyHostname: testProxyHostName,
             proxyPort:     testCrossDomainPort,
             sessionId:     'sessionId',
             resourceType:  'i'
         });
-        var iframeSrc            = domAdapter.getAttr(iframes[1], 'src');
-        var proxyUrl             = urlUtils.getProxyUrl('http://example.com/', {
+        const iframeSrc            = domAdapter.getAttr(iframes[1], 'src');
+        const proxyUrl             = urlUtils.getProxyUrl('http://example.com/', {
             proxyHostname: testProxyHostName,
             proxyPort:     testProxyPort,
             sessionId:     'sessionId',
@@ -182,11 +182,11 @@ describe('DOM processor', function () {
         expect(iframeSrc).eql(proxyUrl);
     });
 
-    describe('Regression', function () {
-        it('Should not process documentFragment node (GH-912)', function () {
-            var root                 = process('<body><template><div></div></template></body>');
-            var templateNode         = parse5Utils.findElementsByTagNames(root, 'template').template[0];
-            var documentFragmentNode = templateNode.childNodes[0];
+    describe('Regression', () => {
+        it('Should not process documentFragment node (GH-912)', () => {
+            const root                 = process('<body><template><div></div></template></body>');
+            const templateNode         = parse5Utils.findElementsByTagNames(root, 'template').template[0];
+            const documentFragmentNode = templateNode.childNodes[0];
 
             expect(documentFragmentNode['hammerhead|element-processed']).to.not.to.be.true;
         });

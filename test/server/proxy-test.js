@@ -1,27 +1,29 @@
-var Promise                              = require('pinkie');
-var fs                                   = require('fs');
-var os                                   = require('os');
-var http                                 = require('http');
-var urlLib                               = require('url');
-var request                              = require('request');
-var path                                 = require('path');
-var expect                               = require('chai').expect;
-var express                              = require('express');
-var read                                 = require('read-file-relative').readSync;
-var createSelfSignedHttpsServer          = require('self-signed-https');
-var getFreePort                          = require('endpoint-utils').getFreePort;
-var XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
-var AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
-var SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-policy').SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
-var Proxy                                = require('../../lib/proxy');
-var Session                              = require('../../lib/session');
-var DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
-var RequestPipelineContext               = require('../../lib/request-pipeline/context');
-var requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
-var scriptHeader                         = require('../../lib/processing/script/header');
-var urlUtils                             = require('../../lib/utils/url');
+'use strict';
 
-var EMPTY_PAGE = '<html></html>';
+const Promise                              = require('pinkie');
+const fs                                   = require('fs');
+const os                                   = require('os');
+const http                                 = require('http');
+const urlLib                               = require('url');
+const request                              = require('request');
+const path                                 = require('path');
+const expect                               = require('chai').expect;
+const express                              = require('express');
+const read                                 = require('read-file-relative').readSync;
+const createSelfSignedHttpsServer          = require('self-signed-https');
+const getFreePort                          = require('endpoint-utils').getFreePort;
+const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
+const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
+const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-policy').SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
+const Proxy                                = require('../../lib/proxy');
+const Session                              = require('../../lib/session');
+const DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
+const RequestPipelineContext               = require('../../lib/request-pipeline/context');
+const requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
+const scriptHeader                         = require('../../lib/processing/script/header');
+const urlUtils                             = require('../../lib/utils/url');
+
+const EMPTY_PAGE = '<html></html>';
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
@@ -50,28 +52,25 @@ function getFileProtocolUrl (filePath) {
     return 'file:///' + path.resolve(__dirname, filePath).replace(/\\/g, '/');
 }
 
-describe('Proxy', function () {
-    var destServer        = null;
-    var crossDomainServer = null;
-    var proxy             = null;
-    var session           = null;
+describe('Proxy', () => {
+    let destServer        = null;
+    let crossDomainServer = null;
+    let proxy             = null;
+    let session           = null;
 
-    before(function () {
-        var app = express();
+    before(() => {
+        const app = express();
 
-        app.post('/', function (req, res) {
-            var data = '';
+        app.post('/', (req, res) => {
+            let data = '';
 
-            req.on('data', function (chunk) {
+            req.on('data', chunk => {
                 data += chunk.toString();
             });
-
-            req.on('end', function () {
-                res.end(data);
-            });
+            req.on('end', () => res.end(data));
         });
 
-        app.get('/304', function (req, res) {
+        app.get('/304', (req, res) => {
             res.status(304);
             res.set({
                 'content-type':     req.headers['x-content-type'],
@@ -81,11 +80,9 @@ describe('Proxy', function () {
             res.end();
         });
 
-        app.get('/', function (req, res) {
-            res.end(req.url);
-        });
+        app.get('/', (req, res) => res.end(req.url));
 
-        app.get('/cookie/set-and-redirect', function (req, res) {
+        app.get('/cookie/set-and-redirect', (req, res) => {
             res.statusCode = 302;
 
             res.set('set-cookie', 'Test=value; Path=/cookie');
@@ -96,91 +93,89 @@ describe('Proxy', function () {
             res.end();
         });
 
-        app.get('/cookie/set1', function (req, res) {
+        app.get('/cookie/set1', (req, res) => {
             res.set('set-cookie', 'Set1_1=value1');
             res.set('set-cookie', 'Set1_2=value2');
 
             res.end();
         });
 
-        app.get('/cookie/set2', function (req, res) {
+        app.get('/cookie/set2', (req, res) => {
             res.set('set-cookie', 'Set2_1=value1');
             res.set('set-cookie', 'Set2_2=value2');
 
             res.end();
         });
 
-        app.get('/cookie/echo', function (req, res) {
+        app.get('/cookie/echo', (req, res) => {
             res.end('%% ' + req.headers['cookie'] + ' %%');
         });
 
-        app.get('/page', function (req, res) {
+        app.get('/page', (req, res) => {
             res.set('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/page/src.html').toString());
         });
 
-        app.get('/html-import-page', function (req, res) {
+        app.get('/html-import-page', (req, res) => {
             res.set('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/html-import-page/src.html').toString());
         });
 
-        app.get('/html-import-page-in-iframe', function (req, res) {
+        app.get('/html-import-page-in-iframe', (req, res) => {
             res.set('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/html-import-page/src-iframe.html').toString());
         });
 
-        app.get('/page-with-frameset', function (req, res) {
+        app.get('/page-with-frameset', (req, res) => {
             res.set('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/page-with-frameset/src.html').toString());
         });
 
-        app.get('/script', function (req, res) {
+        app.get('/script', (req, res) => {
             res.set('content-type', 'application/javascript; charset=utf-8');
             res.set('sourcemap', '/src.js.map');
             res.end(fs.readFileSync('test/server/data/script/src.js').toString());
         });
 
-        app.get('/stylesheet', function (req, res) {
+        app.get('/stylesheet', (req, res) => {
             res.end(fs.readFileSync('test/server/data/stylesheet/src.css').toString());
         });
 
-        app.get('/manifest', function (req, res) {
+        app.get('/manifest', (req, res) => {
             res.set('content-type', 'text/cache-manifest');
             res.end(fs.readFileSync('test/server/data/manifest/src.manifest')).toString();
         });
 
-        app.get('/xhr-origin/allow-any', function (req, res) {
+        app.get('/xhr-origin/allow-any', (req, res) => {
             res.set('access-control-allow-origin', '*');
             res.end('42');
         });
 
-        app.get('/xhr-origin/allow-provided', function (req, res) {
+        app.get('/xhr-origin/allow-provided', (req, res) => {
             res.set('access-control-allow-origin', req.headers['x-allow-origin']);
             res.end('42');
         });
 
-        app.get('/page/plain-text', function (req, res) {
+        app.get('/page/plain-text', (req, res) => {
             res.set('content-encoding', 'gzip');
             res.set('content-type', 'text/html; charset=utf-8');
             res.end('42');
         });
 
-        app.get('/download', function (req, res) {
+        app.get('/download', (req, res) => {
             res.set('content-disposition', 'attachment;filename=DevExpressTestCafe-15.1.2.exe');
             res.end(EMPTY_PAGE);
 
         });
 
-        app.options('/preflight', function (req, res) {
-            res.end('42');
-        });
+        app.options('/preflight', (req, res) => res.end('42'));
 
-        app.get('/with-auth', function (req, res) {
-            var authHeader = req.headers['authorization'];
+        app.get('/with-auth', (req, res) => {
+            const authHeader = req.headers['authorization'];
 
             if (authHeader) {
-                var expectedAuthCredentials = 'testUsername:testPassword';
-                var expectedAuthHeader      = 'Basic ' + new Buffer(expectedAuthCredentials).toString('base64');
+                const expectedAuthCredentials = 'testUsername:testPassword';
+                const expectedAuthHeader      = 'Basic ' + new Buffer(expectedAuthCredentials).toString('base64');
 
                 if (authHeader === expectedAuthHeader) {
                     res.end('42');
@@ -193,38 +188,38 @@ describe('Proxy', function () {
             res.end();
         });
 
-        app.get('/B234325,GH-284/reply-with-origin', function (req, res) {
+        app.get('/B234325,GH-284/reply-with-origin', (req, res) => {
             res.set('access-control-allow-origin', 'http://example.com');
             res.end(req.headers['origin']);
         });
 
-        app.get('/GH-1059/reply-with-origin', function (req, res) {
+        app.get('/GH-1059/reply-with-origin', (req, res) => {
             res.set('access-control-allow-origin', 'http://example.com');
             res.set('access-control-allow-credentials', 'true');
             res.end(req.headers['origin']);
         });
 
-        app.get('/Q557255/page-without-content-type', function (req, res) {
+        app.get('/Q557255/page-without-content-type', (req, res) => {
             res.set('content-encoding', 'gzip');
             res.end('42');
         });
 
-        app.get('/T232505/is-cookie-header-sent', function (req, res) {
-            var headerSent = req.headers['cookie'] !== void 0;
+        app.get('/T232505/is-cookie-header-sent', (req, res) => {
+            const headerSent = req.headers['cookie'] !== void 0;
 
             res.end(headerSent.toString());
         });
 
-        app.get('/T224541/hang-forever', function () {
+        app.get('/T224541/hang-forever', () => {
             // Just hang forever...
         });
 
-        app.get('/B239430/empty-page', function (req, res) {
+        app.get('/B239430/empty-page', (req, res) => {
             res.set('content-type', 'text/html; charset=utf-8');
             res.end();
         });
 
-        app.get('/GH-306/empty-resource', function (req, res) {
+        app.get('/GH-306/empty-resource', (req, res) => {
             res.set({
                 'content-type':   req.headers['x-resource-type'],
                 'content-length': 0
@@ -233,13 +228,13 @@ describe('Proxy', function () {
             res.end();
         });
 
-        app.get('/T239167/send-location', function (req, res) {
+        app.get('/T239167/send-location', (req, res) => {
             res.writeHead(200, { 'location': 'http://127.0.0.1:2000/\u0410\u0411' });
             res._send('');
             res.end();
         });
 
-        app.get('/GH-390/redirect-302-with-body', function (req, res) {
+        app.get('/GH-390/redirect-302-with-body', (req, res) => {
             res.writeHead(302, {
                 'content-type': 'text/plain',
                 'location':     'http://127.0.0.1:2002/'
@@ -250,83 +245,72 @@ describe('Proxy', function () {
             setTimeout(res.end.bind(res), 1000);
         });
 
-        app.post('/upload-info', function (req, res) {
-            var chunks = [];
+        app.post('/upload-info', (req, res) => {
+            const chunks = [];
 
-            req.on('data', function (chunk) {
-                chunks.push(chunk);
-            });
-            req.on('end', function () {
-                res.end(Buffer.concat(chunks).toString());
-            });
+            req.on('data', chunk => chunks.push(chunk));
+            req.on('end', () => res.end(Buffer.concat(chunks).toString()));
         });
 
-        app.get('/echo-headers', function (req, res) {
-            res.end(JSON.stringify(req.headers));
-        });
+        app.get('/echo-headers', (req, res) => res.end(JSON.stringify(req.headers)));
 
-        app.get('/empty-response', function (req, res) {
-            for (var header in req.headers)
+        app.get('/empty-response', (req, res) => {
+            for (const header in req.headers)
                 res.set(header, req.headers[header]);
 
             res.end();
         });
 
-        app.get('/wait/:ms', function (req, res) {
-            setTimeout(function () {
-                res.end('text');
-            }, req.params.ms);
+        app.get('/wait/:ms', (req, res) => {
+            setTimeout(() => res.end('text'), req.params.ms);
         });
 
-        app.get('/GH-1014/pdf-content-type', function (req, res) {
+        app.get('/GH-1014/pdf-content-type', (req, res) => {
             res.set('content-type', 'content-type');
             res.end('pdf');
         });
 
-        app.get('/GH-1014/empty-page-without-content-type/', function (req, res) {
-            res.end('');
-        });
+        app.get('/GH-1014/empty-page-without-content-type/', (req, res) => res.end(''));
 
-        app.get('/x-frame-options/:value', function (req, res) {
-            var value = req.params.value;
+        app.get('/x-frame-options/:value', (req, res) => {
+            const value = req.params.value;
 
             res.setHeader('x-frame-options', value);
             res.end('42');
         });
 
-        app.get('/download-script', function (req, res) {
+        app.get('/download-script', (req, res) => {
             res.setHeader('content-disposition', 'attachment; filename="f.txt"');
             res.setHeader('content-type', 'text/javascript; charset=UTF-8');
-            res.end('var i = 42;');
+            res.end('const i = 42;');
         });
 
-        app.get('/redirect/:url', function (req, res) {
+        app.get('/redirect/:url', (req, res) => {
             res.writeHead(200, { location: decodeURIComponent(req.params.url) });
             res.end();
         });
 
-        app.get('/referrer-policy', function (req, res) {
+        app.get('/referrer-policy', (req, res) => {
             res.setHeader('referrer-policy', 'no-referrer');
             res.end('42');
         });
 
         destServer = app.listen(2000);
 
+        const crossDomainApp = express();
 
-        var crossDomainApp = express();
-
-        crossDomainApp.get('/without-access-control-allow-origin-header', function (req, res) {
+        crossDomainApp.get('/without-access-control-allow-origin-header', (req, res) => {
             res.set('content-type', 'text/html');
             res.end(EMPTY_PAGE);
         });
 
-        crossDomainApp.get('/echo-headers', function (req, res) {
+        crossDomainApp.get('/echo-headers', (req, res) => {
             res.setHeader('access-control-allow-origin', '*');
 
             res.json(req.headers);
         });
 
-        crossDomainApp.get('/echo-headers-with-credentials', function (req, res) {
+        crossDomainApp.get('/echo-headers-with-credentials', (req, res) => {
             res.setHeader('access-control-allow-origin', 'http://127.0.0.1:2000');
             res.setHeader('access-control-allow-credentials', 'true');
 
@@ -336,39 +320,36 @@ describe('Proxy', function () {
         crossDomainServer = crossDomainApp.listen(2002);
     });
 
-    after(function () {
+    after(() => {
         destServer.close();
         crossDomainServer.close();
     });
 
-    beforeEach(function () {
+    beforeEach(() => {
         session = new Session();
 
-        session.getAuthCredentials = function () {
-            return null;
-        };
-
-        session.handleFileDownload = function () {
+        session.getAuthCredentials = () => null;
+        session.handleFileDownload = () => {
         };
 
         proxy = new Proxy('127.0.0.1', 1836, 1837);
     });
 
-    afterEach(function () {
+    afterEach(() => {
         proxy.close();
         requestAgent.resetKeepAliveConnections();
     });
 
-    describe('Session', function () {
-        it('Should pass DNS errors to session', function (done) {
-            session.handlePageError = function (ctx, err) {
+    describe('Session', () => {
+        it('Should pass DNS errors to session', done => {
+            session.handlePageError = (ctx, err) => {
                 expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url">http://www.some-unresolvable.url</a>.');
                 ctx.res.end();
                 done();
                 return true;
             };
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://www.some-unresolvable.url', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
@@ -378,15 +359,15 @@ describe('Proxy', function () {
             request(options);
         });
 
-        it('Should pass protocol DNS errors for existing host to session', function (done) {
-            session.handlePageError = function (ctx, err) {
+        it('Should pass protocol DNS errors for existing host to session', done => {
+            session.handlePageError = (ctx, err) => {
                 expect(err).eql('Failed to find a DNS-record for the resource at <a href="https://127.0.0.1:2000">https://127.0.0.1:2000</a>.');
                 ctx.res.end();
                 done();
                 return true;
             };
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('https://127.0.0.1:2000', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
@@ -396,8 +377,8 @@ describe('Proxy', function () {
             request(options);
         });
 
-        it('Should pass service message processing to session', function (done) {
-            var options = {
+        it('Should pass service message processing to session', done => {
+            const options = {
                 method: 'POST',
                 url:    'http://localhost:1836/messaging',
                 body:   JSON.stringify({
@@ -409,28 +390,28 @@ describe('Proxy', function () {
 
             proxy.openSession('http://example.com', session);
 
-            session['ServiceTestCmd'] = function (msg, serverInfo) {
+            session['ServiceTestCmd'] = (msg, serverInfo) => {
                 expect(serverInfo).to.be.an('object');
                 return 'answer: ' + msg.data;
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(JSON.parse(body)).eql('answer: 42');
                 done();
             });
         });
 
-        it('Should render task script', function () {
+        it('Should render task script', () => {
             function testTaskScriptRequest (url, scriptBody) {
-                return new Promise(function (resolve) {
-                    var options = {
+                return new Promise((resolve) => {
+                    const options = {
                         url:     url,
                         headers: {
                             referer: proxy.openSession('http://example.com', session)
                         }
                     };
 
-                    request(options, function (err, res, body) {
+                    request(options, (err, res, body) => {
                         expect(body).contains(scriptBody);
                         expect(res.headers['content-type']).eql('application/x-javascript');
                         expect(res.headers['cache-control']).eql('no-cache, no-store, must-revalidate');
@@ -440,13 +421,8 @@ describe('Proxy', function () {
                 });
             }
 
-            session._getPayloadScript = function () {
-                return 'PayloadScript';
-            };
-
-            session._getIframePayloadScript = function () {
-                return 'IframePayloadScript';
-            };
+            session._getPayloadScript       = () => 'PayloadScript';
+            session._getIframePayloadScript = () => 'IframePayloadScript';
 
             return Promise.all([
                 testTaskScriptRequest('http://localhost:1836/task.js', 'PayloadScript'),
@@ -454,27 +430,25 @@ describe('Proxy', function () {
             ]);
         });
 
-        it('Should convert origin host and protocol to lower case', function () {
+        it('Should convert origin host and protocol to lower case', () => {
             // BUG: GH-1
-            var proxiedUrl = proxy.openSession('hTtp://ExaMple.Com:123/paTh/Image?Name=Value&#Hash', session);
+            const proxiedUrl = proxy.openSession('hTtp://ExaMple.Com:123/paTh/Image?Name=Value&#Hash', session);
 
             expect(proxiedUrl).to.have.string('http://example.com:123/paTh/Image?Name=Value&#Hash');
         });
 
-        it('Should handle special pages', function () {
-            var specialPageProxyUrls   = urlUtils.SPECIAL_PAGES.map(function (url) {
-                return proxy.openSession(url, session);
-            });
-            var testSpecialPageRequest = function (url) {
-                return new Promise(function (resolve) {
-                    var options = {
+        it('Should handle special pages', () => {
+            const specialPageProxyUrls   = urlUtils.SPECIAL_PAGES.map(url => proxy.openSession(url, session));
+            const testSpecialPageRequest = url => {
+                return new Promise(resolve => {
+                    const options = {
                         url:     url,
                         headers: {
                             accept: 'text/html'
                         }
                     };
 
-                    request(options, function (err, res, body) {
+                    request(options, (err, res, body) => {
                         expect(body).to.not.empty;
                         resolve();
                     });
@@ -485,9 +459,9 @@ describe('Proxy', function () {
         });
     });
 
-    describe('Cookies', function () {
-        it('Should process SET_COOKIE service message', function (done) {
-            var options = {
+    describe('Cookies', () => {
+        it('Should process SET_COOKIE service message', done => {
+            const options = {
                 method: 'POST',
                 url:    'http://localhost:1836/cookie-sync',
                 body:   JSON.stringify({
@@ -505,7 +479,7 @@ describe('Proxy', function () {
                 })
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql('');
                 expect(res.statusCode).eql(204);
                 expect(session.cookies.getClientString('http://example.com')).eql('Test1=Data1; Test2=Data2');
@@ -514,22 +488,22 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should handle "Cookie" and "Set-Cookie" headers', function (done) {
-            var options = {
+        it('Should handle "Cookie" and "Set-Cookie" headers', done => {
+            const options = {
                 url:            proxy.openSession('http://127.0.0.1:2000/cookie/set-and-redirect', session),
                 followRedirect: true
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql('%% Test=value; value without key %%');
                 done();
             });
         });
     });
 
-    describe('XHR same-origin policy', function () {
-        it('Should restrict requests from other domain', function (done) {
-            var options = {
+    describe('XHR same-origin policy', () => {
+        it('Should restrict requests from other domain', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
@@ -538,15 +512,15 @@ describe('Proxy', function () {
 
             options.headers[XHR_HEADERS.requestMarker] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                 expect(body).to.be.empty;
                 done();
             });
         });
 
-        it('Should restrict requests from file protocol to some domain', function (done) {
-            var options = {
+        it('Should restrict requests from file protocol to some domain', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
                 headers: {
                     referer: proxy.openSession('file:///path/page.html', session)
@@ -556,15 +530,15 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                 expect(body).to.be.empty;
                 done();
             });
         });
 
-        it('Should restrict requests between file urls', function (done) {
-            var options = {
+        it('Should restrict requests between file urls', done => {
+            const options = {
                 url:     proxy.openSession(getFileProtocolUrl('./data/stylesheet/src.css'), session),
                 headers: {
                     referer: proxy.openSession('file:///path/page.html', session)
@@ -574,15 +548,15 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                 expect(body).to.be.empty;
                 done();
             });
         });
 
-        it('Should restrict preflight requests from other domain', function (done) {
-            var options = {
+        it('Should restrict preflight requests from other domain', done => {
+            const options = {
                 method:  'OPTIONS',
                 url:     proxy.openSession('http://127.0.0.1:2000/preflight', session),
                 headers: {
@@ -592,15 +566,15 @@ describe('Proxy', function () {
 
             options.headers[XHR_HEADERS.requestMarker] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                 expect(body).to.be.empty;
                 done();
             });
         });
 
-        it('Should allow preflight requests from other domain if CORS is enabled', function (done) {
-            var options = {
+        it('Should allow preflight requests from other domain if CORS is enabled', done => {
+            const options = {
                 method:  'OPTIONS',
                 url:     proxy.openSession('http://127.0.0.1:2000/preflight', session),
                 headers: {
@@ -611,15 +585,15 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(res.statusCode).eql(200);
                 expect(body).eql('42');
                 done();
             });
         });
 
-        it('Should allow requests from other domain if CORS is enabled and allowed origin is wildcard ', function (done) {
-            var options = {
+        it('Should allow requests from other domain if CORS is enabled and allowed origin is wildcard ', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/xhr-origin/allow-any', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
@@ -629,15 +603,15 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(res.statusCode).eql(200);
                 expect(body).eql('42');
                 done();
             });
         });
 
-        it('Should allow requests from other domain if CORS is enabled and origin is allowed', function (done) {
-            var options = {
+        it('Should allow requests from other domain if CORS is enabled and origin is allowed', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/xhr-origin/allow-provided', session),
                 headers: {
                     referer:          proxy.openSession('http://example.com', session),
@@ -648,15 +622,15 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(res.statusCode).eql(200);
                 expect(body).eql('42');
                 done();
             });
         });
 
-        it('Should allow requests from other domain if it is "not modified" (GH-617)', function (done) {
-            var options = {
+        it('Should allow requests from other domain if it is "not modified" (GH-617)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/304', session),
                 headers: {
                     referer:             proxy.openSession('http://example.com', session),
@@ -666,20 +640,20 @@ describe('Proxy', function () {
 
             options.headers[XHR_HEADERS.requestMarker] = 'true';
 
-            request(options, function (err, res) {
+            request(options, (err, res) => {
                 expect(res.statusCode).eql(304);
                 done();
             });
         });
     });
 
-    describe('Fetch', function () {
-        describe('Credential modes', function () {
-            describe('Omit', function () {
-                it('Should omit cookie and pass authorization headers for same-domain request', function (done) {
+    describe('Fetch', () => {
+        describe('Credential modes', () => {
+            describe('Omit', () => {
+                it('Should omit cookie and pass authorization headers for same-domain request', done => {
                     session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
 
-                    var options = {
+                    const options = {
                         url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
                         headers: {
                             referer:       proxy.openSession('http://127.0.0.1:2000', session),
@@ -690,8 +664,8 @@ describe('Proxy', function () {
 
                     options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
 
-                    request(options, function (err, res, body) {
-                        var requestHeaders = JSON.parse(body);
+                    request(options, (err, res, body) => {
+                        const requestHeaders = JSON.parse(body);
 
                         expect(requestHeaders.cookie).to.be.undefined;
                         expect(requestHeaders.authorization).eql('value');
@@ -700,10 +674,10 @@ describe('Proxy', function () {
                     });
                 });
 
-                it('Should omit cookie and pass authorization headers for cross-domain request', function (done) {
+                it('Should omit cookie and pass authorization headers for cross-domain request', done => {
                     session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
 
-                    var options = {
+                    const options = {
                         url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
                         headers: {
                             referer:       proxy.openSession('http://127.0.0.1:2000', session),
@@ -714,8 +688,8 @@ describe('Proxy', function () {
 
                     options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
 
-                    request(options, function (err, res, body) {
-                        var requestHeaders = JSON.parse(body);
+                    request(options, (err, res, body) => {
+                        const requestHeaders = JSON.parse(body);
 
                         expect(requestHeaders.cookie).to.be.undefined;
                         expect(requestHeaders.authorization).eql('value');
@@ -725,11 +699,11 @@ describe('Proxy', function () {
                 });
             });
 
-            describe('Same-origin', function () {
-                it('Should pass cookie and pass authorization headers for same-domain request', function (done) {
+            describe('Same-origin', () => {
+                it('Should pass cookie and pass authorization headers for same-domain request', done => {
                     session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
 
-                    var options = {
+                    const options = {
                         url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
                         headers: {
                             referer:       proxy.openSession('http://127.0.0.1:2000', session),
@@ -740,8 +714,8 @@ describe('Proxy', function () {
 
                     options.headers[XHR_HEADERS.fetchRequestCredentials] = 'same-origin';
 
-                    request(options, function (err, res, body) {
-                        var requestHeaders = JSON.parse(body);
+                    request(options, (err, res, body) => {
+                        const requestHeaders = JSON.parse(body);
 
                         expect(requestHeaders.cookie).eql('key=value');
                         expect(requestHeaders.authorization).eql('value');
@@ -750,10 +724,10 @@ describe('Proxy', function () {
                     });
                 });
 
-                it('Should omit cookie and pass authorization headers for cross-domain request', function (done) {
+                it('Should omit cookie and pass authorization headers for cross-domain request', done => {
                     session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
 
-                    var options = {
+                    const options = {
                         url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
                         headers: {
                             referer:       proxy.openSession('http://127.0.0.1:2000', session),
@@ -764,8 +738,8 @@ describe('Proxy', function () {
 
                     options.headers[XHR_HEADERS.fetchRequestCredentials] = 'same-origin';
 
-                    request(options, function (err, res, body) {
-                        var requestHeaders = JSON.parse(body);
+                    request(options, (err, res, body) => {
+                        const requestHeaders = JSON.parse(body);
 
                         expect(requestHeaders.cookie).to.be.undefined;
                         expect(requestHeaders.authorization).eql('value');
@@ -775,11 +749,11 @@ describe('Proxy', function () {
                 });
             });
 
-            describe('Include', function () {
-                it('Should pass cookie and authorization headers for same-domain request', function (done) {
+            describe('Include', () => {
+                it('Should pass cookie and authorization headers for same-domain request', done => {
                     session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
 
-                    var options = {
+                    const options = {
                         url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
                         headers: {
                             referer:       proxy.openSession('http://127.0.0.1:2000', session),
@@ -790,8 +764,8 @@ describe('Proxy', function () {
 
                     options.headers[XHR_HEADERS.fetchRequestCredentials] = 'include';
 
-                    request(options, function (err, res, body) {
-                        var requestHeaders = JSON.parse(body);
+                    request(options, (err, res, body) => {
+                        const requestHeaders = JSON.parse(body);
 
                         expect(requestHeaders.cookie).eql('key=value');
                         expect(requestHeaders.authorization).eql('value');
@@ -800,10 +774,10 @@ describe('Proxy', function () {
                     });
                 });
 
-                it('Should pass cookie and authorization headers for cross-domain request', function (done) {
+                it('Should pass cookie and authorization headers for cross-domain request', done => {
                     session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
 
-                    var options = {
+                    const options = {
                         url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
                         headers: {
                             referer:       proxy.openSession('http://127.0.0.1:2000', session),
@@ -814,8 +788,8 @@ describe('Proxy', function () {
 
                     options.headers[XHR_HEADERS.fetchRequestCredentials] = 'include';
 
-                    request(options, function (err, res, body) {
-                        var requestHeaders = JSON.parse(body);
+                    request(options, (err, res, body) => {
+                        const requestHeaders = JSON.parse(body);
 
                         expect(requestHeaders.cookie).eql('key=value');
                         expect(requestHeaders.authorization).eql('value');
@@ -827,8 +801,8 @@ describe('Proxy', function () {
         });
     });
 
-    describe('Content processing', function () {
-        it('Should process pages', function (done) {
+    describe('Content processing', () => {
+        it('Should process pages', done => {
             session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
             session.injectable.scripts.push('/script2.js');
@@ -843,22 +817,22 @@ describe('Proxy', function () {
                 }
             });
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/page/expected.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/page/expected.html').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should process html import pages', function (done) {
+        it('Should process html import pages', done => {
             session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
             session.injectable.scripts.push('/script2.js');
@@ -867,7 +841,7 @@ describe('Proxy', function () {
 
             proxy.openSession('http://127.0.0.1:2000/', session);
 
-            var options = {
+            const options = {
                 url: urlUtils.getProxyUrl('http://127.0.0.1:2000/html-import-page', {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
@@ -880,20 +854,20 @@ describe('Proxy', function () {
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/html-import-page/expected.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/html-import-page/expected.html').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should process html import pages in iframe', function (done) {
+        it('Should process html import pages in iframe', done => {
             session.id = 'sessionId';
 
             proxy.openSession('http://127.0.0.1:2000/', session);
 
-            var options = {
+            const options = {
                 url: urlUtils.getProxyUrl('http://127.0.0.1:2000/html-import-page-in-iframe', {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
@@ -906,8 +880,8 @@ describe('Proxy', function () {
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/html-import-page/expected-iframe.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/html-import-page/expected-iframe.html').toString();
 
                 compareCode(body, expected);
                 done();
@@ -915,8 +889,8 @@ describe('Proxy', function () {
         });
 
 
-        it('Should not process XHR page requests', function (done) {
-            var options = {
+        it('Should not process XHR page requests', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
                     accept:  'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
@@ -926,16 +900,16 @@ describe('Proxy', function () {
 
             options.headers[XHR_HEADERS.requestMarker] = 'true';
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/page/src.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/page/src.html').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should not process Fetch page requests', function (done) {
-            var options = {
+        it('Should not process Fetch page requests', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
                 headers: {
                     accept:  'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
@@ -945,59 +919,59 @@ describe('Proxy', function () {
 
             options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/page/src.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/page/src.html').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should process scripts', function (done) {
+        it('Should process scripts', done => {
             session.id = 1337;
 
-            request(proxy.openSession('http://127.0.0.1:2000/script', session), function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/script/expected.js').toString();
+            request(proxy.openSession('http://127.0.0.1:2000/script', session), (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/script/expected.js').toString();
 
                 expect(normalizeNewLine(body)).eql(normalizeNewLine(expected));
                 done();
             });
         });
 
-        it('Should process manifests', function (done) {
+        it('Should process manifests', done => {
             session.id = 'sessionId';
 
-            request(proxy.openSession('http://127.0.0.1:2000/manifest', session), function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/manifest/expected.manifest').toString();
+            request(proxy.openSession('http://127.0.0.1:2000/manifest', session), (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/manifest/expected.manifest').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should process stylesheets', function (done) {
+        it('Should process stylesheets', done => {
             session.id = 'sessionId';
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/stylesheet', session),
                 headers: {
                     accept: 'text/css'
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should process upload info', function (done) {
-            var src      = newLineReplacer(fs.readFileSync('test/server/data/upload/src.formdata'));
-            var expected = newLineReplacer(fs.readFileSync('test/server/data/upload/expected.formdata'));
+        it('Should process upload info', done => {
+            const src      = newLineReplacer(fs.readFileSync('test/server/data/upload/src.formdata'));
+            const expected = newLineReplacer(fs.readFileSync('test/server/data/upload/expected.formdata'));
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/upload-info', session),
                 method:  'POST',
                 body:    src,
@@ -1007,14 +981,14 @@ describe('Proxy', function () {
                 }
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql(expected.toString());
                 done();
             });
         });
 
-        it('Should not process file download', function (done) {
-            var options = {
+        it('Should not process file download', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/download', session),
                 method:  'GET',
                 headers: {
@@ -1022,18 +996,18 @@ describe('Proxy', function () {
                 }
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql(EMPTY_PAGE);
                 done();
             });
         });
 
-        it('Should not process "not modified" resources (GH-817)', function () {
-            var mimeTypes = ['text/cache-manifest', 'text/css', 'text/html', 'text/javascript'];
+        it('Should not process "not modified" resources (GH-817)', () => {
+            const mimeTypes = ['text/cache-manifest', 'text/css', 'text/html', 'text/javascript'];
 
-            return Promise.all(mimeTypes.map(function (mimeType, index) {
-                return new Promise(function (resolve) {
-                    var options = {
+            return Promise.all(mimeTypes.map((mimeType, index) => {
+                return new Promise(resolve => {
+                    const options = {
                         url:     proxy.openSession('http://127.0.0.1:2000/304', session),
                         headers: {
                             'x-content-type': mimeType
@@ -1045,7 +1019,7 @@ describe('Proxy', function () {
                     else
                         options.headers['if-none-match'] = '42dc7c04442557f8937f89ecdc993077';
 
-                    request(options, function (err, res, body) {
+                    request(options, (err, res, body) => {
                         expect(body).eql('');
                         expect(res.statusCode).eql(304);
                         expect(res.headers['content-length']).eql('0');
@@ -1056,10 +1030,10 @@ describe('Proxy', function () {
         });
     });
 
-    describe('Shadow UI', function () {
-        it('Should process shadow ui stylesheet', function (done) {
-            var src      = read('/data/shadow-ui-stylesheet/src.css').toString();
-            var expected = read('/data/shadow-ui-stylesheet/expected.css').toString();
+    describe('Shadow UI', () => {
+        it('Should process shadow ui stylesheet', done => {
+            const src      = read('/data/shadow-ui-stylesheet/src.css').toString();
+            const expected = read('/data/shadow-ui-stylesheet/expected.css').toString();
 
             proxy.GET('/testcafe-ui-styles.css', {
                 contentType:          'text/css',
@@ -1067,7 +1041,7 @@ describe('Proxy', function () {
                 isShadowUIStylesheet: true
             });
 
-            request('http://127.0.0.1:1836/testcafe-ui-styles.css', function (err, res, body) {
+            request('http://127.0.0.1:1836/testcafe-ui-styles.css', (err, res, body) => {
                 expect(body.replace(/\r\n|\n/g, '')).equal(expected.replace(/\r\n|\n/g, ''));
 
                 done();
@@ -1075,35 +1049,31 @@ describe('Proxy', function () {
         });
     });
 
-    describe('HTTPS', function () {
-        var httpsServer = null;
+    describe('HTTPS', () => {
+        let httpsServer = null;
 
-        before(function () {
-            var httpsApp = express();
+        before(() => {
+            const httpsApp = express();
 
-            httpsApp.get('/answer', function (req, res) {
-                res.send('42');
-            });
+            httpsApp.get('/answer', (req, res) => res.send('42'));
 
             httpsServer = createSelfSignedHttpsServer(httpsApp).listen(2001);
         });
 
-        after(function () {
-            httpsServer.close();
-        });
+        after(() => httpsServer.close());
 
-        it('Should proxy unauthorized HTTPS pages', function (done) {
-            var url = proxy.openSession('https://127.0.0.1:2001/answer', session);
+        it('Should proxy unauthorized HTTPS pages', done => {
+            const url = proxy.openSession('https://127.0.0.1:2001/answer', session);
 
-            request(url, function (err, res, body) {
+            request(url, (err, res, body) => {
                 expect(body).eql('42');
                 done();
             });
         });
     });
 
-    describe('file:// protocol', function () {
-        it('Should process page and ignore search string', function (done) {
+    describe('file:// protocol', () => {
+        it('Should process page and ignore search string', done => {
             session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
             session.injectable.scripts.push('/script2.js');
@@ -1118,7 +1088,7 @@ describe('Proxy', function () {
                 }
             });
 
-            var options = {
+            const options = {
                 url: proxy.openSession(getFileProtocolUrl('./data/page/src.html') + '?a=1&b=3', session),
 
                 headers: {
@@ -1126,10 +1096,10 @@ describe('Proxy', function () {
                 }
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 // NOTE: The host property is empty in url with file: protocol.
                 // The expected.html template is used for both tests with http: and file: protocol.
-                var expected = fs.readFileSync('test/server/data/page/expected.html').toString()
+                const expected = fs.readFileSync('test/server/data/page/expected.html').toString()
                     .replace(/(hammerhead\|storage-wrapper\|sessionId\|)127\.0\.0\.1:2000/g, '$1');
 
                 compareCode(body, expected);
@@ -1137,40 +1107,40 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should process stylesheets', function (done) {
+        it('Should process stylesheets', done => {
             session.id = 'sessionId';
 
-            var options = {
+            const options = {
                 url:     proxy.openSession(getFileProtocolUrl('./data/stylesheet/src.css'), session),
                 headers: {
                     accept: 'text/css,*/*;q=0.1'
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/stylesheet/expected.css').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should process page with absolute urls', function (done) {
+        it('Should process page with absolute urls', done => {
             session.id = 'sessionId';
 
-            var filePostfix = os.platform() === 'win32' ? 'win' : 'nix';
-            var fileUrl     = getFileProtocolUrl('./data/page-with-file-protocol/src-' + filePostfix + '.html');
+            const filePostfix = os.platform() === 'win32' ? 'win' : 'nix';
+            const fileUrl     = getFileProtocolUrl('./data/page-with-file-protocol/src-' + filePostfix + '.html');
 
-            var options = {
+            const options = {
                 url:     proxy.openSession(fileUrl, session),
                 headers: {
                     accept: 'text/html,*/*;q=0.1'
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-' + filePostfix +
-                                               '.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-' + filePostfix +
+                                                 '.html').toString();
 
                 compareCode(body, expected);
                 done();
@@ -1178,20 +1148,20 @@ describe('Proxy', function () {
         });
 
         if (os.platform() === 'win32') {
-            it('Should process page with non-conforming Windows url', function (done) {
+            it('Should process page with non-conforming Windows url', done => {
                 session.id = 'sessionId';
 
-                var fileUrl = 'file://' + path.join(__dirname, '/data/page-with-file-protocol/src-win.html');
+                const fileUrl = 'file://' + path.join(__dirname, '/data/page-with-file-protocol/src-win.html');
 
-                var options = {
+                const options = {
                     url:     proxy.openSession(fileUrl, session),
                     headers: {
                         accept: 'text/html,*/*;q=0.1'
                     }
                 };
 
-                request(options, function (err, res, body) {
-                    var expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-win.html').toString();
+                request(options, (err, res, body) => {
+                    const expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-win.html').toString();
 
                     compareCode(body, expected);
                     done();
@@ -1199,28 +1169,28 @@ describe('Proxy', function () {
             });
         }
 
-        it('Should set the correct content-type header', function (done) {
+        it('Should set the correct content-type header', done => {
             session.id = 'sessionId';
 
-            var options = {
+            const options = {
                 url:     proxy.openSession(getFileProtocolUrl('./data/images/icons.svg'), session),
                 headers: {
                     accept: 'image/webp,image/*,*/*;q=0.8'
                 }
             };
 
-            request(options, function (err, res) {
+            request(options, (err, res) => {
                 expect(res.headers['content-type']).eql('image/svg+xml');
                 done();
             });
         });
 
-        it('Should pass an error to the session if target is a directory', function (done) {
-            var url = getFileProtocolUrl('./data');
+        it('Should pass an error to the session if target is a directory', done => {
+            const url = getFileProtocolUrl('./data');
 
             session.id = 'sessionId';
 
-            session.handlePageError = function (ctx, err) {
+            session.handlePageError = (ctx, err) => {
                 expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
@@ -1232,7 +1202,7 @@ describe('Proxy', function () {
                 return true;
             };
 
-            var options = {
+            const options = {
                 url:     proxy.openSession(url, session),
                 headers: {
                     accept: 'text/html,*/*;q=0.1'
@@ -1242,12 +1212,12 @@ describe('Proxy', function () {
             request(options);
         });
 
-        it('Should pass an error to the session if target does not exist', function (done) {
-            var url = getFileProtocolUrl('./data/non-exist-file');
+        it('Should pass an error to the session if target does not exist', done => {
+            const url = getFileProtocolUrl('./data/non-exist-file');
 
             session.id = 'sessionId';
 
-            session.handlePageError = function (ctx, err) {
+            session.handlePageError = (ctx, err) => {
                 expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
@@ -1259,7 +1229,7 @@ describe('Proxy', function () {
                 return true;
             };
 
-            var options = {
+            const options = {
                 url:     proxy.openSession(url, session),
                 headers: {
                     accept: 'text/html,*/*;q=0.1'
@@ -1270,11 +1240,11 @@ describe('Proxy', function () {
         });
     });
 
-    describe('State switching', function () {
+    describe('State switching', () => {
         function makeRequest (url, opts) {
             opts = opts || { isPage: true };
 
-            var options = {
+            const options = {
                 url: urlUtils.getProxyUrl(url, {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
@@ -1287,8 +1257,8 @@ describe('Proxy', function () {
                 }
             };
 
-            return new Promise(function (resolve, reject) {
-                request(options, function (err, res, body) {
+            return new Promise((resolve, reject) => {
+                request(options, (err, res, body) => {
                     if (err)
                         reject(err);
                     else
@@ -1298,15 +1268,15 @@ describe('Proxy', function () {
         }
 
         function forEachSequentially (arr, fn) {
-            return arr.reduce(function (promise, item) {
-                return promise.then(function () {
+            return arr.reduce((promise, item) => {
+                return promise.then(() => {
                     return fn(item);
                 });
             }, Promise.resolve());
         }
 
-        it('Should switch states', function () {
-            var testCases = [
+        it('Should switch states', () => {
+            const testCases = [
                 {
                     state:    null,
                     urls:     ['http://127.0.0.1:2000/cookie/set1'],
@@ -1327,7 +1297,7 @@ describe('Proxy', function () {
             function initializeState (testCase) {
                 session.useStateSnapshot(null);
 
-                return forEachSequentially(testCase.urls, makeRequest).then(function () {
+                return forEachSequentially(testCase.urls, makeRequest).then(() => {
                     testCase.state = session.getStateSnapshot();
                 });
             }
@@ -1335,7 +1305,7 @@ describe('Proxy', function () {
             function assertState (testCase) {
                 session.useStateSnapshot(testCase.state);
 
-                return makeRequest('http://127.0.0.1:2000/cookie/echo').then(function (body) {
+                return makeRequest('http://127.0.0.1:2000/cookie/echo').then(body => {
                     expect(body).contains('%% ' + testCase.expected + ' %%');
                 });
             }
@@ -1343,85 +1313,85 @@ describe('Proxy', function () {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
             return Promise.resolve()
-                .then(function () {
+                .then(() => {
                     return forEachSequentially(testCases, initializeState);
                 })
-                .then(function () {
+                .then(() => {
                     return forEachSequentially(testCases, assertState);
                 });
         });
 
-        it('Should switch state only on page requests', function () {
+        it('Should switch state only on page requests', () => {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
-            var state = null;
+            let state = null;
 
             return makeRequest('http://127.0.0.1:2000/cookie/set1')
-                .then(function () {
+                .then(() => {
                     state = session.getStateSnapshot();
 
                     session.useStateSnapshot(null);
                 })
 
                 // Try request empty state with non-page and page requests
-                .then(function () {
+                .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: false });
                 })
-                .then(function (body) {
+                .then(body => {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
-                .then(function () {
+                .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true, resourceType: 'i' });
                 })
-                .then(function (body) {
+                .then(body => {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
-                .then(function () {
+                .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true, resourceType: 'h' });
                 })
-                .then(function (body) {
+                .then(body => {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
-                .then(function () {
+                .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true });
                 })
-                .then(function (body) {
+                .then(body => {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
 
-                .then(function () {
+                .then(() => {
                     session.useStateSnapshot(state);
                 })
 
                 // Try request Set1 state with non-page and page requests
-                .then(function () {
+                .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: false });
                 })
-                .then(function (body) {
+                .then(body => {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
-                .then(function () {
+                .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true, resourceType: 'i' });
                 })
-                .then(function (body) {
+                .then(body => {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
-                .then(function () {
+                .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true, resourceType: 'h' });
                 })
-                .then(function (body) {
+                .then(body => {
                     expect(body).not.contains('%% Set1_1=value1; Set1_2=value2 %%');
                 })
-                .then(function () {
+                .then(() => {
                     return makeRequest('http://127.0.0.1:2000/cookie/echo', { isPage: true });
                 })
-                .then(function (body) {
+                .then(body => {
                     expect(body).contains('%% Set1_1=value1; Set1_2=value2 %%');
                 });
         });
 
-        it('Should skip cache headers if state snapshot is applied', function (done) {
-            var options = {
+        it('Should skip cache headers if state snapshot is applied', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/echo-headers', session),
                 headers: {
                     accept:              'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
@@ -1432,7 +1402,7 @@ describe('Proxy', function () {
 
             session.useStateSnapshot(null);
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).not.contains('if-modified-since');
                 expect(body).not.contains('if-none-match');
                 done();
@@ -1440,9 +1410,9 @@ describe('Proxy', function () {
         });
     });
 
-    describe('Regression', function () {
-        it('Should force "Origin" header for the same-domain requests (B234325)', function (done) {
-            var options = {
+    describe('Regression', () => {
+        it('Should force "Origin" header for the same-domain requests (B234325)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
@@ -1452,14 +1422,14 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql('http://example.com');
                 done();
             });
         });
 
-        it('Should force "Origin" header for the cross-domain "fetch" requests (GH-1059)', function (done) {
-            var options = {
+        it('Should force "Origin" header for the cross-domain "fetch" requests (GH-1059)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/GH-1059/reply-with-origin', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
@@ -1468,27 +1438,27 @@ describe('Proxy', function () {
 
             options.headers[XHR_HEADERS.fetchRequestCredentials] = 'include';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql('http://example.com');
                 done();
             });
         });
 
-        it('Should not send "Cookie" header if there are no cookies for the given URL (T232505)', function (done) {
-            var url = proxy.openSession('http://127.0.0.1:2000/T232505/is-cookie-header-sent', session);
+        it('Should not send "Cookie" header if there are no cookies for the given URL (T232505)', done => {
+            const url = proxy.openSession('http://127.0.0.1:2000/T232505/is-cookie-header-sent', session);
 
-            request(url, function (err, res, body) {
+            request(url, (err, res, body) => {
                 expect(JSON.parse(body)).to.be.false;
                 done();
             });
         });
 
-        it('Should raise error on request timeout (T224541)', function (done) {
-            var savedReqTimeout = DestinationRequest.TIMEOUT;
+        it('Should raise error on request timeout (T224541)', done => {
+            const savedReqTimeout = DestinationRequest.TIMEOUT;
 
             DestinationRequest.TIMEOUT = 200;
 
-            session.handlePageError = function (ctx, err) {
+            session.handlePageError = (ctx, err) => {
                 expect(err).eql('Failed to complete a request to <a href="http://127.0.0.1:2000/T224541/hang-forever">' +
                                 'http://127.0.0.1:2000/T224541/hang-forever</a> within the timeout period. ' +
                                 'The problem may be related to local machine\'s network or firewall settings, server outage, ' +
@@ -1499,7 +1469,7 @@ describe('Proxy', function () {
                 return true;
             };
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
@@ -1509,14 +1479,14 @@ describe('Proxy', function () {
             request(options);
         });
 
-        it('Should use a special timeout for xhr requests (GH-347)', function (done) {
-            var savedReqTimeout    = DestinationRequest.TIMEOUT;
-            var savedXhrReqTimeout = DestinationRequest.XHR_TIMEOUT;
+        it('Should use a special timeout for xhr requests (GH-347)', done => {
+            const savedReqTimeout    = DestinationRequest.TIMEOUT;
+            const savedXhrReqTimeout = DestinationRequest.XHR_TIMEOUT;
 
             DestinationRequest.TIMEOUT     = 100;
             DestinationRequest.XHR_TIMEOUT = 200;
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
@@ -1525,10 +1495,10 @@ describe('Proxy', function () {
 
             options.headers[XHR_HEADERS.requestMarker] = 'true';
 
-            var requestTime = Date.now();
+            const requestTime = Date.now();
 
-            request(options, function (err, res) {
-                var responseTime = Date.now();
+            request(options, (err, res) => {
+                const responseTime = Date.now();
 
                 expect(res.statusCode).eql(500);
                 expect(responseTime - requestTime).above(DestinationRequest.XHR_TIMEOUT);
@@ -1540,34 +1510,34 @@ describe('Proxy', function () {
         });
 
         // NOTE: Requires fix in node.js.
-        it.skip('Should not encode cyrillic symbols in header (T239167, GH-nodejs/io.js#1693)', function (done) {
-            var url              = proxy.openSession('http://127.0.0.1:2000/T239167/send-location', session);
-            var expectedLocation = proxy.openSession('http://127.0.0.1:2000/\u0410\u0411', session);
+        it.skip('Should not encode cyrillic symbols in header (T239167, GH-nodejs/io.js#1693)', done => {
+            const url              = proxy.openSession('http://127.0.0.1:2000/T239167/send-location', session);
+            const expectedLocation = proxy.openSession('http://127.0.0.1:2000/\u0410\u0411', session);
 
-            request(url, function (err, res) {
+            request(url, (err, res) => {
                 expect(res.headers['location']).eql(expectedLocation);
                 done();
             });
         });
 
-        it('Should process empty pages (B239430)', function (done) {
-            var options = {
+        it('Should process empty pages (B239430)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/B239430/empty-page', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should process pages with status 204 and return status 200 instead (GH-306)', function (done) {
-            var options = {
+        it('Should process pages with status 204 and return status 200 instead (GH-306)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session),
                 headers: {
                     accept:            'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
@@ -1575,8 +1545,8 @@ describe('Proxy', function () {
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
 
                 compareCode(body, expected);
                 expect(res.statusCode).eql(200);
@@ -1586,16 +1556,16 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should not process script with the html "accept" header as a page', function (done) {
-            var url     = proxy.openSession('http://127.0.0.1:2000/script', session);
-            var options = {
+        it('Should not process script with the html "accept" header as a page', done => {
+            const url     = proxy.openSession('http://127.0.0.1:2000/script', session);
+            const options = {
                 url:     url.replace(/^(.*?\/\/.*?\/.*?)(\/.*)$/, '$1!script$2'),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(res.statusCode).eql(200);
                 expect(body).to.contain(scriptHeader.SCRIPT_PROCESSING_START_COMMENT);
 
@@ -1603,17 +1573,17 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should not process assets with status 204 (GH-306)', function () {
+        it('Should not process assets with status 204 (GH-306)', () => {
             function testSourceWithStatus204 (mimeType) {
-                return new Promise(function (resolve) {
-                    var options = {
+                return new Promise(resolve => {
+                    const options = {
                         url:     proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session),
                         headers: {
                             'x-resource-type': mimeType
                         }
                     };
 
-                    request(options, function (err, res, body) {
+                    request(options, (err, res, body) => {
                         expect(body).eql('');
                         expect(res.statusCode).eql(204);
                         resolve();
@@ -1628,8 +1598,8 @@ describe('Proxy', function () {
             ]);
         });
 
-        it('Should transform the "Origin" header for requests without the "Referer" header correctly (GH-284)', function (done) {
-            var options = {
+        it('Should transform the "Origin" header for requests without the "Referer" header correctly (GH-284)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
                 headers: { origin: 'http://127.0.0.1:1836' }
             };
@@ -1638,16 +1608,16 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql('http://example.com');
 
                 done();
             });
         });
 
-        it('Should return 204 status code instead of 200 for the empty form submission response (GH-373)', function (done) {
-            var url     = proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session);
-            var options = {
+        it('Should return 204 status code instead of 200 for the empty form submission response (GH-373)', done => {
+            const url     = proxy.openSession('http://127.0.0.1:2000/GH-306/empty-resource', session);
+            const options = {
                 url:     url.replace(session.id, session.id + '!f'),
                 headers: {
                     accept:            'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
@@ -1655,18 +1625,18 @@ describe('Proxy', function () {
                 }
             };
 
-            request(options, function (err, res) {
+            request(options, (err, res) => {
                 expect(res.statusCode).eql(204);
                 done();
             });
         });
 
-        it('Should pass ECONNREFUSED error to session (GH-446)', function (done) {
+        it('Should pass ECONNREFUSED error to session (GH-446)', done => {
             getFreePort()
-                .then(function (port) {
-                    var host = 'http://127.0.0.1:' + port;
+                .then(port => {
+                    const host = 'http://127.0.0.1:' + port;
 
-                    session.handlePageError = function (ctx, err) {
+                    session.handlePageError = (ctx, err) => {
                         expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '">' +
                                         host + '</a>.');
                         ctx.res.end();
@@ -1674,7 +1644,7 @@ describe('Proxy', function () {
                         return true;
                     };
 
-                    var options = {
+                    const options = {
                         url:     proxy.openSession(host, session),
                         headers: {
                             accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
@@ -1685,32 +1655,30 @@ describe('Proxy', function () {
                 });
         });
 
-        it('Should send a response without waiting for the end of the destination response and without processing its body (GH-390)', function (done) {
-            var url           = proxy.openSession('http://127.0.0.1:2000/GH-390/redirect-302-with-body', session);
-            var opts          = urlLib.parse(url);
-            var startTestTime = process.hrtime();
-            var getTimeInMs   = function (hrtimeMark) {
+        it('Should send a response without waiting for the end of the destination response and without processing its body (GH-390)', done => {
+            const url           = proxy.openSession('http://127.0.0.1:2000/GH-390/redirect-302-with-body', session);
+            const opts          = urlLib.parse(url);
+            const startTestTime = process.hrtime();
+            const getTimeInMs   = hrtimeMark => {
                 return hrtimeMark[0] * 1000 + hrtimeMark[1] / 1000000;
             };
 
             opts.method = 'GET';
 
             http.request(opts)
-                .on('response', function (res) {
-                    var responseStartInMs = getTimeInMs(process.hrtime(startTestTime));
+                .on('response', res => {
+                    const responseStartInMs = getTimeInMs(process.hrtime(startTestTime));
 
                     expect(responseStartInMs < 100).to.be.true;
 
-                    var chunks = [];
+                    const chunks = [];
 
-                    res.on('data', function (chunk) {
-                        chunks.push(chunk);
-                    });
+                    res.on('data', chunk => chunks.push(chunk));
 
-                    res.on('end', function () {
-                        var responseEndInMs = getTimeInMs(process.hrtime(startTestTime));
+                    res.on('end', () => {
+                        const responseEndInMs             = getTimeInMs(process.hrtime(startTestTime));
                         // NOTE: Only in node 0.10 response 'end' event can happen earlier than 1000 ms
-                        var responseEndThresholdTimeout = 20;
+                        const responseEndThresholdTimeout = 20;
 
                         expect(responseEndInMs + responseEndThresholdTimeout > 1000).to.be.true;
                         expect(chunks.join('')).equal('body');
@@ -1721,8 +1689,8 @@ describe('Proxy', function () {
                 .end();
         });
 
-        it("Should close with error if destination server doesn't provide Access-Control-Allow-Origin header for cross-domain requests", function (done) {
-            var options = {
+        it("Should close with error if destination server doesn't provide Access-Control-Allow-Origin header for cross-domain requests", done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/without-access-control-allow-origin-header', session),
                 headers: {
                     referer: proxy.openSession('http://example.com', session)
@@ -1732,16 +1700,16 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res) {
+            request(options, (err, res) => {
                 expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                 done();
             });
         });
 
-        it('Should not send cookie and authorization headers to the cross-domain destination server for the xhr request without credentials (GH-545)', function (done) {
+        it('Should not send cookie and authorization headers to the cross-domain destination server for the xhr request without credentials (GH-545)', done => {
             session.cookies.setByClient('http://example.com', 'key=value');
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers', session),
                 headers: {
                     referer:               proxy.openSession('http://example.com', session),
@@ -1756,8 +1724,8 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = true;
             options.headers[XHR_HEADERS.corsSupported] = true;
 
-            request(options, function (err, res, body) {
-                var requestHeaders = JSON.parse(body);
+            request(options, (err, res, body) => {
+                const requestHeaders = JSON.parse(body);
 
                 expect(requestHeaders.cookie).to.be.undefined;
                 expect(requestHeaders.authorization).to.be.undefined;
@@ -1769,8 +1737,8 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should remove hammerhead xhr headers before sending a request to the destination server', function (done) {
-            var options = {
+        it('Should remove hammerhead xhr headers before sending a request to the destination server', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
                 headers: {
                     referer: proxy.openSession('http://127.0.0.1:2000', session)
@@ -1783,8 +1751,8 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.origin]                  = 'origin_value';
             options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
 
-            request(options, function (err, res, body) {
-                var requestHeaders = JSON.parse(body);
+            request(options, (err, res, body) => {
+                const requestHeaders = JSON.parse(body);
 
                 expect(requestHeaders[XHR_HEADERS.requestMarker]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.corsSupported]).to.be.undefined;
@@ -1796,8 +1764,8 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should remove hammerhead xhr headers before sending a request to the destination server', function (done) {
-            var options = {
+        it('Should remove hammerhead xhr headers before sending a request to the destination server', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
                 headers: {
                     referer: proxy.openSession('http://127.0.0.1:2000', session)
@@ -1810,8 +1778,8 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.origin]                  = 'origin_value';
             options.headers[XHR_HEADERS.fetchRequestCredentials] = 'omit';
 
-            request(options, function (err, res, body) {
-                var requestHeaders = JSON.parse(body);
+            request(options, (err, res, body) => {
+                const requestHeaders = JSON.parse(body);
 
                 expect(requestHeaders[XHR_HEADERS.requestMarker]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.corsSupported]).to.be.undefined;
@@ -1823,19 +1791,19 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should add a leading slash to the pathname part of url (GH-608)', function (done) {
-            var options = {
+        it('Should add a leading slash to the pathname part of url (GH-608)', done => {
+            const options = {
                 url: proxy.openSession('http://127.0.0.1:2000?key=value', session)
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql('/?key=value');
                 done();
             });
         });
 
-        it("Should omit default ports from destination request and 'referrer' header urls (GH-738)", function () {
-            var testCases              = [
+        it("Should omit default ports from destination request and 'referrer' header urls (GH-738)", () => {
+            const testCases              = [
                 {
                     url:          'http://example.com:80',
                     expectedHost: 'example.com',
@@ -1881,14 +1849,14 @@ describe('Proxy', function () {
                     expectedPort: '443443'
                 }
             ];
-            var req                    = {
+            const req                    = {
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
-            var requestPipelineContext = new RequestPipelineContext(req, {}, {});
+            const requestPipelineContext = new RequestPipelineContext(req, {}, {});
 
-            for (var i = 0; i < testCases.length; i++) {
+            for (let i = 0; i < testCases.length; i++) {
                 requestPipelineContext.req.url = proxy.openSession(testCases[i].url, session);
                 if (testCases[i].referer)
                     requestPipelineContext.req.headers.referer = proxy.openSession(testCases[i].referer, session);
@@ -1900,10 +1868,10 @@ describe('Proxy', function () {
             }
         });
 
-        it('Should not send destination request for special pages (GH-796)', function (done) {
-            var rejectionReason = null;
+        it('Should not send destination request for special pages (GH-796)', done => {
+            let rejectionReason = null;
 
-            var options = {
+            const options = {
                 url: proxy.openSession('about:blank', session),
 
                 headers: {
@@ -1911,18 +1879,18 @@ describe('Proxy', function () {
                 }
             };
 
-            process.once('unhandledRejection', function (reason) {
+            process.once('unhandledRejection', reason => {
                 rejectionReason = reason;
             });
 
-            request(options, function () {
+            request(options, () => {
                 expect(rejectionReason).to.be.null;
                 done();
             });
         });
 
-        it("Should handle `about:blank` requests for resources that doesn't require processing (GH-796)", function (done) {
-            var options = {
+        it("Should handle `about:blank` requests for resources that doesn't require processing (GH-796)", done => {
+            const options = {
                 url: proxy.openSession('about:blank', session),
 
                 headers: {
@@ -1930,49 +1898,49 @@ describe('Proxy', function () {
                 }
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).eql('');
                 done();
             });
         });
 
-        describe('Should not change a response body if it is empty (GH-762)', function () {
-            it('script', function (done) {
-                var options = {
+        describe('Should not change a response body if it is empty (GH-762)', () => {
+            it('script', done => {
+                const options = {
                     url:     proxy.openSession('http://127.0.0.1:2000/empty-response', session),
                     headers: {
                         'content-type': 'application/javascript; charset=utf-8'
                     }
                 };
 
-                request(options, function (err, res, body) {
+                request(options, (err, res, body) => {
                     expect(body).is.empty;
                     done();
                 });
             });
 
-            it('style', function (done) {
-                var options = {
+            it('style', done => {
+                const options = {
                     url:     proxy.openSession('http://127.0.0.1:2000/empty-response', session),
                     headers: {
                         'content-type': 'text/css'
                     }
                 };
 
-                request(options, function (err, res, body) {
+                request(options, (err, res, body) => {
                     expect(body).is.empty;
                     done();
                 });
             });
         });
 
-        it('Should abort destination request after fatal error (GH-937)', function (done) {
-            var savedReqTimeout      = DestinationRequest.TIMEOUT;
-            var fatalErrorEventCount = 0;
+        it('Should abort destination request after fatal error (GH-937)', done => {
+            const savedReqTimeout    = DestinationRequest.TIMEOUT;
+            let fatalErrorEventCount = 0;
 
             DestinationRequest.TIMEOUT = 100;
 
-            var destReq = new DestinationRequest({
+            const destReq = new DestinationRequest({
                 url:      'http://127.0.0.1:2000/wait/150',
                 protocol: 'http:',
                 hostname: '127.0.0.1',
@@ -1985,17 +1953,17 @@ describe('Proxy', function () {
                 headers:  []
             });
 
-            destReq.on('error', function () {
+            destReq.on('error', () => {
             });
-            destReq.on('fatalError', function () {
+            destReq.on('fatalError', () => {
                 fatalErrorEventCount++;
             });
 
-            setTimeout(function () {
+            setTimeout(() => {
                 destReq._onError({ message: 'ECONNREFUSED' });
             }, 50);
 
-            setTimeout(function () {
+            setTimeout(() => {
                 DestinationRequest.TIMEOUT = savedReqTimeout;
 
                 expect(fatalErrorEventCount).eql(1);
@@ -2003,60 +1971,60 @@ describe('Proxy', function () {
             }, 150);
         });
 
-        it('Should process the top "frameset" element like the "body" element (GH-1009)', function (done) {
+        it('Should process the top "frameset" element like the "body" element (GH-1009)', done => {
             session.id = 'sessionId';
             session.injectable.scripts.push('/script1.js');
             session.injectable.scripts.push('/script2.js');
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page-with-frameset', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
 
-            request(options, function (err, res, body) {
-                var expected = fs.readFileSync('test/server/data/page-with-frameset/expected.html').toString();
+            request(options, (err, res, body) => {
+                const expected = fs.readFileSync('test/server/data/page-with-frameset/expected.html').toString();
 
                 compareCode(body, expected);
                 done();
             });
         });
 
-        it('Should not process a page with the non-page content-type header (GH-1014)', function (done) {
+        it('Should not process a page with the non-page content-type header (GH-1014)', done => {
             session.id = 'sessionId';
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/GH-1014/pdf-content-type', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 compareCode(body, 'pdf');
                 done();
             });
         });
 
-        it('Should process a page without the content-type header (GH-1014)', function (done) {
+        it('Should process a page without the content-type header (GH-1014)', done => {
             session.id = 'sessionId';
 
-            var options = {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/GH-1014/empty-page-without-content-type/', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).is.not.empty;
                 done();
             });
         });
 
-        it('Should pass authorization headers which are defined by client for cross-domain request without credentials (GH-1016)', function (done) {
-            var options = {
+        it('Should pass authorization headers which are defined by client for cross-domain request without credentials (GH-1016)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/echo-headers-with-credentials', session),
                 headers: {
                     'authorization':       AUTHORIZATION.valuePrefix + 'authorization',
@@ -2070,8 +2038,8 @@ describe('Proxy', function () {
             options.headers[XHR_HEADERS.requestMarker] = 'true';
             options.headers[XHR_HEADERS.corsSupported] = 'true';
 
-            request(options, function (err, res, body) {
-                var requestHeaders = JSON.parse(body);
+            request(options, (err, res, body) => {
+                const requestHeaders = JSON.parse(body);
 
                 expect(requestHeaders['authorization']).eql('authorization');
                 expect(requestHeaders['authentication-info']).eql('authentication-info');
@@ -2082,8 +2050,8 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should procees "x-frame-options" header (GH-1017)', function () {
-            var getIframeProxyUrl            = function (url) {
+        it('Should procees "x-frame-options" header (GH-1017)', () => {
+            const getIframeProxyUrl            = url => {
                 return urlUtils.getProxyUrl(url, {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
@@ -2091,7 +2059,7 @@ describe('Proxy', function () {
                     resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
                 });
             };
-            var getCrossDomainIframeProxyUrl = function (url) {
+            const getCrossDomainIframeProxyUrl = url => {
                 return urlUtils.getProxyUrl(url, {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1837,
@@ -2102,7 +2070,7 @@ describe('Proxy', function () {
 
             proxy.openSession('http://127.0.0.1:2000/', session);
 
-            var testCases = [
+            const testCases = [
                 {
                     url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/DENY', session),
                     expectedHeaderValue: 'DENY'
@@ -2130,13 +2098,13 @@ describe('Proxy', function () {
             ];
 
 
-            var testRequest = function (testCase) {
-                return new Promise(function (resolve) {
-                    var options = {
+            const testRequest = function (testCase) {
+                return new Promise(resolve => {
+                    const options = {
                         url: testCase.url
                     };
 
-                    request(options, function (err, req) {
+                    request(options, (err, req) => {
                         expect(req.headers['x-frame-options']).eql(testCase.expectedHeaderValue);
 
                         resolve();
@@ -2147,8 +2115,8 @@ describe('Proxy', function () {
             return Promise.all(testCases.map(testRequest));
         });
 
-        it('Should not raise file download if resource is fetched by setting script src (GH-1062)', function (done) {
-            var getScriptProxyUrl          = function (url) {
+        it('Should not raise file download if resource is fetched by setting script src (GH-1062)', done => {
+            const getScriptProxyUrl        = function (url) {
                 return urlUtils.getProxyUrl(url, {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
@@ -2156,20 +2124,20 @@ describe('Proxy', function () {
                     resourceType:  urlUtils.getResourceTypeString({ isScript: true })
                 });
             };
-            var options                    = {
+            const options                  = {
                 url:     getScriptProxyUrl('http://127.0.0.1:2000/download-script'),
                 referer: proxy.openSession('http://127.0.0.1:2000', session)
             };
-            var storedHandleFileDownload   = session.handleFileDownload;
-            var handleFileDownloadIsRaised = false;
+            const storedHandleFileDownload = session.handleFileDownload;
+            let handleFileDownloadIsRaised = false;
 
-            session.handleFileDownload = function () {
+            session.handleFileDownload = () => {
                 handleFileDownloadIsRaised = true;
             };
 
             proxy.openSession('http://127.0.0.1:2000/', session);
 
-            request(options, function (err, res, body) {
+            request(options, (err, res, body) => {
                 expect(body).contains(scriptHeader.SCRIPT_PROCESSING_START_COMMENT);
                 expect(handleFileDownloadIsRaised).to.be.false;
                 session.handleFileDownload = storedHandleFileDownload;
@@ -2178,13 +2146,13 @@ describe('Proxy', function () {
             });
         });
 
-        it('Should destroy a destination connection after a proxy connection was closed (GH-1106)', function (done) {
-            var destConnectionClosed = false;
-            var simpleServer         = http.createServer(function (req, res) {
+        it('Should destroy a destination connection after a proxy connection was closed (GH-1106)', done => {
+            let destConnectionClosed = false;
+            const simpleServer       = http.createServer((req, res) => {
                 res.writeHead(200, { 'content-type': 'text/event-stream; charset=utf-8' });
                 res.write('\n');
 
-                req.on('close', function () {
+                req.on('close', () => {
                     expect(destConnectionClosed).to.be.false;
                     destConnectionClosed = true;
                     simpleServer.close();
@@ -2194,44 +2162,44 @@ describe('Proxy', function () {
 
             proxy.openSession('http://127.0.0.1:2222/', session);
 
-            var url      = 'http://127.0.0.1:2222/';
-            var proxyUrl = urlUtils.getProxyUrl(url, {
+            const url      = 'http://127.0.0.1:2222/';
+            const proxyUrl = urlUtils.getProxyUrl(url, {
                 proxyHostname: '127.0.0.1',
                 proxyPort:     1836,
                 sessionId:     session.id,
                 resourceType:  urlUtils.getResourceTypeString({ isEventSource: true })
             });
 
-            var req = http.request(urlLib.parse(proxyUrl));
+            const req = http.request(urlLib.parse(proxyUrl));
 
             req.end();
 
-            setTimeout(function () {
+            setTimeout(() => {
                 expect(destConnectionClosed).to.be.false;
                 req.destroy();
             }, 400);
         });
 
-        it('Should omit a "sourcemap" header from response (GH-1052)', function (done) {
-            var options = {
+        it('Should omit a "sourcemap" header from response (GH-1052)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/script', session),
                 headers: {
                     'content-type': 'application/javascript; charset=utf-8'
                 }
             };
 
-            request(options, function (err, res) {
+            request(options, (err, res) => {
                 expect(res.headers['sourcemap']).is.undefined;
                 done();
             });
         });
 
-        it('Should calculate a valid port for redirect in iframe (GH-1191)', function () {
+        it('Should calculate a valid port for redirect in iframe (GH-1191)', () => {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
             function testRedirectRequest (opts) {
-                return new Promise(function (resolve) {
-                    var options = {
+                return new Promise(resolve => {
+                    const options = {
                         url: urlUtils.getProxyUrl('http://127.0.0.1:2000/redirect/' +
                                                   encodeURIComponent(opts.redirectLocation),
                             {
@@ -2250,8 +2218,8 @@ describe('Proxy', function () {
                         }
                     };
 
-                    request(options, function (err, res) {
-                        var proxyPort = urlUtils.parseProxyUrl(res.headers['location']).proxy.port;
+                    request(options, (err, res) => {
+                        const proxyPort = urlUtils.parseProxyUrl(res.headers['location']).proxy.port;
 
                         expect(proxyPort).eql(opts.expectedProxyPort);
                         resolve();
@@ -2283,15 +2251,15 @@ describe('Proxy', function () {
             ]);
         });
 
-        it('Should process a "referrer-policy" header (GH-1195)', function (done) {
-            var options = {
+        it('Should process a "referrer-policy" header (GH-1195)', done => {
+            const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/referrer-policy', session),
                 headers: {
                     accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
                 }
             };
 
-            request(options, function (err, res) {
+            request(options, (err, res) => {
                 expect(res.headers['referrer-policy']).eql('unsafe-url');
                 done();
             });

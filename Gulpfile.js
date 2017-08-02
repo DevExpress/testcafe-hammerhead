@@ -1,20 +1,20 @@
-var babel        = require('babel-core');
-var gulpBabel    = require('gulp-babel');
-var del          = require('del');
-var eslint       = require('gulp-eslint');
-var fs           = require('fs');
-var gulp         = require('gulp');
-var qunitHarness = require('gulp-qunit-harness');
-var mocha        = require('gulp-mocha');
-var mustache     = require('gulp-mustache');
-var rename       = require('gulp-rename');
-var webmake      = require('gulp-webmake');
-var Promise      = require('pinkie');
-var uglify       = require('gulp-uglify');
-var gulpif       = require('gulp-if');
-var util         = require('gulp-util');
-var ll           = require('gulp-ll');
-var path         = require('path');
+const babel        = require('babel-core');
+const gulpBabel    = require('gulp-babel');
+const del          = require('del');
+const eslint       = require('gulp-eslint');
+const fs           = require('fs');
+const gulp         = require('gulp');
+const qunitHarness = require('gulp-qunit-harness');
+const mocha        = require('gulp-mocha');
+const mustache     = require('gulp-mustache');
+const rename       = require('gulp-rename');
+const webmake      = require('gulp-webmake');
+const Promise      = require('pinkie');
+const uglify       = require('gulp-uglify');
+const gulpif       = require('gulp-if');
+const util         = require('gulp-util');
+const ll           = require('gulp-ll');
+const path         = require('path');
 
 ll
     .tasks('lint')
@@ -23,7 +23,7 @@ ll
         'client-scripts-bundle'
     ]);
 
-var CLIENT_TESTS_SETTINGS = {
+const CLIENT_TESTS_SETTINGS = {
     basePath:        './test/client/fixtures',
     port:            2000,
     crossDomainPort: 2001,
@@ -35,7 +35,7 @@ var CLIENT_TESTS_SETTINGS = {
     configApp: require('./test/client/config-qunit-server-app')
 };
 
-var CLIENT_TESTS_BROWSERS = [
+const CLIENT_TESTS_BROWSERS = [
     {
         platform:    'Windows 10',
         browserName: 'MicrosoftEdge'
@@ -96,7 +96,7 @@ var CLIENT_TESTS_BROWSERS = [
     }
 ];
 
-var SAUCELABS_SETTINGS = {
+const SAUCELABS_SETTINGS = {
     username:  process.env.SAUCE_USERNAME,
     accessKey: process.env.SAUCE_ACCESS_KEY,
     build:     process.env.TRAVIS_JOB_ID || '',
@@ -107,23 +107,23 @@ var SAUCELABS_SETTINGS = {
 };
 
 function hang () {
-    return new Promise(function () {
+    return new Promise(() => {
         // NOTE: Hang forever.
     });
 }
 
 // Build
-gulp.task('clean', function (cb) {
+gulp.task('clean', cb => {
     del(['./lib'], cb);
 });
 
-gulp.task('templates', ['clean'], function () {
+gulp.task('templates', ['clean'], () => {
     return gulp
         .src('./src/client/task.js.mustache', { silent: false })
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.task('client-scripts', ['client-scripts-bundle'], function () {
+gulp.task('client-scripts', ['client-scripts-bundle'], () => {
     return gulp.src('./src/client/index.js.wrapper.mustache')
         .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
         .pipe(rename('hammerhead.js'))
@@ -131,12 +131,12 @@ gulp.task('client-scripts', ['client-scripts-bundle'], function () {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.task('client-scripts-bundle', ['clean'], function () {
+gulp.task('client-scripts-bundle', ['clean'], () => {
     return gulp.src('./src/client/index.js')
         .pipe(webmake({
             sourceMap: false,
-            transform: function (filename, code) {
-                var transformed = babel.transform(code, {
+            transform: (filename, code) => {
+                const transformed = babel.transform(code, {
                     sourceMap: false,
                     filename:  filename,
                     ast:       false,
@@ -156,13 +156,13 @@ gulp.task('client-scripts-bundle', ['clean'], function () {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.task('server-scripts', ['clean'], function () {
+gulp.task('server-scripts', ['clean'], () => {
     return gulp.src(['./src/**/*.js', '!./src/client/**/*.js'])
         .pipe(gulpBabel())
         .pipe(gulp.dest('lib/'));
 });
 
-gulp.task('lint', function () {
+gulp.task('lint', () => {
     return gulp
         .src([
             './src/**/*.js',
@@ -179,7 +179,7 @@ gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
 
 
 // Test
-gulp.task('test-server', ['build'], function () {
+gulp.task('test-server', ['build'], () => {
     return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
             ui:        'bdd',
@@ -190,7 +190,7 @@ gulp.task('test-server', ['build'], function () {
         }));
 });
 
-gulp.task('test-client', ['build'], function () {
+gulp.task('test-client', ['build'], () => {
     gulp.watch('./src/**', ['build']);
 
     return gulp
@@ -198,13 +198,13 @@ gulp.task('test-client', ['build'], function () {
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS));
 });
 
-gulp.task('test-client-travis', ['build'], function () {
+gulp.task('test-client-travis', ['build'], () => {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
 });
 
-gulp.task('playground', ['set-dev-mode', 'build'], function () {
+gulp.task('playground', ['set-dev-mode', 'build'], () => {
     require('./test/playground/server.js').start();
 
     return hang();
