@@ -207,7 +207,8 @@ export default class MessageSandbox extends SandboxBase {
                     // trying to call the 'isCrossDomainWindows' function, so we have to wrap it in 'try/catch'.
                     try {
                         targetWindow[this.RECEIVE_MSG_FN]({
-                            data:   message,
+                            // NOTE: Cloning a message to prevent this modification.
+                            data:   parseJSON(stringifyJSON(message)),
                             source: this.window
                         });
                     }

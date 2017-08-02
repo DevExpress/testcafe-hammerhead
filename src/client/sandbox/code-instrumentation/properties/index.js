@@ -26,8 +26,7 @@ import { shouldInstrumentProperty } from '../../../../processing/script/instrume
 import nativeMethods from '../../native-methods';
 import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
 
-const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY              = 'hammerhead|original-window-on-error-handler-key';
-const ORIGINAL_WINDOW_ON_UNCAUGHT_REJECTION_HANDLER_KEY = 'hammerhead|original-window-on-uncaught-rejection-handler-key';
+const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
 function checkElementTextProperties (el) {
     const result         = {};
@@ -52,6 +51,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.uploadSandbox         = uploadSandbox;
         this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
         this.unloadSandbox         = eventSandbox.unload;
+        this.listenersSandbox      = eventSandbox.listeners;
         this.shadowUI              = shadowUI;
         this.storageSandbox        = storageSandbox;
         this.liveNodeListFactory   = liveNodeListFactory;
@@ -435,11 +435,16 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             onunhandledrejection: {
                 condition: owner => hasUnhandledRejectionEvent && domUtils.isWindow(owner),
-                get:       owner => owner[ORIGINAL_WINDOW_ON_UNCAUGHT_REJECTION_HANDLER_KEY] || null,
+                get:       owner => owner.onunhandledrejection,
 
                 set: (owner, handler) => {
-                    if (typeof handler === 'function')
-                        owner[ORIGINAL_WINDOW_ON_UNCAUGHT_REJECTION_HANDLER_KEY] = handler;
+                    owner.onunhandledrejection = handler;
+
+                    this.listenersSandbox.emit(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, {
+                        el:        owner,
+                        listener:  handler,
+                        eventType: 'unhandledrejection'
+                    });
 
                     return handler;
                 }
@@ -855,10 +860,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
     static getOriginalErrorHandler (window) {
         return window[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY];
-    }
-
-    static getOriginalUnhandledRejectionHandler (window) {
-        return window[ORIGINAL_WINDOW_ON_UNCAUGHT_REJECTION_HANDLER_KEY];
     }
 
     static _getSetPropertyInstructionByOwner (owner, window) {

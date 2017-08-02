@@ -18,8 +18,8 @@ test('window.onerror setter/getter', function () {
 });
 
 if (featureDetection.hasUnhandledRejectionEvent) {
-    module('window.onunhandledrejection', function () {
-        asyncTest('must be overriden (GH-1247)', function () {
+    module('unhandledrejection event (GH-1247)', function () {
+        asyncTest('window.onunhandledrejection should be instrumented', function () {
             strictEqual(getProperty(window, 'onunhandledrejection'), null);
 
             setProperty(window, 'onunhandledrejection', 123);
@@ -47,21 +47,110 @@ if (featureDetection.hasUnhandledRejectionEvent) {
             /*eslint-enable no-new*/
         });
 
-        asyncTest('service message with circular message structure', function () {
-            var iframe = document.createElement('iframe');
+        test('should not rise hh event when the unhandledrejection event prevented', function () {
+            var testPreventing = function () {
+                return new hammerhead.Promise(function (resolve) {
+                    var testTimeout = null;
 
-            iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-with-unhandled-rejection-error.html'));
+                    var onUnhandledRejection = function () {
+                        clearTimeout(testTimeout);
+                        hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
+                        ok(false, 'hh event not prevented');
+                        resolve();
+                    };
 
-            hammerhead.on(hammerhead.EVENTS.unhandledRejection, function onUnhandledRejection (event) {
-                strictEqual(event.msg.msg, 'Error');
-                strictEqual(event.msg.self, event.msg);
+                    testTimeout = setTimeout(function () {
+                        hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
+                        ok(true, 'hh event prevented');
+                        resolve();
+                    }, 500);
 
-                hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
-                document.body.removeChild(iframe);
-                start();
-            });
+                    hammerhead.on(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
 
-            document.body.appendChild(iframe);
+                    /*eslint-disable no-new*/
+                    new Promise(function () {
+                        throw new Error('unhandled rejection');
+                    });
+                    /*eslint-enable no-new*/
+                });
+            };
+
+            return hammerhead.Promise.resolve()
+                .then(function () {
+                    setProperty(window, 'onunhandledrejection', function () {
+                        return false;
+                    });
+
+                    return testPreventing();
+                })
+                .then(function () {
+                    setProperty(window, 'onunhandledrejection', function (event) {
+                        event.preventDefault();
+                    });
+
+                    return testPreventing();
+                })
+                .then(function () {
+                    setProperty(window, 'onunhandledrejection', null);
+
+                    window.addEventListener('unhandledrejection', function onUnhandledRejection (event) {
+                        event.preventDefault();
+                        window.removeEventListener('unhandledrejection', onUnhandledRejection);
+                    });
+
+                    return testPreventing();
+                });
+        });
+
+        test('should convert an unhandled rejection reason to string', function () {
+            var testMsg = function (err) {
+                return new hammerhead.Promise(function (resolve) {
+                    hammerhead.on(hammerhead.EVENTS.unhandledRejection, function onUnhandledRejection (event) {
+                        hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
+                        resolve(event.msg);
+                    });
+
+                    /*eslint-disable no-new*/
+                    new Promise(function () {
+                        throw err;
+                    });
+                    /*eslint-enable no-new*/
+                });
+            };
+
+            return testMsg(1)
+                .then(function (msg) {
+                    strictEqual(msg, '1');
+                    return testMsg(new Error('error message'));
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'error message');
+                    return testMsg(new TypeError('type error'));
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'type error');
+                    return testMsg('string message');
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'string message');
+                    return testMsg(true);
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'true');
+                    return testMsg({ a: 1 });
+                })
+                .then(function (msg) {
+                    strictEqual(msg, '[object Object]');
+                    return testMsg(void 0);
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'undefined');
+                    return testMsg(function () {
+                    });
+                })
+                .then(function (msg) {
+                    strictEqual(msg, '[object Function]');
+                });
         });
     });
 }

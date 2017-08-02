@@ -16,11 +16,12 @@ import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-cal
 const nativeFunctionToString = nativeMethods.Function.toString();
 
 export default class WindowSandbox extends SandboxBase {
-    constructor (nodeSandbox, messageSandbox) {
+    constructor (nodeSandbox, messageSandbox, listenersSandbox) {
         super();
 
-        this.nodeSandbox    = nodeSandbox;
-        this.messageSandbox = messageSandbox;
+        this.nodeSandbox      = nodeSandbox;
+        this.messageSandbox   = messageSandbox;
+        this.listenersSandbox = listenersSandbox;
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
@@ -43,12 +44,45 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
+    _reattachUnhandledRejectionHandler (window) {
+        nativeMethods.windowRemoveEventListener.call(window, 'unhandledrejection', this);
+        nativeMethods.windowAddEventListener.call(window, 'unhandledrejection', this);
+    }
+
+    handleEvent (event) {
+        if (event.type === 'unhandledrejection' && !event.defaultPrevented) {
+            const reason = event.reason;
+            const reasonType = typeof reason;
+            let reasonStr = '';
+
+            if (reason === null || reason === void 0 || reasonType === 'number' || reasonType === 'boolean')
+                reasonStr += reason;
+            else if (reasonType === 'symbol' || reasonType === 'object' || reasonType === 'function') {
+                reasonStr = nativeMethods.objectToString.call(reason);
+
+                if (reasonStr === '[object Error]')
+                    reasonStr = reason.message;
+            }
+            else
+                reasonStr = reason;
+
+            this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, reasonStr, this.window);
+        }
+    }
+
     attach (window) {
         super.attach(window);
 
         const messageSandbox = this.messageSandbox;
         const nodeSandbox    = this.nodeSandbox;
         const windowSandbox  = this;
+
+        this._reattachUnhandledRejectionHandler(window);
+        this.listenersSandbox.initElementListening(window, ['unhandledrejection']);
+        this.listenersSandbox.on(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, e => {
+            if (e.el === window && e.eventType === 'unhandledrejection')
+                this._reattachUnhandledRejectionHandler(window);
+        });
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             const message = e.message;
@@ -88,19 +122,6 @@ export default class WindowSandbox extends SandboxBase {
             this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, msg, window);
 
             return false;
-        };
-
-        window.onunhandledrejection = event => {
-            const originalOnUnhandledRejectionHandler = CodeInstrumentation.getOriginalUnhandledRejectionHandler(window);
-
-            let result = void 0;
-
-            if (originalOnUnhandledRejectionHandler)
-                result = originalOnUnhandledRejectionHandler.call(window, event);
-
-            this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, event.reason, window);
-
-            return result;
         };
 
         window.open = function () {

@@ -19,7 +19,6 @@ export default class EventSandbox extends SandboxBase {
         this.EVENT_PREVENTED_EVENT = 'hammerhead|event|event-prevented';
 
         this.listeners             = listeners;
-        this.eventSimulator        = eventSimulator;
         this.elementEditingWatcher = elementEditingWatcher;
         this.unload                = unloadSandbox;
         this.timers                = timerSandbox;

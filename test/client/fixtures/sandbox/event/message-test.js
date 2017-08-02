@@ -172,6 +172,27 @@ test('fake postMessage', function () {
 
 module('service messages');
 
+asyncTest('cloning arguments', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test006';
+    window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var sourceObj = { testObject: true };
+
+            iframe.contentWindow['%hammerhead%'].sandbox.event.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
+                ok(e.message.testObject);
+                e.message.modified = true;
+                ok(!sourceObj.modified);
+                iframe.parentNode.removeChild(iframe);
+
+                start();
+            });
+            messageSandbox.sendServiceMsg(sourceObj, iframe.contentWindow);
+        });
+    document.body.appendChild(iframe);
+});
+
 asyncTest('crossdomain', function () {
     var iframe                = document.createElement('iframe');
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
