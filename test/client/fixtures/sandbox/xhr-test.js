@@ -51,10 +51,10 @@ test('createNativeXHR', function () {
 
     window.XMLHttpRequest = nativeMethods.XMLHttpRequest;
 
-    var isNativeFunctionRE = /^function\s+\w*\s*\(\)\s*\{\s*\[native code]\s*}$/;
+    var isWrappedFunctionRE = /^return 'function wrapped'$/;
 
     for (var prop in xhr) {
-        if (typeof xhr[prop] === 'function') {
+        if (typeof xhr[prop] === 'function' && prop !== 'msCachingEnabled') {
             var prototype = findPrototypeWithProp(window.XMLHttpRequest.prototype, prop);
             var storedFn  = prototype[prop];
 
@@ -62,7 +62,7 @@ test('createNativeXHR', function () {
                 return 'function wrapped';
             };
 
-            ok(isNativeFunctionRE.test(xhr[prop]), prop);
+            ok(!isWrappedFunctionRE.test(xhr[prop]), prop);
 
             prototype[prop] = storedFn;
         }
