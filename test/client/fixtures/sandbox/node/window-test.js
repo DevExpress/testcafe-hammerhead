@@ -118,7 +118,11 @@ if (featureDetection.hasUnhandledRejectionEvent) {
                 });
             };
 
-            return testMsg(void 0)
+            return testMsg(null)
+                .then(function (msg) {
+                    strictEqual(msg, 'undefined');
+                    return testMsg(void 0);
+                })
                 .then(function (msg) {
                     strictEqual(msg, 'undefined');
                     return testMsg('string message');
