@@ -17,7 +17,7 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
-function findPrototypeWithProp (obj, prop) {
+function getPrototypeFromChainContainsProp (obj, prop) {
     while (obj && !obj.hasOwnProperty(prop))
         obj = Object.getPrototypeOf(obj);
 
@@ -51,15 +51,15 @@ test('createNativeXHR', function () {
 
     window.XMLHttpRequest = nativeMethods.XMLHttpRequest;
 
-    var isWrappedFunctionRE = /^return 'function wrapped'$/;
+    var isWrappedFunctionRE = /return 'function is wrapped'/;
 
     for (var prop in xhr) {
         if (typeof xhr[prop] === 'function' && prop !== 'msCachingEnabled') {
-            var prototype = findPrototypeWithProp(window.XMLHttpRequest.prototype, prop);
+            var prototype = getPrototypeFromChainContainsProp(window.XMLHttpRequest.prototype, prop);
             var storedFn  = prototype[prop];
 
             prototype[prop] = function () {
-                return 'function wrapped';
+                return 'function is wrapped';
             };
 
             ok(!isWrappedFunctionRE.test(xhr[prop]), prop);
