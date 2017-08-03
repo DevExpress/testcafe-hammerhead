@@ -24,7 +24,7 @@ import { remove as removeProcessingHeader } from '../../../../processing/script/
 import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
-import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-detection';
+import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
 
 const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
 
@@ -51,6 +51,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.uploadSandbox         = uploadSandbox;
         this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
         this.unloadSandbox         = eventSandbox.unload;
+        this.listenersSandbox      = eventSandbox.listeners;
         this.shadowUI              = shadowUI;
         this.storageSandbox        = storageSandbox;
         this.liveNodeListFactory   = liveNodeListFactory;
@@ -427,6 +428,23 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (owner, handler) => {
                     if (typeof handler === 'function')
                         owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] = handler;
+
+                    return handler;
+                }
+            },
+
+            onunhandledrejection: {
+                condition: owner => hasUnhandledRejectionEvent && domUtils.isWindow(owner),
+                get:       owner => owner.onunhandledrejection,
+
+                set: (owner, handler) => {
+                    owner.onunhandledrejection = handler;
+
+                    this.listenersSandbox.emit(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, {
+                        el:        owner,
+                        listener:  handler,
+                        eventType: 'unhandledrejection'
+                    });
 
                     return handler;
                 }

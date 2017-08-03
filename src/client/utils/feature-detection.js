@@ -11,11 +11,13 @@ export const emptyActionAttrFallbacksToTheLocation = nativeMethods.createElement
 export const instanceAndPrototypeToStringAreEqual = nativeMethods.objectToString.call(window) ===
                                                     nativeMethods.objectToString.call(Window.prototype);
 
-export const hasTouchEvents = !!('ontouchstart' in window);
+export const hasTouchEvents = 'ontouchstart' in window;
 
 // NOTE: We need to check touch points only for IE, because it has PointerEvent and MSPointerEvent (IE10, IE11)
 // instead of TouchEvent (T109295).
 export const hasTouchPoints = browserUtils.isIE && (navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0);
-export const isTouchDevice  = !!(browserUtils.isMobile || browserUtils.isTablet) && hasTouchEvents;
+export const isTouchDevice  = (browserUtils.isMobile || browserUtils.isTablet) && hasTouchEvents;
 
 export const hasDataTransfer = !!window.DataTransfer;
+
+export const hasUnhandledRejectionEvent = 'onunhandledrejection' in window;

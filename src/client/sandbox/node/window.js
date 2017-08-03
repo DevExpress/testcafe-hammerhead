@@ -10,23 +10,26 @@ import { processHtml } from '../../utils/html';
 import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
 import { isFirefox, isIE9, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
+import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
 export default class WindowSandbox extends SandboxBase {
-    constructor (nodeSandbox, messageSandbox) {
+    constructor (nodeSandbox, messageSandbox, listenersSandbox) {
         super();
 
-        this.nodeSandbox    = nodeSandbox;
-        this.messageSandbox = messageSandbox;
+        this.nodeSandbox      = nodeSandbox;
+        this.messageSandbox   = messageSandbox;
+        this.listenersSandbox = listenersSandbox;
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
+        this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
         this.FORCE_PROXY_SRC_FOR_IMAGE = 'hammerhead|image|force-proxy-src-flag';
     }
 
-    _raiseUncaughtJsErrorEvent (msg, window, pageUrl) {
+    _raiseUncaughtJsErrorEvent (type, msg, window, pageUrl) {
         if (!isCrossDomainWindows(window, window.top)) {
             const sendToTopWindow = window !== window.top;
 
@@ -34,26 +37,37 @@ export default class WindowSandbox extends SandboxBase {
                 pageUrl = destLocation.get();
 
             if (sendToTopWindow) {
-                this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
-                    msg,
-                    pageUrl,
-
-                    inIframe: true
-                });
-
-                this.messageSandbox.sendServiceMsg({
-                    msg,
-                    pageUrl,
-
-                    cmd: this.UNCAUGHT_JS_ERROR_EVENT
-                }, window.top);
+                this.emit(type, { msg, pageUrl, inIframe: true });
+                this.messageSandbox.sendServiceMsg({ msg, pageUrl, cmd: type }, window.top);
             }
-            else {
-                this.emit(this.UNCAUGHT_JS_ERROR_EVENT, {
-                    msg,
-                    pageUrl
-                });
-            }
+            else
+                this.emit(type, { msg, pageUrl });
+        }
+    }
+
+    _reattachUnhandledRejectionHandler (window) {
+        nativeMethods.windowRemoveEventListener.call(window, 'unhandledrejection', this);
+        nativeMethods.windowAddEventListener.call(window, 'unhandledrejection', this);
+    }
+
+    static _formatUnhandledRejectionReason (reason) {
+        if (!isPrimitiveType(reason)) {
+            const reasonStr = nativeMethods.objectToString.call(reason);
+
+            if (reasonStr === '[object Error]')
+                return reason.message;
+
+            return reasonStr;
+        }
+
+        return String(reason);
+    }
+
+    handleEvent (event) {
+        if (event.type === 'unhandledrejection' && !event.defaultPrevented) {
+            const reason = WindowSandbox._formatUnhandledRejectionReason(event.reason);
+
+            this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, reason, this.window);
         }
     }
 
@@ -64,11 +78,18 @@ export default class WindowSandbox extends SandboxBase {
         const nodeSandbox    = this.nodeSandbox;
         const windowSandbox  = this;
 
+        this._reattachUnhandledRejectionHandler(window);
+        this.listenersSandbox.initElementListening(window, ['unhandledrejection']);
+        this.listenersSandbox.on(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, e => {
+            if (e.el === window && e.eventType === 'unhandledrejection')
+                this._reattachUnhandledRejectionHandler(window);
+        });
+
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             const message = e.message;
 
-            if (message.cmd === this.UNCAUGHT_JS_ERROR_EVENT)
-                this._raiseUncaughtJsErrorEvent(message.msg, window, message.pageUrl);
+            if (message.cmd === this.UNCAUGHT_JS_ERROR_EVENT || message.cmd === this.UNHANDLED_REJECTION_EVENT)
+                this._raiseUncaughtJsErrorEvent(message.cmd, message.msg, window, message.pageUrl);
         });
 
         window.CanvasRenderingContext2D.prototype.drawImage = function (...args) {
@@ -99,7 +120,7 @@ export default class WindowSandbox extends SandboxBase {
             if (caught)
                 return true;
 
-            this._raiseUncaughtJsErrorEvent(msg, window);
+            this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, msg, window);
 
             return false;
         };
