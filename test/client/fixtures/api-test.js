@@ -20,6 +20,7 @@ asyncTest('should prevent navigation from the about:blank page to the relative u
             if (timeoutId)
                 clearTimeout(timeoutId);
 
+
             iframe.parentNode.removeChild(iframe);
             start();
         };
