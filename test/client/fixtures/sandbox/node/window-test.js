@@ -118,9 +118,25 @@ if (featureDetection.hasUnhandledRejectionEvent) {
                 });
             };
 
-            return testMsg(1)
+            return testMsg(void 0)
+                .then(function (msg) {
+                    strictEqual(msg, 'undefined');
+                    return testMsg('string message');
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'string message');
+                    return testMsg(1);
+                })
                 .then(function (msg) {
                     strictEqual(msg, '1');
+                    return testMsg(true);
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'true');
+                    return testMsg(Symbol('foo'));
+                })
+                .then(function (msg) {
+                    strictEqual(msg, 'Symbol(foo)');
                     return testMsg(new Error('error message'));
                 })
                 .then(function (msg) {
@@ -129,22 +145,10 @@ if (featureDetection.hasUnhandledRejectionEvent) {
                 })
                 .then(function (msg) {
                     strictEqual(msg, 'type error');
-                    return testMsg('string message');
-                })
-                .then(function (msg) {
-                    strictEqual(msg, 'string message');
-                    return testMsg(true);
-                })
-                .then(function (msg) {
-                    strictEqual(msg, 'true');
                     return testMsg({ a: 1 });
                 })
                 .then(function (msg) {
                     strictEqual(msg, '[object Object]');
-                    return testMsg(void 0);
-                })
-                .then(function (msg) {
-                    strictEqual(msg, 'undefined');
                     return testMsg(function () {
                     });
                 })

@@ -26,3 +26,9 @@ export function isUndefined (obj) {
 export function isFunction (obj) {
     return typeof obj === 'function';
 }
+
+export function isPrimitiveType (obj) {
+    const objType = typeof obj;
+
+    return objType !== 'object' && objType !== 'function';
+}

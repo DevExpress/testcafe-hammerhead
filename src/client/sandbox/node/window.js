@@ -10,6 +10,7 @@ import { processHtml } from '../../utils/html';
 import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
 import { isFirefox, isIE9, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
+import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 
@@ -50,21 +51,16 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     static _formatUnhandledRejectionReason (reason) {
-        const reasonType = typeof reason;
-        let reasonStr = '';
-
-        if (reason === null || reason === void 0 || reasonType === 'number' || reasonType === 'boolean')
-            reasonStr += reason;
-        else if (reasonType === 'symbol' || reasonType === 'object' || reasonType === 'function') {
-            reasonStr = nativeMethods.objectToString.call(reason);
+        if (!isPrimitiveType(reason)) {
+            const reasonStr = nativeMethods.objectToString.call(reason);
 
             if (reasonStr === '[object Error]')
-                reasonStr = reason.message;
-        }
-        else
-            reasonStr = reason;
+                return reason.message;
 
-        return reasonStr;
+            return reasonStr;
+        }
+
+        return String(reason);
     }
 
     handleEvent (event) {
