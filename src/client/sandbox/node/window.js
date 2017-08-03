@@ -213,9 +213,9 @@ export default class WindowSandbox extends SandboxBase {
                 const wrapper = function (mutations) {
                     const result = [];
 
-                    for (let i = 0; i < mutations.length; i++) {
-                        if (!ShadowUI.isShadowUIMutation(mutations[i]))
-                            result.push(mutations[i]);
+                    for (const mutation of mutations) {
+                        if (!ShadowUI.isShadowUIMutation(mutation))
+                            result.push(mutation);
                     }
 
                     if (result.length)

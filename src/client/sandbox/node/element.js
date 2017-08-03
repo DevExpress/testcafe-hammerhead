@@ -528,8 +528,8 @@ export default class ElementSandbox extends SandboxBase {
 
         const fileInputs = domUtils.getFileInputs(el);
 
-        for (let i = 0; i < fileInputs.length; i++)
-            this.addFileInputInfo(fileInputs[i]);
+        for (const fileInput of fileInputs)
+            this.addFileInputInfo(fileInput);
     }
 
     _onRemoveFileInputInfo (el) {
@@ -552,9 +552,9 @@ export default class ElementSandbox extends SandboxBase {
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
 
-            for (let i = 0; i < iframes.length; i++) {
-                this.onIframeAddedToDOM(iframes[i]);
-                windowsStorage.add(iframes[i].contentWindow);
+            for (const iframe of iframes) {
+                this.onIframeAddedToDOM(iframe);
+                windowsStorage.add(iframe.contentWindow);
             }
         }
 

@@ -81,8 +81,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     static _getShadowUICollectionLength (collection) {
         let shadowUIElementCount = 0;
 
-        for (let i = 0; i < collection.length; i++) {
-            if (domUtils.isShadowUIElement(collection[i]))
+        for (const item of collection) {
+            if (domUtils.isShadowUIElement(item))
                 shadowUIElementCount++;
         }
 
