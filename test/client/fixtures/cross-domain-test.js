@@ -22,4 +22,3 @@ asyncTest('cross domain messaging between windows', function () {
 
     setProperty(window, 'onmessage', onMessageHandler);
 });
-

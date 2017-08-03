@@ -1,11 +1,12 @@
 var urlUtils = hammerhead.get('./utils/url');
 var settings = hammerhead.get('./settings');
 
-var storageSandbox = hammerhead.sandbox.storageSandbox;
-var Promise        = hammerhead.Promise;
-var formatUrl      = urlUtils.formatUrl;
-var parseUrl       = urlUtils.parseUrl;
-var browserUtils   = hammerhead.utils.browser;
+var storageSandbox      = hammerhead.sandbox.storageSandbox;
+var Promise             = hammerhead.Promise;
+var formatUrl           = urlUtils.formatUrl;
+var parseUrl            = urlUtils.parseUrl;
+var browserUtils        = hammerhead.utils.browser;
+var pageNavigationWatch = hammerhead.pageNavigationWatch;
 
 var iframeLocation  = 'http://example.com/page-navigation-watch/';
 var storedSessionId = settings.get().sessionId;
@@ -26,309 +27,195 @@ QUnit.testDone(function () {
     iframe = null;
 });
 
-function navigateIframe (navigationScript, iframeName) {
-    return new Promise(function (resolve, reject) {
-        if (!iframe)
-            iframe = document.createElement('iframe');
+function navigateIframe (navigationScript, opts) {
+    iframe      = document.createElement('iframe');
+    iframe.id   = 'test' + Date.now();
+    iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
+    iframe.name = opts && opts.iframeName || 'iframeName';
 
-        iframe.id   = 'test' + Date.now();
-        iframe.src  = location.protocol + '//' + location.host + '/unchangeableUrlSession!i/' + iframeLocation;
-        iframe.name = iframeName || 'iframeName';
-
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
-                // NOTE: wait for iframe initializing
-                return window.QUnitGlobals.wait(function () {
-                    return !!iframe.contentWindow['%hammerhead%'];
-                }, 5000);
-            })
-            .then(function () {
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            return new Promise(function (resolve, reject) {
                 var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
-                var timerId          = null;
-                var unload           = false;
 
                 iframe.contentWindow.addEventListener('unload', function () {
-                    unload = true;
+                    reject('unload was raised before the pageNavigationTriggered event');
                 });
 
-                iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, function (url) {
-                    clearTimeout(timerId);
-
-                    if (unload)
-                        ok(false, 'unload was raised before the pageNavigationTriggered event');
-
-                    resolve(url);
-                });
-
+                iframeHammerhead.on(iframeHammerhead.EVENTS.pageNavigationTriggered, resolve);
                 iframe.contentWindow.eval(window.processScript(navigationScript));
 
-                timerId = window.setTimeout(reject, 500);
+                if (opts && opts.timeout) {
+                    window.setTimeout(function () {
+                        reject('timeout exceeded');
+                    }, opts.timeout);
+                }
             });
+        });
 
-        document.body.appendChild(iframe);
-    });
+    document.body.appendChild(iframe);
+
+    return promise;
 }
 
 module('Location changed');
 
-asyncTest('location.href = ...', function () {
-    navigateIframe('location.href = "./index.html";')
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+test('location.href = ...', function () {
+    return navigateIframe('location.href = "./index.html";')
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('location = ...', function () {
-    navigateIframe('location = "./index.html";')
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+test('location = ...', function () {
+    return navigateIframe('location = "./index.html";')
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('window.location = ...', function () {
-    navigateIframe('window.location = "./index.html";')
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+test('window.location = ...', function () {
+    return navigateIframe('window.location = "./index.html";')
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('location.assing(...)', function () {
-    navigateIframe('location.assign("./index.html");')
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+test('location.assing(...)', function () {
+    return navigateIframe('location.assign("./index.html");')
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('location.replace(...)', function () {
-    navigateIframe('location.replace("./index.html");')
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+test('location.replace(...)', function () {
+    return navigateIframe('location.replace("./index.html");')
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('location.reload(...)', function () {
-    navigateIframe('location.reload();')
-        .then(function (e) {
-            strictEqual(e, iframeLocation);
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+test('location.reload(...)', function () {
+    return navigateIframe('location.reload();')
+        .then(function (url) {
+            strictEqual(url, iframeLocation);
         });
 });
 
-asyncTest('Hash via location.href', function () {
-    navigateIframe('location.href += "#hash";')
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
+test('Hash via location.href', function () {
+    return navigateIframe('location.href += "#hash";', { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
-asyncTest('Hash via window.location (GH-917)', function () {
-    navigateIframe('window.location = "#hash";')
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
+test('Hash via location.hash', function () {
+    return navigateIframe('location.hash = "hash";', { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
-asyncTest('Hash via location.hash', function () {
-    navigateIframe('location.hash = "hash";')
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
-        });
-});
-
-asyncTest('location.port = ...', function () {
-    navigateIframe('location.port = "8080";')
-        .then(function (e) {
+test('location.port = ...', function () {
+    return navigateIframe('location.port = "8080";')
+        .then(function (url) {
             var parsedIframeLocation = parseUrl(iframeLocation);
 
             parsedIframeLocation.host += ':8080';
-            strictEqual(e, formatUrl(parsedIframeLocation));
-
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+            strictEqual(url, formatUrl(parsedIframeLocation));
         });
 });
 
-asyncTest('location.host = ...', function () {
-    navigateIframe('location.host = "host";')
-        .then(function (e) {
+test('location.host = ...', function () {
+    return navigateIframe('location.host = "host";')
+        .then(function (url) {
             var parsedIframeLocation = parseUrl(iframeLocation);
 
             parsedIframeLocation.host = 'host';
-            strictEqual(e, formatUrl(parsedIframeLocation));
-
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+            strictEqual(url, formatUrl(parsedIframeLocation));
         });
 });
 
-asyncTest('location.hostname = ...', function () {
-    navigateIframe('location.hostname = "hostname";')
-        .then(function (e) {
+test('location.hostname = ...', function () {
+    return navigateIframe('location.hostname = "hostname";')
+        .then(function (url) {
             var parsedIframeLocation = parseUrl(iframeLocation);
 
             parsedIframeLocation.hostname = parsedIframeLocation.host = 'hostname';
-            strictEqual(e, formatUrl(parsedIframeLocation));
-
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+            strictEqual(url, formatUrl(parsedIframeLocation));
         });
 });
 
-asyncTest('location.pathname = ...', function () {
-    navigateIframe('location.pathname = "/pathname/pathname";')
-        .then(function (e) {
+test('location.pathname = ...', function () {
+    return navigateIframe('location.pathname = "/pathname/pathname";')
+        .then(function (url) {
             var parsedIframeLocation = parseUrl(iframeLocation);
 
             parsedIframeLocation.partAfterHost = '/pathname/pathname';
-            strictEqual(e, formatUrl(parsedIframeLocation));
-
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+            strictEqual(url, formatUrl(parsedIframeLocation));
         });
 });
 
-asyncTest('location.protocol = ...', function () {
-    navigateIframe('location.protocol = "https:";')
-        .then(function (e) {
+test('location.protocol = ...', function () {
+    return navigateIframe('location.protocol = "https:";')
+        .then(function (url) {
             var parsedIframeLocation = parseUrl(iframeLocation);
 
             parsedIframeLocation.protocol = 'https:';
-            strictEqual(e, formatUrl(parsedIframeLocation));
-
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+            strictEqual(url, formatUrl(parsedIframeLocation));
         });
 });
 
-asyncTest('location.search = ...', function () {
-    navigateIframe('location.search = "?a=b";')
-        .then(function (e) {
+test('location.search = ...', function () {
+    return navigateIframe('location.search = "?a=b";')
+        .then(function (url) {
             var parsedIframeLocation = parseUrl(iframeLocation);
 
             parsedIframeLocation.partAfterHost += '?a=b';
-            strictEqual(e, formatUrl(parsedIframeLocation));
-
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+            strictEqual(url, formatUrl(parsedIframeLocation));
         });
 });
 
 module('Click by link');
-asyncTest('Click by mouse', function () {
+
+test('Click by mouse', function () {
     var navigationScript = 'var link = document.createElement("a");' +
                            'link.href = "./index.html";' +
                            'document.body.appendChild(link);' +
                            'window["%hammerhead%"].eventSandbox.eventSimulator.click(link);';
 
-    navigateIframe(navigationScript)
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+    return navigateIframe(navigationScript)
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('Click via js', function () {
+test('Click via js', function () {
     var navigationScript = 'var link = document.createElement("a");' +
                            'link.href = "./index.html";' +
                            'document.body.appendChild(link);' +
                            'link.click(link);';
 
-    navigateIframe(navigationScript)
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+    return navigateIframe(navigationScript)
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('Link with target attribute', function () {
+test('Link with target attribute', function () {
     var navigationScript = 'var link = window.top.document.createElement("a");' +
                            'link.setAttribute("href", location.toString() + "index.html");' +
                            'link.setAttribute("target", "linkIframe");' +
                            'window.top.document.body.appendChild(link);' +
                            'link.click();';
 
-    navigateIframe(navigationScript, 'linkIframe')
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+    return navigateIframe(navigationScript, { iframeName: 'linkIframe' })
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('Click raised by child node', function () {
+test('Click raised by child node', function () {
     var navigationScript = 'var link = document.createElement("a");' +
                            'var child = document.createElement("div");' +
                            'link.setAttribute("href", location.toString() + "index.html");' +
@@ -336,18 +223,13 @@ asyncTest('Click raised by child node', function () {
                            'document.body.appendChild(link);' +
                            'child.click();';
 
-    navigateIframe(navigationScript)
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+    return navigateIframe(navigationScript)
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('Click raised by child node - prevented', function () {
+test('Click raised by child node - prevented', function () {
     var navigationScript = 'var link = document.createElement("a");' +
                            'var child = document.createElement("div");' +
                            'var parentEl = document.createElement("div");' +
@@ -358,18 +240,13 @@ asyncTest('Click raised by child node - prevented', function () {
                            'document.body.appendChild(parentEl);' +
                            'child.click();';
 
-    navigateIframe(navigationScript)
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
-asyncTest('Click prevented in the parent node', function () {
+test('Click prevented in the parent node', function () {
     var navigationScript = 'var link = document.createElement("a");' +
                            'var parentEl = document.createElement("div");' +
                            'link.setAttribute("href", location.toString() + "index.html");' +
@@ -378,110 +255,81 @@ asyncTest('Click prevented in the parent node', function () {
                            'parentEl.appendChild(link);' +
                            'link.click();';
 
-    navigateIframe(navigationScript)
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
-asyncTest('Click prevented in the onclick attribute', function () {
+test('Click prevented in the onclick attribute', function () {
     var navigationScript = 'var link = document.createElement("a");' +
                            'link.setAttribute("href", location.toString() + "index.html");' +
                            'link.setAttribute("onclick", "event.preventDefault();");' +
                            'document.body.appendChild(link);' +
                            'link.click();';
 
-    navigateIframe(navigationScript)
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
-asyncTest('Click prevented in the onclick property handler', function () {
+test('Click prevented in the onclick property handler', function () {
     var navigationScript = 'var link = document.createElement("a");' +
                            'link.setAttribute("href", location.toString() + "index.html");' +
                            'link.onclick = function(e) { e.preventDefault(); };' +
                            'document.body.appendChild(link);' +
                            'link.click();';
 
-    navigateIframe(navigationScript)
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
-asyncTest('Click prevented in the window', function () {
+test('Click prevented in the window', function () {
     var navigationScript = 'var link = document.createElement("a");' +
                            'link.setAttribute("href", location.toString() + "index.html");' +
                            'window.addEventListener("click", function(e) {e.preventDefault();});' +
                            'document.body.appendChild(link);' +
                            'link.click();';
 
-    navigateIframe(navigationScript)
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
-asyncTest('Click prevented in the html "onclick" handler', function () {
+test('Click prevented in the html "onclick" handler', function () {
     var navigationScript = 'var container = document.createElement("div");' +
                            'container.innerHTML += \'<a id="link" href="./index.html" onclick="event.preventDefault();">Link</a>\';' +
                            'document.body.appendChild(container);' +
                            'link.click();';
 
-    navigateIframe(navigationScript)
-        .then(function () {
-            ok(false);
-            start();
-        }, function () {
-            ok(true);
-            start();
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
 if (!browserUtils.isIE || browserUtils.isMSEdge) {
     // NOTE: we can't detect if default handling was cancelled by returning 'false' from an inline handler in IE yet
-    asyncTest('Click prevented via "return false" in the html "onclick" handler', function () {
+    test('Click prevented via "return false" in the html "onclick" handler', function () {
         var navigationScript = 'var container = document.createElement("div");' +
                                'container.innerHTML += \'<a id="link" href="./index.html" onclick="return false;">Link</a>\';' +
                                'document.body.appendChild(container);' +
                                'link.click();';
 
-        navigateIframe(navigationScript)
-            .then(function () {
-                ok(false);
-                start();
-            }, function () {
-                ok(true);
-                start();
+        return navigateIframe(navigationScript, { timeout: 500 })
+            .catch(function (reason) {
+                ok(reason === 'timeout exceeded', reason);
             });
     });
 }
 
-
 module('Form submission');
 
-asyncTest('Submit form by submit button click', function () {
+test('Submit form by submit button click', function () {
     var navigationScript = 'var form = document.createElement("form");' +
                            'var submit = document.createElement("input");' +
                            'form.action = "./index.html";' +
@@ -490,49 +338,38 @@ asyncTest('Submit form by submit button click', function () {
                            'document.body.appendChild(form);' +
                            'submit.click();';
 
-    navigateIframe(navigationScript)
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
+    return navigateIframe(navigationScript)
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('Submit form via js', function () {
+test('Submit form via js', function () {
     var navigationScript = 'var form = document.createElement("form");' +
                            'form.action = "./index.html";' +
                            'document.body.appendChild(form);' +
                            'form.submit();';
 
-    navigateIframe(navigationScript)
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+    return navigateIframe(navigationScript)
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('Submit form with the target attribute', function () {
+test('Submit form with the target attribute', function () {
     var navigationScript = 'var form = window.top.document.createElement("form");' +
                            'form.setAttribute("action", location.toString() + "index.html");' +
                            'form.setAttribute("target", "submitIframe");' +
                            'window.top.document.body.appendChild(form);' +
                            'form.submit();';
 
-    navigateIframe(navigationScript, 'submitIframe')
-        .then(function (e) {
-            strictEqual(e, iframeLocation + 'index.html');
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
+    return navigateIframe(navigationScript, { iframeName: 'submitIframe' })
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
         });
 });
 
-asyncTest('Set handler as a object', function () {
+test('Set handler as a object', function () {
     var navigationScript = 'var form = document.createElement("form");' +
                            'var submit = document.createElement("input");' +
                            'form.action = "./index.html";' +
@@ -543,18 +380,13 @@ asyncTest('Set handler as a object', function () {
                            'document.body.appendChild(form);' +
                            'submit.click();';
 
-    navigateIframe(navigationScript)
+    return navigateIframe(navigationScript)
         .then(function () {
             ok(true);
-            start();
-        })
-        .catch(function () {
-            ok(false, 'timeout exceeded');
-            start();
         });
 });
 
-asyncTest('Submission canceled in the "addEventListener" method', function () {
+test('Submission canceled in the "addEventListener" method', function () {
     var navigationScript = 'var form = document.createElement("form");' +
                            'var submit = document.createElement("input");' +
                            'form.addEventListener("submit", function (e) { e.preventDefault(); });' +
@@ -564,20 +396,15 @@ asyncTest('Submission canceled in the "addEventListener" method', function () {
                            'document.body.appendChild(form);' +
                            'submit.click();';
 
-    navigateIframe(navigationScript)
-        .then(function () {
-            ok(false);
-            start();
-        })
-        .catch(function () {
-            ok(true);
-            start();
+    return navigateIframe(navigationScript, { timeout: 500 })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
         });
 });
 
 if (!browserUtils.isIE || browserUtils.isMSEdge) {
     // NOTE: we can't detect if default handling was cancelled by returning 'false' from an inline handler in IE yet
-    asyncTest('Submission canceled in the "onsubmit" property', function () {
+    test('Submission canceled in the "onsubmit" property', function () {
         var navigationScript = 'var form = document.createElement("form");' +
                                'var submit = document.createElement("input");' +
                                'form.onsubmit = function () { return false; };' +
@@ -587,18 +414,13 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
                                'document.body.appendChild(form);' +
                                'submit.click();';
 
-        navigateIframe(navigationScript)
-            .then(function () {
-                ok(false);
-                start();
-            })
-            .catch(function () {
-                ok(true);
-                start();
+        return navigateIframe(navigationScript, { timeout: 500 })
+            .catch(function (reason) {
+                ok(reason === 'timeout exceeded', reason);
             });
     });
 
-    asyncTest('Submission canceled in the "onsubmit" attribute', function () {
+    test('Submission canceled in the "onsubmit" attribute', function () {
         var navigationScript = 'var form = document.createElement("form");' +
                                'var submit = document.createElement("input");' +
                                'form.action = "./index.html";' +
@@ -608,31 +430,36 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
                                'document.body.appendChild(form);' +
                                'submit.click();';
 
-        navigateIframe(navigationScript)
-            .then(function () {
-                ok(false);
-                start();
-            })
-            .catch(function () {
-                ok(true);
-                start();
+        return navigateIframe(navigationScript, { timeout: 500 })
+            .catch(function (reason) {
+                ok(reason === 'timeout exceeded', reason);
             });
     });
 
-    asyncTest('Submission canceled in the html "onsubmit" handler', function () {
+    test('Submission canceled in the html "onsubmit" handler', function () {
         var navigationScript = 'var container = document.createElement("div");' +
                                'container.innerHTML += \'<form action="./index.html" onsubmit="return false;"><input type="submit" id="submit"/></form>\';' +
                                'document.body.appendChild(container);' +
                                'document.getElementById("submit").click();';
 
-        navigateIframe(navigationScript)
-            .then(function () {
-                ok(false);
-                start();
-            })
-            .catch(function () {
-                ok(true);
-                start();
+        return navigateIframe(navigationScript, { timeout: 500 })
+            .catch(function (reason) {
+                ok(reason === 'timeout exceeded', reason);
             });
     });
 }
+
+module('regression');
+
+test('the onNavigationTriggered function should not throw an error when receives only hash (GH-917)', function () {
+    return Promise.resolve()
+        .then(function () {
+            pageNavigationWatch.onNavigationTriggered('#hash');
+        })
+        .catch(function (err) {
+            return err;
+        })
+        .then(function (err) {
+            ok(!err, err);
+        });
+});
