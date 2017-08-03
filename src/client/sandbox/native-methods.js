@@ -126,6 +126,8 @@ class NativeMethods {
         this.xhrGetResponseHeader     = win.XMLHttpRequest.prototype.getResponseHeader;
         this.xhrGetAllResponseHeaders = win.XMLHttpRequest.prototype.getAllResponseHeaders;
         this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
+        this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
+        this.xhrDispatchEvent         = win.XMLHttpRequest.prototype.dispatchEvent;
 
         try {
             this.registerServiceWorker = win.navigator.serviceWorker.register;

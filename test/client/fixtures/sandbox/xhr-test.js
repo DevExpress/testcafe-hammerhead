@@ -17,6 +17,13 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
+function getPrototypeFromChainContainsProp (obj, prop) {
+    while (obj && !obj.hasOwnProperty(prop))
+        obj = Object.getPrototypeOf(obj);
+
+    return obj;
+}
+
 test('redirect requests to proxy', function () {
     jQuery.ajaxSetup({ async: false });
 
@@ -43,6 +50,23 @@ test('createNativeXHR', function () {
     ok(xhr instanceof nativeMethods.XMLHttpRequest);
 
     window.XMLHttpRequest = nativeMethods.XMLHttpRequest;
+
+    var isWrappedFunctionRE = /return 'function is wrapped'/;
+
+    for (var prop in xhr) {
+        if (typeof xhr[prop] === 'function' && prop !== 'msCachingEnabled') {
+            var prototype = getPrototypeFromChainContainsProp(window.XMLHttpRequest.prototype, prop);
+            var storedFn  = prototype[prop];
+
+            prototype[prop] = function () {
+                return 'function is wrapped';
+            };
+
+            ok(!isWrappedFunctionRE.test(xhr[prop]), prop);
+
+            prototype[prop] = storedFn;
+        }
+    }
 });
 
 module('regression');
@@ -84,25 +108,6 @@ asyncTest('parameters must pass correctly in xhr event handlers (T239198)', func
 
     request.open('GET', '/xhr-large-response', true);
     request.send(null);
-});
-
-
-test('createNativeXHR returns an xhr with the native "open" method (GH-492)', function () {
-    var storedNativeOpen    = nativeMethods.xhrOpen;
-    var storedPrototypeOpen = XMLHttpRequest.prototype.open;
-
-    expect(1);
-
-    nativeMethods.xhrOpen = function () {
-        nativeMethods.xhrOpen         = storedNativeOpen;
-        XMLHttpRequest.prototype.open = storedPrototypeOpen;
-        ok(true);
-    };
-
-    XMLHttpRequest.prototype.open = function () {
-    };
-
-    XhrSandbox.createNativeXHR().open();
 });
 
 test('the internal 222 status code should be replaced with 0 on the client side', function () {

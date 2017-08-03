@@ -31,11 +31,16 @@ export default class XhrSandbox extends SandboxBase {
     static createNativeXHR () {
         const xhr = new nativeMethods.XMLHttpRequest();
 
-        xhr.open                = nativeMethods.xhrOpen;
-        xhr.abort               = nativeMethods.xhrAbort;
-        xhr.send                = nativeMethods.xhrSend;
-        xhr.addEventListener    = nativeMethods.xhrAddEventListener;
-        xhr.removeEventListener = nativeMethods.xhrRemoveEventListener;
+        xhr.open                  = nativeMethods.xhrOpen;
+        xhr.abort                 = nativeMethods.xhrAbort;
+        xhr.send                  = nativeMethods.xhrSend;
+        xhr.addEventListener      = nativeMethods.xhrAddEventListener;
+        xhr.removeEventListener   = nativeMethods.xhrRemoveEventListener;
+        xhr.setRequestHeader      = nativeMethods.xhrSetRequestHeader;
+        xhr.getResponseHeader     = nativeMethods.xhrGetResponseHeader;
+        xhr.getAllResponseHeaders = nativeMethods.xhrGetAllResponseHeaders;
+        xhr.overrideMimeType      = nativeMethods.xhrOverrideMimeType;
+        xhr.dispatchEvent         = nativeMethods.xhrDispatchEvent;
 
         return xhr;
     }
