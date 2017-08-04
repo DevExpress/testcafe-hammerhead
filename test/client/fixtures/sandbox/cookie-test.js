@@ -48,18 +48,21 @@ test('get/set', function () {
     strictEqual(getCookie(), 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
 });
 
-asyncTest('path validation', function () {
+test('path validation', function () {
     var iframe = document.createElement('iframe');
     var src    = window.QUnitGlobals.getResourceUrl('../../data/cookie-sandbox/validation.html', 'cookie-sandbox/validation.html');
 
     iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             ok(iframe.contentWindow.runTest());
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('remove real cookie after browser processing', function () {
