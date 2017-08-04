@@ -19,7 +19,7 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
-asyncTest('iframe with empty src', function () {
+test('iframe with empty src', function () {
     var iframe1 = document.createElement('iframe');
     var iframe2 = document.createElement('iframe');
     var iframe3 = document.createElement('iframe');
@@ -34,29 +34,22 @@ asyncTest('iframe with empty src', function () {
         var promise = window.QUnitGlobals.waitForIframe(iframe);
 
         document.body.appendChild(iframe);
-        return promise.then(function () {
-            new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
-            var hyperlink = iframe.contentDocument.createElement('a');
+        return promise
+            .then(function () {
+                new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
-            hyperlink.setAttribute('href', '/test');
-            iframe.contentDocument.body.appendChild(hyperlink);
+                var hyperlink = iframe.contentDocument.createElement('a');
 
-            strictEqual(
-                eval(processScript('hyperlink.href')),
-                'https://example.com/test'
-            );
+                hyperlink.setAttribute('href', '/test');
+                iframe.contentDocument.body.appendChild(hyperlink);
 
-            strictEqual(
-                eval(processScript('iframe.contentDocument.location.href')),
-                'about:blank'
-            );
-
-            return Promise.resolve();
-        });
+                strictEqual(eval(processScript('hyperlink.href')), 'https://example.com/test');
+                strictEqual(eval(processScript('iframe.contentDocument.location.href')), 'about:blank');
+            });
     }
 
-    assert(iframe1)
+    return assert(iframe1)
         .then(function () {
             return assert(iframe2);
         })
@@ -67,19 +60,18 @@ asyncTest('iframe with empty src', function () {
             iframe1.parentNode.removeChild(iframe1);
             iframe2.parentNode.removeChild(iframe2);
             iframe3.parentNode.removeChild(iframe3);
-
-            start();
         });
 });
 
 // NOTE: Only Chrome raises the 'load' event for iframes with 'javascript:' src and creates a window instance.
 if (browserUtils.isWebKit) {
-    asyncTest('iframe with "javascript:" src', function () {
+    test('iframe with "javascript:" src', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.id = 'test3';
+        iframe.id = 'test' + Date.now();
         iframe.setAttribute('src', 'javascript:void(0);');
-        window.QUnitGlobals.waitForIframe(iframe)
+
+        var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
@@ -92,9 +84,11 @@ if (browserUtils.isWebKit) {
                 strictEqual(eval(processScript('iframe.contentDocument.location.href')), 'about:blank');
 
                 iframe.parentNode.removeChild(iframe);
-                start();
             });
+
         document.body.appendChild(iframe);
+
+        return promise;
     });
 }
 
@@ -196,33 +190,35 @@ module('regression');
 
 if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1) {
     // NOTE The Safari iOS 10.3 and later does not provide access to the cross-domain location.
-    asyncTest('getting location of a cross-domain window (GH-467)', function () {
-        var iframe        = document.createElement('iframe');
-        var sameDomainSrc = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
+    test('getting location of a cross-domain window (GH-467)', function () {
+        var iframe            = document.createElement('iframe');
+        var sameDomainSrc     = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
+        var storedGetProxyUrl = urlUtils.getProxyUrl;
 
         iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
-        iframe.id  = 'test_467';
+        iframe.id  = 'test' + Date.now();
 
-        window.QUnitGlobals.waitForIframe(iframe)
+        var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
-                var storedGetProxyUrl = urlUtils.getProxyUrl;
-
                 urlUtils.getProxyUrl = function () {
                     return sameDomainSrc;
                 };
 
-                iframe.onload = function () {
-                    ok(iframe.contentWindow.location.toString().indexOf(sameDomainSrc) !== -1);
+                return new Promise(function (resolve) {
+                    iframe.onload = resolve;
+                    eval(processScript('iframe.contentWindow.location.replace("http://same-domain-url.com/")'));
+                });
+            })
+            .then(function () {
+                ok(iframe.contentWindow.location.toString().indexOf(sameDomainSrc) !== -1);
 
-                    urlUtils.getProxyUrl = storedGetProxyUrl;
-                    document.body.removeChild(iframe);
-                    start();
-                };
-
-                eval(processScript('iframe.contentWindow.location.replace("http://same-domain-url.com/")'));
+                urlUtils.getProxyUrl = storedGetProxyUrl;
+                document.body.removeChild(iframe);
             });
 
         document.body.appendChild(iframe);
+
+        return promise;
     });
 }
 
