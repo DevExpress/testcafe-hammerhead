@@ -98,20 +98,22 @@ module('getElementsByTagName', function () {
             });
         };
 
-        asyncTest('before DOMContentLoaded event is raised', function () {
+        test('before DOMContentLoaded event is raised', function () {
             var iframe = document.createElement('iframe');
 
-            iframe.id  = 'test_unique_id_' + Date.now();
+            iframe.id  = 'test' + Date.now();
             iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/live-node-list/getElementsByTagName.html');
-            window.QUnitGlobals.waitForIframe(iframe)
+
+            var promise = window.QUnitGlobals.waitForIframe(iframe)
                 .then(function () {
                     checkAssertions(iframe.contentWindow.assertions);
 
                     iframe.parentNode.removeChild(iframe);
-                    start();
                 });
 
             document.body.appendChild(iframe);
+
+            return promise;
         });
 
         test('"*" tagName', function () {
