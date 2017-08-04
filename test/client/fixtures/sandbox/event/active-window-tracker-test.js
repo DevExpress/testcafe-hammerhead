@@ -21,10 +21,10 @@ QUnit.testDone(function () {
     document.body.focus();
 });
 
-asyncTest('check changing active window', function () {
+test('check changing active window', function () {
     var iframe = createIframe();
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             ok(activeWindowTracker.isCurrentWindowActive());
             notOk(iframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
@@ -53,13 +53,14 @@ asyncTest('check changing active window', function () {
             notOk(iframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
 
             document.body.removeChild(iframe);
-
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest('check switching active window (between two iframes)', function () {
+test('check switching active window (between two iframes)', function () {
     var firstIframe         = createIframe();
     var secondIframe        = createIframe();
     var firstIframePromise  = window.QUnitGlobals.waitForIframe(firstIframe);
@@ -68,7 +69,7 @@ asyncTest('check switching active window (between two iframes)', function () {
     document.body.appendChild(firstIframe);
     document.body.appendChild(secondIframe);
 
-    firstIframePromise
+    return firstIframePromise
         .then(function () {
             return secondIframePromise;
         })
@@ -100,14 +101,12 @@ asyncTest('check switching active window (between two iframes)', function () {
 
             document.body.removeChild(firstIframe);
             document.body.removeChild(secondIframe);
-
-            start();
         });
 });
 
 module('regression');
 
-asyncTest('check that an error does not rise when trying to send serviceMessage to the removed iframe (GH-206)', function () {
+test('check that an error does not rise when trying to send serviceMessage to the removed iframe (GH-206)', function () {
     var iframe            = createIframe();
     var link              = document.createElement('a');
     var withError         = false;
@@ -119,7 +118,7 @@ asyncTest('check that an error does not rise when trying to send serviceMessage 
     link.innerHTML = 'Link';
     iframe.id = 'GH206';
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             iframe.contentDocument.body.focus();
         })
@@ -138,14 +137,15 @@ asyncTest('check that an error does not rise when trying to send serviceMessage 
             ok(!withError);
 
             document.body.removeChild(link);
-            start();
         });
 
     document.body.appendChild(link);
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest('no error occurs when a focused iframe is removed and a different iframe gets focus afterwards (GH-271)', function () {
+test('no error occurs when a focused iframe is removed and a different iframe gets focus afterwards (GH-271)', function () {
     var firstIframe         = createIframe();
     var secondIframe        = createIframe();
     var firstIframePromise  = window.QUnitGlobals.waitForIframe(firstIframe);
@@ -159,7 +159,7 @@ asyncTest('no error occurs when a focused iframe is removed and a different ifra
     document.body.appendChild(firstIframe);
     document.body.appendChild(secondIframe);
 
-    firstIframePromise
+    return firstIframePromise
         .then(function () {
             return secondIframePromise;
         })
@@ -180,6 +180,5 @@ asyncTest('no error occurs when a focused iframe is removed and a different ifra
             ok(!withError);
 
             document.body.removeChild(secondIframe);
-            start();
         });
 });
