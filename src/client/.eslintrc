@@ -1,7 +1,7 @@
 {
   "rules": {
     "hammerhead/proto-methods": 2,
-    "no-restricted-globals": [2, "Object", "JSON"]
+    "no-restricted-globals": [2, "Object", "JSON", "Promise"]
   },
   "globals": {
     "isIframeWithoutSrc": true,

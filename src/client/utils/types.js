@@ -11,22 +11,6 @@ export function isNullOrUndefined (obj) {
     return !obj && (obj === null || typeof obj === 'undefined');
 }
 
-export function isObject (obj) {
-    return typeof obj === 'object';
-}
-
-export function isString (obj) {
-    return typeof obj === 'string';
-}
-
-export function isUndefined (obj) {
-    return typeof obj === 'undefined';
-}
-
-export function isFunction (obj) {
-    return typeof obj === 'function';
-}
-
 export function isPrimitiveType (obj) {
     const objType = typeof obj;
 
