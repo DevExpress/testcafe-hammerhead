@@ -294,14 +294,13 @@ test('parameters passed to the native function in its original form', function (
 
 module('resgression');
 
-asyncTest('document.write for several tags in iframe (T215136)', function () {
-    expect(2);
-
+test('document.write for several tags in iframe (T215136)', function () {
     var src    = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-with-doc-write.html');
     var iframe = document.createElement('iframe');
 
     iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var div = iframe.contentDocument.querySelector('#parent');
 
@@ -309,10 +308,11 @@ asyncTest('document.write for several tags in iframe (T215136)', function () {
             strictEqual(getProperty(div.parentNode, 'lastElementChild'), div);
 
             iframe.parentNode.removeChild(iframe);
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('document.write for page html (T190753)', function () {
@@ -378,11 +378,12 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
 }
 
 if (!browserUtils.isFirefox) {
-    asyncTest('document.write([]) in iframe (T239131)', function () {
+    test('document.write([]) in iframe (T239131)', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.id = 'test04';
-        window.QUnitGlobals.waitForIframe(iframe)
+        iframe.id = 'test' + Date.now();
+
+        var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 // NOTE: Some browsers remove their documentElement after a "write([])" call. Previously, if the
                 // documentElement was null, "processDomMethodName" failed with the 'Maximum call stack size exceeded' error.
@@ -390,9 +391,11 @@ if (!browserUtils.isFirefox) {
                 ok(true);
                 iframe.contentDocument.close();
                 iframe.parentNode.removeChild(iframe);
-                start();
             });
+
         document.body.appendChild(iframe);
+
+        return promise;
     });
 }
 
@@ -440,13 +443,13 @@ asyncTest('document elements are overridden after document.write has been called
     document.body.appendChild(iframe);
 });
 
-asyncTest('multiple document.write with html and body tags should not break markup (GH-387)', function () {
+test('multiple document.write with html and body tags should not break markup (GH-387)', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.id  = 'test';
+    iframe.id  = 'test' + Date.now();
     iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/multiple-write-with-html-and-body-tags.html');
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var doc = iframe.contentDocument;
 
@@ -456,11 +459,11 @@ asyncTest('multiple document.write with html and body tags should not break mark
             strictEqual(doc.querySelectorAll('body > table tr > td > a > img').length, 1);
 
             document.body.removeChild(iframe);
-
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('script error when adding a comment node to DOM (GH-435)', function () {
@@ -489,37 +492,37 @@ test('script error when adding a comment node to DOM (GH-435)', function () {
     textNode2.parentNode.removeChild(textNode2);
 });
 
-asyncTest('"permission denied" error inside documentWriter (GH-384)', function () {
+test('"permission denied" error inside documentWriter (GH-384)', function () {
     var iframe = document.createElement('iframe');
     var src    = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
 
-    iframe.id = 'test_ojfnnhsg43';
+    iframe.id = 'test' + Date.now();
     iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeDocument = iframe.contentDocument;
 
-            try {
-                iframeDocument.write('<h1 id="testElement">test</h1>');
-                ok(nativeMethods.getElementById.call(iframeDocument, 'testElement'));
-            }
-            catch (err) {
-                ok(false, 'error is occured');
-            }
+            iframeDocument.write('<h1 id="testElement">test</h1>');
+            ok(nativeMethods.getElementById.call(iframeDocument, 'testElement'));
+
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
 if (!browserUtils.isIE) {
-    asyncTest('document.write for same-domain iframe (GH-679)', function () {
+    test('document.write for same-domain iframe (GH-679)', function () {
         var iframe = document.createElement('iframe');
 
         iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
-        iframe.id  = 'test_unique_id_9090d';
-        window.QUnitGlobals.waitForIframe(iframe)
+        iframe.id  = 'test' + Date.now();
+
+        var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 iframe.contentDocument.open();
                 iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>');
@@ -534,9 +537,11 @@ if (!browserUtils.isIE) {
                 strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
 
                 iframe.parentNode.removeChild(iframe);
-                start();
             });
+
         document.body.appendChild(iframe);
+
+        return promise;
     });
 }
 
