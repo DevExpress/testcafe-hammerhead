@@ -77,11 +77,12 @@ test('get root', function () {
     root.parentNode.removeChild(root);
 });
 
-asyncTest('get root after body recreation', function () {
+test('get root after body recreation', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.id = 'test_unique_lsjisujf';
-    window.QUnitGlobals.waitForIframe(iframe)
+    iframe.id = 'test' + Date.now();
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var document = iframe.contentDocument;
             var window   = iframe.contentWindow;
@@ -102,9 +103,11 @@ asyncTest('get root after body recreation', function () {
             ok(getRoot());
 
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('set innerHTML for root', function () {
@@ -589,7 +592,7 @@ test('querySelectorAll', function () {
 
 module('ui stylesheet');
 
-asyncTest('stylesheets are restored after the document is cleaned', function () {
+test('stylesheets are restored after the document is cleaned', function () {
     var link1  = document.createElement('link');
     var link2  = document.createElement('link');
     var iframe = document.createElement('iframe');
@@ -598,41 +601,43 @@ asyncTest('stylesheets are restored after the document is cleaned', function () 
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link1.id        = 'id1';
     link2.id        = 'id2';
-    iframe.id       = 'test';
+    iframe.id       = 'test' + Date.now();
 
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
 
-        var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
-            iframe.contentDocument,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
-        var result              = '';
+            var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
+                iframe.contentDocument,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
+            var result              = '';
 
-        for (var index = 0, length = iframeUIStylesheets.length; index < length; index++) {
-            var iframeUIStylesheet = iframeUIStylesheets[index];
+            for (var index = 0, length = iframeUIStylesheets.length; index < length; index++) {
+                var iframeUIStylesheet = iframeUIStylesheets[index];
 
-            ok(domUtils.isShadowUIElement(iframeUIStylesheet));
-            result += iframeUIStylesheet.id;
-        }
+                ok(domUtils.isShadowUIElement(iframeUIStylesheet));
+                result += iframeUIStylesheet.id;
+            }
 
-        ok(iframe.contentDocument.body.innerHTML.indexOf('Cleaned!') > -1);
-        strictEqual(length, 3);
-        strictEqual(result, 'id1id2');
+            ok(iframe.contentDocument.body.innerHTML.indexOf('Cleaned!') > -1);
+            strictEqual(length, 3);
+            strictEqual(result, 'id1id2');
 
-        document.head.removeChild(link1);
-        document.head.removeChild(link2);
-        document.body.removeChild(iframe);
+            document.head.removeChild(link1);
+            document.head.removeChild(link2);
+            document.body.removeChild(iframe);
+        });
 
-        start();
-    });
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest('append stylesheets to the iframe on initialization', function () {
+test('append stylesheets to the iframe on initialization', function () {
     var link1  = document.createElement('link');
     var link2  = document.createElement('link');
     var iframe = document.createElement('iframe');
@@ -641,61 +646,65 @@ asyncTest('append stylesheets to the iframe on initialization', function () {
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link1.id        = 'id1';
     link2.id        = 'id2';
-    iframe.id       = 'test';
+    iframe.id       = 'test' + Date.now();
 
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        var currentUIStylesheets = nativeMethods.querySelectorAll.call(
-            document,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
-        var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
-            iframe.contentDocument,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var currentUIStylesheets = nativeMethods.querySelectorAll.call(
+                document,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
+            var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
+                iframe.contentDocument,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
 
-        strictEqual(currentUIStylesheets.length, iframeUIStylesheets.length);
+            strictEqual(currentUIStylesheets.length, iframeUIStylesheets.length);
 
-        for (var i = 0; i < currentUIStylesheets.length; i++)
-            strictEqual(currentUIStylesheets[i].outerHTML, iframeUIStylesheets[i].outerHTML);
+            for (var i = 0; i < currentUIStylesheets.length; i++)
+                strictEqual(currentUIStylesheets[i].outerHTML, iframeUIStylesheets[i].outerHTML);
 
-        document.head.removeChild(link1);
-        document.head.removeChild(link2);
-        document.body.removeChild(iframe);
+            document.head.removeChild(link1);
+            document.head.removeChild(link2);
+            document.body.removeChild(iframe);
+        });
 
-        start();
-    });
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest("do nothing if ShadowUIStylesheet doesn't exist", function () {
+test("do nothing if ShadowUIStylesheet doesn't exist", function () {
     var iframe       = document.createElement('iframe');
     var qUnitCssLink = nativeMethods.querySelector.call(document, '.' + SHADOW_UI_CLASSNAME.uiStylesheet);
 
-    iframe.id              = 'test';
+    iframe.id              = 'test' + Date.now();
     qUnitCssLink.className = '';
 
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        var currentUIStylesheets = nativeMethods.querySelectorAll.call(
-            document,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
-        var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
-            iframe.contentDocument,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var currentUIStylesheets = nativeMethods.querySelectorAll.call(
+                document,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
+            var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
+                iframe.contentDocument,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
 
-        strictEqual(currentUIStylesheets.length, 0);
-        strictEqual(iframeUIStylesheets.length, 0);
+            strictEqual(currentUIStylesheets.length, 0);
+            strictEqual(iframeUIStylesheets.length, 0);
 
-        qUnitCssLink.className = SHADOW_UI_CLASSNAME.uiStylesheet;
-        iframe.parentNode.removeChild(iframe);
+            qUnitCssLink.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+            iframe.parentNode.removeChild(iframe);
+        });
 
-        start();
-    });
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 module('regression');
@@ -711,25 +720,29 @@ test('SVG elements\' className is of the SVGAnimatedString type instead of strin
     svg.parentNode.removeChild(svg);
 });
 
-asyncTest('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
+test('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.id = 'test001';
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        var root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
+    iframe.id = 'test' + Date.now();
 
-        strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
+        .then(function () {
+            var root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
-        iframe.contentDocument.body.innerHTMl = '';
+            strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
 
-        root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
+            iframe.contentDocument.body.innerHTMl = '';
 
-        strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
+            root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
-        iframe.parentNode.removeChild(iframe);
-        start();
-    });
+            strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
+
+            iframe.parentNode.removeChild(iframe);
+        });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('shadowUI\'s root must be the last child after adding a new element (T239689)', function () {
@@ -761,7 +774,7 @@ test('shadowUI\'s root must be the last child after adding a new element (T23968
     div2.parentNode.removeChild(div2);
 });
 
-asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
+test('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
 
     settings.get().crossDomainProxyPort = 2001;
@@ -769,15 +782,18 @@ asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow mus
     var crossDomainIframe = document.createElement('iframe');
 
     crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
-    window.QUnitGlobals.waitForIframe(crossDomainIframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(crossDomainIframe)
         .then(function () {
             ok(!ShadowUI.isShadowContainerCollection([crossDomainIframe.contentWindow]));
 
             crossDomainIframe.parentNode.removeChild(crossDomainIframe);
             settings.get().crossDomainProxyPort = storedCrossDomainPort;
-            start();
         });
+
     document.body.appendChild(crossDomainIframe);
+
+    return promise;
 });
 
 if (document.implementation && document.implementation.createHTMLDocument) {
