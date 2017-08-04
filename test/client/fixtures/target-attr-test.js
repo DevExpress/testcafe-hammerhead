@@ -277,12 +277,12 @@ test('change href after target attribute changed (GH-534)', function () {
     iframe.parentNode.removeChild(iframe);
 });
 
-asyncTest('The form in the iframe (GH-880)', function () {
+test('The form in the iframe (GH-880)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test-' + Date.now();
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var form = iframe.contentDocument.createElement('form');
 
@@ -297,10 +297,11 @@ asyncTest('The form in the iframe (GH-880)', function () {
             strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'if');
 
             iframe.parentNode.removeChild(iframe);
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('should not add target attribute after click', function () {
