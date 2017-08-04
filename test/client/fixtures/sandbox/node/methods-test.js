@@ -301,33 +301,29 @@ if (window.navigator.serviceWorker) {
     // https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
     // This condition works only for running on the local machine only. On Saucelabs url with a domain name is opened.
     if (location.hostname === 'localhost') {
-        asyncTest('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
+        test('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
             var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
             var scopeUrl  = '/';
 
-            window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
+            return window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
                 .then(function () {
                     ok(true);
                 })
                 .catch(function (err) {
                     ok(false, err);
-                })
-                .then(function () {
-                    start();
                 });
         });
     }
 }
 
 if (!browserUtils.isFirefox) {
-    asyncTest('document.write exception', function () {
+    test('document.write exception', function () {
         var iframe      = document.createElement('iframe');
         var checkIframe = function () {
-            return iframe.contentWindow.test &&
-                   iframe.contentDocument.getElementById('div1');
+            return iframe.contentWindow.test && iframe.contentDocument.getElementById('div1');
         };
 
-        iframe.id = 'test10';
+        iframe.id = 'test' + Date.now();
         document.body.appendChild(iframe);
 
         eval(processScript([
@@ -335,11 +331,10 @@ if (!browserUtils.isFirefox) {
             'iframe.contentDocument.write("<script>window.test = true;<\/script>");'
         ].join('')));
 
-        window.QUnitGlobals.wait(checkIframe)
+        return window.QUnitGlobals.wait(checkIframe)
             .then(function () {
                 ok(true);
                 iframe.parentNode.removeChild(iframe);
-                start();
             });
     });
 }
@@ -369,7 +364,7 @@ if (window.DOMParser && !browserUtils.isIE9) {
 
 module('regression');
 
-asyncTest('script must be executed after it is added to head tag (B237231)', function () {
+test('script must be executed after it is added to head tag (B237231)', function () {
     var scriptText       = 'window.top.testField = true;';
     var script           = document.createElement('script');
     var isScriptExecuted = function () {
@@ -381,10 +376,9 @@ asyncTest('script must be executed after it is added to head tag (B237231)', fun
     ok(!window.top.testField);
     document.head.appendChild(script);
 
-    window.QUnitGlobals.wait(isScriptExecuted)
+    return window.QUnitGlobals.wait(isScriptExecuted)
         .then(function () {
             ok(true, 'script was executed');
-            start();
         });
 });
 
