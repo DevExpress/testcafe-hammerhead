@@ -29,12 +29,12 @@ if (browserUtils.isIE) {
 
 module('regression');
 
-asyncTest('"permission denied" error is raised when an iframe with a nested iframe is reloaded (GH-727)', function () {
+test('"permission denied" error is raised when an iframe with a nested iframe is reloaded (GH-727)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.src = window.QUnitGlobals.getResourceUrl('../../data/window-storage/iframe.html');
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             iframe.contentWindow.testFlag = true;
 
@@ -49,10 +49,10 @@ asyncTest('"permission denied" error is raised when an iframe with a nested ifra
             ok(!iframe.contentWindow.testFlag, 'page reloaded');
             ok(nestedIframe.contentWindow['%hammerhead%']);
             iframe.parentElement.removeChild(iframe);
-
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
