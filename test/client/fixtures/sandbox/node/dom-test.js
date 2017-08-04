@@ -177,17 +177,20 @@ test('iframe added to dom event', function () {
     strictEqual(count, 4);
 });
 
-asyncTest('body created event', function () {
+test('body created event', function () {
     var iframe = document.createElement('iframe');
 
     iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/body-created-event.html');
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             ok(iframe.contentWindow.testOk);
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('parameters passed to the native dom element function in its original form', function () {
