@@ -1,5 +1,6 @@
 // NOTE: For internal usage of Listeners.
 import { isIE, version as browserVersion } from '../../utils/browser';
+import nativeMethods from '../native-methods';
 
 const ELEMENT_LISTENING_EVENTS_STORAGE_PROP = 'hammerhead|element-listening-events-storage-prop';
 
@@ -34,8 +35,12 @@ export function addListeningElement (el, events) {
         }
     }
 
-    if (!isElementListening(el))
-        Object.defineProperty(el, ELEMENT_LISTENING_EVENTS_STORAGE_PROP, { value: elementCtx, writable: true });
+    if (!isElementListening(el)) {
+        nativeMethods.objectDefineProperty.call(window, el, ELEMENT_LISTENING_EVENTS_STORAGE_PROP, {
+            value:    elementCtx,
+            writable: true
+        });
+    }
 }
 
 export function removeListeningElement (el) {

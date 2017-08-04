@@ -35,14 +35,14 @@ export default class ShadowUI extends SandboxBase {
         this.root                    = null;
         this.lastActiveElement       = null;
         this.uiStyleSheetsHtmlBackup = null;
-        this.wrapperCreators         = ShadowUI._createWrapperCreators(this.liveNodeListFactory);
+        this.wrapperCreators         = this._createWrapperCreators();
     }
 
     static _filterElement (el) {
         return el && domUtils.isShadowUIElement(el) ? null : el;
     }
 
-    static _filterList (list, predicate) {
+    _filterList (list, predicate) {
         const filteredList = [];
         const nlLength     = list.length;
 
@@ -53,12 +53,12 @@ export default class ShadowUI extends SandboxBase {
                 filteredList.push(list[i]);
         }
 
-        Object.defineProperty(filteredList, 'item', {
+        nativeMethods.objectDefineProperty.call(this.window, filteredList, 'item', {
             value: index => index >= filteredList.length ? null : filteredList[index]
         });
 
         if (list.namedItem) {
-            Object.defineProperty(filteredList, 'namedItem', {
+            nativeMethods.objectDefineProperty.call(this.window, filteredList, 'namedItem', {
                 value: name => list.namedItem(name)
             });
         }
@@ -66,12 +66,12 @@ export default class ShadowUI extends SandboxBase {
         return filteredList.length === nlLength ? list : filteredList;
     }
 
-    static _filterNodeList (nodeList) {
-        return ShadowUI._filterList(nodeList, item => ShadowUI._filterElement(item));
+    _filterNodeList (nodeList) {
+        return this._filterList(nodeList, item => ShadowUI._filterElement(item));
     }
 
-    static _filterStyleSheetList (styleSheetList) {
-        return ShadowUI._filterList(styleSheetList, item => ShadowUI._filterElement(item.ownerNode));
+    _filterStyleSheetList (styleSheetList) {
+        return this._filterList(styleSheetList, item => ShadowUI._filterElement(item.ownerNode));
     }
 
     static _getFirstNonShadowElement (nodeList) {
@@ -83,11 +83,13 @@ export default class ShadowUI extends SandboxBase {
         return null;
     }
 
-    static _createWrapperCreators (liveNodeListFactory) {
+    _createWrapperCreators () {
+        const sandbox = this;
+
         return {
             getElementsByClassName (nativeGetElementsByClassNameFnName) {
                 return function (...args) {
-                    return ShadowUI._filterNodeList(nativeMethods[nativeGetElementsByClassNameFnName].apply(this, args));
+                    return sandbox._filterNodeList(nativeMethods[nativeGetElementsByClassNameFnName].apply(this, args));
                 };
             },
 
@@ -95,7 +97,7 @@ export default class ShadowUI extends SandboxBase {
                 return function (...args) {
                     const nativeResult = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
 
-                    return liveNodeListFactory.createNodeListForGetElementsByTagNameFn({
+                    return sandbox.liveNodeListFactory.createNodeListForGetElementsByTagNameFn({
                         nodeList: nativeResult,
                         tagName:  args[0]
                     });
@@ -122,24 +124,24 @@ export default class ShadowUI extends SandboxBase {
                     if (typeof args[0] === 'string')
                         args[0] = NodeSandbox.processSelector(args[0]);
 
-                    return ShadowUI._filterNodeList(nativeMethods[nativeQuerySelectorAllFnName].apply(this, args));
+                    return sandbox._filterNodeList(nativeMethods[nativeQuerySelectorAllFnName].apply(this, args));
                 };
             }
         };
     }
 
-    static _markShadowUIContainerAndCollections (containerEl) {
-        Object.defineProperty(containerEl, IS_SHADOW_CONTAINER_FLAG, { value: true });
-        Object.defineProperty(containerEl.children, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
-        Object.defineProperty(containerEl.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
+    _markShadowUIContainerAndCollections (containerEl) {
+        nativeMethods.objectDefineProperty.call(this.window, containerEl, IS_SHADOW_CONTAINER_FLAG, { value: true });
+        nativeMethods.objectDefineProperty.call(this.window, containerEl.children, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
+        nativeMethods.objectDefineProperty.call(this.window, containerEl.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
     }
 
-    static markShadowUIContainers (head, body) {
+    markShadowUIContainers (head, body) {
         if (head)
-            ShadowUI._markShadowUIContainerAndCollections(head);
+            this._markShadowUIContainerAndCollections(head);
 
         if (body)
-            ShadowUI._markShadowUIContainerAndCollections(body);
+            this._markShadowUIContainerAndCollections(body);
     }
 
     _bringRootToWindowTopLeft () {
@@ -220,7 +222,7 @@ export default class ShadowUI extends SandboxBase {
         };
 
         docProto.getElementsByName = function (...args) {
-            return ShadowUI._filterNodeList(nativeMethods.getElementsByName.apply(this, args));
+            return shadowUI._filterNodeList(nativeMethods.getElementsByName.apply(this, args));
         };
 
         docProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('getElementsByClassName');
@@ -317,8 +319,7 @@ export default class ShadowUI extends SandboxBase {
     attach (window) {
         super.attach(window, window.document);
 
-        ShadowUI.markShadowUIContainers(this.document.head, this.document.body);
-
+        this.markShadowUIContainers(this.document.head, this.document.body);
         this._overrideDocumentMethods(window.document);
         this._overrideElementMethods(window);
         this._markScriptsAndStylesAsShadowInHead(window.document.head);
@@ -328,7 +329,7 @@ export default class ShadowUI extends SandboxBase {
             const iframeBody = e.iframe.contentDocument.body;
 
             this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());
-            ShadowUI.markShadowUIContainers(iframeHead, iframeBody);
+            this.markShadowUIContainers(iframeHead, iframeBody);
         });
 
         this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
@@ -339,14 +340,14 @@ export default class ShadowUI extends SandboxBase {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
-            ShadowUI.markShadowUIContainers(e.document.head, e.document.body);
+            this.markShadowUIContainers(this.document.head, this.document.body);
         });
 
         this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, e => {
             this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
             this.uiStyleSheetsHtmlBackup = null;
 
-            ShadowUI.markShadowUIContainers(e.document.head, e.document.body);
+            this.markShadowUIContainers(e.document.head, e.document.body);
         });
 
         this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, el => {
@@ -367,7 +368,7 @@ export default class ShadowUI extends SandboxBase {
         });
 
         this.nodeMutation.on(this.nodeMutation.BODY_CREATED_EVENT, ({ body }) =>
-            ShadowUI.markShadowUIContainers(this.document.head, body));
+            this.markShadowUIContainers(this.document.head, body));
     }
 
     onBodyElementMutation () {
@@ -384,18 +385,18 @@ export default class ShadowUI extends SandboxBase {
         if (!(isRootInDom && isRootLastChild && isRootInBody))
             this.nativeMethods.appendChild.call(this.document.body, this.root);
 
-        ShadowUI.markShadowUIContainers(this.document.head, this.document.body);
+        this.markShadowUIContainers(this.document.head, this.document.body);
     }
 
     // Accessors
     getFirstChild (el) {
-        const childNodes = ShadowUI._filterNodeList(el.childNodes);
+        const childNodes = this._filterNodeList(el.childNodes);
 
         return childNodes.length && childNodes[0] ? childNodes[0] : null;
     }
 
     getFirstElementChild (el) {
-        const childNodes = ShadowUI._filterNodeList(el.childNodes);
+        const childNodes = this._filterNodeList(el.childNodes);
         const cnLength   = childNodes.length;
 
         for (let i = 0; i < cnLength; i++) {
@@ -407,14 +408,14 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getLastChild (el) {
-        const childNodes = ShadowUI._filterNodeList(el.childNodes);
+        const childNodes = this._filterNodeList(el.childNodes);
         const index      = childNodes.length - 1;
 
         return index >= 0 ? childNodes[index] : null;
     }
 
     getLastElementChild (el) {
-        const childNodes = ShadowUI._filterNodeList(el.childNodes);
+        const childNodes = this._filterNodeList(el.childNodes);
         const cnLength   = childNodes.length;
 
         for (let i = cnLength - 1; i >= 0; i--) {

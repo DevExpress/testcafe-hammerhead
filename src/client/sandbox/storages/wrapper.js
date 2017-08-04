@@ -3,6 +3,7 @@ import { isIE } from '../../utils/browser';
 import { parseProxyUrl } from '../../utils/url';
 import * as destLocation from '../../utils/destination-location';
 import * as JSON from '../../json';
+import nativeMethods from '../native-methods';
 
 const STORAGES_SANDBOX_TEMP = 'hammerhead|storages-sandbox-temp';
 const API_KEY_PREFIX        = 'hammerhead|api-key-prefix|';
@@ -48,7 +49,7 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         return properties;
     };
 
-    Object.defineProperty(this, 'length', {
+    nativeMethods.objectDefineProperty.call(window, this, 'length', {
         get: () => getAddedProperties().length,
         set: () => void 0
     });
@@ -225,7 +226,9 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
 
     // NOTE: Save wrapper properties and methods to be able to distinguish them from
     // properties that will be created from the outside.
+    /*eslint-disable no-restricted-globals*/
     this.initialProperties = Object.getOwnPropertyNames(this);
+    /*eslint-enable no-restricted-globals*/
     this.wrapperMethods    = getWrapperMethods();
 
     init();

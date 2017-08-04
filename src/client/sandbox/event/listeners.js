@@ -261,7 +261,9 @@ export default class Listeners extends EventEmitter {
         const elementCtx             = this.listeningCtx.getElementCtx(el);
 
         if (elementCtx) {
+            /*eslint-disable no-restricted-globals*/
             const eventNames = Object.keys(elementCtx);
+            /*eslint-enable no-restricted-globals*/
 
             for (const eventName of eventNames)
                 nativeAddEventListener.call(el, eventName, this._createEventHandler(), true);

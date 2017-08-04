@@ -75,8 +75,9 @@ export default class FetchSandbox extends SandboxBase {
         return true;
     }
 
-    static _processFetchPromise (promise) {
+    _processFetchPromise (promise) {
         const originalThen = promise.then;
+        const win          = this.window;
 
         promise.then = function (...args) {
             const originalThenHandler = args[0];
@@ -85,7 +86,7 @@ export default class FetchSandbox extends SandboxBase {
                 if (response.status === 500)
                     throw new TypeError();
 
-                Object.defineProperty(response, 'type', {
+                nativeMethods.objectDefineProperty.call(win, response, 'type', {
                     get:          () => FetchSandbox._getResponseType(response),
                     set:          () => void 0,
                     configurable: true
@@ -93,7 +94,7 @@ export default class FetchSandbox extends SandboxBase {
 
                 const responseStatus = response.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : response.status;
 
-                Object.defineProperty(response, 'status', {
+                nativeMethods.objectDefineProperty.call(win, response, 'status', {
                     get:          () => responseStatus,
                     set:          () => void 0,
                     configurable: true
@@ -147,7 +148,7 @@ export default class FetchSandbox extends SandboxBase {
 
                 const fetchPromise = nativeMethods.fetch.apply(this, args);
 
-                FetchSandbox._processFetchPromise(fetchPromise);
+                sandbox._processFetchPromise(fetchPromise);
                 sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
                 return fetchPromise;

@@ -1,4 +1,5 @@
 import { getTopSameDomainWindow } from '../utils/dom';
+import nativeMethods from './native-methods';
 
 const WINDOWS_STORAGE = 'hammerhead|windows-storage';
 
@@ -8,7 +9,7 @@ function getStorage () {
 
     if (!storage) {
         storage = [];
-        Object.defineProperty(topSameDomainWindow, WINDOWS_STORAGE, { value: storage });
+        nativeMethods.objectDefineProperty.call(window, topSameDomainWindow, WINDOWS_STORAGE, { value: storage });
     }
 
     return storage;

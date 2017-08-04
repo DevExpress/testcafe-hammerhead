@@ -9,6 +9,7 @@ import {
     isChangedOnlyHash
 } from '../../../utils/url';
 import { getDomain, getResourceTypeString } from '../../../../utils/url';
+import nativeMethods from '../../native-methods';
 
 function getLocationUrl (window) {
     try {
@@ -49,7 +50,7 @@ export default class LocationWrapper extends EventEmitter {
         };
         const urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 
-        Object.defineProperty(this, 'href', createPropertyDesc({
+        nativeMethods.objectDefineProperty.call(window, this, 'href', createPropertyDesc({
             get: getHref,
             set: href => {
                 const proxiedHref = getProxiedHref(href);
@@ -61,7 +62,7 @@ export default class LocationWrapper extends EventEmitter {
             }
         }));
 
-        Object.defineProperty(this, 'search', createPropertyDesc({
+        nativeMethods.objectDefineProperty.call(window, this, 'search', createPropertyDesc({
             get: () => window.location.search,
             set: search => {
                 const newLocation = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
@@ -73,12 +74,12 @@ export default class LocationWrapper extends EventEmitter {
             }
         }));
 
-        Object.defineProperty(this, 'origin', createPropertyDesc({
+        nativeMethods.objectDefineProperty.call(window, this, 'origin', createPropertyDesc({
             get: () => getDomain(getParsedDestLocation()),
             set: origin => origin
         }));
 
-        Object.defineProperty(this, 'hash', createPropertyDesc({
+        nativeMethods.objectDefineProperty.call(window, this, 'hash', createPropertyDesc({
             get: () => window.location.hash,
             set: hash => {
                 window.location.hash = hash;
@@ -88,7 +89,7 @@ export default class LocationWrapper extends EventEmitter {
         }));
 
         const overrideProperty = property => {
-            Object.defineProperty(this, property, createPropertyDesc({
+            nativeMethods.objectDefineProperty.call(window, this, property, createPropertyDesc({
                 get: () => getParsedDestLocation()[property],
                 set: value => {
                     const newLocation = changeDestUrlPart(window.location.toString(), property, value, resourceType);

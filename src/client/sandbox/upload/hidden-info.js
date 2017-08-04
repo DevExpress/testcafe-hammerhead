@@ -1,5 +1,6 @@
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import nativeMethods from '../native-methods';
+import * as JSON from '../../json';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)

@@ -16,10 +16,12 @@ const arraySlice = Array.prototype.slice;
 
 let scrollbarSize = null;
 
+/*eslint-disable no-restricted-globals*/
 const NATIVE_ELEMENT_PROTOTYPE_STRINGS = [
     instanceToString(nativeMethods.elementClass.prototype),
     instanceToString(Object.getPrototypeOf(nativeMethods.elementClass.prototype))
 ];
+/*eslint-enable no-restricted-globals*/
 
 const NATIVE_MAP_ELEMENT_STRINGS = [
     '[object HTMLMapElement]',
@@ -100,9 +102,11 @@ export function instanceToString (instance) {
     if (!instanceAndPrototypeToStringAreEqual)
         return nativeMethods.objectToString.call(instance);
 
+    /*eslint-disable no-restricted-globals*/
     return instance && typeof instance === 'object'
         ? nativeMethods.objectToString.call(Object.getPrototypeOf(instance))
         : '';
+    /*eslint-enable no-restricted-globals*/
 }
 
 export function getActiveElement (currentDocument) {
