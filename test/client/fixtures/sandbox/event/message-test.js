@@ -193,7 +193,7 @@ asyncTest('cloning arguments', function () {
     document.body.appendChild(iframe);
 });
 
-asyncTest('crossdomain', function () {
+test('crossdomain', function () {
     var iframe                = document.createElement('iframe');
     var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var serviceMsgReceived    = false;
@@ -204,12 +204,12 @@ asyncTest('crossdomain', function () {
         return serviceMsgReceived;
     };
 
-    iframe.id = 'test03';
-
     settings.get().crossDomainProxyPort = 2001;
 
+    iframe.id = 'test' + Date.now();
     iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message.html');
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
@@ -222,9 +222,11 @@ asyncTest('crossdomain', function () {
             settings.get().crossDomainProxyPort = storedCrossDomainPort;
             iframe.parentNode.removeChild(iframe);
             messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 asyncTest('service message handler should not call other handlers', function () {
@@ -292,17 +294,16 @@ asyncTest('iframe', function () {
     document.body.appendChild(iframe);
 });
 
-asyncTest('timeout (non-added to DOM iframe)', function () {
+test('timeout (non-added to DOM iframe)', function () {
     var iframe      = document.createElement('iframe');
     var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
 
-    iframe.id = 'test06';
-
     messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
+    iframe.id  = 'test' + Date.now();
     iframe.src = 'http://cross.domain.com/';
 
-    messageSandbox.pingIframe(iframe, 'pingCmd')
+    return messageSandbox.pingIframe(iframe, 'pingCmd')
         .then(function () {
             ok(false, 'ping should not be resolved');
         }, function () {
@@ -310,20 +311,19 @@ asyncTest('timeout (non-added to DOM iframe)', function () {
         })
         .then(function () {
             messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
-            start();
         });
 });
 
-asyncTest('timeout (added to DOM iframe)', function () {
+test('timeout (added to DOM iframe)', function () {
     var iframe      = document.createElement('iframe');
     var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
 
-    iframe.id = 'test07';
-
     messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
+    iframe.id = 'test' + Date.now();
     iframe.src = 'http://cross.domain.com/';
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             return messageSandbox.pingIframe(iframe, 'pingCmd');
         })
@@ -335,10 +335,11 @@ asyncTest('timeout (added to DOM iframe)', function () {
         .then(function () {
             messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
             iframe.parentNode.removeChild(iframe);
-
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 module('regression');
@@ -417,32 +418,34 @@ asyncTest('send service message to the recreated iframe (GH-814)', function () {
     document.body.appendChild(iframe);
 });
 
-asyncTest('service message from removed iframe (GH-64)', function () {
+test('service message from removed iframe (GH-64)', function () {
     var iframe            = document.createElement('iframe');
     var receivedMessages  = 0;
     var isMessageReceived = function () {
         return receivedMessages === 2;
     };
 
-    iframe.id = 'test08';
-
     messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function () {
         ++receivedMessages;
     });
 
+    iframe.id = 'test' + Date.now();
     iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             return window.QUnitGlobals.wait(isMessageReceived);
         })
         .then(function () {
             strictEqual(receivedMessages, 2);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest('should not raise an error for sendServiceMessage if window.top is a cross-domain window (GH-666)', function () {
+test('should not raise an error for sendServiceMessage if window.top is a cross-domain window (GH-666)', function () {
     var iframe            = document.createElement('iframe');
     var messageData       = null;
     var isMessageReceived = function () {
@@ -454,9 +457,10 @@ asyncTest('should not raise an error for sendServiceMessage if window.top is a c
 
     window.addEventListener('message', onMessageHandler);
 
+    iframe.id  = 'test' + Date.now();
     iframe.src = window.getCrossDomainPageUrl('../../../data/event-sandbox/send-message-when-top-window-is-cross-domain.html');
-    iframe.id  = 'test_unique_id_edzyxob6s';
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             return window.QUnitGlobals.wait(isMessageReceived);
         })
@@ -464,7 +468,9 @@ asyncTest('should not raise an error for sendServiceMessage if window.top is a c
             ok(!messageData.errorIsRaised);
             window.removeEventListener('message', onMessageHandler);
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
