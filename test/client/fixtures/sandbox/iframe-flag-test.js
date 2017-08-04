@@ -87,12 +87,12 @@ test('assign a url attribute to elements with the "target" attribute in top wind
     document.body.removeChild(iframe);
 });
 
-asyncTest('assign a url attribute to elements with the "target" attribute in iframe', function () {
+test('assign a url attribute to elements with the "target" attribute in iframe', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test' + Date.now();
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeDocument = iframe.contentDocument;
             var embeddedIframe = iframeDocument.createElement('iframe');
@@ -114,14 +114,14 @@ asyncTest('assign a url attribute to elements with the "target" attribute in ifr
 
             iframeDocument.body.removeChild(embeddedIframe);
             document.body.removeChild(iframe);
-
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest('assign a url attribute to elements with the "target" attribute in embedded iframe', function () {
+test('assign a url attribute to elements with the "target" attribute in embedded iframe', function () {
     // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
     var src            = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
     var iframe         = document.createElement('iframe');
@@ -130,7 +130,7 @@ asyncTest('assign a url attribute to elements with the "target" attribute in emb
     iframe.id = 'test' + Date.now();
     iframe.setAttribute('src', src);
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeDocument      = iframe.contentDocument;
             var iframeHammerhead    = iframe.contentWindow['%hammerhead%'];
@@ -169,18 +169,19 @@ asyncTest('assign a url attribute to elements with the "target" attribute in emb
             embeddedIframeDocument.body.removeChild(otherIframe);
             iframe.contentDocument.body.removeChild(embeddedIframe);
             document.body.removeChild(iframe);
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest('move elements between windows (GH-564)', function () {
+test('move elements between windows (GH-564)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test' + Date.now();
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeDocument = iframe.contentDocument;
 
@@ -208,10 +209,11 @@ asyncTest('move elements between windows (GH-564)', function () {
             });
 
             document.body.removeChild(iframe);
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('change iframe name', function () {
@@ -283,12 +285,7 @@ test('change iframe name', function () {
 
 module('location');
 
-asyncTest('change a url via location from cross-domain window', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id  = 'test' + Date.now();
-    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
-
+test('change a url via location from cross-domain window', function () {
     hammerhead.sandbox.codeInstrumentation.methodCallInstrumentation.methodWrappers.assign.method({
         assign: function (url) {
             ok(hasIframeFlag(url));
@@ -300,8 +297,6 @@ asyncTest('change a url via location from cross-domain window', function () {
             ok(hasIframeFlag(url));
         }
     }, ['https://example.com/']);
-
-    start();
 });
 
 module('regression');
