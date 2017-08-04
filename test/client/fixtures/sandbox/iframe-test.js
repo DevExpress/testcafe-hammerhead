@@ -87,14 +87,15 @@ test('take sequences starting with "$" into account when generating task scripts
     templateSettings.iframeTaskScriptTemplate = storedTemplate;
 });
 
-asyncTest('ready to init event must not raise for added iframe(B239643)', function () {
+test('ready to init event must not raise for added iframe(B239643)', function () {
     var iframe                   = document.createElement('iframe');
     var container                = document.createElement('div');
     var iframeLoadingEventRaised = false;
 
-    iframe.id = 'test1';
+    iframe.id = 'test' + Date.now();
     container.appendChild(iframe);
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var handler = function () {
                 iframeLoadingEventRaised = true;
@@ -109,12 +110,14 @@ asyncTest('ready to init event must not raise for added iframe(B239643)', functi
             ok(!iframeLoadingEventRaised);
             iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
             container.parentNode.removeChild(container);
-            start();
         });
+
     document.body.appendChild(container);
+
+    return promise;
 });
 
-asyncTest('the AMD module loader disturbs proxying an iframe without src (GH-127)', function () {
+test('the AMD module loader disturbs proxying an iframe without src (GH-127)', function () {
     var amdModuleLoaderMock = function () {
     };
 
@@ -123,22 +126,26 @@ asyncTest('the AMD module loader disturbs proxying an iframe without src (GH-127
 
     var iframe = document.createElement('iframe');
 
-    iframe.id = 'test_iframe_unique_id_jlsuie56598o';
-    window.QUnitGlobals.waitForIframe(iframe)
+    iframe.id = 'test' + Date.now();
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             ok(iframe.contentWindow['%hammerhead%']);
             delete window.define;
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest('native methods are properly initialized in an iframe without src (GH-279)', function () {
+test('native methods are properly initialized in an iframe without src (GH-279)', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.id = 'test_unique_id_lkjlosjkf';
-    window.QUnitGlobals.waitForIframe(iframe)
+    iframe.id = 'test' + Date.now();
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeDocument         = iframe.contentDocument;
             var iframeWindow           = iframe.contentWindow;
@@ -154,26 +161,29 @@ asyncTest('native methods are properly initialized in an iframe without src (GH-
             ok(nativeAppendChild !== overridedAppendChild);
             ok(nativeImage !== overridedImage);
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
-asyncTest('quotes in the cookies are not escaped when a task script for an iframe is built on the client (GH-366)', function () {
+test('quotes in the cookies are not escaped when a task script for an iframe is built on the client (GH-366)', function () {
     var iframe = document.createElement('iframe');
     var cookie = '""\'\'';
 
-    iframe.id             = 'test_cookie';
+    iframe.id             = 'test' + Date.now();
     settings.get().cookie = cookie;
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, cookie);
             iframe.parentNode.removeChild(iframe);
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 asyncTest('an error occurs when proxing two nested iframes (a top iframe has src with javascript protocol) (GH-125)', function () {
@@ -316,13 +326,13 @@ test("'body.appendChild' method works incorrectly in the particular case (GH-421
 });
 
 if (browserUtils.isWebKit) {
-    asyncTest('event listeners added twice in an iframe after document.write (GH-839)', function () {
+    test('event listeners added twice in an iframe after document.write (GH-839)', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.id  = 'test_jklfsd';
+        iframe.id  = 'test' + Date.now();
         iframe.src = window.QUnitGlobals.getResourceUrl('../../data/iframe/window-event-listeners.html');
 
-        window.QUnitGlobals.waitForIframe(iframe)
+        var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 iframe.contentWindow.eventListenersCount = {};
 
@@ -331,9 +341,10 @@ if (browserUtils.isWebKit) {
                 deepEqual(iframe.contentWindow.eventListenersCount, {});
 
                 document.body.removeChild(iframe);
-                start();
             });
 
         document.body.appendChild(iframe);
+
+        return promise;
     });
 }
