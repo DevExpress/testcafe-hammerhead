@@ -7,7 +7,6 @@ import styleProcessor from '../../processing/style';
 import { find, getTagName, isScriptElement } from './dom';
 import { convertToProxyUrl, parseProxyUrl } from './url';
 import { isIE, isMSEdge } from './browser';
-import { hasIsNotClosedFlag } from '../sandbox/node/document/writer';
 import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 
@@ -219,9 +218,6 @@ export function processHtml (html, parentTag, prepareDom) {
             urlResolver.updateBase(nativeMethods.getAttribute.call(base, 'href'), document);
 
         for (const child of children) {
-            if (hasIsNotClosedFlag(child))
-                continue;
-
             if (isScriptElement(child))
                 child.textContent = unwrapHtmlText(child.textContent);
 

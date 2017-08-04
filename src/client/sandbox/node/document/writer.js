@@ -12,16 +12,16 @@ import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 // since they can be overriden by the client code. (GH-245)
 const arrayJoin = Array.prototype.join;
 
-const BEGIN_MARKER_TAG_NAME  = 'hammerhead_write_marker_begin';
-const END_MARKER_TAG_NAME    = 'hammerhead_write_marker_end';
-const BEGIN_MARKER_MARKUP    = `<${ BEGIN_MARKER_TAG_NAME }></${ BEGIN_MARKER_TAG_NAME }>`;
-const END_MARKER_MARKUP      = `<${ END_MARKER_TAG_NAME }></${ END_MARKER_TAG_NAME }>`;
-const BEGIN_REMOVE_RE        = new RegExp(`^[\\S\\s]*${ BEGIN_MARKER_MARKUP }`, 'g');
-const END_REMOVE_RE          = new RegExp(`${ END_MARKER_MARKUP }[\\S\\s]*$`, 'g');
-const REMOVE_OPENING_TAG     = /^<[^>]+>/g;
-const REMOVE_CLOSING_TAG     = /<\/[^>]+>$/g;
-const PENDING_RE             = /<[A-Za-z][^>]*$/g;
-const IS_NOT_CLOSED_PROPERTY = 'hammerhead|is-not-closed-element';
+const BEGIN_MARKER_TAG_NAME = 'hammerhead_write_marker_begin';
+const END_MARKER_TAG_NAME   = 'hammerhead_write_marker_end';
+const BEGIN_MARKER_MARKUP   = `<${ BEGIN_MARKER_TAG_NAME }></${ BEGIN_MARKER_TAG_NAME }>`;
+const END_MARKER_MARKUP     = `<${ END_MARKER_TAG_NAME }></${ END_MARKER_TAG_NAME }>`;
+const BEGIN_REMOVE_RE       = new RegExp(`^[\\S\\s]*${ BEGIN_MARKER_MARKUP }`, 'g');
+const END_REMOVE_RE         = new RegExp(`${ END_MARKER_MARKUP }[\\S\\s]*$`, 'g');
+const REMOVE_OPENING_TAG    = /^<[^>]+>/g;
+const REMOVE_CLOSING_TAG    = /<\/[^>]+>$/g;
+const PENDING_RE            = /<[A-Za-z][^>]*$/g;
+const UNCLOSED_ELEMENT_FLAG = 'hammerhead|unclosed-element-flag';
 
 const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
@@ -109,13 +109,13 @@ export default class DocumentWriter {
         return htmlChunk;
     }
 
-    static _setIsNotClosedFlag (el) {
+    static _setUnclosedElementFlag (el) {
         if (isScriptElement(el) || isStyleElement(el))
-            el[IS_NOT_CLOSED_PROPERTY] = true;
+            el[UNCLOSED_ELEMENT_FLAG] = true;
     }
 
-    static hasIsNotClosedFlag (el) {
-        return !!el[IS_NOT_CLOSED_PROPERTY];
+    static hasUnclosedElementFlag (el) {
+        return !!el[UNCLOSED_ELEMENT_FLAG];
     }
 
     static _searchBeginMarker (container) {
@@ -175,7 +175,7 @@ export default class DocumentWriter {
     _processBeginMarkerInContent (beginMarker) {
         const elWithContent = beginMarker;
 
-        DocumentWriter._setIsNotClosedFlag(elWithContent);
+        DocumentWriter._setUnclosedElementFlag(elWithContent);
 
         if (this.isClosingContentEl && (isScriptElement(elWithContent) || isStyleElement(elWithContent))) {
             this.contentForProcessing = this.nonClosedEl.textContent +
@@ -193,7 +193,7 @@ export default class DocumentWriter {
     _processEndMarkerInContent (endMarker) {
         const elWithContent = endMarker;
 
-        DocumentWriter._setIsNotClosedFlag(elWithContent);
+        DocumentWriter._setUnclosedElementFlag(elWithContent);
 
         elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending;
         endMarker                 = nativeMethods.createElement.call(document, END_MARKER_TAG_NAME);

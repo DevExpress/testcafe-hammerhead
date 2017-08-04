@@ -1,4 +1,5 @@
 var processScript = hammerhead.get('../processing/script').processScript;
+var urlUtils      = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -150,4 +151,18 @@ test('write textarea', function () {
     testWriteln('test');
     testWriteln('other text');
     testWrite('</textarea>');
+});
+
+module('regression');
+
+test('write script with src and without closing tag', function () {
+    testWrite('<script id="script" src="script.js">');
+
+    var script       = iframeForWrite.contentDocument.querySelector('#script');
+    var resourceType = urlUtils.stringifyResourceType({ isScript: true });
+
+    strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
+
+    testWrite('var x = 5;');
+    testWrite('<\/script>');
 });
