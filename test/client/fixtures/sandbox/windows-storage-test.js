@@ -38,19 +38,20 @@ test('top window', function () {
 
 module('regression');
 
-asyncTest('should not raise an error for a cross-domain iframe (GH-669)', function () {
+test('should not raise an error for a cross-domain iframe (GH-669)', function () {
     var sameDomainIframe  = document.createElement('iframe');
     var crossDomainIframe = document.createElement('iframe');
     var form              = document.createElement('form');
     var src               = '../../data/code-instrumentation/iframe.html';
 
     crossDomainIframe.src = window.getCrossDomainPageUrl(src);
-    crossDomainIframe.id  = 'test_unique_id_foimb9ad9';
-    window.QUnitGlobals.waitForIframe(crossDomainIframe)
+    crossDomainIframe.id  = 'test' + Date.now();
+
+    var promise = window.QUnitGlobals.waitForIframe(crossDomainIframe)
         .then(function () {
             sameDomainIframe.src  = window.QUnitGlobals.getResourceUrl(src);
-            sameDomainIframe.id   = 'test_unique_id_dwbu9x663';
-            sameDomainIframe.name = 'test_name_dwbu9x663';
+            sameDomainIframe.id   = 'test' + Date.now();
+            sameDomainIframe.name = 'same_domain_iframe';
 
             var sameDomainIframePromise = window.QUnitGlobals.waitForIframe(sameDomainIframe);
 
@@ -59,19 +60,15 @@ asyncTest('should not raise an error for a cross-domain iframe (GH-669)', functi
             return sameDomainIframePromise;
         })
         .then(function () {
-            try {
-                ok(windowStorage.findByName('test_name_dwbu9x663'));
-            }
-            catch (e) {
-                ok(false, 'exception raised');
-            }
+            ok(windowStorage.findByName('same_domain_iframe'));
 
             sameDomainIframe.parentNode.removeChild(sameDomainIframe);
             crossDomainIframe.parentNode.removeChild(crossDomainIframe);
             form.parentNode.removeChild(form);
-
-            start();
         });
+
     document.body.appendChild(crossDomainIframe);
     document.body.appendChild(form);
+
+    return promise;
 });
