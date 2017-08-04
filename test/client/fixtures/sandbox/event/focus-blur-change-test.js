@@ -1067,7 +1067,7 @@ asyncTest('scrolling elements with "overflow=hidden" should be restored after fo
     }, false, true);
 });
 
-asyncTest('focus() must not raise the event if the element is invisible (GH-442)', function () {
+test('focus() must not raise the event if the element is invisible (GH-442)', function () {
     var checkFocus = function (style) {
         return new Promise(function (resolve) {
             var styleProp         = Object.keys(style)[0];
@@ -1099,14 +1099,13 @@ asyncTest('focus() must not raise the event if the element is invisible (GH-442)
         });
     };
 
-    checkFocus({ display: 'none' })
+    return checkFocus({ display: 'none' })
         .then(function () {
             return checkFocus({ visibility: 'hidden' });
-        })
-        .then(start);
+        });
 });
 
-asyncTest('focus() must not raise the event if the element is in an invisible iframe (GH-442)', function () {
+test('focus() must not raise the event if the element is in an invisible iframe (GH-442)', function () {
     var iframe = document.createElement('iframe');
     var input  = document.createElement('input');
 
@@ -1133,7 +1132,7 @@ asyncTest('focus() must not raise the event if the element is in an invisible if
     iframe.id            = 'test';
     iframe.style.display = 'none';
 
-    window.QUnitGlobals.waitForIframe(iframe)
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             iframe.contentDocument.body.appendChild(input);
 
@@ -1147,10 +1146,11 @@ asyncTest('focus() must not raise the event if the element is in an invisible if
         })
         .then(function () {
             document.body.removeChild(iframe);
-            start();
         });
 
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 asyncTest('should correctly handle the case when document.activeElement is null or an empty object (GH-768)', function () {
