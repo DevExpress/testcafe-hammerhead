@@ -4,17 +4,17 @@ import DATA_TRANSFER_ITEM_KIND from './data-transfer-item-kind';
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransferitem
 export default class DataTransferItem {
     constructor (kind, type, data) {
-        Object.defineProperty(this, 'kind', {
+        nativeMethods.objectDefineProperty.call(window, this, 'kind', {
             enumerable: true,
             get:        () => kind
         });
 
-        Object.defineProperty(this, 'type', {
+        nativeMethods.objectDefineProperty.call(window, this, 'type', {
             enumerable: true,
             get:        () => type
         });
 
-        Object.defineProperty(this, 'getAsString', {
+        nativeMethods.objectDefineProperty.call(window, this, 'getAsString', {
             configurable: true,
             enumerable:   true,
 
@@ -34,7 +34,7 @@ export default class DataTransferItem {
             }
         });
 
-        Object.defineProperty(this, 'getAsFile', {
+        nativeMethods.objectDefineProperty.call(window, this, 'getAsFile', {
             configurable: true,
             enumerable:   true,
 

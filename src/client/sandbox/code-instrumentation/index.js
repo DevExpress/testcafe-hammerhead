@@ -6,6 +6,7 @@ import StoragesAccessorsInstrumentation from './storages';
 import { getAttributeProperty } from './properties/attributes';
 import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
+import nativeMethods from '../../sandbox/native-methods';
 
 export default class CodeInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox, liveNodeListFactory) {
@@ -37,7 +38,7 @@ export default class CodeInstrumentation extends SandboxBase {
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         // NOTE: GH-260
-        Object.defineProperty(window, INSTRUCTION.getEval, {
+        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.getEval, {
             value: evalFn => {
                 if (evalFn !== window.eval)
                     return evalFn;
@@ -52,7 +53,7 @@ export default class CodeInstrumentation extends SandboxBase {
             configurable: true
         });
 
-        Object.defineProperty(window, INSTRUCTION.processScript, {
+        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.processScript, {
             value: (script, isApply) => {
                 if (isApply) {
                     if (script && script.length && typeof script[0] === 'string') {

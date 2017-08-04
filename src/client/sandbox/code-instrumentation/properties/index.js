@@ -323,7 +323,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (this.document.body === el) {
                         const shadowUIRoot = this.shadowUI.getRoot();
 
-                        ShadowUI.markShadowUIContainers(this.document.head, el);
+                        this.shadowUI.markShadowUIContainers(this.document.head, el);
                         ShadowUI.markElementAndChildrenAsShadow(shadowUIRoot);
                     }
 
@@ -698,7 +698,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             scripts: {
                 condition: domUtils.isDocument,
-                get:       doc => ShadowUI._filterNodeList(doc.scripts),
+                get:       doc => this.shadowUI._filterNodeList(doc.scripts),
                 set:       (doc, value) => {
                     doc.scripts = value;
 
@@ -837,7 +837,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             styleSheets: {
                 condition: domUtils.isDocument,
-                get:       doc => ShadowUI._filterStyleSheetList(doc.styleSheets),
+                get:       doc => this.shadowUI._filterStyleSheetList(doc.styleSheets),
                 set:       (doc, value) => {
                     doc.styleSheets = value;
 
@@ -880,7 +880,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        Object.defineProperty(window, INSTRUCTION.getProperty, {
+        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.getProperty, {
             value: (owner, propName) => {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot read property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);
@@ -895,7 +895,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             configurable: true
         });
 
-        Object.defineProperty(window, INSTRUCTION.setProperty, {
+        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.setProperty, {
             value: (owner, propName, value) => {
                 if (typeUtils.isNullOrUndefined(owner))
                     PropertyAccessorsInstrumentation._error(`Cannot set property '${propName}' of ${typeUtils.inaccessibleTypeToStr(owner)}`);

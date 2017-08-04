@@ -173,9 +173,10 @@ class NativeMethods {
         this.dateNow = win.Date.now;
 
         // Object
-        this.objectToString = win.Object.prototype.toString;
-        this.objectAssign   = win.Object.assign;
-        this.objectKeys     = win.Object.keys;
+        this.objectToString       = win.Object.prototype.toString;
+        this.objectAssign         = win.Object.assign;
+        this.objectKeys           = win.Object.keys;
+        this.objectDefineProperty = win.Object.defineProperty;
 
         // DOMParser
         if (win.DOMParser)

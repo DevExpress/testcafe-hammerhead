@@ -11,7 +11,6 @@ import DATA_STORE_MODE from './data-store-mode';
 import DROP_EFFECT from './drop-effect';
 import EFFECT_ALLOWED from './effect-allowed';
 
-
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransfer
 export default class DataTransfer {
     constructor (dataStore) {
@@ -33,7 +32,7 @@ export default class DataTransfer {
             return dataStore.mode === DATA_STORE_MODE.protected ? emptyListInternals : itemListInternals;
         };
 
-        Object.defineProperty(this, 'dropEffect', {
+        nativeMethods.objectDefineProperty.call(window, this, 'dropEffect', {
             configurable: true,
             enumerable:   true,
 
@@ -46,7 +45,7 @@ export default class DataTransfer {
             }
         });
 
-        Object.defineProperty(this, 'effectAllowed', {
+        nativeMethods.objectDefineProperty.call(window, this, 'effectAllowed', {
             configurable: true,
             enumerable:   true,
 
@@ -60,7 +59,7 @@ export default class DataTransfer {
         });
 
         if (!isIE11) {
-            Object.defineProperty(this, 'items', {
+            nativeMethods.objectDefineProperty.call(window, this, 'items', {
                 configurable: true,
                 enumerable:   true,
 
@@ -68,14 +67,14 @@ export default class DataTransfer {
             });
         }
 
-        Object.defineProperty(this, 'types', {
+        nativeMethods.objectDefineProperty.call(window, this, 'types', {
             configurable: true,
             enumerable:   true,
 
             get: () => getActualItemListInternals().getTypes()
         });
 
-        Object.defineProperty(this, 'files', {
+        nativeMethods.objectDefineProperty.call(window, this, 'files', {
             configurable: true,
             enumerable:   true,
 
