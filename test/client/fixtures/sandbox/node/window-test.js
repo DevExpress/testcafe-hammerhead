@@ -164,7 +164,7 @@ if (featureDetection.hasUnhandledRejectionEvent) {
 }
 
 if (window.FontFace) {
-    asyncTest('FontFace', function () {
+    test('FontFace', function () {
         var nativeFontFace = nativeMethods.FontFace;
         var url            = 'https://fonts.com/fs_albert.woff2';
         var desc           = {};
@@ -175,7 +175,6 @@ if (window.FontFace) {
             ok(descriptors, desc);
 
             nativeMethods.FontFace = nativeFontFace;
-            start();
         };
 
         return new FontFace('family', 'url("' + url + '")', desc);
@@ -231,7 +230,7 @@ test('parameters passed to the native function in its original form', function (
 });
 
 if (window.history.replaceState && window.history.pushState) {
-    asyncTest('window.history.replaceState, window.history.pushState', function () {
+    test('window.history.replaceState, window.history.pushState', function () {
         function SomeClass () {
             this.url = 'url';
         }
@@ -256,7 +255,7 @@ if (window.history.replaceState && window.history.pushState) {
 
         iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../../data/history/iframe.html'));
 
-        window.QUnitGlobals.waitForIframe(iframe)
+        var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 var iframeWindow        = iframe.contentWindow;
                 var iframeHammerhead    = iframeWindow['%hammerhead%'];
@@ -295,10 +294,11 @@ if (window.history.replaceState && window.history.pushState) {
                 }
 
                 document.body.removeChild(iframe);
-                start();
             });
 
         document.body.appendChild(iframe);
+
+        return promise;
     });
 }
 
@@ -327,7 +327,7 @@ if (isWorkerFromBlobSupported) {
 }
 
 if (window.navigator.sendBeacon) {
-    asyncTest('Navigator.sendBeacon must be overriden (GH-1035)', function () {
+    test('Navigator.sendBeacon must be overriden (GH-1035)', function () {
         var originUrl    = 'http://example.com/index.html';
         var originData   = 'some data';
         var nativeMethod = nativeMethods.sendBeacon;
@@ -336,7 +336,6 @@ if (window.navigator.sendBeacon) {
             strictEqual(url, urlUtils.getProxyUrl(originUrl));
             strictEqual(data, originData);
             nativeMethods.sendBeacon = nativeMethod;
-            start();
         };
 
         window.navigator.sendBeacon(originUrl, originData);
