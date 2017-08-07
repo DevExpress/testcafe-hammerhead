@@ -4,7 +4,7 @@ var browserUtils = hammerhead.utils.browser;
 asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/unload/iframe.html');
+    iframe.src = window.getSameDomainPageUrl('../../../data/unload/iframe.html');
 
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
@@ -41,7 +41,7 @@ if (browserUtils.isSafari && !browserUtils.isIOS) {
     asyncTest('onbeforeunload handler must be called in iframe (GH-698)', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../../data/unload/iframe-with-reload-button.html'));
+        iframe.setAttribute('src', window.getSameDomainPageUrl('../../../data/unload/iframe-with-reload-button.html'));
 
         var finish = function () {
             document.body.removeChild(iframe);

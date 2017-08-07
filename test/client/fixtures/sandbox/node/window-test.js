@@ -253,7 +253,7 @@ if (window.history.replaceState && window.history.pushState) {
 
         var iframe = document.createElement('iframe');
 
-        iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../../data/history/iframe.html'));
+        iframe.setAttribute('src', window.getSameDomainPageUrl('../../../data/history/iframe.html'));
 
         var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {

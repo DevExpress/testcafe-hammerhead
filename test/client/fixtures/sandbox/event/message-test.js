@@ -376,7 +376,7 @@ asyncTest('service messages from embedded iframe (GH-803)', function () {
         }
     });
 
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/embedded-iframes.html');
+    iframe.src = window.getSameDomainPageUrl('../../../data/event-sandbox/embedded-iframes.html');
 
     document.body.appendChild(iframe);
 });
@@ -430,7 +430,7 @@ test('service message from removed iframe (GH-64)', function () {
     });
 
     iframe.id = 'test' + Date.now();
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
+    iframe.src = window.getSameDomainPageUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
 
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {

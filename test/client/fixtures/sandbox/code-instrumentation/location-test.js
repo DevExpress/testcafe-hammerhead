@@ -33,6 +33,10 @@ test('iframe with empty src', function () {
     function assert (iframe) {
         var promise = window.QUnitGlobals.waitForIframe(iframe);
 
+//return window.createTestIframe()
+        //    .then(function (iframe) {
+        //
+        //    });
         document.body.appendChild(iframe);
 
         return promise
@@ -70,7 +74,10 @@ if (browserUtils.isWebKit) {
 
         iframe.id = 'test' + Date.now();
         iframe.setAttribute('src', 'javascript:void(0);');
-
+//return window.createTestIframe()
+        //    .then(function (iframe) {
+        //
+        //    });
         var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
@@ -192,12 +199,15 @@ if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -
     // NOTE The Safari iOS 10.3 and later does not provide access to the cross-domain location.
     test('getting location of a cross-domain window (GH-467)', function () {
         var iframe            = document.createElement('iframe');
-        var sameDomainSrc     = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
+        var sameDomainSrc     = window.getSameDomainPageUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
         var storedGetProxyUrl = urlUtils.getProxyUrl;
 
         iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
         iframe.id  = 'test' + Date.now();
-
+//return window.createTestIframe()
+        //    .then(function (iframe) {
+        //
+        //    });
         var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 urlUtils.getProxyUrl = function () {

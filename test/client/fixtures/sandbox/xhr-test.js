@@ -145,7 +145,10 @@ if (!browserUtils.isIE9) {
         var iframe = document.createElement('iframe');
 
         iframe.id = 'test';
-
+//return window.createTestIframe()
+        //    .then(function (iframe) {
+        //
+        //    });
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 // NOTE: iframe without src

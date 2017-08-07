@@ -53,6 +53,10 @@ if (document.attachEvent) {
 asyncTest('focus / blur events in iframe (B253685)', function () {
     var iframe = document.createElement('iframe');
 
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     iframe.id = 'test1';
     window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {

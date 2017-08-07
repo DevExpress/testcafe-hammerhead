@@ -47,7 +47,7 @@ module('isCrossDomainWindows', function () {
     test('iframe with cross domain src', function () {
         return window.createTestIframe(window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html'))
             .then(function (iframe) {
-                ok(!domUtils.isCrossDomainWindows(window, iframe.contentWindow));
+                ok(domUtils.isCrossDomainWindows(window, iframe.contentWindow));
             });
     });
 });
@@ -290,7 +290,7 @@ module('isIframeWithoutSrc');
 test('after the location is set to an iframe without src isIframeWithoutSrc should return "false"', function () {
     return window.createTestIframe()
         .then(function (iframe) {
-            var src = window.QUnitGlobals.getResourceUrl('../../data/same-domain/service-message-from-removed-iframe.html');
+            var src = window.getSameDomainPageUrl('../../data/same-domain/service-message-from-removed-iframe.html');
 
             ok(domUtils.isIframeWithoutSrc(iframe));
 
@@ -309,7 +309,7 @@ test('after the location is set to an iframe without src isIframeWithoutSrc shou
 // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
 if (!browserUtils.isIE) {
     test('should return "false" after calling document.open, document.write, document.close for the same-domain iframe (GH-703) (GH-704)', function () {
-        return window.createTestIframe(window.QUnitGlobals.getResourceUrl('../../data/code-instrumentation/iframe.html'))
+        return window.createTestIframe(window.getSameDomainPageUrl('../../data/code-instrumentation/iframe.html'))
             .then(function (iframe) {
                 ok(!domUtils.isIframeWithoutSrc(iframe));
 
@@ -521,7 +521,7 @@ test('hasClass', function () {
 });
 
 test('isElementFocusable', function () {
-    var src = window.QUnitGlobals.getResourceUrl('../../data/is-focusable/iframe.html', 'is-focusable/iframe.html');
+    var src = window.getSameDomainPageUrl('../../data/is-focusable/iframe.html', 'is-focusable/iframe.html');
 
     return window.createTestIframe(src)
         .then(function (iframe) {

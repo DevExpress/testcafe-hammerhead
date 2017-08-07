@@ -295,7 +295,7 @@ test('parameters passed to the native function in its original form', function (
 module('resgression');
 
 test('document.write for several tags in iframe (T215136)', function () {
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-with-doc-write.html');
+    var src    = window.getSameDomainPageUrl('../../../data/node-sandbox/iframe-with-doc-write.html');
     var iframe = document.createElement('iframe');
 
     iframe.setAttribute('src', src);
@@ -403,7 +403,7 @@ asyncTest('the onDocumentCleaned event is not raised after calling document.writ
     expect(1);
 
     var iframe  = document.createElement('iframe');
-    var src     = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
+    var src     = window.getSameDomainPageUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
     var handler = function (e) {
         window.removeEventListener('message', handler);
         strictEqual(e.data, 'success');
@@ -420,7 +420,7 @@ asyncTest('document elements are overridden after document.write has been called
     var iframe = document.createElement('iframe');
 
     iframe.id  = 'test';
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/iframe-override-elems-after-write.html');
+    iframe.src = window.getSameDomainPageUrl('../../../data/node-sandbox/iframe-override-elems-after-write.html');
 
     var onMessageHandler = function (e) {
         window.removeEventListener('message', onMessageHandler);
@@ -447,7 +447,7 @@ test('multiple document.write with html and body tags should not break markup (G
     var iframe = document.createElement('iframe');
 
     iframe.id  = 'test' + Date.now();
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/multiple-write-with-html-and-body-tags.html');
+    iframe.src = window.getSameDomainPageUrl('../../../data/node-sandbox/multiple-write-with-html-and-body-tags.html');
 
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
@@ -494,7 +494,7 @@ test('script error when adding a comment node to DOM (GH-435)', function () {
 
 test('"permission denied" error inside documentWriter (GH-384)', function () {
     var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
+    var src    = window.getSameDomainPageUrl('../../../data/dom-processor/iframe.html');
 
     iframe.id = 'test' + Date.now();
     iframe.setAttribute('src', src);
@@ -519,7 +519,7 @@ if (!browserUtils.isIE) {
     test('document.write for same-domain iframe (GH-679)', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
+        iframe.src = window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html');
         iframe.id  = 'test' + Date.now();
 
         var promise = window.QUnitGlobals.waitForIframe(iframe)

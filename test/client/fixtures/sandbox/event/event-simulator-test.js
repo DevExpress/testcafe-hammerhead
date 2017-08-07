@@ -512,11 +512,14 @@ if (browserUtils.isIE) {
 
 if (!browserUtils.isFirefox) {
     test('window event should not be undefined inside iframe handler (B254199)', function () {
-        var src    = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+        var src    = window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html');
         var iframe = document.createElement('iframe');
 
         iframe.setAttribute('src', src);
-
+//return window.createTestIframe()
+        //    .then(function (iframe) {
+        //
+        //    });
         var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 iframe.contentDocument.addEventListener('click', function () {
@@ -536,11 +539,14 @@ if (!browserUtils.isFirefox) {
     });
 
     test('window.event becomes empty when a click event handler triggers the click event on a different element in IE11 (GH-226)', function () {
-        var src    = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+        var src    = window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html');
         var iframe = document.createElement('iframe');
 
         iframe.setAttribute('src', src);
-
+//return window.createTestIframe()
+        //    .then(function (iframe) {
+        //
+        //    });
         var promise = window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
                 eventSimulator.click(iframe.contentDocument.getElementById('span'));
@@ -636,11 +642,14 @@ asyncTest('hammerhead functions should not be in strict mode (GH-344)', function
 });
 
 test('should not define the window.event property if the event is raised in iframe for the element of top window', function () {
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/event-simulator.html');
+    var src    = window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html');
     var iframe = document.createElement('iframe');
 
     iframe.setAttribute('src', src);
-
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeEventSimulator = iframe.contentWindow['%hammerhead%'].sandbox.event.eventSimulator;

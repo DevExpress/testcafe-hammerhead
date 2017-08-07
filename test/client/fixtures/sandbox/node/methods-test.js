@@ -302,7 +302,7 @@ if (window.navigator.serviceWorker) {
     // This condition works only for running on the local machine only. On Saucelabs url with a domain name is opened.
     if (location.hostname === 'localhost') {
         test('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
-            var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
+            var scriptUrl = window.getSameDomainPageUrl('../../../data/serviceWorker.js');
             var scopeUrl  = '/';
 
             return window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })

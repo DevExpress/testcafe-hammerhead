@@ -2,7 +2,7 @@ var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker
 var iframeSandbox       = hammerhead.sandbox.iframe;
 
 function createIframe () {
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var src    = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
     var iframe = document.createElement('iframe');
 
     iframe.setAttribute('src', src);
@@ -23,7 +23,10 @@ QUnit.testDone(function () {
 
 test('check changing active window', function () {
     var iframe = createIframe();
-
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             ok(activeWindowTracker.isCurrentWindowActive());
@@ -66,6 +69,10 @@ test('check switching active window (between two iframes)', function () {
     var firstIframePromise  = window.QUnitGlobals.waitForIframe(firstIframe);
     var secondIframePromise = window.QUnitGlobals.waitForIframe(secondIframe);
 
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     document.body.appendChild(firstIframe);
     document.body.appendChild(secondIframe);
 
@@ -117,7 +124,10 @@ test('check that an error does not rise when trying to send serviceMessage to th
     link.setAttribute('href', '#');
     link.innerHTML = 'Link';
     iframe.id = 'GH206';
-
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             iframe.contentDocument.body.focus();
@@ -152,6 +162,10 @@ test('no error occurs when a focused iframe is removed and a different iframe ge
     var secondIframePromise = window.QUnitGlobals.waitForIframe(secondIframe);
     var withError           = false;
 
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     hammerhead.on(hammerhead.EVENTS.uncaughtJsError, function () {
         withError = true;
     });

@@ -39,36 +39,16 @@ test('top window', function () {
 module('regression');
 
 test('should not raise an error for a cross-domain iframe (GH-669)', function () {
-    var sameDomainIframe  = document.createElement('iframe');
-    var crossDomainIframe = document.createElement('iframe');
-    var form              = document.createElement('form');
-    var src               = '../../data/code-instrumentation/iframe.html';
+    var src = '../../data/code-instrumentation/iframe.html';
 
-    crossDomainIframe.src = window.getCrossDomainPageUrl(src);
-    crossDomainIframe.id  = 'test' + Date.now();
-
-    var promise = window.QUnitGlobals.waitForIframe(crossDomainIframe)
+    return window.createTestIframe(window.getCrossDomainPageUrl(src))
         .then(function () {
-            sameDomainIframe.src  = window.QUnitGlobals.getResourceUrl(src);
-            sameDomainIframe.id   = 'test' + Date.now();
-            sameDomainIframe.name = 'same_domain_iframe';
-
-            var sameDomainIframePromise = window.QUnitGlobals.waitForIframe(sameDomainIframe);
-
-            document.body.appendChild(sameDomainIframe);
-
-            return sameDomainIframePromise;
+            return window.createTestIframe({
+                src:  window.getSameDomainPageUrl(src),
+                name: 'same_domain_iframe'
+            });
         })
         .then(function () {
             ok(windowStorage.findByName('same_domain_iframe'));
-
-            sameDomainIframe.parentNode.removeChild(sameDomainIframe);
-            crossDomainIframe.parentNode.removeChild(crossDomainIframe);
-            form.parentNode.removeChild(form);
         });
-
-    document.body.appendChild(crossDomainIframe);
-    document.body.appendChild(form);
-
-    return promise;
 });

@@ -102,7 +102,7 @@ module('getElementsByTagName', function () {
             var iframe = document.createElement('iframe');
 
             iframe.id  = 'test' + Date.now();
-            iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/live-node-list/getElementsByTagName.html');
+            iframe.src = window.getSameDomainPageUrl('../../../data/live-node-list/getElementsByTagName.html');
 
             var promise = window.QUnitGlobals.waitForIframe(iframe)
                 .then(function () {

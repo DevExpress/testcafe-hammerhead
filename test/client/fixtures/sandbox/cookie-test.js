@@ -49,20 +49,12 @@ test('get/set', function () {
 });
 
 test('path validation', function () {
-    var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../data/cookie-sandbox/validation.html', 'cookie-sandbox/validation.html');
+    var src = window.getSameDomainPageUrl('../../data/cookie-sandbox/validation.html', 'cookie-sandbox/validation.html');
 
-    iframe.setAttribute('src', src);
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe(src)
+        .then(function (iframe) {
             ok(iframe.contentWindow.runTest());
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('remove real cookie after browser processing', function () {
@@ -191,7 +183,7 @@ if (!browserUtils.isIOS) {
 
         var nextCookieTest = function (urlIndex) {
             iframe.setAttribute('id', 'test' + Date.now());
-            iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl(testedPages[urlIndex]));
+            iframe.setAttribute('src', window.getSameDomainPageUrl(testedPages[urlIndex]));
 
             window.addEventListener('message', function onMessage (e) {
                 strictEqual(e.data, expectedCookies, testedPages[urlIndex]);

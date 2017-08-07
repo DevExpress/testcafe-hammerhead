@@ -306,10 +306,13 @@ test('innerHTML, innerText, text, textContent', function () {
 
 test('body.innerHTML in iframe', function () {
     var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
+    var src    = window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html');
 
     iframe.setAttribute('src', src);
-
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var hasShadowUIRoot = function () {
@@ -340,6 +343,10 @@ if (!browserUtils.isIE) {
         var target = window.location.protocol + '//' + window.location.host;
         var iframe = document.createElement('iframe');
 
+//return window.createTestIframe()
+        //    .then(function (iframe) {
+        //
+        //    });
         iframe.src = window.location.origin;
         window.QUnitGlobals.waitForIframe(iframe)
             .then(function () {
@@ -417,7 +424,10 @@ test('innerHTML in iframe (GH-620)', function () {
     var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i' });
 
     iframe.id = 'test' + Date.now();
-
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             eval(processScript('iframe.contentDocument.body.innerHTML = "<a href=\\"' + url + '\\">link</a>";'));
@@ -468,7 +478,10 @@ test('iframe.body.innerHtml must be overriden (Q527555)', function () {
     var iframe = document.createElement('iframe');
 
     iframe.id = 'test' + Date.now();
-
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeBody = iframe.contentWindow.document.body;
@@ -588,12 +601,15 @@ test('the client code gets access to the Hammerhead script (GH-479)', function (
 
 test("location assignment doesn't work (GH-640)", function () {
     var iframe       = document.createElement('iframe');
-    var iframeSrc    = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
-    var iframeNewSrc = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var iframeSrc    = window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html');
+    var iframeNewSrc = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
 
     iframe.id  = 'test' + Date.now();
     iframe.src = iframeSrc;
-
+//return window.createTestIframe()
+    //    .then(function (iframe) {
+    //
+    //    });
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             return new Promise(function (resolve) {
@@ -605,7 +621,7 @@ test("location assignment doesn't work (GH-640)", function () {
             var parsedProxyUrl = urlUtils.parseProxyUrl(iframe.contentWindow.location);
 
             strictEqual(parsedProxyUrl.resourceType, 'i');
-            strictEqual(parsedProxyUrl.destResourceInfo.partAfterHost, iframeNewSrc);
+            strictEqual(parsedProxyUrl.destResourceInfo.partAfterHost, urlUtils.parseUrl(iframeNewSrc).partAfterHost);
 
             iframe.parentNode.removeChild(iframe);
         });

@@ -583,7 +583,7 @@ asyncTest('get file info from iframe', function () {
                 start();
             });
 
-            iframe.src = window.QUnitGlobals.getResourceUrl('../../data/upload/iframe.html');
+            iframe.src = window.getSameDomainPageUrl('../../data/upload/iframe.html');
             document.body.appendChild(iframe);
         });
 });

@@ -775,7 +775,7 @@ if (window.HTMLInputElement.prototype.createTextRange) {
 
 asyncTest('active window doesn\'t change after focusing ShadowUI element in iframe', function () {
     var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var src    = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
 
     iframe.setAttribute('src', src);
     window.QUnitGlobals.waitForIframe(iframe)
@@ -999,7 +999,7 @@ test('querySelector must return active element even when browser is not focused 
 
 asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=3 page (B237723)', function () {
     var iframe      = document.createElement('iframe');
-    var src         = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/focus-blur-sandbox.html');
+    var src         = window.getSameDomainPageUrl('../../../data/event-sandbox/focus-blur-sandbox.html');
     var errorRaised = false;
 
     iframe.className = TEST_ELEMENT_CLASS;

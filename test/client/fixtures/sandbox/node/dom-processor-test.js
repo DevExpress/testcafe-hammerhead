@@ -566,7 +566,7 @@ test('link with target="_parent" in iframe (T216999)', function () {
     var storedAttrName = domProcessor.getStoredAttrName('href');
 
     iframe.id  = 'test' + Date.now();
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
+    iframe.src = window.getSameDomainPageUrl('../../../data/dom-processor/iframe.html');
 
     var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
@@ -761,7 +761,7 @@ test('xml:base attribute of svg element should be overriden (GH-477)', function 
 
 test("should reprocess tags that doesn't processed on server side (GH-838)", function () {
     var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe-with-nonproceed-on-server-tags.html');
+    var src    = window.getSameDomainPageUrl('../../../data/dom-processor/iframe-with-nonproceed-on-server-tags.html');
 
     iframe.id = 'test' + Date.now();
     iframe.setAttribute('src', src);

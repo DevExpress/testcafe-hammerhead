@@ -78,12 +78,8 @@ test('get root', function () {
 });
 
 test('get root after body recreation', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test' + Date.now();
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             var document = iframe.contentDocument;
             var window   = iframe.contentWindow;
             var getRoot  = function () {
@@ -101,13 +97,7 @@ test('get root after body recreation', function () {
             html.removeChild(document.body);
             html.insertBefore(document.createElement('body'), null);
             ok(getRoot());
-
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('set innerHTML for root', function () {
@@ -595,19 +585,17 @@ module('ui stylesheet');
 test('stylesheets are restored after the document is cleaned', function () {
     var link1  = document.createElement('link');
     var link2  = document.createElement('link');
-    var iframe = document.createElement('iframe');
 
     link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link1.id        = 'id1';
     link2.id        = 'id2';
-    iframe.id       = 'test' + Date.now();
 
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
 
             var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
@@ -629,30 +617,23 @@ test('stylesheets are restored after the document is cleaned', function () {
 
             document.head.removeChild(link1);
             document.head.removeChild(link2);
-            document.body.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('append stylesheets to the iframe on initialization', function () {
     var link1  = document.createElement('link');
     var link2  = document.createElement('link');
-    var iframe = document.createElement('iframe');
 
     link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link1.id        = 'id1';
     link2.id        = 'id2';
-    iframe.id       = 'test' + Date.now();
 
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             var currentUIStylesheets = nativeMethods.querySelectorAll.call(
                 document,
                 '.' + SHADOW_UI_CLASSNAME.uiStylesheet
@@ -669,23 +650,16 @@ test('append stylesheets to the iframe on initialization', function () {
 
             document.head.removeChild(link1);
             document.head.removeChild(link2);
-            document.body.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test("do nothing if ShadowUIStylesheet doesn't exist", function () {
-    var iframe       = document.createElement('iframe');
     var qUnitCssLink = nativeMethods.querySelector.call(document, '.' + SHADOW_UI_CLASSNAME.uiStylesheet);
 
-    iframe.id              = 'test' + Date.now();
     qUnitCssLink.className = '';
 
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             var currentUIStylesheets = nativeMethods.querySelectorAll.call(
                 document,
                 '.' + SHADOW_UI_CLASSNAME.uiStylesheet
@@ -699,12 +673,7 @@ test("do nothing if ShadowUIStylesheet doesn't exist", function () {
             strictEqual(iframeUIStylesheets.length, 0);
 
             qUnitCssLink.className = SHADOW_UI_CLASSNAME.uiStylesheet;
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 module('regression');
@@ -721,12 +690,8 @@ test('SVG elements\' className is of the SVGAnimatedString type instead of strin
 });
 
 test('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test' + Date.now();
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             var root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
             strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
@@ -736,13 +701,7 @@ test('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)
             root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
             strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
-
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('shadowUI\'s root must be the last child after adding a new element (T239689)', function () {
@@ -779,21 +738,12 @@ test('isShadowContainerCollection for cross-domain iframe.contentWindow must ret
 
     settings.get().crossDomainProxyPort = 2001;
 
-    var crossDomainIframe = document.createElement('iframe');
-
-    crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
-
-    var promise = window.QUnitGlobals.waitForIframe(crossDomainIframe)
-        .then(function () {
+    return window.createTestIframe(window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html'))
+        .then(function (crossDomainIframe) {
             ok(!ShadowUI.isShadowContainerCollection([crossDomainIframe.contentWindow]));
 
-            crossDomainIframe.parentNode.removeChild(crossDomainIframe);
             settings.get().crossDomainProxyPort = storedCrossDomainPort;
         });
-
-    document.body.appendChild(crossDomainIframe);
-
-    return promise;
 });
 
 if (document.implementation && document.implementation.createHTMLDocument) {

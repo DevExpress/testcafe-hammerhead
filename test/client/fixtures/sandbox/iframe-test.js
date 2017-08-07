@@ -88,15 +88,14 @@ test('take sequences starting with "$" into account when generating task scripts
 });
 
 test('ready to init event must not raise for added iframe(B239643)', function () {
-    var iframe                   = document.createElement('iframe');
-    var container                = document.createElement('div');
-    var iframeLoadingEventRaised = false;
+    var container = document.createElement('div');
 
-    iframe.id = 'test' + Date.now();
-    container.appendChild(iframe);
+    document.body.appendChild(container);
 
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
+    return window.createTestIframe(null, container)
         .then(function () {
+            var iframeLoadingEventRaised = false;
+
             var handler = function () {
                 iframeLoadingEventRaised = true;
             };
@@ -109,12 +108,7 @@ test('ready to init event must not raise for added iframe(B239643)', function ()
             /* eslint-enable no-unused-vars */
             ok(!iframeLoadingEventRaised);
             iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, handler);
-            container.parentNode.removeChild(container);
         });
-
-    document.body.appendChild(container);
-
-    return promise;
 });
 
 test('the AMD module loader disturbs proxying an iframe without src (GH-127)', function () {
@@ -124,29 +118,16 @@ test('the AMD module loader disturbs proxying an iframe without src (GH-127)', f
     amdModuleLoaderMock.amd = {};
     window.define           = amdModuleLoaderMock;
 
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test' + Date.now();
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             ok(iframe.contentWindow['%hammerhead%']);
             delete window.define;
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('native methods are properly initialized in an iframe without src (GH-279)', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test' + Date.now();
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             var iframeDocument         = iframe.contentDocument;
             var iframeWindow           = iframe.contentWindow;
             var iframeHammerhead       = iframeWindow['%hammerhead%'];
@@ -160,30 +141,18 @@ test('native methods are properly initialized in an iframe without src (GH-279)'
             ok(nativeCreateElement !== overridedCreateElement);
             ok(nativeAppendChild !== overridedAppendChild);
             ok(nativeImage !== overridedImage);
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('quotes in the cookies are not escaped when a task script for an iframe is built on the client (GH-366)', function () {
-    var iframe = document.createElement('iframe');
     var cookie = '""\'\'';
 
-    iframe.id             = 'test' + Date.now();
     settings.get().cookie = cookie;
 
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, cookie);
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 asyncTest('an error occurs when proxing two nested iframes (a top iframe has src with javascript protocol) (GH-125)', function () {
@@ -327,24 +296,12 @@ test("'body.appendChild' method works incorrectly in the particular case (GH-421
 
 if (browserUtils.isWebKit) {
     test('event listeners added twice in an iframe after document.write (GH-839)', function () {
-        var iframe = document.createElement('iframe');
-
-        iframe.id  = 'test' + Date.now();
-        iframe.src = window.QUnitGlobals.getResourceUrl('../../data/iframe/window-event-listeners.html');
-
-        var promise = window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+        return window.createTestIframe(window.getSameDomainPageUrl('../../data/iframe/window-event-listeners.html'))
+            .then(function (iframe) {
                 iframe.contentWindow.eventListenersCount = {};
-
                 iframe.contentWindow.performWrite();
 
                 deepEqual(iframe.contentWindow.eventListenersCount, {});
-
-                document.body.removeChild(iframe);
             });
-
-        document.body.appendChild(iframe);
-
-        return promise;
     });
 }

@@ -467,7 +467,7 @@ test('add, update and remove the "base" tag (GH-371)', function () {
 
 test('recreating a document with the "base" tag (GH-371)', function () {
     var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
+    var src    = window.getSameDomainPageUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
 
     iframe.id = 'test' + Date.now();
     iframe.setAttribute('src', src);
@@ -521,7 +521,7 @@ test('"base" tag with an href attribute that is set to a relative url (GH-422)',
 
 test('resolving url after writing the "base" tag (GH-526)', function () {
     var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../data/same-domain/resolving-url-after-writing-base-tag.html');
+    var src    = window.getSameDomainPageUrl('../../data/same-domain/resolving-url-after-writing-base-tag.html');
 
     iframe.id = 'test' + Date.now();
     iframe.setAttribute('src', src);
