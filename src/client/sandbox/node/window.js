@@ -13,8 +13,13 @@ import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
+import INSTRUCTION from '../../../processing/script/instruction';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
+
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+const arrayConcat = Array.prototype.concat;
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox) {
@@ -106,6 +111,34 @@ export default class WindowSandbox extends SandboxBase {
 
             return nativeMethods.canvasContextDrawImage.apply(this, args);
         };
+
+        if (nativeMethods.objectAssign) {
+            window.Object.assign = function (target, ...sources) {
+                let args = [];
+
+                args.push(target);
+
+                const targetType = typeof target;
+
+                if (target && (targetType === 'object' || targetType === 'function') && sources.length) {
+                    for (const source of sources) {
+                        if (!source || typeof source !== 'object') {
+                            nativeMethods.objectAssign.call(this, target, source);
+                            continue;
+                        }
+
+                        const sourceKeys = nativeMethods.objectKeys.call(window.Object, source);
+
+                        for (const key of sourceKeys)
+                            window[INSTRUCTION.setProperty](target, key, source[key]);
+                    }
+                }
+                else
+                    args = arrayConcat.call(args, sources);
+
+                return nativeMethods.objectAssign.apply(this, args);
+            };
+        }
 
         // NOTE: Override uncaught error handling.
         window.onerror = (msg, url, line, col, errObj) => {
