@@ -138,6 +138,31 @@
         ok(passed);
     };
 
+    window.createTestIframe = function (src, parent) {
+        var iframe = document.createElement('iframe');
+
+        iframe.id = 'test' + Date.now();
+
+        if (src !== null && src !== void 0)
+            iframe.setAttribute('src', src);
+
+        parent = parent || document.body;
+
+        QUnit.testDone(function () {
+            if (document.getElementById(iframe.id))
+                iframe.parentNode.removeChild(iframe);
+        });
+
+        var promise = window.QUnitGlobals.waitForIframe(iframe);
+
+        parent.appendChild(iframe);
+
+        return promise
+            .then(function () {
+                return iframe;
+            });
+    };
+
     QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT = 20000;
     QUnit.config.testTimeout             = window.QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT * 2 + 5000;
 
