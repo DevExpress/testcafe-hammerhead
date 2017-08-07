@@ -465,13 +465,14 @@ test('add, update and remove the "base" tag (GH-371)', function () {
     strictEqual(getProxyUrl('image.png'), 'http://' + PROXY_HOST + '/sessionId/https://example.com/image.png');
 });
 
-asyncTest('recreating a document with the "base" tag (GH-371)', function () {
+test('recreating a document with the "base" tag (GH-371)', function () {
     var iframe = document.createElement('iframe');
     var src    = window.QUnitGlobals.getResourceUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
 
-    iframe.id = 'test_ojfnnhsg43';
+    iframe.id = 'test' + Date.now();
     iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             var iframeDocument = iframe.contentDocument;
             var link           = iframeDocument.getElementsByTagName('a')[0];
@@ -480,9 +481,11 @@ asyncTest('recreating a document with the "base" tag (GH-371)', function () {
 
             strictEqual(link.href, proxyUrl);
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('setting up an href attribute for a non-added to DOM "base" tag should not cause urlResolver to update. (GH-415)', function () {
@@ -516,13 +519,14 @@ test('"base" tag with an href attribute that is set to a relative url (GH-422)',
     base.parentNode.removeChild(base);
 });
 
-asyncTest('resolving url after writing the "base" tag (GH-526)', function () {
+test('resolving url after writing the "base" tag (GH-526)', function () {
     var iframe = document.createElement('iframe');
     var src    = window.QUnitGlobals.getResourceUrl('../../data/same-domain/resolving-url-after-writing-base-tag.html');
 
-    iframe.id = 'test';
+    iframe.id = 'test' + Date.now();
     iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             strictEqual(iframe.contentDocument.querySelector('a').href,
                 urlUtils.getProxyUrl('http://example.com/relative', {
@@ -533,9 +537,11 @@ asyncTest('resolving url after writing the "base" tag (GH-526)', function () {
                 }));
 
             iframe.parentNode.removeChild(iframe);
-            start();
         });
+
     document.body.appendChild(iframe);
+
+    return promise;
 });
 
 test('"base" tag with an href attribute that is set to a protocol relative url (GH-568)', function () {
