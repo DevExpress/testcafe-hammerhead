@@ -11,7 +11,7 @@ QUnit.testDone(function () {
 
 module('regression');
 
-asyncTest('"string-trim" should not use the "String.prototype.trim" method (GH-609)', function () {
+test('"string-trim" should not use the "String.prototype.trim" method (GH-609)', function () {
     /* eslint-disable no-extend-native */
     var iframe     = document.createElement('iframe');
     var storedTrim = String.prototype.trim;
@@ -20,17 +20,18 @@ asyncTest('"string-trim" should not use the "String.prototype.trim" method (GH-6
         return 'overrided';
     };
 
-    iframe.id = 'test';
-    window.QUnitGlobals.waitForIframe(iframe)
+    iframe.id = 'test' + Date.now();
+
+    var promise = window.QUnitGlobals.waitForIframe(iframe)
         .then(function () {
             strictEqual(iframe.contentWindow['%hammerhead%'].utils.trim(' text '), 'text');
 
             iframe.parentNode.removeChild(iframe);
             String.prototype.trim = storedTrim;
-
-            start();
         });
 
     document.body.appendChild(iframe);
     /* eslint-enable no-extend-native */
+
+    return promise;
 });
