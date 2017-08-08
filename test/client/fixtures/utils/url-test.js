@@ -466,26 +466,17 @@ test('add, update and remove the "base" tag (GH-371)', function () {
 });
 
 test('recreating a document with the "base" tag (GH-371)', function () {
-    var iframe = document.createElement('iframe');
-    var src    = window.getSameDomainPageUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
+    var src = window.getSameDomainPageUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
 
-    iframe.id = 'test' + Date.now();
-    iframe.setAttribute('src', src);
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe(src)
+        .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
             var link           = iframeDocument.getElementsByTagName('a')[0];
             var proxyUrl       = 'http://' + location.hostname + ':' + location.port +
                                  '/sessionId!i/http://subdomain.example.com/index.html';
 
             strictEqual(link.href, proxyUrl);
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('setting up an href attribute for a non-added to DOM "base" tag should not cause urlResolver to update. (GH-415)', function () {
@@ -520,14 +511,10 @@ test('"base" tag with an href attribute that is set to a relative url (GH-422)',
 });
 
 test('resolving url after writing the "base" tag (GH-526)', function () {
-    var iframe = document.createElement('iframe');
-    var src    = window.getSameDomainPageUrl('../../data/same-domain/resolving-url-after-writing-base-tag.html');
+    var src = window.getSameDomainPageUrl('../../data/same-domain/resolving-url-after-writing-base-tag.html');
 
-    iframe.id = 'test' + Date.now();
-    iframe.setAttribute('src', src);
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe(src)
+        .then(function (iframe) {
             strictEqual(iframe.contentDocument.querySelector('a').href,
                 urlUtils.getProxyUrl('http://example.com/relative', {
                     proxyHostname: location.hostname,
@@ -535,13 +522,7 @@ test('resolving url after writing the "base" tag (GH-526)', function () {
                     sessionId:     'sessionId',
                     resourceType:  'i'
                 }));
-
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('"base" tag with an href attribute that is set to a protocol relative url (GH-568)', function () {

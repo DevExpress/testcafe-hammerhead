@@ -512,16 +512,8 @@ if (browserUtils.isIE) {
 
 if (!browserUtils.isFirefox) {
     test('window event should not be undefined inside iframe handler (B254199)', function () {
-        var src    = window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html');
-        var iframe = document.createElement('iframe');
-
-        iframe.setAttribute('src', src);
-//return window.createTestIframe()
-        //    .then(function (iframe) {
-        //
-        //    });
-        var promise = window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+        return window.createTestIframe(window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html'))
+            .then(function (iframe) {
                 iframe.contentDocument.addEventListener('click', function () {
                     if (typeof iframe.contentWindow.event === 'undefined')
                         window.top.error = true;
@@ -530,34 +522,16 @@ if (!browserUtils.isFirefox) {
                 eventSimulator.click(iframe.contentDocument.body);
 
                 ok(!window.top.error);
-                iframe.parentNode.removeChild(iframe);
             });
-
-        document.body.appendChild(iframe);
-
-        return promise;
     });
 
     test('window.event becomes empty when a click event handler triggers the click event on a different element in IE11 (GH-226)', function () {
-        var src    = window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html');
-        var iframe = document.createElement('iframe');
-
-        iframe.setAttribute('src', src);
-//return window.createTestIframe()
-        //    .then(function (iframe) {
-        //
-        //    });
-        var promise = window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+        return window.createTestIframe(window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html'))
+            .then(function (iframe) {
                 eventSimulator.click(iframe.contentDocument.getElementById('span'));
 
                 ok(!window.top.error);
-                iframe.parentNode.removeChild(iframe);
             });
-
-        document.body.appendChild(iframe);
-
-        return promise;
     });
 
     asyncTest('"submit" should bubble (GH-318)', function () {
@@ -642,16 +616,8 @@ asyncTest('hammerhead functions should not be in strict mode (GH-344)', function
 });
 
 test('should not define the window.event property if the event is raised in iframe for the element of top window', function () {
-    var src    = window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html');
-    var iframe = document.createElement('iframe');
-
-    iframe.setAttribute('src', src);
-//return window.createTestIframe()
-    //    .then(function (iframe) {
-    //
-    //    });
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html'))
+        .then(function (iframe) {
             var iframeEventSimulator = iframe.contentWindow['%hammerhead%'].sandbox.event.eventSimulator;
 
             iframeEventSimulator.keydown(domElement, { keyCode: 13 });
@@ -661,12 +627,7 @@ test('should not define the window.event property if the event is raised in ifra
         })
         .then(function (err) {
             ok(!err, err);
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('wrong type of the key event (GH-941)', function () {

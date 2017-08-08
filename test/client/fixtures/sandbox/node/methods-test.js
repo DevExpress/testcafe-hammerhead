@@ -180,18 +180,13 @@ test('table.insertRow, table.insertCell', function () {
 });
 
 asyncTest('form.submit', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id   = 'test_unique_id_27lkj6j79';
-    iframe.name = 'test-window';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    window.createTestIframe({ name: 'test-window' })
+        .then(function (iframe) {
             var form             = iframe.contentDocument.createElement('form');
             var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
             var handler          = function (e) {
                 strictEqual(e.form, form);
                 iframeHammerhead.off(iframeHammerhead.EVENTS.beforeFormSubmit, handler);
-                iframe.parentNode.removeChild(iframe);
                 start();
             };
 
@@ -200,7 +195,6 @@ asyncTest('form.submit', function () {
             form.target = 'test-window';
             form.submit();
         });
-    document.body.appendChild(iframe);
 });
 
 test('setAttribute: img src', function () {

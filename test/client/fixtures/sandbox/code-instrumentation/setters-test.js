@@ -305,16 +305,8 @@ test('innerHTML, innerText, text, textContent', function () {
 });
 
 test('body.innerHTML in iframe', function () {
-    var iframe = document.createElement('iframe');
-    var src    = window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html');
-
-    iframe.setAttribute('src', src);
-//return window.createTestIframe()
-    //    .then(function (iframe) {
-    //
-    //    });
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html'))
+        .then(function (iframe) {
             var hasShadowUIRoot = function () {
                 var iframeBody = iframe.contentDocument.body;
                 var root       = iframeBody.children[iframeBody.children.length - 1];
@@ -327,37 +319,22 @@ test('body.innerHTML in iframe', function () {
             eval(processScript('iframe.contentDocument.body.innerHTML = "";'));
 
             return window.QUnitGlobals.wait(hasShadowUIRoot);
-        })
-        .then(function () {
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 // NOTE: IE does not allow overriding the postMessage method.
 if (!browserUtils.isIE) {
     asyncTest('postMessage', function () {
         var target = window.location.protocol + '//' + window.location.host;
-        var iframe = document.createElement('iframe');
 
-//return window.createTestIframe()
-        //    .then(function (iframe) {
-        //
-        //    });
-        iframe.src = window.location.origin;
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+        window.createTestIframe(window.location.origin)
+            .then(function (iframe) {
                 iframe.contentWindow.postMessage = function () {
                     strictEqual(target, window.location.origin);
-                    iframe.parentNode.removeChild(iframe);
                     start();
                 };
                 eval(processScript('iframe.contentWindow.postMessage("data", "' + target + '")'));
             });
-        document.body.appendChild(iframe);
     });
 }
 
@@ -419,27 +396,15 @@ test('outerHTML', function () {
 module('regression');
 
 test('innerHTML in iframe (GH-620)', function () {
-    var iframe   = document.createElement('iframe');
     var url      = 'somePage.html';
     var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i' });
 
-    iframe.id = 'test' + Date.now();
-//return window.createTestIframe()
-    //    .then(function (iframe) {
-    //
-    //    });
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             eval(processScript('iframe.contentDocument.body.innerHTML = "<a href=\\"' + url + '\\">link</a>";'));
 
             strictEqual(iframe.contentDocument.body.firstChild.href, proxyUrl);
-
-            document.body.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('script block inserted via element.innerHtml must not be executed (B237015)', function () {
@@ -449,7 +414,7 @@ test('script block inserted via element.innerHtml must not be executed (B237015)
     var script           = '<script>window.' + testPropertyName + ' = true;\<\/script>';
 
     body.appendChild(el);
-    el.innerHTML = script;
+    el.innerHTML         = script;
 
     ok(!window[testPropertyName]);
 });
@@ -475,27 +440,15 @@ if (!browserUtils.isIE) {
 }
 
 test('iframe.body.innerHtml must be overriden (Q527555)', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test' + Date.now();
-//return window.createTestIframe()
-    //    .then(function (iframe) {
-    //
-    //    });
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             var iframeBody = iframe.contentWindow.document.body;
             var html       = '<a href="url" ' + domProcessor.getStoredAttrName('src') + '="url1" />';
 
             iframeBody.innerHTML = html;
 
             ok(getProperty(iframeBody, 'innerHTML') !== html);
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('setting the link.href attribute to "mailto" in iframe (T228218)', function () {
@@ -600,35 +553,24 @@ test('the client code gets access to the Hammerhead script (GH-479)', function (
 });
 
 test("location assignment doesn't work (GH-640)", function () {
-    var iframe       = document.createElement('iframe');
     var iframeSrc    = window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html');
     var iframeNewSrc = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
 
-    iframe.id  = 'test' + Date.now();
-    iframe.src = iframeSrc;
-//return window.createTestIframe()
-    //    .then(function (iframe) {
-    //
-    //    });
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe(iframeSrc)
+        .then(function (iframe) {
             return new Promise(function (resolve) {
-                iframe.addEventListener('load', resolve);
+                iframe.addEventListener('load', function () {
+                    resolve(iframe);
+                });
                 iframe.contentWindow.eval.call(iframe.contentWindow, processScript('location = "' + iframeNewSrc + '";'));
             });
         })
-        .then(function () {
+        .then(function (iframe) {
             var parsedProxyUrl = urlUtils.parseProxyUrl(iframe.contentWindow.location);
 
             strictEqual(parsedProxyUrl.resourceType, 'i');
             strictEqual(parsedProxyUrl.destResourceInfo.partAfterHost, urlUtils.parseUrl(iframeNewSrc).partAfterHost);
-
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('setter returns a correct value (GH-907)', function () {

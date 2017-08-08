@@ -99,21 +99,12 @@ module('getElementsByTagName', function () {
         };
 
         test('before DOMContentLoaded event is raised', function () {
-            var iframe = document.createElement('iframe');
+            var src = window.getSameDomainPageUrl('../../../data/live-node-list/getElementsByTagName.html');
 
-            iframe.id  = 'test' + Date.now();
-            iframe.src = window.getSameDomainPageUrl('../../../data/live-node-list/getElementsByTagName.html');
-
-            var promise = window.QUnitGlobals.waitForIframe(iframe)
-                .then(function () {
+            return window.createTestIframe(src)
+                .then(function (iframe) {
                     checkAssertions(iframe.contentWindow.assertions);
-
-                    iframe.parentNode.removeChild(iframe);
                 });
-
-            document.body.appendChild(iframe);
-
-            return promise;
         });
 
         test('"*" tagName', function () {

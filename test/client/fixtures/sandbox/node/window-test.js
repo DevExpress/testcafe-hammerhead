@@ -251,12 +251,8 @@ if (window.history.replaceState && window.history.pushState) {
             new SomeClass()
         ];
 
-        var iframe = document.createElement('iframe');
-
-        iframe.setAttribute('src', window.getSameDomainPageUrl('../../../data/history/iframe.html'));
-
-        var promise = window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+        return window.createTestIframe(window.getSameDomainPageUrl('../../../data/history/iframe.html'))
+            .then(function (iframe) {
                 var iframeWindow        = iframe.contentWindow;
                 var iframeHammerhead    = iframeWindow['%hammerhead%'];
                 var iframeHistory       = iframeWindow.history;
@@ -292,13 +288,7 @@ if (window.history.replaceState && window.history.pushState) {
                     testUrl(url, iframeHistory.replaceState, iframeNativeMethods.historyReplaceState);
                     testUrl(url, iframeHistory.pushState, iframeNativeMethods.historyPushState);
                 }
-
-                document.body.removeChild(iframe);
             });
-
-        document.body.appendChild(iframe);
-
-        return promise;
     });
 }
 

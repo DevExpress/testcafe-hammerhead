@@ -1,4 +1,3 @@
-var settings    = hammerhead.get('./settings');
 var INSTRUCTION = hammerhead.get('../processing/script/instruction');
 
 var Promise        = hammerhead.Promise;
@@ -32,12 +31,7 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
 });
 
 asyncTest('onmessage event', function () {
-    var iframe                = document.createElement('iframe');
-    var src                   = window.getCrossDomainPageUrl('../../../data/cross-domain/get-message.html');
-    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
-    var count                 = 0;
-
-    iframe.id = 'test01';
+    var count = 0;
 
     var onMessageHandler = function (evt) {
         var data = typeof evt.data === 'string' ? JSON.parse(evt.data) : evt.data;
@@ -48,23 +42,17 @@ asyncTest('onmessage event', function () {
         count++;
 
         if (count === 4) {
-            settings.get().crossDomainProxyPort = storedCrossDomainPort;
-            iframe.parentNode.removeChild(iframe);
             window.removeEventListener('message', onMessageHandler);
             start();
         }
     };
 
-    settings.get().crossDomainProxyPort = 2001;
-
-    iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    window.createTestIframe(window.getCrossDomainPageUrl('../../../data/cross-domain/get-message.html'))
+        .then(function (iframe) {
             setProperty(window, 'onmessage', onMessageHandler);
             window.addEventListener('message', onMessageHandler);
             callMethod(iframe.contentWindow, 'postMessage', ['', '*']);
         });
-    document.body.appendChild(iframe);
 });
 
 asyncTest('cross-domain post messages between different windows', function () {
@@ -173,44 +161,32 @@ test('fake postMessage', function () {
 module('service messages');
 
 asyncTest('cloning arguments', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test006';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    window.createTestIframe()
+        .then(function (iframe) {
             var sourceObj = { testObject: true };
 
             iframe.contentWindow['%hammerhead%'].sandbox.event.message.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
                 ok(e.message.testObject);
                 e.message.modified = true;
                 ok(!sourceObj.modified);
-                iframe.parentNode.removeChild(iframe);
 
                 start();
             });
             messageSandbox.sendServiceMsg(sourceObj, iframe.contentWindow);
         });
-    document.body.appendChild(iframe);
 });
 
 test('crossdomain', function () {
-    var iframe                = document.createElement('iframe');
-    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
-    var serviceMsgReceived    = false;
-    var serviceMsgHandler     = function () {
+    var serviceMsgReceived   = false;
+    var serviceMsgHandler    = function () {
         serviceMsgReceived = true;
     };
-    var isServiceMsgReceived  = function () {
+    var isServiceMsgReceived = function () {
         return serviceMsgReceived;
     };
 
-    settings.get().crossDomainProxyPort = 2001;
-
-    iframe.id = 'test' + Date.now();
-    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message.html');
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe(window.getCrossDomainPageUrl('../../../data/cross-domain/service-message.html'))
+        .then(function (iframe) {
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
 
@@ -219,19 +195,11 @@ test('crossdomain', function () {
         .then(function () {
             ok(serviceMsgReceived);
 
-            settings.get().crossDomainProxyPort = storedCrossDomainPort;
-            iframe.parentNode.removeChild(iframe);
             messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 asyncTest('service message handler should not call other handlers', function () {
-    var iframe                = document.createElement('iframe');
-    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
     var windowHandlerExecuted = false;
     var windowMessageHandler  = function () {
         windowHandlerExecuted = true;
@@ -241,9 +209,6 @@ asyncTest('service message handler should not call other handlers', function () 
             ok(!windowHandlerExecuted);
             strictEqual(evt.message, 'successfully');
 
-            settings.get().crossDomainProxyPort = storedCrossDomainPort;
-            iframe.parentNode.removeChild(iframe);
-
             window.removeEventListener('message', windowMessageHandler);
             messageSandbox.off(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
 
@@ -251,19 +216,15 @@ asyncTest('service message handler should not call other handlers', function () 
         }, 100);
     };
 
-    iframe.id = 'test04';
+    var src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
 
-    settings.get().crossDomainProxyPort = 2001;
-
-    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    window.createTestIframe(src)
+        .then(function (iframe) {
             setProperty(window, 'onmessage', windowMessageHandler);
             window.addEventListener('message', windowMessageHandler);
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
         });
-    document.body.appendChild(iframe);
 });
 
 module('ping window');
@@ -315,16 +276,12 @@ test('timeout (non-added to DOM iframe)', function () {
 });
 
 test('timeout (added to DOM iframe)', function () {
-    var iframe      = document.createElement('iframe');
     var storedDelay = messageSandbox.PING_IFRAME_TIMEOUT;
 
     messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
-    iframe.id = 'test' + Date.now();
-    iframe.src = 'http://cross.domain.com/';
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe('http://cross.domain.com/')
+        .then(function (iframe) {
             return messageSandbox.pingIframe(iframe, 'pingCmd');
         })
         .then(function () {
@@ -334,12 +291,7 @@ test('timeout (added to DOM iframe)', function () {
         })
         .then(function () {
             messageSandbox.PING_IFRAME_TIMEOUT = storedDelay;
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 module('regression');
@@ -382,19 +334,19 @@ asyncTest('service messages from embedded iframe (GH-803)', function () {
 });
 
 asyncTest('send service message to the recreated iframe (GH-814)', function () {
-    var iframe = document.createElement('iframe');
+    var iframe = null;
 
     messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, function (e) {
         if (e.message.gh814) {
-            iframe.parentNode.removeChild(iframe);
             ok(true);
             start();
         }
     });
 
-    iframe.id = 'test-' + Date.now;
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    window.createTestIframe()
+        .then(function (createdIframe) {
+            iframe = createdIframe;
+
             var iframeDocument = iframe.contentDocument;
 
             iframeDocument.open();
@@ -414,12 +366,9 @@ asyncTest('send service message to the recreated iframe (GH-814)', function () {
 
             messageSandbox.sendServiceMsg({ gh814: true }, iframe.contentWindow);
         });
-
-    document.body.appendChild(iframe);
 });
 
 test('service message from removed iframe (GH-64)', function () {
-    var iframe            = document.createElement('iframe');
     var receivedMessages  = 0;
     var isMessageReceived = function () {
         return receivedMessages === 2;
@@ -429,24 +378,18 @@ test('service message from removed iframe (GH-64)', function () {
         ++receivedMessages;
     });
 
-    iframe.id = 'test' + Date.now();
-    iframe.src = window.getSameDomainPageUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
+    var src = window.getSameDomainPageUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
 
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
+    return window.createTestIframe(src)
         .then(function () {
             return window.QUnitGlobals.wait(isMessageReceived);
         })
         .then(function () {
             strictEqual(receivedMessages, 2);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('should not raise an error for sendServiceMessage if window.top is a cross-domain window (GH-666)', function () {
-    var iframe            = document.createElement('iframe');
     var messageData       = null;
     var isMessageReceived = function () {
         return !!messageData;
@@ -457,20 +400,14 @@ test('should not raise an error for sendServiceMessage if window.top is a cross-
 
     window.addEventListener('message', onMessageHandler);
 
-    iframe.id  = 'test' + Date.now();
-    iframe.src = window.getCrossDomainPageUrl('../../../data/event-sandbox/send-message-when-top-window-is-cross-domain.html');
+    var src = window.getCrossDomainPageUrl('../../../data/event-sandbox/send-message-when-top-window-is-cross-domain.html');
 
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
+    return window.createTestIframe(src)
         .then(function () {
             return window.QUnitGlobals.wait(isMessageReceived);
         })
         .then(function () {
             ok(!messageData.errorIsRaised);
             window.removeEventListener('message', onMessageHandler);
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });

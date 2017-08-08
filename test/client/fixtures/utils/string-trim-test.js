@@ -12,26 +12,18 @@ QUnit.testDone(function () {
 module('regression');
 
 test('"string-trim" should not use the "String.prototype.trim" method (GH-609)', function () {
-    /* eslint-disable no-extend-native */
-    var iframe     = document.createElement('iframe');
     var storedTrim = String.prototype.trim;
 
+    /* eslint-disable no-extend-native */
     String.prototype.trim = function () {
         return 'overrided';
     };
 
-    iframe.id = 'test' + Date.now();
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe()
+        .then(function (iframe) {
             strictEqual(iframe.contentWindow['%hammerhead%'].utils.trim(' text '), 'text');
 
-            iframe.parentNode.removeChild(iframe);
             String.prototype.trim = storedTrim;
         });
-
-    document.body.appendChild(iframe);
     /* eslint-enable no-extend-native */
-
-    return promise;
 });

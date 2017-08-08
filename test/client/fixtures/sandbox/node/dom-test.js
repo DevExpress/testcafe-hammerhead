@@ -178,19 +178,10 @@ test('iframe added to dom event', function () {
 });
 
 test('body created event', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.src = window.getSameDomainPageUrl('../../../data/node-sandbox/body-created-event.html');
-
-    var promise = window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/node-sandbox/body-created-event.html'))
+        .then(function (iframe) {
             ok(iframe.contentWindow.testOk);
-            iframe.parentNode.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
-
-    return promise;
 });
 
 test('parameters passed to the native dom element function in its original form', function () {
