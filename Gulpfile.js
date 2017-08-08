@@ -204,10 +204,14 @@ gulp.task('test-client-travis', ['build'], function () {
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
 });
 
-gulp.task('playground', ['build'], function () {
+gulp.task('playground', ['set-dev-mode', 'build'], function () {
     require('./test/playground/server.js').start();
 
     return hang();
 });
 
 gulp.task('travis', [process.env.GULP_TASK || '']);
+
+gulp.task('set-dev-mode', function () {
+    util.env.dev = true;
+});
