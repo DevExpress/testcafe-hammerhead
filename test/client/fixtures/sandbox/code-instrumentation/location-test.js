@@ -32,14 +32,14 @@ test('iframe with empty src', function () {
         strictEqual(eval(processScript('iframe.contentDocument.location.href')), 'about:blank');
     }
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(assert)
         .then(function () {
-            return window.createTestIframe('');
+            return createTestIframe({ src: '' });
         })
         .then(assert)
         .then(function () {
-            return window.createTestIframe('about:blank');
+            return createTestIframe({ src: 'about:blank' });
         })
         .then(assert);
 });
@@ -47,7 +47,7 @@ test('iframe with empty src', function () {
 // NOTE: Only Chrome raises the 'load' event for iframes with 'javascript:' src and creates a window instance.
 if (browserUtils.isWebKit) {
     test('iframe with "javascript:" src', function () {
-        return window.createTestIframe('javascript:void(0);')
+        return createTestIframe({ src: 'javascript:void(0);' })
             .then(function (iframe) {
                 new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
@@ -161,10 +161,10 @@ module('regression');
 if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1) {
     // NOTE The Safari iOS 10.3 and later does not provide access to the cross-domain location.
     test('getting location of a cross-domain window (GH-467)', function () {
-        var sameDomainSrc     = window.getSameDomainPageUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
+        var sameDomainSrc     = getSameDomainPageUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
         var storedGetProxyUrl = urlUtils.getProxyUrl;
 
-        return window.createTestIframe(window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html'))
+        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/target-url.html') })
             .then(function (iframe) {
                 urlUtils.getProxyUrl = function () {
                     return sameDomainSrc;

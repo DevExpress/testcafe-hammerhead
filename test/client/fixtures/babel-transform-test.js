@@ -1,7 +1,7 @@
 module('regression');
 
 test('should not throw an error after for...of loop transformation (GH-1231)', function () {
-    return window.createTestIframe(window.getSameDomainPageUrl('../data/iframe/simple-iframe.html'))
+    return createTestIframe({ src: getSameDomainPageUrl('../data/iframe/simple-iframe.html') })
         .then(function (iframe) {
             var div = document.createElement('div');
 

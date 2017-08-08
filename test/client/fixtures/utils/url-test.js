@@ -466,9 +466,9 @@ test('add, update and remove the "base" tag (GH-371)', function () {
 });
 
 test('recreating a document with the "base" tag (GH-371)', function () {
-    var src = window.getSameDomainPageUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
+    var src = getSameDomainPageUrl('../../data/same-domain/resolving-url-after-document-recreation.html');
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
             var link           = iframeDocument.getElementsByTagName('a')[0];
@@ -511,9 +511,9 @@ test('"base" tag with an href attribute that is set to a relative url (GH-422)',
 });
 
 test('resolving url after writing the "base" tag (GH-526)', function () {
-    var src = window.getSameDomainPageUrl('../../data/same-domain/resolving-url-after-writing-base-tag.html');
+    var src = getSameDomainPageUrl('../../data/same-domain/resolving-url-after-writing-base-tag.html');
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (iframe) {
             strictEqual(iframe.contentDocument.querySelector('a').href,
                 urlUtils.getProxyUrl('http://example.com/relative', {

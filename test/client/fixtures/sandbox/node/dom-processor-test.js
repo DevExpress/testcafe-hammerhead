@@ -279,16 +279,11 @@ test('crossdomain src', function () {
         proxyPort:     2001,
         resourceType:  'i'
     });
-    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
-
-    settings.get().crossDomainProxyPort = 2001;
 
     var processed = htmlUtils.processHtml('<iframe src="' + url + '"></iframe>');
 
     ok(processed.indexOf('src="' + proxyUrl) !== -1);
     ok(processed.indexOf(domProcessor.getStoredAttrName('src') + '="' + url + '"') !== -1);
-
-    settings.get().crossDomainProxyPort = storedCrossDomainPort;
 });
 
 test('stylesheet', function () {
@@ -562,7 +557,7 @@ test('remove the "integrity" attribute from the link and script tags (GH-235)', 
 });
 
 test('link with target="_parent" in iframe (T216999)', function () {
-    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/dom-processor/iframe.html'))
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/dom-processor/iframe.html') })
         .then(function (iframe) {
             var link           = nativeMethods.getElementById.call(iframe.contentDocument, 'link');
             var storedAttrName = domProcessor.getStoredAttrName('href');
@@ -663,7 +658,7 @@ test('node.replaceChild must be overridden (GH-264)', function () {
 });
 
 test('script error when a new element is added to a "body" element that is not in the DOM (GH-296)', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
 
@@ -739,9 +734,9 @@ test('xml:base attribute of svg element should be overriden (GH-477)', function 
 });
 
 test("should reprocess tags that doesn't processed on server side (GH-838)", function () {
-    var src = window.getSameDomainPageUrl('../../../data/dom-processor/iframe-with-nonproceed-on-server-tags.html');
+    var src = getSameDomainPageUrl('../../../data/dom-processor/iframe-with-nonproceed-on-server-tags.html');
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (iframe) {
             var processedLinkHrefUrl   = iframe.contentDocument.querySelector('#processed-link').href;
             var processedFormActionUrl = iframe.contentDocument.querySelector('#processed-form').action;

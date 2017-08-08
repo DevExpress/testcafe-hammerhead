@@ -251,7 +251,7 @@ if (window.history.replaceState && window.history.pushState) {
             new SomeClass()
         ];
 
-        return window.createTestIframe(window.getSameDomainPageUrl('../../../data/history/iframe.html'))
+        return createTestIframe({ src: getSameDomainPageUrl('../../../data/history/iframe.html') })
             .then(function (iframe) {
                 var iframeWindow        = iframe.contentWindow;
                 var iframeHammerhead    = iframeWindow['%hammerhead%'];

@@ -278,7 +278,7 @@ test('change href after target attribute changed (GH-534)', function () {
 });
 
 test('The form in the iframe (GH-880)', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var form = iframe.contentDocument.createElement('form');
 

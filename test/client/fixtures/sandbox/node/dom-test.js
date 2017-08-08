@@ -23,7 +23,7 @@ asyncTest('prevent "error" event during image reloading', function () {
     var storedGetProxyUrl      = urlUtils.getProxyUrl;
     var storedResolveUrlAsDest = urlUtils.resolveUrlAsDest;
     var errorEventRised        = false;
-    var realImageUrl           = window.getSameDomainPageUrl('../../../data/node-sandbox/image.png');
+    var realImageUrl           = getSameDomainPageUrl('../../../data/node-sandbox/image.png');
     var fakeIamgeUrl           = 'fakeIamge.gif';
 
     urlUtils.getProxyUrl = function () {
@@ -178,7 +178,7 @@ test('iframe added to dom event', function () {
 });
 
 test('body created event', function () {
-    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/node-sandbox/body-created-event.html'))
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/node-sandbox/body-created-event.html') })
         .then(function (iframe) {
             ok(iframe.contentWindow.testOk);
         });

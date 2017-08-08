@@ -31,21 +31,21 @@ module('isCrossDomainWindows', function () {
     });
 
     test('iframe with empty src', function () {
-        return window.createTestIframe('')
+        return createTestIframe({ src: '' })
             .then(function (iframe) {
                 ok(!domUtils.isCrossDomainWindows(window, iframe.contentWindow));
             });
     });
 
     test('iframe with about blank src', function () {
-        return window.createTestIframe('about:blank')
+        return createTestIframe({ src: 'about:blank' })
             .then(function (iframe) {
                 ok(!domUtils.isCrossDomainWindows(window, iframe.contentWindow));
             });
     });
 
     test('iframe with cross domain src', function () {
-        return window.createTestIframe(window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html'))
+        return createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-message.html') })
             .then(function (iframe) {
                 ok(domUtils.isCrossDomainWindows(window, iframe.contentWindow));
             });
@@ -72,7 +72,7 @@ test('isDomElement', function () {
 });
 
 test('isDomElement for iframe elements', function () {
-    return window.createTestIframe('')
+    return createTestIframe({ src: '' })
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
 
@@ -94,7 +94,7 @@ test('isDomElement for iframe elements', function () {
 });
 
 test('getTopSameDomainWindow', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             strictEqual(domUtils.getTopSameDomainWindow(window.top), window.top);
             strictEqual(domUtils.getTopSameDomainWindow(iframe.contentWindow), window.top);
@@ -124,7 +124,7 @@ test('isWindow', function () {
 });
 
 test('isWindow for a cross-domain window', function () {
-    return window.createTestIframe(window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html'))
+    return createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/simple-page.html') })
         .then(function (iframe) {
             var iframeWindow = iframe.contentWindow;
 
@@ -212,7 +212,7 @@ test('isSVGElement', function () {
 });
 
 test('isSVGElement for iframe elements', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
 
@@ -235,7 +235,7 @@ if (window.fetch) {
     });
 
     test('isFetchHeaders in iframe', function () {
-        return window.createTestIframe()
+        return createTestIframe()
             .then(function (iframe) {
                 var iframeDocument = iframe.contentDocument;
                 var iframeWindow   = iframe.contentWindow;
@@ -257,7 +257,7 @@ if (window.fetch) {
     });
 
     test('isFetchRequest in iframe', function () {
-        return window.createTestIframe()
+        return createTestIframe()
             .then(function (iframe) {
                 var iframeDocument = iframe.contentDocument;
                 var iframeWindow   = iframe.contentWindow;
@@ -288,9 +288,9 @@ test('isHammerheadAttr', function () {
 module('isIframeWithoutSrc');
 
 test('after the location is set to an iframe without src isIframeWithoutSrc should return "false"', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
-            var src = window.getSameDomainPageUrl('../../data/same-domain/service-message-from-removed-iframe.html');
+            var src = getSameDomainPageUrl('../../data/same-domain/service-message-from-removed-iframe.html');
 
             ok(domUtils.isIframeWithoutSrc(iframe));
 
@@ -309,7 +309,7 @@ test('after the location is set to an iframe without src isIframeWithoutSrc shou
 // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
 if (!browserUtils.isIE) {
     test('should return "false" after calling document.open, document.write, document.close for the same-domain iframe (GH-703) (GH-704)', function () {
-        return window.createTestIframe(window.getSameDomainPageUrl('../../data/code-instrumentation/iframe.html'))
+        return createTestIframe({ src: getSameDomainPageUrl('../../data/code-instrumentation/iframe.html') })
             .then(function (iframe) {
                 ok(!domUtils.isIframeWithoutSrc(iframe));
 
@@ -350,7 +350,7 @@ test('should return "false" after calling document.open, document.write, documen
 });
 
 test('changed location 2', function () {
-    return window.createTestIframe('about:blank')
+    return createTestIframe({ src: 'about:blank' })
         .then(function (iframe) {
             return new Promise(function (resolve) {
                 iframe.addEventListener('load', function () {
@@ -367,7 +367,7 @@ test('changed location 2', function () {
 });
 
 test('crossdomain src', function () {
-    return window.createTestIframe(window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html'))
+    return createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/simple-page.html') })
         .then(function (iframe) {
             iframe[INTERNAL_PROPS.processedContext] = window;
             ok(!domUtils.isIframeWithoutSrc(iframe));
@@ -399,7 +399,7 @@ test('samedomain src', function () {
 });
 
 test('without src attribute', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             iframe[INTERNAL_PROPS.processedContext] = window;
             ok(domUtils.isIframeWithoutSrc(iframe));
@@ -408,7 +408,7 @@ test('without src attribute', function () {
 });
 
 test('about:blank', function () {
-    return window.createTestIframe('about:blank')
+    return createTestIframe({ src: 'about:blank' })
         .then(function (iframe) {
             iframe[INTERNAL_PROPS.processedContext] = window;
             ok(domUtils.isIframeWithoutSrc(iframe));
@@ -419,7 +419,7 @@ test('about:blank', function () {
 module('isCrossDomainIframe');
 
 test('location is changed to cross-domain', function () {
-    return window.createTestIframe('http://' + location.host + '/')
+    return createTestIframe({ src: 'http://' + location.host + '/' })
         .then(function (iframe) {
             ok(!domUtils.isCrossDomainIframe(iframe));
             ok(!domUtils.isCrossDomainIframe(iframe, true));
@@ -428,7 +428,7 @@ test('location is changed to cross-domain', function () {
                 iframe.addEventListener('load', function () {
                     resolve(iframe);
                 });
-                iframe.contentDocument.location.href = window.getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
+                iframe.contentDocument.location.href = getCrossDomainPageUrl('../../data/cross-domain/simple-page.html');
             });
         })
         .then(function (iframe) {
@@ -438,7 +438,7 @@ test('location is changed to cross-domain', function () {
 });
 
 test('empty src attribute', function () {
-    return window.createTestIframe('')
+    return createTestIframe({ src: '' })
         .then(function (iframe) {
             iframe[INTERNAL_PROPS.processedContext] = window;
             ok(domUtils.isIframeWithoutSrc(iframe));
@@ -521,9 +521,9 @@ test('hasClass', function () {
 });
 
 test('isElementFocusable', function () {
-    var src = window.getSameDomainPageUrl('../../data/is-focusable/iframe.html', 'is-focusable/iframe.html');
+    var src = getSameDomainPageUrl('../../data/is-focusable/iframe.html', 'is-focusable/iframe.html');
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (iframe) {
             iframe.style.width  = '500px';
             iframe.style.height = '500px';
@@ -614,7 +614,7 @@ test('isDocument infinite recursion (GH-923)', function () {
 });
 
 test('isDocument for a cross-domain object (GH-467)', function () {
-    return window.createTestIframe(window.getCrossDomainPageUrl('../../data/cross-domain/target-url.html'))
+    return createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/target-url.html') })
         .then(function (iframe) {
             ok(!domUtils.isDocument(iframe.contentWindow));
         });
@@ -657,7 +657,7 @@ test('isDomElement for plain object (T198784)', function () {
 asyncTest('cross domain iframe that contains iframe without src should not throw the security error (GH-114)', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/page-with-iframe-with-js-protocol.html');
+    iframe.src = getCrossDomainPageUrl('../../data/cross-domain/page-with-iframe-with-js-protocol.html');
 
     window.addEventListener('message', function (e) {
         strictEqual(e.data, 'ok');
@@ -675,11 +675,11 @@ if (!browserUtils.isFirefox) {
         var parentIframe = null;
         var childIframe  = null;
 
-        return window.createTestIframe()
+        return createTestIframe()
             .then(function (iframe) {
                 parentIframe = iframe;
 
-                return window.createTestIframe(null, parentIframe.contentDocument.body);
+                return createTestIframe(null, parentIframe.contentDocument.body);
             })
             .then(function (iframe) {
                 childIframe = iframe;

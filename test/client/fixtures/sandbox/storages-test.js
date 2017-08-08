@@ -320,7 +320,7 @@ test('iframe with empty src', function () {
 
     topStorage.key1 = 'value1';
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var iframeStorage = iframe.contentWindow['%hammerhead%'].sandbox.storageSandbox.localStorage;
 
@@ -376,7 +376,7 @@ test('event firing in all same host windows except current', function () {
         iframeStorageEventArgs.push(e);
     };
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (createdIframe) {
             iframe = createdIframe;
 
@@ -424,7 +424,7 @@ test('event argument parameters', function () {
         strictEqual(e.storageArea, iframeStorageSandbox);
     };
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             iframeStorageSandbox = iframe.contentWindow.eval(processScript('localStorage'));
             iframeStorageSandbox.clear();

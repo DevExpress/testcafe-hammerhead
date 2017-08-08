@@ -51,7 +51,7 @@ if (document.attachEvent) {
 }
 
 asyncTest('focus / blur events in iframe (B253685)', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var iframeDocument         = iframe.contentWindow.document;
             var iframeBody             = iframeDocument.body;

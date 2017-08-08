@@ -92,7 +92,7 @@ test('ready to init event must not raise for added iframe(B239643)', function ()
 
     document.body.appendChild(container);
 
-    return window.createTestIframe(null, container)
+    return createTestIframe(null, container)
         .then(function () {
             var iframeLoadingEventRaised = false;
 
@@ -118,7 +118,7 @@ test('the AMD module loader disturbs proxying an iframe without src (GH-127)', f
     amdModuleLoaderMock.amd = {};
     window.define           = amdModuleLoaderMock;
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             ok(iframe.contentWindow['%hammerhead%']);
             delete window.define;
@@ -126,7 +126,7 @@ test('the AMD module loader disturbs proxying an iframe without src (GH-127)', f
 });
 
 test('native methods are properly initialized in an iframe without src (GH-279)', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var iframeDocument         = iframe.contentDocument;
             var iframeWindow           = iframe.contentWindow;
@@ -149,7 +149,7 @@ test('quotes in the cookies are not escaped when a task script for an iframe is 
 
     settings.get().cookie = cookie;
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, cookie);
         });
@@ -296,7 +296,7 @@ test("'body.appendChild' method works incorrectly in the particular case (GH-421
 
 if (browserUtils.isWebKit) {
     test('event listeners added twice in an iframe after document.write (GH-839)', function () {
-        return window.createTestIframe(window.getSameDomainPageUrl('../../data/iframe/window-event-listeners.html'))
+        return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/window-event-listeners.html') })
             .then(function (iframe) {
                 iframe.contentWindow.eventListenersCount = {};
                 iframe.contentWindow.performWrite();

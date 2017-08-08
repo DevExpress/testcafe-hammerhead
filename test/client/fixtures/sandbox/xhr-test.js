@@ -142,7 +142,7 @@ if (!browserUtils.isIE9) {
 
         destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
-        return window.createTestIframe()
+        return createTestIframe()
             .then(function (iframe) {
                 // NOTE: iframe without src
                 iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);

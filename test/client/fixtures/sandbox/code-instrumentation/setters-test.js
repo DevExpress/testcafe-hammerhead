@@ -305,7 +305,7 @@ test('innerHTML, innerText, text, textContent', function () {
 });
 
 test('body.innerHTML in iframe', function () {
-    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html'))
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html') })
         .then(function (iframe) {
             var hasShadowUIRoot = function () {
                 var iframeBody = iframe.contentDocument.body;
@@ -327,7 +327,7 @@ if (!browserUtils.isIE) {
     asyncTest('postMessage', function () {
         var target = window.location.protocol + '//' + window.location.host;
 
-        window.createTestIframe(window.location.origin)
+        createTestIframe({ src: window.location.origin })
             .then(function (iframe) {
                 iframe.contentWindow.postMessage = function () {
                     strictEqual(target, window.location.origin);
@@ -399,7 +399,7 @@ test('innerHTML in iframe (GH-620)', function () {
     var url      = 'somePage.html';
     var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i' });
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             eval(processScript('iframe.contentDocument.body.innerHTML = "<a href=\\"' + url + '\\">link</a>";'));
 
@@ -440,7 +440,7 @@ if (!browserUtils.isIE) {
 }
 
 test('iframe.body.innerHtml must be overriden (Q527555)', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var iframeBody = iframe.contentWindow.document.body;
             var html       = '<a href="url" ' + domProcessor.getStoredAttrName('src') + '="url1" />';
@@ -553,10 +553,10 @@ test('the client code gets access to the Hammerhead script (GH-479)', function (
 });
 
 test("location assignment doesn't work (GH-640)", function () {
-    var iframeSrc    = window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html');
-    var iframeNewSrc = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var iframeSrc    = getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html');
+    var iframeNewSrc = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
 
-    return window.createTestIframe(iframeSrc)
+    return createTestIframe({ src: iframeSrc })
         .then(function (iframe) {
             return new Promise(function (resolve) {
                 iframe.addEventListener('load', function () {

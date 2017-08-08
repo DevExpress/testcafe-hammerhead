@@ -774,9 +774,7 @@ if (window.HTMLInputElement.prototype.createTextRange) {
 }
 
 asyncTest('active window doesn\'t change after focusing ShadowUI element in iframe', function () {
-    var src    = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
-
-    return window.createTestIframe(src)
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html') })
         .then(function (iframe) {
             var iframeWindow = iframe.contentWindow;
             var divElement   = iframeWindow.document.body.getElementsByTagName('div')[0];
@@ -996,7 +994,7 @@ test('querySelector must return active element even when browser is not focused 
 asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=3 page (B237723)', function () {
     var errorRaised = false;
 
-    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/event-sandbox/focus-blur-sandbox.html'))
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/event-sandbox/focus-blur-sandbox.html') })
         .then(function (iframe) {
             try {
                 iframe.contentWindow.focusInput();
@@ -1119,7 +1117,7 @@ test('focus() must not raise the event if the element is in an invisible iframe 
         });
     };
 
-    return window.createTestIframe({ style: 'display: none' })
+    return createTestIframe({ style: 'display: none' })
         .then(function (createdIframe) {
             iframe = createdIframe;
 
@@ -1144,7 +1142,7 @@ asyncTest('should correctly handle the case when document.activeElement is null 
 
     window.addEventListener('error', errorHandler);
 
-    window.createTestIframe()
+    createTestIframe()
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
             var iframeWindow   = iframe.contentWindow;

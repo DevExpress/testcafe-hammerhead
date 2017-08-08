@@ -49,9 +49,9 @@ test('get/set', function () {
 });
 
 test('path validation', function () {
-    var src = window.getSameDomainPageUrl('../../data/cookie-sandbox/validation.html', 'cookie-sandbox/validation.html');
+    var src = getSameDomainPageUrl('../../data/cookie-sandbox/validation.html', 'cookie-sandbox/validation.html');
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (iframe) {
             ok(iframe.contentWindow.runTest());
         });
@@ -183,7 +183,7 @@ if (!browserUtils.isIOS) {
 
         var nextCookieTest = function (urlIndex) {
             iframe.setAttribute('id', 'test' + Date.now());
-            iframe.setAttribute('src', window.getSameDomainPageUrl(testedPages[urlIndex]));
+            iframe.setAttribute('src', getSameDomainPageUrl(testedPages[urlIndex]));
 
             window.addEventListener('message', function onMessage (e) {
                 strictEqual(e.data, expectedCookies, testedPages[urlIndex]);

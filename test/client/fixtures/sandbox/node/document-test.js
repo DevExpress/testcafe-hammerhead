@@ -295,9 +295,7 @@ test('parameters passed to the native function in its original form', function (
 module('resgression');
 
 test('document.write for several tags in iframe (T215136)', function () {
-    var src = window.getSameDomainPageUrl('../../../data/node-sandbox/iframe-with-doc-write.html');
-
-    return window.createTestIframe(src)
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/node-sandbox/iframe-with-doc-write.html') })
         .then(function (iframe) {
             var div = iframe.contentDocument.querySelector('#parent');
 
@@ -370,7 +368,7 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
 
 if (!browserUtils.isFirefox) {
     test('document.write([]) in iframe (T239131)', function () {
-        return window.createTestIframe()
+        return createTestIframe()
             .then(function (iframe) {
                 // NOTE: Some browsers remove their documentElement after a "write([])" call. Previously, if the
                 // documentElement was null, "processDomMethodName" failed with the 'Maximum call stack size exceeded' error.
@@ -385,7 +383,7 @@ asyncTest('the onDocumentCleaned event is not raised after calling document.writ
     expect(1);
 
     var iframe  = document.createElement('iframe');
-    var src     = window.getSameDomainPageUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
+    var src     = getSameDomainPageUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
     var handler = function (e) {
         window.removeEventListener('message', handler);
         strictEqual(e.data, 'success');
@@ -402,7 +400,7 @@ asyncTest('document elements are overridden after document.write has been called
     var iframe = document.createElement('iframe');
 
     iframe.id  = 'test';
-    iframe.src = window.getSameDomainPageUrl('../../../data/node-sandbox/iframe-override-elems-after-write.html');
+    iframe.src = getSameDomainPageUrl('../../../data/node-sandbox/iframe-override-elems-after-write.html');
 
     var onMessageHandler = function (e) {
         window.removeEventListener('message', onMessageHandler);
@@ -426,9 +424,9 @@ asyncTest('document elements are overridden after document.write has been called
 });
 
 test('multiple document.write with html and body tags should not break markup (GH-387)', function () {
-    var src = window.getSameDomainPageUrl('../../../data/node-sandbox/multiple-write-with-html-and-body-tags.html');
+    var src = getSameDomainPageUrl('../../../data/node-sandbox/multiple-write-with-html-and-body-tags.html');
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (iframe) {
             var doc = iframe.contentDocument;
 
@@ -466,7 +464,7 @@ test('script error when adding a comment node to DOM (GH-435)', function () {
 });
 
 test('"permission denied" error inside documentWriter (GH-384)', function () {
-    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/dom-processor/iframe.html'))
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/dom-processor/iframe.html') })
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
 
@@ -478,7 +476,7 @@ test('"permission denied" error inside documentWriter (GH-384)', function () {
 // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/8187450/
 if (!browserUtils.isIE) {
     test('document.write for same-domain iframe (GH-679)', function () {
-        return window.createTestIframe(window.getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html'))
+        return createTestIframe({ src: getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html') })
             .then(function (iframe) {
                 iframe.contentDocument.open();
                 iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>');

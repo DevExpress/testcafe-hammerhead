@@ -1,6 +1,5 @@
 var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
 var ShadowUI            = hammerhead.get('./sandbox/shadow-ui');
-var settings            = hammerhead.get('./settings');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -78,7 +77,7 @@ test('get root', function () {
 });
 
 test('get root after body recreation', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var document = iframe.contentDocument;
             var window   = iframe.contentWindow;
@@ -594,7 +593,7 @@ test('stylesheets are restored after the document is cleaned', function () {
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
 
@@ -632,7 +631,7 @@ test('append stylesheets to the iframe on initialization', function () {
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var currentUIStylesheets = nativeMethods.querySelectorAll.call(
                 document,
@@ -658,7 +657,7 @@ test("do nothing if ShadowUIStylesheet doesn't exist", function () {
 
     qUnitCssLink.className = '';
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var currentUIStylesheets = nativeMethods.querySelectorAll.call(
                 document,
@@ -690,7 +689,7 @@ test('SVG elements\' className is of the SVGAnimatedString type instead of strin
 });
 
 test('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
@@ -734,15 +733,9 @@ test('shadowUI\'s root must be the last child after adding a new element (T23968
 });
 
 test('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
-    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
-
-    settings.get().crossDomainProxyPort = 2001;
-
-    return window.createTestIframe(window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html'))
+    return createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-message.html') })
         .then(function (crossDomainIframe) {
             ok(!ShadowUI.isShadowContainerCollection([crossDomainIframe.contentWindow]));
-
-            settings.get().crossDomainProxyPort = storedCrossDomainPort;
         });
 });
 

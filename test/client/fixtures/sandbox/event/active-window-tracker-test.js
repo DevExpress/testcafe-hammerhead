@@ -14,10 +14,10 @@ QUnit.testDone(function () {
 });
 
 test('check changing active window', function () {
-    var src    = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var src    = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
     var iframe = null;
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (createdIframe) {
             iframe = createdIframe;
 
@@ -50,14 +50,11 @@ test('check changing active window', function () {
 });
 
 test('check switching active window (between two iframes)', function () {
-    var src          = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var src          = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
     var firstIframe  = null;
     var secondIframe = null;
 
-    return Promise.all([
-        window.createTestIframe(src),
-        window.createTestIframe(src)
-    ])
+    return Promise.all([createTestIframe({ src: src }), createTestIframe({ src: src })])
         .then(function (iframes) {
             firstIframe  = iframes[0];
             secondIframe = iframes[1];
@@ -92,7 +89,7 @@ test('check switching active window (between two iframes)', function () {
 module('regression');
 
 test('check that an error does not rise when trying to send serviceMessage to the removed iframe (GH-206)', function () {
-    var src               = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var src               = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
     var iframe            = null;
     var link              = document.createElement('a');
     var checkActiveWindow = function () {
@@ -100,11 +97,12 @@ test('check that an error does not rise when trying to send serviceMessage to th
     };
 
     link.setAttribute('href', '#');
-    link.innerHTML        = 'Link';
+
+    link.innerHTML = 'Link';
 
     document.body.appendChild(link);
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (createdIframe) {
             iframe = createdIframe;
 
@@ -129,7 +127,7 @@ test('check that an error does not rise when trying to send serviceMessage to th
 });
 
 test('no error occurs when a focused iframe is removed and a different iframe gets focus afterwards (GH-271)', function () {
-    var src          = window.getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var src          = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
     var firstIframe  = null;
     var secondIframe = null;
     var withError           = false;
@@ -138,10 +136,7 @@ test('no error occurs when a focused iframe is removed and a different iframe ge
         withError = true;
     });
 
-    return Promise.all([
-        window.createTestIframe(src),
-        window.createTestIframe(src)
-    ])
+    return Promise.all([createTestIframe({ src: src }), createTestIframe({ src: src })])
         .then(function (iframes) {
             firstIframe  = iframes[0];
             secondIframe = iframes[1];

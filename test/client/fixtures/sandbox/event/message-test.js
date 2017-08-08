@@ -47,7 +47,7 @@ asyncTest('onmessage event', function () {
         }
     };
 
-    window.createTestIframe(window.getCrossDomainPageUrl('../../../data/cross-domain/get-message.html'))
+    createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-message.html') })
         .then(function (iframe) {
             setProperty(window, 'onmessage', onMessageHandler);
             window.addEventListener('message', onMessageHandler);
@@ -80,7 +80,7 @@ asyncTest('cross-domain post messages between different windows', function () {
 
     setProperty(window, 'onmessage', onMessageHandler);
 
-    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
+    iframe.src = getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
 });
 
@@ -161,7 +161,7 @@ test('fake postMessage', function () {
 module('service messages');
 
 asyncTest('cloning arguments', function () {
-    window.createTestIframe()
+    createTestIframe()
         .then(function (iframe) {
             var sourceObj = { testObject: true };
 
@@ -185,7 +185,7 @@ test('crossdomain', function () {
         return serviceMsgReceived;
     };
 
-    return window.createTestIframe(window.getCrossDomainPageUrl('../../../data/cross-domain/service-message.html'))
+    return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/service-message.html') })
         .then(function (iframe) {
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
@@ -216,9 +216,7 @@ asyncTest('service message handler should not call other handlers', function () 
         }, 100);
     };
 
-    var src = window.getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html');
-
-    window.createTestIframe(src)
+    createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html') })
         .then(function (iframe) {
             setProperty(window, 'onmessage', windowMessageHandler);
             window.addEventListener('message', windowMessageHandler);
@@ -251,7 +249,7 @@ asyncTest('iframe', function () {
             iframeResponseReceived = true;
         });
 
-    iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/wait-loading.html');
+    iframe.src = getCrossDomainPageUrl('../../../data/cross-domain/wait-loading.html');
     document.body.appendChild(iframe);
 });
 
@@ -280,7 +278,7 @@ test('timeout (added to DOM iframe)', function () {
 
     messageSandbox.PING_IFRAME_TIMEOUT = 5;
 
-    return window.createTestIframe('http://cross.domain.com/')
+    return createTestIframe({ src: 'http://cross.domain.com/' })
         .then(function (iframe) {
             return messageSandbox.pingIframe(iframe, 'pingCmd');
         })
@@ -328,7 +326,7 @@ asyncTest('service messages from embedded iframe (GH-803)', function () {
         }
     });
 
-    iframe.src = window.getSameDomainPageUrl('../../../data/event-sandbox/embedded-iframes.html');
+    iframe.src = getSameDomainPageUrl('../../../data/event-sandbox/embedded-iframes.html');
 
     document.body.appendChild(iframe);
 });
@@ -343,7 +341,7 @@ asyncTest('send service message to the recreated iframe (GH-814)', function () {
         }
     });
 
-    window.createTestIframe()
+    createTestIframe()
         .then(function (createdIframe) {
             iframe = createdIframe;
 
@@ -378,9 +376,7 @@ test('service message from removed iframe (GH-64)', function () {
         ++receivedMessages;
     });
 
-    var src = window.getSameDomainPageUrl('../../../data/same-domain/service-message-from-removed-iframe.html');
-
-    return window.createTestIframe(src)
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/same-domain/service-message-from-removed-iframe.html') })
         .then(function () {
             return window.QUnitGlobals.wait(isMessageReceived);
         })
@@ -400,9 +396,9 @@ test('should not raise an error for sendServiceMessage if window.top is a cross-
 
     window.addEventListener('message', onMessageHandler);
 
-    var src = window.getCrossDomainPageUrl('../../../data/event-sandbox/send-message-when-top-window-is-cross-domain.html');
+    var src = getCrossDomainPageUrl('../../../data/event-sandbox/send-message-when-top-window-is-cross-domain.html');
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function () {
             return window.QUnitGlobals.wait(isMessageReceived);
         })

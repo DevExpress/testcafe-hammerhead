@@ -30,7 +30,7 @@ if (browserUtils.isIE) {
 module('regression');
 
 test('"permission denied" error is raised when an iframe with a nested iframe is reloaded (GH-727)', function () {
-    return window.createTestIframe(window.getSameDomainPageUrl('../../data/window-storage/iframe.html'))
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/window-storage/iframe.html') })
         .then(function (iframe) {
             iframe.contentWindow.testFlag = true;
 

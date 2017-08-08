@@ -68,7 +68,7 @@ function testIframeFlagViaAttrs (doc, iframeFlagResults) {
 module('target');
 
 test('assign a url attribute to elements with the "target" attribute in top window', function () {
-    return window.createTestIframe({ name: 'window_name' })
+    return createTestIframe({ name: 'window_name' })
         .then(function () {
             /* eslint-disable camelcase */
             testIframeFlagViaAttrs(document, {
@@ -88,11 +88,11 @@ test('assign a url attribute to elements with the "target" attribute in iframe',
     var src          = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
     var parentIframe = null;
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (iframe) {
             parentIframe = iframe;
 
-            return window.createTestIframe({ name: 'window_name' }, iframe.contentDocument.body);
+            return createTestIframe({ name: 'window_name' }, iframe.contentDocument.body);
         })
         .then(function () {
             /* eslint-disable camelcase */
@@ -113,15 +113,15 @@ test('assign a url attribute to elements with the "target" attribute in embedded
     var src            = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
     var embeddedIframe = null;
 
-    return window.createTestIframe(src)
+    return createTestIframe({ src: src })
         .then(function (iframe) {
-            return window.createTestIframe(null, iframe.contentDocument.body);
+            return createTestIframe(null, iframe.contentDocument.body);
         })
         .then(function (iframe) {
             embeddedIframe = iframe;
 
-            return window.createTestIframe({
-                src:  window.getSameDomainPageUrl('../../data/iframe/simple-iframe.html'),
+            return createTestIframe({
+                src:  getSameDomainPageUrl('../../data/iframe/simple-iframe.html'),
                 name: 'window_name'
             }, embeddedIframe.contentDocument.body);
         })
@@ -140,7 +140,7 @@ test('assign a url attribute to elements with the "target" attribute in embedded
 });
 
 test('move elements between windows (GH-564)', function () {
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
 

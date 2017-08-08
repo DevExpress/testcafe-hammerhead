@@ -152,9 +152,6 @@
 
         iframe.id = 'test' + Date.now();
 
-        if (typeof attrs === 'string')
-            attrs = { src: attrs };
-
         if (attrs) {
             Object.keys(attrs).forEach(function (attrName) {
                 iframe.setAttribute(attrName, attrs[attrName]);

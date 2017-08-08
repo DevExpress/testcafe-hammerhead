@@ -41,10 +41,10 @@ module('regression');
 test('should not raise an error for a cross-domain iframe (GH-669)', function () {
     var src = '../../data/code-instrumentation/iframe.html';
 
-    return window.createTestIframe(window.getCrossDomainPageUrl(src))
+    return createTestIframe({ src: getCrossDomainPageUrl(src) })
         .then(function () {
-            return window.createTestIframe({
-                src:  window.getSameDomainPageUrl(src),
+            return createTestIframe({
+                src:  getSameDomainPageUrl(src),
                 name: 'same_domain_iframe'
             });
         })

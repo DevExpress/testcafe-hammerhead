@@ -99,9 +99,7 @@ module('getElementsByTagName', function () {
         };
 
         test('before DOMContentLoaded event is raised', function () {
-            var src = window.getSameDomainPageUrl('../../../data/live-node-list/getElementsByTagName.html');
-
-            return window.createTestIframe(src)
+            return createTestIframe({ src: getSameDomainPageUrl('../../../data/live-node-list/getElementsByTagName.html') })
                 .then(function (iframe) {
                     checkAssertions(iframe.contentWindow.assertions);
                 });

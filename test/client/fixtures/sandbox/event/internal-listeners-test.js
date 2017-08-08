@@ -599,7 +599,7 @@ test('dispatchEvent, fireEvent, click', function () {
             : iframeListenersModule;
     };
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             var iframeDocument            = iframe.contentDocument;
             var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
@@ -652,7 +652,7 @@ if (browserUtils.isIE && !browserUtils.isMSEdge) {
 
         testInput.value = 'test';
 
-        window.createTestIframe()
+        createTestIframe()
             .then(function (iframe) {
                 var iframeDocument            = iframe.contentDocument;
                 var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];

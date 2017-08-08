@@ -512,7 +512,7 @@ if (browserUtils.isIE) {
 
 if (!browserUtils.isFirefox) {
     test('window event should not be undefined inside iframe handler (B254199)', function () {
-        return window.createTestIframe(window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html'))
+        return createTestIframe({ src: getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html') })
             .then(function (iframe) {
                 iframe.contentDocument.addEventListener('click', function () {
                     if (typeof iframe.contentWindow.event === 'undefined')
@@ -526,7 +526,7 @@ if (!browserUtils.isFirefox) {
     });
 
     test('window.event becomes empty when a click event handler triggers the click event on a different element in IE11 (GH-226)', function () {
-        return window.createTestIframe(window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html'))
+        return createTestIframe({ src: getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html') })
             .then(function (iframe) {
                 eventSimulator.click(iframe.contentDocument.getElementById('span'));
 
@@ -616,7 +616,7 @@ asyncTest('hammerhead functions should not be in strict mode (GH-344)', function
 });
 
 test('should not define the window.event property if the event is raised in iframe for the element of top window', function () {
-    return window.createTestIframe(window.getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html'))
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/event-sandbox/event-simulator.html') })
         .then(function (iframe) {
             var iframeEventSimulator = iframe.contentWindow['%hammerhead%'].sandbox.event.eventSimulator;
 

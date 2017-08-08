@@ -180,7 +180,7 @@ test('table.insertRow, table.insertCell', function () {
 });
 
 asyncTest('form.submit', function () {
-    window.createTestIframe({ name: 'test-window' })
+    createTestIframe({ name: 'test-window' })
         .then(function (iframe) {
             var form             = iframe.contentDocument.createElement('form');
             var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
@@ -296,7 +296,7 @@ if (window.navigator.serviceWorker) {
     // This condition works only for running on the local machine only. On Saucelabs url with a domain name is opened.
     if (location.hostname === 'localhost') {
         test('should correctly process the "scope" option into the serviceWorker.register (GH-1233)', function () {
-            var scriptUrl = window.getSameDomainPageUrl('../../../data/serviceWorker.js');
+            var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
             var scopeUrl  = '/';
 
             return window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
@@ -427,7 +427,7 @@ if (window.navigator.serviceWorker) {
         var iframe = document.createElement('iframe');
 
         iframe.sandbox = 'allow-scripts';
-        iframe.src     = window.getCrossDomainPageUrl('../../../data/cross-domain/service-worker-not-available.html');
+        iframe.src     = getCrossDomainPageUrl('../../../data/cross-domain/service-worker-not-available.html');
 
         var onMessageHandler = function (e) {
             window.removeEventListener('message', onMessageHandler);

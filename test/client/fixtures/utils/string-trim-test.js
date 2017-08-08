@@ -19,7 +19,7 @@ test('"string-trim" should not use the "String.prototype.trim" method (GH-609)',
         return 'overrided';
     };
 
-    return window.createTestIframe()
+    return createTestIframe()
         .then(function (iframe) {
             strictEqual(iframe.contentWindow['%hammerhead%'].utils.trim(' text '), 'text');
 
