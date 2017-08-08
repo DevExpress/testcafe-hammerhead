@@ -1,4 +1,5 @@
 var iframeSandbox = hammerhead.sandbox.iframe;
+var Promise       = hammerhead.Promise;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -17,16 +18,13 @@ test('should prevent navigation from the about:blank page to the relative url (G
 
     iframe.id = 'test' + Date.now();
 
-    return hammerhead.Promise.resolve()
+    return new Promise(function (resolve) {
+        iframe.setAttribute('src', 'about:blank');
+        iframe.addEventListener('load', resolve);
+        document.body.appendChild(iframe);
+    })
         .then(function () {
-            return new hammerhead.Promise(function (resolve) {
-                iframe.setAttribute('src', 'about:blank');
-                iframe.addEventListener('load', resolve);
-                document.body.appendChild(iframe);
-            });
-        })
-        .then(function () {
-            return new hammerhead.Promise(function (resolve) {
+            return new Promise(function (resolve) {
                 iframe.addEventListener('load', resolve);
                 setTimeout(resolve, 5000);
 

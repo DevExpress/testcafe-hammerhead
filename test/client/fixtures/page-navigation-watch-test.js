@@ -104,6 +104,9 @@ test('location.reload(...)', function () {
 
 test('Hash via location.href', function () {
     return navigateIframe('location.href += "#hash";', { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -111,6 +114,9 @@ test('Hash via location.href', function () {
 
 test('Hash via location.hash', function () {
     return navigateIframe('location.hash = "hash";', { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -241,6 +247,9 @@ test('Click raised by child node - prevented', function () {
                            'child.click();';
 
     return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -256,6 +265,9 @@ test('Click prevented in the parent node', function () {
                            'link.click();';
 
     return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -269,6 +281,9 @@ test('Click prevented in the onclick attribute', function () {
                            'link.click();';
 
     return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -282,6 +297,9 @@ test('Click prevented in the onclick property handler', function () {
                            'link.click();';
 
     return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -295,6 +313,9 @@ test('Click prevented in the window', function () {
                            'link.click();';
 
     return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -307,6 +328,9 @@ test('Click prevented in the html "onclick" handler', function () {
                            'link.click();';
 
     return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -321,6 +345,9 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
                                'link.click();';
 
         return navigateIframe(navigationScript, { timeout: 500 })
+            .then(function () {
+                ok(false, 'page should not navigated');
+            })
             .catch(function (reason) {
                 ok(reason === 'timeout exceeded', reason);
             });
@@ -397,6 +424,9 @@ test('Submission canceled in the "addEventListener" method', function () {
                            'submit.click();';
 
     return navigateIframe(navigationScript, { timeout: 500 })
+        .then(function () {
+            ok(false, 'page should not navigated');
+        })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
         });
@@ -415,6 +445,9 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
                                'submit.click();';
 
         return navigateIframe(navigationScript, { timeout: 500 })
+            .then(function () {
+                ok(false, 'page should not navigated');
+            })
             .catch(function (reason) {
                 ok(reason === 'timeout exceeded', reason);
             });
@@ -431,6 +464,9 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
                                'submit.click();';
 
         return navigateIframe(navigationScript, { timeout: 500 })
+            .then(function () {
+                ok(false, 'page should not navigated');
+            })
             .catch(function (reason) {
                 ok(reason === 'timeout exceeded', reason);
             });
@@ -443,6 +479,9 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
                                'document.getElementById("submit").click();';
 
         return navigateIframe(navigationScript, { timeout: 500 })
+            .then(function () {
+                ok(false, 'page should not navigated');
+            })
             .catch(function (reason) {
                 ok(reason === 'timeout exceeded', reason);
             });
