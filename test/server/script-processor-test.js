@@ -15,7 +15,7 @@ var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  ```
  function readWord1() {
     ...
-    word += escStr;
+    //word += codePointToString(esc)
     ...
  }
  ```
@@ -25,7 +25,7 @@ var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  ```
  function readWord1() {
     ...
-    word += input.substr(tokPos-6, 6);
+    word += this.input.substr(this.pos-6, 6);
     ...
  }
  ```
@@ -38,17 +38,20 @@ var ACORN_STRICT_MODE_PATCH_WARNING = multiline(function () {/*
 
  HOW TO FIX - go to acorn and replace the following code:
  ```
- function isUseStrict(stmt) {
-     return this.options.ecmaVersion >= 5 && stmt.type === "ExpressionStatement" &&
-         stmt.expression.type === "Literal" && stmt.expression.value === "use strict";
+ strictDirective = function(start) {
+     ...
+     if ((match[1] || match[2]) == "use strict") return true
+     ...
  }
  ```
 
  with the code below:
 
  ```
- function isUseStrict() {
-    return false;
+ strictDirective = function(start) {
+    ...
+    if ((match[1] || match[2]) == "use strict") return false
+    ...
  }
  ```
 */
