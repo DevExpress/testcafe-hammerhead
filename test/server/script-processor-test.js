@@ -15,7 +15,7 @@ var ACORN_UNICODE_PATCH_WARNING = multiline(function () {/*
  ```
  function readWord1() {
     ...
-    //word += codePointToString(esc)
+    word += codePointToString(esc)
     ...
  }
  ```
