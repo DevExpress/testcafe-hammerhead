@@ -329,8 +329,7 @@ describe('Proxy', () => {
         session = new Session();
 
         session.getAuthCredentials = () => null;
-        session.handleFileDownload = () => {
-        };
+        session.handleFileDownload = () => void 0;
 
         proxy = new Proxy('127.0.0.1', 1836, 1837);
     });

@@ -17,13 +17,9 @@ function createSession () {
 
     session._getIframePayloadScript = () => '';
     session._getPayloadScript       = () => '';
-    session.getAuthCredentials      = () => {
-        return {};
-    };
-    session.handleFileDownload      = () => {
-    };
-    session.handlePageError         = () => {
-    };
+    session.getAuthCredentials      = () => ({});
+    session.handleFileDownload      = () => void 0;
+    session.handlePageError         = () => void 0;
 
     return session;
 }
