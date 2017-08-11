@@ -1,6 +1,5 @@
 var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
 var ShadowUI            = hammerhead.get('./sandbox/shadow-ui');
-var settings            = hammerhead.get('./settings');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -77,12 +76,9 @@ test('get root', function () {
     root.parentNode.removeChild(root);
 });
 
-asyncTest('get root after body recreation', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test_unique_lsjisujf';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+test('get root after body recreation', function () {
+    return createTestIframe()
+        .then(function (iframe) {
             var document = iframe.contentDocument;
             var window   = iframe.contentWindow;
             var getRoot  = function () {
@@ -100,11 +96,7 @@ asyncTest('get root after body recreation', function () {
             html.removeChild(document.body);
             html.insertBefore(document.createElement('body'), null);
             ok(getRoot());
-
-            iframe.parentNode.removeChild(iframe);
-            start();
         });
-    document.body.appendChild(iframe);
 });
 
 test('set innerHTML for root', function () {
@@ -589,113 +581,98 @@ test('querySelectorAll', function () {
 
 module('ui stylesheet');
 
-asyncTest('stylesheets are restored after the document is cleaned', function () {
+test('stylesheets are restored after the document is cleaned', function () {
     var link1  = document.createElement('link');
     var link2  = document.createElement('link');
-    var iframe = document.createElement('iframe');
 
     link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link1.id        = 'id1';
     link2.id        = 'id2';
-    iframe.id       = 'test';
 
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
+    return createTestIframe()
+        .then(function (iframe) {
+            iframe.contentDocument.write('<html><body>Cleaned!</body></html>');
 
-        var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
-            iframe.contentDocument,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
-        var result              = '';
+            var iframeUIStylesheets = nativeMethods.querySelectorAll.call(
+                iframe.contentDocument,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
+            var result              = '';
 
-        for (var index = 0, length = iframeUIStylesheets.length; index < length; index++) {
-            var iframeUIStylesheet = iframeUIStylesheets[index];
+            for (var index = 0, length = iframeUIStylesheets.length; index < length; index++) {
+                var iframeUIStylesheet = iframeUIStylesheets[index];
 
-            ok(domUtils.isShadowUIElement(iframeUIStylesheet));
-            result += iframeUIStylesheet.id;
-        }
+                ok(domUtils.isShadowUIElement(iframeUIStylesheet));
+                result += iframeUIStylesheet.id;
+            }
 
-        ok(iframe.contentDocument.body.innerHTML.indexOf('Cleaned!') > -1);
-        strictEqual(length, 3);
-        strictEqual(result, 'id1id2');
+            ok(iframe.contentDocument.body.innerHTML.indexOf('Cleaned!') > -1);
+            strictEqual(length, 3);
+            strictEqual(result, 'id1id2');
 
-        document.head.removeChild(link1);
-        document.head.removeChild(link2);
-        document.body.removeChild(iframe);
-
-        start();
-    });
-    document.body.appendChild(iframe);
+            document.head.removeChild(link1);
+            document.head.removeChild(link2);
+        });
 });
 
-asyncTest('append stylesheets to the iframe on initialization', function () {
+test('append stylesheets to the iframe on initialization', function () {
     var link1  = document.createElement('link');
     var link2  = document.createElement('link');
-    var iframe = document.createElement('iframe');
 
     link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link1.id        = 'id1';
     link2.id        = 'id2';
-    iframe.id       = 'test';
 
     document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
 
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        var currentUIStylesheets = nativeMethods.querySelectorAll.call(
-            document,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
-        var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
-            iframe.contentDocument,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
+    return createTestIframe()
+        .then(function (iframe) {
+            var currentUIStylesheets = nativeMethods.querySelectorAll.call(
+                document,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
+            var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
+                iframe.contentDocument,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
 
-        strictEqual(currentUIStylesheets.length, iframeUIStylesheets.length);
+            strictEqual(currentUIStylesheets.length, iframeUIStylesheets.length);
 
-        for (var i = 0; i < currentUIStylesheets.length; i++)
-            strictEqual(currentUIStylesheets[i].outerHTML, iframeUIStylesheets[i].outerHTML);
+            for (var i = 0; i < currentUIStylesheets.length; i++)
+                strictEqual(currentUIStylesheets[i].outerHTML, iframeUIStylesheets[i].outerHTML);
 
-        document.head.removeChild(link1);
-        document.head.removeChild(link2);
-        document.body.removeChild(iframe);
-
-        start();
-    });
-    document.body.appendChild(iframe);
+            document.head.removeChild(link1);
+            document.head.removeChild(link2);
+        });
 });
 
-asyncTest("do nothing if ShadowUIStylesheet doesn't exist", function () {
-    var iframe       = document.createElement('iframe');
+test("do nothing if ShadowUIStylesheet doesn't exist", function () {
     var qUnitCssLink = nativeMethods.querySelector.call(document, '.' + SHADOW_UI_CLASSNAME.uiStylesheet);
 
-    iframe.id              = 'test';
     qUnitCssLink.className = '';
 
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        var currentUIStylesheets = nativeMethods.querySelectorAll.call(
-            document,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
-        var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
-            iframe.contentDocument,
-            '.' + SHADOW_UI_CLASSNAME.uiStylesheet
-        );
+    return createTestIframe()
+        .then(function (iframe) {
+            var currentUIStylesheets = nativeMethods.querySelectorAll.call(
+                document,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
+            var iframeUIStylesheets  = nativeMethods.querySelectorAll.call(
+                iframe.contentDocument,
+                '.' + SHADOW_UI_CLASSNAME.uiStylesheet
+            );
 
-        strictEqual(currentUIStylesheets.length, 0);
-        strictEqual(iframeUIStylesheets.length, 0);
+            strictEqual(currentUIStylesheets.length, 0);
+            strictEqual(iframeUIStylesheets.length, 0);
 
-        qUnitCssLink.className = SHADOW_UI_CLASSNAME.uiStylesheet;
-        iframe.parentNode.removeChild(iframe);
-
-        start();
-    });
-    document.body.appendChild(iframe);
+            qUnitCssLink.className = SHADOW_UI_CLASSNAME.uiStylesheet;
+        });
 });
 
 module('regression');
@@ -711,25 +688,19 @@ test('SVG elements\' className is of the SVGAnimatedString type instead of strin
     svg.parentNode.removeChild(svg);
 });
 
-asyncTest('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
-    var iframe = document.createElement('iframe');
+test('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
-    iframe.id = 'test001';
-    window.QUnitGlobals.waitForIframe(iframe).then(function () {
-        var root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
+            strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
 
-        strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
+            iframe.contentDocument.body.innerHTMl = '';
 
-        iframe.contentDocument.body.innerHTMl = '';
+            root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
-        root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
-
-        strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
-
-        iframe.parentNode.removeChild(iframe);
-        start();
-    });
-    document.body.appendChild(iframe);
+            strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
+        });
 });
 
 test('shadowUI\'s root must be the last child after adding a new element (T239689)', function () {
@@ -761,23 +732,11 @@ test('shadowUI\'s root must be the last child after adding a new element (T23968
     div2.parentNode.removeChild(div2);
 });
 
-asyncTest('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
-    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
-
-    settings.get().crossDomainProxyPort = 2001;
-
-    var crossDomainIframe = document.createElement('iframe');
-
-    crossDomainIframe.src = window.getCrossDomainPageUrl('../../data/cross-domain/get-message.html');
-    window.QUnitGlobals.waitForIframe(crossDomainIframe)
-        .then(function () {
+test('isShadowContainerCollection for cross-domain iframe.contentWindow must return false (T212476)', function () {
+    return createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-message.html') })
+        .then(function (crossDomainIframe) {
             ok(!ShadowUI.isShadowContainerCollection([crossDomainIframe.contentWindow]));
-
-            crossDomainIframe.parentNode.removeChild(crossDomainIframe);
-            settings.get().crossDomainProxyPort = storedCrossDomainPort;
-            start();
         });
-    document.body.appendChild(crossDomainIframe);
 });
 
 if (document.implementation && document.implementation.createHTMLDocument) {

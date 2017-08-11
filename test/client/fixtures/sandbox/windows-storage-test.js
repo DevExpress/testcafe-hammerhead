@@ -38,40 +38,17 @@ test('top window', function () {
 
 module('regression');
 
-asyncTest('should not raise an error for a cross-domain iframe (GH-669)', function () {
-    var sameDomainIframe  = document.createElement('iframe');
-    var crossDomainIframe = document.createElement('iframe');
-    var form              = document.createElement('form');
-    var src               = '../../data/code-instrumentation/iframe.html';
+test('should not raise an error for a cross-domain iframe (GH-669)', function () {
+    var src = '../../data/code-instrumentation/iframe.html';
 
-    crossDomainIframe.src = window.getCrossDomainPageUrl(src);
-    crossDomainIframe.id  = 'test_unique_id_foimb9ad9';
-    window.QUnitGlobals.waitForIframe(crossDomainIframe)
+    return createTestIframe({ src: getCrossDomainPageUrl(src) })
         .then(function () {
-            sameDomainIframe.src  = window.QUnitGlobals.getResourceUrl(src);
-            sameDomainIframe.id   = 'test_unique_id_dwbu9x663';
-            sameDomainIframe.name = 'test_name_dwbu9x663';
-
-            var sameDomainIframePromise = window.QUnitGlobals.waitForIframe(sameDomainIframe);
-
-            document.body.appendChild(sameDomainIframe);
-
-            return sameDomainIframePromise;
+            return createTestIframe({
+                src:  getSameDomainPageUrl(src),
+                name: 'same_domain_iframe'
+            });
         })
         .then(function () {
-            try {
-                ok(windowStorage.findByName('test_name_dwbu9x663'));
-            }
-            catch (e) {
-                ok(false, 'exception raised');
-            }
-
-            sameDomainIframe.parentNode.removeChild(sameDomainIframe);
-            crossDomainIframe.parentNode.removeChild(crossDomainIframe);
-            form.parentNode.removeChild(form);
-
-            start();
+            ok(windowStorage.findByName('same_domain_iframe'));
         });
-    document.body.appendChild(crossDomainIframe);
-    document.body.appendChild(form);
 });

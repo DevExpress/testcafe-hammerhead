@@ -1,14 +1,6 @@
 var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var iframeSandbox       = hammerhead.sandbox.iframe;
-
-function createIframe () {
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-    var iframe = document.createElement('iframe');
-
-    iframe.setAttribute('src', src);
-
-    return iframe;
-}
+var Promise             = hammerhead.Promise;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -21,11 +13,14 @@ QUnit.testDone(function () {
     document.body.focus();
 });
 
-asyncTest('check changing active window', function () {
-    var iframe = createIframe();
+test('check changing active window', function () {
+    var src    = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var iframe = null;
 
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe({ src: src })
+        .then(function (createdIframe) {
+            iframe = createdIframe;
+
             ok(activeWindowTracker.isCurrentWindowActive());
             notOk(iframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
 
@@ -51,28 +46,19 @@ asyncTest('check changing active window', function () {
         .then(function () {
             ok(activeWindowTracker.isCurrentWindowActive());
             notOk(iframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
-
-            document.body.removeChild(iframe);
-
-            start();
         });
-    document.body.appendChild(iframe);
 });
 
-asyncTest('check switching active window (between two iframes)', function () {
-    var firstIframe         = createIframe();
-    var secondIframe        = createIframe();
-    var firstIframePromise  = window.QUnitGlobals.waitForIframe(firstIframe);
-    var secondIframePromise = window.QUnitGlobals.waitForIframe(secondIframe);
+test('check switching active window (between two iframes)', function () {
+    var src          = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var firstIframe  = null;
+    var secondIframe = null;
 
-    document.body.appendChild(firstIframe);
-    document.body.appendChild(secondIframe);
+    return Promise.all([createTestIframe({ src: src }), createTestIframe({ src: src })])
+        .then(function (iframes) {
+            firstIframe  = iframes[0];
+            secondIframe = iframes[1];
 
-    firstIframePromise
-        .then(function () {
-            return secondIframePromise;
-        })
-        .then(function () {
             firstIframe.contentWindow.document.body.focus();
         })
         .then(function () {
@@ -97,30 +83,29 @@ asyncTest('check switching active window (between two iframes)', function () {
             notOk(activeWindowTracker.isCurrentWindowActive());
             notOk(firstIframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
             ok(secondIframe.contentWindow.activeWindowTracker.isCurrentWindowActive());
-
-            document.body.removeChild(firstIframe);
-            document.body.removeChild(secondIframe);
-
-            start();
         });
 });
 
 module('regression');
 
-asyncTest('check that an error does not rise when trying to send serviceMessage to the removed iframe (GH-206)', function () {
-    var iframe            = createIframe();
+test('check that an error does not rise when trying to send serviceMessage to the removed iframe (GH-206)', function () {
+    var src               = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var iframe            = null;
     var link              = document.createElement('a');
-    var withError         = false;
     var checkActiveWindow = function () {
         return activeWindowTracker.activeWindow === iframe.contentWindow;
     };
 
     link.setAttribute('href', '#');
-    link.innerHTML = 'Link';
-    iframe.id = 'GH206';
 
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    link.innerHTML = 'Link';
+
+    document.body.appendChild(link);
+
+    return createTestIframe({ src: src })
+        .then(function (createdIframe) {
+            iframe = createdIframe;
+
             iframe.contentDocument.body.focus();
         })
         .then(function () {
@@ -131,39 +116,31 @@ asyncTest('check that an error does not rise when trying to send serviceMessage 
 
             link.focus();
         })
-        .catch(function () {
-            withError = true;
+        .catch(function (err) {
+            return err;
         })
-        .then(function () {
-            ok(!withError);
+        .then(function (err) {
+            ok(!err, err);
 
             document.body.removeChild(link);
-            start();
         });
-
-    document.body.appendChild(link);
-    document.body.appendChild(iframe);
 });
 
-asyncTest('no error occurs when a focused iframe is removed and a different iframe gets focus afterwards (GH-271)', function () {
-    var firstIframe         = createIframe();
-    var secondIframe        = createIframe();
-    var firstIframePromise  = window.QUnitGlobals.waitForIframe(firstIframe);
-    var secondIframePromise = window.QUnitGlobals.waitForIframe(secondIframe);
+test('no error occurs when a focused iframe is removed and a different iframe gets focus afterwards (GH-271)', function () {
+    var src          = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+    var firstIframe  = null;
+    var secondIframe = null;
     var withError           = false;
 
     hammerhead.on(hammerhead.EVENTS.uncaughtJsError, function () {
         withError = true;
     });
 
-    document.body.appendChild(firstIframe);
-    document.body.appendChild(secondIframe);
+    return Promise.all([createTestIframe({ src: src }), createTestIframe({ src: src })])
+        .then(function (iframes) {
+            firstIframe  = iframes[0];
+            secondIframe = iframes[1];
 
-    firstIframePromise
-        .then(function () {
-            return secondIframePromise;
-        })
-        .then(function () {
             firstIframe.contentDocument.body.focus();
         })
         .then(function () {
@@ -178,8 +155,5 @@ asyncTest('no error occurs when a focused iframe is removed and a different ifra
         })
         .then(function () {
             ok(!withError);
-
-            document.body.removeChild(secondIframe);
-            start();
         });
 });

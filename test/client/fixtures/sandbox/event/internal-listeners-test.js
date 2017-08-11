@@ -158,7 +158,7 @@ test('initElementListening', function () {
 });
 
 test('getEventListeners', function () {
-    var onClick        = function () {
+    var onClick = function () {
     };
 
     strictEqual(listeners.getEventListeners(container, 'click'), null);
@@ -585,9 +585,8 @@ if (browserUtils.isIE && browserUtils.version >= 10) {
 
 module('dispatched event flag should be written in the proper window (GH-529)');
 
-asyncTest('dispatchEvent, fireEvent, click', function () {
-    var iframe = document.createElement('iframe');
-    var link   = document.createElement('a');
+test('dispatchEvent, fireEvent, click', function () {
+    var link = document.createElement('a');
     // NOTE: To prevent the export of the constant and modification of the Listeners module export,
     // we declare the constant in the test again.
     var dispatchedEventFlag = 'hammerhead|event-sandbox-dispatch-event-flag';
@@ -600,10 +599,8 @@ asyncTest('dispatchEvent, fireEvent, click', function () {
             : iframeListenersModule;
     };
 
-    iframe.id = 'test_unique_id_qrsdcz';
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe()
+        .then(function (iframe) {
             var iframeDocument            = iframe.contentDocument;
             var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
             var iframeListeners           = iframeHammerhead.get('./sandbox/event/listeners');
@@ -638,17 +635,11 @@ asyncTest('dispatchEvent, fireEvent, click', function () {
 
             if (document.fireEvent)
                 link.fireEvent('click');
-
-            iframe.parentNode.removeChild(iframe);
-            start();
         });
-
-    document.body.appendChild(iframe);
 });
 
 if (browserUtils.isIE && !browserUtils.isMSEdge) {
     asyncTest('setSelection', function () {
-        var iframe    = document.createElement('iframe');
         var testInput = document.createElement('input');
         // NOTE: To prevent the export of the constant and modification of the Listeners module export,
         // we declare the constant in the test again.
@@ -656,15 +647,13 @@ if (browserUtils.isIE && !browserUtils.isMSEdge) {
         var counter             = 0;
 
         testInput.addEventListener('focus', function () {
-            iframe.parentNode.removeChild(iframe);
             start();
         });
 
         testInput.value = 'test';
-        iframe.id       = 'test_unique_id_qrsj12vbz';
 
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+        createTestIframe()
+            .then(function (iframe) {
                 var iframeDocument            = iframe.contentDocument;
                 var iframeHammerhead          = iframe.contentWindow['%hammerhead%'];
                 var iframeListeners           = iframeHammerhead.get('./sandbox/event/listeners');
@@ -702,8 +691,6 @@ if (browserUtils.isIE && !browserUtils.isMSEdge) {
                 iframeDocument.body.appendChild(testInput);
                 testInput.setSelectionRange(1, 2);
             });
-
-        document.body.appendChild(iframe);
     });
 }
 

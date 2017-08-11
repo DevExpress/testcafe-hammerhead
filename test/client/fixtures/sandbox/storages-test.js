@@ -315,15 +315,13 @@ test('getter', function () {
 
 module('area of visibility');
 
-asyncTest('iframe with empty src', function () {
+test('iframe with empty src', function () {
     var topStorage = storageSandbox.localStorage;
-    var iframe     = document.createElement('iframe');
 
-    iframe.id       = 'test001';
     topStorage.key1 = 'value1';
 
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe()
+        .then(function (iframe) {
             var iframeStorage = iframe.contentWindow['%hammerhead%'].sandbox.storageSandbox.localStorage;
 
             strictEqual(iframeStorage.key1, 'value1');
@@ -333,12 +331,7 @@ asyncTest('iframe with empty src', function () {
 
             strictEqual(topStorage.key2, 'value2');
             strictEqual(iframeStorage.key3, 'value3');
-
-            $(iframe).remove();
-            start();
         });
-
-    document.body.appendChild(iframe);
 });
 
 module('sync state with native');
@@ -370,9 +363,8 @@ test('storages save their state on the beforeunload event', function () {
 
 module('storage changed event');
 
-asyncTest('event firing in all same host windows except current', function () {
-    var iframe = document.createElement('iframe');
-
+test('event firing in all same host windows except current', function () {
+    var iframe                 = null;
     var topStorageEventArgs    = [];
     var iframeStorageEventArgs = [];
 
@@ -384,13 +376,12 @@ asyncTest('event firing in all same host windows except current', function () {
         iframeStorageEventArgs.push(e);
     };
 
-    iframe.id = 'test001';
+    return createTestIframe()
+        .then(function (createdIframe) {
+            iframe = createdIframe;
 
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
             window.addEventListener('storage', topWindowHandler);
             iframe.contentWindow.addEventListener('storage', iframeWindowHandler);
-
             iframe.contentWindow.eval(processScript('localStorage.key1 = "value1";'));
 
             return waitStorageUpdated();
@@ -420,18 +411,10 @@ asyncTest('event firing in all same host windows except current', function () {
             strictEqual(iframeStorageEventArgs[0].storageArea, eval(processScript('localStorage')));
 
             window.removeEventListener('storage', topWindowHandler);
-            $(iframe).remove();
-            start();
         });
-
-    document.body.appendChild(iframe);
 });
 
-asyncTest('event argument parameters', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test-' + Date.now();
-
+test('event argument parameters', function () {
     var iframeStorageSandbox = null;
     var checkEventArg        = function (e, key, oldValue, newValue) {
         strictEqual(e.key, key);
@@ -441,8 +424,8 @@ asyncTest('event argument parameters', function () {
         strictEqual(e.storageArea, iframeStorageSandbox);
     };
 
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe()
+        .then(function (iframe) {
             iframeStorageSandbox = iframe.contentWindow.eval(processScript('localStorage'));
             iframeStorageSandbox.clear();
 
@@ -473,12 +456,7 @@ asyncTest('event argument parameters', function () {
         })
         .then(function (e) {
             checkEventArg(e, 'key1', 'value3', isIE ? 'null' : null);
-
-            $(iframe).remove();
-            start();
         });
-
-    document.body.appendChild(iframe);
 });
 
 module('regression');

@@ -237,7 +237,7 @@ test('add/remove input info', function () {
     strictEqual(formInfo.length, 0);
 });
 
-asyncTest('transfer input element between forms', function () {
+test('transfer input element between forms', function () {
     var formEl1          = $('<form><input type="file"></form>')[0];
     var formEl2          = $('<form>')[0];
     var inputEl          = formEl1.firstChild;
@@ -248,7 +248,7 @@ asyncTest('transfer input element between forms', function () {
     strictEqual(formEl1.children.length, 2, 'Hidden input in form1 is present');
     strictEqual(formEl2.children.length, 0, 'Hidden input in form2 is missing');
 
-    uploadSandbox.doUpload(inputEl, ['./file.txt'])
+    return uploadSandbox.doUpload(inputEl, ['./file.txt'])
         .then(function () {
             testHiddenInfo   = formEl1.children[1].value;
             parsedHiddenInfo = JSON.parse(testHiddenInfo);
@@ -286,8 +286,6 @@ asyncTest('transfer input element between forms', function () {
             formEl1.removeChild(div);
             strictEqual(formEl1.children[0].value, '[]', 'Hidden info in form1 is empty');
             strictEqual(formEl2.children[0].value, '[]', 'Hidden info in form2 is empty');
-
-            start();
         });
 });
 
@@ -349,10 +347,10 @@ test('format value', function () {
 
 module('server errs');
 
-asyncTest('upload error', function () {
+test('upload error', function () {
     var input = $('<input type="file">')[0];
 
-    uploadSandbox.doUpload(input, './err_file.txt')
+    return uploadSandbox.doUpload(input, './err_file.txt')
         .then(function (errs) {
             strictEqual(errs.length, 1);
             strictEqual(errs[0].err, 34);
@@ -363,8 +361,6 @@ asyncTest('upload error', function () {
             strictEqual(errs.length, 2);
             strictEqual(errs[0].err, 34);
             strictEqual(errs[1].err, 34);
-
-            start();
         });
 });
 
@@ -432,7 +428,7 @@ test('set value', function () {
     strictEqual(fileInput.value, '');
 });
 
-asyncTest('set empty value', function () {
+test('set empty value', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
     var value     = '';
     var testFiles = null;
@@ -446,7 +442,7 @@ asyncTest('set empty value', function () {
     else
         strictEqual(testFiles.length, 0);
 
-    uploadSandbox.doUpload(fileInput, ['./file.txt'])
+    return uploadSandbox.doUpload(fileInput, ['./file.txt'])
         .then(function () {
             eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
@@ -468,17 +464,15 @@ asyncTest('set empty value', function () {
                 strictEqual(typeof testFiles, 'undefined');
             else
                 strictEqual(testFiles.length, 0);
-
-            start();
         });
 });
 
-asyncTest('repeated select file', function () {
+test('repeated select file', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
     var value     = '';
     var testFiles = null;
 
-    uploadSandbox.doUpload(fileInput, './file.txt')
+    return uploadSandbox.doUpload(fileInput, './file.txt')
         .then(function () {
             eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
@@ -506,8 +500,6 @@ asyncTest('repeated select file', function () {
                 strictEqual(typeof testFiles, 'undefined');
             else
                 strictEqual(testFiles[0].name, 'file.png');
-
-            start();
         });
 });
 
@@ -536,12 +528,12 @@ asyncTest('change event', function () {
     uploadSandbox.doUpload(fileInput, './file.txt');
 });
 
-asyncTest('multi-select files', function () {
+test('multi-select files', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
     var value     = '';
     var testFiles = null;
 
-    uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png'])
+    return uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png'])
         .then(function () {
             eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
 
@@ -556,8 +548,6 @@ asyncTest('multi-select files', function () {
                 strictEqual(typeof testFiles, 'undefined');
             else
                 strictEqual(testFiles.length, 2);
-
-            start();
         });
 });
 
@@ -593,20 +583,19 @@ asyncTest('get file info from iframe', function () {
                 start();
             });
 
-            iframe.src = window.QUnitGlobals.getResourceUrl('../../data/upload/iframe.html');
+            iframe.src = getSameDomainPageUrl('../../data/upload/iframe.html');
             document.body.appendChild(iframe);
         });
 });
 
-asyncTest('input.value getter', function () {
+test('input.value getter', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
 
-    uploadSandbox.doUpload(fileInput, ['./file.txt'])
+    return uploadSandbox.doUpload(fileInput, ['./file.txt'])
         .then(function () {
             var fileInputValue = getProperty(fileInput, 'value');
 
             ok(fileInputValue.indexOf('file.txt') !== -1);
-            start();
         });
 });
 

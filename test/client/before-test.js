@@ -61,7 +61,12 @@
         }
     };
 
-    hammerhead.start({ sessionId: 'sessionId', cookie: '', cookieSyncUrl: '/cookie-sync/100' });
+    hammerhead.start({
+        sessionId:            'sessionId',
+        cookie:               '',
+        cookieSyncUrl:        '/cookie-sync/100',
+        crossDomainProxyPort: 2001
+    });
 
     window.processDomMeth = window[INTERNAL_PROPS.processDomMethodName];
 
@@ -77,8 +82,12 @@
     window.getLocation   = window[INSTRUCTION.getLocation];
     window.hammerhead    = hammerhead;
 
-    window.getCrossDomainPageUrl = function (filePath) {
-        return window.QUnitGlobals.crossDomainHostname + window.QUnitGlobals.getResourceUrl(filePath);
+    window.getCrossDomainPageUrl = function (filePath, resourceName) {
+        return window.QUnitGlobals.crossDomainHostname + window.QUnitGlobals.getResourceUrl(filePath, resourceName);
+    };
+
+    window.getSameDomainPageUrl = function (filePath, resourceName) {
+        return window.QUnitGlobals.hostname + window.QUnitGlobals.getResourceUrl(filePath, resourceName);
     };
 
     var MAX_ARG_COUNT = 3;
@@ -136,6 +145,35 @@
         }
 
         ok(passed);
+    };
+
+    window.createTestIframe = function (attrs, parent) {
+        var iframe = document.createElement('iframe');
+
+        iframe.id = 'test' + Date.now();
+
+        if (attrs) {
+            Object.keys(attrs).forEach(function (attrName) {
+                iframe.setAttribute(attrName, attrs[attrName]);
+            });
+        }
+
+        parent = parent || document.body;
+
+        QUnit.testDone(function () {
+            // NOTE: For nested iframes we will delete only top iframe
+            if (document.getElementById(iframe.id))
+                iframe.parentNode.removeChild(iframe);
+        });
+
+        var promise = window.QUnitGlobals.waitForIframe(iframe);
+
+        parent.appendChild(iframe);
+
+        return promise
+            .then(function () {
+                return iframe;
+            });
     };
 
     QUnitGlobals.WAIT_FOR_IFRAME_TIMEOUT = 20000;

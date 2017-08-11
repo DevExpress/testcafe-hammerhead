@@ -51,11 +51,8 @@ if (document.attachEvent) {
 }
 
 asyncTest('focus / blur events in iframe (B253685)', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test1';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe()
+        .then(function (iframe) {
             var iframeDocument         = iframe.contentWindow.document;
             var iframeBody             = iframeDocument.body;
             var blurOnIframeBodyRaised = false;
@@ -70,11 +67,10 @@ asyncTest('focus / blur events in iframe (B253685)', function () {
 
             focusBlur.focus(iframe, function () {
                 ok(!blurOnIframeBodyRaised, 'a blur event on the input must not be raised');
-                iframe.parentNode.removeChild(iframe);
+
                 start();
             });
         });
-    document.body.appendChild(iframe);
 });
 
 test('document.addEventListener (Q532574)', function () {

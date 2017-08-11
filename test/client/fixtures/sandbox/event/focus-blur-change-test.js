@@ -774,12 +774,8 @@ if (window.HTMLInputElement.prototype.createTextRange) {
 }
 
 asyncTest('active window doesn\'t change after focusing ShadowUI element in iframe', function () {
-    var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-
-    iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html') })
+        .then(function (iframe) {
             var iframeWindow = iframe.contentWindow;
             var divElement   = iframeWindow.document.body.getElementsByTagName('div')[0];
 
@@ -795,12 +791,10 @@ asyncTest('active window doesn\'t change after focusing ShadowUI element in ifra
                         ok(activeWindowTracker.isCurrentWindowActive());
                         notOk(iframeWindow.activeWindowTracker.isCurrentWindowActive());
 
-                        iframe.parentNode.removeChild(iframe);
                         start();
                     });
             });
         });
-    document.body.appendChild(iframe);
 });
 
 asyncTest('check that scrolling does not happen when focus is set (after mouse events)', function () {
@@ -998,14 +992,10 @@ test('querySelector must return active element even when browser is not focused 
 });
 
 asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=3 page (B237723)', function () {
-    var iframe      = document.createElement('iframe');
-    var src         = window.QUnitGlobals.getResourceUrl('../../../data/event-sandbox/focus-blur-sandbox.html');
     var errorRaised = false;
 
-    iframe.className = TEST_ELEMENT_CLASS;
-    iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/event-sandbox/focus-blur-sandbox.html') })
+        .then(function (iframe) {
             try {
                 iframe.contentWindow.focusInput();
             }
@@ -1014,10 +1004,8 @@ asyncTest('error on the http://phonejs.devexpress.com/Demos/?url=KitchenSink&sm=
             }
 
             ok(!errorRaised, 'error is not raised');
-            iframe.parentNode.removeChild(iframe);
             startNext();
         });
-    document.body.appendChild(iframe);
 });
 
 asyncTest('scrolling elements with "overflow=hidden" should be restored after focus (GH-221)', function () {
@@ -1067,7 +1055,7 @@ asyncTest('scrolling elements with "overflow=hidden" should be restored after fo
     }, false, true);
 });
 
-asyncTest('focus() must not raise the event if the element is invisible (GH-442)', function () {
+test('focus() must not raise the event if the element is invisible (GH-442)', function () {
     var checkFocus = function (style) {
         return new Promise(function (resolve) {
             var styleProp         = Object.keys(style)[0];
@@ -1099,16 +1087,15 @@ asyncTest('focus() must not raise the event if the element is invisible (GH-442)
         });
     };
 
-    checkFocus({ display: 'none' })
+    return checkFocus({ display: 'none' })
         .then(function () {
             return checkFocus({ visibility: 'hidden' });
-        })
-        .then(start);
+        });
 });
 
-asyncTest('focus() must not raise the event if the element is in an invisible iframe (GH-442)', function () {
-    var iframe = document.createElement('iframe');
+test('focus() must not raise the event if the element is in an invisible iframe (GH-442)', function () {
     var input  = document.createElement('input');
+    var iframe = null;
 
     var checkFocus = function (shouldRiseFocus) {
         return new Promise(function (resolve) {
@@ -1130,11 +1117,10 @@ asyncTest('focus() must not raise the event if the element is in an invisible if
         });
     };
 
-    iframe.id            = 'test';
-    iframe.style.display = 'none';
+    return createTestIframe({ style: 'display: none' })
+        .then(function (createdIframe) {
+            iframe = createdIframe;
 
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
             iframe.contentDocument.body.appendChild(input);
 
             return checkFocus(browserUtils.isWebKit);
@@ -1144,28 +1130,20 @@ asyncTest('focus() must not raise the event if the element is in an invisible if
             iframe.style.visibility = 'hidden';
 
             return checkFocus(browserUtils.isWebKit);
-        })
-        .then(function () {
-            document.body.removeChild(iframe);
-            start();
         });
-
-    document.body.appendChild(iframe);
 });
 
 asyncTest('should correctly handle the case when document.activeElement is null or an empty object (GH-768)', function () {
     expect(1);
 
-    var iframe       = document.createElement('iframe');
     var errorHandler = function () {
         ok(false, 'error is reproduced');
     };
 
     window.addEventListener('error', errorHandler);
 
-    iframe.id = 'test_unique_id_02pog0ra5';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    createTestIframe()
+        .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
             var iframeWindow   = iframe.contentWindow;
             var div            = iframeDocument.createElement('div');
@@ -1188,6 +1166,4 @@ asyncTest('should correctly handle the case when document.activeElement is null 
             innerDiv.focus();
             div.innerHTML = '<span>Replaced</span>';
         });
-
-    document.body.appendChild(iframe);
 });

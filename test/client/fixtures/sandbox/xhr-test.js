@@ -122,7 +122,7 @@ test('the internal 222 status code should be replaced with 0 on the client side'
 });
 
 if (!browserUtils.isIE9) {
-    asyncTest('send the origin header correctly (GH-284)', function () {
+    test('send the origin header correctly (GH-284)', function () {
         var xhrTestFunc = function () {
             var xhr = new XMLHttpRequest();
 
@@ -142,12 +142,8 @@ if (!browserUtils.isIE9) {
 
         destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
-        var iframe = document.createElement('iframe');
-
-        iframe.id = 'test';
-
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+        return createTestIframe()
+            .then(function (iframe) {
                 // NOTE: iframe without src
                 iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
 
@@ -158,14 +154,7 @@ if (!browserUtils.isIE9) {
                 iframe.contentDocument.body.appendChild(script);
 
                 strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
-
-                document.body.removeChild(iframe);
-
-                expect(3);
-                start();
             });
-
-        document.body.appendChild(iframe);
     });
 }
 

@@ -1,14 +1,10 @@
 module('regression');
 
-asyncTest('should not throw an error after for...of loop transformation (GH-1231)', function () {
-    var iframe = document.createElement('iframe');
-    var div    = document.createElement('div');
+test('should not throw an error after for...of loop transformation (GH-1231)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../data/iframe/simple-iframe.html') })
+        .then(function (iframe) {
+            var div = document.createElement('div');
 
-    iframe.id  = 'test' + Date.now();
-    iframe.src = window.QUnitGlobals.getResourceUrl('../data/iframe/simple-iframe.html');
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
             iframe.contentDocument.body.appendChild(div);
             document.body.removeChild(iframe);
             div.parentNode.removeChild(div);
@@ -18,8 +14,5 @@ asyncTest('should not throw an error after for...of loop transformation (GH-1231
         })
         .then(function (err) {
             ok(!err, err);
-            start();
         });
-
-    document.body.appendChild(iframe);
 });

@@ -279,16 +279,11 @@ test('crossdomain src', function () {
         proxyPort:     2001,
         resourceType:  'i'
     });
-    var storedCrossDomainPort = settings.get().crossDomainProxyPort;
-
-    settings.get().crossDomainProxyPort = 2001;
 
     var processed = htmlUtils.processHtml('<iframe src="' + url + '"></iframe>');
 
     ok(processed.indexOf('src="' + proxyUrl) !== -1);
     ok(processed.indexOf(domProcessor.getStoredAttrName('src') + '="' + url + '"') !== -1);
-
-    settings.get().crossDomainProxyPort = storedCrossDomainPort;
 });
 
 test('stylesheet', function () {
@@ -561,23 +556,14 @@ test('remove the "integrity" attribute from the link and script tags (GH-235)', 
     ok(!link.hasAttribute('integrity'));
 });
 
-asyncTest('link with target="_parent" in iframe (T216999)', function () {
-    var iframe         = document.createElement('iframe');
-    var storedAttrName = domProcessor.getStoredAttrName('href');
-
-    iframe.id  = 'test';
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe.html');
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
-            var link = nativeMethods.getElementById.call(iframe.contentDocument, 'link');
+test('link with target="_parent" in iframe (T216999)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/dom-processor/iframe.html') })
+        .then(function (iframe) {
+            var link           = nativeMethods.getElementById.call(iframe.contentDocument, 'link');
+            var storedAttrName = domProcessor.getStoredAttrName('href');
 
             strictEqual(nativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
-
-            iframe.parentNode.removeChild(iframe);
-            start();
         });
-    document.body.appendChild(iframe);
 });
 
 test('iframe with javascript protocol in \'src\' attribute value must be processed (T135513)', function () {
@@ -671,12 +657,9 @@ test('node.replaceChild must be overridden (GH-264)', function () {
     ok(style.innerHTML.indexOf(urlUtils.getProxyUrl('/image2.png')) > -1);
 });
 
-asyncTest('script error when a new element is added to a "body" element that is not in the DOM (GH-296)', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test_unique_id_l7ajkl';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+test('script error when a new element is added to a "body" element that is not in the DOM (GH-296)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
 
             iframeDocument.documentElement.removeChild(iframeDocument.body);
@@ -692,11 +675,7 @@ asyncTest('script error when a new element is added to a "body" element that is 
             strictEqual(newIframeBody.lastChild, div2);
             newIframeBody.insertBefore(div3, null);
             strictEqual(newIframeBody.lastChild, div3);
-
-            iframe.parentNode.removeChild(iframe);
-            start();
         });
-    document.body.appendChild(iframe);
 });
 
 test('xlink:href attribute of svg elements should be overriden (GH-434)(GH-514)', function () {
@@ -754,14 +733,11 @@ test('xml:base attribute of svg element should be overriden (GH-477)', function 
     strictEqual(nativeMethods.getAttributeNS.call(circle, xmlNameSpaceUrl, 'base'), urlUtils.getProxyUrl(subDomainUrl));
 });
 
-asyncTest("should reprocess tags that doesn't processed on server side (GH-838)", function () {
-    var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/dom-processor/iframe-with-nonproceed-on-server-tags.html');
+test("should reprocess tags that doesn't processed on server side (GH-838)", function () {
+    var src = getSameDomainPageUrl('../../../data/dom-processor/iframe-with-nonproceed-on-server-tags.html');
 
-    iframe.id = 'test_unique_id_an0izear5';
-    iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe({ src: src })
+        .then(function (iframe) {
             var processedLinkHrefUrl   = iframe.contentDocument.querySelector('#processed-link').href;
             var processedFormActionUrl = iframe.contentDocument.querySelector('#processed-form').action;
 
@@ -775,11 +751,7 @@ asyncTest("should reprocess tags that doesn't processed on server side (GH-838)"
 
             strictEqual(nonProcessedLinkHrefUrl, 'http://localhost/link-action.html');
             strictEqual(nonProcessedFormActionUrl, 'http://localhost/form-action.html');
-
-            iframe.parentNode.removeChild(iframe);
-            start();
         });
-    document.body.appendChild(iframe);
 });
 
 test('the `formaction` attribute should not be overridden if it is missed (GH-1021)', function () {

@@ -3,7 +3,7 @@ asyncTest('cross domain messaging between windows', function () {
 
     var iframe = document.createElement('iframe');
 
-    iframe.src = window.getCrossDomainPageUrl('../data/cross-domain/target-url.html');
+    iframe.src = getCrossDomainPageUrl('../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
 
     var messageCounter = 0;
@@ -22,4 +22,3 @@ asyncTest('cross domain messaging between windows', function () {
 
     setProperty(window, 'onmessage', onMessageHandler);
 });
-

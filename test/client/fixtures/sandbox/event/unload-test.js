@@ -2,12 +2,8 @@ var INSTRUCTION  = hammerhead.get('../processing/script/instruction');
 var browserUtils = hammerhead.utils.browser;
 
 asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.src = window.QUnitGlobals.getResourceUrl('../../../data/unload/iframe.html');
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    createTestIframe({ src: getSameDomainPageUrl('../../../data/unload/iframe.html') })
+        .then(function (iframe) {
             var iframeWindow       = iframe.contentWindow;
             var unloadSandbox      = iframeWindow['%hammerhead%'].sandbox.event.unload;
             var uploadEventCounter = 0;
@@ -18,7 +14,6 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
                 window.setTimeout(function () {
                     strictEqual(uploadEventCounter, 2);
 
-                    document.body.removeChild(iframe);
                     start();
                 }, 0);
             });
@@ -33,15 +28,13 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
 
             iframeWindow.location.reload();
         });
-
-    document.body.appendChild(iframe);
 });
 
 if (browserUtils.isSafari && !browserUtils.isIOS) {
     asyncTest('onbeforeunload handler must be called in iframe (GH-698)', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.setAttribute('src', window.QUnitGlobals.getResourceUrl('../../../data/unload/iframe-with-reload-button.html'));
+        iframe.setAttribute('src', getSameDomainPageUrl('../../../data/unload/iframe-with-reload-button.html'));
 
         var finish = function () {
             document.body.removeChild(iframe);

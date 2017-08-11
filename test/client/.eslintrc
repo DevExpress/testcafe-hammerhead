@@ -25,7 +25,10 @@
     "hammerhead": true,
     "processDomMeth": true,
     "initIframeTestHandler": true,
-    "checkNativeFunctionArgs": true
+    "checkNativeFunctionArgs": true,
+    "createTestIframe": true,
+    "getCrossDomainPageUrl": true,
+    "getSameDomainPageUrl": true
   }
 }
 

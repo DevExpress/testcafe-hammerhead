@@ -1,4 +1,5 @@
 var iframeSandbox = hammerhead.sandbox.iframe;
+var Promise       = hammerhead.Promise;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -11,34 +12,27 @@ QUnit.testDone(function () {
 
 module('regression');
 
-asyncTest('should prevent navigation from the about:blank page to the relative url (GH-645)', function () {
-    var iframe  = document.createElement('iframe');
-    var handler = function () {
-        var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
-        var timeoutId        = null;
-        var finalize         = function () {
-            if (timeoutId)
-                clearTimeout(timeoutId);
 
+test('should prevent navigation from the about:blank page to the relative url (GH-645)', function () {
+    var iframe = document.createElement('iframe');
+
+    iframe.id = 'test' + Date.now();
+
+    return new Promise(function (resolve) {
+        iframe.setAttribute('src', 'about:blank');
+        iframe.addEventListener('load', resolve);
+        document.body.appendChild(iframe);
+    })
+        .then(function () {
+            return new Promise(function (resolve) {
+                iframe.addEventListener('load', resolve);
+                setTimeout(resolve, 5000);
+
+                iframe.contentWindow['%hammerhead%'].navigateTo('/test.html');
+            });
+        })
+        .then(function (event) {
+            ok(!event, 'should prevent navigation');
             iframe.parentNode.removeChild(iframe);
-            start();
-        };
-
-        iframe.removeEventListener('load', handler);
-        iframe.addEventListener('load', function () {
-            ok(false, 'should prevent navigation');
-            finalize();
         });
-
-        iframeHammerhead.navigateTo('/test.html');
-        timeoutId = setTimeout(function () {
-            ok(true);
-            finalize();
-        }, 5000);
-    };
-
-    iframe.id = 'test_unique_id_tizo9xnrn';
-    iframe.setAttribute('src', 'about:blank');
-    iframe.addEventListener('load', handler);
-    document.body.appendChild(iframe);
 });

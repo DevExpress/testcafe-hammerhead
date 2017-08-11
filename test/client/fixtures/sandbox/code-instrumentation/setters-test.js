@@ -304,13 +304,9 @@ test('innerHTML, innerText, text, textContent', function () {
 
 });
 
-asyncTest('body.innerHTML in iframe', function () {
-    var iframe = document.createElement('iframe');
-    var src    = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
-
-    iframe.setAttribute('src', src);
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+test('body.innerHTML in iframe', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html') })
+        .then(function (iframe) {
             var hasShadowUIRoot = function () {
                 var iframeBody = iframe.contentDocument.body;
                 var root       = iframeBody.children[iframeBody.children.length - 1];
@@ -323,33 +319,22 @@ asyncTest('body.innerHTML in iframe', function () {
             eval(processScript('iframe.contentDocument.body.innerHTML = "";'));
 
             return window.QUnitGlobals.wait(hasShadowUIRoot);
-        })
-        .then(function () {
-            ok(true);
-            iframe.parentNode.removeChild(iframe);
-            start();
         });
-
-    document.body.appendChild(iframe);
 });
 
 // NOTE: IE does not allow overriding the postMessage method.
 if (!browserUtils.isIE) {
     asyncTest('postMessage', function () {
         var target = window.location.protocol + '//' + window.location.host;
-        var iframe = document.createElement('iframe');
 
-        iframe.src = window.location.origin;
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+        createTestIframe({ src: window.location.origin })
+            .then(function (iframe) {
                 iframe.contentWindow.postMessage = function () {
                     strictEqual(target, window.location.origin);
-                    iframe.parentNode.removeChild(iframe);
                     start();
                 };
                 eval(processScript('iframe.contentWindow.postMessage("data", "' + target + '")'));
             });
-        document.body.appendChild(iframe);
     });
 }
 
@@ -410,25 +395,16 @@ test('outerHTML', function () {
 
 module('regression');
 
-asyncTest('innerHTML in iframe (GH-620)', function () {
-    var iframe   = document.createElement('iframe');
+test('innerHTML in iframe (GH-620)', function () {
     var url      = 'somePage.html';
     var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i' });
 
-    iframe.id = 'test' + Date.now();
-
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+    return createTestIframe()
+        .then(function (iframe) {
             eval(processScript('iframe.contentDocument.body.innerHTML = "<a href=\\"' + url + '\\">link</a>";'));
 
             strictEqual(iframe.contentDocument.body.firstChild.href, proxyUrl);
-
-            start();
-
-            document.body.removeChild(iframe);
         });
-
-    document.body.appendChild(iframe);
 });
 
 test('script block inserted via element.innerHtml must not be executed (B237015)', function () {
@@ -438,7 +414,7 @@ test('script block inserted via element.innerHtml must not be executed (B237015)
     var script           = '<script>window.' + testPropertyName + ' = true;\<\/script>';
 
     body.appendChild(el);
-    el.innerHTML = script;
+    el.innerHTML         = script;
 
     ok(!window[testPropertyName]);
 });
@@ -463,22 +439,16 @@ if (!browserUtils.isIE) {
     });
 }
 
-asyncTest('iframe.body.innerHtml must be overriden (Q527555)', function () {
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test';
-    window.QUnitGlobals.waitForIframe(iframe)
-        .then(function () {
+test('iframe.body.innerHtml must be overriden (Q527555)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
             var iframeBody = iframe.contentWindow.document.body;
             var html       = '<a href="url" ' + domProcessor.getStoredAttrName('src') + '="url1" />';
 
             iframeBody.innerHTML = html;
 
             ok(getProperty(iframeBody, 'innerHTML') !== html);
-            iframe.parentNode.removeChild(iframe);
-            start();
         });
-    document.body.appendChild(iframe);
 });
 
 test('setting the link.href attribute to "mailto" in iframe (T228218)', function () {
@@ -519,7 +489,7 @@ test('event.which must return undefined if originalEvent is null (T232468)', fun
     /* eslint-enable no-unused-vars */
 });
 
-asyncTest('input\'s onchange event must not be raise after press Tab key (T221375)', function () {
+test('input\'s onchange event must not be raise after press Tab key (T221375)', function () {
     var $input     = $('<input value="0">');
     var firedCount = 0;
 
@@ -540,7 +510,7 @@ asyncTest('input\'s onchange event must not be raise after press Tab key (T22137
     $input[0].value = '123';
     eventSimulator.blur($input[0]);
 
-    nextTick()
+    return nextTick()
         .then(function () {
             elementEditingWatcher.watchElementEditing($input[0]);
 
@@ -552,7 +522,6 @@ asyncTest('input\'s onchange event must not be raise after press Tab key (T22137
         .then(function () {
             strictEqual(firedCount, 1);
             $input.remove();
-            start();
         });
 });
 
@@ -583,29 +552,25 @@ test('the client code gets access to the Hammerhead script (GH-479)', function (
     strictEqual(div.childNodes[0].id, 'test');
 });
 
-asyncTest("location assignment doesn't work (GH-640)", function () {
-    var iframe       = document.createElement('iframe');
-    var iframeSrc    = window.QUnitGlobals.getResourceUrl('../../../data/code-instrumentation/iframe.html');
-    var iframeNewSrc = window.QUnitGlobals.getResourceUrl('../../../data/active-window-tracker/active-window-tracker.html');
-    var handler      = function () {
-        iframe.removeEventListener('load', handler);
-        iframe.addEventListener('load', function () {
+test("location assignment doesn't work (GH-640)", function () {
+    var iframeSrc    = getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html');
+    var iframeNewSrc = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
+
+    return createTestIframe({ src: iframeSrc })
+        .then(function (iframe) {
+            return new Promise(function (resolve) {
+                iframe.addEventListener('load', function () {
+                    resolve(iframe);
+                });
+                iframe.contentWindow.eval.call(iframe.contentWindow, processScript('location = "' + iframeNewSrc + '";'));
+            });
+        })
+        .then(function (iframe) {
             var parsedProxyUrl = urlUtils.parseProxyUrl(iframe.contentWindow.location);
 
             strictEqual(parsedProxyUrl.resourceType, 'i');
-            strictEqual(parsedProxyUrl.destResourceInfo.partAfterHost, iframeNewSrc);
-
-            iframe.parentNode.removeChild(iframe);
-            start();
+            strictEqual(parsedProxyUrl.destResourceInfo.partAfterHost, urlUtils.parseUrl(iframeNewSrc).partAfterHost);
         });
-
-        iframe.contentWindow.eval.call(iframe.contentWindow, processScript('location = "' + iframeNewSrc + '";'));
-    };
-
-    iframe.id  = 'test_unique_id_7iz9fi3td';
-    iframe.src = iframeSrc;
-    iframe.addEventListener('load', handler);
-    document.body.appendChild(iframe);
 });
 
 test('setter returns a correct value (GH-907)', function () {

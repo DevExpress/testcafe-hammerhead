@@ -19,68 +19,36 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
-asyncTest('iframe with empty src', function () {
-    var iframe1 = document.createElement('iframe');
-    var iframe2 = document.createElement('iframe');
-    var iframe3 = document.createElement('iframe');
-
-    iframe1.id = 'test1';
-    iframe2.id = 'test2';
-    iframe3.id = 'test3';
-    iframe2.setAttribute('src', '');
-    iframe3.setAttribute('src', 'about:blank');
-
+test('iframe with empty src', function () {
     function assert (iframe) {
-        var promise = window.QUnitGlobals.waitForIframe(iframe);
+        new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
-        document.body.appendChild(iframe);
-        return promise.then(function () {
-            new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
+        var hyperlink = iframe.contentDocument.createElement('a');
 
-            var hyperlink = iframe.contentDocument.createElement('a');
+        hyperlink.setAttribute('href', '/test');
+        iframe.contentDocument.body.appendChild(hyperlink);
 
-            hyperlink.setAttribute('href', '/test');
-            iframe.contentDocument.body.appendChild(hyperlink);
-
-            strictEqual(
-                eval(processScript('hyperlink.href')),
-                'https://example.com/test'
-            );
-
-            strictEqual(
-                eval(processScript('iframe.contentDocument.location.href')),
-                'about:blank'
-            );
-
-            return Promise.resolve();
-        });
+        strictEqual(eval(processScript('hyperlink.href')), 'https://example.com/test');
+        strictEqual(eval(processScript('iframe.contentDocument.location.href')), 'about:blank');
     }
 
-    assert(iframe1)
+    return createTestIframe()
+        .then(assert)
         .then(function () {
-            return assert(iframe2);
+            return createTestIframe({ src: '' });
         })
+        .then(assert)
         .then(function () {
-            return assert(iframe3);
+            return createTestIframe({ src: 'about:blank' });
         })
-        .then(function () {
-            iframe1.parentNode.removeChild(iframe1);
-            iframe2.parentNode.removeChild(iframe2);
-            iframe3.parentNode.removeChild(iframe3);
-
-            start();
-        });
+        .then(assert);
 });
 
 // NOTE: Only Chrome raises the 'load' event for iframes with 'javascript:' src and creates a window instance.
 if (browserUtils.isWebKit) {
-    asyncTest('iframe with "javascript:" src', function () {
-        var iframe = document.createElement('iframe');
-
-        iframe.id = 'test3';
-        iframe.setAttribute('src', 'javascript:void(0);');
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
+    test('iframe with "javascript:" src', function () {
+        return createTestIframe({ src: 'javascript:void(0);' })
+            .then(function (iframe) {
                 new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
                 var hyperlink = iframe.contentDocument.createElement('a');
@@ -90,11 +58,7 @@ if (browserUtils.isWebKit) {
 
                 strictEqual(eval(processScript('hyperlink.href')), 'https://example.com/test');
                 strictEqual(eval(processScript('iframe.contentDocument.location.href')), 'about:blank');
-
-                iframe.parentNode.removeChild(iframe);
-                start();
             });
-        document.body.appendChild(iframe);
     });
 }
 
@@ -196,33 +160,28 @@ module('regression');
 
 if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1) {
     // NOTE The Safari iOS 10.3 and later does not provide access to the cross-domain location.
-    asyncTest('getting location of a cross-domain window (GH-467)', function () {
-        var iframe        = document.createElement('iframe');
-        var sameDomainSrc = window.QUnitGlobals.getResourceUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
+    test('getting location of a cross-domain window (GH-467)', function () {
+        var sameDomainSrc     = getSameDomainPageUrl('../../../data/same-domain/resolving-url-after-document-recreation.html');
+        var storedGetProxyUrl = urlUtils.getProxyUrl;
 
-        iframe.src = window.getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
-        iframe.id  = 'test_467';
-
-        window.QUnitGlobals.waitForIframe(iframe)
-            .then(function () {
-                var storedGetProxyUrl = urlUtils.getProxyUrl;
-
+        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/target-url.html') })
+            .then(function (iframe) {
                 urlUtils.getProxyUrl = function () {
                     return sameDomainSrc;
                 };
 
-                iframe.onload = function () {
-                    ok(iframe.contentWindow.location.toString().indexOf(sameDomainSrc) !== -1);
+                return new Promise(function (resolve) {
+                    iframe.onload = function () {
+                        resolve(iframe);
+                    };
+                    eval(processScript('iframe.contentWindow.location.replace("http://same-domain-url.com/")'));
+                });
+            })
+            .then(function (iframe) {
+                ok(iframe.contentWindow.location.toString().indexOf(sameDomainSrc) !== -1);
 
-                    urlUtils.getProxyUrl = storedGetProxyUrl;
-                    document.body.removeChild(iframe);
-                    start();
-                };
-
-                eval(processScript('iframe.contentWindow.location.replace("http://same-domain-url.com/")'));
+                urlUtils.getProxyUrl = storedGetProxyUrl;
             });
-
-        document.body.appendChild(iframe);
     });
 }
 

@@ -32,7 +32,18 @@ function unregisterAfterAjaxSendHook () {
     nativeMethods.xhrSend = savedAjaxSendMethod;
 }
 
-asyncTest('sendAsyncServiceMsg', function () {
+function sendAsyncServiceMsgWithDisableResendingFlag () {
+    return new Promise(function (resolve, reject) {
+        transport.asyncServiceMsg({ disableResending: true })
+            .then(function () {
+                reject('message should not be sent');
+            });
+
+        window.setTimeout(resolve, 100);
+    });
+}
+
+test('sendAsyncServiceMsg', function () {
     expect(3);
 
     var msg = {
@@ -41,82 +52,61 @@ asyncTest('sendAsyncServiceMsg', function () {
 
     registerAfterAjaxSendHook();
 
-    transport.asyncServiceMsg(msg)
+    return transport.asyncServiceMsg(msg)
         .then(function (responseText, parsedResponseText) {
             strictEqual(responseText, 100);
             strictEqual(typeof parsedResponseText, 'undefined');
             ok(requestIsAsync);
 
             unregisterAfterAjaxSendHook();
-            start();
         });
 });
 
-asyncTest('queuedAsyncServiceMsg', function () {
+test('queuedAsyncServiceMsg', function () {
     var savedAsyncServiceMsgFunc = transport.asyncServiceMsg;
 
     transport.asyncServiceMsg = function (msg) {
         return new Promise(function (resolve) {
             window.setTimeout(function () {
-                resolve(msg.duration);
+                resolve({ duration: msg.duration, timestamp: Date.now() });
             }, msg.duration);
         });
     };
 
-    var completeMsgReqs = [];
+    var msgPromises = [
+        transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 500 }),
+        transport.queuedAsyncServiceMsg({ cmd: 'Type2', duration: 10 }),
+        transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }),
+        transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 300 }),
+        transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 })
+    ];
 
-    var msgCallback = function (duration) {
-        completeMsgReqs.push(duration);
+    return Promise.all(msgPromises)
+        .then(function (results) {
+            results = results
+                .sort(function (result1, result2) {
+                    return result1.timestamp - result2.timestamp;
+                })
+                .map(function (result) {
+                    return result.duration;
+                });
 
-        if (completeMsgReqs.length === 5) {
-            var expectedCompleteMsgReqs = [10, 500, 200, 300, 200];
-
-            deepEqual(completeMsgReqs, expectedCompleteMsgReqs);
+            deepEqual(results, [10, 500, 200, 300, 200]);
 
             transport.asyncServiceMsg = savedAsyncServiceMsgFunc;
-
-            start();
-        }
-    };
-
-    expect(1);
-
-    transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 500 }).then(msgCallback);
-    transport.queuedAsyncServiceMsg({ cmd: 'Type2', duration: 10 }).then(msgCallback);
-    transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }).then(msgCallback);
-    transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 300 }).then(msgCallback);
-    transport.queuedAsyncServiceMsg({ cmd: 'Type1', duration: 200 }).then(msgCallback);
-
+        });
 });
 
-asyncTest('batchUpdate - without stored messages', function () {
-    expect(1);
-
-    transport.batchUpdate().then(function () {
-        ok(true);
-        start();
-    });
+test('batchUpdate - without stored messages', function () {
+    return transport.batchUpdate()
+        .then(function () {
+            ok(true);
+        });
 });
 
-asyncTest('batchUpdate - with stored messages', function () {
-    expect(2);
-
+test('batchUpdate - with stored messages', function () {
     var savedQueuedAsyncServiceMsg = transport.queuedAsyncServiceMsg;
     var result                     = 0;
-
-    var updateCallback = function () {
-        ok(true);
-        strictEqual(result, 60);
-
-        transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
-        start();
-    };
-
-    var messages = [
-        { cmd: 'Type1', duration: 10 },
-        { cmd: 'Type2', duration: 20 },
-        { cmd: 'Type3', duration: 30 }
-    ];
 
     transport.queuedAsyncServiceMsg = function (item) {
         return new Promise(function (resolve) {
@@ -125,19 +115,29 @@ asyncTest('batchUpdate - with stored messages', function () {
         });
     };
 
+    var messages = [
+        { cmd: 'Type1', duration: 10 },
+        { cmd: 'Type2', duration: 20 },
+        { cmd: 'Type3', duration: 30 }
+    ];
+
     window.localStorage.setItem(settings.get().sessionId, JSON.stringify(messages));
-    transport.batchUpdate().then(updateCallback);
+
+    return transport.batchUpdate()
+        .then(function () {
+            strictEqual(result, 60);
+
+            transport.queuedAsyncServiceMsg = savedQueuedAsyncServiceMsg;
+        });
 });
 
 if (!browserUtils.isWebKit) {
-    asyncTest('resend aborted async service msg', function () {
-        var xhrCount           = 0;
-        var callbackCount      = 0;
-        var checkCallbackCount = function () {
-            return callbackCount === 1;
-        };
+    test('resend aborted async service msg', function () {
+        var xhrCount = 0;
 
-        var onAjaxSend = function (xhr) {
+        expect(2);
+
+        registerAfterAjaxSendHook(function (xhr) {
             xhrCount++;
 
             var expectedAsync = xhrCount === 1;
@@ -146,54 +146,27 @@ if (!browserUtils.isWebKit) {
 
             if (xhrCount === 1)
                 xhr.abort();
-        };
+        });
 
-        registerAfterAjaxSendHook(onAjaxSend);
-
-        transport.asyncServiceMsg({})
-            .then(function () {
-                callbackCount++;
-            });
-
-        expect(2);
-
-        window.QUnitGlobals.wait(checkCallbackCount)
-            .then(function () {
-                unregisterAfterAjaxSendHook();
-                start();
-            });
+        return transport.asyncServiceMsg({})
+            .then(unregisterAfterAjaxSendHook);
     });
 }
 else {
-    asyncTest('resend aborted async service msg (WebKit)', function () {
+    test('resend aborted async service msg (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
-        var xhrCount           = 0;
-        var callbackCount      = 0;
-        var value              = 'testValue';
-        var checkCallbackCount = function () {
-            return callbackCount === 1;
-        };
+        var xhrCount = 0;
+        var value    = 'testValue';
 
         ok(!window.localStorage.getItem(settings.get().sessionId));
 
-        var onAjaxSend = function (xhr) {
+        registerAfterAjaxSendHook(function (xhr) {
             xhrCount++;
             xhr.abort();
-        };
+        });
 
-        registerAfterAjaxSendHook(onAjaxSend);
-
-        var msg = {
-            test: value
-        };
-
-        transport.asyncServiceMsg(msg)
-            .then(function () {
-                callbackCount++;
-            });
-
-        window.QUnitGlobals.wait(checkCallbackCount)
+        return transport.asyncServiceMsg({ test: value })
             .then(function () {
                 strictEqual(xhrCount, 1);
 
@@ -206,127 +179,82 @@ else {
                 unregisterAfterAjaxSendHook();
 
                 window.localStorage.removeItem(settings.get().sessionId);
-                start();
             });
     });
 
-    asyncTest('do not dublicate messages in store (WebKit)', function () {
+    test('do not duplicate messages in store (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
-
-        var callbackCount      = 0;
-        var value              = 'testValue';
-        var checkCallbackCount = function () {
-            return callbackCount === 2;
-        };
 
         ok(!window.localStorage.getItem(settings.get().sessionId));
 
-        var onAjaxSend = function (xhr) {
+        registerAfterAjaxSendHook(function (xhr) {
             xhr.abort();
-        };
+        });
 
-        registerAfterAjaxSendHook(onAjaxSend);
+        var msg         = { test: 'testValue' };
+        var msgPromises = [
+            transport.asyncServiceMsg(msg),
+            transport.asyncServiceMsg(msg)
+        ];
 
-        var msg = {
-            test: value
-        };
-
-        transport.asyncServiceMsg(msg)
-            .then(function () {
-                callbackCount++;
-            });
-
-        transport.asyncServiceMsg(msg)
-            .then(function () {
-                callbackCount++;
-            });
-
-        unregisterAfterAjaxSendHook();
-
-        window.QUnitGlobals.wait(checkCallbackCount)
+        return Promise.all(msgPromises)
             .then(function () {
                 var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
                 var storedMsgArr = JSON.parse(storedMsgStr);
 
                 strictEqual(storedMsgArr.length, 1);
 
+                unregisterAfterAjaxSendHook();
+
                 window.localStorage.removeItem(settings.get().sessionId);
-                start();
             });
     });
 }
 
 if (browserUtils.isWebKit) {
-    asyncTest("do not resend aborted async service msg if it contains 'disableResending' flag (WebKit)", function () {
+    test('do not resend aborted async service msg if it contains "disableResending" flag (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
-        var xhrCount      = 0;
-        var isMessageSent = false;
+        var xhrCount = 0;
 
         ok(!window.localStorage.getItem(settings.get().sessionId));
 
-        var onAjaxSend = function (xhr) {
+        registerAfterAjaxSendHook(function (xhr) {
             xhrCount++;
             xhr.abort();
-        };
+        });
 
-        registerAfterAjaxSendHook(onAjaxSend);
-
-        var msg = {
-            disableResending: true
-        };
-
-        transport.asyncServiceMsg(msg)
+        return sendAsyncServiceMsgWithDisableResendingFlag()
             .then(function () {
-                isMessageSent = true;
+                strictEqual(xhrCount, 1);
+
+                var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
+
+                strictEqual(storedMsgStr, '[]');
+
+                window.localStorage.removeItem(settings.get().sessionId);
+
+                unregisterAfterAjaxSendHook();
             });
-
-        window.setTimeout(function () {
-            strictEqual(xhrCount, 1);
-
-            var storedMsgStr   = window.localStorage.getItem(settings.get().sessionId);
-
-            notOk(isMessageSent);
-            strictEqual(storedMsgStr, '[]');
-
-            window.localStorage.removeItem(settings.get().sessionId);
-
-            unregisterAfterAjaxSendHook();
-            start();
-        }, 100);
     });
 }
 else {
-    asyncTest("do not resend aborted async service msg if it contains 'disableResending' flag", function () {
-        var xhrCount      = 0;
-        var isMessageSent = false;
+    test('do not resend aborted async service msg if it contains "disableResending" flag', function () {
+        var xhrCount = 0;
 
-        var onAjaxSend = function (xhr) {
+        registerAfterAjaxSendHook(function (xhr) {
             xhrCount++;
             xhr.abort();
-        };
+        });
 
-        registerAfterAjaxSendHook(onAjaxSend);
-
-        var msg = {
-            disableResending: true
-        };
-
-        transport.asyncServiceMsg(msg)
+        return sendAsyncServiceMsgWithDisableResendingFlag()
             .then(function () {
-                isMessageSent = true;
+                strictEqual(xhrCount, 1);
+
+                unregisterAfterAjaxSendHook();
             });
-
-        window.setTimeout(function () {
-            notOk(isMessageSent);
-            strictEqual(xhrCount, 1);
-
-            unregisterAfterAjaxSendHook();
-            start();
-        }, 100);
     });
 }
-
 
 module('regression');
 
