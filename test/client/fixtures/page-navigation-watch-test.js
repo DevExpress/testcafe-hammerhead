@@ -105,7 +105,7 @@ test('location.reload(...)', function () {
 test('Hash via location.href', function () {
     return navigateIframe('location.href += "#hash";', { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -115,7 +115,7 @@ test('Hash via location.href', function () {
 test('Hash via location.hash', function () {
     return navigateIframe('location.hash = "hash";', { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -248,7 +248,7 @@ test('Click raised by child node - prevented', function () {
 
     return navigateIframe(navigationScript, { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -266,7 +266,7 @@ test('Click prevented in the parent node', function () {
 
     return navigateIframe(navigationScript, { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -282,7 +282,7 @@ test('Click prevented in the onclick attribute', function () {
 
     return navigateIframe(navigationScript, { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -298,7 +298,7 @@ test('Click prevented in the onclick property handler', function () {
 
     return navigateIframe(navigationScript, { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -314,7 +314,7 @@ test('Click prevented in the window', function () {
 
     return navigateIframe(navigationScript, { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -329,7 +329,7 @@ test('Click prevented in the html "onclick" handler', function () {
 
     return navigateIframe(navigationScript, { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -346,7 +346,7 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
 
         return navigateIframe(navigationScript, { timeout: 500 })
             .then(function () {
-                ok(false, 'page should not navigated');
+                ok(false, 'event should not be triggered');
             })
             .catch(function (reason) {
                 ok(reason === 'timeout exceeded', reason);
@@ -425,7 +425,7 @@ test('Submission canceled in the "addEventListener" method', function () {
 
     return navigateIframe(navigationScript, { timeout: 500 })
         .then(function () {
-            ok(false, 'page should not navigated');
+            ok(false, 'event should not be triggered');
         })
         .catch(function (reason) {
             ok(reason === 'timeout exceeded', reason);
@@ -446,7 +446,7 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
 
         return navigateIframe(navigationScript, { timeout: 500 })
             .then(function () {
-                ok(false, 'page should not navigated');
+                ok(false, 'event should not be triggered');
             })
             .catch(function (reason) {
                 ok(reason === 'timeout exceeded', reason);
@@ -465,7 +465,7 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
 
         return navigateIframe(navigationScript, { timeout: 500 })
             .then(function () {
-                ok(false, 'page should not navigated');
+                ok(false, 'event should not be triggered');
             })
             .catch(function (reason) {
                 ok(reason === 'timeout exceeded', reason);
@@ -480,7 +480,7 @@ if (!browserUtils.isIE || browserUtils.isMSEdge) {
 
         return navigateIframe(navigationScript, { timeout: 500 })
             .then(function () {
-                ok(false, 'page should not navigated');
+                ok(false, 'event should not be triggered');
             })
             .catch(function (reason) {
                 ok(reason === 'timeout exceeded', reason);
