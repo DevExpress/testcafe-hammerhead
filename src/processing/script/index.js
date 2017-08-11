@@ -30,6 +30,10 @@ const PROCESSED_SCRIPT_RE = new RegExp([
     reEscape(INSTRUCTION.getPostMessage)
 ].join('|'));
 
+const PARSER_OPTIONS = {
+    allowReturnOutsideFunction: true,
+    ecmaVersion:                8
+};
 
 // Code pre/post-processing
 function removeHtmlComments (code) {
@@ -77,7 +81,7 @@ function getAst (src, isObject) {
     src = isObject ? `(${src})` : src;
 
     try {
-        return parse(src, { allowReturnOutsideFunction: true });
+        return parse(src, PARSER_OPTIONS);
     }
     catch (err) {
         return null;

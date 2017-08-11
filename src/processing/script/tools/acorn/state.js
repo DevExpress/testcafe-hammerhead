@@ -7,7 +7,7 @@ import {getOptions} from "./options"
 export const plugins = {}
 
 function keywordRegexp(words) {
-  return new RegExp("^(" + words.replace(/ /g, "|") + ")$")
+  return new RegExp("^(?:" + words.replace(/ /g, "|") + ")$")
 }
 
 export class Parser {
@@ -15,8 +15,12 @@ export class Parser {
     this.options = options = getOptions(options)
     this.sourceFile = options.sourceFile
     this.keywords = keywordRegexp(keywords[options.ecmaVersion >= 6 ? 6 : 5])
-    let reserved = options.allowReserved ? "" :
-        reservedWords[options.ecmaVersion] + (options.sourceType == "module" ? " await" : "")
+    let reserved = ""
+    if (!options.allowReserved) {
+      for (let v = options.ecmaVersion;; v--)
+        if (reserved = reservedWords[v]) break
+      if (options.sourceType == "module") reserved += " await"
+    }
     this.reservedWords = keywordRegexp(reserved)
     let reservedStrict = (reserved ? reserved + " " : "") + reservedWords.strict
     this.reservedWordsStrict = keywordRegexp(reservedStrict)
@@ -65,7 +69,8 @@ export class Parser {
     this.exprAllowed = true
 
     // Figure out if it's a module code.
-    this.strict = this.inModule = options.sourceType === "module"
+    this.inModule = options.sourceType === "module"
+    this.strict = this.inModule || this.strictDirective(this.pos)
 
     // Used to signify the start of a potential arrow function
     this.potentialArrowAt = -1
@@ -78,8 +83,12 @@ export class Parser {
     this.labels = []
 
     // If enabled, skip leading hashbang line.
-    if (this.pos === 0 && options.allowHashBang && this.input.slice(0, 2) === '#!')
+    if (this.pos === 0 && options.allowHashBang && this.input.slice(0, 2) === "#!")
       this.skipLineComment(2)
+
+    // Scope tracking for duplicate variable names (see scope.js)
+    this.scopeStack = []
+    this.enterFunctionScope()
   }
 
   // DEPRECATED Kept for backwards compatibility until 3.0 in case a plugin uses them
