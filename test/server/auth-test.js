@@ -1,56 +1,49 @@
-var expect       = require('chai').expect;
-var express      = require('express');
-var ntlm         = require('express-ntlm');
-var auth         = require('basic-auth');
-var request      = require('request');
-var Proxy        = require('../../lib/proxy');
-var Session      = require('../../lib/session');
-var requestAgent = require('../../lib/request-pipeline/destination-request/agent');
+'use strict';
 
-describe('Authentication', function () {
-    var proxy   = null;
-    var session = null;
+const expect       = require('chai').expect;
+const express      = require('express');
+const ntlm         = require('express-ntlm');
+const auth         = require('basic-auth');
+const request      = require('request');
+const Proxy        = require('../../lib/proxy');
+const Session      = require('../../lib/session');
+const requestAgent = require('../../lib/request-pipeline/destination-request/agent');
 
-    beforeEach(function () {
+describe('Authentication', () => {
+    let proxy   = null;
+    let session = null;
+
+    beforeEach(() => {
         session = new Session();
 
-        session.getAuthCredentials = function () {
-            return null;
-        };
-
-        session.handleFileDownload = function () {
-        };
+        session.getAuthCredentials = () => null;
+        session.handleFileDownload = () => void 0;
 
         proxy = new Proxy('127.0.0.1', 1836, 1837);
     });
 
-    afterEach(function () {
+    afterEach(() => {
         proxy.close();
         requestAgent.resetKeepAliveConnections();
     });
 
-    describe('NTLM Authentication', function () {
-        var ntlmServer = null;
+    describe('NTLM Authentication', () => {
+        let ntlmServer = null;
 
-        before(function () {
-            var app = express();
+        before(() => {
+            const app = express();
 
             app.use(ntlm());
 
-            app.all('*', function (req, res) {
-                res.end(JSON.stringify(req.ntlm));
-            });
+            app.all('*', (req, res) => res.end(JSON.stringify(req.ntlm)));
 
             ntlmServer = app.listen(1506);
         });
 
-        after(function () {
-            ntlmServer.close();
-        });
+        after(() => ntlmServer.close());
 
-
-        it('Should authorize with correct credentials', function (done) {
-            session.getAuthCredentials = function () {
+        it('Should authorize with correct credentials', done => {
+            session.getAuthCredentials = () => {
                 return {
                     username:    'username',
                     password:    'password',
@@ -59,8 +52,8 @@ describe('Authentication', function () {
                 };
             };
 
-            request(proxy.openSession('http://127.0.0.1:1506/', session), function (err, res, body) {
-                var parsedBody = JSON.parse(body);
+            request(proxy.openSession('http://127.0.0.1:1506/', session), (err, res, body) => {
+                const parsedBody = JSON.parse(body);
 
                 expect(res.statusCode).eql(200);
                 expect(parsedBody.UserName).equal('username');
@@ -72,14 +65,14 @@ describe('Authentication', function () {
         });
     });
 
-    describe('Basic Authentication', function () {
-        var basicServer = null;
+    describe('Basic Authentication', () => {
+        let basicServer = null;
 
-        before(function () {
-            var app = express();
+        before(() => {
+            const app = express();
 
-            app.all('*', function (req, res) {
-                var credentials = auth(req);
+            app.all('*', (req, res) => {
+                const credentials = auth(req);
 
                 if (!credentials || credentials.name !== 'username' || credentials.pass !== 'password') {
                     res.statusCode = 401;
@@ -95,19 +88,17 @@ describe('Authentication', function () {
             basicServer = app.listen(1507);
         });
 
-        after(function () {
-            basicServer.close();
-        });
+        after(() => basicServer.close());
 
-        it('Should authorize with correct credentials', function (done) {
-            session.getAuthCredentials = function () {
+        it('Should authorize with correct credentials', done => {
+            session.getAuthCredentials = () => {
                 return {
                     username: 'username',
                     password: 'password'
                 };
             };
 
-            request(proxy.openSession('http://127.0.0.1:1507/', session), function (err, res, body) {
+            request(proxy.openSession('http://127.0.0.1:1507/', session), (err, res, body) => {
                 expect(body).equal('Access granted');
                 expect(res.statusCode).equal(200);
 
@@ -115,15 +106,15 @@ describe('Authentication', function () {
             });
         });
 
-        it('Should not authorize with incorrect credentials', function (done) {
-            session.getAuthCredentials = function () {
+        it('Should not authorize with incorrect credentials', done => {
+            session.getAuthCredentials = () => {
                 return {
                     username: 'username',
                     password: 'invalidPassword'
                 };
             };
 
-            request(proxy.openSession('http://127.0.0.1:1507/', session), function (err, res, body) {
+            request(proxy.openSession('http://127.0.0.1:1507/', session), (err, res, body) => {
                 expect(body).equal('Access denied');
                 expect(res.statusCode).equal(401);
                 // NOTE: prevent showing the native credentials window.

@@ -1,44 +1,33 @@
-var express = require('express');
-var http    = require('http');
-var Path    = require('path');
-var process = require('child_process');
+'use strict';
 
-var Proxy   = require('../../lib/proxy');
-var Session = require('../../lib/session');
+const express = require('express');
+const http    = require('http');
+const Path    = require('path');
+const process = require('child_process');
 
-//Const
-var PROXY_PORT_1 = 1401;
-var PROXY_PORT_2 = 1402;
-var SERVER_PORT  = 1400;
+const Proxy   = require('../../lib/proxy');
+const Session = require('../../lib/session');
+
+const PROXY_PORT_1 = 1401;
+const PROXY_PORT_2 = 1402;
+const SERVER_PORT  = 1400;
 
 function createSession () {
-    var session = new Session('test/playground/upload-storage');
+    const session = new Session('test/playground/upload-storage');
 
-    session._getIframePayloadScript = function () {
-        return '';
-    };
-
-    session._getPayloadScript = function () {
-        return '';
-    };
-
-    session.getAuthCredentials = function () {
-        return {};
-    };
-
-    session.handleFileDownload = function () {
-    };
-
-    session.handlePageError = function () {
-    };
+    session._getIframePayloadScript = () => '';
+    session._getPayloadScript       = () => '';
+    session.getAuthCredentials      = () => ({});
+    session.handleFileDownload      = () => void 0;
+    session.handlePageError         = () => void 0;
 
     return session;
 }
 
-exports.start = function () {
-    var app       = express();
-    var proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2);
-    var appServer = http.createServer(app);
+exports.start = () => {
+    const app       = express();
+    const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2);
+    const appServer = http.createServer(app);
 
     app
         .use(express.bodyParser())
@@ -46,12 +35,12 @@ exports.start = function () {
         .set('view options', { layout: false })
         .set('views', Path.join(__dirname, './views'));
 
-    app.get('*', function (req, res) {
+    app.get('*', (req, res) => {
         res.render('index');
     });
 
-    app.post('*', function (req, res) {
-        var url = req.param('url');
+    app.post('*', (req, res) => {
+        let url = req.param('url');
 
         if (!url) {
             res.status(403);
@@ -59,7 +48,7 @@ exports.start = function () {
         }
         else {
             if (url.indexOf('file://') !== 0 && url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
-                var matches = url.match(/^([A-Za-z]:)?(\/|\\)/);
+                const matches = url.match(/^([A-Za-z]:)?(\/|\\)/);
 
                 if (matches && matches[0].length === 1)
                     url = 'file://' + url;

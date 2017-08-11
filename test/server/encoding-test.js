@@ -1,25 +1,25 @@
-var expect        = require('chai').expect;
-var Promise       = require('pinkie');
-var encodeContent = require('../../lib/processing/encoding').encodeContent;
-var decodeContent = require('../../lib/processing/encoding').decodeContent;
-var Charset       = require('../../lib/processing/encoding/charset');
+'use strict';
 
-describe('Content encoding', function () {
-    var src = new Buffer('Answer to the Ultimate Question of Life, the Universe, and Everything.');
+const expect        = require('chai').expect;
+const Promise       = require('pinkie');
+const encodeContent = require('../../lib/processing/encoding').encodeContent;
+const decodeContent = require('../../lib/processing/encoding').decodeContent;
+const Charset       = require('../../lib/processing/encoding/charset');
 
-    it('Should encode and decode content', function () {
-        this.timeout(4000);
+describe('Content encoding', () => {
+    const src = new Buffer('Answer to the Ultimate Question of Life, the Universe, and Everything.');
 
+    it('Should encode and decode content', () => {
         function testConfiguration (encoding, charsetStr) {
-            var charset = new Charset();
+            const charset = new Charset();
 
             charset.set(charsetStr, 2);
 
             return encodeContent(src, encoding, charset)
-                .then(function (encoded) {
+                .then(encoded => {
                     return decodeContent(encoded, encoding, charset);
                 })
-                .then(function (decoded) {
+                .then(decoded => {
                     expect(decoded).eql(src.toString());
                 });
         }
@@ -32,11 +32,11 @@ describe('Content encoding', function () {
             testConfiguration(null, 'iso-8859-1'),
             testConfiguration('br', 'utf8')
         ]);
-    });
+    }).timeout(5000);
 
-    it('Should handle decoding errors', function () {
+    it('Should handle decoding errors', () => {
         return decodeContent(src, 'deflate', 'utf-8')
-            .catch(function (err) {
+            .catch(err => {
                 expect(err).to.be.an('object');
             });
     });

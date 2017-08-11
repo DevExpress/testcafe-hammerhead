@@ -1,36 +1,38 @@
-var expect = require('chai').expect;
-var Router = require('../../lib/proxy/router');
-var md5    = require('crypto-md5');
+'use strict';
 
-describe('Router', function () {
+const expect = require('chai').expect;
+const Router = require('../../lib/proxy/router');
+const md5    = require('crypto-md5');
+
+describe('Router', () => {
     function noop () {
     }
 
-    it('Should route requests', function () {
-        var router          = new Router();
-        var calledHandlerId = null;
-        var routeParams     = null;
+    it('Should route requests', () => {
+        const router        = new Router();
+        let calledHandlerId = null;
+        let routeParams     = null;
 
         router._processStaticContent = noop;
 
-        router.GET('/yo/42/test/', function () {
+        router.GET('/yo/42/test/', () => {
             calledHandlerId = 'get';
         });
 
-        router.POST('/yo/42/test/', function () {
+        router.POST('/yo/42/test/', () => {
             calledHandlerId = 'post';
         });
 
-        router.GET('/42/hammerhead', function () {
+        router.GET('/42/hammerhead', () => {
             calledHandlerId = 'no-trailing-slash';
         });
 
-        router.GET('/yo/{param1}/{param2}', function (req, res, serverInfo, params) {
+        router.GET('/yo/{param1}/{param2}', (req, res, serverInfo, params) => {
             calledHandlerId = 'get-with-params';
             routeParams     = params;
         });
 
-        router.POST('/yo/{param1}/{param2}', function (req, res, serverInfo, params) {
+        router.POST('/yo/{param1}/{param2}', (req, res, serverInfo, params) => {
             calledHandlerId = 'post-with-params';
             routeParams     = params;
         });
@@ -74,13 +76,13 @@ describe('Router', function () {
         shouldNotRoute('/some/unknown/url', 'GET', 'no-trailing-slash');
     });
 
-    it('Should provide headers and content for static resources if ETag not match', function () {
-        var router = new Router();
+    it('Should provide headers and content for static resources if ETag not match', () => {
+        const router = new Router();
 
         router._processStaticContent = noop;
 
         function testRoute (url, handler) {
-            var reqMock = {
+            const reqMock = {
                 url:     url,
                 method:  'GET',
                 headers: {
@@ -88,7 +90,7 @@ describe('Router', function () {
                 }
             };
 
-            var resMock = {
+            const resMock = {
                 headers:    {},
                 content:    null,
                 statusCode: null,
@@ -109,12 +111,12 @@ describe('Router', function () {
             expect(resMock.headers['cache-control']).eql('max-age=30, must-revalidate');
         }
 
-        var jsHandler = {
+        const jsHandler = {
             contentType: 'application/x-javascript',
             content:     'js'
         };
 
-        var cssHandler = {
+        const cssHandler = {
             contentType: 'text/css',
             content:     'css'
         };
@@ -126,12 +128,12 @@ describe('Router', function () {
         testRoute('/some/static/css', cssHandler);
     });
 
-    it('Should respond 304 for static resources if ETag match', function () {
-        var router = new Router();
+    it('Should respond 304 for static resources if ETag match', () => {
+        const router = new Router();
 
         router._processStaticContent = noop;
 
-        var reqMock = {
+        const reqMock = {
             url:     '/some/static/js',
             method:  'GET',
             headers: {
@@ -139,7 +141,7 @@ describe('Router', function () {
             }
         };
 
-        var resMock = {
+        const resMock = {
             headers:    {},
             content:    null,
             statusCode: null,
