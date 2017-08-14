@@ -122,7 +122,9 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (target && (targetType === 'object' || targetType === 'function') && sources.length) {
                     for (const source of sources) {
-                        if (!source || typeof source !== 'object') {
+                        const sourceType = typeof source;
+
+                        if (!source || sourceType !== 'object' && sourceType !== 'function') {
                             nativeMethods.objectAssign.call(this, target, source);
                             continue;
                         }
