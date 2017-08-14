@@ -453,7 +453,8 @@ if (Object.assign) {
 
             strictEqual(Object.assign(iframe, { src: '/iframe1' }), iframe);
             strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe1', {
-                resourceType: urlUtils.stringifyResourceType({ isIframe: true })
+                resourceType: urlUtils.stringifyResourceType({ isIframe: true }),
+                proxyPort:    2001
             }));
 
             var fn = function () {
@@ -461,9 +462,10 @@ if (Object.assign) {
 
             fn.src = '/iframe2';
 
-            Object.assign(iframe, { src: '/iframe2' });
+            Object.assign(iframe, fn);
             strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe2', {
-                resourceType: urlUtils.stringifyResourceType({ isIframe: true })
+                resourceType: urlUtils.stringifyResourceType({ isIframe: true }),
+                proxyPort:    2001
             }));
         });
     });
