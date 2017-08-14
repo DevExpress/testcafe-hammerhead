@@ -1,5 +1,3 @@
-import Promise from 'pinkie';
-
 export function preventCaching (res) {
     res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
     res.setHeader('pragma', 'no-cache');
