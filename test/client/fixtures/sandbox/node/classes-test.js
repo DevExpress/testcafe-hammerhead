@@ -157,6 +157,25 @@ if (window.MutationObserver) {
 
         ok(observer instanceof MutationObserver);
     });
+
+    asyncTest('should pass the second parameter to a callback function (GH-1268)', function () {
+        var mutaionRootElement = document.createElement('div');
+        var testElement        = document.createElement('div');
+
+        document.body.appendChild(mutaionRootElement);
+
+        var observer = new MutationObserver(function (mutations, observerInstance) {
+            strictEqual(mutations.length, 1);
+            ok(observerInstance instanceof MutationObserver);
+
+            mutaionRootElement.parentNode.removeChild(mutaionRootElement);
+            start();
+        });
+
+        observer.observe(mutaionRootElement, { childList: true });
+
+        mutaionRootElement.appendChild(testElement);
+    });
 }
 
 module('regression');

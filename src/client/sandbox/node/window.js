@@ -254,7 +254,7 @@ export default class WindowSandbox extends SandboxBase {
                     }
 
                     if (result.length)
-                        callback.call(this, result);
+                        callback.call(this, result, this);
                 };
 
                 return new nativeMethods.MutationObserver(wrapper);
