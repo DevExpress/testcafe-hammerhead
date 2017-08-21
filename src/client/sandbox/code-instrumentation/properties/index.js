@@ -200,8 +200,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             documentURI: {
-                condition: domUtils.isDocument,
-                get:       doc => doc.documentURI ? urlUtils.parseProxyUrl(doc.documentURI).destUrl : doc.documentURI,
+                condition: doc => doc.documentURI && domUtils.isDocument(doc),
+                get:       doc => urlUtils.parseProxyUrl(doc.documentURI).destUrl,
                 set:       val => val
             },
 
