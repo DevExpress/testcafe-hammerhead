@@ -511,50 +511,40 @@ test('an iframe should not contain self-removing scripts after document.close (G
         });
 });
 
-if (browserUtils.isWebKit) {
-    test('should not throw an error when document loses context window from defaultView property (GH-1272)', function () {
-        var wrapRejection = function (fn, reject) {
-            return function () {
+test('should not throw an error when document.defualtView is null (GH-1272)', function () {
+    return new Promise(function (resolve, reject) {
+        var iframe         = document.createElement('iframe');
+        var loadEventCount = 0;
+
+        iframe.id     = 'test' + Date.now();
+        iframe.src    = 'javascript:"";';
+        iframe.onload = function () {
+            var doc = iframe.contentDocument;
+
+            setTimeout(function () {
                 try {
-                    fn.apply(this, arguments);
+                    // NOTE: Chrome throws an error after second load
+                    if (loadEventCount++ < 2) {
+                        doc.open();
+                        doc.write('<div>' + loadEventCount + '</div>');
+                        doc.close();
+                    }
+                    else
+                        resolve(iframe);
                 }
                 catch (e) {
                     reject(e);
                 }
-            };
+            }, 100);
         };
 
-        return new Promise(function (resolve, reject) {
-            var iframe         = document.createElement('iframe');
-            var loadEventCount = 0;
-
-            iframe.id     = 'test' + Date.now();
-            iframe.src    = 'javascript:"";';
-            iframe.onload = wrapRejection(function () {
-                var doc = iframe.contentDocument;
-
-                if (!doc.documentElement.innerText) {
-                    setTimeout(wrapRejection(function () {
-                        ++loadEventCount;
-
-                        doc.open();
-                        doc.write('<div>' + loadEventCount + '</div>');
-                        doc.close();
-
-                        if (loadEventCount === 2)
-                            resolve(iframe);
-                    }, reject), 100);
-                }
-            }, reject);
-
-            document.body.appendChild(iframe);
-        })
-            .then(function (iframe) {
-                strictEqual(iframe.contentDocument.documentElement.innerText, '2');
-                document.body.removeChild(iframe);
-            });
-    });
-}
+        document.body.appendChild(iframe);
+    })
+        .then(function (iframe) {
+            strictEqual(iframe.contentDocument.documentElement.innerText, '2');
+            document.body.removeChild(iframe);
+        });
+});
 
 test('querySelector should return an element if a selector contains the href attribute with hash as a value (GH-922)', function () {
     var testDiv = document.createElement('div');
