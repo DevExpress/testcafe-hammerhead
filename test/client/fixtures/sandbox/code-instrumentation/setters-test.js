@@ -613,3 +613,15 @@ test('should not throw an error on setting the body.innerHtml when document.body
 
     document.body.removeChild(iframe);
 });
+
+if (!browserUtils.isFirefox) {
+    test('set search property to anchor with unsupported protocol (GH-1276)', function () {
+        var anchor = document.createElement('a');
+
+        anchor.setAttribute('href', 'unsupported://some.link.com/path?x=10&y=20');
+
+        eval(processScript('anchor.search="?z=30";'));
+
+        strictEqual(anchor.href, 'unsupported://some.link.com/path?z=30');
+    });
+}
