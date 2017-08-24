@@ -161,6 +161,13 @@ test('document.documentURI', function () {
     nativeMethods.objectToString = storedObjectToString;
 });
 
+test("should returns a native 'document.documentURI' property value if it does not supported (GH-1270)", function () {
+    if (!document.documentURI)
+        strictEqual(document.documentURI, getProperty(document, 'documentURI'));
+    else
+        expect(0);
+});
+
 test('document.baseURI (GH-920)', function () {
     var url                  = 'http://some.domain.com/index.html';
     var storedObjectToString = nativeMethods.objectToString;
