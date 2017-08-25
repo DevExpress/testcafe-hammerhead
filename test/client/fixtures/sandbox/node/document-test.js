@@ -515,33 +515,29 @@ test('should not throw an error when document.defualtView is null', function () 
     return new Promise(function (resolve, reject) {
         var iframe         = document.createElement('iframe');
         var loadEventCount = 0;
-        var wrapRejection  = function (fn) {
-            return function () {
+
+        iframe.id     = 'test' + Date.now();
+        iframe.src    = 'javascript:"";';
+        iframe.onload = function () {
+            var doc = iframe.contentDocument;
+
+            // NOTE: Without setTimeout the error does not reproduced
+            setTimeout(function () {
                 try {
-                    fn.apply(this, arguments);
+                    // NOTE: Chrome throw an error after second load
+                    if (loadEventCount++ < 2) {
+                        doc.open();
+                        doc.write('<div>' + loadEventCount + '</div>');
+                        doc.close();
+                    }
+                    else
+                        resolve(iframe);
                 }
                 catch (e) {
                     reject(e);
                 }
-            };
+            }, 100);
         };
-
-        iframe.id     = 'test' + Date.now();
-        iframe.src    = 'javascript:"";';
-        iframe.onload = wrapRejection(function () {
-            var doc = iframe.contentDocument;
-
-            setTimeout(wrapRejection(function () {
-                // NOTE: Chrome throw an error after second load
-                if (loadEventCount++ < 2) {
-                    doc.open();
-                    doc.write('<div>' + loadEventCount + '</div>');
-                    doc.close();
-                }
-                else
-                    resolve(iframe);
-            }, reject), 100);
-        }, reject);
 
         document.body.appendChild(iframe);
     })
