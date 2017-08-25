@@ -511,7 +511,7 @@ test('an iframe should not contain self-removing scripts after document.close (G
         });
 });
 
-test('should not throw an error when document.defualtView is null', function () {
+test('should not throw an error when document.defualtView is null (GH-1272)', function () {
     return new Promise(function (resolve, reject) {
         var iframe         = document.createElement('iframe');
         var loadEventCount = 0;
@@ -521,7 +521,7 @@ test('should not throw an error when document.defualtView is null', function () 
         iframe.onload = function () {
             var doc = iframe.contentDocument;
 
-            // NOTE: Without setTimeout the error does not reproduced
+            // NOTE: Without wrapping in 'setTimeout' function the error is not reproduced
             setTimeout(function () {
                 try {
                     // NOTE: Chrome throw an error after second load
