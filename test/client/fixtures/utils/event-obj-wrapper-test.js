@@ -24,7 +24,7 @@ function getOwnProperties (obj) {
 module('regression');
 
 test('the "message" event object should be correctly overridden (GH-1277)', function () {
-    var eventObj = null;
+    var eventObj       = null;
     var nativeEventObj = null;
 
     window.addEventListener('message', function (e) {
@@ -48,6 +48,28 @@ test('the "message" event object should be correctly overridden (GH-1277)', func
         .then(function () {
             strictEqual(getOwnProperties(nativeEventObj).sort().join(), getOwnProperties(eventObj).sort().join());
             strictEqual(Object.keys(nativeEventObj).sort().join(), Object.keys(eventObj).sort().join());
-            strictEqual(JSON.stringify(nativeEventObj), JSON.stringify(eventObj));
+
+            try {
+                var nativeEventObjJson = JSON.stringify(nativeEventObj).replace(/"data":\{[^}]*}/, '"data":"message"');
+
+                strictEqual(nativeEventObjJson, JSON.stringify(eventObj));
+            }
+            catch (e) {
+                try {
+                    var obj = {};
+
+                    obj.x = obj;
+                    JSON.stringify(obj);
+                }
+                catch (circularJsonErr) {
+                    throws(function () {
+                        JSON.stringify(nativeEventObj);
+                    }, circularJsonErr);
+
+                    throws(function () {
+                        JSON.stringify(eventObj);
+                    }, circularJsonErr);
+                }
+            }
         });
 });

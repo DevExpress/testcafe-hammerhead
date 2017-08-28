@@ -56,20 +56,19 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onWindowMessage (e, originListener) {
-        const resultEvt = createEventObjWrapper(e);
-        const data      = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
+        const data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
         if (data.type !== MESSAGE_TYPE.service) {
             const originUrl = destLocation.get();
 
             if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl)) {
-                nativeMethods.objectDefineProperty.call(window.Object, resultEvt, 'origin', { value: data.originUrl });
-
                 // NOTE: IE9 can send only string values.
                 const needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
-                const message         = needToStringify ? stringifyJSON(data.message) : data.message;
-
-                nativeMethods.objectDefineProperty.call(window.Object, resultEvt, 'data', { value: message });
+                const originData      = needToStringify ? stringifyJSON(data.message) : data.message;
+                const resultEvt       = createEventObjWrapper(e, {
+                    origin: data.originUrl,
+                    data:   originData
+                });
 
                 if (isObjectEventListener(originListener))
                     return originListener.handleEvent.call(originListener, resultEvt);
