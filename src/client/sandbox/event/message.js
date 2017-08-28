@@ -8,7 +8,7 @@ import { isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows, getTopSameDomainWindow } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
-import fnBind from '../../utils/fn-bind';
+import createEventObjWrapper from '../../utils/event-obj-wrapper';
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
@@ -56,25 +56,20 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onWindowMessage (e, originListener) {
-        const resultEvt = {};
-
-        /* jshint ignore:start */
-        for (const key in e)
-            resultEvt[key] = typeof e[key] === 'function' ? fnBind(e[key], e) : e[key];
-        /* jshint ignore:end */
-
-        const data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
+        const resultEvt = createEventObjWrapper(e);
+        const data      = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
 
         if (data.type !== MESSAGE_TYPE.service) {
             const originUrl = destLocation.get();
 
             if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl)) {
-                resultEvt.origin = data.originUrl;
+                nativeMethods.objectDefineProperty.call(window.Object, resultEvt, 'origin', { value: data.originUrl });
 
                 // NOTE: IE9 can send only string values.
                 const needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
+                const message         = needToStringify ? stringifyJSON(data.message) : data.message;
 
-                resultEvt.data = needToStringify ? stringifyJSON(data.message) : data.message;
+                nativeMethods.objectDefineProperty.call(window.Object, resultEvt, 'data', { value: message });
 
                 if (isObjectEventListener(originListener))
                     return originListener.handleEvent.call(originListener, resultEvt);

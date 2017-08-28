@@ -177,6 +177,7 @@ class NativeMethods {
         this.objectAssign         = win.Object.assign;
         this.objectKeys           = win.Object.keys;
         this.objectDefineProperty = win.Object.defineProperty;
+        this.objectCreate         = win.Object.create;
 
         // DOMParser
         if (win.DOMParser)
