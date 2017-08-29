@@ -303,17 +303,27 @@ test('SVGElement.dispatchEvent should be overriden (GH-614)', function () {
     svg.parentNode.removeChild(svg);
 });
 
-test('should not wrapped invalid handlers (GH-1251)', function () {
+test('should not wrap invalid event handlers (GH-1251)', function () {
     var handlers = [void 0, 1, null, 'str', {}];
 
-    var testHandlers = function (obj) {
-        var storedHandlersCount = listeningCtx.getEventCtx(obj, 'click').wrappers.length;
+    // NOTE: some handlers in some browsers throw the "Invalid argument" error
+    for (var i = handlers.length - 1; i > -1; i--) {
+        try {
+            nativeMethods.windowAddEventListener.call(window, 'click', handlers[i]);
+        }
+        catch (e) {
+            handlers.splice(i, 1);
+        }
+    }
+
+    var testHandlers = function (target) {
+        var storedHandlersCount = listeningCtx.getEventCtx(target, 'click').wrappers.length;
 
         handlers.forEach(function (handler) {
-            obj.addEventListener('click', handler);
+            target.addEventListener('click', handler);
         });
 
-        strictEqual(listeningCtx.getEventCtx(obj, 'click').wrappers.length, storedHandlersCount);
+        strictEqual(listeningCtx.getEventCtx(target, 'click').wrappers.length, storedHandlersCount);
     };
 
     testHandlers(window);

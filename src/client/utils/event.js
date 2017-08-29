@@ -53,7 +53,7 @@ export function stopPropagation (ev) {
 }
 
 export function isObjectEventListener (listener) {
-    return typeof listener === 'object' && typeof listener.handleEvent === 'function';
+    return listener && typeof listener === 'object' && typeof listener.handleEvent === 'function';
 }
 
 export const hasPointerEvents = !!(nativeMethods.WindowPointerEvent || nativeMethods.WindowMSPointerEvent);
