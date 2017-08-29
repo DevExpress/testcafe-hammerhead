@@ -87,6 +87,11 @@ export default class Listeners extends EventEmitter {
         return true;
     }
 
+    static _isCorrectListener (listener) {
+        return listener && (typeof listener === 'function' ||
+                            typeof listener === 'object' && typeof listener.handleEvent === 'function');
+    }
+
     _createEventHandler () {
         const listeners = this;
 
@@ -143,7 +148,7 @@ export default class Listeners extends EventEmitter {
                 const eventListeningInfo     = listeningCtx.getEventCtx(el, type);
                 const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
-                if (!eventListeningInfo)
+                if (!eventListeningInfo || !Listeners._isCorrectListener(listener))
                     return nativeAddEventListener.apply(el, args);
 
                 // NOTE: T233158
@@ -172,7 +177,7 @@ export default class Listeners extends EventEmitter {
                 const nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
                 const eventCtx                  = listeningCtx.getEventCtx(el, type);
 
-                if (!eventCtx)
+                if (!eventCtx || !Listeners._isCorrectListener(listener))
                     return nativeRemoveEventListener.apply(el, args);
 
                 args[1] = listeningCtx.getWrapper(eventCtx, listener, useCapture);
@@ -196,7 +201,7 @@ export default class Listeners extends EventEmitter {
                 const docEventListeningInfo = listeningCtx.getEventCtx(doc, type);
                 const eventListeningInfo    = listeningCtx.getEventCtx(this, type);
 
-                if (!docEventListeningInfo)
+                if (!docEventListeningInfo || !Listeners._isCorrectListener(listener))
                     return nativeAddEventListener.call(this, type, listener, useCapture);
 
                 // NOTE: T233158
@@ -223,7 +228,7 @@ export default class Listeners extends EventEmitter {
             removeEventListener: function (type, listener, useCapture) {
                 const eventListeningInfo = listeningCtx.getEventCtx(this, type);
 
-                if (!eventListeningInfo)
+                if (!eventListeningInfo || !Listeners._isCorrectListener(listener))
                     return nativeRemoveEventListener.call(this, type, listener, useCapture);
 
                 return nativeRemoveEventListener.call(this, type, listeningCtx.getWrapper(eventListeningInfo, listener, useCapture), useCapture);

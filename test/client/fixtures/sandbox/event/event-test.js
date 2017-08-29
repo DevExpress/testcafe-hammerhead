@@ -4,6 +4,7 @@ var iframeSandbox  = hammerhead.sandbox.iframe;
 var listeners      = hammerhead.sandbox.event.listeners;
 var focusBlur      = hammerhead.sandbox.event.focusBlur;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
+var listeningCtx   = hammerhead.get('../client/sandbox/event/listening-context');
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -300,4 +301,22 @@ test('SVGElement.dispatchEvent should be overriden (GH-614)', function () {
     ok(handlerIsCalled);
 
     svg.parentNode.removeChild(svg);
+});
+
+test('should not wrapped invalid handlers (GH-1251)', function () {
+    var handlers = [void 0, 1, null, 'str', {}];
+
+    var testHandlers = function (obj) {
+        var storedHandlersCount = listeningCtx.getEventCtx(obj, 'click').wrappers.length;
+
+        handlers.forEach(function (handler) {
+            obj.addEventListener('click', handler);
+        });
+
+        strictEqual(listeningCtx.getEventCtx(obj, 'click').wrappers.length, storedHandlersCount);
+    };
+
+    testHandlers(window);
+    testHandlers(document);
+    testHandlers(document.body);
 });
