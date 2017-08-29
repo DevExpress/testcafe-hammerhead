@@ -8,7 +8,7 @@ import { isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows, getTopSameDomainWindow } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
-import createEventObjWrapper from '../../utils/event-obj-wrapper';
+import createEvent from '../../utils/create-event';
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
@@ -65,7 +65,7 @@ export default class MessageSandbox extends SandboxBase {
                 // NOTE: IE9 can send only string values.
                 const needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
                 const originData      = needToStringify ? stringifyJSON(data.message) : data.message;
-                const resultEvt       = createEventObjWrapper(e, {
+                const resultEvt       = createEvent(e, {
                     origin: data.originUrl,
                     data:   originData
                 });

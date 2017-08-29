@@ -10,17 +10,6 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
-function getOwnProperties (obj) {
-    var props = [];
-
-    for (var prop in obj) {
-        if (obj.hasOwnProperty(prop))
-            props.push(prop);
-    }
-
-    return props;
-}
-
 module('regression');
 
 test('the "message" event object should be correctly overridden (GH-1277)', function () {
@@ -46,10 +35,17 @@ test('the "message" event object should be correctly overridden (GH-1277)', func
             });
         })
         .then(function () {
-            strictEqual(getOwnProperties(nativeEventObj).sort().join(), getOwnProperties(eventObj).sort().join());
-            strictEqual(Object.keys(nativeEventObj).sort().join(), Object.keys(eventObj).sort().join());
+            var nativeEventObjOwnProperties = Object.getOwnPropertyNames(nativeEventObj).sort();
+            var overridenEventObjOwnProperties = Object.getOwnPropertyNames(eventObj).sort();
 
+            deepEqual(nativeEventObjOwnProperties, overridenEventObjOwnProperties);
+            deepEqual(Object.keys(nativeEventObj).sort(), Object.keys(eventObj).sort());
+
+            // NOTE: Browser Android 5.1 cannot stringify a native "message" event.
+            // It fails with 'Converting circular structure to JSON' error.
             try {
+                // NOTE: Browser Safari 9.0 stringify a 'data' property.
+                // The overriden event has a wrapped 'data' property. So, we need to trim 'data' to perform comparison.
                 var nativeEventObjJson = JSON.stringify(nativeEventObj).replace(/"data":\{[^}]*}/, '"data":"message"');
 
                 strictEqual(nativeEventObjJson, JSON.stringify(eventObj));
