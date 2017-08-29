@@ -7,6 +7,7 @@ var settings      = hammerhead.get('./settings');
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
+var xhrSandbox    = hammerhead.sandbox.xhr;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -43,13 +44,16 @@ test('redirect requests to proxy', function () {
 });
 
 test('createNativeXHR', function () {
-    window.XMLHttpRequest = function () {};
+    var storedXMLHttpRequest = window.XMLHttpRequest;
+
+    window.XMLHttpRequest = function () {
+    };
 
     var xhr = XhrSandbox.createNativeXHR();
 
     ok(xhr instanceof nativeMethods.XMLHttpRequest);
 
-    window.XMLHttpRequest = nativeMethods.XMLHttpRequest;
+    window.XMLHttpRequest = storedXMLHttpRequest;
 
     var isWrappedFunctionRE = /return 'function is wrapped'/;
 
@@ -199,5 +203,28 @@ asyncTest('authorization headers by client should be processed (GH-1016)', funct
             start();
         }
     });
+    xhr.send();
+});
+
+asyncTest('our internal the onreadystatechange handler must be first (GH-1283)', function () {
+    var xhr      = new XMLHttpRequest();
+    var timeout  = null;
+    var testDone = function (eventObj) {
+        clearTimeout(timeout);
+        ok(!!eventObj);
+        start();
+    };
+
+    var readyStateChangeHandler = function (e) {
+        if (this.readyState === this.DONE)
+            e.stopImmediatePropagation();
+    };
+
+    xhr.addEventListener('readystatechange', readyStateChangeHandler, true);
+    xhr.onreadystatechange = readyStateChangeHandler;
+    xhrSandbox.on(xhrSandbox.XHR_COMPLETED_EVENT, testDone);
+    timeout = setTimeout(testDone, 2000);
+
+    xhr.open('GET', '/xhr-test/', true);
     xhr.send();
 });
