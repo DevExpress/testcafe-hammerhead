@@ -73,7 +73,7 @@ test('createNativeXHR', function () {
     }
 });
 
-test('constructor', function () {
+test('toString, instanceof, constructor and static properties', function () {
     var xhr = new XMLHttpRequest();
 
     strictEqual(XMLHttpRequest.toString(), nativeMethods.XMLHttpRequest.toString());

@@ -90,6 +90,13 @@ export default class XhrSandbox extends SandboxBase {
             return xhr;
         };
 
+        for (const prop of ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE']) {
+            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, prop, {
+                value:      XMLHttpRequest[prop],
+                enumerable: true
+            });
+        }
+
         window.XMLHttpRequest           = xmlHttpRequestWrapper;
         xmlHttpRequestWrapper.prototype = xmlHttpRequestProto;
         xmlHttpRequestWrapper.toString  = () => xmlHttpRequestToString;
@@ -98,20 +105,6 @@ export default class XhrSandbox extends SandboxBase {
         nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestProto, 'constructor', {
             value: xmlHttpRequestWrapper
         });
-
-        const defineConstructorConst = (name, value) => {
-            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, name, {
-                value,
-
-                enumerable: true
-            });
-        };
-
-        defineConstructorConst('UNSENT', 0);
-        defineConstructorConst('OPENED', 1);
-        defineConstructorConst('HEADERS_RECEIVED', 2);
-        defineConstructorConst('LOADING', 3);
-        defineConstructorConst('DONE', 4);
 
         xmlHttpRequestProto.abort = function () {
             nativeMethods.xhrAbort.apply(this, arguments);
