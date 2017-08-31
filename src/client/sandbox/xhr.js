@@ -9,6 +9,7 @@ import * as JSON from '../json';
 
 const IS_OPENED_XHR               = 'hammerhead|xhr|is-opened-xhr';
 const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');
+const XHR_READY_STATES            = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
 export default class XhrSandbox extends SandboxBase {
     constructor (cookieSandbox) {
@@ -90,9 +91,9 @@ export default class XhrSandbox extends SandboxBase {
             return xhr;
         };
 
-        for (const prop of ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE']) {
-            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, prop, {
-                value:      XMLHttpRequest[prop],
+        for (const readyState of XHR_READY_STATES) {
+            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, readyState, {
+                value:      XMLHttpRequest[readyState],
                 enumerable: true
             });
         }
