@@ -81,7 +81,7 @@ export default class XhrSandbox extends SandboxBase {
             nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClient);
         };
 
-        const xhrConstructorWrapper = function () {
+        const xhrConstrWrapper = function () {
             const xhr = new nativeMethods.XMLHttpRequest();
 
             nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', emitXhrCompletedEvent);
@@ -90,10 +90,19 @@ export default class XhrSandbox extends SandboxBase {
             return xhr;
         };
 
-        window.XMLHttpRequest           = xhrConstructorWrapper;
-        xhrConstructorWrapper.prototype = xmlHttpRequestProto;
-        xhrConstructorWrapper.toString  = () => xhrConstructorString;
-        xmlHttpRequestProto.constructor = xhrConstructorWrapper;
+        window.XMLHttpRequest           = xhrConstrWrapper;
+        xhrConstrWrapper.prototype      = xmlHttpRequestProto;
+        xhrConstrWrapper.toString       = () => xhrConstructorString;
+        xmlHttpRequestProto.constructor = xhrConstrWrapper;
+
+        const defineConstructorConst = (name, value) =>
+            nativeMethods.objectDefineProperty.call(window.Object, xhrConstrWrapper, name, { value, enumerable: true });
+
+        defineConstructorConst('UNSENT', 0);
+        defineConstructorConst('OPENED', 1);
+        defineConstructorConst('HEADERS_RECEIVED', 2);
+        defineConstructorConst('LOADING', 3);
+        defineConstructorConst('DONE', 4);
 
         xmlHttpRequestProto.abort = function () {
             nativeMethods.xhrAbort.apply(this, arguments);

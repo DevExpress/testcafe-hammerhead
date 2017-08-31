@@ -73,6 +73,19 @@ test('createNativeXHR', function () {
     }
 });
 
+test('constructor', function () {
+    var xhr = new XMLHttpRequest();
+
+    strictEqual(XMLHttpRequest.toString(), nativeMethods.XMLHttpRequest.toString());
+    ok(xhr instanceof XMLHttpRequest);
+    strictEqual(XMLHttpRequest.prototype.constructor, XMLHttpRequest);
+    strictEqual(XMLHttpRequest.UNSENT, nativeMethods.XMLHttpRequest.UNSENT);
+    strictEqual(XMLHttpRequest.OPENED, nativeMethods.XMLHttpRequest.OPENED);
+    strictEqual(XMLHttpRequest.HEADERS_RECEIVED, nativeMethods.XMLHttpRequest.HEADERS_RECEIVED);
+    strictEqual(XMLHttpRequest.LOADING, nativeMethods.XMLHttpRequest.LOADING);
+    strictEqual(XMLHttpRequest.DONE, nativeMethods.XMLHttpRequest.DONE);
+});
+
 module('regression');
 
 asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
@@ -206,7 +219,7 @@ asyncTest('authorization headers by client should be processed (GH-1016)', funct
     xhr.send();
 });
 
-asyncTest('our internal the onreadystatechange handler must be first (GH-1283)', function () {
+asyncTest('our internal the "readystatechange" handler must be first (GH-1283)', function () {
     var xhr      = new XMLHttpRequest();
     var timeout  = null;
     var testDone = function (eventObj) {
