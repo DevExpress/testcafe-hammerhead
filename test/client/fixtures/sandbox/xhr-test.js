@@ -89,7 +89,7 @@ test('constructor', function () {
 module('regression');
 
 asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
-    var timeout            = 100;
+    var timeoutId          = 100;
     var syncActionExecuted = false;
     var xhr                = new XMLHttpRequest();
 
@@ -101,7 +101,7 @@ asyncTest('unexpected text modifying during typing text in the search input on t
     };
 
     xhr.onreadystatechange = ready;
-    xhr.open('GET', '/xhr-test/' + timeout);
+    xhr.open('GET', '/xhr-test/' + timeoutId);
     xhr.send(null);
 
     syncActionExecuted = true;
@@ -219,11 +219,11 @@ asyncTest('authorization headers by client should be processed (GH-1016)', funct
     xhr.send();
 });
 
-asyncTest('our internal the "readystatechange" handler must be first (GH-1283)', function () {
-    var xhr      = new XMLHttpRequest();
-    var timeout  = null;
-    var testDone = function (eventObj) {
-        clearTimeout(timeout);
+asyncTest('"XHR_COMPLETED_EVENT" for completed requests should be raised before calling outer handlers (GH-1283)', function () {
+    var xhr       = new XMLHttpRequest();
+    var timeoutId = null;
+    var testDone  = function (eventObj) {
+        clearTimeout(timeoutId);
         ok(!!eventObj);
         start();
     };
@@ -235,8 +235,9 @@ asyncTest('our internal the "readystatechange" handler must be first (GH-1283)',
 
     xhr.addEventListener('readystatechange', readyStateChangeHandler, true);
     xhr.onreadystatechange = readyStateChangeHandler;
+
     xhrSandbox.on(xhrSandbox.XHR_COMPLETED_EVENT, testDone);
-    timeout = setTimeout(testDone, 2000);
+    timeoutId = setTimeout(testDone, 2000);
 
     xhr.open('GET', '/xhr-test/', true);
     xhr.send();

@@ -81,7 +81,7 @@ export default class XhrSandbox extends SandboxBase {
             nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClient);
         };
 
-        const xhrConstrWrapper = function () {
+        const xmlHttpRequestWrapper = function () {
             const xhr = new nativeMethods.XMLHttpRequest();
 
             nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', emitXhrCompletedEvent);
@@ -90,13 +90,13 @@ export default class XhrSandbox extends SandboxBase {
             return xhr;
         };
 
-        window.XMLHttpRequest           = xhrConstrWrapper;
-        xhrConstrWrapper.prototype      = xmlHttpRequestProto;
-        xhrConstrWrapper.toString       = () => xhrConstructorString;
-        xmlHttpRequestProto.constructor = xhrConstrWrapper;
+        window.XMLHttpRequest           = xmlHttpRequestWrapper;
+        xmlHttpRequestWrapper.prototype = xmlHttpRequestProto;
+        xmlHttpRequestWrapper.toString  = () => xhrConstructorString;
+        xmlHttpRequestProto.constructor = xmlHttpRequestWrapper;
 
         const defineConstructorConst = (name, value) =>
-            nativeMethods.objectDefineProperty.call(window.Object, xhrConstrWrapper, name, { value, enumerable: true });
+            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, name, { value, enumerable: true });
 
         defineConstructorConst('UNSENT', 0);
         defineConstructorConst('OPENED', 1);
@@ -129,28 +129,26 @@ export default class XhrSandbox extends SandboxBase {
         };
 
         xmlHttpRequestProto.send = function () {
-            const xhr = this;
-
-            xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr });
+            xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
             // NOTE: Add the XHR request mark, so that a proxy can recognize a request as a XHR request. As all
             // requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
             // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
-            nativeMethods.xhrSetRequestHeader.call(xhr, XHR_HEADERS.requestMarker, 'true');
-            nativeMethods.xhrSetRequestHeader.call(xhr, XHR_HEADERS.origin, getOriginHeader());
+            nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.requestMarker, 'true');
+            nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.origin, getOriginHeader());
 
             if (xhrSandbox.corsSupported)
-                nativeMethods.xhrSetRequestHeader.call(xhr, XHR_HEADERS.corsSupported, 'true');
+                nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.corsSupported, 'true');
 
-            if (xhr.withCredentials)
-                nativeMethods.xhrSetRequestHeader.call(xhr, XHR_HEADERS.withCredentials, 'true');
+            if (this.withCredentials)
+                nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.withCredentials, 'true');
 
-            nativeMethods.xhrSend.apply(xhr, arguments);
+            nativeMethods.xhrSend.apply(this, arguments);
 
             // NOTE: For xhr with the sync mode
-            emitXhrCompletedEvent.call(xhr);
-            syncCookieWithClient.call(xhr);
+            emitXhrCompletedEvent.call(this);
+            syncCookieWithClient.call(this);
         };
 
         xmlHttpRequestProto.getResponseHeader = function (name) {
