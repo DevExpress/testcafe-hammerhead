@@ -54,9 +54,9 @@ export default class XhrSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        const xhrSandbox           = this;
-        const xmlHttpRequestProto  = window.XMLHttpRequest.prototype;
-        const xhrConstructorString = nativeMethods.XMLHttpRequest.toString();
+        const xhrSandbox             = this;
+        const xmlHttpRequestProto    = window.XMLHttpRequest.prototype;
+        const xmlHttpRequestToString = nativeMethods.XMLHttpRequest.toString();
 
         const emitXhrCompletedEvent = function () {
             if (this.readyState === this.DONE) {
@@ -92,11 +92,20 @@ export default class XhrSandbox extends SandboxBase {
 
         window.XMLHttpRequest           = xmlHttpRequestWrapper;
         xmlHttpRequestWrapper.prototype = xmlHttpRequestProto;
-        xmlHttpRequestWrapper.toString  = () => xhrConstructorString;
-        xmlHttpRequestProto.constructor = xmlHttpRequestWrapper;
+        xmlHttpRequestWrapper.toString  = () => xmlHttpRequestToString;
 
-        const defineConstructorConst = (name, value) =>
-            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, name, { value, enumerable: true });
+        // NOTE: We cannot just assign constructor property in OS X 10.11 safari 9.0
+        nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestProto, 'constructor', {
+            value: xmlHttpRequestWrapper
+        });
+
+        const defineConstructorConst = (name, value) => {
+            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, name, {
+                value,
+
+                enumerable: true
+            });
+        };
 
         defineConstructorConst('UNSENT', 0);
         defineConstructorConst('OPENED', 1);
