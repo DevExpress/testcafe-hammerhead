@@ -311,7 +311,7 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
     if ('Symbol' in window)
         handlers.push(Symbol('foo'));
 
-    // NOTE: some handlers in some browsers throw the "Invalid argument" error
+    // NOTE: on adding some type of handlers an "Invalid argument" error can be raised
     for (var i = handlers.length - 1; i > -1; i--) {
         try {
             nativeMethods.windowAddEventListener.call(window, 'click', handlers[i]);
@@ -325,7 +325,7 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
     }
 
     var testHandlers = function (target) {
-        var storedHandlersCount = listeningCtx.getEventCtx(target, 'click').wrappers.length;
+        var storedHandlerWrappersCount = listeningCtx.getEventCtx(target, 'click').wrappers.length;
 
         handlers.forEach(function (handler) {
             try {
@@ -336,7 +336,7 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
             }
         });
 
-        strictEqual(listeningCtx.getEventCtx(target, 'click').wrappers.length, storedHandlersCount);
+        strictEqual(listeningCtx.getEventCtx(target, 'click').wrappers.length, storedHandlerWrappersCount);
     };
 
     testHandlers(window);
