@@ -89,7 +89,7 @@ test('toString, instanceof, constructor and static properties', function () {
 module('regression');
 
 asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
-    var timeoutId          = 100;
+    var timeout            = 100;
     var syncActionExecuted = false;
     var xhr                = new XMLHttpRequest();
 
@@ -101,7 +101,7 @@ asyncTest('unexpected text modifying during typing text in the search input on t
     };
 
     xhr.onreadystatechange = ready;
-    xhr.open('GET', '/xhr-test/' + timeoutId);
+    xhr.open('GET', '/xhr-test/' + timeout);
     xhr.send(null);
 
     syncActionExecuted = true;
@@ -219,7 +219,7 @@ asyncTest('authorization headers by client should be processed (GH-1016)', funct
     xhr.send();
 });
 
-asyncTest('"XHR_COMPLETED_EVENT" for completed requests should be raised before calling outer handlers (GH-1283)', function () {
+asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283)', function () {
     var xhr       = new XMLHttpRequest();
     var timeoutId = null;
     var testDone  = function (eventObj) {
