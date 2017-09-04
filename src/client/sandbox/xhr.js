@@ -9,6 +9,7 @@ import * as JSON from '../json';
 
 const IS_OPENED_XHR               = 'hammerhead|xhr|is-opened-xhr';
 const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');
+const XHR_READY_STATES            = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
 export default class XhrSandbox extends SandboxBase {
     constructor (cookieSandbox) {
@@ -54,10 +55,18 @@ export default class XhrSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        const xhrSandbox          = this;
-        const xmlHttpRequestProto = window.XMLHttpRequest.prototype;
+        const xhrSandbox             = this;
+        const xmlHttpRequestProto    = window.XMLHttpRequest.prototype;
+        const xmlHttpRequestToString = nativeMethods.XMLHttpRequest.toString();
 
-        const syncCookieWithClient = function () {
+        const emitXhrCompletedEventIfNecessary = function () {
+            if (this.readyState === this.DONE) {
+                xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
+                nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', emitXhrCompletedEventIfNecessary);
+            }
+        };
+
+        const syncCookieWithClientIfNecessary = function () {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
@@ -70,8 +79,33 @@ export default class XhrSandbox extends SandboxBase {
                     xhrSandbox.cookieSandbox.setCookie(window.document, cookie);
             }
 
-            nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClient);
+            nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
         };
+
+        const xmlHttpRequestWrapper = function () {
+            const xhr = new nativeMethods.XMLHttpRequest();
+
+            nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', emitXhrCompletedEventIfNecessary);
+            nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', syncCookieWithClientIfNecessary);
+
+            return xhr;
+        };
+
+        for (const readyState of XHR_READY_STATES) {
+            nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestWrapper, readyState, {
+                value:      XMLHttpRequest[readyState],
+                enumerable: true
+            });
+        }
+
+        window.XMLHttpRequest           = xmlHttpRequestWrapper;
+        xmlHttpRequestWrapper.prototype = xmlHttpRequestProto;
+        xmlHttpRequestWrapper.toString  = () => xmlHttpRequestToString;
+
+        // NOTE: We cannot just assign constructor property in OS X 10.11 safari 9.0
+        nativeMethods.objectDefineProperty.call(window.Object, xmlHttpRequestProto, 'constructor', {
+            value: xmlHttpRequestWrapper
+        });
 
         xmlHttpRequestProto.abort = function () {
             nativeMethods.xhrAbort.apply(this, arguments);
@@ -94,52 +128,17 @@ export default class XhrSandbox extends SandboxBase {
             if (typeof arguments[1] === 'string')
                 arguments[1] = getProxyUrl(arguments[1]);
 
-            nativeMethods.xhrAddEventListener.call(this, 'readystatechange', syncCookieWithClient);
             nativeMethods.xhrOpen.apply(this, arguments);
         };
 
         xmlHttpRequestProto.send = function () {
-            const xhr = this;
-
-            xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr });
-
-            const orscHandler = () => {
-                if (this.readyState === 4)
-                    xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr });
-            };
-
-            // NOTE: If we're using the sync mode or if the response is in cache,
-            // we need to raise the callback manually.
-            if (this.readyState === 4)
-                orscHandler();
-            else {
-                // NOTE: Get out of the current execution tick and then proxy onreadystatechange,
-                // because jQuery assigns a handler after the send() method was called.
-                nativeMethods.setTimeout.call(xhrSandbox.window, () => {
-                    // NOTE: If the state is already changed, we just call the handler without proxying
-                    // onreadystatechange.
-                    if (this.readyState === 4)
-                        orscHandler();
-
-                    else if (typeof this.onreadystatechange === 'function') {
-                        const originalHandler = this.onreadystatechange;
-
-                        this.onreadystatechange = progress => {
-                            orscHandler();
-                            originalHandler.call(this, progress);
-                        };
-                    }
-                    else
-                        this.addEventListener('readystatechange', orscHandler, false);
-                }, 0);
-            }
+            xhrSandbox.emit(xhrSandbox.BEFORE_XHR_SEND_EVENT, { xhr: this });
 
             // NOTE: Add the XHR request mark, so that a proxy can recognize a request as a XHR request. As all
             // requests are passed to the proxy, we need to perform Same Origin Policy compliance checks on the
             // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
             nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.requestMarker, 'true');
-
             nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.origin, getOriginHeader());
 
             if (xhrSandbox.corsSupported)
@@ -151,7 +150,8 @@ export default class XhrSandbox extends SandboxBase {
             nativeMethods.xhrSend.apply(this, arguments);
 
             // NOTE: For xhr with the sync mode
-            syncCookieWithClient.call(this);
+            emitXhrCompletedEventIfNecessary.call(this);
+            syncCookieWithClientIfNecessary.call(this);
         };
 
         xmlHttpRequestProto.getResponseHeader = function (name) {

@@ -7,6 +7,7 @@ var settings      = hammerhead.get('./settings');
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
+var xhrSandbox    = hammerhead.sandbox.xhr;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -43,13 +44,16 @@ test('redirect requests to proxy', function () {
 });
 
 test('createNativeXHR', function () {
-    window.XMLHttpRequest = function () {};
+    var storedXMLHttpRequest = window.XMLHttpRequest;
+
+    window.XMLHttpRequest = function () {
+    };
 
     var xhr = XhrSandbox.createNativeXHR();
 
     ok(xhr instanceof nativeMethods.XMLHttpRequest);
 
-    window.XMLHttpRequest = nativeMethods.XMLHttpRequest;
+    window.XMLHttpRequest = storedXMLHttpRequest;
 
     var isWrappedFunctionRE = /return 'function is wrapped'/;
 
@@ -67,6 +71,19 @@ test('createNativeXHR', function () {
             prototype[prop] = storedFn;
         }
     }
+});
+
+test('toString, instanceof, constructor and static properties', function () {
+    var xhr = new XMLHttpRequest();
+
+    strictEqual(XMLHttpRequest.toString(), nativeMethods.XMLHttpRequest.toString());
+    ok(xhr instanceof XMLHttpRequest);
+    strictEqual(XMLHttpRequest.prototype.constructor, XMLHttpRequest);
+    strictEqual(XMLHttpRequest.UNSENT, nativeMethods.XMLHttpRequest.UNSENT);
+    strictEqual(XMLHttpRequest.OPENED, nativeMethods.XMLHttpRequest.OPENED);
+    strictEqual(XMLHttpRequest.HEADERS_RECEIVED, nativeMethods.XMLHttpRequest.HEADERS_RECEIVED);
+    strictEqual(XMLHttpRequest.LOADING, nativeMethods.XMLHttpRequest.LOADING);
+    strictEqual(XMLHttpRequest.DONE, nativeMethods.XMLHttpRequest.DONE);
 });
 
 module('regression');
@@ -199,5 +216,29 @@ asyncTest('authorization headers by client should be processed (GH-1016)', funct
             start();
         }
     });
+    xhr.send();
+});
+
+asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283)', function () {
+    var xhr       = new XMLHttpRequest();
+    var timeoutId = null;
+    var testDone  = function (eventObj) {
+        clearTimeout(timeoutId);
+        ok(!!eventObj);
+        start();
+    };
+
+    var readyStateChangeHandler = function (e) {
+        if (this.readyState === this.DONE)
+            e.stopImmediatePropagation();
+    };
+
+    xhr.addEventListener('readystatechange', readyStateChangeHandler, true);
+    xhr.onreadystatechange = readyStateChangeHandler;
+
+    xhrSandbox.on(xhrSandbox.XHR_COMPLETED_EVENT, testDone);
+    timeoutId = setTimeout(testDone, 2000);
+
+    xhr.open('GET', '/xhr-test/', true);
     xhr.send();
 });
