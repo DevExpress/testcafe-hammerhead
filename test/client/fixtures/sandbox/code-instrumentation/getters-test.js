@@ -217,11 +217,11 @@ test('url in stylesheet properties', function () {
 
         el.style[prop] = value;
 
-        var etalonValue  = el.style[propForChecking];
-        var proxiedValue = etalonValue.replace(url, proxyUrl);
+        var controlValue = el.style[propForChecking];
+        var proxiedValue = controlValue.replace(url, proxyUrl);
 
         eval(processScript('el.style["' + prop + '"]="' + value + '"'));
-        strictEqual(getProperty(el.style, propForChecking), etalonValue, prop);
+        strictEqual(getProperty(el.style, propForChecking), controlValue, prop);
         strictEqual(el.style[propForChecking], proxiedValue, prop);
     });
 });
