@@ -4,6 +4,7 @@ var iframeSandbox  = hammerhead.sandbox.iframe;
 var listeners      = hammerhead.sandbox.event.listeners;
 var focusBlur      = hammerhead.sandbox.event.focusBlur;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
+var listeningCtx   = hammerhead.get('../client/sandbox/event/listening-context');
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -300,4 +301,45 @@ test('SVGElement.dispatchEvent should be overriden (GH-614)', function () {
     ok(handlerIsCalled);
 
     svg.parentNode.removeChild(svg);
+});
+
+test('should not wrap invalid event handlers (GH-1251)', function () {
+    var handlers        = [void 0, 1, null, 'str', {}];
+    var invalidHandlers = [];
+    var errorText       = null;
+
+    if ('Symbol' in window)
+        handlers.push(Symbol('foo'));
+
+    // NOTE: on adding some type of handlers an "Invalid argument" error can be raised
+    for (var i = handlers.length - 1; i > -1; i--) {
+        try {
+            nativeMethods.windowAddEventListener.call(window, 'click', handlers[i]);
+        }
+        catch (e) {
+            if (!errorText)
+                errorText = e.toString();
+
+            invalidHandlers.push(handlers[i]);
+        }
+    }
+
+    var testHandlers = function (target) {
+        var storedHandlerWrappersCount = listeningCtx.getEventCtx(target, 'click').wrappers.length;
+
+        handlers.forEach(function (handler) {
+            try {
+                target.addEventListener('click', handler);
+            }
+            catch (e) {
+                ok(invalidHandlers.indexOf(handler) !== -1 && e.toString() === errorText);
+            }
+        });
+
+        strictEqual(listeningCtx.getEventCtx(target, 'click').wrappers.length, storedHandlerWrappersCount);
+    };
+
+    testHandlers(window);
+    testHandlers(document);
+    testHandlers(document.body);
 });
