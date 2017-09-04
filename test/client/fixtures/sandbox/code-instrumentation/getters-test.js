@@ -198,47 +198,33 @@ test('CSSStyleSheet.href', function () {
     urlUtils.parseProxyUrl = storedGetProxyUrl;
 });
 
-if (browserUtils.isWebKit) {
-    test('url in stylesheet properties', function () {
-        var el          = document.createElement('div');
-        var url         = 'http://some.domain.com/image.png';
-        var proxyUrl    = urlUtils.getProxyUrl(url);
-        var quote       = (function () {
-            var div = document.createElement('div');
+test('url in stylesheet properties', function () {
+    var el            = document.createElement('div');
+    var url           = 'http://some.domain.com/image.png';
+    var proxyUrl      = urlUtils.getProxyUrl(url);
+    var cssProperties = ['background', 'backgroundImage', 'background-image', 'borderImage', 'border-image',
+        'borderImageSource', 'border-image-source', 'listStyle', 'list-style', 'listStyleImage',
+        'list-style-image', 'cssText', 'cursor'];
 
-            div.style.backgroundImage = 'url(http://example.com/img.jpg)';
+    cssProperties.forEach(function (prop) {
+        var value = 'url(' + url + ')';
 
-            return div.style.backgroundImage.match(/url\((.*)http:\/\/example.com\/img.jpg/)[1];
-        })();
-        var getExpected = function (value) {
-            return 'url(' + quote + value + quote + ')';
-        };
+        // NOTE: We cannot get url through 'borderImage' or 'border-image' properties
+        var propForChecking = prop === 'borderImage' || prop === 'border-image' ? 'borderImageSource' : prop;
 
-        eval(processScript('el.style.backgroundImage="url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'backgroundImage'), getExpected(url), 'backgroundImage');
-        strictEqual(el.style.backgroundImage, getExpected(proxyUrl), 'backgroundImage');
+        if (prop === 'cssText')
+            value = 'background:' + value;
 
-        eval(processScript('el.style.background="url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'background'), getExpected(url), 'background');
-        strictEqual(el.style.background, getExpected(proxyUrl), 'background');
+        el.style[prop] = value;
 
-        eval(processScript('el.style.listStyle="url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'listStyle'), getExpected(url), 'listStyle');
-        strictEqual(el.style.listStyle, getExpected(proxyUrl), 'listStyle');
+        var etalonValue  = el.style[propForChecking];
+        var proxiedValue = etalonValue.replace(url, proxyUrl);
 
-        eval(processScript('el.style.listStyleImage="url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'listStyleImage'), getExpected(url), 'listStyleImage');
-        strictEqual(el.style.listStyleImage, getExpected(proxyUrl), 'listStyleImage');
-
-        eval(processScript('el.style.cssText="background-image: url(' + url + ')"'));
-        strictEqual(getProperty(el.style, 'cssText'), 'background-image: ' + getExpected(url) + ';', 'cssText');
-        strictEqual(el.style.cssText, 'background-image: ' + getExpected(proxyUrl) + ';', 'cssText');
-
-        eval(processScript('el.style.cursor="url(' + url + '), auto"'));
-        strictEqual(getProperty(el.style, 'cursor'), getExpected(url) + ', auto', 'cursor');
-        strictEqual(el.style.cursor, getExpected(proxyUrl) + ', auto', 'cursor');
+        eval(processScript('el.style["' + prop + '"]="' + value + '"'));
+        strictEqual(getProperty(el.style, propForChecking), etalonValue, prop);
+        strictEqual(el.style[propForChecking], proxiedValue, prop);
     });
-}
+});
 
 test('get style body', function () {
     var style     = document.createElement('style');

@@ -193,6 +193,22 @@ class NativeMethods {
         if (textAreaValueDescriptor && typeof textAreaValueDescriptor.set === 'function')
             this.textAreaValueSetter = textAreaValueDescriptor.set;
 
+        // stylesheets
+        if (win.CSSStyleDeclaration) {
+            this.CSSStyleDeclarationGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
+            this.CSSStyleDeclarationSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
+        }
+
+        if (win.MSStyleCSSProperties) {
+            this.MSStyleCSSPropertiesGetPropertyValue = win.MSStyleCSSProperties.prototype.getPropertyValue;
+            this.MSStyleCSSPropertiesSetProperty      = win.MSStyleCSSProperties.prototype.setProperty;
+        }
+
+        if (win.CSS2Property) {
+            this.CSS2PropertyGetPropertyValue = win.CSS2Property.prototype.getPropertyValue;
+            this.CSS2PropertySetProperty      = win.CSS2Property.prototype.setProperty;
+        }
+
         this.refreshClasses(win);
     }
 

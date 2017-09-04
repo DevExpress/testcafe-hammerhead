@@ -7,7 +7,7 @@ import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
 import { processHtml } from '../../utils/html';
-import { isSubDomain, parseUrl, getProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
+import { isSubDomain, parseUrl, getProxyUrl, parseProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
 import { isFirefox, isIE9, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
@@ -66,6 +66,29 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         return String(reason);
+    }
+
+    static _wrapCSSGetPropertyValueIfNecessary (constructor, nativeGetPropertyValue) {
+        if (nativeGetPropertyValue) {
+            constructor.prototype.getPropertyValue = function (...args) {
+                const value = nativeGetPropertyValue.apply(this, args);
+
+                return styleProcessor.cleanUp(value, parseProxyUrl);
+            };
+        }
+    }
+
+    static _wrapCSSSetPropertyIfNecessary (constructor, nativeSetProperty) {
+        if (nativeSetProperty) {
+            constructor.prototype.setProperty = function (...args) {
+                const value = args[1];
+
+                if (typeof value === 'string')
+                    args[1] = styleProcessor.process(value, getProxyUrl);
+
+                return nativeSetProperty.apply(this, args);
+            };
+        }
     }
 
     handleEvent (event) {
@@ -404,5 +427,19 @@ export default class WindowSandbox extends SandboxBase {
         // NOTE: stab for ie9 and ie10 (GH-801)
         if (window.XDomainRequest)
             window.XDomainRequest = window.XMLHttpRequest;
+
+        WindowSandbox._wrapCSSGetPropertyValueIfNecessary(window.CSSStyleDeclaration,
+            nativeMethods.CSSStyleDeclarationGetPropertyValue);
+        WindowSandbox._wrapCSSGetPropertyValueIfNecessary(window.MSStyleCSSProperties,
+            nativeMethods.MSStyleCSSPropertiesGetPropertyValue);
+        WindowSandbox._wrapCSSGetPropertyValueIfNecessary(window.CSS2Property,
+            nativeMethods.CSS2PropertyGetPropertyValue);
+
+        WindowSandbox._wrapCSSSetPropertyIfNecessary(window.CSSStyleDeclaration,
+            nativeMethods.CSSStyleDeclarationSetProperty);
+        WindowSandbox._wrapCSSSetPropertyIfNecessary(window.MSStyleCSSProperties,
+            nativeMethods.MSStyleCSSPropertiesSetProperty);
+        WindowSandbox._wrapCSSSetPropertyIfNecessary(window.CSS2Property,
+            nativeMethods.CSS2PropertySetProperty);
     }
 }

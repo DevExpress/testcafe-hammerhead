@@ -375,3 +375,15 @@ test('the constructor field of a function should return a wrapped Function objec
     Function.prototype.toString = nativeToString;
     /*eslint-enable no-extend-native*/
 });
+
+test('getPropertyValue and setProperty methods of css object should be overridden (GH-1212)', function () {
+    var div      = document.createElement('div');
+    var url      = 'http://some.domain.com/image.png';
+    var proxyUrl = urlUtils.getProxyUrl(url);
+
+    div.style.setProperty('background', 'url(' + url + ')', '');
+
+    ok(div.style.background.indexOf(proxyUrl) !== -1);
+    ok(div.style.getPropertyValue('background').indexOf(proxyUrl) === -1);
+    ok(div.style.getPropertyValue('background').indexOf(url) !== -1);
+});
