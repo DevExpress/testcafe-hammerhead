@@ -17,11 +17,10 @@ export default class DocumentSandbox extends SandboxBase {
         this.documentWriter  = null;
     }
 
-    _isUninitializedIframeWithoutSrc (doc) {
-        const wnd          = doc.defaultView;
-        const frameElement = getFrameElement(wnd);
+    _isUninitializedIframeWithoutSrc (win) {
+        const frameElement = getFrameElement(win);
 
-        return wnd !== wnd.top && frameElement && isIframeWithoutSrc(frameElement) &&
+        return win !== win.top && frameElement && isIframeWithoutSrc(frameElement) &&
                !IframeSandbox.isIframeInitialized(frameElement);
     }
 
@@ -69,7 +68,7 @@ export default class DocumentSandbox extends SandboxBase {
         const documentSandbox = this;
 
         document.open = (...args) => {
-            const isUninitializedIframe = this._isUninitializedIframeWithoutSrc(document);
+            const isUninitializedIframe = this._isUninitializedIframeWithoutSrc(window);
 
             if (!isUninitializedIframe)
                 this._beforeDocumentCleaned();
@@ -99,7 +98,7 @@ export default class DocumentSandbox extends SandboxBase {
 
             const result = nativeMethods.documentClose.apply(document, args);
 
-            if (!this._isUninitializedIframeWithoutSrc(document))
+            if (!this._isUninitializedIframeWithoutSrc(window))
                 this._onDocumentClosed();
 
             return result;

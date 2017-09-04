@@ -4,6 +4,7 @@ var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
+var Promise       = hammerhead.Promise;
 
 QUnit.testStart(function () {
     // NOTE: The 'window.open' method used in QUnit.
@@ -494,22 +495,56 @@ if (!browserUtils.isIE) {
 }
 
 test('an iframe should not contain self-removing scripts after document.close (GH-871)', function () {
-    var iframe = document.createElement('iframe');
+    return createTestIframe()
+        .then(function (iframe) {
+            var iframeDocument = iframe.contentDocument;
 
-    iframe.id = 'test-gh-871';
+            iframeDocument.designMode = 'On';
+            iframeDocument.open();
+            iframeDocument.write('<body style=\"padding: 0; margin: 0; overflow: hidden;\"></body>');
+            iframeDocument.close();
 
-    document.body.appendChild(iframe);
+            var selfRemovingScripts = nativeMethods.querySelectorAll.call(iframeDocument,
+                '.' + SHADOW_UI_CLASSNAME.selfRemovingScript);
 
-    var iframeDocument = iframe.contentDocument;
+            strictEqual(selfRemovingScripts.length, 0);
+        });
+});
 
-    iframeDocument.designMode = 'on';
-    iframeDocument.open();
-    iframeDocument.write('<body style=\"padding: 0; margin: 0; overflow: hidden;\"></body>');
-    iframeDocument.close();
+test('should not throw an error when document.defualtView is null (GH-1272)', function () {
+    return new Promise(function (resolve, reject) {
+        var iframe         = document.createElement('iframe');
+        var loadEventCount = 0;
 
-    strictEqual(nativeMethods.querySelectorAll.call(document, '.' + SHADOW_UI_CLASSNAME.selfRemovingScript).length, 0);
+        iframe.id     = 'test' + Date.now();
+        iframe.src    = 'javascript:"";';
+        iframe.onload = function () {
+            var doc = iframe.contentDocument;
 
-    iframe.parentNode.removeChild(iframe);
+            // NOTE: Without wrapping in 'setTimeout' function the error is not reproduced
+            setTimeout(function () {
+                try {
+                    // NOTE: Chrome throw an error after second load
+                    if (loadEventCount++ < 2) {
+                        doc.open();
+                        doc.write('<div>' + loadEventCount + '</div>');
+                        doc.close();
+                    }
+                    else
+                        resolve(iframe);
+                }
+                catch (e) {
+                    reject(e);
+                }
+            }, 100);
+        };
+
+        document.body.appendChild(iframe);
+    })
+        .then(function (iframe) {
+            strictEqual(iframe.contentDocument.documentElement.innerText, '2');
+            document.body.removeChild(iframe);
+        });
 });
 
 test('querySelector should return an element if a selector contains the href attribute with hash as a value (GH-922)', function () {
