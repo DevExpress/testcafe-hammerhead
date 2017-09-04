@@ -59,14 +59,14 @@ export default class XhrSandbox extends SandboxBase {
         const xmlHttpRequestProto    = window.XMLHttpRequest.prototype;
         const xmlHttpRequestToString = nativeMethods.XMLHttpRequest.toString();
 
-        const emitXhrCompletedEvent = function () {
+        const emitXhrCompletedEventIfNecessary = function () {
             if (this.readyState === this.DONE) {
                 xhrSandbox.emit(xhrSandbox.XHR_COMPLETED_EVENT, { xhr: this });
-                nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', emitXhrCompletedEvent);
+                nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', emitXhrCompletedEventIfNecessary);
             }
         };
 
-        const syncCookieWithClient = function () {
+        const syncCookieWithClientIfNecessary = function () {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
@@ -79,14 +79,14 @@ export default class XhrSandbox extends SandboxBase {
                     xhrSandbox.cookieSandbox.setCookie(window.document, cookie);
             }
 
-            nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClient);
+            nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
         };
 
         const xmlHttpRequestWrapper = function () {
             const xhr = new nativeMethods.XMLHttpRequest();
 
-            nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', emitXhrCompletedEvent);
-            nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', syncCookieWithClient);
+            nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', emitXhrCompletedEventIfNecessary);
+            nativeMethods.xhrAddEventListener.call(xhr, 'readystatechange', syncCookieWithClientIfNecessary);
 
             return xhr;
         };
@@ -150,8 +150,8 @@ export default class XhrSandbox extends SandboxBase {
             nativeMethods.xhrSend.apply(this, arguments);
 
             // NOTE: For xhr with the sync mode
-            emitXhrCompletedEvent.call(this);
-            syncCookieWithClient.call(this);
+            emitXhrCompletedEventIfNecessary.call(this);
+            syncCookieWithClientIfNecessary.call(this);
         };
 
         xmlHttpRequestProto.getResponseHeader = function (name) {
