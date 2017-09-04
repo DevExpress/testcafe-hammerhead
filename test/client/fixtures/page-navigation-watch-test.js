@@ -112,6 +112,16 @@ test('Hash via location.href', function () {
         });
 });
 
+test('javascript protocol via location.href (GH-1289)', function () {
+    return navigateIframe('location.href = "javascript:var i = 0;";', { timeout: 500 })
+        .then(function () {
+            ok(false, 'event should not be triggered');
+        })
+        .catch(function (reason) {
+            ok(reason === 'timeout exceeded', reason);
+        });
+});
+
 test('Hash via location.hash', function () {
     return navigateIframe('location.hash = "hash";', { timeout: 500 })
         .then(function () {
@@ -502,3 +512,4 @@ test('the onNavigationTriggered function should not throw an error when receives
             ok(!err, err);
         });
 });
+

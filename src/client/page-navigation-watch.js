@@ -124,7 +124,8 @@ export default class PageNavigationWatch extends EventEmiter {
 
         this.lastLocationValue = window.location.toString();
 
-        if (url !== currentLocation && (url.charAt(0) === '#' || isChangedOnlyHash(currentLocation, url)))
+        if (url !== currentLocation && (url.charAt(0) === '#' || isChangedOnlyHash(currentLocation, url)) ||
+            domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(url))
             return;
 
         this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
