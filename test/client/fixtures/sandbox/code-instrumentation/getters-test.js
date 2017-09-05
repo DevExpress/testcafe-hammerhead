@@ -606,3 +606,27 @@ test('document.activeElement when it equals null (GH-1226)', function () {
 
     div.parentNode.removeChild(div);
 });
+
+if (!browserUtils.isIE) {
+    test('form.action should return element when the form contains element with the "action" attribute name (GH-1291)', function () {
+        var form  = document.createElement('form');
+        var input = document.createElement('input');
+
+        form.setAttribute('action', 'http://example.com/test1');
+        input.setAttribute('name', 'action');
+
+        strictEqual(getProperty(form, 'action'), 'http://example.com/test1');
+
+        form.appendChild(input);
+
+        strictEqual(getProperty(form, 'action'), input);
+
+        setProperty(form, 'action', 'http://example.com/test2');
+
+        strictEqual(getProperty(form, 'action'), input);
+
+        form.removeChild(input);
+
+        strictEqual(getProperty(form, 'action'), 'http://example.com/test2');
+    });
+}
