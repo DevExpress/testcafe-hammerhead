@@ -218,7 +218,7 @@ test('url in stylesheet properties', function () {
         el.style[prop] = value;
 
         var controlValue = el.style[propForChecking];
-        var proxiedValue = controlValue.replace(url, proxyUrl);
+        var proxiedValue = controlValue && controlValue.replace(url, proxyUrl);
 
         eval(processScript('el.style["' + prop + '"]="' + value + '"'));
         strictEqual(getProperty(el.style, propForChecking), controlValue, prop);
