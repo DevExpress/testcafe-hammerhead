@@ -19,7 +19,7 @@ const EXECUTABLE_SCRIPT_TYPES_REG_EX     = /^\s*(application\/(x-)?(ecma|java)sc
 
 const URL_ATTR_TAGS = {
     href:       ['a', 'link', 'image', 'area', 'base'],
-    src:        ['img', 'embed', 'script', 'source', 'video', 'audio', 'input', 'frame', 'iframe', 'frame'],
+    src:        ['img', 'embed', 'script', 'source', 'video', 'audio', 'input', 'frame', 'iframe'],
     action:     ['form'],
     formaction: ['button', 'input'],
     manifest:   ['html'],
