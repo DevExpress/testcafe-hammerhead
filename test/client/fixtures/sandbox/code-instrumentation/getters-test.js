@@ -209,20 +209,20 @@ test('url in stylesheet properties', function () {
     cssProperties.forEach(function (prop) {
         var value = 'url(' + url + ')';
 
-        // NOTE: We cannot get url through 'borderImage' or 'border-image' properties
-        var propForChecking = prop === 'borderImage' || prop === 'border-image' ? 'borderImageSource' : prop;
+        // NOTE: If we setup `borderImage` or `border-image` property then it affects a `borderImageSource` property.
+        var affectedProp = prop === 'borderImage' || prop === 'border-image' ? 'borderImageSource' : prop;
 
         if (prop === 'cssText')
             value = 'background:' + value;
 
         el.style[prop] = value;
 
-        var controlValue = el.style[propForChecking];
-        var proxiedValue = controlValue && controlValue.replace(url, proxyUrl);
+        var nativeValue  = el.style[affectedProp];
+        var proxiedValue = nativeValue && nativeValue.replace(url, proxyUrl);
 
         eval(processScript('el.style["' + prop + '"]="' + value + '"'));
-        strictEqual(getProperty(el.style, propForChecking), controlValue, prop);
-        strictEqual(el.style[propForChecking], proxiedValue, prop);
+        strictEqual(getProperty(el.style, affectedProp), nativeValue, prop);
+        strictEqual(el.style[affectedProp], proxiedValue, prop);
     });
 });
 

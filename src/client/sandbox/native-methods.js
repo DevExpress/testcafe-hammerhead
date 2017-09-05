@@ -193,20 +193,23 @@ class NativeMethods {
         if (textAreaValueDescriptor && typeof textAreaValueDescriptor.set === 'function')
             this.textAreaValueSetter = textAreaValueDescriptor.set;
 
-        // stylesheets
+        // Stylesheets
         if (win.CSSStyleDeclaration) {
             this.CSSStyleDeclarationGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
             this.CSSStyleDeclarationSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
+            this.CSSStyleDeclarationRemoveProperty   = win.CSSStyleDeclaration.prototype.removeProperty;
         }
 
         if (win.MSStyleCSSProperties) {
             this.MSStyleCSSPropertiesGetPropertyValue = win.MSStyleCSSProperties.prototype.getPropertyValue;
             this.MSStyleCSSPropertiesSetProperty      = win.MSStyleCSSProperties.prototype.setProperty;
+            this.MSStyleCSSPropertiesRemoveProperty   = win.MSStyleCSSProperties.prototype.removeProperty;
         }
 
         if (win.CSS2Property) {
             this.CSS2PropertyGetPropertyValue = win.CSS2Property.prototype.getPropertyValue;
             this.CSS2PropertySetProperty      = win.CSS2Property.prototype.setProperty;
+            this.CSS2PropertyRemoveProperty   = win.CSS2Property.prototype.removeProperty;
         }
 
         this.refreshClasses(win);

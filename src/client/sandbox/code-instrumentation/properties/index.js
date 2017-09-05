@@ -129,7 +129,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return HTML_ELEMENT_TEXT_PROPERTIES[prop];
     }
 
-    static _createStyleInstrumentation (property) {
+    static _createForStyleProperty (property) {
         return {
             condition: isStyle,
 
@@ -768,19 +768,19 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             // Style
-            background:            PropertyAccessorsInstrumentation._createStyleInstrumentation('background'),
-            backgroundImage:       PropertyAccessorsInstrumentation._createStyleInstrumentation('backgroundImage'),
-            'background-image':    PropertyAccessorsInstrumentation._createStyleInstrumentation('background-image'),
-            borderImage:           PropertyAccessorsInstrumentation._createStyleInstrumentation('borderImage'),
-            'border-image':        PropertyAccessorsInstrumentation._createStyleInstrumentation('border-image'),
-            'borderImageSource':   PropertyAccessorsInstrumentation._createStyleInstrumentation('borderImageSource'),
-            'border-image-source': PropertyAccessorsInstrumentation._createStyleInstrumentation('border-image-source'),
-            listStyle:             PropertyAccessorsInstrumentation._createStyleInstrumentation('listStyle'),
-            'list-style':          PropertyAccessorsInstrumentation._createStyleInstrumentation('list-style'),
-            listStyleImage:        PropertyAccessorsInstrumentation._createStyleInstrumentation('listStyleImage'),
-            'list-style-image':    PropertyAccessorsInstrumentation._createStyleInstrumentation('list-style-image'),
-            cssText:               PropertyAccessorsInstrumentation._createStyleInstrumentation('cssText'),
-            cursor:                PropertyAccessorsInstrumentation._createStyleInstrumentation('cursor'),
+            background:            PropertyAccessorsInstrumentation._createForStyleProperty('background'),
+            backgroundImage:       PropertyAccessorsInstrumentation._createForStyleProperty('backgroundImage'),
+            'background-image':    PropertyAccessorsInstrumentation._createForStyleProperty('background-image'),
+            borderImage:           PropertyAccessorsInstrumentation._createForStyleProperty('borderImage'),
+            'border-image':        PropertyAccessorsInstrumentation._createForStyleProperty('border-image'),
+            'borderImageSource':   PropertyAccessorsInstrumentation._createForStyleProperty('borderImageSource'),
+            'border-image-source': PropertyAccessorsInstrumentation._createForStyleProperty('border-image-source'),
+            listStyle:             PropertyAccessorsInstrumentation._createForStyleProperty('listStyle'),
+            'list-style':          PropertyAccessorsInstrumentation._createForStyleProperty('list-style'),
+            listStyleImage:        PropertyAccessorsInstrumentation._createForStyleProperty('listStyleImage'),
+            'list-style-image':    PropertyAccessorsInstrumentation._createForStyleProperty('list-style-image'),
+            cssText:               PropertyAccessorsInstrumentation._createForStyleProperty('cssText'),
+            cursor:                PropertyAccessorsInstrumentation._createForStyleProperty('cursor'),
 
             styleSheets: {
                 condition: domUtils.isDocument,

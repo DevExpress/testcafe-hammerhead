@@ -68,25 +68,35 @@ export default class WindowSandbox extends SandboxBase {
         return String(reason);
     }
 
-    static _wrapCSSGetPropertyValueIfNecessary (constructor, nativeGetPropertyValue) {
-        if (nativeGetPropertyValue) {
+    static _wrapCSSGetPropertyValueIfNecessary (constructor, nativeGetPropertyValueFn) {
+        if (nativeGetPropertyValueFn) {
             constructor.prototype.getPropertyValue = function (...args) {
-                const value = nativeGetPropertyValue.apply(this, args);
+                const value = nativeGetPropertyValueFn.apply(this, args);
 
                 return styleProcessor.cleanUp(value, parseProxyUrl);
             };
         }
     }
 
-    static _wrapCSSSetPropertyIfNecessary (constructor, nativeSetProperty) {
-        if (nativeSetProperty) {
+    static _wrapCSSSetPropertyIfNecessary (constructor, nativeSetPropertyFn) {
+        if (nativeSetPropertyFn) {
             constructor.prototype.setProperty = function (...args) {
                 const value = args[1];
 
                 if (typeof value === 'string')
                     args[1] = styleProcessor.process(value, getProxyUrl);
 
-                return nativeSetProperty.apply(this, args);
+                return nativeSetPropertyFn.apply(this, args);
+            };
+        }
+    }
+
+    static _wrapCSSRemovePropertyIfNecessary (constructor, nativeRemovePropertyFn) {
+        if (nativeRemovePropertyFn) {
+            constructor.prototype.removeProperty = function (...args) {
+                const oldValue = nativeRemovePropertyFn.apply(this, args);
+
+                return styleProcessor.cleanUp(oldValue, parseProxyUrl);
             };
         }
     }
@@ -441,5 +451,12 @@ export default class WindowSandbox extends SandboxBase {
             nativeMethods.MSStyleCSSPropertiesSetProperty);
         WindowSandbox._wrapCSSSetPropertyIfNecessary(window.CSS2Property,
             nativeMethods.CSS2PropertySetProperty);
+
+        WindowSandbox._wrapCSSRemovePropertyIfNecessary(window.CSSStyleDeclaration,
+            nativeMethods.CSSStyleDeclarationRemoveProperty);
+        WindowSandbox._wrapCSSRemovePropertyIfNecessary(window.MSStyleCSSProperties,
+            nativeMethods.MSStyleCSSPropertiesRemoveProperty);
+        WindowSandbox._wrapCSSRemovePropertyIfNecessary(window.CSS2Property,
+            nativeMethods.CSS2PropertyRemoveProperty);
     }
 }

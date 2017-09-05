@@ -386,4 +386,14 @@ test('getPropertyValue and setProperty methods of css object should be overridde
     ok(div.style.background.indexOf(proxyUrl) !== -1);
     ok(div.style.getPropertyValue('background').indexOf(proxyUrl) === -1);
     ok(div.style.getPropertyValue('background').indexOf(url) !== -1);
+
+    var oldValue = div.style.removeProperty('background');
+
+    ok(oldValue.indexOf(proxyUrl) === -1);
+
+    div.style.setProperty('background', null);
+
+    ok(!div.style.background);
+    ok(!div.style.getPropertyValue('background'));
+    ok(!div.style.removeProperty('background'));
 });
