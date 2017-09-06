@@ -136,7 +136,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             action: {
                 condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'action'),
 
-                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'action'),
+                get: el => {
+                    if (domUtils.isDomElement(el.action))
+                        return el.action;
+
+                    return PropertyAccessorsInstrumentation._getUrlAttr(el, 'action');
+                },
                 set: (el, value) => {
                     el.setAttribute('action', value);
 
