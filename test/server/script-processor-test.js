@@ -107,10 +107,13 @@ function testProcessing (testCases) {
 
 function testPropertyProcessing (templates) {
     INSTRUMENTED_PROPERTIES.forEach(propName => {
+        if (propName.indexOf('-') !== -1)
+            return;
+
         const testCases = templates.map(template => {
             return {
-                src:      template.src.replace(/\{0\}/g, propName),
-                expected: template.expected.replace(/\{0\}/g, propName)
+                src:      template.src.replace(/\{0}/g, propName),
+                expected: template.expected.replace(/\{0}/g, propName)
             };
         });
 

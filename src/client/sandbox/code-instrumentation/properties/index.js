@@ -129,6 +129,23 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return HTML_ELEMENT_TEXT_PROPERTIES[prop];
     }
 
+    static _createForStyleProperty (property) {
+        return {
+            condition: isStyle,
+
+            get: style => styleProcessor.cleanUp(style[property], urlUtils.parseProxyUrl),
+
+            set: (style, value) => {
+                if (typeof value === 'string')
+                    style[property] = styleProcessor.process(value, urlUtils.getProxyUrl);
+                else
+                    style[property] = value;
+
+                return value;
+            }
+        };
+    }
+
     _createPropertyAccessors (window, document) {
         let storedDomain = '';
 
@@ -756,89 +773,19 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             // Style
-            background: {
-                condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.background, urlUtils.parseProxyUrl),
-
-                set: (style, value) => {
-                    if (typeof value === 'string')
-                        style.background = styleProcessor.process(value, urlUtils.getProxyUrl);
-
-                    return style.background;
-                }
-            },
-
-            backgroundImage: {
-                condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.backgroundImage, urlUtils.parseProxyUrl),
-
-                set: (style, value) => {
-                    if (typeof value === 'string')
-                        style.backgroundImage = styleProcessor.process(value, urlUtils.getProxyUrl);
-
-                    return style.backgroundImage;
-                }
-            },
-
-            borderImage: {
-                condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.borderImage, urlUtils.parseProxyUrl),
-
-                set: (style, value) => {
-                    if (typeof value === 'string')
-                        style.borderImage = styleProcessor.process(value, urlUtils.getProxyUrl);
-
-                    return style.borderImage;
-                }
-            },
-
-            cssText: {
-                condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.cssText, urlUtils.parseProxyUrl),
-
-                set: (style, value) => {
-                    if (typeof value === 'string')
-                        style.cssText = styleProcessor.process(value, urlUtils.getProxyUrl);
-
-                    return style.cssText;
-                }
-            },
-
-            cursor: {
-                condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.cursor, urlUtils.parseProxyUrl),
-
-                set: (style, value) => {
-                    if (typeof value === 'string')
-                        style.cursor = styleProcessor.process(value, urlUtils.getProxyUrl);
-
-                    return style.cursor;
-                }
-            },
-
-            listStyle: {
-                condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.listStyle, urlUtils.parseProxyUrl),
-
-                set: (style, value) => {
-                    if (typeof value === 'string')
-                        style.listStyle = styleProcessor.process(value, urlUtils.getProxyUrl);
-
-                    return style.listStyle;
-                }
-            },
-
-            listStyleImage: {
-                condition: isStyle,
-                get:       style => styleProcessor.cleanUp(style.listStyleImage, urlUtils.parseProxyUrl),
-
-                set: (style, value) => {
-                    if (typeof value === 'string')
-                        style.listStyleImage = styleProcessor.process(value, urlUtils.getProxyUrl);
-
-                    return style.listStyleImage;
-                }
-            },
+            background:            PropertyAccessorsInstrumentation._createForStyleProperty('background'),
+            backgroundImage:       PropertyAccessorsInstrumentation._createForStyleProperty('backgroundImage'),
+            'background-image':    PropertyAccessorsInstrumentation._createForStyleProperty('background-image'),
+            borderImage:           PropertyAccessorsInstrumentation._createForStyleProperty('borderImage'),
+            'border-image':        PropertyAccessorsInstrumentation._createForStyleProperty('border-image'),
+            'borderImageSource':   PropertyAccessorsInstrumentation._createForStyleProperty('borderImageSource'),
+            'border-image-source': PropertyAccessorsInstrumentation._createForStyleProperty('border-image-source'),
+            listStyle:             PropertyAccessorsInstrumentation._createForStyleProperty('listStyle'),
+            'list-style':          PropertyAccessorsInstrumentation._createForStyleProperty('list-style'),
+            listStyleImage:        PropertyAccessorsInstrumentation._createForStyleProperty('listStyleImage'),
+            'list-style-image':    PropertyAccessorsInstrumentation._createForStyleProperty('list-style-image'),
+            cssText:               PropertyAccessorsInstrumentation._createForStyleProperty('cssText'),
+            cursor:                PropertyAccessorsInstrumentation._createForStyleProperty('cursor'),
 
             styleSheets: {
                 condition: domUtils.isDocument,
