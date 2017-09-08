@@ -1,5 +1,6 @@
 var processScript       = hammerhead.get('../processing/script').processScript;
 var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
+var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -333,7 +334,7 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
     asyncTest('override window methods after document.write call (T239109)', function () {
         var iframe = document.createElement('iframe');
 
-        iframe.id = 'test_wrapper';
+        iframe.id                 = 'test_wrapper';
         window.top.onIframeInited = function (window) {
             var iframeIframeSandbox = window['%hammerhead%'].sandbox.iframe;
 
@@ -342,13 +343,13 @@ if (browserUtils.isFirefox || browserUtils.isIE11) {
         };
 
         iframe.setAttribute('src', 'javascript:\'' +
-                                       '   <html><body><script>' +
-                                       '       window.top.onIframeInited(window);' +
-                                       '       var quote = String.fromCharCode(34);' +
-                                       '       if(true){document.write("<iframe id=" + quote + "test_iframe" + quote + "></iframe>");}' +
-                                       '       if(true){document.getElementById("test_iframe").contentDocument.write("<body><script>document.body.innerHTML = " + quote + "<div></div>" + quote + ";</s" + "cript></body>");}' +
-                                       '   </sc' + 'ript></body></html>' +
-                                       '\'');
+                                   '   <html><body><script>' +
+                                   '       window.top.onIframeInited(window);' +
+                                   '       var quote = String.fromCharCode(34);' +
+                                   '       if(true){document.write("<iframe id=" + quote + "test_iframe" + quote + "></iframe>");}' +
+                                   '       if(true){document.getElementById("test_iframe").contentDocument.write("<body><script>document.body.innerHTML = " + quote + "<div></div>" + quote + ";</s" + "cript></body>");}' +
+                                   '   </sc' + 'ript></body></html>' +
+                                   '\'');
 
         document.body.appendChild(iframe);
 
@@ -560,4 +561,75 @@ test('querySelector should return an element if a selector contains the href att
     ok(element);
 
     document.body.removeChild(testDiv);
+});
+
+if (document.registerElement) {
+    test('should not raise an error if processed element is created via non-overriden way and it is locked (GH-1300)', function () {
+        var CustomElementConstructor = document.registerElement('custom-element', {
+            prototype: {
+                __proto__: HTMLElement.prototype
+            }
+        });
+        var customElement1           = new CustomElementConstructor();
+        var customElement2           = new CustomElementConstructor();
+        var customElement3           = new CustomElementConstructor();
+
+        try {
+            Object.preventExtensions(customElement1);
+            document.body.appendChild(customElement1);
+            ok(true, 'Object.preventExtensions');
+        }
+        catch (e) {
+            ok(false, 'Object.preventExtensions');
+        }
+
+        // BUG in Android 5.1: Object.seal locks all element's prototype chain (down to HTMLElement).
+        // After this, QUnit cannot execute accertions
+        if (!browserUtils.isAndroid) {
+            try {
+                Object.seal(customElement2);
+                document.body.appendChild(customElement2);
+                ok(true, 'Object.seal');
+            }
+            catch (e) {
+                ok(false, 'Object.seal');
+            }
+        }
+
+        try {
+            Object.freeze(customElement3);
+            document.body.appendChild(customElement3);
+            ok(true, 'Object.freeze');
+        }
+
+        catch (e) {
+            ok(false, 'Object.freeze');
+        }
+
+        [customElement1, customElement2, customElement3].forEach(function (element) {
+            if (element.parentNode)
+                element.parentNode.removeChild(element);
+        });
+    });
+}
+
+test('should reprocess element if it is created in iframe window and it is not frozen (GH-1300)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/iframe/simple-iframe.html') })
+        .then(function (iframe) {
+            var iframeLink = iframe.contentDocument.createElement('a');
+
+            Object.preventExtensions(iframeLink);
+            document.body.appendChild(iframeLink);
+            strictEqual(iframeLink[INTERNAL_PROPS.processedContext], window);
+
+            iframeLink = iframe.contentDocument.createElement('a');
+            Object.seal(iframeLink);
+            document.body.appendChild(iframeLink);
+            strictEqual(iframeLink[INTERNAL_PROPS.processedContext], window);
+
+            iframeLink = iframe.contentDocument.createElement('a');
+            Object.freeze(iframeLink);
+            document.body.appendChild(iframeLink);
+            strictEqual(iframeLink[INTERNAL_PROPS.processedContext], iframe.contentWindow);
+        });
 });
