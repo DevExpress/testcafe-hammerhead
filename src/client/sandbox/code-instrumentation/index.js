@@ -38,7 +38,7 @@ export default class CodeInstrumentation extends SandboxBase {
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
         // NOTE: GH-260
-        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.getEval, {
+        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.getEval, {
             value: evalFn => {
                 if (evalFn !== window.eval)
                     return evalFn;
@@ -53,7 +53,7 @@ export default class CodeInstrumentation extends SandboxBase {
             configurable: true
         });
 
-        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.processScript, {
+        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.processScript, {
             value: (script, isApply) => {
                 if (isApply) {
                     if (script && script.length && typeof script[0] === 'string') {

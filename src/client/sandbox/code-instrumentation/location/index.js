@@ -38,19 +38,19 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        nativeMethods.objectDefineProperty.call(window, window, LOCATION_WRAPPER, {
+        nativeMethods.objectDefineProperty.call(window.Object, window, LOCATION_WRAPPER, {
             value:        locationWrapper,
             configurable: true
         });
-        nativeMethods.objectDefineProperty.call(window, window.document, LOCATION_WRAPPER, {
+        nativeMethods.objectDefineProperty.call(window.Object, window.document, LOCATION_WRAPPER, {
             value:        locationWrapper,
             configurable: true
         });
-        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.getLocation, {
+        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.getLocation, {
             value:        location => isLocation(location) ? locationWrapper : location,
             configurable: true
         });
-        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.setLocation, {
+        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.setLocation, {
             value: (location, value) => {
                 if (isLocation(location) && typeof value === 'string') {
                     locationWrapper.href = value;

@@ -86,7 +86,7 @@ export default class FetchSandbox extends SandboxBase {
                 if (response.status === 500)
                     throw new TypeError();
 
-                nativeMethods.objectDefineProperty.call(win, response, 'type', {
+                nativeMethods.objectDefineProperty.call(win.Object, response, 'type', {
                     get:          () => FetchSandbox._getResponseType(response),
                     set:          () => void 0,
                     configurable: true
@@ -94,7 +94,7 @@ export default class FetchSandbox extends SandboxBase {
 
                 const responseStatus = response.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : response.status;
 
-                nativeMethods.objectDefineProperty.call(win, response, 'status', {
+                nativeMethods.objectDefineProperty.call(win.Object, response, 'status', {
                     get:          () => responseStatus,
                     set:          () => void 0,
                     configurable: true

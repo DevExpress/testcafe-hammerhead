@@ -32,7 +32,7 @@ export default class DataTransfer {
             return dataStore.mode === DATA_STORE_MODE.protected ? emptyListInternals : itemListInternals;
         };
 
-        nativeMethods.objectDefineProperty.call(window, this, 'dropEffect', {
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'dropEffect', {
             configurable: true,
             enumerable:   true,
 
@@ -45,7 +45,7 @@ export default class DataTransfer {
             }
         });
 
-        nativeMethods.objectDefineProperty.call(window, this, 'effectAllowed', {
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'effectAllowed', {
             configurable: true,
             enumerable:   true,
 
@@ -59,7 +59,7 @@ export default class DataTransfer {
         });
 
         if (!isIE11) {
-            nativeMethods.objectDefineProperty.call(window, this, 'items', {
+            nativeMethods.objectDefineProperty.call(window.Object, this, 'items', {
                 configurable: true,
                 enumerable:   true,
 
@@ -67,14 +67,14 @@ export default class DataTransfer {
             });
         }
 
-        nativeMethods.objectDefineProperty.call(window, this, 'types', {
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'types', {
             configurable: true,
             enumerable:   true,
 
             get: () => getActualItemListInternals().getTypes()
         });
 
-        nativeMethods.objectDefineProperty.call(window, this, 'files', {
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'files', {
             configurable: true,
             enumerable:   true,
 

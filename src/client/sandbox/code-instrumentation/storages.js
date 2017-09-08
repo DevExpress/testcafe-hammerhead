@@ -14,7 +14,7 @@ export default class StoragesAccessorsInstrumentation extends SandboxBase {
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        nativeMethods.objectDefineProperty.call(window, window, INSTRUCTION.getStorage, {
+        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.getStorage, {
             value: storage => {
                 if (storage === this.window.sessionStorage) {
                     this.storageSandbox.sessionStorage.setContext(window);

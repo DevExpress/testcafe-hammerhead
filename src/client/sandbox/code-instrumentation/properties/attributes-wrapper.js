@@ -51,18 +51,18 @@ export default class AttributesWrapper {
 
                     attr = nativeMethods.cloneNode.call(attr);
                     attr.value = storedAttr.value;
-                    nativeMethods.objectDefineProperty.call(window, this, attr.name, {
+                    nativeMethods.objectDefineProperty.call(window.Object, this, attr.name, {
                         value:        attr,
                         configurable: true
                     });
                 }
 
-                nativeMethods.objectDefineProperty.call(window, this, length, { value: attr, configurable: true });
+                nativeMethods.objectDefineProperty.call(window.Object, this, length, { value: attr, configurable: true });
                 length++;
             }
         }
 
-        nativeMethods.objectDefineProperty.call(window, this, 'length', { value: length, configurable: true });
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'length', { value: length, configurable: true });
     }
 
     static _cleanAttributes () {

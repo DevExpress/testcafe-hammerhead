@@ -50,7 +50,7 @@ export default class LocationWrapper extends EventEmitter {
         };
         const urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 
-        nativeMethods.objectDefineProperty.call(window, this, 'href', createPropertyDesc({
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'href', createPropertyDesc({
             get: getHref,
             set: href => {
                 const proxiedHref = getProxiedHref(href);
@@ -62,7 +62,7 @@ export default class LocationWrapper extends EventEmitter {
             }
         }));
 
-        nativeMethods.objectDefineProperty.call(window, this, 'search', createPropertyDesc({
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'search', createPropertyDesc({
             get: () => window.location.search,
             set: search => {
                 const newLocation = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
@@ -74,12 +74,12 @@ export default class LocationWrapper extends EventEmitter {
             }
         }));
 
-        nativeMethods.objectDefineProperty.call(window, this, 'origin', createPropertyDesc({
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'origin', createPropertyDesc({
             get: () => getDomain(getParsedDestLocation()),
             set: origin => origin
         }));
 
-        nativeMethods.objectDefineProperty.call(window, this, 'hash', createPropertyDesc({
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'hash', createPropertyDesc({
             get: () => window.location.hash,
             set: hash => {
                 window.location.hash = hash;
@@ -89,7 +89,7 @@ export default class LocationWrapper extends EventEmitter {
         }));
 
         const overrideProperty = property => {
-            nativeMethods.objectDefineProperty.call(window, this, property, createPropertyDesc({
+            nativeMethods.objectDefineProperty.call(window.Object, this, property, createPropertyDesc({
                 get: () => getParsedDestLocation()[property],
                 set: value => {
                     const newLocation = changeDestUrlPart(window.location.toString(), property, value, resourceType);

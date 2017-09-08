@@ -22,7 +22,7 @@ export default {
         // we will use native methods from an actual document.
         // However, a document that contains an element for url resolving is created using a previous version of nativeMethods.
         if (!doc[DOCUMENT_URL_RESOLVER]) {
-            nativeMethods.objectDefineProperty.call(window, doc, DOCUMENT_URL_RESOLVER, {
+            nativeMethods.objectDefineProperty.call(window.Object, doc, DOCUMENT_URL_RESOLVER, {
                 value:    this._createResolver(doc),
                 writable: true
             });
