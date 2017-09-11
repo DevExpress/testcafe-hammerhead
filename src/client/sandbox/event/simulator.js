@@ -47,13 +47,13 @@ export default class EventSimulator {
         ev.initStorageEvent('storage', args.canBubble, args.cancelable, args.key, args.oldValue,
             args.newValue, args.url, null);
 
-        nativeMethods.objectDefineProperty.call(window, ev, 'storageArea', {
+        nativeMethods.objectDefineProperty.call(window.Object, ev, 'storageArea', {
             get:          () => args.storageArea,
             configurable: true
         });
 
         if (args.key === null) {
-            nativeMethods.objectDefineProperty.call(window, ev, 'key', {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'key', {
                 get:          () => null,
                 configurable: true
             });
@@ -323,7 +323,7 @@ export default class EventSimulator {
                 this.savedWindowEvents.shift();
 
             if (this.savedWindowEvents.length) {
-                nativeMethods.objectDefineProperty.call(window, curWindow, 'event', {
+                nativeMethods.objectDefineProperty.call(window.Object, curWindow, 'event', {
                     get:          () => this.savedWindowEvents[0],
                     configurable: true
                 });
@@ -333,7 +333,7 @@ export default class EventSimulator {
         // NOTE: Window.event becomes empty when the click event handler
         // triggers the click event for a different element in IE11.(GH-226).
         if (browserUtils.isIE11 && prevWindowEvent) {
-            nativeMethods.objectDefineProperty.call(window, curWindow, 'event', {
+            nativeMethods.objectDefineProperty.call(window.Object, curWindow, 'event', {
                 get:          () => prevWindowEvent,
                 configurable: true
             });
@@ -378,26 +378,26 @@ export default class EventSimulator {
         if (ev) {
             // NOTE: the window.event.keyCode, window.event.charCode, window.event.which and
             // window.event.key properties are not assigned after KeyboardEvent is created
-            nativeMethods.objectDefineProperty.call(window, ev, 'keyCode', {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'keyCode', {
                 configurable: true,
                 enumerable:   true,
                 get:          () => args.keyCode
             });
 
-            nativeMethods.objectDefineProperty.call(window, ev, 'charCode', {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'charCode', {
                 configurable: true,
                 enumerable:   true,
                 get:          () => args.charCode
             });
 
-            nativeMethods.objectDefineProperty.call(window, ev, 'which', {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'which', {
                 configurable: true,
                 enumerable:   true,
                 get:          () => args.which
             });
 
             if ('key' in args) {
-                nativeMethods.objectDefineProperty.call(window, ev, 'key', {
+                nativeMethods.objectDefineProperty.call(window.Object, ev, 'key', {
                     configurable: true,
                     enumerable:   true,
                     get:          () => args.key
@@ -405,7 +405,7 @@ export default class EventSimulator {
             }
 
             if ('keyIdentifier' in args) {
-                nativeMethods.objectDefineProperty.call(window, ev, 'keyIdentifier', {
+                nativeMethods.objectDefineProperty.call(window.Object, ev, 'keyIdentifier', {
                     configurable: true,
                     enumerable:   true,
                     get:          () => args.keyIdentifier
@@ -418,7 +418,7 @@ export default class EventSimulator {
             // NOTE: the dispatchEvent method does not return false in the case when preventDefault
             // was raised for events that were created with the KeyboardEvent constructor
             if (browserWithNewEventsStyle) {
-                nativeMethods.objectDefineProperty.call(window, ev, 'preventDefault', {
+                nativeMethods.objectDefineProperty.call(window.Object, ev, 'preventDefault', {
                     get: () => () => {
                         prevented = true;
 
@@ -431,7 +431,7 @@ export default class EventSimulator {
 
             // NOTE: the dispatchEvent method does not return false when returnValue was set to false (only in MSEdge)
             if (browserUtils.isMSEdge) {
-                nativeMethods.objectDefineProperty.call(window, ev, 'returnValue', {
+                nativeMethods.objectDefineProperty.call(window.Object, ev, 'returnValue', {
                     get: () => returnValue,
                     set: value => {
                         if (value === false)
@@ -500,17 +500,17 @@ export default class EventSimulator {
                 pointerArgs.timeStamp, pointerArgs.isPrimary);
 
             // NOTE: After dispatching the pointer event, it doesn't contain the 'target' and 'relatedTarget' properties.
-            nativeMethods.objectDefineProperty.call(window, pointEvent, 'target', {
+            nativeMethods.objectDefineProperty.call(window.Object, pointEvent, 'target', {
                 get:          () => el,
                 configurable: true
             });
 
-            nativeMethods.objectDefineProperty.call(window, pointEvent, 'relatedTarget', {
+            nativeMethods.objectDefineProperty.call(window.Object, pointEvent, 'relatedTarget', {
                 get:          () => args.relatedTarget,
                 configurable: true
             });
 
-            nativeMethods.objectDefineProperty.call(window, pointEvent, 'buttons', {
+            nativeMethods.objectDefineProperty.call(window.Object, pointEvent, 'buttons', {
                 get: () => args.buttons
             });
         }
@@ -551,7 +551,7 @@ export default class EventSimulator {
             args.button, args.relatedTarget);
 
         if (dataTransfer) {
-            nativeMethods.objectDefineProperty.call(window, ev, 'dataTransfer', {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'dataTransfer', {
                 configurable: true,
                 enumerable:   true,
                 get:          () => dataTransfer
@@ -559,14 +559,14 @@ export default class EventSimulator {
         }
 
         if (browserUtils.isFirefox || browserUtils.isIE) {
-            nativeMethods.objectDefineProperty.call(window, ev, 'buttons', {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'buttons', {
                 get: () => args.buttons
             });
         }
 
         // NOTE: T188166 (act.hover triggers the mouseenter event with the "which" parameter set to 1).
         if (args.which !== void 0 && browserUtils.isWebKit) {
-            nativeMethods.objectDefineProperty.call(window, ev, INTERNAL_PROPS.whichPropertyWrapper, {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, INTERNAL_PROPS.whichPropertyWrapper, {
                 get: () => args.which
             });
         }
@@ -577,11 +577,11 @@ export default class EventSimulator {
             const currentDocument = domUtils.findDocument(el);
             const documentScroll  = getElementScroll(currentDocument);
 
-            nativeMethods.objectDefineProperty.call(window, ev, 'pageX', {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'pageX', {
                 get: () => ev.clientX + documentScroll.left
             });
 
-            nativeMethods.objectDefineProperty.call(window, ev, 'pageY', {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'pageY', {
                 get: () => ev.clientY + documentScroll.top
             });
         }
@@ -686,7 +686,7 @@ export default class EventSimulator {
                     args.button = button;
                 }
 
-                nativeMethods.objectDefineProperty.call(window, curWindow, 'event', {
+                nativeMethods.objectDefineProperty.call(window.Object, curWindow, 'event', {
                     get:          () => this.savedWindowEvents[0],
                     configurable: true
                 });
@@ -694,7 +694,7 @@ export default class EventSimulator {
                 let cancelBubble = false;
 
                 if (curWindowEvent) {
-                    nativeMethods.objectDefineProperty.call(window, curWindowEvent, 'returnValue', {
+                    nativeMethods.objectDefineProperty.call(window.Object, curWindowEvent, 'returnValue', {
                         get: () => returnValue,
                         set: value => {
                             if (value === false)
@@ -706,7 +706,7 @@ export default class EventSimulator {
                         configurable: true
                     });
 
-                    nativeMethods.objectDefineProperty.call(window, curWindowEvent, 'cancelBubble', {
+                    nativeMethods.objectDefineProperty.call(window.Object, curWindowEvent, 'cancelBubble', {
                         get: () => cancelBubble,
                         set: value => {
                             ev.cancelBubble = cancelBubble = value;
@@ -718,11 +718,11 @@ export default class EventSimulator {
                     });
 
                     if (curWindowEvent.type === 'mouseout' || curWindowEvent.type === 'mouseover') {
-                        nativeMethods.objectDefineProperty.call(window, curWindowEvent, 'fromElement', {
+                        nativeMethods.objectDefineProperty.call(window.Object, curWindowEvent, 'fromElement', {
                             get:          () => curWindowEvent.type === 'mouseout' ? el : args.relatedTarget,
                             configurable: true
                         });
-                        nativeMethods.objectDefineProperty.call(window, curWindowEvent, 'toElement', {
+                        nativeMethods.objectDefineProperty.call(window.Object, curWindowEvent, 'toElement', {
                             get:          () => curWindowEvent.type === 'mouseover' ? el : args.relatedTarget,
                             configurable: true
                         });
@@ -743,7 +743,7 @@ export default class EventSimulator {
             // NOTE: In IE11, iframe's window.event object is null. We need to set
             // iframe's window.event object manually by using window.event (B254199).
             if (browserUtils.version === 11 && iframe) {
-                nativeMethods.objectDefineProperty.call(window, iframe.contentWindow, 'event', {
+                nativeMethods.objectDefineProperty.call(window.Object, iframe.contentWindow, 'event', {
                     get:          () => window.event,
                     configurable: true
                 });

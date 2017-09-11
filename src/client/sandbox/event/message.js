@@ -136,7 +136,7 @@ export default class MessageSandbox extends SandboxBase {
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        nativeMethods.objectDefineProperty.call(window, window, this.RECEIVE_MSG_FN, {
+        nativeMethods.objectDefineProperty.call(window.Object, window, this.RECEIVE_MSG_FN, {
             value:        onMessageHandler,
             configurable: true
         });

@@ -2,7 +2,7 @@ import nativeMethods from '../native-methods';
 
 export default class FileListWrapper {
     constructor (fileList) {
-        nativeMethods.objectDefineProperty.call(window, this, 'length', {
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'length', {
             get: () => fileList.length
         });
 

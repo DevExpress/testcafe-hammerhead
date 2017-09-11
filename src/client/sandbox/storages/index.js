@@ -75,7 +75,7 @@ export default class StorageSandbox extends SandboxBase {
             const event = new nativeMethods.StorageEvent(type, opts);
 
             if (storedArea) {
-                nativeMethods.objectDefineProperty.call(win, event, 'storageArea', {
+                nativeMethods.objectDefineProperty.call(win.Object, event, 'storageArea', {
                     get: () => storedArea,
                     set: () => void 0
                 });

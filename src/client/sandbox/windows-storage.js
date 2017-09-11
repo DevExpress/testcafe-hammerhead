@@ -9,7 +9,7 @@ function getStorage () {
 
     if (!storage) {
         storage = [];
-        nativeMethods.objectDefineProperty.call(window, topSameDomainWindow, WINDOWS_STORAGE, { value: storage });
+        nativeMethods.objectDefineProperty.call(window.Object, topSameDomainWindow, WINDOWS_STORAGE, { value: storage });
     }
 
     return storage;

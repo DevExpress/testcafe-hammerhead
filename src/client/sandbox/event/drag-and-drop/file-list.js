@@ -4,13 +4,13 @@ import nativeMethods from '../../native-methods';
 
 export default class FileList {
     constructor () {
-        nativeMethods.objectDefineProperty.call(window, this, 'length', {
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'length', {
             enumerable: true,
 
             get: () => 0
         });
 
-        nativeMethods.objectDefineProperty.call(window, this, 'item', {
+        nativeMethods.objectDefineProperty.call(window.Object, this, 'item', {
             enumerable: true,
 
             get: () => {

@@ -24,7 +24,7 @@ export function create (window, sandbox) {
 
     if (!storage) {
         storage = [];
-        nativeMethods.objectDefineProperty.call(window, topSameDomainWindow, SANDBOX_BACKUP, { value: storage });
+        nativeMethods.objectDefineProperty.call(window.Object, topSameDomainWindow, SANDBOX_BACKUP, { value: storage });
     }
 
     const record = findRecord(storage, iframe);

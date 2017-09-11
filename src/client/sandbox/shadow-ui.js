@@ -53,12 +53,12 @@ export default class ShadowUI extends SandboxBase {
                 filteredList.push(list[i]);
         }
 
-        nativeMethods.objectDefineProperty.call(this.window, filteredList, 'item', {
+        nativeMethods.objectDefineProperty.call(this.window.Object, filteredList, 'item', {
             value: index => index >= filteredList.length ? null : filteredList[index]
         });
 
         if (list.namedItem) {
-            nativeMethods.objectDefineProperty.call(this.window, filteredList, 'namedItem', {
+            nativeMethods.objectDefineProperty.call(this.window.Object, filteredList, 'namedItem', {
                 value: name => list.namedItem(name)
             });
         }
@@ -131,9 +131,9 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _markShadowUIContainerAndCollections (containerEl) {
-        nativeMethods.objectDefineProperty.call(this.window, containerEl, IS_SHADOW_CONTAINER_FLAG, { value: true });
-        nativeMethods.objectDefineProperty.call(this.window, containerEl.children, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
-        nativeMethods.objectDefineProperty.call(this.window, containerEl.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
+        nativeMethods.objectDefineProperty.call(this.window.Object, containerEl, IS_SHADOW_CONTAINER_FLAG, { value: true });
+        nativeMethods.objectDefineProperty.call(this.window.Object, containerEl.children, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
+        nativeMethods.objectDefineProperty.call(this.window.Object, containerEl.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
     }
 
     markShadowUIContainers (head, body) {

@@ -49,7 +49,7 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         return properties;
     };
 
-    nativeMethods.objectDefineProperty.call(window, this, 'length', {
+    nativeMethods.objectDefineProperty.call(window.Object, this, 'length', {
         get: () => getAddedProperties().length,
         set: () => void 0
     });
