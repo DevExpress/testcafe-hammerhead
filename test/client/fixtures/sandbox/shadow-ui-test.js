@@ -678,7 +678,7 @@ test("do nothing if ShadowUIStylesheet doesn't exist", function () {
 module('regression');
 
 test('SVG elements\' className is of the SVGAnimatedString type instead of string (GH-354)', function () {
-    setProperty(document.body, 'innerHTML', '<svg></svg>' + document.body.innerHTML);
+    setProperty(document.body, 'innerHTML', '<svg></svg>' + getProperty(document.body, 'innerHTML'));
 
     var svg                         = document.body.childNodes[0];
     var processedBodyChildrenLength = getProperty(document.body.children, 'length');
