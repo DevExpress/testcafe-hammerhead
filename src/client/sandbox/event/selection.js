@@ -66,6 +66,11 @@ export default class Selection {
                     if (isElementActive) {
                         selection.focusBlurSandbox.blur(el, null, true);
                         selection.focusBlurSandbox.focus(el, null, true);
+
+                        // HACK: we should call focus for previous active element again because
+                        // in Firefox 55.0.3 after first focus active element isn't changed
+                        if (domUtils.getActiveElement(domUtils.findDocument(el)) !== el)
+                            selection.focusBlurSandbox.focus(el, null, true);
                     }
                 }
 
