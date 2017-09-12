@@ -20,6 +20,7 @@ import AttributesWrapper from '../code-instrumentation/properties/attributes-wra
 import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
+import settings from '../../settings';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -650,7 +651,6 @@ export default class ElementSandbox extends SandboxBase {
         else if (window.HTMLElement.prototype.insertAdjacentHTML)
             window.HTMLElement.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
 
-
         this._setValidBrowsingContextOnElementClick(window);
 
         // NOTE: Cookie can be set up for the page by using the request initiated by img.
@@ -658,12 +658,25 @@ export default class ElementSandbox extends SandboxBase {
         // If img has the 'load' event handler, we redirect the request through proxy.
         // For details, see https://github.com/DevExpress/testcafe-hammerhead/issues/651
         this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
-            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
-                ElementSandbox._setProxiedSrc(e.el);
+            if (e.eventType === 'load' && domUtils.isImgElement(e.el)) {
+                const img = e.el;
+
+                img[INTERNAL_PROPS.forceProxySrcForImage] = true;
+
+                const imgSrc = nativeMethods.imageSrcGetter.call(img);
+
+                if (imgSrc)
+                    img.setAttribute('src', imgSrc);
+            }
         });
         this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_DETACHED_EVENT, e => {
-            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
-                ElementSandbox.removeHasLoadHandlerFlag(e.el);
+            if (e.eventType === 'load' && domUtils.isImgElement(e.el)) {
+                const img    = e.el;
+                const imgSrc = nativeMethods.imageSrcGetter.call(img);
+
+                if (imgSrc && !settings.get().forceProxySrcForImage)
+                    img.setAttribute('src', DomProcessor.getStoredAttrName('src'));
+            }
         });
     }
 
@@ -722,7 +735,7 @@ export default class ElementSandbox extends SandboxBase {
 
         switch (tagName) {
             case 'img':
-                if (!el[INTERNAL_PROPS.forceProxySrcForImage])
+                if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
                     this._setProxiedSrcUrlOnError(el);
                 break;
             case 'iframe':

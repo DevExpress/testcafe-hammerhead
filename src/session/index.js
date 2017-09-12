@@ -1,6 +1,4 @@
 import mustache from 'mustache';
-import nanoIdGenerate from 'nanoid/generate';
-import nanoIdAlphabet from 'nanoid/url';
 import { readSync as read } from 'read-file-relative';
 import { EventEmitter } from 'events';
 import { parse as parseUrl } from 'url';
@@ -8,10 +6,10 @@ import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import { parseProxyUrl } from '../utils/url';
+import generateUniqueId from '../utils/generate-unique-id';
 
 // Const
-const TASK_TEMPLATE       = read('../client/task.js.mustache');
-const SESSION_ID_ALPHABET = nanoIdAlphabet.replace(/-|~/g, '');
+const TASK_TEMPLATE = read('../client/task.js.mustache');
 
 // Session
 export default class Session extends EventEmitter {
@@ -20,7 +18,7 @@ export default class Session extends EventEmitter {
 
         this.uploadStorage = new UploadStorage(uploadsRoot);
 
-        this.id                    = Session._generateSessionId();
+        this.id                    = generateUniqueId();
         this.cookies               = new Cookies();
         this.proxy                 = null;
         this.externalProxySettings = null;
@@ -33,10 +31,9 @@ export default class Session extends EventEmitter {
             scripts: ['/hammerhead.js'],
             styles:  []
         };
-    }
 
-    static _generateSessionId () {
-        return nanoIdGenerate(SESSION_ID_ALPHABET, 9);
+        this.requestEventListeners = new Map();
+        this.mocks                 = new Map();
     }
 
     // State
@@ -84,6 +81,7 @@ export default class Session extends EventEmitter {
             isFirstPageLoad:          isFirstPageLoad,
             referer:                  referer,
             cookie:                   cookie,
+            forceProxySrcForImage:    this.hasRequestEventListeners(),
             iframeTaskScriptTemplate: iframeTaskScriptTemplate,
             payloadScript:            payloadScript
         });
@@ -153,6 +151,41 @@ export default class Session extends EventEmitter {
 
             this.cookies.setByClient(cookieUrl, msg.cookie);
         }
+    }
+
+    // Request hooks
+    hasRequestEventListeners () {
+        return !!this.requestEventListeners.size;
+    }
+
+    addRequestEventListeners (requestFilterRule, eventListeners) {
+        this.requestEventListeners.set(requestFilterRule, eventListeners);
+    }
+
+    removeRequestEventListeners (requestFilterRule) {
+        this.requestEventListeners.delete(requestFilterRule);
+    }
+
+    getRequestFilterRules (requestInfo) {
+        const rulesArray = Array.from(this.requestEventListeners.keys());
+
+        return rulesArray.filter(rule => rule.match(requestInfo));
+    }
+
+    callRequestEventCallback (eventName, requestFilterRule, eventData) {
+        const eventListeners             = this.requestEventListeners.get(requestFilterRule);
+        const targetRequestEventCallback = eventListeners[eventName];
+
+        if (typeof targetRequestEventCallback === 'function')
+            targetRequestEventCallback(eventData);
+    }
+
+    setMock (requestFilterRule, mock) {
+        this.mocks.set(requestFilterRule, mock);
+    }
+
+    getMock (requestFilterRule) {
+        return this.mocks.get(requestFilterRule);
     }
 
     _getIframePayloadScript (/* iframeWithoutSrc */) {

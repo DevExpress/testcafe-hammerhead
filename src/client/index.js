@@ -29,6 +29,7 @@ import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import PageNavigationWatch from './page-navigation-watch';
+import domProcessor from './dom-processor';
 
 class Hammerhead {
     constructor () {
@@ -215,6 +216,8 @@ class Hammerhead {
 
             if (initSettings.isFirstPageLoad)
                 Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, this.win);
+
+            domProcessor.forceProxySrcForImage = !!initSettings.forceProxySrcForImage;
         }
 
         this.sandbox.attach(this.win);

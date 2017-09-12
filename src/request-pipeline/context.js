@@ -2,6 +2,7 @@ import XHR_HEADERS from './xhr/headers';
 import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
+import genearateUniqueId from '../utils/generate-unique-id';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
 const HTTP_DEFAUL_PORT      = '80';
@@ -37,6 +38,12 @@ export default class RequestPipelineContext {
         this.isPage  = !this.isXhr && !this.isFetch && acceptHeader && contentTypeUtils.isPage(acceptHeader);
 
         this.restoringStorages = null;
+
+        this.requestId                      = genearateUniqueId();
+        this.requestFilterRules             = [];
+        this.onResponseEventDataWithoutBody = [];
+
+        this.reqOpts = null;
     }
 
     // TODO: Rewrite parseProxyUrl instead.
@@ -242,6 +249,10 @@ export default class RequestPipelineContext {
         this.res.statusCode = 302;
         this.res.setHeader('location', url);
         this.res.end();
+    }
+
+    saveNonProcessedDestResBody (value) {
+        this.nonProcessedDestResBody = value;
     }
 
     closeWithError (statusCode, resBody) {

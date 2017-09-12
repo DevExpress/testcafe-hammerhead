@@ -14,11 +14,14 @@ const read                                 = require('read-file-relative').readS
 const selfSignedCertificate                = require('openssl-self-signed-certificate');
 const getFreePort                          = require('endpoint-utils').getFreePort;
 const WebSocket                            = require('ws');
+const noop                                 = require('lodash').noop;
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
 const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-policy').SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
 const Proxy                                = require('../../lib/proxy');
 const Session                              = require('../../lib/session');
+const ResponseMock                         = require('../../lib/request-pipeline/request-hooks/response-mock');
+const RequestFilterRule                    = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
 const DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
 const RequestPipelineContext               = require('../../lib/request-pipeline/context');
 const requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
@@ -28,6 +31,10 @@ const urlUtils                             = require('../../lib/utils/url');
 const semver                               = require('semver');
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
+const TEST_OBJ          = {
+    prop1: 'value1',
+    prop2: 'value2'
+};
 
 const ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
@@ -80,7 +87,10 @@ function normalizeCode (code) {
 }
 
 function compareCode (code1, code2) {
-    expect(normalizeCode(code1)).eql(normalizeCode(code2));
+    code1 = normalizeCode(code1);
+    code2 = normalizeCode(code2);
+
+    expect(code1).eql(code2);
 }
 
 function newLineReplacer (content) {
@@ -346,6 +356,10 @@ describe('Proxy', () => {
         app.get('/refresh-header/:url', (req, res) => {
             res.setHeader('refresh', '0;url=' + decodeURIComponent(req.params.url));
             res.end('42');
+        });
+
+        app.get('/json', (req, res) => {
+            res.json(TEST_OBJ);
         });
 
         destServer = app.listen(2000);
@@ -940,7 +954,6 @@ describe('Proxy', () => {
                 });
         });
 
-
         it('Should not process XHR page requests', () => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2000/page', session),
@@ -1199,8 +1212,8 @@ describe('Proxy', () => {
 
             return request(options)
                 .then(body => {
-                    const expected = fs.readFileSync('test/server/data/page-with-file-protocol/expected-' + filePostfix +
-                                                     '.html').toString();
+                    const filePath = 'test/server/data/page-with-file-protocol/expected-' + filePostfix + '.html';
+                    const expected = fs.readFileSync(filePath).toString();
 
                     compareCode(body, expected);
                 });
@@ -1653,6 +1666,280 @@ describe('Proxy', () => {
         });
     });
 
+    describe('Request Hooks', () => {
+        describe('Handle session request events', () => {
+            it('Processed resource', () => {
+                let requestEventIsRaised           = false;
+                let configureResponseEventIsRaised = false;
+                let responseEventIsRaised          = false;
+
+                const url                      = 'http://127.0.0.1:2000/script';
+                const rule                     = new RequestFilterRule(url);
+                const resourceContent          = fs.readFileSync('test/server/data/script/src.js').toString();
+                const processedResourceContent = fs.readFileSync('test/server/data/script/expected.js').toString();
+
+                session.addRequestEventListeners(rule, {
+                    onRequest: e => {
+                        expect(e.isAjax).to.be.false;
+
+                        expect(e._requestInfo.url).eql(url);
+                        expect(e._requestInfo.method).eql('get');
+                        expect(e._requestInfo.requestId).to.be.not.empty;
+                        expect(e._requestInfo.sessionId).to.be.not.empty;
+                        expect(e._requestInfo.body.length).eql(0);
+                        expect(e._requestInfo.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
+
+                        requestEventIsRaised = true;
+                    },
+
+                    onConfigureResponse: e => {
+                        configureResponseEventIsRaised = true;
+
+                        e.opts.includeHeaders = true;
+                        e.opts.includeBody    = true;
+                    },
+
+                    onResponse: e => {
+                        expect(e.statusCode).eql(200);
+                        expect(e.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
+                        expect(e.body.toString()).eql(resourceContent);
+
+                        responseEventIsRaised = true;
+                    }
+                });
+
+                const options = {
+                    url:     proxy.openSession(url, session),
+                    headers: {
+                        'content-type': 'application/javascript; charset=utf-8'
+                    }
+                };
+
+                return request(options)
+                    .then(body => {
+                        expect(body).eql(processedResourceContent);
+                        expect(requestEventIsRaised).to.be.true;
+                        expect(configureResponseEventIsRaised).to.be.true;
+                        expect(responseEventIsRaised).to.be.true;
+
+                        session.removeRequestEventListeners(rule);
+                    });
+            });
+
+            it('Non-processed resource', () => {
+                let requestEventIsRaised           = false;
+                let configureResponseEventIsRaised = false;
+                let responseEventIsRaised          = false;
+
+                const url  = 'http://127.0.0.1:2000/json';
+                const rule = new RequestFilterRule(url);
+
+                session.addRequestEventListeners(rule, {
+                    onRequest: e => {
+                        expect(e.isAjax).to.be.false;
+
+                        expect(e._requestInfo.url).eql('http://127.0.0.1:2000/json');
+                        expect(e._requestInfo.method).eql('get');
+                        expect(e._requestInfo.requestId).to.be.not.empty;
+                        expect(e._requestInfo.sessionId).to.be.not.empty;
+                        expect(e._requestInfo.body.length).eql(0);
+                        expect(e._requestInfo.headers).include({ 'test-header': 'testValue' });
+
+                        requestEventIsRaised = true;
+                    },
+
+                    onConfigureResponse: e => {
+                        e.opts.includeBody    = true;
+                        e.opts.includeHeaders = true;
+
+                        configureResponseEventIsRaised = true;
+                    },
+
+                    onResponse: e => {
+                        expect(e.statusCode).eql(200);
+                        expect(JSON.parse(e.body.toString())).to.deep.eql(TEST_OBJ);
+                        expect(e.headers).include({ 'content-type': 'application/json; charset=utf-8' });
+
+                        responseEventIsRaised = true;
+                    }
+                });
+
+                const options = {
+                    url:     proxy.openSession(url, session),
+                    json:    true,
+                    headers: {
+                        'test-header': 'testValue'
+                    }
+                };
+
+                return request(options)
+                    .then(body => {
+                        expect(body).to.deep.eql(TEST_OBJ);
+                        expect(requestEventIsRaised).to.be.true;
+                        expect(configureResponseEventIsRaised).to.be.true;
+                        expect(responseEventIsRaised).to.be.true;
+
+                        session.removeRequestEventListeners(rule);
+                    });
+            });
+
+            it('Ajax request', () => {
+                const rule = new RequestFilterRule('http://127.0.0.1:2000/page/plain-text');
+
+                session.addRequestEventListeners(rule, {
+                    onRequest: e => {
+                        expect(e.isAjax).to.be.true;
+                    }
+                });
+
+                const options = {
+                    url:                     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
+                    resolveWithFullResponse: true,
+                    headers:                 {
+                        referer:                     proxy.openSession('http://example.com', session),
+                        [XHR_HEADERS.requestMarker]: 'true'
+                    }
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+
+                        session.removeRequestEventListeners(rule);
+                    });
+            });
+
+            it('Several rules for one request', () => {
+                const requestUrl = 'http://127.0.0.1:2000/page/plain-text';
+                const rules      = [new RequestFilterRule(requestUrl), new RequestFilterRule(requestUrl), new RequestFilterRule(requestUrl)];
+
+                let countOnResponseEvents = 0;
+
+                rules.forEach(rule => {
+                    session.addRequestEventListeners(rule, {
+                        onRequest:           noop,
+                        onConfigureResponse: noop,
+                        onResponse:          e => {
+                            expect(e.body).to.be.undefined;
+                            expect(e.headers).to.be.undefined;
+                            expect(e.statusCode).eql(200);
+
+                            countOnResponseEvents++;
+                        }
+                    });
+                });
+
+                const options = {
+                    url:                     proxy.openSession(requestUrl, session),
+                    resolveWithFullResponse: true,
+                    headers:                 {
+                        referer: proxy.openSession('http://example.com', session)
+                    }
+                };
+
+                return request(options)
+                    .then(() => {
+                        expect(countOnResponseEvents).eql(3);
+                        rules.forEach(rule => session.removeRequestEventListeners(rule));
+                    });
+            });
+        });
+
+        it('Should allow to use a response mock', () => {
+            const url           = 'http://dummy_page.com';
+            const mock          = new ResponseMock();
+            const rule          = new RequestFilterRule(url);
+            const processedHtml = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
+
+            session.addRequestEventListeners(rule, {
+                onRequest: e => e.setMock(mock)
+            });
+
+            const options = {
+                url:     proxy.openSession(url, session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            return request(options)
+                .then(body => {
+                    compareCode(body, processedHtml);
+
+                    session.removeRequestEventListeners(rule);
+                });
+        });
+
+        it('Should allow to set request options', () => {
+            const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
+
+            session.addRequestEventListeners(rule, {
+                onRequest: e => {
+                    e.requestOptions.path = '/script';
+                    e.requestOptions.url  = 'http://127.0.0.1:2000/script';
+                }
+            });
+
+            const options = {
+                url: proxy.openSession('http://127.0.0.1:2000/page', session)
+            };
+
+            return request(options)
+                .then(body => {
+                    const expected = fs.readFileSync('test/server/data/script/expected.js').toString();
+
+                    expect(normalizeNewLine(body)).eql(normalizeNewLine(expected));
+
+                    session.removeRequestEventListeners(rule);
+                });
+        });
+
+        it('Should pass `forceProxySrcForImage` option in task script', () => {
+            session._getPayloadScript       = () => 'PayloadScript';
+            session._getIframePayloadScript = () => 'IframePayloadScript';
+
+            const rule = RequestFilterRule.ANY;
+
+            const getShouldProxyAllImagesValue = function (text) {
+                const result = text.match(/forceProxySrcForImage\s*:\s*(false|true)/);
+
+                return result[1] === 'true';
+            };
+
+            function testShouldProxyImageOptionValue (expectedValue) {
+                const options = {
+                    url:     'http://localhost:1836/task.js',
+                    headers: {
+                        referer: proxy.openSession('http://example.com', session)
+                    }
+                };
+
+                return request(options)
+                    .then(body => {
+                        const actualShouldProxyAllImages = getShouldProxyAllImagesValue(body);
+
+                        expect(actualShouldProxyAllImages).eql(expectedValue);
+                    });
+            }
+
+            return testShouldProxyImageOptionValue(false)
+                .then(() => {
+                    session.addRequestEventListeners(rule, {
+                        onRequest:           noop,
+                        onConfigureResponse: noop,
+                        onResponse:          noop
+                    });
+
+                    return testShouldProxyImageOptionValue(true);
+                })
+                .then(() => {
+                    session.removeRequestEventListeners(rule);
+
+                    return testShouldProxyImageOptionValue(false);
+                });
+        });
+    });
+
     describe('Regression', () => {
         it('Should force "Origin" header for the same-domain requests (B234325)', () => {
             const options = {
@@ -1870,8 +2157,8 @@ describe('Proxy', () => {
                     const host = 'http://127.0.0.1:' + port;
 
                     session.handlePageError = (ctx, err) => {
-                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '/' + '">' +
-                                        host + '/' + '</a>.');
+                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '/' +
+                                        '">' + host + '/' + '</a>.');
                         ctx.res.end();
                         done();
                         return true;

@@ -9,8 +9,17 @@ import { check as checkSameOriginPolicy, SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } 
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 import { respondOnWebSocket } from './websocket';
+import { PassThrough } from 'stream';
 import * as specialPage from './special-page';
 import matchUrl from 'match-url-wildcard';
+import * as requestEventInfo from '../session/request-event/info';
+import REQUEST_EVENT_NAMES from '../session/request-event/names';
+import {
+    ResponseEvent,
+    RequestEvent,
+    ConfigureResponseEvent,
+    ConfigureResponseEventOptions
+} from '../session/request-event/classes';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -26,28 +35,29 @@ const stages = {
     },
 
     1: function sendDestinationRequest (ctx, next) {
-        const opts = createReqOpts(ctx);
-
         if (ctx.isSpecialPage) {
             ctx.destRes = specialPage.getResponse();
             next();
         }
-
         else {
-            const req = ctx.isFileProtocol ? new FileRequest(opts) : new DestinationRequest(opts);
+            ctx.reqOpts = createReqOpts(ctx);
 
-            req.on('response', res => {
-                ctx.destRes = res;
+            if (ctx.session.hasRequestEventListeners()) {
+                const requestInfo = requestEventInfo.createRequestInfo(ctx, ctx.reqOpts);
+
+                ctx.requestFilterRules = ctx.session.getRequestFilterRules(requestInfo);
+                ctx.requestFilterRules.forEach(rule => {
+                    callOnRequestEventCallback(ctx, rule, requestInfo);
+                    setupMockIfNecessary(ctx, rule);
+                });
+            }
+
+            if (ctx.mock) {
+                mockResponse(ctx);
                 next();
-            });
-
-            req.on('error', () => {
-                ctx.hasDestReqErr = true;
-            });
-
-            req.on('fatalError', err => error(ctx, err));
-
-            req.on('socketHangUp', () => ctx.req.socket.end());
+            }
+            else
+                sendRequest(ctx, next);
         }
     },
 
@@ -76,7 +86,30 @@ const stages = {
             sendResponseHeaders(ctx);
 
             if (!ctx.isSpecialPage) {
+                ctx.requestFilterRules.forEach(rule => {
+                    const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
+
+                    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+
+                    if (configureResponseEvent.opts.includeBody)
+                        callOnResponseEventCallbackWithCollectedBody(ctx, rule, configureResponseEvent.opts);
+                    else
+                        ctx.onResponseEventDataWithoutBody.push({ rule, opts: configureResponseEvent.opts });
+                });
+
                 ctx.destRes.pipe(ctx.res);
+                if (ctx.onResponseEventDataWithoutBody.length) {
+                    ctx.res.on('finish', () => {
+                        const responseInfo = requestEventInfo.createResponseInfo(ctx);
+
+                        ctx.onResponseEventDataWithoutBody.forEach(item => {
+                            const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
+                            const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
+
+                            ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
+                        });
+                    });
+                }
 
                 // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
                 if (ctx.dest.isEventSource) {
@@ -94,10 +127,10 @@ const stages = {
     },
 
     4: async function fetchContent (ctx, next) {
-        if (ctx.isSpecialPage)
-            ctx.destResBody = specialPage.getBody();
-        else
-            ctx.destResBody = await fetchBody(ctx.destRes);
+        await getResponseBody(ctx);
+
+        if (ctx.requestFilterRules.length)
+            ctx.saveNonProcessedDestResBody(ctx.destResBody);
 
         // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
         // we can still process such requests. (B234324)
@@ -125,7 +158,9 @@ const stages = {
 
         connectionResetGuard(() => {
             ctx.res.write(ctx.destResBody);
-            ctx.res.end();
+            ctx.res.end(() => {
+                ctx.requestFilterRules.forEach(rule => callResponseEventCallbackForProcessedRequest(ctx, rule));
+            });
         });
     }
 };
@@ -192,6 +227,80 @@ function error (ctx, err) {
 
 function isDestResBodyMalformed (ctx) {
     return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
+}
+
+function callResponseEventCallbackForProcessedRequest (ctx, rule) {
+    const responseInfo           = requestEventInfo.createResponseInfo(ctx);
+    const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
+
+    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+
+    const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureResponseEvent.opts);
+    const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
+
+    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+}
+
+function callOnRequestEventCallback (ctx, rule, reqInfo) {
+    const requestEvent = new RequestEvent(ctx, rule, reqInfo);
+
+    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onRequest, rule, requestEvent);
+}
+
+function callOnResponseEventCallbackWithCollectedBody (ctx, rule, configureOpts) {
+    const destResBodyCollectorStream = new PassThrough();
+
+    destResBodyCollectorStream.on('finish', () => {
+        const data = destResBodyCollectorStream.read();
+
+        ctx.saveNonProcessedDestResBody(data);
+
+        const responseInfo         = requestEventInfo.createResponseInfo(ctx);
+        const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureOpts);
+        const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
+
+        ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+    });
+
+    ctx.destRes.pipe(destResBodyCollectorStream);
+}
+
+function mockResponse (ctx) {
+    ctx.mock.setRequestOptions(ctx.reqOpts);
+    ctx.destRes = ctx.mock.getResponse();
+}
+
+function setupMockIfNecessary (ctx, rule) {
+    const mock = ctx.session.getMock(rule);
+
+    if (mock && !ctx.mock)
+        ctx.mock = mock;
+}
+
+function sendRequest (ctx, next) {
+    const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts) : new DestinationRequest(ctx.reqOpts);
+
+    req.on('response', res => {
+        ctx.destRes = res;
+        next();
+    });
+
+    req.on('error', () => {
+        ctx.hasDestReqErr = true;
+    });
+
+    req.on('fatalError', err => error(ctx, err));
+
+    req.on('socketHangUp', () => ctx.req.socket.end());
+}
+
+async function getResponseBody (ctx) {
+    if (ctx.isSpecialPage)
+        ctx.destResBody = specialPage.getBody();
+    else if (ctx.mock)
+        ctx.destResBody = ctx.mock.getBody();
+    else
+        ctx.destResBody = await fetchBody(ctx.destRes);
 }
 
 // API

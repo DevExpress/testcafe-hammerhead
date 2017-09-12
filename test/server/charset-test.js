@@ -53,7 +53,14 @@ describe('Content charset', () => {
     function testMeta (html, expectedCharsetStr) {
         const charset = new Charset();
 
-        pageProcessor.processResource(html, { dest: {} }, charset, noop, {});
+        const requestPipelineContextMock = {
+            dest:    {},
+            session: {
+                hasRequestEventListeners: () => false
+            }
+        };
+
+        pageProcessor.processResource(html, requestPipelineContextMock, charset, noop, {});
 
         expect(charset.get()).eql(expectedCharsetStr);
     }
@@ -171,7 +178,14 @@ describe('Content charset', () => {
                 styleUrl: null
             };
 
-            const processedResource = pageProcessor.processResource(src, { dest: {} }, charset, noop, proxyResources);
+            const requestPipelineContextMock = {
+                dest:    {},
+                session: {
+                    hasRequestEventListeners: () => false
+                }
+            };
+
+            const processedResource = pageProcessor.processResource(src, requestPipelineContextMock, charset, noop, proxyResources);
 
             return iconv.encode(processedResource, charsetStr, { addBOM: addBOM }).toString();
         }
