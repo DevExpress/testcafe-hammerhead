@@ -5,6 +5,10 @@ var browserUtils     = hammerhead.utils.browser;
 var featureDetection = hammerhead.utils.featureDetection;
 
 test('window.onerror setter/getter', function () {
+    var storedOnErrorHandler = window.onerror;
+
+    window.onerror = null;
+
     strictEqual(getProperty(window, 'onerror'), null);
 
     setProperty(window, 'onerror', 123);
@@ -15,6 +19,8 @@ test('window.onerror setter/getter', function () {
 
     setProperty(window, 'onerror', handler);
     strictEqual(getProperty(window, 'onerror'), handler);
+
+    window.onerror = storedOnErrorHandler;
 });
 
 if (featureDetection.hasUnhandledRejectionEvent) {
@@ -349,6 +355,57 @@ test('window.onerror must be overriden (B238830)', function () {
     window.Window = windowObj;
 
     ok(!error);
+});
+
+test('should not rise hh event when the error event prevented', function () {
+    var testPreventing = function () {
+        return new hammerhead.Promise(function (resolve) {
+            var testTimeout = null;
+
+            var onUncaughtError = function () {
+                clearTimeout(testTimeout);
+                hammerhead.off(hammerhead.EVENTS.uncaughtJsError, onUncaughtError);
+                ok(false, 'hh event not prevented');
+                resolve();
+            };
+
+            testTimeout = setTimeout(function () {
+                hammerhead.off(hammerhead.EVENTS.uncaughtJsError, onUncaughtError);
+                ok(true, 'hh event prevented');
+                resolve();
+            }, 500);
+
+            hammerhead.on(hammerhead.EVENTS.uncaughtJsError, onUncaughtError);
+
+            setTimeout(function () {
+                throw new Error('error occurs');
+            }, 0);
+        });
+    };
+
+    return hammerhead.Promise.resolve()
+        .then(function () {
+            setProperty(window, 'onerror', function () {
+                setTimeout(function () {
+                    setProperty(window, 'onerror', null);
+                }, 10);
+
+                return true;
+            });
+
+            return testPreventing();
+        })
+        .then(function () {
+            window.addEventListener('error', function onUncaughtError (event) {
+                setTimeout(function () {
+                    window.removeEventListener('error', onUncaughtError);
+                }, 10);
+
+                event.preventDefault();
+            });
+
+            return testPreventing();
+        });
 });
 
 test('the constructor field of a function should return a wrapped Function object (GH-913)', function () {
