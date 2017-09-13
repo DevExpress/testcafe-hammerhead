@@ -54,7 +54,8 @@ class Hammerhead {
             beforeXhrSend:           this.sandbox.xhr.BEFORE_XHR_SEND_EVENT,
             fetchSent:               this.sandbox.fetch.FETCH_REQUEST_SENT_EVENT,
             pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
-            scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT
+            scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT,
+            consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED
         };
 
         this.PROCESSING_COMMENTS = {
@@ -153,6 +154,9 @@ class Hammerhead {
 
             case this.EVENTS.fetchSent:
                 return this.sandbox.fetch;
+
+            case this.EVENTS.consoleMethCalled:
+                return this.sandbox.console;
 
             default:
                 return null;

@@ -212,6 +212,16 @@ class NativeMethods {
             this.CSS2PropertyRemoveProperty   = win.CSS2Property.prototype.removeProperty;
         }
 
+        // Console
+        this.console = win.console;
+
+        this.consoleMeths = {
+            log:   win.console.log,
+            warn:  win.console.warn,
+            error: win.console.error,
+            info:  win.console.info
+        };
+
         this.refreshClasses(win);
     }
 
