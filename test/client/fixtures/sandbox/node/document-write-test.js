@@ -155,18 +155,6 @@ test('write textarea', function () {
 
 module('regression');
 
-test('write script with src and without closing tag', function () {
-    testWrite('<script id="script" src="script.js">');
-
-    var script       = iframeForWrite.contentDocument.querySelector('#script');
-    var resourceType = urlUtils.stringifyResourceType({ isScript: true });
-
-    strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
-
-    testWrite('var x = 5;');
-    testWrite('<\/script>');
-});
-
 test('write closing tag by parts (GH-1311)', function () {
     testWrite('<script></');
     testWrite('script>');
@@ -194,4 +182,16 @@ test('write closing tag by parts (GH-1311)', function () {
     testWrite('style></st');
     testWrite('yl');
     testWrite('e>');
+});
+
+test('write script with src and without closing tag (GH-1218)', function () {
+    testWrite('<script id="script" src="script.js">');
+
+    var script       = iframeForWrite.contentDocument.querySelector('#script');
+    var resourceType = urlUtils.stringifyResourceType({ isScript: true });
+
+    strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
+
+    testWrite('var x = 5;');
+    testWrite('<\/script>');
 });
