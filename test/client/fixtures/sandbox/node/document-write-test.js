@@ -166,3 +166,32 @@ test('write script with src and without closing tag', function () {
     testWrite('var x = 5;');
     testWrite('<\/script>');
 });
+
+test('write closing tag by parts (GH-1311)', function () {
+    testWrite('<script></');
+    testWrite('script>');
+    testWrite('<script></s');
+    testWrite('crIPt>');
+    testWrite('<script></SC');
+    testWrite('ript>');
+    testWrite('<script></scR');
+    testWrite('ipt>');
+    testWrite('<script></scri');
+    testWrite('pt>');
+    testWrite('<script></scrip');
+    testWrite('t>');
+    testWrite('<script></script');
+    testWrite('>');
+    testWrite('<script></scriptxyz');
+    testWrite('>');
+    testWrite('<script></script');
+    testWrite('xyz>');
+    testWrite('<script></sript');
+    testWrite('>');
+    testWrite('<div></d');
+    testWrite('iv>');
+    testWrite('<');
+    testWrite('style></st');
+    testWrite('yl');
+    testWrite('e>');
+});

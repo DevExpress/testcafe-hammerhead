@@ -20,7 +20,7 @@ const BEGIN_REMOVE_RE       = new RegExp(`^[\\S\\s]*${ BEGIN_MARKER_MARKUP }`, '
 const END_REMOVE_RE         = new RegExp(`${ END_MARKER_MARKUP }[\\S\\s]*$`, 'g');
 const REMOVE_OPENING_TAG    = /^<[^>]+>/g;
 const REMOVE_CLOSING_TAG    = /<\/[^>]+>$/g;
-const PENDING_RE            = /<[A-Za-z][^>]*$/g;
+const PENDING_RE            = /<\/?(?:[A-Za-z][^>]*)?$/g;
 const UNCLOSED_ELEMENT_FLAG = 'hammerhead|unclosed-element-flag';
 
 const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
@@ -63,6 +63,7 @@ export default class DocumentWriter {
         this.isAddContentToEl     = false;
         this.contentForProcessing = '';
         this.nonClosedEl          = null;
+        this.cachedRegExps        = {};
     }
 
     _cutPending (htmlChunk) {
@@ -190,14 +191,37 @@ export default class DocumentWriter {
         nativeMethods.insertBefore.call(elWithContent.parentNode, beginMarker, elWithContent);
     }
 
+    _getStartsWithClosingTagRegExp (tagName) {
+        tagName = tagName.toLowerCase();
+
+        if (!this.cachedRegExps[tagName]) {
+            const regExpStrParts = [tagName.charAt(tagName.length - 1), '?'];
+
+            for (let i = tagName.length - 2; i > -1; i--) {
+                regExpStrParts.unshift('(?:', tagName.charAt(i));
+                regExpStrParts.push(')?');
+            }
+
+            regExpStrParts.unshift('^</');
+
+            this.cachedRegExps[tagName] = new RegExp(regExpStrParts.join(''), 'i');
+        }
+
+        return this.cachedRegExps[tagName];
+    }
+
     _processEndMarkerInContent (endMarker) {
         const elWithContent = endMarker;
 
         DocumentWriter._setUnclosedElementFlag(elWithContent);
 
-        elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '') + this.pending;
+        elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '');
         endMarker                 = nativeMethods.createElement.call(document, END_MARKER_TAG_NAME);
-        this.pending              = '';
+
+        if (this.pending && !this._getStartsWithClosingTagRegExp(elWithContent.tagName).test(this.pending)) {
+            elWithContent.textContent += this.pending;
+            this.pending = '';
+        }
 
         nativeMethods.appendChild.call(elWithContent.parentNode, endMarker);
     }
