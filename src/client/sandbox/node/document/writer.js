@@ -19,7 +19,7 @@ const END_MARKER_MARKUP     = `<${ END_MARKER_TAG_NAME }></${ END_MARKER_TAG_NAM
 const BEGIN_REMOVE_RE       = new RegExp(`^[\\S\\s]*${ BEGIN_MARKER_MARKUP }`, 'g');
 const END_REMOVE_RE         = new RegExp(`${ END_MARKER_MARKUP }[\\S\\s]*$`, 'g');
 const REMOVE_OPENING_TAG    = /^<[^>]+>/g;
-const REMOVE_CLOSING_TAG    = /<\/[^>]+>$/g;
+const REMOVE_CLOSING_TAG    = /<\/[^<>]+>$/g;
 const PENDING_RE            = /<\/?(?:[A-Za-z][^>]*)?$/g;
 const UNCLOSED_ELEMENT_FLAG = 'hammerhead|unclosed-element-flag';
 
@@ -203,6 +203,7 @@ export default class DocumentWriter {
             }
 
             regExpStrParts.unshift('^</');
+            regExpStrParts.push('$');
 
             this.cachedRegExps[tagName] = new RegExp(regExpStrParts.join(''), 'i');
         }

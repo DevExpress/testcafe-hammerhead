@@ -170,11 +170,7 @@ test('write closing tag by parts (GH-1311)', function () {
     testWrite('t>');
     testWrite('<script></script');
     testWrite('>');
-    testWrite('<script></scriptxyz');
-    testWrite('>');
-    testWrite('<script></script');
-    testWrite('xyz>');
-    testWrite('<script></sript');
+    testWrite('<script><\/script  ');
     testWrite('>');
     testWrite('<div></d');
     testWrite('iv>');
@@ -182,6 +178,24 @@ test('write closing tag by parts (GH-1311)', function () {
     testWrite('style></st');
     testWrite('yl');
     testWrite('e>');
+    testWrite('<script></scriptxyz');
+    testWrite('>');
+    testWrite('<\/script>');
+    testWrite('<script></script');
+    testWrite('xyz>');
+    testWrite('<\/script>');
+    testWrite('<script></sript');
+    testWrite('>');
+    testWrite('<\/script>');
+});
+
+test('DocumentWriter must be cleaned after the document cleaning (GH-1311)', function () {
+    testWrite('<textarea>');
+    close();
+    open();
+    testWrite('<textarea></textarea><textarea>');
+    close();
+    testWrite('<textarea></textarea>');
 });
 
 test('write script with src and without closing tag (GH-1218)', function () {
