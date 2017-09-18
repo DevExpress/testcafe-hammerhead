@@ -178,6 +178,8 @@ class NativeMethods {
         this.objectKeys           = win.Object.keys;
         this.objectDefineProperty = win.Object.defineProperty;
         this.objectCreate         = win.Object.create;
+        this.objectIsExtensible   = win.Object.isExtensible;
+        this.objectIsFrozen       = win.Object.isFrozen;
 
         // DOMParser
         if (win.DOMParser)

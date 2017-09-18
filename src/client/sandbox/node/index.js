@@ -42,18 +42,25 @@ export default class NodeSandbox extends SandboxBase {
     }
 
     _processElement (el) {
-        if (el[INTERNAL_PROPS.processedContext] !== this.window) {
+        const processedContext = el[INTERNAL_PROPS.processedContext];
+
+        if (processedContext !== this.window) {
             let urlAttrName = null;
 
-            if (el[INTERNAL_PROPS.processedContext]) {
+            if (processedContext) {
                 urlAttrName = domProcessor.getUrlAttr(el);
                 urlAttrName = el.hasAttribute(urlAttrName) ? urlAttrName : null;
             }
 
-            nativeMethods.objectDefineProperty.call(this.window.Object, el, INTERNAL_PROPS.processedContext, {
-                value:    this.window,
-                writable: true
-            });
+            const canAddNewProp         = nativeMethods.objectIsExtensible.call(window.Object, el);
+            const canUpdateExistingProp = processedContext && !nativeMethods.objectIsFrozen.call(window.Object, el);
+
+            if (canAddNewProp || canUpdateExistingProp) {
+                nativeMethods.objectDefineProperty.call(this.window, el, INTERNAL_PROPS.processedContext, {
+                    value:    this.window,
+                    writable: true
+                });
+            }
 
             // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
             if (urlAttrName)
