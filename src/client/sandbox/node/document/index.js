@@ -49,15 +49,13 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     attach (window, document) {
-        if (!this.documentWriter || this.window !== window || this.document !== document) {
-            this.documentWriter = new DocumentWriter(window, document);
-
-            this.nodeSandbox.mutation.on(this.nodeSandbox.mutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
-                this.documentWriter = new DocumentWriter(window, document);
-            });
-        }
-
         super.attach(window, document);
+
+        this.documentWriter = this.documentWriter || new DocumentWriter(window, document);
+
+        this.nodeSandbox.mutation.on(this.nodeSandbox.mutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
+            this.documentWriter = new DocumentWriter(window, document);
+        });
 
         // NOTE: https://connect.microsoft.com/IE/feedback/details/792880/document-readystat
         const frameElement = getFrameElement(window);

@@ -8,53 +8,52 @@ var nodeSandbox   = hammerhead.sandbox.node;
 iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 
-var iframeForWrite;
-var iframeForNativeWrite;
+var processedIframeForWrite;
+var nativeIframeForWrite;
 var storedProcessElement = nodeSandbox._processElement;
 
 nodeSandbox._processElement = function (el) {
-    if (el !== iframeForNativeWrite)
+    if (el !== nativeIframeForWrite)
         storedProcessElement.call(nodeSandbox, el);
 };
 
 QUnit.testDone(function () {
-    nativeMethods.removeChild.call(document.body, iframeForNativeWrite);
+    nativeMethods.removeChild.call(document.body, nativeIframeForWrite);
 });
 
 function createWriteTestIframes () {
     return new hammerhead.Promise(function (resolve) {
-        iframeForNativeWrite = nativeMethods.createElement.call(document, 'iframe');
+        nativeIframeForWrite = nativeMethods.createElement.call(document, 'iframe');
 
-        nativeMethods.addEventListener.call(iframeForNativeWrite, 'load', resolve);
-
-        nativeMethods.appendChild.call(document.body, iframeForNativeWrite);
+        nativeMethods.addEventListener.call(nativeIframeForWrite, 'load', resolve);
+        nativeMethods.appendChild.call(document.body, nativeIframeForWrite);
     })
         .then(createTestIframe)
         .then(function (iframe) {
-            iframeForWrite = iframe;
+            processedIframeForWrite = iframe;
         });
 }
 
 function open () {
-    iframeForWrite.contentDocument.open();
-    nativeMethods.documentOpen.call(iframeForNativeWrite.contentDocument);
+    processedIframeForWrite.contentDocument.open();
+    nativeMethods.documentOpen.call(nativeIframeForWrite.contentDocument);
 }
 
 function close () {
-    iframeForWrite.contentDocument.close();
-    nativeMethods.documentClose.call(iframeForNativeWrite.contentDocument);
+    processedIframeForWrite.contentDocument.close();
+    nativeMethods.documentClose.call(nativeIframeForWrite.contentDocument);
 }
 
 function testHTML () {
-    strictEqual(eval(processScript('iframeForWrite.contentDocument.documentElement.innerHTML')),
-        iframeForNativeWrite.contentDocument.documentElement.innerHTML);
-    strictEqual(eval(processScript('iframeForWrite.contentDocument.documentElement.outerHTML')),
-        iframeForNativeWrite.contentDocument.documentElement.outerHTML);
+    strictEqual(eval(processScript('processedIframeForWrite.contentDocument.documentElement.innerHTML')),
+        nativeIframeForWrite.contentDocument.documentElement.innerHTML);
+    strictEqual(eval(processScript('processedIframeForWrite.contentDocument.documentElement.outerHTML')),
+        nativeIframeForWrite.contentDocument.documentElement.outerHTML);
 }
 
 function testContent (selector) {
-    var elsFromNativeIframe = iframeForNativeWrite.contentDocument.querySelectorAll(selector);
-    var elsFromIframe       = iframeForWrite.contentDocument.querySelectorAll(selector);
+    var elsFromNativeIframe = nativeIframeForWrite.contentDocument.querySelectorAll(selector);
+    var elsFromIframe       = processedIframeForWrite.contentDocument.querySelectorAll(selector);
 
     if (elsFromIframe.length === elsFromNativeIframe.length) {
         for (var i = 0; i < elsFromIframe.length; i++) {
@@ -74,20 +73,20 @@ function testContent (selector) {
 }
 
 function testVariable (variableName) {
-    strictEqual(eval(processScript('iframeForWrite.contentWindow[variableName]')),
-        iframeForNativeWrite.contentWindow[variableName]);
+    strictEqual(eval(processScript('processedIframeForWrite.contentWindow[variableName]')),
+        nativeIframeForWrite.contentWindow[variableName]);
 }
 
 function testWrite () {
-    iframeForWrite.contentDocument.write.apply(iframeForWrite.contentDocument, arguments);
-    nativeMethods.documentWrite.apply(iframeForNativeWrite.contentDocument, arguments);
+    processedIframeForWrite.contentDocument.write.apply(processedIframeForWrite.contentDocument, arguments);
+    nativeMethods.documentWrite.apply(nativeIframeForWrite.contentDocument, arguments);
 
     testHTML();
 }
 
 function testWriteln () {
-    iframeForWrite.contentDocument.writeln.apply(iframeForWrite.contentDocument, arguments);
-    nativeMethods.documentWriteLn.apply(iframeForNativeWrite.contentDocument, arguments);
+    processedIframeForWrite.contentDocument.writeln.apply(processedIframeForWrite.contentDocument, arguments);
+    nativeMethods.documentWriteLn.apply(nativeIframeForWrite.contentDocument, arguments);
 
     testHTML();
 }
@@ -192,6 +191,20 @@ test('write textarea', function () {
         });
 });
 
+test('DocumentWriter should be recreated after document cleaning', function () {
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<textarea>');
+            close();
+            open();
+            testWrite('<textarea></textarea><textarea>');
+            close();
+            testWrite('<textarea></textarea>');
+            close();
+        });
+});
+
 module('regression');
 
 test('write closing tag by parts (GH-1311)', function () {
@@ -233,27 +246,13 @@ test('write closing tag by parts (GH-1311)', function () {
         });
 });
 
-test('DocumentWriter must be cleaned after the document cleaning (GH-1311)', function () {
-    return createWriteTestIframes()
-        .then(function () {
-            open();
-            testWrite('<textarea>');
-            close();
-            open();
-            testWrite('<textarea></textarea><textarea>');
-            close();
-            testWrite('<textarea></textarea>');
-            close();
-        });
-});
-
 test('write script with src and without closing tag (GH-1218)', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
             testWrite('<script id="script" src="script.js">');
 
-            var script       = iframeForWrite.contentDocument.querySelector('#script');
+            var script       = processedIframeForWrite.contentDocument.querySelector('#script');
             var resourceType = urlUtils.stringifyResourceType({ isScript: true });
 
             strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));

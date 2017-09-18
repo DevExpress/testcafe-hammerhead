@@ -18,8 +18,8 @@ const BEGIN_MARKER_MARKUP   = `<${ BEGIN_MARKER_TAG_NAME }></${ BEGIN_MARKER_TAG
 const END_MARKER_MARKUP     = `<${ END_MARKER_TAG_NAME }></${ END_MARKER_TAG_NAME }>`;
 const BEGIN_REMOVE_RE       = new RegExp(`^[\\S\\s]*${ BEGIN_MARKER_MARKUP }`, 'g');
 const END_REMOVE_RE         = new RegExp(`${ END_MARKER_MARKUP }[\\S\\s]*$`, 'g');
-const REMOVE_OPENING_TAG    = /^<[^>]+>/g;
-const REMOVE_CLOSING_TAG    = /<\/[^<>]+>$/g;
+const REMOVE_OPENING_TAG_RE = /^<[^>]+>/g;
+const REMOVE_CLOSING_TAG_RE = /<\/[^<>]+>$/g;
 const PENDING_RE            = /<\/?(?:[A-Za-z][^>]*)?$/g;
 const UNCLOSED_ELEMENT_FLAG = 'hammerhead|unclosed-element-flag';
 
@@ -63,7 +63,8 @@ export default class DocumentWriter {
         this.isAddContentToEl     = false;
         this.contentForProcessing = '';
         this.nonClosedEl          = null;
-        this.cachedRegExps        = {};
+
+        this.cachedStartsWithClosingTagRegExps = {};
     }
 
     _cutPending (htmlChunk) {
@@ -99,10 +100,10 @@ export default class DocumentWriter {
             .replace(END_REMOVE_RE, '');
 
         if (!this.isBeginMarkerInDOM)
-            htmlChunk = this.isNonClosedComment ? htmlChunk.slice(4) : htmlChunk.replace(REMOVE_OPENING_TAG, '');
+            htmlChunk = this.isNonClosedComment ? htmlChunk.slice(4) : htmlChunk.replace(REMOVE_OPENING_TAG_RE, '');
 
         if (!this.isEndMarkerInDOM)
-            htmlChunk = this.isNonClosedComment ? htmlChunk.slice(0, -3) : htmlChunk.replace(REMOVE_CLOSING_TAG, '');
+            htmlChunk = this.isNonClosedComment ? htmlChunk.slice(0, -3) : htmlChunk.replace(REMOVE_CLOSING_TAG_RE, '');
 
         if (!this.isBeginMarkerInDOM && this.isEndMarkerInDOM)
             this.isNonClosedComment = false;
@@ -191,24 +192,27 @@ export default class DocumentWriter {
         nativeMethods.insertBefore.call(elWithContent.parentNode, beginMarker, elWithContent);
     }
 
+    static _createStartsWithClosingTagRegExp (tagName) {
+        const regExpStrParts = [tagName.charAt(tagName.length - 1), '?'];
+
+        for (let i = tagName.length - 2; i > -1; i--) {
+            regExpStrParts.unshift('(?:', tagName.charAt(i));
+            regExpStrParts.push(')?');
+        }
+
+        regExpStrParts.unshift('^</');
+        regExpStrParts.push('$');
+
+        return new RegExp(regExpStrParts.join(''), 'i');
+    }
+
     _getStartsWithClosingTagRegExp (tagName) {
         tagName = tagName.toLowerCase();
 
-        if (!this.cachedRegExps[tagName]) {
-            const regExpStrParts = [tagName.charAt(tagName.length - 1), '?'];
+        if (!this.cachedStartsWithClosingTagRegExps[tagName])
+            this.cachedStartsWithClosingTagRegExps[tagName] = DocumentWriter._createStartsWithClosingTagRegExp(tagName);
 
-            for (let i = tagName.length - 2; i > -1; i--) {
-                regExpStrParts.unshift('(?:', tagName.charAt(i));
-                regExpStrParts.push(')?');
-            }
-
-            regExpStrParts.unshift('^</');
-            regExpStrParts.push('$');
-
-            this.cachedRegExps[tagName] = new RegExp(regExpStrParts.join(''), 'i');
-        }
-
-        return this.cachedRegExps[tagName];
+        return this.cachedStartsWithClosingTagRegExps[tagName];
     }
 
     _processEndMarkerInContent (endMarker) {
@@ -219,9 +223,13 @@ export default class DocumentWriter {
         elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '');
         endMarker                 = nativeMethods.createElement.call(document, END_MARKER_TAG_NAME);
 
-        if (this.pending && !this._getStartsWithClosingTagRegExp(elWithContent.tagName).test(this.pending)) {
-            elWithContent.textContent += this.pending;
-            this.pending = '';
+        if (this.pending) {
+            const startsWithClosingTagRegExp = this._getStartsWithClosingTagRegExp(elWithContent.tagName);
+
+            if (!startsWithClosingTagRegExp.test(this.pending)) {
+                elWithContent.textContent += this.pending;
+                this.pending = '';
+            }
         }
 
         nativeMethods.appendChild.call(elWithContent.parentNode, endMarker);
