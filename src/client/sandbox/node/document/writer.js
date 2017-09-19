@@ -224,9 +224,10 @@ export default class DocumentWriter {
         endMarker                 = nativeMethods.createElement.call(document, END_MARKER_TAG_NAME);
 
         if (this.pending) {
-            const startsWithClosingTagRegExp = this._getStartsWithClosingTagRegExp(elWithContent.tagName);
+            const startsWithClosingTagRegExp        = this._getStartsWithClosingTagRegExp(elWithContent.tagName);
+            const isPendingStartsWithClosingTagPart = startsWithClosingTagRegExp.test(this.pending);
 
-            if (!startsWithClosingTagRegExp.test(this.pending)) {
+            if (!isPendingStartsWithClosingTagPart) {
                 elWithContent.textContent += this.pending;
                 this.pending = '';
             }
