@@ -397,7 +397,7 @@ test('should not raise internal events if an origin error event is prevented', f
         })
         .then(function () {
             if (browserUtils.isIE10 || browserUtils.isIE11 || browserUtils.isMSEdge)
-                return;
+                return null;
 
             window.addEventListener('error', function onUncaughtError (event) {
                 setTimeout(function () {
