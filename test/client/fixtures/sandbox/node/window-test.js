@@ -56,16 +56,16 @@ if (featureDetection.hasUnhandledRejectionEvent) {
         test('should not rise hh event when the unhandledrejection event prevented', function () {
             var testPreventing = function () {
                 return new hammerhead.Promise(function (resolve) {
-                    var testTimeout = null;
+                    var timeoutId = null;
 
                     var onUnhandledRejection = function () {
-                        clearTimeout(testTimeout);
+                        clearTimeout(timeoutId);
                         hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
                         ok(false, 'hh event not prevented');
                         resolve();
                     };
 
-                    testTimeout = setTimeout(function () {
+                    timeoutId = setTimeout(function () {
                         hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
                         ok(true, 'hh event prevented');
                         resolve();
@@ -357,21 +357,21 @@ test('window.onerror must be overriden (B238830)', function () {
     ok(!error);
 });
 
-test('should not rise hh event when the error event prevented', function () {
+test('should not raise internal events if an origin error event is prevented', function () {
     var testPreventing = function () {
         return new hammerhead.Promise(function (resolve) {
-            var testTimeout = null;
+            var timeoutId = null;
 
             var onUncaughtError = function () {
-                clearTimeout(testTimeout);
+                clearTimeout(timeoutId);
                 hammerhead.off(hammerhead.EVENTS.uncaughtJsError, onUncaughtError);
-                ok(false, 'hh event not prevented');
+                ok(false, 'internal event is raised');
                 resolve();
             };
 
-            testTimeout = setTimeout(function () {
+            timeoutId = setTimeout(function () {
                 hammerhead.off(hammerhead.EVENTS.uncaughtJsError, onUncaughtError);
-                ok(true, 'hh event prevented');
+                ok(true, 'internal event is not raised');
                 resolve();
             }, 500);
 
@@ -396,6 +396,9 @@ test('should not rise hh event when the error event prevented', function () {
             return testPreventing();
         })
         .then(function () {
+            if (browserUtils.isIE10 || browserUtils.isIE11 || browserUtils.isMSEdge)
+                return;
+
             window.addEventListener('error', function onUncaughtError (event) {
                 setTimeout(function () {
                     window.removeEventListener('error', onUncaughtError);

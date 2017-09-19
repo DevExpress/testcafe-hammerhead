@@ -110,9 +110,7 @@ export default class WindowSandbox extends SandboxBase {
             this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, reason, this.window);
         }
         else if (event.type === 'error') {
-            const message = event.message;
-
-            if (message.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
+            if (event.message.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
                 event.preventDefault();
             else
                 this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, event.message, window);
