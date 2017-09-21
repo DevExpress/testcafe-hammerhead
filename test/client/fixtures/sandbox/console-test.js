@@ -1,66 +1,50 @@
-var consoleSandbox = hammerhead.sandbox.console;
+var nativeMethods  = hammerhead.nativeMethods;
 
-function argsToArray (args) {
-    var res = [];
-    var i   = 0;
+if (window.console && typeof window.console.log !== 'undefined') {
+    test('consoleMethCalled event', function () {
+        var log                       = [];
+        var handledConsoleMethodNames = [];
+        var handledConsoleMethodArgs  = [];
 
-    while (i < args.length) {
-        res.push(args[i]);
-        i++;
-    }
+        var originMethods = {
+            log:   nativeMethods.consoleMeths.log,
+            warn:  nativeMethods.consoleMeths.warn,
+            error: nativeMethods.consoleMeths.error,
+            info:  nativeMethods.consoleMeths.info
+        };
 
-    return res;
-}
-
-test('consoleMethCalled event', function () {
-    var log           = '';
-    var handledEvents = [];
-    var logFromEvents = '';
-
-    /* eslint-disable no-console */
-    var originMethods = {
-        log:   console.log,
-        warn:  console.warn,
-        error: console.error,
-        info:  console.info
-    };
-
-    function addToLog (meth, args) {
-        log += argsToArray(args).join('');
-
-        originMethods[meth].apply(console, args);
-    }
-
-    window.console = {
-        log: function () {
-            addToLog('log', arguments);
-        },
-
-        warn: function () {
-            addToLog('warn', arguments);
-        },
-
-        error: function () {
-            addToLog('error', arguments);
-        },
-
-        info: function () {
-            addToLog('info', arguments);
+        function addToLog () {
+            log = log.concat(Array.prototype.slice.call(arguments));
         }
-    };
 
-    consoleSandbox.on(consoleSandbox.CONSOLE_METH_CALLED, function (e) {
-        handledEvents.push(e.meth);
-        logFromEvents += argsToArray(e.args).join('');
+        nativeMethods.consoleMeths = {
+            log:   addToLog,
+            warn:  addToLog,
+            error: addToLog,
+            info:  addToLog
+        };
+
+        hammerhead.on(hammerhead.EVENTS.consoleMethCalled, function (e) {
+            handledConsoleMethodNames.push(e.meth);
+            handledConsoleMethodArgs = handledConsoleMethodArgs.concat(Array.prototype.slice.call(e.args));
+        });
+
+        /* eslint-disable no-console */
+        window.console.log(1, 2);
+        window.console.warn(3, 4);
+        window.console.error(5, 6);
+        window.console.info(7, 8);
+        /* eslint-enable no-console */
+
+        deepEqual(handledConsoleMethodNames, ['log', 'warn', 'error', 'info']);
+        deepEqual(log, [1, 2, 3, 4, 5, 6, 7, 8]);
+        deepEqual(handledConsoleMethodArgs, [1, 2, 3, 4, 5, 6, 7, 8]);
+
+        nativeMethods.consoleMeths = {
+            log:   originMethods.log,
+            warn:  originMethods.warn,
+            error: originMethods.error,
+            info:  originMethods.info
+        };
     });
-
-    window.console.log('1', '2');
-    window.console.warn('3', '4');
-    window.console.error('5', '6');
-    window.console.info('7', '8');
-    /* eslint-enable no-console */
-
-    deepEqual(handledEvents, ['log', 'warn', 'error', 'info']);
-    deepEqual(log, '12345678');
-    deepEqual(logFromEvents, '12345678');
-});
+}

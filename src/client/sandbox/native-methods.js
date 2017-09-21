@@ -215,12 +215,14 @@ class NativeMethods {
         // Console
         this.console = win.console;
 
-        this.consoleMeths = {
-            log:   win.console.log,
-            warn:  win.console.warn,
-            error: win.console.error,
-            info:  win.console.info
-        };
+        if (this.console) {
+            this.consoleMeths = {
+                log:   win.console.log,
+                warn:  win.console.warn,
+                error: win.console.error,
+                info:  win.console.info
+            };
+        }
 
         this.refreshClasses(win);
     }

@@ -55,7 +55,7 @@ class Hammerhead {
             fetchSent:               this.sandbox.fetch.FETCH_REQUEST_SENT_EVENT,
             pageNavigationTriggered: this.pageNavigationWatch.PAGE_NAVIGATION_TRIGGERED_EVENT,
             scriptElementAdded:      this.sandbox.node.element.SCRIPT_ELEMENT_ADDED_EVENT,
-            consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED
+            consoleMethCalled:       this.sandbox.console.CONSOLE_METH_CALLED_EVENT
         };
 
         this.PROCESSING_COMMENTS = {
