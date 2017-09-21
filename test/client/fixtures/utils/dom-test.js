@@ -535,7 +535,8 @@ test('isElementFocusable', function () {
 
             if (browserUtils.isIE) {
                 expectedFocusedElements = expectedFocusedElements.filter(function (el) {
-                    if (browserUtils.version <= 10 && domUtils.isAnchorElement(el) && el.getAttribute('href') === '')
+                    if (browserUtils.version <= 10 && domUtils.isAnchorElement(el) && el.getAttribute('href') === '' &&
+                        domUtils.getTabIndex(el) === null)
                         return false;
 
                     return !domUtils.isOptionElement(el);
@@ -775,4 +776,3 @@ if (browserUtils.isChrome) {
         document.body.removeChild(hostParent);
     });
 }
-

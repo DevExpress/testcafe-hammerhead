@@ -525,7 +525,7 @@ export function isElementFocusable (el) {
         return false;
 
     if (isAnchorElement(el)) {
-        if (tabIndex > 0)
+        if (tabIndex !== null)
             return true;
 
         return isIE && browserVersion < 11 ?
