@@ -48,7 +48,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
         };
     });
 
-    test('consoleMethCalled event after document.write', function () {
+    test('`consoleMethCalled event` should be raised after document.write', function () {
         return createTestIframe({ src: getSameDomainPageUrl('../../data/console-sandbox/iframe.html') })
             .then(function (iframe) {
                 var iframeWindow = iframe.contentWindow;
