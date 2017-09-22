@@ -85,7 +85,7 @@ class WrappersOutdatedInfo {
         const updateTimestamp = collection[wrapperInternalInfo.data];
 
         if (typeof updateTimestamp === 'number')
-            return wrapperInternalInfo.lastUpdateTimestamp < updateTimestamp;
+            return wrapperInternalInfo.lastUpdateTimestamp <= updateTimestamp;
 
         return true;
     }

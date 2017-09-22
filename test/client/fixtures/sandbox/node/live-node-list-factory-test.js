@@ -137,7 +137,7 @@ module('getElementsByTagName', function () {
 
             assertions.push([refreshNodeListCount, 1, 'access when no changes']);
 
-            textarea2.parentNode.removeChild(textarea2);
+            testDiv.removeChild(textarea2);
 
             elements[0];
 
