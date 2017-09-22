@@ -8,7 +8,7 @@ class WrappersOutdatedInfo {
         this._classes = nativeMethods.objectCreate.call(window.Object, null);
         this._names   = nativeMethods.objectCreate.call(window.Object, null);
 
-        this._tags['*'] = window.performance.now();
+        this._tags['*'] = nativeMethods.performanceNow();
 
         this._isDomContentLoaded = false;
 
@@ -57,14 +57,14 @@ class WrappersOutdatedInfo {
     }
 
     onElementAddedOrRemoved (el) {
-        const timestamp = window.performance.now();
+        const timestamp = nativeMethods.performanceNow();
 
         this._processElement(el, timestamp);
         this._processAllChildren(el, timestamp);
     }
 
     onChildrenAddedOrRemoved (el, timestamp) {
-        timestamp = timestamp || window.performance.now();
+        timestamp = timestamp || nativeMethods.performanceNow();
 
         this._processAllChildren(el, timestamp);
     }
@@ -85,7 +85,7 @@ class WrappersOutdatedInfo {
         const updateTimestamp = collection[wrapperInternalInfo.data];
 
         if (typeof updateTimestamp === 'number')
-            return wrapperInternalInfo.lastUpdateTimestamp <= updateTimestamp;
+            return wrapperInternalInfo.lastUpdateTimestamp < updateTimestamp;
 
         return true;
     }

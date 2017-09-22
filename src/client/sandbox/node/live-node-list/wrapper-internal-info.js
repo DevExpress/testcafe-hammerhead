@@ -1,3 +1,4 @@
+import nativeMethods from '../../native-methods';
 import { isShadowUIElement } from '../../../utils/dom';
 import wrappersUpdateInfo from './wrappers-outdated-info';
 
@@ -22,7 +23,7 @@ export default class WrapperInternalInfo {
         if (!this.filteredNodeList || wrappersUpdateInfo.isWrapperOutdated(this)) {
             this.filteredNodeList = arrayFilter.call(this.nodeList, element => !isShadowUIElement(element));
 
-            this.lastUpdateTimestamp = window.performance.now();
+            this.lastUpdateTimestamp = nativeMethods.performanceNow();
         }
     }
 }
