@@ -1,36 +1,9 @@
-import {
-    LiveNodeListWrapperBase,
-    htmlCollectionWrapperBase,
-    nodeListWrapperBase
-} from './wrapper-base';
+import { LiveNodeListWrapperBase, htmlCollectionWrapperBase, nodeListWrapperBase } from './wrapper-base';
 import LiveNodeListWrapper from './wrapper';
-import { getTagName, isShadowUIElement } from '../../../utils/dom';
-import nativeMethods from '../../native-methods';
-import WrapperStorage from './wrapper-storage';
+import { TAG_TYPE/*, CLASS_TYPE, NAME_TYPE*/ } from './wrapper-internal-info';
 
 export default class LiveNodeListFactory {
-    constructor () {
-        // NOTE: Now there is an implementation only for the 'getElementsByTagName' function
-        // Later we will have separate parts for all appropriate functions (getElementsByClassName, getElementsByName)
-        this.domContentLoadedEventRaised = false;
-        this.wrapperStorage              = new WrapperStorage();
-
-        nativeMethods.addEventListener.call(document, 'DOMContentLoaded', () => {
-            this.domContentLoadedEventRaised = true;
-            this.wrapperStorage.notifyAllWrappersAboutDOMContentLoadedEvent();
-        });
-    }
-
-    onElementAddedOrRemoved (el) {
-        if (!el.tagName || isShadowUIElement(el))
-            return;
-
-        const tagName = getTagName(el);
-
-        this.wrapperStorage.markWrappersWithSpecifiedTagNameAsDirty(tagName);
-    }
-
-    _createLiveNodeListWrapper (nodeList, domContentLoadedEventRaised, tagName) {
+    static _createLiveNodeListWrapper (nodeList, type, data) {
         if (nodeList instanceof NodeList)
             LiveNodeListWrapper.prototype = nodeListWrapperBase;
         else if (nodeList instanceof HTMLCollection)
@@ -41,21 +14,15 @@ export default class LiveNodeListFactory {
             LiveNodeListWrapper.prototype     = new LiveNodeListWrapperBase();
         }
 
-        return new LiveNodeListWrapper(nodeList, domContentLoadedEventRaised, tagName);
+        return new LiveNodeListWrapper(nodeList, type, data);
     }
 
-    createNodeListForGetElementsByTagNameFn ({ nodeList, tagName }) {
+    static createNodeListForGetElementsByTagNameFn ({ nodeList, tagName }) {
         if (typeof tagName !== 'string')
             return nodeList;
 
-        const wrapper = this._createLiveNodeListWrapper(nodeList, this.domContentLoadedEventRaised, tagName);
-
-        this.wrapperStorage.add(wrapper);
+        const wrapper = LiveNodeListFactory._createLiveNodeListWrapper(nodeList, TAG_TYPE, tagName);
 
         return wrapper;
-    }
-
-    onInnerHtmlChanged () {
-        this.wrapperStorage.markAllWrappersAsDirty();
     }
 }

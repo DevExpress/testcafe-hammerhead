@@ -1,5 +1,6 @@
 /*eslint-disable no-unused-expressions*/
-var TagCache = hammerhead.get('./sandbox/node/live-node-list/tag-cache');
+var WrapperInternalInfo  = hammerhead.get('./sandbox/node/live-node-list/wrapper-internal-info');
+var wrappersOutdatedInfo = hammerhead.get('./sandbox/node/live-node-list/wrappers-outdated-info');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var nativeMethods = hammerhead.nativeMethods;
@@ -22,26 +23,10 @@ QUnit.testStart(function () {
 });
 
 module('getElementsByTagName', function () {
-    test('TagCache', function () {
-        var tagCache = new TagCache();
-
-        tagCache.update('*');
-        tagCache.update('div');
-        tagCache.update('DIV');
-        tagCache.update('TEXTarea');
-
-        ok(tagCache.contains('div'));
-        ok(tagCache.contains('DIV'));
-        ok(tagCache.contains('TEXTAREA'));
-        ok(!tagCache.contains('constructor'));
-    });
-
     test('wrong arguments', function () {
         var testCases    = [
             null,
-            /*eslint-disable no-undefined*/
-            undefined,
-            /*eslint-enable no-undefined*/
+            void 0,
             {},
             function () {
             }
@@ -94,7 +79,7 @@ module('getElementsByTagName', function () {
     module('performance', function () {
         var checkAssertions = function (assertions) {
             assertions.forEach(function (assertion) {
-                ok(assertion.value, assertion.name);
+                strictEqual.apply(window, assertion);
             });
         };
 
@@ -106,12 +91,13 @@ module('getElementsByTagName', function () {
         });
 
         test('"*" tagName', function () {
-            var testDiv    = document.querySelector(TEST_DIV_SELECTOR);
-            var root       = shadowUI.getRoot();
-            var textarea1  = document.createElement('textarea');
-            var textarea2  = document.createElement('textarea');
-            var textarea3  = document.createElement('textarea');
-            var assertions = [];
+            var storedRefreshNodeListFn = WrapperInternalInfo.default.prototype.refreshNodeList;
+            var testDiv                 = document.querySelector(TEST_DIV_SELECTOR);
+            var root                    = shadowUI.getRoot();
+            var textarea1               = document.createElement('textarea');
+            var textarea2               = document.createElement('textarea');
+            var textarea3               = document.createElement('textarea');
+            var assertions              = [];
 
             textarea1.id = 'textarea1';
             textarea2.id = 'textarea2';
@@ -120,137 +106,83 @@ module('getElementsByTagName', function () {
             shadowUI.addClass(textarea3, 'el');
             testDiv.appendChild(textarea1);
 
+
             var elements             = document.getElementsByTagName('*');
             var refreshNodeListCount = 0;
 
-            var descriptor              = Object.getOwnPropertyDescriptor(elements, '_refreshNodeListInternal');
-            var storedDescriptorValueFn = descriptor.value;
+            WrapperInternalInfo.default.prototype.refreshNodeList = function () {
+                var storedFilteredNodeList = this.filteredNodeList;
 
-            Object.defineProperty(elements, '_refreshNodeListInternal',
-                {
-                    value: function () {
-                        refreshNodeListCount++;
+                storedRefreshNodeListFn.apply(this, arguments);
 
-                        return storedDescriptorValueFn.call(elements);
-                    }
-                });
+                if (storedFilteredNodeList !== this.filteredNodeList)
+                    refreshNodeListCount++;
+            };
 
-            assertions.push(
-                {
-                    name:  'DOMContentLoaded event is raised',
-                    value: elements._domContentLoadedEventRaised
-                },
-                {
-                    name:  'first access after domContentLoading',
-                    value: (function () {
-                        elements[0];
-                        elements[1];
-                        elements[2];
+            assertions.push([wrappersOutdatedInfo._isDomContentLoaded, true, 'DOMContentLoaded event is raised']);
 
-                        return refreshNodeListCount === 0;
-                    })()
-                });
+            elements[0];
+            elements[1];
+            elements[2];
+
+            assertions.push([refreshNodeListCount, 0, 'first access after domContentLoading']);
 
             testDiv.appendChild(textarea2);
 
-            assertions.push(
-                {
-                    name:  'access after element was added',
-                    value: (function () {
-                        elements[0];
+            elements[0];
 
-                        return refreshNodeListCount === 1;
-                    })()
-                },
-                {
-                    name:  'access when no changes',
-                    value: (function () {
-                        elements[0];
+            assertions.push([refreshNodeListCount, 1, 'access after element was added']);
 
-                        return refreshNodeListCount === 1;
-                    })()
-                });
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 1, 'access when no changes']);
 
             textarea2.parentNode.removeChild(textarea2);
 
-            assertions.push(
-                {
-                    name:  'access after element was removed',
-                    value: (function () {
-                        elements[0];
+            elements[0];
 
-                        return refreshNodeListCount === 2;
-                    })()
-                }, {
-                    name:  'access when no changes',
-                    value: (function () {
-                        elements[0];
+            assertions.push([refreshNodeListCount, 2, 'access after element was removed']);
 
-                        return refreshNodeListCount === 2;
-                    })()
-                });
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 2, 'access when no changes']);
 
             root.appendChild(textarea3);
 
-            assertions.push({
-                name:  'access after shadowUI element was added',
-                value: (function () {
-                    elements[0];
+            elements[0];
 
-                    return refreshNodeListCount === 2;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 2, 'access after shadowUI element was added']);
 
             setProperty(testDiv, 'innerHTML', '<div></div>');
-            assertions.push(
-                {
-                    name:  "access after set element's innerHTML",
-                    value: (function () {
-                        elements[0];
 
-                        return refreshNodeListCount === 3;
-                    })()
-                },
-                {
-                    name:  'for loop',
-                    value: (function () {
-                        for (var i = 0; i < elements.length; i++)
-                            elements[i];
+            elements[0];
 
-                        return refreshNodeListCount === 3;
-                    })()
-                });
+            assertions.push([refreshNodeListCount, 3, "access after set element's innerHTML"]);
 
-            setProperty(root, 'innerHTML', '<div></div>');
-            assertions.push({
-                name:  "access after set shadowUI element's innerHTML",
-                value: (function () {
-                    elements[0];
+            for (var i = 0; i < elements.length; i++)
+                elements[i];
 
-                    return refreshNodeListCount === 3;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 3, 'for loop']);
 
             var newDiv = document.createElement('div');
 
             newDiv.id = 'newDiv';
             testDiv.replaceChild(newDiv, testDiv.firstChild);
-            assertions.push({
-                name:  'access after replaceChild',
-                value: (function () {
-                    elements[0];
 
-                    return refreshNodeListCount === 4;
-                })()
-            });
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 4, 'access after replaceChild']);
 
             checkAssertions(assertions);
+
+            WrapperInternalInfo.default.prototype.refreshNodeList = storedRefreshNodeListFn;
         });
 
         test('specified tagName', function () {
-            var textarea1  = document.createElement('textarea');
-            var input1     = document.createElement('input');
-            var assertions = [];
+            var storedRefreshNodeListFn = WrapperInternalInfo.default.prototype.refreshNodeList;
+            var textarea1               = document.createElement('textarea');
+            var input1                  = document.createElement('input');
+            var assertions              = [];
 
             textarea1.id        = 'textarea1';
             input1.id           = 'input1';
@@ -260,63 +192,42 @@ module('getElementsByTagName', function () {
             var elements             = document.body.getElementsByTagName('textarea');
             var refreshNodeListCount = 0;
 
-            var descriptor              = Object.getOwnPropertyDescriptor(elements, '_refreshNodeListInternal');
-            var storedDescriptorValueFn = descriptor.value;
+            WrapperInternalInfo.default.prototype.refreshNodeList = function () {
+                var storedFilteredNodeList = this.filteredNodeList;
 
-            Object.defineProperty(elements, '_refreshNodeListInternal',
-                {
-                    value: function () {
-                        refreshNodeListCount++;
+                storedRefreshNodeListFn.apply(this, arguments);
 
-                        return storedDescriptorValueFn.call(elements);
-                    }
-                });
+                if (storedFilteredNodeList !== this.filteredNodeList)
+                    refreshNodeListCount++;
+            };
 
-            assertions.push({
-                name:  'first access after domContentLoading',
-                value: (function () {
-                    elements[0];
-                    elements[1];
-                    elements[2];
+            elements[0];
+            elements[1];
+            elements[2];
 
-                    return refreshNodeListCount === 0;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 0, 'first access after domContentLoading']);
 
             document.body.appendChild(input1);
 
-            assertions.push({
-                name:  'non-tracking tagName',
-                value: (function () {
-                    elements[0];
+            elements[0];
 
-                    return refreshNodeListCount === 0;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 0, 'non-tracking tagName']);
 
             document.body.appendChild(textarea1);
 
-            assertions.push({
-                name:  'tracking tagName',
-                value: (function () {
-                    elements[0];
+            elements[0];
 
-                    return refreshNodeListCount === 1;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 1, 'tracking tagName']);
 
             document.body.replaceChild(input1, textarea1);
 
-            assertions.push({
-                name:  'replaceChild for tracking and non-tracking nodes',
-                value: (function () {
-                    elements[0];
+            elements[0];
 
-                    return refreshNodeListCount === 2;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 2, 'replaceChild for tracking and non-tracking nodes']);
 
             checkAssertions(assertions);
+
+            WrapperInternalInfo.default.prototype.refreshNodeList = storedRefreshNodeListFn;
         });
     });
 });

@@ -17,6 +17,7 @@ import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
 import ShadowUI from '../shadow-ui';
+import wrappersOutdatedInfo from './live-node-list/wrappers-outdated-info';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -27,7 +28,7 @@ const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
 const arraySlice = Array.prototype.slice;
 
 export default class ElementSandbox extends SandboxBase {
-    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox, liveNodeListFactory) {
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {
         super();
 
         this.nodeSandbox         = nodeSandbox;
@@ -35,7 +36,6 @@ export default class ElementSandbox extends SandboxBase {
         this.uploadSandbox       = uploadSandbox;
         this.iframeSandbox       = iframeSandbox;
         this.eventSandbox        = eventSandbox;
-        this.liveNodeListFactory = liveNodeListFactory;
 
         this.overridedMethods = null;
 
@@ -417,8 +417,8 @@ export default class ElementSandbox extends SandboxBase {
                 const result = nativeMethods.replaceChild.apply(this, arguments);
 
                 sandbox._onAddFileInputInfo(newChild);
-                sandbox.liveNodeListFactory.onElementAddedOrRemoved(newChild);
-                sandbox.liveNodeListFactory.onElementAddedOrRemoved(oldChild);
+                wrappersOutdatedInfo.onElementAddedOrRemoved(newChild);
+                wrappersOutdatedInfo.onElementAddedOrRemoved(oldChild);
 
                 return result;
             },
@@ -594,7 +594,7 @@ export default class ElementSandbox extends SandboxBase {
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
 
-        this.liveNodeListFactory.onElementAddedOrRemoved(el);
+        wrappersOutdatedInfo.onElementAddedOrRemoved(el);
     }
 
     _onElementRemoved (el) {
@@ -604,7 +604,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        this.liveNodeListFactory.onElementAddedOrRemoved(el);
+        wrappersOutdatedInfo.onElementAddedOrRemoved(el);
     }
 
     addFileInputInfo (el) {
