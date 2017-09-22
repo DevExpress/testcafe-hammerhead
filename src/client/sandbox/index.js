@@ -175,6 +175,7 @@ export default class Sandbox extends SandboxBase {
         // NOTE: T182337
         this.codeInstrumentation.attach(window);
         this.node.doc.attach(window, document);
+        this.console.attach(window);
 
         this._restoreDocumentMethodsFromProto(document);
     }
