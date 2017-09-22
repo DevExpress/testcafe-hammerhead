@@ -17,9 +17,7 @@ export default class ConsoleSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        const sandbox = this;
-
-        if (sandbox.window.console && typeof sandbox.window.console.log.apply === 'function') {
+        if (this.window.console && typeof this.window.console.log.apply === 'function') {
             // NOTE: ie9 has no the `window.console` object when developer tools are closed.
             // If they are opened there is no `console.log.apply`, so we skip this case.
             this._proxyConsoleMeth('log');
