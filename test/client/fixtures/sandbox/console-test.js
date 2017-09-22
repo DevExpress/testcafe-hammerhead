@@ -1,4 +1,4 @@
-var nativeMethods  = hammerhead.nativeMethods;
+var nativeMethods = hammerhead.nativeMethods;
 
 if (window.console && typeof window.console.log !== 'undefined') {
     test('consoleMethCalled event', function () {
@@ -46,5 +46,17 @@ if (window.console && typeof window.console.log !== 'undefined') {
             error: originMethods.error,
             info:  originMethods.info
         };
+    });
+
+    test('consoleMethCalled event after document.write', function () {
+        return createTestIframe({ src: getSameDomainPageUrl('../../data/console-sandbox/iframe.html') })
+            .then(function (iframe) {
+                var iframeWindow = iframe.contentWindow;
+
+                iframeWindow.document.write('<div>dummy</div>');
+                iframeWindow.console.log('consoleMsg');
+
+                equal(iframeWindow.consoleMsg, 'consoleMsg');
+            });
     });
 }

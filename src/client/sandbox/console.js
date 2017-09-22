@@ -4,7 +4,7 @@ export default class ConsoleSandbox extends SandboxBase {
     constructor () {
         super();
 
-        this.CONSOLE_METH_CALLED_EVENT = 'hammerhead|console|console-meth-called';
+        this.CONSOLE_METH_CALLED_EVENT = 'hammerhead|event|console-meth-called';
     }
 
     _proxyConsoleMeth (meth) {
