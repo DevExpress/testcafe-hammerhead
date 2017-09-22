@@ -1,5 +1,5 @@
 import nativeMethods from '../../native-methods';
-import { getTagName, getClassList, isShadowUIElement } from '../../../utils/dom';
+import { getTagName, getClassList, isDocumentFragmentNode, isShadowUIElement } from '../../../utils/dom';
 import { TAG_TYPE, CLASS_TYPE } from './wrapper-internal-info';
 
 class WrappersOutdatedInfo {
@@ -42,7 +42,15 @@ class WrappersOutdatedInfo {
     }
 
     _processAllChildren (el, timestamp) {
-        const children = nativeMethods.elementQuerySelectorAll.call(el, '*');
+        if (!el.querySelectorAll)
+            return;
+
+        let children;
+
+        if (isDocumentFragmentNode(el))
+            children = nativeMethods.documentFragmentQuerySelectorAll.call(el, '*');
+        else
+            children = nativeMethods.elementQuerySelectorAll.call(el, '*');
 
         for (const child of children)
             this._processElement(child, timestamp);
