@@ -31,7 +31,7 @@
     "pinkie": "1.0.0",
     "read-file-relative": "^1.2.0",
     "shortid": "^2.2.4",
-    "tough-cookie": "2.3.0",
+    "tough-cookie": "2.3.3",
     "tunnel-agent": "0.6.0",
     "webauth": "^1.1.0",
     "yakaa": "1.0.1",
