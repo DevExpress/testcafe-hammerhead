@@ -66,8 +66,8 @@ export default class IframeSandbox extends SandboxBase {
         }
     }
 
-    _raiseReadyToInitEvent (iframe) {
-        if (isIframeWithoutSrc(iframe)) {
+    _raiseReadyToInitEvent (iframe, isRecreated) {
+        if (isRecreated || isIframeWithoutSrc(iframe)) {
             const iframeInitialized       = IframeSandbox.isIframeInitialized(iframe);
             const iframeWindowInitialized = iframe.contentWindow[IFRAME_WINDOW_INITED];
 
@@ -133,8 +133,8 @@ export default class IframeSandbox extends SandboxBase {
         e.iframe.contentWindow.eval.call(e.iframe.contentWindow, taskScript);
     }
 
-    onIframeBeganToRun (iframe) {
-        this._raiseReadyToInitEvent(iframe);
+    onIframeBeganToRun (iframe, isRecreated) {
+        this._raiseReadyToInitEvent(iframe, isRecreated);
     }
 
     processIframe (el) {

@@ -154,7 +154,7 @@ export default class Sandbox extends SandboxBase {
 
                 // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
                 // Inform IFrameSandbox about this, and it injects Hammerhead.
-                this.iframe.onIframeBeganToRun(iframe);
+                this.iframe.onIframeBeganToRun(iframe, true);
             }
         }
     }

@@ -294,6 +294,19 @@ test("'body.appendChild' method works incorrectly in the particular case (GH-421
     checkIframes();
 });
 
+test('hammerhead must be initialized after the document with same-domain src is rewrited (GH-1325)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
+        .then(function (iframe) {
+            var stringifiedNativeWriteFn = nativeMethods.documentWrite.toString();
+
+            notEqual(iframe.contentDocument.write.toString(), stringifiedNativeWriteFn, 'before write');
+
+            iframe.contentDocument.write('something');
+
+            notEqual(iframe.contentDocument.write.toString(), stringifiedNativeWriteFn, 'after write');
+        });
+});
+
 if (browserUtils.isWebKit) {
     test('event listeners added twice in an iframe after document.write (GH-839)', function () {
         return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/window-event-listeners.html') })
