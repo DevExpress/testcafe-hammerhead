@@ -2,13 +2,14 @@ import nativeMethods from '../../native-methods';
 import { getTagName, getClassList, isDocumentFragmentNode, isShadowUIElement } from '../../../utils/dom';
 import { TAG_TYPE, CLASS_TYPE } from './wrapper-internal-info';
 
+const MAX_SAFE_INTEGER = Math.pow(2, 53) - 1;
+const MIN_SAFE_INTEGER = -MAX_SAFE_INTEGER;
+
 class WrappersOutdatedInfo {
     constructor () {
         this._tags    = nativeMethods.objectCreate.call(window.Object, null);
         this._classes = nativeMethods.objectCreate.call(window.Object, null);
         this._names   = nativeMethods.objectCreate.call(window.Object, null);
-
-        this._tags['*'] = nativeMethods.performanceNow();
 
         this._isDomContentLoaded = false;
 
@@ -17,31 +18,40 @@ class WrappersOutdatedInfo {
         });
     }
 
-    _processElement (el, timestamp) {
+    static _updateVersion (collection, property) {
+        if (property in collection) {
+            if (collection[property] === MAX_SAFE_INTEGER)
+                collection[property] = MIN_SAFE_INTEGER;
+            else
+                ++collection[property];
+        }
+    }
+
+    _processElement (el) {
         if (!el.tagName || isShadowUIElement(el))
             return;
 
         const tagName = getTagName(el);
 
-        this._updateTag(tagName, timestamp);
+        this._updateTag(tagName);
 
         const name = nativeMethods.getAttribute.call(el, 'name');
 
         if (name && typeof name === 'string')
-            this._names[name] = timestamp;
+            WrappersOutdatedInfo._updateVersion(this._names, name);
 
         const classList = getClassList(el);
 
         for (const className of classList)
-            this._classes[className] = timestamp;
+            WrappersOutdatedInfo._updateVersion(this._classes, className);
     }
 
-    _updateTag (tagName, timestamp) {
-        this._tags['*'] = timestamp;
-        this._tags[tagName] = timestamp;
+    _updateTag (tagName) {
+        WrappersOutdatedInfo._updateVersion(this._tags, '*');
+        WrappersOutdatedInfo._updateVersion(this._tags, tagName);
     }
 
-    _processAllChildren (el, timestamp) {
+    _processAllChildren (el) {
         if (!el.querySelectorAll)
             return;
 
@@ -53,41 +63,44 @@ class WrappersOutdatedInfo {
             children = nativeMethods.elementQuerySelectorAll.call(el, '*');
 
         for (const child of children)
-            this._processElement(child, timestamp);
+            this._processElement(child);
+    }
+
+    _getCollectionByType (type) {
+        if (type === TAG_TYPE)
+            return this._tags;
+        else if (type === CLASS_TYPE)
+            return this._classes;
+
+        return this._names;
     }
 
     onElementAddedOrRemoved (el) {
-        const timestamp = nativeMethods.performanceNow();
-
-        this._processElement(el, timestamp);
-        this._processAllChildren(el, timestamp);
+        this._processElement(el);
+        this._processAllChildren(el);
     }
 
-    onChildrenAddedOrRemoved (el, timestamp) {
-        timestamp = timestamp || nativeMethods.performanceNow();
-
-        this._processAllChildren(el, timestamp);
+    onChildrenAddedOrRemoved (el) {
+        this._processAllChildren(el);
     }
 
     isWrapperOutdated (wrapperInternalInfo) {
         if (!this._isDomContentLoaded)
             return true;
 
-        let collection;
+        const collection  = this._getCollectionByType(wrapperInternalInfo.type);
+        const lastVersion = collection[wrapperInternalInfo.data];
 
-        if (wrapperInternalInfo.type === TAG_TYPE)
-            collection = this._tags;
-        else if (wrapperInternalInfo.type === CLASS_TYPE)
-            collection = this._classes;
-        else
-            collection = this._names;
+        if (typeof lastVersion === 'number')
+            return wrapperInternalInfo.version < lastVersion;
 
-        const updateTimestamp = collection[wrapperInternalInfo.data];
-
-        if (typeof updateTimestamp === 'number')
-            return wrapperInternalInfo.lastUpdateTimestamp < updateTimestamp;
+        collection[wrapperInternalInfo.data] = MIN_SAFE_INTEGER;
 
         return true;
+    }
+
+    getCurrentVersion (wrapperInternalInfo) {
+        return this._getCollectionByType(wrapperInternalInfo.type)[wrapperInternalInfo.data];
     }
 }
 

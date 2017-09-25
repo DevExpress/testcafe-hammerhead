@@ -1,6 +1,5 @@
-import nativeMethods from '../../native-methods';
-import { isShadowUIElement } from '../../../utils/dom';
 import wrappersUpdateInfo from './wrappers-outdated-info';
+import { isShadowUIElement } from '../../../utils/dom';
 
 const arrayFilter = Array.prototype.filter;
 
@@ -10,20 +9,19 @@ export const NAME_TYPE  = 'name';
 
 export default class WrapperInternalInfo {
     constructor (nodeList, type, data) {
-        this.nodeList            = nodeList;
-        this.filteredNodeList    = null;
-        this.lastUpdateTimestamp = null;
-        this.data                = data;
-        this.type                = type;
+        this.nodeList         = nodeList;
+        this.filteredNodeList = null;
+        this.version          = 0;
+        this.data             = data;
+        this.type             = type;
 
         this.refreshNodeList();
     }
 
     refreshNodeList () {
-        if (!this.filteredNodeList || wrappersUpdateInfo.isWrapperOutdated(this)) {
+        if (wrappersUpdateInfo.isWrapperOutdated(this)) {
             this.filteredNodeList = arrayFilter.call(this.nodeList, element => !isShadowUIElement(element));
-
-            this.lastUpdateTimestamp = nativeMethods.performanceNow();
+            this.version          = wrappersUpdateInfo.getCurrentVersion(this);
         }
     }
 }

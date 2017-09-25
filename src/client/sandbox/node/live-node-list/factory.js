@@ -21,7 +21,7 @@ export default class LiveNodeListFactory {
         if (typeof tagName !== 'string')
             return nodeList;
 
-        const wrapper = LiveNodeListFactory._createLiveNodeListWrapper(nodeList, TAG_TYPE, tagName);
+        const wrapper = LiveNodeListFactory._createLiveNodeListWrapper(nodeList, TAG_TYPE, tagName.toLowerCase());
 
         return wrapper;
     }

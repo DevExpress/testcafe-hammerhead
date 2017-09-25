@@ -741,7 +741,7 @@ export function hasClass (el, className) {
 
 export function getClassList (el) {
     if (!el.classList) {
-        if (el.className)
+        if (typeof el.className === 'string')
             return arrayFilter.call(el.className.split(' '), className => className);
 
         return [];
