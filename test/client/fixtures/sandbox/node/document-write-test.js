@@ -8,44 +8,52 @@ var nodeSandbox   = hammerhead.sandbox.node;
 iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 
-var iframeForWrite       = document.createElement('iframe');
-var iframeForNativeWrite = nativeMethods.createElement.call(document, 'iframe');
+var processedIframeForWrite;
+var nativeIframeForWrite;
 var storedProcessElement = nodeSandbox._processElement;
 
 nodeSandbox._processElement = function (el) {
-    if (el !== iframeForNativeWrite)
+    if (el !== nativeIframeForWrite)
         storedProcessElement.call(nodeSandbox, el);
 };
 
-iframeForWrite.id       = 'test1';
-iframeForNativeWrite.id = 'test2';
+QUnit.testDone(function () {
+    nativeMethods.removeChild.call(document.body, nativeIframeForWrite);
+});
 
-document.body.appendChild(iframeForWrite);
-nativeMethods.appendChild.call(document.body, iframeForNativeWrite);
+function createWriteTestIframes () {
+    return new hammerhead.Promise(function (resolve) {
+        nativeIframeForWrite = nativeMethods.createElement.call(document, 'iframe');
 
-QUnit.testStart(open);
-QUnit.testDone(close);
+        nativeMethods.addEventListener.call(nativeIframeForWrite, 'load', resolve);
+        nativeMethods.appendChild.call(document.body, nativeIframeForWrite);
+    })
+        .then(createTestIframe)
+        .then(function (iframe) {
+            processedIframeForWrite = iframe;
+        });
+}
 
 function open () {
-    iframeForWrite.contentDocument.open();
-    nativeMethods.documentOpen.call(iframeForNativeWrite.contentDocument);
+    processedIframeForWrite.contentDocument.open();
+    nativeMethods.documentOpen.call(nativeIframeForWrite.contentDocument);
 }
 
 function close () {
-    iframeForWrite.contentDocument.close();
-    nativeMethods.documentClose.call(iframeForNativeWrite.contentDocument);
+    processedIframeForWrite.contentDocument.close();
+    nativeMethods.documentClose.call(nativeIframeForWrite.contentDocument);
 }
 
 function testHTML () {
-    strictEqual(eval(processScript('iframeForWrite.contentDocument.documentElement.innerHTML')),
-        iframeForNativeWrite.contentDocument.documentElement.innerHTML);
-    strictEqual(eval(processScript('iframeForWrite.contentDocument.documentElement.outerHTML')),
-        iframeForNativeWrite.contentDocument.documentElement.outerHTML);
+    strictEqual(eval(processScript('processedIframeForWrite.contentDocument.documentElement.innerHTML')),
+        nativeIframeForWrite.contentDocument.documentElement.innerHTML);
+    strictEqual(eval(processScript('processedIframeForWrite.contentDocument.documentElement.outerHTML')),
+        nativeIframeForWrite.contentDocument.documentElement.outerHTML);
 }
 
 function testContent (selector) {
-    var elsFromNativeIframe = iframeForNativeWrite.contentDocument.querySelectorAll(selector);
-    var elsFromIframe       = iframeForWrite.contentDocument.querySelectorAll(selector);
+    var elsFromNativeIframe = nativeIframeForWrite.contentDocument.querySelectorAll(selector);
+    var elsFromIframe       = processedIframeForWrite.contentDocument.querySelectorAll(selector);
 
     if (elsFromIframe.length === elsFromNativeIframe.length) {
         for (var i = 0; i < elsFromIframe.length; i++) {
@@ -65,104 +73,192 @@ function testContent (selector) {
 }
 
 function testVariable (variableName) {
-    strictEqual(eval(processScript('iframeForWrite.contentWindow[variableName]')),
-        iframeForNativeWrite.contentWindow[variableName]);
+    strictEqual(eval(processScript('processedIframeForWrite.contentWindow[variableName]')),
+        nativeIframeForWrite.contentWindow[variableName]);
 }
 
 function testWrite () {
-    iframeForWrite.contentDocument.write.apply(iframeForWrite.contentDocument, arguments);
-    nativeMethods.documentWrite.apply(iframeForNativeWrite.contentDocument, arguments);
+    processedIframeForWrite.contentDocument.write.apply(processedIframeForWrite.contentDocument, arguments);
+    nativeMethods.documentWrite.apply(nativeIframeForWrite.contentDocument, arguments);
 
     testHTML();
 }
 
 function testWriteln () {
-    iframeForWrite.contentDocument.writeln.apply(iframeForWrite.contentDocument, arguments);
-    nativeMethods.documentWriteLn.apply(iframeForNativeWrite.contentDocument, arguments);
+    processedIframeForWrite.contentDocument.writeln.apply(processedIframeForWrite.contentDocument, arguments);
+    nativeMethods.documentWriteLn.apply(nativeIframeForWrite.contentDocument, arguments);
 
     testHTML();
 }
 
 test('write incomplete tags', function () {
-    testWrite('<div id="div1"></div>');
-    testWrite('<div id="div2">');
-    testWrite('</div>');
-    testWrite('<div id="div3"');
-    testWrite('>');
-    testWrite('content');
-    testWrite('\nother content');
-    testWrite('</div>');
-    testWriteln('content');
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<div id="div1"></div>');
+            testWrite('<div id="div2">');
+            testWrite('</div>');
+            testWrite('<div id="div3"');
+            testWrite('>');
+            testWrite('content');
+            testWrite('\nother content');
+            testWrite('</div>');
+            testWriteln('content');
+            close();
+        });
 });
 
 test('write script', function () {
-    testWrite('<script>var a, b, c;<\/script>');
-    testWrite('<script id="scr1">');
-    testContent('#scr1');
-    testWrite('var a = 5;');
-    testContent('#scr1');
-    testVariable('a');
-    testWrite('var b = 6;');
-    testContent('#scr1');
-    testVariable('b');
-    testWrite('<\/script>');
-    testContent('#scr1');
-    testVariable('a');
-    testVariable('b');
-    testWrite('var c = x + y;');
-    testWrite('<script id="scr2">var c=a<b;');
-    testContent('#scr2');
-    testVariable('c');
-    testWrite('<\/script>');
-    testContent('#scr2');
-    testVariable('c');
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<script>var a, b, c;<\/script>');
+            testWrite('<script id="scr1">');
+            testContent('#scr1');
+            testWrite('var a = 5;');
+            testContent('#scr1');
+            testVariable('a');
+            testWrite('var b = 6;');
+            testContent('#scr1');
+            testVariable('b');
+            testWrite('<\/script>');
+            testContent('#scr1');
+            testVariable('a');
+            testVariable('b');
+            testWrite('var c = x + y;');
+            testWrite('<script id="scr2">var c=a<b;');
+            testContent('#scr2');
+            testVariable('c');
+            testWrite('<\/script>');
+            testContent('#scr2');
+            testVariable('c');
+            close();
+        });
 });
 
 test('write style', function () {
-    testWriteln('<style id="stl1">');
-    testContent('#stl1');
-    testWriteln('div {}');
-    testContent('#stl1');
-    testWriteln('</style><style id="stl2">body {background-image: url(https://example.com/image.png);}');
-    testContent('#stl1, #stl2');
-    testWriteln('li {display:block;}</style><div></div>');
-    testContent('#stl2');
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWriteln('<style id="stl1">');
+            testContent('#stl1');
+            testWriteln('div {}');
+            testContent('#stl1');
+            testWriteln('</style><style id="stl2">body {background-image: url(https://example.com/image.png);}');
+            testContent('#stl1, #stl2');
+            testWriteln('li {display:block;}</style><div></div>');
+            testContent('#stl2');
+            close();
+        });
 });
 
 test('document.write, document.writeln with multiple parameters', function () {
-    testWrite('w1', 'w2', 'w3');
-    testWriteln('wl1', 'wl2', 'wl3');
-    testWriteln('wl4');
-    testWriteln();
-    testWrite();
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('w1', 'w2', 'w3');
+            testWriteln('wl1', 'wl2', 'wl3');
+            testWriteln('wl4');
+            testWriteln();
+            testWrite();
+            close();
+        });
 });
 
 test('write html comment', function () {
-    testWrite('<div id="main"><!--');
-    testWriteln('<div id="nonexistent">bla');
-    testWriteln('this is comment');
-    testWrite('-->');
-    testWrite('<a href="/link"></a>');
-    testWrite('</div>');
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<div id="main"><!--');
+            testWriteln('<div id="nonexistent">bla');
+            testWriteln('this is comment');
+            testWrite('-->');
+            testWrite('<a href="/link"></a>');
+            testWrite('</div>');
+            close();
+        });
 });
 
 test('write textarea', function () {
-    testWrite('<textarea>');
-    testWriteln('test');
-    testWriteln('other text');
-    testWrite('</textarea>');
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<textarea>');
+            testWriteln('test');
+            testWriteln('other text');
+            testWrite('</textarea>');
+            close();
+        });
+});
+
+test('DocumentWriter should be recreated after document cleaning', function () {
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<textarea>');
+            close();
+            open();
+            testWrite('<textarea></textarea><textarea>');
+            close();
+            testWrite('<textarea></textarea>');
+            close();
+        });
 });
 
 module('regression');
 
-test('write script with src and without closing tag', function () {
-    testWrite('<script id="script" src="script.js">');
+test('write closing tag by parts (GH-1311)', function () {
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<script></');
+            testWrite('script>');
+            testWrite('<script></s');
+            testWrite('crIPt>');
+            testWrite('<script></SC');
+            testWrite('ript>');
+            testWrite('<script></scR');
+            testWrite('ipt>');
+            testWrite('<script></scri');
+            testWrite('pt>');
+            testWrite('<script></scrip');
+            testWrite('t>');
+            testWrite('<script></script');
+            testWrite('>');
+            testWrite('<script><\/script  ');
+            testWrite('>');
+            testWrite('<div></d');
+            testWrite('iv>');
+            testWrite('<');
+            testWrite('style></st');
+            testWrite('yl');
+            testWrite('e>');
+            testWrite('<script></scriptxyz');
+            testWrite('>');
+            testWrite('<\/script>');
+            testWrite('<script></script');
+            testWrite('xyz>');
+            testWrite('<\/script>');
+            testWrite('<script></sript');
+            testWrite('>');
+            testWrite('<\/script>');
+            close();
+        });
+});
 
-    var script       = iframeForWrite.contentDocument.querySelector('#script');
-    var resourceType = urlUtils.stringifyResourceType({ isScript: true });
+test('write script with src and without closing tag (GH-1218)', function () {
+    return createWriteTestIframes()
+        .then(function () {
+            open();
+            testWrite('<script id="script" src="script.js">');
 
-    strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
+            var script       = processedIframeForWrite.contentDocument.querySelector('#script');
+            var resourceType = urlUtils.stringifyResourceType({ isScript: true });
 
-    testWrite('var x = 5;');
-    testWrite('<\/script>');
+            strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
+
+            testWrite('var x = 5;');
+            testWrite('<\/script>');
+            close();
+        });
 });
