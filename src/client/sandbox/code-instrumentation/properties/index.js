@@ -26,8 +26,6 @@ import { shouldInstrumentProperty } from '../../../../processing/script/instrume
 import nativeMethods from '../../native-methods';
 import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
 
-const ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY = 'hammerhead|original-window-on-error-handler-key';
-
 function checkElementTextProperties (el) {
     const result         = {};
     const textProperties = ['innerHTML', 'outerHTML', 'innerText', 'textContent'];
@@ -445,11 +443,16 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             onerror: {
                 condition: domUtils.isWindow,
-                get:       owner => owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] || null,
+                get:       owner => owner.onerror,
 
                 set: (owner, handler) => {
-                    if (typeof handler === 'function')
-                        owner[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY] = handler;
+                    owner.onerror = handler;
+
+                    this.listenersSandbox.emit(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, {
+                        el:        owner,
+                        listener:  handler,
+                        eventType: 'error'
+                    });
 
                     return handler;
                 }
@@ -808,10 +811,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             }
         };
-    }
-
-    static getOriginalErrorHandler (window) {
-        return window[ORIGINAL_WINDOW_ON_ERROR_HANDLER_KEY];
     }
 
     static _getSetPropertyInstructionByOwner (owner, window) {

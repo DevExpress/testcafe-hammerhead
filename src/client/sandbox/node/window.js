@@ -1,7 +1,6 @@
 /*global history, navigator*/
 import SandboxBase from '../base';
 import ShadowUI from '../shadow-ui';
-import CodeInstrumentation from '../code-instrumentation';
 import nativeMethods from '../native-methods';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
@@ -50,9 +49,9 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
-    _reattachUnhandledRejectionHandler (window) {
-        nativeMethods.windowRemoveEventListener.call(window, 'unhandledrejection', this);
-        nativeMethods.windowAddEventListener.call(window, 'unhandledrejection', this);
+    _reattachHandler (window, eventName) {
+        nativeMethods.windowRemoveEventListener.call(window, eventName, this);
+        nativeMethods.windowAddEventListener.call(window, eventName, this);
     }
 
     static _formatUnhandledRejectionReason (reason) {
@@ -102,10 +101,19 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     handleEvent (event) {
-        if (event.type === 'unhandledrejection' && !event.defaultPrevented) {
+        if (event.defaultPrevented)
+            return;
+
+        if (event.type === 'unhandledrejection') {
             const reason = WindowSandbox._formatUnhandledRejectionReason(event.reason);
 
             this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, reason, this.window);
+        }
+        else if (event.type === 'error') {
+            if (event.message.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
+                event.preventDefault();
+            else
+                this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, event.message, window);
         }
     }
 
@@ -116,11 +124,17 @@ export default class WindowSandbox extends SandboxBase {
         const nodeSandbox    = this.nodeSandbox;
         const windowSandbox  = this;
 
-        this._reattachUnhandledRejectionHandler(window);
-        this.listenersSandbox.initElementListening(window, ['unhandledrejection']);
+        this._reattachHandler(window, 'unhandledrejection');
+        this._reattachHandler(window, 'error');
+        this.listenersSandbox.initElementListening(window, ['error', 'unhandledrejection']);
         this.listenersSandbox.on(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, e => {
-            if (e.el === window && e.eventType === 'unhandledrejection')
-                this._reattachUnhandledRejectionHandler(window);
+            if (e.el !== window)
+                return;
+
+            if (e.eventType === 'unhandledrejection')
+                this._reattachHandler(window, 'unhandledrejection');
+            else if (e.eventType === 'error')
+                this._reattachHandler(window, 'error');
         });
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
@@ -174,24 +188,6 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.objectAssign.apply(this, args);
             };
         }
-
-        // NOTE: Override uncaught error handling.
-        window.onerror = (msg, url, line, col, errObj) => {
-            // NOTE: Firefox raises the NS_ERROR_NOT_INITIALIZED exception after the window is removed from the dom.
-            if (msg.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
-                return true;
-
-            const originalOnErrorHandler = CodeInstrumentation.getOriginalErrorHandler(window);
-            const caught                 = originalOnErrorHandler &&
-                                           originalOnErrorHandler.call(window, msg, url, line, col, errObj) === true;
-
-            if (caught)
-                return true;
-
-            this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, msg, window);
-
-            return false;
-        };
 
         window.open = function () {
             const newArgs = [];
