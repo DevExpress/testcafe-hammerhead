@@ -106,7 +106,6 @@ module('getElementsByTagName', function () {
             shadowUI.addClass(textarea3, 'el');
             testDiv.appendChild(textarea1);
 
-
             var elements             = document.getElementsByTagName('*');
             var refreshNodeListCount = 0;
 
@@ -159,10 +158,22 @@ module('getElementsByTagName', function () {
 
             assertions.push([refreshNodeListCount, 3, "access after set element's innerHTML"]);
 
+            setProperty(testDiv.firstChild, 'outerHTML', '<span><b></b></span>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 4, "access after set element's outerHTML"]);
+
+            setProperty(testDiv.firstChild, 'innerText', '123');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 5, "access after set element's innerText"]);
+
             for (var i = 0; i < elements.length; i++)
                 elements[i];
 
-            assertions.push([refreshNodeListCount, 3, 'for loop']);
+            assertions.push([refreshNodeListCount, 5, 'for loop']);
 
             var newDiv = document.createElement('div');
 
@@ -171,7 +182,7 @@ module('getElementsByTagName', function () {
 
             elements[0];
 
-            assertions.push([refreshNodeListCount, 4, 'access after replaceChild']);
+            assertions.push([refreshNodeListCount, 6, 'access after replaceChild']);
 
             checkAssertions(assertions);
 
@@ -180,6 +191,7 @@ module('getElementsByTagName', function () {
 
         test('specified tagName', function () {
             var storedRefreshNodeListFn = WrapperInternalInfo.default.prototype.refreshNodeList;
+            var testDiv                 = document.querySelector(TEST_DIV_SELECTOR);
             var textarea1               = document.createElement('textarea');
             var input1                  = document.createElement('input');
             var assertions              = [];
@@ -224,6 +236,75 @@ module('getElementsByTagName', function () {
             elements[0];
 
             assertions.push([refreshNodeListCount, 2, 'replaceChild for tracking and non-tracking nodes']);
+
+            setProperty(testDiv, 'innerHTML', '<div><textarea></textarea></div>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 3, "access after set element's innerHTML"]);
+
+            setProperty(testDiv.firstChild, 'innerText', 'text');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 4, "access after set element's innerText"]);
+
+            setProperty(testDiv.firstChild, 'outerHTML', '<div></div>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 4, "access after set element's outerHTML without textarea"]);
+
+            setProperty(testDiv.firstChild, 'outerHTML', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 5, "access after set element's outerHTML with textarea"]);
+
+            var nativeDiv      = nativeMethods.createElement.call(document, 'div');
+            var nativeTextArea = nativeMethods.createElement.call(document, 'textarea');
+
+            nativeMethods.appendChild.call(nativeDiv, nativeTextArea);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 5, 'access when no changes']);
+
+            testDiv.appendChild(nativeDiv);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after element was added with another element']);
+
+            testDiv.removeChild(nativeDiv);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 7, 'access after element was removed with another element']);
+
+            testDiv.insertAdjacentHTML('beforebegin', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 8, 'access after element was added before begin text div']);
+
+            testDiv.insertAdjacentHTML('afterbegin', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 9, 'access after element was added after begin text div']);
+
+            testDiv.insertAdjacentHTML('beforeend', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 10, 'access after element was added before end text div']);
+
+            testDiv.insertAdjacentHTML('afterend', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 11, 'access after element was added after end text div']);
 
             checkAssertions(assertions);
 

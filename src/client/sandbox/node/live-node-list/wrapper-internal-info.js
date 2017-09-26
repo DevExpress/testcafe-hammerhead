@@ -11,7 +11,7 @@ export default class WrapperInternalInfo {
     constructor (nodeList, type, data) {
         this.nodeList         = nodeList;
         this.filteredNodeList = null;
-        this.version          = 0;
+        this.version          = -Infinity;
         this.data             = data;
         this.type             = type;
 

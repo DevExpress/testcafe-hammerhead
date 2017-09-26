@@ -34,15 +34,15 @@ export default class DocumentSandbox extends SandboxBase {
 
     _overridedDocumentWrite (args, ln) {
         const shouldEmitEvents = (this.readyStateForIE || this.document.readyState) !== 'loading' &&
-                               this.document.readyState !== 'uninitialized';
+                                 this.document.readyState !== 'uninitialized';
 
         if (shouldEmitEvents)
             this._beforeDocumentCleaned();
 
         const result = this.documentWriter.write(args, ln, shouldEmitEvents);
 
+        // NOTE: B234357
         if (!shouldEmitEvents)
-            // NOTE: B234357
             this.nodeSandbox.processNodes(null, this.document);
 
         return result;

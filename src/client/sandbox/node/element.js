@@ -355,14 +355,20 @@ export default class ElementSandbox extends SandboxBase {
                 return cell;
             },
 
-            insertAdjacentHTML () {
-                const html = arguments[1];
+            insertAdjacentHTML (...args) {
+                const position = args[0];
+                const html     = args[1];
 
-                if (arguments.length > 1 && html !== null)
-                    arguments[1] = processHtml('' + html, this.parentNode && this.parentNode.tagName);
+                if (args.length > 1 && html !== null)
+                    args[1] = processHtml('' + html, this.parentNode && this.parentNode.tagName);
 
-                nativeMethods.insertAdjacentHTML.apply(this, arguments);
+                nativeMethods.insertAdjacentHTML.apply(this, args);
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);
+
+                if (position === 'afterbegin' || position === 'beforeend')
+                    wrappersOutdatedInfo.onChildrenAddedOrRemoved(this);
+                else if (this.parentNode)
+                    wrappersOutdatedInfo.onChildrenAddedOrRemoved(this.parentNode);
             },
 
             formSubmit () {
