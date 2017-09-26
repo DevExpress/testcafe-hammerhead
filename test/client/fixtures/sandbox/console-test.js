@@ -1,6 +1,8 @@
 var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
+var browserUtils  = hammerhead.utils.browser;
+
 
 function wait (ms) {
     return new Promise(function (resolve) {
@@ -70,40 +72,42 @@ if (window.console && typeof window.console.log !== 'undefined') {
         hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
     });
 
-    test('`consoleMethCalled event` should be raised after document.write in an iframe', function () {
-        var lastMsg    = '';
-        var lastMeth   = '';
-        var testIframe = '';
+    if (!browserUtils.isIE && !browserUtils.isMSEdge) { //TODO: remove this with the #1326 issue fix.
+        test('`consoleMethCalled event` should be raised after document.write in an iframe', function () {
+            var lastMsg    = '';
+            var lastMeth   = '';
+            var testIframe = '';
 
-        hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
+            hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
 
-        function onConsoleMethCalled (e) {
-            lastMsg  = e.args[0];
-            lastMeth = e.meth;
-        }
+            function onConsoleMethCalled (e) {
+                lastMsg  = e.args[0];
+                lastMeth = e.meth;
+            }
 
-        return createTestIframe({ src: getSameDomainPageUrl('../../data/console-sandbox/iframe.html') })
-            .then(function (iframe) {
-                testIframe = iframe;
+            return createTestIframe({ src: getSameDomainPageUrl('../../data/console-sandbox/iframe.html') })
+                .then(function (iframe) {
+                    testIframe = iframe;
 
-                iframe.contentWindow.console.log('msg1');
+                    iframe.contentWindow.console.log('msg1');
 
-                return wait(50);
-            })
-            .then(function () {
-                equal(lastMsg, 'msg1');
-                equal(lastMeth, 'log');
+                    return wait(50);
+                })
+                .then(function () {
+                    equal(lastMsg, 'msg1');
+                    equal(lastMeth, 'log');
 
-                testIframe.contentDocument.write('<div>dummy</div>');
-                testIframe.contentWindow.console.info('msg2');
+                    testIframe.contentDocument.write('<div>dummy</div>');
+                    testIframe.contentWindow.console.info('msg2');
 
-                return wait(50);
-            })
-            .then(function () {
-                equal(lastMsg, 'msg2');
-                equal(lastMeth, 'info');
+                    return wait(50);
+                })
+                .then(function () {
+                    equal(lastMsg, 'msg2');
+                    equal(lastMeth, 'info');
 
-                hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
-            });
-    });
+                    hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
+                });
+        });
+    }
 }
