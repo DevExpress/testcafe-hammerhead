@@ -303,20 +303,20 @@ test('hammerhead should be initialized after the document.write call in iframe w
             var iframeAnchor   = iframeDocument.createElement('a');
 
             iframeDocument.body.appendChild(iframeAnchor);
-            iframeAnchor.setAttribute('href', '/page');
+            iframeAnchor.setAttribute('href', 'http://domain.com/page');
 
-            strictEqual(iframeAnchor.href, 'http://' + location.host + '/!i/http://origin_iframe_host/page');
+            strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/page');
             notEqual(iframe.contentDocument.write.toString(), stringifiedNativeWriteFn, 'before write');
 
-            iframe.contentDocument.write('<a href="/link">');
+            iframe.contentDocument.write('<a href="http://domain.com/link">');
 
             iframeAnchor = iframe.contentDocument.body.firstChild;
 
-            strictEqual(iframeAnchor.href, 'http://' + location.host + '/!i/http://origin_iframe_host/link');
+            strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/link');
             notEqual(iframe.contentDocument.write.toString(), stringifiedNativeWriteFn, 'after write');
 
-            iframeAnchor.setAttribute('href', '/page');
-            strictEqual(iframeAnchor.href, 'http://' + location.host + '/!i/http://origin_iframe_host/page');
+            iframeAnchor.setAttribute('href', 'http://domain.com/page');
+            strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/page');
         });
 });
 
