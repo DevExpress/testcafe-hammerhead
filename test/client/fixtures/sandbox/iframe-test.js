@@ -297,8 +297,6 @@ test("'body.appendChild' method works incorrectly in the particular case (GH-421
 test('hammerhead should be initialized after the document.write call in iframe with same-domain src (GH-1325)', function () {
     return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
         .then(function (iframe) {
-            var stringifiedNativeWriteFn = nativeMethods.documentWrite.toString();
-
             var iframeDocument = iframe.contentDocument;
             var iframeAnchor   = iframeDocument.createElement('a');
 
@@ -306,14 +304,12 @@ test('hammerhead should be initialized after the document.write call in iframe w
             iframeAnchor.setAttribute('href', 'http://domain.com/page');
 
             strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/page');
-            notEqual(iframe.contentDocument.write.toString(), stringifiedNativeWriteFn, 'before write');
 
             iframe.contentDocument.write('<a href="http://domain.com/link">');
 
             iframeAnchor = iframe.contentDocument.body.firstChild;
 
             strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/link');
-            notEqual(iframe.contentDocument.write.toString(), stringifiedNativeWriteFn, 'after write');
 
             iframeAnchor.setAttribute('href', 'http://domain.com/page');
             strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/page');
