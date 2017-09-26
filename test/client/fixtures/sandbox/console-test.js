@@ -1,4 +1,11 @@
+var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
+
+function wait (ms) {
+    return new Promise(function (resolve) {
+        window.setTimeout(resolve, ms);
+    });
+}
 
 if (window.console && typeof window.console.log !== 'undefined') {
     test('consoleMethCalled event', function () {
@@ -24,10 +31,12 @@ if (window.console && typeof window.console.log !== 'undefined') {
             info:  addToLog
         };
 
-        hammerhead.on(hammerhead.EVENTS.consoleMethCalled, function (e) {
+        function onConsoleMethCalled (e) {
             handledConsoleMethodNames.push(e.meth);
             handledConsoleMethodArgs = handledConsoleMethodArgs.concat(Array.prototype.slice.call(e.args));
-        });
+        }
+
+        hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
 
         /* eslint-disable no-console */
         window.console.log(1, 2);
@@ -46,17 +55,44 @@ if (window.console && typeof window.console.log !== 'undefined') {
             error: originMethods.error,
             info:  originMethods.info
         };
+
+        hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
     });
 
-    test('`consoleMethCalled event` should be raised after document.write', function () {
+    test('`consoleMethCalled event` should be raised after document.write in an iframe', function () {
+        var lastMsg    = '';
+        var lastMeth   = '';
+        var testIframe = '';
+
+        hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
+
+        function onConsoleMethCalled (e) {
+            lastMsg  = e.args[0];
+            lastMeth = e.meth;
+        }
+
         return createTestIframe({ src: getSameDomainPageUrl('../../data/console-sandbox/iframe.html') })
             .then(function (iframe) {
-                var iframeWindow = iframe.contentWindow;
+                testIframe = iframe;
 
-                iframeWindow.document.write('<div>dummy</div>');
-                iframeWindow.console.log('consoleMsg');
+                iframe.contentWindow.console.log('msg1');
 
-                equal(iframeWindow.consoleMsg, 'consoleMsg');
+                return wait(50);
+            })
+            .then(function () {
+                equal(lastMsg, 'msg1');
+                equal(lastMeth, 'log');
+
+                testIframe.contentDocument.write('<div>dummy</div>');
+                testIframe.contentWindow.console.info('msg2');
+
+                return wait(50);
+            })
+            .then(function () {
+                equal(lastMsg, 'msg2');
+                equal(lastMeth, 'info');
+
+                hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
             });
     });
 }

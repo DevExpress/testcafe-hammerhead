@@ -52,7 +52,7 @@ export default class Sandbox extends SandboxBase {
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox, liveNodeListFactory);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, liveNodeListFactory);
-        this.console             = new ConsoleSandbox();
+        this.console             = new ConsoleSandbox(messageSandbox);
 
         if (isElectron)
             this.electron = new ElectronSandbox();
