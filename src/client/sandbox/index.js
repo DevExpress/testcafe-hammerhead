@@ -18,6 +18,7 @@ import XhrSandbox from './xhr';
 import FetchSandbox from './fetch';
 import StorageSandbox from './storages';
 import ElectronSandbox from './electron';
+import ConsoleSandbox from './console';
 import { isIE, isWebKit, isElectron } from '../utils/browser';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
@@ -51,6 +52,7 @@ export default class Sandbox extends SandboxBase {
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox, liveNodeListFactory);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, liveNodeListFactory);
+        this.console             = new ConsoleSandbox(messageSandbox);
 
         if (isElectron)
             this.electron = new ElectronSandbox();
@@ -173,6 +175,7 @@ export default class Sandbox extends SandboxBase {
         // NOTE: T182337
         this.codeInstrumentation.attach(window);
         this.node.doc.attach(window, document);
+        this.console.attach(window);
 
         this._restoreDocumentMethodsFromProto(document);
     }
@@ -198,6 +201,7 @@ export default class Sandbox extends SandboxBase {
         this.node.attach(window);
         this.upload.attach(window);
         this.cookie.attach(window);
+        this.console.attach(window);
 
         if (this.electron)
             this.electron.attach(window);
