@@ -1,5 +1,4 @@
 import zlib from 'zlib';
-import iltorb from 'iltorb';
 import charsetEncoder from 'iconv-lite';
 import promisify from '../../utils/promisify';
 
@@ -8,9 +7,6 @@ const deflate    = promisify(zlib.deflate);
 const gunzip     = promisify(zlib.gunzip);
 const inflate    = promisify(zlib.inflate);
 const inflateRaw = promisify(zlib.inflateRaw);
-
-const compressBrotli   = promisify(iltorb.compress);
-const decompressBrotli = promisify(iltorb.decompress);
 
 const GZIP_CONTENT_ENCODING    = 'gzip';
 const DEFLATE_CONTENT_ENCODING = 'deflate';
@@ -38,7 +34,7 @@ export async function decodeContent (content, encoding, charset) {
         content = await inflateWithFallback(content);
 
     else if (encoding === BROTLI_CONTENT_ENCODING)
-        content = await decompressBrotli(content);
+        content = new Buffer(require('brotli').decompress(content));
 
     charset.fromBOM(content);
 
@@ -55,7 +51,7 @@ export async function encodeContent (content, encoding, charset) {
         return deflate(content);
 
     if (encoding === BROTLI_CONTENT_ENCODING)
-        return compressBrotli(content);
+        return new Buffer(require('brotli').compress(content));
 
     return content;
 }
