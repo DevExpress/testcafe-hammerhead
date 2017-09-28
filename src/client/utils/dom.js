@@ -745,14 +745,14 @@ export function parseDocumentCharset () {
 }
 
 export function getParents (el, selector) {
-    let parent  = el.parentNode;
+    let parent  = el.parentNode || el.host;
     const parents = [];
 
     while (parent) {
         if (isElementNode(parent) && !selector || selector && matches(parent, selector))
             parents.push(parent);
 
-        parent = parent.parentNode;
+        parent = parent.parentNode || parent.host;
     }
 
     return parents;
