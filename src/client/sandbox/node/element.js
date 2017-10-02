@@ -17,7 +17,7 @@ import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
 import ShadowUI from '../shadow-ui';
-import wrappersOutdatedInfo from './live-node-list/wrappers-outdated-info';
+import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -366,9 +366,9 @@ export default class ElementSandbox extends SandboxBase {
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);
 
                 if (position === 'afterbegin' || position === 'beforeend')
-                    wrappersOutdatedInfo.onChildrenAddedOrRemoved(this);
+                    DOMMutationTracker.onChildrenAddedOrRemoved(this);
                 else if (this.parentNode)
-                    wrappersOutdatedInfo.onChildrenAddedOrRemoved(this.parentNode);
+                    DOMMutationTracker.onChildrenAddedOrRemoved(this.parentNode);
             },
 
             formSubmit () {
@@ -423,8 +423,8 @@ export default class ElementSandbox extends SandboxBase {
                 const result = nativeMethods.replaceChild.apply(this, arguments);
 
                 sandbox._onAddFileInputInfo(newChild);
-                wrappersOutdatedInfo.onElementAddedOrRemoved(newChild);
-                wrappersOutdatedInfo.onElementAddedOrRemoved(oldChild);
+                DOMMutationTracker.onElementAddedOrRemoved(newChild);
+                DOMMutationTracker.onElementAddedOrRemoved(oldChild);
 
                 return result;
             },
@@ -600,7 +600,7 @@ export default class ElementSandbox extends SandboxBase {
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
 
-        wrappersOutdatedInfo.onElementAddedOrRemoved(el);
+        DOMMutationTracker.onElementAddedOrRemoved(el);
     }
 
     _onElementRemoved (el) {
@@ -610,7 +610,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        wrappersOutdatedInfo.onElementAddedOrRemoved(el);
+        DOMMutationTracker.onElementAddedOrRemoved(el);
     }
 
     addFileInputInfo (el) {

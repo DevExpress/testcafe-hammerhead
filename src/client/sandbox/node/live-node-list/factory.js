@@ -1,6 +1,5 @@
 import { LiveNodeListWrapperBase, htmlCollectionWrapperBase, nodeListWrapperBase } from './wrapper-base';
 import LiveNodeListWrapper from './wrapper';
-import { TAG_TYPE/*, CLASS_TYPE, NAME_TYPE*/ } from './wrapper-internal-info';
 
 export default class LiveNodeListFactory {
     static _createLiveNodeListWrapper (nodeList, type, data) {
@@ -21,8 +20,6 @@ export default class LiveNodeListFactory {
         if (typeof tagName !== 'string')
             return nodeList;
 
-        const wrapper = LiveNodeListFactory._createLiveNodeListWrapper(nodeList, TAG_TYPE, tagName.toLowerCase());
-
-        return wrapper;
+        return LiveNodeListFactory._createLiveNodeListWrapper(nodeList, tagName.toLowerCase());
     }
 }

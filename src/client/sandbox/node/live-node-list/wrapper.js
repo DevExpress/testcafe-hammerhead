@@ -1,10 +1,10 @@
 import nativeMethods from '../../native-methods';
 import { isShadowUIElement } from '../../../utils/dom';
-import WrapperInternalInfo from './wrapper-internal-info';
+import WrapperStateManager from './wrapper-state-manager';
 
 export default class LiveNodeListWrapper {
-    constructor (nodeList, type, data) {
-        const internalInfo = new WrapperInternalInfo(nodeList, type, data);
+    constructor (nodeList, tagName) {
+        const internalInfo = new WrapperStateManager(nodeList, tagName);
 
         nativeMethods.objectDefineProperties.call(window.Object, this, {
             item: {
