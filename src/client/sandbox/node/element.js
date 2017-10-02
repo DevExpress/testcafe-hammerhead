@@ -366,9 +366,9 @@ export default class ElementSandbox extends SandboxBase {
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);
 
                 if (position === 'afterbegin' || position === 'beforeend')
-                    DOMMutationTracker.onChildrenAddedOrRemoved(this);
+                    DOMMutationTracker.onChildrenChanged(this);
                 else if (this.parentNode)
-                    DOMMutationTracker.onChildrenAddedOrRemoved(this.parentNode);
+                    DOMMutationTracker.onChildrenChanged(this.parentNode);
             },
 
             formSubmit () {
@@ -423,8 +423,8 @@ export default class ElementSandbox extends SandboxBase {
                 const result = nativeMethods.replaceChild.apply(this, arguments);
 
                 sandbox._onAddFileInputInfo(newChild);
-                DOMMutationTracker.onElementAddedOrRemoved(newChild);
-                DOMMutationTracker.onElementAddedOrRemoved(oldChild);
+                DOMMutationTracker.onElementChanged(newChild);
+                DOMMutationTracker.onElementChanged(oldChild);
 
                 return result;
             },
@@ -600,7 +600,7 @@ export default class ElementSandbox extends SandboxBase {
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
 
-        DOMMutationTracker.onElementAddedOrRemoved(el);
+        DOMMutationTracker.onElementChanged(el);
     }
 
     _onElementRemoved (el) {
@@ -610,7 +610,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        DOMMutationTracker.onElementAddedOrRemoved(el);
+        DOMMutationTracker.onElementChanged(el);
     }
 
     addFileInputInfo (el) {

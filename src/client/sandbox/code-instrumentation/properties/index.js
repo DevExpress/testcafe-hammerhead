@@ -93,7 +93,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     static _setTextProp (el, propName, text) {
         const processedText = text !== null && text !== void 0 ? String(text) : text;
 
-        DOMMutationTracker.onChildrenAddedOrRemoved(el);
+        DOMMutationTracker.onChildrenChanged(el);
 
         if (processedText) {
             if (domUtils.isScriptElement(el))
@@ -340,11 +340,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                             processedValue = processHtml(processedValue, el.tagName);
                     }
 
-                    DOMMutationTracker.onChildrenAddedOrRemoved(el);
+                    DOMMutationTracker.onChildrenChanged(el);
 
                     el.innerHTML = processedValue;
 
-                    DOMMutationTracker.onChildrenAddedOrRemoved(el);
+                    DOMMutationTracker.onChildrenChanged(el);
 
                     if (this.document.body === el) {
                         const shadowUIRoot = this.shadowUI.getRoot();
@@ -417,7 +417,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, value) => {
                     const parentEl = el.parentNode;
 
-                    DOMMutationTracker.onElementAddedOrRemoved(el);
+                    DOMMutationTracker.onElementChanged(el);
 
                     if (parentEl && value !== null && value !== void 0) {
                         const parentDocument = domUtils.findDocument(parentEl);
@@ -425,7 +425,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                         el.outerHTML = processHtml('' + value, parentEl.tagName);
 
-                        DOMMutationTracker.onChildrenAddedOrRemoved(parentEl);
+                        DOMMutationTracker.onChildrenChanged(parentEl);
 
                         // NOTE: For the iframe with an empty src.
                         if (parentWindow && parentWindow !== window &&

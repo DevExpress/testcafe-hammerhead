@@ -1,12 +1,13 @@
 import nativeMethods from '../../native-methods';
-import { getTagName, isDocumentFragmentNode, isShadowUIElement } from '../../../utils/dom';
+import { getTagName, isShadowUIElement } from '../../../utils/dom';
+import getNativeQuerySelectorAll from '../../../utils/get-native-query-selector-all';
 
 const MAX_SAFE_INTEGER = Math.pow(2, 53) - 1;
 const MIN_SAFE_INTEGER = -MAX_SAFE_INTEGER;
 
 class DOMMutationTracker {
     constructor () {
-        this._tags               = nativeMethods.objectCreate.call(window.Object, null);
+        this._mutations          = nativeMethods.objectCreate.call(window.Object, null);
         this._isDomContentLoaded = false;
 
         nativeMethods.addEventListener.call(document, 'DOMContentLoaded', () => {
@@ -15,14 +16,14 @@ class DOMMutationTracker {
     }
 
     _updateVersion (tagName) {
-        if (tagName in this._tags) {
-            if (this._tags[tagName] === MAX_SAFE_INTEGER)
-                this._tags[tagName] = MIN_SAFE_INTEGER;
+        if (tagName in this._mutations) {
+            if (this._mutations[tagName] === MAX_SAFE_INTEGER)
+                this._mutations[tagName] = MIN_SAFE_INTEGER;
             else
-                ++this._tags[tagName];
+                ++this._mutations[tagName];
         }
         else
-            this._tags[tagName] = MIN_SAFE_INTEGER;
+            this._mutations[tagName] = MIN_SAFE_INTEGER;
     }
 
     _processElement (el) {
@@ -35,35 +36,30 @@ class DOMMutationTracker {
         this._updateVersion(tagName);
     }
 
-    _processAllChildren (el) {
+    _processChildren (el) {
         if (!el.querySelectorAll)
             return;
 
-        let children;
-
-        if (isDocumentFragmentNode(el))
-            children = nativeMethods.documentFragmentQuerySelectorAll.call(el, '*');
-        else
-            children = nativeMethods.elementQuerySelectorAll.call(el, '*');
+        const children = getNativeQuerySelectorAll(el).call(el, '*');
 
         for (const child of children)
             this._processElement(child);
     }
 
-    onElementAddedOrRemoved (el) {
+    onElementChanged (el) {
         this._processElement(el);
-        this._processAllChildren(el);
+        this._processChildren(el);
     }
 
-    onChildrenAddedOrRemoved (el) {
-        this._processAllChildren(el);
+    onChildrenChanged (el) {
+        this._processChildren(el);
     }
 
-    isWrapperOutdated (tagName, version) {
+    isOutdated (tagName, version) {
         if (!this._isDomContentLoaded)
             return true;
 
-        const lastVersion = this._tags[tagName];
+        const lastVersion = this._mutations[tagName];
 
         if (typeof lastVersion === 'number')
             return version < lastVersion;
@@ -74,7 +70,7 @@ class DOMMutationTracker {
     }
 
     getVersion (tagName) {
-        return this._tags[tagName];
+        return this._mutations[tagName];
     }
 }
 
