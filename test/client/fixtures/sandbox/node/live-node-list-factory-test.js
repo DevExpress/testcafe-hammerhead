@@ -1,6 +1,6 @@
 /*eslint-disable no-unused-expressions*/
-var WrapperStateManager = hammerhead.get('./sandbox/node/live-node-list/wrapper-state-manager');
-var DOMMutationTracker  = hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker');
+var WrapperState       = hammerhead.get('./sandbox/node/live-node-list/wrapper-state');
+var DOMMutationTracker = hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var nativeMethods = hammerhead.nativeMethods;
@@ -91,7 +91,7 @@ module('getElementsByTagName', function () {
         });
 
         test('"*" tagName', function () {
-            var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeListIfNecessary;
+            var storedRefreshNodeListFn = WrapperState.prototype.refreshNodeListIfNecessary;
             var testDiv                 = document.querySelector(TEST_DIV_SELECTOR);
             var root                    = shadowUI.getRoot();
             var textarea1               = document.createElement('textarea');
@@ -109,7 +109,7 @@ module('getElementsByTagName', function () {
             var elements             = document.getElementsByTagName('*');
             var refreshNodeListCount = 0;
 
-            WrapperStateManager.prototype.refreshNodeListIfNecessary = function () {
+            WrapperState.prototype.refreshNodeListIfNecessary = function () {
                 var storedFilteredNodeList = this.filteredNodeList;
 
                 storedRefreshNodeListFn.apply(this, arguments);
@@ -192,11 +192,11 @@ module('getElementsByTagName', function () {
 
             checkAssertions(assertions);
 
-            WrapperStateManager.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
+            WrapperState.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
         });
 
         test('specified tagName', function () {
-            var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeListIfNecessary;
+            var storedRefreshNodeListFn = WrapperState.prototype.refreshNodeListIfNecessary;
             var testDiv                 = document.querySelector(TEST_DIV_SELECTOR);
             var textarea1               = document.createElement('textarea');
             var input1                  = document.createElement('input');
@@ -210,7 +210,7 @@ module('getElementsByTagName', function () {
             var elements             = document.body.getElementsByTagName('textarea');
             var refreshNodeListCount = 0;
 
-            WrapperStateManager.prototype.refreshNodeListIfNecessary = function () {
+            WrapperState.prototype.refreshNodeListIfNecessary = function () {
                 var storedFilteredNodeList = this.filteredNodeList;
 
                 storedRefreshNodeListFn.apply(this, arguments);
@@ -314,7 +314,7 @@ module('getElementsByTagName', function () {
 
             checkAssertions(assertions);
 
-            WrapperStateManager.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
+            WrapperState.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
         });
     });
 });

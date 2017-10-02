@@ -20,7 +20,7 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var WrapperStateManager = hammerhead.get('./sandbox/node/live-node-list/wrapper-state-manager');
+    var WrapperState = hammerhead.get('./sandbox/node/live-node-list/wrapper-state');
 
     var testDiv = document.createElement('div');
 
@@ -37,9 +37,9 @@
     testDiv.appendChild(textarea2);
 
     var elements                = document.getElementsByTagName('textarea');
-    var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeListIfNecessary;
+    var storedRefreshNodeListFn = WrapperState.prototype.refreshNodeListIfNecessary;
 
-    WrapperStateManager.prototype.refreshNodeListIfNecessary = function () {
+    WrapperState.prototype.refreshNodeListIfNecessary = function () {
         var storedFilteredNodeList = this.filteredNodeList;
 
         storedRefreshNodeListFn.apply(this, arguments);

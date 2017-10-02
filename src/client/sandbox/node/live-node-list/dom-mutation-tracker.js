@@ -22,8 +22,6 @@ class DOMMutationTracker {
             else
                 ++this._mutations[tagName];
         }
-        else
-            this._mutations[tagName] = MIN_SAFE_INTEGER;
     }
 
     _processElement (el) {
@@ -59,14 +57,14 @@ class DOMMutationTracker {
         if (!this._isDomContentLoaded)
             return true;
 
+        const isTagTracked = tagName in this._mutations;
+
+        if (!isTagTracked)
+            this._mutations[tagName] = MIN_SAFE_INTEGER;
+
         const lastVersion = this._mutations[tagName];
 
-        if (typeof lastVersion === 'number')
-            return version < lastVersion;
-
-        this._updateVersion(tagName);
-
-        return true;
+        return version < lastVersion;
     }
 
     getVersion (tagName) {

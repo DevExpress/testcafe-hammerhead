@@ -3,7 +3,7 @@ import { isShadowUIElement } from '../../../utils/dom';
 
 const arrayFilter = Array.prototype.filter;
 
-export default class WrapperStateManager {
+export default class WrapperState {
     constructor (nodeList, tagName) {
         this.nodeList         = nodeList;
         this.filteredNodeList = null;
