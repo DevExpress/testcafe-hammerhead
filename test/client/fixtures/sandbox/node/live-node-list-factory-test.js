@@ -91,7 +91,7 @@ module('getElementsByTagName', function () {
         });
 
         test('"*" tagName', function () {
-            var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeList;
+            var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeListIfNecessary;
             var testDiv                 = document.querySelector(TEST_DIV_SELECTOR);
             var root                    = shadowUI.getRoot();
             var textarea1               = document.createElement('textarea');
@@ -109,7 +109,7 @@ module('getElementsByTagName', function () {
             var elements             = document.getElementsByTagName('*');
             var refreshNodeListCount = 0;
 
-            WrapperStateManager.prototype.refreshNodeList = function () {
+            WrapperStateManager.prototype.refreshNodeListIfNecessary = function () {
                 var storedFilteredNodeList = this.filteredNodeList;
 
                 storedRefreshNodeListFn.apply(this, arguments);
@@ -186,11 +186,11 @@ module('getElementsByTagName', function () {
 
             checkAssertions(assertions);
 
-            WrapperStateManager.prototype.refreshNodeList = storedRefreshNodeListFn;
+            WrapperStateManager.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
         });
 
         test('specified tagName', function () {
-            var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeList;
+            var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeListIfNecessary;
             var testDiv                 = document.querySelector(TEST_DIV_SELECTOR);
             var textarea1               = document.createElement('textarea');
             var input1                  = document.createElement('input');
@@ -204,7 +204,7 @@ module('getElementsByTagName', function () {
             var elements             = document.body.getElementsByTagName('textarea');
             var refreshNodeListCount = 0;
 
-            WrapperStateManager.prototype.refreshNodeList = function () {
+            WrapperStateManager.prototype.refreshNodeListIfNecessary = function () {
                 var storedFilteredNodeList = this.filteredNodeList;
 
                 storedRefreshNodeListFn.apply(this, arguments);
@@ -308,7 +308,7 @@ module('getElementsByTagName', function () {
 
             checkAssertions(assertions);
 
-            WrapperStateManager.prototype.refreshNodeList = storedRefreshNodeListFn;
+            WrapperStateManager.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
         });
     });
 });

@@ -10,10 +10,10 @@ export default class WrapperStateManager {
         this.version          = -Infinity;
         this.tagName          = tagName;
 
-        this.refreshNodeList();
+        this.refreshNodeListIfNecessary();
     }
 
-    refreshNodeList () {
+    refreshNodeListIfNecessary () {
         if (DOMMutationTracker.isOutdated(this.tagName, this.version)) {
             this.filteredNodeList = arrayFilter.call(this.nodeList, element => !isShadowUIElement(element));
             this.version          = DOMMutationTracker.getVersion(this.tagName);

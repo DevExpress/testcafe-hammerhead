@@ -4,20 +4,20 @@ import WrapperStateManager from './wrapper-state-manager';
 
 export default class LiveNodeListWrapper {
     constructor (nodeList, tagName) {
-        const internalInfo = new WrapperStateManager(nodeList, tagName);
+        const state = new WrapperStateManager(nodeList, tagName);
 
         nativeMethods.objectDefineProperties.call(window.Object, this, {
             item: {
                 value: index => {
-                    internalInfo.refreshNodeList();
+                    state.refreshNodeListIfNecessary();
 
-                    return internalInfo.filteredNodeList[index];
+                    return state.filteredNodeList[index];
                 }
             },
 
             namedItem: {
-                value: internalInfo.nodeList.namedItem ? (...args) => {
-                    const findNamedItem = internalInfo.nodeList.namedItem.apply(internalInfo.nodeList, args);
+                value: state.nodeList.namedItem ? (...args) => {
+                    const findNamedItem = state.nodeList.namedItem.apply(state.nodeList, args);
 
                     return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
                 } : void 0
@@ -25,9 +25,9 @@ export default class LiveNodeListWrapper {
 
             length: {
                 get: () => {
-                    internalInfo.refreshNodeList();
+                    state.refreshNodeListIfNecessary();
 
-                    return internalInfo.filteredNodeList.length;
+                    return state.filteredNodeList.length;
                 }
             }
         });

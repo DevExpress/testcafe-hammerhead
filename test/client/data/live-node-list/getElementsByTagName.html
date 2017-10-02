@@ -37,9 +37,9 @@
     testDiv.appendChild(textarea2);
 
     var elements                = document.getElementsByTagName('textarea');
-    var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeList;
+    var storedRefreshNodeListFn = WrapperStateManager.prototype.refreshNodeListIfNecessary;
 
-    WrapperStateManager.prototype.refreshNodeList = function () {
+    WrapperStateManager.prototype.refreshNodeListIfNecessary = function () {
         var storedFilteredNodeList = this.filteredNodeList;
 
         storedRefreshNodeListFn.apply(this, arguments);

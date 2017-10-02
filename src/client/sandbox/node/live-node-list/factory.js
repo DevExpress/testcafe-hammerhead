@@ -2,7 +2,7 @@ import { LiveNodeListWrapperBase, htmlCollectionWrapperBase, nodeListWrapperBase
 import LiveNodeListWrapper from './wrapper';
 
 export default class LiveNodeListFactory {
-    static _createLiveNodeListWrapper (nodeList, type, data) {
+    static _createLiveNodeListWrapper (nodeList, tagName) {
         if (nodeList instanceof NodeList)
             LiveNodeListWrapper.prototype = nodeListWrapperBase;
         else if (nodeList instanceof HTMLCollection)
@@ -13,7 +13,7 @@ export default class LiveNodeListFactory {
             LiveNodeListWrapper.prototype     = new LiveNodeListWrapperBase();
         }
 
-        return new LiveNodeListWrapper(nodeList, type, data);
+        return new LiveNodeListWrapper(nodeList, tagName);
     }
 
     static createNodeListForGetElementsByTagNameFn ({ nodeList, tagName }) {
