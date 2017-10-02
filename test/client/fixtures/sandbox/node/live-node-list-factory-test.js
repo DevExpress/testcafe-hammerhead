@@ -184,6 +184,12 @@ module('getElementsByTagName', function () {
 
             assertions.push([refreshNodeListCount, 6, 'access after replaceChild']);
 
+            testDiv.appendChild(document.createTextNode('text'));
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after text node was added']);
+
             checkAssertions(assertions);
 
             WrapperStateManager.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
