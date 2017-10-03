@@ -22,6 +22,10 @@ const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
 const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+const arraySlice = Array.prototype.slice;
+
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox, liveNodeListFactory) {
         super();
@@ -292,6 +296,37 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
+    _insertNodeCore (parentNode, args, nativeFn, needToCheckThatBodyElIsPresent) {
+        const newNode = args[0];
+
+        this._prepareNodeForInsertion(newNode, parentNode);
+
+        let result   = null;
+        let children = null;
+
+        if (domUtils.isDocumentFragmentNode(newNode))
+            children = arraySlice.call(newNode.children);
+
+        // NOTE: Before the page's <body> is processed and added to DOM,
+        // some javascript frameworks create their own body element, perform
+        // certain manipulations and then remove it.
+        // Therefore, we need to check if the body element is present in DOM
+        if (needToCheckThatBodyElIsPresent && domUtils.isBodyElementWithChildren(parentNode) &&
+            domUtils.isElementInDocument(parentNode))
+            result = this.shadowUI.insertBeforeRoot(newNode);
+        else
+            result = nativeFn.apply(parentNode, args);
+
+        if (children) {
+            for (const child of children)
+                this._onElementAdded(parentNode, child);
+        }
+        else
+            this._onElementAdded(parentNode, newNode);
+
+        return result;
+    }
+
     _prepareNodeForInsertion (node, parentNode) {
         if (domUtils.isTextNode(node))
             ElementSandbox._processTextNodeContent(node, parentNode);
@@ -338,47 +373,12 @@ export default class ElementSandbox extends SandboxBase {
                 return nativeMethods.formSubmit.apply(this, arguments);
             },
 
-            insertBefore () {
-                const newNode = arguments[0];
-                const refNode = arguments[1];
-
-                sandbox._prepareNodeForInsertion(newNode, this);
-
-                let result = null;
-
-                // NOTE: Before the page's <body> is processed and added to DOM,
-                // some javascript frameworks create their own body element, perform
-                // certain manipulations and then remove it.
-                // Therefore, we need to check if the body element is present in DOM
-                if (domUtils.isBodyElementWithChildren(this) && !refNode && domUtils.isElementInDocument(this))
-                    result = sandbox.shadowUI.insertBeforeRoot(newNode);
-                else
-                    result = nativeMethods.insertBefore.apply(this, arguments);
-
-                sandbox._onElementAdded(newNode);
-
-                return result;
+            insertBefore (...args) {
+                return sandbox._insertNodeCore(this, args, nativeMethods.insertBefore, !args[1]);
             },
 
-            appendChild () {
-                const child = arguments[0];
-
-                sandbox._prepareNodeForInsertion(child, this);
-
-                let result = null;
-
-                // NOTE: Before the page's <body> is processed and added to DOM,
-                // some javascript frameworks create their own body element, perform
-                // certain manipulations and then remove it.
-                // Therefore, we need to check if the body element is present in DOM
-                if (domUtils.isBodyElementWithChildren(this) && domUtils.isElementInDocument(this))
-                    result = sandbox.shadowUI.insertBeforeRoot(child);
-                else
-                    result = nativeMethods.appendChild.apply(this, arguments);
-
-                sandbox._onElementAdded(child);
-
-                return result;
+            appendChild (...args) {
+                return sandbox._insertNodeCore(this, args, nativeMethods.appendChild, true);
             },
 
             removeChild () {
@@ -548,7 +548,7 @@ export default class ElementSandbox extends SandboxBase {
             windowsStorage.remove(el.contentWindow);
     }
 
-    _onElementAdded (el) {
+    _onElementAdded (parentNode, el) {
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
 
@@ -575,8 +575,12 @@ export default class ElementSandbox extends SandboxBase {
             urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
 
-        if (domUtils.isScriptElement(el))
-            this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el });
+        if (domUtils.isElementInDocument(parentNode)) {
+            const scripts = domUtils.getScripts(el);
+
+            for (const script of scripts)
+                this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el: script });
+        }
 
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
             ShadowUI.markElementAndChildrenAsShadow(el);
