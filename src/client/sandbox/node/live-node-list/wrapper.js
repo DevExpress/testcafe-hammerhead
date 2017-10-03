@@ -15,14 +15,6 @@ export default class LiveNodeListWrapper {
                 }
             },
 
-            namedItem: {
-                value: state.nodeList.namedItem ? (...args) => {
-                    const findNamedItem = state.nodeList.namedItem.apply(state.nodeList, args);
-
-                    return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
-                } : void 0
-            },
-
             length: {
                 get: () => {
                     state.refreshNodeListIfNecessary();
@@ -31,5 +23,15 @@ export default class LiveNodeListWrapper {
                 }
             }
         });
+
+        if (state.nodeList.namedItem) {
+            nativeMethods.objectDefineProperty.call(window.Object, this, 'namedItem', {
+                value: (...args) => {
+                    const findNamedItem = state.nodeList.namedItem.apply(state.nodeList, args);
+
+                    return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
+                }
+            });
+        }
     }
 }

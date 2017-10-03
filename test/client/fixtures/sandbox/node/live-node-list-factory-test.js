@@ -190,6 +190,14 @@ module('getElementsByTagName', function () {
 
             assertions.push([refreshNodeListCount, 6, 'access after text node was added']);
 
+            var fragment = document.createDocumentFragment();
+
+            testDiv.appendChild(fragment);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after empty fragment was added']);
+
             checkAssertions(assertions);
 
             WrapperState.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;

@@ -12,8 +12,7 @@ import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const arraySlice  = Array.prototype.slice;
-const arrayFilter = Array.prototype.filter;
+const arraySlice = Array.prototype.slice;
 
 let scrollbarSize = null;
 
@@ -737,17 +736,6 @@ export function hasClass (el, className) {
         return el.classList.contains(className);
 
     return hasClassFallback(el, className);
-}
-
-export function getClassList (el) {
-    if (!el.classList) {
-        if (typeof el.className === 'string')
-            return arrayFilter.call(el.className.split(' '), className => className);
-
-        return [];
-    }
-
-    return el.classList;
 }
 
 export function parseDocumentCharset () {
