@@ -551,11 +551,15 @@ export default class ElementSandbox extends SandboxBase {
     _onElementAdded (parentNode, el) {
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
+            const scripts = domUtils.getScripts(el);
 
             for (const iframe of iframes) {
                 this.onIframeAddedToDOM(iframe);
                 windowsStorage.add(iframe.contentWindow);
             }
+
+            for (const script of scripts)
+                this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el: script });
         }
 
         // NOTE: recalculate `formaction` attribute value if it placed in the dom
@@ -573,13 +577,6 @@ export default class ElementSandbox extends SandboxBase {
             const storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
             urlResolver.updateBase(storedHrefAttrValue, this.document);
-        }
-
-        if (domUtils.isElementInDocument(parentNode)) {
-            const scripts = domUtils.getScripts(el);
-
-            for (const script of scripts)
-                this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el: script });
         }
 
         if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
