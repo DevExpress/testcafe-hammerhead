@@ -198,6 +198,26 @@ module('getElementsByTagName', function () {
 
             assertions.push([refreshNodeListCount, 6, 'access after empty fragment was added']);
 
+            fragment.appendChild(document.createElement('div'));
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after div was added to fragment']);
+
+            testDiv.appendChild(fragment);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 7, 'access after fragment with div was added']);
+
+            var div = document.createElement('div');
+
+            div.appendChild(document.createElement('span'));
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 7, 'access after span was added to div which is not located in document']);
+
             checkAssertions(assertions);
 
             WrapperState.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;

@@ -31,11 +31,11 @@ export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {
         super();
 
-        this.nodeSandbox         = nodeSandbox;
-        this.shadowUI            = shadowUI;
-        this.uploadSandbox       = uploadSandbox;
-        this.iframeSandbox       = iframeSandbox;
-        this.eventSandbox        = eventSandbox;
+        this.nodeSandbox   = nodeSandbox;
+        this.shadowUI      = shadowUI;
+        this.uploadSandbox = uploadSandbox;
+        this.iframeSandbox = iframeSandbox;
+        this.eventSandbox  = eventSandbox;
 
         this.overridedMethods = null;
 
@@ -566,6 +566,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _onElementAdded (el) {
+        if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
+            ShadowUI.markElementAndChildrenAsShadow(el);
+
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
 
@@ -578,6 +581,8 @@ export default class ElementSandbox extends SandboxBase {
 
             for (const script of scripts)
                 this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el: script });
+
+            DOMMutationTracker.onElementChanged(el);
         }
 
         // NOTE: recalculate `formaction` attribute value if it placed in the dom
@@ -596,11 +601,6 @@ export default class ElementSandbox extends SandboxBase {
 
             urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
-
-        if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
-            ShadowUI.markElementAndChildrenAsShadow(el);
-
-        DOMMutationTracker.onElementChanged(el);
     }
 
     _onElementRemoved (el) {
