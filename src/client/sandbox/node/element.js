@@ -296,7 +296,7 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
-    _insertNodeCore (parentNode, args, nativeFn, needToCheckThatBodyElIsPresent) {
+    _addNodeCore ({ parentNode, args, nativeFn, checkBody }) {
         const newNode = args[0];
 
         this._prepareNodeForInsertion(newNode, parentNode);
@@ -311,8 +311,7 @@ export default class ElementSandbox extends SandboxBase {
         // some javascript frameworks create their own body element, perform
         // certain manipulations and then remove it.
         // Therefore, we need to check if the body element is present in DOM
-        if (needToCheckThatBodyElIsPresent && domUtils.isBodyElementWithChildren(parentNode) &&
-            domUtils.isElementInDocument(parentNode))
+        if (checkBody && domUtils.isBodyElementWithChildren(parentNode) && domUtils.isElementInDocument(parentNode))
             result = this.shadowUI.insertBeforeRoot(newNode);
         else
             result = nativeFn.apply(parentNode, args);
@@ -374,11 +373,23 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             insertBefore (...args) {
-                return sandbox._insertNodeCore(this, args, nativeMethods.insertBefore, !args[1]);
+                return sandbox._addNodeCore({
+                    parentNode: this,
+                    nativeFn:   nativeMethods.insertBefore,
+                    checkBody:  !args[1],
+
+                    args
+                });
             },
 
             appendChild (...args) {
-                return sandbox._insertNodeCore(this, args, nativeMethods.appendChild, true);
+                return sandbox._addNodeCore({
+                    parentNode: this,
+                    nativeFn:   nativeMethods.appendChild,
+                    checkBody:  true,
+
+                    args
+                });
             },
 
             removeChild () {
@@ -551,12 +562,13 @@ export default class ElementSandbox extends SandboxBase {
     _onElementAdded (el) {
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
-            const scripts = domUtils.getScripts(el);
 
             for (const iframe of iframes) {
                 this.onIframeAddedToDOM(iframe);
                 windowsStorage.add(iframe.contentWindow);
             }
+
+            const scripts = domUtils.getScripts(el);
 
             for (const script of scripts)
                 this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el: script });
