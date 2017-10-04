@@ -301,11 +301,11 @@ export default class ElementSandbox extends SandboxBase {
 
         this._prepareNodeForInsertion(newNode, parentNode);
 
-        let result   = null;
-        let children = null;
+        let result     = null;
+        let childNodes = null;
 
         if (domUtils.isDocumentFragmentNode(newNode))
-            children = arraySlice.call(newNode.children);
+            childNodes = arraySlice.call(newNode.childNodes);
 
         // NOTE: Before the page's <body> is processed and added to DOM,
         // some javascript frameworks create their own body element, perform
@@ -317,12 +317,12 @@ export default class ElementSandbox extends SandboxBase {
         else
             result = nativeFn.apply(parentNode, args);
 
-        if (children) {
-            for (const child of children)
-                this._onElementAdded(parentNode, child);
+        if (childNodes) {
+            for (const child of childNodes)
+                this._onElementAdded(child);
         }
         else
-            this._onElementAdded(parentNode, newNode);
+            this._onElementAdded(newNode);
 
         return result;
     }
@@ -548,7 +548,7 @@ export default class ElementSandbox extends SandboxBase {
             windowsStorage.remove(el.contentWindow);
     }
 
-    _onElementAdded (parentNode, el) {
+    _onElementAdded (el) {
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
             const scripts = domUtils.getScripts(el);
