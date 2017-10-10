@@ -14,6 +14,7 @@ const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 const PATH_AFTER_HOST_RE = /^\/([^\/]+?)\/([\S\s]+)$/;
 
 export const SUPPORTED_PROTOCOL_RE               = /^(https?|file):/i;
+export const SUPPORTED_WEB_SOCKET_PROTOCOL_RE    = /^(https?|wss?):/i;
 export const HASH_RE                             = /^#/;
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
 export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
@@ -25,7 +26,8 @@ export function parseResourceType (resourceType) {
             isForm:        false,
             isScript:      false,
             isEventSource: false,
-            isHtmlImport:  false
+            isHtmlImport:  false,
+            isWebSocket:   false
         };
     }
 
@@ -34,15 +36,16 @@ export function parseResourceType (resourceType) {
         isForm:        /f/.test(resourceType),
         isScript:      /s/.test(resourceType),
         isEventSource: /e/.test(resourceType),
-        isHtmlImport:  /h/.test(resourceType)
+        isHtmlImport:  /h/.test(resourceType),
+        isWebSocket:   /w/.test(resourceType)
     };
 }
 
 export function getResourceTypeString (resourceType) {
     resourceType = resourceType || {};
 
-    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript &&
-        !resourceType.isEventSource && !resourceType.isHtmlImport)
+    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript && !resourceType.isEventSource &&
+        !resourceType.isHtmlImport && !resourceType.isWebSocket)
         return null;
 
     return [
@@ -50,7 +53,8 @@ export function getResourceTypeString (resourceType) {
         resourceType.isForm ? 'f' : '',
         resourceType.isScript ? 's' : '',
         resourceType.isEventSource ? 'e' : '',
-        resourceType.isHtmlImport ? 'h' : ''
+        resourceType.isHtmlImport ? 'h' : '',
+        resourceType.isWebSocket ? 'w' : ''
     ].join('');
 }
 
@@ -117,7 +121,10 @@ export function getProxyUrl (url, opts) {
 
     params = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
-    return 'http://' + opts.proxyHostname + ':' + opts.proxyPort + '/' + params + '/' + convertHostToLowerCase(url);
+    const proxyProtocol = opts.proxyProtocol || 'http:';
+
+    return proxyProtocol + '//' + opts.proxyHostname + ':' + opts.proxyPort + '/' + params + '/' +
+           convertHostToLowerCase(url);
 }
 
 export function getDomain (parsed) {
@@ -223,7 +230,7 @@ export function parseUrl (url) {
     return parsed;
 }
 
-export function isSupportedProtocol (url) {
+export function isSupportedProtocol (url, isWebSocket) {
     url = trim(url || '');
 
     const isHash = HASH_RE.test(url);
@@ -236,7 +243,9 @@ export function isSupportedProtocol (url) {
     if (!protocol)
         return true;
 
-    return SUPPORTED_PROTOCOL_RE.test(protocol[0]);
+    const supportedProtocolRe = isWebSocket ? SUPPORTED_WEB_SOCKET_PROTOCOL_RE : SUPPORTED_PROTOCOL_RE;
+
+    return supportedProtocolRe.test(protocol[0]);
 }
 
 export function resolveUrlAsDest (url, getProxyUrlMeth) {

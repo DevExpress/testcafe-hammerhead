@@ -420,6 +420,22 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
+        if (window.WebSocket) {
+            window.WebSocket = function (url, protocols) {
+                if (arguments.length === 0)
+                    return new nativeMethods.WebSocket();
+
+                const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
+
+                if (arguments.length === 1)
+                    return new nativeMethods.WebSocket(proxyUrl);
+                else if (arguments.length === 2)
+                    return new nativeMethods.WebSocket(proxyUrl, protocols);
+
+                return new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
+            };
+        }
+
         // NOTE: DOMParser supports an HTML parsing for IE10 and later
         if (window.DOMParser && !isIE9) {
             window.DOMParser.prototype.parseFromString = function (...args) {

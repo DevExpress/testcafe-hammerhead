@@ -248,6 +248,7 @@ class NativeMethods {
         this.StorageEvent     = win.StorageEvent;
         this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
+        this.WebSocket        = win.WebSocket;
 
         if (win.DataTransfer)
             this.DataTransfer = win.DataTransfer;
