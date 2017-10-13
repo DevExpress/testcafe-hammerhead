@@ -57,7 +57,8 @@ export default class RequestPipelineContext {
                 isEventSource: parsedResourceType.isEventSource,
                 isHtmlImport:  parsedResourceType.isHtmlImport,
                 isWebSocket:   parsedResourceType.isWebSocket,
-                charset:       parsed.charset
+                charset:       parsed.charset,
+                reqOrigin:     parsed.reqOrigin
             };
 
             dest = this._omitDefaultPort(dest);

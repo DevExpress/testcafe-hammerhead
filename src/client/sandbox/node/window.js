@@ -434,6 +434,12 @@ export default class WindowSandbox extends SandboxBase {
 
                 return new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
             };
+
+            window.WebSocket.prototype  = nativeMethods.WebSocket.prototype;
+            window.WebSocket.CONNECTING = nativeMethods.WebSocket.CONNECTING;
+            window.WebSocket.OPEN       = nativeMethods.WebSocket.OPEN;
+            window.WebSocket.CLOSING    = nativeMethods.WebSocket.CLOSING;
+            window.WebSocket.CLOSED     = nativeMethods.WebSocket.CLOSED;
         }
 
         // NOTE: DOMParser supports an HTML parsing for IE10 and later

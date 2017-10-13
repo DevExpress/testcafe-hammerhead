@@ -13,8 +13,7 @@ const PORT_RE            = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 const PATH_AFTER_HOST_RE = /^\/([^\/]+?)\/([\S\s]+)$/;
 
-export const SUPPORTED_PROTOCOL_RE               = /^(https?|file):/i;
-export const SUPPORTED_WEB_SOCKET_PROTOCOL_RE    = /^(https?|wss?):/i;
+export const SUPPORTED_PROTOCOL_RE               = /^(?:https?|file):/i;
 export const HASH_RE                             = /^#/;
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
 export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
@@ -119,6 +118,9 @@ export function getProxyUrl (url, opts) {
     if (opts.charset)
         params.push(opts.charset.toLowerCase());
 
+    if (opts.reqOrigin)
+        params.push(opts.reqOrigin);
+
     params = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
     const proxyProtocol = opts.proxyProtocol || 'http:';
@@ -136,6 +138,29 @@ export function getDomain (parsed) {
     });
 }
 
+function parseRequestDescriptor (desc) {
+    const params = desc.split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
+
+    if (!params.length)
+        return null;
+
+    const sessionId    = params[0];
+    const resourceType = params[1] || null;
+    const resourceData = params[2] || null;
+    const parsedDesc   = { sessionId, resourceType };
+
+    if (resourceType && resourceData) {
+        const parsedResourceType = parseResourceType(resourceType);
+
+        if (parsedResourceType.isScript)
+            parsedDesc.charset = resourceData;
+        else if (parsedResourceType.isWebSocket)
+            parsedDesc.reqOrigin = decodeURIComponent(resourceData);
+    }
+
+    return parsedDesc;
+}
+
 export function parseProxyUrl (proxyUrl) {
     // TODO: Remove it.
     const parsedUrl = parseUrl(proxyUrl);
@@ -148,10 +173,10 @@ export function parseProxyUrl (proxyUrl) {
     if (!match)
         return null;
 
-    const params = match[1].split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
+    const parsedDesc = parseRequestDescriptor(match[1]);
 
     // NOTE: We should have, at least, the job uid and the owner token.
-    if (!params.length)
+    if (!parsedDesc)
         return null;
 
     const destUrl = match[2];
@@ -177,9 +202,10 @@ export function parseProxyUrl (proxyUrl) {
             port:     parsedUrl.port
         },
 
-        sessionId:    params[0],
-        resourceType: params[1] || null,
-        charset:      params[2] || null
+        sessionId:    parsedDesc.sessionId,
+        resourceType: parsedDesc.resourceType,
+        charset:      parsedDesc.charset,
+        reqOrigin:    parsedDesc.reqOrigin
     };
 }
 
@@ -230,7 +256,7 @@ export function parseUrl (url) {
     return parsed;
 }
 
-export function isSupportedProtocol (url, isWebSocket) {
+export function isSupportedProtocol (url) {
     url = trim(url || '');
 
     const isHash = HASH_RE.test(url);
@@ -243,9 +269,7 @@ export function isSupportedProtocol (url, isWebSocket) {
     if (!protocol)
         return true;
 
-    const supportedProtocolRe = isWebSocket ? SUPPORTED_WEB_SOCKET_PROTOCOL_RE : SUPPORTED_PROTOCOL_RE;
-
-    return supportedProtocolRe.test(protocol[0]);
+    return SUPPORTED_PROTOCOL_RE.test(protocol[0]);
 }
 
 export function resolveUrlAsDest (url, getProxyUrlMeth) {

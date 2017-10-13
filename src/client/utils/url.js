@@ -4,7 +4,8 @@ import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
 
-const HASH_RE = /#[\S\s]*$/;
+const HASH_RE                          = /#[\S\s]*$/;
+const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
@@ -12,13 +13,13 @@ export function getProxyUrl (url, opts) {
     const resourceType       = opts && opts.resourceType;
     const parsedResourceType = sharedUrlUtils.parseResourceType(resourceType);
 
-    if (!isSupportedProtocol(url, parsedResourceType.isWebSocket) && !isSpecialPage(url))
+    if (!parsedResourceType.isWebSocket && !isSupportedProtocol(url) && !isSpecialPage(url))
         return url;
 
     // NOTE: Resolves relative URLs.
     url = destLocation.resolveUrl(url);
 
-    if (!sharedUrlUtils.isValidUrl(url))
+    if (parsedResourceType.isWebSocket && !isValidWebSocketUrl(url) || !sharedUrlUtils.isValidUrl(url))
         return url;
 
     const proxyProtocol = parsedResourceType.isWebSocket ? 'ws:' : void 0;
@@ -26,6 +27,7 @@ export function getProxyUrl (url, opts) {
     const proxyPort     = opts && opts.proxyPort || location.port.toString();
     const sessionId     = opts && opts.sessionId || settings.get().sessionId;
     let charset         = opts && opts.charset;
+    let reqOrigin       = opts && opts.reqOrigin;
 
     const crossDomainPort = settings.get().crossDomainProxyPort === proxyPort ?
                             location.port.toString() : settings.get().crossDomainProxyPort;
@@ -50,7 +52,8 @@ export function getProxyUrl (url, opts) {
             proxyPort,
             sessionId,
             resourceType,
-            charset
+            charset,
+            reqOrigin
         });
     }
 
@@ -74,6 +77,7 @@ export function getProxyUrl (url, opts) {
     if (parsedResourceType.isWebSocket) {
         parsedUrl.protocol = parsedUrl.protocol.replace('ws', 'http');
         url                = sharedUrlUtils.formatUrl(parsedUrl);
+        reqOrigin          = reqOrigin || encodeURIComponent(destLocation.getOriginHeader());
     }
 
     return sharedUrlUtils.getProxyUrl(url, {
@@ -82,7 +86,8 @@ export function getProxyUrl (url, opts) {
         proxyPort,
         sessionId,
         resourceType,
-        charset
+        charset,
+        reqOrigin
     });
 }
 
@@ -137,12 +142,18 @@ export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
     return proxyUrl;
 }
 
+export function isValidWebSocketUrl (url) {
+    const resolvedUrl = resolveUrlAsDest(url);
+
+    return SUPPORTED_WEB_SOCKET_PROTOCOL_RE.test(resolvedUrl);
+}
+
 export function isSubDomain (domain, subDomain) {
     return sharedUrlUtils.isSubDomain(domain, subDomain);
 }
 
-export function isSupportedProtocol (url, resourceType) {
-    return sharedUrlUtils.isSupportedProtocol(url, resourceType);
+export function isSupportedProtocol (url) {
+    return sharedUrlUtils.isSupportedProtocol(url);
 }
 
 export function isSpecialPage (url) {
