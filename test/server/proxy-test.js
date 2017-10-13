@@ -1416,14 +1416,15 @@ describe('Proxy', () => {
     });
 
     describe('WebSocket', () => {
-        let wsServer = null;
-        let wssServer = null;
+        let httpsServer = null;
+        let wsServer    = null;
+        let wssServer   = null;
 
         before(() => {
-            const httpsServer = createSelfSignedHttpsServer(() => {}).listen(2001);
-
-            wsServer = new WebSocket.Server({ server: destServer });
-            wssServer = new WebSocket.Server({ server: httpsServer });
+            httpsServer = createSelfSignedHttpsServer(() => {
+            }).listen(2001);
+            wsServer    = new WebSocket.Server({ server: destServer });
+            wssServer   = new WebSocket.Server({ server: httpsServer });
 
             const wsConnectionHandler = (ws, req) => {
                 ws.on('message', msg => {
@@ -1443,6 +1444,7 @@ describe('Proxy', () => {
         after(() => {
             wsServer.close();
             wssServer.close();
+            httpsServer.close();
         });
 
         const askSocket = (ws, msg) => {

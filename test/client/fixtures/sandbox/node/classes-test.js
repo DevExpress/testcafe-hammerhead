@@ -226,31 +226,31 @@ if (window.WebSocket) {
             /* eslint-disable no-new */
             new WebSocket();
             /* eslint-enable no-new */
-        }, Error);
+        });
 
         throws(function () {
             /* eslint-disable no-new */
             new WebSocket('');
             /* eslint-enable no-new */
-        }, Error);
+        });
 
         throws(function () {
             /* eslint-disable no-new */
             new WebSocket('/path');
             /* eslint-enable no-new */
-        }, Error);
+        });
 
         throws(function () {
             /* eslint-disable no-new */
             new WebSocket('//example.com');
             /* eslint-enable no-new */
-        }, Error);
+        });
 
         throws(function () {
             /* eslint-disable no-new */
             new WebSocket('http://example.com');
             /* eslint-enable no-new */
-        }, Error);
+        });
     });
 }
 
