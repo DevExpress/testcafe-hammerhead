@@ -15,7 +15,7 @@
     "url": "git+https://github.com/DevExpress/testcafe-hammerhead.git"
   },
   "dependencies": {
-    "babel-runtime": "^6.3.19",
+    "bowser": "1.6.0",
     "brotli": "^1.3.1",
     "crypto-md5": "^1.0.0",
     "css": "2.2.1",
@@ -34,18 +34,16 @@
     "tough-cookie": "2.3.3",
     "tunnel-agent": "0.6.0",
     "webauth": "^1.1.0",
-    "yakaa": "1.0.1",
-    "bowser": "1.6.0"
+    "yakaa": "1.0.1"
   },
   "devDependencies": {
     "babel-core": "^6.4.0",
     "babel-eslint": "^6.0.4",
     "babel-plugin-add-module-exports": "^0.1.2",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-plugin-transform-for-of-as-array": "1.0.3",
-    "babel-plugin-transform-runtime": "^6.4.0",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-es2015-hammerhead": "^0.0.1",
-    "babel-preset-stage-2": "^6.3.13",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-es2015": "^6.24.1",
     "basic-auth": "1.0.4",
     "chai": "^2.3.0",
     "del": "^0.1.2",
