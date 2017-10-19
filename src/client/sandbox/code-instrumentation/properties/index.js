@@ -25,6 +25,7 @@ import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
 import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
+import DOMMutationTracker from '../../node/live-node-list/dom-mutation-tracker';
 
 function checkElementTextProperties (el) {
     const result         = {};
@@ -40,7 +41,7 @@ const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.cr
 const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox, liveNodeListFactory) {
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
         super();
 
         this.nodeMutation          = nodeMutation;
@@ -52,7 +53,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.listenersSandbox      = eventSandbox.listeners;
         this.shadowUI              = shadowUI;
         this.storageSandbox        = storageSandbox;
-        this.liveNodeListFactory   = liveNodeListFactory;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
@@ -92,6 +92,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
     static _setTextProp (el, propName, text) {
         const processedText = text !== null && text !== void 0 ? String(text) : text;
+
+        DOMMutationTracker.onChildrenChanged(el);
 
         if (processedText) {
             if (domUtils.isScriptElement(el))
@@ -338,7 +340,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                             processedValue = processHtml(processedValue, el.tagName);
                     }
 
+                    DOMMutationTracker.onChildrenChanged(el);
+
                     el.innerHTML = processedValue;
+
+                    DOMMutationTracker.onChildrenChanged(el);
 
                     if (this.document.body === el) {
                         const shadowUIRoot = this.shadowUI.getRoot();
@@ -349,9 +355,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     else if (domUtils.isShadowUIElement(el))
                         ShadowUI.markElementAndChildrenAsShadow(el);
-
-                    else
-                        this.liveNodeListFactory.onInnerHtmlChanged();
 
                     if (isStyleEl || isScriptEl)
                         return value;
@@ -414,11 +417,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, value) => {
                     const parentEl = el.parentNode;
 
+                    DOMMutationTracker.onElementChanged(el);
+
                     if (parentEl && value !== null && value !== void 0) {
                         const parentDocument = domUtils.findDocument(parentEl);
                         const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
                         el.outerHTML = processHtml('' + value, parentEl.tagName);
+
+                        DOMMutationTracker.onChildrenChanged(parentEl);
 
                         // NOTE: For the iframe with an empty src.
                         if (parentWindow && parentWindow !== window &&

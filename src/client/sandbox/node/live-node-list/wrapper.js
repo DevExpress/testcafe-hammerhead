@@ -1,64 +1,37 @@
 import nativeMethods from '../../native-methods';
 import { isShadowUIElement } from '../../../utils/dom';
-
-const arrayFilter = Array.prototype.filter;
+import WrapperState from './wrapper-state';
 
 export default class LiveNodeListWrapper {
-    constructor (nodeList, domContentLoadedEventRaised, tagName) {
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'item', {
-            value: index => {
-                this._refreshNodeList();
+    constructor (nodeList, tagName) {
+        const state = new WrapperState(nodeList, tagName);
 
-                return this._filteredNodeList[index];
+        nativeMethods.objectDefineProperties.call(window.Object, this, {
+            item: {
+                value: index => {
+                    state.refreshNodeListIfNecessary();
+
+                    return state.filteredNodeList[index];
+                }
+            },
+
+            length: {
+                get: () => {
+                    state.refreshNodeListIfNecessary();
+
+                    return state.filteredNodeList.length;
+                }
             }
         });
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'length', {
-            get: () => {
-                this._refreshNodeList();
 
-                return this._filteredNodeList.length;
-            }
-        });
-
-        if (this.namedItem) {
+        if (state.nodeList.namedItem) {
             nativeMethods.objectDefineProperty.call(window.Object, this, 'namedItem', {
                 value: (...args) => {
-                    const findNamedItem = this._nodeList.namedItem.apply(this._nodeList, args);
+                    const findNamedItem = state.nodeList.namedItem.apply(state.nodeList, args);
 
                     return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
                 }
             });
         }
-
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_nodeList', { value: nodeList });
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_filteredNodeList', { writable: true });
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_isDirty', { writable: true, value: true });
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_domContentLoadedEventRaised', {
-            writable: true,
-            value:    domContentLoadedEventRaised
-        });
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_tagName', { value: tagName.toLowerCase() });
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_refreshNodeListInternal', {
-            value: () => {
-                this._filteredNodeList = arrayFilter.call(this._nodeList, element => !isShadowUIElement(element));
-            },
-
-            configurable: true // Only for tests
-        });
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_refreshNodeList', {
-            value: () => {
-                if (!this._domContentLoadedEventRaised)
-                    this._refreshNodeListInternal();
-                else if (this._isDirty) {
-                    this._refreshNodeListInternal();
-                    this._isDirty = false;
-                }
-            }
-        });
-
-        this._refreshNodeList();
-
-        for (let i = 0; i < this._filteredNodeList.length; i++)
-            this._defineProperty(i, true);
     }
 }

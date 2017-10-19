@@ -17,6 +17,7 @@ import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
 import ShadowUI from '../shadow-ui';
+import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -27,15 +28,14 @@ const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
 const arraySlice = Array.prototype.slice;
 
 export default class ElementSandbox extends SandboxBase {
-    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox, liveNodeListFactory) {
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {
         super();
 
-        this.nodeSandbox         = nodeSandbox;
-        this.shadowUI            = shadowUI;
-        this.uploadSandbox       = uploadSandbox;
-        this.iframeSandbox       = iframeSandbox;
-        this.eventSandbox        = eventSandbox;
-        this.liveNodeListFactory = liveNodeListFactory;
+        this.nodeSandbox   = nodeSandbox;
+        this.shadowUI      = shadowUI;
+        this.uploadSandbox = uploadSandbox;
+        this.iframeSandbox = iframeSandbox;
+        this.eventSandbox  = eventSandbox;
 
         this.overridedMethods = null;
 
@@ -355,14 +355,20 @@ export default class ElementSandbox extends SandboxBase {
                 return cell;
             },
 
-            insertAdjacentHTML () {
-                const html = arguments[1];
+            insertAdjacentHTML (...args) {
+                const position = args[0];
+                const html     = args[1];
 
-                if (arguments.length > 1 && html !== null)
-                    arguments[1] = processHtml('' + html, this.parentNode && this.parentNode.tagName);
+                if (args.length > 1 && html !== null)
+                    args[1] = processHtml('' + html, this.parentNode && this.parentNode.tagName);
 
-                nativeMethods.insertAdjacentHTML.apply(this, arguments);
+                nativeMethods.insertAdjacentHTML.apply(this, args);
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);
+
+                if (position === 'afterbegin' || position === 'beforeend')
+                    DOMMutationTracker.onChildrenChanged(this);
+                else if (this.parentNode)
+                    DOMMutationTracker.onChildrenChanged(this.parentNode);
             },
 
             formSubmit () {
@@ -417,8 +423,8 @@ export default class ElementSandbox extends SandboxBase {
                 const result = nativeMethods.replaceChild.apply(this, arguments);
 
                 sandbox._onAddFileInputInfo(newChild);
-                sandbox.liveNodeListFactory.onElementAddedOrRemoved(newChild);
-                sandbox.liveNodeListFactory.onElementAddedOrRemoved(oldChild);
+                DOMMutationTracker.onElementChanged(newChild);
+                DOMMutationTracker.onElementChanged(oldChild);
 
                 return result;
             },
@@ -560,6 +566,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _onElementAdded (el) {
+        if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
+            ShadowUI.markElementAndChildrenAsShadow(el);
+
         if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
 
@@ -572,6 +581,8 @@ export default class ElementSandbox extends SandboxBase {
 
             for (const script of scripts)
                 this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el: script });
+
+            DOMMutationTracker.onElementChanged(el);
         }
 
         // NOTE: recalculate `formaction` attribute value if it placed in the dom
@@ -590,11 +601,6 @@ export default class ElementSandbox extends SandboxBase {
 
             urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
-
-        if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
-            ShadowUI.markElementAndChildrenAsShadow(el);
-
-        this.liveNodeListFactory.onElementAddedOrRemoved(el);
     }
 
     _onElementRemoved (el) {
@@ -604,7 +610,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (domUtils.isBaseElement(el))
             urlResolver.updateBase(getDestLocation(), this.document);
 
-        this.liveNodeListFactory.onElementAddedOrRemoved(el);
+        DOMMutationTracker.onElementChanged(el);
     }
 
     addFileInputInfo (el) {

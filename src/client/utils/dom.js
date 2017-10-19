@@ -745,7 +745,7 @@ export function parseDocumentCharset () {
 }
 
 export function getParents (el, selector) {
-    let parent  = el.parentNode;
+    let parent    = el.parentNode;
     const parents = [];
 
     while (parent) {
