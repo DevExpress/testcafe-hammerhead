@@ -9,7 +9,6 @@ const urlUtils      = require('../../lib/utils/url');
 const parse5Utils   = require('../../lib/utils/parse5');
 
 const domAdapter   = new DomAdapter();
-const domProcessor = new DomProcessor(domAdapter);
 
 const testCrossDomainPort = 1338;
 const testProxyHostName   = 'localhost';
@@ -52,7 +51,7 @@ describe('DOM processor', () => {
         const root = process('<html><head></head><body><iframe sandbox="allow-forms"></iframe></body></html>');
 
         expect(new parse5.Serializer().serialize(root)).contains('<iframe sandbox="allow-forms allow-same-origin allow-scripts" ' +
-                                                                 domProcessor.getStoredAttrName('sandbox') +
+                                                                 DomProcessor.getStoredAttrName('sandbox') +
                                                                  '="allow-forms">');
     });
 
@@ -104,19 +103,19 @@ describe('DOM processor', () => {
         let img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
 
         expect(domAdapter.getAttr(img, 'src')).eql('http://example.com/image.png');
-        expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).eql('http://example.com/image.png');
+        expect(domAdapter.getAttr(img, DomProcessor.getStoredAttrName('src'))).eql('http://example.com/image.png');
 
         root = process('<img src="">');
         img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
 
         expect(domAdapter.getAttr(img, 'src')).to.be.empty;
-        expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).to.be.empty;
+        expect(domAdapter.getAttr(img, DomProcessor.getStoredAttrName('src'))).to.be.empty;
 
         root = process('<img src="about:blank">');
         img  = parse5Utils.findElementsByTagNames(root, 'img').img[0];
 
         expect(domAdapter.getAttr(img, 'src')).eql('about:blank');
-        expect(domAdapter.getAttr(img, domProcessor.getStoredAttrName('src'))).eql('about:blank');
+        expect(domAdapter.getAttr(img, DomProcessor.getStoredAttrName('src'))).eql('about:blank');
     });
 
     it.skip('Should process <iframe> with src', () => {

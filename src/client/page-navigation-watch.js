@@ -3,7 +3,8 @@ import { parseProxyUrl } from '../utils/url';
 import { isChangedOnlyHash } from './utils/url';
 import { isShadowUIElement, isAnchorElement, isFormElement, closest } from './utils/dom';
 import * as windowsStorage from './sandbox/windows-storage';
-import domProcessor from './dom-processor/index';
+import { getStoredAttrName } from '../processing/dom';
+import domProcessor from './dom-processor';
 import nextTick from './utils/next-tick';
 import nativeMethods from './sandbox/native-methods';
 
@@ -57,7 +58,7 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     static _getTargetWindow (el) {
-        const target = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target')) ||
+        const target = nativeMethods.getAttribute.call(el, getStoredAttrName('target')) ||
                        nativeMethods.getAttribute.call(el, 'target') ||
                        '_self';
 

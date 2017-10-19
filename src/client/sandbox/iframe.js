@@ -6,7 +6,6 @@ import domProcessor from '../dom-processor';
 import { isShadowUIElement, isCrossDomainIframe, isElementInDocument, isIframeWithoutSrc } from '../utils/dom';
 import { isFirefox, isWebKit } from '../utils/browser';
 import { isSupportedProtocol } from '../utils/url';
-import { isPageHtml } from '../utils/html';
 import * as JSON from '../json';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
@@ -34,18 +33,7 @@ export default class IframeSandbox extends SandboxBase {
 
         const iframeSrc = this.nativeMethods.getAttribute.call(iframe, 'src');
 
-        if (!domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(iframeSrc))
-            return false;
-
-        const iframeSrcValueWithoutProtocol = iframeSrc.replace(domProcessor.JAVASCRIPT_PROTOCOL_REG_EX, '');
-        const matches                       = iframeSrcValueWithoutProtocol.match(domProcessor.HTML_STRING_REG_EX);
-
-        if (!matches)
-            return false;
-
-        const html = matches[2];
-
-        return isPageHtml(html);
+        return domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(iframeSrc);
     }
 
     _ensureIframeNativeMethodsForChrome (iframe) {

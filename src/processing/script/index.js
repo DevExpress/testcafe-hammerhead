@@ -26,6 +26,7 @@ const PROCESSED_SCRIPT_RE = new RegExp([
     reEscape(INSTRUCTION.setProperty),
     reEscape(INSTRUCTION.callMethod),
     reEscape(INSTRUCTION.processScript),
+    reEscape(INSTRUCTION.processHtml),
     reEscape(INSTRUCTION.getStorage),
     reEscape(INSTRUCTION.getPostMessage)
 ].join('|'));
@@ -164,7 +165,7 @@ export function isScriptProcessed (code) {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src, withHeader) {
+export function processScript (src, withHeader, wrapLastExprViaProcessHtml) {
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);
@@ -173,6 +174,8 @@ export function processScript (src, withHeader) {
         return src;
 
     withHeader = withHeader && !isObject && !isArrayDataScript(ast);
+
+    ast.wrapLastExprViaProcessHtml = wrapLastExprViaProcessHtml;
 
     const changes = transform(ast);
     let processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;

@@ -204,7 +204,7 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
     document.body.appendChild(iframe);
 });
 
-asyncTest("native methods of the iframe document aren't overridden for iframe with javascript src (GH-358)", function () {
+asyncTest('native methods of the iframe document aren`t overridden for iframe with javascript src (GH-358)', function () {
     var iframe            = document.createElement('iframe');
     var loadEventCount    = 0;
     var maxLoadEventCount = browserUtils.isWebKit ? 2 : 1;
@@ -228,7 +228,7 @@ asyncTest("native methods of the iframe document aren't overridden for iframe wi
     document.body.appendChild(iframe);
 });
 
-test("native methods of the iframe document aren't overridden for iframe with javascript src (GH-358)", function () {
+test('native methods of the iframe document aren`t overridden for iframe with javascript src (GH-358)', function () {
     var iframe = document.createElement('iframe');
 
     ok(!iframeSandbox._shouldSaveIframeNativeMethods(iframe));
@@ -237,7 +237,7 @@ test("native methods of the iframe document aren't overridden for iframe with ja
     ok(!iframeSandbox._shouldSaveIframeNativeMethods(iframe));
 
     iframe.setAttribute('src', 'javascript:false');
-    ok(!iframeSandbox._shouldSaveIframeNativeMethods(iframe));
+    ok(iframeSandbox._shouldSaveIframeNativeMethods(iframe));
 
     iframe.setAttribute('src', 'javascript:"<html><body></body></html>"');
     strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), browserUtils.isWebKit);

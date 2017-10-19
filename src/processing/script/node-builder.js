@@ -339,3 +339,16 @@ export function createExpandedConcatOperation (left, right) {
         }
     };
 }
+
+export function createHtmlProcessorWrapper (node) {
+    return {
+        type: Syntax.CallExpression,
+
+        callee: {
+            type: Syntax.Identifier,
+            name: INSTRUCTION.processHtml
+        },
+
+        arguments: [ node.expression ]
+    };
+}

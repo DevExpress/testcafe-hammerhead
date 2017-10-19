@@ -100,14 +100,19 @@ test('iframe', function () {
 
     wrapper.port = 1333;
     strictEqual(windowMock.location, getProxy('http://domain.com:1333/'));
+
     wrapper.host = 'new.domain.com:1222';
     strictEqual(windowMock.location, getProxy('http://new.domain.com:1222/'));
+
     wrapper.hostname = 'domain.com';
     strictEqual(windowMock.location, getProxy('http://domain.com:1222/'));
+
     wrapper.pathname = '/index.html';
     strictEqual(windowMock.location, getProxy('http://domain.com:1222/index.html'));
+
     wrapper.protocol = 'https:';
     strictEqual(windowMock.location, getProxy('https://domain.com:1222/index.html'));
+
     wrapper.search = '?param=value';
     strictEqual(windowMock.location, getProxy('https://domain.com:1222/index.html?param=value'));
 
@@ -117,6 +122,7 @@ test('iframe', function () {
 
     wrapper.assign('http://new.domain.com:1444');
     strictEqual(windowMock.location.toString(), getProxy('http://new.domain.com:1444'));
+
     wrapper.replace('https://domain.com:1555/index.html');
     strictEqual(windowMock.location.toString(), getProxy('https://domain.com:1555/index.html'));
 });
@@ -212,8 +218,10 @@ test('change hash for the iframe location', function () {
     var testLocation = function () {
         locationWrapper.href = 'http://domain.com/index.html#hash';
         strictEqual(windowMock.location.href, proxyUrl + '#hash');
+
         locationWrapper.replace('http://domain.com/index.html#hash');
         strictEqual(windowMock.location.href, proxyUrl + '#hash');
+
         locationWrapper.assign('http://domain.com/index.html#hash');
         strictEqual(windowMock.location.href, proxyUrl + '#hash');
     };
@@ -309,4 +317,17 @@ test('emulate a native browser behaviour related with trailing slashes for locat
 
     destLocation.forceLocation(storedForcedLocation);
     urlResolver.getResolverElement = storedGetResolverElementMeth;
+});
+
+test('set location with "javascript:" protocol', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            return new Promise(function (resolve) {
+                iframe.addEventListener('load', resolve.bind(null, iframe));
+                getProperty(iframe.contentWindow, 'location').replace('javascript:\'<a href="/some">Link</a>\'');
+            });
+        })
+        .then(function (iframe) {
+            strictEqual(iframe.contentDocument.body.firstChild.href, urlUtils.getProxyUrl('/some', { resourceType: 'i' }));
+        });
 });

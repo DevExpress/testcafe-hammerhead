@@ -7,6 +7,7 @@ import { getAttributeProperty } from './properties/attributes';
 import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
 import nativeMethods from '../../sandbox/native-methods';
+import { processHtml } from '../../utils/html';
 
 export default class CodeInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
@@ -72,6 +73,16 @@ export default class CodeInstrumentation extends SandboxBase {
                     return processScript(script, false);
 
                 return script;
+            },
+            configurable: true
+        });
+
+        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.processHtml, {
+            value: html => {
+                if (typeof html === 'string')
+                    html = processHtml(`<html><body>${html}</body></html>`);
+
+                return html;
             },
             configurable: true
         });

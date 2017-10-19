@@ -12,6 +12,8 @@ import {
 import { getDomain, getResourceTypeString, sameOriginCheck, ensureTrailingSlash } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
+import DomProcessor from '../../../../processing/dom/index';
+import domProcessor from '../../../dom-processor';
 
 function getLocationUrl (window) {
     try {
@@ -51,6 +53,9 @@ export default class LocationWrapper extends EventEmitter {
             return ensureTrailingSlash(resolveElement.href, locationUrl);
         };
         const getProxiedHref = href => {
+            if (domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(href))
+                return DomProcessor.processJsAttrValue(href, true, false);
+
             const locationUrl = getLocationUrl(window);
 
             let proxyPort = null;

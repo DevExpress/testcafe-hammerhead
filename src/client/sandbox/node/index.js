@@ -4,6 +4,7 @@ import WindowSandbox from './window';
 import DocumentSandbox from './document';
 import ElementSandbox from './element';
 import FocusBlurSandbox from '../event/focus-blur';
+import { getStoredAttrName } from '../../../processing/dom';
 import domProcessor from '../../dom-processor';
 import * as domUtils from '../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
@@ -146,7 +147,7 @@ export default class NodeSandbox extends SandboxBase {
         return selector.replace(ATTRIBUTE_SELECTOR_REG_EX, (str, name, operatorWithValue) => {
             if (domProcessor.URL_ATTRS.indexOf(name) !== -1 &&
                 !ATTRIBUTE_OPERATOR_WITH_HASH_VALUE.test(operatorWithValue)) {
-                name = domProcessor.getStoredAttrName(name);
+                name = getStoredAttrName(name);
 
                 return '[' + name + operatorWithValue + ']';
             }

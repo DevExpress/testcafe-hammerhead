@@ -1,4 +1,5 @@
 ﻿var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
+var DomProcessor   = hammerhead.get('../processing/dom');
 var domProcessor   = hammerhead.get('./dom-processor');
 var htmlUtils      = hammerhead.get('./utils/html');
 var processScript  = hammerhead.get('../processing/script').processScript;
@@ -47,9 +48,9 @@ test('focus marker', function () {
 });
 
 test('autocomplete attribute', function () {
-    var html = '<input ' + domProcessor.getStoredAttrName('autocomplete') +
+    var html = '<input ' + DomProcessor.getStoredAttrName('autocomplete') +
                '="' + domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER + '" autocomplete="off">' +
-               '<input ' + domProcessor.getStoredAttrName('autocomplete') + '="on" autocomplete="off">';
+               '<input ' + DomProcessor.getStoredAttrName('autocomplete') + '="on" autocomplete="off">';
 
     strictEqual(htmlUtils.cleanUpHtml(html), '<input><input autocomplete="on">');
 });
@@ -79,7 +80,7 @@ test('form', function () {
 
     var url          = 'http://domain.com';
     var pocessedHtml = '<form action="' + urlUtils.getProxyUrl(url) + '" ' +
-                       domProcessor.getStoredAttrName('action') + '="' + url + '"></form>';
+                       DomProcessor.getStoredAttrName('action') + '="' + url + '"></form>';
     var expexted     = '<form action="http://domain.com"></form>';
 
     strictEqual(htmlUtils.cleanUpHtml(pocessedHtml), expexted);
@@ -109,7 +110,7 @@ test('encoded symbols', function () {
     var div            = document.createElement('div');
     var tag            = 'a';
     var attr           = 'href';
-    var storedAttr     = domProcessor.getStoredAttrName(attr);
+    var storedAttr     = DomProcessor.getStoredAttrName(attr);
     var urlEncoded     = 'http://example.com/?x=&lt;&y=5';
     var urlDecoded     = 'http://example.com/?x=<&y=5';
     var divForEncoding = document.createElement('div');
@@ -142,7 +143,7 @@ test('text node', function () {
 test('html fragment', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
     var htmlToProcess     = $('<a href="www.google.com">Link</a>')[0].innerHTML;
-    var processedHTML     = $('<a href="replaced" ' + domProcessor.getStoredAttrName('href') +
+    var processedHTML     = $('<a href="replaced" ' + DomProcessor.getStoredAttrName('href') +
                               '="www.google.com">Link</a>')[0].innerHTML;
 
     urlUtils.getProxyUrl = function () {

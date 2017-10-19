@@ -1,6 +1,6 @@
 import SandboxBase from '../base';
 import NodeSandbox from '../node/index';
-import DomProcessor from '../../../processing/dom/index';
+import DomProcessor from '../../../processing/dom';
 import nativeMethods from '../native-methods';
 import domProcessor from '../../dom-processor';
 import { processScript } from '../../../processing/script';
@@ -11,7 +11,7 @@ import * as hiddenInfo from '../upload/hidden-info';
 import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
-import { isPageHtml, processHtml } from '../../utils/html';
+import { processHtml } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
@@ -57,7 +57,7 @@ export default class ElementSandbox extends SandboxBase {
             return;
 
         const urlAttr       = tagName === 'form' ? 'action' : 'href';
-        const storedUrlAttr = domProcessor.getStoredAttrName(urlAttr);
+        const storedUrlAttr = DomProcessor.getStoredAttrName(urlAttr);
 
         if (el.hasAttribute(storedUrlAttr)) {
             const url = el.getAttribute(storedUrlAttr);
@@ -94,7 +94,7 @@ export default class ElementSandbox extends SandboxBase {
         if (domProcessor.isUrlAttr(el, loweredAttr, ns) ||
             domProcessor.EVENTS.indexOf(loweredAttr) !== -1 ||
             ATTRS_WITH_SPECIAL_PROXYING_LOGIC.indexOf(loweredAttr) !== -1) {
-            const storedAttrName  = domProcessor.getStoredAttrName(attr);
+            const storedAttrName  = DomProcessor.getStoredAttrName(attr);
             const storedAttrValue = getAttrMeth.apply(el, isNs ? [ns, storedAttrName] : [storedAttrName]);
 
             if (DomProcessor.isAddedAutocompleteAttr(loweredAttr, storedAttrValue))
@@ -111,58 +111,28 @@ export default class ElementSandbox extends SandboxBase {
         const attr        = String(args[isNs ? 1 : 0]);
         const loweredAttr = attr.toLowerCase();
         const valueIndex  = isNs ? 2 : 1;
-        let value         = args[valueIndex];
+        const value       = String(args[valueIndex]);
         const setAttrMeth = isNs ? nativeMethods.setAttributeNS : nativeMethods.setAttribute;
         const tagName     = domUtils.getTagName(el);
-        const urlAttr     = domProcessor.isUrlAttr(el, attr, ns);
+        const isUrlAttr   = domProcessor.isUrlAttr(el, attr, ns);
         const isEventAttr = domProcessor.EVENTS.indexOf(attr) !== -1;
 
         let needToCallTargetChanged = false;
 
-        value = String(value);
-
         const isSpecialPage       = urlUtils.isSpecialPage(value);
         const isSupportedProtocol = urlUtils.isSupportedProtocol(value);
 
-        if (urlAttr && !isSupportedProtocol && !isSpecialPage || isEventAttr) {
+        if (isUrlAttr && !isSupportedProtocol && !isSpecialPage || isEventAttr) {
             const isJsProtocol = domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(value);
-            const storedJsAttr = domProcessor.getStoredAttrName(attr);
+            const storedJsAttr = DomProcessor.getStoredAttrName(attr);
 
-            if (urlAttr && isJsProtocol || isEventAttr) {
-                const valueWithoutProtocol = value.replace(domProcessor.JAVASCRIPT_PROTOCOL_REG_EX, '');
-                const matches              = valueWithoutProtocol.match(domProcessor.HTML_STRING_REG_EX);
-                let processedValue         = '';
+            if (isUrlAttr && isJsProtocol || isEventAttr)
+                args[valueIndex] = DomProcessor.processJsAttrValue(value, isJsProtocol, isEventAttr);
 
-                if (matches && isJsProtocol) {
-                    let html          = matches[2];
-                    const stringQuote = matches[1];
-
-                    if (!isPageHtml(html))
-                        html = '<html><body>' + html + '</body></html>';
-
-                    html = html.replace(new RegExp('\\\\' + stringQuote, 'g'), stringQuote);
-                    html = processHtml(html);
-                    html = html.replace(new RegExp(stringQuote, 'g'), '\\' + stringQuote);
-
-                    /*eslint-disable no-script-url */
-                    processedValue = 'javascript:' + stringQuote + html + stringQuote;
-                    /*eslint-enable no-script-url */
-                }
-                else {
-                    /*eslint-disable no-script-url */
-                    processedValue = (isJsProtocol ? 'javascript:' : '') +
-                                     processScript(valueWithoutProtocol, false);
-                    /*eslint-enable no-script-url */
-                }
-
-                setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
-                args[valueIndex] = processedValue;
-            }
-            else
-                setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
+            setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
         }
-        else if (urlAttr && (isSupportedProtocol || isSpecialPage)) {
-            const storedUrlAttr = domProcessor.getStoredAttrName(attr);
+        else if (isUrlAttr && (isSupportedProtocol || isSpecialPage)) {
+            const storedUrlAttr = DomProcessor.getStoredAttrName(attr);
 
             setAttrMeth.apply(el, isNs ? [ns, storedUrlAttr, value] : [storedUrlAttr, value]);
 
@@ -201,7 +171,7 @@ export default class ElementSandbox extends SandboxBase {
             }
         }
         else if (loweredAttr === 'autocomplete') {
-            const storedAutocompleteAttr = domProcessor.getStoredAttrName(attr);
+            const storedAutocompleteAttr = DomProcessor.getStoredAttrName(attr);
 
             setAttrMeth.apply(el, isNs ? [ns, storedAutocompleteAttr, value] : [storedAutocompleteAttr, value]);
 
@@ -211,7 +181,7 @@ export default class ElementSandbox extends SandboxBase {
             const newTarget = this.getTarget(el, value);
 
             if (newTarget !== el.target) {
-                const storedTargetAttr = domProcessor.getStoredAttrName(attr);
+                const storedTargetAttr = DomProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
                 args[valueIndex]        = newTarget;
@@ -221,7 +191,7 @@ export default class ElementSandbox extends SandboxBase {
                 return null;
         }
         else if (attr === 'sandbox') {
-            const storedSandboxAttr = domProcessor.getStoredAttrName(attr);
+            const storedSandboxAttr = DomProcessor.getStoredAttrName(attr);
             const allowSameOrigin   = value.indexOf('allow-same-origin') !== -1;
             const allowScripts      = value.indexOf('allow-scripts') !== -1;
 
@@ -238,7 +208,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (loweredAttr === 'xlink:href' &&
                  domProcessor.SVG_XLINK_HREF_TAGS.indexOf(tagName) !== -1 &&
                  domUtils.isSVGElement(el)) {
-            const storedXLinkHrefAttr = domProcessor.getStoredAttrName(attr);
+            const storedXLinkHrefAttr = DomProcessor.getStoredAttrName(attr);
 
             setAttrMeth.apply(el, isNs ? [ns, storedXLinkHrefAttr, value] : [storedXLinkHrefAttr, value]);
 
@@ -246,7 +216,7 @@ export default class ElementSandbox extends SandboxBase {
                 args[valueIndex] = urlUtils.getProxyUrl(value);
         }
         else if (loweredAttr === 'style') {
-            const storedStyleAttr = domProcessor.getStoredAttrName(attr);
+            const storedStyleAttr = DomProcessor.getStoredAttrName(attr);
 
             setAttrMeth.apply(el, isNs ? [ns, storedStyleAttr, value] : [storedStyleAttr, value]);
             args[valueIndex] = styleProcessor.process(value, urlUtils.getProxyUrl);
@@ -263,7 +233,7 @@ export default class ElementSandbox extends SandboxBase {
     _hasAttributeCore (el, args, isNs) {
         const attributeNameArgIndex       = isNs ? 1 : 0;
         const hasAttrMeth                 = isNs ? nativeMethods.hasAttributeNS : nativeMethods.hasAttribute;
-        const storedAutocompleteAttrName  = domProcessor.getStoredAttrName('autocomplete');
+        const storedAutocompleteAttrName  = DomProcessor.getStoredAttrName('autocomplete');
         const storedAutocompleteAttrValue = nativeMethods.getAttribute.call(el, storedAutocompleteAttrName);
 
         if (typeof args[attributeNameArgIndex] === 'string' &&
@@ -284,7 +254,7 @@ export default class ElementSandbox extends SandboxBase {
             formatedAttr === 'autocomplete' ||
             domProcessor.EVENTS.indexOf(formatedAttr) !== -1 ||
             formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
-            const storedAttr = domProcessor.getStoredAttrName(attr);
+            const storedAttr = DomProcessor.getStoredAttrName(attr);
 
             if (formatedAttr === 'autocomplete')
                 nativeMethods.setAttribute.call(el, storedAttr, domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
@@ -512,7 +482,7 @@ export default class ElementSandbox extends SandboxBase {
             hasAttributes () {
                 if (this.attributes.length === 2 &&
                     this.attributes.getNamedItem('autocomplete') &&
-                    this.attributes.getNamedItem(domProcessor.getStoredAttrName('autocomplete')))
+                    this.attributes.getNamedItem(DomProcessor.getStoredAttrName('autocomplete')))
                     return sandbox._hasAttributeCore(this, ['autocomplete'], false);
 
                 return nativeMethods.hasAttributes.apply(this, arguments);
@@ -607,7 +577,7 @@ export default class ElementSandbox extends SandboxBase {
         this._onAddFileInputInfo(el);
 
         if (domUtils.isBaseElement(el) && this._isFirstBaseTagOnPage(el)) {
-            const storedHrefAttrName  = domProcessor.getStoredAttrName('href');
+            const storedHrefAttrName  = DomProcessor.getStoredAttrName('href');
             const storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
             if (storedHrefAttrValue !== null)
@@ -621,7 +591,7 @@ export default class ElementSandbox extends SandboxBase {
 
         else if (domUtils.isBaseElement(el)) {
             const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');
-            const storedHrefAttr = firstBaseEl && firstBaseEl.getAttribute(domProcessor.getStoredAttrName('href'));
+            const storedHrefAttr = firstBaseEl && firstBaseEl.getAttribute(DomProcessor.getStoredAttrName('href'));
 
             urlResolver.updateBase(storedHrefAttr || getDestLocation(), this.document);
         }
@@ -704,7 +674,7 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _ensureTargetContainsExistingBrowsingContext (el) {
-        const storedAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target'));
+        const storedAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('target'));
 
         el.setAttribute('target', storedAttr || el.target);
     }
@@ -728,7 +698,7 @@ export default class ElementSandbox extends SandboxBase {
 
     _setProxiedSrcUrlOnError (img) {
         img.addEventListener('error', e => {
-            const storedAttr = nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src'));
+            const storedAttr = nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src'));
 
             if (storedAttr && !urlUtils.parseProxyUrl(img.src) &&
                 urlUtils.isSupportedProtocol(img.src) && !urlUtils.isSpecialPage(img.src)) {
@@ -764,7 +734,7 @@ export default class ElementSandbox extends SandboxBase {
                 if (!this._isFirstBaseTagOnPage(el))
                     break;
 
-                const storedUrlAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href'));
+                const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
 
                 if (storedUrlAttr !== null)
                     urlResolver.updateBase(storedUrlAttr, this.document);

@@ -1,4 +1,4 @@
-var domProcessor = hammerhead.get('./dom-processor');
+var DomProcessor = hammerhead.get('../processing/dom');
 var urlUtils     = hammerhead.get('./utils/url');
 
 var iframeSandbox  = hammerhead.sandbox.iframe;
@@ -168,7 +168,7 @@ asyncTest('input without form', function () {
     input.addEventListener('click', function (e) {
         ok(!input.target);
 
-        var storedTarget = nativeMethods.getAttribute.call(input, domProcessor.getStoredAttrName('target'));
+        var storedTarget = nativeMethods.getAttribute.call(input, DomProcessor.getStoredAttrName('target'));
 
         ok(!storedTarget);
 

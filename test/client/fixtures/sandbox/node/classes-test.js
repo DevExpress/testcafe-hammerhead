@@ -1,4 +1,4 @@
-var domProcessor    = hammerhead.get('./dom-processor');
+var DomProcessor    = hammerhead.get('../processing/dom');
 var destLocation    = hammerhead.get('./utils/destination-location');
 var urlUtils        = hammerhead.get('./utils/url');
 var FileListWrapper = hammerhead.get('./sandbox/upload/file-list-wrapper');
@@ -376,7 +376,7 @@ test('window.Image must be overriden (B234340)', function () {
     setProperty(img, 'src', 'data/image.png');
 
     strictEqual(nativeMethods.getAttribute.call(img, 'src'), urlUtils.getProxyUrl('data/image.png'));
-    strictEqual(nativeMethods.getAttribute.call(img, domProcessor.getStoredAttrName('src')), 'data/image.png');
+    strictEqual(nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src')), 'data/image.png');
 
     var NativeImage = nativeMethods.Image;
 
