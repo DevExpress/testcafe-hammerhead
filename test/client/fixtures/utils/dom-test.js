@@ -60,6 +60,8 @@ test('isDomElement', function () {
     ok(domUtils.isDomElement(document.createElement('strong')));
     ok(domUtils.isDomElement(document.createElement('a')));
     ok(!domUtils.isDomElement(null));
+    ok(!domUtils.isDomElement(document.createTextNode('text')));
+    ok(!domUtils.isDomElement(document.createDocumentFragment()));
 
     //T184805
     var p = Element.prototype;
@@ -69,6 +71,9 @@ test('isDomElement', function () {
         ok(!domUtils.isDomElement(p));
     while ((p = Object.getPrototypeOf(p)));
     /* eslint-enable no-extra-parens */
+
+    if (window.Proxy)
+        ok(!domUtils.isDomElement(new Proxy({}, {})));
 });
 
 test('isDomElement for iframe elements', function () {
@@ -82,6 +87,8 @@ test('isDomElement for iframe elements', function () {
             ok(domUtils.isDomElement(iframeDocument.createElement('span')));
             ok(domUtils.isDomElement(iframeDocument.createElement('strong')));
             ok(domUtils.isDomElement(iframeDocument.createElement('a')));
+            ok(!domUtils.isDomElement(iframeDocument.createTextNode('text')));
+            ok(!domUtils.isDomElement(iframeDocument.createDocumentFragment()));
 
             var p = iframe.contentWindow.Element.prototype;
 
@@ -90,7 +97,75 @@ test('isDomElement for iframe elements', function () {
                 ok(!domUtils.isDomElement(p));
             while ((p = Object.getPrototypeOf(p)));
             /* eslint-enable no-extra-parens */
+
+            if (window.Proxy)
+                ok(!domUtils.isDomElement(new Proxy({}, {})));
         });
+});
+
+test('isDocumentFragmentNode (GH-1344)', function () {
+    ok(domUtils.isDocumentFragmentNode(document.createDocumentFragment()));
+    ok(!domUtils.isDocumentFragmentNode(document.createElement('span')));
+    ok(!domUtils.isDocumentFragmentNode(document.createElement('strong')));
+    ok(!domUtils.isDocumentFragmentNode(document.createElement('a')));
+    ok(!domUtils.isDocumentFragmentNode(null));
+    ok(!domUtils.isDocumentFragmentNode(document.createTextNode('text')));
+
+    if (window.Proxy)
+        ok(!domUtils.isDocumentFragmentNode(new Proxy({}, {})));
+});
+
+test('isTextNode (GH-1344)', function () {
+    ok(domUtils.isTextNode(document.createTextNode('text')));
+    ok(!domUtils.isTextNode(document.createDocumentFragment()));
+    ok(!domUtils.isTextNode(document.createElement('span')));
+    ok(!domUtils.isTextNode(document.createElement('strong')));
+    ok(!domUtils.isTextNode(document.createElement('a')));
+    ok(!domUtils.isTextNode(null));
+
+    if (window.Proxy)
+        ok(!domUtils.isTextNode(new Proxy({}, {})));
+});
+
+test('isProcessingInstructionNode (GH-1344)', function () {
+    ok(domUtils.isProcessingInstructionNode(document.createProcessingInstruction('xml', 'version="1.0"')));
+    ok(!domUtils.isProcessingInstructionNode(document.createDocumentFragment()));
+    ok(!domUtils.isProcessingInstructionNode(document.createElement('span')));
+    ok(!domUtils.isProcessingInstructionNode(document.createElement('strong')));
+    ok(!domUtils.isProcessingInstructionNode(document.createElement('a')));
+    ok(!domUtils.isProcessingInstructionNode(null));
+    ok(!domUtils.isProcessingInstructionNode(document.createTextNode('text')));
+
+    if (window.Proxy)
+        ok(!domUtils.isProcessingInstructionNode(new Proxy({}, {})));
+});
+
+test('isCommentNode (GH-1344)', function () {
+    ok(domUtils.isCommentNode(document.createComment('comment')));
+    ok(!domUtils.isCommentNode(document.createDocumentFragment()));
+    ok(!domUtils.isCommentNode(document.createElement('span')));
+    ok(!domUtils.isCommentNode(document.createElement('strong')));
+    ok(!domUtils.isCommentNode(document.createElement('a')));
+    ok(!domUtils.isCommentNode(null));
+    ok(!domUtils.isCommentNode(document.createTextNode('text')));
+
+    if (window.Proxy)
+        ok(!domUtils.isCommentNode(new Proxy({}, {})));
+});
+
+test('isDocument (GH-1344)', function () {
+    ok(domUtils.isDocument(document));
+    ok(domUtils.isDocument(document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html')));
+    ok(!domUtils.isDocument(document.createElement('span')));
+    ok(!domUtils.isDocument(document.createElement('strong')));
+    ok(!domUtils.isDocument(document.createElement('a')));
+    ok(!domUtils.isDocument(null));
+    ok(!domUtils.isDocument(document.createTextNode('text')));
+    ok(!domUtils.isDocument(document.createDocumentFragment()));
+
+
+    if (window.Proxy)
+        ok(!domUtils.isDocument(new Proxy({}, {})));
 });
 
 test('getTopSameDomainWindow', function () {

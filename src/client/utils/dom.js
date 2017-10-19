@@ -16,21 +16,15 @@ const arraySlice = Array.prototype.slice;
 
 let scrollbarSize = null;
 
-/*eslint-disable no-restricted-globals*/
-const NATIVE_ELEMENT_PROTOTYPE_STRINGS = [
-    instanceToString(nativeMethods.elementClass.prototype),
-    instanceToString(Object.getPrototypeOf(nativeMethods.elementClass.prototype))
-];
-/*eslint-enable no-restricted-globals*/
-
 const NATIVE_MAP_ELEMENT_STRINGS = [
     '[object HTMLMapElement]',
     '[object HTMLAreaElement]'
 ];
 
 const NATIVE_WINDOW_STR     = instanceToString(window);
-const NATIVE_DOCUMENT_STR   = instanceToString(document);
+const IS_DOCUMENT_RE        = /^\[object .*?Document]$/i;
 const IS_SVG_ELEMENT_RE     = /^\[object SVG\w+?Element]$/i;
+const IS_HTML_ELEMENT_RE    = /^\[object HTML.*?Element]$/i;
 const NATIVE_TABLE_CELL_STR = instanceToString(nativeMethods.createElement.call(document, 'td'));
 
 
@@ -343,21 +337,12 @@ export function isDomElement (el) {
     if (el instanceof nativeMethods.elementClass)
         return true;
 
-    // NOTE: T184805
-    if (el && NATIVE_ELEMENT_PROTOTYPE_STRINGS.indexOf(instanceToString(el)) !== -1)
-        return false;
-
-    // NOTE: B252941
-    return el && !isDocumentFragmentNode(el) && typeof el.nodeName === 'string' && el.tagName;
+    return el && IS_HTML_ELEMENT_RE.test(instanceToString(el)) && isElementNode(el) && el.tagName;
 }
 
 export function getTagName (el) {
     // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
     return el && typeof el.tagName === 'string' ? el.tagName.toLowerCase() : '';
-}
-
-export function getNodeType (node) {
-    return node && node.nodeType;
 }
 
 export function isElementInDocument (el, currentDocument) {
@@ -567,7 +552,7 @@ export function isDocument (instance) {
         return true;
 
     try {
-        return instance && NATIVE_DOCUMENT_STR === instanceToString(instance);
+        return instance && IS_DOCUMENT_RE.test(instanceToString(instance));
     }
     catch (e) {
         // NOTE: For cross-domain objects (windows, documents or locations), we return false because
@@ -643,27 +628,23 @@ export function isTextEditableElementAndEditingAllowed (el) {
 }
 
 export function isElementNode (node) {
-    return getNodeType(node) === 1;
+    return node && node.nodeType === Node.ELEMENT_NODE;
 }
 
 export function isTextNode (node) {
-    return getNodeType(node) === 3;
+    return instanceToString(node) === '[object Text]';
 }
 
 export function isProcessingInstructionNode (node) {
-    return getNodeType(node) === 7;
+    return instanceToString(node) === '[object ProcessingInstruction]';
 }
 
 export function isCommentNode (node) {
-    return getNodeType(node) === 8;
+    return instanceToString(node) === '[object Comment]';
 }
 
-export function isDocumentNode (node) {
-    return getNodeType(node) === 9;
-}
-
-export function isDocumentFragmentNode (el) {
-    return getNodeType(el) === 11;
+export function isDocumentFragmentNode (node) {
+    return instanceToString(node) === '[object DocumentFragment]';
 }
 
 export function isAnchorElement (el) {

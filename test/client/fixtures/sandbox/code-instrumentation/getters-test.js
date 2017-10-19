@@ -24,6 +24,10 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
+var DocumentMock = function (props) {
+    Object.assign(this, props);
+};
+
 if (!browserUtils.isIE || browserUtils.version > 9) {
     test('autocomplete', function () {
         var input  = $('<input>')[0];
@@ -130,35 +134,31 @@ test('document.URL', function () {
 });
 
 test('document.referrer', function () {
-    var url                  = 'http://some.domain.com/index.html';
-    var storedObjectToString = nativeMethods.objectToString;
-    var documentMock         = {
+    var url                 = 'http://some.domain.com/index.html';
+    var storedDocumentClass = nativeMethods.documentClass;
+    var documentMock        = new DocumentMock({
         referrer: urlUtils.getProxyUrl(url)
-    };
+    });
 
-    nativeMethods.objectToString = function () {
-        return Object.prototype.toString.call(document);
-    };
+    nativeMethods.documentClass = DocumentMock;
 
     strictEqual(getProperty(documentMock, 'referrer'), url);
 
-    nativeMethods.objectToString = storedObjectToString;
+    nativeMethods.documentClass = storedDocumentClass;
 });
 
 test('document.documentURI', function () {
-    var url                  = 'http://some.domain.com/index.html';
-    var storedObjectToString = nativeMethods.objectToString;
-    var documentMock         = {
+    var url                 = 'http://some.domain.com/index.html';
+    var storedDocumentClass = nativeMethods.documentClass;
+    var documentMock        = new DocumentMock({
         documentURI: urlUtils.getProxyUrl(url)
-    };
+    });
 
-    nativeMethods.objectToString = function () {
-        return Object.prototype.toString.call(document);
-    };
+    nativeMethods.documentClass = DocumentMock;
 
     strictEqual(getProperty(documentMock, 'documentURI'), url);
 
-    nativeMethods.objectToString = storedObjectToString;
+    nativeMethods.documentClass = storedDocumentClass;
 });
 
 test("should returns a native 'document.documentURI' property value if it does not supported (GH-1270)", function () {
@@ -169,19 +169,17 @@ test("should returns a native 'document.documentURI' property value if it does n
 });
 
 test('document.baseURI (GH-920)', function () {
-    var url                  = 'http://some.domain.com/index.html';
-    var storedObjectToString = nativeMethods.objectToString;
-    var documentMock         = {
+    var url                 = 'http://some.domain.com/index.html';
+    var storedDocumentClass = nativeMethods.documentClass;
+    var documentMock        = new DocumentMock({
         baseURI: urlUtils.getProxyUrl(url)
-    };
+    });
 
-    nativeMethods.objectToString = function () {
-        return Object.prototype.toString.call(document);
-    };
+    nativeMethods.documentClass = DocumentMock;
 
     strictEqual(getProperty(documentMock, 'baseURI'), url);
 
-    nativeMethods.objectToString = storedObjectToString;
+    nativeMethods.documentClass = storedDocumentClass;
 });
 
 test('CSSStyleSheet.href', function () {

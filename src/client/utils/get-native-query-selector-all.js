@@ -1,8 +1,8 @@
 import nativeMethods from '../sandbox/native-methods';
-import { isDocumentFragmentNode, isDocumentNode } from './dom';
+import { isDocumentFragmentNode, isDocument } from './dom';
 
 export default function getNativeQuerySelectorAll (el) {
-    if (isDocumentNode(el))
+    if (isDocument(el))
         return nativeMethods.querySelectorAll;
 
     return isDocumentFragmentNode(el) ? nativeMethods.documentFragmentQuerySelectorAll
