@@ -6,7 +6,7 @@ import ElementSandbox from './element';
 import FocusBlurSandbox from '../event/focus-blur';
 import domProcessor from '../../dom-processor';
 import * as domUtils from '../../utils/dom';
-import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
+import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import nativeMethods from '../native-methods';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;

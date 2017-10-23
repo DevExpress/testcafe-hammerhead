@@ -12,7 +12,7 @@ import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
-import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
+import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
@@ -481,10 +481,7 @@ export default class ElementSandbox extends SandboxBase {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = NodeSandbox.processSelector(arguments[0]);
 
-                const nativeQuerySelector = domUtils.isDocumentFragmentNode(this) ? nativeMethods.documentFragmentQuerySelector
-                    : nativeMethods.elementQuerySelector;
-
-                return nativeQuerySelector.apply(this, arguments);
+                return getNativeQuerySelector(this).apply(this, arguments);
             },
 
             querySelectorAll () {

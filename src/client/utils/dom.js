@@ -7,7 +7,7 @@ import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, version as browserVersion } from './browser';
 import trim from '../../utils/string-trim';
-import getNativeQuerySelectorAll from './get-native-query-selector-all';
+import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
 // NOTE: We should avoid using native object prototype methods,
@@ -647,6 +647,10 @@ export function isCommentNode (node) {
 
 export function isDocumentFragmentNode (node) {
     return instanceToString(node) === '[object DocumentFragment]';
+}
+
+export function isShadowRoot (root) {
+    return instanceToString(root) === '[object ShadowRoot]';
 }
 
 export function isAnchorElement (el) {

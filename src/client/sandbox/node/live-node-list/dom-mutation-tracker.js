@@ -1,6 +1,6 @@
 import nativeMethods from '../../native-methods';
 import { getTagName, isShadowUIElement } from '../../../utils/dom';
-import getNativeQuerySelectorAll from '../../../utils/get-native-query-selector-all';
+import { getNativeQuerySelectorAll } from '../../../utils/query-selector';
 
 const MAX_SAFE_INTEGER = Math.pow(2, 53) - 1;
 const MIN_SAFE_INTEGER = -MAX_SAFE_INTEGER;

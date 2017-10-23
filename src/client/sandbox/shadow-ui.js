@@ -8,7 +8,7 @@ import { getOffsetPosition } from '../utils/position';
 import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
 import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
-import getNativeQuerySelectorAll from '../utils/get-native-query-selector-all';
+import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import LiveNodeListFactory from './node/live-node-list/factory';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
