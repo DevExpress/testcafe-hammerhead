@@ -24,8 +24,8 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
-var DocumentMock = function (props) {
-    Object.assign(this, props);
+var DocumentMock = function (prop, value) {
+    this[prop] = value;
 };
 
 if (!browserUtils.isIE || browserUtils.version > 9) {
@@ -136,9 +136,7 @@ test('document.URL', function () {
 test('document.referrer', function () {
     var url                 = 'http://some.domain.com/index.html';
     var storedDocumentClass = nativeMethods.documentClass;
-    var documentMock        = new DocumentMock({
-        referrer: urlUtils.getProxyUrl(url)
-    });
+    var documentMock        = new DocumentMock('referrer', urlUtils.getProxyUrl(url));
 
     nativeMethods.documentClass = DocumentMock;
 
@@ -150,9 +148,7 @@ test('document.referrer', function () {
 test('document.documentURI', function () {
     var url                 = 'http://some.domain.com/index.html';
     var storedDocumentClass = nativeMethods.documentClass;
-    var documentMock        = new DocumentMock({
-        documentURI: urlUtils.getProxyUrl(url)
-    });
+    var documentMock        = new DocumentMock('documentURI', urlUtils.getProxyUrl(url));
 
     nativeMethods.documentClass = DocumentMock;
 
@@ -171,9 +167,7 @@ test("should returns a native 'document.documentURI' property value if it does n
 test('document.baseURI (GH-920)', function () {
     var url                 = 'http://some.domain.com/index.html';
     var storedDocumentClass = nativeMethods.documentClass;
-    var documentMock        = new DocumentMock({
-        baseURI: urlUtils.getProxyUrl(url)
-    });
+    var documentMock        = new DocumentMock('baseURI', urlUtils.getProxyUrl(url));
 
     nativeMethods.documentClass = DocumentMock;
 

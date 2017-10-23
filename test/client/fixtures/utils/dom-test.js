@@ -128,7 +128,10 @@ test('isTextNode (GH-1344)', function () {
 });
 
 test('isProcessingInstructionNode (GH-1344)', function () {
-    ok(domUtils.isProcessingInstructionNode(document.createProcessingInstruction('xml', 'version="1.0"')));
+    var doc         = new DOMParser().parseFromString('<xml></xml>', 'application/xml');
+    var instruction = doc.createProcessingInstruction('xml-stylesheet', 'href="mycss.css" type="text/css"');
+
+    ok(domUtils.isProcessingInstructionNode(instruction));
     ok(!domUtils.isProcessingInstructionNode(document.createDocumentFragment()));
     ok(!domUtils.isProcessingInstructionNode(document.createElement('span')));
     ok(!domUtils.isProcessingInstructionNode(document.createElement('strong')));
