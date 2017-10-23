@@ -155,7 +155,8 @@ test('isCommentNode (GH-1344)', function () {
 
 test('isDocument (GH-1344)', function () {
     ok(domUtils.isDocument(document));
-    ok(domUtils.isDocument(document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html')));
+    ok(domUtils.isDocument(document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', null)));
+    ok(domUtils.isDocument(document.implementation.createHTMLDocument( 'title')));
     ok(!domUtils.isDocument(document.createElement('span')));
     ok(!domUtils.isDocument(document.createElement('strong')));
     ok(!domUtils.isDocument(document.createElement('a')));

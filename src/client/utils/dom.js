@@ -26,6 +26,7 @@ const IS_DOCUMENT_RE        = /^\[object .*?Document]$/i;
 const IS_SVG_ELEMENT_RE     = /^\[object SVG\w+?Element]$/i;
 const IS_HTML_ELEMENT_RE    = /^\[object HTML.*?Element]$/i;
 const NATIVE_TABLE_CELL_STR = instanceToString(nativeMethods.createElement.call(document, 'td'));
+const ELEMENT_NODE_TYPE     = Node.ELEMENT_NODE;
 
 
 function getFocusableSelector () {
@@ -628,7 +629,7 @@ export function isTextEditableElementAndEditingAllowed (el) {
 }
 
 export function isElementNode (node) {
-    return node && node.nodeType === Node.ELEMENT_NODE;
+    return node && node.nodeType === ELEMENT_NODE_TYPE;
 }
 
 export function isTextNode (node) {
