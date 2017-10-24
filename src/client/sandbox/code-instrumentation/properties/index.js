@@ -313,7 +313,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             innerHTML: {
-                condition: el => domUtils.isElementNode(el) &&
+                condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'innerHTML'),
 
                 get: el => {
@@ -388,7 +388,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             innerText: {
                 // NOTE: http://caniuse.com/#search=Node.innerText
-                condition: el => domUtils.isElementNode(el) &&
+                condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'innerText'),
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.innerText),
@@ -409,7 +409,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             outerHTML: {
-                condition: el => domUtils.isElementNode(el) &&
+                condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'outerHTML'),
 
                 get: el => cleanUpHtml(el.outerHTML, el.parentNode && el.parentNode.tagName),
@@ -670,7 +670,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             textContent: {
-                condition: el => domUtils.isElementNode(el) &&
+                condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'textContent'),
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.textContent),

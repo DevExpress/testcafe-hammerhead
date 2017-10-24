@@ -112,7 +112,7 @@ export function getWidth (el) {
     if (domUtils.isWindow(el))
         return el.document.documentElement.clientWidth;
 
-    if (domUtils.isDocumentNode(el)) {
+    if (domUtils.isDocument(el)) {
         const doc        = el.documentElement;
         const clientProp = 'clientWidth';
         const scrollProp = 'scrollWidth';
@@ -144,7 +144,7 @@ export function getHeight (el) {
     if (domUtils.isWindow(el))
         return el.document.documentElement.clientHeight;
 
-    if (domUtils.isDocumentNode(el)) {
+    if (domUtils.isDocument(el)) {
         const doc        = el.documentElement;
         const clientProp = 'clientHeight';
         const scrollProp = 'scrollHeight';
