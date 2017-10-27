@@ -414,7 +414,7 @@ test('script block inserted via element.innerHtml must not be executed (B237015)
     var script           = '<script>window.' + testPropertyName + ' = true;\<\/script>';
 
     body.appendChild(el);
-    el.innerHTML         = script;
+    el.innerHTML = script;
 
     ok(!window[testPropertyName]);
 });
@@ -562,7 +562,10 @@ test("location assignment doesn't work (GH-640)", function () {
                 iframe.addEventListener('load', function () {
                     resolve(iframe);
                 });
-                iframe.contentWindow.eval.call(iframe.contentWindow, processScript('location = "' + iframeNewSrc + '";'));
+
+                var changeLocationScript = 'location = "' + iframeNewSrc + '";'
+
+                iframe.contentWindow.eval.call(iframe.contentWindow, processScript(changeLocationScript));
             });
         })
         .then(function (iframe) {
@@ -625,3 +628,38 @@ if (!browserUtils.isFirefox) {
         strictEqual(anchor.href, 'unsupported://some.link.com/path?z=30');
     });
 }
+
+test('should properly set value of instrumented property if it is readonly for DOM elements (GH-1351)', function () {
+    var input = document.createElement('input');
+
+    var testCases = [
+        {
+            prop:   'attributes',
+            value1: input.attributes,
+            value2: null
+        },
+        {
+            prop:   'nextSibling',
+            value1: input,
+            value2: null
+        },
+        {
+            prop:   'nextElementSibling',
+            value1: input,
+            value2: null
+        }
+    ];
+
+    var obj = {};
+
+    testCases.forEach(function (testCase) {
+        setProperty(obj, testCase.prop, testCase.value1);
+        strictEqual(getProperty(obj, testCase.prop), testCase.value1);
+
+        setProperty(obj, testCase.prop, testCase.value2);
+        strictEqual(getProperty(obj, testCase.prop), testCase.value2);
+
+        delete obj[testCase.prop];
+    });
+});
+
