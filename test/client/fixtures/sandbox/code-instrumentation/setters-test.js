@@ -563,7 +563,7 @@ test("location assignment doesn't work (GH-640)", function () {
                     resolve(iframe);
                 });
 
-                var changeLocationScript = 'location = "' + iframeNewSrc + '";'
+                var changeLocationScript = 'location = "' + iframeNewSrc + '";';
 
                 iframe.contentWindow.eval.call(iframe.contentWindow, processScript(changeLocationScript));
             });
