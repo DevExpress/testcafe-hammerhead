@@ -543,7 +543,7 @@ test('HTMLElement.style', function () {
 
     div.setAttribute('style', 'background-image:url(index.png);');
 
-    strictEqual(div.style.backgroundImage, proxiedBackgroundImageValue);
+    strictEqual(removeDoubleQuotes(div.style.backgroundImage), removeDoubleQuotes(proxiedBackgroundImageValue));
     strictEqual(div.getAttribute('style'), 'background-image:url(index.png);');
 
 });

@@ -334,7 +334,7 @@ test('HTMLElement.style', function () {
 
         var expectedBackgroundImageValue = 'url("' + urlUtils.getProxyUrl('/index.html') + '")';
 
-        strictEqual(div.style.backgroundImage, expectedBackgroundImageValue);
+        strictEqual(removeDoubleQuotes(div.style.backgroundImage), removeDoubleQuotes(expectedBackgroundImageValue));
     }
 });
 
