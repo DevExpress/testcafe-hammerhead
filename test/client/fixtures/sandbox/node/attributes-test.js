@@ -27,9 +27,10 @@ QUnit.testDone(function () {
 // NOTE: IE11 has a strange bug that does not allow this test to pass
 if (!browserUtils.isIE || browserUtils.version !== 11) {
     test('onsubmit', function () {
-        var etalon      = nativeMethods.createElement.call(document, 'form');
-        var form        = document.createElement('form');
-        var check       = function () {
+        var etalon = nativeMethods.createElement.call(document, 'form');
+        var form   = document.createElement('form');
+
+        var check = function () {
             strictEqual(form.getAttribute('onsubmit'), nativeMethods.getAttribute.call(etalon, 'onsubmit'));
 
             var onsubmit = getProperty(form, 'onsubmit');
@@ -534,6 +535,17 @@ test('anchor with target attribute', function () {
     strictEqual(urlUtils.parseProxyUrl(nativeHref).resourceType, 'i');
 
     iframe.parentNode.removeChild(iframe);
+});
+
+test('HTMLElement.style', function () {
+    var div                         = document.createElement('div');
+    var proxiedBackgroundImageValue = 'url("' + urlUtils.getProxyUrl('index.png') + '")';
+
+    div.setAttribute('style', 'background-image:url(index.png);');
+
+    strictEqual(div.style.backgroundImage, proxiedBackgroundImageValue);
+    strictEqual(div.getAttribute('style'), 'background-image:url(index.png);');
+
 });
 
 module('regression');

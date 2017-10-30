@@ -797,6 +797,16 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             cssText:               PropertyAccessorsInstrumentation._createForStyleProperty('cssText'),
             cursor:                PropertyAccessorsInstrumentation._createForStyleProperty('cursor'),
 
+            style: {
+                condition: el => domUtils.isDomElement(el) && isStyle(el.style),
+
+                get: el => el.style,
+
+                set: (el, value) => {
+                    el.setAttribute('style', value);
+                }
+            },
+
             styleSheets: {
                 condition: domUtils.isDocument,
                 get:       doc => this.shadowUI._filterStyleSheetList(doc.styleSheets),
