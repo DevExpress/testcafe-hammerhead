@@ -91,7 +91,7 @@
     };
 
     window.removeDoubleQuotes = function (str) {
-        return str.replace('"', '');
+        return str.replace(/"/g, '');
     };
 
     var MAX_ARG_COUNT = 3;

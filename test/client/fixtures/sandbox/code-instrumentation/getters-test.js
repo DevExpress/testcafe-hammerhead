@@ -330,7 +330,9 @@ test('HTMLElement.style', function () {
 
     // IE does not allow to set a style property in this way
     if (!window.MSStyleCSSProperties) {
-        setProperty(div, 'style', "background-image:url('/index.html')");
+        var returnedValue = setProperty(div, 'style', "background-image:url('/index.html')");
+
+        strictEqual(returnedValue, "background-image:url('/index.html')");
 
         var expectedBackgroundImageValue = 'url("' + urlUtils.getProxyUrl('/index.html') + '")';
 

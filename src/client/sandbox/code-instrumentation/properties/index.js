@@ -804,6 +804,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 set: (el, value) => {
                     el.setAttribute('style', value);
+
+                    return value;
                 }
             },
 
