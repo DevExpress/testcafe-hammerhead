@@ -180,9 +180,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             attributes: {
-                condition: el => {
-                    return el.attributes instanceof window.NamedNodeMap;
-                },
+                condition: el => domUtils.isDomElement(el) && el.attributes instanceof window.NamedNodeMap,
 
                 get: el => getAttributesProperty(el),
                 set: (el, value) => value
@@ -397,13 +395,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             nextElementSibling: {
-                condition: node => node.nextElementSibling && domUtils.isDomElement(node.nextElementSibling),
+                condition: node => node.nextElementSibling && domUtils.isDomElement(node) && domUtils.isDomElement(node.nextElementSibling),
                 get:       node => domUtils.isShadowUIElement(node.nextElementSibling) ? null : node.nextElementSibling,
                 set:       () => void 0
             },
 
             nextSibling: {
-                condition: node => node.nextSibling && domUtils.isDomElement(node.nextSibling),
+                condition: node => node.nextSibling && domUtils.isDomElement(node) && domUtils.isDomElement(node.nextSibling),
                 get:       node => domUtils.isShadowUIElement(node.nextSibling) ? null : node.nextSibling,
                 set:       () => void 0
             },
