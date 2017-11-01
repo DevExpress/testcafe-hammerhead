@@ -173,14 +173,15 @@ class NativeMethods {
         this.dateNow = win.Date.now;
 
         // Object
-        this.objectToString         = win.Object.prototype.toString;
-        this.objectAssign           = win.Object.assign;
-        this.objectKeys             = win.Object.keys;
-        this.objectDefineProperty   = win.Object.defineProperty;
-        this.objectDefineProperties = win.Object.defineProperties;
-        this.objectCreate           = win.Object.create;
-        this.objectIsExtensible     = win.Object.isExtensible;
-        this.objectIsFrozen         = win.Object.isFrozen;
+        this.objectToString                 = win.Object.prototype.toString;
+        this.objectAssign                   = win.Object.assign;
+        this.objectKeys                     = win.Object.keys;
+        this.objectDefineProperty           = win.Object.defineProperty;
+        this.objectDefineProperties         = win.Object.defineProperties;
+        this.objectCreate                   = win.Object.create;
+        this.objectIsExtensible             = win.Object.isExtensible;
+        this.objectIsFrozen                 = win.Object.isFrozen;
+        this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
 
         // DOMParser
         if (win.DOMParser)
@@ -195,6 +196,10 @@ class NativeMethods {
 
         if (textAreaValueDescriptor && typeof textAreaValueDescriptor.set === 'function')
             this.textAreaValueSetter = textAreaValueDescriptor.set;
+
+        // Getters
+        if (win.WebSocket)
+            this.webSocketUrlGetter = win.Object.getOwnPropertyDescriptor(window.WebSocket.prototype, 'url').get;
 
         // Stylesheets
         if (win.CSSStyleDeclaration) {

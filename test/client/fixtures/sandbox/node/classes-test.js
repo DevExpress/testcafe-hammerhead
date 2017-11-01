@@ -197,6 +197,22 @@ if (window.WebSocket) {
         socket.close();
     });
 
+    test('url property', function () {
+        var url    = 'ws://' + location.host;
+        var socket = new WebSocket(url);
+
+        strictEqual(socket.url, url);
+
+        socket.close();
+
+        var secureUrl    = 'wss://' + location.host;
+        var secureSocket = new WebSocket(secureUrl);
+
+        strictEqual(secureSocket.url, secureUrl);
+
+        secureSocket.close();
+    });
+
     test('checking parameters', function () {
         var nativeWebSocket = nativeMethods.WebSocket;
         var originHeader    = encodeURIComponent(destLocation.getOriginHeader());
@@ -207,51 +223,51 @@ if (window.WebSocket) {
 
         /* eslint-disable no-new */
         new WebSocket('ws://localhost/socket');
-        /* eslint-enable no-new */
 
         nativeMethods.WebSocket = function (url) {
             strictEqual(url, 'ws://' + location.host + '/sessionId!w!' + originHeader +
                              '/https://localhost/secure-socket');
         };
 
-        /* eslint-disable no-new */
         new WebSocket('wss://localhost/secure-socket');
+        new WebSocket('wss://localhost/secure-socket', ['soap']);
         /* eslint-enable no-new */
+
 
         nativeMethods.WebSocket = nativeWebSocket;
     });
 
+    /* eslint-disable no-new */
     test('throwing errors', function () {
         throws(function () {
-            /* eslint-disable no-new */
             new WebSocket();
-            /* eslint-enable no-new */
         });
 
         throws(function () {
-            /* eslint-disable no-new */
             new WebSocket('');
-            /* eslint-enable no-new */
         });
 
         throws(function () {
-            /* eslint-disable no-new */
             new WebSocket('/path');
-            /* eslint-enable no-new */
         });
 
         throws(function () {
-            /* eslint-disable no-new */
             new WebSocket('//example.com');
-            /* eslint-enable no-new */
         });
 
         throws(function () {
-            /* eslint-disable no-new */
             new WebSocket('http://example.com');
-            /* eslint-enable no-new */
+        });
+
+        throws(function () {
+            new WebSocket('wss://localhost/secure-socket', ['soap'], 123);
+        });
+
+        throws(function () {
+            new WebSocket('wss://localhost/secure-socket', ['soap'], 123, 'str');
         });
     });
+    /* eslint-enable no-new */
 }
 
 module('regression');

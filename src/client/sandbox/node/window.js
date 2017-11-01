@@ -6,7 +6,14 @@ import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
 import { processHtml } from '../../utils/html';
-import { isSubDomain, parseUrl, getProxyUrl, parseProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
+import {
+    isSubDomain,
+    parseUrl,
+    getProxyUrl,
+    parseProxyUrl,
+    convertToProxyUrl,
+    stringifyResourceType
+} from '../../utils/url';
 import { isFirefox, isIE9, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
@@ -19,6 +26,8 @@ const nativeFunctionToString = nativeMethods.Function.toString();
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 const arrayConcat = Array.prototype.concat;
+
+const HTTP_PROTOCOL_RE = /^http/i;
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox) {
@@ -224,8 +233,9 @@ export default class WindowSandbox extends SandboxBase {
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
-                return arguments.length ===
-                       1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
+                return arguments.length === 1
+                    ? new nativeMethods.Worker(scriptURL)
+                    : new nativeMethods.Worker(scriptURL, options);
             };
             window.Worker.prototype = nativeMethods.Worker.prototype;
         }
@@ -424,15 +434,15 @@ export default class WindowSandbox extends SandboxBase {
             window.WebSocket = function (url, protocols) {
                 if (arguments.length === 0)
                     return new nativeMethods.WebSocket();
+                else if (arguments.length > 2)
+                    return new nativeMethods.WebSocket(url, protocols, arguments[2]);
 
                 const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
 
                 if (arguments.length === 1)
                     return new nativeMethods.WebSocket(proxyUrl);
-                else if (arguments.length === 2)
-                    return new nativeMethods.WebSocket(proxyUrl, protocols);
 
-                return new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
+                return new nativeMethods.WebSocket(proxyUrl, protocols);
             };
 
             window.WebSocket.prototype  = nativeMethods.WebSocket.prototype;
@@ -440,6 +450,21 @@ export default class WindowSandbox extends SandboxBase {
             window.WebSocket.OPEN       = nativeMethods.WebSocket.OPEN;
             window.WebSocket.CLOSING    = nativeMethods.WebSocket.CLOSING;
             window.WebSocket.CLOSED     = nativeMethods.WebSocket.CLOSED;
+
+            const urlPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
+                .call(window.Object, window.WebSocket.prototype, 'url');
+
+            urlPropDescriptor.get = function () {
+                const url       = nativeMethods.webSocketUrlGetter.call(this);
+                const parsedUrl = parseProxyUrl(url);
+
+                if (parsedUrl && parsedUrl.destUrl)
+                    return parsedUrl.destUrl.replace(HTTP_PROTOCOL_RE, 'ws');
+
+                return url;
+            };
+
+            nativeMethods.objectDefineProperty.call(window.Object, window.WebSocket.prototype, 'url', urlPropDescriptor);
         }
 
         // NOTE: DOMParser supports an HTML parsing for IE10 and later

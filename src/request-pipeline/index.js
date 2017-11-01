@@ -8,6 +8,7 @@ import connectionResetGuard from './connection-reset-guard';
 import { check as checkSameOriginPolicy, SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from './xhr/same-origin-policy';
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
+import { respondOnWebSocket } from './websocket';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -62,7 +63,7 @@ const stages = {
             ctx.destRes.statusCode = 200;
 
         if (ctx.isWebSocket) {
-            performWebSocketConnection(ctx);
+            respondOnWebSocket(ctx);
 
             return;
         }
@@ -171,37 +172,6 @@ function sendResponseHeaders (ctx) {
 
     ctx.res.writeHead(ctx.destRes.statusCode, headers);
     ctx.res.addTrailers(ctx.destRes.trailers);
-}
-
-function performWebSocketConnection (ctx) {
-    const headers = headerTransforms.forResponse(ctx);
-
-    writeWebSocketHead(ctx.res, ctx.destRes, headers);
-
-    ctx.destRes.socket.pipe(ctx.res);
-    ctx.res.pipe(ctx.destRes.socket);
-}
-
-function writeWebSocketHead (socket, destRes, headers) {
-    const { httpVersion, statusCode, statusMessage } = destRes;
-
-    const resRaw       = [`HTTP/${httpVersion} ${statusCode} ${statusMessage}`];
-    const headersNames = Object.keys(headers);
-
-    for (const headerName of headersNames) {
-        const headerValue = headers[headerName];
-
-        if (Array.isArray(headerValue)) {
-            for (const value of headerValue)
-                resRaw.push(headerName + ': ' + value);
-        }
-        else
-            resRaw.push(headerName + ': ' + headerValue);
-    }
-
-    resRaw.push('', '');
-
-    socket.write(resRaw.join('\r\n'));
 }
 
 function error (ctx, err) {
