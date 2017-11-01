@@ -231,6 +231,15 @@ if (window.WebSocket) {
 
         new WebSocket('wss://localhost/secure-socket');
         new WebSocket('wss://localhost/secure-socket', ['soap']);
+
+        nativeMethods.WebSocket = function (url) {
+            strictEqual(arguments.length, 3);
+            strictEqual(url, 'ws://' + location.host + '/sessionId!w!' + originHeader +
+                             '/https://localhost/secure-socket');
+        };
+
+        new WebSocket('wss://localhost/secure-socket', ['soap'], 123);
+        new WebSocket('wss://localhost/secure-socket', ['soap'], 123, 'str');
         /* eslint-enable no-new */
 
 
@@ -257,14 +266,6 @@ if (window.WebSocket) {
 
         throws(function () {
             new WebSocket('http://example.com');
-        });
-
-        throws(function () {
-            new WebSocket('wss://localhost/secure-socket', ['soap'], 123);
-        });
-
-        throws(function () {
-            new WebSocket('wss://localhost/secure-socket', ['soap'], 123, 'str');
         });
     });
     /* eslint-enable no-new */

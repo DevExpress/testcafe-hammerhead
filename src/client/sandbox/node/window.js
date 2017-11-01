@@ -434,15 +434,15 @@ export default class WindowSandbox extends SandboxBase {
             window.WebSocket = function (url, protocols) {
                 if (arguments.length === 0)
                     return new nativeMethods.WebSocket();
-                else if (arguments.length > 2)
-                    return new nativeMethods.WebSocket(url, protocols, arguments[2]);
 
                 const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
 
                 if (arguments.length === 1)
                     return new nativeMethods.WebSocket(proxyUrl);
+                else if (arguments.length === 2)
+                    return new nativeMethods.WebSocket(proxyUrl, protocols);
 
-                return new nativeMethods.WebSocket(proxyUrl, protocols);
+                return new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
             };
 
             window.WebSocket.prototype  = nativeMethods.WebSocket.prototype;
