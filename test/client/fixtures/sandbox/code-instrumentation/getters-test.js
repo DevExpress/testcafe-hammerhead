@@ -323,6 +323,23 @@ asyncTest('xhr.responseURL', function () {
     xhr.send(null);
 });
 
+test('HTMLElement.style', function () {
+    var div = document.createElement('div');
+
+    strictEqual(div.style, getProperty(div, 'style'));
+
+    // IE does not allow to set a style property in this way
+    if (!window.MSStyleCSSProperties) {
+        var returnedValue = setProperty(div, 'style', "background-image:url('/index.html')");
+
+        strictEqual(returnedValue, "background-image:url('/index.html')");
+
+        var expectedBackgroundImageValue = 'url("' + urlUtils.getProxyUrl('/index.html') + '")';
+
+        strictEqual(removeDoubleQuotes(div.style.backgroundImage), removeDoubleQuotes(expectedBackgroundImageValue));
+    }
+});
+
 module('regression');
 
 test('changing the link.href property must affect the stored attribute value (T123960)', function () {

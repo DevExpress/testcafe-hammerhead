@@ -19,7 +19,8 @@ import AttributesWrapper from '../code-instrumentation/properties/attributes-wra
 import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 
-const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
+const KEYWORD_TARGETS                   = ['_blank', '_self', '_parent', '_top'];
+const ATTRS_WITH_SPECIAL_PROXYING_LOGIC = ['sandbox', 'autocomplete', 'target', 'style'];
 
 const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
 
@@ -90,9 +91,9 @@ export default class ElementSandbox extends SandboxBase {
         const getAttrMeth = isNs ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
 
         // OPTIMIZATION: The hasAttribute method is very slow.
-        if (domProcessor.isUrlAttr(el, loweredAttr, ns) || loweredAttr === 'sandbox' ||
+        if (domProcessor.isUrlAttr(el, loweredAttr, ns) ||
             domProcessor.EVENTS.indexOf(loweredAttr) !== -1 ||
-            loweredAttr === 'autocomplete' || loweredAttr === 'target') {
+            ATTRS_WITH_SPECIAL_PROXYING_LOGIC.indexOf(loweredAttr) !== -1) {
             const storedAttrName  = domProcessor.getStoredAttrName(attr);
             const storedAttrValue = getAttrMeth.apply(el, isNs ? [ns, storedAttrName] : [storedAttrName]);
 
@@ -242,6 +243,12 @@ export default class ElementSandbox extends SandboxBase {
 
             if (!HASH_RE.test(value))
                 args[valueIndex] = urlUtils.getProxyUrl(value);
+        }
+        else if (loweredAttr === 'style') {
+            const storedStyleAttr = domProcessor.getStoredAttrName(attr);
+
+            setAttrMeth.apply(el, isNs ? [ns, storedStyleAttr, value] : [storedStyleAttr, value]);
+            args[valueIndex] = styleProcessor.process(value, urlUtils.getProxyUrl);
         }
 
         const result = setAttrMeth.apply(el, args);

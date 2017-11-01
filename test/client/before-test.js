@@ -90,6 +90,10 @@
         return window.QUnitGlobals.hostname + window.QUnitGlobals.getResourceUrl(filePath, resourceName);
     };
 
+    window.removeDoubleQuotes = function (str) {
+        return str.replace(/"/g, '');
+    };
+
     var MAX_ARG_COUNT = 3;
 
     var checkNativeFunctionCalling = function (methodName, nativeMethodName, owner, args) {
