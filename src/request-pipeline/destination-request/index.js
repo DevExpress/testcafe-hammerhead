@@ -101,7 +101,7 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _isDNSErr (err) {
-        return err.message && /ECONNREFUSED|ENOTFOUND/.test(err.message) ||
+        return err.message && /ECONNREFUSED|ENOTFOUND|EPROTO/.test(err.message) ||
                !this.aborted && !this.hasResponse && err.code && /ECONNRESET/.test(err.code);
     }
 
