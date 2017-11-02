@@ -48,6 +48,27 @@ function transformCookie (src, ctx) {
     return src;
 }
 
+function resolveAndGetProxyUrl (url, ctx) {
+    const { host }    = parseUrl(url);
+    let isCrossDomain = false;
+
+    if (!host)
+        url = resolveUrl(ctx.dest.url, url);
+
+    if (ctx.isIframe && ctx.dest.referer) {
+        const isCrossDomainLocationBeforeRedirect = !urlUtils.sameOriginCheck(ctx.dest.referer, ctx.dest.url);
+        const isCrossDomainLocationAfterRedirect  = !urlUtils.sameOriginCheck(ctx.dest.referer, url);
+
+        isCrossDomain = isCrossDomainLocationBeforeRedirect !== isCrossDomainLocationAfterRedirect;
+    }
+
+    return ctx.toProxyUrl(url, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
+}
+
+function transformRefreshHeader (src, ctx) {
+    return src.replace(/(url=)(.*)$/i, (match, prefix, url) => prefix + resolveAndGetProxyUrl(url, ctx));
+}
+
 // Request headers
 const requestTransforms = Object.assign({
     'host':                                (src, ctx) => ctx.dest.host,
@@ -116,20 +137,7 @@ const responseTransforms = {
     'location': (src, ctx) => {
         // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
         // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.
-        const { host }    = parseUrl(src);
-        let isCrossDomain = false;
-
-        if (!host)
-            src = resolveUrl(ctx.dest.url, src);
-
-        if (ctx.isIframe && ctx.dest.referer) {
-            const isCrossDomainLocationBeforeRedirect = !urlUtils.sameOriginCheck(ctx.dest.referer, ctx.dest.url);
-            const isCrossDomainLocationAfterRedirect  = !urlUtils.sameOriginCheck(ctx.dest.referer, src);
-
-            isCrossDomain = isCrossDomainLocationBeforeRedirect !== isCrossDomainLocationAfterRedirect;
-        }
-
-        return ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
+        return resolveAndGetProxyUrl(src, ctx);
     },
 
     'x-frame-options': (src, ctx) => {
@@ -146,7 +154,9 @@ const responseTransforms = {
 
     'sourcemap': skip,
 
-    'referrer-policy': () => 'unsafe-url'
+    'referrer-policy': () => 'unsafe-url',
+
+    'refresh': (src, ctx) => transformRefreshHeader(src, ctx)
 };
 
 const responseForced = {

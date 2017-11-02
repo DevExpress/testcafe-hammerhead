@@ -295,6 +295,11 @@ describe('Proxy', () => {
             res.end('42');
         });
 
+        app.get('/refresh-header/:url', (req, res) => {
+            res.setHeader('refresh', '0;url=' + decodeURIComponent(req.params.url));
+            res.end('42');
+        });
+
         destServer = app.listen(2000);
 
         const crossDomainApp = express();
@@ -2262,6 +2267,36 @@ describe('Proxy', () => {
                 expect(res.headers['referrer-policy']).eql('unsafe-url');
                 done();
             });
+        });
+
+        it('Should transform a "Refresh" header (GH-1354)', () => {
+            function testRefreshHeader (url, baseUrl) {
+                return new Promise(resolve => {
+                    const options = {
+                        url: proxy.openSession('http://127.0.0.1:2000/refresh-header/' +
+                                               encodeURIComponent(url), session),
+
+                        headers: {
+                            accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                        }
+                    };
+
+                    request(options, (err, res) => {
+                        if (baseUrl)
+                            url = urlLib.resolve(baseUrl, url);
+
+                        const expectedValue = '0;url=' + proxy.openSession(url, session);
+
+                        expect(res.headers['refresh']).eql(expectedValue);
+                        resolve();
+                    });
+                });
+            }
+
+            return Promise.all([
+                testRefreshHeader('/index.html', 'http://127.0.0.1:2000'),
+                testRefreshHeader('http://example.com/index.html')
+            ]);
         });
     });
 });
