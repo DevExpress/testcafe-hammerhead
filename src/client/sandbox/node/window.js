@@ -436,23 +436,23 @@ export default class WindowSandbox extends SandboxBase {
                     return new nativeMethods.WebSocket();
 
                 const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
-                let socket     = null;
+                let webSocket  = null;
 
                 if (arguments.length === 1)
-                    socket = new nativeMethods.WebSocket(proxyUrl);
+                    webSocket = new nativeMethods.WebSocket(proxyUrl);
                 else if (arguments.length === 2)
-                    socket = new nativeMethods.WebSocket(proxyUrl, protocols);
+                    webSocket = new nativeMethods.WebSocket(proxyUrl, protocols);
                 else
-                    socket = new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
+                    webSocket = new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
 
                 // NOTE: We need to use deprecated methods instead of the defineProperty method in Android 5.1
                 // because the defineProperty does not redefine descriptor
                 if (!nativeMethods.webSocketUrlGetter) {
-                    socket.__defineGetter__('url', () => url);
-                    socket.__defineSetter__('url', value => value);
+                    webSocket.__defineGetter__('url', () => url);
+                    webSocket.__defineSetter__('url', value => value);
                 }
 
-                return socket;
+                return webSocket;
             };
 
             window.WebSocket.prototype  = nativeMethods.WebSocket.prototype;
