@@ -61,8 +61,8 @@ const CLIENT_TESTS_BROWSERS = [
     },
     {
         browserName: 'safari',
-        platform:    'OS X 10.11',
-        version:     '9.0'
+        platform:    'OS X 10.12',
+        version:     '11.0'
     },
     {
         browserName:     'Safari',
