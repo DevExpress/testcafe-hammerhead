@@ -436,13 +436,23 @@ export default class WindowSandbox extends SandboxBase {
                     return new nativeMethods.WebSocket();
 
                 const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
+                let socket     = null;
 
                 if (arguments.length === 1)
-                    return new nativeMethods.WebSocket(proxyUrl);
+                    socket = new nativeMethods.WebSocket(proxyUrl);
                 else if (arguments.length === 2)
-                    return new nativeMethods.WebSocket(proxyUrl, protocols);
+                    socket = new nativeMethods.WebSocket(proxyUrl, protocols);
+                else
+                    socket = new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
 
-                return new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
+                // NOTE: We need to use deprecated methods instead of the defineProperty method in Android 5.1
+                // because the defineProperty does not redefine descriptor
+                if (!nativeMethods.webSocketUrlGetter) {
+                    socket.__defineGetter__('url', () => url);
+                    socket.__defineSetter__('url', value => value);
+                }
+
+                return socket;
             };
 
             window.WebSocket.prototype  = nativeMethods.WebSocket.prototype;
@@ -451,20 +461,23 @@ export default class WindowSandbox extends SandboxBase {
             window.WebSocket.CLOSING    = nativeMethods.WebSocket.CLOSING;
             window.WebSocket.CLOSED     = nativeMethods.WebSocket.CLOSED;
 
-            const urlPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
-                .call(window.Object, window.WebSocket.prototype, 'url');
+            if (nativeMethods.webSocketUrlGetter) {
+                const urlPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
+                    .call(window.Object, window.WebSocket.prototype, 'url');
 
-            urlPropDescriptor.get = function () {
-                const url       = nativeMethods.webSocketUrlGetter.call(this);
-                const parsedUrl = parseProxyUrl(url);
+                urlPropDescriptor.get = function () {
+                    const url       = nativeMethods.webSocketUrlGetter.call(this);
+                    const parsedUrl = parseProxyUrl(url);
 
-                if (parsedUrl && parsedUrl.destUrl)
-                    return parsedUrl.destUrl.replace(HTTP_PROTOCOL_RE, 'ws');
+                    if (parsedUrl && parsedUrl.destUrl)
+                        return parsedUrl.destUrl.replace(HTTP_PROTOCOL_RE, 'ws');
 
-                return url;
-            };
+                    return url;
+                };
 
-            nativeMethods.objectDefineProperty.call(window.Object, window.WebSocket.prototype, 'url', urlPropDescriptor);
+                nativeMethods.objectDefineProperty
+                    .call(window.Object, window.WebSocket.prototype, 'url', urlPropDescriptor);
+            }
         }
 
         // NOTE: DOMParser supports an HTML parsing for IE10 and later

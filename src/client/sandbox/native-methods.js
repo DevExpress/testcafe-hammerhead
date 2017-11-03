@@ -198,8 +198,12 @@ class NativeMethods {
             this.textAreaValueSetter = textAreaValueDescriptor.set;
 
         // Getters
-        if (win.WebSocket)
-            this.webSocketUrlGetter = win.Object.getOwnPropertyDescriptor(window.WebSocket.prototype, 'url').get;
+        if (win.WebSocket) {
+            const urlPropDescriptor = win.Object.getOwnPropertyDescriptor(window.WebSocket.prototype, 'url');
+
+            if (urlPropDescriptor)
+                this.webSocketUrlGetter = urlPropDescriptor.get;
+        }
 
         // Stylesheets
         if (win.CSSStyleDeclaration) {
