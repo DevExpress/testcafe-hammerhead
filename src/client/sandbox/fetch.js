@@ -21,8 +21,8 @@ export default class FetchSandbox extends SandboxBase {
         const originHeaderValue  = getOriginHeader();
 
         if (isFetchHeaders(headers)) {
-            headers.append(XHR_HEADERS.origin, originHeaderValue);
-            headers.append(XHR_HEADERS.fetchRequestCredentials, requestCredentials);
+            headers.set(XHR_HEADERS.origin, originHeaderValue);
+            headers.set(XHR_HEADERS.fetchRequestCredentials, requestCredentials);
         }
         else {
             headers[XHR_HEADERS.origin]                  = originHeaderValue;
