@@ -24,8 +24,7 @@ export function getProxyUrl (url, opts) {
     const resourceType  = opts && opts.resourceType;
     let charset         = opts && opts.charset;
 
-    const crossDomainPort = settings.get().crossDomainProxyPort === proxyPort ?
-                            location.port.toString() : settings.get().crossDomainProxyPort;
+    const crossDomainPort = getCrossDomainProxyPort(proxyPort);
 
     // NOTE: If the relative URL contains no slash (e.g. 'img123'), the resolver will keep
     // the original proxy information, so that we can return such URL as is.
@@ -82,6 +81,12 @@ export function getCrossDomainIframeProxyUrl (url) {
         proxyPort:    settings.get().crossDomainProxyPort,
         resourceType: sharedUrlUtils.getResourceTypeString({ isIframe: true })
     });
+}
+
+export function getCrossDomainProxyPort (proxyPort) {
+    return settings.get().crossDomainProxyPort === proxyPort
+        ? location.port.toString()
+        : settings.get().crossDomainProxyPort;
 }
 
 export function getCrossDomainProxyUrl () {
