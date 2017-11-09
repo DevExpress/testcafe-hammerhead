@@ -2,7 +2,6 @@ import fs from 'fs';
 import mime from 'mime';
 import path from 'path';
 import promisify from '../utils/promisify';
-import Promise from 'pinkie';
 
 const readFile  = promisify(fs.readFile);
 const stat      = promisify(fs.stat);

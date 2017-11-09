@@ -449,6 +449,24 @@ if (window.fetch) {
                     strictEqual(response.type, 'basic');
                 });
         });
+
+        test('should not dublicate values of internal headers (GH-1360)', function () {
+            var reqInit = {
+                credentials: 'same-origin',
+                headers:     new Headers({
+                    'content-type': 'application/json'
+                })
+            };
+
+            fetch('/echo-request-headers', reqInit);
+            fetch('/echo-request-headers', reqInit);
+
+            var origin                  = reqInit.headers.get(xhrHeaders.origin);
+            var fetchRequestCredentials = reqInit.headers.get(xhrHeaders.fetchRequestCredentials);
+
+            strictEqual(origin, 'https://example.com');
+            strictEqual(fetchRequestCredentials, 'same-origin');
+        });
     });
 }
 

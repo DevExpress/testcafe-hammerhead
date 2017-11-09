@@ -25,6 +25,7 @@ import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
 import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
+import DOMMutationTracker from '../../node/live-node-list/dom-mutation-tracker';
 
 function checkElementTextProperties (el) {
     const result         = {};
@@ -40,7 +41,7 @@ const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.cr
 const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox, liveNodeListFactory) {
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
         super();
 
         this.nodeMutation          = nodeMutation;
@@ -52,7 +53,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.listenersSandbox      = eventSandbox.listeners;
         this.shadowUI              = shadowUI;
         this.storageSandbox        = storageSandbox;
-        this.liveNodeListFactory   = liveNodeListFactory;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
@@ -92,6 +92,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
     static _setTextProp (el, propName, text) {
         const processedText = text !== null && text !== void 0 ? String(text) : text;
+
+        DOMMutationTracker.onChildrenChanged(el);
 
         if (processedText) {
             if (domUtils.isScriptElement(el))
@@ -178,9 +180,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             attributes: {
-                condition: el => {
-                    return el.attributes instanceof window.NamedNodeMap;
-                },
+                condition: el => domUtils.isDomElement(el) && el.attributes instanceof window.NamedNodeMap,
 
                 get: el => getAttributesProperty(el),
                 set: (el, value) => value
@@ -311,7 +311,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             innerHTML: {
-                condition: el => domUtils.isElementNode(el) &&
+                condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'innerHTML'),
 
                 get: el => {
@@ -338,7 +338,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                             processedValue = processHtml(processedValue, el.tagName);
                     }
 
+                    DOMMutationTracker.onChildrenChanged(el);
+
                     el.innerHTML = processedValue;
+
+                    DOMMutationTracker.onChildrenChanged(el);
 
                     if (this.document.body === el) {
                         const shadowUIRoot = this.shadowUI.getRoot();
@@ -349,9 +353,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     else if (domUtils.isShadowUIElement(el))
                         ShadowUI.markElementAndChildrenAsShadow(el);
-
-                    else
-                        this.liveNodeListFactory.onInnerHtmlChanged();
 
                     if (isStyleEl || isScriptEl)
                         return value;
@@ -385,7 +386,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             innerText: {
                 // NOTE: http://caniuse.com/#search=Node.innerText
-                condition: el => domUtils.isElementNode(el) &&
+                condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'innerText'),
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.innerText),
@@ -394,19 +395,19 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             nextElementSibling: {
-                condition: node => node.nextElementSibling && domUtils.isDomElement(node.nextElementSibling),
+                condition: node => node.nextElementSibling && domUtils.isDomElement(node) && domUtils.isDomElement(node.nextElementSibling),
                 get:       node => domUtils.isShadowUIElement(node.nextElementSibling) ? null : node.nextElementSibling,
                 set:       () => void 0
             },
 
             nextSibling: {
-                condition: node => node.nextSibling && domUtils.isDomElement(node.nextSibling),
+                condition: node => node.nextSibling && domUtils.isDomElement(node) && domUtils.isDomElement(node.nextSibling),
                 get:       node => domUtils.isShadowUIElement(node.nextSibling) ? null : node.nextSibling,
                 set:       () => void 0
             },
 
             outerHTML: {
-                condition: el => domUtils.isElementNode(el) &&
+                condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'outerHTML'),
 
                 get: el => cleanUpHtml(el.outerHTML, el.parentNode && el.parentNode.tagName),
@@ -414,11 +415,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, value) => {
                     const parentEl = el.parentNode;
 
+                    DOMMutationTracker.onElementChanged(el);
+
                     if (parentEl && value !== null && value !== void 0) {
                         const parentDocument = domUtils.findDocument(parentEl);
                         const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
                         el.outerHTML = processHtml('' + value, parentEl.tagName);
+
+                        DOMMutationTracker.onChildrenChanged(parentEl);
 
                         // NOTE: For the iframe with an empty src.
                         if (parentWindow && parentWindow !== window &&
@@ -663,7 +668,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             textContent: {
-                condition: el => domUtils.isElementNode(el) &&
+                condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'textContent'),
 
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.textContent),
@@ -789,6 +794,18 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             'list-style-image':    PropertyAccessorsInstrumentation._createForStyleProperty('list-style-image'),
             cssText:               PropertyAccessorsInstrumentation._createForStyleProperty('cssText'),
             cursor:                PropertyAccessorsInstrumentation._createForStyleProperty('cursor'),
+
+            style: {
+                condition: el => domUtils.isDomElement(el) && isStyle(el.style),
+
+                get: el => el.style,
+
+                set: (el, value) => {
+                    el.setAttribute('style', value);
+
+                    return value;
+                }
+            },
 
             styleSheets: {
                 condition: domUtils.isDocument,

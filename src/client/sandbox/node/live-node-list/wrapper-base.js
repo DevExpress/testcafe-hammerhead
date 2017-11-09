@@ -4,28 +4,15 @@ const DEFINED_PROPERTIES_COUNT = 10000;
 
 export class LiveNodeListWrapperBase {
     constructor () {
-        const defineProperty = function (index, isEnumerable) {
-            nativeMethods.objectDefineProperty.call(window.Object, this, index, {
-                enumerable:   isEnumerable,
+        for (let i = 0; i < DEFINED_PROPERTIES_COUNT; i++) {
+            nativeMethods.objectDefineProperty.call(window.Object, this, i, {
+                enumerable:   false,
                 configurable: true,
-
-                get: function () {
-                    this._refreshNodeList();
-
-                    return this._filteredNodeList[index];
+                get:          function () {
+                    return this.item(i);
                 }
             });
-        };
-
-        for (let i = 0; i < DEFINED_PROPERTIES_COUNT; i++)
-            defineProperty.call(this, i, false);
-
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_defineProperty', { value: defineProperty });
-        nativeMethods.objectDefineProperty.call(window.Object, this, '_refreshNodeList', {
-            value: () => {
-                throw new Error('Not implemented');
-            }
-        });
+        }
     }
 }
 

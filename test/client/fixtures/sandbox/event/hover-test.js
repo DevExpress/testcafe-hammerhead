@@ -9,7 +9,7 @@ function hoverElement (el) {
     if (featureDetection.hasTouchEvents)
         eventSimulator.touchstart(el, {});
     else
-        eventSimulator.mouseover(el, {});
+        eventSimulator.mouseover(el, { relatedTarget: document.documentElement });
 }
 
 function isHovered (el) {

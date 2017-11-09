@@ -1,7 +1,15 @@
 {
   "compact": false,
   "presets": [
-    "es2015-hammerhead"
+    ["env", {
+      "targets": {
+        "browsers": ["ie >= 9"]
+      },
+      "loose": true,
+      "exclude": [
+        "transform-es2015-typeof-symbol"
+      ]
+    }]
   ],
   "plugins": [
     "add-module-exports",

@@ -173,13 +173,14 @@ class NativeMethods {
         this.dateNow = win.Date.now;
 
         // Object
-        this.objectToString       = win.Object.prototype.toString;
-        this.objectAssign         = win.Object.assign;
-        this.objectKeys           = win.Object.keys;
-        this.objectDefineProperty = win.Object.defineProperty;
-        this.objectCreate         = win.Object.create;
-        this.objectIsExtensible   = win.Object.isExtensible;
-        this.objectIsFrozen       = win.Object.isFrozen;
+        this.objectToString         = win.Object.prototype.toString;
+        this.objectAssign           = win.Object.assign;
+        this.objectKeys             = win.Object.keys;
+        this.objectDefineProperty   = win.Object.defineProperty;
+        this.objectDefineProperties = win.Object.defineProperties;
+        this.objectCreate           = win.Object.create;
+        this.objectIsExtensible     = win.Object.isExtensible;
+        this.objectIsFrozen         = win.Object.isFrozen;
 
         // DOMParser
         if (win.DOMParser)

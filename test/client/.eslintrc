@@ -28,7 +28,8 @@
     "checkNativeFunctionArgs": true,
     "createTestIframe": true,
     "getCrossDomainPageUrl": true,
-    "getSameDomainPageUrl": true
+    "getSameDomainPageUrl": true,
+    "removeDoubleQuotes": true
   }
 }
 
