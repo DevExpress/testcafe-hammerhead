@@ -201,8 +201,15 @@ class NativeMethods {
         if (win.WebSocket) {
             const urlPropDescriptor = win.Object.getOwnPropertyDescriptor(window.WebSocket.prototype, 'url');
 
-            if (urlPropDescriptor)
+            if (urlPropDescriptor && urlPropDescriptor.get && urlPropDescriptor.configurable)
                 this.webSocketUrlGetter = urlPropDescriptor.get;
+        }
+
+        if (win.MessageEvent) {
+            const originPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin');
+
+            if (originPropDescriptor && originPropDescriptor.get && originPropDescriptor.configurable)
+                this.messageEventOriginGetter = originPropDescriptor.get;
         }
 
         // Stylesheets

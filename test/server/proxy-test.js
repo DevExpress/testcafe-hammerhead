@@ -1423,8 +1423,14 @@ describe('Proxy', () => {
         before(() => {
             httpsServer = createSelfSignedHttpsServer(() => {
             }).listen(2001);
-            wsServer    = new WebSocket.Server({ server: destServer });
-            wssServer   = new WebSocket.Server({ server: httpsServer });
+            wsServer    = new WebSocket.Server({
+                server: destServer,
+                path:   '/web-socket'
+            });
+            wssServer   = new WebSocket.Server({
+                server: httpsServer,
+                path:   '/secire-web-socket'
+            });
 
             const wsConnectionHandler = (ws, req) => {
                 ws.on('message', msg => {
@@ -1515,6 +1521,28 @@ describe('Proxy', () => {
 
                     ws.close();
                 });
+        });
+
+        it('Should not throws an proxy error when server is not available', (done) => {
+            const url = urlUtils.getProxyUrl('http://127.0.0.1:2003/ws', {
+                proxyHostname: '127.0.0.1',
+                proxyPort:     1836,
+                sessionId:     session.id,
+                resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
+                reqOrigin:     encodeURIComponent('http://example.com')
+            });
+
+            proxy.openSession('http://127.0.0.1:2003/', session);
+
+            const ws = new WebSocket(url);
+
+            ws.on('error', err => {
+                expect(err.message).eql('socket hang up');
+            });
+
+            ws.on('close', () => {
+                done();
+            });
         });
     });
 

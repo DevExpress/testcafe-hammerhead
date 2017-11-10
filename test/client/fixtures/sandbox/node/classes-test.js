@@ -213,13 +213,38 @@ if (window.WebSocket) {
         secureSocket.close();
     });
 
+    test('origin property of MessageEvent', function () {
+        var event                  = nativeMethods.documentCreateEvent.call(document, 'MessageEvent');
+        var storedAddEventListener = WebSocket.prototype.addEventListener;
+
+        WebSocket.prototype.addEventListener = function (type, fn) {
+            fn(event);
+        };
+
+        var socket = new WebSocket('ws://example.com');
+
+        event.__defineGetter__('target', function () {
+            return socket;
+        });
+
+        strictEqual(event.origin, 'ws://example.com');
+
+        socket.close();
+
+        WebSocket.prototype.addEventListener = storedAddEventListener;
+    });
+
     test('checking parameters', function () {
-        var nativeWebSocket = nativeMethods.WebSocket;
-        var originHeader    = encodeURIComponent(destLocation.getOriginHeader());
+        var nativeWebSocket  = nativeMethods.WebSocket;
+        var originHeader     = encodeURIComponent(destLocation.getOriginHeader());
+        var addEventListener = function () {
+        };
 
         nativeMethods.WebSocket = function (url) {
             strictEqual(url, 'ws://' + location.host + '/sessionId!w!' + originHeader + '/http://localhost/socket');
         };
+
+        nativeMethods.WebSocket.prototype.addEventListener = addEventListener;
 
         /* eslint-disable no-new */
         new WebSocket('ws://localhost/socket');
@@ -228,6 +253,8 @@ if (window.WebSocket) {
             strictEqual(url, 'ws://' + location.host + '/sessionId!w!' + originHeader +
                              '/https://localhost/secure-socket');
         };
+
+        nativeMethods.WebSocket.prototype.addEventListener = addEventListener;
 
         new WebSocket('wss://localhost/secure-socket');
         new WebSocket('wss://localhost/secure-socket', ['soap']);
@@ -238,10 +265,11 @@ if (window.WebSocket) {
                              '/https://localhost/secure-socket');
         };
 
+        nativeMethods.WebSocket.prototype.addEventListener = addEventListener;
+
         new WebSocket('wss://localhost/secure-socket', ['soap'], 123);
         new WebSocket('wss://localhost/secure-socket', ['soap'], 123, 'str');
         /* eslint-enable no-new */
-
 
         nativeMethods.WebSocket = nativeWebSocket;
     });
