@@ -35,7 +35,7 @@ export default class Session extends EventEmitter {
 
     static _generateSessionId () {
         // NOTE: GH-116
-        return nanoid();
+        return nanoid(7).replace(/~/g, '-');
     }
 
     // State
