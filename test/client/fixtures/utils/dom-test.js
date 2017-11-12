@@ -855,3 +855,15 @@ if (browserUtils.isChrome) {
         document.body.removeChild(hostParent);
     });
 }
+
+test('isContentEditableElement (GH-1366)', function () {
+    var elementMock = {
+        isContentEditable: true,
+        tagName:           'rich-text-area',
+        getAttribute:      function () {
+            return 'null';
+        }
+    };
+
+    ok(domUtils.isContentEditableElement(elementMock));
+});
