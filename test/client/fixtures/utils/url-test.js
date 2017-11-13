@@ -6,6 +6,8 @@ var destLocation   = hammerhead.get('./utils/destination-location');
 var browserUtils  = hammerhead.utils.browser;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
+var nodeSandbox   = hammerhead.sandbox.node;
+var Promise       = hammerhead.Promise;
 
 var PROXY_PORT     = 1337;
 var PROXY_HOSTNAME = '127.0.0.1';
@@ -556,4 +558,96 @@ test('resolving a url in a tag that is written along with a "base" tag (GH-644)'
         'http://' + location.host + '/sessionId!s/https://example.com/subpath/scripts/scr.js');
 
     document.body.removeChild(iframe);
+});
+
+test('compare with native behavior', function () {
+    var storedProcessElement = nodeSandbox._processElement;
+    var nativeIframe         = nativeMethods.createElement.call(document, 'iframe');
+    var proxiedIframe        = null;
+
+    nodeSandbox._processElement = function (el) {
+        if (el !== nativeIframe)
+            storedProcessElement.call(nodeSandbox, el);
+    };
+
+    function compareWithNative (name, fn) {
+        fn(nativeIframe.contentDocument);
+        fn(proxiedIframe.contentDocument);
+
+        var nativeAnchor = nativeIframe.contentDocument.querySelector('a');
+        var proxiedAnchor = proxiedIframe.contentDocument.querySelector('a');
+
+        nativeAnchor.setAttribute('href', 'path');
+        proxiedAnchor.setAttribute('href', 'path');
+
+        strictEqual(urlUtils.parseProxyUrl(proxiedAnchor.href).destUrl, nativeAnchor.href, name);
+    }
+
+    return createTestIframe()
+        .then(function (iframe) {
+            proxiedIframe = iframe;
+
+            return new Promise(function (resolve) {
+                nativeMethods.documentAddEventListener.call(nativeIframe, 'load', resolve);
+                nativeMethods.appendChild.call(document.body, nativeIframe);
+            });
+        })
+        .then(function () {
+            compareWithNative('append first base', function (doc) {
+                var anchor = doc.createElement('a');
+                var base = doc.createElement('base');
+
+                anchor.textContent = 'link';
+
+                base.setAttribute('href', 'https://example.com/123/');
+                doc.head.appendChild(base);
+                doc.body.appendChild(anchor);
+            });
+
+            compareWithNative('create base', function (doc) {
+                doc.createElement('base');
+            });
+
+            compareWithNative('append second base', function (doc) {
+                var base = doc.createElement('base');
+
+                base.setAttribute('href', 'https://example.com/some/');
+                doc.head.appendChild(base);
+            });
+
+            compareWithNative('change first base', function (doc) {
+                var base = doc.querySelectorAll('base')[0];
+
+                base.setAttribute('href', 'https://example.com/something/');
+            });
+
+            compareWithNative('change second base', function (doc) {
+                var base = doc.querySelectorAll('base')[1];
+
+                base.setAttribute('href', 'https://example.com/something/');
+            });
+
+            compareWithNative('remove second base', function (doc) {
+                var base = doc.querySelectorAll('base')[1];
+
+                doc.head.removeChild(base);
+            });
+
+            compareWithNative('append second base', function (doc) {
+                var base = doc.createElement('base');
+
+                base.setAttribute('href', 'https://example.com/some/');
+                doc.head.appendChild(base);
+            });
+
+            compareWithNative('remove first base', function (doc) {
+                var base = doc.querySelectorAll('base')[0];
+
+                doc.head.removeChild(base);
+            });
+        })
+        .then(function () {
+            nativeMethods.removeChild.call(document.body, nativeIframe);
+            nodeSandbox._processElement = storedProcessElement;
+        });
 });
