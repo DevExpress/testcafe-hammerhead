@@ -373,8 +373,10 @@ test('isContentEditableElement', function () {
     document.designMode = 'off';
 
     // isRenderedNode
-    if (!browserUtils.isIE)
-        notOk(domUtils.isContentEditableElement(document.createProcessingInstruction('xml-stylesheet', 'href="mycss.css" type="text/css"')));
+    var doc         = new DOMParser().parseFromString('<xml></xml>', 'application/xml');
+    var instruction = doc.createProcessingInstruction('xml-stylesheet', 'href="mycss.css" type="text/css"');
+
+    notOk(domUtils.isContentEditableElement(instruction));
 
     notOk(domUtils.isContentEditableElement(document.createElement('script')));
     notOk(domUtils.isContentEditableElement(document.createElement('style')));
@@ -411,10 +413,13 @@ test('isContentEditableElement', function () {
     notOk(domUtils.isContentEditableElement(element));
     notOk(domUtils.isContentEditableElement(textNode));
 
-    parentElement.setAttribute('contentEditable', '');
-    ok(domUtils.isContentEditableElement(parentElement));
-    ok(domUtils.isContentEditableElement(element));
-    ok(domUtils.isContentEditableElement(textNode));
+    //TODO: GH - 1369
+    if (!browserUtils.isAndroid) {
+        parentElement.setAttribute('contenteditable', '');
+        ok(domUtils.isContentEditableElement(parentElement));
+        ok(domUtils.isContentEditableElement(element));
+        ok(domUtils.isContentEditableElement(textNode));
+    }
 
     // GH-1366
     var elementMock = {
