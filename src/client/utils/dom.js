@@ -21,14 +21,17 @@ const NATIVE_MAP_ELEMENT_STRINGS = [
     '[object HTMLAreaElement]'
 ];
 
-const NATIVE_WINDOW_STR            = instanceToString(window);
-const IS_DOCUMENT_RE               = /^\[object .*?Document]$/i;
-const IS_PROCESSING_INSTRUCTION_RE = /^\[object .*?ProcessingInstruction]$/i;
-const IS_SVG_ELEMENT_RE            = /^\[object SVG\w+?Element]$/i;
-const IS_HTML_ELEMENT_RE           = /^\[object HTML.*?Element]$/i;
-const NATIVE_TABLE_CELL_STR        = instanceToString(nativeMethods.createElement.call(document, 'td'));
-const ELEMENT_NODE_TYPE            = Node.ELEMENT_NODE;
-
+const NATIVE_WINDOW_STR                = instanceToString(window);
+const IS_DOCUMENT_RE                   = /^\[object .*?Document]$/i;
+const IS_PROCESSING_INSTRUCTION_RE     = /^\[object .*?ProcessingInstruction]$/i;
+const IS_SVG_ELEMENT_RE                = /^\[object SVG\w+?Element]$/i;
+const IS_HTML_ELEMENT_RE               = /^\[object HTML.*?Element]$/i;
+const NATIVE_TABLE_CELL_STR            = instanceToString(nativeMethods.createElement.call(document, 'td'));
+const ELEMENT_NODE_TYPE                = Node.ELEMENT_NODE;
+const NOT_CONTENT_EDITABLE_ELEMENTS_RE = /^(select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img)$/;
+const INPUT_ELEMENTS_RE                = /^(input|textarea|button)$/;
+const SCRIPT_OR_STYLE_RE               = /^(script|style)$/i;
+const EDITABLE_INPUT_TYPES_RE          = /^(email|number|password|search|tel|text|url)$/;
 
 function getFocusableSelector () {
     // NOTE: We don't take into account the case of embedded contentEditable elements, and we
@@ -41,11 +44,9 @@ function isHidden (el) {
 }
 
 function isAlwaysNotEditableElement (el) {
-    const tagName                          = getTagName(el);
-    const notContentEditableElementsRegExp = /select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img/;
-    const inputElementsRegExp              = /input|textarea|button/;
+    const tagName = getTagName(el);
 
-    return tagName && (notContentEditableElementsRegExp.test(tagName) || inputElementsRegExp.test(tagName));
+    return tagName && (NOT_CONTENT_EDITABLE_ELEMENTS_RE.test(tagName) || INPUT_ELEMENTS_RE.test(tagName));
 }
 
 function closestFallback (el, selector) {
@@ -482,7 +483,7 @@ export function isMapElement (el) {
 }
 
 export function isRenderedNode (node) {
-    return !(isProcessingInstructionNode(node) || isCommentNode(node) || /^(script|style)$/i.test(node.nodeName));
+    return !(isProcessingInstructionNode(node) || isCommentNode(node) || SCRIPT_OR_STYLE_RE.test(node.nodeName));
 }
 
 export function getTabIndex (el) {
@@ -614,11 +615,10 @@ export function isElementReadOnly (el) {
 }
 
 export function isTextEditableInput (el) {
-    const editableInputTypesRegEx = /^(email|number|password|search|tel|text|url)$/;
-    const attrType                = el.getAttribute('type');
+    const attrType = el.getAttribute('type');
 
     return isInputElement(el) &&
-           attrType ? editableInputTypesRegEx.test(attrType) : editableInputTypesRegEx.test(el.type);
+           attrType ? EDITABLE_INPUT_TYPES_RE.test(attrType) : EDITABLE_INPUT_TYPES_RE.test(el.type);
 }
 
 export function isTextEditableElement (el) {
