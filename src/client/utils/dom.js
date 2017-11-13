@@ -297,11 +297,12 @@ export function isContentEditableElement (el) {
         element = el;
 
     if (element) {
-        isContentEditable = element.isContentEditable && !isAlwaysNotEditableElement(element) &&
-                            !isTextEditableElement(element);
+        isContentEditable = element.isContentEditable && !isAlwaysNotEditableElement(element);
+
+        return isRenderedNode(element) && (isContentEditable || findDocument(el).designMode === 'on');
     }
 
-    return isRenderedNode(element) && (isContentEditable || findDocument(el).designMode === 'on');
+    return false;
 }
 
 export function isCrossDomainIframe (iframe, bySrc) {
