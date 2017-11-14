@@ -2,6 +2,7 @@ var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
 var destLocation   = hammerhead.get('./utils/destination-location');
+var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
 var browserUtils  = hammerhead.utils.browser;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -560,7 +561,7 @@ test('resolving a url in a tag that is written along with a "base" tag (GH-644)'
     document.body.removeChild(iframe);
 });
 
-test('compare with native behavior', function () {
+test('only first base tag should be affected', function () {
     var storedProcessElement = nodeSandbox._processElement;
     var nativeIframe         = nativeMethods.createElement.call(document, 'iframe');
     var proxiedIframe        = null;
@@ -570,11 +571,11 @@ test('compare with native behavior', function () {
             storedProcessElement.call(nodeSandbox, el);
     };
 
-    function compareWithNative (name, fn) {
+    function checkTestCase (name, fn) {
         fn(nativeIframe.contentDocument);
         fn(proxiedIframe.contentDocument);
 
-        var nativeAnchor = nativeIframe.contentDocument.querySelector('a');
+        var nativeAnchor  = nativeIframe.contentDocument.querySelector('a');
         var proxiedAnchor = proxiedIframe.contentDocument.querySelector('a');
 
         nativeAnchor.setAttribute('href', 'path');
@@ -593,9 +594,9 @@ test('compare with native behavior', function () {
             });
         })
         .then(function () {
-            compareWithNative('append first base', function (doc) {
+            checkTestCase('append first base', function (doc) {
                 var anchor = doc.createElement('a');
-                var base = doc.createElement('base');
+                var base   = doc.createElement('base');
 
                 anchor.textContent = 'link';
 
@@ -604,46 +605,64 @@ test('compare with native behavior', function () {
                 doc.body.appendChild(anchor);
             });
 
-            compareWithNative('create base', function (doc) {
+            checkTestCase('create base', function (doc) {
                 doc.createElement('base');
             });
 
-            compareWithNative('append second base', function (doc) {
+            checkTestCase('append second base', function (doc) {
                 var base = doc.createElement('base');
 
                 base.setAttribute('href', 'https://example.com/some/');
                 doc.head.appendChild(base);
             });
 
-            compareWithNative('change first base', function (doc) {
+            checkTestCase('change first base', function (doc) {
                 var base = doc.querySelectorAll('base')[0];
 
                 base.setAttribute('href', 'https://example.com/something/');
             });
 
-            compareWithNative('change second base', function (doc) {
+            checkTestCase('change second base', function (doc) {
                 var base = doc.querySelectorAll('base')[1];
 
                 base.setAttribute('href', 'https://example.com/something/');
             });
 
-            compareWithNative('remove second base', function (doc) {
+            checkTestCase('remove second base', function (doc) {
                 var base = doc.querySelectorAll('base')[1];
 
                 doc.head.removeChild(base);
             });
 
-            compareWithNative('append second base', function (doc) {
+            checkTestCase('append second base', function (doc) {
                 var base = doc.createElement('base');
 
                 base.setAttribute('href', 'https://example.com/some/');
                 doc.head.appendChild(base);
             });
 
-            compareWithNative('remove first base', function (doc) {
+            checkTestCase('remove first base', function (doc) {
                 var base = doc.querySelectorAll('base')[0];
 
                 doc.head.removeChild(base);
+            });
+
+            checkTestCase('append base to fragment', function (doc) {
+                var fragment = doc.createDocumentFragment();
+                var base     = doc.createElement('base');
+
+                base.setAttribute('href', 'https://example.com/fragment/');
+
+                fragment.appendChild(base);
+            });
+
+            checkTestCase('innerHtml', function (doc) {
+                var baseHtmlStr = '<base href="https://example.com/inner-html/">';
+
+                if (INTERNAL_PROPS.processedContext in doc.head)
+                    setProperty(doc.head, 'innerHTML', baseHtmlStr);
+                else
+                    doc.head.innerHTML = baseHtmlStr;
             });
         })
         .then(function () {
