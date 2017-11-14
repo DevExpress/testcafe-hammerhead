@@ -1544,6 +1544,56 @@ describe('Proxy', () => {
                 done();
             });
         });
+
+        it('Should close webSocket from server side', function (done) {
+            getFreePort()
+                .then(port => {
+                    const url = urlUtils.getProxyUrl('http://127.0.0.1:' + port, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                        resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true })
+                    });
+
+                    proxy.openSession('http://127.0.0.1:2000/', session);
+
+                    const wsTemporaryServer = new WebSocket.Server({ port }, () => {
+                        const ws = new WebSocket(url);
+
+                        ws.on('close', code => {
+                            expect(code).eql(1013);
+                            wsTemporaryServer.close(done);
+                        });
+                    });
+
+                    wsTemporaryServer.on('connection', ws => ws.close(1013));
+                });
+        });
+
+        it('Should exposes number of bytes received', function (done) {
+            getFreePort()
+                .then(port => {
+                    const url = urlUtils.getProxyUrl('http://localhost:' + port, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                        resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true })
+                    });
+
+                    proxy.openSession('http://127.0.0.1:2000/', session);
+
+                    const wsTemporaryServer = new WebSocket.Server({ port: port }, () => {
+                        const ws = new WebSocket(url);
+
+                        ws.on('message', () => {
+                            expect(ws.bytesReceived).eql(8);
+                            wsTemporaryServer.close(done);
+                        });
+                    });
+
+                    wsTemporaryServer.on('connection', ws => ws.send('foobar'));
+                });
+        });
     });
 
     describe('Regression', () => {
