@@ -172,6 +172,18 @@ test('isDocument (GH-1344)', function () {
         ok(!domUtils.isDocument(new Proxy({}, {})));
 });
 
+test('isWebSocket', function () {
+    var webSocket = new WebSocket('ws://127.0.0.1:2000/');
+
+    ok(domUtils.isWebSocket(webSocket));
+    ok(!domUtils.isWebSocket(document));
+    ok(!domUtils.isWebSocket({}));
+    ok(!domUtils.isWebSocket({ url: 'ws://127.0.0.1:2000/' }));
+    ok(!domUtils.isWebSocket(null));
+
+    webSocket.close();
+});
+
 test('getTopSameDomainWindow', function () {
     return createTestIframe()
         .then(function (iframe) {
