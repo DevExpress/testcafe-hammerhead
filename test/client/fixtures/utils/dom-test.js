@@ -159,7 +159,7 @@ test('isCommentNode (GH-1344)', function () {
 test('isDocument (GH-1344)', function () {
     ok(domUtils.isDocument(document));
     ok(domUtils.isDocument(document.implementation.createDocument('http://www.w3.org/1999/xhtml', 'html', null)));
-    ok(domUtils.isDocument(document.implementation.createHTMLDocument( 'title')));
+    ok(domUtils.isDocument(document.implementation.createHTMLDocument('title')));
     ok(!domUtils.isDocument(document.createElement('span')));
     ok(!domUtils.isDocument(document.createElement('strong')));
     ok(!domUtils.isDocument(document.createElement('a')));
@@ -362,6 +362,75 @@ test('isHammerheadAttr', function () {
     ok(domUtils.isHammerheadAttr('data-hammerhead-focused'));
     ok(domUtils.isHammerheadAttr('data-hammerhead-hovered'));
     ok(domUtils.isHammerheadAttr('src-hammerhead-stored-value'));
+});
+
+test('isContentEditableElement', function () {
+    notOk(domUtils.isContentEditableElement(null));
+
+    document.designMode = 'on';
+    ok(domUtils.isContentEditableElement(document));
+    ok(domUtils.isContentEditableElement(document.body));
+    document.designMode = 'off';
+
+    // isRenderedNode
+    var doc         = new DOMParser().parseFromString('<xml></xml>', 'application/xml');
+    var instruction = doc.createProcessingInstruction('xml-stylesheet', 'href="mycss.css" type="text/css"');
+
+    notOk(domUtils.isContentEditableElement(instruction));
+
+    notOk(domUtils.isContentEditableElement(document.createElement('script')));
+    notOk(domUtils.isContentEditableElement(document.createElement('style')));
+    notOk(domUtils.isContentEditableElement(document.createComment('comment text')));
+
+    // isAlwaysNotEditableElement
+    notOk(domUtils.isContentEditableElement(document.createElement('select')));
+    notOk(domUtils.isContentEditableElement(document.createElement('option')));
+    notOk(domUtils.isContentEditableElement(document.createElement('applet')));
+    notOk(domUtils.isContentEditableElement(document.createElement('area')));
+    notOk(domUtils.isContentEditableElement(document.createElement('audio')));
+    notOk(domUtils.isContentEditableElement(document.createElement('canvas')));
+    notOk(domUtils.isContentEditableElement(document.createElement('datalist')));
+    notOk(domUtils.isContentEditableElement(document.createElement('keygen')));
+    notOk(domUtils.isContentEditableElement(document.createElement('map')));
+    notOk(domUtils.isContentEditableElement(document.createElement('meter')));
+    notOk(domUtils.isContentEditableElement(document.createElement('object')));
+    notOk(domUtils.isContentEditableElement(document.createElement('progress')));
+    notOk(domUtils.isContentEditableElement(document.createElement('source')));
+    notOk(domUtils.isContentEditableElement(document.createElement('track')));
+    notOk(domUtils.isContentEditableElement(document.createElement('video')));
+    notOk(domUtils.isContentEditableElement(document.createElement('img')));
+    notOk(domUtils.isContentEditableElement(document.createElement('input')));
+    notOk(domUtils.isContentEditableElement(document.createElement('textarea')));
+    notOk(domUtils.isContentEditableElement(document.createElement('button')));
+
+    var parentElement = document.createElement('div');
+    var element       = document.createElement('p');
+    var textNode      = document.createTextNode('text');
+
+    parentElement.appendChild(element);
+    element.appendChild(textNode);
+    notOk(domUtils.isContentEditableElement(parentElement));
+    notOk(domUtils.isContentEditableElement(element));
+    notOk(domUtils.isContentEditableElement(textNode));
+
+    //TODO: GH - 1369
+    if (!browserUtils.isAndroid) {
+        parentElement.setAttribute('contenteditable', '');
+        ok(domUtils.isContentEditableElement(parentElement));
+        ok(domUtils.isContentEditableElement(element));
+        ok(domUtils.isContentEditableElement(textNode));
+    }
+
+    // GH-1366
+    var elementMock = {
+        isContentEditable: true,
+        tagName:           'rich-text-area',
+        getAttribute:      function () {
+            return 'null';
+        }
+    };
+
+    ok(domUtils.isContentEditableElement(elementMock));
 });
 
 module('isIframeWithoutSrc');
@@ -855,15 +924,3 @@ if (browserUtils.isChrome) {
         document.body.removeChild(hostParent);
     });
 }
-
-test('isContentEditableElement (GH-1366)', function () {
-    var elementMock = {
-        isContentEditable: true,
-        tagName:           'rich-text-area',
-        getAttribute:      function () {
-            return 'null';
-        }
-    };
-
-    ok(domUtils.isContentEditableElement(elementMock));
-});
