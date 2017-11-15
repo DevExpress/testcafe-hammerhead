@@ -12,6 +12,7 @@ const express                              = require('express');
 const read                                 = require('read-file-relative').readSync;
 const createSelfSignedHttpsServer          = require('self-signed-https');
 const getFreePort                          = require('endpoint-utils').getFreePort;
+const WebSocket                            = require('ws');
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
 const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-policy').SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
@@ -1411,6 +1412,187 @@ describe('Proxy', () => {
                 expect(body).not.contains('if-none-match');
                 done();
             });
+        });
+    });
+
+    describe('WebSocket', () => {
+        let httpsServer = null;
+        let wsServer    = null;
+        let wssServer   = null;
+
+        before(() => {
+            httpsServer = createSelfSignedHttpsServer(() => {
+            }).listen(2001);
+            wsServer    = new WebSocket.Server({
+                server: destServer,
+                path:   '/web-socket'
+            });
+            wssServer   = new WebSocket.Server({
+                server: httpsServer,
+                path:   '/secire-web-socket'
+            });
+
+            const wsConnectionHandler = (ws, req) => {
+                ws.on('message', msg => {
+                    if (msg === 'get origin header')
+                        ws.send(req.headers['origin']);
+                    else if (msg === 'get cookie header')
+                        ws.send(req.headers['cookie']);
+                    else
+                        ws.send(msg);
+                });
+            };
+
+            wsServer.on('connection', wsConnectionHandler);
+            wssServer.on('connection', wsConnectionHandler);
+        });
+
+        after(() => {
+            wsServer.close();
+            wssServer.close();
+            httpsServer.close();
+        });
+
+        const askSocket = (ws, msg) => {
+            return new Promise(resolve => {
+                ws.once('message', resolve);
+                ws.send(msg);
+            });
+        };
+
+        it('Should proxy WebSocket', () => {
+            const url = urlUtils.getProxyUrl('http://127.0.0.1:2000/web-socket', {
+                proxyHostname: '127.0.0.1',
+                proxyPort:     1836,
+                sessionId:     session.id,
+                resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
+                reqOrigin:     encodeURIComponent('http://example.com')
+            });
+
+            proxy.openSession('http://127.0.0.1:2000/', session);
+            session.cookies.setByClient('http://127.0.0.1:2000', 'key=value');
+
+            const ws = new WebSocket(url, { origin: 'http://some.domain.url' });
+
+            return new Promise(resolve => {
+                ws.on('open', resolve);
+            })
+                .then(() => {
+                    return askSocket(ws, 'get origin header');
+                })
+                .then(msg => {
+                    expect(msg).eql('http://example.com');
+
+                    return askSocket(ws, 'get cookie header');
+                })
+                .then(msg => {
+                    expect(msg).eql('key=value');
+
+                    return askSocket(ws, 'echo');
+                })
+                .then(msg => {
+                    expect(msg).eql('echo');
+
+                    ws.close();
+                });
+        });
+
+        it('Should proxy secure WebSocket', () => {
+            const url = urlUtils.getProxyUrl('https://127.0.0.1:2001/secire-web-socket', {
+                proxyHostname: '127.0.0.1',
+                proxyPort:     1836,
+                sessionId:     session.id,
+                resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
+                reqOrigin:     encodeURIComponent('http://example.com')
+            });
+
+            proxy.openSession('https://127.0.0.1:2001/', session);
+
+            const ws = new WebSocket(url, { origin: 'http://some.domain.url' });
+
+            return new Promise(resolve => {
+                ws.on('open', resolve);
+            })
+                .then(() => {
+                    return askSocket(ws, 'get origin header');
+                })
+                .then(msg => {
+                    expect(msg).eql('http://example.com');
+
+                    ws.close();
+                });
+        });
+
+        it('Should not throws an proxy error when server is not available', (done) => {
+            const url = urlUtils.getProxyUrl('http://127.0.0.1:2003/ws', {
+                proxyHostname: '127.0.0.1',
+                proxyPort:     1836,
+                sessionId:     session.id,
+                resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
+                reqOrigin:     encodeURIComponent('http://example.com')
+            });
+
+            proxy.openSession('http://127.0.0.1:2003/', session);
+
+            const ws = new WebSocket(url);
+
+            ws.on('error', err => {
+                expect(err.message).eql('socket hang up');
+            });
+
+            ws.on('close', () => {
+                done();
+            });
+        });
+
+        it('Should close webSocket from server side', function (done) {
+            getFreePort()
+                .then(port => {
+                    const url = urlUtils.getProxyUrl('http://127.0.0.1:' + port, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                        resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true })
+                    });
+
+                    proxy.openSession('http://127.0.0.1:2000/', session);
+
+                    const wsTemporaryServer = new WebSocket.Server({ port }, () => {
+                        const ws = new WebSocket(url);
+
+                        ws.on('close', code => {
+                            expect(code).eql(1013);
+                            wsTemporaryServer.close(done);
+                        });
+                    });
+
+                    wsTemporaryServer.on('connection', ws => ws.close(1013));
+                });
+        });
+
+        it('Should exposes number of bytes received', function (done) {
+            getFreePort()
+                .then(port => {
+                    const url = urlUtils.getProxyUrl('http://localhost:' + port, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                        resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true })
+                    });
+
+                    proxy.openSession('http://127.0.0.1:2000/', session);
+
+                    const wsTemporaryServer = new WebSocket.Server({ port: port }, () => {
+                        const ws = new WebSocket(url);
+
+                        ws.on('message', () => {
+                            expect(ws.bytesReceived).eql(8);
+                            wsTemporaryServer.close(done);
+                        });
+                    });
+
+                    wsTemporaryServer.on('connection', ws => ws.send('foobar'));
+                });
         });
     });
 

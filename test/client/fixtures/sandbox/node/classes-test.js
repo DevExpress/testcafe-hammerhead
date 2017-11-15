@@ -89,10 +89,12 @@ if (browserUtils.isIE) {
 }
 
 if (window.EventSource) {
-    test('should work with the operator "instanceof" (GH-690)', function () {
+    test('should work with the "instanceof" operator (GH-690)', function () {
         var eventSource = new EventSource('');
 
         ok(eventSource instanceof EventSource);
+
+        eventSource.close();
     });
 
     test('should have static constants (GH-1106)', function () {
@@ -149,11 +151,12 @@ if (window.EventSource) {
     });
 }
 
-if (window.MutationObserver) {
-    module('MutationObserver');
+module('MutationObserver');
 
+if (window.MutationObserver) {
     test('should work with the operator "instanceof" (GH-690)', function () {
-        var observer = new MutationObserver(function () { });
+        var observer = new MutationObserver(function () {
+        });
 
         ok(observer instanceof MutationObserver);
     });
@@ -176,6 +179,124 @@ if (window.MutationObserver) {
 
         mutaionRootElement.appendChild(testElement);
     });
+}
+
+module('WebSocket');
+
+if (window.WebSocket) {
+    test('constructor', function () {
+        var socket = new WebSocket('ws://' + location.host);
+
+        ok(socket instanceof WebSocket);
+
+        strictEqual(WebSocket.CONNECTING, socket.CONNECTING);
+        strictEqual(WebSocket.OPEN, socket.OPEN);
+        strictEqual(WebSocket.CLOSING, socket.CLOSING);
+        strictEqual(WebSocket.CLOSED, socket.CLOSED);
+
+        socket.close();
+    });
+
+    test('url property', function () {
+        var url    = 'ws://' + location.host;
+        var socket = new WebSocket(url);
+
+        strictEqual(socket.url, url);
+
+        socket.close();
+
+        var secureUrl    = 'wss://' + location.host;
+        var secureSocket = new WebSocket(secureUrl);
+
+        strictEqual(secureSocket.url, secureUrl);
+
+        secureSocket.close();
+    });
+
+    test('origin property of MessageEvent', function () {
+        var event                  = nativeMethods.documentCreateEvent.call(document, 'MessageEvent');
+        var storedAddEventListener = WebSocket.prototype.addEventListener;
+
+        WebSocket.prototype.addEventListener = function (type, fn) {
+            fn(event);
+        };
+
+        var socket = new WebSocket('ws://example.com');
+
+        event.__defineGetter__('target', function () {
+            return socket;
+        });
+
+        strictEqual(event.origin, 'ws://example.com');
+
+        socket.close();
+
+        WebSocket.prototype.addEventListener = storedAddEventListener;
+    });
+
+    test('checking parameters', function () {
+        var nativeWebSocket  = nativeMethods.WebSocket;
+        var originHeader     = encodeURIComponent(destLocation.getOriginHeader());
+        var addEventListener = function () {
+        };
+
+        nativeMethods.WebSocket = function (url) {
+            strictEqual(url, 'ws://' + location.host + '/sessionId!w!' + originHeader + '/http://localhost/socket');
+        };
+
+        nativeMethods.WebSocket.prototype.addEventListener = addEventListener;
+
+        /* eslint-disable no-new */
+        new WebSocket('ws://localhost/socket');
+
+        nativeMethods.WebSocket = function (url) {
+            strictEqual(url, 'ws://' + location.host + '/sessionId!w!' + originHeader +
+                             '/https://localhost/secure-socket');
+        };
+
+        nativeMethods.WebSocket.prototype.addEventListener = addEventListener;
+
+        new WebSocket('wss://localhost/secure-socket');
+        new WebSocket('wss://localhost/secure-socket', ['soap']);
+
+        nativeMethods.WebSocket = function (url) {
+            strictEqual(arguments.length, 3);
+            strictEqual(url, 'ws://' + location.host + '/sessionId!w!' + originHeader +
+                             '/https://localhost/secure-socket');
+        };
+
+        nativeMethods.WebSocket.prototype.addEventListener = addEventListener;
+
+        new WebSocket('wss://localhost/secure-socket', ['soap'], 123);
+        new WebSocket('wss://localhost/secure-socket', ['soap'], 123, 'str');
+        /* eslint-enable no-new */
+
+        nativeMethods.WebSocket = nativeWebSocket;
+    });
+
+    /* eslint-disable no-new */
+    test('throwing errors', function () {
+        throws(function () {
+            new WebSocket();
+        });
+
+        throws(function () {
+            new WebSocket('');
+        });
+
+        throws(function () {
+            new WebSocket('/path');
+        });
+
+        throws(function () {
+            new WebSocket('//example.com');
+        });
+
+        throws(function () {
+            new WebSocket('http://example.com');
+        });
+    });
+    /* eslint-enable no-new */
 }
 
 module('regression');

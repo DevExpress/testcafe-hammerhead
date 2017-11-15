@@ -8,6 +8,7 @@ import connectionResetGuard from './connection-reset-guard';
 import { check as checkSameOriginPolicy, SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from './xhr/same-origin-policy';
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
+import { respondOnWebSocket } from './websocket';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -61,8 +62,13 @@ const stages = {
         if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
             ctx.destRes.statusCode = 200;
 
+        if (ctx.isWebSocket) {
+            respondOnWebSocket(ctx);
+
+            return;
+        }
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
-        if (!ctx.contentInfo.requireProcessing) {
+        else if (!ctx.contentInfo.requireProcessing) {
             sendResponseHeaders(ctx);
 
             if (!ctx.isSpecialPage) {

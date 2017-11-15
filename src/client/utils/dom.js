@@ -666,6 +666,10 @@ export function isTableDataCellElement (el) {
     return instanceToString(el) === NATIVE_TABLE_CELL_STR;
 }
 
+export function isWebSocket (ws) {
+    return instanceToString(ws) === '[object WebSocket]';
+}
+
 export function matches (el, selector) {
     if (!el)
         return false;

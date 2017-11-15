@@ -51,6 +51,7 @@ export default class DestinationRequest extends EventEmitter {
                 this.req.on('response', res => this._onResponse(res));
 
             this.req.on('error', err => this._onError(err));
+            this.req.on('upgrade', (res, socket, head) => this._onUpgrade(res, socket, head));
             this.req.setTimeout(timeout, () => this._onTimeout());
             this.req.write(this.opts.body);
             this.req.end();
@@ -80,6 +81,13 @@ export default class DestinationRequest extends EventEmitter {
             this.hasResponse = true;
             this.emit('response', res);
         }
+    }
+
+    _onUpgrade (res, socket, head) {
+        if (head && head.length)
+            socket.unshift(head);
+
+        this._onResponse(res);
     }
 
     async _resendWithCredentials (res) {

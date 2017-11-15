@@ -44,6 +44,9 @@ export default class Proxy extends Router {
         this.server1     = http.createServer((req, res) => this._onRequest(req, res, this.server1Info));
         this.server2     = http.createServer((req, res) => this._onRequest(req, res, this.server2Info));
 
+        this.server1.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server1Info));
+        this.server2.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server2Info));
+
         this.server1.listen(port1);
         this.server2.listen(port2);
 
@@ -137,6 +140,13 @@ export default class Proxy extends Router {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
             runRequestPipeline(req, res, serverInfo, this.openSessions);
+    }
+
+    _onUpgradeRequest (req, socket, head, serverInfo) {
+        if (head && head.length)
+            socket.unshift(head);
+
+        this._onRequest(req, socket, serverInfo);
     }
 
     _processStaticContent (handler) {

@@ -6,9 +6,16 @@ import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
 import { processHtml } from '../../utils/html';
-import { isSubDomain, parseUrl, getProxyUrl, parseProxyUrl, convertToProxyUrl, stringifyResourceType } from '../../utils/url';
+import {
+    isSubDomain,
+    parseUrl,
+    getProxyUrl,
+    parseProxyUrl,
+    convertToProxyUrl,
+    stringifyResourceType
+} from '../../utils/url';
 import { isFirefox, isIE9, isIE } from '../../utils/browser';
-import { isCrossDomainWindows, isImgElement, isBlob } from '../../utils/dom';
+import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
@@ -19,6 +26,8 @@ const nativeFunctionToString = nativeMethods.Function.toString();
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 const arrayConcat = Array.prototype.concat;
+
+const HTTP_PROTOCOL_RE = /^http/i;
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox) {
@@ -224,8 +233,9 @@ export default class WindowSandbox extends SandboxBase {
                 if (typeof scriptURL === 'string')
                     scriptURL = getProxyUrl(scriptURL, { resourceType: stringifyResourceType({ isScript: true }) });
 
-                return arguments.length ===
-                       1 ? new nativeMethods.Worker(scriptURL) : new nativeMethods.Worker(scriptURL, options);
+                return arguments.length === 1
+                    ? new nativeMethods.Worker(scriptURL)
+                    : new nativeMethods.Worker(scriptURL, options);
             };
             window.Worker.prototype = nativeMethods.Worker.prototype;
         }
@@ -418,6 +428,91 @@ export default class WindowSandbox extends SandboxBase {
                 else
                     nativeMethods.formDataAppend.apply(this, arguments);
             };
+        }
+
+        if (window.WebSocket) {
+            window.WebSocket = function (url, protocols) {
+                if (arguments.length === 0)
+                    return new nativeMethods.WebSocket();
+
+                const proxyUrl  = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
+                const parsedUrl = parseUrl(url);
+                const origin    = parsedUrl.protocol + '//' + parsedUrl.host;
+                let webSocket   = null;
+
+                if (arguments.length === 1)
+                    webSocket = new nativeMethods.WebSocket(proxyUrl);
+                else if (arguments.length === 2)
+                    webSocket = new nativeMethods.WebSocket(proxyUrl, protocols);
+                else
+                    webSocket = new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
+
+                // NOTE: We need to use deprecated methods instead of the defineProperty method
+                // in the following browsers:
+                // * Android 5.1 because prototype does not contain the url property
+                // and the defineProperty does not redefine descriptor of the WebSocket instance
+                // * Safari less than 10 versions because the configurable property of descriptor is false
+                // Try to drop this after moving to higher versions of browsers
+                if (!nativeMethods.webSocketUrlGetter) {
+                    webSocket.__defineGetter__('url', () => url);
+                    webSocket.__defineSetter__('url', value => value);
+                }
+
+                if (!nativeMethods.messageEventOriginGetter) {
+                    webSocket.addEventListener('message', e => {
+                        e.__defineGetter__('origin', () => origin);
+                        e.__defineSetter__('origin', value => value);
+                    });
+                }
+
+                return webSocket;
+            };
+
+            window.WebSocket.prototype  = nativeMethods.WebSocket.prototype;
+            window.WebSocket.CONNECTING = nativeMethods.WebSocket.CONNECTING;
+            window.WebSocket.OPEN       = nativeMethods.WebSocket.OPEN;
+            window.WebSocket.CLOSING    = nativeMethods.WebSocket.CLOSING;
+            window.WebSocket.CLOSED     = nativeMethods.WebSocket.CLOSED;
+
+            if (nativeMethods.webSocketUrlGetter) {
+                const urlPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
+                    .call(window.Object, window.WebSocket.prototype, 'url');
+
+                urlPropDescriptor.get = function () {
+                    const url       = nativeMethods.webSocketUrlGetter.call(this);
+                    const parsedUrl = parseProxyUrl(url);
+
+                    if (parsedUrl && parsedUrl.destUrl)
+                        return parsedUrl.destUrl.replace(HTTP_PROTOCOL_RE, 'ws');
+
+                    return url;
+                };
+
+                nativeMethods.objectDefineProperty
+                    .call(window.Object, window.WebSocket.prototype, 'url', urlPropDescriptor);
+            }
+        }
+
+        if (nativeMethods.messageEventOriginGetter) {
+            const originPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
+                .call(window.Object, window.MessageEvent.prototype, 'origin');
+
+            originPropDescriptor.get = function () {
+                const target = this.target;
+                const origin = nativeMethods.messageEventOriginGetter.call(this);
+
+                if (isWebSocket(target)) {
+                    const parsedUrl = parseUrl(target.url);
+
+                    if (parsedUrl)
+                        return parsedUrl.protocol + '//' + parsedUrl.host;
+                }
+
+                return origin;
+            };
+
+            nativeMethods.objectDefineProperty
+                .call(window.Object, window.MessageEvent.prototype, 'origin', originPropDescriptor);
         }
 
         // NOTE: DOMParser supports an HTML parsing for IE10 and later
