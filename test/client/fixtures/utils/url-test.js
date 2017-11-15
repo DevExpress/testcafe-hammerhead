@@ -609,6 +609,10 @@ test('only first base tag should be affected', function () {
                 doc.createElement('base');
             });
 
+            checkTestCase('create base and set attribute', function (doc) {
+                doc.createElement('base').setAttribute('href', 'http://example.com/base/');
+            });
+
             checkTestCase('append second base', function (doc) {
                 var base = doc.createElement('base');
 
@@ -663,6 +667,12 @@ test('only first base tag should be affected', function () {
                     setProperty(doc.head, 'innerHTML', baseHtmlStr);
                 else
                     doc.head.innerHTML = baseHtmlStr;
+            });
+
+            checkTestCase('insert first base without href', function (doc) {
+                var base = doc.createElement('base');
+
+                document.head.insertBefore(base, document.head.firstChild);
             });
         })
         .then(function () {

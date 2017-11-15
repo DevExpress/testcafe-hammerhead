@@ -546,9 +546,8 @@ export default class ElementSandbox extends SandboxBase {
         return el.parentNode && domUtils.isShadowUIElement(el.parentNode) || ShadowUI.containsShadowUIClassPostfix(el);
     }
 
-    _isNeedToUpdateUrlResolver (el) {
-        return domUtils.isElementInDocument(el, this.document) &&
-               nativeMethods.querySelector.call(this.document, 'base') === el;
+    _isFirstBaseTagOnPage (el) {
+        return nativeMethods.querySelector.call(this.document, 'base') === el;
     }
 
     _onAddFileInputInfo (el) {
@@ -607,7 +606,7 @@ export default class ElementSandbox extends SandboxBase {
 
         this._onAddFileInputInfo(el);
 
-        if (domUtils.isBaseElement(el) && this._isNeedToUpdateUrlResolver(el)) {
+        if (domUtils.isBaseElement(el) && this._isFirstBaseTagOnPage(el)) {
             const storedHrefAttrName  = domProcessor.getStoredAttrName('href');
             const storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
@@ -621,8 +620,8 @@ export default class ElementSandbox extends SandboxBase {
             this.shadowUI.onBodyElementMutation();
 
         else if (domUtils.isBaseElement(el)) {
-            const baseEl         = nativeMethods.querySelector.call(this.document, 'base');
-            const storedHrefAttr = baseEl && baseEl.getAttribute(domProcessor.getStoredAttrName('href'));
+            const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');
+            const storedHrefAttr = firstBaseEl && firstBaseEl.getAttribute(domProcessor.getStoredAttrName('href'));
 
             urlResolver.updateBase(storedHrefAttr || getDestLocation(), this.document);
         }
@@ -762,7 +761,7 @@ export default class ElementSandbox extends SandboxBase {
                 this.iframeSandbox.processIframe(el);
                 break;
             case 'base': {
-                if (!this._isNeedToUpdateUrlResolver(el))
+                if (!this._isFirstBaseTagOnPage(el))
                     break;
 
                 const storedUrlAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href'));
