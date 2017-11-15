@@ -189,14 +189,15 @@ export default class ElementSandbox extends SandboxBase {
                         domUtils.isElementInDocument(el, this.document))
                         urlResolver.updateBase(value, this.document);
 
-                    args[valueIndex] = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
-                                       urlUtils.getProxyUrl(value, { resourceType, charset: elCharset });
+                    args[valueIndex] = isIframe && isCrossDomainUrl
+                        ? urlUtils.getCrossDomainIframeProxyUrl(value)
+                        : urlUtils.getProxyUrl(value, { resourceType, charset: elCharset });
                 }
             }
             else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value)) {
-                args[valueIndex] = el[this.nodeSandbox.win.FORCE_PROXY_SRC_FOR_IMAGE] ?
-                                   urlUtils.getProxyUrl(value) :
-                                   urlUtils.resolveUrlAsDest(value);
+                args[valueIndex] = el[this.nodeSandbox.win.FORCE_PROXY_SRC_FOR_IMAGE]
+                    ? urlUtils.getProxyUrl(value)
+                    : urlUtils.resolveUrlAsDest(value);
             }
         }
         else if (loweredAttr === 'autocomplete') {
@@ -346,7 +347,9 @@ export default class ElementSandbox extends SandboxBase {
 
         this.overridedMethods = {
             insertRow () {
-                const nativeMeth = domUtils.isTableElement(this) ? nativeMethods.insertTableRow : nativeMethods.insertTBodyRow;
+                const nativeMeth = domUtils.isTableElement(this)
+                    ? nativeMethods.insertTableRow
+                    : nativeMethods.insertTBodyRow;
                 const row        = nativeMeth.apply(this, arguments);
 
                 sandbox.nodeSandbox.processNodes(row);
@@ -543,6 +546,10 @@ export default class ElementSandbox extends SandboxBase {
         return el.parentNode && domUtils.isShadowUIElement(el.parentNode) || ShadowUI.containsShadowUIClassPostfix(el);
     }
 
+    _isFirstBaseTagOnPage (el) {
+        return nativeMethods.querySelector.call(this.document, 'base') === el;
+    }
+
     _onAddFileInputInfo (el) {
         if (!domUtils.isDomElement(el))
             return;
@@ -599,11 +606,12 @@ export default class ElementSandbox extends SandboxBase {
 
         this._onAddFileInputInfo(el);
 
-        if (domUtils.isBaseElement(el)) {
+        if (domUtils.isBaseElement(el) && this._isFirstBaseTagOnPage(el)) {
             const storedHrefAttrName  = domProcessor.getStoredAttrName('href');
             const storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
-            urlResolver.updateBase(storedHrefAttrValue, this.document);
+            if (storedHrefAttrValue !== null)
+                urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
     }
 
@@ -611,8 +619,12 @@ export default class ElementSandbox extends SandboxBase {
         if (domUtils.isBodyElement(el))
             this.shadowUI.onBodyElementMutation();
 
-        else if (domUtils.isBaseElement(el))
-            urlResolver.updateBase(getDestLocation(), this.document);
+        else if (domUtils.isBaseElement(el)) {
+            const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');
+            const storedHrefAttr = firstBaseEl && firstBaseEl.getAttribute(domProcessor.getStoredAttrName('href'));
+
+            urlResolver.updateBase(storedHrefAttr || getDestLocation(), this.document);
+        }
 
         DOMMutationTracker.onElementChanged(el);
     }
@@ -748,9 +760,17 @@ export default class ElementSandbox extends SandboxBase {
             case 'frame':
                 this.iframeSandbox.processIframe(el);
                 break;
-            case 'base':
-                urlResolver.updateBase(nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href')), this.document);
+            case 'base': {
+                if (!this._isFirstBaseTagOnPage(el))
+                    break;
+
+                const storedUrlAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href'));
+
+                if (storedUrlAttr !== null)
+                    urlResolver.updateBase(storedUrlAttr, this.document);
+
                 break;
+            }
         }
 
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
