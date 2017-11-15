@@ -36,17 +36,18 @@ export default {
                 parent.id === node)
                 return false;
 
-            // Skip: function (postMessage) { ... } || function func(postMessage) { ... }
-            if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
-                parent.params.indexOf(node) !== -1)
+            // Skip: function (postMessage) { ... } || function func(postMessage) { ... } || postMessage => { ... }
+            if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration ||
+                 parent.type === Syntax.ArrowFunctionExpression) && parent.params.indexOf(node) !== -1)
                 return false;
 
             // Skip: { postMessage: value }
             if (parent.type === Syntax.Property && parent.key === node)
                 return false;
 
-            // Skip: postMessage = value
-            if (parent.type === Syntax.AssignmentExpression && parent.left === node)
+            // Skip: postMessage = value || function x (postMessage = value) { ... }
+            if ((parent.type === Syntax.AssignmentExpression || parent.type === Syntax.AssignmentPattern) &&
+                parent.left === node)
                 return false;
 
             // Skip: const postMessage = value;
@@ -61,6 +62,10 @@ export default {
             if (parent.type === Syntax.CallExpression && (parent.callee.name === INSTRUCTION.getPostMessage ||
                                                           parent.callee.name === INSTRUCTION.callMethod &&
                                                           parent.arguments[1] === node))
+                return false;
+
+            // Skip: function x (...postMessage) {}
+            if (parent.type === Syntax.RestElement)
                 return false;
 
             return true;

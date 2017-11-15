@@ -40,17 +40,18 @@ export default {
                 parent.id === node)
                 return false;
 
-            // Skip: function (eval) { ... } || function func(eval) { ... }
-            if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration) &&
-                parent.params.indexOf(node) !== -1)
+            // Skip: function (eval) { ... } || function func(eval) { ... } || eval => { ... }
+            if ((parent.type === Syntax.FunctionExpression || parent.type === Syntax.FunctionDeclaration ||
+                 parent.type === Syntax.ArrowFunctionExpression) && parent.params.indexOf(node) !== -1)
                 return false;
 
             // Skip: { eval: value }
             if (parent.type === Syntax.Property && parent.key === node)
                 return false;
 
-            // Skip: eval = value
-            if (parent.type === Syntax.AssignmentExpression && parent.left === node)
+            // Skip: eval = value || function x (eval = value) { ... }
+            if ((parent.type === Syntax.AssignmentExpression || parent.type === Syntax.AssignmentPattern) &&
+                parent.left === node)
                 return false;
 
             // Skip: const eval = value;
@@ -64,6 +65,10 @@ export default {
 
             // Skip already transformed: __get$Eval(eval)
             if (parent.type === Syntax.CallExpression && parent.callee.name === INSTRUCTION.getEval)
+                return false;
+
+            // Skip: function x (...eval) {}
+            if (parent.type === Syntax.RestElement)
                 return false;
 
             return true;
