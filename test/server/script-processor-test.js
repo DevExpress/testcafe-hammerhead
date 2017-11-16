@@ -303,6 +303,30 @@ describe('Script processor', () => {
             {
                 src:      'function location(){}',
                 expected: 'function location(){}'
+            },
+            {
+                src:      'class location{x(){}}',
+                expected: 'class location{x(){}}'
+            },
+            {
+                src:      'class x{location(){}}',
+                expected: 'class x{location(){}}'
+            },
+            {
+                src:      'y=location=>{}',
+                expected: 'y=location=>{}'
+            },
+            {
+                src:      'y=(...location)=>{}',
+                expected: 'y=(...location)=>{}'
+            },
+            {
+                src:      'x[y]=(location=8)=>{}',
+                expected: '__set$(x,y,(location=8)=>{})'
+            },
+            {
+                src:      'function x(param=location){}',
+                expected: 'function x(param=__get$Loc(location)){}'
             }
         ]);
     });
@@ -522,6 +546,22 @@ describe('Script processor', () => {
             {
                 src:      'function eval(){}',
                 expected: 'function eval(){}'
+            },
+            {
+                src:      'y=eval=>{}',
+                expected: 'y=eval=>{}'
+            },
+            {
+                src:      'y=(...eval)=>{}',
+                expected: 'y=(...eval)=>{}'
+            },
+            {
+                src:      'x[y]=(eval=8)=>{}',
+                expected: '__set$(x,y,(eval=8)=>{})'
+            },
+            {
+                src:      'function x(param=eval){}',
+                expected: 'function x(param=__get$Eval(eval)){}'
             }
         ]);
     });
@@ -630,6 +670,22 @@ describe('Script processor', () => {
             {
                 src:      'function postMessage(){}',
                 expected: 'function postMessage(){}'
+            },
+            {
+                src:      'y=postMessage=>{}',
+                expected: 'y=postMessage=>{}'
+            },
+            {
+                src:      'y=(...postMessage)=>{}',
+                expected: 'y=(...postMessage)=>{}'
+            },
+            {
+                src:      'x[y]=(postMessage=8)=>{}',
+                expected: '__set$(x,y,(postMessage=8)=>{})'
+            },
+            {
+                src:      'function x(param=postMessage){}',
+                expected: 'function x(param=__get$PostMessage(null,postMessage)){}'
             }
         ]);
     });
@@ -687,6 +743,30 @@ describe('Script processor', () => {
             {
                 src:      'var obj = { localStorage: function localStorage() {} }',
                 expected: 'var obj = { localStorage: function localStorage() {} }'
+            },
+            {
+                src:      'class localStorage{x(){}}',
+                expected: 'class localStorage{x(){}}'
+            },
+            {
+                src:      'class x{localStorage(){}}',
+                expected: 'class x{localStorage(){}}'
+            },
+            {
+                src:      'y=localStorage=>{}',
+                expected: 'y=localStorage=>{}'
+            },
+            {
+                src:      'y=(...localStorage)=>{}',
+                expected: 'y=(...localStorage)=>{}'
+            },
+            {
+                src:      'x[y]=(localStorage=8)=>{}',
+                expected: '__set$(x,y,(localStorage=8)=>{})'
+            },
+            {
+                src:      'function x(param=localStorage){}',
+                expected: 'function x(param=__get$Storage(localStorage)){}'
             }
         ]);
     });
@@ -847,6 +927,7 @@ describe('Script processor', () => {
 
             testParser('function a(){function b(){}/k/;}'); // GH-591
             testParser('function s(){do var x = 9; while(false)return}'); // GH-567
+            testParser('x[y] = (def = 5, ...args) => {};'); // GH-1336
         });
 
         it('Should process the content in the conditional function declaration', () => {
