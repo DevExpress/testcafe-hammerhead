@@ -1,8 +1,8 @@
 import { parseProxyUrl } from '../../../utils/url';
 import nativeMethods from '../../native-methods';
 
-const anchor      = nativeMethods.createElement.call(document, 'a');
-const emptyAnchor = nativeMethods.createElement.call(document, 'a');
+let anchor      = nativeMethods.createElement.call(document, 'a');
+let emptyAnchor = nativeMethods.createElement.call(document, 'a');
 
 export function getAnchorProperty (el, prop) {
     if (el.href) {
@@ -28,4 +28,9 @@ export function setAnchorProperty (el, prop, value) {
     }
 
     return '';
+}
+
+export function dispose () {
+    anchor      = null;
+    emptyAnchor = null;
 }

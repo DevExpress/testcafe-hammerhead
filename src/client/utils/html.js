@@ -123,6 +123,8 @@ function processHtmlInternal (html, process) {
 
     let processedHtml = process(container) ? container.innerHTML : html;
 
+    container.parentNode.removeChild(container);
+
     processedHtml = unwrapHtmlText(processedHtml);
 
     // NOTE: hack for IE (GH-1083)
@@ -238,6 +240,11 @@ export function processHtml (html, parentTag, prepareDom) {
 
         return true;
     });
+}
+
+export function dispose () {
+    htmlParser   = null;
+    htmlDocument = null;
 }
 
 function removeExtraSvgNamespeces (html, processedHtml) {

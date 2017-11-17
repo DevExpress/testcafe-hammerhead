@@ -93,5 +93,9 @@ export default {
         resolver[prop] = value;
 
         return resolver.href;
+    },
+
+    dispose (doc) {
+        doc[DOCUMENT_URL_RESOLVER] = null;
     }
 };

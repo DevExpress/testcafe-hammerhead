@@ -20,6 +20,8 @@ import StorageSandbox from './storages';
 import ElectronSandbox from './electron';
 import ConsoleSandbox from './console';
 import { isIE, isWebKit, isElectron } from '../utils/browser';
+import { dispose as htmlUtilDispose } from '../utils/html';
+import { dispose as anchorCodeInstumentationDispose } from './code-instrumentation/properties/anchor';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
@@ -51,6 +53,7 @@ export default class Sandbox extends SandboxBase {
         this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
         this.console             = new ConsoleSandbox(messageSandbox);
+        this.unload              = unloadSandbox;
 
         if (isElectron)
             this.electron = new ElectronSandbox();
@@ -203,5 +206,16 @@ export default class Sandbox extends SandboxBase {
 
         if (this.electron)
             this.electron.attach(window);
+
+        this.unload.on(this.unload.UNLOAD_EVENT, () => this.dispose());
+    }
+
+    dispose () {
+        this.event.hover.lastHoveredElement     = null;
+        this.event.focusBlur.lastFocusedElement = null;
+
+        htmlUtilDispose();
+        anchorCodeInstumentationDispose();
+        urlResolver.dispose(this.document);
     }
 }
