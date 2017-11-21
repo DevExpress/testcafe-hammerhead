@@ -295,10 +295,17 @@ export function getOffsetPosition (el) {
 }
 
 export function offsetToClientCoords (coords, currentDocument) {
-    const doc = currentDocument || document;
+    const doc                = currentDocument || document;
+    const documentScrollLeft = styleUtils.getScrollLeft(doc);
+    const documentScrollTop  = styleUtils.getScrollTop(doc);
+    const bodyScrollLeft     = styleUtils.getScrollLeft(doc.body);
+    const bodyScrollTop      = styleUtils.getScrollTop(doc.body);
+
+    const scrollLeft = documentScrollLeft === 0 && bodyScrollLeft !== 0 ? bodyScrollLeft : documentScrollLeft;
+    const scrollTop  = documentScrollTop === 0 && bodyScrollTop !== 0 ? bodyScrollTop : documentScrollTop;
 
     return {
-        x: coords.x - styleUtils.getScrollLeft(doc),
-        y: coords.y - styleUtils.getScrollTop(doc)
+        x: coords.x - scrollLeft,
+        y: coords.y - scrollTop
     };
 }
