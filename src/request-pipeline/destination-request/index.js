@@ -13,6 +13,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
+const SOCKET_HANG_UP_ERR_RE      = /socket hang up/i;
 
 
 // DestinationRequest
@@ -125,6 +126,9 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _onError (err) {
+        if (err.message && SOCKET_HANG_UP_ERR_RE.test(err.message))
+            this.emit('socketHangUp');
+
         if (requestAgent.shouldRegressHttps(err, this.opts)) {
             requestAgent.regressHttps(this.opts);
             this._send();
