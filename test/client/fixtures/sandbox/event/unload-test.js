@@ -30,6 +30,17 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
         });
 });
 
+test('Hammerhead UNLOAD_EVENT must be called (GH-1095)', function () {
+    var unloadSandbox   = hammerhead.sandbox.event.unload;
+    var unloadWasCalled = false;
+
+    hammerhead.on(hammerhead.EVENTS.unload, () => {
+        unloadWasCalled = true;
+    });
+    unloadSandbox.emit(unloadSandbox.UNLOAD_EVENT);
+    ok(unloadWasCalled);
+});
+
 if (browserUtils.isSafari && !browserUtils.isIOS) {
     asyncTest('onbeforeunload handler must be called in iframe (GH-698)', function () {
         var iframe = document.createElement('iframe');
