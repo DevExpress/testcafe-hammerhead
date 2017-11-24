@@ -130,7 +130,7 @@ asyncTest('document properties', function () {
 test('document.URL', function () {
     var url = eval(processScript('document.URL'));
 
-    strictEqual(url, destLocation.get());
+    strictEqual(url, 'https://example.com/');
 });
 
 test('document.referrer', function () {

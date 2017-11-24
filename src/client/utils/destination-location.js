@@ -5,7 +5,8 @@ import settings from '../settings';
 
 let forcedLocation = null;
 
-function getLocation () {
+// NOTE: exposed only for tests
+export function getLocation () {
     // NOTE: Used for testing. Unfortunately, we cannot override the 'getLocation' method in a test.
     if (forcedLocation)
         return forcedLocation;
