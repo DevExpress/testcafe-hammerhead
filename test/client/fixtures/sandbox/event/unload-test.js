@@ -30,15 +30,17 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
         });
 });
 
-test('Hammerhead UNLOAD_EVENT must be called (GH-1095)', function () {
-    var unloadSandbox   = hammerhead.sandbox.event.unload;
-    var unloadWasCalled = false;
+test('hammerhead UNLOAD_EVENT must be called', function () {
+    var unloadSandbox        = hammerhead.sandbox.event.unload;
+    var unloadEventWasCalled = false;
+    var handler = function () {
+        unloadEventWasCalled = true;
+        hammerhead.off(hammerhead.EVENTS.unload, handler);
+    };
 
-    hammerhead.on(hammerhead.EVENTS.unload, () => {
-        unloadWasCalled = true;
-    });
+    hammerhead.on(hammerhead.EVENTS.unload, handler);
     unloadSandbox.emit(unloadSandbox.UNLOAD_EVENT);
-    ok(unloadWasCalled);
+    ok(unloadEventWasCalled);
 });
 
 if (browserUtils.isSafari && !browserUtils.isIOS) {
