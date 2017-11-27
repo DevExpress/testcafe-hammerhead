@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE, version as browserVersion } from './browser';
+import { isFirefox, isWebKit, isIE } from './browser';
 import trim from '../../utils/string-trim';
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
