@@ -30,7 +30,7 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
         });
 });
 
-test('hammerhead UNLOAD_EVENT must be called', function () {
+test('UNLOAD_EVENT should be called', function () {
     var unloadSandbox        = hammerhead.sandbox.event.unload;
     var unloadEventWasCalled = false;
     var handler = function () {
