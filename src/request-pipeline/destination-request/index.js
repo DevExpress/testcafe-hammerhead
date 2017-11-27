@@ -120,7 +120,7 @@ export default class DestinationRequest extends EventEmitter {
         return this.isHttps && this.opts.proxy && err.message && TUNNELING_SOCKET_ERR_RE.test(err.message);
     }
 
-    _isSocketHungUpErr (err) {
+    _isSocketHangUpErr (err) {
         return err.message && SOCKET_HANG_UP_ERR_RE.test(err.message);
     }
 
@@ -132,7 +132,7 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _onError (err) {
-        if (this._isSocketHungUpErr(err))
+        if (this._isSocketHangUpErr(err))
             this.emit('socketHangUp');
 
         if (requestAgent.shouldRegressHttps(err, this.opts)) {
