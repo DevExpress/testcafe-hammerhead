@@ -125,7 +125,7 @@ class Hammerhead {
 
             case this.EVENTS.beforeUnload:
             case this.EVENTS.beforeBeforeUnload:
-            case this.EVENTS.upload:
+            case this.EVENTS.unload:
                 return this.sandbox.event.unload;
 
             case this.EVENTS.bodyCreated:
