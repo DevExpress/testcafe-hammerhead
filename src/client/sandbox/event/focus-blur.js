@@ -75,12 +75,6 @@ export default class FocusBlurSandbox extends SandboxBase {
             this.lastFocusedElement = null;
     }
 
-    _isEventRaisedOnShadowUIRootInIE9 (el) {
-        // NOTE: T239149 - TD15.1? - An error occurs during assertion creation on
-        // http://knockoutjs.com/examples/helloWorld.html in IE9.
-        return browserUtils.isIE9 && this.shadowUI.getRoot() === el;
-    }
-
     _shouldUseLabelHtmlForElement (el, type) {
         return type === 'focus' && domUtils.isLabelElement(el) && el.htmlFor;
     }
@@ -159,9 +153,6 @@ export default class FocusBlurSandbox extends SandboxBase {
 
             callback();
         };
-
-        if (this._isEventRaisedOnShadowUIRootInIE9(el))
-            callback();
 
         if (el[type]) {
             // NOTE: To guarantee that all focus/blur events are raised, we need to raise them manually.
