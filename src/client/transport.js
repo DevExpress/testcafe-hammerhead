@@ -2,7 +2,7 @@ import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
 import XhrSandbox from './sandbox/xhr';
 import { stringify as stringifyJSON, parse as parseJSON } from './json';
-import { isWebKit, isIE9 } from './utils/browser';
+import { isWebKit } from './utils/browser';
 import Promise from 'pinkie';
 
 const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
@@ -94,26 +94,6 @@ class Transport {
                         return;
 
                     msgCallback.call(this);
-                });
-            }
-            else if (isIE9) {
-                // NOTE: Aborting ajax requests in IE9 does not raise the error, abort or timeout events.
-                // Getting the status code raises the c00c023f error.
-                request.addEventListener('readystatechange', function () {
-                    if (this.readyState !== 4)
-                        return;
-
-                    let status = 0;
-
-                    try {
-                        status = this.status;
-                    }
-                    catch (e) {
-                        errorHandler();
-                    }
-
-                    if (status === 200)
-                        msgCallback.call(this);
                 });
             }
             else {
