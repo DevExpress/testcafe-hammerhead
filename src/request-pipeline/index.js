@@ -44,6 +44,8 @@ const stages = {
             });
 
             req.on('fatalError', err => error(ctx, err));
+
+            req.on('socketHangUp', () => ctx.req.socket.end());
         }
     },
 

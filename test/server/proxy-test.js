@@ -7,6 +7,7 @@ const http                                 = require('http');
 const urlLib                               = require('url');
 const request                              = require('request');
 const path                                 = require('path');
+const net                                  = require('net');
 const expect                               = require('chai').expect;
 const express                              = require('express');
 const read                                 = require('read-file-relative').readSync;
@@ -2479,6 +2480,93 @@ describe('Proxy', () => {
                 testRefreshHeader('/index.html', 'http://127.0.0.1:2000'),
                 testRefreshHeader('http://example.com/index.html')
             ]);
+        });
+
+        it('Should close a proxy connection if a connection to destination server hang up (GH-1384)', () => {
+            const agent        = new http.Agent({
+                keepAlive:      true,
+                keepAliveMsecs: 10000
+            });
+            let mainPageSocket = null;
+            let reqOptions     = null;
+
+            const server = net.createServer(socket => {
+                socket.on('data', data => {
+                    const url = data.toString().match(/GET ([\s\S]+) HTTP/)[1];
+
+                    if (url === '/') {
+                        mainPageSocket = socket;
+
+                        socket.setKeepAlive(true, 10000);
+                        socket.write([
+                            'HTTP/1.1 302 Object Moved',
+                            'Location: /redirect',
+                            'Content-Length: 0',
+                            '',
+                            ''
+                        ].join('\r\n'));
+                    }
+                    else if (url === '/redirect') {
+                        if (mainPageSocket) {
+                            expect(mainPageSocket).eql(socket);
+                            mainPageSocket.end();
+
+                            mainPageSocket = null;
+                        }
+                        else {
+                            socket.write([
+                                'HTTP/1.1 200 Ok',
+                                'Content-Length: 5',
+                                '',
+                                'Hello'
+                            ].join('\r\n'));
+                        }
+                    }
+                });
+            });
+
+            function sendRequest (options) {
+                return new Promise((resolve, reject) => {
+                    const req = http.request(options, res => {
+                        const chunks = [];
+
+                        res.on('data', chunk => chunks.push(chunk));
+                        res.on('end', () => resolve(Buffer.concat(chunks).toString()));
+                    });
+
+                    req.on('error', reject);
+                    req.end();
+                });
+            }
+
+            return getFreePort()
+                .then(port => new Promise(resolve => server.listen(port, resolve.bind(null, port))))
+                .then(port => {
+                    const proxyUrl = proxy.openSession(`http://127.0.0.1:${port}/`, session);
+
+                    reqOptions = Object.assign(urlLib.parse(proxyUrl), {
+                        method: 'GET',
+                        agent:  agent
+                    });
+
+                    return sendRequest(reqOptions);
+                })
+                .then(body => {
+                    expect(body).eql('');
+
+                    reqOptions.path += 'redirect';
+
+                    return sendRequest(reqOptions);
+                })
+                .catch(err => {
+                    expect(err.toString()).eql('Error: socket hang up');
+
+                    return sendRequest(reqOptions);
+                })
+                .then(body => {
+                    expect(body).eql('Hello');
+                    server.close();
+                });
         });
     });
 });

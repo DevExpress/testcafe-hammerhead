@@ -13,6 +13,9 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
 const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
+const SOCKET_HANG_UP_ERR_RE      = /socket hang up/i;
+const IS_DNS_ERR_MSG_RE          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
+const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
 
 
 // DestinationRequest
@@ -109,12 +112,16 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _isDNSErr (err) {
-        return err.message && /ECONNREFUSED|ENOTFOUND|EPROTO/.test(err.message) ||
-               !this.aborted && !this.hasResponse && err.code && /ECONNRESET/.test(err.code);
+        return err.message && IS_DNS_ERR_MSG_RE.test(err.message) ||
+               !this.aborted && !this.hasResponse && err.code && IS_DNS_ERR_CODE_RE.test(err.code);
     }
 
     _isTunnelingErr (err) {
         return this.isHttps && this.opts.proxy && err.message && TUNNELING_SOCKET_ERR_RE.test(err.message);
+    }
+
+    _isSocketHangUpErr (err) {
+        return err.message && SOCKET_HANG_UP_ERR_RE.test(err.message);
     }
 
     _onTimeout () {
@@ -125,6 +132,9 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _onError (err) {
+        if (this._isSocketHangUpErr(err))
+            this.emit('socketHangUp');
+
         if (requestAgent.shouldRegressHttps(err, this.opts)) {
             requestAgent.regressHttps(this.opts);
             this._send();
