@@ -61,10 +61,6 @@ export default class BaseDomAdapter {
         throw new Error('Not implemented');
     }
 
-    getElementForSelectorCheck () {
-        throw new Error('Not implemented');
-    }
-
     needToProcessContent () {
         throw new Error('Not implemented');
     }

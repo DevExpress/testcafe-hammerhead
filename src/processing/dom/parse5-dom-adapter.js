@@ -67,10 +67,6 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         style.childNodes = [parse5Utils.createTextNode(content, style)];
     }
 
-    getElementForSelectorCheck (el) {
-        return el;
-    }
-
     needToProcessContent () {
         return true;
     }
