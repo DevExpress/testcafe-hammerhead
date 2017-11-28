@@ -513,8 +513,12 @@ export function isElementFocusable (el) {
     if (isOptionElement(el) && isIE)
         return false;
 
-    if (isAnchorElement(el) && tabIndex !== null)
-        return true;
+    if (isAnchorElement(el)) {
+        if (tabIndex !== null)
+            return true;
+
+        return matches(el, 'a[href]');
+    }
 
     if (isTableDataCellElement(el) && isIE)
         return true;
