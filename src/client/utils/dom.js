@@ -674,6 +674,10 @@ export function isTableElement (el) {
     return instanceToString(el) === '[object HTMLTableElement]';
 }
 
+export function isShadowRoot (el) {
+    return getNodeType(el) === 11 && el.host;
+}
+
 export function isTableDataCellElement (el) {
     return instanceToString(el) === NATIVE_TABLE_CELL_STR;
 }
@@ -745,11 +749,12 @@ export function parseDocumentCharset () {
 }
 
 export function getParents (el, selector) {
-    let parent  = el.parentNode || el.host;
+    let parent    = el.parentNode || el.host;
     const parents = [];
 
     while (parent) {
-        if (isElementNode(parent) && !selector || selector && matches(parent, selector))
+        if (!selector && (isElementNode(parent) || isShadowRoot(parent)) ||
+            selector && matches(parent, selector))
             parents.push(parent);
 
         parent = parent.parentNode || parent.host;
