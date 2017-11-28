@@ -927,26 +927,28 @@ if (browserUtils.isChrome) {
     });
 }
 
-test('isShadowRoot', function () {
-    notOk(domUtils.isShadowRoot(null));
-    notOk(domUtils.isShadowRoot(document));
-    notOk(domUtils.isShadowRoot(window));
-    notOk(domUtils.isShadowRoot(document.createElement('div')));
-    ok(domUtils.isShadowRoot(document.createElement('div').createShadowRoot()));
-});
+if (window.HTMLElement.prototype.createShadowRoot) {
+    test('isShadowRoot', function () {
+        notOk(domUtils.isShadowRoot(null));
+        notOk(domUtils.isShadowRoot(document));
+        notOk(domUtils.isShadowRoot(window));
+        notOk(domUtils.isShadowRoot(document.createElement('div')));
+        ok(domUtils.isShadowRoot(document.createElement('div').createShadowRoot()));
+    });
 
-test('"getParents" should work properly for elements inside shadowDOM', function () {
-    var host  = document.createElement('div');
-    var root  = host.createShadowRoot();
-    var div   = document.createElement('div');
-    var input = document.createElement('input');
+    test('"getParents" should work properly for elements inside shadowDOM', function () {
+        var host  = document.createElement('div');
+        var root  = host.createShadowRoot();
+        var div   = document.createElement('div');
+        var input = document.createElement('input');
 
-    document.body.appendChild(host);
-    div.appendChild(input);
-    root.appendChild(div);
+        document.body.appendChild(host);
+        div.appendChild(input);
+        root.appendChild(div);
 
-    var parents = domUtils.getParents(input);
+        var parents = domUtils.getParents(input);
 
-    deepEqual(parents, [div, root, host, document.body, document.documentElement]);
-    document.body.removeChild(host);
-});
+        deepEqual(parents, [div, root, host, document.body, document.documentElement]);
+        document.body.removeChild(host);
+    });
+}

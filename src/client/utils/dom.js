@@ -662,10 +662,6 @@ export function isTableElement (el) {
     return instanceToString(el) === '[object HTMLTableElement]';
 }
 
-export function isShadowRoot (el) {
-    return getNodeType(el) === 11 && el.host;
-}
-
 export function isTableDataCellElement (el) {
     return instanceToString(el) === NATIVE_TABLE_CELL_STR;
 }
