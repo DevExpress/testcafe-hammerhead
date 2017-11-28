@@ -4,28 +4,32 @@ import * as destLocation from './destination-location';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
 
-const HASH_RE = /#[\S\s]*$/;
+const HASH_RE                          = /#[\S\s]*$/;
+const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
 
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
 export function getProxyUrl (url, opts) {
-    if (!isSupportedProtocol(url) && !isSpecialPage(url))
+    const resourceType       = opts && opts.resourceType;
+    const parsedResourceType = sharedUrlUtils.parseResourceType(resourceType);
+
+    if (!parsedResourceType.isWebSocket && !isSupportedProtocol(url) && !isSpecialPage(url))
         return url;
 
     // NOTE: Resolves relative URLs.
     url = destLocation.resolveUrl(url);
 
-    if (!sharedUrlUtils.isValidUrl(url))
+    if (parsedResourceType.isWebSocket && !isValidWebSocketUrl(url) || !sharedUrlUtils.isValidUrl(url))
         return url;
 
+    const proxyProtocol = parsedResourceType.isWebSocket ? 'ws:' : void 0;
     const proxyHostname = opts && opts.proxyHostname || location.hostname;
     const proxyPort     = opts && opts.proxyPort || location.port.toString();
     const sessionId     = opts && opts.sessionId || settings.get().sessionId;
-    const resourceType  = opts && opts.resourceType;
     let charset         = opts && opts.charset;
+    let reqOrigin       = opts && opts.reqOrigin;
 
-    const crossDomainPort = settings.get().crossDomainProxyPort === proxyPort ?
-                            location.port.toString() : settings.get().crossDomainProxyPort;
+    const crossDomainPort = getCrossDomainProxyPort(proxyPort);
 
     // NOTE: If the relative URL contains no slash (e.g. 'img123'), the resolver will keep
     // the original proxy information, so that we can return such URL as is.
@@ -42,18 +46,19 @@ export function getProxyUrl (url, opts) {
         const destUrl = sharedUrlUtils.formatUrl(parsedProxyUrl.destResourceInfo);
 
         return getProxyUrl(destUrl, {
+            proxyProtocol,
             proxyHostname,
             proxyPort,
             sessionId,
             resourceType,
-            charset
+            charset,
+            reqOrigin
         });
     }
 
     const parsedUrl = sharedUrlUtils.parseUrl(url);
-    const isScript  = sharedUrlUtils.parseResourceType(resourceType).isScript;
 
-    charset = charset || isScript && document[INTERNAL_PROPS.documentCharset];
+    charset = charset || parsedResourceType.isScript && document[INTERNAL_PROPS.documentCharset];
 
     // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
     // removed by the resolver and we have an origin URL with the incorrect host and protocol.
@@ -68,12 +73,20 @@ export function getProxyUrl (url, opts) {
         url = sharedUrlUtils.formatUrl(parsedUrl);
     }
 
+    if (parsedResourceType.isWebSocket) {
+        parsedUrl.protocol = parsedUrl.protocol.replace('ws', 'http');
+        url                = sharedUrlUtils.formatUrl(parsedUrl);
+        reqOrigin          = reqOrigin || encodeURIComponent(destLocation.getOriginHeader());
+    }
+
     return sharedUrlUtils.getProxyUrl(url, {
+        proxyProtocol,
         proxyHostname,
         proxyPort,
         sessionId,
         resourceType,
-        charset
+        charset,
+        reqOrigin
     });
 }
 
@@ -82,6 +95,12 @@ export function getCrossDomainIframeProxyUrl (url) {
         proxyPort:    settings.get().crossDomainProxyPort,
         resourceType: sharedUrlUtils.getResourceTypeString({ isIframe: true })
     });
+}
+
+export function getCrossDomainProxyPort (proxyPort) {
+    return settings.get().crossDomainProxyPort === proxyPort
+        ? location.port.toString()
+        : settings.get().crossDomainProxyPort;
 }
 
 export function getCrossDomainProxyUrl () {
@@ -126,6 +145,12 @@ export function changeDestUrlPart (proxyUrl, prop, value, resourceType) {
     }
 
     return proxyUrl;
+}
+
+export function isValidWebSocketUrl (url) {
+    const resolvedUrl = resolveUrlAsDest(url);
+
+    return SUPPORTED_WEB_SOCKET_PROTOCOL_RE.test(resolvedUrl);
 }
 
 export function isSubDomain (domain, subDomain) {

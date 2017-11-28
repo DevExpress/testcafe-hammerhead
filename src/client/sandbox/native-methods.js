@@ -173,13 +173,15 @@ class NativeMethods {
         this.dateNow = win.Date.now;
 
         // Object
-        this.objectToString       = win.Object.prototype.toString;
-        this.objectAssign         = win.Object.assign;
-        this.objectKeys           = win.Object.keys;
-        this.objectDefineProperty = win.Object.defineProperty;
-        this.objectCreate         = win.Object.create;
-        this.objectIsExtensible   = win.Object.isExtensible;
-        this.objectIsFrozen       = win.Object.isFrozen;
+        this.objectToString                 = win.Object.prototype.toString;
+        this.objectAssign                   = win.Object.assign;
+        this.objectKeys                     = win.Object.keys;
+        this.objectDefineProperty           = win.Object.defineProperty;
+        this.objectDefineProperties         = win.Object.defineProperties;
+        this.objectCreate                   = win.Object.create;
+        this.objectIsExtensible             = win.Object.isExtensible;
+        this.objectIsFrozen                 = win.Object.isFrozen;
+        this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
 
         // DOMParser
         if (win.DOMParser)
@@ -194,6 +196,21 @@ class NativeMethods {
 
         if (textAreaValueDescriptor && typeof textAreaValueDescriptor.set === 'function')
             this.textAreaValueSetter = textAreaValueDescriptor.set;
+
+        // Getters
+        if (win.WebSocket) {
+            const urlPropDescriptor = win.Object.getOwnPropertyDescriptor(window.WebSocket.prototype, 'url');
+
+            if (urlPropDescriptor && urlPropDescriptor.get && urlPropDescriptor.configurable)
+                this.webSocketUrlGetter = urlPropDescriptor.get;
+        }
+
+        if (win.MessageEvent) {
+            const originPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin');
+
+            if (originPropDescriptor && originPropDescriptor.get && originPropDescriptor.configurable)
+                this.messageEventOriginGetter = originPropDescriptor.get;
+        }
 
         // Stylesheets
         if (win.CSSStyleDeclaration) {
@@ -247,6 +264,7 @@ class NativeMethods {
         this.StorageEvent     = win.StorageEvent;
         this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
+        this.WebSocket        = win.WebSocket;
 
         if (win.DataTransfer)
             this.DataTransfer = win.DataTransfer;

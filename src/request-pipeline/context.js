@@ -25,6 +25,7 @@ export default class RequestPipelineContext {
         this.isFetch       = false;
         this.isPage        = false;
         this.isHtmlImport  = false;
+        this.isWebSocket   = false;
         this.isIframe      = false;
         this.isSpecialPage = false;
         this.contentInfo   = null;
@@ -55,7 +56,9 @@ export default class RequestPipelineContext {
                 isScript:      parsedResourceType.isScript,
                 isEventSource: parsedResourceType.isEventSource,
                 isHtmlImport:  parsedResourceType.isHtmlImport,
-                charset:       parsed.charset
+                isWebSocket:   parsedResourceType.isWebSocket,
+                charset:       parsed.charset,
+                reqOrigin:     parsed.reqOrigin
             };
 
             dest = this._omitDefaultPort(dest);
@@ -115,6 +118,7 @@ export default class RequestPipelineContext {
         this.isPage         = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader) ||
                               this.dest.isHtmlImport;
         this.isHtmlImport   = this.dest.isHtmlImport;
+        this.isWebSocket    = this.dest.isWebSocket;
         this.isIframe       = this.dest.isIframe;
         this.isSpecialPage  = urlUtils.isSpecialPage(this.dest.url);
         this.isFileProtocol = this.dest.protocol === 'file:';
@@ -244,7 +248,7 @@ export default class RequestPipelineContext {
     closeWithError (statusCode, resBody) {
         this.res.statusCode = statusCode;
 
-        if (resBody && !this.res.headersSent) {
+        if (resBody && !this.res.headersSent && this.res.setHeader) {
             this.res.setHeader('content-type', 'text/html');
             this.res.end(resBody);
         }

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+<script type="text/javascript">
+    var hammerhead = window['%hammerhead%'];
+
+    hammerhead.get('./utils/destination-location');
+    hammerhead.start({ crossDomainProxyPort: 2001 });
+
+    var INSTRUCTION = hammerhead.get('../processing/script/instruction');
+    var urlUtils    = hammerhead.get('./utils/url');
+    var setProperty = window[INSTRUCTION.setProperty];
+    var getLocation = window[INSTRUCTION.getLocation];
+
+    var storedParseProxyUrl = urlUtils.parseProxyUrl;
+
+    urlUtils.parseProxyUrl = function (url) {
+        if (url === parent.location.toString()) {
+            return {
+                proxy: {
+                    port: 2000
+                }
+            };
+        }
+
+        return storedParseProxyUrl.apply(this, arguments);
+    };
+
+    setProperty(window, 'onmessage', function (evt) {
+        getLocation(location).href = evt.data;
+    });
+</script>
+</body>
+</html>

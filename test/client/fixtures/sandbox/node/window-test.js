@@ -126,7 +126,7 @@ if (featureDetection.hasUnhandledRejectionEvent) {
 
             return testMsg(null)
                 .then(function (msg) {
-                    strictEqual(msg, 'undefined');
+                    ok(['undefined', '[object Null]'].indexOf(msg) !== -1);
                     return testMsg(void 0);
                 })
                 .then(function (msg) {

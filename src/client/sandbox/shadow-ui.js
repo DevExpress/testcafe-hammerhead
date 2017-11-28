@@ -8,7 +8,8 @@ import { getOffsetPosition } from '../utils/position';
 import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
 import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
-import getNativeQuerySelectorAll from '../utils/get-native-query-selector-all';
+import { getNativeQuerySelectorAll } from '../utils/query-selector';
+import LiveNodeListFactory from './node/live-node-list/factory';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
@@ -17,7 +18,7 @@ const IS_SHADOW_CONTAINER_FLAG            = 'hammerhead|shadow-ui|container-flag
 const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-collection-flag';
 
 export default class ShadowUI extends SandboxBase {
-    constructor (nodeMutation, messageSandbox, iframeSandbox, liveNodeListFactory) {
+    constructor (nodeMutation, messageSandbox, iframeSandbox) {
         super();
 
         this.BODY_CONTENT_CHANGED_COMMAND = 'hammerhead|command|body-content-changed';
@@ -30,7 +31,6 @@ export default class ShadowUI extends SandboxBase {
         this.nodeMutation        = nodeMutation;
         this.messageSandbox      = messageSandbox;
         this.iframeSandbox       = iframeSandbox;
-        this.liveNodeListFactory = liveNodeListFactory;
 
         this.root                    = null;
         this.lastActiveElement       = null;
@@ -97,7 +97,7 @@ export default class ShadowUI extends SandboxBase {
                 return function (...args) {
                     const nativeResult = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
 
-                    return sandbox.liveNodeListFactory.createNodeListForGetElementsByTagNameFn({
+                    return LiveNodeListFactory.createNodeListForGetElementsByTagNameFn({
                         nodeList: nativeResult,
                         tagName:  args[0]
                     });

@@ -7,7 +7,7 @@ import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE, version as browserVersion } from './browser';
 import trim from '../../utils/string-trim';
-import getNativeQuerySelectorAll from './get-native-query-selector-all';
+import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
 // NOTE: We should avoid using native object prototype methods,
@@ -16,23 +16,22 @@ const arraySlice = Array.prototype.slice;
 
 let scrollbarSize = null;
 
-/*eslint-disable no-restricted-globals*/
-const NATIVE_ELEMENT_PROTOTYPE_STRINGS = [
-    instanceToString(nativeMethods.elementClass.prototype),
-    instanceToString(Object.getPrototypeOf(nativeMethods.elementClass.prototype))
-];
-/*eslint-enable no-restricted-globals*/
-
 const NATIVE_MAP_ELEMENT_STRINGS = [
     '[object HTMLMapElement]',
     '[object HTMLAreaElement]'
 ];
 
-const NATIVE_WINDOW_STR     = instanceToString(window);
-const NATIVE_DOCUMENT_STR   = instanceToString(document);
-const IS_SVG_ELEMENT_RE     = /^\[object SVG\w+?Element]$/i;
-const NATIVE_TABLE_CELL_STR = instanceToString(nativeMethods.createElement.call(document, 'td'));
-
+const NATIVE_WINDOW_STR                = instanceToString(window);
+const IS_DOCUMENT_RE                   = /^\[object .*?Document]$/i;
+const IS_PROCESSING_INSTRUCTION_RE     = /^\[object .*?ProcessingInstruction]$/i;
+const IS_SVG_ELEMENT_RE                = /^\[object SVG\w+?Element]$/i;
+const IS_HTML_ELEMENT_RE               = /^\[object HTML.*?Element]$/i;
+const NATIVE_TABLE_CELL_STR            = instanceToString(nativeMethods.createElement.call(document, 'td'));
+const ELEMENT_NODE_TYPE                = Node.ELEMENT_NODE;
+const NOT_CONTENT_EDITABLE_ELEMENTS_RE = /^(select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img)$/;
+const INPUT_ELEMENTS_RE                = /^(input|textarea|button)$/;
+const SCRIPT_OR_STYLE_RE               = /^(script|style)$/i;
+const EDITABLE_INPUT_TYPES_RE          = /^(email|number|password|search|tel|text|url)$/;
 
 function getFocusableSelector () {
     // NOTE: We don't take into account the case of embedded contentEditable elements, and we
@@ -45,11 +44,9 @@ function isHidden (el) {
 }
 
 function isAlwaysNotEditableElement (el) {
-    const tagName                          = getTagName(el);
-    const notContentEditableElementsRegExp = /select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img/;
-    const inputElementsRegExp              = /input|textarea|button/;
+    const tagName = getTagName(el);
 
-    return tagName && (notContentEditableElementsRegExp.test(tagName) || inputElementsRegExp.test(tagName));
+    return tagName && (NOT_CONTENT_EDITABLE_ELEMENTS_RE.test(tagName) || INPUT_ELEMENTS_RE.test(tagName));
 }
 
 function closestFallback (el, selector) {
@@ -300,11 +297,12 @@ export function isContentEditableElement (el) {
         element = el;
 
     if (element) {
-        isContentEditable = element.isContentEditable && !isAlwaysNotEditableElement(element) &&
-                            !isTextEditableElement(element);
+        isContentEditable = element.isContentEditable && !isAlwaysNotEditableElement(element);
+
+        return isRenderedNode(element) && (isContentEditable || findDocument(el).designMode === 'on');
     }
 
-    return isRenderedNode(element) && (isContentEditable || findDocument(el).designMode === 'on');
+    return false;
 }
 
 export function isCrossDomainIframe (iframe, bySrc) {
@@ -343,21 +341,12 @@ export function isDomElement (el) {
     if (el instanceof nativeMethods.elementClass)
         return true;
 
-    // NOTE: T184805
-    if (el && NATIVE_ELEMENT_PROTOTYPE_STRINGS.indexOf(instanceToString(el)) !== -1)
-        return false;
-
-    // NOTE: B252941
-    return el && !isDocumentFragmentNode(el) && typeof el.nodeName === 'string' && el.tagName;
+    return el && IS_HTML_ELEMENT_RE.test(instanceToString(el)) && isElementNode(el) && el.tagName;
 }
 
 export function getTagName (el) {
     // NOTE: Check for tagName being a string, because it may be a function in an Angular app (T175340).
     return el && typeof el.tagName === 'string' ? el.tagName.toLowerCase() : '';
-}
-
-export function getNodeType (node) {
-    return node && node.nodeType;
 }
 
 export function isElementInDocument (el, currentDocument) {
@@ -495,7 +484,7 @@ export function isMapElement (el) {
 }
 
 export function isRenderedNode (node) {
-    return !(isProcessingInstructionNode(node) || isCommentNode(node) || /^(script|style)$/i.test(node.nodeName));
+    return !(isProcessingInstructionNode(node) || isCommentNode(node) || SCRIPT_OR_STYLE_RE.test(node.nodeName));
 }
 
 export function getTabIndex (el) {
@@ -567,7 +556,7 @@ export function isDocument (instance) {
         return true;
 
     try {
-        return instance && NATIVE_DOCUMENT_STR === instanceToString(instance);
+        return instance && IS_DOCUMENT_RE.test(instanceToString(instance));
     }
     catch (e) {
         // NOTE: For cross-domain objects (windows, documents or locations), we return false because
@@ -627,11 +616,10 @@ export function isElementReadOnly (el) {
 }
 
 export function isTextEditableInput (el) {
-    const editableInputTypesRegEx = /^(email|number|password|search|tel|text|url)$/;
-    const attrType                = el.getAttribute('type');
+    const attrType = el.getAttribute('type');
 
     return isInputElement(el) &&
-           attrType ? editableInputTypesRegEx.test(attrType) : editableInputTypesRegEx.test(el.type);
+           attrType ? EDITABLE_INPUT_TYPES_RE.test(attrType) : EDITABLE_INPUT_TYPES_RE.test(el.type);
 }
 
 export function isTextEditableElement (el) {
@@ -643,27 +631,27 @@ export function isTextEditableElementAndEditingAllowed (el) {
 }
 
 export function isElementNode (node) {
-    return getNodeType(node) === 1;
+    return node && node.nodeType === ELEMENT_NODE_TYPE;
 }
 
 export function isTextNode (node) {
-    return getNodeType(node) === 3;
+    return instanceToString(node) === '[object Text]';
 }
 
 export function isProcessingInstructionNode (node) {
-    return getNodeType(node) === 7;
+    return IS_PROCESSING_INSTRUCTION_RE.test(instanceToString(node));
 }
 
 export function isCommentNode (node) {
-    return getNodeType(node) === 8;
+    return instanceToString(node) === '[object Comment]';
 }
 
-export function isDocumentNode (node) {
-    return getNodeType(node) === 9;
+export function isDocumentFragmentNode (node) {
+    return instanceToString(node) === '[object DocumentFragment]';
 }
 
-export function isDocumentFragmentNode (el) {
-    return getNodeType(el) === 11;
+export function isShadowRoot (root) {
+    return instanceToString(root) === '[object ShadowRoot]';
 }
 
 export function isAnchorElement (el) {
@@ -680,6 +668,10 @@ export function isShadowRoot (el) {
 
 export function isTableDataCellElement (el) {
     return instanceToString(el) === NATIVE_TABLE_CELL_STR;
+}
+
+export function isWebSocket (ws) {
+    return instanceToString(ws) === '[object WebSocket]';
 }
 
 export function matches (el, selector) {
@@ -769,4 +761,8 @@ export function getFileInputs (el) {
 
 export function getIframes (el) {
     return isIframeElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'iframe,frame');
+}
+
+export function getScripts (el) {
+    return isScriptElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'script');
 }

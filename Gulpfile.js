@@ -60,19 +60,9 @@ const CLIENT_TESTS_BROWSERS = [
         version:     '11.0'
     },
     {
-        platform:    'Windows 8',
-        browserName: 'internet explorer',
-        version:     '10.0'
-    },
-    {
-        platform:    'Windows 7',
-        browserName: 'internet explorer',
-        version:     '9.0'
-    },
-    {
         browserName: 'safari',
-        platform:    'OS X 10.11',
-        version:     '9.0'
+        platform:    'OS X 10.12',
+        version:     '11.0'
     },
     {
         browserName:     'Safari',

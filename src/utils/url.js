@@ -13,7 +13,7 @@ const PORT_RE            = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 const PATH_AFTER_HOST_RE = /^\/([^\/]+?)\/([\S\s]+)$/;
 
-export const SUPPORTED_PROTOCOL_RE               = /^(https?|file):/i;
+export const SUPPORTED_PROTOCOL_RE               = /^(?:https?|file):/i;
 export const HASH_RE                             = /^#/;
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
 export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
@@ -25,7 +25,8 @@ export function parseResourceType (resourceType) {
             isForm:        false,
             isScript:      false,
             isEventSource: false,
-            isHtmlImport:  false
+            isHtmlImport:  false,
+            isWebSocket:   false
         };
     }
 
@@ -34,15 +35,16 @@ export function parseResourceType (resourceType) {
         isForm:        /f/.test(resourceType),
         isScript:      /s/.test(resourceType),
         isEventSource: /e/.test(resourceType),
-        isHtmlImport:  /h/.test(resourceType)
+        isHtmlImport:  /h/.test(resourceType),
+        isWebSocket:   /w/.test(resourceType)
     };
 }
 
 export function getResourceTypeString (resourceType) {
     resourceType = resourceType || {};
 
-    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript &&
-        !resourceType.isEventSource && !resourceType.isHtmlImport)
+    if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript && !resourceType.isEventSource &&
+        !resourceType.isHtmlImport && !resourceType.isWebSocket)
         return null;
 
     return [
@@ -50,7 +52,8 @@ export function getResourceTypeString (resourceType) {
         resourceType.isForm ? 'f' : '',
         resourceType.isScript ? 's' : '',
         resourceType.isEventSource ? 'e' : '',
-        resourceType.isHtmlImport ? 'h' : ''
+        resourceType.isHtmlImport ? 'h' : '',
+        resourceType.isWebSocket ? 'w' : ''
     ].join('');
 }
 
@@ -115,9 +118,15 @@ export function getProxyUrl (url, opts) {
     if (opts.charset)
         params.push(opts.charset.toLowerCase());
 
+    if (opts.reqOrigin)
+        params.push(opts.reqOrigin);
+
     params = params.join(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
 
-    return 'http://' + opts.proxyHostname + ':' + opts.proxyPort + '/' + params + '/' + convertHostToLowerCase(url);
+    const proxyProtocol = opts.proxyProtocol || 'http:';
+
+    return proxyProtocol + '//' + opts.proxyHostname + ':' + opts.proxyPort + '/' + params + '/' +
+           convertHostToLowerCase(url);
 }
 
 export function getDomain (parsed) {
@@ -127,6 +136,29 @@ export function getDomain (parsed) {
         hostname: parsed.hostname,
         port:     parsed.port
     });
+}
+
+function parseRequestDescriptor (desc) {
+    const params = desc.split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
+
+    if (!params.length)
+        return null;
+
+    const sessionId    = params[0];
+    const resourceType = params[1] || null;
+    const resourceData = params[2] || null;
+    const parsedDesc   = { sessionId, resourceType };
+
+    if (resourceType && resourceData) {
+        const parsedResourceType = parseResourceType(resourceType);
+
+        if (parsedResourceType.isScript)
+            parsedDesc.charset = resourceData;
+        else if (parsedResourceType.isWebSocket)
+            parsedDesc.reqOrigin = decodeURIComponent(resourceData);
+    }
+
+    return parsedDesc;
 }
 
 export function parseProxyUrl (proxyUrl) {
@@ -141,10 +173,10 @@ export function parseProxyUrl (proxyUrl) {
     if (!match)
         return null;
 
-    const params = match[1].split(REQUEST_DESCRIPTOR_VALUES_SEPARATOR);
+    const parsedDesc = parseRequestDescriptor(match[1]);
 
     // NOTE: We should have, at least, the job uid and the owner token.
-    if (!params.length)
+    if (!parsedDesc)
         return null;
 
     const destUrl = match[2];
@@ -170,9 +202,10 @@ export function parseProxyUrl (proxyUrl) {
             port:     parsedUrl.port
         },
 
-        sessionId:    params[0],
-        resourceType: params[1] || null,
-        charset:      params[2] || null
+        sessionId:    parsedDesc.sessionId,
+        resourceType: parsedDesc.resourceType,
+        charset:      parsedDesc.charset,
+        reqOrigin:    parsedDesc.reqOrigin
     };
 }
 

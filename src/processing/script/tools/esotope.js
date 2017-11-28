@@ -54,6 +54,7 @@ var isArray,
 
 export var Syntax = {
     AssignmentExpression:     'AssignmentExpression',
+    AssignmentPattern:        'AssignmentPattern',
     ArrayExpression:          'ArrayExpression',
     ArrayPattern:             'ArrayPattern',
     ArrowFunctionExpression:  'ArrowFunctionExpression',
@@ -98,6 +99,7 @@ export var Syntax = {
     ObjectPattern:            'ObjectPattern',
     Program:                  'Program',
     Property:                 'Property',
+    RestElement:              'RestElement',
     ReturnStatement:          'ReturnStatement',
     SequenceExpression:       'SequenceExpression',
     SpreadElement:            'SpreadElement',
@@ -660,19 +662,14 @@ function generateVerbatim ($expr, settings) {
 }
 
 function generateFunctionParams ($node) {
-    var $params                  = $node.params,
-        $rest                    = $node.rest,
-        $defaults                = $node.defaults,
-        paramCount               = $params.length,
-        lastParamIdx             = paramCount - 1,
-        hasDefaults              = !!$defaults,
-        arrowFuncWithSingleParam = $node.type === Syntax.ArrowFunctionExpression && !$rest &&
-                                   (!hasDefaults || $defaults.length === 0) &&
-                                   paramCount === 1 &&
-                                   $params[0].type === Syntax.Identifier;
+    var $params                     = $node.params,
+        paramCount                  = $params.length,
+        lastParamIdx                = paramCount - 1,
+        arrowFuncWithoutParentheses = $node.type === Syntax.ArrowFunctionExpression && paramCount === 1 &&
+                                      $params[0].type === Syntax.Identifier;
 
     //NOTE: arg => { } case
-    if (arrowFuncWithSingleParam)
+    if (arrowFuncWithoutParentheses)
         _.js += $params[0].name;
 
     else {
@@ -681,33 +678,14 @@ function generateFunctionParams ($node) {
         for (var i = 0; i < paramCount; ++i) {
             var $param = $params[i];
 
-            if (hasDefaults && $defaults[i]) {
-                var $fakeAssign = {
-                    left:     $param,
-                    right:    $defaults[i],
-                    operator: '='
-                };
+            if ($params[i].type === Syntax.Identifier)
+                _.js += $param.name;
 
-                ExprGen.AssignmentExpression($fakeAssign, Preset.e4);
-            }
-
-            else {
-                if ($params[i].type === Syntax.Identifier)
-                    _.js += $param.name;
-
-                else
-                    ExprGen[$param.type]($param, Preset.e4);
-            }
+            else
+                ExprGen[$param.type]($param, Preset.e4);
 
             if (i !== lastParamIdx)
                 _.js += ',' + _.optSpace;
-        }
-
-        if ($rest) {
-            if (paramCount)
-                _.js += ',' + _.optSpace;
-
-            _.js += '...' + $rest.name;
         }
 
         _.js += ')';
@@ -1128,6 +1106,16 @@ var ExprRawGen = {
 
         if (parenthesize)
             _.js += ')';
+    },
+
+    AssignmentPattern: function generateAssignmentPattern ($node) {
+        var $fakeAssign = {
+            left:     $node.left,
+            right:    $node.right,
+            operator: '='
+        };
+
+        ExprGen.AssignmentExpression($fakeAssign, Preset.e4);
     },
 
     ArrowFunctionExpression: function generateArrowFunctionExpression ($expr, settings) {
@@ -1572,6 +1560,10 @@ var ExprRawGen = {
         leftJs = join(leftJs, $expr.of ? 'of' : 'in');
 
         _.js += 'for' + _.optSpace + '(' + join(leftJs, rightJs) + ')';
+    },
+
+    RestElement: function generateRestElement ($node) {
+        _.js += '...' + $node.argument.name;
     },
 
     SpreadElement: function generateSpreadElement ($expr) {

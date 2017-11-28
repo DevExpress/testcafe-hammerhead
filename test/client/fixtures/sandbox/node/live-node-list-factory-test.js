@@ -1,5 +1,6 @@
 /*eslint-disable no-unused-expressions*/
-var TagCache = hammerhead.get('./sandbox/node/live-node-list/tag-cache');
+var WrapperState       = hammerhead.get('./sandbox/node/live-node-list/wrapper-state');
+var DOMMutationTracker = hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var nativeMethods = hammerhead.nativeMethods;
@@ -22,26 +23,10 @@ QUnit.testStart(function () {
 });
 
 module('getElementsByTagName', function () {
-    test('TagCache', function () {
-        var tagCache = new TagCache();
-
-        tagCache.update('*');
-        tagCache.update('div');
-        tagCache.update('DIV');
-        tagCache.update('TEXTarea');
-
-        ok(tagCache.contains('div'));
-        ok(tagCache.contains('DIV'));
-        ok(tagCache.contains('TEXTAREA'));
-        ok(!tagCache.contains('constructor'));
-    });
-
     test('wrong arguments', function () {
         var testCases    = [
             null,
-            /*eslint-disable no-undefined*/
-            undefined,
-            /*eslint-enable no-undefined*/
+            void 0,
             {},
             function () {
             }
@@ -94,7 +79,7 @@ module('getElementsByTagName', function () {
     module('performance', function () {
         var checkAssertions = function (assertions) {
             assertions.forEach(function (assertion) {
-                ok(assertion.value, assertion.name);
+                strictEqual.apply(window, assertion);
             });
         };
 
@@ -106,12 +91,13 @@ module('getElementsByTagName', function () {
         });
 
         test('"*" tagName', function () {
-            var testDiv    = document.querySelector(TEST_DIV_SELECTOR);
-            var root       = shadowUI.getRoot();
-            var textarea1  = document.createElement('textarea');
-            var textarea2  = document.createElement('textarea');
-            var textarea3  = document.createElement('textarea');
-            var assertions = [];
+            var storedRefreshNodeListFn = WrapperState.prototype.refreshNodeListIfNecessary;
+            var testDiv                 = document.querySelector(TEST_DIV_SELECTOR);
+            var root                    = shadowUI.getRoot();
+            var textarea1               = document.createElement('textarea');
+            var textarea2               = document.createElement('textarea');
+            var textarea3               = document.createElement('textarea');
+            var assertions              = [];
 
             textarea1.id = 'textarea1';
             textarea2.id = 'textarea2';
@@ -123,134 +109,126 @@ module('getElementsByTagName', function () {
             var elements             = document.getElementsByTagName('*');
             var refreshNodeListCount = 0;
 
-            var descriptor              = Object.getOwnPropertyDescriptor(elements, '_refreshNodeListInternal');
-            var storedDescriptorValueFn = descriptor.value;
+            WrapperState.prototype.refreshNodeListIfNecessary = function () {
+                var storedFilteredNodeList = this.filteredNodeList;
 
-            Object.defineProperty(elements, '_refreshNodeListInternal',
-                {
-                    value: function () {
-                        refreshNodeListCount++;
+                storedRefreshNodeListFn.apply(this, arguments);
 
-                        return storedDescriptorValueFn.call(elements);
-                    }
-                });
+                if (storedFilteredNodeList !== this.filteredNodeList)
+                    refreshNodeListCount++;
+            };
 
-            assertions.push(
-                {
-                    name:  'DOMContentLoaded event is raised',
-                    value: elements._domContentLoadedEventRaised
-                },
-                {
-                    name:  'first access after domContentLoading',
-                    value: (function () {
-                        elements[0];
-                        elements[1];
-                        elements[2];
+            assertions.push([DOMMutationTracker._isDomContentLoaded, true, 'DOMContentLoaded event is raised']);
 
-                        return refreshNodeListCount === 0;
-                    })()
-                });
+            elements[0];
+            elements[1];
+            elements[2];
+
+            assertions.push([refreshNodeListCount, 0, 'first access after domContentLoading']);
 
             testDiv.appendChild(textarea2);
 
-            assertions.push(
-                {
-                    name:  'access after element was added',
-                    value: (function () {
-                        elements[0];
+            elements[0];
 
-                        return refreshNodeListCount === 1;
-                    })()
-                },
-                {
-                    name:  'access when no changes',
-                    value: (function () {
-                        elements[0];
+            assertions.push([refreshNodeListCount, 1, 'access after element was added']);
 
-                        return refreshNodeListCount === 1;
-                    })()
-                });
+            elements[0];
 
-            textarea2.parentNode.removeChild(textarea2);
+            assertions.push([refreshNodeListCount, 1, 'access when no changes']);
 
-            assertions.push(
-                {
-                    name:  'access after element was removed',
-                    value: (function () {
-                        elements[0];
+            testDiv.removeChild(textarea2);
 
-                        return refreshNodeListCount === 2;
-                    })()
-                }, {
-                    name:  'access when no changes',
-                    value: (function () {
-                        elements[0];
+            elements[0];
 
-                        return refreshNodeListCount === 2;
-                    })()
-                });
+            assertions.push([refreshNodeListCount, 2, 'access after element was removed']);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 2, 'access when no changes']);
 
             root.appendChild(textarea3);
 
-            assertions.push({
-                name:  'access after shadowUI element was added',
-                value: (function () {
-                    elements[0];
+            elements[0];
 
-                    return refreshNodeListCount === 2;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 2, 'access after shadowUI element was added']);
 
             setProperty(testDiv, 'innerHTML', '<div></div>');
-            assertions.push(
-                {
-                    name:  "access after set element's innerHTML",
-                    value: (function () {
-                        elements[0];
 
-                        return refreshNodeListCount === 3;
-                    })()
-                },
-                {
-                    name:  'for loop',
-                    value: (function () {
-                        for (var i = 0; i < elements.length; i++)
-                            elements[i];
+            elements[0];
 
-                        return refreshNodeListCount === 3;
-                    })()
-                });
+            assertions.push([refreshNodeListCount, 3, "access after set element's innerHTML"]);
 
-            setProperty(root, 'innerHTML', '<div></div>');
-            assertions.push({
-                name:  "access after set shadowUI element's innerHTML",
-                value: (function () {
-                    elements[0];
+            setProperty(testDiv.firstChild, 'outerHTML', '<span><b></b></span>');
 
-                    return refreshNodeListCount === 3;
-                })()
-            });
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 4, "access after set element's outerHTML"]);
+
+            setProperty(testDiv.firstChild, 'innerText', '123');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 5, "access after set element's innerText"]);
+
+            for (var i = 0; i < elements.length; i++)
+                elements[i];
+
+            assertions.push([refreshNodeListCount, 5, 'for loop']);
 
             var newDiv = document.createElement('div');
 
             newDiv.id = 'newDiv';
             testDiv.replaceChild(newDiv, testDiv.firstChild);
-            assertions.push({
-                name:  'access after replaceChild',
-                value: (function () {
-                    elements[0];
 
-                    return refreshNodeListCount === 4;
-                })()
-            });
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after replaceChild']);
+
+            testDiv.appendChild(document.createTextNode('text'));
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after text node was added']);
+
+            var fragment = document.createDocumentFragment();
+
+            testDiv.appendChild(fragment);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after empty fragment was added']);
+
+            fragment.appendChild(document.createElement('div'));
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after div was added to fragment']);
+
+            testDiv.appendChild(fragment);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 7, 'access after fragment with div was added']);
+
+            var div = document.createElement('div');
+
+            div.appendChild(document.createElement('span'));
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 7, 'access after span was added to div which is not located in document']);
 
             checkAssertions(assertions);
+
+            WrapperState.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
         });
 
         test('specified tagName', function () {
-            var textarea1  = document.createElement('textarea');
-            var input1     = document.createElement('input');
-            var assertions = [];
+            var storedRefreshNodeListFn = WrapperState.prototype.refreshNodeListIfNecessary;
+            var testDiv                 = document.querySelector(TEST_DIV_SELECTOR);
+            var textarea1               = document.createElement('textarea');
+            var input1                  = document.createElement('input');
+            var assertions              = [];
 
             textarea1.id        = 'textarea1';
             input1.id           = 'input1';
@@ -260,63 +238,111 @@ module('getElementsByTagName', function () {
             var elements             = document.body.getElementsByTagName('textarea');
             var refreshNodeListCount = 0;
 
-            var descriptor              = Object.getOwnPropertyDescriptor(elements, '_refreshNodeListInternal');
-            var storedDescriptorValueFn = descriptor.value;
+            WrapperState.prototype.refreshNodeListIfNecessary = function () {
+                var storedFilteredNodeList = this.filteredNodeList;
 
-            Object.defineProperty(elements, '_refreshNodeListInternal',
-                {
-                    value: function () {
-                        refreshNodeListCount++;
+                storedRefreshNodeListFn.apply(this, arguments);
 
-                        return storedDescriptorValueFn.call(elements);
-                    }
-                });
+                if (storedFilteredNodeList !== this.filteredNodeList)
+                    refreshNodeListCount++;
+            };
 
-            assertions.push({
-                name:  'first access after domContentLoading',
-                value: (function () {
-                    elements[0];
-                    elements[1];
-                    elements[2];
+            elements[0];
+            elements[1];
+            elements[2];
 
-                    return refreshNodeListCount === 0;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 0, 'first access after domContentLoading']);
 
             document.body.appendChild(input1);
 
-            assertions.push({
-                name:  'non-tracking tagName',
-                value: (function () {
-                    elements[0];
+            elements[0];
 
-                    return refreshNodeListCount === 0;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 0, 'non-tracking tagName']);
 
             document.body.appendChild(textarea1);
 
-            assertions.push({
-                name:  'tracking tagName',
-                value: (function () {
-                    elements[0];
+            elements[0];
 
-                    return refreshNodeListCount === 1;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 1, 'tracking tagName']);
 
             document.body.replaceChild(input1, textarea1);
 
-            assertions.push({
-                name:  'replaceChild for tracking and non-tracking nodes',
-                value: (function () {
-                    elements[0];
+            elements[0];
 
-                    return refreshNodeListCount === 2;
-                })()
-            });
+            assertions.push([refreshNodeListCount, 2, 'replaceChild for tracking and non-tracking nodes']);
+
+            setProperty(testDiv, 'innerHTML', '<div><textarea></textarea></div>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 3, "access after set element's innerHTML"]);
+
+            setProperty(testDiv.firstChild, 'innerText', 'text');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 4, "access after set element's innerText"]);
+
+            setProperty(testDiv.firstChild, 'outerHTML', '<div></div>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 4, "access after set element's outerHTML without textarea"]);
+
+            setProperty(testDiv.firstChild, 'outerHTML', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 5, "access after set element's outerHTML with textarea"]);
+
+            var nativeDiv      = nativeMethods.createElement.call(document, 'div');
+            var nativeTextArea = nativeMethods.createElement.call(document, 'textarea');
+
+            nativeMethods.appendChild.call(nativeDiv, nativeTextArea);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 5, 'access when no changes']);
+
+            testDiv.appendChild(nativeDiv);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 6, 'access after element was added with another element']);
+
+            testDiv.removeChild(nativeDiv);
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 7, 'access after element was removed with another element']);
+
+            testDiv.insertAdjacentHTML('beforebegin', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 8, 'access after element was added before begin text div']);
+
+            testDiv.insertAdjacentHTML('afterbegin', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 9, 'access after element was added after begin text div']);
+
+            testDiv.insertAdjacentHTML('beforeend', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 10, 'access after element was added before end text div']);
+
+            testDiv.insertAdjacentHTML('afterend', '<textarea></textarea>');
+
+            elements[0];
+
+            assertions.push([refreshNodeListCount, 11, 'access after element was added after end text div']);
 
             checkAssertions(assertions);
+
+            WrapperState.prototype.refreshNodeListIfNecessary = storedRefreshNodeListFn;
         });
     });
 });

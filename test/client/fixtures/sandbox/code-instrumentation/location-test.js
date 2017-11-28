@@ -8,6 +8,7 @@ var destLocation            = hammerhead.get('./utils/destination-location');
 var Promise       = hammerhead.Promise;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
+var domUtils      = hammerhead.utils.dom;
 
 
 QUnit.testStart(function () {
@@ -226,4 +227,22 @@ test('change hash for the iframe location', function () {
 
     locationWrapper.href = 'http://domain.com/index#hash';
     strictEqual(windowMock.location.href, urlUtils.getProxyUrl('http://domain.com/index#hash', { resourceType: 'i' }));
+});
+
+test('set cross domain location in same domain iframe', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../../data/cross-domain/set-cross-domain-location.html') })
+        .then(function (iframe) {
+            ok(!domUtils.isCrossDomainWindows(window, iframe.contentWindow), 'same domain');
+
+            return new Promise(function (resolve) {
+                iframe.addEventListener('load', resolve.bind(null, iframe));
+                callMethod(iframe.contentWindow, 'postMessage', [
+                    getCrossDomainPageUrl('../../../data/cross-domain/set-cross-domain-location.html'),
+                    '*'
+                ]);
+            });
+        })
+        .then(function (iframe) {
+            ok(domUtils.isCrossDomainWindows(window, iframe.contentWindow), 'cross domain');
+        });
 });

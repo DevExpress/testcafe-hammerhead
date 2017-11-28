@@ -12,26 +12,31 @@ import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { stopPropagation } from '../../utils/event';
 import { isPageHtml, processHtml } from '../../utils/html';
-import getNativeQuerySelectorAll from '../../utils/get-native-query-selector-all';
+import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
 import ShadowUI from '../shadow-ui';
+import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 
-const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
+const KEYWORD_TARGETS                   = ['_blank', '_self', '_parent', '_top'];
+const ATTRS_WITH_SPECIAL_PROXYING_LOGIC = ['sandbox', 'autocomplete', 'target', 'style'];
 
 const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+const arraySlice = Array.prototype.slice;
+
 export default class ElementSandbox extends SandboxBase {
-    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox, liveNodeListFactory) {
+    constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {
         super();
 
-        this.nodeSandbox         = nodeSandbox;
-        this.shadowUI            = shadowUI;
-        this.uploadSandbox       = uploadSandbox;
-        this.iframeSandbox       = iframeSandbox;
-        this.eventSandbox        = eventSandbox;
-        this.liveNodeListFactory = liveNodeListFactory;
+        this.nodeSandbox   = nodeSandbox;
+        this.shadowUI      = shadowUI;
+        this.uploadSandbox = uploadSandbox;
+        this.iframeSandbox = iframeSandbox;
+        this.eventSandbox  = eventSandbox;
 
         this.overridedMethods = null;
 
@@ -86,9 +91,9 @@ export default class ElementSandbox extends SandboxBase {
         const getAttrMeth = isNs ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
 
         // OPTIMIZATION: The hasAttribute method is very slow.
-        if (domProcessor.isUrlAttr(el, loweredAttr, ns) || loweredAttr === 'sandbox' ||
+        if (domProcessor.isUrlAttr(el, loweredAttr, ns) ||
             domProcessor.EVENTS.indexOf(loweredAttr) !== -1 ||
-            loweredAttr === 'autocomplete' || loweredAttr === 'target') {
+            ATTRS_WITH_SPECIAL_PROXYING_LOGIC.indexOf(loweredAttr) !== -1) {
             const storedAttrName  = domProcessor.getStoredAttrName(attr);
             const storedAttrValue = getAttrMeth.apply(el, isNs ? [ns, storedAttrName] : [storedAttrName]);
 
@@ -184,14 +189,15 @@ export default class ElementSandbox extends SandboxBase {
                         domUtils.isElementInDocument(el, this.document))
                         urlResolver.updateBase(value, this.document);
 
-                    args[valueIndex] = isIframe && isCrossDomainUrl ? urlUtils.getCrossDomainIframeProxyUrl(value) :
-                                       urlUtils.getProxyUrl(value, { resourceType, charset: elCharset });
+                    args[valueIndex] = isIframe && isCrossDomainUrl
+                        ? urlUtils.getCrossDomainIframeProxyUrl(value)
+                        : urlUtils.getProxyUrl(value, { resourceType, charset: elCharset });
                 }
             }
             else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value)) {
-                args[valueIndex] = el[this.nodeSandbox.win.FORCE_PROXY_SRC_FOR_IMAGE] ?
-                                   urlUtils.getProxyUrl(value) :
-                                   urlUtils.resolveUrlAsDest(value);
+                args[valueIndex] = el[this.nodeSandbox.win.FORCE_PROXY_SRC_FOR_IMAGE]
+                    ? urlUtils.getProxyUrl(value)
+                    : urlUtils.resolveUrlAsDest(value);
             }
         }
         else if (loweredAttr === 'autocomplete') {
@@ -238,6 +244,12 @@ export default class ElementSandbox extends SandboxBase {
 
             if (!HASH_RE.test(value))
                 args[valueIndex] = urlUtils.getProxyUrl(value);
+        }
+        else if (loweredAttr === 'style') {
+            const storedStyleAttr = domProcessor.getStoredAttrName(attr);
+
+            setAttrMeth.apply(el, isNs ? [ns, storedStyleAttr, value] : [storedStyleAttr, value]);
+            args[valueIndex] = styleProcessor.process(value, urlUtils.getProxyUrl);
         }
 
         const result = setAttrMeth.apply(el, args);
@@ -292,6 +304,36 @@ export default class ElementSandbox extends SandboxBase {
         return result;
     }
 
+    _addNodeCore ({ parentNode, args, nativeFn, checkBody }) {
+        const newNode = args[0];
+
+        this._prepareNodeForInsertion(newNode, parentNode);
+
+        let result     = null;
+        let childNodes = null;
+
+        if (domUtils.isDocumentFragmentNode(newNode))
+            childNodes = arraySlice.call(newNode.childNodes);
+
+        // NOTE: Before the page's <body> is processed and added to DOM,
+        // some javascript frameworks create their own body element, perform
+        // certain manipulations and then remove it.
+        // Therefore, we need to check if the body element is present in DOM
+        if (checkBody && domUtils.isBodyElementWithChildren(parentNode) && domUtils.isElementInDocument(parentNode))
+            result = this.shadowUI.insertBeforeRoot(newNode);
+        else
+            result = nativeFn.apply(parentNode, args);
+
+        if (childNodes) {
+            for (const child of childNodes)
+                this._onElementAdded(child);
+        }
+        else
+            this._onElementAdded(newNode);
+
+        return result;
+    }
+
     _prepareNodeForInsertion (node, parentNode) {
         if (domUtils.isTextNode(node))
             ElementSandbox._processTextNodeContent(node, parentNode);
@@ -305,7 +347,9 @@ export default class ElementSandbox extends SandboxBase {
 
         this.overridedMethods = {
             insertRow () {
-                const nativeMeth = domUtils.isTableElement(this) ? nativeMethods.insertTableRow : nativeMethods.insertTBodyRow;
+                const nativeMeth = domUtils.isTableElement(this)
+                    ? nativeMethods.insertTableRow
+                    : nativeMethods.insertTBodyRow;
                 const row        = nativeMeth.apply(this, arguments);
 
                 sandbox.nodeSandbox.processNodes(row);
@@ -321,14 +365,20 @@ export default class ElementSandbox extends SandboxBase {
                 return cell;
             },
 
-            insertAdjacentHTML () {
-                const html = arguments[1];
+            insertAdjacentHTML (...args) {
+                const position = args[0];
+                const html     = args[1];
 
-                if (arguments.length > 1 && html !== null)
-                    arguments[1] = processHtml('' + html, this.parentNode && this.parentNode.tagName);
+                if (args.length > 1 && html !== null)
+                    args[1] = processHtml('' + html, this.parentNode && this.parentNode.tagName);
 
-                nativeMethods.insertAdjacentHTML.apply(this, arguments);
+                nativeMethods.insertAdjacentHTML.apply(this, args);
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);
+
+                if (position === 'afterbegin' || position === 'beforeend')
+                    DOMMutationTracker.onChildrenChanged(this);
+                else if (this.parentNode)
+                    DOMMutationTracker.onChildrenChanged(this.parentNode);
             },
 
             formSubmit () {
@@ -338,47 +388,24 @@ export default class ElementSandbox extends SandboxBase {
                 return nativeMethods.formSubmit.apply(this, arguments);
             },
 
-            insertBefore () {
-                const newNode = arguments[0];
-                const refNode = arguments[1];
+            insertBefore (...args) {
+                return sandbox._addNodeCore({
+                    parentNode: this,
+                    nativeFn:   nativeMethods.insertBefore,
+                    checkBody:  !args[1],
 
-                sandbox._prepareNodeForInsertion(newNode, this);
-
-                let result = null;
-
-                // NOTE: Before the page's <body> is processed and added to DOM,
-                // some javascript frameworks create their own body element, perform
-                // certain manipulations and then remove it.
-                // Therefore, we need to check if the body element is present in DOM
-                if (domUtils.isBodyElementWithChildren(this) && !refNode && domUtils.isElementInDocument(this))
-                    result = sandbox.shadowUI.insertBeforeRoot(newNode);
-                else
-                    result = nativeMethods.insertBefore.apply(this, arguments);
-
-                sandbox._onElementAdded(newNode);
-
-                return result;
+                    args
+                });
             },
 
-            appendChild () {
-                const child = arguments[0];
+            appendChild (...args) {
+                return sandbox._addNodeCore({
+                    parentNode: this,
+                    nativeFn:   nativeMethods.appendChild,
+                    checkBody:  true,
 
-                sandbox._prepareNodeForInsertion(child, this);
-
-                let result = null;
-
-                // NOTE: Before the page's <body> is processed and added to DOM,
-                // some javascript frameworks create their own body element, perform
-                // certain manipulations and then remove it.
-                // Therefore, we need to check if the body element is present in DOM
-                if (domUtils.isBodyElementWithChildren(this) && domUtils.isElementInDocument(this))
-                    result = sandbox.shadowUI.insertBeforeRoot(child);
-                else
-                    result = nativeMethods.appendChild.apply(this, arguments);
-
-                sandbox._onElementAdded(child);
-
-                return result;
+                    args
+                });
             },
 
             removeChild () {
@@ -406,8 +433,8 @@ export default class ElementSandbox extends SandboxBase {
                 const result = nativeMethods.replaceChild.apply(this, arguments);
 
                 sandbox._onAddFileInputInfo(newChild);
-                sandbox.liveNodeListFactory.onElementAddedOrRemoved(newChild);
-                sandbox.liveNodeListFactory.onElementAddedOrRemoved(oldChild);
+                DOMMutationTracker.onElementChanged(newChild);
+                DOMMutationTracker.onElementChanged(oldChild);
 
                 return result;
             },
@@ -464,10 +491,7 @@ export default class ElementSandbox extends SandboxBase {
                 if (typeof arguments[0] === 'string')
                     arguments[0] = NodeSandbox.processSelector(arguments[0]);
 
-                const nativeQuerySelector = domUtils.isDocumentFragmentNode(this) ? nativeMethods.documentFragmentQuerySelector
-                    : nativeMethods.elementQuerySelector;
-
-                return nativeQuerySelector.apply(this, arguments);
+                return getNativeQuerySelector(this).apply(this, arguments);
             },
 
             querySelectorAll () {
@@ -522,6 +546,10 @@ export default class ElementSandbox extends SandboxBase {
         return el.parentNode && domUtils.isShadowUIElement(el.parentNode) || ShadowUI.containsShadowUIClassPostfix(el);
     }
 
+    _isFirstBaseTagOnPage (el) {
+        return nativeMethods.querySelector.call(this.document, 'base') === el;
+    }
+
     _onAddFileInputInfo (el) {
         if (!domUtils.isDomElement(el))
             return;
@@ -549,13 +577,23 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _onElementAdded (el) {
-        if ((domUtils.isElementNode(el) || domUtils.isDocumentNode(el)) && domUtils.isElementInDocument(el)) {
+        if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
+            ShadowUI.markElementAndChildrenAsShadow(el);
+
+        if ((domUtils.isDomElement(el) || domUtils.isDocument(el)) && domUtils.isElementInDocument(el)) {
             const iframes = domUtils.getIframes(el);
 
             for (const iframe of iframes) {
                 this.onIframeAddedToDOM(iframe);
                 windowsStorage.add(iframe.contentWindow);
             }
+
+            const scripts = domUtils.getScripts(el);
+
+            for (const script of scripts)
+                this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el: script });
+
+            DOMMutationTracker.onElementChanged(el);
         }
 
         // NOTE: recalculate `formaction` attribute value if it placed in the dom
@@ -568,30 +606,27 @@ export default class ElementSandbox extends SandboxBase {
 
         this._onAddFileInputInfo(el);
 
-        if (domUtils.isBaseElement(el)) {
+        if (domUtils.isBaseElement(el) && this._isFirstBaseTagOnPage(el)) {
             const storedHrefAttrName  = domProcessor.getStoredAttrName('href');
             const storedHrefAttrValue = el.getAttribute(storedHrefAttrName);
 
-            urlResolver.updateBase(storedHrefAttrValue, this.document);
+            if (storedHrefAttrValue !== null)
+                urlResolver.updateBase(storedHrefAttrValue, this.document);
         }
-
-        if (domUtils.isScriptElement(el))
-            this.emit(this.SCRIPT_ELEMENT_ADDED_EVENT, { el });
-
-        if (ElementSandbox._hasShadowUIParentOrContainsShadowUIClassPostfix(el))
-            ShadowUI.markElementAndChildrenAsShadow(el);
-
-        this.liveNodeListFactory.onElementAddedOrRemoved(el);
     }
 
     _onElementRemoved (el) {
         if (domUtils.isBodyElement(el))
             this.shadowUI.onBodyElementMutation();
 
-        else if (domUtils.isBaseElement(el))
-            urlResolver.updateBase(getDestLocation(), this.document);
+        else if (domUtils.isBaseElement(el)) {
+            const firstBaseEl    = nativeMethods.querySelector.call(this.document, 'base');
+            const storedHrefAttr = firstBaseEl && firstBaseEl.getAttribute(domProcessor.getStoredAttrName('href'));
 
-        this.liveNodeListFactory.onElementAddedOrRemoved(el);
+            urlResolver.updateBase(storedHrefAttr || getDestLocation(), this.document);
+        }
+
+        DOMMutationTracker.onElementChanged(el);
     }
 
     addFileInputInfo (el) {
@@ -725,9 +760,17 @@ export default class ElementSandbox extends SandboxBase {
             case 'frame':
                 this.iframeSandbox.processIframe(el);
                 break;
-            case 'base':
-                urlResolver.updateBase(nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href')), this.document);
+            case 'base': {
+                if (!this._isFirstBaseTagOnPage(el))
+                    break;
+
+                const storedUrlAttr = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('href'));
+
+                if (storedUrlAttr !== null)
+                    urlResolver.updateBase(storedUrlAttr, this.document);
+
                 break;
+            }
         }
 
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.

@@ -6,9 +6,10 @@ import {
     changeDestUrlPart,
     parseProxyUrl,
     parseResourceType,
-    isChangedOnlyHash
+    isChangedOnlyHash,
+    getCrossDomainProxyPort
 } from '../../../utils/url';
-import { getDomain, getResourceTypeString } from '../../../../utils/url';
+import { getDomain, getResourceTypeString, sameOriginCheck } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 
 function getLocationUrl (window) {
@@ -27,14 +28,16 @@ export default class LocationWrapper extends EventEmitter {
         this.CHANGED_EVENT = 'hammerhead|location-wrapper|changed';
 
         const onChanged            = value => this.emit(this.CHANGED_EVENT, value);
-        let locationUrl            = getLocationUrl(window);
-        const parsedLocation       = locationUrl && parseProxyUrl(locationUrl);
+        const parsedLocation       = parseProxyUrl(getLocationUrl(window));
         const locationResourceType = parsedLocation ? parsedLocation.resourceType : '';
         const parsedResourceType   = parseResourceType(locationResourceType);
 
         parsedResourceType.isIframe |= window !== window.top;
 
-        const resourceType   = getResourceTypeString({ isIframe: parsedResourceType.isIframe, isForm: parsedResourceType.isForm });
+        const resourceType   = getResourceTypeString({
+            isIframe: parsedResourceType.isIframe,
+            isForm:   parsedResourceType.isForm
+        });
         const getHref        = () => {
             if (window !== window.top && window.location.href === 'about:blank')
                 return 'about:blank';
@@ -42,11 +45,27 @@ export default class LocationWrapper extends EventEmitter {
             return getDestLocation();
         };
         const getProxiedHref = href => {
-            locationUrl = getLocationUrl(window);
+            const locationUrl = getLocationUrl(window);
 
-            const changedOnlyHash = locationUrl && isChangedOnlyHash(locationUrl, href);
+            let proxyPort = null;
 
-            return getProxyUrl(href, { resourceType: changedOnlyHash ? locationResourceType : resourceType });
+            if (window !== window.parent) {
+                const parentLocationUrl       = getLocationUrl(window.parent);
+                const parsedParentLocationUrl = parseProxyUrl(parentLocationUrl);
+
+                if (parsedParentLocationUrl && parsedParentLocationUrl.proxy) {
+                    const parentProxyPort = parsedParentLocationUrl.proxy.port;
+
+                    proxyPort = sameOriginCheck(parentLocationUrl, href)
+                        ? parentProxyPort
+                        : getCrossDomainProxyPort(parentProxyPort);
+                }
+            }
+
+            const changedOnlyHash     = locationUrl && isChangedOnlyHash(locationUrl, href);
+            const currentResourceType = changedOnlyHash ? locationResourceType : resourceType;
+
+            return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
         };
         const urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 

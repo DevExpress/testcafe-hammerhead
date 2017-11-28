@@ -1,11 +1,16 @@
 {
-   "compact": false,
-   "presets": [
-     "es2015-hammerhead",
-     "babel-preset-stage-2"
-   ],
-   "plugins": [
-     "transform-runtime",
-     "add-module-exports"
-   ]
- }
+  "compact": false,
+  "presets": [
+    ["env", {
+      "targets": { "node": "4" },
+      "loose": true,
+      "exclude": [
+        "transform-regenerator"
+      ]
+    }]
+  ],
+  "plugins": [
+    "add-module-exports",
+    "transform-async-to-generator"
+  ]
+}

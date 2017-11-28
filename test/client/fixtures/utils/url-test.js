@@ -2,10 +2,13 @@ var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
 var destLocation   = hammerhead.get('./utils/destination-location');
+var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
 var browserUtils  = hammerhead.utils.browser;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
+var nodeSandbox   = hammerhead.sandbox.node;
+var Promise       = hammerhead.Promise;
 
 var PROXY_PORT     = 1337;
 var PROXY_HOSTNAME = '127.0.0.1';
@@ -556,4 +559,124 @@ test('resolving a url in a tag that is written along with a "base" tag (GH-644)'
         'http://' + location.host + '/sessionId!s/https://example.com/subpath/scripts/scr.js');
 
     document.body.removeChild(iframe);
+});
+
+test('only first base tag should be affected', function () {
+    var storedProcessElement = nodeSandbox._processElement;
+    var nativeIframe         = nativeMethods.createElement.call(document, 'iframe');
+    var proxiedIframe        = null;
+
+    nodeSandbox._processElement = function (el) {
+        if (el !== nativeIframe)
+            storedProcessElement.call(nodeSandbox, el);
+    };
+
+    function checkTestCase (name, fn) {
+        fn(nativeIframe.contentDocument);
+        fn(proxiedIframe.contentDocument);
+
+        var nativeAnchor  = nativeIframe.contentDocument.querySelector('a');
+        var proxiedAnchor = proxiedIframe.contentDocument.querySelector('a');
+
+        nativeAnchor.setAttribute('href', 'path');
+        proxiedAnchor.setAttribute('href', 'path');
+
+        strictEqual(urlUtils.parseProxyUrl(proxiedAnchor.href).destUrl, nativeAnchor.href, name);
+    }
+
+    return createTestIframe()
+        .then(function (iframe) {
+            proxiedIframe = iframe;
+
+            return new Promise(function (resolve) {
+                nativeMethods.documentAddEventListener.call(nativeIframe, 'load', resolve);
+                nativeMethods.appendChild.call(document.body, nativeIframe);
+            });
+        })
+        .then(function () {
+            checkTestCase('append first base', function (doc) {
+                var anchor = doc.createElement('a');
+                var base   = doc.createElement('base');
+
+                anchor.textContent = 'link';
+
+                base.setAttribute('href', 'https://example.com/123/');
+                doc.head.appendChild(base);
+                doc.body.appendChild(anchor);
+            });
+
+            checkTestCase('create base', function (doc) {
+                doc.createElement('base');
+            });
+
+            checkTestCase('create base and set attribute', function (doc) {
+                doc.createElement('base').setAttribute('href', 'http://example.com/base/');
+            });
+
+            checkTestCase('append second base', function (doc) {
+                var base = doc.createElement('base');
+
+                base.setAttribute('href', 'https://example.com/some/');
+                doc.head.appendChild(base);
+            });
+
+            checkTestCase('change first base', function (doc) {
+                var base = doc.querySelectorAll('base')[0];
+
+                base.setAttribute('href', 'https://example.com/something/');
+            });
+
+            checkTestCase('change second base', function (doc) {
+                var base = doc.querySelectorAll('base')[1];
+
+                base.setAttribute('href', 'https://example.com/something/');
+            });
+
+            checkTestCase('remove second base', function (doc) {
+                var base = doc.querySelectorAll('base')[1];
+
+                doc.head.removeChild(base);
+            });
+
+            checkTestCase('append second base', function (doc) {
+                var base = doc.createElement('base');
+
+                base.setAttribute('href', 'https://example.com/some/');
+                doc.head.appendChild(base);
+            });
+
+            checkTestCase('remove first base', function (doc) {
+                var base = doc.querySelectorAll('base')[0];
+
+                doc.head.removeChild(base);
+            });
+
+            checkTestCase('append base to fragment', function (doc) {
+                var fragment = doc.createDocumentFragment();
+                var base     = doc.createElement('base');
+
+                base.setAttribute('href', 'https://example.com/fragment/');
+
+                fragment.appendChild(base);
+            });
+
+            checkTestCase('innerHtml', function (doc) {
+                var baseHtmlStr = '<base href="https://example.com/inner-html/">';
+
+                if (INTERNAL_PROPS.processedContext in doc.head)
+                    setProperty(doc.head, 'innerHTML', baseHtmlStr);
+                else
+                    doc.head.innerHTML = baseHtmlStr;
+            });
+
+            checkTestCase('insert first base without href', function (doc) {
+                var base = doc.createElement('base');
+
+                document.head.insertBefore(base, document.head.firstChild);
+            });
+        })
+        .then(function () {
+            nativeMethods.removeChild.call(document.body, nativeIframe);
+            nodeSandbox._processElement = storedProcessElement;
+        });
 });
