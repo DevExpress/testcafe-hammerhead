@@ -4,12 +4,12 @@ var LocationWrapper         = hammerhead.get('./sandbox/code-instrumentation/loc
 var urlUtils                = hammerhead.get('./utils/url');
 var sharedUrlUtils          = hammerhead.get('../utils/url');
 var destLocation            = hammerhead.get('./utils/destination-location');
+var urlResolver             = hammerhead.get('./utils/url-resolver');
 
 var Promise       = hammerhead.Promise;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
-
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -98,9 +98,9 @@ test('iframe', function () {
 
     var wrapper = LocationInstrumentation.getLocationWrapper(windowMock);
 
-    wrapper.port     = 1333;
+    wrapper.port = 1333;
     strictEqual(windowMock.location, getProxy('http://domain.com:1333/'));
-    wrapper.host     = 'new.domain.com:1222';
+    wrapper.host = 'new.domain.com:1222';
     strictEqual(windowMock.location, getProxy('http://new.domain.com:1222/'));
     wrapper.hostname = 'domain.com';
     strictEqual(windowMock.location, getProxy('http://domain.com:1222/'));
@@ -108,12 +108,12 @@ test('iframe', function () {
     strictEqual(windowMock.location, getProxy('http://domain.com:1222/index.html'));
     wrapper.protocol = 'https:';
     strictEqual(windowMock.location, getProxy('https://domain.com:1222/index.html'));
-    wrapper.search   = '?param=value';
+    wrapper.search = '?param=value';
     strictEqual(windowMock.location, getProxy('https://domain.com:1222/index.html?param=value'));
 
     windowMock = getWindowMock();
     new CodeInstrumentation({}, {}).attach(windowMock);
-    wrapper    = LocationInstrumentation.getLocationWrapper(windowMock);
+    wrapper = LocationInstrumentation.getLocationWrapper(windowMock);
 
     wrapper.assign('http://new.domain.com:1444');
     strictEqual(windowMock.location.toString(), getProxy('http://new.domain.com:1444'));
@@ -140,11 +140,14 @@ test('create location wrapper before iframe loading', function () {
 });
 
 test('special pages (GH-339)', function () {
+    var storedForcedLocation = destLocation.getLocation();
+
     sharedUrlUtils.SPECIAL_PAGES.forEach(function (specialPageUrl) {
         destLocation.forceLocation(urlUtils.getProxyUrl(specialPageUrl));
 
         var windowMock = {
-            location: {}
+            location: {},
+            document: document
         };
 
         var locationWrapper = new LocationWrapper(windowMock);
@@ -154,7 +157,7 @@ test('special pages (GH-339)', function () {
         strictEqual(locationWrapper.toString(), specialPageUrl);
     });
 
-    destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+    destLocation.forceLocation(storedForcedLocation);
 });
 
 module('regression');
@@ -201,7 +204,7 @@ test('change hash for the iframe location', function () {
         },
 
         top:      { document: document },
-        document: {}
+        document: document
     };
 
     var locationWrapper = new LocationWrapper(windowMock);
@@ -245,4 +248,65 @@ test('set cross domain location in same domain iframe', function () {
         .then(function (iframe) {
             ok(domUtils.isCrossDomainWindows(window, iframe.contentWindow), 'cross domain');
         });
+});
+
+test('emulate a native browser behaviour related with trailing slashes for location\'s href property (GH-1362)', function () {
+    var storedForcedLocation         = destLocation.getLocation();
+    var storedGetResolverElementMeth = urlResolver.getResolverElement;
+
+    var testCases = [
+        {
+            url:              'http://localhost:3000',
+            expectedLocation: 'http://localhost:3000/'
+        },
+        {
+            url:              'http://localhost:3000/',
+            expectedLocation: 'http://localhost:3000'
+        }
+    ];
+
+    var createWindowMock = function (data) {
+        return {
+            location: {
+                toString: function () {
+                    return urlUtils.getProxyUrl(data.url);
+                }
+            },
+
+            top:      {},
+            document: {}
+        };
+    };
+
+    var overrideGetResolverElement = function (resolvedHref) {
+        urlResolver.getResolverElement = function () {
+            var obj = {};
+
+            Object.defineProperty(obj, 'href', {
+                get: function () {
+                    return resolvedHref;
+                },
+                set: function () {
+                }
+            });
+
+            return obj;
+        };
+    };
+
+    for (var i = 0; i < testCases.length; i++) {
+        var testCase   = testCases[i];
+        var windowMock = createWindowMock(testCase);
+
+        destLocation.forceLocation(windowMock.location.toString());
+
+        var locationWrapper = new LocationWrapper(windowMock);
+
+        overrideGetResolverElement(testCase.expectedLocation);
+
+        strictEqual(locationWrapper.href, testCase.expectedLocation);
+    }
+
+    destLocation.forceLocation(storedForcedLocation);
+    urlResolver.getResolverElement = storedGetResolverElementMeth;
 });

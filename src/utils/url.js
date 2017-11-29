@@ -12,6 +12,7 @@ const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
 const PORT_RE            = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 const PATH_AFTER_HOST_RE = /^\/([^\/]+?)\/([\S\s]+)$/;
+const TRAILING_SLASH_RE  = /\/$/;
 
 export const SUPPORTED_PROTOCOL_RE               = /^(?:https?|file):/i;
 export const HASH_RE                             = /^#/;
@@ -336,10 +337,13 @@ export function prepareUrl (url) {
 }
 
 export function ensureTrailingSlash (srcUrl, processedUrl) {
-    const hasTrailingSlash = /\/$/.test(srcUrl);
+    const srcUrlEndsWithTrailingSlash       = TRAILING_SLASH_RE.test(srcUrl);
+    const processedUrlEndsWithTrailingSlash = TRAILING_SLASH_RE.test(processedUrl);
 
-    if (!hasTrailingSlash)
-        processedUrl = processedUrl.replace(/\/$/, '');
+    if (srcUrlEndsWithTrailingSlash && !processedUrlEndsWithTrailingSlash)
+        processedUrl += '/';
+    else if (!srcUrlEndsWithTrailingSlash && processedUrlEndsWithTrailingSlash)
+        processedUrl = processedUrl.replace(TRAILING_SLASH_RE, '');
 
     return processedUrl;
 }

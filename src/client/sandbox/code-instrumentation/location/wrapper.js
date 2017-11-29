@@ -9,8 +9,9 @@ import {
     isChangedOnlyHash,
     getCrossDomainProxyPort
 } from '../../../utils/url';
-import { getDomain, getResourceTypeString, sameOriginCheck } from '../../../../utils/url';
+import { getDomain, getResourceTypeString, sameOriginCheck, ensureTrailingSlash } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
+import urlResolver from '../../../utils/url-resolver';
 
 function getLocationUrl (window) {
     try {
@@ -42,7 +43,12 @@ export default class LocationWrapper extends EventEmitter {
             if (window !== window.top && window.location.href === 'about:blank')
                 return 'about:blank';
 
-            return getDestLocation();
+            const locationUrl    = getDestLocation();
+            const resolveElement = urlResolver.getResolverElement(window.document);
+
+            resolveElement.href = locationUrl;
+
+            return ensureTrailingSlash(resolveElement.href, locationUrl);
         };
         const getProxiedHref = href => {
             const locationUrl = getLocationUrl(window);
