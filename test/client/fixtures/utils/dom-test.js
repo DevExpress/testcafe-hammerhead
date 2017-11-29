@@ -948,7 +948,7 @@ if (window.HTMLElement.prototype.createShadowRoot) {
 
         var parents = domUtils.getParents(input);
 
-        deepEqual(parents, [div, root, host, document.body, document.documentElement]);
+        deepEqual(parents, [div, host, document.body, document.documentElement]);
         document.body.removeChild(host);
     });
 }

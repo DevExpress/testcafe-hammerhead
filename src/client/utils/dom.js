@@ -741,7 +741,7 @@ export function getParents (el, selector) {
     const parents = [];
 
     while (parent) {
-        if (!selector && (isElementNode(parent) || isShadowRoot(parent)) ||
+        if (!selector && isElementNode(parent) ||
             selector && matches(parent, selector))
             parents.push(parent);
 
