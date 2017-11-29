@@ -5,7 +5,6 @@ import nativeMethods from '../sandbox/native-methods';
 import settings from '../settings';
 import { sameOriginCheck } from '../utils/destination-location';
 import { getProxyUrl } from '../utils/url';
-import { isIE9 } from '../utils/browser';
 import * as domUtils from '../utils/dom';
 import fastApply from '../utils/fast-apply';
 import { hasUnclosedElementFlag } from '../sandbox/node/document/writer';
@@ -62,18 +61,6 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     setStyleContent (style, content) {
         style.innerHTML = content;
-    }
-
-    getElementForSelectorCheck (el) {
-        if (isIE9 && domUtils.isScriptElement(el)) {
-            const clone = nativeMethods.cloneNode.call(el, false);
-
-            clone.src = clone.innerHTML = '';
-
-            return clone;
-        }
-
-        return el;
     }
 
     needToProcessContent (el) {

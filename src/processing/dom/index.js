@@ -201,17 +201,10 @@ export default class DomProcessor {
         if (el[ELEMENT_PROCESSED])
             return;
 
-        // NOTE: The 'script' element is not executed at the moment it is created. The execution occurs after the
-        // element is appended to a document. But in IE9, if you read a script's 'document', 'children' or 'all'
-        // property, the script is executed immediately (even if this happens before the script is appended to a
-        // document). The JQuery element's 'is' function reads the 'document' property and the script is executed
-        // too early. Therefore, we should test a clone of the element instead of the element itself. (B237231)
-        const elementForSelectorCheck = this.adapter.getElementForSelectorCheck(el);
-
         for (let i = 0; i < this.elementProcessorPatterns.length; i++) {
             const pattern = this.elementProcessorPatterns[i];
 
-            if (pattern.selector(elementForSelectorCheck) && !this._isShadowElement(el)) {
+            if (pattern.selector(el) && !this._isShadowElement(el)) {
                 for (let j = 0; j < pattern.elementProcessors.length; j++)
                     pattern.elementProcessors[j].call(this, el, urlReplacer, pattern);
                 el[ELEMENT_PROCESSED] = true;

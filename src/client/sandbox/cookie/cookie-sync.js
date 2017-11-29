@@ -2,7 +2,6 @@ import nativeMethods from '../../sandbox/native-methods';
 import XhrSandbox from '../../sandbox/xhr';
 import settings from '../../settings';
 import { stringify as stringifyJSON } from '../../json';
-import { isIE9 } from '../../utils/browser';
 
 const SWITCH_BACK_TO_ASYNC_XHR_DELAY = 2000;
 const FAILED_REQUESTS_LIMIT          = 3;
@@ -17,17 +16,6 @@ export default class CookieSync {
 
         // NOTE: When unloading, we should switch to synchronous XHR to be sure that we won't lose any cookies.
         nativeMethods.windowAddEventListener.call(window, 'beforeunload', () => this._beforeUnloadHandler(), true);
-    }
-
-    static _has204StatusCode (request) {
-        try {
-            // NOTE: XMLHTTPRequest implementation in MSXML HTTP does not handle HTTP responses
-            // with status code 204 (No Content) properly; the `status' property has the value 1223.
-            return request.status === (isIE9 ? 1223 : 204);
-        }
-        catch (e) {
-            return false;
-        }
     }
 
     _beforeUnloadHandler () {
@@ -46,7 +34,7 @@ export default class CookieSync {
     }
 
     _onRequestLoad (request) {
-        if (CookieSync._has204StatusCode(request)) {
+        if (request.status === 204) {
             this.sendedQueue    = null;
             this.activeReq      = null;
             this.failedReqCount = 0;
@@ -68,20 +56,10 @@ export default class CookieSync {
     }
 
     _attachRequestHandlers (request) {
-        if (isIE9) {
-            // NOTE: Aborting ajax requests in IE9 does not raise the error, abort or timeout events.
-            // Getting the status code raises the c00c023f error.
-            request.addEventListener('readystatechange', () => {
-                if (request.readyState === request.DONE)
-                    this._onRequestLoad(request);
-            });
-        }
-        else {
-            request.addEventListener('load', () => this._onRequestLoad(request));
-            request.addEventListener('abort', () => this._onRequestError(request));
-            request.addEventListener('error', () => this._onRequestError(request));
-            request.addEventListener('timeout', () => this._onRequestError(request));
-        }
+        request.addEventListener('load', () => this._onRequestLoad(request));
+        request.addEventListener('abort', () => this._onRequestError(request));
+        request.addEventListener('error', () => this._onRequestError(request));
+        request.addEventListener('timeout', () => this._onRequestError(request));
     }
 
     _sendQueue () {
