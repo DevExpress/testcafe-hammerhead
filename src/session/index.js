@@ -78,7 +78,6 @@ export default class Session extends EventEmitter {
         return mustache.render(TASK_TEMPLATE, {
             sessionId:                this.id,
             serviceMsgUrl:            serverInfo.domain + '/messaging',
-            ie9FileReaderShimUrl:     serverInfo.domain + '/ie9-file-reader-shim',
             cookieSyncUrl:            serverInfo.domain + '/cookie-sync',
             crossDomainPort:          serverInfo.crossDomainPort,
             isFirstPageLoad:          isFirstPageLoad,

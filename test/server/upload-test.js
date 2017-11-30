@@ -1,8 +1,6 @@
 'use strict';
 
 const fs            = require('fs');
-const express       = require('express');
-const request       = require('request');
 const expect        = require('chai').expect;
 const tmp           = require('tmp');
 const mime          = require('mime');
@@ -210,44 +208,6 @@ describe('Upload', () => {
                 const expected = data[dataName].toString();
 
                 expect(actual).eql(expected);
-            });
-        });
-    });
-
-    describe('IE9 FileReader shim', () => {
-        let server = null;
-
-        before(() => {
-            const app = express();
-
-            app.post('/ie9-file-reader-shim', upload.ie9FileReaderShim);
-
-            server = app.listen(2000);
-        });
-
-        after(() => server.close());
-
-        it('Should provide file information', done => {
-            const options = {
-                method:  'POST',
-                url:     'http://localhost:2000/ie9-file-reader-shim?filename=plain.txt&input-name=upload',
-                body:    data['epilogue-string'],
-                headers: {
-                    'Content-Type': CONTENT_TYPE
-                }
-            };
-
-            request(options, (err, res, body) => {
-                const file         = JSON.parse(body);
-                const expectedBody = 'I am a plain text file\r\n';
-
-                expect(res.headers['content-type']).to.be.undefined;
-                expect(new Buffer(file.data, 'base64').toString()).eql(expectedBody);
-                expect(file.info.type).eql('text/plain');
-                expect(file.info.name).eql('plain.txt');
-                expect(file.info.size).eql(expectedBody.length);
-
-                done();
             });
         });
     });

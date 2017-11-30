@@ -1,6 +1,5 @@
 var urlUtils = hammerhead.get('./utils/url');
 
-var browserUtils   = hammerhead.utils.browser;
 var nativeMethods  = hammerhead.nativeMethods;
 var iframeSandbox  = hammerhead.sandbox.iframe;
 var nodeMutation   = hammerhead.sandbox.node.mutation;
@@ -108,21 +107,18 @@ asyncTest('reload image through the proxy', function () {
     eval(processScript('img2.src="' + realImageUrl + '";'));
 });
 
-// NOTE: IE9 does not support insertAdjacentHTML for the 'tr' element.
-if (!browserUtils.isIE9) {
-    test('html fragment', function () {
-        var table = $('<table><tr></tr></table>')[0];
-        var tbody = table.childNodes[0];
+test('html fragment', function () {
+    var table = $('<table><tr></tr></table>')[0];
+    var tbody = table.childNodes[0];
 
-        tbody.childNodes[0].insertAdjacentHTML('beforebegin', '<tr><td><div></div></td></tr>');
+    tbody.childNodes[0].insertAdjacentHTML('beforebegin', '<tr><td><div></div></td></tr>');
 
-        strictEqual(tbody.childNodes.length, 2);
-        strictEqual(tbody.childNodes[0].tagName.toLowerCase(), 'tr');
-        strictEqual(tbody.childNodes[1].tagName.toLowerCase(), 'tr');
-        strictEqual(tbody.childNodes[0].childNodes[0].tagName.toLowerCase(), 'td');
-        strictEqual(tbody.childNodes[0].childNodes[0].childNodes[0].tagName.toLowerCase(), 'div');
-    });
-}
+    strictEqual(tbody.childNodes.length, 2);
+    strictEqual(tbody.childNodes[0].tagName.toLowerCase(), 'tr');
+    strictEqual(tbody.childNodes[1].tagName.toLowerCase(), 'tr');
+    strictEqual(tbody.childNodes[0].childNodes[0].tagName.toLowerCase(), 'td');
+    strictEqual(tbody.childNodes[0].childNodes[0].childNodes[0].tagName.toLowerCase(), 'div');
+});
 
 test('process a text node when it is appended to script', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
@@ -238,7 +234,7 @@ test('one handler for several events must be overriden correctly (B237402)', fun
     eventSimulator['mouseup'](div, {});
     ok(mousemoved, 'mousemove has been handled');
     ok(mouseuped, 'mouseup has been handled');
-    mousemoved  = mouseuped = false;
+    mousemoved = mouseuped = false;
     div.removeEventListener('mousemove', handler, false);
     div.removeEventListener('mouseup', handler, false);
     eventSimulator['mousemove'](div, {});

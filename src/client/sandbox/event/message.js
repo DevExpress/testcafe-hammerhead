@@ -4,7 +4,6 @@ import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
-import { isIE9 } from '../../utils/browser';
 import { isCrossDomainWindows, getTopSameDomainWindow } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
@@ -62,12 +61,9 @@ export default class MessageSandbox extends SandboxBase {
             const originUrl = destLocation.get();
 
             if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl)) {
-                // NOTE: IE9 can send only string values.
-                const needToStringify = typeof data.message !== 'string' && (isIE9 || data.isStringMessage);
-                const originData      = needToStringify ? stringifyJSON(data.message) : data.message;
-                const resultEvt       = createEvent(e, {
+                const resultEvt = createEvent(e, {
                     origin: data.originUrl,
-                    data:   originData
+                    data:   data.message
                 });
 
                 if (isObjectEventListener(originListener))
@@ -87,16 +83,7 @@ export default class MessageSandbox extends SandboxBase {
             host:     parsedDest.host
         });
 
-        const result = {
-            isStringMessage: typeof message === 'string',
-            message:         message,
-            originUrl:       originUrl,
-            targetUrl:       targetUrl,
-            type:            type
-        };
-
-        // NOTE: IE9 can send only string values.
-        return isIE9 ? stringifyJSON(result) : result;
+        return { message, originUrl, targetUrl, type };
     }
 
     _removeInternalMsgFromQueue (sendFunc) {

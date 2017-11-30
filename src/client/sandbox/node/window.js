@@ -14,7 +14,7 @@ import {
     convertToProxyUrl,
     stringifyResourceType
 } from '../../utils/url';
-import { isFirefox, isIE9, isIE } from '../../utils/browser';
+import { isFirefox, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
@@ -515,8 +515,7 @@ export default class WindowSandbox extends SandboxBase {
                 .call(window.Object, window.MessageEvent.prototype, 'origin', originPropDescriptor);
         }
 
-        // NOTE: DOMParser supports an HTML parsing for IE10 and later
-        if (window.DOMParser && !isIE9) {
+        if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
                 if (args.length > 1 && typeof args[0] === 'string' && args[1] === 'text/html')
                     args[0] = processHtml(args[0]);

@@ -1,7 +1,6 @@
 var INSTRUCTION = hammerhead.get('../processing/script/instruction');
 
 var Promise        = hammerhead.Promise;
-var browserUtils   = hammerhead.utils.browser;
 var iframeSandbox  = hammerhead.sandbox.iframe;
 var messageSandbox = hammerhead.sandbox.event.message;
 
@@ -84,7 +83,7 @@ asyncTest('cross-domain post messages between different windows', function () {
     document.body.appendChild(iframe);
 });
 
-asyncTest('message types', function () {
+test('message types', function () {
     var checkValue = function (value, test) {
         return new Promise(function (resove) {
             var onMessageHandler = function (e) {
@@ -103,37 +102,32 @@ asyncTest('message types', function () {
         });
     };
 
-    if (browserUtils.isIE9)
-        checkValue('test').then(start);
-    else {
-        checkValue(true)
-            .then(function () {
-                return checkValue(0);
-            })
-            .then(function () {
-                return checkValue('');
-            })
-            .then(function () {
-                return checkValue([0], function (a) {
-                    return a.length === 1 && a[0] === 0;
-                });
-            })
-            .then(function () {
-                return checkValue({ a: 0 }, function (a) {
-                    return a.a === 0;
-                });
-            })
-            .then(function () {
-                return checkValue(null);
-            })
-            .then(function () {
-                return checkValue(void 0);
-            })
-            .then(function () {
-                return checkValue('{a:0}');
-            })
-            .then(start);
-    }
+    return checkValue(true)
+        .then(function () {
+            return checkValue(0);
+        })
+        .then(function () {
+            return checkValue('');
+        })
+        .then(function () {
+            return checkValue([0], function (a) {
+                return a.length === 1 && a[0] === 0;
+            });
+        })
+        .then(function () {
+            return checkValue({ a: 0 }, function (a) {
+                return a.a === 0;
+            });
+        })
+        .then(function () {
+            return checkValue(null);
+        })
+        .then(function () {
+            return checkValue(void 0);
+        })
+        .then(function () {
+            return checkValue('{a:0}');
+        });
 });
 
 asyncTest('message to current window', function () {

@@ -5,7 +5,7 @@ import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
 import { getOffsetPosition, offsetToClientCoords } from '../../utils/position';
-import { getBordersWidth, getElementScroll } from '../../utils/style';
+import { getBordersWidth } from '../../utils/style';
 
 const IE_BUTTONS_MAP = {
     0: 1,
@@ -568,21 +568,6 @@ export default class EventSimulator {
         if (args.which !== void 0 && browserUtils.isWebKit) {
             nativeMethods.objectDefineProperty.call(window.Object, ev, INTERNAL_PROPS.whichPropertyWrapper, {
                 get: () => args.which
-            });
-        }
-
-        // NOTE: After MouseEvent was created by using the initMouseEvent method, the pageX and pageY properties are
-        // equal to zero (only in IE9). We can set them only by using the defineProperty method (B253930).
-        if (browserUtils.isIE9) {
-            const currentDocument = domUtils.findDocument(el);
-            const documentScroll  = getElementScroll(currentDocument);
-
-            nativeMethods.objectDefineProperty.call(window.Object, ev, 'pageX', {
-                get: () => ev.clientX + documentScroll.left
-            });
-
-            nativeMethods.objectDefineProperty.call(window.Object, ev, 'pageY', {
-                get: () => ev.clientY + documentScroll.top
             });
         }
 
