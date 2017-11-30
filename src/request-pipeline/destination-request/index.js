@@ -121,7 +121,11 @@ export default class DestinationRequest extends EventEmitter {
     }
 
     _isSocketHangUpErr (err) {
-        return err.message && SOCKET_HANG_UP_ERR_RE.test(err.message);
+        return err.message && SOCKET_HANG_UP_ERR_RE.test(err.message) &&
+               // NOTE: Only for nodejs 4 error with a same message will be generated for different cases.
+               // This is why, we filter a 'SocketHangUpErr' by stack.
+               // Remove filtering by stack content after ending support of nodejs 4.
+               err.stack && err.stack.indexOf('createHangUpError') !== -1;
     }
 
     _onTimeout () {
