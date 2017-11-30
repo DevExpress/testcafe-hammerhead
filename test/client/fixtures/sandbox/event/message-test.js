@@ -83,7 +83,7 @@ asyncTest('cross-domain post messages between different windows', function () {
     document.body.appendChild(iframe);
 });
 
-asyncTest('message types', function () {
+test('message types', function () {
     var checkValue = function (value, test) {
         return new Promise(function (resove) {
             var onMessageHandler = function (e) {
@@ -102,7 +102,7 @@ asyncTest('message types', function () {
         });
     };
 
-    checkValue(true)
+    return checkValue(true)
         .then(function () {
             return checkValue(0);
         })
@@ -127,8 +127,7 @@ asyncTest('message types', function () {
         })
         .then(function () {
             return checkValue('{a:0}');
-        })
-        .then(start);
+        });
 });
 
 asyncTest('message to current window', function () {

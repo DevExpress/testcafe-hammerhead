@@ -83,14 +83,7 @@ export default class MessageSandbox extends SandboxBase {
             host:     parsedDest.host
         });
 
-        const result = {
-            message:   message,
-            originUrl: originUrl,
-            targetUrl: targetUrl,
-            type:      type
-        };
-
-        return result;
+        return { message, originUrl, targetUrl, type };
     }
 
     _removeInternalMsgFromQueue (sendFunc) {
