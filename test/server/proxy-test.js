@@ -1876,7 +1876,7 @@ describe('Proxy', () => {
                 .end();
         });
 
-        it("Should close with error if destination server doesn't provide Access-Control-Allow-Origin header for cross-domain requests", done => {
+        it('Should close with error if destination server doesn`t provide Access-Control-Allow-Origin header for cross-domain requests', done => {
             const options = {
                 url:     proxy.openSession('http://127.0.0.1:2002/without-access-control-allow-origin-header', session),
                 headers: {
@@ -1989,7 +1989,7 @@ describe('Proxy', () => {
             });
         });
 
-        it("Should omit default ports from destination request and 'referrer' header urls (GH-738)", () => {
+        it('Should omit default ports from destination request and `referrer` header urls (GH-738)', () => {
             const testCases              = [
                 {
                     url:          'http://example.com:80',
@@ -2076,7 +2076,7 @@ describe('Proxy', () => {
             });
         });
 
-        it("Should handle `about:blank` requests for resources that doesn't require processing (GH-796)", done => {
+        it('Should handle `about:blank` requests for resources that doesn`t require processing (GH-796)', done => {
             const options = {
                 url: proxy.openSession('about:blank', session),
 
@@ -2489,6 +2489,7 @@ describe('Proxy', () => {
             });
             let mainPageSocket = null;
             let reqOptions     = null;
+            let error          = null;
 
             const server = net.createServer(socket => {
                 socket.on('data', data => {
@@ -2539,14 +2540,19 @@ describe('Proxy', () => {
                 });
             }
 
+            session.handlePageError = (ctx, err) => {
+                error = err;
+            };
+
             return getFreePort()
                 .then(port => new Promise(resolve => server.listen(port, resolve.bind(null, port))))
                 .then(port => {
                     const proxyUrl = proxy.openSession(`http://127.0.0.1:${port}/`, session);
 
                     reqOptions = Object.assign(urlLib.parse(proxyUrl), {
-                        method: 'GET',
-                        agent:  agent
+                        method:  'GET',
+                        agent:   agent,
+                        headers: { accept: 'text/html' }
                     });
 
                     return sendRequest(reqOptions);
@@ -2564,7 +2570,8 @@ describe('Proxy', () => {
                     return sendRequest(reqOptions);
                 })
                 .then(body => {
-                    expect(body).eql('Hello');
+                    expect(body).include('Hello');
+                    expect(error).to.be.null;
                     server.close();
                 });
         });

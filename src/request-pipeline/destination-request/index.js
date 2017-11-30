@@ -135,7 +135,7 @@ export default class DestinationRequest extends EventEmitter {
         if (this._isSocketHangUpErr(err))
             this.emit('socketHangUp');
 
-        if (requestAgent.shouldRegressHttps(err, this.opts)) {
+        else if (requestAgent.shouldRegressHttps(err, this.opts)) {
             requestAgent.regressHttps(this.opts);
             this._send();
         }
