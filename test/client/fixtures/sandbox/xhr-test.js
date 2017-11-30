@@ -5,7 +5,6 @@ var destLocation  = hammerhead.get('./utils/destination-location');
 var settings      = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
-var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
 
@@ -138,42 +137,40 @@ test('the internal 222 status code should be replaced with 0 on the client side'
     strictEqual(getProperty(xhr, 'status'), 0);
 });
 
-if (!browserUtils.isIE9) {
-    test('send the origin header correctly (GH-284)', function () {
-        var xhrTestFunc = function () {
-            var xhr = new XMLHttpRequest();
+test('send the origin header correctly (GH-284)', function () {
+    var xhrTestFunc = function () {
+        var xhr = new XMLHttpRequest();
 
-            xhr.open('POST', '/xhr-origin-header-test/', false);
-            xhr.send();
+        xhr.open('POST', '/xhr-origin-header-test/', false);
+        xhr.send();
 
-            window.response = xhr.responseText;
-        };
+        window.response = xhr.responseText;
+    };
 
-        xhrTestFunc();
-        strictEqual(window.response, 'https://example.com', 'top window');
+    xhrTestFunc();
+    strictEqual(window.response, 'https://example.com', 'top window');
 
-        destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
+    destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
 
-        xhrTestFunc();
-        strictEqual(window.response, 'file:///path/index.html', 'location with file protocol');
+    xhrTestFunc();
+    strictEqual(window.response, 'file:///path/index.html', 'location with file protocol');
 
-        destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+    destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
-        return createTestIframe()
-            .then(function (iframe) {
-                // NOTE: iframe without src
-                iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
+    return createTestIframe()
+        .then(function (iframe) {
+            // NOTE: iframe without src
+            iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
 
-                var script = document.createElement('script');
+            var script = document.createElement('script');
 
-                script.innerHTML = '(' + xhrTestFunc.toString() + ')()';
+            script.innerHTML = '(' + xhrTestFunc.toString() + ')()';
 
-                iframe.contentDocument.body.appendChild(script);
+            iframe.contentDocument.body.appendChild(script);
 
-                strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
-            });
-    });
-}
+            strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
+        });
+});
 
 asyncTest('set cookie from a header of the XMLHttpRequest response (GH-905)', function () {
     var xhr = new XMLHttpRequest();

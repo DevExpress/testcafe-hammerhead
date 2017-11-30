@@ -15,16 +15,14 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
-if (!browserUtils.isIE9) {
-    asyncTest('override setTimeout error (T203986)', function () {
-        var str = 'success';
+asyncTest('override setTimeout error (T203986)', function () {
+    var str = 'success';
 
-        setTimeout(function (msg) {
-            strictEqual(msg, str);
-            start();
-        }, 10, str);
-    });
-}
+    setTimeout(function (msg) {
+        strictEqual(msg, str);
+        start();
+    }, 10, str);
+});
 
 module('regression');
 

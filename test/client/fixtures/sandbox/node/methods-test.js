@@ -333,7 +333,7 @@ if (!browserUtils.isFirefox) {
     });
 }
 
-if (window.DOMParser && !browserUtils.isIE9) {
+if (window.DOMParser) {
     test('DOMParser.parseFromString', function () {
         var htmlStr        = '<a href="/path">Link</a>';
         var domParser      = new DOMParser();

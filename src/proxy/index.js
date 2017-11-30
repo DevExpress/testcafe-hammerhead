@@ -3,7 +3,6 @@ import http from 'http';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
 import { respond204, respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
-import { ie9FileReaderShim } from '../upload';
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 
@@ -77,7 +76,6 @@ export default class Proxy extends Router {
             content:     CLIENT_SCRIPT
         });
 
-        this.POST('/ie9-file-reader-shim', ie9FileReaderShim);
         this.POST('/messaging', (req, res, serverInfo) => this._onServiceMessage(req, res, serverInfo));
         this.POST('/cookie-sync', (req, res, serverInfo) => this._onCookieSync(req, res, serverInfo));
         this.GET('/task.js', (req, res, serverInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
