@@ -3,7 +3,7 @@ import IframeSandbox from '../../iframe';
 import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import * as urlUtils from '../../../utils/url';
-import { isIE, isIE9, isIE10 } from '../../../utils/browser';
+import { isIE } from '../../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
@@ -12,9 +12,8 @@ export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox) {
         super();
 
-        this.nodeSandbox     = nodeSandbox;
-        this.readyStateForIE = null;
-        this.documentWriter  = null;
+        this.nodeSandbox    = nodeSandbox;
+        this.documentWriter = null;
     }
 
     _isUninitializedIframeWithoutSrc (win) {
@@ -33,7 +32,7 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _overridedDocumentWrite (args, ln) {
-        const shouldEmitEvents = (this.readyStateForIE || this.document.readyState) !== 'loading' &&
+        const shouldEmitEvents = this.document.readyState !== 'loading' &&
                                  this.document.readyState !== 'uninitialized';
 
         if (shouldEmitEvents)
@@ -58,17 +57,6 @@ export default class DocumentSandbox extends SandboxBase {
         }
 
         super.attach(window, document);
-
-        // NOTE: https://connect.microsoft.com/IE/feedback/details/792880/document-readystat
-        const frameElement = getFrameElement(window);
-
-        if (frameElement && !isIframeWithoutSrc(frameElement) && (isIE9 || isIE10)) {
-            this.readyStateForIE = 'loading';
-
-            nativeMethods.addEventListener.call(this.document, 'DOMContentLoaded', () => {
-                this.readyStateForIE = null;
-            });
-        }
 
         const documentSandbox = this;
 
