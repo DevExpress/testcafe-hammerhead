@@ -28,35 +28,33 @@ var DocumentMock = function (prop, value) {
     this[prop] = value;
 };
 
-if (!browserUtils.isIE || browserUtils.version > 9) {
-    test('autocomplete', function () {
-        var input  = $('<input>')[0];
-        var etalon = nativeMethods.createElement.call(document, 'input');
+test('autocomplete', function () {
+    var input  = $('<input>')[0];
+    var etalon = nativeMethods.createElement.call(document, 'input');
 
-        strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
-        strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
+    strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
+    strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
 
-        input.setAttribute('autocomplete', 'off');
-        nativeMethods.setAttribute.call(etalon, 'autocomplete', 'off');
-        strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
-        strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
+    input.setAttribute('autocomplete', 'off');
+    nativeMethods.setAttribute.call(etalon, 'autocomplete', 'off');
+    strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
+    strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
 
-        input.setAttribute('autocomplete', 'on');
-        nativeMethods.setAttribute.call(etalon, 'autocomplete', 'on');
-        strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
-        strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
+    input.setAttribute('autocomplete', 'on');
+    nativeMethods.setAttribute.call(etalon, 'autocomplete', 'on');
+    strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
+    strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
 
-        input.setAttribute('autocomplete', '');
-        nativeMethods.setAttribute.call(etalon, 'autocomplete', '');
-        strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
-        strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
+    input.setAttribute('autocomplete', '');
+    nativeMethods.setAttribute.call(etalon, 'autocomplete', '');
+    strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
+    strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
 
-        input.removeAttribute('autocomplete');
-        nativeMethods.removeAttribute.call(etalon, 'autocomplete');
-        strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
-        strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
-    });
-}
+    input.removeAttribute('autocomplete');
+    nativeMethods.removeAttribute.call(etalon, 'autocomplete');
+    strictEqual(eval(processScript('input.autocomplete')), etalon.autocomplete);
+    strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
+});
 
 test('url', function () {
     /* eslint-disable no-unused-vars */

@@ -64,15 +64,13 @@ if (window.Worker) {
     });
 }
 
-if (!browserUtils.isIE || browserUtils.isIE11) {
-    test('should work with the operator "instanceof" (GH-690)', function () {
-        var blob   = new Blob(['if(true) {}'], { type: 'text/javascript' });
-        var url    = URL.createObjectURL(blob);
-        var worker = new Worker(url);
+test('should work with the operator "instanceof" (GH-690)', function () {
+    var blob   = new Blob(['if(true) {}'], { type: 'text/javascript' });
+    var url    = URL.createObjectURL(blob);
+    var worker = new Worker(url);
 
-        ok(worker instanceof Worker);
-    });
-}
+    ok(worker instanceof Worker);
+});
 
 module('EventSource');
 
@@ -389,21 +387,19 @@ test('window.Image must be overriden (B234340)', function () {
     strictEqual((new Image(void 0, void 0)).outerHTML, new NativeImage(void 0, void 0).outerHTML);
 });
 
-if (!browserUtils.isIE || browserUtils.isIE11) {
-    asyncTest('window.Blob with type=javascript must be overriden (T259367)', function () {
-        var script = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", true); postMessage(t.blobTest); };'];
-        var blob   = new window.Blob(script, { type: 'texT/javascript' });
-        var url    = window.URL.createObjectURL(blob);
-        var worker = new window.Worker(url);
+asyncTest('window.Blob with type=javascript must be overriden (T259367)', function () {
+    var script = ['self.onmessage = function() { var t = {};', '__set$(t, "blobTest", true); postMessage(t.blobTest); };'];
+    var blob   = new window.Blob(script, { type: 'texT/javascript' });
+    var url    = window.URL.createObjectURL(blob);
+    var worker = new window.Worker(url);
 
-        worker.onmessage = function (e) {
-            strictEqual(e.data, true);
-            start();
-        };
+    worker.onmessage = function (e) {
+        strictEqual(e.data, true);
+        start();
+    };
 
-        worker.postMessage('');
-    });
-}
+    worker.postMessage('');
+});
 
 if (navigator.registerProtocolHandler) {
     test('navigator.registerProtocolHandler must be overriden (T185853)', function () {
