@@ -2,7 +2,7 @@
 
 const express = require('express');
 const http    = require('http');
-const Path    = require('path');
+const path    = require('path');
 const process = require('child_process');
 
 const Proxy   = require('../../lib/proxy');
@@ -19,7 +19,10 @@ function createSession () {
     session._getPayloadScript       = () => '';
     session.getAuthCredentials      = () => ({});
     session.handleFileDownload      = () => void 0;
-    session.handlePageError         = () => void 0;
+    session.handlePageError         = (ctx, err) => {
+        console.log(ctx.req.url);
+        console.log(err);
+    };
 
     return session;
 }
@@ -29,25 +32,22 @@ exports.start = () => {
     const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2);
     const appServer = http.createServer(app);
 
-    app
-        .use(express.bodyParser())
-        .set('view engine', 'ejs')
-        .set('view options', { layout: false })
-        .set('views', Path.join(__dirname, './views'));
+    app.use(express.bodyParser());
 
     app.get('*', (req, res) => {
-        res.render('index');
+        res.sendfile(path.resolve(__dirname, 'views/index.html'));
     });
 
     app.post('*', (req, res) => {
         let url = req.param('url');
 
         if (!url) {
-            res.status(403);
-            res.render('403');
+            res
+                .status(403)
+                .sendfile(path.resolve(__dirname, 'views/403.html'));
         }
         else {
-            if (url.indexOf('file://') !== 0 && url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0) {
+            if (!/^(?:file|https?):\/\//.test(url)) {
                 const matches = url.match(/^([A-Za-z]:)?(\/|\\)/);
 
                 if (matches && matches[0].length === 1)
@@ -58,10 +58,10 @@ exports.start = () => {
                     url = 'http://' + url;
             }
 
-            res.statusCode = 301;
-
-            res.setHeader('location', proxy.openSession(url, createSession()));
-            res.end();
+            res
+                .status(301)
+                .set('location', proxy.openSession(url, createSession()))
+                .end();
         }
     });
 
