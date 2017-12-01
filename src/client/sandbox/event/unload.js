@@ -1,9 +1,7 @@
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
-import { isFirefox, isIE9, isIE10, isIOS } from '../../utils/browser';
-import * as domUtils from '../../utils/dom';
-import { SUPPORTED_PROTOCOL_RE } from '../../../utils/url';
+import { isFirefox, isIOS } from '../../utils/browser';
 
 export default class UnloadSandbox extends SandboxBase {
     constructor (listeners) {
@@ -15,7 +13,6 @@ export default class UnloadSandbox extends SandboxBase {
 
         this.listeners = listeners;
 
-        this.isFakeIEBeforeUnloadEvent     = false;
         this.storedBeforeUnloadReturnValue = '';
         this.prevented                     = false;
         this.storedBeforeUnloadHandler     = null;
@@ -28,12 +25,9 @@ export default class UnloadSandbox extends SandboxBase {
     // NOTE: This handler has to be called after others.
     _emitBeforeUnloadEvent () {
         this.emit(this.BEFORE_UNLOAD_EVENT, {
-            returnValue:   this.storedBeforeUnloadReturnValue,
-            prevented:     this.prevented,
-            isFakeIEEvent: this.isFakeIEBeforeUnloadEvent
+            returnValue: this.storedBeforeUnloadReturnValue,
+            prevented:   this.prevented
         });
-
-        this.isFakeIEBeforeUnloadEvent = false;
     }
 
     _onBeforeUnloadHandler (e, originListener) {
@@ -75,11 +69,6 @@ export default class UnloadSandbox extends SandboxBase {
         }
     }
 
-    _onDocumentClick (e) {
-        if (domUtils.isAnchorElement(e.target))
-            this.isFakeIEBeforeUnloadEvent = !e.target.href || !SUPPORTED_PROTOCOL_RE.test(e.target.href);
-    }
-
     _reattachBeforeUnloadListener () {
         // NOTE: reattach the Listener, it'll be the last in the queue.
         nativeMethods.windowRemoveEventListener.call(this.window, this.beforeUnloadEventName, this);
@@ -89,24 +78,13 @@ export default class UnloadSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        const document  = window.document;
-        const listeners = this.listeners;
-
-        listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
-        listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
-
-        if (isIE9 || isIE10)
-            nativeMethods.addEventListener.call(document, 'click', this);
+        this.listeners.setEventListenerWrapper(window, [this.beforeUnloadEventName], (e, listener) => this._onBeforeUnloadHandler(e, listener));
+        this.listeners.addInternalEventListener(window, ['unload'], () => this.emit(this.UNLOAD_EVENT));
 
         nativeMethods.windowAddEventListener.call(window, this.beforeUnloadEventName, this);
 
-        listeners.addInternalEventListener(window, [this.beforeUnloadEventName], () =>
-                this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT, {
-                    isFakeIEEvent: this.isFakeIEBeforeUnloadEvent
-                })
-        );
-
-        listeners.on(listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
+        this.listeners.addInternalEventListener(window, [this.beforeUnloadEventName], () => this.emit(this.BEFORE_BEFORE_UNLOAD_EVENT));
+        this.listeners.on(this.listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
             if (e.el === window && e.eventType === this.beforeUnloadEventName)
                 this._reattachBeforeUnloadListener();
         });
@@ -130,10 +108,7 @@ export default class UnloadSandbox extends SandboxBase {
         return this.storedBeforeUnloadHandler;
     }
 
-    handleEvent (e) {
-        if (e.type === this.beforeUnloadEventName)
-            this._emitBeforeUnloadEvent();
-        else if (e.type === 'click')
-            this._onDocumentClick(e);
+    handleEvent () {
+        this._emitBeforeUnloadEvent();
     }
 }
