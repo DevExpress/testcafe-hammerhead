@@ -15,16 +15,6 @@ QUnit.testDone(function () {
     iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
-function toArray (arg) {
-    var arr    = [];
-    var length = arg.length;
-
-    for (var i = 0; i < length; i++)
-        arr.push(arg[i]);
-
-    return arr;
-}
-
 module('isCrossDomainWindows', function () {
     test('self', function () {
         ok(!domUtils.isCrossDomainWindows(window, window));
@@ -690,7 +680,7 @@ test('isElementFocusable', function () {
 
             var iframeDocument          = iframe.contentDocument;
             var allElements             = iframeDocument.querySelectorAll('*');
-            var expectedFocusedElements = toArray(iframeDocument.querySelectorAll('.expected'));
+            var expectedFocusedElements = Array.prototype.slice.call(iframeDocument.querySelectorAll('.expected'));
             var focusedElements         = [];
 
             if (browserUtils.isIE) {
@@ -934,5 +924,31 @@ if (browserUtils.isChrome) {
         strictEqual(domUtils.getActiveElement(), input);
 
         document.body.removeChild(hostParent);
+    });
+}
+
+if (window.HTMLElement.prototype.createShadowRoot) {
+    test('isShadowRoot', function () {
+        notOk(domUtils.isShadowRoot(null));
+        notOk(domUtils.isShadowRoot(document));
+        notOk(domUtils.isShadowRoot(window));
+        notOk(domUtils.isShadowRoot(document.createElement('div')));
+        ok(domUtils.isShadowRoot(document.createElement('div').createShadowRoot()));
+    });
+
+    test('"getParents" should work properly for elements inside shadowDOM', function () {
+        var host  = document.createElement('div');
+        var root  = host.createShadowRoot();
+        var div   = document.createElement('div');
+        var input = document.createElement('input');
+
+        document.body.appendChild(host);
+        div.appendChild(input);
+        root.appendChild(div);
+
+        var parents = domUtils.getParents(input);
+
+        deepEqual(parents, [div, host, document.body, document.documentElement]);
+        document.body.removeChild(host);
     });
 }
