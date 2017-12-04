@@ -8,7 +8,6 @@ import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
 import nativeMethods from '../../sandbox/native-methods';
 import { processHtml } from '../../utils/html';
-import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 
 export default class CodeInstrumentation extends SandboxBase {
     constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
@@ -80,15 +79,8 @@ export default class CodeInstrumentation extends SandboxBase {
 
         nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.processHtml, {
             value: (win, html) => {
-                if (win !== window) {
-                    if (!win[INSTRUCTION.processHtml])
-                        window[INTERNAL_PROPS.hammerhead].sandbox.onIframeDocumentRecreated(window.frameElement);
-
-                    return win[INSTRUCTION.processHtml].call(win, win, html);
-                }
-
                 if (typeof html === 'string')
-                    html = processHtml(`<html><body>${html}</body></html>`);
+                    html = processHtml({ html: `<html><body>${html}</body></html>`, processedContext: win });
 
                 return html;
             },

@@ -282,7 +282,7 @@ test('clean up outerHTML', function () {
 
     var a = div.firstChild;
 
-    strictEqual(a.outerHTML, processHtml(htmlText));
+    strictEqual(a.outerHTML, processHtml({ html: htmlText }));
     strictEqual(getProperty(a, 'outerHTML'), htmlText);
 
     // NOTE: This code checks PropertyAccessorsInstrumentation.attach(window).outerHTML.condition
@@ -530,7 +530,7 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
     var div            = document.createElement('div');
     var svg            = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     var html           = '<a href="/path">link</a>';
-    var processedHtml  = processHtml(html);
+    var processedHtml  = processHtml({ html: html });
     var style          = 'body {}';
     var textProperties = ['innerText', 'textContent'];
     var styleElement   = document.createElement('style');

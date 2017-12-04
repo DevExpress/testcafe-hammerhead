@@ -182,7 +182,7 @@ export function cleanUpHtml (html) {
     });
 }
 
-export function processHtml (html, parentTag, prepareDom) {
+export function processHtml ({ html, parentTag, prepareDom, processedContext }) {
     return processHtmlInternal(html, container => {
         const htmlElements  = [];
         let children        = [];
@@ -206,6 +206,7 @@ export function processHtml (html, parentTag, prepareDom) {
             if (isScriptElement(child))
                 child.textContent = unwrapHtmlText(child.textContent);
 
+            child[INTERNAL_PROPS.processedContext] = processedContext;
             domProcessor.processElement(child, convertToProxyUrl);
 
             const elTagName = getTagName(child);

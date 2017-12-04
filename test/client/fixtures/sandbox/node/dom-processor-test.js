@@ -282,7 +282,7 @@ test('crossdomain src', function () {
         resourceType:  'i'
     });
 
-    var processed = htmlUtils.processHtml('<iframe src="' + url + '"></iframe>');
+    var processed = htmlUtils.processHtml({ html: '<iframe src="' + url + '"></iframe>' });
 
     ok(processed.indexOf('src="' + proxyUrl) !== -1);
     ok(processed.indexOf(DomProcessor.getStoredAttrName('src') + '="' + url + '"') !== -1);

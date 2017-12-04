@@ -335,7 +335,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         else if (isScriptEl)
                             processedValue = processScript(processedValue, true);
                         else
-                            processedValue = processHtml(processedValue, el.tagName);
+                            processedValue = processHtml({ html: processedValue, parentTag: el.tagName });
                     }
 
                     DOMMutationTracker.onChildrenChanged(el);
@@ -421,7 +421,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         const parentDocument = domUtils.findDocument(parentEl);
                         const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
-                        el.outerHTML = processHtml('' + value, parentEl.tagName);
+                        el.outerHTML = processHtml({ html: '' + value, parentTag: parentEl.tagName });
 
                         DOMMutationTracker.onChildrenChanged(parentEl);
 

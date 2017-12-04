@@ -340,7 +340,7 @@ export default class ElementSandbox extends SandboxBase {
                 const html     = args[1];
 
                 if (args.length > 1 && html !== null)
-                    args[1] = processHtml('' + html, this.parentNode && this.parentNode.tagName);
+                    args[1] = processHtml({ html: '' + html, parentTag: this.parentNode && this.parentNode.tagName });
 
                 nativeMethods.insertAdjacentHTML.apply(this, args);
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);

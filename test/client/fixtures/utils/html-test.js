@@ -33,7 +33,7 @@ test('hover marker', function () {
                '<div ' + INTERNAL_ATTRS.hoverPseudoClass + '=""></div>';
 
     var expected      = '<a href="http://domain.com"></a><div></div><div></div>';
-    var processedHtml = htmlUtils.processHtml(html);
+    var processedHtml = htmlUtils.processHtml({ html: html });
 
     strictEqual(htmlUtils.cleanUpHtml(processedHtml), expected);
 
@@ -91,7 +91,7 @@ test('form', function () {
 module('process html');
 
 test('iframe', function () {
-    var processedHtml = htmlUtils.processHtml('<iframe src="http://example.com/">');
+    var processedHtml = htmlUtils.processHtml({ html: '<iframe src="http://example.com/">' });
 
     ok(processedHtml.indexOf('sessionId!i/http://example.com/"') !== -1);
 });
@@ -101,7 +101,7 @@ test('element with error in attribute', function () {
     var src          = '<script data-src="' + destUrl + '"></script\>';
     var processedSrc = src;
 
-    src = htmlUtils.processHtml(src);
+    src = htmlUtils.processHtml({ html: src });
 
     strictEqual(src, processedSrc);
 });
@@ -122,7 +122,7 @@ test('encoded symbols', function () {
     var processedHTML = '<' + tag + ' ' + attr + '="' + proxyEncoded + '" ' + storedAttr + '="' + urlEncoded + '"></' +
                         tag + '>';
 
-    div.innerHTML = htmlUtils.processHtml(html) + processedHTML;
+    div.innerHTML = htmlUtils.processHtml({ html: html }) + processedHTML;
 
     strictEqual(nativeMethods.getAttribute.call(div.firstChild, attr), nativeMethods.getAttribute.call(div.lastChild, attr));
     strictEqual(nativeMethods.getAttribute.call(div.firstChild, storedAttr), nativeMethods.getAttribute.call(div.lastChild, storedAttr));
@@ -135,7 +135,7 @@ test('text node', function () {
         error = true;
     };
 
-    htmlUtils.processHtml('some text', 'div');
+    htmlUtils.processHtml({ html: 'some text', parentTag: 'div' });
 
     ok(!error);
 });
@@ -154,7 +154,7 @@ test('html fragment', function () {
         var src      = html.replace('%s', htmlToProcess);
         var expected = html.replace('%s', processedHTML);
 
-        strictEqual(htmlUtils.processHtml(src, parentTag).replace(/\s/g, ''), expected.replace(/\s/g, ''));
+        strictEqual(htmlUtils.processHtml({ html: src, parentTag: parentTag }).replace(/\s/g, ''), expected.replace(/\s/g, ''));
     };
 
     checkFragment('<td>%s</td><td>Content</td>', 'tr');
@@ -209,7 +209,7 @@ test('page html', function () {
     };
 
     var check = function (html) {
-        var processedHtml = htmlUtils.processHtml(html);
+        var processedHtml = htmlUtils.processHtml({ html: html });
 
         ok(processedHtml.indexOf('replacedBodyScript.js') !== -1);
         ok(processedHtml.indexOf('replacedHeadScript.js') !== -1);
@@ -235,14 +235,14 @@ test('page html', function () {
 test('noscript tag', function () {
     var html = '<noscript><div></noscript> <span></span> <noscript></div></noscript>';
 
-    strictEqual(htmlUtils.processHtml(html), html);
+    strictEqual(htmlUtils.processHtml({ html: html }), html);
 });
 
 test('partial page html', function () {
-    strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml('<!doctype html><html><head></head><body>')),
+    strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml({ html: '<!doctype html><html><head></head><body>' })),
         '<!doctype html><html><head></head><body></body></html>');
 
-    strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml('<html><head></head><body>')),
+    strictEqual(htmlUtils.cleanUpHtml(htmlUtils.processHtml({ html: '<html><head></head><body>' })),
         '<html><head></head><body></body></html>');
 });
 
@@ -250,7 +250,7 @@ test('init script for iframe template', function () {
     var check = function (template) {
         var html                  = template.replace(/\{0\}/g, '');
         var expectedProcessedHtml = template.replace(/\{0\}/g, htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
-        var processedHtml         = htmlUtils.processHtml(html);
+        var processedHtml         = htmlUtils.processHtml({ html: html });
 
         strictEqual(processedHtml, expectedProcessedHtml);
         strictEqual(htmlUtils.cleanUpHtml(processedHtml), html);
@@ -285,11 +285,11 @@ test('html and body attributes must be processed (T226655)', function () {
     var htmlWithHeadAndBody = '<head></head><body onload="' + attrValue + '"></body>';
     var htmlWithHtmlTag     = '<html onload="' + attrValue + '">';
 
-    ok(htmlUtils.processHtml(htmlWithBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
+    ok(htmlUtils.processHtml({ html: htmlWithBody }).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
        -1);
-    ok(htmlUtils.processHtml(htmlWithHeadAndBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
+    ok(htmlUtils.processHtml({ html: htmlWithHeadAndBody }).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
        -1);
-    ok(htmlUtils.processHtml(htmlWithHtmlTag).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
+    ok(htmlUtils.processHtml({ html: htmlWithHtmlTag }).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
        -1);
 });
 
@@ -308,7 +308,7 @@ test('html with special script is processed correctly (GH-684)', function () {
         '<\/script>'
     ].join('');
 
-    strictEqual(htmlUtils.processHtml(htmlSrc), htmlExpected);
+    strictEqual(htmlUtils.processHtml({ html: htmlSrc }), htmlExpected);
 });
 
 test('process html with an unclosed "p" tag and the "header" tag (GH-688)', function () {
@@ -316,12 +316,12 @@ test('process html with an unclosed "p" tag and the "header" tag (GH-688)', func
 
     div.innerHTML = '<p><header></header>';
 
-    strictEqual(htmlUtils.processHtml('<p><header></header>'), div.innerHTML);
+    strictEqual(htmlUtils.processHtml({ html: '<p><header></header>' }), div.innerHTML);
 });
 
 test('get a proxy url from a relative url after html processing (GH-718)', function () {
     urlResolver.updateBase('http://example.com/path/path/', document);
-    htmlUtils.processHtml('<div></div>');
+    htmlUtils.processHtml({ html: '<div></div>' });
     strictEqual(urlUtils.getProxyUrl('index.html', {
         proxyHostname: '127.0.0.1',
         proxyPort:     1337,
