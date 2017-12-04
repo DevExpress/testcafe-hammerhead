@@ -342,13 +342,32 @@ export function createExpandedConcatOperation (left, right) {
 
 export function createHtmlProcessorWrapper (node) {
     return {
-        type: Syntax.CallExpression,
+        type: Syntax.ExpressionStatement,
 
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.processHtml
-        },
+        expression: {
+            type: Syntax.CallExpression,
 
-        arguments: [ node.expression ]
+            callee: {
+                type: Syntax.MemberExpression,
+
+                object: {
+                    type: Syntax.Identifier,
+                    name: 'parent'
+                },
+
+                property: {
+                    type: Syntax.Identifier,
+                    name: INSTRUCTION.processHtml
+                }
+            },
+
+            arguments: [
+                {
+                    type: Syntax.Identifier,
+                    name: 'window'
+                },
+                node.expression
+            ]
+        }
     };
 }

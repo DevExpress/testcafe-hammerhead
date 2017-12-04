@@ -7,8 +7,8 @@ import { createHtmlProcessorWrapper } from '../node-builder';
 import { Syntax } from '../tools/esotope';
 
 // Transform:
-// x = 5; "hello" --> x = 5; __proc$Html("hello")
-// someAction(); generateHtmlPage() --> someAction(); __proc$Html(generateHtmlPage())
+// x = 5; "hello" --> x = 5; parent.__proc$Html(window, "hello")
+// someAction(); generateHtmlPage() --> someAction(); parent.__proc$Html(window, generateHtmlPage())
 
 export default {
     nodeReplacementRequireTransform: true,
@@ -17,5 +17,9 @@ export default {
 
     condition: (node, parent) => parent.wrapLastExprViaProcessHtml && parent.body[parent.body.length - 1] === node,
 
-    run: node => createHtmlProcessorWrapper(node)
+    run: (node, parent) => {
+        parent.wrapLastExprViaProcessHtml = false;
+
+        return createHtmlProcessorWrapper(node);
+    }
 };

@@ -216,7 +216,7 @@ asyncTest('iframe html src', function () {
     var storedSrcAttr = nativeMethods.getAttribute.call(iframe, DomProcessor.getStoredAttrName('src'));
 
     notEqual(srcAttr, src);
-    strictEqual(srcAttr, 'javascript: __proc$Html(\'<html><body><a id=\\\'test\\\' data-attr="123">link</a></body></html>\')');
+    strictEqual(srcAttr, 'javascript:' + processScript(src.replace('javascript:', ''), false, true));
     strictEqual(storedSrcAttr, src);
     strictEqual(iframe.getAttribute('src'), src);
 

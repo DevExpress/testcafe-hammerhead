@@ -78,7 +78,7 @@ __set$(window,"location",'test'); 0,function(){return __set$Loc(location,'test')
 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEcAAAARCAYAAAH4YIF">
 <a id="link" href="http://127.0.0.1:1836/sessionId/http://link.url" href-hammerhead-stored-value="http://link.url"></a>
 <a id="httpsLink" href="http://127.0.0.1:1836/sessionId/https://link.url" href-hammerhead-stored-value="https://link.url"></a>
-<a id="javascriptLink" href="javascript: __proc$Html(void 0)" href-hammerhead-stored-value="javascript: void(0);"></a>
+<a id="javascriptLink" href="javascript: parent.__proc$Html(window,void 0);" href-hammerhead-stored-value="javascript: void(0);"></a>
 <a id="mailtoLink" href="mailto: some@e.mail"></a>
 <a id="hashLink" href="#42"></a>
 <a id="aboutBlankLink" href="http://127.0.0.1:1836/sessionId/about:blank" href-hammerhead-stored-value="about:blank"></a>
@@ -88,8 +88,8 @@ __set$(window,"location",'test'); 0,function(){return __set$Loc(location,'test')
 
 <div id="href-test" class="HP-innerHTML" data-test="{location: 9034, filter: 'dlk4k', action: 349}"></div>
 
-<a href="javascript: __proc$Html(onclick(&quot;1&quot;))" href-hammerhead-stored-value="javascript:onclick(&quot;1&quot;);"></a>
-<a href="javascript: __proc$Html(__set$(a,&quot;src&quot;,&quot;test&quot;))" href-hammerhead-stored-value="javascript:a.src=&quot;test&quot;"></a>
+<a href="javascript: parent.__proc$Html(window,onclick(&quot;1&quot;));" href-hammerhead-stored-value="javascript:onclick(&quot;1&quot;);"></a>
+<a href="javascript: parent.__proc$Html(window,__set$(a,&quot;src&quot;,&quot;test&quot;))" href-hammerhead-stored-value="javascript:a.src=&quot;test&quot;"></a>
 <div onclick=" __set$(window,&quot;location&quot;,'test'); return false;" onclick-hammerhead-stored-value="window.location='test'; return false;"></div>
 <div onclick="javascript: __set$(window,&quot;location&quot;,'test'); return false;" onclick-hammerhead-stored-value="javascript:window.location='test'; return false;"></div>
 
@@ -104,9 +104,9 @@ __set$(window,"location",'test'); 0,function(){return __set$Loc(location,'test')
 <input type="password" autocomplete="off" autocomplete-hammerhead-stored-value="off">
 <input type="email" autocomplete="off" autocomplete-hammerhead-stored-value="">
 
-<iframe src="javascript: __proc$Html('<html><body><a id=&quot;link&quot; href=&quot;http://link.url&quot;></a></body></html>')" src-hammerhead-stored-value="javascript:'<html><body><a id=&quot;link&quot; href=&quot;http://link.url&quot;></a></body></html>'"></iframe>
-<iframe src="javascript: __proc$Html(&quot;<html><body><a id='link' href='http://link.url'> </a></body></html>&quot;)" src-hammerhead-stored-value="javascript:&quot;<html><body><a id='link' href='http://link.url'> </a></body></html>&quot;"></iframe>
-<iframe src="javascript: __proc$Html('<div></div>')" src-hammerhead-stored-value="javascript:'<div></div>'"></iframe>
+<iframe src="javascript: parent.__proc$Html(window,'<html><body><a id=&quot;link&quot; href=&quot;http://link.url&quot;></a></body></html>')" src-hammerhead-stored-value="javascript:'<html><body><a id=&quot;link&quot; href=&quot;http://link.url&quot;></a></body></html>'"></iframe>
+<iframe src="javascript: parent.__proc$Html(window,&quot;<html><body><a id='link' href='http://link.url'> </a></body></html>&quot;)" src-hammerhead-stored-value="javascript:&quot;<html><body><a id='link' href='http://link.url'> </a></body></html>&quot;"></iframe>
+<iframe src="javascript: parent.__proc$Html(window,'<div></div>')" src-hammerhead-stored-value="javascript:'<div></div>'"></iframe>
 <svg xml:base="http://127.0.0.1:1836/sessionId/http://domain.com/" xml:base-hammerhead-stored-value="http://domain.com/">
     <rect xml:base="http://127.0.0.1:1836/sessionId/http://sub.domain.com/" xml:base-hammerhead-stored-value="http://sub.domain.com/">
         <use xlink:href="#svg-rect" xlink:href-hammerhead-stored-value="#svg-rect"></use>

@@ -237,7 +237,7 @@ test('native methods of the iframe document aren`t overridden for iframe with ja
     ok(!iframeSandbox._shouldSaveIframeNativeMethods(iframe));
 
     iframe.setAttribute('src', 'javascript:false');
-    ok(iframeSandbox._shouldSaveIframeNativeMethods(iframe));
+    strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), browserUtils.isWebKit);
 
     iframe.setAttribute('src', 'javascript:"<html><body></body></html>"');
     strictEqual(iframeSandbox._shouldSaveIframeNativeMethods(iframe), browserUtils.isWebKit);
