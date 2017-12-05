@@ -1,12 +1,12 @@
 import http from 'http';
 import https from 'https';
 import { noop } from 'lodash';
+import { short as shortNodeVersion } from 'node-version';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
-import nodeVersion from '../../utils/node-version';
 
 // HACK: Ignore SSL auth. The rejectUnauthorized option in the https.request method
 // doesn't work (see: https://github.com/mikeal/request/issues/418).
@@ -20,7 +20,8 @@ const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
 
 // NOTE: Node.js changes the default behavior of SSL starting from v8.6,
 // and we need to add an additional option to request options if this condition is true
-const IS_NODE_VERSION_GREATER_THAN_8_5 = nodeVersion.major === 8 && nodeVersion.minor > 5 || nodeVersion.major > 8;
+// https://github.com/nodejs/node/issues/16196
+const IS_NODE_VERSION_GREATER_THAN_8_5 = parseFloat(shortNodeVersion) > 8.5;
 
 
 // DestinationRequest
