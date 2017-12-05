@@ -18,9 +18,10 @@ const SOCKET_HANG_UP_ERR_RE      = /socket hang up/i;
 const IS_DNS_ERR_MSG_RE          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
 const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
 
-// NOTE: Node.js changes the default behavior of SSL starting from v8.6,
-// and we need to add an additional option to request options if this condition is true
-// https://github.com/nodejs/node/issues/16196
+// NOTE: Starting from 8.6 version, Node.js changes behavior related with sending requests
+// to sites using SSL2 and SSL3 protocol versions. It affects the https core module
+// and can break a proxying of some sites. This is why, we are forced to use the special hack.
+// For details, see https://github.com/nodejs/node/issues/16196
 const IS_NODE_VERSION_GREATER_THAN_8_5 = parseFloat(shortNodeVersion) > 8.5;
 
 
