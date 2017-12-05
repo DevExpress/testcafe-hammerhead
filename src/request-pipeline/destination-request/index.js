@@ -6,6 +6,7 @@ import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
+import nodeVersion from '../../utils/node-version';
 
 // HACK: Ignore SSL auth. The rejectUnauthorized option in the https.request method
 // doesn't work (see: https://github.com/mikeal/request/issues/418).
@@ -16,6 +17,10 @@ const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
 const SOCKET_HANG_UP_ERR_RE      = /socket hang up/i;
 const IS_DNS_ERR_MSG_RE          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
 const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
+
+// NOTE: Node.js changes the default behavior of SSL starting from v8.6,
+// and we need to add an additional option to request options if this condition is true
+const IS_NODE_VERSION_GREATER_THAN_8_5 = nodeVersion.major === 8 && nodeVersion.minor > 5 || nodeVersion.major > 8;
 
 
 // DestinationRequest
@@ -32,8 +37,12 @@ export default class DestinationRequest extends EventEmitter {
         this.protocolInterface = this.isHttps ? https : http;
 
         // NOTE: Ignore SSL auth.
-        if (this.isHttps)
+        if (this.isHttps) {
             opts.rejectUnauthorized = false;
+
+            if (IS_NODE_VERSION_GREATER_THAN_8_5)
+                opts.ecdhCurve = 'auto';
+        }
 
         requestAgent.assign(this.opts);
         this._send();
