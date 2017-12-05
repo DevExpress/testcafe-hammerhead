@@ -103,6 +103,7 @@ export var Syntax = {
     ReturnStatement:          'ReturnStatement',
     SequenceExpression:       'SequenceExpression',
     SpreadElement:            'SpreadElement',
+    Super:                    'Super',
     SwitchStatement:          'SwitchStatement',
     SwitchCase:               'SwitchCase',
     TaggedTemplateExpression: 'TaggedTemplateExpression',
@@ -1617,6 +1618,10 @@ var ExprRawGen = {
         }
 
         _.js += '`';
+    },
+
+    Super: function generateSuper () {
+        _.js += 'super';
     }
 };
 
