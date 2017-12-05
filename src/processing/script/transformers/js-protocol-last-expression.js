@@ -15,10 +15,10 @@ export default {
 
     nodeTypes: [Syntax.ExpressionStatement],
 
-    condition: (node, parent) => parent.wrapLastExprViaProcessHtml && parent.body[parent.body.length - 1] === node,
+    condition: (node, parent) => parent.wrapLastExprWithProcessHtml && parent.body[parent.body.length - 1] === node,
 
     run: (node, parent) => {
-        parent.wrapLastExprViaProcessHtml = false;
+        parent.wrapLastExprWithProcessHtml = false;
 
         return createHtmlProcessorWrapper(node);
     }

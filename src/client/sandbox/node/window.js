@@ -317,7 +317,7 @@ export default class WindowSandbox extends SandboxBase {
         if (window.Range.prototype.createContextualFragment) {
             window.Range.prototype.createContextualFragment = function () {
                 if (typeof arguments[0] === 'string')
-                    arguments[0] = processHtml({ html: arguments[0] });
+                    arguments[0] = processHtml(arguments[0]);
 
                 const fragment = nativeMethods.createContextualFragment.apply(this, arguments);
 
@@ -518,7 +518,7 @@ export default class WindowSandbox extends SandboxBase {
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
                 if (args.length > 1 && typeof args[0] === 'string' && args[1] === 'text/html')
-                    args[0] = processHtml({ html: args[0] });
+                    args[0] = processHtml(args[0]);
 
                 return nativeMethods.DOMParserParseFromString.apply(this, args);
             };

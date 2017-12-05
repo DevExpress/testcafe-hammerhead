@@ -80,7 +80,7 @@ export default class CodeInstrumentation extends SandboxBase {
         nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.processHtml, {
             value: (win, html) => {
                 if (typeof html === 'string')
-                    html = processHtml({ html: `<html><body>${html}</body></html>`, processedContext: win });
+                    html = processHtml(`<html><body>${html}</body></html>`, { processedContext: win });
 
                 return html;
             },

@@ -182,7 +182,7 @@ export function cleanUpHtml (html) {
     });
 }
 
-export function processHtml ({ html, parentTag, prepareDom, processedContext }) {
+export function processHtml (html, { parentTag, prepareDom, processedContext } = {}) {
     return processHtmlInternal(html, container => {
         const htmlElements  = [];
         let children        = [];

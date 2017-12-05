@@ -55,7 +55,6 @@ export default class DomProcessor {
         this.adapter = adapter;
         this.adapter.attachEventEmitter(this);
 
-        this.JAVASCRIPT_PROTOCOL_REG_EX            = JAVASCRIPT_PROTOCOL_REG_EX;
         this.URL_ATTRS                             = URL_ATTRS;
         this.SVG_XLINK_HREF_TAGS                   = SVG_XLINK_HREF_TAGS;
         this.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
@@ -77,7 +76,7 @@ export default class DomProcessor {
         return attrName === 'autocomplete' && storedAttrValue === AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     }
 
-    static processJsAttrValue (value, isJsProtocol, isEventAttr) {
+    static processJsAttrValue (value, { isJsProtocol, isEventAttr }) {
         if (isJsProtocol)
             value = value.replace(JAVASCRIPT_PROTOCOL_REG_EX, '');
 
@@ -93,6 +92,10 @@ export default class DomProcessor {
 
     static getStoredAttrName (attr) {
         return attr + INTERNAL_ATTRS.storedAttrPostfix;
+    }
+
+    static isJsProtocol (value) {
+        return JAVASCRIPT_PROTOCOL_REG_EX.test(value);
     }
 
     static getAttrsForCleaning () {
@@ -320,16 +323,16 @@ export default class DomProcessor {
         this.adapter.removeAttr(el, 'integrity');
     }
 
-    _processJsAttr (el, attr, isJsProtocol, isEventAttr) {
-        const storedUrlAttr  = DomProcessor.getStoredAttrName(attr);
+    _processJsAttr (el, attrName, { isJsProtocol, isEventAttr }) {
+        const storedUrlAttr  = DomProcessor.getStoredAttrName(attrName);
         const processed      = this.adapter.hasAttr(el, storedUrlAttr);
-        const attrValue      = this.adapter.getAttr(el, processed ? storedUrlAttr : attr);
-        const processedValue = DomProcessor.processJsAttrValue(attrValue, isJsProtocol, isEventAttr);
+        const attrValue      = this.adapter.getAttr(el, processed ? storedUrlAttr : attrName);
+        const processedValue = DomProcessor.processJsAttrValue(attrValue, { isJsProtocol, isEventAttr });
 
         if (attrValue !== processedValue) {
             this.adapter.setAttr(el, storedUrlAttr, attrValue);
 
-            this.adapter.setAttr(el, attr, processedValue);
+            this.adapter.setAttr(el, attrName, processedValue);
         }
     }
 
@@ -339,8 +342,12 @@ export default class DomProcessor {
         for (let i = 0; i < events.length; i++) {
             const attrValue = this.adapter.getAttr(el, events[i]);
 
-            if (attrValue)
-                this._processJsAttr(el, events[i], JAVASCRIPT_PROTOCOL_REG_EX.test(attrValue), true);
+            if (attrValue) {
+                this._processJsAttr(el, events[i], {
+                    isJsProtocol: DomProcessor.isJsProtocol(attrValue),
+                    isEventAttr:  true
+                });
+            }
         }
     }
 
@@ -532,8 +539,8 @@ export default class DomProcessor {
     }
 
     _processUrlJsAttr (el, urlReplacer, pattern) {
-        if (JAVASCRIPT_PROTOCOL_REG_EX.test(this.adapter.getAttr(el, pattern.urlAttr)))
-            this._processJsAttr(el, pattern.urlAttr, true, false);
+        if (DomProcessor.isJsProtocol(this.adapter.getAttr(el, pattern.urlAttr)))
+            this._processJsAttr(el, pattern.urlAttr, { isJsProtocol: true, isEventAttr: false });
     }
 
     _processSVGXLinkHrefAttr (el, urlReplacer, pattern) {

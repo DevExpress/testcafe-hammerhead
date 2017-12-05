@@ -123,11 +123,11 @@ export default class ElementSandbox extends SandboxBase {
         const isSupportedProtocol = urlUtils.isSupportedProtocol(value);
 
         if (isUrlAttr && !isSupportedProtocol && !isSpecialPage || isEventAttr) {
-            const isJsProtocol = domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(value);
+            const isJsProtocol = DomProcessor.isJsProtocol(value);
             const storedJsAttr = DomProcessor.getStoredAttrName(attr);
 
             if (isUrlAttr && isJsProtocol || isEventAttr)
-                args[valueIndex] = DomProcessor.processJsAttrValue(value, isJsProtocol, isEventAttr);
+                args[valueIndex] = DomProcessor.processJsAttrValue(value, { isJsProtocol, isEventAttr });
 
             setAttrMeth.apply(el, isNs ? [ns, storedJsAttr, value] : [storedJsAttr, value]);
         }
@@ -340,7 +340,7 @@ export default class ElementSandbox extends SandboxBase {
                 const html     = args[1];
 
                 if (args.length > 1 && html !== null)
-                    args[1] = processHtml({ html: '' + html, parentTag: this.parentNode && this.parentNode.tagName });
+                    args[1] = processHtml(String(html), { parentTag: this.parentNode && this.parentNode.tagName });
 
                 nativeMethods.insertAdjacentHTML.apply(this, args);
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);

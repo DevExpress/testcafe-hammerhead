@@ -2,7 +2,7 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import SandboxBase from './base';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
-import domProcessor from '../dom-processor';
+import { isJsProtocol } from '../../processing/dom';
 import { isShadowUIElement, isCrossDomainIframe, isElementInDocument, isIframeWithoutSrc } from '../utils/dom';
 import { isFirefox, isWebKit } from '../utils/browser';
 import { isSupportedProtocol } from '../utils/url';
@@ -33,7 +33,7 @@ export default class IframeSandbox extends SandboxBase {
 
         const iframeSrc = this.nativeMethods.getAttribute.call(iframe, 'src');
 
-        return domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(iframeSrc);
+        return isJsProtocol(iframeSrc);
     }
 
     _ensureIframeNativeMethodsForChrome (iframe) {

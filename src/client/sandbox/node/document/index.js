@@ -47,7 +47,7 @@ export default class DocumentSandbox extends SandboxBase {
         return result;
     }
 
-    _isNeedToUpdateDocumentWriter (window, document) {
+    _needToUpdateDocumentWriter (window, document) {
         try {
             return !this.documentWriter || this.window !== window || this.document !== document;
         }
@@ -57,7 +57,7 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     attach (window, document) {
-        if (this._isNeedToUpdateDocumentWriter(window, document)) {
+        if (this._needToUpdateDocumentWriter(window, document)) {
             this.documentWriter = new DocumentWriter(window, document);
 
             this.nodeSandbox.mutation.on(this.nodeSandbox.mutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
