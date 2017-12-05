@@ -1,5 +1,5 @@
 import mustache from 'mustache';
-import shortId from 'shortid';
+import nanoid from 'nanoid';
 import { readSync as read } from 'read-file-relative';
 import { EventEmitter } from 'events';
 import { parse as parseUrl } from 'url';
@@ -35,7 +35,7 @@ export default class Session extends EventEmitter {
 
     static _generateSessionId () {
         // NOTE: GH-116
-        return shortId.generate();
+        return nanoid(7).replace(/~/g, '-');
     }
 
     // State
