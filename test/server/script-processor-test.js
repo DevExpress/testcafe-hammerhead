@@ -943,5 +943,12 @@ describe('Script processor', () => {
                 expected: 'async function foo() {  return __get$(obj, "src"); }'
             });
         });
+
+        it('Should process expression with `super` keyword (GH-1390)', () => {
+            testProcessing({
+                src:      'class x extends y{method(){return super[a];}}',
+                expected: 'class x extends y{method(){return __get$(super,a);}}'
+            });
+        });
     });
 });
