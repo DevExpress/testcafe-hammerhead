@@ -112,7 +112,7 @@ export default class StorageSandbox extends SandboxBase {
         this._createStorageWrappers();
 
         const storageChanged = (key, oldValue, newValue, url, storage) => {
-            if (storage.getContext() !== this.window)
+            if (storage && storage.getContext() !== this.window)
                 this._simulateStorageEvent(key, oldValue, newValue, url, storage);
         };
 
