@@ -1,13 +1,14 @@
 'use strict';
 
-const http                        = require('http');
-const urlLib                      = require('url');
-const net                         = require('net');
-const request                     = require('request');
-const expect                      = require('chai').expect;
-const createSelfSignedHttpsServer = require('self-signed-https');
-const Proxy                       = require('../../lib/proxy');
-const Session                     = require('../../lib/session');
+const http                  = require('http');
+const https                 = require('https');
+const urlLib                = require('url');
+const net                   = require('net');
+const request               = require('request');
+const expect                = require('chai').expect;
+const selfSignedCertificate = require('openssl-self-signed-certificate');
+const Proxy                 = require('../../lib/proxy');
+const Session               = require('../../lib/session');
 
 const sockets = [];
 
@@ -46,7 +47,10 @@ describe('External proxy', () => {
         proxy = new Proxy('127.0.0.1', 1836, 1837);
 
         httpServer  = http.createServer((req, res) => res.end(req.url)).listen(2000);
-        httpsServer = createSelfSignedHttpsServer((req, res) => res.end(req.url)).listen(2001);
+        httpsServer = https.createServer({
+            key:  selfSignedCertificate.key,
+            cert: selfSignedCertificate.cert
+        }, (req, res) => res.end(req.url)).listen(2001);
 
         proxyServer = http
             .createServer((req, res) => {

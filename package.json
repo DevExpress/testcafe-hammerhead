@@ -25,6 +25,7 @@
     "lru-cache": "2.6.3",
     "mime": "~1.4.1",
     "mustache": "^2.1.1",
+    "node-version": "1.1.0",
     "os-family": "^1.0.0",
     "parse5": "^1.5.0",
     "pify": "^2.3.0",
@@ -67,9 +68,9 @@
     "gulp-util": "3.0.6",
     "gulp-webmake": "0.0.4",
     "multiline": "^1.0.2",
+    "openssl-self-signed-certificate": "1.1.6",
     "publish-please": "^2.0.0",
     "request": "~2.27.0",
-    "self-signed-https": "^1.0.5",
     "tmp": "0.0.26",
     "webmake": "0.3.42",
     "ws": "3.2.0"

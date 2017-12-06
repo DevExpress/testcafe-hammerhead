@@ -4,6 +4,7 @@ const Promise                              = require('pinkie');
 const fs                                   = require('fs');
 const os                                   = require('os');
 const http                                 = require('http');
+const https                                = require('https');
 const urlLib                               = require('url');
 const request                              = require('request');
 const path                                 = require('path');
@@ -11,7 +12,7 @@ const net                                  = require('net');
 const expect                               = require('chai').expect;
 const express                              = require('express');
 const read                                 = require('read-file-relative').readSync;
-const createSelfSignedHttpsServer          = require('self-signed-https');
+const selfSignedCertificate                = require('openssl-self-signed-certificate');
 const getFreePort                          = require('endpoint-utils').getFreePort;
 const WebSocket                            = require('ws');
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
@@ -1063,7 +1064,14 @@ describe('Proxy', () => {
 
             httpsApp.get('/answer', (req, res) => res.send('42'));
 
-            httpsServer = createSelfSignedHttpsServer(httpsApp).listen(2001);
+            httpsServer = https.createServer({
+                key:                selfSignedCertificate.key,
+                cert:               selfSignedCertificate.cert,
+                requestCert:        false,
+                rejectUnauthorized: false,
+                ciphers:            '-ALL:ECDHE-RSA-AES128-SHA256',
+                ecdhCurve:          'secp384r1'
+            }, httpsApp).listen(2001);
         });
 
         after(() => httpsServer.close());
@@ -1422,8 +1430,10 @@ describe('Proxy', () => {
         let wssServer   = null;
 
         before(() => {
-            httpsServer = createSelfSignedHttpsServer(() => {
-            }).listen(2001);
+            httpsServer = https.createServer({
+                key:  selfSignedCertificate.key,
+                cert: selfSignedCertificate.cert
+            }, () => void 0).listen(2001);
             wsServer    = new WebSocket.Server({
                 server: destServer,
                 path:   '/web-socket'

@@ -1,6 +1,7 @@
 import http from 'http';
 import https from 'https';
 import { noop } from 'lodash';
+import { short as shortNodeVersion } from 'node-version';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
@@ -17,6 +18,12 @@ const SOCKET_HANG_UP_ERR_RE      = /socket hang up/i;
 const IS_DNS_ERR_MSG_RE          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
 const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
 
+// NOTE: Starting from 8.6 version, Node.js changes behavior related with sending requests
+// to sites using SSL2 and SSL3 protocol versions. It affects the https core module
+// and can break a proxying of some sites. This is why, we are forced to use the special hack.
+// For details, see https://github.com/nodejs/node/issues/16196
+const IS_NODE_VERSION_GREATER_THAN_8_5 = parseFloat(shortNodeVersion) > 8.5;
+
 
 // DestinationRequest
 export default class DestinationRequest extends EventEmitter {
@@ -32,8 +39,12 @@ export default class DestinationRequest extends EventEmitter {
         this.protocolInterface = this.isHttps ? https : http;
 
         // NOTE: Ignore SSL auth.
-        if (this.isHttps)
+        if (this.isHttps) {
             opts.rejectUnauthorized = false;
+
+            if (IS_NODE_VERSION_GREATER_THAN_8_5)
+                opts.ecdhCurve = 'auto';
+        }
 
         requestAgent.assign(this.opts);
         this._send();
