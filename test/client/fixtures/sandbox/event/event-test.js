@@ -26,29 +26,6 @@ asyncTest('override setTimeout error (T203986)', function () {
 
 module('regression');
 
-if (document.attachEvent) {
-    test('document.attachEvent must be overriden (Q532574)', function () {
-        var $div                = $('<div>').appendTo('body');
-        var clickRaisedCount    = 0;
-        var docClickRaisedCount = 0;
-
-        $div[0].attachEvent('onmousedown', function () {
-            clickRaisedCount++;
-        });
-
-        document.attachEvent('onmousedown', function () {
-            docClickRaisedCount++;
-        });
-
-        eventSimulator.mousedown($div[0]);
-
-        strictEqual(clickRaisedCount, 1);
-        strictEqual(docClickRaisedCount, 1);
-
-        $div.remove();
-    });
-}
-
 asyncTest('focus / blur events in iframe (B253685)', function () {
     return createTestIframe()
         .then(function (iframe) {
@@ -93,12 +70,6 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
     var jQueryHandlerClickedCount = 0;
     var event                     = null;
 
-    if (div.attachEvent) {
-        div.attachEvent('onclick', function () {
-            attachedHandlerCount++;
-        });
-    }
-
     div.addEventListener('click', function () {
         addedHandlerCount++;
     });
@@ -116,29 +87,9 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
     event.initEvent('click', true, false);
 
     div.dispatchEvent(event);
-    strictEqual(attachedHandlerCount, browserUtils.isIE && browserUtils.version < 11 ? 1 : 0);
     strictEqual(addedHandlerCount, 1);
     strictEqual(inlineHandlerClickedCount, 1);
     strictEqual(jQueryHandlerClickedCount, 1);
-
-    if (div.fireEvent) {
-        div.fireEvent('onclick', event);
-        strictEqual(attachedHandlerCount, 2);
-        strictEqual(addedHandlerCount, 2);
-        strictEqual(inlineHandlerClickedCount, 2);
-        strictEqual(jQueryHandlerClickedCount, 2);
-    }
-
-    // NOTE: createEventObject (we CANNOT call dispatchEvent, only fire the event).
-    if (document.createEventObject) {
-        event = document.createEventObject('MouseEvents');
-        div.fireEvent('onclick', event);
-
-        strictEqual(attachedHandlerCount, 3);
-        strictEqual(addedHandlerCount, 3);
-        strictEqual(inlineHandlerClickedCount, 3);
-        strictEqual(jQueryHandlerClickedCount, 3);
-    }
 
     // NOTE: new MouseEvent (not for IE with its fireEvent).
     var error = false;
@@ -165,22 +116,6 @@ test('firing and dispatching the events created in different ways (Q532574)', fu
         }
     }
     $div.remove();
-});
-
-test('attachEvent, fireEvent, detachEvent must be overriden (T239606)', function () {
-    var el = nativeMethods.createElement.call(document, 'A');
-
-    var attachEventExist = !!el.attachEvent;
-    var fireEventExist   = !!el.fireEvent;
-    var detachEventExist = !!el.detachEvent;
-
-    if (attachEventExist || fireEventExist || detachEventExist)
-        ok(nativeMethods.attachEvent && nativeMethods.fireEvent && nativeMethods.detachEvent);
-    else {
-        ok(!el.attachEvent);
-        ok(!el.fireEvent);
-        ok(!el.detachEvent);
-    }
 });
 
 asyncTest('calling function from handler parameter for window.onmessage event (T137892)', function () {

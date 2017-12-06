@@ -484,55 +484,6 @@ module('should create a proxy url for the img src attribute if the image has the
             img.addEventListener('load', testLoadHandler);
         });
     });
-
-    if (window.attachEvent) {
-        module('attachEvent', function () {
-            asyncTest('attach the load handler before setting up the src', function () {
-                var img         = document.createElement('img');
-                var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
-                var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
-
-                document.body.appendChild(img);
-
-                var testHandler = function () {
-                    strictEqual(img.src, imgProxyUrl);
-
-                    img.detachEvent('onload', testHandler);
-                    img.setAttribute('src', imgUrl);
-
-                    strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
-
-                    img.parentNode.removeChild(img);
-                    start();
-                };
-
-                img.attachEvent('onload', testHandler);
-                img.setAttribute('src', imgUrl);
-            });
-
-            asyncTest('attach the load handler after setting up the src', function () {
-                var img         = document.createElement('img');
-                var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
-                var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
-
-                document.body.appendChild(img);
-
-                var testHandler = function () {
-                    strictEqual(img.src, imgProxyUrl);
-
-                    img.detachEvent('onload', testHandler);
-                    img.setAttribute('src', imgUrl);
-
-                    strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
-                    img.parentNode.removeChild(img);
-                    start();
-                };
-
-                img.setAttribute('src', imgUrl);
-                img.attachEvent('onload', testHandler);
-            });
-        });
-    }
 });
 
 module('regression');

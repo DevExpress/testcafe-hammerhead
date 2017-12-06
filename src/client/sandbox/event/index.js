@@ -3,7 +3,6 @@ import HoverSandbox from './hover';
 import Listeners from './listeners';
 import Selection from './selection';
 import SandboxBase from '../base';
-import extend from '../../utils/extend';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
 import { DOM_EVENTS } from '../../utils/event';
@@ -58,65 +57,6 @@ export default class EventSandbox extends SandboxBase {
                 Listeners.afterDispatchEvent(this);
 
                 return res;
-            },
-
-            fireEvent: function (eventName, ev) {
-                const eventType = eventName.substring(0, 2) === 'on' ? eventName.substring(2) : eventName;
-                let createEventType;
-
-                Listeners.beforeDispatchEvent(this);
-
-                // NOTE: Event is 'MSEventObj'.
-                if (!ev || !ev.target) {
-                    if (/(^mouse\w+$)|^(dbl)?click$|^contextmenu$/.test(eventType))
-                        createEventType = 'MouseEvents';
-                    else if (/^key\w+$/.test(eventType))
-                        createEventType = 'Events';
-                    else if (/^touch\w+$/.test(eventType))
-                        createEventType = 'TouchEvent';
-                    else
-                        createEventType = 'Events';
-
-                    if (ev) {
-                        ev = extend(nativeMethods.documentCreateEvent.call(document, createEventType), ev);
-                        ev.initEvent(eventType, ev.cancelBubble !== void 0 ? ev.cancelBubble : false, true);
-                    }
-                    else {
-                        // NOTE: The fireEvent method can be called with no arguments.
-                        ev = nativeMethods.documentCreateEvent.call(document, createEventType);
-                        ev.initEvent(eventType, true, true);
-                    }
-                }
-
-                const res = nativeMethods.dispatchEvent.call(this, ev);
-
-                Listeners.afterDispatchEvent(this);
-
-                return res;
-            },
-
-            attachEvent: function (...args) {
-                if (typeof args[0] === 'string')
-                    args[0] = args[0].substring(2);
-
-                nativeMethods.addEventListener.apply(this, args);
-
-                const type     = args[0];
-                const listener = args[1];
-
-                sandbox.emit(sandbox.EVENT_ATTACHED_EVENT, { el: this, listener, eventType: type });
-            },
-
-            detachEvent: function (...args) {
-                if (typeof args[0] === 'string')
-                    args[0] = args[0].substring(2);
-
-                nativeMethods.removeEventListener.apply(this, args);
-
-                const type     = args[0];
-                const listener = args[1];
-
-                sandbox.emit(sandbox.EVENT_DETACHED_EVENT, { el: this, listener, eventType: type });
             },
 
             click: function () {
@@ -195,15 +135,6 @@ export default class EventSandbox extends SandboxBase {
         window.HTMLElement.prototype.click                     = this.overridedMethods.click;
         window.Window.focus                                    = this.overridedMethods.focus;
         window.Window.blur                                     = this.overridedMethods.blur;
-
-        if (window.Document.prototype.fireEvent) {
-            window.Document.prototype.fireEvent      = this.overridedMethods.fireEvent;
-            window.Document.prototype.attachEvent    = this.overridedMethods.attachEvent;
-            window.Document.prototype.detachEvent    = this.overridedMethods.detachEvent;
-            window.HTMLElement.prototype.fireEvent   = this.overridedMethods.fireEvent;
-            window.HTMLElement.prototype.attachEvent = this.overridedMethods.attachEvent;
-            window.HTMLElement.prototype.detachEvent = this.overridedMethods.detachEvent;
-        }
 
         if (window.TextRange && window.TextRange.prototype.select)
             window.TextRange.prototype.select = this.overridedMethods.select;

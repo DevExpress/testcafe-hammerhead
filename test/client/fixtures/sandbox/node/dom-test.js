@@ -203,11 +203,6 @@ test('parameters passed to the native dom element function in its original form'
     checkNativeFunctionArgs('setAttributeNS', 'setAttributeNS', el);
     checkNativeFunctionArgs('dispatchEvent', 'dispatchEvent', el);
 
-    if (el.attachEvent && el.detachEvent) {
-        checkNativeFunctionArgs('attachEvent', 'addEventListener', el);
-        checkNativeFunctionArgs('detachEvent', 'removeEventListener', el);
-    }
-
     listeners.initElementListening(el, ['click']);
 
     checkNativeFunctionArgs('addEventListener', 'addEventListener', el);

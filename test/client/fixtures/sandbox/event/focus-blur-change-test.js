@@ -97,13 +97,10 @@ function getChangeHandler () {
 
 var onFocus        = getFocusHandler();
 var focusListener  = getFocusHandler();
-var focusAttached  = getFocusHandler();
 var onBlur         = getBlurHandler();
 var blurListener   = getBlurHandler();
-var blurAttached   = getBlurHandler();
 var onChange       = getChangeHandler();
 var changeListener = getChangeHandler();
-var changeAttached = getChangeHandler();
 
 var defaultTestTimeout         = QUnit.config.testTimeout;
 var smallTestTimeout           = 3000;
@@ -361,33 +358,7 @@ asyncTest('addEventListener one per element', function () {
     bindHandlersAndTest();
 });
 
-asyncTest('attachEvent one per element', function () {
-    if (input1.attachEvent) {
-        var unbindHandlersAndTest = function () {
-            input1.detachEvent('onfocus', onFocus);
-            input1.detachEvent('onblur', onBlur);
-            input2.detachEvent('onfocus', onFocus);
-            input2.detachEvent('onblur', onBlur);
-            testFocusing(0, startNext);
-        };
-
-        var bindHandlersAndTest = function () {
-            input1.attachEvent('onfocus', onFocus);
-            input1.attachEvent('onblur', onBlur);
-            input2.attachEvent('onfocus', onFocus);
-            input2.attachEvent('onblur', onBlur);
-            testFocusing(1, unbindHandlersAndTest);
-        };
-
-        bindHandlersAndTest();
-    }
-    else {
-        expect(0);
-        start();
-    }
-});
-
-asyncTest('handlers binded by ontype property, jQuery and addEventListener\\attachEvent together', function () {
+asyncTest('handlers binded by ontype property, jQuery and addEventListener together', function () {
     var unbindHandlersAndTest = function () {
         var $input1 = $(input1);
         var $input2 = $(input2);
@@ -400,12 +371,7 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         input2.onfocus = null;
         input1.onblur  = null;
         input2.onblur  = null;
-        if (input1.detachEvent) {
-            input1.detachEvent('onfocus', focusAttached);
-            input1.detachEvent('onblur', blurAttached);
-            input2.detachEvent('onfocus', focusAttached);
-            input2.detachEvent('onblur', blurAttached);
-        }
+
         if (input1.removeEventListener) {
             input1.removeEventListener('focus', focusListener, false);
             input1.removeEventListener('blur', blurListener, false);
@@ -429,13 +395,7 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         input1.onblur  = onBlur;
         input2.onblur  = onBlur;
         listenerCount++;
-        if (input1.attachEvent) {
-            input1.attachEvent('onfocus', focusAttached);
-            input1.attachEvent('onblur', blurAttached);
-            input2.attachEvent('onfocus', focusAttached);
-            input2.attachEvent('onblur', blurAttached);
-            listenerCount++;
-        }
+
         if (input1.addEventListener) {
             input1.addEventListener('focus', focusListener, false);
             input1.addEventListener('blur', blurListener, false);
@@ -489,7 +449,7 @@ asyncTest('jQuery handlers three per element', function () {
     bindHandlersAndTest();
 });
 
-asyncTest('handlers binded by ontype property, jQuery and addEventListener\\attachEvent together', function () {
+asyncTest('handlers binded by ontype property, jQuery and addEventListener together', function () {
     var unbindHandlersAndTest = function () {
         var $input1 = $(input1);
         var $input2 = $(input2);
@@ -498,10 +458,7 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         $input2.unbind('change', onChange);
         input1.onchange = null;
         input2.onchange = null;
-        if (input1.detachEvent) {
-            input1.detachEvent('onchange', changeAttached);
-            input2.detachEvent('onchange', changeAttached);
-        }
+
         if (input1.removeEventListener) {
             input1.removeEventListener('change', changeListener, false);
             input2.removeEventListener('change', changeListener, false);
@@ -519,11 +476,7 @@ asyncTest('handlers binded by ontype property, jQuery and addEventListener\\atta
         input1.onchange = onChange;
         input2.onchange = onChange;
         listenerCount++;
-        if (input1.attachEvent) {
-            input1.attachEvent('onchange', changeAttached);
-            input2.attachEvent('onchange', changeAttached);
-            listenerCount++;
-        }
+
         if (input1.addEventListener) {
             input1.addEventListener('change', changeListener, false);
             input2.addEventListener('change', changeListener, false);
