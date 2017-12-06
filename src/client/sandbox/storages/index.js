@@ -130,4 +130,13 @@ export default class StorageSandbox extends SandboxBase {
 
         this._overrideStorageEvent();
     }
+
+    dispose () {
+        const topSameDomainWindow = getTopSameDomainWindow(this.window);
+
+        if (this.window === topSameDomainWindow) {
+            this.localStorage.dispose();
+            this.sessionStorage.dispose();
+        }
+    }
 }

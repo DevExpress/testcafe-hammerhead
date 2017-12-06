@@ -159,6 +159,10 @@ export default class StorageWrapper {
             this.lastState = this.getCurrentState();
         };
 
+        this.dispose = () => {
+            nativeMethods.clearInterval.call(this.window, this.intervalId);
+        };
+
         const castToString = value => {
             // NOTE: The browser automatically translates the key and the value to a string. To repeat this behavior,
             // we use native storage:
