@@ -217,5 +217,6 @@ export default class Sandbox extends SandboxBase {
         htmlUtilDispose();
         anchorCodeInstumentationDispose();
         urlResolver.dispose(this.document);
+        this.storageSandbox.dispose();
     }
 }
