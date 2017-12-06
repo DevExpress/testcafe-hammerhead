@@ -25,6 +25,7 @@ import { dispose as anchorCodeInstumentationDispose } from './code-instrumentati
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
 import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
+import nativeMethods from '../sandbox/native-methods';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
@@ -210,6 +211,20 @@ export default class Sandbox extends SandboxBase {
         this.unload.on(this.unload.UNLOAD_EVENT, () => this.dispose());
     }
 
+    _removeInternalProperties () {
+        const removeListeningElement = this.event.listeners.listeningCtx.removeListeningElement;
+
+        removeListeningElement(this.window);
+        removeListeningElement(this.document);
+
+        const childNodes = nativeMethods.querySelectorAll.call(this.document, '*');
+
+        for (const childNode of childNodes) {
+            delete childNode[INTERNAL_PROPS.processedContext];
+            removeListeningElement(childNode);
+        }
+    }
+
     dispose () {
         this.event.hover.lastHoveredElement     = null;
         this.event.focusBlur.lastFocusedElement = null;
@@ -218,5 +233,6 @@ export default class Sandbox extends SandboxBase {
         anchorCodeInstumentationDispose();
         urlResolver.dispose(this.document);
         this.storageSandbox.dispose();
+        this._removeInternalProperties();
     }
 }
