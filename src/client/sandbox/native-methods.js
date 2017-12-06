@@ -74,9 +74,6 @@ class NativeMethods {
         this.blur                      = nativeElement.blur;
         this.click                     = nativeElement.click;
         this.dispatchEvent             = nativeElement.dispatchEvent;
-        this.attachEvent               = nativeElement.attachEvent;
-        this.detachEvent               = nativeElement.detachEvent;
-        this.fireEvent                 = nativeElement.fireEvent;
         this.focus                     = nativeElement.focus;
         this.select                    = window.TextRange ? createElement('body').createTextRange().select : null;
         this.setSelectionRange         = createElement('input').setSelectionRange;
