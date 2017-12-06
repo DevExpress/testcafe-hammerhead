@@ -944,7 +944,7 @@ describe('Script processor', () => {
             });
         });
 
-        it('Should process the `super` expression (GH-1390)', () => {
+        it('Should process expression with `super` keyword (GH-1390)', () => {
             testProcessing({
                 src:      'class x extends y{method(){return super[a];}}',
                 expected: 'class x extends y{method(){return __get$(super,a);}}'
