@@ -30,6 +30,7 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
     this.initialProperties = [];
     this.wrapperMethods    = [];
     this.context           = window;
+    this.intervalId        = null;
 
     this.STORAGE_CHANGED_EVENT = 'hammerhead|event|storage-changed';
     this.EMPTY_OLD_VALUE_ARG   = isIE ? '' : null;
@@ -122,7 +123,7 @@ export default function StorageWrapper (window, nativeStorage, nativeStorageKey)
         loadStorage();
         this.lastState = this.getCurrentState();
 
-        window.setInterval(() => checkStorageChanged(), 10);
+        this.intervalId = nativeMethods.setInterval.call(this.window, () => checkStorageChanged(), 10);
     };
 
     this.setContext = context => {
