@@ -221,6 +221,7 @@ asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283
     var xhr       = new XMLHttpRequest();
     var timeoutId = null;
     var testDone  = function (eventObj) {
+        xhrSandbox.off(xhrSandbox.XHR_COMPLETED_EVENT, testDone);
         clearTimeout(timeoutId);
         ok(!!eventObj);
         start();
