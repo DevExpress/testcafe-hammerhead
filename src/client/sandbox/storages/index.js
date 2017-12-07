@@ -134,9 +134,10 @@ export default class StorageSandbox extends SandboxBase {
     dispose () {
         const topSameDomainWindow = getTopSameDomainWindow(this.window);
 
-        if (this.window === topSameDomainWindow) {
-            // this.localStorage.dispose();
-            // this.sessionStorage.dispose();
+        // NOTE: For removed iframe without src in IE11 window.top equals iframe's window
+        if (this.window === topSameDomainWindow && !topSameDomainWindow.frameElement) {
+            this.localStorage.dispose();
+            this.sessionStorage.dispose();
         }
         else {
             delete this.localStorage;
