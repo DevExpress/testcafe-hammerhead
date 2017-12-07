@@ -12,7 +12,7 @@
     "branch": "master",
     "gitTag": true
   },
-  "confirm": true,
+  "confirm": false,
   "publishTag": "latest",
   "prePublishScript": "gulp test-server"
 }
