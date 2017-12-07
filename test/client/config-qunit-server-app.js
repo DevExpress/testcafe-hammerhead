@@ -113,6 +113,10 @@ module.exports = function (app) {
         res.send('Server error');
     });
 
+    app.get('/generate-client-net-error', function (req) {
+        req.destroy();
+    });
+
     app.post('/form-data', function (req, res) {
         var chunks = [];
 

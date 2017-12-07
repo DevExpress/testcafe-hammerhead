@@ -179,6 +179,8 @@ function sendResponseHeaders (ctx) {
 function error (ctx, err) {
     if (ctx.isPage && !ctx.isIframe)
         ctx.session.handlePageError(ctx, err);
+    else if (ctx.isFetch || ctx.isXhr)
+        ctx.req.destroy();
     else
         ctx.closeWithError(500, err);
 }

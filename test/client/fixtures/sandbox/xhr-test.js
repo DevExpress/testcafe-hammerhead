@@ -7,6 +7,7 @@ var settings      = hammerhead.get('./settings');
 var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
+var Promise       = hammerhead.Promise;
 
 QUnit.testStart(function () {
     iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
@@ -238,4 +239,47 @@ asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283
 
     xhr.open('GET', '/xhr-test/', true);
     xhr.send();
+});
+
+test('xhr request should emulate native behavior with error and error status code (GH-1397)', function () {
+    var makeFetch = function (xhr, url) {
+        return new Promise(function (resolve) {
+            var log = [];
+
+            xhr.open('GET', url, true);
+
+            xhr.addEventListener('readystatechange', function () {
+                log.push('ready state change event ' + this.readyState);
+            });
+
+            xhr.addEventListener('load', function () {
+                log.push('load event');
+
+                resolve(log.join('\n'));
+            });
+
+            xhr.addEventListener('error', function () {
+                log.push('error event');
+
+                resolve(log.join('\n'));
+            });
+
+            xhr.send();
+        });
+    };
+
+    var checkUrl = function (url) {
+        return Promise.all([
+            makeFetch(new XMLHttpRequest(), url),
+            makeFetch(XhrSandbox.createNativeXHR(), url)
+        ])
+            .then(function (logs) {
+                strictEqual(logs[0], logs[1]);
+            });
+    };
+
+    return Promise.all([
+        checkUrl('/generate-client-net-error'),
+        checkUrl('/respond-500')
+    ]);
 });

@@ -806,6 +806,21 @@ describe('Proxy', () => {
                 });
             });
         });
+
+        it('Should generate an error if an error occurred when attempting to contact with destination server', done => {
+            const options = {
+                url:     proxy.openSession('https://127.0.0.1:2000/', session),
+                headers: {
+                    [XHR_HEADERS.fetchRequestCredentials]: 'omit'
+                }
+            };
+
+            request(options, err => {
+                expect(err).not.to.be.null;
+
+                done();
+            });
+        });
     });
 
     describe('Content processing', () => {
@@ -1694,10 +1709,10 @@ describe('Proxy', () => {
 
             const requestTime = Date.now();
 
-            request(options, (err, res) => {
+            request(options, err => {
                 const responseTime = Date.now();
 
-                expect(res.statusCode).eql(500);
+                expect(err).not.to.be.null;
                 expect(responseTime - requestTime).above(DestinationRequest.XHR_TIMEOUT);
 
                 DestinationRequest.TIMEOUT     = savedReqTimeout;
