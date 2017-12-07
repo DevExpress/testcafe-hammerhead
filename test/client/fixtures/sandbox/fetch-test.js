@@ -339,15 +339,17 @@ if (window.fetch) {
 
                 return fetchFn(url)
                     .then(function (response) {
+                        log.push('fetch resolved');
                         log.push('status ' + response.status);
                         log.push('statusText ' + response.statusText);
-                        log.push('come into "then" block');
+
                         return response.text();
                     })
-                    .then(function (body) {
-                        log.push('response body is ' + body);
+                    .then(function () {
+                        log.push('response body read');
                     })
                     .catch(function (err) {
+                        log.push('fetch rejected');
                         log.push(err);
                     })
                     .then(function () {
