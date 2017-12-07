@@ -335,25 +335,25 @@ if (window.fetch) {
     module('regression', function () {
         test('request promise should emulate native behavior with error and error status code (GH-1397)', function () {
             var makeFetch = function (fetchFn, url) {
-                var log = [];
+                var logs = [];
 
                 return fetchFn(url)
                     .then(function (response) {
-                        log.push('fetch resolved');
-                        log.push('status ' + response.status);
-                        log.push('statusText ' + response.statusText);
+                        logs.push('fetch resolved');
+                        logs.push('status ' + response.status);
+                        logs.push('statusText ' + response.statusText);
 
                         return response.text();
                     })
                     .then(function () {
-                        log.push('response body read');
+                        logs.push('response body read');
                     })
                     .catch(function (err) {
-                        log.push('fetch rejected');
-                        log.push(err);
+                        logs.push('fetch rejected');
+                        logs.push(err);
                     })
                     .then(function () {
-                        return log.join('\n');
+                        return logs.join('\n');
                     });
             };
 

@@ -245,24 +245,27 @@ asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283
 test('xhr request should emulate native behavior with error and error status code (GH-1397)', function () {
     var makeFetch = function (xhr, url) {
         return new Promise(function (resolve) {
-            var log = [];
+            var logs = [];
 
             xhr.open('GET', url, true);
 
             xhr.addEventListener('readystatechange', function () {
-                log.push('ready state change event ' + this.readyState);
+                var log = 'ready state change event ' + this.readyState;
+
+                if (logs[logs.length - 1] !== log)
+                    logs.push(log);
             });
 
             xhr.addEventListener('load', function () {
-                log.push('load event');
+                logs.push('load event');
 
-                resolve(log.join('\n'));
+                resolve(logs.join('\n'));
             });
 
             xhr.addEventListener('error', function () {
-                log.push('error event');
+                logs.push('error event');
 
-                resolve(log.join('\n'));
+                resolve(logs.join('\n'));
             });
 
             xhr.send();
