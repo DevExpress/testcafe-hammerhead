@@ -21,9 +21,16 @@ export default class StorageSandbox extends SandboxBase {
         this.isLocked       = false;
     }
 
-    _simulateStorageEvent (key, oldValue, newValue, url, storageArea) {
+    _simulateStorageEvent (eventData) {
         if (!this.isDeactivated())
-            this.eventSimulator.storage(this.window, { key, oldValue, newValue, url, storageArea });
+            this.eventSimulator.storage(this.window, eventData);
+    }
+
+    _simulateStorageEventIfNecessary (event, storageArea) {
+        if (storageArea && storageArea.getContext() !== this.window) {
+            event.storageArea = storageArea;
+            this._simulateStorageEvent(event);
+        }
     }
 
     // NOTE: We are using a single storage wrapper instance for all same-domain windows.
@@ -111,16 +118,8 @@ export default class StorageSandbox extends SandboxBase {
 
         this._createStorageWrappers();
 
-        const storageChanged = (key, oldValue, newValue, url, storage) => {
-            if (storage && storage.getContext() !== this.window)
-                this._simulateStorageEvent(key, oldValue, newValue, url, storage);
-        };
-
-        this.localStorage.on(this.localStorage.STORAGE_CHANGED_EVENT, e =>
-            storageChanged(e.key, e.oldValue, e.newValue, e.url, this.localStorage));
-
-        this.sessionStorage.on(this.sessionStorage.STORAGE_CHANGED_EVENT, e =>
-            storageChanged(e.key, e.oldValue, e.newValue, e.url, this.sessionStorage));
+        this.localStorage.on(this.localStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.localStorage));
+        this.sessionStorage.on(this.sessionStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.sessionStorage));
 
         this.listeners.initElementListening(window, ['storage']);
         this.listeners.addInternalEventListener(window, ['storage'], (e, dispatched, preventEvent) => {
