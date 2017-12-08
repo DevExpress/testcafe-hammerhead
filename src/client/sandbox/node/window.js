@@ -114,6 +114,14 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
+    static _isSecureOrigin (url) {
+        // NOTE: https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
+        const parsedUrl = parseUrl(resolveUrlAsDest(url));
+
+        return ALLOWED_SERVICE_WORKER_PROTOCOLS.indexOf(parsedUrl.protocol) === -1 &&
+               ALLOWED_SERVICE_WORKER_HOST_NAMES.indexOf(parsedUrl.hostname) === -1;
+    }
+
     handleEvent (event) {
         if (event.defaultPrevented)
             return;
@@ -309,18 +317,20 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.registerServiceWorker) {
             window.navigator.serviceWorker.register = (...args) => {
-                const url       = args[0];
-                const parsedUrl = parseUrl(resolveUrlAsDest(url));
+                const url = args[0];
 
-                if (ALLOWED_SERVICE_WORKER_PROTOCOLS.indexOf(parsedUrl.protocol) === -1 &&
-                    ALLOWED_SERVICE_WORKER_HOST_NAMES.indexOf(parsedUrl.hostname) === -1)
-                    return Promise.reject(new DOMException('Only secure origins are allowed.', 'SecurityError'));
+                if (typeof url === 'string') {
+                    if (WindowSandbox._isSecureOrigin(url))
+                        return Promise.reject(new DOMException('Only secure origins are allowed.', 'SecurityError'));
 
-                if (typeof url === 'string')
                     args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
+                }
 
-                if (args[1] && typeof args[1].scope === 'string')
-                    args[1].scope = getProxyUrl(args[1].scope, { resourceType: stringifyResourceType({ isScript: true }) });
+                if (args[1] && typeof args[1].scope === 'string') {
+                    args[1].scope = getProxyUrl(args[1].scope, {
+                        resourceType: stringifyResourceType({ isScript: true })
+                    });
+                }
 
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
             };
