@@ -21,15 +21,13 @@ export default class StorageSandbox extends SandboxBase {
         this.isLocked       = false;
     }
 
-    _simulateStorageEvent (eventData) {
-        if (!this.isDeactivated())
-            this.eventSimulator.storage(this.window, eventData);
-    }
-
     _simulateStorageEventIfNecessary (event, storageArea) {
+        if (this.isDeactivated())
+            return;
+
         if (storageArea && storageArea.getContext() !== this.window) {
             event.storageArea = storageArea;
-            this._simulateStorageEvent(event);
+            this.eventSimulator.storage(this.window, event);
         }
     }
 
