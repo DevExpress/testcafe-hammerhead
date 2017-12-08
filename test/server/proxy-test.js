@@ -816,7 +816,7 @@ describe('Proxy', () => {
             };
 
             request(options, err => {
-                expect(err).not.to.be.null;
+                expect(err.toString()).include('socket hang up');
 
                 done();
             });
@@ -1712,7 +1712,7 @@ describe('Proxy', () => {
             request(options, err => {
                 const responseTime = Date.now();
 
-                expect(err).not.to.be.null;
+                expect(err.toString()).include('socket hang up');
                 expect(responseTime - requestTime).above(DestinationRequest.XHR_TIMEOUT);
 
                 DestinationRequest.TIMEOUT     = savedReqTimeout;
