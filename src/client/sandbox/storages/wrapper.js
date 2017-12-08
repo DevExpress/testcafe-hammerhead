@@ -23,6 +23,7 @@ export default class StorageWrapper {
     constructor (window, nativeStorage, nativeStorageKey) {
         this.eventEmitter      = new EventEmitter();
         this.on                = (ev, handler) => this.eventEmitter.on(ev, handler);
+        this.off               = (ev, handler) => this.eventEmitter.off(ev, handler);
         this.emit              = (ev, e) => this.eventEmitter.emit(ev, e);
         this.nativeStorage     = nativeStorage;
         this.nativeStorageKey  = nativeStorageKey;

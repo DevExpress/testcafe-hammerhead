@@ -49,5 +49,7 @@ export default class EventEmitter {
             this.eventsListeners[evt] = [];
 
         this.eventsListeners[evt].push(listener);
+
+        return listener;
     }
 }

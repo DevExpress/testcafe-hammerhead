@@ -116,8 +116,8 @@ export default class StorageSandbox extends SandboxBase {
 
         this._createStorageWrappers();
 
-        this.localStorage.on(this.localStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.localStorage));
-        this.sessionStorage.on(this.sessionStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.sessionStorage));
+        this.onLocalStorageChangeListener = this.localStorage.on(this.localStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.localStorage));
+        this.onSessionStorageListener     = this.sessionStorage.on(this.sessionStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.sessionStorage));
 
         this.listeners.initElementListening(window, ['storage']);
         this.listeners.addInternalEventListener(window, ['storage'], (e, dispatched, preventEvent) => {
@@ -129,16 +129,15 @@ export default class StorageSandbox extends SandboxBase {
     }
 
     dispose () {
+        this.localStorage.off(this.localStorage.STORAGE_CHANGED_EVENT, this.onLocalStorageChangeListener);
+        this.sessionStorage.off(this.sessionStorage.STORAGE_CHANGED_EVENT, this.onSessionStorageListener);
+
         const topSameDomainWindow = getTopSameDomainWindow(this.window);
 
         // NOTE: For removed iframe without src in IE11 window.top equals iframe's window
         if (this.window === topSameDomainWindow && !topSameDomainWindow.frameElement) {
             this.localStorage.dispose();
             this.sessionStorage.dispose();
-        }
-        else {
-            delete this.localStorage;
-            delete this.sessionStorage;
         }
     }
 }
