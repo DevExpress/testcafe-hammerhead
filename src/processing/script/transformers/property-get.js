@@ -23,6 +23,10 @@ export default {
         if (!shouldInstrumentProperty(node.property.name))
             return false;
 
+        // Skip: super.prop
+        if (node.object.type === Syntax.Super)
+            return false;
+
         // Skip: object.prop = value
         if (parent.type === Syntax.AssignmentExpression && parent.left === node)
             return false;

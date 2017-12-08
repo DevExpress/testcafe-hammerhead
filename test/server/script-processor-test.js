@@ -412,7 +412,15 @@ describe('Script processor', () => {
                           'obj.{0}>>=value;obj.{0}<<=value;obj.{0}>>>=value;' +
                           'obj.{0}&=value;obj.{0}|=value;obj.{0}^=value'
             },
-            { src: 'obj.{0};let p = ""', expected: '__get$(obj, "{0}"); let p = ""' }
+            { src: 'obj.{0};let p = ""', expected: '__get$(obj, "{0}"); let p = ""' },
+            {
+                src:      'class x extends y{method(){return super.{0};}}',
+                expected: 'class x extends y{method(){return super.{0};}}'
+            },
+            {
+                src:      'class x extends y{method(){return super.{0} = value;}}',
+                expected: 'class x extends y{method(){return super.{0} = value;}}'
+            }
         ]);
     });
 
@@ -441,6 +449,14 @@ describe('Script processor', () => {
                 expected: 'obj[{0}]-=value;obj[{0}]*=value;obj[{0}]/=value;' +
                           'obj[{0}]>>=value;obj[{0}]<<=value;obj[{0}]>>>=value;' +
                           'obj[{0}]&=value;obj[{0}]|=value;obj[{0}]^=value'
+            },
+            {
+                src:      'class x extends y{method(){return super[{0}];}}',
+                expected: 'class x extends y{method(){return super[{0}];}}'
+            },
+            {
+                src:      'class x extends y{method(){return super[{0}] = value;}}',
+                expected: 'class x extends y{method(){return super[{0}] = value;}}'
             }
         ]);
     });
@@ -941,13 +957,6 @@ describe('Script processor', () => {
             testProcessing({
                 src:      'async function foo() {  return obj.src; }',
                 expected: 'async function foo() {  return __get$(obj, "src"); }'
-            });
-        });
-
-        it('Should process expression with `super` keyword (GH-1390)', () => {
-            testProcessing({
-                src:      'class x extends y{method(){return super[a];}}',
-                expected: 'class x extends y{method(){return __get$(super,a);}}'
             });
         });
     });
