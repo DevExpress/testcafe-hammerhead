@@ -12,7 +12,7 @@ import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const arraySlice = Array.prototype.slice;
+const arraySlice = nativeMethods.arraySlice;
 
 let scrollbarSize = null;
 

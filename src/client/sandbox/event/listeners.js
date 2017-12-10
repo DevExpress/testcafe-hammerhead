@@ -7,7 +7,7 @@ import { isWindow } from '../../utils/dom';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const arrayMap = Array.prototype.map;
+const arrayMap = nativeMethods.arrayMap;
 
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
