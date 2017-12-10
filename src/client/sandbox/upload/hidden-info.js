@@ -4,7 +4,7 @@ import * as JSON from '../../json';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const arraySlice = nativeMethods.arrayFilter;
+const arraySlice = nativeMethods.arraySlice;
 
 function createInput (form) {
     const hiddenInput = nativeMethods.createElement.call(document, 'input');
