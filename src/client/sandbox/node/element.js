@@ -26,7 +26,7 @@ const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const arraySlice = Array.prototype.slice;
+const arraySlice = nativeMethods.arraySlice;
 
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {

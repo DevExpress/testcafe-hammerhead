@@ -25,7 +25,7 @@ const nativeFunctionToString = nativeMethods.Function.toString();
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const arrayConcat = Array.prototype.concat;
+const arrayConcat = nativeMethods.arrayConcat;
 
 const HTTP_PROTOCOL_RE = /^http/i;
 

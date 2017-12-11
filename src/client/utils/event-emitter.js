@@ -1,6 +1,8 @@
+import nativeMethods from '../sandbox/native-methods';
+
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const arraySlice = Array.prototype.slice;
+const arraySlice = nativeMethods.arraySlice;
 
 export default class EventEmitter {
     constructor () {

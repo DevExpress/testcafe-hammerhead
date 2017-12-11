@@ -180,6 +180,19 @@ class NativeMethods {
         this.objectIsFrozen                 = win.Object.isFrozen;
         this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
 
+        // Array
+        this.arrayMap     = win.Array.prototype.map;
+        this.arraySlice   = win.Array.prototype.slice;
+        this.arrayConcat  = win.Array.prototype.concat;
+        this.arrayJoin    = win.Array.prototype.join;
+        this.arrayFilter  = win.Array.prototype.filter;
+        this.arrayIndexOf = win.Array.prototype.indexOf;
+        this.arrayForEach = win.Array.prototype.forEach;
+        this.arraySome    = win.Array.prototype.some;
+        this.arrayReverse = win.Array.prototype.reverse;
+        this.arrayReduce  = win.Array.prototype.reduce;
+        this.arrayIsArray = win.Array.prototype.isArray;
+
         // DOMParser
         if (win.DOMParser)
             this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;

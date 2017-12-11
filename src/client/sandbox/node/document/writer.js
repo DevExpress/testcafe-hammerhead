@@ -10,7 +10,7 @@ import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const arrayJoin = Array.prototype.join;
+const arrayJoin = nativeMethods.arrayJoin;
 
 const BEGIN_MARKER_TAG_NAME = 'hammerhead_write_marker_begin';
 const END_MARKER_TAG_NAME   = 'hammerhead_write_marker_end';

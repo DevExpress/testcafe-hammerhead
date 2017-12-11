@@ -1,7 +1,8 @@
 import DOMMutationTracker from './dom-mutation-tracker';
 import { isShadowUIElement } from '../../../utils/dom';
+import nativeMethods from '../../native-methods';
 
-const arrayFilter = Array.prototype.filter;
+const arrayFilter = nativeMethods.arrayFilter;
 
 export default class WrapperState {
     constructor (nodeList, tagName) {
