@@ -38,7 +38,7 @@ export default class ElementSandbox extends SandboxBase {
         this.iframeSandbox = iframeSandbox;
         this.eventSandbox  = eventSandbox;
 
-        this.overridedMethods = null;
+        this.overriddenMethods = null;
 
         this.BEFORE_FORM_SUBMIT_EVENT   = 'hammerhead|event|before-form-submit';
         this.SCRIPT_ELEMENT_ADDED_EVENT = 'hammerhead|event|script-added';
@@ -345,7 +345,7 @@ export default class ElementSandbox extends SandboxBase {
         // NOTE: We need the closure because a context of overridden methods is an html element
         const sandbox = this;
 
-        this.overridedMethods = {
+        this.overriddenMethods = {
             insertRow () {
                 const nativeMeth = domUtils.isTableElement(this)
                     ? nativeMethods.insertTableRow
@@ -645,38 +645,38 @@ export default class ElementSandbox extends SandboxBase {
 
         this._createOverridedMethods();
 
-        window.Element.prototype.insertBefore              = this.overridedMethods.insertBefore;
-        window.Element.prototype.appendChild               = this.overridedMethods.appendChild;
-        window.Element.prototype.replaceChild              = this.overridedMethods.replaceChild;
-        window.Element.prototype.removeChild               = this.overridedMethods.removeChild;
-        window.Element.prototype.setAttribute              = this.overridedMethods.setAttribute;
-        window.Element.prototype.setAttributeNS            = this.overridedMethods.setAttributeNS;
-        window.Element.prototype.getAttribute              = this.overridedMethods.getAttribute;
-        window.Element.prototype.getAttributeNS            = this.overridedMethods.getAttributeNS;
-        window.Element.prototype.removeAttribute           = this.overridedMethods.removeAttribute;
-        window.Element.prototype.removeAttributeNS         = this.overridedMethods.removeAttributeNS;
-        window.Element.prototype.cloneNode                 = this.overridedMethods.cloneNode;
-        window.Element.prototype.querySelector             = this.overridedMethods.querySelector;
-        window.Element.prototype.querySelectorAll          = this.overridedMethods.querySelectorAll;
-        window.Element.prototype.hasAttribute              = this.overridedMethods.hasAttribute;
-        window.Element.prototype.hasAttributeNS            = this.overridedMethods.hasAttributeNS;
-        window.Element.prototype.hasAttributes             = this.overridedMethods.hasAttributes;
-        window.Node.prototype.cloneNode                    = this.overridedMethods.cloneNode;
-        window.Node.prototype.appendChild                  = this.overridedMethods.appendChild;
-        window.Node.prototype.removeChild                  = this.overridedMethods.removeChild;
-        window.Node.prototype.insertBefore                 = this.overridedMethods.insertBefore;
-        window.Node.prototype.replaceChild                 = this.overridedMethods.replaceChild;
-        window.DocumentFragment.prototype.querySelector    = this.overridedMethods.querySelector;
-        window.DocumentFragment.prototype.querySelectorAll = this.overridedMethods.querySelectorAll;
-        window.HTMLTableElement.prototype.insertRow        = this.overridedMethods.insertRow;
-        window.HTMLTableSectionElement.prototype.insertRow = this.overridedMethods.insertRow;
-        window.HTMLTableRowElement.prototype.insertCell    = this.overridedMethods.insertCell;
-        window.HTMLFormElement.prototype.submit            = this.overridedMethods.formSubmit;
+        window.Element.prototype.insertBefore              = this.overriddenMethods.insertBefore;
+        window.Element.prototype.appendChild               = this.overriddenMethods.appendChild;
+        window.Element.prototype.replaceChild              = this.overriddenMethods.replaceChild;
+        window.Element.prototype.removeChild               = this.overriddenMethods.removeChild;
+        window.Element.prototype.setAttribute              = this.overriddenMethods.setAttribute;
+        window.Element.prototype.setAttributeNS            = this.overriddenMethods.setAttributeNS;
+        window.Element.prototype.getAttribute              = this.overriddenMethods.getAttribute;
+        window.Element.prototype.getAttributeNS            = this.overriddenMethods.getAttributeNS;
+        window.Element.prototype.removeAttribute           = this.overriddenMethods.removeAttribute;
+        window.Element.prototype.removeAttributeNS         = this.overriddenMethods.removeAttributeNS;
+        window.Element.prototype.cloneNode                 = this.overriddenMethods.cloneNode;
+        window.Element.prototype.querySelector             = this.overriddenMethods.querySelector;
+        window.Element.prototype.querySelectorAll          = this.overriddenMethods.querySelectorAll;
+        window.Element.prototype.hasAttribute              = this.overriddenMethods.hasAttribute;
+        window.Element.prototype.hasAttributeNS            = this.overriddenMethods.hasAttributeNS;
+        window.Element.prototype.hasAttributes             = this.overriddenMethods.hasAttributes;
+        window.Node.prototype.cloneNode                    = this.overriddenMethods.cloneNode;
+        window.Node.prototype.appendChild                  = this.overriddenMethods.appendChild;
+        window.Node.prototype.removeChild                  = this.overriddenMethods.removeChild;
+        window.Node.prototype.insertBefore                 = this.overriddenMethods.insertBefore;
+        window.Node.prototype.replaceChild                 = this.overriddenMethods.replaceChild;
+        window.DocumentFragment.prototype.querySelector    = this.overriddenMethods.querySelector;
+        window.DocumentFragment.prototype.querySelectorAll = this.overriddenMethods.querySelectorAll;
+        window.HTMLTableElement.prototype.insertRow        = this.overriddenMethods.insertRow;
+        window.HTMLTableSectionElement.prototype.insertRow = this.overriddenMethods.insertRow;
+        window.HTMLTableRowElement.prototype.insertCell    = this.overriddenMethods.insertCell;
+        window.HTMLFormElement.prototype.submit            = this.overriddenMethods.formSubmit;
 
         if (window.Element.prototype.insertAdjacentHTML)
-            window.Element.prototype.insertAdjacentHTML = this.overridedMethods.insertAdjacentHTML;
+            window.Element.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
         else if (window.HTMLElement.prototype.insertAdjacentHTML)
-            window.HTMLElement.prototype.insertAdjacentHTML = this.overridedMethods.insertAdjacentHTML;
+            window.HTMLElement.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
 
 
         this._setValidBrowsingContextOnElementClick(window);
@@ -689,15 +689,7 @@ export default class ElementSandbox extends SandboxBase {
             if (e.eventType === 'load' && domUtils.isImgElement(e.el))
                 ElementSandbox._setProxiedSrc(e.el);
         });
-        this.eventSandbox.on(this.eventSandbox.EVENT_ATTACHED_EVENT, e => {
-            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
-                ElementSandbox._setProxiedSrc(e.el);
-        });
         this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_DETACHED_EVENT, e => {
-            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
-                ElementSandbox.removeHasLoadHandlerFlag(e.el);
-        });
-        this.eventSandbox.on(this.eventSandbox.EVENT_DETACHED_EVENT, e => {
             if (e.eventType === 'load' && domUtils.isImgElement(e.el))
                 ElementSandbox.removeHasLoadHandlerFlag(e.el);
         });
