@@ -95,11 +95,8 @@ class NativeMethods {
         this.documentFragmentQuerySelectorAll = win.DocumentFragment.prototype.querySelectorAll;
         this.preventDefault                   = win.Event.prototype.preventDefault;
 
-        if (win.history) {
-            this.historyPushState    = win.history.pushState;
-            this.historyReplaceState = win.history.replaceState;
-        }
-
+        this.historyPushState    = win.history.pushState;
+        this.historyReplaceState = win.history.replaceState;
         this.windowDispatchEvent = win.dispatchEvent;
         this.postMessage         = win.postMessage || winProto.postMessage;
         this.windowOpen          = win.open || winProto.open;
@@ -125,23 +122,13 @@ class NativeMethods {
         this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
         this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
         this.xhrDispatchEvent         = win.XMLHttpRequest.prototype.dispatchEvent;
-
-        try {
-            this.registerServiceWorker = win.navigator.serviceWorker.register;
-        }
-        catch (e) {
-            this.registerServiceWorker = null;
-        }
-
+        this.registerServiceWorker    = win.navigator.serviceWorker && win.navigator.serviceWorker.register;
         this.createContextualFragment = win.Range.prototype.createContextualFragment;
 
-        if (win.Performance) {
-            const nativePerformance    = win.performance;
-            const nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
+        const nativePerformance    = win.performance;
+        const nativePerformanceNow = win.performance.now || win.Performance.prototype.now;
 
-            if (nativePerformanceNow)
-                this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
-        }
+        this.performanceNow = (...args) => nativePerformanceNow.apply(nativePerformance, args);
 
         // Fetch
         this.fetch   = win.fetch;
@@ -158,12 +145,9 @@ class NativeMethods {
         this.WindowKeyboardEvent       = win.KeyboardEvent || winProto.KeyboardEvent;
         this.WindowFocusEvent          = win.FocusEvent || winProto.FocusEvent;
 
-        // Canvas
-        this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
 
-        // FormData
-        if (win.FormData)
-            this.formDataAppend = win.FormData.prototype.append;
+        this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;
+        this.formDataAppend         = win.FormData.prototype.append;
 
         // DateTime
         this.date    = win.Date;
@@ -180,9 +164,7 @@ class NativeMethods {
         this.objectIsFrozen                 = win.Object.isFrozen;
         this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
 
-        // DOMParser
-        if (win.DOMParser)
-            this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
+        this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
         // Setters
         const inputValueDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
