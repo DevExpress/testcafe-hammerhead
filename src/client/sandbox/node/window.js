@@ -31,7 +31,7 @@ const arrayConcat = Array.prototype.concat;
 
 const HTTP_PROTOCOL_RE = /^http/i;
 
-const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:', 'chrome-extension:'];
+const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
 const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
 
 export default class WindowSandbox extends SandboxBase {
