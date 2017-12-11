@@ -12,7 +12,8 @@ import {
     getProxyUrl,
     parseProxyUrl,
     convertToProxyUrl,
-    stringifyResourceType
+    stringifyResourceType,
+    resolveUrlAsDest
 } from '../../utils/url';
 import { isFirefox, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket } from '../../utils/dom';
@@ -20,6 +21,7 @@ import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 import INSTRUCTION from '../../../processing/script/instruction';
+import Promise from 'pinkie';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -28,6 +30,9 @@ const nativeFunctionToString = nativeMethods.Function.toString();
 const arrayConcat = Array.prototype.concat;
 
 const HTTP_PROTOCOL_RE = /^http/i;
+
+const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
+const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox) {
@@ -107,6 +112,14 @@ export default class WindowSandbox extends SandboxBase {
                 return styleProcessor.cleanUp(oldValue, parseProxyUrl);
             };
         }
+    }
+
+    static _isSecureOrigin (url) {
+        // NOTE: https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
+        const parsedUrl = parseUrl(resolveUrlAsDest(url));
+
+        return ALLOWED_SERVICE_WORKER_PROTOCOLS.indexOf(parsedUrl.protocol) === -1 &&
+               ALLOWED_SERVICE_WORKER_HOST_NAMES.indexOf(parsedUrl.hostname) === -1;
     }
 
     handleEvent (event) {
@@ -304,11 +317,20 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.registerServiceWorker) {
             window.navigator.serviceWorker.register = (...args) => {
-                if (typeof args[0] === 'string')
-                    args[0] = getProxyUrl(args[0], { resourceType: stringifyResourceType({ isScript: true }) });
+                const url = args[0];
 
-                if (args[1] && typeof args[1].scope === 'string')
-                    args[1].scope = getProxyUrl(args[1].scope, { resourceType: stringifyResourceType({ isScript: true }) });
+                if (typeof url === 'string') {
+                    if (WindowSandbox._isSecureOrigin(url))
+                        return Promise.reject(new DOMException('Only secure origins are allowed.', 'SecurityError'));
+
+                    args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
+                }
+
+                if (args[1] && typeof args[1].scope === 'string') {
+                    args[1].scope = getProxyUrl(args[1].scope, {
+                        resourceType: stringifyResourceType({ isScript: true })
+                    });
+                }
 
                 return nativeMethods.registerServiceWorker.apply(window.navigator.serviceWorker, args);
             };

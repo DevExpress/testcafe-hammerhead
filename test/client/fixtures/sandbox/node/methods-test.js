@@ -277,6 +277,16 @@ if (window.navigator.serviceWorker) {
         window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl });
     });
 
+    test('should reject a Promise for unsecure url (GH-1411)', function () {
+        return window.navigator.serviceWorker.register('http://example.com/worker.js')
+            .then(function () {
+                ok(false);
+            })
+            .catch(function () {
+                ok(true);
+            });
+    });
+
     // NOTE: Service workers are only accessible via https. The easiest way around it is
     // to go to http://localhost instead of the IP address of the computer you are running.
     // https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
