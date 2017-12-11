@@ -136,7 +136,7 @@ export default class EventSandbox extends SandboxBase {
         window.Event.prototype.preventDefault                  = this.overriddenMethods.preventDefault;
 
         if (window.TextRange && window.TextRange.prototype.select)
-            window.TextRange.prototype.select = this.overridedMethods.select;
+            window.TextRange.prototype.select = this.overriddenMethods.select;
 
         this.initDocumentListening();
 
