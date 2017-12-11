@@ -133,11 +133,8 @@ export default class EventSandbox extends SandboxBase {
         window.HTMLElement.prototype.click                     = this.overriddenMethods.click;
         window.Window.focus                                    = this.overriddenMethods.focus;
         window.Window.blur                                     = this.overriddenMethods.blur;
-
-        if (window.TextRange && window.TextRange.prototype.select)
-            window.TextRange.prototype.select = this.overriddenMethods.select;
-
-        window.Event.prototype.preventDefault = this.overriddenMethods.preventDefault;
+        window.TextRange.prototype.select                      = this.overriddenMethods.select;
+        window.Event.prototype.preventDefault                  = this.overriddenMethods.preventDefault;
 
         this.initDocumentListening();
 
