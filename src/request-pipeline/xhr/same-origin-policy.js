@@ -22,7 +22,7 @@ export function check (ctx) {
         return true;
 
     const withCredentials        = !!ctx.req.headers[XHR_HEADERS.withCredentials] ||
-                                 ctx.req.headers[XHR_HEADERS.fetchRequestCredentials] === 'include';
+                                   ctx.req.headers[XHR_HEADERS.fetchRequestCredentials] === 'include';
     const allowOriginHeader      = ctx.destRes.headers['access-control-allow-origin'];
     const allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
     const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';

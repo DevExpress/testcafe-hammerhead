@@ -3,6 +3,7 @@ var destLocation = hammerhead.get('./utils/destination-location');
 var urlUtils     = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
+var Promise       = hammerhead.Promise;
 
 if (window.fetch) {
     test('global fetch - redirect request to proxy', function () {
@@ -332,23 +333,51 @@ if (window.fetch) {
     });
 
     module('regression', function () {
-        test('request promise should be rejected for the 500 http status code (GH-602)', function () {
-            return fetch('/respond-500')
-                .then(function (response) {
-                    return response.text();
-                })
-                .then(function () {
-                    ok(false, 'request promise should be rejected');
-                })
-                .catch(function (err) {
-                    ok(err instanceof TypeError);
-                });
+        test('should emulate native browser behavior for fetch requests that end with an error or non-success status code (GH-1397)', function () {
+            var performRequest = function (fetchFn, url) {
+                var logs = [];
+
+                return fetchFn(url)
+                    .then(function (response) {
+                        logs.push('fetch resolved');
+                        logs.push('status ' + response.status);
+                        logs.push('statusText ' + response.statusText);
+
+                        return response.text();
+                    })
+                    .then(function () {
+                        logs.push('response body read');
+                    })
+                    .catch(function (err) {
+                        logs.push('fetch rejected');
+                        logs.push(err);
+                    })
+                    .then(function () {
+                        return logs.join('\n');
+                    });
+            };
+
+            var checkUrl = function (url) {
+                return Promise.all([
+                    performRequest(fetch, url),
+                    performRequest(nativeMethods.fetch, url)
+                ])
+                    .then(function (logs) {
+                        strictEqual(logs[0], logs[1]);
+                    });
+            };
+
+            return Promise.all([
+                checkUrl('/close-request'),
+                checkUrl('/respond-500')
+            ]);
         });
 
         test('request promise should be rejected on invalid calling (GH-939)', function () {
             var testCases = [
                 123,
-                function () {},
+                function () {
+                },
                 null
             ];
 

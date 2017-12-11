@@ -6,6 +6,7 @@ var settings      = hammerhead.get('./settings');
 
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
+var Promise       = hammerhead.Promise;
 
 function getPrototypeFromChainContainsProp (obj, prop) {
     while (obj && !obj.hasOwnProperty(prop))
@@ -210,6 +211,7 @@ asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283
     var xhr       = new XMLHttpRequest();
     var timeoutId = null;
     var testDone  = function (eventObj) {
+        xhrSandbox.off(xhrSandbox.XHR_COMPLETED_EVENT, testDone);
         clearTimeout(timeoutId);
         ok(!!eventObj);
         start();
@@ -228,4 +230,50 @@ asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283
 
     xhr.open('GET', '/xhr-test/', true);
     xhr.send();
+});
+
+test('should emulate native browser behavior for xhr requests that end with an error or non-success status code (GH-1397)', function () {
+    var performRequest = function (xhr, url) {
+        return new Promise(function (resolve) {
+            var logs = [];
+
+            xhr.open('GET', url, true);
+
+            xhr.addEventListener('readystatechange', function () {
+                var log = 'ready state change event ' + this.readyState;
+
+                if (logs[logs.length - 1] !== log)
+                    logs.push(log);
+            });
+
+            xhr.addEventListener('load', function () {
+                logs.push('load event');
+
+                resolve(logs.join('\n'));
+            });
+
+            xhr.addEventListener('error', function () {
+                logs.push('error event');
+
+                resolve(logs.join('\n'));
+            });
+
+            xhr.send();
+        });
+    };
+
+    var checkUrl = function (url) {
+        return Promise.all([
+            performRequest(new XMLHttpRequest(), url),
+            performRequest(XhrSandbox.createNativeXHR(), url)
+        ])
+            .then(function (logs) {
+                strictEqual(logs[0], logs[1]);
+            });
+    };
+
+    return Promise.all([
+        checkUrl('/close-request'),
+        checkUrl('/respond-500')
+    ]);
 });

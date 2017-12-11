@@ -83,9 +83,6 @@ export default class FetchSandbox extends SandboxBase {
             const originalThenHandler = args[0];
 
             args[0] = function (response) {
-                if (response.status === 500)
-                    throw new TypeError();
-
                 nativeMethods.objectDefineProperty.call(win.Object, response, 'type', {
                     get:          () => FetchSandbox._getResponseType(response),
                     set:          () => void 0,
