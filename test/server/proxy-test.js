@@ -807,7 +807,7 @@ describe('Proxy', () => {
             });
         });
 
-        it('Should generate an error if an error occurred when attempting to contact with destination server', done => {
+        it('Should respond with error if an error is occurred on attempting to connect with destination server', done => {
             const options = {
                 url:     proxy.openSession('https://127.0.0.1:2000/', session),
                 headers: {

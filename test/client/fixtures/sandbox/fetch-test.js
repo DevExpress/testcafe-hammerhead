@@ -333,8 +333,8 @@ if (window.fetch) {
     });
 
     module('regression', function () {
-        test('request promise should emulate native behavior with error and error status code (GH-1397)', function () {
-            var makeFetch = function (fetchFn, url) {
+        test('should emulate native browser behavior for fetch requests that end with an error or non-success status code (GH-1397)', function () {
+            var performRequest = function (fetchFn, url) {
                 var logs = [];
 
                 return fetchFn(url)
@@ -359,8 +359,8 @@ if (window.fetch) {
 
             var checkUrl = function (url) {
                 return Promise.all([
-                    makeFetch(fetch, url),
-                    makeFetch(nativeMethods.fetch, url)
+                    performRequest(fetch, url),
+                    performRequest(nativeMethods.fetch, url)
                 ])
                     .then(function (logs) {
                         strictEqual(logs[0], logs[1]);
@@ -368,7 +368,7 @@ if (window.fetch) {
             };
 
             return Promise.all([
-                checkUrl('/generate-client-net-error'),
+                checkUrl('/close-request'),
                 checkUrl('/respond-500')
             ]);
         });

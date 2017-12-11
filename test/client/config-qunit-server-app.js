@@ -113,7 +113,7 @@ module.exports = function (app) {
         res.send('Server error');
     });
 
-    app.get('/generate-client-net-error', function (req) {
+    app.get('/close-request', function (req) {
         req.destroy();
     });
 

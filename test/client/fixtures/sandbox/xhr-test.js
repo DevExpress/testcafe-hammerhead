@@ -242,8 +242,8 @@ asyncTest('"XHR_COMPLETED_EVENT" should be raised when xhr is prevented (GH-1283
     xhr.send();
 });
 
-test('xhr request should emulate native behavior with error and error status code (GH-1397)', function () {
-    var makeFetch = function (xhr, url) {
+test('should emulate native browser behavior for xhr requests that end with an error or non-success status code (GH-1397)', function () {
+    var performRequest = function (xhr, url) {
         return new Promise(function (resolve) {
             var logs = [];
 
@@ -274,8 +274,8 @@ test('xhr request should emulate native behavior with error and error status cod
 
     var checkUrl = function (url) {
         return Promise.all([
-            makeFetch(new XMLHttpRequest(), url),
-            makeFetch(XhrSandbox.createNativeXHR(), url)
+            performRequest(new XMLHttpRequest(), url),
+            performRequest(XhrSandbox.createNativeXHR(), url)
         ])
             .then(function (logs) {
                 strictEqual(logs[0], logs[1]);
@@ -283,7 +283,7 @@ test('xhr request should emulate native behavior with error and error status cod
     };
 
     return Promise.all([
-        checkUrl('/generate-client-net-error'),
+        checkUrl('/close-request'),
         checkUrl('/respond-500')
     ]);
 });
