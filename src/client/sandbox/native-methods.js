@@ -122,7 +122,14 @@ class NativeMethods {
         this.xhrSetRequestHeader      = win.XMLHttpRequest.prototype.setRequestHeader;
         this.xhrOverrideMimeType      = win.XMLHttpRequest.prototype.overrideMimeType;
         this.xhrDispatchEvent         = win.XMLHttpRequest.prototype.dispatchEvent;
-        this.registerServiceWorker    = win.navigator.serviceWorker && win.navigator.serviceWorker.register;
+
+        try {
+            this.registerServiceWorker = win.navigator.serviceWorker.register;
+        }
+        catch (e) {
+            this.registerServiceWorker = null;
+        }
+
         this.createContextualFragment = win.Range.prototype.createContextualFragment;
 
         const nativePerformance    = win.performance;
