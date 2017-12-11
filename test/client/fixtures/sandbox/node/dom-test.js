@@ -1,22 +1,8 @@
 var urlUtils = hammerhead.get('./utils/url');
 
-var nativeMethods  = hammerhead.nativeMethods;
-var iframeSandbox  = hammerhead.sandbox.iframe;
 var nodeMutation   = hammerhead.sandbox.node.mutation;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 var listeners      = hammerhead.sandbox.event.listeners;
-
-QUnit.testStart(function () {
-    // NOTE: The 'window.open' method used in QUnit.
-    window.open       = nativeMethods.windowOpen;
-    window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 asyncTest('prevent "error" event during image reloading', function () {
     var storedGetProxyUrl      = urlUtils.getProxyUrl;

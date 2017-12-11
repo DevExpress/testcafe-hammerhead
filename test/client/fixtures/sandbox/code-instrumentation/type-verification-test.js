@@ -1,16 +1,6 @@
 var urlUtils = hammerhead.get('./utils/url');
 
-var accessors     = hammerhead.sandbox.codeInstrumentation.elementPropertyAccessors;
-var iframeSandbox = hammerhead.sandbox.iframe;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
+var accessors = hammerhead.sandbox.codeInstrumentation.elementPropertyAccessors;
 
 test('is anchor instance', function () {
     var anchor = document.createElement('a');

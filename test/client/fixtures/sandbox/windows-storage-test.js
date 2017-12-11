@@ -1,14 +1,4 @@
-var iframeSandbox = hammerhead.sandbox.iframe;
 var windowStorage = hammerhead.sandbox.windowStorage;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 test('iframe', function () {
     var iframe = document.createElement('iframe');

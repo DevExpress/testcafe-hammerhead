@@ -4,18 +4,8 @@ var AUTHORIZATION = hammerhead.get('./../request-pipeline/xhr/authorization');
 var destLocation  = hammerhead.get('./utils/destination-location');
 var settings      = hammerhead.get('./settings');
 
-var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 function getPrototypeFromChainContainsProp (obj, prop) {
     while (obj && !obj.hasOwnProperty(prop))

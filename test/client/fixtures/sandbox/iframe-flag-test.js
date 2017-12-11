@@ -1,21 +1,8 @@
 var urlUtils = hammerhead.get('./utils/url');
 var settings = hammerhead.get('./settings');
 
-var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
-
-QUnit.testStart(function () {
-    // NOTE: The 'window.open' method used in QUnit.
-    window.open       = nativeMethods.windowOpen;
-    window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 function hasIframeFlag (url) {
     var resourceType = urlUtils.parseProxyUrl(url).resourceType;
