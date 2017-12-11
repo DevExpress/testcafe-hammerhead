@@ -1,17 +1,6 @@
-var iframeSandbox = hammerhead.sandbox.iframe;
-var Promise       = hammerhead.Promise;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
+var Promise = hammerhead.Promise;
 
 module('regression');
-
 
 test('should prevent navigation from the about:blank page to the relative url (GH-645)', function () {
     var iframe = document.createElement('iframe');

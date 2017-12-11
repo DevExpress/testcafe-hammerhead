@@ -1,19 +1,9 @@
 var browserUtils   = hammerhead.utils.browser;
 var nativeMethods  = hammerhead.nativeMethods;
-var iframeSandbox  = hammerhead.sandbox.iframe;
 var listeners      = hammerhead.sandbox.event.listeners;
 var focusBlur      = hammerhead.sandbox.event.focusBlur;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 var listeningCtx   = hammerhead.get('../client/sandbox/event/listening-context');
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 asyncTest('override setTimeout error (T203986)', function () {
     var str = 'success';

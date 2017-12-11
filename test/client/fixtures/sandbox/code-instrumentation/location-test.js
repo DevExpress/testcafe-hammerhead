@@ -7,18 +7,8 @@ var destLocation            = hammerhead.get('./utils/destination-location');
 var urlResolver             = hammerhead.get('./utils/url-resolver');
 
 var Promise       = hammerhead.Promise;
-var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 test('iframe with empty src', function () {
     function assert (iframe) {

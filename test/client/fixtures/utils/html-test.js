@@ -6,17 +6,7 @@ var urlUtils       = hammerhead.get('./utils/url');
 var urlResolver    = hammerhead.get('./utils/url-resolver');
 
 var nativeMethods = hammerhead.nativeMethods;
-var iframeSandbox = hammerhead.sandbox.iframe;
 var shadowUI      = hammerhead.sandbox.shadowUI;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 module('clean up html');
 

@@ -2,18 +2,8 @@ var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
 var domUtils      = hammerhead.utils.dom;
 var browserUtils  = hammerhead.utils.browser;
-var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
 var Promise       = hammerhead.Promise;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 module('isCrossDomainWindows', function () {
     test('self', function () {

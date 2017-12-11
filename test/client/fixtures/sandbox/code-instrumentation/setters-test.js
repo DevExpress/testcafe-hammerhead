@@ -8,18 +8,8 @@ var isScriptProcessed = hammerhead.get('../processing/script').isScriptProcessed
 var Promise               = hammerhead.Promise;
 var nativeMethods         = hammerhead.nativeMethods;
 var browserUtils          = hammerhead.utils.browser;
-var iframeSandbox         = hammerhead.sandbox.iframe;
 var elementEditingWatcher = hammerhead.sandbox.event.elementEditingWatcher;
 var eventSimulator        = hammerhead.sandbox.event.eventSimulator;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 test('unsupported protocol', function () {
     var img = document.createElement('img');

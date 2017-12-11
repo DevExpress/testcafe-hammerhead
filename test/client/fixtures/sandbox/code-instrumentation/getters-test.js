@@ -13,16 +13,6 @@ var processHtml                          = hammerhead.get('../client/utils/html'
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 var shadowUI      = hammerhead.sandbox.shadowUI;
-var iframeSandbox = hammerhead.sandbox.iframe;
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 var DocumentMock = function (prop, value) {
     this[prop] = value;

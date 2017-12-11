@@ -4,20 +4,7 @@ var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties'
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
-var iframeSandbox = hammerhead.sandbox.iframe;
 var Promise       = hammerhead.Promise;
-
-QUnit.testStart(function () {
-    // NOTE: The 'window.open' method used in QUnit.
-    window.open       = nativeMethods.windowOpen;
-    window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 test('document.write for iframe.src with javascript protocol', function () {
     var $div = $('<div>').appendTo('body');

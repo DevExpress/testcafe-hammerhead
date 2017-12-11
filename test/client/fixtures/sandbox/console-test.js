@@ -1,6 +1,5 @@
 var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
-var iframeSandbox = hammerhead.sandbox.iframe;
 var browserUtils  = hammerhead.utils.browser;
 
 
@@ -9,16 +8,6 @@ function wait (ms) {
         window.setTimeout(resolve, ms);
     });
 }
-
-
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 if (window.console && typeof window.console.log !== 'undefined') {
     test('consoleMethCalled event', function () {

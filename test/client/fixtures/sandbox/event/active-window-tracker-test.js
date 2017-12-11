@@ -1,15 +1,7 @@
 var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
-var iframeSandbox       = hammerhead.sandbox.iframe;
 var Promise             = hammerhead.Promise;
 
-QUnit.testStart(function () {
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
 QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-
     document.body.focus();
 });
 

@@ -2,21 +2,8 @@ var settings = hammerhead.get('./settings');
 
 var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
-var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var shadowUI      = hammerhead.sandbox.shadowUI;
-
-QUnit.testStart(function () {
-    // NOTE: The 'window.open' method used in QUnit.
-    window.open       = nativeMethods.windowOpen;
-    window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 test('event should not raise before iframe is appended to DOM', function () {
     var eventRaised = false;

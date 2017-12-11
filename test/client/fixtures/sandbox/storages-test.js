@@ -2,7 +2,6 @@ var StorageWrapper = hammerhead.get('./sandbox/storages/wrapper');
 var settings       = hammerhead.get('./settings');
 
 var storageSandbox = hammerhead.sandbox.storageSandbox;
-var iframeSandbox  = hammerhead.sandbox.iframe;
 var Promise        = hammerhead.Promise;
 var isIE           = hammerhead.utils.browser.isIE;
 
@@ -14,13 +13,6 @@ QUnit.testStart(function () {
     window.sessionStorage.clear();
     storageSandbox.localStorage.clear();
     storageSandbox.sessionStorage.clear();
-
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 });
 
 function waitStorageUpdated () {

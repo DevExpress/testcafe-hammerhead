@@ -5,7 +5,6 @@ var destLocation   = hammerhead.get('./utils/destination-location');
 var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
 var browserUtils  = hammerhead.utils.browser;
-var iframeSandbox = hammerhead.sandbox.iframe;
 var nativeMethods = hammerhead.nativeMethods;
 var nodeSandbox   = hammerhead.sandbox.node;
 var Promise       = hammerhead.Promise;
@@ -13,18 +12,6 @@ var Promise       = hammerhead.Promise;
 var PROXY_PORT     = 1337;
 var PROXY_HOSTNAME = '127.0.0.1';
 var PROXY_HOST     = PROXY_HOSTNAME + ':' + PROXY_PORT;
-
-QUnit.testStart(function () {
-    // NOTE: The 'window.open' method used in QUnit.
-    window.open       = nativeMethods.windowOpen;
-    window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 function getProxyUrl (url, resourceType) {
     return urlUtils.getProxyUrl(url, {

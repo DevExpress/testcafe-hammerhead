@@ -14,6 +14,7 @@
     var destLocation   = hammerhead.get('./utils/destination-location');
     var settings       = hammerhead.get('./settings');
     var nativeMethods  = hammerhead.nativeMethods;
+    var iframeSandbox  = hammerhead.sandbox.iframe;
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
@@ -185,5 +186,12 @@
 
     QUnit.moduleStart(function () {
         hammerhead.sandbox.node.raiseBodyCreatedEvent();
+    });
+    QUnit.testStart(function () {
+        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, window.initIframeTestHandler);
+        iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+    });
+    QUnit.testDone(function () {
+        iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, window.initIframeTestHandler);
     });
 })();

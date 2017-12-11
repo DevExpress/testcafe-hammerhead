@@ -8,18 +8,6 @@ var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
-var iframeSandbox = hammerhead.sandbox.iframe;
-
-QUnit.testStart(function () {
-    // NOTE: The 'window.open' method used in QUnit.
-    window.open = nativeMethods.windowOpen;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 test('iframe', function () {
     var iframe         = nativeMethods.createElement.call(document, 'iframe');

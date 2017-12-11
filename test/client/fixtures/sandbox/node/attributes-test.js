@@ -9,20 +9,7 @@ var processScript    = hammerhead.get('../processing/script').processScript;
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
-var iframeSandbox = hammerhead.sandbox.iframe;
 var unloadSandbox = hammerhead.sandbox.event.unload;
-
-QUnit.testStart(function () {
-    // NOTE: The 'window.open' method used in QUnit.
-    window.open       = nativeMethods.windowOpen;
-    window.setTimeout = nativeMethods.setTimeout;
-    iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
-});
-
-QUnit.testDone(function () {
-    iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
-});
 
 // NOTE: IE11 has a strange bug that does not allow this test to pass
 if (!browserUtils.isIE || browserUtils.version !== 11) {
