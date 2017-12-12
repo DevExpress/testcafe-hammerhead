@@ -339,3 +339,35 @@ export function createExpandedConcatOperation (left, right) {
         }
     };
 }
+
+export function createHtmlProcessorWrapper (node) {
+    return {
+        type: Syntax.ExpressionStatement,
+
+        expression: {
+            type: Syntax.CallExpression,
+
+            callee: {
+                type: Syntax.MemberExpression,
+
+                object: {
+                    type: Syntax.Identifier,
+                    name: 'parent'
+                },
+
+                property: {
+                    type: Syntax.Identifier,
+                    name: INSTRUCTION.processHtml
+                }
+            },
+
+            arguments: [
+                {
+                    type: Syntax.Identifier,
+                    name: 'window'
+                },
+                node.expression
+            ]
+        }
+    };
+}

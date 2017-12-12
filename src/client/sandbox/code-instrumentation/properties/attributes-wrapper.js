@@ -1,5 +1,4 @@
 import { isHammerheadAttr } from '../../../utils/dom';
-import { getStoredAttrName } from '../../../dom-processor';
 import fnBind from '../../../utils/fn-bind';
 import nativeMethods from '../../native-methods';
 import DomProcessor from '../../../../processing/dom';
@@ -43,7 +42,7 @@ export default class AttributesWrapper {
             let attr = attributes[i];
 
             if (!isHammerheadAttr(attr.name)) {
-                const storedAttr = attributes[getStoredAttrName(attr.name)];
+                const storedAttr = attributes[DomProcessor.getStoredAttrName(attr.name)];
 
                 if (storedAttr) {
                     if (DomProcessor.isAddedAutocompleteAttr(attr.name, storedAttr.value))

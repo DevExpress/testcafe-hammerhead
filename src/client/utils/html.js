@@ -1,6 +1,7 @@
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
+import DomProcessor from '../../processing/dom';
 import domProcessor from '../dom-processor';
 import { remove as removeProcessingHeader } from '../../processing/script/header';
 import styleProcessor from '../../processing/style';
@@ -29,16 +30,7 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
-const ATTRS_FOR_CLEANING    = (() => {
-    const attrs = [];
-
-    for (const attr of domProcessor.URL_ATTRS)
-        attrs.push({ attr, storedAttr: domProcessor.getStoredAttrName(attr) });
-
-    attrs.push({ attr: 'autocomplete', storedAttr: domProcessor.getStoredAttrName('autocomplete') });
-
-    return attrs;
-})();
+const ATTRS_FOR_CLEANING    = DomProcessor.getAttrsForCleaning();
 const STORED_ATTRS_SELECTOR = (() => {
     const storedAttrs = [];
 
@@ -71,13 +63,6 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
 
 let htmlDocument = document.implementation.createHTMLDocument('title');
 let htmlParser   = htmlDocument.createDocumentFragment();
-
-domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, (html, callback) => {
-    if (!isPageHtml(html))
-        html = `<html><body>${ html }</body></html>`;
-
-    callback(processHtml(html));
-});
 
 function getHtmlDocument () {
     try {
@@ -197,7 +182,7 @@ export function cleanUpHtml (html) {
     });
 }
 
-export function processHtml (html, parentTag, prepareDom) {
+export function processHtml (html, { parentTag, prepareDom, processedContext } = {}) {
     return processHtmlInternal(html, container => {
         const htmlElements  = [];
         let children        = [];
@@ -221,6 +206,7 @@ export function processHtml (html, parentTag, prepareDom) {
             if (isScriptElement(child))
                 child.textContent = unwrapHtmlText(child.textContent);
 
+            child[INTERNAL_PROPS.processedContext] = processedContext;
             domProcessor.processElement(child, convertToProxyUrl);
 
             const elTagName = getTagName(child);

@@ -3,7 +3,7 @@ import { parseProxyUrl } from '../utils/url';
 import { isChangedOnlyHash } from './utils/url';
 import { isShadowUIElement, isAnchorElement, isFormElement, closest } from './utils/dom';
 import * as windowsStorage from './sandbox/windows-storage';
-import domProcessor from './dom-processor/index';
+import { getStoredAttrName, isJsProtocol } from '../processing/dom';
 import nextTick from './utils/next-tick';
 import nativeMethods from './sandbox/native-methods';
 
@@ -57,7 +57,7 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     static _getTargetWindow (el) {
-        const target = nativeMethods.getAttribute.call(el, domProcessor.getStoredAttrName('target')) ||
+        const target = nativeMethods.getAttribute.call(el, getStoredAttrName('target')) ||
                        nativeMethods.getAttribute.call(el, 'target') ||
                        '_self';
 
@@ -125,7 +125,7 @@ export default class PageNavigationWatch extends EventEmiter {
         this.lastLocationValue = window.location.toString();
 
         if (url !== currentLocation && (url.charAt(0) === '#' || isChangedOnlyHash(currentLocation, url)) ||
-            domProcessor.JAVASCRIPT_PROTOCOL_REG_EX.test(url))
+            isJsProtocol(url))
             return;
 
         this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);

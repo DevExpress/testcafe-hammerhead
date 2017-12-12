@@ -21,6 +21,7 @@ import locationSetTransformer from './location-set';
 import propertyGetTransformer from './property-get';
 import propertySetTransformer from './property-set';
 import methodCallTransformer from './method-call';
+import jsProtocolLastExpression from './js-protocol-last-expression';
 
 
 const TRANSFORMERS = [
@@ -41,7 +42,8 @@ const TRANSFORMERS = [
     locationSetTransformer,
     propertyGetTransformer,
     propertySetTransformer,
-    methodCallTransformer
+    methodCallTransformer,
+    jsProtocolLastExpression
 ];
 
 

@@ -47,18 +47,18 @@
     <script type="text/javascript"> { a : __get$(window,"location") } </script>
     <script type="text/javascript">
 //<![CDATA[
-/*hammerhead|script|start*/if(typeof window!=="undefined"&&window){window["hammerhead|process-dom-method"] && window["hammerhead|process-dom-method"]();}else{var __get$Loc=function(l){return l},__set$Loc=function(l,v){return l = v},__set$=function(o,p,v){return o[p] = v},__get$=function(o,p){return o[p]},__call$=function(o,p,a){return o[p].apply(o,a)},__get$Eval=function(e){return e},__proc$Script=function(s){return s},__get$Storage=function(s){return s},__get$PostMessage=function(w,p){return arguments.length===1?w.postMessage:p};}/*hammerhead|script|processing-header-end*/
+/*hammerhead|script|start*/if(typeof window!=="undefined"&&window){window["hammerhead|process-dom-method"] && window["hammerhead|process-dom-method"]();}else{var __get$Loc=function(l){return l},__set$Loc=function(l,v){return l = v},__set$=function(o,p,v){return o[p] = v},__get$=function(o,p){return o[p]},__call$=function(o,p,a){return o[p].apply(o,a)},__get$Eval=function(e){return e},__proc$Script=function(s){return s},__proc$Html=function(h){return h},__get$Storage=function(s){return s},__get$PostMessage=function(w,p){return arguments.length===1?w.postMessage:p};}/*hammerhead|script|processing-header-end*/
 __set$(window,"location",'test'); 0,function(){return __set$Loc(location,'test')||(location='test');}.call(this); __set$(document,"location",'test'); __set$(document,"domain",'test'); __set$(document,"cookie",'test');
 /*hammerhead|script|end*///]]></script>
     <script type="text/javascript">
         <!--//--><![CDATA[//><!--
-/*hammerhead|script|start*/if(typeof window!=="undefined"&&window){window["hammerhead|process-dom-method"] && window["hammerhead|process-dom-method"]();}else{var __get$Loc=function(l){return l},__set$Loc=function(l,v){return l = v},__set$=function(o,p,v){return o[p] = v},__get$=function(o,p){return o[p]},__call$=function(o,p,a){return o[p].apply(o,a)},__get$Eval=function(e){return e},__proc$Script=function(s){return s},__get$Storage=function(s){return s},__get$PostMessage=function(w,p){return arguments.length===1?w.postMessage:p};}/*hammerhead|script|processing-header-end*/        var someScript;
+/*hammerhead|script|start*/if(typeof window!=="undefined"&&window){window["hammerhead|process-dom-method"] && window["hammerhead|process-dom-method"]();}else{var __get$Loc=function(l){return l},__set$Loc=function(l,v){return l = v},__set$=function(o,p,v){return o[p] = v},__get$=function(o,p){return o[p]},__call$=function(o,p,a){return o[p].apply(o,a)},__get$Eval=function(e){return e},__proc$Script=function(s){return s},__proc$Html=function(h){return h},__get$Storage=function(s){return s},__get$PostMessage=function(w,p){return arguments.length===1?w.postMessage:p};}/*hammerhead|script|processing-header-end*/        var someScript;
 /*hammerhead|script|end*///--><!]]>
     </script>
     <!-- T217636: Health monitor - script incorrectly processes html-comments (flipkart.com) -->
     <script type="text/javascript">
         <!--<script type="text/javascript">-->
-/*hammerhead|script|start*/if(typeof window!=="undefined"&&window){window["hammerhead|process-dom-method"] && window["hammerhead|process-dom-method"]();}else{var __get$Loc=function(l){return l},__set$Loc=function(l,v){return l = v},__set$=function(o,p,v){return o[p] = v},__get$=function(o,p){return o[p]},__call$=function(o,p,a){return o[p].apply(o,a)},__get$Eval=function(e){return e},__proc$Script=function(s){return s},__get$Storage=function(s){return s},__get$PostMessage=function(w,p){return arguments.length===1?w.postMessage:p};}/*hammerhead|script|processing-header-end*/
+/*hammerhead|script|start*/if(typeof window!=="undefined"&&window){window["hammerhead|process-dom-method"] && window["hammerhead|process-dom-method"]();}else{var __get$Loc=function(l){return l},__set$Loc=function(l,v){return l = v},__set$=function(o,p,v){return o[p] = v},__get$=function(o,p){return o[p]},__call$=function(o,p,a){return o[p].apply(o,a)},__get$Eval=function(e){return e},__proc$Script=function(s){return s},__proc$Html=function(h){return h},__get$Storage=function(s){return s},__get$PostMessage=function(w,p){return arguments.length===1?w.postMessage:p};}/*hammerhead|script|processing-header-end*/
         var someScript;
 /*hammerhead|script|end*/</script>
     <link rel="import" href="http://127.0.0.1:1836/sessionId!h/http://link.url/some-imported-page.html" href-hammerhead-stored-value="http://link.url/some-imported-page.html">
@@ -78,7 +78,7 @@ __set$(window,"location",'test'); 0,function(){return __set$Loc(location,'test')
 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEcAAAARCAYAAAH4YIF">
 <a id="link" href="http://127.0.0.1:1836/sessionId/http://link.url" href-hammerhead-stored-value="http://link.url"></a>
 <a id="httpsLink" href="http://127.0.0.1:1836/sessionId/https://link.url" href-hammerhead-stored-value="https://link.url"></a>
-<a id="javascriptLink" href="javascript: void(0);"></a>
+<a id="javascriptLink" href="javascript: parent.__proc$Html(window,void 0);" href-hammerhead-stored-value="javascript: void(0);"></a>
 <a id="mailtoLink" href="mailto: some@e.mail"></a>
 <a id="hashLink" href="#42"></a>
 <a id="aboutBlankLink" href="http://127.0.0.1:1836/sessionId/about:blank" href-hammerhead-stored-value="about:blank"></a>
@@ -88,8 +88,8 @@ __set$(window,"location",'test'); 0,function(){return __set$Loc(location,'test')
 
 <div id="href-test" class="HP-innerHTML" data-test="{location: 9034, filter: 'dlk4k', action: 349}"></div>
 
-<a href="javascript:onclick(&quot;1&quot;);"></a>
-<a href="javascript: __set$(a,&quot;src&quot;,&quot;test&quot;)" href-hammerhead-stored-value="javascript:a.src=&quot;test&quot;"></a>
+<a href="javascript: parent.__proc$Html(window,onclick(&quot;1&quot;));" href-hammerhead-stored-value="javascript:onclick(&quot;1&quot;);"></a>
+<a href="javascript: parent.__proc$Html(window,__set$(a,&quot;src&quot;,&quot;test&quot;))" href-hammerhead-stored-value="javascript:a.src=&quot;test&quot;"></a>
 <div onclick=" __set$(window,&quot;location&quot;,'test'); return false;" onclick-hammerhead-stored-value="window.location='test'; return false;"></div>
 <div onclick="javascript: __set$(window,&quot;location&quot;,'test'); return false;" onclick-hammerhead-stored-value="javascript:window.location='test'; return false;"></div>
 
@@ -104,33 +104,9 @@ __set$(window,"location",'test'); 0,function(){return __set$Loc(location,'test')
 <input type="password" autocomplete="off" autocomplete-hammerhead-stored-value="off">
 <input type="email" autocomplete="off" autocomplete-hammerhead-stored-value="">
 
-<iframe src="javascript:'<html><head><meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;><meta class=&quot;charset-hammerhead-shadow-ui&quot; charset=&quot;utf-8&quot;><link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; class=&quot;ui-stylesheet-hammerhead-shadow-ui&quot; href=&quot;http://127.0.0.1:1836/styles1.css&quot;><link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; class=&quot;ui-stylesheet-hammerhead-shadow-ui&quot; href=&quot;http://127.0.0.1:1836/styles2.css&quot;><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/hammerhead.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/script1.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/script2.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/task.js&quot;></script></head><body><script type=&quot;text/javascript&quot; class=&quot;self-removing-script-hammerhead-shadow-ui&quot;>
-    (function () {
-        if (window[&quot;%hammerhead%&quot;])
-            window[&quot;%hammerhead%&quot;].sandbox.node.raiseBodyCreatedEvent();
-
-        var script = document.currentScript || document.scripts[document.scripts.length - 1];
-        script.parentNode.removeChild(script);
-    })();
-</script><a id=&quot;link&quot; href=&quot;http://127.0.0.1:1836/sessionId!i/http://link.url&quot; href-hammerhead-stored-value=&quot;http://link.url&quot;></a></body></html>'" src-hammerhead-stored-value="javascript:'<html><body><a id=&quot;link&quot; href=&quot;http://link.url&quot;></a></body></html>'"></iframe>
-<iframe src="javascript:'<html><head><meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;><meta class=&quot;charset-hammerhead-shadow-ui&quot; charset=&quot;utf-8&quot;><link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; class=&quot;ui-stylesheet-hammerhead-shadow-ui&quot; href=&quot;http://127.0.0.1:1836/styles1.css&quot;><link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; class=&quot;ui-stylesheet-hammerhead-shadow-ui&quot; href=&quot;http://127.0.0.1:1836/styles2.css&quot;><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/hammerhead.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/script1.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/script2.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/task.js&quot;></script></head><body><script type=&quot;text/javascript&quot; class=&quot;self-removing-script-hammerhead-shadow-ui&quot;>
-    (function () {
-        if (window[&quot;%hammerhead%&quot;])
-            window[&quot;%hammerhead%&quot;].sandbox.node.raiseBodyCreatedEvent();
-
-        var script = document.currentScript || document.scripts[document.scripts.length - 1];
-        script.parentNode.removeChild(script);
-    })();
-</script><a id=&quot;link&quot; href=&quot;http://127.0.0.1:1836/sessionId!i/http://link.url&quot; href-hammerhead-stored-value=&quot;http://link.url&quot;>  </a></body></html>'" src-hammerhead-stored-value="javascript:&quot;<html><body><a id='link'   href='http://link.url'>  </a></body></html>&quot;"></iframe>
-<iframe src="javascript:'<html><head><meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;><meta class=&quot;charset-hammerhead-shadow-ui&quot; charset=&quot;utf-8&quot;><link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; class=&quot;ui-stylesheet-hammerhead-shadow-ui&quot; href=&quot;http://127.0.0.1:1836/styles1.css&quot;><link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; class=&quot;ui-stylesheet-hammerhead-shadow-ui&quot; href=&quot;http://127.0.0.1:1836/styles2.css&quot;><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/hammerhead.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/script1.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/script2.js&quot;></script><script type=&quot;text/javascript&quot; class=&quot;script-hammerhead-shadow-ui&quot; charset=&quot;UTF-8&quot; src=&quot;http://127.0.0.1:1836/task.js&quot;></script></head><body><script type=&quot;text/javascript&quot; class=&quot;self-removing-script-hammerhead-shadow-ui&quot;>
-    (function () {
-        if (window[&quot;%hammerhead%&quot;])
-            window[&quot;%hammerhead%&quot;].sandbox.node.raiseBodyCreatedEvent();
-
-        var script = document.currentScript || document.scripts[document.scripts.length - 1];
-        script.parentNode.removeChild(script);
-    })();
-</script><div></div></body></html>'" src-hammerhead-stored-value="javascript:'<div></div>'"></iframe>
+<iframe src="javascript: parent.__proc$Html(window,'<html><body><a id=&quot;link&quot; href=&quot;http://link.url&quot;></a></body></html>')" src-hammerhead-stored-value="javascript:'<html><body><a id=&quot;link&quot; href=&quot;http://link.url&quot;></a></body></html>'"></iframe>
+<iframe src="javascript: parent.__proc$Html(window,&quot;<html><body><a id='link' href='http://link.url'> </a></body></html>&quot;)" src-hammerhead-stored-value="javascript:&quot;<html><body><a id='link' href='http://link.url'> </a></body></html>&quot;"></iframe>
+<iframe src="javascript: parent.__proc$Html(window,'<div></div>')" src-hammerhead-stored-value="javascript:'<div></div>'"></iframe>
 <svg xml:base="http://127.0.0.1:1836/sessionId/http://domain.com/" xml:base-hammerhead-stored-value="http://domain.com/">
     <rect xml:base="http://127.0.0.1:1836/sessionId/http://sub.domain.com/" xml:base-hammerhead-stored-value="http://sub.domain.com/">
         <use xlink:href="#svg-rect" xlink:href-hammerhead-stored-value="#svg-rect"></use>

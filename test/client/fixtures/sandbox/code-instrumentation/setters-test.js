@@ -1,6 +1,6 @@
 var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
 var urlUtils          = hammerhead.get('./utils/url');
-var domProcessor      = hammerhead.get('./dom-processor');
+var DomProcessor      = hammerhead.get('../processing/dom');
 var processScript     = hammerhead.get('../processing/script').processScript;
 var styleProcessor    = hammerhead.get('../processing/style');
 var isScriptProcessed = hammerhead.get('../processing/script').isScriptProcessed;
@@ -174,7 +174,7 @@ test('script text', function () {
 
 test('iframe', function () {
     var iframe     = document.createElement('iframe');
-    var storedAttr = domProcessor.getStoredAttrName('sandbox');
+    var storedAttr = DomProcessor.getStoredAttrName('sandbox');
 
     eval(processScript('iframe.sandbox="allow-scripts"'));
     strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-same-origin');
@@ -202,7 +202,7 @@ test('iframe', function () {
 
     eval(processScript('iframe.sandbox="allow-forms"'));
     strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-same-origin allow-scripts');
-    strictEqual(nativeMethods.getAttribute.call(iframe, domProcessor.getStoredAttrName('sandbox')), 'allow-forms');
+    strictEqual(nativeMethods.getAttribute.call(iframe, DomProcessor.getStoredAttrName('sandbox')), 'allow-forms');
 
     var result = '';
 
@@ -433,7 +433,7 @@ test('iframe.body.innerHtml must be overriden (Q527555)', function () {
     return createTestIframe()
         .then(function (iframe) {
             var iframeBody = iframe.contentWindow.document.body;
-            var html       = '<a href="url" ' + domProcessor.getStoredAttrName('src') + '="url1" />';
+            var html       = '<a href="url" ' + DomProcessor.getStoredAttrName('src') + '="url1" />';
 
             iframeBody.innerHTML = html;
 

@@ -1,5 +1,5 @@
 var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
-var domProcessor   = hammerhead.get('./dom-processor');
+var DomProcessor   = hammerhead.get('../processing/dom');
 var urlUtils       = hammerhead.get('./utils/url');
 
 var browserUtils  = hammerhead.utils.browser;
@@ -87,7 +87,7 @@ test('element.appendChild', function () {
 test('element.removeAttribute, element.removeAttributeNS', function () {
     var el         = document.createElement('a');
     var attr       = 'href';
-    var storedAttr = domProcessor.getStoredAttrName(attr);
+    var storedAttr = DomProcessor.getStoredAttrName(attr);
     var namespace  = 'http://www.w3.org/1999/xhtml';
     var url        = '/test.html';
 
@@ -129,7 +129,7 @@ test('element.getAttributeNS, element.setAttributeNS', function () {
 
     ok(nativeMethodCalled);
     strictEqual(nativeMethods.getAttributeNS.call(image, 'xlink', 'href'), urlUtils.getProxyUrl('image.png'));
-    strictEqual(nativeMethods.getAttributeNS.call(image, 'xlink', domProcessor.getStoredAttrName('href')), 'image.png');
+    strictEqual(nativeMethods.getAttributeNS.call(image, 'xlink', DomProcessor.getStoredAttrName('href')), 'image.png');
 
     wrapNativeFn('getAttributeNS');
 

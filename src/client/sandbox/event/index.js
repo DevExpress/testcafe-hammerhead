@@ -141,7 +141,7 @@ export default class EventSandbox extends SandboxBase {
 
         window.Event.prototype.preventDefault = this.overridedMethods.preventDefault;
 
-        this.initDocumentListening();
+        this.initDocumentListening(window.document);
 
         this.listeners.initElementListening(window, DOM_EVENTS.concat(['load', 'beforeunload', 'pagehide', 'unload', 'message']));
 
@@ -155,7 +155,7 @@ export default class EventSandbox extends SandboxBase {
         this.hover.attach(window);
     }
 
-    initDocumentListening () {
+    initDocumentListening (document) {
         this.listeners.initElementListening(document, DOM_EVENTS);
     }
 }

@@ -164,7 +164,7 @@ export default class Sandbox extends SandboxBase {
 
         urlResolver.init(document);
 
-        this.event.initDocumentListening();
+        this.event.initDocumentListening(document);
 
         if (isWebKit && window.top === window)
             this.event.listeners.restartElementListening(window);

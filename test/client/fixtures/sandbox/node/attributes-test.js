@@ -1,6 +1,6 @@
 var INTERNAL_PROPS   = hammerhead.get('../processing/dom/internal-properties');
+var DomProcessor     = hammerhead.get('../processing/dom');
 var domProcessor     = hammerhead.get('./dom-processor');
-var htmlUtils        = hammerhead.get('./utils/html');
 var settings         = hammerhead.get('./settings');
 var urlUtils         = hammerhead.get('./utils/url');
 var destLocation     = hammerhead.get('./utils/destination-location');
@@ -56,7 +56,7 @@ if (!browserUtils.isIE || browserUtils.version !== 11) {
 test('url', function () {
     var testUrlAttr = function (tagName, attr) {
         var el         = nativeMethods.createElement.call(document, tagName);
-        var storedAttr = domProcessor.getStoredAttrName(attr);
+        var storedAttr = DomProcessor.getStoredAttrName(attr);
         var namespace  = 'http://www.w3.org/1999/xhtml';
 
         var getAttr = function () {
@@ -183,30 +183,16 @@ test('script src', function () {
     settings.get().sessionId = storedSessionId;
 });
 
-asyncTest('iframe with "javascript: <html>...</html>" src', function () {
-    var iframe = document.createElement('iframe');
-    var src    = 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<\/script>"';
-
-    iframe.id = 'test55';
-    processDomMeth(iframe);
-
-    iframe.setAttribute('src', src);
-
-    iframe.onload = function () {
-        if (this.contentWindow.test) {
-            ok(this.contentWindow.test);
-            document.body.removeChild(this);
-
-            start();
-        }
-    };
-
-    document.body.appendChild(iframe);
+test('iframe with "javascript: <html>...</html>" src', function () {
+    return createTestIframe({ src: 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<\/script>"' })
+        .then(function (iframe) {
+            ok(iframe.contentWindow.test);
+        });
 });
 
 asyncTest('iframe html src', function () {
     var iframe = document.createElement('iframe');
-    var src    = 'javascript:\'<html><body><a id=\\\'test\\\' data-attr=\"123\">link</a></body></html>\'';
+    var src    = 'javascript:\'<html><body><a id=\\\'test\\\' data-attr="123">link</a></body></html>\'';
 
     iframe.id = 'test56';
     processDomMeth(iframe);
@@ -214,12 +200,10 @@ asyncTest('iframe html src', function () {
     iframe.setAttribute('src', src);
 
     var srcAttr       = nativeMethods.getAttribute.call(iframe, 'src');
-    var storedSrcAttr = nativeMethods.getAttribute.call(iframe, domProcessor.getStoredAttrName('src'));
+    var storedSrcAttr = nativeMethods.getAttribute.call(iframe, DomProcessor.getStoredAttrName('src'));
 
     notEqual(srcAttr, src);
-    strictEqual(srcAttr, 'javascript:\'' +
-                         htmlUtils.processHtml('<html><body><a id=\'test\' data-attr=\"123\">link</a></body></html>') +
-                         '\'');
+    strictEqual(srcAttr, 'javascript:' + processScript(src.replace('javascript:', ''), false, true));
     strictEqual(storedSrcAttr, src);
     strictEqual(iframe.getAttribute('src'), src);
 
@@ -236,73 +220,6 @@ asyncTest('iframe html src', function () {
     document.body.appendChild(iframe);
 });
 
-test('iframe javascript src', function () {
-    var testData = [
-        {
-            src: "<img src=\\'http://google.com\\'/>" +
-                 "<div attr1=\"\\'\\'\" attr2=\\'\"\"\\'></div>",
-
-            expected: ["<div attr1=\"\\'\\'\" attr2=\"&quot;&quot;\"></div>",
-                "<div attr2=\\'\"\"\\' attr1=\"\\'\\'\"></div>"
-            ],
-
-            quote: '\''
-        },
-        {
-            src: "<img src='http://google.com'/>" +
-                 "<div attr1=\\\"''\\\" attr2='\\\"\\\"'></div>",
-
-            expected: ["<div attr1=\\\"''\\\" attr2=\\\"&quot;&quot;\\\"></div>",
-                "<div attr2='\\\"\\\"' attr1=\\\"''\\\"></div>"
-            ],
-
-            quote: '"'
-        },
-        {
-            src: "<script> t[i] = \\'\\\\'\\\\'\\'; j = \"\\\"\\\"\"; <\/script>",
-
-            expected: ["__set$(t,i,\\'\\\\'\\\\'\\');j=\"\\\"\\\"\""],
-
-            quote: '\''
-        },
-        {
-            src: "<script> t[i] = \'\\\'\\\'\'; j = \\\"\\\\\"\\\\\"\\\"; <\/script>",
-
-            expected: ["__set$(t,i,'\\\'\\\'');j=\\\"\\\\\"\\\\\"\\\";"],
-
-            quote: '"'
-        }
-    ];
-
-    var testContainer = document.createElement('iframe');
-
-    for (var i = 0; i < testData.length; i++) {
-        var src = testData[i].src;
-
-        src = 'javascript:' + testData[i].quote + src + testData[i].quote;
-
-        testContainer.setAttribute('src', src);
-
-        var processedSrc = testContainer.src;
-
-        // NOTE: Safari returns an encoded value for iframe.src with a javascript protocol value.
-        if (browserUtils.isSafari) {
-            processedSrc = processedSrc.replace(/%hammerhead%/g, '%25hammerhead%25');
-            processedSrc = decodeURI(processedSrc);
-        }
-
-        strictEqual(processedSrc.indexOf('javascript:' + testData[i].quote), 0);
-        strictEqual(processedSrc[processedSrc.length - 1], testData[i].quote);
-
-        processedSrc = processedSrc.replace(/%hammerhead%/g, '%25hammerhead%25');
-
-        var decodedSrc = decodeURIComponent(processedSrc);
-        var expected   = testData[i].expected;
-
-        ok(decodedSrc.indexOf(expected[0]) !== -1 || decodedSrc.indexOf(expected[1]) !== -1);
-    }
-});
-
 test('onclick', function () {
     var link      = document.createElement('a');
     var attrValue = 'location.href="managers.aspx";';
@@ -310,7 +227,7 @@ test('onclick', function () {
     link.setAttribute('onclick', attrValue);
 
     var attr       = nativeMethods.getAttribute.call(link, 'onclick');
-    var storedAttr = nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('onclick'));
+    var storedAttr = nativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('onclick'));
 
     notEqual(attr, storedAttr);
     strictEqual(storedAttr, attrValue);
@@ -325,7 +242,7 @@ test('event - javascript protocol', function () {
     link.setAttribute('onclick', attrValue);
 
     var attr       = nativeMethods.getAttribute.call(link, 'onclick');
-    var storedAttr = nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('onclick'));
+    var storedAttr = nativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('onclick'));
 
     notEqual(attr, storedAttr);
     strictEqual(storedAttr, attrValue);
@@ -340,17 +257,17 @@ test('url - javascript: protocol', function () {
     link.setAttribute('href', hrefValue);
 
     var href       = nativeMethods.getAttribute.call(link, 'href');
-    var storedHref = nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('href'));
+    var storedHref = nativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('href'));
 
     notEqual(href, storedHref);
     strictEqual(storedHref, hrefValue);
-    strictEqual(href, 'javascript:' + processScript(hrefValue.replace('javascript:', '')));
+    strictEqual(href, 'javascript:' + processScript(hrefValue.replace('javascript:', ''), false, true));
     strictEqual(link.getAttribute('href'), hrefValue);
 });
 
 test('iframe', function () {
     var attr       = 'sandbox';
-    var storedAttr = domProcessor.getStoredAttrName(attr);
+    var storedAttr = DomProcessor.getStoredAttrName(attr);
     var iframe     = document.createElement('iframe');
 
     ok(!nativeMethods.getAttribute.call(iframe, attr));
@@ -395,7 +312,7 @@ test('iframe', function () {
 
 test('crossdomain iframe', function () {
     var iframe        = document.createElement('iframe');
-    var storedSrcAttr = domProcessor.getStoredAttrName('src');
+    var storedSrcAttr = DomProcessor.getStoredAttrName('src');
 
     var savedGetProxyUrl                  = urlUtils.getProxyUrl;
     var savedGetCrossDomainIframeProxyUrl = urlUtils.getCrossDomainIframeProxyUrl;
@@ -430,7 +347,7 @@ test('crossdomain iframe', function () {
 test('input.autocomplete', function () {
     var input      = document.createElement('input');
     var etalon     = nativeMethods.createElement.call(document, 'input');
-    var storedAttr = domProcessor.getStoredAttrName('autocomplete');
+    var storedAttr = DomProcessor.getStoredAttrName('autocomplete');
 
     strictEqual(input.getAttribute('autocomplete'), nativeMethods.getAttribute.call(etalon, 'autocomplete'));
     strictEqual(nativeMethods.getAttribute.call(input, 'autocomplete'), 'off');
@@ -477,7 +394,7 @@ test('element.innerHTML', function () {
 
     var $container   = $('<div>');
     var checkElement = function (el, attr, resourceType) {
-        var storedAttr     = domProcessor.getStoredAttrName(attr);
+        var storedAttr     = DomProcessor.getStoredAttrName(attr);
         var exprectedValue = 'http://' + location.host + '/sessionId' + resourceType +
                              '/https://example.com/Images/1.png';
 
@@ -517,7 +434,7 @@ test('anchor with target attribute', function () {
     var nativeHref = nativeMethods.getAttribute.call(anchor, 'href');
 
     strictEqual(nativeHref, proxyUrl);
-    strictEqual(nativeMethods.getAttribute.call(anchor, domProcessor.getStoredAttrName('href')), url);
+    strictEqual(nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href')), url);
     strictEqual(anchor.getAttribute('href'), url);
     strictEqual(urlUtils.parseProxyUrl(nativeHref).resourceType, 'i');
 

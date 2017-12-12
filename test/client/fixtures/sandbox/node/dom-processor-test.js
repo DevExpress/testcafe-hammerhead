@@ -1,5 +1,6 @@
 var INTERNAL_ATTRS = hammerhead.get('../processing/dom/internal-attributes');
 var htmlUtils      = hammerhead.get('./utils/html');
+var DomProcessor   = hammerhead.get('../processing/dom');
 var domProcessor   = hammerhead.get('./dom-processor');
 var processScript  = hammerhead.get('../processing/script').processScript;
 var styleProcessor = hammerhead.get('../processing/style');
@@ -11,7 +12,7 @@ var nativeMethods = hammerhead.nativeMethods;
 
 test('iframe', function () {
     var iframe         = nativeMethods.createElement.call(document, 'iframe');
-    var storedAttrName = domProcessor.getStoredAttrName('sandbox');
+    var storedAttrName = DomProcessor.getStoredAttrName('sandbox');
 
     nativeMethods.setAttribute.call(iframe, 'sandbox', 'allow-scripts');
     domProcessor.processElement(iframe);
@@ -181,7 +182,7 @@ test('event attributes', function () {
     var div            = nativeMethods.createElement.call(document, 'div');
     var attrValue      = 'window.location="test";';
     var processedValue = processScript(attrValue);
-    var storedAttrName = domProcessor.getStoredAttrName('onclick');
+    var storedAttrName = DomProcessor.getStoredAttrName('onclick');
 
     notEqual(processedValue, attrValue);
 
@@ -195,11 +196,13 @@ test('event attributes', function () {
 });
 
 test('javascript protocol', function () {
-    var link           = nativeMethods.createElement.call(document, 'a');
-    var attrValue      = 'javascript:window.location="test";';
-    var processedValue = 'javascript:' + processScript(attrValue.replace('javascript:', ''));
+    var link                       = nativeMethods.createElement.call(document, 'a');
+    var attrValue                  = 'javascript:window.location="test";';
+    var processedValueForUrlAttr   = 'javascript:' + processScript(attrValue.replace('javascript:', ''), false, true);
+    var processedValueForEventAttr = 'javascript:' + processScript(attrValue.replace('javascript:', ''));
 
-    notEqual(processedValue, attrValue);
+    notEqual(processedValueForUrlAttr, attrValue);
+    notEqual(processedValueForEventAttr, attrValue);
 
     nativeMethods.setAttribute.call(link, 'onclick', attrValue);
     nativeMethods.setAttribute.call(link, 'href', attrValue);
@@ -207,10 +210,10 @@ test('javascript protocol', function () {
     domProcessor.processElement(link, function () {
     });
 
-    strictEqual(nativeMethods.getAttribute.call(link, 'onclick'), processedValue);
-    strictEqual(nativeMethods.getAttribute.call(link, 'href'), processedValue);
-    strictEqual(nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('onclick')), attrValue);
-    strictEqual(nativeMethods.getAttribute.call(link, domProcessor.getStoredAttrName('href')), attrValue);
+    strictEqual(nativeMethods.getAttribute.call(link, 'onclick'), processedValueForEventAttr);
+    strictEqual(nativeMethods.getAttribute.call(link, 'href'), processedValueForUrlAttr);
+    strictEqual(nativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('onclick')), attrValue);
+    strictEqual(nativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('href')), attrValue);
 });
 
 test('anchor with target attribute', function () {
@@ -226,7 +229,7 @@ test('anchor with target attribute', function () {
     });
 
     strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), proxyUrl);
-    strictEqual(nativeMethods.getAttribute.call(anchor, domProcessor.getStoredAttrName('href')), testUrl);
+    strictEqual(nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href')), testUrl);
 });
 
 test('autocomplete attribute', function () {
@@ -244,7 +247,7 @@ test('autocomplete attribute', function () {
     domProcessor.processElement(input3);
     domProcessor.processElement(input4);
 
-    var storedAutocompleteAttr = domProcessor.getStoredAttrName('autocomplete');
+    var storedAutocompleteAttr = DomProcessor.getStoredAttrName('autocomplete');
 
     strictEqual(nativeMethods.getAttribute.call(input1, 'autocomplete'), 'off');
     strictEqual(nativeMethods.getAttribute.call(input1, storedAutocompleteAttr), 'on');
@@ -270,7 +273,7 @@ test('crossdomain src', function () {
     var processed = htmlUtils.processHtml('<iframe src="' + url + '"></iframe>');
 
     ok(processed.indexOf('src="' + proxyUrl) !== -1);
-    ok(processed.indexOf(domProcessor.getStoredAttrName('src') + '="' + url + '"') !== -1);
+    ok(processed.indexOf(DomProcessor.getStoredAttrName('src') + '="' + url + '"') !== -1);
 });
 
 test('stylesheet', function () {
@@ -498,15 +501,15 @@ test('link with target="_parent" in iframe (T216999)', function () {
     return createTestIframe({ src: getSameDomainPageUrl('../../../data/dom-processor/iframe.html') })
         .then(function (iframe) {
             var link           = nativeMethods.getElementById.call(iframe.contentDocument, 'link');
-            var storedAttrName = domProcessor.getStoredAttrName('href');
+            var storedAttrName = DomProcessor.getStoredAttrName('href');
 
             strictEqual(nativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
         });
 });
 
-test('iframe with javascript protocol in \'src\' attribute value must be processed (T135513)', function () {
+test('iframe with javascript protocol in "src" attribute value must be processed (T135513)', function () {
     var iframe = nativeMethods.createElement.call(document, 'iframe');
-    var src    = 'javascript:"<html><body><a id=\'test\' data-attr=\"123\">link</a></body></html>"';
+    var src    = 'javascript:"<html><body><a id=\'test\' data-attr=\\"123\\">link</a></body></html>"';
 
     nativeMethods.setAttribute.call(iframe, 'src', src);
 
@@ -515,12 +518,10 @@ test('iframe with javascript protocol in \'src\' attribute value must be process
     });
 
     var srcAttr       = nativeMethods.getAttribute.call(iframe, 'src');
-    var storedSrcAttr = nativeMethods.getAttribute.call(iframe, domProcessor.getStoredAttrName('src'));
+    var storedSrcAttr = nativeMethods.getAttribute.call(iframe, DomProcessor.getStoredAttrName('src'));
 
     notEqual(srcAttr, src);
-    strictEqual(srcAttr, 'javascript:\'' +
-                         htmlUtils.processHtml('<html><body><a id=\'test\' data-attr="123">link</a></body></html>') +
-                         '\'');
+    strictEqual(srcAttr, 'javascript:' + processScript(src.replace('javascript:', ''), false, true));
     strictEqual(storedSrcAttr, src);
 });
 
@@ -529,7 +530,7 @@ test('the URL attribute must be set to an empty string on the server only once (
 
     nativeMethods.setAttribute.call(iframe, 'src', '/should_not_be_changed');
     // NOTE: Simulates processing an iframe on the server.
-    nativeMethods.setAttribute.call(iframe, domProcessor.getStoredAttrName('src'), '');
+    nativeMethods.setAttribute.call(iframe, DomProcessor.getStoredAttrName('src'), '');
 
     domProcessor.processElement(iframe, function () {
         return 'fail';
@@ -542,7 +543,7 @@ test('remove the meta tag with http-equiv="Content-Security-Policy" attribute fr
     var metaTag = nativeMethods.createElement.call(document, 'meta');
 
     nativeMethods.setAttribute.call(metaTag, 'http-equiv', 'Content-Security-Policy');
-    nativeMethods.setAttribute.call(metaTag, 'content', "script-src https: 'unsafe-eval';");
+    nativeMethods.setAttribute.call(metaTag, 'content', 'script-src https: \'unsafe-eval\';');
 
     domProcessor.processElement(metaTag);
 
@@ -555,7 +556,7 @@ test('remove the meta tag with http-equiv="Content-Security-Policy" attribute fr
 
     metaTag.setAttribute('id', 'metaContentSecurityPolicy');
     metaTag.setAttribute('http-equiv', 'Content-Security-Policy');
-    metaTag.setAttribute('content', "script-src https: 'unsafe-eval';");
+    metaTag.setAttribute('content', 'script-src https: \'unsafe-eval\';');
     document.head.appendChild(metaTag);
 
     ok(!metaTag.hasAttribute('http-equiv'));
@@ -671,7 +672,7 @@ test('xml:base attribute of svg element should be overriden (GH-477)', function 
     strictEqual(nativeMethods.getAttributeNS.call(circle, xmlNameSpaceUrl, 'base'), urlUtils.getProxyUrl(subDomainUrl));
 });
 
-test("should reprocess tags that doesn't processed on server side (GH-838)", function () {
+test('should reprocess tags that doesn\'t processed on server side (GH-838)', function () {
     var src = getSameDomainPageUrl('../../../data/dom-processor/iframe-with-nonproceed-on-server-tags.html');
 
     return createTestIframe({ src: src })
@@ -700,5 +701,5 @@ test('the `formaction` attribute should not be overridden if it is missed (GH-10
     form.appendChild(input);
 
     strictEqual(nativeMethods.getAttribute.call(input, 'formaction'), null);
-    strictEqual(nativeMethods.getAttribute.call(input, domProcessor.getStoredAttrName('formaction')), null);
+    strictEqual(nativeMethods.getAttribute.call(input, DomProcessor.getStoredAttrName('formaction')), null);
 });

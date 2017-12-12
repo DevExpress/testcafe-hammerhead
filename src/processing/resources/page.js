@@ -178,24 +178,10 @@ class PageProcessor extends ResourceProcessorBase {
         if (metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
             return this.RESTART_PROCESSING;
 
-        const iframeHtmlProcessor = (iframeHtml, callback) => {
-            const storedIsIframe = processingOpts.isIframe;
-
-            processingOpts.isIframe = true;
-
-            const result = this.processResource(iframeHtml, ctx, charset, urlReplacer, processingOpts);
-
-            processingOpts.isIframe = storedIsIframe;
-
-            callback(result);
-        };
-
         const domProcessor = new DomProcessor(domAdapter);
         const replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
 
-        domProcessor.on(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
-        domProcessor.off(domProcessor.HTML_PROCESSING_REQUIRED_EVENT, iframeHtmlProcessor);
 
         if (!ctx.isHtmlImport) {
             PageProcessor._addPageResources(head, processingOpts, domAdapter);

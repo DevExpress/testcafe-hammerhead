@@ -273,7 +273,9 @@ export default class DocumentWriter {
     _processHtmlChunk (htmlChunk, isDocumentCleaned) {
         htmlChunk = this._cutPending(this.pending + htmlChunk);
         htmlChunk = this._wrapHtmlChunk(htmlChunk);
-        htmlChunk = htmlUtils.processHtml(htmlChunk, null, container => this._prepareDom(container, isDocumentCleaned));
+        htmlChunk = htmlUtils.processHtml(htmlChunk, {
+            prepareDom: container => this._prepareDom(container, isDocumentCleaned)
+        });
         htmlChunk = this._unwrapHtmlChunk(htmlChunk);
 
         // NOTE: Firefox and IE recreate a window instance during the document.write function execution (T213930).
