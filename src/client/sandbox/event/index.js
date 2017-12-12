@@ -13,8 +13,6 @@ export default class EventSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, shadowUI, timerSandbox) {
         super();
 
-        this.EVENT_ATTACHED_EVENT  = 'hammerhead|event|event-attached';
-        this.EVENT_DETACHED_EVENT  = 'hammerhead|event|event-detached';
         this.EVENT_PREVENTED_EVENT = 'hammerhead|event|event-prevented';
 
         this.listeners             = listeners;
@@ -31,7 +29,7 @@ export default class EventSandbox extends SandboxBase {
         this.DataTransfer  = DataTransfer;
         this.DragDataStore = DragDataStore;
 
-        this.overridedMethods = null;
+        this.overriddenMethods = null;
 
         this.onFocus              = null;
         this.cancelInternalEvents = null;
@@ -46,7 +44,7 @@ export default class EventSandbox extends SandboxBase {
         const eventSimulator   = this.eventSimulator;
         const sandbox          = this;
 
-        this.overridedMethods = {
+        this.overriddenMethods = {
             dispatchEvent: function () {
                 Listeners.beforeDispatchEvent(this);
 
@@ -124,22 +122,21 @@ export default class EventSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        window.HTMLInputElement.prototype.setSelectionRange    = this.overridedMethods.setSelectionRange;
-        window.HTMLTextAreaElement.prototype.setSelectionRange = this.overridedMethods.setSelectionRange;
-        window.Window.prototype.dispatchEvent                  = this.overridedMethods.dispatchEvent;
-        window.Document.prototype.dispatchEvent                = this.overridedMethods.dispatchEvent;
-        window.HTMLElement.prototype.dispatchEvent             = this.overridedMethods.dispatchEvent;
-        window.SVGElement.prototype.dispatchEvent              = this.overridedMethods.dispatchEvent;
-        window.HTMLElement.prototype.focus                     = this.overridedMethods.focus;
-        window.HTMLElement.prototype.blur                      = this.overridedMethods.blur;
-        window.HTMLElement.prototype.click                     = this.overridedMethods.click;
-        window.Window.focus                                    = this.overridedMethods.focus;
-        window.Window.blur                                     = this.overridedMethods.blur;
+        window.HTMLInputElement.prototype.setSelectionRange    = this.overriddenMethods.setSelectionRange;
+        window.HTMLTextAreaElement.prototype.setSelectionRange = this.overriddenMethods.setSelectionRange;
+        window.Window.prototype.dispatchEvent                  = this.overriddenMethods.dispatchEvent;
+        window.Document.prototype.dispatchEvent                = this.overriddenMethods.dispatchEvent;
+        window.HTMLElement.prototype.dispatchEvent             = this.overriddenMethods.dispatchEvent;
+        window.SVGElement.prototype.dispatchEvent              = this.overriddenMethods.dispatchEvent;
+        window.HTMLElement.prototype.focus                     = this.overriddenMethods.focus;
+        window.HTMLElement.prototype.blur                      = this.overriddenMethods.blur;
+        window.HTMLElement.prototype.click                     = this.overriddenMethods.click;
+        window.Window.focus                                    = this.overriddenMethods.focus;
+        window.Window.blur                                     = this.overriddenMethods.blur;
+        window.Event.prototype.preventDefault                  = this.overriddenMethods.preventDefault;
 
         if (window.TextRange && window.TextRange.prototype.select)
-            window.TextRange.prototype.select = this.overridedMethods.select;
-
-        window.Event.prototype.preventDefault = this.overridedMethods.preventDefault;
+            window.TextRange.prototype.select = this.overriddenMethods.select;
 
         this.initDocumentListening(window.document);
 
