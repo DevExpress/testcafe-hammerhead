@@ -25,6 +25,7 @@ const RequestPipelineContext               = require('../../lib/request-pipeline
 const requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
 const scriptHeader                         = require('../../lib/processing/script/header');
 const urlUtils                             = require('../../lib/utils/url');
+const nodeVersion                          = parseFloat(require('node-version').short);
 
 const EMPTY_PAGE = '<html></html>';
 
@@ -2484,98 +2485,103 @@ describe('Proxy', () => {
             ]);
         });
 
-        it('Should close a proxy connection if a connection to destination server hang up (GH-1384)', () => {
-            const agent        = new http.Agent({
-                keepAlive:      true,
-                keepAliveMsecs: 10000
-            });
-            let mainPageSocket = null;
-            let reqOptions     = null;
-            let error          = null;
+        // NOTE: 'yakka' module does not keep alive socket in node 9.3 and higher.
+        // It leads to a slowdown proxy. We will remove this condition after getting rid of 'yakka'.
+        // After dropping node 0.10, 0.12 support,  we can use a standard agent from 'http/https' module.
+        if (nodeVersion < 9.3) {
+            it('Should close a proxy connection if a connection to destination server hang up (GH-1384)', () => {
+                const agent        = new http.Agent({
+                    keepAlive:      true,
+                    keepAliveMsecs: 10000
+                });
+                let mainPageSocket = null;
+                let reqOptions     = null;
+                let error          = null;
 
-            const server = net.createServer(socket => {
-                socket.on('data', data => {
-                    const url = data.toString().match(/GET ([\s\S]+) HTTP/)[1];
+                const server = net.createServer(socket => {
+                    socket.on('data', data => {
+                        const url = data.toString().match(/GET ([\s\S]+) HTTP/)[1];
 
-                    if (url === '/') {
-                        mainPageSocket = socket;
+                        if (url === '/') {
+                            mainPageSocket = socket;
 
-                        socket.setKeepAlive(true, 10000);
-                        socket.write([
-                            'HTTP/1.1 302 Object Moved',
-                            'Location: /redirect',
-                            'Content-Length: 0',
-                            '',
-                            ''
-                        ].join('\r\n'));
-                    }
-                    else if (url === '/redirect') {
-                        if (mainPageSocket) {
-                            expect(mainPageSocket).eql(socket);
-                            mainPageSocket.end();
-
-                            mainPageSocket = null;
-                        }
-                        else {
+                            socket.setKeepAlive(true, 10000);
                             socket.write([
-                                'HTTP/1.1 200 Ok',
-                                'Content-Length: 5',
+                                'HTTP/1.1 302 Object Moved',
+                                'Location: /redirect',
+                                'Content-Length: 0',
                                 '',
-                                'Hello'
+                                ''
                             ].join('\r\n'));
                         }
-                    }
+                        else if (url === '/redirect') {
+                            if (mainPageSocket) {
+                                expect(mainPageSocket).eql(socket);
+                                mainPageSocket.end();
+
+                                mainPageSocket = null;
+                            }
+                            else {
+                                socket.write([
+                                    'HTTP/1.1 200 Ok',
+                                    'Content-Length: 5',
+                                    '',
+                                    'Hello'
+                                ].join('\r\n'));
+                            }
+                        }
+                    });
                 });
+
+                function sendRequest (options) {
+                    return new Promise((resolve, reject) => {
+                        const req = http.request(options, res => {
+                            const chunks = [];
+
+                            res.on('data', chunk => chunks.push(chunk));
+                            res.on('end', () => resolve(Buffer.concat(chunks).toString()));
+                        });
+
+                        req.on('error', reject);
+                        req.end();
+                    });
+                }
+
+                session.handlePageError = (ctx, err) => {
+                    error = err;
+                };
+
+                return getFreePort()
+                    .then(port => new Promise(resolve => server.listen(port, resolve.bind(null, port))))
+                    .then(port => {
+                        const proxyUrl = proxy.openSession(`http://127.0.0.1:${port}/`, session);
+
+                        reqOptions = Object.assign(urlLib.parse(proxyUrl), {
+                            method:  'GET',
+                            agent:   agent,
+                            headers: { accept: 'text/html' }
+                        });
+
+                        return sendRequest(reqOptions);
+                    })
+                    .then(body => {
+                        expect(body).eql('');
+
+                        reqOptions.path += 'redirect';
+
+                        return sendRequest(reqOptions);
+                    })
+                    .catch(err => {
+                        expect(err.toString()).eql('Error: socket hang up');
+
+                        return sendRequest(reqOptions);
+                    })
+                    .then(body => {
+                        expect(body).include('Hello');
+                        expect(error).to.be.null;
+                        server.close();
+                    });
             });
-
-            function sendRequest (options) {
-                return new Promise((resolve, reject) => {
-                    const req = http.request(options, res => {
-                        const chunks = [];
-
-                        res.on('data', chunk => chunks.push(chunk));
-                        res.on('end', () => resolve(Buffer.concat(chunks).toString()));
-                    });
-
-                    req.on('error', reject);
-                    req.end();
-                });
-            }
-
-            session.handlePageError = (ctx, err) => {
-                error = err;
-            };
-
-            return getFreePort()
-                .then(port => new Promise(resolve => server.listen(port, resolve.bind(null, port))))
-                .then(port => {
-                    const proxyUrl = proxy.openSession(`http://127.0.0.1:${port}/`, session);
-
-                    reqOptions = Object.assign(urlLib.parse(proxyUrl), {
-                        method:  'GET',
-                        agent:   agent,
-                        headers: { accept: 'text/html' }
-                    });
-
-                    return sendRequest(reqOptions);
-                })
-                .then(body => {
-                    expect(body).eql('');
-
-                    reqOptions.path += 'redirect';
-
-                    return sendRequest(reqOptions);
-                })
-                .catch(err => {
-                    expect(err.toString()).eql('Error: socket hang up');
-
-                    return sendRequest(reqOptions);
-                })
-                .then(body => {
-                    expect(body).include('Hello');
-                    expect(error).to.be.null;
-                    server.close();
-                });
-        });
+        }
     });
 });
