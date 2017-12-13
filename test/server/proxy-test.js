@@ -2485,7 +2485,9 @@ describe('Proxy', () => {
             ]);
         });
 
-        // TODO: we need to remove this condition when get rid of the yakaa agent
+        // NOTE: 'yakka' module does not keep alive socket in node 9.3 and higher.
+        // It leads to a slowdown proxy. We will remove this condition after getting rid of 'yakka'.
+        // After dropping node 0.10, 0.12 support,  we can use a standard agent from 'http/https' module.
         if (nodeVersion < 9.3) {
             it('Should close a proxy connection if a connection to destination server hang up (GH-1384)', () => {
                 const agent        = new http.Agent({
