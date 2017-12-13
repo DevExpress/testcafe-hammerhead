@@ -21,9 +21,14 @@ export default class StorageSandbox extends SandboxBase {
         this.isLocked       = false;
     }
 
-    _simulateStorageEvent (key, oldValue, newValue, url, storageArea) {
-        if (!this.isDeactivated())
-            this.eventSimulator.storage(this.window, { key, oldValue, newValue, url, storageArea });
+    _simulateStorageEventIfNecessary (event, storageArea) {
+        if (this.isDeactivated())
+            return;
+
+        if (storageArea && storageArea.getContext() !== this.window) {
+            event.storageArea = storageArea;
+            this.eventSimulator.storage(this.window, event);
+        }
     }
 
     // NOTE: We are using a single storage wrapper instance for all same-domain windows.
@@ -111,16 +116,8 @@ export default class StorageSandbox extends SandboxBase {
 
         this._createStorageWrappers();
 
-        const storageChanged = (key, oldValue, newValue, url, storage) => {
-            if (storage.getContext() !== this.window)
-                this._simulateStorageEvent(key, oldValue, newValue, url, storage);
-        };
-
-        this.localStorage.on(this.localStorage.STORAGE_CHANGED_EVENT, e =>
-            storageChanged(e.key, e.oldValue, e.newValue, e.url, this.localStorage));
-
-        this.sessionStorage.on(this.sessionStorage.STORAGE_CHANGED_EVENT, e =>
-            storageChanged(e.key, e.oldValue, e.newValue, e.url, this.sessionStorage));
+        this.onLocalStorageChangeListener = this.localStorage.on(this.localStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.localStorage));
+        this.onSessionStorageListener     = this.sessionStorage.on(this.sessionStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.sessionStorage));
 
         this.listeners.initElementListening(window, ['storage']);
         this.listeners.addInternalEventListener(window, ['storage'], (e, dispatched, preventEvent) => {
@@ -129,5 +126,18 @@ export default class StorageSandbox extends SandboxBase {
         });
 
         this._overrideStorageEvent();
+    }
+
+    dispose () {
+        this.localStorage.off(this.localStorage.STORAGE_CHANGED_EVENT, this.onLocalStorageChangeListener);
+        this.sessionStorage.off(this.sessionStorage.STORAGE_CHANGED_EVENT, this.onSessionStorageListener);
+
+        const topSameDomainWindow = getTopSameDomainWindow(this.window);
+
+        // NOTE: For removed iframe without src in IE11 window.top equals iframe's window
+        if (this.window === topSameDomainWindow && !topSameDomainWindow.frameElement) {
+            this.localStorage.dispose();
+            this.sessionStorage.dispose();
+        }
     }
 }

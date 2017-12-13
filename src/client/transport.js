@@ -68,11 +68,14 @@ class Transport {
 
             const isAsyncRequest = !forced;
             const transport      = this;
-            const request        = XhrSandbox.createNativeXHR();
+            let request          = XhrSandbox.createNativeXHR();
             const msgCallback    = function () {
                 transport.activeServiceMessagesCounter--;
 
-                callback(this.responseText && parseJSON(this.responseText));
+                const response = this.responseText && parseJSON(this.responseText);
+
+                request = null;
+                callback(response);
             };
             const errorHandler   = function () {
                 if (msg.disableResending)

@@ -22,7 +22,9 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
                 uploadEventCounter++;
             });
 
-            iframeWindow[INSTRUCTION.setProperty](iframeWindow, 'on' + unloadSandbox.beforeUnloadEventName, function () {
+            var beforeUnloadEventName = 'on' + unloadSandbox.beforeUnloadEventName;
+
+            iframeWindow[INSTRUCTION.setProperty](iframeWindow, beforeUnloadEventName, function () {
                 uploadEventCounter++;
             });
 
@@ -33,14 +35,20 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
 test('UNLOAD_EVENT should be called', function () {
     var unloadSandbox        = hammerhead.sandbox.event.unload;
     var unloadEventWasCalled = false;
-    var handler = function () {
+    var handler              = function () {
         unloadEventWasCalled = true;
         hammerhead.off(hammerhead.EVENTS.unload, handler);
+    };
+    var storedSandboxDispose = hammerhead.sandbox.dispose;
+
+    hammerhead.sandbox.dispose = function () {
     };
 
     hammerhead.on(hammerhead.EVENTS.unload, handler);
     unloadSandbox.emit(unloadSandbox.UNLOAD_EVENT);
     ok(unloadEventWasCalled);
+
+    hammerhead.sandbox.dispose = storedSandboxDispose;
 });
 
 if (browserUtils.isSafari && !browserUtils.isIOS) {
