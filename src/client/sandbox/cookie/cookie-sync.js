@@ -38,6 +38,7 @@ export default class CookieSync {
             this.sendedQueue    = null;
             this.activeReq      = null;
             this.failedReqCount = 0;
+            request             = null;
 
             if (this.queue.length)
                 this._sendQueue();
@@ -53,6 +54,8 @@ export default class CookieSync {
             if (++this.failedReqCount < FAILED_REQUESTS_LIMIT)
                 this._sendQueue();
         }
+
+        request = null;
     }
 
     _attachRequestHandlers (request) {
