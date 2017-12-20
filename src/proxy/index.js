@@ -22,24 +22,25 @@ function parseAsJson (msg) {
     }
 }
 
-function createServerInfo (hostname, port, crossDomainPort) {
+function createServerInfo (hostname, port, crossDomainPort, protocol = 'http') {
     return {
         hostname:        hostname,
         port:            port,
         crossDomainPort: crossDomainPort,
-        domain:          `http://${hostname}:${port}`
+        domain:          `${protocol}://${hostname}:${port}`,
+        protocol:        `${protocol}:`
     };
 }
 
 // Proxy
 export default class Proxy extends Router {
-    constructor (hostname, port1, port2) {
+    constructor (hostname, port1, port2, protocol) {
         super();
 
         this.openSessions = {};
 
-        this.server1Info = createServerInfo(hostname, port1, port2);
-        this.server2Info = createServerInfo(hostname, port2, port1);
+        this.server1Info = createServerInfo(hostname, port1, port2, protocol);
+        this.server2Info = createServerInfo(hostname, port2, port1, protocol);
         this.server1     = http.createServer((req, res) => this._onRequest(req, res, this.server1Info));
         this.server2     = http.createServer((req, res) => this._onRequest(req, res, this.server2Info));
 
@@ -167,6 +168,7 @@ export default class Proxy extends Router {
             session.setExternalProxySettings(externalProxyUrl);
 
         return urlUtils.getProxyUrl(url, {
+            proxyProtocol: this.server1Info.protocol,
             proxyHostname: this.server1Info.hostname,
             proxyPort:     this.server1Info.port,
             sessionId:     session.id

@@ -1086,6 +1086,17 @@ describe('Proxy', () => {
         });
     });
 
+    describe('https protocol', () => {
+        it('Should be same as the session protocol', () => {
+            proxy.close();
+            proxy = new Proxy('127.0.0.1', 1836, 1837, 'https');
+
+            const url = proxy.openSession('http://127.0.0.1:2000/page', session);
+
+            expect(url).contains('https://127.0.0.1:1836');
+        });
+    });
+
     describe('file:// protocol', () => {
         it('Should process page and ignore search string', done => {
             session.id = 'sessionId';
