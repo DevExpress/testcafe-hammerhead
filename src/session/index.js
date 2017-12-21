@@ -1,5 +1,6 @@
 import mustache from 'mustache';
-import nanoid from 'nanoid';
+import nanoIdGenerate from 'nanoid/generate';
+import nanoIdAlphabet from 'nanoid/url';
 import { readSync as read } from 'read-file-relative';
 import { EventEmitter } from 'events';
 import { parse as parseUrl } from 'url';
@@ -9,7 +10,8 @@ import COMMAND from './command';
 import { parseProxyUrl } from '../utils/url';
 
 // Const
-const TASK_TEMPLATE = read('../client/task.js.mustache');
+const TASK_TEMPLATE       = read('../client/task.js.mustache');
+const SESSION_ID_ALPHABET = nanoIdAlphabet.replace(/-|~/g, '');
 
 // Session
 export default class Session extends EventEmitter {
@@ -34,8 +36,7 @@ export default class Session extends EventEmitter {
     }
 
     static _generateSessionId () {
-        // NOTE: GH-116
-        return nanoid(9);
+        return nanoIdGenerate(SESSION_ID_ALPHABET, 9);
     }
 
     // State
