@@ -22,6 +22,7 @@ import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
+import getMimeType from '../../utils/get-mime-type';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -33,6 +34,7 @@ const HTTP_PROTOCOL_RE = /^http/i;
 
 const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
 const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
+const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javascript', 'application/x-javascript'];
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox) {
@@ -254,24 +256,23 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Blob) {
-            window.Blob           = function (parts, opts) {
+            window.Blob           = function (array, opts) {
                 if (arguments.length === 0)
                     return new nativeMethods.Blob();
 
-                const type = opts && opts.type && opts.type.toString().toLowerCase();
+                const type = opts && opts.type && opts.type.toString().toLowerCase() || getMimeType(array);
 
                 // NOTE: If we cannot identify the content type of data, we're trying to process it as a script.
                 // Unfortunately, we do not have the ability to exactly identify a script. That's why we make such
                 // an assumption. We cannot solve this problem at the Worker level either, because the operation of
                 // creating a new Blob instance is asynchronous. (GH-231)
-                if (!type || type === 'text/javascript' || type === 'application/javascript' ||
-                    type === 'application/x-javascript')
-                    parts = [processScript(parts.join(''), true)];
+                if (!type || JAVASCRIPT_MIME_TYPES.indexOf(type) !== -1)
+                    array = [processScript(array.join(''), true)];
 
                 // NOTE: IE11 throws an error when the second parameter of the Blob function is undefined (GH-44)
                 // If the overridden function is called with one parameter, we need to call the original function
                 // with one parameter as well.
-                return arguments.length === 1 ? new nativeMethods.Blob(parts) : new nativeMethods.Blob(parts, opts);
+                return arguments.length === 1 ? new nativeMethods.Blob(array) : new nativeMethods.Blob(array, opts);
             };
             window.Blob.prototype = nativeMethods.Blob.prototype;
         }

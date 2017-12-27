@@ -110,7 +110,7 @@ if (featureDetection.hasUnhandledRejectionEvent) {
 
         test('should convert an unhandled rejection reason to string', function () {
             var testMsg = function (err) {
-                return new hammerhead.Promise(function (resolve) {
+                return new Promise(function (resolve) {
                     hammerhead.on(hammerhead.EVENTS.unhandledRejection, function onUnhandledRejection (event) {
                         hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
                         resolve(event.msg);
@@ -457,3 +457,47 @@ test('getPropertyValue and setProperty methods of css object should be overridde
     ok(!div.style.getPropertyValue('background'));
     ok(!div.style.removeProperty('background'));
 });
+
+var canCreateBlobFromNumberArray = (function () {
+    var array = [1, 2, 3, 4, 5];
+
+    try {
+        return !!new nativeMethods.Blob(array);
+    }
+    catch (err) {
+        return false;
+    }
+})();
+
+if (canCreateBlobFromNumberArray) {
+    test('should not process a common binary data (images, font and etc.) passed to a Blob constructor (GH-1359) as script', function () {
+        var gifImageData    = [71, 73, 70, 56, 57, 97, 1, 0];
+        var overridenBlob   = new Blob(gifImageData);
+        var nativeBlob      = new nativeMethods.Blob(gifImageData);
+        var redBlobContent  = null;
+        var readBlobContent = function (blob) {
+            return new hammerhead.Promise(function (resolve) {
+                var reader = new FileReader();
+
+                reader.addEventListener('loadend', function () {
+                    var arr = new Uint8Array(this.result);
+
+                    resolve(arr);
+                });
+                reader.readAsArrayBuffer(blob);
+            });
+        };
+
+
+        return readBlobContent(overridenBlob)
+            .then(function (blobContent) {
+                redBlobContent = blobContent;
+
+                return readBlobContent(nativeBlob);
+            })
+            .then(function (nativeBlobContent) {
+                deepEqual(redBlobContent, nativeBlobContent);
+            });
+    });
+}
+
