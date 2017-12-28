@@ -6,7 +6,6 @@ import SandboxBase from '../../base';
 import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
 import XhrSandbox from '../../xhr';
-import ElementSandbox from '../../node/element';
 import DomProcessor from '../../../../processing/dom/index';
 import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
@@ -557,13 +556,13 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => el.onload,
                 set: (el, handler) => {
                     if (typeof handler === 'function') {
-                        ElementSandbox.setHasLoadHandlerFlag(el);
+                        el[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
                         if (el.src)
                             el.src = urlUtils.getProxyUrl(el.src);
                     }
                     else
-                        ElementSandbox.removeHasLoadHandlerFlag(el);
+                        delete el[INTERNAL_PROPS.forceProxySrcForImage];
 
                     el.onload = handler;
 

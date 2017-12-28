@@ -19,6 +19,7 @@ import { isFirefox, isIE } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
@@ -46,7 +47,6 @@ export default class WindowSandbox extends SandboxBase {
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
-        this.FORCE_PROXY_SRC_FOR_IMAGE = 'hammerhead|image|force-proxy-src-flag';
     }
 
     _raiseUncaughtJsErrorEvent (type, msg, window, pageUrl) {
@@ -146,7 +146,6 @@ export default class WindowSandbox extends SandboxBase {
 
         const messageSandbox = this.messageSandbox;
         const nodeSandbox    = this.nodeSandbox;
-        const windowSandbox  = this;
 
         this._reattachHandler(window, 'unhandledrejection');
         this._reattachHandler(window, 'error');
@@ -171,7 +170,7 @@ export default class WindowSandbox extends SandboxBase {
         window.CanvasRenderingContext2D.prototype.drawImage = function (...args) {
             const image = args[0];
 
-            if (isImgElement(image) && !image[windowSandbox.FORCE_PROXY_SRC_FOR_IMAGE]) {
+            if (isImgElement(image) && !image[INTERNAL_PROPS.forceProxySrcForImage]) {
                 const src = image.src;
 
                 if (destLocation.sameOriginCheck(location.toString(), src)) {
@@ -360,7 +359,7 @@ export default class WindowSandbox extends SandboxBase {
             else
                 image = new nativeMethods.Image(arguments[0], arguments[1]);
 
-            image[windowSandbox.FORCE_PROXY_SRC_FOR_IMAGE] = true;
+            image[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
             nodeSandbox.processNodes(image);
 

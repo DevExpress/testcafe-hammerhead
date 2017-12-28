@@ -1,3 +1,4 @@
+import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import SandboxBase from '../base';
 import NodeSandbox from '../node/index';
 import DomProcessor from '../../../processing/dom';
@@ -21,8 +22,6 @@ import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 
 const KEYWORD_TARGETS                   = ['_blank', '_self', '_parent', '_top'];
 const ATTRS_WITH_SPECIAL_PROXYING_LOGIC = ['sandbox', 'autocomplete', 'target', 'style'];
-
-const HAS_LOAD_HANDLER_FLAG = 'hammerhead|element|has-load-handler-flag';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -67,17 +66,9 @@ export default class ElementSandbox extends SandboxBase {
         }
     }
 
-    static setHasLoadHandlerFlag (el) {
-        el[HAS_LOAD_HANDLER_FLAG] = true;
-    }
-
-    static removeHasLoadHandlerFlag (el) {
-        delete el[HAS_LOAD_HANDLER_FLAG];
-    }
-
     static _setProxiedSrc (img) {
-        if (!img[HAS_LOAD_HANDLER_FLAG]) {
-            ElementSandbox.setHasLoadHandlerFlag(img);
+        if (!img[INTERNAL_PROPS.forceProxySrcForImage]) {
+            img[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
             if (img.src)
                 img.setAttribute('src', img.src);
@@ -136,7 +127,7 @@ export default class ElementSandbox extends SandboxBase {
 
             setAttrMeth.apply(el, isNs ? [ns, storedUrlAttr, value] : [storedUrlAttr, value]);
 
-            if (tagName !== 'img' || el[HAS_LOAD_HANDLER_FLAG]) {
+            if (tagName !== 'img' || el[INTERNAL_PROPS.forceProxySrcForImage]) {
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
                     const isIframe         = tagName === 'iframe' || tagName === 'frame';
                     const isScript         = tagName === 'script';
@@ -165,7 +156,7 @@ export default class ElementSandbox extends SandboxBase {
                 }
             }
             else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value)) {
-                args[valueIndex] = el[this.nodeSandbox.win.FORCE_PROXY_SRC_FOR_IMAGE]
+                args[valueIndex] = el[INTERNAL_PROPS.forceProxySrcForImage]
                     ? urlUtils.getProxyUrl(value)
                     : urlUtils.resolveUrlAsDest(value);
             }
@@ -715,7 +706,7 @@ export default class ElementSandbox extends SandboxBase {
 
         switch (tagName) {
             case 'img':
-                if (!el[this.nodeSandbox.win.FORCE_PROXY_SRC_FOR_IMAGE])
+                if (!el[INTERNAL_PROPS.forceProxySrcForImage])
                     this._setProxiedSrcUrlOnError(el);
                 break;
             case 'iframe':
