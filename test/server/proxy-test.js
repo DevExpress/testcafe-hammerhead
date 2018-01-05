@@ -172,6 +172,21 @@ describe('Proxy', () => {
 
         });
 
+        app.get('/location-header', (req, res) => {
+            res.set('location', '/relative/location/uri');
+            res.end();
+        });
+
+        app.get('/location-header-201', (req, res) => {
+            res.set('location', '/relative/location/uri');
+            res.send(201);
+        });
+
+        app.get('/location-header-202', (req, res) => {
+            res.set('location', '/relative/location/uri');
+            res.send(202);
+        });
+
         app.options('/preflight', (req, res) => res.end('42'));
 
         app.get('/with-auth', (req, res) => {
@@ -897,6 +912,51 @@ describe('Proxy', () => {
             });
         });
 
+        it('Should NOT modify Location header when req.httpVersion = \'1.1\' and destRes.statusCode = 202', done => {
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/location-header-202', session),
+                headers: {
+                    httpVersion: '1.1'
+                }
+            };
+
+            request(options, (err, res) => {
+                expect(res.statusCode).eql(202);
+                expect(res.headers.location).eql('/relative/location/uri');
+                done();
+            });
+        });
+
+        it('Should modify Location header when req.httpVersion != \'1.1\'', done => {
+            session.id = 'session-id';
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/location-header', session),
+                headers: {
+                    httpVersion: '1.0'
+                }
+            };
+
+            request(options, (err, res) => {
+                expect(res.headers.location).eql('http://127.0.0.1:1836/session-id/http://127.0.0.1:2000/relative/location/uri');
+                done();
+            });
+        });
+
+        it('Should modify Location header when destRes.statusCode != 202', done => {
+            session.id = 'session-id';
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/location-header-201', session),
+                headers: {
+                    httpVersion: '1.1'
+                }
+            };
+
+            request(options, (err, res) => {
+                expect(res.statusCode).eql(201);
+                expect(res.headers.location).eql('http://127.0.0.1:1836/session-id/http://127.0.0.1:2000/relative/location/uri');
+                done();
+            });
+        });
 
         it('Should not process XHR page requests', done => {
             const options = {
