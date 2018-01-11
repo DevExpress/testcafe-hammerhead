@@ -546,10 +546,6 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
-        // NOTE: stab for ie9 and ie10 (GH-801)
-        if (window.XDomainRequest)
-            window.XDomainRequest = window.XMLHttpRequest;
-
         WindowSandbox._wrapCSSGetPropertyValueIfNecessary(window.CSSStyleDeclaration,
             nativeMethods.CSSStyleDeclarationGetPropertyValue);
         WindowSandbox._wrapCSSGetPropertyValueIfNecessary(window.MSStyleCSSProperties,

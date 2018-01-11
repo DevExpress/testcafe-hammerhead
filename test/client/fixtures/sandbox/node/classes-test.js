@@ -451,9 +451,3 @@ test('window.Function must be overriden (T423261) (GH-769)', function () {
     ok(Function() instanceof Function);
     /*eslint-enable no-new-func*/
 });
-
-if (window.XDomainRequest) {
-    test('window.XDomainRequest must be overriden (GH-801)', function () {
-        strictEqual(window.XDomainRequest, window.XMLHttpRequest);
-    });
-}
