@@ -26,6 +26,7 @@ import { create as createSandboxBackup, get as getSandboxBackup } from './backup
 import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
 import nativeMethods from '../sandbox/native-methods';
+import { dispose as disposeLiveNodeListWrappers } from './node/live-node-list/wrapper-base';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
@@ -233,6 +234,7 @@ export default class Sandbox extends SandboxBase {
         anchorCodeInstumentationDispose();
         urlResolver.dispose(this.document);
         this.storageSandbox.dispose();
+        disposeLiveNodeListWrappers();
         this._removeInternalProperties();
     }
 }

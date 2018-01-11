@@ -21,6 +21,7 @@ import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 import INSTRUCTION from '../../../processing/script/instruction';
+import FunctionWrapper from './function-wrapper';
 import Promise from 'pinkie';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
@@ -367,15 +368,6 @@ export default class WindowSandbox extends SandboxBase {
         };
         window.Image.prototype = nativeMethods.Image.prototype;
 
-        const FunctionWrapper = function (...args) {
-            const functionBodyArgIndex = args.length - 1;
-
-            if (typeof args[functionBodyArgIndex] === 'string')
-                args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false);
-
-            return nativeMethods.Function.apply(this, args);
-        };
-
         window.Function                       = FunctionWrapper;
         window.Function.prototype             = nativeMethods.Function.prototype;
         window.Function.prototype.constructor = FunctionWrapper;
@@ -570,5 +562,11 @@ export default class WindowSandbox extends SandboxBase {
             nativeMethods.MSStyleCSSPropertiesRemoveProperty);
         WindowSandbox._wrapCSSRemovePropertyIfNecessary(window.CSS2Property,
             nativeMethods.CSS2PropertyRemoveProperty);
+    }
+
+    dispose () {
+        window.Function                       = nativeMethods.Function;
+        window.Function.prototype             = nativeMethods.Function.prototype;
+        window.Function.prototype.constructor = nativeMethods.Function.constructor;
     }
 }

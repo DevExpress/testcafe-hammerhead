@@ -18,8 +18,15 @@ export class LiveNodeListWrapperBase {
 
 LiveNodeListWrapperBase.prototype = NodeList.prototype;
 
-export const nodeListWrapperBase = new LiveNodeListWrapperBase();
+export let nodeListWrapperBase = new LiveNodeListWrapperBase();
 
 LiveNodeListWrapperBase.prototype = HTMLCollection.prototype;
 
-export const htmlCollectionWrapperBase = new LiveNodeListWrapperBase();
+export let htmlCollectionWrapperBase = new LiveNodeListWrapperBase();
+
+export function dispose () {
+    nodeListWrapperBase       = null;
+    htmlCollectionWrapperBase = null;
+
+
+}
