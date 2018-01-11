@@ -5,7 +5,7 @@ export default function (...args) {
     const functionBodyArgIndex = args.length - 1;
 
     if (typeof args[functionBodyArgIndex] === 'string')
-        args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false);
+        args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex]);
 
     return nativeMethods.Function.apply(this, args);
 }

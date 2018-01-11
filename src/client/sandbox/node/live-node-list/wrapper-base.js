@@ -27,6 +27,4 @@ export let htmlCollectionWrapperBase = new LiveNodeListWrapperBase();
 export function dispose () {
     nodeListWrapperBase       = null;
     htmlCollectionWrapperBase = null;
-
-
 }
