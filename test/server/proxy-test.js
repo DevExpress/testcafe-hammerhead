@@ -531,8 +531,7 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2000/page/plain-text', session),
                 headers: {
                     referer:                     proxy.openSession('file:///path/page.html', session),
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 
@@ -548,8 +547,7 @@ describe('Proxy', () => {
                 url:     proxy.openSession(getFileProtocolUrl('./data/stylesheet/src.css'), session),
                 headers: {
                     referer:                     proxy.openSession('file:///path/page.html', session),
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 
@@ -583,8 +581,7 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2000/preflight', session),
                 headers: {
                     referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 
@@ -600,8 +597,7 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2000/xhr-origin/allow-any', session),
                 headers: {
                     referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 
@@ -618,8 +614,7 @@ describe('Proxy', () => {
                 headers: {
                     referer:                     proxy.openSession('http://example.com', session),
                     'x-allow-origin':            'http://example.com',
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 
@@ -1613,8 +1608,7 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2000/B234325,GH-284/reply-with-origin', session),
                 headers: {
                     referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 
@@ -1798,8 +1792,7 @@ describe('Proxy', () => {
                 headers: {
                     origin:                      'http://127.0.0.1:1836',
                     [XHR_HEADERS.origin]:        'http://example.com',
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 
@@ -1889,8 +1882,7 @@ describe('Proxy', () => {
                 url:     proxy.openSession('http://127.0.0.1:2002/without-access-control-allow-origin-header', session),
                 headers: {
                     referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 
@@ -1912,8 +1904,7 @@ describe('Proxy', () => {
                     'authentication-info':       'value',
                     'proxy-authenticate':        'value',
                     'proxy-authorization':       'value',
-                    [XHR_HEADERS.requestMarker]: true,
-                    [XHR_HEADERS.corsSupported]: true
+                    [XHR_HEADERS.requestMarker]: true
                 }
             };
 
@@ -1936,7 +1927,6 @@ describe('Proxy', () => {
                 headers: {
                     referer:                               proxy.openSession('http://127.0.0.1:2000', session),
                     [XHR_HEADERS.requestMarker]:           'true',
-                    [XHR_HEADERS.corsSupported]:           'true',
                     [XHR_HEADERS.withCredentials]:         'true',
                     [XHR_HEADERS.origin]:                  'origin_value',
                     [XHR_HEADERS.fetchRequestCredentials]: 'omit'
@@ -1947,7 +1937,6 @@ describe('Proxy', () => {
                 const requestHeaders = JSON.parse(body);
 
                 expect(requestHeaders[XHR_HEADERS.requestMarker]).to.be.undefined;
-                expect(requestHeaders[XHR_HEADERS.corsSupported]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.withCredentials]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.origin]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.fetchRequestCredentials]).to.be.undefined;
@@ -1962,7 +1951,6 @@ describe('Proxy', () => {
                 headers: {
                     referer:                               proxy.openSession('http://127.0.0.1:2000', session),
                     [XHR_HEADERS.requestMarker]:           'true',
-                    [XHR_HEADERS.corsSupported]:           'true',
                     [XHR_HEADERS.withCredentials]:         'true',
                     [XHR_HEADERS.origin]:                  'origin_value',
                     [XHR_HEADERS.fetchRequestCredentials]: 'omit'
@@ -1973,7 +1961,6 @@ describe('Proxy', () => {
                 const requestHeaders = JSON.parse(body);
 
                 expect(requestHeaders[XHR_HEADERS.requestMarker]).to.be.undefined;
-                expect(requestHeaders[XHR_HEADERS.corsSupported]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.withCredentials]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.origin]).to.be.undefined;
                 expect(requestHeaders[XHR_HEADERS.fetchRequestCredentials]).to.be.undefined;
@@ -2223,8 +2210,7 @@ describe('Proxy', () => {
                     'proxy-authenticate':        'proxy-authenticate',
                     'proxy-authorization':       'proxy-authorization',
                     referer:                     proxy.openSession('http://127.0.0.1:2000', session),
-                    [XHR_HEADERS.requestMarker]: 'true',
-                    [XHR_HEADERS.corsSupported]: 'true'
+                    [XHR_HEADERS.requestMarker]: 'true'
                 }
             };
 

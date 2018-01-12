@@ -10,13 +10,6 @@ export function check (ctx) {
     if (ctx.dest.domain === reqOrigin)
         return true;
 
-    // NOTE: Ok, we have a cross-origin request.
-    const corsSupported = !!ctx.req.headers[XHR_HEADERS.corsSupported] || ctx.isFetch;
-
-    // FAILED: CORS not supported (IE9 only).
-    if (!corsSupported)
-        return false;
-
     // PASSED: We have a "preflight" request.
     if (ctx.req.method === 'OPTIONS')
         return true;

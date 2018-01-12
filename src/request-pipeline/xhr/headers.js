@@ -6,7 +6,6 @@
 
 export default {
     requestMarker:           'x-hammerhead|xhr|request-marker',
-    corsSupported:           'x-hammerhead|xhr|cors-supported',
     withCredentials:         'x-hammerhead|xhr|with-credentials',
     origin:                  'x-hammerhead|xhr|origin',
     setCookie:               'x-hammerhead|xhr|set-cookie',

@@ -13,8 +13,7 @@ function skipIfStateSnapshotIsApplied (src, ctx) {
 }
 
 function isCrossDomainXhrWithoutCredentials (ctx) {
-    return ctx.isXhr && !!ctx.req.headers[XHR_HEADERS.corsSupported] && !ctx.req.headers[XHR_HEADERS.withCredentials] &&
-           ctx.dest.reqOrigin !== ctx.dest.domain;
+    return ctx.isXhr && !ctx.req.headers[XHR_HEADERS.withCredentials] && ctx.dest.reqOrigin !== ctx.dest.domain;
 }
 
 function transformAuthorizationHeader (src, ctx) {
@@ -79,7 +78,6 @@ const requestTransforms = Object.assign({
     'if-modified-since':                   skipIfStateSnapshotIsApplied,
     'if-none-match':                       skipIfStateSnapshotIsApplied,
     [XHR_HEADERS.requestMarker]:           skip,
-    [XHR_HEADERS.corsSupported]:           skip,
     [XHR_HEADERS.withCredentials]:         skip,
     [XHR_HEADERS.origin]:                  skip,
     [XHR_HEADERS.fetchRequestCredentials]: skip
