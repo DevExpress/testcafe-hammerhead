@@ -558,24 +558,7 @@ describe('Proxy', () => {
             });
         });
 
-        it('Should restrict preflight requests from other domain', done => {
-            const options = {
-                method:  'OPTIONS',
-                url:     proxy.openSession('http://127.0.0.1:2000/preflight', session),
-                headers: {
-                    referer:                     proxy.openSession('http://example.com', session),
-                    [XHR_HEADERS.requestMarker]: 'true'
-                }
-            };
-
-            request(options, (err, res, body) => {
-                expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
-                expect(body).to.be.empty;
-                done();
-            });
-        });
-
-        it('Should allow preflight requests from other domain if CORS is enabled', done => {
+        it('Should allow preflight requests from other domain', done => {
             const options = {
                 method:  'OPTIONS',
                 url:     proxy.openSession('http://127.0.0.1:2000/preflight', session),
