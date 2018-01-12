@@ -20,10 +20,6 @@ export default class XhrSandbox extends SandboxBase {
         this.BEFORE_XHR_SEND_EVENT = 'hammerhead|event|before-xhr-send';
 
         this.cookieSandbox = cookieSandbox;
-
-        const xhr = new nativeMethods.XMLHttpRequest();
-
-        this.corsSupported = typeof xhr.withCredentials !== 'undefined';
     }
 
     static isOpenedXhr (obj) {
@@ -120,11 +116,6 @@ export default class XhrSandbox extends SandboxBase {
         xmlHttpRequestProto.open = function () {
             this[IS_OPENED_XHR] = true;
 
-            // NOTE: Emulate CORS, so that 3rd party libs (e.g. jQuery) allow requests with the proxy host as well as
-            // the destination page host.
-            if (!xhrSandbox.corsSupported)
-                this.withCredentials = false;
-
             if (typeof arguments[1] === 'string')
                 arguments[1] = getProxyUrl(arguments[1]);
 
@@ -140,9 +131,6 @@ export default class XhrSandbox extends SandboxBase {
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
             nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.requestMarker, 'true');
             nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.origin, getOriginHeader());
-
-            if (xhrSandbox.corsSupported)
-                nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.corsSupported, 'true');
 
             if (this.withCredentials)
                 nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.withCredentials, 'true');
