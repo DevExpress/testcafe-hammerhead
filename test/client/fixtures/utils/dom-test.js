@@ -251,14 +251,6 @@ test('closest element', function () {
     var iframeDiv = iframe.contentDocument.createElement('div');
 
     iframeDiv.className = 'parent';
-
-    // NOTE: IE9, IE10.
-    if (!iframe.contentDocument.body) {
-        var body = iframe.contentDocument.createElement('body');
-
-        iframe.contentDocument.appendChild(body);
-    }
-
     iframeDiv = iframe.contentDocument.body.appendChild(iframeDiv);
 
     var innerIframeDiv = iframe.contentDocument.createElement('div');
