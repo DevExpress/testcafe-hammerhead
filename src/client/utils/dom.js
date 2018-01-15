@@ -1,5 +1,6 @@
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
+import { isJsProtocol } from '../../processing/dom';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
@@ -339,7 +340,8 @@ export function isIframeWithoutSrc (iframe) {
     const iframeSrcLocation      = iframeLocation.srcLocation;
     const iframeDocumentLocation = iframeLocation.documentLocation;
 
-    if (iframeDocumentLocation === null) // is a cross-domain iframe
+    // NOTE: is a cross-domain iframe
+    if (iframeDocumentLocation === null)
         return false;
 
     const iframeDocumentLocationHaveSupportedProtocol = urlUtils.isSupportedProtocol(iframeDocumentLocation);
@@ -350,24 +352,9 @@ export function isIframeWithoutSrc (iframe) {
     if (!iframeDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
         return true;
 
-    const parentWindowWithSrc        = getParentWindowWithSrc(iframe.contentWindow);
-    const parsedParentWindowLocation = urlUtils.parseProxyUrl(parentWindowWithSrc.location.toString());
-    const parentWindowLocation       = parsedParentWindowLocation ? parsedParentWindowLocation.destUrl : parentWindowWithSrc.location.toString();
-
-    if (iframeDocumentLocationHaveSupportedProtocol) {
-        // NOTE: In IE, after document.open is called for a same-domain iframe or an iframe with a javascript src,
-        // the iframe window location becomes equal to the location of the parent window with src.
-        const parsedIframeSrcLocation = urlUtils.isSupportedProtocol(iframeSrcLocation) ? urlUtils.parseUrl(iframeSrcLocation)
-            : null;
-
-        if (parsedIframeSrcLocation && parsedIframeSrcLocation.partAfterHost &&
-            iframeDocumentLocation === parentWindowLocation)
-            return false;
-
-        return iframeDocumentLocation === parentWindowLocation;
-    }
-
-    if (iframeSrcLocation === parentWindowLocation)
+    // NOTE: In IE, after document.open is called for a same-domain iframe or an iframe with a javascript src,
+    // the iframe window location becomes equal to the location of the parent window with src.
+    if (isJsProtocol(iframeSrcLocation) && iframe.contentWindow[INTERNAL_PROPS.isDocumentWasCleaned])
         return true;
 
     // In Chrome, when an iframe with the src attribute is added to DOM,

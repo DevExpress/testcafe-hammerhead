@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
+</head>
+<body>
+    <script type="text/javascript">
+        var hammerhead = window['%hammerhead%'];
+
+        hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://example.com');
+        hammerhead.start({ sessionId: 'sessionId' });
+
+        var iframeSandbox = hammerhead.sandbox.iframe;
+
+        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, top.initIframeTestHandler);
+        iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
+    </script>
+
+    <form target="submitTarget">
+        <input type="submit" value="Push me!">
+    </form>
+    <iframe id='test' name="submitTarget"></iframe>
+
+    <script>
+        var form = document.querySelector('form');
+
+        location.search.substring(1).split('&').forEach(function(param) {
+            var input = document.createElement('input');
+            var parsedParam = param.split('=');
+
+            input.name = parsedParam[0];
+            input.value = decodeURIComponent(parsedParam[1]);
+            input.type = 'hidden';
+
+            form.appendChild(input);
+        });
+    </script>
+</body>
+</html>

@@ -419,6 +419,32 @@ test('isContentEditableElement', function () {
 
 module('isIframeWithoutSrc');
 
+test('should not process an iframe with a same url twice (GH-1419)', function () {
+    var nestedIframe = null;
+
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/same-domain/form-target-to-iframe.html') })
+        .then(function (iframe) {
+            var iframeDocument = iframe.contentDocument;
+            var formSubmit     = iframeDocument.querySelector('form > input[type=submit]');
+
+            nestedIframe = iframeDocument.querySelector('iframe');
+
+            ok(domUtils.isIframeWithoutSrc(nestedIframe));
+
+            return new Promise(function (resolve) {
+                nestedIframe.addEventListener('load', resolve);
+                formSubmit.click();
+            });
+        })
+        .then(function () {
+            var nestedIframeHammerhead      = nestedIframe.contentWindow['%hammerhead%'];
+            var stringifiedAddEventListener = nestedIframeHammerhead.nativeMethods.windowAddEventListener.toString();
+
+            ok(/\s*function\s+[^\s(]*\s*\([^)]*\)\s*{\s*\[native code]\s*}\s*/.test(stringifiedAddEventListener));
+            ok(!domUtils.isIframeWithoutSrc(nestedIframe));
+        });
+});
+
 test('after the location is set to an iframe without src isIframeWithoutSrc should return "false"', function () {
     return createTestIframe()
         .then(function (iframe) {
@@ -459,26 +485,20 @@ if (!browserUtils.isIE) {
 }
 
 test('should return "false" after calling document.open, document.write, document.close for the iframe with javascript src (GH-815)', function () {
-    var iframe = document.createElement('iframe');
+    return createTestIframe({ src: 'javascript:false;' })
+        .then(function (iframe) {
+            ok(domUtils.isIframeWithoutSrc(iframe));
 
-    iframe.src = 'javascript:false;';
-    iframe.id  = 'test_unique_id_p3ebtcyk7';
+            iframe.contentDocument.open();
 
-    document.body.appendChild(iframe);
+            ok(domUtils.isIframeWithoutSrc(iframe));
 
-    ok(domUtils.isIframeWithoutSrc(iframe));
+            iframe.contentDocument.write('<h1>test</h1>');
+            ok(domUtils.isIframeWithoutSrc(iframe));
 
-    iframe.contentDocument.open();
-
-    ok(domUtils.isIframeWithoutSrc(iframe));
-
-    iframe.contentDocument.write('<h1>test</h1>');
-    ok(domUtils.isIframeWithoutSrc(iframe));
-
-    iframe.contentDocument.close();
-    ok(domUtils.isIframeWithoutSrc(iframe));
-
-    iframe.parentNode.removeChild(iframe);
+            iframe.contentDocument.close();
+            ok(domUtils.isIframeWithoutSrc(iframe));
+        });
 });
 
 test('changed location 2', function () {
