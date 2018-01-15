@@ -6,7 +6,6 @@ import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
 import { isFirefox, isWebKit, isIE } from './browser';
-import trim from '../../utils/string-trim';
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
@@ -58,41 +57,6 @@ function closestFallback (el, selector) {
     }
 
     return null;
-}
-
-function addClassFallback (el, className) {
-    if (className) {
-        const classNames = className.split(/\s+/);
-        let setClass     = ' ' + el.className + ' ';
-
-        for (const currentClassName of classNames) {
-            if (setClass.indexOf(' ' + currentClassName + ' ') === -1)
-                setClass += currentClassName + ' ';
-        }
-
-        el.className = trim(setClass);
-    }
-}
-
-function removeClassFallback (el, className) {
-    if (el.className && className) {
-        const classNames = (className || '').split(/\s+/);
-
-        className = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
-
-        for (let i = 0; i < classNames.length; i++)
-            className = className.replace(' ' + classNames[i] + ' ', ' ');
-
-        el.className = trim(className);
-    }
-}
-
-function hasClassFallback (el, className) {
-    const preparedElementClassName = (' ' + el.className + ' ').replace(/[\n\t\r]/g, ' ');
-
-    className = ' ' + className + ' ';
-
-    return preparedElementClassName.indexOf(className) !== -1;
 }
 
 export function instanceToString (instance) {
@@ -691,41 +655,27 @@ export function addClass (el, className) {
     if (!el)
         return;
 
-    // NOTE: IE10+
-    if (el && el.classList) {
-        const classNames = className.split(/\s+/);
+    const classNames = className.split(/\s+/);
 
-        for (const currentClassName of classNames)
-            el.classList.add(currentClassName);
-    }
-    else
-        addClassFallback(el, className);
+    for (const currentClassName of classNames)
+        el.classList.add(currentClassName);
 }
 
 export function removeClass (el, className) {
     if (!el)
         return;
 
-    // NOTE: IE10+
-    if (el.classList) {
-        const classNames = className.split(/\s+/);
+    const classNames = className.split(/\s+/);
 
-        for (const currentClassName of classNames)
-            el.classList.remove(currentClassName);
-    }
-    else
-        removeClassFallback(el, className);
+    for (const currentClassName of classNames)
+        el.classList.remove(currentClassName);
 }
 
 export function hasClass (el, className) {
     if (!el)
         return false;
 
-    // NOTE: IE10+
-    if (el.classList)
-        return el.classList.contains(className);
-
-    return hasClassFallback(el, className);
+    return el.classList.contains(className);
 }
 
 export function parseDocumentCharset () {
