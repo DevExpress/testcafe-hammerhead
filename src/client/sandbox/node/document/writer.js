@@ -81,14 +81,7 @@ export default class DocumentWriter {
         if (this.isNonClosedComment)
             parentTagChainMarkup += '<!--';
 
-        const wrapedHtmlChunk = parentTagChainMarkup + BEGIN_MARKER_MARKUP + htmlChunk + END_MARKER_MARKUP;
-
-        // NOTE: IE9 strange behavior
-        // div.innerHTML = "<div><!--<p></p><b></b>"
-        // div.innerHTML === "<div><!--<p></div>"
-        // div.firstChild.firstChild.text === "<!--<p>"
-        // div.firstChild.firstChild.textContent === ""
-        return wrapedHtmlChunk + '-->';
+        return parentTagChainMarkup + BEGIN_MARKER_MARKUP + htmlChunk + END_MARKER_MARKUP;
     }
 
     _unwrapHtmlChunk (htmlChunk) {
