@@ -193,9 +193,13 @@ class NativeMethods {
 
         if (win.MessageEvent) {
             const originPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin');
+            const dataPropDescriptor   = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
 
             if (originPropDescriptor && originPropDescriptor.get && originPropDescriptor.configurable)
                 this.messageEventOriginGetter = originPropDescriptor.get;
+
+            if (dataPropDescriptor && dataPropDescriptor.get && dataPropDescriptor.configurable)
+                this.messageEventDataGetter = dataPropDescriptor.get;
         }
 
         // Stylesheets

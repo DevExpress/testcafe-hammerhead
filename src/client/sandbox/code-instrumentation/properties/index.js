@@ -25,6 +25,7 @@ import { shouldInstrumentProperty } from '../../../../processing/script/instrume
 import nativeMethods from '../../native-methods';
 import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
 import DOMMutationTracker from '../../node/live-node-list/dom-mutation-tracker';
+import { isAndroid } from '../../../utils/browser';
 
 function checkElementTextProperties (el) {
     const result         = {};
@@ -209,11 +210,20 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             data: {
-                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'data'),
+                // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 5.1 browser
+                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'data') ||
+                                 isAndroid && !nativeMethods.messageEventDataGetter && el instanceof window.MessageEvent,
 
-                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'data'),
+                get: el => {
+                    if (domUtils.isDomElement(el))
+                        return PropertyAccessorsInstrumentation._getUrlAttr(el, 'data');
+
+                    return el.data.message;
+                },
+
                 set: (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['data', value]);
+                    if (domUtils.isDomElement(el))
+                        this.elementSandbox.setAttributeCore(el, ['data', value]);
 
                     return value;
                 }

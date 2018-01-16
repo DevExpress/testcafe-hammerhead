@@ -7,12 +7,13 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isCrossDomainWindows, getTopSameDomainWindow } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
-import createEvent from '../../utils/create-event';
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
     user:    'hammerhead|user-msg'
 };
+
+const IS_OVERRIDDEN_EVENT_OBJECT = 'hammerhead|message-event|overridden';
 
 export default class MessageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox) {
@@ -40,8 +41,21 @@ export default class MessageSandbox extends SandboxBase {
         this.iframeInternalMsgQueue = [];
     }
 
+    _getMessageData (e) {
+        const rawData = nativeMethods.messageEventDataGetter ? nativeMethods.messageEventDataGetter.call(e) : e.data;
+
+        return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
+    }
+
+    _callOriginListener (originListener, e) {
+        if (isObjectEventListener(originListener))
+            return originListener.handleEvent.call(originListener, e);
+
+        return originListener.call(this.window, e);
+    }
+
     _onMessage (e) {
-        const data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
+        const data = this._getMessageData(e);
 
         if (data.type === MESSAGE_TYPE.service && e.source) {
             if (this.pingCmd && data.message.cmd === this.pingCmd && data.message.isPingResponse) {
@@ -55,21 +69,27 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onWindowMessage (e, originListener) {
-        const data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
+        const isOverriddenEventObject = e[IS_OVERRIDDEN_EVENT_OBJECT];
+
+        if (isOverriddenEventObject)
+            return this._callOriginListener(originListener, e);
+
+        const data = this._getMessageData(e);
 
         if (data.type !== MESSAGE_TYPE.service) {
             const originUrl = destLocation.get();
 
             if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl)) {
-                const resultEvt = createEvent(e, {
-                    origin: data.originUrl,
-                    data:   data.message
-                });
+                // NOTE: We need to use deprecated methods instead of the defineProperty method
+                // in the Android 5.1 browser
+                if (!nativeMethods.messageEventOriginGetter) {
+                    e.__defineGetter__('origin', () => data.originUrl);
+                    e.__defineSetter__('origin', value => value);
 
-                if (isObjectEventListener(originListener))
-                    return originListener.handleEvent.call(originListener, resultEvt);
+                    nativeMethods.objectDefineProperty.call(window.Object, e, IS_OVERRIDDEN_EVENT_OBJECT, { value: true });
+                }
 
-                return originListener.call(this.window, resultEvt);
+                return this._callOriginListener(originListener, e);
             }
         }
 
