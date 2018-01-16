@@ -657,9 +657,13 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _ensureTargetContainsExistingBrowsingContext (el) {
+        if (!nativeMethods.hasAttribute.call(el, 'target'))
+            return;
+
+        const attr       = nativeMethods.getAttribute.call(el, 'target');
         const storedAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('target'));
 
-        el.setAttribute('target', storedAttr || el.target);
+        el.setAttribute('target', storedAttr || attr);
     }
 
     _setValidBrowsingContextOnElementClick (window) {

@@ -287,11 +287,22 @@ test('The form in the iframe (GH-880)', function () {
         });
 });
 
-test('should not add target attribute after click', function () {
+test('should not add target attribute after click on the anchor element', function () {
     var link = createTestedLink();
 
     provokeTargetCalculation(link);
     checkElementTarget(link, '', null);
 
     link.parentNode.removeChild(link);
+});
+
+test('should not add target attribute after click on the button element (GH-1437)', function () {
+    var button = document.createElement('button');
+
+    document.body.appendChild(button);
+
+    provokeTargetCalculation(button);
+    checkElementTarget(button, void 0, null);
+
+    document.body.removeChild(button);
 });
