@@ -10,6 +10,7 @@ import { convertToProxyUrl, parseProxyUrl } from './url';
 import { isIE, isMSEdge } from './browser';
 import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
+import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
 
 const FAKE_TAG_NAME_PREFIX    = 'hh_fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME   = 'hh_fake_doctype';
@@ -30,11 +31,23 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
-const ATTRS_FOR_CLEANING    = DomProcessor.getAttrsForCleaning();
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overriden by the client code. (GH-245)
+const arrayConcat = Array.prototype.concat;
+const arrayMap    = Array.prototype.map;
+
+const ATTRS_FOR_CLEANING      = arrayConcat.call(URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC);
+const ATTRS_DATA_FOR_CLEANING = arrayMap.call(ATTRS_FOR_CLEANING, attr => {
+    return {
+        attr,
+        storedAttr: DomProcessor.getStoredAttrName(attr)
+    };
+});
+
 const STORED_ATTRS_SELECTOR = (() => {
     const storedAttrs = [];
 
-    for (const { storedAttr } of ATTRS_FOR_CLEANING)
+    for (const { storedAttr } of ATTRS_DATA_FOR_CLEANING)
         storedAttrs.push(storedAttr);
 
     return '[' + storedAttrs.join('],[') + ']';
@@ -124,7 +137,7 @@ export function cleanUpHtml (html) {
         let changed = false;
 
         find(container, STORED_ATTRS_SELECTOR, el => {
-            for (const { attr, storedAttr } of ATTRS_FOR_CLEANING) {
+            for (const { attr, storedAttr } of ATTRS_DATA_FOR_CLEANING) {
                 if (el.hasAttribute(attr))
                     nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
                 else if (attr === 'autocomplete')

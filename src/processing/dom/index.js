@@ -8,6 +8,7 @@ import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
 import { XML_NAMESPACE } from './namespaces';
+import { URL_ATTR_TAGS, URL_ATTRS } from './attributes';
 
 const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
@@ -15,17 +16,6 @@ const HTML_COMMENT_PREFIX_REG_EX         = /^(\s)*<!--[^\n]*\n/;
 const HTML_COMMENT_SIMPLE_POSTFIX_REG_EX = /-->\s*$/;
 const JAVASCRIPT_PROTOCOL_REG_EX         = /^\s*javascript\s*:/i;
 const EXECUTABLE_SCRIPT_TYPES_REG_EX     = /^\s*(application\/(x-)?(ecma|java)script|text\/(javascript(1\.[0-5])?|((x-)?ecma|x-java|js|live)script))\s*$/;
-
-const URL_ATTR_TAGS = {
-    href:       ['a', 'link', 'image', 'area', 'base'],
-    src:        ['img', 'embed', 'script', 'source', 'video', 'audio', 'input', 'frame', 'iframe'],
-    action:     ['form'],
-    formaction: ['button', 'input'],
-    manifest:   ['html'],
-    data:       ['object']
-};
-
-const URL_ATTRS = Object.keys(URL_ATTR_TAGS);
 
 const SVG_XLINK_HREF_TAGS = [
     'animate', 'animateColor', 'animateMotion', 'animateTransform', 'mpath', 'set', //animation elements
@@ -55,7 +45,6 @@ export default class DomProcessor {
         this.adapter = adapter;
         this.adapter.attachEventEmitter(this);
 
-        this.URL_ATTRS                             = URL_ATTRS;
         this.SVG_XLINK_HREF_TAGS                   = SVG_XLINK_HREF_TAGS;
         this.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
 
@@ -96,17 +85,6 @@ export default class DomProcessor {
 
     static isJsProtocol (value) {
         return JAVASCRIPT_PROTOCOL_REG_EX.test(value);
-    }
-
-    static getAttrsForCleaning () {
-        const attrs = [];
-
-        for (const attr of URL_ATTRS)
-            attrs.push({ attr, storedAttr: DomProcessor.getStoredAttrName(attr) });
-
-        attrs.push({ attr: 'autocomplete', storedAttr: DomProcessor.getStoredAttrName('autocomplete') });
-
-        return attrs;
     }
 
     static _isHtmlImportLink (tagName, relAttr) {
