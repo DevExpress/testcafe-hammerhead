@@ -618,6 +618,10 @@ export function isWebSocket (ws) {
     return instanceToString(ws) === '[object WebSocket]';
 }
 
+export function isMessageEvent (e) {
+    return instanceToString(e) === '[object MessageEvent]';
+}
+
 export function matches (el, selector) {
     if (!el)
         return false;

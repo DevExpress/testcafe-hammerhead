@@ -543,24 +543,6 @@ export default class WindowSandbox extends SandboxBase {
                 .call(window.Object, window.MessageEvent.prototype, 'origin', originPropDescriptor);
         }
 
-        if (nativeMethods.messageEventDataGetter) {
-            const dataPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
-                .call(window.Object, window.MessageEvent.prototype, 'data');
-
-            dataPropDescriptor.get = function () {
-                const target = this.target;
-                const data   = nativeMethods.messageEventDataGetter.call(this);
-
-                if (data && isWindow(target))
-                    return data.message;
-
-                return data;
-            };
-
-            nativeMethods.objectDefineProperty
-                .call(window.Object, window.MessageEvent.prototype, 'data', dataPropDescriptor);
-        }
-
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
                 if (args.length > 1 && typeof args[0] === 'string' && args[1] === 'text/html')

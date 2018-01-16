@@ -4,7 +4,7 @@ import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
-import { isCrossDomainWindows, getTopSameDomainWindow } from '../../utils/dom';
+import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
 import { isObjectEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 
@@ -42,7 +42,9 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _getMessageData (e) {
-        const rawData = nativeMethods.messageEventDataGetter ? nativeMethods.messageEventDataGetter.call(e) : e.data;
+        const rawData = nativeMethods.messageEventDataGetter && isMessageEvent(e)
+            ? nativeMethods.messageEventDataGetter.call(e)
+            : e.data;
 
         return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
@@ -147,6 +149,24 @@ export default class MessageSandbox extends SandboxBase {
             value:        onMessageHandler,
             configurable: true
         });
+
+        if (nativeMethods.messageEventDataGetter) {
+            const dataPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
+                .call(window.Object, window.MessageEvent.prototype, 'data');
+
+            dataPropDescriptor.get = function () {
+                const target = this.target;
+                const data   = nativeMethods.messageEventDataGetter.call(this);
+
+                if (data && data.type !== MESSAGE_TYPE.service && isWindow(target))
+                    return data.message;
+
+                return data;
+            };
+
+            nativeMethods.objectDefineProperty
+                .call(window.Object, window.MessageEvent.prototype, 'data', dataPropDescriptor);
+        }
     }
 
     setOnMessage (window, value) {

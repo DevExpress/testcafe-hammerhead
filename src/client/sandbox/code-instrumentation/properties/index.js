@@ -212,7 +212,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             data: {
                 // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 5.1 browser
                 condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'data') ||
-                                 isAndroid && !nativeMethods.messageEventDataGetter && el instanceof window.MessageEvent,
+                                 isAndroid && !nativeMethods.messageEventDataGetter && domUtils.isMessageEvent(el),
 
                 get: el => {
                     if (domUtils.isDomElement(el))
