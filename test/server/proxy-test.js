@@ -24,6 +24,7 @@ const DestinationRequest                   = require('../../lib/request-pipeline
 const RequestPipelineContext               = require('../../lib/request-pipeline/context');
 const requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
 const scriptHeader                         = require('../../lib/processing/script/header');
+const resourceProcessor                    = require('../../lib/processing/resources/');
 const urlUtils                             = require('../../lib/utils/url');
 const nodeVersion                          = parseFloat(require('node-version').short);
 
@@ -2552,5 +2553,27 @@ describe('Proxy', () => {
                     });
             });
         }
+
+        it('Should not hung if an error is raised in resource processor', done => {
+            const options         = {
+                url:     proxy.openSession('http://127.0.0.1:2000/script', session),
+                headers: {
+                    'content-type': 'application/javascript; charset=utf-8'
+                }
+            };
+            const storedProcessFn = resourceProcessor.process;
+
+            resourceProcessor.process = () => {
+                throw new Error('test error message');
+            };
+
+            request(options, (err, res, body) => {
+                expect(res.statusCode).eql(500);
+                expect(body).to.include('test error message');
+
+                resourceProcessor.process = storedProcessFn;
+                done();
+            });
+        });
     });
 });

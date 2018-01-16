@@ -182,7 +182,7 @@ function error (ctx, err) {
     else if (ctx.isFetch || ctx.isXhr)
         ctx.req.destroy();
     else
-        ctx.closeWithError(500, err);
+        ctx.closeWithError(500, err.toString());
 }
 
 function isDestResBodyMalformed (ctx) {
