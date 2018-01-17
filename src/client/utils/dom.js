@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE } from './browser';
+import { isFirefox, isWebKit, isIE, isMSEdge } from './browser';
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
@@ -485,6 +485,13 @@ export function isWindow (instance) {
         return true;
 
     try {
+        // NOTE: A window object received from MessageEvent.target has strange behavior into js debugger:
+        // * in the IE11 an object displays as [object DispHTMLWindow2];
+        // * in the Edge an object displays as [object Object].
+        // This condition fix it.
+        if ((isIE || isMSEdge) && instance && instance === instance.window)
+            instance = instance.window;
+
         return instance && instance.toString && NATIVE_WINDOW_STR === instanceToString(instance);
     }
     catch (e) {
