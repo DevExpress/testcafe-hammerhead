@@ -61,6 +61,16 @@ test('shadow ui elements', function () {
     strictEqual(htmlUtils.cleanUpHtml(html), '<head></head><body></body>');
 });
 
+test('attribute with a special proxying logic (GH-1448)', function () {
+    var div = document.createElement('div');
+
+    div.setAttribute('style', 'color: black;');
+
+    var expectedOuterHtml = '<div style="color: black;"></div>';
+
+    strictEqual(getProperty(div, 'outerHTML'), expectedOuterHtml);
+});
+
 test('form', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
 

@@ -9,6 +9,7 @@ import domProcessor from '../../dom-processor';
 import * as domUtils from '../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../utils/query-selector';
 import nativeMethods from '../native-methods';
+import { URL_ATTRS } from '../../../processing/dom/attributes';
 
 const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
@@ -145,7 +146,7 @@ export default class NodeSandbox extends SandboxBase {
             return selector;
 
         return selector.replace(ATTRIBUTE_SELECTOR_REG_EX, (str, name, operatorWithValue) => {
-            if (domProcessor.URL_ATTRS.indexOf(name) !== -1 &&
+            if (URL_ATTRS.indexOf(name) !== -1 &&
                 !ATTRIBUTE_OPERATOR_WITH_HASH_VALUE.test(operatorWithValue)) {
                 name = getStoredAttrName(name);
 

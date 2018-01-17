@@ -19,9 +19,9 @@ import * as windowsStorage from '../windows-storage';
 import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
 import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
+import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
 
-const KEYWORD_TARGETS                   = ['_blank', '_self', '_parent', '_top'];
-const ATTRS_WITH_SPECIAL_PROXYING_LOGIC = ['sandbox', 'autocomplete', 'target', 'style'];
+const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
