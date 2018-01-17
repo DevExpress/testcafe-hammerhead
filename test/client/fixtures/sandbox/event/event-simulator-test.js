@@ -328,10 +328,7 @@ if (browserUtils.isIE) {
 
 if (eventUtils.hasPointerEvents) {
     test('pointer down', function () {
-        if (browserUtils.isIE10)
-            bindMouseEvent('mspointerdown', eventUtils.BUTTON.left);
-        else
-            bindMouseEvent('pointerdown', eventUtils.BUTTON.left);
+        bindMouseEvent('pointerdown', eventUtils.BUTTON.left);
         eventSimulator.mousedown(domElement);
         ok(raised);
     });

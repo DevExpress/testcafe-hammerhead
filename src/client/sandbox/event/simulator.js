@@ -457,18 +457,17 @@ export default class EventSimulator {
             y: elPosition.top + elBorders.top
         });
         const eventShortType   = args.type.replace('mouse', '');
-        const pointerEventType = !browserUtils.isIE10 ? 'pointer' + eventShortType :
-                                 'MSPointer' + eventShortType.charAt(0).toUpperCase() + eventShortType.substring(1);
+        const pointerEventType = 'pointer' + eventShortType;
 
         const pointerArgs = extend({
-            width:       !browserUtils.isIE10 ? 1 : 0,
-            height:      !browserUtils.isIE10 ? 1 : 0,
+            width:       1,
+            height:      1,
             pressure:    0,
             tiltX:       0,
             tiltY:       0,
             // NOTE: This parameter must be "1" for “mouse”.
             pointerId:   1,
-            pointerType: browserUtils.isIE10 ? 4 : 'mouse',
+            pointerType: 'mouse',
             timeStamp:   nativeMethods.dateNow(),
             isPrimary:   true
         }, args);
@@ -482,7 +481,7 @@ export default class EventSimulator {
         if (browserUtils.isIE) {
             pointerArgs.rotation = 0;
 
-            pointEvent = nativeMethods.documentCreateEvent.call(document, browserUtils.isIE10 ? 'MSPointerEvent' : 'PointerEvent');
+            pointEvent = nativeMethods.documentCreateEvent.call(document, 'PointerEvent');
 
             // NOTE: We set the relatedTarget argument to null because IE has a memory leak.
             pointEvent.initPointerEvent(pointerArgs.type, pointerArgs.canBubble, pointerArgs.cancelable, window,

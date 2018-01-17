@@ -69,13 +69,6 @@ test('link in iframe', function () {
 
     var iframeBody = iframe.contentDocument.body;
 
-    // NOTE: In IE9, iframe's contentDocument does not have a 'body' element.
-    // So, we need to create it manually.
-    if (!iframeBody) {
-        iframeBody = nativeMethods.createElement.call(iframe.contentDocument, 'body');
-        nativeMethods.appendChild.call(iframe.contentDocument, iframeBody);
-    }
-
     iframeBody.innerHTML = '<a href="/index.html"></a>';
 
     domProcessor.processElement(iframeBody.childNodes[0], urlUtils.convertToProxyUrl);
