@@ -64,9 +64,9 @@ test('shadow ui elements', function () {
 test('attribute with a special proxying logic (GH-1448)', function () {
     var div = document.createElement('div');
 
-    div.setAttribute('style', 'color:black');
+    div.setAttribute('style', 'color: black;');
 
-    var expectedOuterHtml = '<div style="color:black"></div>';
+    var expectedOuterHtml = '<div style="color: black;"></div>';
 
     strictEqual(getProperty(div, 'outerHTML'), expectedOuterHtml);
 });
