@@ -9,7 +9,7 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
 
     var eventHandlerObject = {
         handleEvent: function (e) {
-            strictEqual(e.data, testMessage);
+            strictEqual(getProperty(e, 'data'), testMessage);
             strictEqual(this, eventHandlerObject);
             window.removeEventListener('message', eventHandlerObject);
             start();
@@ -24,7 +24,8 @@ asyncTest('onmessage event', function () {
     var count = 0;
 
     var onMessageHandler = function (evt) {
-        var data = typeof evt.data === 'string' ? JSON.parse(evt.data) : evt.data;
+        var rawData = getProperty(evt, 'data');
+        var data    = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
 
         strictEqual(evt.origin, 'http://origin_iframe_host');
         strictEqual(data.msg, 'https://example.com');
@@ -62,7 +63,7 @@ asyncTest('cross-domain post messages between different windows', function () {
     iframe.id = 'test02';
 
     onMessageHandler = function (e) {
-        if (parseInt(e.data, 10))
+        if (parseInt(getProperty(e, 'data'), 10))
             result++;
 
         checkResult();
@@ -79,9 +80,9 @@ test('message types', function () {
         return new Promise(function (resove) {
             var onMessageHandler = function (e) {
                 if (test)
-                    ok(test(e.data));
+                    ok(test(getProperty(e, 'data')));
                 else
-                    strictEqual(e.data, value);
+                    strictEqual(getProperty(e, 'data'), value);
 
                 setProperty(window, 'onmessage', void 0);
 
@@ -123,7 +124,7 @@ test('message types', function () {
 
 asyncTest('message to current window', function () {
     var onMessageHandler = function (evt) {
-        strictEqual(evt.data, 'data123');
+        strictEqual(getProperty(evt, 'data'), 'data123');
 
         window.removeEventListener('message', onMessageHandler);
         start();
@@ -216,7 +217,7 @@ asyncTest('iframe', function () {
     var iframe                 = document.createElement('iframe');
     var iframeResponseReceived = false;
     var onMessageHandler       = function (evt) {
-        if (evt.data === 'ready') {
+        if (getProperty(evt, 'data') === 'ready') {
             ok(iframeResponseReceived);
 
             window.removeEventListener('message', onMessageHandler);
@@ -286,7 +287,7 @@ asyncTest('send message from iframe with "about:blank" src (GH-1026)', function 
     iframe.id = 'test-' + Date.now();
     setProperty(iframe, 'src', src);
     setProperty(window, 'onmessage', function (e) {
-        if (e.data !== 'gh1026')
+        if (getProperty(e, 'data') !== 'gh1026')
             return;
 
         iframe.parentNode.removeChild(iframe);
@@ -376,7 +377,7 @@ test('should not raise an error for sendServiceMessage if window.top is a cross-
         return !!messageData;
     };
     var onMessageHandler  = function (e) {
-        messageData = e.data;
+        messageData = getProperty(e, 'data');
     };
 
     window.addEventListener('message', onMessageHandler);
