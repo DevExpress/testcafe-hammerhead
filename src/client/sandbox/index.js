@@ -156,7 +156,7 @@ export default class Sandbox extends SandboxBase {
 
                 // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
                 // Inform IFrameSandbox about this, and it injects Hammerhead.
-                this.iframe.onIframeBeganToRun(iframe);
+                this.iframe.tryToInitAsIframeWithoutSrc({ iframe, force: true });
             }
         }
     }
@@ -177,6 +177,7 @@ export default class Sandbox extends SandboxBase {
         // NOTE: T182337
         this.codeInstrumentation.attach(window);
         this.node.doc.attach(window, document);
+        this.node.element.attach(window, document);
         this.console.attach(window);
 
         this._restoreDocumentMethodsFromProto(document);

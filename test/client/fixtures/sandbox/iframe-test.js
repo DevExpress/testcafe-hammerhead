@@ -281,6 +281,28 @@ test("'body.appendChild' method works incorrectly in the particular case (GH-421
     checkIframes();
 });
 
+test('hammerhead should be initialized after the document.write call in iframe with same-domain src (GH-1325)', function () {
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
+        .then(function (iframe) {
+            var iframeDocument = iframe.contentDocument;
+            var iframeAnchor   = iframeDocument.createElement('a');
+
+            iframeDocument.body.appendChild(iframeAnchor);
+            iframeAnchor.setAttribute('href', 'http://domain.com/page');
+
+            strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/page');
+
+            iframe.contentDocument.write('<a href="http://domain.com/link">');
+
+            iframeAnchor = iframe.contentDocument.body.firstChild;
+
+            strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/link');
+
+            iframeAnchor.setAttribute('href', 'http://domain.com/page');
+            strictEqual(iframeAnchor.href, 'http://' + location.host + '/sessionId!i/http://domain.com/page');
+        });
+});
+
 if (browserUtils.isWebKit) {
     test('event listeners added twice in an iframe after document.write (GH-839)', function () {
         return createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/window-event-listeners.html') })

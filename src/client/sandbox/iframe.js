@@ -54,8 +54,8 @@ export default class IframeSandbox extends SandboxBase {
         }
     }
 
-    _raiseReadyToInitEvent (iframe) {
-        if (isIframeWithoutSrc(iframe)) {
+    tryToInitAsIframeWithoutSrc ({ iframe, force }) {
+        if (force || isIframeWithoutSrc(iframe)) {
             const iframeInitialized       = IframeSandbox.isIframeInitialized(iframe);
             const iframeWindowInitialized = iframe.contentWindow[IFRAME_WINDOW_INITED];
 
@@ -121,10 +121,6 @@ export default class IframeSandbox extends SandboxBase {
         e.iframe.contentWindow.eval.call(e.iframe.contentWindow, taskScript);
     }
 
-    onIframeBeganToRun (iframe) {
-        this._raiseReadyToInitEvent(iframe);
-    }
-
     processIframe (el) {
         if (isShadowUIElement(el))
             return;
@@ -133,11 +129,11 @@ export default class IframeSandbox extends SandboxBase {
 
         if (!src || !isSupportedProtocol(src)) {
             if (el.contentWindow) {
-                this._raiseReadyToInitEvent(el);
+                this.tryToInitAsIframeWithoutSrc({ iframe: el });
 
                 const readyHandler = () => {
                     if (el.contentWindow)
-                        this._raiseReadyToInitEvent(el);
+                        this.tryToInitAsIframeWithoutSrc({ iframe: el });
                 };
 
                 this.nativeMethods.addEventListener.call(el, 'load', readyHandler);
@@ -150,25 +146,25 @@ export default class IframeSandbox extends SandboxBase {
                     if (isCrossDomainIframe(el))
                         this.nativeMethods.removeEventListener.call(el, 'load', handler);
                     else
-                        this._raiseReadyToInitEvent(el);
+                        this.tryToInitAsIframeWithoutSrc({ iframe: el });
                 };
 
                 if (isElementInDocument(el))
-                    this._raiseReadyToInitEvent(el);
+                    this.tryToInitAsIframeWithoutSrc({ iframe: el });
 
                 this.nativeMethods.addEventListener.call(el, 'load', handler);
             }
         }
         else {
             if (isElementInDocument(el))
-                this._raiseReadyToInitEvent(el);
+                this.tryToInitAsIframeWithoutSrc({ iframe: el });
 
-            this.nativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
+            this.nativeMethods.addEventListener.call(el, 'load', () => this.tryToInitAsIframeWithoutSrc({ iframe: el }));
         }
 
         if (!isWebKit && el.contentDocument) {
             this.nativeMethods.documentAddEventListener.call(el.contentDocument, 'DOMContentLoaded', () => {
-                this._raiseReadyToInitEvent(el);
+                this.tryToInitAsIframeWithoutSrc({ iframe: el });
             });
         }
     }
