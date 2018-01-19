@@ -341,8 +341,6 @@ export default class ShadowUI extends SandboxBase {
             this.uiStyleSheetsHtmlBackup = null;
 
             this.markShadowUIContainers(this.document.head, this.document.body);
-
-            this.nativeMethods.objectDefineProperty.call(this.window.Object, e.window, INTERNAL_PROPS.isDocumentWasCleaned, { value: true });
         });
 
         this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, e => {

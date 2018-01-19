@@ -61,6 +61,9 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
     <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
         (function () {
             var parentHammerhead = null;
+            
+            if (!window["${ INTERNAL_PROPS.hammerhead }"])
+                Object.defineProperty(window, "${ INTERNAL_PROPS.isDocumentWasCleaned }", { value: true, configurable: true });
 
             try {
                 parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];

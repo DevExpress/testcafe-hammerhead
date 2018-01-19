@@ -7,6 +7,7 @@ import { isIE } from '../../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
+import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox) {
@@ -32,8 +33,7 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     _overridedDocumentWrite (args, ln) {
-        const shouldEmitEvents = this.document.readyState !== 'loading' &&
-                                 this.document.readyState !== 'uninitialized';
+        const shouldEmitEvents = this.document.readyState !== 'loading' && this.document.readyState !== 'uninitialized';
 
         if (shouldEmitEvents)
             this._beforeDocumentCleaned();
@@ -76,6 +76,20 @@ export default class DocumentSandbox extends SandboxBase {
                 this._beforeDocumentCleaned();
 
             const result = nativeMethods.documentOpen.apply(document, args);
+
+            if (window[INTERNAL_PROPS.hammerhead]) {
+                window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
+                    .call(window.Object, window, INTERNAL_PROPS.isDocumentWasCleaned, {
+                        value:        true,
+                        configurable: true
+                    });
+            }
+            else {
+                window.Object.defineProperty(window, INTERNAL_PROPS.isDocumentWasCleaned, {
+                    value:        true,
+                    configurable: true
+                });
+            }
 
             if (!isUninitializedIframe)
                 this.nodeSandbox.mutation.onDocumentCleaned({ window, document });

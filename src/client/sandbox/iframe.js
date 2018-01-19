@@ -65,7 +65,7 @@ export default class IframeSandbox extends SandboxBase {
             if (iframe.contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
                 this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
         }
-        else if (!iframe.contentWindow[IFRAME_WINDOW_INITED]) {
+        else if (!iframe.contentWindow[IFRAME_WINDOW_INITED] && !iframe.contentWindow[INTERNAL_PROPS.hammerhead]) {
             // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
             // As a result, when the second load event is raised, we write the overridden methods to the native methods.
             // So, we need to save the native methods when the first load event is raised.
