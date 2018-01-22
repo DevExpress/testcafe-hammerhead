@@ -473,13 +473,13 @@ if (!browserUtils.isIE) {
 
                 iframe.contentDocument.open();
 
-                ok(!domUtils.isIframeWithoutSrc(iframe));
+                ok(domUtils.isIframeWithoutSrc(iframe));
 
                 iframe.contentDocument.write('<h1>test</h1>');
-                ok(!domUtils.isIframeWithoutSrc(iframe));
+                ok(domUtils.isIframeWithoutSrc(iframe));
 
                 iframe.contentDocument.close();
-                ok(!domUtils.isIframeWithoutSrc(iframe));
+                ok(domUtils.isIframeWithoutSrc(iframe));
             });
     });
 }

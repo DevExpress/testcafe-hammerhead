@@ -63,7 +63,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
             var parentHammerhead = null;
             
             if (!window["${ INTERNAL_PROPS.hammerhead }"])
-                Object.defineProperty(window, "${ INTERNAL_PROPS.isDocumentWasCleaned }", { value: true, configurable: true });
+                Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
 
             try {
                 parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];

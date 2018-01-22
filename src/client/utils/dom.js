@@ -351,7 +351,7 @@ export function isIframeWithoutSrc (iframe) {
     if (!iframeDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
         return true;
 
-    if (iframe.contentWindow[INTERNAL_PROPS.isDocumentWasCleaned])
+    if (iframe.contentWindow[INTERNAL_PROPS.documentWasCleaned])
         return true;
 
     // In Chrome, when an iframe with the src attribute is added to DOM,

@@ -79,13 +79,13 @@ export default class DocumentSandbox extends SandboxBase {
 
             if (window[INTERNAL_PROPS.hammerhead]) {
                 window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
-                    .call(window.Object, window, INTERNAL_PROPS.isDocumentWasCleaned, {
+                    .call(window.Object, window, INTERNAL_PROPS.documentWasCleaned, {
                         value:        true,
                         configurable: true
                     });
             }
             else {
-                window.Object.defineProperty(window, INTERNAL_PROPS.isDocumentWasCleaned, {
+                window.Object.defineProperty(window, INTERNAL_PROPS.documentWasCleaned, {
                     value:        true,
                     configurable: true
                 });

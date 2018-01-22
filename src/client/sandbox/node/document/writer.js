@@ -37,7 +37,7 @@ const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
             }
 
             if (sandbox) {
-                Object.defineProperty(window, "${ INTERNAL_PROPS.isDocumentWasCleaned }", { value: true, configurable: true });
+                Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
                 
                 sandbox.node.mutation.onDocumentCleaned({
                     window: window,
