@@ -54,6 +54,30 @@ export default class IframeSandbox extends SandboxBase {
         }
     }
 
+    _ensureIframeNativeMethods (iframe) {
+        // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
+        // As a result, when the second load event is raised, we write the overridden methods to the native methods.
+        // So, we need to save the native methods when the first load event is raised.
+        // https://code.google.com/p/chromium/issues/detail?id=578812
+        this._ensureIframeNativeMethodsForChrome(iframe);
+
+        // NOTE: Restore native document methods for the iframe's document if it overrided earlier (IE9, IE10 only)
+        // https://github.com/DevExpress/testcafe-hammerhead/issues/279
+        this._ensureIframeNativeMethodsForIE(iframe);
+    }
+
+    _emitEvents (iframe) {
+        // NOTE: Raise this internal event to eval the Hammerhead code script.
+        this.emit(this.EVAL_HAMMERHEAD_SCRIPT_EVENT, { iframe });
+
+        // NOTE: Raise this event to eval external code script.
+        this.emit(this.EVAL_EXTERNAL_SCRIPT_EVENT, { iframe });
+
+        // NOTE: Raise this event to eval the "task" script and to call the Hammerhead initialization method
+        // and external script initialization code.
+        this.emit(this.RUN_TASK_SCRIPT_EVENT, { iframe });
+    }
+
     _raiseReadyToInitEvent (iframe) {
         if (!isIframeWithoutSrc(iframe))
             return;
@@ -66,28 +90,12 @@ export default class IframeSandbox extends SandboxBase {
                 this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
         }
         else if (!iframe.contentWindow[IFRAME_WINDOW_INITED] && !iframe.contentWindow[INTERNAL_PROPS.hammerhead]) {
-            // NOTE: In Chrome, iframe with javascript protocol src raises the load event twice.
-            // As a result, when the second load event is raised, we write the overridden methods to the native methods.
-            // So, we need to save the native methods when the first load event is raised.
-            // https://code.google.com/p/chromium/issues/detail?id=578812
-            this._ensureIframeNativeMethodsForChrome(iframe);
-
-            // NOTE: Restore native document methods for the iframe's document if it overrided earlier (IE9, IE10 only)
-            // https://github.com/DevExpress/testcafe-hammerhead/issues/279
-            this._ensureIframeNativeMethodsForIE(iframe);
+            this._ensureIframeNativeMethods(iframe);
 
             // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
             nativeMethods.objectDefineProperty.call(this.window.Object, iframe.contentWindow, IFRAME_WINDOW_INITED, { value: true });
 
-            // NOTE: Raise this internal event to eval the Hammerhead code script.
-            this.emit(this.EVAL_HAMMERHEAD_SCRIPT_EVENT, { iframe });
-
-            // NOTE: Raise this event to eval external code script.
-            this.emit(this.EVAL_EXTERNAL_SCRIPT_EVENT, { iframe });
-
-            // NOTE: Raise this event to eval the "task" script and to call the Hammerhead initialization method
-            // and external script initialization code.
-            this.emit(this.RUN_TASK_SCRIPT_EVENT, { iframe });
+            this._emitEvents(iframe);
 
             iframe.contentWindow[INTERNAL_PROPS.processDomMethodName]();
         }

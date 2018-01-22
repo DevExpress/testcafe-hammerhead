@@ -32,8 +32,12 @@ export default class DocumentSandbox extends SandboxBase {
         this.nodeSandbox.mutation.onDocumentClosed({ document: this.document });
     }
 
+    static _shouldEmitDocumentCleanedEvents (doc) {
+        return doc.readyState !== 'loading' && doc.readyState !== 'uninitialized';
+    }
+
     _overridedDocumentWrite (args, ln) {
-        const shouldEmitEvents = this.document.readyState !== 'loading' && this.document.readyState !== 'uninitialized';
+        const shouldEmitEvents = DocumentSandbox._shouldEmitDocumentCleanedEvents(this.document);
 
         if (shouldEmitEvents)
             this._beforeDocumentCleaned();
@@ -77,19 +81,13 @@ export default class DocumentSandbox extends SandboxBase {
 
             const result = nativeMethods.documentOpen.apply(document, args);
 
-            if (window[INTERNAL_PROPS.hammerhead]) {
-                window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
-                    .call(window.Object, window, INTERNAL_PROPS.documentWasCleaned, {
-                        value:        true,
-                        configurable: true
-                    });
-            }
-            else {
-                window.Object.defineProperty(window, INTERNAL_PROPS.documentWasCleaned, {
-                    value:        true,
-                    configurable: true
-                });
-            }
+            // NOTE: Chrome does not remove the "%hammerhead%" property from window
+            const nativeObjectDefineProperty = window[INTERNAL_PROPS.hammerhead]
+                ? window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
+                : window.Object.defineProperty;
+
+            nativeObjectDefineProperty
+                .call(window.Object, window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
 
             if (!isUninitializedIframe)
                 this.nodeSandbox.mutation.onDocumentCleaned({ window, document });
