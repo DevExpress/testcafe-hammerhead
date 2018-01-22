@@ -194,7 +194,7 @@ class NativeMethods {
         const originPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin');
         const dataPropDescriptor   = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
 
-        // NOTE: This conditions are used for the Android 5.1 browser
+        // NOTE: These conditions are used for the Android 5.1 browser
         if (originPropDescriptor && originPropDescriptor.get && originPropDescriptor.configurable)
             this.messageEventOriginGetter = originPropDescriptor.get;
 
