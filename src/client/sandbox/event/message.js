@@ -5,7 +5,7 @@ import * as destLocation from '../../utils/destination-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
-import { isObjectEventListener } from '../../utils/event';
+import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
 
 const MESSAGE_TYPE = {
@@ -13,7 +13,7 @@ const MESSAGE_TYPE = {
     user:    'hammerhead|user-msg'
 };
 
-const IS_OVERRIDDEN_EVENT_OBJECT = 'hammerhead|message-event|overridden';
+const HAS_OVERRIDEN_DATA_PROP = 'hammerhead|message-event|overridden';
 
 export default class MessageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox) {
@@ -41,7 +41,7 @@ export default class MessageSandbox extends SandboxBase {
         this.iframeInternalMsgQueue = [];
     }
 
-    _getMessageData (e) {
+    static _getMessageData (e) {
         const rawData = nativeMethods.messageEventDataGetter && isMessageEvent(e)
             ? nativeMethods.messageEventDataGetter.call(e)
             : e.data;
@@ -49,15 +49,8 @@ export default class MessageSandbox extends SandboxBase {
         return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
 
-    _callOriginListener (originListener, e) {
-        if (isObjectEventListener(originListener))
-            return originListener.handleEvent.call(originListener, e);
-
-        return originListener.call(this.window, e);
-    }
-
     _onMessage (e) {
-        const data = this._getMessageData(e);
+        const data = MessageSandbox._getMessageData(e);
 
         if (data.type === MESSAGE_TYPE.service && e.source) {
             if (this.pingCmd && data.message.cmd === this.pingCmd && data.message.isPingResponse) {
@@ -71,12 +64,10 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onWindowMessage (e, originListener) {
-        const isOverriddenEventObject = e[IS_OVERRIDDEN_EVENT_OBJECT];
+        if (e[HAS_OVERRIDEN_DATA_PROP])
+            return callEventListener(this.window, originListener, e);
 
-        if (isOverriddenEventObject)
-            return this._callOriginListener(originListener, e);
-
-        const data = this._getMessageData(e);
+        const data = MessageSandbox._getMessageData(e);
 
         if (data.type !== MESSAGE_TYPE.service) {
             const originUrl = destLocation.get();
@@ -88,10 +79,10 @@ export default class MessageSandbox extends SandboxBase {
                     e.__defineGetter__('origin', () => data.originUrl);
                     e.__defineSetter__('origin', value => value);
 
-                    nativeMethods.objectDefineProperty.call(window.Object, e, IS_OVERRIDDEN_EVENT_OBJECT, { value: true });
+                    nativeMethods.objectDefineProperty.call(window.Object, e, HAS_OVERRIDEN_DATA_PROP, { value: true });
                 }
 
-                return this._callOriginListener(originListener, e);
+                return callEventListener(this.window, originListener, e);
             }
         }
 

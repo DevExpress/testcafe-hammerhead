@@ -394,7 +394,7 @@ test('should not raise an error for sendServiceMessage if window.top is a cross-
         });
 });
 
-test('the "message" event object should be correctly overridden (GH-1445)', function () {
+test('MessageEvent should be correctly overridden (GH-1445)', function () {
     return createTestIframe()
         .then(function (iframe) {
             var iframeWindow = iframe.contentWindow;

@@ -147,6 +147,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         };
     }
 
+    static _isSupportedMessageEvent (e) {
+        return isAndroid && !nativeMethods.messageEventDataGetter && domUtils.isMessageEvent(e);
+    }
+
     _createPropertyAccessors (window, document) {
         let storedDomain = '';
 
@@ -210,9 +214,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             data: {
-                // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 5.1 browser
                 condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'data') ||
-                                 isAndroid && !nativeMethods.messageEventDataGetter && domUtils.isMessageEvent(el),
+                                 // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 5.1 browser
+                                 PropertyAccessorsInstrumentation._isSupportedMessageEvent(el),
 
                 get: el => {
                     if (domUtils.isDomElement(el))

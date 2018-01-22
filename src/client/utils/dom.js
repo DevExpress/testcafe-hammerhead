@@ -485,10 +485,9 @@ export function isWindow (instance) {
         return true;
 
     try {
-        // NOTE: A window object received from MessageEvent.target has strange behavior into js debugger:
-        // * in the IE11 an object displays as [object DispHTMLWindow2];
-        // * in the Edge an object displays as [object Object].
-        // This condition fix it.
+        // NOTE: The instanceToString call result has a strange values for the MessageEvent.target property:
+        // * [object DispHTMLWindow2] for IE11
+        // * [object Object] for MSEdge.
         if ((isIE || isMSEdge) && instance && instance === instance.window)
             instance = instance.window;
 
