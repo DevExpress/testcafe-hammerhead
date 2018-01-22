@@ -13,7 +13,7 @@ const MESSAGE_TYPE = {
     user:    'hammerhead|user-msg'
 };
 
-const HAS_OVERRIDEN_DATA_PROP = 'hammerhead|message-event|overridden';
+const HAS_OVERRIDEN_DATA_PROP = 'hammerhead|message-event|has-overridden-data-prop';
 
 export default class MessageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox) {
