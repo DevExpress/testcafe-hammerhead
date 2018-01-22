@@ -1,7 +1,7 @@
 'use strict';
 
 const fs                  = require('fs');
-const request             = require('request');
+const request             = require('request-promise-native');
 const expect              = require('chai').expect;
 const express             = require('express');
 const iconv               = require('iconv-lite');
