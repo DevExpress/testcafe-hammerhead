@@ -40,7 +40,7 @@ const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.cr
 const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox) {
+    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox, elementSandbox) {
         super();
 
         this.nodeMutation          = nodeMutation;
@@ -52,6 +52,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         this.listenersSandbox      = eventSandbox.listeners;
         this.shadowUI              = shadowUI;
         this.storageSandbox        = storageSandbox;
+        this.elementSandbox        = elementSandbox;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
@@ -159,7 +160,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     return PropertyAccessorsInstrumentation._getUrlAttr(el, 'action');
                 },
                 set: (el, value) => {
-                    el.setAttribute('action', value);
+                    this.elementSandbox.setAttributeCore(el, ['action', value]);
 
                     return value;
                 }
@@ -187,9 +188,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             autocomplete: {
                 condition: domUtils.isInputElement,
-                get:       input => input.getAttribute('autocomplete') || '',
+                get:       input => this.elementSandbox.getAttributeCore(input, ['autocomplete']) || '',
                 set:       (input, value) => {
-                    input.setAttribute('autocomplete', value);
+                    this.elementSandbox.setAttributeCore(input, ['autocomplete', value]);
 
                     return value;
                 }
@@ -212,7 +213,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'data'),
                 set: (el, value) => {
-                    el.setAttribute('data', value);
+                    this.elementSandbox.setAttributeCore(el, ['data', value]);
 
                     return value;
                 }
@@ -257,7 +258,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'formaction'),
                 set: (el, value) => {
-                    el.setAttribute('formaction', value);
+                    this.elementSandbox.setAttributeCore(el, ['formaction', value]);
 
                     return value;
                 }
@@ -303,7 +304,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (LocationAccessorsInstrumentation.isLocationWrapper(el))
                         el.href = destLocation.resolveUrl(value, document);
                     else if (!isStyleSheet(el))
-                        el.setAttribute('href', value);
+                        this.elementSandbox.setAttributeCore(el, ['href', value]);
 
                     return value;
                 }
@@ -540,7 +541,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'manifest'),
                 set: (el, value) => {
-                    el.setAttribute('manifest', value);
+                    this.elementSandbox.setAttributeCore(el, ['manifest', value]);
 
                     return value;
                 }
@@ -616,9 +617,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             sandbox: {
                 condition: domUtils.isIframeElement,
-                get:       el => el.getAttribute('sandbox'),
+                get:       el => this.elementSandbox.getAttributeCore(el, ['sandbox']),
                 set:       (el, value) => {
-                    el.setAttribute('sandbox', value);
+                    this.elementSandbox.setAttributeCore(el, ['sandbox', value]);
 
                     return value;
                 }
@@ -641,7 +642,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'src'),
                 set: (el, value) => {
-                    el.setAttribute('src', value);
+                    this.elementSandbox.setAttributeCore(el, ['src', value]);
 
                     return value;
                 }
@@ -651,7 +652,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: el => domUtils.isDomElement(el) && DomProcessor.isTagWithTargetAttr(domUtils.getTagName(el)),
                 get:       el => el.target,
                 set:       (el, value) => {
-                    el.setAttribute('target', value);
+                    this.elementSandbox.setAttributeCore(el, ['target', value]);
 
                     return value;
                 }
@@ -800,7 +801,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => el.style,
 
                 set: (el, value) => {
-                    el.setAttribute('style', value);
+                    this.elementSandbox.setAttributeCore(el, ['style', value]);
 
                     return value;
                 }

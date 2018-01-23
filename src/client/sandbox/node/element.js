@@ -75,7 +75,7 @@ export default class ElementSandbox extends SandboxBase {
         }
     }
 
-    _getAttributeCore (el, args, isNs) {
+    getAttributeCore (el, args, isNs) {
         const attr        = String(args[isNs ? 1 : 0]);
         const loweredAttr = attr.toLowerCase();
         const ns          = isNs ? args[0] : null;
@@ -97,7 +97,7 @@ export default class ElementSandbox extends SandboxBase {
         return getAttrMeth.apply(el, args);
     }
 
-    _setAttributeCore (el, args, isNs) {
+    setAttributeCore (el, args, isNs) {
         const ns          = isNs ? args[0] : null;
         const attr        = String(args[isNs ? 1 : 0]);
         const loweredAttr = attr.toLowerCase();
@@ -409,15 +409,15 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             getAttribute () {
-                return sandbox._getAttributeCore(this, arguments);
+                return sandbox.getAttributeCore(this, arguments);
             },
 
             getAttributeNS () {
-                return sandbox._getAttributeCore(this, arguments, true);
+                return sandbox.getAttributeCore(this, arguments, true);
             },
 
             setAttribute () {
-                const result = sandbox._setAttributeCore(this, arguments);
+                const result = sandbox.setAttributeCore(this, arguments);
 
                 ElementSandbox._refreshAttributesWrappers(this);
 
@@ -425,7 +425,7 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             setAttributeNS () {
-                const result = sandbox._setAttributeCore(this, arguments, true);
+                const result = sandbox.setAttributeCore(this, arguments, true);
 
                 ElementSandbox._refreshAttributesWrappers(this);
 

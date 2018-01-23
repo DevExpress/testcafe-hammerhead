@@ -524,3 +524,47 @@ test('should hide "autocomplete" attribute form enumeration and existence check 
     ok(input.hasAttributes());
     strictEqual(getProperty(input, 'attributes').length, 1);
 });
+
+test('the "Maximum call stack size exceeded" error should not occurs when the setAttribute or getAttribute function overridden by client (GH-1452)', function () {
+    var setAttributeWrapper = HTMLElement.prototype.setAttribute;
+    var getAttributeWrapper = HTMLElement.prototype.getAttribute;
+
+    eval(processScript('var propsRegExp = /^(action|autocomplete|data|formaction|href|manifest|sandbox|src|target|style)$/;' +
+                       'HTMLElement.prototype.setAttribute = function(name, value) {' +
+                       '    return propsRegExp.test(name) ? this[name] = value : this.setAttribute(name, value);' +
+                       '};' +
+                       'HTMLElement.prototype.getAttribute = function(name) {' +
+                       '    return propsRegExp.test(name) ? this[name] : this.setAttribute(name);' +
+                       '};'));
+
+    var testCases = {
+        action:       document.createElement('form'),
+        autocomplete: document.createElement('input'),
+        data:         document.createElement('object'),
+        formaction:   document.createElement('input'),
+        href:         document.createElement('a'),
+        manifest:     document.createElement('html'),
+        sandbox:      document.createElement('iframe'),
+        src:          document.createElement('img'),
+        target:       document.createElement('a'),
+        style:        document.createElement('span')
+    };
+
+    try {
+        Object.keys(testCases)
+            .forEach(function (attr) {
+                var element = testCases[attr];
+
+                setProperty(element, attr, 'value');
+                getProperty(element, attr);
+            });
+
+        ok(true);
+    }
+    catch (e) {
+        ok(false, e);
+    }
+
+    HTMLElement.prototype.setAttribute = setAttributeWrapper;
+    HTMLElement.prototype.getAttribute = getAttributeWrapper;
+});
