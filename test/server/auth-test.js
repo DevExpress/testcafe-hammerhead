@@ -128,7 +128,7 @@ describe('Authentication', () => {
 
             return request(options)
                 .then(() => {
-                    expect.fail(0, 1, 'Request should raise an "401" error');
+                    expect.fail('Request should raise an "401" error');
                 })
                 .catch((err) => {
                     expect(err.statusCode).equal(401);
