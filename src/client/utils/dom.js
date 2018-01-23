@@ -343,6 +343,8 @@ export function isIframeWithoutSrc (iframe) {
     if (iframeDocumentLocation === null)
         return false;
 
+    // NOTE: after 'document.write' or 'document.open' call for iframe with/without src
+    // we will process it as iframe without src
     if (iframe.contentWindow[INTERNAL_PROPS.documentWasCleaned])
         return true;
 
