@@ -59,7 +59,7 @@ describe('Authentication', () => {
             };
 
             return request(options)
-                .then(res => {
+                .then((res) => {
                     expect(res.statusCode).equal(200);
                     expect(res.body.UserName).equal('username');
                     expect(res.body.DomainName).equal('DOMAIN');
@@ -107,7 +107,7 @@ describe('Authentication', () => {
             };
 
             return request(options)
-                .then(res => {
+                .then((res) => {
                     expect(res.statusCode).equal(200);
                     expect(res.body).equal('Access granted');
                 });
