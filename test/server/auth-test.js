@@ -42,7 +42,7 @@ describe('Authentication', () => {
 
         after(() => ntlmServer.close());
 
-        it('Should authorize with correct credentials', done => {
+        it('Should authorize with correct credentials', () => {
             session.getAuthCredentials = () => {
                 return {
                     username:    'username',
@@ -52,16 +52,19 @@ describe('Authentication', () => {
                 };
             };
 
-            request(proxy.openSession('http://127.0.0.1:1506/', session), (err, res, body) => {
-                const parsedBody = JSON.parse(body);
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:1506/', session),
+                resolveWithFullResponse: true,
+                json:                    true
+            };
 
-                expect(res.statusCode).eql(200);
-                expect(parsedBody.UserName).equal('username');
-                expect(parsedBody.DomainName).equal('DOMAIN');
-                expect(parsedBody.Workstation).equal('WORKSTATION');
-
-                done();
-            });
+            return request(options)
+                .then((res) => {
+                    expect(res.statusCode).equal(200);
+                    expect(res.body.UserName).equal('username');
+                    expect(res.body.DomainName).equal('DOMAIN');
+                    expect(res.body.Workstation).equal('WORKSTATION');
+                });
         });
     });
 
@@ -90,7 +93,7 @@ describe('Authentication', () => {
 
         after(() => basicServer.close());
 
-        it('Should authorize with correct credentials', done => {
+        it('Should authorize with correct credentials', () => {
             session.getAuthCredentials = () => {
                 return {
                     username: 'username',
@@ -98,15 +101,19 @@ describe('Authentication', () => {
                 };
             };
 
-            request(proxy.openSession('http://127.0.0.1:1507/', session), (err, res, body) => {
-                expect(body).equal('Access granted');
-                expect(res.statusCode).equal(200);
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:1507/', session),
+                resolveWithFullResponse: true
+            };
 
-                done();
-            });
+            return request(options)
+                .then((res) => {
+                    expect(res.statusCode).equal(200);
+                    expect(res.body).equal('Access granted');
+                });
         });
 
-        it('Should not authorize with incorrect credentials', done => {
+        it('Should not authorize with incorrect credentials', () => {
             session.getAuthCredentials = () => {
                 return {
                     username: 'username',
@@ -114,13 +121,21 @@ describe('Authentication', () => {
                 };
             };
 
-            request(proxy.openSession('http://127.0.0.1:1507/', session), (err, res, body) => {
-                expect(body).equal('Access denied');
-                expect(res.statusCode).equal(401);
-                // NOTE: prevent showing the native credentials window.
-                expect(res.headers['www-authenticate']).to.be.undefined;
-                done();
-            });
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:1507/', session),
+                resolveWithFullResponse: true
+            };
+
+            return request(options)
+                .then(() => {
+                    expect.fail(0, 1, 'Request should raise an "401" error');
+                })
+                .catch((err) => {
+                    expect(err.statusCode).equal(401);
+                    expect(err.error).equal('Access denied');
+                    // NOTE: prevent showing the native credentials window.
+                    expect(err.response.headers['www-authenticate']).to.be.undefined;
+                });
         });
     });
 });

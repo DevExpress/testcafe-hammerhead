@@ -32,7 +32,6 @@
     "pify": "^2.3.0",
     "pinkie": "1.0.0",
     "read-file-relative": "^1.2.0",
-    "request-promise-native": "^1.0.5",
     "tough-cookie": "2.3.3",
     "tunnel-agent": "0.6.0",
     "webauth": "^1.1.0",
@@ -72,6 +71,7 @@
     "openssl-self-signed-certificate": "1.1.6",
     "publish-please": "^2.0.0",
     "request": "~2.27.0",
+    "request-promise-native": "^1.0.5",
     "tmp": "0.0.26",
     "webmake": "0.3.42",
     "ws": "3.2.0"
