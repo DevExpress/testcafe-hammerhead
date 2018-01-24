@@ -4,15 +4,16 @@ import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
 import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
-import { isCrossDomainWindows, getTopSameDomainWindow } from '../../utils/dom';
-import { isObjectEventListener } from '../../utils/event';
+import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
+import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
-import createEvent from '../../utils/create-event';
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
     user:    'hammerhead|user-msg'
 };
+
+const HAS_OVERRIDEN_DATA_PROP = 'hammerhead|message-event|has-overridden-data-prop';
 
 export default class MessageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox) {
@@ -40,8 +41,16 @@ export default class MessageSandbox extends SandboxBase {
         this.iframeInternalMsgQueue = [];
     }
 
+    static _getMessageData (e) {
+        const rawData = nativeMethods.messageEventDataGetter && isMessageEvent(e)
+            ? nativeMethods.messageEventDataGetter.call(e)
+            : e.data;
+
+        return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
+    }
+
     _onMessage (e) {
-        const data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
+        const data = MessageSandbox._getMessageData(e);
 
         if (data.type === MESSAGE_TYPE.service && e.source) {
             if (this.pingCmd && data.message.cmd === this.pingCmd && data.message.isPingResponse) {
@@ -55,21 +64,25 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onWindowMessage (e, originListener) {
-        const data = typeof e.data === 'string' ? parseJSON(e.data) : e.data;
+        if (e[HAS_OVERRIDEN_DATA_PROP])
+            return callEventListener(this.window, originListener, e);
+
+        const data = MessageSandbox._getMessageData(e);
 
         if (data.type !== MESSAGE_TYPE.service) {
             const originUrl = destLocation.get();
 
             if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl)) {
-                const resultEvt = createEvent(e, {
-                    origin: data.originUrl,
-                    data:   data.message
-                });
+                // NOTE: We need to use deprecated methods instead of the defineProperty method
+                // in the Android 5.1 browser
+                if (!nativeMethods.messageEventOriginGetter) {
+                    e.__defineGetter__('origin', () => data.originUrl);
+                    e.__defineSetter__('origin', value => value);
 
-                if (isObjectEventListener(originListener))
-                    return originListener.handleEvent.call(originListener, resultEvt);
+                    nativeMethods.objectDefineProperty.call(window.Object, e, HAS_OVERRIDEN_DATA_PROP, { value: true });
+                }
 
-                return originListener.call(this.window, resultEvt);
+                return callEventListener(this.window, originListener, e);
             }
         }
 
@@ -127,6 +140,24 @@ export default class MessageSandbox extends SandboxBase {
             value:        onMessageHandler,
             configurable: true
         });
+
+        if (nativeMethods.messageEventDataGetter) {
+            const dataPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
+                .call(window.Object, window.MessageEvent.prototype, 'data');
+
+            dataPropDescriptor.get = function () {
+                const target = this.target;
+                const data   = nativeMethods.messageEventDataGetter.call(this);
+
+                if (data && data.type !== MESSAGE_TYPE.service && isWindow(target))
+                    return data.message;
+
+                return data;
+            };
+
+            nativeMethods.objectDefineProperty
+                .call(window.Object, window.MessageEvent.prototype, 'data', dataPropDescriptor);
+        }
     }
 
     setOnMessage (window, value) {

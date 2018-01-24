@@ -16,7 +16,7 @@ import {
     resolveUrlAsDest
 } from '../../utils/url';
 import { isFirefox, isIE } from '../../utils/browser';
-import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket } from '../../utils/dom';
+import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket, isWindow } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
@@ -528,6 +528,12 @@ export default class WindowSandbox extends SandboxBase {
 
                     if (parsedUrl)
                         return parsedUrl.protocol + '//' + parsedUrl.host;
+                }
+                else if (isWindow(target)) {
+                    const data = nativeMethods.messageEventDataGetter.call(this);
+
+                    if (data)
+                        return data.originUrl;
                 }
 
                 return origin;

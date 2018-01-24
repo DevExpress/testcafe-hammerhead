@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE } from './browser';
+import { isFirefox, isWebKit, isIE, isMSEdge } from './browser';
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
@@ -485,6 +485,12 @@ export function isWindow (instance) {
         return true;
 
     try {
+        // NOTE: The instanceToString call result has a strange values for the MessageEvent.target property:
+        // * [object DispHTMLWindow2] for IE11
+        // * [object Object] for MSEdge.
+        if ((isIE || isMSEdge) && instance && instance === instance.window)
+            instance = instance.window;
+
         return instance && instance.toString && NATIVE_WINDOW_STR === instanceToString(instance);
     }
     catch (e) {
@@ -616,6 +622,10 @@ export function isTableDataCellElement (el) {
 
 export function isWebSocket (ws) {
     return instanceToString(ws) === '[object WebSocket]';
+}
+
+export function isMessageEvent (e) {
+    return instanceToString(e) === '[object MessageEvent]';
 }
 
 export function matches (el, selector) {

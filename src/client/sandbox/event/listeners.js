@@ -2,7 +2,7 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import nativeMethods from '../native-methods';
 import EventEmitter from '../../utils/event-emitter';
 import * as listeningCtx from './listening-context';
-import { preventDefault, stopPropagation, DOM_EVENTS, isObjectEventListener } from '../../utils/event';
+import { preventDefault, stopPropagation, DOM_EVENTS, isObjectEventListener, callEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
 
 // NOTE: We should avoid using native object prototype methods,
@@ -71,10 +71,7 @@ export default class Listeners extends EventEmitter {
             if (typeof eventCtx.outerHandlersWrapper === 'function')
                 return eventCtx.outerHandlersWrapper.call(this, e, listener);
 
-            if (isObjectEventListener(listener))
-                return listener.handleEvent.call(listener, e);
-
-            return listener.call(this, e);
+            return callEventListener(this, listener, e);
         };
     }
 

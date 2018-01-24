@@ -500,4 +500,3 @@ if (canCreateBlobFromNumberArray) {
             });
     });
 }
-

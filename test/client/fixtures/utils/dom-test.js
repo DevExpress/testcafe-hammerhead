@@ -164,6 +164,26 @@ test('isWebSocket', function () {
     webSocket.close();
 });
 
+test('isMessageEvent', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var iframeWindow = iframe.contentWindow;
+
+            iframeWindow['%hammerhead%'].sandbox.event.message.postMessage(window, ['message', '*']);
+
+            return new Promise(function (resolve) {
+                window.addEventListener('message', resolve);
+            });
+        })
+        .then(function (eventObj) {
+            ok(domUtils.isMessageEvent(eventObj));
+            ok(!domUtils.isMessageEvent(document));
+            ok(!domUtils.isMessageEvent({}));
+            ok(!domUtils.isMessageEvent({ target: window }));
+            ok(!domUtils.isMessageEvent(null));
+        });
+});
+
 test('getTopSameDomainWindow', function () {
     return createTestIframe()
         .then(function (iframe) {
@@ -204,6 +224,22 @@ test('isWindow for a cross-domain window', function () {
             // NOTE: The firefox does not provide access to the cross-domain location.
             if (!browserUtils.isFirefox)
                 ok(!domUtils.isWindow(iframeWindow.location));
+        });
+});
+
+test('isWindow for a window received from the MessageEvent.target property (GH-1445)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var iframeWindow = iframe.contentWindow;
+
+            iframeWindow['%hammerhead%'].sandbox.event.message.postMessage(window, ['message', '*']);
+
+            return new Promise(function (resolve) {
+                window.addEventListener('message', resolve);
+            });
+        })
+        .then(function (eventObj) {
+            ok(domUtils.isWindow(eventObj.target));
         });
 });
 
@@ -813,7 +849,7 @@ asyncTest('cross domain iframe that contains iframe without src should not throw
     iframe.src = getCrossDomainPageUrl('../../data/cross-domain/page-with-iframe-with-js-protocol.html');
 
     window.addEventListener('message', function (e) {
-        strictEqual(e.data, 'ok');
+        strictEqual(getProperty(e, 'data'), 'ok');
 
         document.body.removeChild(iframe);
 

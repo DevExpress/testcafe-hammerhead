@@ -536,7 +536,8 @@ asyncTest('get file info from iframe', function () {
             var iframe = document.createElement('iframe');
 
             window.addEventListener('message', function (e) {
-                var data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+                var rawData = getProperty(e, 'data');
+                var data    = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
 
                 strictEqual(data.filesLength, 1);
                 strictEqual(data.fileName, 'file.txt');
