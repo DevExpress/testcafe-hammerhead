@@ -8,10 +8,11 @@ export default class FileListWrapper {
 
         for (let i = 0; i < fileList.length; i++)
             this[i] = FileListWrapper._createFileWrapper(fileList[i]);
-    }
 
-    item (index) {
-        return this[index];
+        // avoid the item function to be overwritten by the native methods
+        this.item = function (index) {
+            return this[index];
+        };
     }
 
     static _base64ToBlob (base64Data, mimeType, sliceSize) {
