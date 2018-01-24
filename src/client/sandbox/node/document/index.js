@@ -7,6 +7,7 @@ import { isIE } from '../../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
+import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox) {
@@ -31,9 +32,12 @@ export default class DocumentSandbox extends SandboxBase {
         this.nodeSandbox.mutation.onDocumentClosed({ document: this.document });
     }
 
+    static _shouldEmitDocumentCleanedEvents (doc) {
+        return doc.readyState !== 'loading' && doc.readyState !== 'uninitialized';
+    }
+
     _overridedDocumentWrite (args, ln) {
-        const shouldEmitEvents = this.document.readyState !== 'loading' &&
-                                 this.document.readyState !== 'uninitialized';
+        const shouldEmitEvents = DocumentSandbox._shouldEmitDocumentCleanedEvents(this.document);
 
         if (shouldEmitEvents)
             this._beforeDocumentCleaned();
@@ -76,6 +80,15 @@ export default class DocumentSandbox extends SandboxBase {
                 this._beforeDocumentCleaned();
 
             const result = nativeMethods.documentOpen.apply(document, args);
+
+            // NOTE: Chrome does not remove the "%hammerhead%" property from window
+            // after document.open call
+            const objectDefinePropertyFn = window[INTERNAL_PROPS.hammerhead]
+                ? window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
+                : window.Object.defineProperty;
+
+            objectDefinePropertyFn
+                .call(window.Object, window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
 
             if (!isUninitializedIframe)
                 this.nodeSandbox.mutation.onDocumentCleaned({ window, document });

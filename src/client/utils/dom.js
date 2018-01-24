@@ -339,8 +339,14 @@ export function isIframeWithoutSrc (iframe) {
     const iframeSrcLocation      = iframeLocation.srcLocation;
     const iframeDocumentLocation = iframeLocation.documentLocation;
 
-    if (iframeDocumentLocation === null) // is a cross-domain iframe
+    // NOTE: is a cross-domain iframe
+    if (iframeDocumentLocation === null)
         return false;
+
+    // NOTE: after 'document.write' or 'document.open' call for iframe with/without src
+    // we will process it as iframe without src
+    if (iframe.contentWindow[INTERNAL_PROPS.documentWasCleaned])
+        return true;
 
     const iframeDocumentLocationHaveSupportedProtocol = urlUtils.isSupportedProtocol(iframeDocumentLocation);
 
@@ -348,26 +354,6 @@ export function isIframeWithoutSrc (iframe) {
     // the iframe.src property is not empty but has different values in different browsers.
     // Its document location is 'about:blank'. Therefore, we should check the src attribute.
     if (!iframeDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
-        return true;
-
-    const parentWindowWithSrc        = getParentWindowWithSrc(iframe.contentWindow);
-    const parsedParentWindowLocation = urlUtils.parseProxyUrl(parentWindowWithSrc.location.toString());
-    const parentWindowLocation       = parsedParentWindowLocation ? parsedParentWindowLocation.destUrl : parentWindowWithSrc.location.toString();
-
-    if (iframeDocumentLocationHaveSupportedProtocol) {
-        // NOTE: In IE, after document.open is called for a same-domain iframe or an iframe with a javascript src,
-        // the iframe window location becomes equal to the location of the parent window with src.
-        const parsedIframeSrcLocation = urlUtils.isSupportedProtocol(iframeSrcLocation) ? urlUtils.parseUrl(iframeSrcLocation)
-            : null;
-
-        if (parsedIframeSrcLocation && parsedIframeSrcLocation.partAfterHost &&
-            iframeDocumentLocation === parentWindowLocation)
-            return false;
-
-        return iframeDocumentLocation === parentWindowLocation;
-    }
-
-    if (iframeSrcLocation === parentWindowLocation)
         return true;
 
     // In Chrome, when an iframe with the src attribute is added to DOM,
