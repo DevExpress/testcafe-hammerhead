@@ -1,7 +1,7 @@
 'use strict';
 
 const fs                  = require('fs');
-const request             = require('request');
+const request             = require('request-promise-native');
 const expect              = require('chai').expect;
 const express             = require('express');
 const iconv               = require('iconv-lite');
@@ -145,7 +145,7 @@ describe('Content charset', () => {
     });
 
     describe('Pages', () => {
-        function testDocumentCharset (destUrl, expectedBody, done) {
+        function testDocumentCharset (destUrl, expectedBody) {
             const url     = getProxyUrl('http://127.0.0.1:2000' + destUrl);
             const options = {
                 url:     url,
@@ -154,11 +154,10 @@ describe('Content charset', () => {
                 }
             };
 
-            request(options, function (err, res, body) {
-                compareCode(body, expectedBody);
-
-                done();
-            });
+            return request(options)
+                .then(body => {
+                    compareCode(body, expectedBody);
+                });
         }
 
         function getExpectedStr (src, charsetStr, addBOM) {
@@ -181,35 +180,31 @@ describe('Content charset', () => {
             return iconv.encode(processedResource, charsetStr, { addBOM: addBOM }).toString();
         }
 
-        it('Should set content charset from BOM', done => {
+        it('Should set content charset from BOM', () => {
             testDocumentCharset(
                 '/page-with-bom',
-                getExpectedStr(pageWithMetaSrc, 'utf-16be', true),
-                done
+                getExpectedStr(pageWithMetaSrc, 'utf-16be', true)
             );
         });
 
-        it('Should set content charset from Content-Type header', done => {
+        it('Should set content charset from Content-Type header', () => {
             testDocumentCharset(
                 '/page-with-content-type-header',
-                getExpectedStr(pageWithMetaSrc, 'utf-8', false),
-                done
+                getExpectedStr(pageWithMetaSrc, 'utf-8', false)
             );
         });
 
-        it('Should set content charset from meta', done => {
+        it('Should set content charset from meta', () => {
             testDocumentCharset(
                 '/page-with-meta-tag',
-                getExpectedStr(pageWithMetaSrc, 'windows-1251', false),
-                done
+                getExpectedStr(pageWithMetaSrc, 'windows-1251', false)
             );
         });
 
-        it('Should set default content charset', done => {
+        it('Should set default content charset', () => {
             testDocumentCharset(
                 '/page-default',
-                getExpectedStr(pageWithoutMetaSrc, 'iso-8859-1', false),
-                done
+                getExpectedStr(pageWithoutMetaSrc, 'iso-8859-1', false)
             );
         });
     });
@@ -217,7 +212,7 @@ describe('Content charset', () => {
     describe('Scripts', () => {
         const processedScript = processScript(scriptSrc, true);
 
-        function testScriptCharset (destUrl, expectedCharset, expectedBody, done) {
+        function testScriptCharset (destUrl, expectedCharset, expectedBody) {
             const resourceType = {
                 isIframe: false,
                 isForm:   false,
@@ -226,50 +221,43 @@ describe('Content charset', () => {
             const url          = getProxyUrl('http://127.0.0.1:2000' +
                                              destUrl, urlUtils.getResourceTypeString(resourceType), expectedCharset);
 
-            request(url, (err, res, body) => {
-                compareCode(body, expectedBody);
-
-                done();
-            });
+            return request(url)
+                .then(body => {
+                    compareCode(body, expectedBody);
+                });
         }
 
-        it('Should set content charset from BOM', done => {
+        it('Should set content charset from BOM', () => {
             testScriptCharset(
                 '/script-with-bom',
                 'utf-16be',
-                iconv.encode(processedScript, 'utf-16be', { addBOM: true }).toString(),
-                done
+                iconv.encode(processedScript, 'utf-16be', { addBOM: true }).toString()
             );
         });
 
-        it('Should set content charset from Content-Type header', done => {
+        it('Should set content charset from Content-Type header', () => {
             testScriptCharset(
                 '/script-with-content-type-header',
                 'utf-8',
-                iconv.encode(processedScript, 'utf-8').toString(),
-                done
+                iconv.encode(processedScript, 'utf-8').toString()
             );
         });
 
-        it('Should set content charset from url', done => {
+        it('Should set content charset from url', () => {
             testScriptCharset(
                 '/script-with-charset-in-url',
                 'utf-16le',
-                iconv.encode(processedScript, 'utf-16le').toString(),
-                done
+                iconv.encode(processedScript, 'utf-16le').toString()
             );
         });
     });
 
     describe('Other resources', () => {
         function testResourceCharset (expectedBody, charsetStr, url) {
-            return new Promise(resolve => {
-                request(url, (err, res, body) => {
+            return request(url)
+                .then(body => {
                     compareCode(body, iconv.encode(expectedBody, charsetStr, { addBOM: /\/bom$/.test(url) }).toString());
-
-                    resolve();
                 });
-            });
         }
 
         it('Should set content charset for manifest', () => {

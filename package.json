@@ -70,7 +70,8 @@
     "multiline": "^1.0.2",
     "openssl-self-signed-certificate": "1.1.6",
     "publish-please": "^2.0.0",
-    "request": "~2.27.0",
+    "request": "^2.34.0",
+    "request-promise-native": "^1.0.5",
     "tmp": "0.0.26",
     "webmake": "0.3.42",
     "ws": "3.2.0"
