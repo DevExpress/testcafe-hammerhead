@@ -725,4 +725,22 @@ if (window.FileList) {
 
         ok(getProperty(input, 'files') instanceof FileList);
     });
+
+    test('illegal invocation error on call `FileListWrapper.item` method (GH-1446)', function () {
+        var input = document.createElement('input');
+
+        input.type = 'file';
+
+        var inputFiles = getProperty(input, 'files');
+
+        try {
+            var item1 = inputFiles.item(0);
+
+            notOk(item1);
+        }
+        catch (e) {
+            ok(false, 'error is raised');
+        }
+
+    });
 }
