@@ -2,7 +2,6 @@ var INSTRUCTION = hammerhead.get('../processing/script/instruction');
 
 var Promise        = hammerhead.Promise;
 var messageSandbox = hammerhead.sandbox.event.message;
-var browserUtils   = hammerhead.utils.browser;
 
 asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
     var testMessage = 'test';
