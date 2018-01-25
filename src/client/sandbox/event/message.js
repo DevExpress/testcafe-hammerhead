@@ -13,8 +13,6 @@ const MESSAGE_TYPE = {
     user:    'hammerhead|user-msg'
 };
 
-const HAS_OVERRIDEN_DATA_PROP = 'hammerhead|message-event|has-overridden-data-prop';
-
 export default class MessageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox) {
         super();
@@ -64,26 +62,13 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     _onWindowMessage (e, originListener) {
-        if (e[HAS_OVERRIDEN_DATA_PROP])
-            return callEventListener(this.window, originListener, e);
-
         const data = MessageSandbox._getMessageData(e);
 
         if (data.type !== MESSAGE_TYPE.service) {
             const originUrl = destLocation.get();
 
-            if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl)) {
-                // NOTE: We need to use deprecated methods instead of the defineProperty method
-                // in the Android 5.1 browser
-                if (!nativeMethods.messageEventOriginGetter) {
-                    e.__defineGetter__('origin', () => data.originUrl);
-                    e.__defineSetter__('origin', value => value);
-
-                    nativeMethods.objectDefineProperty.call(window.Object, e, HAS_OVERRIDEN_DATA_PROP, { value: true });
-                }
-
+            if (data.targetUrl === '*' || destLocation.sameOriginCheck(originUrl, data.targetUrl))
                 return callEventListener(this.window, originListener, e);
-            }
         }
 
         return null;

@@ -15,7 +15,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest
 } from '../../utils/url';
-import { isFirefox, isIE } from '../../utils/browser';
+import { isFirefox, isIE, isAndroid } from '../../utils/browser';
 import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket, isWindow } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
@@ -320,8 +320,12 @@ export default class WindowSandbox extends SandboxBase {
                 const url = args[0];
 
                 if (typeof url === 'string') {
-                    if (WindowSandbox._isSecureOrigin(url))
-                        return Promise.reject(new DOMException('Only secure origins are allowed.', 'SecurityError'));
+                    if (WindowSandbox._isSecureOrigin(url)) {
+                        // NOTE: the android browser cannot create the DOMException error manually
+                        return Promise.reject(isAndroid
+                            ? new Error('Only secure origins are allowed.')
+                            : new DOMException('Only secure origins are allowed.', 'SecurityError'));
+                    }
 
                     args[0] = getProxyUrl(url, { resourceType: stringifyResourceType({ isScript: true }) });
                 }
@@ -458,36 +462,13 @@ export default class WindowSandbox extends SandboxBase {
                     return new nativeMethods.WebSocket();
 
                 const proxyUrl  = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
-                const parsedUrl = parseUrl(url);
-                const origin    = parsedUrl.protocol + '//' + parsedUrl.host;
-                let webSocket   = null;
 
                 if (arguments.length === 1)
-                    webSocket = new nativeMethods.WebSocket(proxyUrl);
+                    return new nativeMethods.WebSocket(proxyUrl);
                 else if (arguments.length === 2)
-                    webSocket = new nativeMethods.WebSocket(proxyUrl, protocols);
-                else
-                    webSocket = new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
+                    return new nativeMethods.WebSocket(proxyUrl, protocols);
 
-                // NOTE: We need to use deprecated methods instead of the defineProperty method
-                // in the following browsers:
-                // * Android 5.1 because prototype does not contain the url property
-                // and the defineProperty does not redefine descriptor of the WebSocket instance
-                // * Safari less than 10 versions because the configurable property of descriptor is false
-                // Try to drop this after moving to higher versions of browsers
-                if (!nativeMethods.webSocketUrlGetter) {
-                    webSocket.__defineGetter__('url', () => url);
-                    webSocket.__defineSetter__('url', value => value);
-                }
-
-                if (!nativeMethods.messageEventOriginGetter) {
-                    webSocket.addEventListener('message', e => {
-                        e.__defineGetter__('origin', () => origin);
-                        e.__defineSetter__('origin', value => value);
-                    });
-                }
-
-                return webSocket;
+                return new nativeMethods.WebSocket(proxyUrl, protocols, arguments[2]);
             };
 
             window.WebSocket.prototype  = nativeMethods.WebSocket.prototype;
@@ -515,33 +496,33 @@ export default class WindowSandbox extends SandboxBase {
             }
         }
 
-        if (nativeMethods.messageEventOriginGetter) {
-            const originPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
-                .call(window.Object, window.MessageEvent.prototype, 'origin');
+        const originPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
+            .call(window.Object, window.MessageEvent.prototype, 'origin');
 
-            originPropDescriptor.get = function () {
-                const target = this.target;
-                const origin = nativeMethods.messageEventOriginGetter.call(this);
+        originPropDescriptor.get = function () {
+            const target = this.target;
+            const origin = nativeMethods.messageEventOriginGetter.call(this);
 
-                if (isWebSocket(target)) {
-                    const parsedUrl = parseUrl(target.url);
+            if (isWebSocket(target)) {
+                const parsedUrl = parseUrl(target.url);
 
-                    if (parsedUrl)
-                        return parsedUrl.protocol + '//' + parsedUrl.host;
-                }
-                else if (isWindow(target)) {
-                    const data = nativeMethods.messageEventDataGetter.call(this);
+                if (parsedUrl)
+                    return parsedUrl.protocol + '//' + parsedUrl.host;
+            }
+            else if (isWindow(target)) {
+                const data = nativeMethods.messageEventDataGetter
+                    ? nativeMethods.messageEventDataGetter.call(this)
+                    : this.data;
 
-                    if (data)
-                        return data.originUrl;
-                }
+                if (data)
+                    return data.originUrl;
+            }
 
-                return origin;
-            };
+            return origin;
+        };
 
-            nativeMethods.objectDefineProperty
-                .call(window.Object, window.MessageEvent.prototype, 'origin', originPropDescriptor);
-        }
+        nativeMethods.objectDefineProperty
+            .call(window.Object, window.MessageEvent.prototype, 'origin', originPropDescriptor);
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {

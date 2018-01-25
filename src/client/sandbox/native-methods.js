@@ -192,14 +192,12 @@ class NativeMethods {
                 this.webSocketUrlGetter = urlPropDescriptor.get;
         }
 
-        const originPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin');
-        const dataPropDescriptor   = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
+        this.messageEventOriginGetter = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin').get;
 
-        // NOTE: These conditions are used for the Android 5.1 browser
-        if (originPropDescriptor && originPropDescriptor.get && originPropDescriptor.configurable)
-            this.messageEventOriginGetter = originPropDescriptor.get;
+        const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
 
-        if (dataPropDescriptor && dataPropDescriptor.get && dataPropDescriptor.configurable)
+        // NOTE: This condition is used for the Android 6.0 browser
+        if (dataPropDescriptor)
             this.messageEventDataGetter = dataPropDescriptor.get;
 
         // Stylesheets
