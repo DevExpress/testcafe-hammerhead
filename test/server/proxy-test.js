@@ -1514,7 +1514,7 @@ describe('Proxy', () => {
                 });
         });
 
-        it('Should not throws an proxy error when server is not available', (done) => {
+        it('Should not throws an proxy error when server is not available', done => {
             const url = urlUtils.getProxyUrl('http://127.0.0.1:2003/ws', {
                 proxyHostname: '127.0.0.1',
                 proxyPort:     1836,
@@ -1685,33 +1685,6 @@ describe('Proxy', () => {
 
                     DestinationRequest.TIMEOUT     = savedReqTimeout;
                     DestinationRequest.XHR_TIMEOUT = savedXhrReqTimeout;
-                });
-        });
-
-        // // Old 'request'-module version
-        // // NOTE: Requires fix in node.js.
-        // it.skip('Should not encode cyrillic symbols in header (T239167, GH-nodejs/io.js#1693)', done => {
-        //     const url              = proxy.openSession('http://127.0.0.1:2000/T239167/send-location', session);
-        //     const expectedLocation = proxy.openSession('http://127.0.0.1:2000/\u0410\u0411', session);
-        //
-        //     request(url, (err, res) => {
-        //         expect(res.headers['location']).eql(expectedLocation);
-        //         done();
-        //     });
-        // });
-        //
-        // New 'request-promise-native'-module version
-        // NOTE: Requires fix in node.js.
-        it.skip('Should not encode cyrillic symbols in header (T239167, GH-nodejs/io.js#1693)', () => {
-            const options = {
-                url:                     proxy.openSession('http://127.0.0.1:2000/T239167/send-location', session),
-                resolveWithFullResponse: true
-            };
-            const expectedLocation = proxy.openSession('http://127.0.0.1:2000/\u0410\u0411', session);
-
-            return request(options)
-                .then(res => {
-                    expect(res.headers['location']).eql(expectedLocation);
                 });
         });
 
@@ -2274,17 +2247,6 @@ describe('Proxy', () => {
 
 
             const testRequest = function (testCase) {
-                // return new Promise(resolve => {
-                //     const options = {
-                //         url: testCase.url
-                //     };
-                //
-                //     request(options, (err, req) => {
-                //         expect(req.headers['x-frame-options']).eql(testCase.expectedHeaderValue);
-                //
-                //         resolve();
-                //     });
-                // });
                 const options = {
                     url:                     testCase.url,
                     resolveWithFullResponse: true
@@ -2292,7 +2254,6 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(res => {
-                        // Use req instead res ???
                         expect(res.headers['x-frame-options']).equal(testCase.expectedHeaderValue);
                     });
             };
@@ -2594,10 +2555,6 @@ describe('Proxy', () => {
 
             return request(options)
                 .then(() => {
-                    // expect(res.statusCode).eql(500);
-                    // expect(res.body).to.include('test error message');
-                    //
-                    // resourceProcessor.process = storedProcessFn;
                     expect.fail('Request should raise an error');
                 })
                 .catch(err => {
