@@ -47,7 +47,7 @@ test('Get selection on input with "email" type', function () {
     strictEqual(selection.start, browserUtils.isFirefox && browserVersion < 51 || isIE ? 0 : inputTestValue.length);
     strictEqual(selection.end, browserUtils.isFirefox && browserVersion < 51 || isIE ? 0 : inputTestValue.length);
 
-    if (isMobileBrowser || browserUtils.isSafari ||
+    if (isMobileBrowser && !browserUtils.isAndroid || browserUtils.isSafari ||
         browserUtils.isChrome && (browserUtils.isMacPlatform || browserVersion < 54))
         strictEqual(selection.direction, 'none');
     else if (!isIE)

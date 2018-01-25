@@ -546,7 +546,7 @@ if (window.navigator.serviceWorker) {
 
             var isRegisterServiceWorker = getProperty(e, 'data');
 
-            strictEqual(isRegisterServiceWorker, browserUtils.isFirefox || browserUtils.isAndroid);
+            strictEqual(isRegisterServiceWorker, browserUtils.isFirefox);
 
             document.body.removeChild(iframe);
 
