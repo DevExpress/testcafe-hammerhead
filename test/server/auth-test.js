@@ -59,7 +59,7 @@ describe('Authentication', () => {
             };
 
             return request(options)
-                .then((res) => {
+                .then(res => {
                     expect(res.statusCode).equal(200);
                     expect(res.body.UserName).equal('username');
                     expect(res.body.DomainName).equal('DOMAIN');
@@ -107,7 +107,7 @@ describe('Authentication', () => {
             };
 
             return request(options)
-                .then((res) => {
+                .then(res => {
                     expect(res.statusCode).equal(200);
                     expect(res.body).equal('Access granted');
                 });
@@ -130,7 +130,7 @@ describe('Authentication', () => {
                 .then(() => {
                     expect.fail('Request should raise an "401" error');
                 })
-                .catch((err) => {
+                .catch(err => {
                     expect(err.statusCode).equal(401);
                     expect(err.error).equal('Access denied');
                     // NOTE: prevent showing the native credentials window.

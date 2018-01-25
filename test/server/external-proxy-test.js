@@ -157,56 +157,56 @@ describe('External proxy', () => {
         });
     });
 
-    it('Should send the http request through the proxy', done => {
+    it('Should send the http request through the proxy', () => {
         session.setExternalProxySettings('127.0.0.1:2002');
 
         const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session);
 
-        request(proxyUrl, (err, res, body) => {
-            expect(body).eql('/path');
-            expect(proxyLogs.length).eql(1);
-            expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
-            expect(proxyLogs[0].auth).to.be.undefined;
-            done();
-        });
+        return request(proxyUrl)
+            .then(body => {
+                expect(body).eql('/path');
+                expect(proxyLogs.length).eql(1);
+                expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
+                expect(proxyLogs[0].auth).to.be.undefined;
+            });
     });
 
-    it('Should send the https request through the proxy', done => {
+    it('Should send the https request through the proxy', () => {
         session.setExternalProxySettings('127.0.0.1:2002');
 
         const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
 
-        request(proxyUrl, (err, res, body) => {
-            expect(body).eql('/path');
-            expect(proxyLogs.length).eql(1);
-            expect(proxyLogs[0].url).eql('127.0.0.1:2001');
-            expect(proxyLogs[0].auth).to.be.undefined;
-            done();
-        });
+        return request(proxyUrl)
+            .then(body => {
+                expect(body).eql('/path');
+                expect(proxyLogs.length).eql(1);
+                expect(proxyLogs[0].url).eql('127.0.0.1:2001');
+                expect(proxyLogs[0].auth).to.be.undefined;
+            });
     });
 
-    it('Should send the http request through the proxy with auth', done => {
+    it('Should send the http request through the proxy with auth', () => {
         const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session, 'login:pass@127.0.0.1:2002');
 
-        request(proxyUrl, (err, res, body) => {
-            expect(body).eql('/path');
-            expect(proxyLogs.length).eql(1);
-            expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
-            expect(proxyLogs[0].auth).eql(formatAuthHeader('login:pass'));
-            done();
-        });
+        return request(proxyUrl)
+            .then(body => {
+                expect(body).eql('/path');
+                expect(proxyLogs.length).eql(1);
+                expect(proxyLogs[0].url).eql('http://127.0.0.1:2000/path');
+                expect(proxyLogs[0].auth).eql(formatAuthHeader('login:pass'));
+            });
     });
 
-    it('Should send the https request through the proxy with auth', done => {
+    it('Should send the https request through the proxy with auth', () => {
         const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session, 'login:pass@127.0.0.1:2002');
 
-        request(proxyUrl, (err, res, body) => {
-            expect(body).eql('/path');
-            expect(proxyLogs.length).eql(1);
-            expect(proxyLogs[0].url).eql('127.0.0.1:2001');
-            expect(proxyLogs[0].auth).eql(formatAuthHeader('login:pass'));
-            done();
-        });
+        return request(proxyUrl)
+            .then(body => {
+                expect(body).eql('/path');
+                expect(proxyLogs.length).eql(1);
+                expect(proxyLogs[0].url).eql('127.0.0.1:2001');
+                expect(proxyLogs[0].auth).eql(formatAuthHeader('login:pass'));
+            });
     });
 
     it('Should raise the tunneling error', done => {
