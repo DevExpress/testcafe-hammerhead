@@ -165,7 +165,7 @@ export default class EventSimulator {
         let modifiersString = '';
 
         for (const modifier in eventUtils.KEYBOARD_MODIFIERS_PARAMETER) {
-            if (eventUtils.KEYBOARD_MODIFIERS_PARAMETER.hasOwnProperty(modifier) && args[modifier])
+            if (nativeMethods.objectHasOwnProperty.call(eventUtils.KEYBOARD_MODIFIERS_PARAMETER, modifier) && args[modifier])
                 modifiersString += eventUtils.KEYBOARD_MODIFIERS_PARAMETER[modifier] + ' ';
         }
 

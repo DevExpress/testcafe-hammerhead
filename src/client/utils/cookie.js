@@ -1,4 +1,5 @@
 import trim from '../../utils/string-trim';
+import nativeMethods from '../../../src/client/sandbox/native-methods';
 
 const COOKIE_PAIR_REGEX        = /^((?:=)?([^=;]*)\s*=\s*)?([^\n\r\0]*)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;
@@ -82,7 +83,7 @@ export function format (parsedCookie) {
     cookieStr += ';';
 
     for (const attrName in parsedCookie) {
-        if (parsedCookie.hasOwnProperty(attrName)) {
+        if (nativeMethods.objectHasOwnProperty.call(parsedCookie, attrName)) {
             if (attrName !== 'key' && attrName !== 'value') {
                 cookieStr += attrName;
 
