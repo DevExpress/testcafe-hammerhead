@@ -171,6 +171,7 @@ class NativeMethods {
         this.objectIsFrozen                 = win.Object.isFrozen;
         this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
         this.objectHasOwnProperty           = win.Object.hasOwnProperty;
+        this.objectGetOwnPropertyNames      = win.Object.getOwnPropertyNames;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 

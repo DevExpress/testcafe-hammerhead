@@ -3,6 +3,7 @@ var destLocation = hammerhead.get('./utils/destination-location');
 var urlUtils     = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
 if (window.fetch) {
@@ -410,6 +411,12 @@ if (window.fetch) {
         });
 
         module('should emulate native behaviour on headers overwriting', function () {
+            // NOTE: These tests fail in the Android 6.0 browser with the following errors:
+            // Failed to construct 'Request': Cannot construct a Request with a Request object that has already been used.
+            // Failed to execute 'fetch' on 'Window': Cannot construct a Request with a Request object that has already been used.
+            if (browserUtils.isAndroid)
+                return;
+
             var initWithHeader1           = {
                 headers: { header1: 'value1' }
             };
@@ -429,10 +436,10 @@ if (window.fetch) {
             test('nested Requests', function () {
                 var request1       = new Request('/echo-request-headers', initWithHeader1);
                 var request2       = new Request(request1);
-                var request3       = new Request(request2, initWithHeader3);
+                var request3       = new Request(request1, initWithHeader3);
                 var nativeRequest1 = new nativeMethods.Request('/echo-request-headers', initWithHeader1);
                 var nativeRequest2 = new nativeMethods.Request(nativeRequest1);
-                var nativeRequest3 = new nativeMethods.Request(nativeRequest2, initWithHeader3);
+                var nativeRequest3 = new nativeMethods.Request(nativeRequest1, initWithHeader3);
 
                 strictEqual(request1.headers.has('header1'), nativeRequest1.headers.has('header1'));
                 strictEqual(request2.headers.has('header1'), nativeRequest2.headers.has('header1'));
@@ -441,19 +448,17 @@ if (window.fetch) {
             });
 
             test('global fetch', function () {
-                var request1       = new Request('/echo-request-headers', initWithHeader1);
-                var request2       = new Request('/echo-request-headers', initWithHeader1);
-                var proxiedUrl     = urlUtils.getProxyUrl('/echo-request-headers');
-                var nativeRequest1 = new nativeMethods.Request(proxiedUrl, initWithHeader1);
-                var nativeRequest2 = new nativeMethods.Request(proxiedUrl, initWithHeader1);
+                var request       = new Request('/echo-request-headers', initWithHeader1);
+                var proxiedUrl    = urlUtils.getProxyUrl('/echo-request-headers');
+                var nativeRequest = new nativeMethods.Request(proxiedUrl, initWithHeader1);
 
                 return Promise.all([
                     retrieveRequestBodyAsJson(fetch('/echo-request-headers', initWithHeader1)),
-                    retrieveRequestBodyAsJson(fetch(request1)),
-                    retrieveRequestBodyAsJson(fetch(request2, initWithHeader3)),
+                    retrieveRequestBodyAsJson(fetch(request)),
+                    retrieveRequestBodyAsJson(fetch(request, initWithHeader3)),
                     retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, proxiedUrl, initWithHeader1)),
-                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest1)),
-                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest2, initWithHeader3))
+                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest)),
+                    retrieveRequestBodyAsJson(nativeMethods.fetch.call(window, nativeRequest, initWithHeader3))
                 ])
                     .then(function (data) {
                         var request1Headers       = data[0];

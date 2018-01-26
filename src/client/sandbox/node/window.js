@@ -321,7 +321,8 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (typeof url === 'string') {
                     if (WindowSandbox._isSecureOrigin(url)) {
-                        // NOTE: the android browser cannot create the DOMException error manually
+                        // NOTE: We cannot create an instance of the DOMException in the Android 6.0 browser.
+                        // The 'TypeError: Illegal constructor' error is raised if we try to call the constructor.
                         return Promise.reject(isAndroid
                             ? new Error('Only secure origins are allowed.')
                             : new DOMException('Only secure origins are allowed.', 'SecurityError'));
