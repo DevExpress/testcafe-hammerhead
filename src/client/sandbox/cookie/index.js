@@ -7,6 +7,7 @@ import { isCrossDomainWindows } from '../../utils/dom';
 import trim from '../../../utils/string-trim';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import BYTES_PER_COOKIE_LIMIT from '../../../session/cookie-limit';
+import nativeMethods from '../../sandbox/native-methods';
 
 export default class CookieSandbox extends SandboxBase {
     constructor () {
@@ -28,7 +29,7 @@ export default class CookieSandbox extends SandboxBase {
         const parsedCookieCopy = {};
 
         for (const prop in parsedCookie) {
-            if (parsedCookie.hasOwnProperty(prop))
+            if (nativeMethods.objectHasOwnProperty.call(parsedCookie, prop))
                 parsedCookieCopy[prop] = parsedCookie[prop];
         }
 

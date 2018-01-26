@@ -45,7 +45,7 @@ export default class StorageWrapper {
             const properties = [];
 
             for (const property in this) {
-                if (this.hasOwnProperty(property) && this.initialProperties.indexOf(property) === -1)
+                if (nativeMethods.objectHasOwnProperty.call(this, property) && this.initialProperties.indexOf(property) === -1)
                     properties.push(property);
             }
 
@@ -196,7 +196,7 @@ export default class StorageWrapper {
 
             key = getValidKey(key);
 
-            return this.hasOwnProperty(key) ? this[key] : null;
+            return nativeMethods.objectHasOwnProperty.call(this, key) ? this[key] : null;
         };
 
         this.key = keyNum => {

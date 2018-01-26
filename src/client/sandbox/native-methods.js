@@ -170,6 +170,7 @@ class NativeMethods {
         this.objectIsExtensible             = win.Object.isExtensible;
         this.objectIsFrozen                 = win.Object.isFrozen;
         this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
+        this.objectHasOwnProperty           = win.Object.hasOwnProperty;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
