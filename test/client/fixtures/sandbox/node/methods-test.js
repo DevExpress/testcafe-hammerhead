@@ -546,10 +546,7 @@ if (window.navigator.serviceWorker) {
 
             var isRegisterServiceWorker = getProperty(e, 'data');
 
-            if (browserUtils.isFirefox)
-                ok(isRegisterServiceWorker);
-            else
-                ok(!isRegisterServiceWorker);
+            strictEqual(isRegisterServiceWorker, browserUtils.isFirefox);
 
             document.body.removeChild(iframe);
 

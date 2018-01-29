@@ -41,7 +41,7 @@ export default class StorageWrapper {
             // NOTE: The standard doesn't regulate the order in which properties are enumerated.
             // But we rely on the fact that they are enumerated in the order they were created in all the supported browsers.
             // In this case we cannot use Object.getOwnPropertyNames
-            // because the enumeration order in Android 5.1 is different from all other browsers.
+            // because the enumeration order in Android 6.0 is different from all other browsers.
             const properties = [];
 
             for (const property in this) {
@@ -234,9 +234,7 @@ export default class StorageWrapper {
 
         // NOTE: Save wrapper properties and methods to be able to distinguish them from
         // properties that will be created from the outside.
-        /*eslint-disable no-restricted-globals*/
-        this.initialProperties = Object.getOwnPropertyNames(this);
-        /*eslint-enable no-restricted-globals*/
+        this.initialProperties = nativeMethods.objectGetOwnPropertyNames.call(window.Object, this);
         this.wrapperMethods = getWrapperMethods();
 
         init();

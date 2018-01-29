@@ -3,6 +3,7 @@ var destLocation = hammerhead.get('./utils/destination-location');
 var urlUtils     = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
 if (window.fetch) {
@@ -410,6 +411,12 @@ if (window.fetch) {
         });
 
         module('should emulate native behaviour on headers overwriting', function () {
+            // NOTE: These tests fail in the Android 6.0 browser with the following errors:
+            // Failed to construct 'Request': Cannot construct a Request with a Request object that has already been used.
+            // Failed to execute 'fetch' on 'Window': Cannot construct a Request with a Request object that has already been used.
+            if (browserUtils.isAndroid)
+                return;
+
             var initWithHeader1           = {
                 headers: { header1: 'value1' }
             };

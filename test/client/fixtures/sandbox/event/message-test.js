@@ -2,7 +2,6 @@ var INSTRUCTION = hammerhead.get('../processing/script/instruction');
 
 var Promise        = hammerhead.Promise;
 var messageSandbox = hammerhead.sandbox.event.message;
-var browserUtils   = hammerhead.utils.browser;
 
 asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
     var testMessage = 'test';
@@ -411,16 +410,10 @@ test('MessageEvent should be correctly overridden (GH-1445)', function () {
             strictEqual(eventObj.origin, 'https://example.com');
 
             try {
-                JSON.stringify(eventObj);
-
-                ok(true);
+                ok(JSON.stringify(eventObj));
             }
             catch (e) {
-                // NOTE: Browser Android 5.1 cannot stringify a native "message" event.
-                // It fails with 'Converting circular structure to JSON' error.
-                // In the Android 6.0, browser version is 44, it works.
-                if (!browserUtils.isAndroid || browserUtils.version >= 44)
-                    ok(false);
+                ok(false);
             }
         });
 });

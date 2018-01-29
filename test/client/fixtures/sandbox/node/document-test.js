@@ -571,17 +571,13 @@ if (document.registerElement) {
             ok(false, 'Object.preventExtensions');
         }
 
-        // BUG in Android 5.1: Object.seal locks all element's prototype chain (down to HTMLElement).
-        // After this, QUnit cannot execute accertions
-        if (!browserUtils.isAndroid) {
-            try {
-                Object.seal(customElement2);
-                document.body.appendChild(customElement2);
-                ok(true, 'Object.seal');
-            }
-            catch (e) {
-                ok(false, 'Object.seal');
-            }
+        try {
+            Object.seal(customElement2);
+            document.body.appendChild(customElement2);
+            ok(true, 'Object.seal');
+        }
+        catch (e) {
+            ok(false, 'Object.seal');
         }
 
         try {
@@ -610,14 +606,10 @@ test('should reprocess element if it is created in iframe window and it is not f
             document.body.appendChild(iframeLink);
             strictEqual(iframeLink[INTERNAL_PROPS.processedContext], window);
 
-            // BUG in Android 5.1: Object.seal locks all element's prototype chain (down to HTMLElement).
-            // After this, QUnit cannot execute accertions
-            if (!browserUtils.isAndroid) {
-                iframeLink = iframe.contentDocument.createElement('a');
-                Object.seal(iframeLink);
-                document.body.appendChild(iframeLink);
-                strictEqual(iframeLink[INTERNAL_PROPS.processedContext], window);
-            }
+            iframeLink = iframe.contentDocument.createElement('a');
+            Object.seal(iframeLink);
+            document.body.appendChild(iframeLink);
+            strictEqual(iframeLink[INTERNAL_PROPS.processedContext], window);
 
             iframeLink = iframe.contentDocument.createElement('a');
             Object.freeze(iframeLink);
