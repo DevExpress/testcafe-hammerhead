@@ -414,7 +414,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             nextSibling: {
-                condition: node => node.nextSibling && domUtils.isDomElement(node) && domUtils.isDomElement(node.nextSibling),
+                condition: node => node.nextSibling && domUtils.isDomElement(node.nextSibling),
                 get:       node => domUtils.isShadowUIElement(node.nextSibling) ? null : node.nextSibling,
                 set:       () => void 0
             },

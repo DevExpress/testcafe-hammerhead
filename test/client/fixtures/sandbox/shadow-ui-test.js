@@ -260,6 +260,17 @@ test('Node.nextSibling, NonDocumentTypeChildNode.nextElementSibling', function (
     strictEqual(getProperty(previous, 'nextElementSibling'), null);
 });
 
+test('Node.nextSibling when Node is a TEXT_NODE (GH-1465)', function () {
+    var textNode1 = document.createTextNode('');
+
+    document.body.appendChild(textNode1);
+
+    strictEqual(getProperty(textNode1, 'nextSibling'), null);
+    strictEqual(textNode1.nextSibling, shadowUI.getRoot());
+
+    textNode1.parentNode.removeChild(textNode1);
+});
+
 module('element methods');
 
 test('Node.childElementCount', function () {
@@ -575,8 +586,8 @@ test('querySelectorAll', function () {
 module('ui stylesheet');
 
 test('stylesheets are restored after the document is cleaned', function () {
-    var link1  = document.createElement('link');
-    var link2  = document.createElement('link');
+    var link1 = document.createElement('link');
+    var link2 = document.createElement('link');
 
     link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
@@ -613,8 +624,8 @@ test('stylesheets are restored after the document is cleaned', function () {
 });
 
 test('append stylesheets to the iframe on initialization', function () {
-    var link1  = document.createElement('link');
-    var link2  = document.createElement('link');
+    var link1 = document.createElement('link');
+    var link2 = document.createElement('link');
 
     link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
