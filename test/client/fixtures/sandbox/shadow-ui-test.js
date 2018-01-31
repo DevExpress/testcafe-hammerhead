@@ -260,15 +260,22 @@ test('Node.nextSibling, NonDocumentTypeChildNode.nextElementSibling', function (
     strictEqual(getProperty(previous, 'nextElementSibling'), null);
 });
 
-test('Node.nextSibling when Node is a TEXT_NODE (GH-1465)', function () {
-    var textNode1 = document.createTextNode('');
+test('Node.nextSibling when Node is not ELEMENT_NODE (GH-1465)', function () {
+    var notElementNodes = [
+        document.createTextNode(''),
+        document.createProcessingInstruction('x', 'x'),
+        document.createComment('')
+    ];
 
-    document.body.appendChild(textNode1);
+    for (var i = 0; i < notElementNodes.length; i++) {
+        var notElementNode = notElementNodes[i];
 
-    strictEqual(getProperty(textNode1, 'nextSibling'), null);
-    strictEqual(textNode1.nextSibling, shadowUI.getRoot());
+        document.body.appendChild(notElementNode);
+        strictEqual(getProperty(notElementNode, 'nextSibling'), null);
+        strictEqual(notElementNode.nextSibling, shadowUI.getRoot());
 
-    textNode1.parentNode.removeChild(textNode1);
+        notElementNode.parentNode.removeChild(notElementNode);
+    }
 });
 
 module('element methods');
