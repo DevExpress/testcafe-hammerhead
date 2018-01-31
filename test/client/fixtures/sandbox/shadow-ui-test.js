@@ -261,11 +261,24 @@ test('Node.nextSibling, NonDocumentTypeChildNode.nextElementSibling', function (
 });
 
 test('Node.nextSibling when Node is not ELEMENT_NODE (GH-1465)', function () {
+    var supportCreationProcessingInstructionForHtmlDoc = (function () {
+        try {
+            document.createProcessingInstruction('x', 'x');
+
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    })();
+
     var notElementNodes = [
         document.createTextNode(''),
-        document.createProcessingInstruction('x', 'x'),
         document.createComment('')
     ];
+
+    if (supportCreationProcessingInstructionForHtmlDoc)
+        notElementNodes.push(document.createProcessingInstruction('x', 'x'));
 
     for (var i = 0; i < notElementNodes.length; i++) {
         var notElementNode = notElementNodes[i];
