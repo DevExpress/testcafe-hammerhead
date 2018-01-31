@@ -167,7 +167,6 @@ gulp.task('lint', () => {
 
 gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
 
-
 // Test
 gulp.task('test-server', ['build'], () => {
     return gulp.src('./test/server/*-test.js', { read: false })
@@ -187,6 +186,8 @@ gulp.task('test-client', ['build'], () => {
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS));
 });
+
+gulp.task('test-client-dev', ['set-dev-mode', 'test-client']);
 
 gulp.task('test-client-travis', ['build'], () => {
     return gulp
