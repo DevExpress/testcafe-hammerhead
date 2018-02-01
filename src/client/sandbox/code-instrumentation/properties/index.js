@@ -408,15 +408,22 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             nextElementSibling: {
-                condition: node => node.nextElementSibling && domUtils.isDomElement(node) && domUtils.isDomElement(node.nextElementSibling),
-                get:       node => domUtils.isShadowUIElement(node.nextElementSibling) ? null : node.nextElementSibling,
-                set:       () => void 0
+                condition: node => node.nextElementSibling && domUtils.isDomElement(node) &&
+                                   domUtils.isDomElement(node.nextElementSibling),
+
+                get: node => domUtils.isShadowUIElement(node.nextElementSibling) ? null : node.nextElementSibling,
+                set: () => void 0
             },
 
             nextSibling: {
-                condition: node => node.nextSibling && domUtils.isDomElement(node) && domUtils.isDomElement(node.nextSibling),
-                get:       node => domUtils.isShadowUIElement(node.nextSibling) ? null : node.nextSibling,
-                set:       () => void 0
+                // NOTE: This property instrumentation needs only for body and head element children
+                condition: node => node.nextSibling &&
+                                   domUtils.isDomElement(node.nextSibling) &&
+                                   domUtils.isDomElement(node) || domUtils.isTextNode(node) ||
+                                   domUtils.isProcessingInstructionNode(node) || domUtils.isCommentNode(node),
+
+                get: node => domUtils.isShadowUIElement(node.nextSibling) ? null : node.nextSibling,
+                set: () => void 0
             },
 
             outerHTML: {

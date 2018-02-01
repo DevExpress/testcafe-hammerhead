@@ -260,6 +260,37 @@ test('Node.nextSibling, NonDocumentTypeChildNode.nextElementSibling', function (
     strictEqual(getProperty(previous, 'nextElementSibling'), null);
 });
 
+test('Node.nextSibling when Node is not ELEMENT_NODE (GH-1465)', function () {
+    var supportCreationProcessingInstructionForHtmlDoc = (function () {
+        try {
+            document.createProcessingInstruction('x', 'x');
+
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    })();
+
+    var notElementNodes = [
+        document.createTextNode(''),
+        document.createComment('')
+    ];
+
+    if (supportCreationProcessingInstructionForHtmlDoc)
+        notElementNodes.push(document.createProcessingInstruction('x', 'x'));
+
+    for (var i = 0; i < notElementNodes.length; i++) {
+        var notElementNode = notElementNodes[i];
+
+        document.body.appendChild(notElementNode);
+        strictEqual(getProperty(notElementNode, 'nextSibling'), null);
+        strictEqual(notElementNode.nextSibling, shadowUI.getRoot());
+
+        notElementNode.parentNode.removeChild(notElementNode);
+    }
+});
+
 module('element methods');
 
 test('Node.childElementCount', function () {
@@ -575,8 +606,8 @@ test('querySelectorAll', function () {
 module('ui stylesheet');
 
 test('stylesheets are restored after the document is cleaned', function () {
-    var link1  = document.createElement('link');
-    var link2  = document.createElement('link');
+    var link1 = document.createElement('link');
+    var link2 = document.createElement('link');
 
     link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
@@ -613,8 +644,8 @@ test('stylesheets are restored after the document is cleaned', function () {
 });
 
 test('append stylesheets to the iframe on initialization', function () {
-    var link1  = document.createElement('link');
-    var link2  = document.createElement('link');
+    var link1 = document.createElement('link');
+    var link2 = document.createElement('link');
 
     link1.className = SHADOW_UI_CLASSNAME.uiStylesheet;
     link2.className = SHADOW_UI_CLASSNAME.uiStylesheet;
