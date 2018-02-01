@@ -1,4 +1,5 @@
 import XHR_HEADERS from './headers';
+import ensureArray from '../../utils/ensure-array';
 
 export const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = 222;
 
@@ -19,7 +20,7 @@ export function check (ctx) {
     const allowOriginHeader      = ctx.destRes.headers['access-control-allow-origin'];
     const allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
     const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
-    const allowedOrigins         = Array.isArray(allowOriginHeader) ? allowOriginHeader : [allowOriginHeader];
+    const allowedOrigins         = ensureArray(allowOriginHeader);
     const wildcardAllowed        = allowedOrigins.indexOf('*') > -1;
 
     // FAILED: Destination server doesn't provide the Access-Control-Allow-Origin header.

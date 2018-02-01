@@ -28,7 +28,7 @@ const resourceProcessor                    = require('../../lib/processing/resou
 const urlUtils                             = require('../../lib/utils/url');
 const nodeVersion                          = parseFloat(require('node-version').short);
 
-const EMPTY_PAGE = '<html></html>';
+const EMPTY_PAGE_MARKUP = '<html></html>';
 
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
@@ -169,7 +169,7 @@ describe('Proxy', () => {
 
         app.get('/download', (req, res) => {
             res.set('content-disposition', 'attachment;filename=DevExpressTestCafe-15.1.2.exe');
-            res.end(EMPTY_PAGE);
+            res.end(EMPTY_PAGE_MARKUP);
 
         });
 
@@ -311,7 +311,7 @@ describe('Proxy', () => {
 
         crossDomainApp.get('/without-access-control-allow-origin-header', (req, res) => {
             res.set('content-type', 'text/html');
-            res.end(EMPTY_PAGE);
+            res.end(EMPTY_PAGE_MARKUP);
         });
 
         crossDomainApp.get('/echo-headers', (req, res) => {
@@ -982,7 +982,7 @@ describe('Proxy', () => {
 
             return request(options)
                 .then(body => {
-                    expect(body).eql(EMPTY_PAGE);
+                    expect(body).eql(EMPTY_PAGE_MARKUP);
                 });
         });
 
