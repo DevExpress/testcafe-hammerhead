@@ -419,8 +419,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 // NOTE: This property instrumentation needs only for body and head element children
                 condition: node => node.nextSibling &&
                                    domUtils.isDomElement(node.nextSibling) &&
-                                   domUtils.isDomElement(node) || domUtils.isTextNode(node) ||
-                                   domUtils.isProcessingInstructionNode(node) || domUtils.isCommentNode(node),
+                                   (domUtils.isDomElement(node) || domUtils.isTextNode(node) ||
+                                    domUtils.isProcessingInstructionNode(node) || domUtils.isCommentNode(node)),
 
                 get: node => domUtils.isShadowUIElement(node.nextSibling) ? null : node.nextSibling,
                 set: () => void 0
