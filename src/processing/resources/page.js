@@ -118,18 +118,11 @@ class PageProcessor extends ResourceProcessorBase {
                 // TODO: Figure out how to emulate the tag behavior.
                 if (domAdapter.getAttr(meta, 'name') === 'referrer')
                     parse5Utils.setAttr(meta, 'content', 'unsafe-url');
-                // NOTE: Remove the existing ‘compatible’ meta tag and add a new one at the beginning of the head.
+                // NOTE: Remove unnecessary existing ‘compatible’ meta tag.
                 if (domAdapter.getAttr(meta, 'http-equiv') === 'X-UA-Compatible')
                     parse5Utils.removeNode(meta);
             });
         }
-    }
-
-    static _addCompatibilityMeta (head) {
-        parse5Utils.insertElement(parse5Utils.createElement('meta', [
-            { name: 'http-equiv', value: 'X-UA-Compatible' },
-            { name: 'content', value: 'IE=edge' }
-        ]), head);
     }
 
     static _prepareHtml (html, processingOpts) {
@@ -193,7 +186,6 @@ class PageProcessor extends ResourceProcessorBase {
 
         PageProcessor._changeMetas(metas, domAdapter);
         PageProcessor._addCharsetInfo(head, charset.get(), domAdapter);
-        PageProcessor._addCompatibilityMeta(head, domAdapter);
 
         return (bom || '') + this.serializer.serialize(root);
     }
