@@ -1,7 +1,7 @@
 import XHR_HEADERS from './xhr/headers';
 import AUTHORIZATION from './xhr/authorization';
 import * as urlUtils from '../utils/url';
-import ensureArray from '../utils/ensure-array';
+import castArray from 'cast-array';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 
 // Skipping transform
@@ -105,7 +105,7 @@ const requestForced = {
 const responseTransforms = {
     'set-cookie': (src, ctx) => {
         if (src) {
-            let cookies = ensureArray(src);
+            let cookies = castArray(src);
 
             cookies = cookies.filter(cookieStr => !!cookieStr);
             ctx.session.cookies.setByServer(ctx.dest.url, cookies);
@@ -162,7 +162,7 @@ const responseForced = {
     [XHR_HEADERS.setCookie]: (src, ctx) => {
         if (ctx.isXhr && ctx.destRes && ctx.destRes.headers && ctx.destRes.headers['set-cookie']) {
             const setCookieHeader = ctx.destRes.headers['set-cookie'];
-            const cookieArr       = ensureArray(setCookieHeader);
+            const cookieArr       = castArray(setCookieHeader);
 
             return JSON.stringify(cookieArr);
         }
