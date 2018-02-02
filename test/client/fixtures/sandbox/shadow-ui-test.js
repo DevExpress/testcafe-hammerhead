@@ -291,6 +291,18 @@ test('Node.nextSibling when Node is not ELEMENT_NODE (GH-1465)', function () {
     }
 });
 
+test('Node.nextSibling when Node is TEXT_NODE and nextSibling is null (GH-1469)', function () {
+    var div  = document.createElement('div');
+    var text = document.createTextNode('');
+
+    div.appendChild(text);
+    document.body.appendChild(div);
+
+    strictEqual(getProperty(text, 'nextSibling'), null);
+
+    div.parentNode.removeChild(div);
+});
+
 module('element methods');
 
 test('Node.childElementCount', function () {
