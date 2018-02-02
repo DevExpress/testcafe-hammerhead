@@ -49,9 +49,14 @@ function transformCookie (src, ctx) {
 }
 
 function resolveAndGetProxyUrl (url, ctx) {
+    if (ctx.req.httpVersion === '1.1' && ctx.destRes.statusCode === 202)
+        return url;
+
     const { host }    = parseUrl(url);
     let isCrossDomain = false;
 
+    // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
+    // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.
     if (!host)
         url = resolveUrl(ctx.dest.url, url);
 
@@ -134,8 +139,6 @@ const responseTransforms = {
     'content-length': (src, ctx) => ctx.contentInfo.requireProcessing ? ctx.destResBody.length : src,
 
     'location': (src, ctx) => {
-        // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
-        // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.
         return resolveAndGetProxyUrl(src, ctx);
     },
 
