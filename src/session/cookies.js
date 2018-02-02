@@ -1,5 +1,6 @@
 import { CookieJar } from 'tough-cookie';
 import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
+import ensureArray from '../utils/ensure-array';
 
 export default class Cookies {
     constructor () {
@@ -7,7 +8,7 @@ export default class Cookies {
     }
 
     _set (url, cookies, isClient) {
-        cookies = Array.isArray(cookies) ? cookies : [cookies];
+        cookies = ensureArray(cookies);
 
         cookies.forEach(cookieStr => {
             if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
