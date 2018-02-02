@@ -118,9 +118,6 @@ class PageProcessor extends ResourceProcessorBase {
                 // TODO: Figure out how to emulate the tag behavior.
                 if (domAdapter.getAttr(meta, 'name') === 'referrer')
                     parse5Utils.setAttr(meta, 'content', 'unsafe-url');
-                // NOTE: Remove unnecessary existing ‘compatible’ meta tag.
-                if (domAdapter.getAttr(meta, 'http-equiv') === 'X-UA-Compatible')
-                    parse5Utils.removeNode(meta);
             });
         }
     }
