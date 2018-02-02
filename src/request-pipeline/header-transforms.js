@@ -136,7 +136,10 @@ const responseTransforms = {
     'location': (src, ctx) => {
         // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
         // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.
-        return resolveAndGetProxyUrl(src, ctx);
+        if (ctx.contentInfo.isRedirect)
+            return resolveAndGetProxyUrl(src, ctx);
+
+        return src;
     },
 
     'x-frame-options': (src, ctx) => {
