@@ -193,7 +193,10 @@ class NativeMethods {
                 this.webSocketUrlGetter = urlPropDescriptor.get;
         }
 
-        this.messageEventOriginGetter = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin').get;
+        this.messageEventOriginGetter       = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin').get;
+        this.htmlCollectionLengthGetter     = win.Object.getOwnPropertyDescriptor(window.HTMLCollection.prototype, 'length').get;
+        this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(window.NodeList.prototype, 'length').get;
+        this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(window.Element.prototype, 'childElementCount').get;
 
         const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
 

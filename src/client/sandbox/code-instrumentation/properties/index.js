@@ -76,20 +76,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         return urlUtils.resolveUrlAsDest(attrValue);
     }
 
-    static _getShadowUICollectionLength (collection) {
-        let shadowUIElementCount = 0;
-
-        for (const item of collection) {
-            if (domUtils.isShadowUIElement(item))
-                shadowUIElementCount++;
-        }
-
-        if (shadowUIElementCount)
-            ShadowUI.checkElementsPosition(collection);
-
-        return collection.length - shadowUIElementCount;
-    }
-
     static _setTextProp (el, propName, text) {
         const processedText = text !== null && text !== void 0 ? String(text) : text;
 
@@ -198,12 +184,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return value;
                 }
-            },
-
-            childElementCount: {
-                condition: ShadowUI.isShadowContainer,
-                get:       el => PropertyAccessorsInstrumentation._getShadowUICollectionLength(el.children),
-                set:       () => void 0
             },
 
             cookie: {
@@ -510,13 +490,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: ShadowUI.isShadowContainer,
                 get:       el => this.shadowUI.getLastElementChild(el),
                 set:       () => void 0
-            },
-
-            length: {
-                condition: ShadowUI.isShadowContainerCollection,
-                get:       PropertyAccessorsInstrumentation._getShadowUICollectionLength,
-
-                set: () => void 0
             },
 
             localStorage: {

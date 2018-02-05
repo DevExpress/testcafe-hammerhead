@@ -27,7 +27,7 @@ function liveHandler( event ) {
 
     match = jQuery(  __get$(event,"target") ).closest( selectors, event.currentTarget );
 
-    for ( i = 0, l =  __get$(match,"length"); i < l; i++ ) {
+    for ( i = 0, l = match.length; i < l; i++ ) {
         for ( j in live ) {
             fn =  __get$(live,j);
             elem =  __get$(match,i).elem;
@@ -46,7 +46,7 @@ function liveHandler( event ) {
         }
     }
 
-    for ( i = 0, l =  __get$(elems,"length"); i < l; i++ ) {
+    for ( i = 0, l = elems.length; i < l; i++ ) {
         match =  __get$(elems,i);
         event.currentTarget = match.elem;
          __set$(event,"data",__get$(match.fn,"data"));

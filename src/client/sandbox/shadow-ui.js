@@ -427,21 +427,23 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // Utils
-    static checkElementsPosition (collection) {
-        if (collection.length) {
-            const parent           = collection[0].parentNode;
-            const shadowUIElements = [];
+    static _checkElementsPosition (collection, length) {
+        if (!length)
+            return;
 
-            if (parent) {
-                for (const item of collection) {
-                    if (domUtils.isShadowUIElement(item))
-                        shadowUIElements.push(item);
-                }
+        const shadowUIElements = [];
 
-                for (const shadowUIElement of shadowUIElements)
-                    nativeMethods.appendChild.call(parent, shadowUIElement);
-            }
+        for (let i = 0; i < length; i++) {
+            const item = collection[i];
+
+            if (domUtils.isShadowUIElement(item))
+                shadowUIElements.push(item);
         }
+
+        const collectionOwner = shadowUIElements.length && shadowUIElements[0].parentNode;
+
+        for (const shadowUIElement of shadowUIElements)
+            nativeMethods.appendChild.call(collectionOwner, shadowUIElement);
     }
 
     static _hasFlag (obj, flag) {
@@ -459,6 +461,20 @@ export default class ShadowUI extends SandboxBase {
 
     static isShadowContainerCollection (collection) {
         return ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
+    }
+
+    static getShadowUICollectionLength (collection, length) {
+        let shadowUIElementCount = 0;
+
+        for (let i = 0; i < length; i++) {
+            if (domUtils.isShadowUIElement(collection[i]))
+                shadowUIElementCount++;
+        }
+
+        if (shadowUIElementCount)
+            ShadowUI._checkElementsPosition(collection, length);
+
+        return length - shadowUIElementCount;
     }
 
     static isShadowUIMutation (mutation) {

@@ -103,12 +103,13 @@ test('set innerHTML for root', function () {
 module('childNodes');
 
 test('body.childNodes', function () {
-    var root             = shadowUI.getRoot();
-    var found            = false;
-    var childNodes       = document.body.childNodes;
-    var childNodesLength = eval(processScript('childNodes.length'));
+    var root                 = shadowUI.getRoot();
+    var found                = false;
+    var childNodes           = document.body.childNodes;
+    var childNodesRealLength = nativeMethods.nodeListLengthGetter.call(childNodes);
+    var childNodesLength     = childNodes.length;
 
-    strictEqual(childNodesLength, childNodes.length - 1);
+    strictEqual(childNodesLength, childNodesRealLength - 1);
 
     for (var i = 0; i < childNodesLength; i++) {
         if (childNodes[i] === root)
@@ -119,12 +120,13 @@ test('body.childNodes', function () {
 });
 
 test('body.children', function () {
-    var root           = shadowUI.getRoot();
-    var found          = false;
-    var children       = document.body.children;
-    var childrenLength = eval(processScript('children.length'));
+    var root               = shadowUI.getRoot();
+    var found              = false;
+    var children           = document.body.children;
+    var childrenRealLength = nativeMethods.htmlCollectionLengthGetter.call(children);
+    var childrenLength     = children.length;
 
-    strictEqual(childrenLength, children.length - 1);
+    strictEqual(childrenLength, childrenRealLength - 1);
 
     for (var i = 0; i < childrenLength; i++) {
         if (children[i] === root)
@@ -136,8 +138,9 @@ test('body.children', function () {
 
 test('head.children', function () {
     var shadowUIElementsCount = 0;
+    var childrenRealLength    = nativeMethods.htmlCollectionLengthGetter.call(document.head.children);
 
-    for (var i = 0; i < document.head.children.length; i++)
+    for (var i = 0; i < childrenRealLength; i++)
         shadowUIElementsCount += domUtils.isShadowUIElement(document.head.children[i]) ? 1 : 0;
 
     var found = false;
@@ -162,7 +165,9 @@ test('head.children', function () {
     var children       = document.head.children;
     var childrenLength = eval(processScript('children.length'));
 
-    strictEqual(childrenLength, children.length - 2 - shadowUIElementsCount);
+    childrenRealLength = nativeMethods.htmlCollectionLengthGetter.call(document.head.children);
+
+    strictEqual(childrenLength, childrenRealLength - 2 - shadowUIElementsCount);
 
     for (var j = 0; j < childrenLength; j++) {
         if (children[j] === link1 || children[j] === link2)
@@ -177,8 +182,9 @@ test('head.children', function () {
 
 test('head.childNodes', function () {
     var shadowUIElementsCount = 0;
+    var childNodesRealLength  = nativeMethods.nodeListLengthGetter.call(document.head.childNodes);
 
-    for (var i = 0; i < document.head.childNodes.length; i++)
+    for (var i = 0; i < childNodesRealLength; i++)
         shadowUIElementsCount += domUtils.isShadowUIElement(document.head.childNodes[i]) ? 1 : 0;
 
     var found = false;
@@ -200,10 +206,12 @@ test('head.childNodes', function () {
     shadowUI.addClass(link2, 'ui-stylesheet');
     document.head.insertBefore(link2, document.head.firstChild);
 
-    var childNodes       = document.head.childNodes;
-    var childNodesLength = eval(processScript('childNodes.length'));
+    var childNodes           = document.head.childNodes;
+    var childNodesLength     = childNodes.length;
 
-    strictEqual(childNodesLength, childNodes.length - 2 - shadowUIElementsCount);
+    childNodesRealLength = nativeMethods.nodeListLengthGetter.call(childNodes);
+
+    strictEqual(childNodesLength, childNodesRealLength - 2 - shadowUIElementsCount);
 
     for (var j = 0; j < childNodesLength; j++) {
         if (childNodes[j] === link1 || childNodes[j] === link2)
@@ -230,10 +238,11 @@ test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function
     input.name = 'testInput';
     document.body.appendChild(input);
 
-    var children        = nativeMethods.elementGetElementsByTagName.call(document.body, '*');
-    var wrappedChildren = document.body.getElementsByTagName('*');
+    var children           = nativeMethods.elementGetElementsByTagName.call(document.body, '*');
+    var childrenRealLength = nativeMethods.htmlCollectionLengthGetter.call(children);
+    var wrappedChildren    = document.body.getElementsByTagName('*');
 
-    strictEqual(wrappedChildren.length, children.length - 1);
+    strictEqual(wrappedChildren.length, childrenRealLength - 1);
     strictEqual(wrappedChildren.item(0), children[0]);
     ok(!wrappedChildren.item(-1));
     ok(!wrappedChildren.item(10000));
@@ -246,9 +255,9 @@ test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function
 });
 
 test('Node.nextSibling, NonDocumentTypeChildNode.nextElementSibling', function () {
-    var bodyChildCount = document.body.childNodes.length;
-    var root           = document.body.childNodes[bodyChildCount - 1];
-    var previous       = document.body.childNodes[bodyChildCount - 2];
+    var bodyChildRealCount = nativeMethods.nodeListLengthGetter.call(document.body.childNodes);
+    var root               = document.body.childNodes[bodyChildRealCount - 1];
+    var previous           = document.body.childNodes[bodyChildRealCount - 2];
 
     ok(domUtils.isShadowUIElement(root));
     ok(!domUtils.isShadowUIElement(previous));
@@ -306,9 +315,9 @@ test('Node.nextSibling when Node is TEXT_NODE and nextSibling is null (GH-1469)'
 module('element methods');
 
 test('Node.childElementCount', function () {
-    var bodyChildCount = document.body.children.length;
+    var bodyChildCount = nativeMethods.elementChildElementCountGetter.call(document.body);
 
-    strictEqual(getProperty(document.body, 'childElementCount'), bodyChildCount - 1);
+    strictEqual(document.body.childElementCount, bodyChildCount - 1);
 });
 
 test('body.getElementsByClassName', function () {
@@ -716,10 +725,11 @@ module('regression');
 test('SVG elements\' className is of the SVGAnimatedString type instead of string (GH-354)', function () {
     setProperty(document.body, 'innerHTML', '<svg></svg>' + getProperty(document.body, 'innerHTML'));
 
-    var svg                         = document.body.childNodes[0];
-    var processedBodyChildrenLength = getProperty(document.body.children, 'length');
+    var svg                             = document.body.childNodes[0];
+    var processedBodyChildrenRealLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
+    var processedBodyChildrenLength     = document.body.children.length;
 
-    strictEqual(processedBodyChildrenLength, document.body.children.length - 1);
+    strictEqual(processedBodyChildrenLength, processedBodyChildrenRealLength - 1);
 
     svg.parentNode.removeChild(svg);
 });
@@ -739,30 +749,30 @@ test('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)
         });
 });
 
-test('shadowUI\'s root must be the last child after adding a new element (T239689)', function () {
-    var root              = shadowUI.getRoot();
-    var bodyChildrenCount = document.body.children.length;
+test('shadowUI`s root must be the last child after adding a new element (T239689)', function () {
+    var root                  = shadowUI.getRoot();
+    var bodyChildrenRealCount = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
 
-    strictEqual(document.body.children[bodyChildrenCount - 1], root);
+    strictEqual(document.body.children[bodyChildrenRealCount - 1], root);
 
     var div1 = document.createElement('div');
 
     div1.id = 'div1';
     document.body.appendChild(div1);
-    strictEqual(document.body.children.length, bodyChildrenCount + 1);
-    strictEqual(document.body.children[bodyChildrenCount - 1], div1);
-    strictEqual(document.body.children[bodyChildrenCount], root);
+    strictEqual(nativeMethods.htmlCollectionLengthGetter.call(document.body.children), bodyChildrenRealCount + 1);
+    strictEqual(document.body.children[bodyChildrenRealCount - 1], div1);
+    strictEqual(document.body.children[bodyChildrenRealCount], root);
 
-    bodyChildrenCount = document.body.children.length;
-    strictEqual(document.body.children[bodyChildrenCount - 1], root);
+    bodyChildrenRealCount = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
+    strictEqual(document.body.children[bodyChildrenRealCount - 1], root);
 
     var div2 = document.createElement('div');
 
     div2.id = 'div2';
     document.body.insertBefore(div2, null);
-    strictEqual(document.body.children.length, bodyChildrenCount + 1);
-    strictEqual(document.body.children[bodyChildrenCount - 1], div2);
-    strictEqual(document.body.children[bodyChildrenCount], root);
+    strictEqual(nativeMethods.htmlCollectionLengthGetter.call(document.body.children), bodyChildrenRealCount + 1);
+    strictEqual(document.body.children[bodyChildrenRealCount - 1], div2);
+    strictEqual(document.body.children[bodyChildrenRealCount], root);
 
     div1.parentNode.removeChild(div1);
     div2.parentNode.removeChild(div2);

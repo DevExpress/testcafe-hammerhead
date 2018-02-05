@@ -298,8 +298,9 @@ test('body.innerHTML in iframe', function () {
     return createTestIframe({ src: getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html') })
         .then(function (iframe) {
             var hasShadowUIRoot = function () {
-                var iframeBody = iframe.contentDocument.body;
-                var root       = iframeBody.children[iframeBody.children.length - 1];
+                var iframeBody             = iframe.contentDocument.body;
+                var bodyChildrenRealLength = nativeMethods.htmlCollectionLengthGetter.call(iframeBody.children);
+                var root                   = iframeBody.children[bodyChildrenRealLength - 1];
 
                 return root && root.id.indexOf('root-') === 0;
             };
