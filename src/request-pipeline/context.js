@@ -3,7 +3,7 @@ import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
 
-const REDIRECT_STATUS_CODES = [301, 302, 303, 307];
+const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
 const HTTP_DEFAUL_PORT      = '80';
 const HTTPS_DEFAUL_PORT     = '443';
 
@@ -224,7 +224,8 @@ export default class RequestPipelineContext {
             encoding,
             contentTypeUrlToken,
             isFileDownload,
-            isNotModified
+            isNotModified,
+            isRedirect
         };
     }
 

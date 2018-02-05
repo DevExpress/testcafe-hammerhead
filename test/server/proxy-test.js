@@ -291,8 +291,17 @@ describe('Proxy', () => {
         });
 
         app.get('/redirect/:url', (req, res) => {
-            res.writeHead(200, { location: decodeURIComponent(req.params.url) });
-            res.end();
+            res
+                .status(302)
+                .set('location', decodeURIComponent(req.params.url))
+                .end();
+        });
+
+        app.get('/redirect-with-status/:statusCode', (req, res) => {
+            res
+                .status(+req.params.statusCode)
+                .set('location', 'http://localhost/')
+                .end();
         });
 
         app.get('/referrer-policy', (req, res) => {
@@ -417,6 +426,7 @@ describe('Proxy', () => {
                     headers: {
                         referer: proxy.openSession('http://example.com', session)
                     },
+
                     url:                     url,
                     resolveWithFullResponse: true
                 };
@@ -2355,6 +2365,8 @@ describe('Proxy', () => {
                         }),
 
                     resolveWithFullResponse: true,
+                    followRedirect:          false,
+                    simple:                  false,
                     headers:                 {
                         referer: urlUtils.getProxyUrl(opts.referer, {
                             proxyHostname: '127.0.0.1',
@@ -2563,6 +2575,38 @@ describe('Proxy', () => {
 
                     resourceProcessor.process = storedProcessFn;
                 });
+        });
+
+        it('Should process the location header only for redirect requests', () => {
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            function testRedirectRequestStatusCode (statusCode, shouldProcessLocation) {
+                const options = {
+                    url: proxy.openSession('http://127.0.0.1:2000/redirect-with-status/' + statusCode, session),
+
+                    resolveWithFullResponse: true,
+                    followRedirect:          false,
+                    simple:                  false
+                };
+
+                return request(options)
+                    .then(res => {
+                        const parsedUrl = urlUtils.parseProxyUrl(res.headers['location']);
+
+                        expect(!!parsedUrl).eql(shouldProcessLocation);
+                    });
+            }
+
+            return Promise.all([
+                testRedirectRequestStatusCode(301, true),
+                testRedirectRequestStatusCode(302, true),
+                testRedirectRequestStatusCode(303, true),
+                testRedirectRequestStatusCode(307, true),
+                testRedirectRequestStatusCode(308, true),
+                testRedirectRequestStatusCode(200, false),
+                testRedirectRequestStatusCode(201, false),
+                testRedirectRequestStatusCode(202, false)
+            ]);
         });
     });
 });
