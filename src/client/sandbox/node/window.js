@@ -24,6 +24,7 @@ import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-cal
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
+import overrideDescriptor from '../../utils/override-descriptor';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -479,10 +480,7 @@ export default class WindowSandbox extends SandboxBase {
             window.WebSocket.CLOSED     = nativeMethods.WebSocket.CLOSED;
 
             if (nativeMethods.webSocketUrlGetter) {
-                const urlPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
-                    .call(window.Object, window.WebSocket.prototype, 'url');
-
-                urlPropDescriptor.get = function () {
+                overrideDescriptor(window.WebSocket.prototype, 'url', function () {
                     const url       = nativeMethods.webSocketUrlGetter.call(this);
                     const parsedUrl = parseProxyUrl(url);
 
@@ -490,17 +488,11 @@ export default class WindowSandbox extends SandboxBase {
                         return parsedUrl.destUrl.replace(HTTP_PROTOCOL_RE, 'ws');
 
                     return url;
-                };
-
-                nativeMethods.objectDefineProperty
-                    .call(window.Object, window.WebSocket.prototype, 'url', urlPropDescriptor);
+                });
             }
         }
 
-        const originPropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
-            .call(window.Object, window.MessageEvent.prototype, 'origin');
-
-        originPropDescriptor.get = function () {
+        overrideDescriptor(window.MessageEvent.prototype, 'origin', function () {
             const target = this.target;
             const origin = nativeMethods.messageEventOriginGetter.call(this);
 
@@ -520,10 +512,35 @@ export default class WindowSandbox extends SandboxBase {
             }
 
             return origin;
-        };
+        });
 
-        nativeMethods.objectDefineProperty
-            .call(window.Object, window.MessageEvent.prototype, 'origin', originPropDescriptor);
+        overrideDescriptor(window.HTMLCollection.prototype, 'length', function () {
+            const length = nativeMethods.htmlCollectionLengthGetter.call(this);
+
+            if (ShadowUI.isShadowContainerCollection(this))
+                return ShadowUI.getShadowUICollectionLength(this, length);
+
+            return length;
+        });
+
+        overrideDescriptor(window.NodeList.prototype, 'length', function () {
+            const length = nativeMethods.nodeListLengthGetter.call(this);
+
+            if (ShadowUI.isShadowContainerCollection(this))
+                return ShadowUI.getShadowUICollectionLength(this, length);
+
+            return length;
+        });
+
+        overrideDescriptor(window.Element.prototype, 'childElementCount', function () {
+            if (ShadowUI.isShadowContainer(this)) {
+                const childrenLength = nativeMethods.htmlCollectionLengthGetter.call(this.children);
+
+                return ShadowUI.getShadowUICollectionLength(this.children, childrenLength);
+            }
+
+            return nativeMethods.elementChildElementCountGetter.call(this);
+        });
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
