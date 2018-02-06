@@ -24,7 +24,7 @@ import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-cal
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
-import { overrideDescriptor } from '../../utils/overriding';
+import overrideDescriptor from '../../utils/override-descriptor';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 

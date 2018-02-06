@@ -7,7 +7,7 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
-import { overrideDescriptor } from '../../utils/overriding';
+import overrideDescriptor from '../../utils/override-descriptor';
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
