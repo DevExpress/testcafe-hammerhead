@@ -32,6 +32,8 @@ import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
 import overrideDescriptor from '../../utils/override-descriptor';
+import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
+import { HASH_RE } from '../../../utils/url';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -89,6 +91,21 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         return String(reason);
+    }
+
+    static _getUrlAttr (el, attr) {
+        const attrValue = nativeMethods.getAttribute.call(el, attr);
+
+        if (attrValue === '' || attrValue === null && attr === 'action' && emptyActionAttrFallbacksToTheLocation)
+            return destLocation.get();
+
+        else if (attrValue === null)
+            return '';
+
+        else if (HASH_RE.test(attrValue))
+            return destLocation.withHash(attrValue);
+
+        return resolveUrlAsDest(attrValue);
     }
 
     static _wrapCSSGetPropertyValueIfNecessary (constructor, nativeGetPropertyValueFn) {
@@ -563,6 +580,16 @@ export default class WindowSandbox extends SandboxBase {
                 return name;
             });
         }
+
+        const windowSandbox = this;
+
+        overrideDescriptor(window.HTMLObjectElement.prototype, 'data', function () {
+            return WindowSandbox._getUrlAttr(this, 'data');
+        }, function (value) {
+            windowSandbox.nodeSandbox.element.setAttributeCore(this, ['data', value]);
+
+            return value;
+        });
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {

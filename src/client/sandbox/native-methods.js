@@ -175,15 +175,12 @@ class NativeMethods {
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
+        const objectDataDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
+
         // Setters
-        const inputValueDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
-        const textAreaValueDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
-
-        if (inputValueDescriptor && typeof inputValueDescriptor.set === 'function')
-            this.inputValueSetter = inputValueDescriptor.set;
-
-        if (textAreaValueDescriptor && typeof textAreaValueDescriptor.set === 'function')
-            this.textAreaValueSetter = textAreaValueDescriptor.set;
+        this.inputValueSetter    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value').set;
+        this.textAreaValueSetter = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value').set;
+        this.objectDataSetter    = objectDataDescriptor.set;
 
         // Getters
         if (win.WebSocket) {
@@ -197,6 +194,7 @@ class NativeMethods {
         this.htmlCollectionLengthGetter     = win.Object.getOwnPropertyDescriptor(window.HTMLCollection.prototype, 'length').get;
         this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(window.NodeList.prototype, 'length').get;
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(window.Element.prototype, 'childElementCount').get;
+        this.objectDataGetter               = objectDataDescriptor.get;
 
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later

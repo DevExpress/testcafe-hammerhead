@@ -67,8 +67,6 @@ test('url', function () {
             return nativeMethods.getAttribute.call(el, storedAttr);
         };
 
-        processDomMeth(el);
-
         el.setAttribute(attr, '');
 
         var emptyAttrValue = el[attr];
@@ -122,8 +120,7 @@ test('url', function () {
         { tagName: 'script', attr: 'src' },
         { tagName: 'link', attr: 'href' },
         { tagName: 'form', attr: 'action' },
-        { tagName: 'embed', attr: 'src' },
-        { tagName: 'object', attr: 'data' }
+        { tagName: 'embed', attr: 'src' }
     ];
 
     if (!browserUtils.isIE || browserUtils.version > 9) {
@@ -135,6 +132,78 @@ test('url', function () {
 
     for (var i = 0; i < testData.length; i++)
         testUrlAttr(testData[i].tagName, testData[i].attr);
+});
+
+test('url attributes overridden by descriptor', function () {
+    var testUrlAttr = function (tagName, attr, getter, setter) {
+        var el         = document.createElement(tagName);
+        var storedAttr = DomProcessor.getStoredAttrName(attr);
+        var namespace  = 'http://www.w3.org/1999/xhtml';
+
+        var getAttr = function () {
+            return nativeMethods.getAttribute.call(el, attr);
+        };
+
+        var getWrapAttr = function () {
+            return nativeMethods.getAttribute.call(el, storedAttr);
+        };
+
+        el.setAttribute(attr, '');
+
+        var emptyAttrValue = getter.call(el);
+        var dest           = 'http://dest.com/';
+        var resourceType   = null;
+
+        if (tagName === 'script')
+            resourceType = 's';
+        else if (tagName === 'form' || attr === 'formAction')
+            resourceType = 'f';
+
+        var proxy = urlUtils.getProxyUrl(dest, { resourceType: resourceType });
+
+        el[attr] = dest;
+
+        strictEqual(getter.call(el), proxy);
+        strictEqual(el[attr], dest);
+        strictEqual(getAttr(), proxy);
+        strictEqual(getWrapAttr(), dest);
+
+        var newUrl      = '/image';
+        var proxyNewUrl = urlUtils.getProxyUrl('/image', { resourceType: resourceType });
+
+        el.setAttribute(attr, newUrl);
+        strictEqual(getter.call(el), proxyNewUrl);
+        strictEqual(el[attr], urlUtils.parseProxyUrl(proxyNewUrl).destUrl);
+        strictEqual(getAttr(), proxyNewUrl);
+        strictEqual(getWrapAttr(), newUrl);
+
+        el[attr] = '';
+
+        strictEqual(getWrapAttr(), '');
+        strictEqual(getAttr(), '');
+        strictEqual(getter.call(el), emptyAttrValue);
+        strictEqual(el[attr], destLocation.get());
+
+        el.removeAttribute(attr);
+        strictEqual(getWrapAttr(), null);
+        strictEqual(getAttr(), null);
+
+        if (attr === 'action' && featureDetection.emptyActionAttrFallbacksToTheLocation)
+            strictEqual(el[attr], destLocation.get());
+        else
+            strictEqual(el[attr], '');
+
+        el.setAttributeNS(namespace, attr, dest);
+        strictEqual(nativeMethods.getAttributeNS.call(el, namespace, attr), proxy);
+        strictEqual(nativeMethods.getAttributeNS.call(el, namespace, storedAttr), dest);
+    };
+
+    var testData = [
+        { tagName: 'object', attr: 'data', getter: nativeMethods.objectDataGetter, setter: nativeMethods.objectDataSetter }
+    ];
+
+    for (var i = 0; i < testData.length; i++)
+        testUrlAttr(testData[i].tagName, testData[i].attr, testData[i].getter, testData[i].setter);
 });
 
 if (!browserUtils.isIE || browserUtils.version > 9) {
