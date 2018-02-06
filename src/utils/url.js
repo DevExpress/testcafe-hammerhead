@@ -11,7 +11,7 @@ const LEADING_SLASHES_RE = /^(\/\/)/;
 const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
 const PORT_RE            = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
-const PATH_AFTER_HOST_RE = /^\/([^\/]+?)\/([\S\s]+)$/;
+const PATH_AFTER_HOST_RE = /^\/([^/]+?)\/([\S\s]+)$/;
 const TRAILING_SLASH_RE  = /\/$/;
 
 export const SUPPORTED_PROTOCOL_RE               = /^(?:https?|file):/i;

@@ -281,7 +281,7 @@ module('regression');
 
 asyncTest('send message from iframe with "about:blank" src (GH-1026)', function () {
     var iframe = document.createElement('iframe');
-    var src    = 'javascript:\'<html><body><script>window.parent.postMessage("gh1026", "*")<\/script></body></html>\'';
+    var src    = 'javascript:\'<html><body><script>window.parent.postMessage("gh1026", "*")<' + '/script></body></html>\'';
 
     iframe.id = 'test-' + Date.now();
     setProperty(iframe, 'src', src);

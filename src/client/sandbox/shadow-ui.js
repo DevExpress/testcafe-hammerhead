@@ -537,8 +537,9 @@ export default class ShadowUI extends SandboxBase {
         const patchedSelector = selector.replace(CLASSNAME_RE,
             className => className + SHADOW_UI_CLASS_NAME.postfix);
 
-        return context ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector) :
-               nativeMethods.querySelectorAll.call(this.document, patchedSelector);
+        return context
+            ? nativeMethods.elementQuerySelectorAll.call(context, patchedSelector)
+            : nativeMethods.querySelectorAll.call(this.document, patchedSelector);
     }
 
     setBlind (value) {

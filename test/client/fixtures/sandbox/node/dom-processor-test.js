@@ -87,13 +87,12 @@ test('script text', function () {
     var processedScript = processScript(script, true);
 
     nativeMethods.appendChild.call(document.body, div);
-    div.innerHTML = '\<script\>' + script + '\</script\>';
+    div.innerHTML = '<script>' + script + '<' + '/script>';
 
     domProcessor.processElement(div.firstChild);
 
     notEqual(script, processedScript);
-    strictEqual(div.innerHTML.replace(/\s/g, ''), ('\<script\>' + processedScript +
-                                                   '\</script\>').replace(/\s/g, ''));
+    strictEqual(div.innerHTML.replace(/\s/g, ''), ('<script>' + processedScript + '<' + '/script>').replace(/\s/g, ''));
 
     div.parentNode.removeChild(div);
 });
@@ -114,8 +113,8 @@ test('comment inside script', function () {
 
     window.commentTest = document.createElement('a');
 
-    testScript('\<!-- Begin comment\n' + 'window.commentTest.href = "http://domain.com";\n' + '//End comment -->');
-    testScript('\<!-- Begin comment\n' + 'window.commentTest.href = "http://domain.com";\n' + ' -->');
+    testScript('<!-- Begin comment\n' + 'window.commentTest.href = "http://domain.com";\n' + '//End comment -->');
+    testScript('<!-- Begin comment\n' + 'window.commentTest.href = "http://domain.com";\n' + ' -->');
 });
 
 test('attribute value', function () {

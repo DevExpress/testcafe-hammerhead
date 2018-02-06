@@ -204,7 +204,7 @@ export default class MessageSandbox extends SandboxBase {
                             source: this.window
                         });
                     }
-                        /*eslint-disable no-empty */
+                    /*eslint-disable no-empty */
                     catch (e) {
                     }
                     /*eslint-enable no-empty */

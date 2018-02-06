@@ -475,8 +475,9 @@ export default class EventSimulator {
         pointerArgs.type    = pointerEventType;
         pointerArgs.offsetX = args.clientX - elClientPosition.x;
         pointerArgs.offsetY = args.clientY - elClientPosition.y;
-        pointerArgs.button  = args.buttons === eventUtils.BUTTONS_PARAMETER.noButton ?
-                              POINTER_EVENT_BUTTON.noButton : pointerArgs.button;
+        pointerArgs.button  = args.buttons === eventUtils.BUTTONS_PARAMETER.noButton
+            ? POINTER_EVENT_BUTTON.noButton
+            : pointerArgs.button;
 
         if (browserUtils.isIE) {
             pointerArgs.rotation = 0;
@@ -693,8 +694,9 @@ export default class EventSimulator {
         options = options || {};
 
         options.button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
-        options.which   = options.which === void 0 || options.button !== eventUtils.BUTTON.right ?
-                          eventUtils.WHICH_PARAMETER.leftButton : eventUtils.WHICH_PARAMETER.rightButton;
+        options.which   = options.which === void 0 || options.button !== eventUtils.BUTTON.right
+            ? eventUtils.WHICH_PARAMETER.leftButton
+            : eventUtils.WHICH_PARAMETER.rightButton;
         options.buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
 
         return this._simulateEvent(el, 'mousedown', options);
@@ -704,8 +706,9 @@ export default class EventSimulator {
         options = options || {};
 
         options.button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
-        options.which   = options.which === void 0 || options.button !== eventUtils.BUTTON.right ?
-                          eventUtils.WHICH_PARAMETER.leftButton : eventUtils.WHICH_PARAMETER.rightButton;
+        options.which   = options.which === void 0 || options.button !== eventUtils.BUTTON.right
+            ? eventUtils.WHICH_PARAMETER.leftButton
+            : eventUtils.WHICH_PARAMETER.rightButton;
         options.buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
 
         return this._simulateEvent(el, 'mouseup', options);

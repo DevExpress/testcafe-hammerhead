@@ -112,7 +112,7 @@ test('write script', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
-            testWrite('<script>var a, b, c;<\/script>');
+            testWrite('<script>var a, b, c;<' + 'script>');
             testWrite('<script id="scr1">');
             testContent('#scr1');
             testWrite('var a = 5;');
@@ -121,7 +121,7 @@ test('write script', function () {
             testWrite('var b = 6;');
             testContent('#scr1');
             testVariable('b');
-            testWrite('<\/script>');
+            testWrite('<' + '/script>');
             testContent('#scr1');
             testVariable('a');
             testVariable('b');
@@ -129,7 +129,7 @@ test('write script', function () {
             testWrite('<script id="scr2">var c=a<b;');
             testContent('#scr2');
             testVariable('c');
-            testWrite('<\/script>');
+            testWrite('<' + '/script>');
             testContent('#scr2');
             testVariable('c');
             close();
@@ -225,7 +225,7 @@ test('write closing tag by parts (GH-1311)', function () {
             testWrite('t>');
             testWrite('<script></script');
             testWrite('>');
-            testWrite('<script><\/script  ');
+            testWrite('<script><' + '/script  ');
             testWrite('>');
             testWrite('<div></d');
             testWrite('iv>');
@@ -235,13 +235,13 @@ test('write closing tag by parts (GH-1311)', function () {
             testWrite('e>');
             testWrite('<script></scriptxyz');
             testWrite('>');
-            testWrite('<\/script>');
+            testWrite('<' + '/script>');
             testWrite('<script></script');
             testWrite('xyz>');
-            testWrite('<\/script>');
+            testWrite('<' + '/script>');
             testWrite('<script></sript');
             testWrite('>');
-            testWrite('<\/script>');
+            testWrite('<' + '/script>');
             close();
         });
 });
@@ -258,7 +258,7 @@ test('write script with src and without closing tag (GH-1218)', function () {
             strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
 
             testWrite('var x = 5;');
-            testWrite('<\/script>');
+            testWrite('<' + '/script>');
             close();
         });
 });

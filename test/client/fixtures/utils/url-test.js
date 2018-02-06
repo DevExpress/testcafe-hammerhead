@@ -537,7 +537,7 @@ test('resolving a url in a tag that is written along with a "base" tag (GH-644)'
         '<base href="/subpath/"/>',
         '<!DOCTYPE html>',
         '<html>',
-        '<head><script src="scripts/scr.js"><\/script></head>',
+        '<head><script src="scripts/scr.js"><' + '/script></head>',
         '...',
         '</html>'
     );

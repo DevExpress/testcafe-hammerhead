@@ -25,7 +25,7 @@ export default class SandboxBase extends EventEmitter {
                 return frameElement && !isElementInDocument(frameElement, findDocument(frameElement));
             }
         }
-            /*eslint-disable no-empty */
+        /*eslint-disable no-empty */
         catch (e) {
         }
         /*eslint-enable no-empty */

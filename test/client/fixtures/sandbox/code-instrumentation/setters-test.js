@@ -217,7 +217,7 @@ test('innerHTML', function () {
 
     document[INTERNAL_PROPS.documentCharset] = 'utf-8';
 
-    eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><\/script><a href=\\"" + linkUrl + "\\"></a>";'));
+    eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><' + '/script><a href=\\"" + linkUrl + "\\"></a>";'));
 
     strictEqual(div.children.length, 2);
     strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, { resourceType: 's', charset: 'utf-8' }));
@@ -332,7 +332,7 @@ if (!browserUtils.isIE) {
 test('outerHTML', function () {
     var parentDiv = document.createElement('div');
     var childDiv  = document.createElement('div');
-    var htmlText  = '<a href="http://domain.com/">link</a><script src="http://domain.com/script"><\/script>';
+    var htmlText  = '<a href="http://domain.com/">link</a><script src="http://domain.com/script"><' + '/script>';
     var obj       = { b: 1 };
 
     parentDiv.appendChild(childDiv);
@@ -402,7 +402,7 @@ test('script block inserted via element.innerHtml must not be executed (B237015)
     var testPropertyName = 'testProperty';
     var el               = document.createElement('div');
     var body             = document.getElementsByTagName('body')[0];
-    var script           = '<script>window.' + testPropertyName + ' = true;\<\/script>';
+    var script           = '<script>window.' + testPropertyName + ' = true;<' + '/script>';
 
     body.appendChild(el);
     el.innerHTML = script;
@@ -594,12 +594,12 @@ test('should not throw an error on setting the body.innerHtml when document.body
         '    <script>',
         '        var body = document.implementation.createHTMLDocument("").body;',
         '        try {',
-        '            body.innerHTML = "<form><\/form>";',
+        '            body.innerHTML = "<form></form>";',
         '            window.hasError = false;',
         '        } catch (e) {',
         '            window.hasError = true;',
         '        }',
-        '    <\/script>',
+        '    <' + '/script>',
         '</head>'
     );
 

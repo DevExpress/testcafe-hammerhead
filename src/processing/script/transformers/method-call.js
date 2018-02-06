@@ -20,11 +20,8 @@ export default {
         const callee = node.callee;
 
         if (callee.type === Syntax.MemberExpression) {
-            if (callee.computed) {
-                return callee.property.type === Syntax.Literal ?
-                       shouldInstrumentMethod(callee.property.value) :
-                       true;
-            }
+            if (callee.computed)
+                return callee.property.type === Syntax.Literal ? shouldInstrumentMethod(callee.property.value) : true;
 
             return shouldInstrumentMethod(callee.property.name);
         }
