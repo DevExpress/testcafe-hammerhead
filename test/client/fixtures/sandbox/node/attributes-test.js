@@ -135,7 +135,7 @@ test('url', function () {
 });
 
 test('url attributes overridden by descriptor', function () {
-    var testUrlAttr = function (tagName, attr, getter, setter) {
+    var testUrlAttr = function (tagName, attr, getter) {
         var el         = document.createElement(tagName);
         var storedAttr = DomProcessor.getStoredAttrName(attr);
         var namespace  = 'http://www.w3.org/1999/xhtml';
@@ -199,11 +199,11 @@ test('url attributes overridden by descriptor', function () {
     };
 
     var testData = [
-        { tagName: 'object', attr: 'data', getter: nativeMethods.objectDataGetter, setter: nativeMethods.objectDataSetter }
+        { tagName: 'object', attr: 'data', getter: nativeMethods.objectDataGetter }
     ];
 
     for (var i = 0; i < testData.length; i++)
-        testUrlAttr(testData[i].tagName, testData[i].attr, testData[i].getter, testData[i].setter);
+        testUrlAttr(testData[i].tagName, testData[i].attr, testData[i].getter);
 });
 
 if (!browserUtils.isIE || browserUtils.version > 9) {
