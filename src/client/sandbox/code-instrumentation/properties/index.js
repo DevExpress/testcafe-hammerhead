@@ -132,7 +132,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         };
     }
 
-    static _isSupportedMessageEvent (e) {
+    static _isMessageEventWithoutDataPropGetter (e) {
         return !nativeMethods.messageEventDataGetter && domUtils.isMessageEvent(e);
     }
 
@@ -194,7 +194,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 6.0 browser
             data: {
-                condition: evt => PropertyAccessorsInstrumentation._isSupportedMessageEvent(evt),
+                condition: evt => PropertyAccessorsInstrumentation._isMessageEventWithoutDataPropGetter(evt),
                 get:       evt => evt.data.message,
                 set:       (evt, value) => value
             },

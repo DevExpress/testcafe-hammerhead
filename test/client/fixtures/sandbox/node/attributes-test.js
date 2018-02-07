@@ -120,15 +120,10 @@ test('url', function () {
         { tagName: 'script', attr: 'src' },
         { tagName: 'link', attr: 'href' },
         { tagName: 'form', attr: 'action' },
-        { tagName: 'embed', attr: 'src' }
+        { tagName: 'embed', attr: 'src' },
+        { tagName: 'input', attr: 'formAction' },
+        { tagName: 'button', attr: 'formAction' }
     ];
-
-    if (!browserUtils.isIE || browserUtils.version > 9) {
-        testData = testData.concat([
-            { tagName: 'input', attr: 'formAction' },
-            { tagName: 'button', attr: 'formAction' }
-        ]);
-    }
 
     for (var i = 0; i < testData.length; i++)
         testUrlAttr(testData[i].tagName, testData[i].attr);
