@@ -2354,15 +2354,14 @@ describe('Proxy', () => {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
             function testRedirectRequest (opts) {
-                const options = {
-                    url: urlUtils.getProxyUrl('http://127.0.0.1:2000/redirect/' +
-                                              encodeURIComponent(opts.redirectLocation),
-                        {
-                            proxyHostname: '127.0.0.1',
-                            proxyPort:     1836,
-                            sessionId:     session.id,
-                            resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
-                        }),
+                const encodedUrl = encodeURIComponent(opts.redirectLocation);
+                const options    = {
+                    url: urlUtils.getProxyUrl('http://127.0.0.1:2000/redirect/' + encodedUrl, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                        resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
+                    }),
 
                     resolveWithFullResponse: true,
                     followRedirect:          false,

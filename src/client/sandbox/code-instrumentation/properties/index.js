@@ -767,8 +767,9 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                                  ev.originalEvent &&
                                  ev.originalEvent[INTERNAL_PROPS.whichPropertyWrapper] !== void 0,
 
-                get: ev => ev.originalEvent ? ev.originalEvent[INTERNAL_PROPS.whichPropertyWrapper] :
-                           ev[INTERNAL_PROPS.whichPropertyWrapper],
+                get: ev => ev.originalEvent
+                    ? ev.originalEvent[INTERNAL_PROPS.whichPropertyWrapper]
+                    : ev[INTERNAL_PROPS.whichPropertyWrapper],
 
                 set: () => void 0
             },

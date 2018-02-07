@@ -3,9 +3,7 @@ import { NAMESPACE_PREFIX_MAP } from '../processing/dom/namespaces';
 const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR = ':';
 
 function getAttrName (attr) {
-    return attr.prefix ?
-           attr.prefix + ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR + attr.name :
-           attr.name;
+    return attr.prefix ? attr.prefix + ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR + attr.name : attr.name;
 }
 
 function parseAttrName (attr) {

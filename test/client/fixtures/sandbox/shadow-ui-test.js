@@ -95,7 +95,7 @@ test('get root after body recreation', function () {
 test('set innerHTML for root', function () {
     var root = shadowUI.getRoot();
 
-    eval(processScript('root.innerHTML = "<div>\"'));
+    eval(processScript('root.innerHTML = "<div>"'));
 
     ok(domUtils.isShadowUIElement(root.childNodes[0]));
 });

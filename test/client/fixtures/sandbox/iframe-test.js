@@ -41,7 +41,7 @@ test('document.write', function () {
 
     iframe.id = 'test10';
     document.body.appendChild(iframe);
-    iframe.contentDocument.write('<script>window.tempTestValue = !!__call$;<\/script>');
+    iframe.contentDocument.write('<script>window.tempTestValue = !!__call$;<' + '/script>');
 
     ok(iframe.contentWindow.tempTestValue);
 

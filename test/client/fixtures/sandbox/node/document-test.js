@@ -304,7 +304,7 @@ test('document.write for page html (T190753)', function () {
 
     ok(script.replace(/\s*/g, '') !== processedScript);
 
-    $iframe[0].contentDocument.write('<html><head><script>' + script + '<\/script><head><body></body></html>');
+    $iframe[0].contentDocument.write('<html><head><script>' + script + '<' + '/script><head><body></body></html>');
 
     strictEqual($iframe[0].contentWindow.test, 1);
 
@@ -469,13 +469,13 @@ if (!browserUtils.isIE) {
         return createTestIframe({ src: getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html') })
             .then(function (iframe) {
                 iframe.contentDocument.open();
-                iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>');
+                iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><title></title><span></span><script type="text/javascript"><' + '/script>');
                 iframe.contentDocument.close();
 
                 strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
 
                 iframe.contentDocument.open();
-                iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><title><\/title><span><\/span><script type=\"text/javascript\"><\/script>');
+                iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><title></title><span></span><script type="text/javascript"><' + '/script>');
                 iframe.contentDocument.close();
 
                 strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
@@ -490,7 +490,7 @@ test('an iframe should not contain self-removing scripts after document.close (G
 
             iframeDocument.designMode = 'On';
             iframeDocument.open();
-            iframeDocument.write('<body style=\"padding: 0; margin: 0; overflow: hidden;\"></body>');
+            iframeDocument.write('<body style="padding: 0; margin: 0; overflow: hidden;"></body>');
             iframeDocument.close();
 
             var selfRemovingScripts = nativeMethods.querySelectorAll.call(iframeDocument,

@@ -9,7 +9,7 @@ import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import { isSpecialPage } from '../utils/url';
 
 const SOURCE_MAP_RE                       = /#\s*sourceMappingURL\s*=\s*[^\s]+(\s|\*\/)/i;
-const CSS_URL_PROPERTY_VALUE_PATTERN      = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s\)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
+const CSS_URL_PROPERTY_VALUE_PATTERN      = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
 const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
 const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
 const HOVER_PSEUDO_CLASS_RE               = /\s*:\s*hover(\W)/gi;

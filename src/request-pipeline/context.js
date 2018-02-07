@@ -149,17 +149,15 @@ export default class RequestPipelineContext {
             // Browsers add a leading slash to the pathname part of url (GH-608)
             // For example: url http://www.example.com?gd=GID12082014 will be converted
             // to http://www.example.com/?gd=GID12082014
-            this.dest.partAfterHost = this.dest.partAfterHost[0] === '/' ?
-                                      this.dest.partAfterHost :
-                                      '/' + this.dest.partAfterHost;
+            this.dest.partAfterHost = (this.dest.partAfterHost[0] === '/' ? '' : '/') + this.dest.partAfterHost;
 
             this.dest.domain = urlUtils.getDomain(this.dest);
 
             if (parsedReferer) {
                 this.dest.referer   = parsedReferer.dest.url;
-                this.dest.reqOrigin = parsedReferer.dest.protocol === 'file:' ?
-                                      parsedReferer.dest.url :
-                                      urlUtils.getDomain(parsedReferer.dest);
+                this.dest.reqOrigin = parsedReferer.dest.protocol === 'file:'
+                    ? parsedReferer.dest.url
+                    : urlUtils.getDomain(parsedReferer.dest);
             }
             else if (this.req.headers[XHR_HEADERS.origin])
                 this.dest.reqOrigin = this.req.headers[XHR_HEADERS.origin];

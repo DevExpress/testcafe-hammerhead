@@ -17,8 +17,9 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     _getSettings () {
-        const windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top) ?
-                               this.window.top[INTERNAL_PROPS.hammerhead].get('./settings') : settings;
+        const windowSettings = this.window !== this.window.top && !isCrossDomainWindows(this.window, this.window.top)
+            ? this.window.top[INTERNAL_PROPS.hammerhead].get('./settings')
+            : settings;
 
         return windowSettings.get();
     }

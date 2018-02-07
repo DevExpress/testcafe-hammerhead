@@ -319,7 +319,7 @@ if (!browserUtils.isFirefox) {
 
         eval(processScript([
             'iframe.contentDocument.write("<html><body><div id=\'div1\'></div></body></html>");',
-            'iframe.contentDocument.write("<script>window.test = true;<\/script>");'
+            'iframe.contentDocument.write("<script>window.test = true;<' + '/script>");'
         ].join('')));
 
         return window.QUnitGlobals.wait(checkIframe)

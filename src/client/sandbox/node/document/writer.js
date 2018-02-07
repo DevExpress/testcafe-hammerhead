@@ -50,7 +50,7 @@ const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
 
             script.parentNode.removeChild(script);
         })();
-    <\/script>`.replace(/\n\s*/g, '');
+    </script>`.replace(/\n\s*/g, '');
 
 export default class DocumentWriter {
     constructor (window, document) {

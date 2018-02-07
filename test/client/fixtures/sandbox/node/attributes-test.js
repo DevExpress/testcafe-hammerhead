@@ -184,7 +184,7 @@ test('script src', function () {
 });
 
 test('iframe with "javascript: <html>...</html>" src', function () {
-    return createTestIframe({ src: 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<\/script>"' })
+    return createTestIframe({ src: 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<' + '/script>"' })
         .then(function (iframe) {
             ok(iframe.contentWindow.test);
         });

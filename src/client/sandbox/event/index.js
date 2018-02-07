@@ -49,8 +49,9 @@ export default class EventSandbox extends SandboxBase {
                 Listeners.beforeDispatchEvent(this);
 
                 const isWindow = domUtils.isWindow(this);
-                const res      = isWindow ? nativeMethods.windowDispatchEvent.apply(this, arguments) :
-                                 nativeMethods.dispatchEvent.apply(this, arguments);
+                const res      = isWindow
+                    ? nativeMethods.windowDispatchEvent.apply(this, arguments)
+                    : nativeMethods.dispatchEvent.apply(this, arguments);
 
                 Listeners.afterDispatchEvent(this);
 

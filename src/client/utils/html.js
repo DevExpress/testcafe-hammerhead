@@ -75,7 +75,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
 
             script.parentNode.removeChild(script);
         })();
-    <\/script>`.replace(/\n\s*/g, '');
+    </script>`.replace(/\n\s*/g, '');
 
 let htmlDocument = document.implementation.createHTMLDocument('title');
 let htmlParser   = htmlDocument.createDocumentFragment();

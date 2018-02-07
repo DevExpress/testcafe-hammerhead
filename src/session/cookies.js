@@ -27,9 +27,9 @@ export default class Cookies {
     }
 
     setJar (serializedJar) {
-        this.cookieJar = serializedJar ?
-                         CookieJar.deserializeSync(JSON.parse(serializedJar)) :
-                         new CookieJar();
+        this.cookieJar = serializedJar
+            ? CookieJar.deserializeSync(JSON.parse(serializedJar))
+            : new CookieJar();
     }
 
     setByServer (url, cookies) {

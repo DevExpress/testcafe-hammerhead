@@ -98,7 +98,7 @@ test('iframe', function () {
 
 test('element with error in attribute', function () {
     var destUrl      = 'http://example.com/';
-    var src          = '<script data-src="' + destUrl + '"></script\>';
+    var src          = '<script data-src="' + destUrl + '"><' + '/script>';
     var processedSrc = src;
 
     src = htmlUtils.processHtml(src);
@@ -216,18 +216,18 @@ test('page html', function () {
         strictEqual(html.toLowerCase(), htmlUtils.cleanUpHtml(processedHtml).toLowerCase());
     };
 
-    check('<!DOCTYPE html><html><head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script></body></html>');
-    check('<html><head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script></body></html>');
-    check('<head><script src="HeadScript.js"><\/script></head><body><script src="BodyScript.js"><\/script></body>');
-    check('<head><script src="HeadScript.js"><\/script><script src="BodyScript.js"><\/script></head>');
-    check('<body><script src="HeadScript.js"><\/script><script src="BodyScript.js"><\/script></body>');
+    check('<!DOCTYPE html><html><head><script src="HeadScript.js"><' + '/script></head><body><script src="BodyScript.js"><' + '/script></body></html>');
+    check('<html><head><script src="HeadScript.js"><' + '/script></head><body><script src="BodyScript.js"><' + '/script></body></html>');
+    check('<head><script src="HeadScript.js"><' + '/script></head><body><script src="BodyScript.js"><' + '/script></body>');
+    check('<head><script src="HeadScript.js"><' + '/script><script src="BodyScript.js"><' + '/script></head>');
+    check('<body><script src="HeadScript.js"><' + '/script><script src="BodyScript.js"><' + '/script></body>');
     check('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' +
-          '<html><head><script src="HeadScript.js"><\/script></head><body>\u2028\u2029<script src="BodyScript.js"><\/script></body></html>');
-    check('<html><head><script src="HeadScript.js"><\/script></head><body>\u2028\u2029<script src="BodyScript.js"><\/script></body></html>');
-    check('<head param="value"><script src="HeadScript.js"><\/script></head><body>\u2028\u2029<script src="BodyScript.js"><\/script></body>');
-    check('<head>\u2028\u2029<script src="HeadScript.js"><\/script></head><body param="value"><script src="BodyScript.js"><\/script></body>');
-    check('<body><script src="HeadScript.js"><\/script>\u2028\u2029<script src="BodyScript.js"><\/script></body>');
-    check('<body><script src="HeadScript.js"><\/script>\u2028\u2029<script src="BodyScript.js"><\/script></body>');
+          '<html><head><script src="HeadScript.js"><' + '/script></head><body>\u2028\u2029<script src="BodyScript.js"><' + '/script></body></html>');
+    check('<html><head><script src="HeadScript.js"><' + '/script></head><body>\u2028\u2029<script src="BodyScript.js"><' + '/script></body></html>');
+    check('<head param="value"><script src="HeadScript.js"><' + '/script></head><body>\u2028\u2029<script src="BodyScript.js"><' + '/script></body>');
+    check('<head>\u2028\u2029<script src="HeadScript.js"><' + '/script></head><body param="value"><script src="BodyScript.js"><' + '/script></body>');
+    check('<body><script src="HeadScript.js"><' + '/script>\u2028\u2029<script src="BodyScript.js"><' + '/script></body>');
+    check('<body><script src="HeadScript.js"><' + '/script>\u2028\u2029<script src="BodyScript.js"><' + '/script></body>');
 
     urlUtils.convertToProxyUrl = storedConvertToProxyUrl;
 });
@@ -299,13 +299,13 @@ test('html with special script is processed correctly (GH-684)', function () {
         // NOTE: We need some kind of table tags in js code e.g. <th .length, y = 3 >
         // That's because the 'fake_tag_name_' prefix is added to some tags during html processing, e.g. <fake_tag_name_th .length, y = 3 >
         '    var x = y <th .length, y = 3 > 5;',
-        '<\/script>'
+        '<' + '/script>'
     ].join('\n');
 
     var htmlExpected = [
         '<script>',
         processScript('\n    var x = y <th .length, y = 3 > 5;\n', true),
-        '<\/script>'
+        '<' + '/script>'
     ].join('');
 
     strictEqual(htmlUtils.processHtml(htmlSrc), htmlExpected);
