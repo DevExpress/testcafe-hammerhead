@@ -173,6 +173,23 @@ if (window.MutationObserver) {
     });
 }
 
+module('PerformanceEntry');
+
+if (window.PerformanceEntry) {
+    test('name property of PerformanceNavigationTiming', function () {
+        var storedNativePerformanceEntryNameGetter = nativeMethods.performanceEntryNameGetter;
+
+        nativeMethods.performanceEntryNameGetter = function () {
+            return 'http://localhost/sessionId/https://example.com';
+        };
+
+        var result = window.performance.getEntriesByType('navigation');
+
+        strictEqual(result[0].name, 'https://example.com');
+        nativeMethods.performanceEntryNameGetter = storedNativePerformanceEntryNameGetter;
+    });
+}
+
 module('WebSocket');
 
 if (window.WebSocket) {

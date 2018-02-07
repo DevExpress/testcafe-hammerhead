@@ -628,6 +628,10 @@ export function isMessageEvent (e) {
     return instanceToString(e) === '[object MessageEvent]';
 }
 
+export function isPerformanceNavigationTiming (entry) {
+    return instanceToString(entry) === '[object PerformanceNavigationTiming]';
+}
+
 export function matches (el, selector) {
     if (!el)
         return false;

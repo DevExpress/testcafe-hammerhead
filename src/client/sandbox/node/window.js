@@ -16,7 +16,14 @@ import {
     resolveUrlAsDest
 } from '../../utils/url';
 import { isFirefox, isIE, isAndroid } from '../../utils/browser';
-import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket, isWindow } from '../../utils/dom';
+import {
+    isCrossDomainWindows,
+    isImgElement,
+    isBlob,
+    isWebSocket,
+    isWindow,
+    isPerformanceNavigationTiming
+} from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
@@ -463,7 +470,7 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     return new nativeMethods.WebSocket();
 
-                const proxyUrl  = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
+                const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
 
                 if (arguments.length === 1)
                     return new nativeMethods.WebSocket(proxyUrl);
@@ -541,6 +548,30 @@ export default class WindowSandbox extends SandboxBase {
 
             return nativeMethods.elementChildElementCountGetter.call(this);
         });
+
+        if (window.PerformanceEntry) {
+            if (nativeMethods.performanceEntryNameGetter) {
+                const namePropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
+                    .call(window.Object, window.PerformanceEntry.prototype, 'name');
+
+                namePropDescriptor.get = function () {
+                    const entry = this;
+                    const url   = nativeMethods.performanceEntryNameGetter.call(this);
+
+                    if (isPerformanceNavigationTiming(entry)) {
+                        const parsedProxyUrl = parseProxyUrl(url);
+
+                        if (parsedProxyUrl)
+                            return parsedProxyUrl.destUrl;
+                    }
+
+                    return url;
+                };
+
+                nativeMethods.objectDefineProperty
+                    .call(window.Object, window.PerformanceEntry.prototype, 'name', namePropDescriptor);
+            }
+        }
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {

@@ -198,6 +198,13 @@ class NativeMethods {
         this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(window.NodeList.prototype, 'length').get;
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(window.Element.prototype, 'childElementCount').get;
 
+        if (win.PerformanceEntry) {
+            const namePropDescripor = win.Object.getOwnPropertyDescriptor(window.PerformanceEntry.prototype, 'name');
+
+            if (namePropDescripor && namePropDescripor.get && namePropDescripor.configurable)
+                this.performanceEntryNameGetter = namePropDescripor.get;
+        }
+
         const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
 
         // NOTE: This condition is used for the Android 6.0 browser
