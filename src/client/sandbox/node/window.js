@@ -551,16 +551,16 @@ export default class WindowSandbox extends SandboxBase {
 
         if (nativeMethods.performanceEntryNameGetter) {
             overrideDescriptor(window.PerformanceEntry.prototype, 'name', function () {
-                const url = nativeMethods.performanceEntryNameGetter.call(this);
+                const name = nativeMethods.performanceEntryNameGetter.call(this);
 
                 if (isPerformanceNavigationTiming(this)) {
-                    const parsedProxyUrl = parseProxyUrl(url);
+                    const parsedProxyUrl = parseProxyUrl(name);
 
                     if (parsedProxyUrl)
                         return parsedProxyUrl.destUrl;
                 }
 
-                return url;
+                return name;
             });
         }
 

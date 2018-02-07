@@ -8,7 +8,7 @@ var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
 if (window.PerformanceEntry) {
-    test('name property of PerformanceNavigationTiming', function () {
+    test('PerformanceNavigationTiming.name', function () {
         var storedNativePerformanceEntryNameGetter = nativeMethods.performanceEntryNameGetter;
 
         nativeMethods.performanceEntryNameGetter = function () {
