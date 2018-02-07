@@ -551,14 +551,10 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.PerformanceEntry) {
             if (nativeMethods.performanceEntryNameGetter) {
-                const namePropDescriptor = nativeMethods.objectGetOwnPropertyDescriptor
-                    .call(window.Object, window.PerformanceEntry.prototype, 'name');
+                overrideDescriptor(window.PerformanceEntry.prototype, 'name', function () {
+                    const url = nativeMethods.performanceEntryNameGetter.call(this);
 
-                namePropDescriptor.get = function () {
-                    const entry = this;
-                    const url   = nativeMethods.performanceEntryNameGetter.call(this);
-
-                    if (isPerformanceNavigationTiming(entry)) {
+                    if (isPerformanceNavigationTiming(this)) {
                         const parsedProxyUrl = parseProxyUrl(url);
 
                         if (parsedProxyUrl)
@@ -566,10 +562,7 @@ export default class WindowSandbox extends SandboxBase {
                     }
 
                     return url;
-                };
-
-                nativeMethods.objectDefineProperty
-                    .call(window.Object, window.PerformanceEntry.prototype, 'name', namePropDescriptor);
+                });
             }
         }
 
