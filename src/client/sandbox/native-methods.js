@@ -67,6 +67,7 @@ class NativeMethods {
         this.hasAttribute                  = nativeElement.hasAttribute;
         this.hasAttributeNS                = nativeElement.hasAttributeNS;
         this.hasAttributes                 = nativeElement.hasAttributes;
+        this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
 
         // Event
         this.addEventListener          = nativeElement.addEventListener;

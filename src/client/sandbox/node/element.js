@@ -477,6 +477,13 @@ export default class ElementSandbox extends SandboxBase {
                     return sandbox._hasAttributeCore(this, ['autocomplete'], false);
 
                 return nativeMethods.hasAttributes.apply(this, arguments);
+            },
+
+            anchorToString () {
+                const href            = nativeMethods.anchorToString.call(this);
+                const parsedProxyHref = urlUtils.parseProxyUrl(href);
+
+                return parsedProxyHref ? parsedProxyHref.destUrl : href;
             }
         };
     }
@@ -633,6 +640,7 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLTableSectionElement.prototype.insertRow = this.overriddenMethods.insertRow;
         window.HTMLTableRowElement.prototype.insertCell    = this.overriddenMethods.insertCell;
         window.HTMLFormElement.prototype.submit            = this.overriddenMethods.formSubmit;
+        window.HTMLAnchorElement.prototype.toString        = this.overriddenMethods.anchorToString;
 
         if (window.Element.prototype.insertAdjacentHTML)
             window.Element.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
