@@ -184,10 +184,13 @@ test('isMessageEvent', function () {
         });
 });
 
-test('isPerformanceNavigationTiming', function () {
-    if (window.PerformanceEntry)
+if (window.PerformanceEntry) {
+    test('isPerformanceNavigationTiming', function () {
         ok(domUtils.isPerformanceNavigationTiming(window.performance.getEntriesByType('navigation')[0]));
-});
+        ok(!domUtils.isPerformanceNavigationTiming(window.performance.getEntriesByType('resource')[0]));
+        ok(!domUtils.isPerformanceNavigationTiming(window.performance.getEntriesByType('paint')[0]));
+    });
+}
 
 test('getTopSameDomainWindow', function () {
     return createTestIframe()

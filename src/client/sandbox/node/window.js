@@ -549,21 +549,19 @@ export default class WindowSandbox extends SandboxBase {
             return nativeMethods.elementChildElementCountGetter.call(this);
         });
 
-        if (window.PerformanceEntry) {
-            if (nativeMethods.performanceEntryNameGetter) {
-                overrideDescriptor(window.PerformanceEntry.prototype, 'name', function () {
-                    const url = nativeMethods.performanceEntryNameGetter.call(this);
+        if (nativeMethods.performanceEntryNameGetter) {
+            overrideDescriptor(window.PerformanceEntry.prototype, 'name', function () {
+                const url = nativeMethods.performanceEntryNameGetter.call(this);
 
-                    if (isPerformanceNavigationTiming(this)) {
-                        const parsedProxyUrl = parseProxyUrl(url);
+                if (isPerformanceNavigationTiming(this)) {
+                    const parsedProxyUrl = parseProxyUrl(url);
 
-                        if (parsedProxyUrl)
-                            return parsedProxyUrl.destUrl;
-                    }
+                    if (parsedProxyUrl)
+                        return parsedProxyUrl.destUrl;
+                }
 
-                    return url;
-                });
-            }
+                return url;
+            });
         }
 
         if (window.DOMParser) {
