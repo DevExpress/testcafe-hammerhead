@@ -390,37 +390,37 @@ export default class ShadowUI extends SandboxBase {
 
     // Accessors
     getFirstChild (el) {
-        const filteredEls = this._filterNodeList(el.childNodes);
+        const filteredNodes = this._filterNodeList(el.childNodes);
 
-        return filteredEls.length && filteredEls[0] ? filteredEls[0] : null;
+        return filteredNodes.length && filteredNodes[0] ? filteredNodes[0] : null;
     }
 
     getFirstElementChild (el) {
-        const filteredEls = this._filterNodeList(el.childNodes);
-        const cnLength    = filteredEls.length;
+        const filteredNodes = this._filterNodeList(el.childNodes);
+        const cnLength      = filteredNodes.length;
 
         for (let i = 0; i < cnLength; i++) {
-            if (domUtils.isElementNode(filteredEls[i]))
-                return filteredEls[i];
+            if (domUtils.isElementNode(filteredNodes[i]))
+                return filteredNodes[i];
         }
 
         return null;
     }
 
     getLastChild (el) {
-        const filteredEls = this._filterNodeList(el.childNodes);
-        const index       = filteredEls.length - 1;
+        const filteredNodes = this._filterNodeList(el.childNodes);
+        const index         = filteredNodes.length - 1;
 
-        return index >= 0 ? filteredEls[index] : null;
+        return index >= 0 ? filteredNodes[index] : null;
     }
 
     getLastElementChild (el) {
-        const filteredEls = this._filterNodeList(el.childNodes);
-        const cnLength    = filteredEls.length;
+        const filteredNodes = this._filterNodeList(el.childNodes);
+        const cnLength      = filteredNodes.length;
 
         for (let i = cnLength - 1; i >= 0; i--) {
-            if (domUtils.isElementNode(filteredEls[i]))
-                return filteredEls[i];
+            if (domUtils.isElementNode(filteredNodes[i]))
+                return filteredNodes[i];
         }
 
         return null;
