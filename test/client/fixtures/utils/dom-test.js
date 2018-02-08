@@ -184,7 +184,7 @@ test('isMessageEvent', function () {
         });
 });
 
-if (window.PerformanceEntry) {
+if (window.PerformanceNavigationTiming) {
     test('isPerformanceNavigationTiming', function () {
         ok(domUtils.isPerformanceNavigationTiming(window.performance.getEntriesByType('navigation')[0]));
         ok(!domUtils.isPerformanceNavigationTiming(window.performance.getEntriesByType('resource')[0]));

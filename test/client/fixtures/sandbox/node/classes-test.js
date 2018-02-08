@@ -7,7 +7,7 @@ var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
-if (window.PerformanceEntry) {
+if (window.PerformanceNavigationTiming) {
     test('PerformanceNavigationTiming.name', function () {
         var storedNativePerformanceEntryNameGetter = nativeMethods.performanceEntryNameGetter;
 

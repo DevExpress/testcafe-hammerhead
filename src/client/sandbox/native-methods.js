@@ -199,7 +199,8 @@ class NativeMethods {
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(window.Element.prototype, 'childElementCount').get;
 
         if (win.PerformanceEntry)
-            this.performanceEntryNameGetter = win.Object.getOwnPropertyDescriptor(window.PerformanceEntry.prototype, 'name').get;
+            if (win.PerformanceNavigationTiming)
+                this.performanceEntryNameGetter = win.Object.getOwnPropertyDescriptor(window.PerformanceEntry.prototype, 'name').get;
 
         const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
 
