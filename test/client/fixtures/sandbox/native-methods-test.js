@@ -10,10 +10,9 @@ if (nativeMethods.performanceNow) {
 
 if (nativeMethods.inputValueSetter) {
     test('correct value property setters are saved for the input and textarea elements', function () {
-        var input                 = document.createElement('input');
-        var inputValueGetter      = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').get;
-        var textArea              = document.createElement('textarea');
-        var textAreaValueGetter   = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').get;
+        var input    = document.createElement('input');
+        var textArea = document.createElement('textarea');
+
         var testNativeValueSetter = function (el, setter, getter) {
             Object.defineProperty(el, 'value', {
                 get: function () {
@@ -33,7 +32,7 @@ if (nativeMethods.inputValueSetter) {
             strictEqual(el.value, '123');
         };
 
-        testNativeValueSetter(input, nativeMethods.inputValueSetter, inputValueGetter);
-        testNativeValueSetter(textArea, nativeMethods.textAreaValueSetter, textAreaValueGetter);
+        testNativeValueSetter(input, nativeMethods.inputValueSetter, nativeMethods.inputValueGetter);
+        testNativeValueSetter(textArea, nativeMethods.textAreaValueSetter, nativeMethods.textAreaValueGetter);
     });
 }

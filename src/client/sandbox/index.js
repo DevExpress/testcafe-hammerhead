@@ -52,7 +52,7 @@ export default class Sandbox extends SandboxBase {
         this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
-        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.upload, this.shadowUI, this.storageSandbox, this.node.element);
+        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.shadowUI, this.storageSandbox, this.node.element);
         this.console             = new ConsoleSandbox(messageSandbox);
         this.unload              = unloadSandbox;
 

@@ -202,7 +202,7 @@ function testChanging (numberOfHandlers, next) {
                 else if (element === input2)
                     input2ChangedCount += numberOfHandlers;
 
-                element.value += 'a';
+                nativeMethods.inputValueSetter.call(element, nativeMethods.inputValueGetter.call(element) + 'a');
                 resolve();
             });
         });
@@ -642,7 +642,7 @@ if (window.HTMLInputElement.prototype.setSelectionRange) {
             focusCount++;
         };
         input2.onclick = function () {
-            input2.value = 'text';
+            nativeMethods.inputValueSetter.call(input2, 'text');
             input2.setSelectionRange(1, 2);
         };
 
@@ -663,7 +663,7 @@ if (window.HTMLInputElement.prototype.setSelectionRange) {
             input2.onfocus = function () {
                 focusCount++;
             };
-            input2.value   = 'text';
+            nativeMethods.inputValueSetter.call(input2, 'text');
             input2.setSelectionRange(1, 2);
             setDoubleTimeout()
                 .then(function () {
@@ -683,7 +683,7 @@ if (window.HTMLInputElement.prototype.createTextRange) {
             focusCount++;
         };
         input2.onclick = function () {
-            input2.value = 'text';
+            nativeMethods.inputValueSetter.call(input2, 'text');
 
             var textRange = input2.createTextRange();
 
@@ -708,7 +708,7 @@ if (window.HTMLInputElement.prototype.createTextRange) {
             input2.onfocus = function () {
                 focusCount++;
             };
-            input2.value   = 'text';
+            nativeMethods.inputValueSetter.call(input2, 'text');
 
             var textRange = input2.createTextRange();
 

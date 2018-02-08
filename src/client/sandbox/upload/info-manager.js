@@ -87,8 +87,10 @@ export default class UploadInfoManager {
         const inputInfo = this.getUploadInfo(input);
 
         if (inputInfo) {
+            /*eslint-disable no-restricted-properties*/
             inputInfo.files = new FileListWrapper([]);
             inputInfo.value = '';
+            /*eslint-enable no-restricted-properties*/
 
             return HiddenInfo.removeInputInfo(input);
         }
@@ -99,7 +101,9 @@ export default class UploadInfoManager {
     getFiles (input) {
         const inputInfo = this.getUploadInfo(input);
 
+        /*eslint-disable no-restricted-properties*/
         return inputInfo ? inputInfo.files : new FileListWrapper([]);
+        /*eslint-enable no-restricted-properties*/
     }
 
     getUploadInfo (input) {
@@ -114,7 +118,9 @@ export default class UploadInfoManager {
     getValue (input) {
         const inputInfo = this.getUploadInfo(input);
 
+        /*eslint-disable no-restricted-properties*/
         return inputInfo ? inputInfo.value : '';
+        /*eslint-enable no-restricted-properties*/
     }
 
     loadFileListData (input, fileList) {
@@ -160,8 +166,10 @@ export default class UploadInfoManager {
             this.uploadInfo.push(inputInfo);
         }
 
+        /*eslint-disable no-restricted-properties*/
         inputInfo.files = fileList;
         inputInfo.value = value;
+        /*eslint-enable no-restricted-properties*/
 
         HiddenInfo.addInputInfo(input, fileList, value);
     }

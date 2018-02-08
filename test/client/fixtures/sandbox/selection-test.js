@@ -1,5 +1,6 @@
 var selectionSandbox = hammerhead.eventSandbox.selection;
 var browserUtils     = hammerhead.utils.browser;
+var nativeMethods    = hammerhead.nativeMethods;
 
 var inputTestValue  = 'test@host.net';
 var isIE            = browserUtils.isIE;
@@ -13,7 +14,7 @@ var createTestInput = function (type, value) {
 
     document.body.appendChild(input);
 
-    input.value = value;
+    nativeMethods.inputValueSetter.call(input, value);
 
     return input;
 };

@@ -176,12 +176,14 @@ class NativeMethods {
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
-        const objectDataDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
+        const objectDataDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
+        const inputValueDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
+        const textAreaValueDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
 
         // Setters
-        this.inputValueSetter    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value').set;
-        this.textAreaValueSetter = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value').set;
         this.objectDataSetter    = objectDataDescriptor.set;
+        this.inputValueSetter    = inputValueDescriptor.set;
+        this.textAreaValueSetter = textAreaValueDescriptor.set;
 
         // Getters
         if (win.WebSocket) {
@@ -196,6 +198,9 @@ class NativeMethods {
         this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(window.NodeList.prototype, 'length').get;
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(window.Element.prototype, 'childElementCount').get;
         this.objectDataGetter               = objectDataDescriptor.get;
+        this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
+        this.inputValueGetter               = inputValueDescriptor.get;
+        this.textAreaValueGetter            = textAreaValueDescriptor.get;
 
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later

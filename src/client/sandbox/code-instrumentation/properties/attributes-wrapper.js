@@ -45,11 +45,14 @@ export default class AttributesWrapper {
                 const storedAttr = attributes[DomProcessor.getStoredAttrName(attr.name)];
 
                 if (storedAttr) {
+                    /*eslint-disable no-restricted-properties*/
                     if (DomProcessor.isAddedAutocompleteAttr(attr.name, storedAttr.value))
                         continue;
 
                     attr = nativeMethods.cloneNode.call(attr);
                     attr.value = storedAttr.value;
+                    /*eslint-enable no-restricted-properties*/
+
                     nativeMethods.objectDefineProperty.call(window.Object, this, attr.name, {
                         value:        attr,
                         configurable: true
