@@ -132,7 +132,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         };
     }
 
-    static _isSupportedMessageEvent (e) {
+    static _isMessageEventWithoutDataPropGetter (e) {
         return !nativeMethods.messageEventDataGetter && domUtils.isMessageEvent(e);
     }
 
@@ -192,24 +192,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set:       (doc, cookie) => this.cookieSandbox.setCookie(doc, String(cookie), true)
             },
 
+            // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 6.0 browser
             data: {
-                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'data') ||
-                                 // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 6.0 browser
-                                 PropertyAccessorsInstrumentation._isSupportedMessageEvent(el),
-
-                get: el => {
-                    if (domUtils.isDomElement(el))
-                        return PropertyAccessorsInstrumentation._getUrlAttr(el, 'data');
-
-                    return el.data.message;
-                },
-
-                set: (el, value) => {
-                    if (domUtils.isDomElement(el))
-                        this.elementSandbox.setAttributeCore(el, ['data', value]);
-
-                    return value;
-                }
+                condition: evt => PropertyAccessorsInstrumentation._isMessageEventWithoutDataPropGetter(evt),
+                get:       evt => evt.data.message,
+                set:       (evt, value) => value
             },
 
             documentURI: {
