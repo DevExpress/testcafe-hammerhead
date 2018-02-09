@@ -353,7 +353,7 @@ export function isIframeWithoutSrc (iframe) {
     // NOTE: When an iframe has an empty src attribute (<iframe src></iframe>) or has no src attribute (<iframe></iframe>),
     // the iframe.src property is not empty but has different values in different browsers.
     // Its document location is 'about:blank'. Therefore, we should check the src attribute.
-    if (!iframeDocumentLocationHaveSupportedProtocol && !(iframe.attributes['src'] && iframe.attributes['src'].value))
+    if (!iframeDocumentLocationHaveSupportedProtocol && !nativeMethods.getAttribute.call(iframe, 'src'))
         return true;
 
     // In Chrome, when an iframe with the src attribute is added to DOM,

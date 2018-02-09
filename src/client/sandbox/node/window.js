@@ -22,7 +22,9 @@ import {
     isBlob,
     isWebSocket,
     isWindow,
-    isPerformanceNavigationTiming
+    isPerformanceNavigationTiming,
+    isTextEditableElementAndEditingAllowed,
+    isShadowUIElement
 } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
@@ -34,6 +36,7 @@ import getMimeType from '../../utils/get-mime-type';
 import overrideDescriptor from '../../utils/override-descriptor';
 import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
 import { HASH_RE } from '../../../utils/url';
+import UploadSandbox from '../upload';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -48,12 +51,14 @@ const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
 const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javascript', 'application/x-javascript'];
 
 export default class WindowSandbox extends SandboxBase {
-    constructor (nodeSandbox, messageSandbox, listenersSandbox) {
+    constructor (nodeSandbox, messageSandbox, listenersSandbox, elementEditingWatcher, uploadSandbox) {
         super();
 
-        this.nodeSandbox      = nodeSandbox;
-        this.messageSandbox   = messageSandbox;
-        this.listenersSandbox = listenersSandbox;
+        this.nodeSandbox           = nodeSandbox;
+        this.messageSandbox        = messageSandbox;
+        this.listenersSandbox      = listenersSandbox;
+        this.uploadSandbox         = uploadSandbox;
+        this.elementEditingWatcher = elementEditingWatcher;
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
@@ -587,6 +592,39 @@ export default class WindowSandbox extends SandboxBase {
             return WindowSandbox._getUrlAttr(this, 'data');
         }, function (value) {
             windowSandbox.nodeSandbox.element.setAttributeCore(this, ['data', value]);
+
+            return value;
+        });
+
+        overrideDescriptor(window.HTMLInputElement.prototype, 'files', function () {
+            if (this.type.toLowerCase() === 'file')
+                return UploadSandbox.getFiles(this);
+
+            return nativeMethods.inputFilesGetter.call(this);
+        });
+
+        overrideDescriptor(window.HTMLInputElement.prototype, 'value', function () {
+            if (this.type.toLowerCase() === 'file')
+                return UploadSandbox.getUploadElementValue(this);
+
+            return nativeMethods.inputValueGetter.call(this);
+        }, function (value) {
+            if (this.type.toLowerCase() === 'file')
+                return windowSandbox.uploadSandbox.setUploadElementValue(this, value);
+
+            nativeMethods.inputValueSetter.call(this, value);
+
+            if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
+                windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
+
+            return value;
+        });
+
+        overrideDescriptor(window.HTMLTextAreaElement.prototype, 'value', null, function (value) {
+            nativeMethods.textAreaValueSetter.call(this, value);
+
+            if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
+                windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
 
             return value;
         });

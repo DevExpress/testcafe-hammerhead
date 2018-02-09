@@ -3,7 +3,6 @@ import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../../../request-pipeli
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
-import UploadSandbox from '../../upload';
 import ShadowUI from '../../shadow-ui';
 import XhrSandbox from '../../xhr';
 import DomProcessor from '../../../../processing/dom/index';
@@ -40,14 +39,12 @@ const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.cr
 const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, uploadSandbox, shadowUI, storageSandbox, elementSandbox) {
+    constructor (nodeMutation, eventSandbox, cookieSandbox, shadowUI, storageSandbox, elementSandbox) {
         super();
 
         this.nodeMutation          = nodeMutation;
         this.messageSandbox        = eventSandbox.message;
         this.cookieSandbox         = cookieSandbox;
-        this.uploadSandbox         = uploadSandbox;
-        this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
         this.unloadSandbox         = eventSandbox.unload;
         this.listenersSandbox      = eventSandbox.listeners;
         this.shadowUI              = shadowUI;
@@ -213,12 +210,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return domain;
                 }
-            },
-
-            files: {
-                condition: domUtils.isFileInput,
-                get:       el => UploadSandbox.getFiles(el),
-                set:       (el, value) => value
             },
 
             firstChild: {
@@ -679,30 +670,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     const result = doc.baseURI = url;
 
                     return result;
-                }
-            },
-
-            value: {
-                condition: el => domUtils.isDomElement(el) && (domUtils.isFileInput(el) ||
-                                                               domUtils.isTextEditableElementAndEditingAllowed(el) &&
-                                                               !domUtils.isShadowUIElement(el)),
-
-                get: el => {
-                    if (domUtils.isFileInput(el))
-                        return UploadSandbox.getUploadElementValue(el);
-
-                    return el.value;
-                },
-
-                set: (el, value) => {
-                    if (domUtils.isFileInput(el))
-                        return this.uploadSandbox.setUploadElementValue(el, value);
-
-                    el.value = value;
-
-                    this.elementEditingWatcher.restartWatchingElementEditing(el);
-
-                    return value;
                 }
             },
 

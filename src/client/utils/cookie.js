@@ -75,7 +75,9 @@ export function parse (str) {
 }
 
 export function format (parsedCookie) {
+    /*eslint-disable no-restricted-properties*/
     let cookieStr = parsedCookie.value || '';
+    /*eslint-enable no-restricted-properties*/
 
     if (parsedCookie.key !== '')
         cookieStr = parsedCookie.key + '=' + cookieStr;
@@ -114,7 +116,10 @@ export function get (document, name) {
 
 export function del (document, parsedCookie) {
     parsedCookie.expires = 'Thu, 01 Jan 1970 00:00:01 GMT';
-    parsedCookie.value   = '';
+
+    /*eslint-disable no-restricted-properties*/
+    parsedCookie.value = '';
+    /*eslint-enable no-restricted-properties*/
 
     document.cookie = format(parsedCookie);
 }

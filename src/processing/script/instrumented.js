@@ -28,7 +28,6 @@ export const PROPERTIES = [
     'data',
     'documentURI',
     'domain',
-    'files',
     'firstChild',
     'firstElementChild',
     'formAction',
@@ -73,7 +72,6 @@ export const PROPERTIES = [
     'text',
     'textContent',
     'URL',
-    'value',
     'which',
     'baseURI'
 ];

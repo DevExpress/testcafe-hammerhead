@@ -364,9 +364,11 @@ test('upload error', function () {
 });
 
 asyncTest('get uploaded file error: single file', function () {
-    var stFiles              = files;
-    var storedObjectToString = nativeMethods.objectToString;
-    var inputMock            = getInputMock(['error']);
+    var stFiles                = files;
+    var storedObjectToString   = nativeMethods.objectToString;
+    var storedInputFilesGetter = nativeMethods.inputFilesGetter;
+    var storedInputValueGetter = nativeMethods.inputValueGetter;
+    var inputMock              = getInputMock(['error']);
 
     var eventHandler = function (err) {
         strictEqual(err.length, 1);
@@ -375,12 +377,26 @@ asyncTest('get uploaded file error: single file', function () {
         uploadSandbox.off(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
         files = stFiles;
 
-        nativeMethods.objectToString = storedObjectToString;
+        nativeMethods.objectToString   = storedObjectToString;
+        nativeMethods.inputFilesGetter = storedInputFilesGetter;
+        nativeMethods.inputValueGetter = storedInputValueGetter;
+
         start();
     };
 
     nativeMethods.objectToString = function () {
-        return '[object HTMLInputElement]';
+        if (this === inputMock || this === Object.getPrototypeOf(inputMock))
+            return '[object HTMLInputElement]';
+
+        return storedObjectToString.call(this);
+    };
+
+    nativeMethods.inputFilesGetter = function () {
+        return inputMock.files;
+    };
+
+    nativeMethods.inputValueGetter = function () {
+        return inputMock.value;
     };
 
     uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
@@ -388,9 +404,11 @@ asyncTest('get uploaded file error: single file', function () {
 });
 
 asyncTest('get uploaded file error: multi file', function () {
-    var stFiles              = files;
-    var storedObjectToString = nativeMethods.objectToString;
-    var inputMock            = getInputMock(['file1.txt', 'error', 'file2.txt']);
+    var stFiles                = files;
+    var storedObjectToString   = nativeMethods.objectToString;
+    var storedInputFilesGetter = nativeMethods.inputFilesGetter;
+    var storedInputValueGetter = nativeMethods.inputValueGetter;
+    var inputMock              = getInputMock(['file1.txt', 'error', 'file2.txt']);
 
     var eventHandler = function (err) {
         strictEqual(err.length, 3);
@@ -401,12 +419,26 @@ asyncTest('get uploaded file error: multi file', function () {
         uploadSandbox.off(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
         files = stFiles;
 
-        nativeMethods.objectToString = storedObjectToString;
+        nativeMethods.objectToString   = storedObjectToString;
+        nativeMethods.inputFilesGetter = storedInputFilesGetter;
+        nativeMethods.inputValueGetter = storedInputValueGetter;
+
         start();
     };
 
     nativeMethods.objectToString = function () {
-        return '[object HTMLInputElement]';
+        if (this === inputMock || this === Object.getPrototypeOf(inputMock))
+            return '[object HTMLInputElement]';
+
+        return storedObjectToString.call(this);
+    };
+
+    nativeMethods.inputFilesGetter = function () {
+        return inputMock.files;
+    };
+
+    nativeMethods.inputValueGetter = function () {
+        return inputMock.value;
     };
 
     uploadSandbox.on(uploadSandbox.END_FILE_UPLOADING_EVENT, eventHandler);
@@ -420,24 +452,23 @@ test('set value', function () {
 
     strictEqual(fileInput.value, '');
 
-    eval(processScript('fileInput.value = "d:/text.test"'));
+    fileInput.value = 'd:/text.test';
 
     strictEqual(fileInput.value, '');
 });
 
 test('set empty value', function () {
     var fileInput = $('<input type="file" name="test" id="id">')[0];
-    var value     = '';
-    var testFiles = null;
-
-    eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
+    var value     = fileInput.value;
+    var testFiles = fileInput.files;
 
     strictEqual(value, '');
     strictEqual(testFiles.length, 0);
 
     return uploadSandbox.doUpload(fileInput, ['./file.txt'])
         .then(function () {
-            eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
+            value     = fileInput.value;
+            testFiles = fileInput.files;
 
             if (browserUtils.isWebKit)
                 strictEqual(value, 'C:\\fakepath\\file.txt');
@@ -446,7 +477,9 @@ test('set empty value', function () {
 
             strictEqual(testFiles.length, 1);
 
-            eval(processScript('fileInput.value = "";value = fileInput.value; testFiles = fileInput.files'));
+            fileInput.value = '';
+            value           = fileInput.value;
+            testFiles       = fileInput.files;
 
             strictEqual(value, '');
             strictEqual(testFiles.length, 0);
@@ -460,7 +493,8 @@ test('repeated select file', function () {
 
     return uploadSandbox.doUpload(fileInput, './file.txt')
         .then(function () {
-            eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
+            value     = fileInput.value;
+            testFiles = fileInput.files;
 
             if (browserUtils.isWebKit)
                 strictEqual(value, 'C:\\fakepath\\file.txt');
@@ -472,7 +506,8 @@ test('repeated select file', function () {
             return uploadSandbox.doUpload(fileInput, 'folder/file.png');
         })
         .then(function () {
-            eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
+            value     = fileInput.value;
+            testFiles = fileInput.files;
 
             if (browserUtils.isWebKit)
                 strictEqual(value, 'C:\\fakepath\\file.png');
@@ -487,10 +522,8 @@ asyncTest('change event', function () {
     var fileInput = $('<input type="file" name="test" id="777">')[0];
 
     fileInput.onchange = function () {
-        var value     = '';
-        var testFiles = null;
-
-        eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
+        var value     = fileInput.value;
+        var testFiles = fileInput.files;
 
         if (browserUtils.isWebKit)
             strictEqual(value, 'C:\\fakepath\\file.txt');
@@ -512,7 +545,8 @@ test('multi-select files', function () {
 
     return uploadSandbox.doUpload(fileInput, ['./file.txt', 'folder/file.png'])
         .then(function () {
-            eval(processScript('value = fileInput.value; testFiles = fileInput.files'));
+            value     = fileInput.value;
+            testFiles = fileInput.files;
 
             if (browserUtils.isWebKit)
                 strictEqual(value, 'C:\\fakepath\\file.txt');
@@ -564,7 +598,7 @@ test('input.value getter', function () {
 
     return uploadSandbox.doUpload(fileInput, ['./file.txt'])
         .then(function () {
-            var fileInputValue = getProperty(fileInput, 'value');
+            var fileInputValue = fileInput.value;
 
             ok(fileInputValue.indexOf('file.txt') !== -1);
         });
@@ -723,7 +757,7 @@ if (window.FileList) {
 
         input.type = 'file';
 
-        ok(getProperty(input, 'files') instanceof FileList);
+        ok(input.files instanceof FileList);
     });
 
     test('illegal invocation error on call `FileListWrapper.item` method (GH-1446)', function () {
@@ -731,7 +765,7 @@ if (window.FileList) {
 
         input.type = 'file';
 
-        var inputFiles = getProperty(input, 'files');
+        var inputFiles = input.files;
 
         try {
             var item1 = inputFiles.item(0);

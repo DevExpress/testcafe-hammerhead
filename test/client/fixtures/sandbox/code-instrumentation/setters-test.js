@@ -498,15 +498,17 @@ test('input\'s onchange event must not be raise after press Tab key (T221375)', 
 
     elementEditingWatcher.watchElementEditing($input[0]);
 
-    $input[0].value = '123';
+    nativeMethods.inputValueSetter.call($input[0], '123');
     eventSimulator.blur($input[0]);
 
     return nextTick()
         .then(function () {
             elementEditingWatcher.watchElementEditing($input[0]);
 
-            $input[0].value = '423';
-            eval(processScript('$input[0].value = 42'));
+            nativeMethods.inputValueSetter.call($input[0], '423');
+
+            $input[0].value = 42;
+
             eventSimulator.blur($input[0]);
         })
         .then(nextTick)

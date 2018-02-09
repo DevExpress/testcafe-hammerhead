@@ -5,6 +5,7 @@ import { isFileInput } from '../../utils/dom';
 import { isIE, version as browserVersion } from '../../utils/browser';
 import { stopPropagation, preventDefault } from '../../utils/event';
 import { get as getSandboxBackup } from '../backup';
+import nativeMethods from '../native-methods';
 
 export default class UploadSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, shadowUI) {
@@ -41,14 +42,17 @@ export default class UploadSandbox extends SandboxBase {
                 stopPropagation(e);
                 preventDefault(e);
 
-                if (!!input.value || !!currentInfoManager.getValue(input)) {
-                    const fileNames = UploadInfoManager.getFileNames(input.files, input.value);
+                const value = nativeMethods.inputValueGetter.call(input);
+
+                if (!!value || !!currentInfoManager.getValue(input)) {
+                    const files     = nativeMethods.inputFilesGetter.call(input);
+                    const fileNames = UploadInfoManager.getFileNames(files, value);
 
                     this.emit(this.START_FILE_UPLOADING_EVENT, fileNames, input);
 
-                    currentInfoManager.loadFileListData(input, input.files)
+                    currentInfoManager.loadFileListData(input, files)
                         .then(fileList => {
-                            currentInfoManager.setUploadInfo(input, fileList, input.value);
+                            currentInfoManager.setUploadInfo(input, fileList, value);
                             return UploadInfoManager.sendFilesInfoToServer(fileList, fileNames);
                         })
                         .then(errs => {
@@ -73,7 +77,9 @@ export default class UploadSandbox extends SandboxBase {
     /*eslint-enable max-nested-callbacks */
 
     static getFiles (input) {
-        return input.files !== void 0 ? UploadSandbox._getCurrentInfoManager(input).getFiles(input) : void 0;
+        const files = nativeMethods.inputFilesGetter.call(input);
+
+        return files !== void 0 ? UploadSandbox._getCurrentInfoManager(input).getFiles(input) : void 0;
     }
 
     static getUploadElementValue (input) {

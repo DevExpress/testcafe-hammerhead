@@ -11,8 +11,8 @@ function createInput (form) {
 
     hiddenInput.type  = 'hidden';
     hiddenInput.name  = INTERNAL_ATTRS.uploadInfoHiddenInputName;
-    hiddenInput.value = '[]';
 
+    nativeMethods.inputValueSetter.call(hiddenInput, '[]');
     nativeMethods.appendChild.call(form, hiddenInput);
 
     return hiddenInput;
@@ -69,14 +69,14 @@ export function addInputInfo (input, fileList, value) {
 }
 
 export function getFormInfo (input) {
-    return input.form ? JSON.parse(getInput(input.form).value) : null;
+    return input.form ? JSON.parse(nativeMethods.inputValueGetter.call(getInput(input.form))) : null;
 }
 
 export function setFormInfo (input, info) {
     if (input.form) {
         const hiddenInput = getInput(input.form);
 
-        hiddenInput.value = JSON.stringify(info);
+        nativeMethods.inputValueSetter.call(hiddenInput, JSON.stringify(info));
     }
 }
 
