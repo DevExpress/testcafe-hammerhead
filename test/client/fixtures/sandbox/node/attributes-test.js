@@ -452,6 +452,17 @@ test('HTMLElement.style', function () {
 
 });
 
+test('anchor.toString()', function () {
+    var anchor = document.createElement('a');
+    var url    = 'http://some.domain.com/';
+
+    strictEqual(anchor.toString(), '');
+
+    anchor.setAttribute('href', url);
+
+    strictEqual(anchor.toString(), url);
+});
+
 module('regression');
 
 test('setting function to the link.href attribute value (T230764)', function () {
