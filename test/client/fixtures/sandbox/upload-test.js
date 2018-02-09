@@ -467,7 +467,7 @@ test('set empty value', function () {
 
     return uploadSandbox.doUpload(fileInput, ['./file.txt'])
         .then(function () {
-            value = fileInput.value;
+            value     = fileInput.value;
             testFiles = fileInput.files;
 
             if (browserUtils.isWebKit)

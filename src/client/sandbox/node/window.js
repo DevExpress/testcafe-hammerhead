@@ -614,7 +614,7 @@ export default class WindowSandbox extends SandboxBase {
 
             nativeMethods.inputValueSetter.call(this, value);
 
-            if (isTextEditableElementAndEditingAllowed(this) && !isShadowUIElement(this))
+            if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
                 windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
 
             return value;
@@ -623,7 +623,7 @@ export default class WindowSandbox extends SandboxBase {
         overrideDescriptor(window.HTMLTextAreaElement.prototype, 'value', null, function (value) {
             nativeMethods.textAreaValueSetter.call(this, value);
 
-            if (isTextEditableElementAndEditingAllowed(this) && !isShadowUIElement(this))
+            if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
                 windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
 
             return value;
