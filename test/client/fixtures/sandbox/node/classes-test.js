@@ -7,6 +7,21 @@ var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 
+if (window.PerformanceNavigationTiming) {
+    test('PerformanceNavigationTiming.name', function () {
+        var storedNativePerformanceEntryNameGetter = nativeMethods.performanceEntryNameGetter;
+
+        nativeMethods.performanceEntryNameGetter = function () {
+            return 'http://localhost/sessionId/https://example.com';
+        };
+
+        var result = window.performance.getEntriesByType('navigation');
+
+        strictEqual(result[0].name, 'https://example.com');
+        nativeMethods.performanceEntryNameGetter = storedNativePerformanceEntryNameGetter;
+    });
+}
+
 module('Image');
 
 test('window.Image should be overridden', function () {

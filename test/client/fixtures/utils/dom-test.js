@@ -184,6 +184,14 @@ test('isMessageEvent', function () {
         });
 });
 
+if (window.PerformanceNavigationTiming) {
+    test('isPerformanceNavigationTiming', function () {
+        ok(domUtils.isPerformanceNavigationTiming(window.performance.getEntriesByType('navigation')[0]));
+        ok(!domUtils.isPerformanceNavigationTiming(window.performance.getEntriesByType('resource')[0]));
+        ok(!domUtils.isPerformanceNavigationTiming(window.performance.getEntriesByType('paint')[0]));
+    });
+}
+
 test('getTopSameDomainWindow', function () {
     return createTestIframe()
         .then(function (iframe) {
@@ -287,7 +295,7 @@ test('closest element', function () {
     var iframeDiv = iframe.contentDocument.createElement('div');
 
     iframeDiv.className = 'parent';
-    iframeDiv = iframe.contentDocument.body.appendChild(iframeDiv);
+    iframeDiv           = iframe.contentDocument.body.appendChild(iframeDiv);
 
     var innerIframeDiv = iframe.contentDocument.createElement('div');
 

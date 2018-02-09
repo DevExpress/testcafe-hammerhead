@@ -198,6 +198,12 @@ class NativeMethods {
         this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(window.NodeList.prototype, 'length').get;
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(window.Element.prototype, 'childElementCount').get;
 
+        // NOTE: At present we proxy only the PerformanceNavigationTiming.
+        // Another types of the PerformanceEntry will be fixed later
+        // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceEntry
+        if (win.PerformanceNavigationTiming)
+            this.performanceEntryNameGetter = win.Object.getOwnPropertyDescriptor(window.PerformanceEntry.prototype, 'name').get;
+
         const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
 
         // NOTE: This condition is used for the Android 6.0 browser

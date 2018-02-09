@@ -16,7 +16,14 @@ import {
     resolveUrlAsDest
 } from '../../utils/url';
 import { isFirefox, isIE, isAndroid } from '../../utils/browser';
-import { isCrossDomainWindows, isImgElement, isBlob, isWebSocket, isWindow } from '../../utils/dom';
+import {
+    isCrossDomainWindows,
+    isImgElement,
+    isBlob,
+    isWebSocket,
+    isWindow,
+    isPerformanceNavigationTiming
+} from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
@@ -463,7 +470,7 @@ export default class WindowSandbox extends SandboxBase {
                 if (arguments.length === 0)
                     return new nativeMethods.WebSocket();
 
-                const proxyUrl  = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
+                const proxyUrl = getProxyUrl(url, { resourceType: stringifyResourceType({ isWebSocket: true }) });
 
                 if (arguments.length === 1)
                     return new nativeMethods.WebSocket(proxyUrl);
@@ -541,6 +548,21 @@ export default class WindowSandbox extends SandboxBase {
 
             return nativeMethods.elementChildElementCountGetter.call(this);
         });
+
+        if (nativeMethods.performanceEntryNameGetter) {
+            overrideDescriptor(window.PerformanceEntry.prototype, 'name', function () {
+                const name = nativeMethods.performanceEntryNameGetter.call(this);
+
+                if (isPerformanceNavigationTiming(this)) {
+                    const parsedProxyUrl = parseProxyUrl(name);
+
+                    if (parsedProxyUrl)
+                        return parsedProxyUrl.destUrl;
+                }
+
+                return name;
+            });
+        }
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
