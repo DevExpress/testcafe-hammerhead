@@ -113,10 +113,10 @@ export default class WindowSandbox extends SandboxBase {
         return resolveUrlAsDest(attrValue);
     }
 
-    _overrideUrlAttrDescriptors (attr, constructors) {
+    _overrideUrlAttrDescriptors (attr, elementConstructors) {
         const windowSandbox = this;
 
-        for (const constructor of constructors) {
+        for (const constructor of elementConstructors) {
             overrideDescriptor(constructor.prototype, attr, function () {
                 return WindowSandbox._getUrlAttr(this, attr);
             }, function (value) {
