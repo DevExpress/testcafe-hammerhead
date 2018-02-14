@@ -9,6 +9,7 @@ import { check as checkSameOriginPolicy, SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } 
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 import { respondOnWebSocket } from './websocket';
+import * as specialPage from './special-page';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -27,7 +28,7 @@ const stages = {
         const opts = createReqOpts(ctx);
 
         if (ctx.isSpecialPage) {
-            mockDestinationResponseForSpecialPage(ctx);
+            ctx.destRes = specialPage.getResponse();
             next();
         }
 
@@ -93,7 +94,7 @@ const stages = {
 
     4: async function fetchContent (ctx, next) {
         if (ctx.isSpecialPage)
-            ctx.destResBody = new Buffer(0);
+            ctx.destResBody = specialPage.getBody();
         else
             ctx.destResBody = await fetchBody(ctx.destRes);
 
