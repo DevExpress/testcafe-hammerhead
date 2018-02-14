@@ -161,11 +161,11 @@ test('script src', function () {
 
     var script = nativeMethods.createElement.call(document, 'script');
 
-    script.src = 'http://domain.com';
+    nativeMethods.scriptSrcSetter.call(script, 'http://domain.com');
 
     domProcessor.processElement(script, urlUtils.convertToProxyUrl);
 
-    strictEqual(urlUtils.parseProxyUrl(script.src).resourceType, 's');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.scriptSrcGetter.call(script)).resourceType, 's');
 
     settings.get().sessionId = storedSessionId;
 });
@@ -382,12 +382,12 @@ module('should create a proxy url for the img src attribute if the image has the
             document.body.appendChild(img);
 
             setProperty(img, 'onload', function () {
-                strictEqual(img.src, imgProxyUrl);
+                strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
 
                 setProperty(img, 'onload', null);
                 img.setAttribute('src', imgUrl);
 
-                strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+                strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
 
                 img.parentNode.removeChild(img);
                 start();
@@ -406,12 +406,12 @@ module('should create a proxy url for the img src attribute if the image has the
             img.setAttribute('src', imgUrl);
 
             setProperty(img, 'onload', function () {
-                strictEqual(img.src, imgProxyUrl);
+                strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
 
                 setProperty(img, 'onload', null);
                 img.setAttribute('src', imgUrl);
 
-                strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+                strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
 
                 img.parentNode.removeChild(img);
 
@@ -429,12 +429,12 @@ module('should create a proxy url for the img src attribute if the image has the
             document.body.appendChild(img);
 
             var testLoadHandler = function () {
-                strictEqual(img.src, imgProxyUrl);
+                strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
 
                 img.removeEventListener('load', testLoadHandler);
                 img.setAttribute('src', imgUrl);
 
-                strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+                strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
 
                 img.parentNode.removeChild(img);
                 start();
@@ -452,12 +452,12 @@ module('should create a proxy url for the img src attribute if the image has the
             document.body.appendChild(img);
 
             var testLoadHandler = function () {
-                strictEqual(img.src, imgProxyUrl);
+                strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
 
                 img.removeEventListener('load', testLoadHandler);
                 img.setAttribute('src', imgUrl);
 
-                strictEqual(urlUtils.parseUrl(img.src).partAfterHost, imgUrl);
+                strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
 
                 img.parentNode.removeChild(img);
                 start();

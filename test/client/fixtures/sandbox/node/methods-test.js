@@ -210,14 +210,14 @@ test('canvasRenderingContext2D.drawImage', function () {
             description: 'image with cross-domain url',
             args:        [crossDomainImg, 1, 2],
             testImgFn:   function (img) {
-                return img.src === crossDomainUrl;
+                return nativeMethods.imageSrcGetter.call(img) === crossDomainUrl;
             }
         },
         {
             description: 'image with local url',
             args:        [localImg, 4, 3, 2, 1],
             testImgFn:   function (img) {
-                return img.src === urlUtils.getProxyUrl(localUrl);
+                return nativeMethods.imageSrcGetter.call(img) === urlUtils.getProxyUrl(localUrl);
             }
         },
         {
@@ -243,8 +243,8 @@ test('canvasRenderingContext2D.drawImage', function () {
         }
     ];
 
-    crossDomainImg.src = crossDomainUrl;
-    localImg.src       = localUrl;
+    nativeMethods.imageSrcSetter.call(crossDomainImg, crossDomainUrl);
+    nativeMethods.imageSrcSetter.call(localImg, localUrl);
 
     testCases.forEach(function (testCase) {
         nativeMethods.canvasContextDrawImage = function (img) {
@@ -449,7 +449,7 @@ if (Object.assign) {
             var iframe = document.createElement('iframe');
 
             strictEqual(Object.assign(iframe, { src: '/iframe1' }), iframe);
-            strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe1', {
+            strictEqual(nativeMethods.iframeSrcGetter.call(iframe), urlUtils.getProxyUrl('/iframe1', {
                 resourceType: urlUtils.stringifyResourceType({ isIframe: true }),
                 proxyPort:    2001
             }));
@@ -460,7 +460,7 @@ if (Object.assign) {
             fn.src = '/iframe2';
 
             Object.assign(iframe, fn);
-            strictEqual(iframe.src, urlUtils.getProxyUrl('/iframe2', {
+            strictEqual(nativeMethods.iframeSrcGetter.call(iframe), urlUtils.getProxyUrl('/iframe2', {
                 resourceType: urlUtils.stringifyResourceType({ isIframe: true }),
                 proxyPort:    2001
             }));
@@ -477,7 +477,7 @@ test('script must be executed after it is added to head tag (B237231)', function
         return window.top.testField;
     };
 
-    script.src = '/get-script/' + scriptText;
+    nativeMethods.scriptSrcSetter.call(script, '/get-script/' + scriptText);
 
     ok(!window.top.testField);
     document.head.appendChild(script);

@@ -8,20 +8,6 @@ test('is anchor instance', function () {
     ok(accessors.protocol.condition(anchor));
 });
 
-test('is dom element instance', function () {
-    var img           = document.createElement('img');
-    var fragment      = document.createDocumentFragment();
-    var notDomElement = {
-        tagName:  'img',
-        nodeType: 3
-    };
-
-    ok(accessors.src.condition(img), 'Element <img> is dom element');
-    ok(!accessors.src.condition(fragment), 'Element "fragment" isn\'t dom element');
-    ok(!accessors.src.condition(notDomElement), 'Object with property "tagName" isn\'t dom element');
-    ok(!accessors.src.condition(document), 'Document isn\'t dom element');
-});
-
 test('is document instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeDoc          = {

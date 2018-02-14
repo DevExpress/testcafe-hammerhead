@@ -70,8 +70,10 @@ export default class ElementSandbox extends SandboxBase {
         if (!img[INTERNAL_PROPS.forceProxySrcForImage]) {
             img[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
-            if (img.src)
-                img.setAttribute('src', img.src);
+            const imgSrc = nativeMethods.imageSrcGetter.call(img);
+
+            if (imgSrc)
+                img.setAttribute('src', imgSrc);
         }
     }
 
@@ -694,9 +696,10 @@ export default class ElementSandbox extends SandboxBase {
     _setProxiedSrcUrlOnError (img) {
         img.addEventListener('error', e => {
             const storedAttr = nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src'));
+            const imgSrc     = nativeMethods.imageSrcGetter.call(img);
 
-            if (storedAttr && !urlUtils.parseProxyUrl(img.src) &&
-                urlUtils.isSupportedProtocol(img.src) && !urlUtils.isSpecialPage(img.src)) {
+            if (storedAttr && !urlUtils.parseProxyUrl(imgSrc) &&
+                urlUtils.isSupportedProtocol(imgSrc) && !urlUtils.isSpecialPage(imgSrc)) {
                 nativeMethods.setAttribute.call(img, 'src', urlUtils.getProxyUrl(storedAttr));
                 stopPropagation(e);
             }

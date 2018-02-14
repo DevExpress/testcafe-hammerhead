@@ -530,8 +530,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     if (typeof handler === 'function') {
                         el[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
-                        if (el.src)
-                            el.src = urlUtils.getProxyUrl(el.src);
+                        const imgSrc = nativeMethods.imageSrcGetter.call(el);
+
+                        if (imgSrc)
+                            nativeMethods.imageSrcSetter.call(el, urlUtils.getProxyUrl(imgSrc));
                     }
                     else
                         delete el[INTERNAL_PROPS.forceProxySrcForImage];
@@ -606,17 +608,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: domUtils.isWindow,
                 get:       () => this.storageSandbox.sessionStorage,
                 set:       () => void 0
-            },
-
-            src: {
-                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'src'),
-
-                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'src'),
-                set: (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['src', value]);
-
-                    return value;
-                }
             },
 
             target: {

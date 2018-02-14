@@ -388,7 +388,7 @@ if (window.FormData) {
 test('window.Image must be overriden (B234340)', function () {
     var img = new Image();
 
-    setProperty(img, 'src', 'data/image.png');
+    img.src = 'data/image.png';
 
     strictEqual(nativeMethods.getAttribute.call(img, 'src'), urlUtils.getProxyUrl('data/image.png'));
     strictEqual(nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src')), 'data/image.png');

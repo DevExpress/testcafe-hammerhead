@@ -64,7 +64,6 @@ export const PROPERTIES = [
     'scripts',
     'search',
     'sessionStorage',
-    'src',
     'status',
     'style',
     'styleSheets',

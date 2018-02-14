@@ -255,7 +255,7 @@ test('write script with src and without closing tag (GH-1218)', function () {
             var script       = processedIframeForWrite.contentDocument.querySelector('#script');
             var resourceType = urlUtils.stringifyResourceType({ isScript: true });
 
-            strictEqual(script.src, urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
+            strictEqual(nativeMethods.scriptSrcGetter.call(script), urlUtils.getProxyUrl('script.js', { resourceType: resourceType }));
 
             testWrite('var x = 5;');
             testWrite('<' + '/script>');

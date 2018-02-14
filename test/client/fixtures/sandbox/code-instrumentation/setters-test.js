@@ -14,9 +14,10 @@ var eventSimulator        = hammerhead.sandbox.event.eventSimulator;
 test('unsupported protocol', function () {
     var img = document.createElement('img');
 
-    eval(processScript('img.src = "about:blank";'));
-    strictEqual(getProperty(img, 'src'), 'about:blank');
+    img.src = 'about:blank';
+
     strictEqual(img.src, 'about:blank');
+    strictEqual(nativeMethods.imageSrcGetter.call(img), 'about:blank');
 });
 
 test('anchor', function () {
@@ -220,7 +221,7 @@ test('innerHTML', function () {
     eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><' + '/script><a href=\\"" + linkUrl + "\\"></a>";'));
 
     strictEqual(div.children.length, 2);
-    strictEqual(div.children[0].src, urlUtils.getProxyUrl(scriptUrl, { resourceType: 's', charset: 'utf-8' }));
+    strictEqual(nativeMethods.scriptSrcGetter.call(div.children[0]), urlUtils.getProxyUrl(scriptUrl, { resourceType: 's', charset: 'utf-8' }));
     strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl));
 
     document[INTERNAL_PROPS.documentCharset] = null;
@@ -344,7 +345,7 @@ test('outerHTML', function () {
 
     strictEqual(parentDiv.children.length, 2);
     strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl('http://domain.com/'));
-    strictEqual(parentDiv.lastChild.src, urlUtils.getProxyUrl('http://domain.com/script', { resourceType: 's' }));
+    strictEqual(nativeMethods.scriptSrcGetter.call(parentDiv.lastChild), urlUtils.getProxyUrl('http://domain.com/script', { resourceType: 's' }));
 
     parentDiv.innerHTML = '';
     parentDiv.appendChild(childDiv);

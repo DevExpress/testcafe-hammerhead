@@ -1,5 +1,6 @@
 var urlUtils = hammerhead.get('./utils/url');
 
+var nativeMethods  = hammerhead.nativeMethods;
 var nodeMutation   = hammerhead.sandbox.node.mutation;
 var eventSimulator = hammerhead.sandbox.event.eventSimulator;
 var listeners      = hammerhead.sandbox.event.listeners;
@@ -27,7 +28,7 @@ asyncTest('prevent "error" event during image reloading', function () {
 
     img.onload = function () {
         ok(!errorEventRised);
-        strictEqual(img.src, storedGetProxyUrl.call(urlUtils, realImageUrl));
+        strictEqual(nativeMethods.imageSrcGetter.call(img), storedGetProxyUrl.call(urlUtils, realImageUrl));
 
         $(img).remove();
         urlUtils.getProxyUrl      = storedGetProxyUrl;
@@ -36,7 +37,8 @@ asyncTest('prevent "error" event during image reloading', function () {
         start();
     };
 
-    eval(processScript('img.src="' + fakeIamgeUrl + '";'));
+    img.src = fakeIamgeUrl;
+
     document.body.appendChild(img);
 });
 
@@ -54,8 +56,8 @@ asyncTest('reload image through the proxy', function () {
     img2.onload = function () {
         img2.onload = null;
 
-        notEqual(img1.src.indexOf(realImageUrl), -1);
-        notEqual(img2.src.indexOf(realImageUrl), -1);
+        notEqual(nativeMethods.imageSrcGetter.call(img1).indexOf(realImageUrl), -1);
+        notEqual(nativeMethods.imageSrcGetter.call(img2).indexOf(realImageUrl), -1);
 
         img1.parentNode.removeChild(img1);
         img2.parentNode.removeChild(img2);
@@ -67,8 +69,8 @@ asyncTest('reload image through the proxy', function () {
         img2.onerror = function () {
             img2.onerror = null;
 
-            strictEqual(img1.src, proxyIamgeUrl);
-            strictEqual(img2.src, proxyIamgeUrl);
+            strictEqual(nativeMethods.imageSrcGetter.call(img1), proxyIamgeUrl);
+            strictEqual(nativeMethods.imageSrcGetter.call(img2), proxyIamgeUrl);
 
             img1.parentNode.removeChild(img1);
             img2.parentNode.removeChild(img2);
@@ -78,19 +80,19 @@ asyncTest('reload image through the proxy', function () {
 
             img1.onerror = function () {
                 img1.onerror = null;
-                strictEqual(img1.src, 'about:blank');
+                strictEqual(nativeMethods.imageSrcGetter.call(img1), 'about:blank');
                 img1.parentNode.removeChild(img1);
 
                 start();
             };
 
-            eval(processScript('img1.src="about:blank";'));
+            img1.src = 'about:blank';
         };
 
-        eval(processScript('img2.src="' + fakeIamgeUrl + '";'));
+        img2.src = fakeIamgeUrl;
     };
 
-    eval(processScript('img2.src="' + realImageUrl + '";'));
+    img2.src = realImageUrl;
 });
 
 test('html fragment', function () {
