@@ -811,13 +811,13 @@ describe('Script processor', () => {
     it('Should allow ES6 syntax in strict mode', () => {
         testProcessing([
             {
-                src:      '"use strict";var let=0;obj.src;',
-                expected: '"use strict";var let=0;__get$(obj,"src");',
+                src:      '"use strict";var let=0;obj[i];',
+                expected: '"use strict";var let=0;__get$(obj,i);',
                 msg:      ACORN_STRICT_MODE_PATCH_WARNING
             },
             {
-                src:      '"use strict";var obj={yield:function(){}};obj.src;',
-                expected: '"use strict";var obj={yield:function(){}};__get$(obj, "src");',
+                src:      '"use strict";var obj={yield:function(){}};obj[i];',
+                expected: '"use strict";var obj={yield:function(){}};__get$(obj, i);',
                 msg:      ACORN_STRICT_MODE_PATCH_WARNING
             }
         ]);
@@ -841,15 +841,15 @@ describe('Script processor', () => {
     describe('Regression', () => {
         it('Should leave comments unchanged (T170848)', () => {
             testProcessing({
-                src:      'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } a.src=function(){};',
-                expected: 'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } __set$(a,"src",function(){});'
+                src:      'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } a[src]=function(){};',
+                expected: 'function test(){ \n /* \n line1 \n line2 \n line3 \n */ } __set$(a,src,function(){});'
             });
         });
 
         it('Should process content in block statement (T209250)', () => {
             testProcessing({
-                src:      '{ (function() { a.src = "success"; })(); }',
-                expected: '{ (function() { __set$(a, "src", "success"); })(); }'
+                src:      '{ (function() { a[src] = "success"; })(); }',
+                expected: '{ (function() { __set$(a, src, "success"); })(); }'
             });
         });
 
@@ -936,9 +936,9 @@ describe('Script processor', () => {
 
         it('Should not throw parser exceptions', () => {
             const testParser = function (scriptStr) {
-                scriptStr += '\nx.src';
+                scriptStr += '\nx[src]';
 
-                expect(processScript(scriptStr, false).indexOf('x.src') === -1).equal(true);
+                expect(processScript(scriptStr, false).indexOf('x[src]') === -1).equal(true);
             };
 
             testParser('function a(){function b(){}/k/;}'); // GH-591
@@ -948,15 +948,15 @@ describe('Script processor', () => {
 
         it('Should process the content in the conditional function declaration', () => {
             testProcessing({
-                src:      'function foo() { if(true) function bar() { obj.src; } }',
-                expected: 'function foo() { if(true) function bar() { __get$(obj, "src"); } }'
+                src:      'function foo() { if(true) function bar() { obj[src]; } }',
+                expected: 'function foo() { if(true) function bar() { __get$(obj, src); } }'
             });
         });
 
         it('Should process async function (GH-1260)', function () {
             testProcessing({
-                src:      'async function foo() {  return obj.src; }',
-                expected: 'async function foo() {  return __get$(obj, "src"); }'
+                src:      'async function foo() {  return obj[src]; }',
+                expected: 'async function foo() {  return __get$(obj, src); }'
             });
         });
     });

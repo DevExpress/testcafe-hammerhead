@@ -117,10 +117,8 @@ test('url', function () {
 
     var testData = [
         { tagName: 'a', attr: 'href' },
-        { tagName: 'script', attr: 'src' },
         { tagName: 'link', attr: 'href' },
         { tagName: 'form', attr: 'action' },
-        { tagName: 'embed', attr: 'src' },
         { tagName: 'input', attr: 'formAction' },
         { tagName: 'button', attr: 'formAction' }
     ];
@@ -194,7 +192,9 @@ test('url attributes overridden by descriptor', function () {
     };
 
     var testData = [
-        { tagName: 'object', attr: 'data', getter: nativeMethods.objectDataGetter }
+        { tagName: 'object', attr: 'data', getter: nativeMethods.objectDataGetter },
+        { tagName: 'script', attr: 'src', getter: nativeMethods.scriptSrcGetter },
+        { tagName: 'embed', attr: 'src', getter: nativeMethods.embedSrcGetter }
     ];
 
     for (var i = 0; i < testData.length; i++)
@@ -233,14 +233,14 @@ test('script src', function () {
 
     var script = document.createElement('script');
 
-    processDomMeth(script);
-
     document[INTERNAL_PROPS.documentCharset] = 'utf-8';
 
     script.setAttribute('src', 'http://google.com');
 
-    strictEqual(urlUtils.parseProxyUrl(script.src).resourceType, 's');
-    strictEqual(urlUtils.parseProxyUrl(script.src).charset, 'utf-8');
+    var parsedProxyUrl = urlUtils.parseProxyUrl(nativeMethods.scriptSrcGetter.call(script));
+
+    strictEqual(parsedProxyUrl.resourceType, 's');
+    strictEqual(parsedProxyUrl.charset, 'utf-8');
 
     document[INTERNAL_PROPS.documentCharset] = null;
 
@@ -394,13 +394,15 @@ test('crossdomain iframe', function () {
         return crossDomainProxyUrl;
     };
 
-    setProperty(iframe, 'src', crossDomainUrl);
-    strictEqual(iframe.src, crossDomainProxyUrl);
+    iframe.src = crossDomainUrl;
+
+    strictEqual(nativeMethods.iframeSrcGetter.call(iframe), crossDomainProxyUrl);
     strictEqual(nativeMethods.getAttribute.call(iframe, 'src'), crossDomainProxyUrl);
     strictEqual(nativeMethods.getAttribute.call(iframe, storedSrcAttr), crossDomainUrl);
 
-    setProperty(iframe, 'src', location.toString() + '?param');
-    strictEqual(iframe.src, proxyUrl);
+    iframe.src = location.toString() + '?param';
+
+    strictEqual(nativeMethods.iframeSrcGetter.call(iframe), proxyUrl);
     strictEqual(nativeMethods.getAttribute.call(iframe, 'src'), proxyUrl);
     strictEqual(iframe.getAttribute('src'), location.toString() + '?param');
 

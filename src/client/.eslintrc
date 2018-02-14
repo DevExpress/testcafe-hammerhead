@@ -1,31 +1,8 @@
 {
+  "extends": "plugin:hammerhead/recommended",
   "rules": {
     "hammerhead/proto-methods": 2,
-    "no-restricted-globals": [2, "Object", "JSON", "Promise"],
-    "no-restricted-properties": [2,
-      {
-        "object": "childNodes",
-        "property": "length",
-        "message": "Please use the 'nodeListLengthGetter' from native methods instead."
-      },
-      {
-        "object": "children",
-        "property": "length",
-        "message": "Please use the 'htmlCollectionLengthGetter' from native methods instead."
-      },
-      {
-        "property": "childElementCount",
-        "message": "Please use the 'elementChildElementCountGetter' from native methods instead."
-      },
-      {
-        "property": "files",
-        "message": "Please use the 'inputFilesGetter' from native methods instead."
-      },
-      {
-        "property": "value",
-        "message": "Please use getters and setters for input and textarea elements from native methods instead."
-      }
-    ]
+    "no-restricted-globals": [2, "Promise"]
   },
   "globals": {
     "isIframeWithoutSrc": true,

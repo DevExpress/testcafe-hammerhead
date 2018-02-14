@@ -113,6 +113,20 @@ export default class WindowSandbox extends SandboxBase {
         return resolveUrlAsDest(attrValue);
     }
 
+    _overrideUrlAttrDescriptors (attr, constructors) {
+        const windowSandbox = this;
+
+        for (const constructor of constructors) {
+            overrideDescriptor(constructor.prototype, attr, function () {
+                return WindowSandbox._getUrlAttr(this, attr);
+            }, function (value) {
+                windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
+
+                return value;
+            });
+        }
+    }
+
     static _wrapCSSGetPropertyValueIfNecessary (constructor, nativeGetPropertyValueFn) {
         if (nativeGetPropertyValueFn) {
             constructor.prototype.getPropertyValue = function (...args) {
@@ -201,11 +215,12 @@ export default class WindowSandbox extends SandboxBase {
             const image = args[0];
 
             if (isImgElement(image) && !image[INTERNAL_PROPS.forceProxySrcForImage]) {
-                const src = image.src;
+                const src = nativeMethods.imageSrcGetter.call(image);
 
                 if (destLocation.sameOriginCheck(location.toString(), src)) {
-                    args[0]     = nativeMethods.createElement.call(window.document, 'img');
-                    args[0].src = getProxyUrl(src);
+                    args[0] = nativeMethods.createElement.call(window.document, 'img');
+
+                    nativeMethods.imageSrcSetter.call(args[0], getProxyUrl(src));
                 }
             }
 
@@ -588,14 +603,6 @@ export default class WindowSandbox extends SandboxBase {
 
         const windowSandbox = this;
 
-        overrideDescriptor(window.HTMLObjectElement.prototype, 'data', function () {
-            return WindowSandbox._getUrlAttr(this, 'data');
-        }, function (value) {
-            windowSandbox.nodeSandbox.element.setAttributeCore(this, ['data', value]);
-
-            return value;
-        });
-
         overrideDescriptor(window.HTMLInputElement.prototype, 'files', function () {
             if (this.type.toLowerCase() === 'file')
                 return UploadSandbox.getFiles(this);
@@ -628,6 +635,19 @@ export default class WindowSandbox extends SandboxBase {
 
             return value;
         });
+
+        this._overrideUrlAttrDescriptors('data', [window.HTMLObjectElement]);
+
+        this._overrideUrlAttrDescriptors('src', [
+            window.HTMLImageElement,
+            window.HTMLScriptElement,
+            window.HTMLEmbedElement,
+            window.HTMLSourceElement,
+            window.HTMLMediaElement,
+            window.HTMLInputElement,
+            window.HTMLFrameElement,
+            window.HTMLIFrameElement
+        ]);
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {

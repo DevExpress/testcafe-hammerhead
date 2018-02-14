@@ -179,11 +179,27 @@ class NativeMethods {
         const objectDataDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
         const inputValueDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
         const textAreaValueDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
+        const imageSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
+        const scriptSrcDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
+        const embedSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
+        const sourceSrcDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLSourceElement.prototype, 'src');
+        const mediaSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLMediaElement.prototype, 'src');
+        const inputSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'src');
+        const frameSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLFrameElement.prototype, 'src');
+        const iframeSrcDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'src');
 
         // Setters
         this.objectDataSetter    = objectDataDescriptor.set;
         this.inputValueSetter    = inputValueDescriptor.set;
         this.textAreaValueSetter = textAreaValueDescriptor.set;
+        this.imageSrcSetter      = imageSrcDescriptor.set;
+        this.scriptSrcSetter     = scriptSrcDescriptor.set;
+        this.embedSrcSetter      = embedSrcDescriptor.set;
+        this.sourceSrcSetter     = sourceSrcDescriptor.set;
+        this.mediaSrcSetter      = mediaSrcDescriptor.set;
+        this.inputSrcSetter      = inputSrcDescriptor.set;
+        this.frameSrcSetter      = frameSrcDescriptor.set;
+        this.iframeSrcSetter     = iframeSrcDescriptor.set;
 
         // Getters
         if (win.WebSocket) {
@@ -201,6 +217,14 @@ class NativeMethods {
         this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
         this.inputValueGetter               = inputValueDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
+        this.imageSrcGetter                 = imageSrcDescriptor.get;
+        this.scriptSrcGetter                = scriptSrcDescriptor.get;
+        this.embedSrcGetter                 = embedSrcDescriptor.get;
+        this.sourceSrcGetter                = sourceSrcDescriptor.get;
+        this.mediaSrcGetter                 = mediaSrcDescriptor.get;
+        this.inputSrcGetter                 = inputSrcDescriptor.get;
+        this.frameSrcGetter                 = frameSrcDescriptor.get;
+        this.iframeSrcGetter                = iframeSrcDescriptor.get;
 
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later

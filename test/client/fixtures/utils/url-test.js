@@ -542,7 +542,7 @@ test('resolving a url in a tag that is written along with a "base" tag (GH-644)'
         '</html>'
     );
 
-    strictEqual(iframe.contentDocument.querySelector('script').src,
+    strictEqual(nativeMethods.scriptSrcGetter.call(iframe.contentDocument.querySelector('script')),
         'http://' + location.host + '/sessionId!s/https://example.com/subpath/scripts/scr.js');
 
     document.body.removeChild(iframe);

@@ -55,9 +55,9 @@ test('url', function () {
 
     var proxyLocation = destLocation.get();
 
-    strictEqual(eval(processScript('$scriptWithSrc[0].src')), 'http://some.com/script.js');
-    strictEqual(eval(processScript('$scriptWithEmptySrc[0].src')), proxyLocation);
-    strictEqual(eval(processScript('$scriptWithoutSrc[0].src')), '');
+    strictEqual($scriptWithSrc[0].src, 'http://some.com/script.js');
+    strictEqual($scriptWithEmptySrc[0].src, proxyLocation);
+    strictEqual($scriptWithoutSrc[0].src, '');
     strictEqual(eval(processScript('$linkWithOnlyHash[0].href')), proxyLocation + '#hash');
     /* eslint-enable no-unused-vars */
 });
