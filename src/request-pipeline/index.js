@@ -190,19 +190,6 @@ function isDestResBodyMalformed (ctx) {
     return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
 }
 
-function mockDestinationResponseForSpecialPage (ctx) {
-    ctx.destRes = {
-        headers: {
-            'content-type':   'text/html',
-            'content-length': '0'
-        },
-
-        statusCode: 200,
-        trailers:   {}
-    };
-}
-
-
 // API
 export function run (req, res, serverInfo, openSessions) {
     const ctx = new RequestPipelineContext(req, res, serverInfo);
