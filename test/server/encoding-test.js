@@ -1,7 +1,6 @@
 'use strict';
 
 const expect        = require('chai').expect;
-const Promise       = require('pinkie');
 const encodeContent = require('../../lib/processing/encoding').encodeContent;
 const decodeContent = require('../../lib/processing/encoding').decodeContent;
 const Charset       = require('../../lib/processing/encoding/charset');

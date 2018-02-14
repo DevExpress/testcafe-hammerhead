@@ -3,11 +3,9 @@
 const expect = require('chai').expect;
 const Router = require('../../lib/proxy/router');
 const md5    = require('crypto-md5');
+const noop   = require('lodash').noop;
 
 describe('Router', () => {
-    function noop () {
-    }
-
     it('Should route requests', () => {
         const router        = new Router();
         let calledHandlerId = null;

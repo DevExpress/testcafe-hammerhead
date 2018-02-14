@@ -9,7 +9,6 @@ const mocha        = require('gulp-mocha');
 const mustache     = require('gulp-mustache');
 const rename       = require('gulp-rename');
 const webmake      = require('gulp-webmake');
-const Promise      = require('pinkie');
 const uglify       = require('gulp-uglify');
 const gulpif       = require('gulp-if');
 const util         = require('gulp-util');
