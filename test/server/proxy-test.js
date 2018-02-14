@@ -1,6 +1,5 @@
 'use strict';
 
-const Promise                              = require('pinkie');
 const fs                                   = require('fs');
 const os                                   = require('os');
 const http                                 = require('http');

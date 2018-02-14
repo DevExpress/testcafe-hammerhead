@@ -5,7 +5,7 @@ const request             = require('request-promise-native');
 const expect              = require('chai').expect;
 const express             = require('express');
 const iconv               = require('iconv-lite');
-const Promise             = require('pinkie');
+const noop                = require('lodash').noop;
 const Proxy               = require('../../lib/proxy');
 const Session             = require('../../lib/session');
 const requestAgent        = require('../../lib/request-pipeline/destination-request/agent');
@@ -27,10 +27,6 @@ function normalizeCode (code) {
 
 function compareCode (code1, code2) {
     expect(normalizeCode(code1)).eql(normalizeCode(code2));
-}
-
-function noop () {
-    // Do nothing =)
 }
 
 function getProxyUrl (url, resourceType, charset) {
