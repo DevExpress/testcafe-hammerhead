@@ -176,45 +176,66 @@ class NativeMethods {
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
-        const objectDataDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
-        const inputValueDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
-        const textAreaValueDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
-        const imageSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
-        const scriptSrcDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
-        const embedSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
-        const sourceSrcDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLSourceElement.prototype, 'src');
-        const mediaSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLMediaElement.prototype, 'src');
-        const inputSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'src');
-        const frameSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLFrameElement.prototype, 'src');
-        const iframeSrcDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'src');
+        const objectDataDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
+        const inputValueDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
+        const textAreaValueDescriptor  = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
+        const imageSrcDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
+        const scriptSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
+        const embedSrcDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
+        const sourceSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLSourceElement.prototype, 'src');
+        const mediaSrcDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLMediaElement.prototype, 'src');
+        const inputSrcDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'src');
+        const frameSrcDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLFrameElement.prototype, 'src');
+        const iframeSrcDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'src');
+        const anchorHrefDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'href');
+        const linkHrefDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'href');
+        const areaHrefDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'href');
+        const baseHrefDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'href');
+        const anchorHostDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'host');
+        const anchorHostnameDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'hostname');
+        const anchorPathnameDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'pathname');
+        const anchorPortDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'port');
+        const anchorProtocolDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'protocol');
+        const anchorSearchDescriptor   = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'search');
 
         // Setters
-        this.objectDataSetter    = objectDataDescriptor.set;
-        this.inputValueSetter    = inputValueDescriptor.set;
-        this.textAreaValueSetter = textAreaValueDescriptor.set;
-        this.imageSrcSetter      = imageSrcDescriptor.set;
-        this.scriptSrcSetter     = scriptSrcDescriptor.set;
-        this.embedSrcSetter      = embedSrcDescriptor.set;
-        this.sourceSrcSetter     = sourceSrcDescriptor.set;
-        this.mediaSrcSetter      = mediaSrcDescriptor.set;
-        this.inputSrcSetter      = inputSrcDescriptor.set;
-        this.frameSrcSetter      = frameSrcDescriptor.set;
-        this.iframeSrcSetter     = iframeSrcDescriptor.set;
+        this.objectDataSetter     = objectDataDescriptor.set;
+        this.inputValueSetter     = inputValueDescriptor.set;
+        this.textAreaValueSetter  = textAreaValueDescriptor.set;
+        this.imageSrcSetter       = imageSrcDescriptor.set;
+        this.scriptSrcSetter      = scriptSrcDescriptor.set;
+        this.embedSrcSetter       = embedSrcDescriptor.set;
+        this.sourceSrcSetter      = sourceSrcDescriptor.set;
+        this.mediaSrcSetter       = mediaSrcDescriptor.set;
+        this.inputSrcSetter       = inputSrcDescriptor.set;
+        this.frameSrcSetter       = frameSrcDescriptor.set;
+        this.iframeSrcSetter      = iframeSrcDescriptor.set;
+        this.anchorHrefSetter     = anchorHrefDescriptor.set;
+        this.linkHrefSetter       = linkHrefDescriptor.set;
+        this.areaHrefSetter       = areaHrefDescriptor.set;
+        this.baseHrefSetter       = baseHrefDescriptor.set;
+        this.anchorHostSetter     = anchorHostDescriptor.set;
+        this.anchorHostnameSetter = anchorHostnameDescriptor.set;
+        this.anchorPathnameSetter = anchorPathnameDescriptor.set;
+        this.anchorPortSetter     = anchorPortDescriptor.set;
+        this.anchorProtocolSetter = anchorProtocolDescriptor.set;
+        this.anchorSearchSetter   = anchorSearchDescriptor.set;
 
         // Getters
         if (win.WebSocket) {
-            const urlPropDescriptor = win.Object.getOwnPropertyDescriptor(window.WebSocket.prototype, 'url');
+            const urlPropDescriptor = win.Object.getOwnPropertyDescriptor(win.WebSocket.prototype, 'url');
 
             if (urlPropDescriptor && urlPropDescriptor.get && urlPropDescriptor.configurable)
                 this.webSocketUrlGetter = urlPropDescriptor.get;
         }
 
-        this.messageEventOriginGetter       = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'origin').get;
-        this.htmlCollectionLengthGetter     = win.Object.getOwnPropertyDescriptor(window.HTMLCollection.prototype, 'length').get;
-        this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(window.NodeList.prototype, 'length').get;
-        this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(window.Element.prototype, 'childElementCount').get;
-        this.objectDataGetter               = objectDataDescriptor.get;
+        this.messageEventOriginGetter       = win.Object.getOwnPropertyDescriptor(win.MessageEvent.prototype, 'origin').get;
+        this.htmlCollectionLengthGetter     = win.Object.getOwnPropertyDescriptor(win.HTMLCollection.prototype, 'length').get;
+        this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(win.NodeList.prototype, 'length').get;
+        this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'childElementCount').get;
         this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
+        this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
+        this.objectDataGetter               = objectDataDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
         this.imageSrcGetter                 = imageSrcDescriptor.get;
@@ -225,14 +246,30 @@ class NativeMethods {
         this.inputSrcGetter                 = inputSrcDescriptor.get;
         this.frameSrcGetter                 = frameSrcDescriptor.get;
         this.iframeSrcGetter                = iframeSrcDescriptor.get;
+        this.anchorHrefGetter               = anchorHrefDescriptor.get;
+        this.linkHrefGetter                 = linkHrefDescriptor.get;
+        this.areaHrefGetter                 = areaHrefDescriptor.get;
+        this.baseHrefGetter                 = baseHrefDescriptor.get;
+        this.anchorHostGetter               = anchorHostDescriptor.get;
+        this.anchorHostnameGetter           = anchorHostnameDescriptor.get;
+        this.anchorPathnameGetter           = anchorPathnameDescriptor.get;
+        this.anchorPortGetter               = anchorPortDescriptor.get;
+        this.anchorProtocolGetter           = anchorProtocolDescriptor.get;
+        this.anchorSearchGetter             = anchorSearchDescriptor.get;
+
+        const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
+
+        // NOTE: IE and Edge don't support origin property
+        if (anchorOriginDescriptor)
+            this.anchorOriginGetter = anchorOriginDescriptor.get;
 
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later
         // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceEntry
         if (win.PerformanceNavigationTiming)
-            this.performanceEntryNameGetter = win.Object.getOwnPropertyDescriptor(window.PerformanceEntry.prototype, 'name').get;
+            this.performanceEntryNameGetter = win.Object.getOwnPropertyDescriptor(win.PerformanceEntry.prototype, 'name').get;
 
-        const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(window.MessageEvent.prototype, 'data');
+        const dataPropDescriptor = win.Object.getOwnPropertyDescriptor(win.MessageEvent.prototype, 'data');
 
         // NOTE: This condition is used for the Android 6.0 browser
         if (dataPropDescriptor)

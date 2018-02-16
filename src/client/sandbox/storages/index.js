@@ -34,8 +34,11 @@ export default class StorageSandbox extends SandboxBase {
     // NOTE: We are using a single storage wrapper instance for all same-domain windows.
     // This wrapper is saved in the top same-domain window's sandbox.
     _createStorageWrappers () {
+        /*eslint-disable no-restricted-properties*/
+        const host = destLocation.getParsed().host;
+        /*eslint-enable no-restricted-properties*/
+
         const sessionId             = settings.get().sessionId;
-        const host                  = destLocation.getParsed().host;
         const storageKey            = getStorageKey(sessionId, host);
         const topSameDomainWindow   = getTopSameDomainWindow(this.window);
         const topSameDomainStorages = topSameDomainWindow[INTERNAL_PROPS.hammerhead].sandbox.storageSandbox.storages;

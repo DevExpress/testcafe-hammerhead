@@ -78,8 +78,10 @@ export default class MessageSandbox extends SandboxBase {
     static _wrapMessage (type, message, targetUrl) {
         const parsedDest = destLocation.getParsed();
         const originUrl  = formatUrl({
+            /*eslint-disable no-restricted-properties*/
             protocol: parsedDest.protocol,
             host:     parsedDest.host
+            /*eslint-enable no-restricted-properties*/
         });
 
         return { message, originUrl, targetUrl, type };
@@ -165,8 +167,10 @@ export default class MessageSandbox extends SandboxBase {
             args[1] = '*';
         else {
             args[1] = formatUrl({
+                /*eslint-disable no-restricted-properties*/
                 protocol: this.window.location.protocol,
                 host:     this.window.location.host
+                /*eslint-enable no-restricted-properties*/
             });
         }
 

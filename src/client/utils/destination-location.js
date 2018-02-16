@@ -2,6 +2,7 @@ import * as sharedUrlUtils from '../../utils/url';
 import * as domUtils from './dom';
 import * as urlResolver from './url-resolver';
 import settings from '../settings';
+import nativeMethods from '../sandbox/native-methods';
 
 let forcedLocation = null;
 
@@ -36,8 +37,10 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
 export function resolveUrl (url, doc) {
     url = sharedUrlUtils.prepareUrl(url);
 
+    /*eslint-disable no-restricted-properties*/
     if (url && url.indexOf('//') === 0)
         url = getParsed().protocol + url;
+    /*eslint-enable no-restricted-properties*/
 
     return urlResolver.resolve(url, doc || document);
 }
@@ -64,32 +67,41 @@ export function getCookiePathPrefix () {
 }
 
 export function getParsed () {
-    const resolver   = urlResolver.getResolverElement(document);
-    const dest       = get();
-    const parsedDest = sharedUrlUtils.parseUrl(dest);
+    const resolver = urlResolver.getResolverElement(document);
+    const dest     = get();
+
+    /*eslint-disable no-restricted-properties*/
+    const destPort = sharedUrlUtils.parseUrl(dest).port;
+    /*eslint-enable no-restricted-properties*/
 
     // NOTE: IE browser adds the default port for the https protocol while resolving.
-    resolver.href = get();
+    nativeMethods.anchorHrefSetter.call(resolver, get());
+
+    const hostname = nativeMethods.anchorHostnameGetter.call(resolver);
+    let pathname   = nativeMethods.anchorPathnameGetter.call(resolver);
 
     // NOTE: IE ignores the first '/' symbol in the pathname.
-    const pathname = resolver.pathname.indexOf('/') === 0 ? resolver.pathname : '/' + resolver.pathname;
+    if (pathname.indexOf('/') !== 0)
+        pathname = '/' + pathname;
 
     // TODO: Describe default ports logic.
     return {
-        protocol: resolver.protocol,
+        protocol: nativeMethods.anchorProtocolGetter.call(resolver),
         // NOTE: Remove the default port.
-        port:     parsedDest.port ? resolver.port : '',
-        hostname: resolver.hostname,
+        port:     destPort ? nativeMethods.anchorPortGetter.call(resolver) : '',
+        hostname: hostname,
         // NOTE: Remove the default port from the host.
-        host:     parsedDest.port ? resolver.host : resolver.host.replace(/:\d+$/, ''),
+        host:     destPort ? nativeMethods.anchorHostGetter.call(resolver) : hostname,
         pathname: pathname,
         hash:     resolver.hash,
-        search:   resolver.search
+        search:   nativeMethods.anchorSearchGetter.call(resolver)
     };
 }
 
 export function getOriginHeader () {
     const parsedDest = getParsed();
 
+    /*eslint-disable no-restricted-properties*/
     return parsedDest.protocol === 'file:' ? get() : sharedUrlUtils.getDomain(parsedDest);
+    /*eslint-enable no-restricted-properties*/
 }

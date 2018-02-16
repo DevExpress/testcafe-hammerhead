@@ -81,7 +81,7 @@ export default class PageNavigationWatch extends EventEmiter {
             if (link && !isShadowUIElement(link)) {
                 let prevented      = false;
                 const targetWindow = PageNavigationWatch._getTargetWindow(link);
-                const href         = link.href;
+                const href         = nativeMethods.anchorHrefGetter.call(link);
 
                 const onPreventDefault = preventedEvent => {
                     prevented = prevented || preventedEvent === e;

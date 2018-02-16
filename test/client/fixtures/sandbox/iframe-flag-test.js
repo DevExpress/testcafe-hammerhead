@@ -174,19 +174,19 @@ test('change iframe name', function () {
     setProperty(a, 'target', 'window_name_first');
     setProperty(a, 'href', url);
 
-    ok(hasIframeFlag(a.href));
+    ok(hasIframeFlag(nativeMethods.anchorHrefGetter.call(a)));
 
     iframe.contentWindow.name = 'window_name_second';
 
     provokeTargetCalculation(a);
 
-    ok(!hasIframeFlag(a.href));
+    ok(!hasIframeFlag(nativeMethods.anchorHrefGetter.call(a)));
 
     iframe.contentWindow.name = 'window_name_first';
 
     provokeTargetCalculation(a);
 
-    ok(hasIframeFlag(a.href));
+    ok(hasIframeFlag(nativeMethods.anchorHrefGetter.call(a)));
 
     document.body.removeChild(iframe);
     document.body.removeChild(a);

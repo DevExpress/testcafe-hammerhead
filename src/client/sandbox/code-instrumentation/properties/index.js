@@ -11,9 +11,8 @@ import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
 import { HASH_RE } from '../../../../utils/url';
-import { isStyle, isStyleSheet } from '../../../utils/style';
+import { isStyle } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
-import { getAnchorProperty, setAnchorProperty } from './anchor';
 import { getAttributesProperty } from './attributes';
 import domProcessor from '../../../dom-processor';
 import styleProcessor from '../../../../processing/style';
@@ -204,8 +203,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             domain: {
                 condition: domUtils.isDocument,
-                get:       () => storedDomain ? storedDomain : LocationAccessorsInstrumentation.getLocationWrapper(window).hostname,
-                set:       (doc, domain) => {
+
+                /*eslint-disable no-restricted-properties*/
+                get: () => storedDomain || LocationAccessorsInstrumentation.getLocationWrapper(window).hostname,
+                /*eslint-enable no-restricted-properties*/
+
+                set: (doc, domain) => {
                     storedDomain = domain;
 
                     return domain;
@@ -235,50 +238,18 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
-            host: {
-                condition: domUtils.isAnchorElement,
-                get:       el => getAnchorProperty(el, 'host'),
-                set:       (el, port) => setAnchorProperty(el, 'host', port)
-            },
-
-            hostname: {
-                condition: domUtils.isAnchorElement,
-                get:       el => getAnchorProperty(el, 'hostname'),
-                set:       (el, port) => setAnchorProperty(el, 'hostname', port)
-            },
-
             href: {
-                condition: el => {
-                    if (LocationAccessorsInstrumentation.isLocationWrapper(el))
-                        return true;
-                    if (domUtils.isDomElement(el))
-                        return domProcessor.isUrlAttr(el, 'href');
-                    else if (isStyleSheet(el))
-                        return true;
+                condition: LocationAccessorsInstrumentation.isLocationWrapper,
 
-                    return false;
-                },
+                /*eslint-disable no-restricted-properties*/
+                get: locationWrapper => locationWrapper.href,
 
-                get: el => {
-                    if (LocationAccessorsInstrumentation.isLocationWrapper(el))
-                        return el.href;
-                    else if (isStyleSheet(el)) {
-                        const parsedUrl = urlUtils.parseProxyUrl(el.href);
-
-                        return parsedUrl ? parsedUrl.destUrl : el.href;
-                    }
-
-                    return PropertyAccessorsInstrumentation._getUrlAttr(el, 'href');
-                },
-
-                set: (el, value) => {
-                    if (LocationAccessorsInstrumentation.isLocationWrapper(el))
-                        el.href = destLocation.resolveUrl(value, document);
-                    else if (!isStyleSheet(el))
-                        this.elementSandbox.setAttributeCore(el, ['href', value]);
+                set: (locationWrapper, value) => {
+                    locationWrapper.href = destLocation.resolveUrl(value, document);
 
                     return value;
                 }
+                /*eslint-enable no-restricted-properties*/
             },
 
             innerHTML: {
@@ -495,10 +466,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
                         const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
+                        /*eslint-disable no-restricted-properties*/
                         if (locationWrapper)
                             locationWrapper.href = location;
                         else
                             owner.location = location;
+                        /*eslint-enable no-restricted-properties*/
 
                         return location;
                     }
@@ -544,34 +517,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
-            origin: {
-                condition: domUtils.isAnchorElement,
-                get:       el => el.origin !== void 0 ? getAnchorProperty(el, 'origin') : el.origin,
-                set:       (el, origin) => {
-                    el.origin = origin;
-
-                    return origin;
-                }
-            },
-
-            pathname: {
-                condition: domUtils.isAnchorElement,
-                get:       el => getAnchorProperty(el, 'pathname'),
-                set:       (el, pathname) => setAnchorProperty(el, 'pathname', pathname)
-            },
-
-            port: {
-                condition: domUtils.isAnchorElement,
-                get:       el => getAnchorProperty(el, 'port'),
-                set:       (el, port) => setAnchorProperty(el, 'port', port)
-            },
-
-            protocol: {
-                condition: domUtils.isAnchorElement,
-                get:       el => getAnchorProperty(el, 'protocol'),
-                set:       (el, port) => setAnchorProperty(el, 'protocol', port)
-            },
-
             referrer: {
                 condition: domUtils.isDocument,
 
@@ -596,12 +541,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return value;
                 }
-            },
-
-            search: {
-                condition: domUtils.isAnchorElement,
-                get:       el => getAnchorProperty(el, 'search'),
-                set:       (el, search) => setAnchorProperty(el, 'search', search)
             },
 
             sessionStorage: {
@@ -640,8 +579,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
             URL: {
                 condition: domUtils.isDocument,
-                get:       doc => LocationAccessorsInstrumentation.getLocationWrapper(doc).href,
-                set:       () => void 0
+
+                /*eslint-disable no-restricted-properties*/
+                get: doc => LocationAccessorsInstrumentation.getLocationWrapper(doc).href,
+                /*eslint-enable no-restricted-properties*/
+
+                set: () => void 0
             },
 
             baseURI: {

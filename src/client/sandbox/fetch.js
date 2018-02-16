@@ -20,6 +20,7 @@ export default class FetchSandbox extends SandboxBase {
         const requestCredentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
         const originHeaderValue  = getOriginHeader();
 
+        /*eslint-disable no-restricted-properties*/
         if (isFetchHeaders(headers)) {
             headers.set(XHR_HEADERS.origin, originHeaderValue);
             headers.set(XHR_HEADERS.fetchRequestCredentials, requestCredentials);
@@ -28,6 +29,7 @@ export default class FetchSandbox extends SandboxBase {
             headers[XHR_HEADERS.origin]                  = originHeaderValue;
             headers[XHR_HEADERS.fetchRequestCredentials] = requestCredentials;
         }
+        /*eslint-enable no-restricted-properties*/
 
         init.headers = headers;
 

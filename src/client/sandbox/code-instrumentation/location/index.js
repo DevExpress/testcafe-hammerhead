@@ -53,7 +53,9 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
         nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.setLocation, {
             value: (location, value) => {
                 if (isLocation(location) && typeof value === 'string') {
+                    /*eslint-disable no-restricted-properties*/
                     locationWrapper.href = value;
+                    /*eslint-enable no-restricted-properties*/
 
                     return value;
                 }
