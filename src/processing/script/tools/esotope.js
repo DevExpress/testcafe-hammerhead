@@ -58,6 +58,7 @@ export var Syntax = {
     ArrayExpression:          'ArrayExpression',
     ArrayPattern:             'ArrayPattern',
     ArrowFunctionExpression:  'ArrowFunctionExpression',
+    AwaitExpression:          'AwaitExpression',
     BlockStatement:           'BlockStatement',
     BinaryExpression:         'BinaryExpression',
     BreakStatement:           'BreakStatement',
@@ -1129,6 +1130,12 @@ var ExprRawGen = {
 
         if (parenthesize)
             _.js += ')';
+    },
+
+    AwaitExpression: function generateAwaitExpression ($expr, settings) {
+        _.js += 'await ';
+
+        ExprGen[$expr.argument.type]($expr.argument, settings);
     },
 
     ConditionalExpression: function generateConditionalExpression ($expr, settings) {
