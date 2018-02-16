@@ -56,29 +56,29 @@ test('iframe', function () {
     strictEqual(nativeMethods.getAttribute.call(iframe, storedAttrName), 'allow-forms');
 });
 
-test('link in iframe', function () {
+test('anchor in iframe', function () {
     var iframe = nativeMethods.createElement.call(document, 'iframe');
 
     iframe.id = 'test';
     nativeMethods.appendChild.call(document.body, iframe);
 
-    var link = nativeMethods.createElement.call(document, 'a');
+    var anchor = nativeMethods.createElement.call(document, 'a');
 
-    link.href = '/index.html';
-    nativeMethods.appendChild.call(document.body, link);
+    nativeMethods.anchorHrefSetter.call(anchor, '/index.html');
+    nativeMethods.appendChild.call(document.body, anchor);
 
     var iframeBody = iframe.contentDocument.body;
 
     iframeBody.innerHTML = '<a href="/index.html"></a>';
 
     domProcessor.processElement(iframeBody.childNodes[0], urlUtils.convertToProxyUrl);
-    domProcessor.processElement(link, urlUtils.convertToProxyUrl);
+    domProcessor.processElement(anchor, urlUtils.convertToProxyUrl);
 
-    strictEqual(urlUtils.parseProxyUrl(iframeBody.childNodes[0].href).resourceType, 'i');
-    ok(!urlUtils.parseProxyUrl(link.href).resourceType);
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.anchorHrefGetter.call(iframeBody.childNodes[0])).resourceType, 'i');
+    ok(!urlUtils.parseProxyUrl(nativeMethods.anchorHrefGetter.call(anchor)).resourceType);
 
     iframe.parentNode.removeChild(iframe);
-    link.parentNode.removeChild(link);
+    anchor.parentNode.removeChild(anchor);
 });
 
 test('script text', function () {
@@ -188,7 +188,7 @@ test('event attributes', function () {
 });
 
 test('javascript protocol', function () {
-    var link                       = nativeMethods.createElement.call(document, 'a');
+    var anchor                     = nativeMethods.createElement.call(document, 'a');
     var attrValue                  = 'javascript:window.location="test";';
     var processedValueForUrlAttr   = 'javascript:' + processScript(attrValue.replace('javascript:', ''), false, true);
     var processedValueForEventAttr = 'javascript:' + processScript(attrValue.replace('javascript:', ''));
@@ -196,16 +196,16 @@ test('javascript protocol', function () {
     notEqual(processedValueForUrlAttr, attrValue);
     notEqual(processedValueForEventAttr, attrValue);
 
-    nativeMethods.setAttribute.call(link, 'onclick', attrValue);
-    nativeMethods.setAttribute.call(link, 'href', attrValue);
+    nativeMethods.setAttribute.call(anchor, 'onclick', attrValue);
+    nativeMethods.setAttribute.call(anchor, 'href', attrValue);
 
-    domProcessor.processElement(link, function () {
+    domProcessor.processElement(anchor, function () {
     });
 
-    strictEqual(nativeMethods.getAttribute.call(link, 'onclick'), processedValueForEventAttr);
-    strictEqual(nativeMethods.getAttribute.call(link, 'href'), processedValueForUrlAttr);
-    strictEqual(nativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('onclick')), attrValue);
-    strictEqual(nativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('href')), attrValue);
+    strictEqual(nativeMethods.getAttribute.call(anchor, 'onclick'), processedValueForEventAttr);
+    strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), processedValueForUrlAttr);
+    strictEqual(nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('onclick')), attrValue);
+    strictEqual(nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href')), attrValue);
 });
 
 test('anchor with target attribute', function () {
@@ -337,21 +337,21 @@ test('stylesheet after innerHTML', function () {
 });
 
 test('special pages (GH-339)', function () {
-    var link   = document.createElement('a');
+    var anchor = document.createElement('a');
     var image  = document.createElement('img');
     var iframe = document.createElement('iframe');
 
     sharedUrlUtils.SPECIAL_PAGES.forEach(function (specialPagUrl) {
-        link.setAttribute('href', specialPagUrl);
+        anchor.setAttribute('href', specialPagUrl);
         image.setAttribute('src', specialPagUrl);
         iframe.setAttribute('src', specialPagUrl);
 
-        var linkHrefUrl  = nativeMethods.getAttribute.call(link, 'href');
-        var proxyUrl     = urlUtils.getProxyUrl(specialPagUrl);
-        var imageSrcUrl  = nativeMethods.getAttribute.call(image, 'src');
-        var iframeSrcUrl = nativeMethods.getAttribute.call(iframe, 'src');
+        var proxyUrl      = urlUtils.getProxyUrl(specialPagUrl);
+        var anchorHrefUrl = nativeMethods.getAttribute.call(anchor, 'href');
+        var imageSrcUrl   = nativeMethods.getAttribute.call(image, 'src');
+        var iframeSrcUrl  = nativeMethods.getAttribute.call(iframe, 'src');
 
-        strictEqual(linkHrefUrl, proxyUrl);
+        strictEqual(anchorHrefUrl, proxyUrl);
         strictEqual(imageSrcUrl, specialPagUrl);
         strictEqual(iframeSrcUrl, specialPagUrl);
     });
@@ -492,10 +492,10 @@ test('remove the "integrity" attribute from the link and script tags (GH-235)', 
 test('link with target="_parent" in iframe (T216999)', function () {
     return createTestIframe({ src: getSameDomainPageUrl('../../../data/dom-processor/iframe.html') })
         .then(function (iframe) {
-            var link           = nativeMethods.getElementById.call(iframe.contentDocument, 'link');
+            var anchor         = nativeMethods.getElementById.call(iframe.contentDocument, 'anchor');
             var storedAttrName = DomProcessor.getStoredAttrName('href');
 
-            strictEqual(nativeMethods.getAttribute.call(link, storedAttrName), '/index.html');
+            strictEqual(nativeMethods.getAttribute.call(anchor, storedAttrName), '/index.html');
         });
 });
 
@@ -571,9 +571,9 @@ test('script and style content added via a child text node must be overridden (G
     var scriptTextNode2 = document.createTextNode('var host2 = location.host');
 
     script.appendChild(scriptTextNode1);
-    ok(script.childNodes[0].data.indexOf('var host1 =  __get$(__get$Loc(location),"host")') > -1);
+    ok(script.childNodes[0].data.indexOf('var host1 =  __get$Loc(location).host') > -1);
     script.insertBefore(scriptTextNode2, scriptTextNode1);
-    ok(script.childNodes[0].data.indexOf('var host2 =  __get$(__get$Loc(location),"host")') > -1);
+    ok(script.childNodes[0].data.indexOf('var host2 =  __get$Loc(location).host') > -1);
 });
 
 test('node.replaceChild must be overridden (GH-264)', function () {
@@ -669,19 +669,23 @@ test('should reprocess tags that doesn\'t processed on server side (GH-838)', fu
 
     return createTestIframe({ src: src })
         .then(function (iframe) {
-            var processedLinkHrefUrl   = iframe.contentDocument.querySelector('#processed-link').href;
-            var processedFormActionUrl = iframe.contentDocument.querySelector('#processed-form').action;
+            var processedAnchor     = iframe.contentDocument.querySelector('#processed-anchor');
+            var processedForm       = iframe.contentDocument.querySelector('#processed-form');
+            var processedAnchorHref = nativeMethods.anchorHrefGetter.call(processedAnchor);
+            var processedFormAction = processedForm.action;
 
-            strictEqual(processedLinkHrefUrl, urlUtils.getProxyUrl('http://localhost/link-action.html'));
-            strictEqual(processedFormActionUrl, urlUtils.getProxyUrl('http://localhost/form-action.html', { resourceType: 'f' }));
+            strictEqual(processedAnchorHref, urlUtils.getProxyUrl('http://localhost/anchor-action.html'));
+            strictEqual(processedFormAction, urlUtils.getProxyUrl('http://localhost/form-action.html', { resourceType: 'f' }));
 
             // NOTE: These tags shouldn't be reprocessed on the client side
             // because they are already processed on the server
-            var nonProcessedLinkHrefUrl   = iframe.contentDocument.querySelector('#non-processed-link').href;
-            var nonProcessedFormActionUrl = iframe.contentDocument.querySelector('#non-processed-form').action;
+            var nonProcessedAnchor     = iframe.contentDocument.querySelector('#non-processed-anchor');
+            var nonProcessedForm       = iframe.contentDocument.querySelector('#non-processed-form');
+            var nonProcessedAnchorHref = nativeMethods.anchorHrefGetter.call(nonProcessedAnchor);
+            var nonProcessedFormAction = nonProcessedForm.action;
 
-            strictEqual(nonProcessedLinkHrefUrl, 'http://localhost/link-action.html');
-            strictEqual(nonProcessedFormActionUrl, 'http://localhost/form-action.html');
+            strictEqual(nonProcessedAnchorHref, 'http://localhost/anchor-action.html');
+            strictEqual(nonProcessedFormAction, 'http://localhost/form-action.html');
         });
 });
 

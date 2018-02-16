@@ -26,7 +26,7 @@ export function setAnchorProperty (el, nativePropSetter, value) {
 
         nativeMethods.anchorHrefSetter.call(anchor, parsedProxyUrl ? parsedProxyUrl.destUrl : href);
         nativePropSetter.call(anchor, value);
-        el.setAttribute('href', nativeMethods.anchorHrefGetter.call(el));
+        el.setAttribute('href', nativeMethods.anchorHrefGetter.call(anchor));
     }
 
     return value;

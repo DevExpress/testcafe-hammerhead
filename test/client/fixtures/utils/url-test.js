@@ -382,26 +382,23 @@ module('change proxy url');
 
 test('destination URL part', function () {
     var proxyUrl = 'http://localhost:1337/sessionId/http://test.example.com:53/#testHash';
-    var changed  = urlUtils.changeDestUrlPart(proxyUrl, 'port', '34');
+    var changed  = urlUtils.changeDestUrlPart(proxyUrl, nativeMethods.anchorPortSetter, '34');
 
     strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:34/#testHash');
 
-    changed = urlUtils.changeDestUrlPart(proxyUrl, 'host', 'newhost:99');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, nativeMethods.anchorHostSetter, 'newhost:99');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://newhost:99/#testHash');
 
-    changed = urlUtils.changeDestUrlPart(proxyUrl, 'hostname', 'newhostname');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, nativeMethods.anchorHostnameSetter, 'newhostname');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://newhostname:53/#testHash');
 
-    changed = urlUtils.changeDestUrlPart(proxyUrl, 'protocol', 'https:');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, nativeMethods.anchorProtocolSetter, 'https:');
     strictEqual(changed, 'http://localhost:1337/sessionId/https://test.example.com:53/#testHash');
 
-    changed = urlUtils.changeDestUrlPart(proxyUrl, 'pathname', 'test1.html');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, nativeMethods.anchorPathnameSetter, 'test1.html');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/test1.html#testHash');
 
-    changed = urlUtils.changeDestUrlPart(proxyUrl, 'hash', 'newHash');
-    strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/#newHash');
-
-    changed = urlUtils.changeDestUrlPart(proxyUrl, 'search', '?hl=ru&tab=wn');
+    changed = urlUtils.changeDestUrlPart(proxyUrl, nativeMethods.anchorSearchSetter, '?hl=ru&tab=wn');
     strictEqual(changed, 'http://localhost:1337/sessionId/http://test.example.com:53/?hl=ru&tab=wn#testHash');
 });
 
@@ -461,11 +458,11 @@ test('recreating a document with the "base" tag (GH-371)', function () {
     return createTestIframe({ src: src })
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
-            var link           = iframeDocument.getElementsByTagName('a')[0];
+            var anchor         = iframeDocument.getElementsByTagName('a')[0];
             var proxyUrl       = 'http://' + location.hostname + ':' + location.port +
                                  '/sessionId!i/http://subdomain.example.com/index.html';
 
-            strictEqual(link.href, proxyUrl);
+            strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
         });
 });
 
@@ -505,13 +502,15 @@ test('resolving url after writing the "base" tag (GH-526)', function () {
 
     return createTestIframe({ src: src })
         .then(function (iframe) {
-            strictEqual(iframe.contentDocument.querySelector('a').href,
-                urlUtils.getProxyUrl('http://example.com/relative', {
-                    proxyHostname: location.hostname,
-                    proxyPort:     location.port,
-                    sessionId:     'sessionId',
-                    resourceType:  'i'
-                }));
+            var anchor   = iframe.contentDocument.querySelector('a');
+            var proxyUrl = urlUtils.getProxyUrl('http://example.com/relative', {
+                proxyHostname: location.hostname,
+                proxyPort:     location.port,
+                sessionId:     'sessionId',
+                resourceType:  'i'
+            });
+
+            strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
         });
 });
 
@@ -568,7 +567,7 @@ test('only first base tag should be affected', function () {
         nativeAnchor.setAttribute('href', 'path');
         proxiedAnchor.setAttribute('href', 'path');
 
-        strictEqual(urlUtils.parseProxyUrl(proxiedAnchor.href).destUrl, nativeAnchor.href, name);
+        strictEqual(urlUtils.parseProxyUrl(nativeMethods.anchorHrefGetter.call(proxiedAnchor)).destUrl, nativeAnchor.href, name);
     }
 
     return createTestIframe()

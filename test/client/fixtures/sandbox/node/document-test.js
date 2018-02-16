@@ -115,28 +115,28 @@ if (!browserUtils.isFirefox) {
 module('querySelector, querySelectorAll (GH-340)');
 
 test('quote types in attribute selectors', function () {
-    var link = document.createElement('a');
+    var anchor = document.createElement('a');
 
-    link.setAttribute('href', 'http://some.domain.com');
-    document.body.appendChild(link);
+    anchor.setAttribute('href', 'http://some.domain.com');
+    document.body.appendChild(anchor);
 
     ok(document.querySelector('[href="http://some.domain.com"]'));
     ok(document.querySelector("[href='http://some.domain.com']"));
 
-    link.parentNode.removeChild(link);
+    anchor.parentNode.removeChild(anchor);
 });
 
 test('non-processed attributes', function () {
-    var link = document.createElement('a');
+    var anchor = document.createElement('a');
 
-    link.setAttribute('data-info', 'external link');
-    link.setAttribute('hreflang', 'ru-RU');
-    document.body.appendChild(link);
+    anchor.setAttribute('data-info', 'external anchor');
+    anchor.setAttribute('hreflang', 'ru-RU');
+    document.body.appendChild(anchor);
 
     ok(document.querySelector('[data-info~=external]'));
     ok(document.querySelector('[hreflang|=ru]'));
 
-    link.parentNode.removeChild(link);
+    anchor.parentNode.removeChild(anchor);
 });
 
 //http://www.w3.org/TR/css3-selectors/#attribute-selectors
@@ -206,14 +206,14 @@ test('non-added to DOM', function () {
 });
 
 test('javascript protocol', function () {
-    var link = document.createElement('a');
+    var anchor = document.createElement('a');
 
-    link.setAttribute('href', 'javascript:performCommand(cmd);');
-    document.body.appendChild(link);
+    anchor.setAttribute('href', 'javascript:performCommand(cmd);');
+    document.body.appendChild(anchor);
 
     ok(document.querySelector('[href="javascript:performCommand(cmd);"]'));
 
-    link.parentNode.removeChild(link);
+    anchor.parentNode.removeChild(anchor);
 });
 
 test('complex selector', function () {
