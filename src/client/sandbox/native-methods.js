@@ -263,6 +263,12 @@ class NativeMethods {
         if (anchorOriginDescriptor)
             this.anchorOriginGetter = anchorOriginDescriptor.get;
 
+        const cssStyleSheetHrefDescriptor = win.Object.getOwnPropertyDescriptor(win.CSSStyleSheet.prototype, 'href');
+
+        // NOTE: only for IE11
+        if (cssStyleSheetHrefDescriptor)
+            this.cssStyleSheetHrefGetter = cssStyleSheetHrefDescriptor.get;
+
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later
         // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceEntry

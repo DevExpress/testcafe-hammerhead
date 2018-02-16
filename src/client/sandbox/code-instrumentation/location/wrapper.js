@@ -51,7 +51,9 @@ export default class LocationWrapper extends EventEmitter {
 
             nativeMethods.anchorHrefSetter.call(resolveElement, locationUrl);
 
-            return ensureTrailingSlash(nativeMethods.anchorHrefGetter.call(resolveElement), locationUrl);
+            const href = nativeMethods.anchorHrefGetter.call(resolveElement);
+
+            return ensureTrailingSlash(href, locationUrl);
         };
         const getProxiedHref = href => {
             if (isJsProtocol(href))

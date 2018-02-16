@@ -694,6 +694,15 @@ export default class WindowSandbox extends SandboxBase {
             return parsedUrl ? parsedUrl.destUrl : href;
         });
 
+        if (nativeMethods.cssStyleSheetHrefGetter) {
+            overrideDescriptor(window.CSSStyleSheet.prototype, 'href', function () {
+                const href      = nativeMethods.cssStyleSheetHrefGetter.call(this);
+                const parsedUrl = parseProxyUrl(href);
+
+                return parsedUrl ? parsedUrl.destUrl : href;
+            });
+        }
+
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
                 if (args.length > 1 && typeof args[0] === 'string' && args[1] === 'text/html')

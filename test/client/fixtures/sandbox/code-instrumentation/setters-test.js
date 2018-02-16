@@ -62,6 +62,7 @@ test('anchor', function () {
     emptyAnchor.port = '8080';
     nativeMethods.anchorPortSetter.call(etalonEmptyAnchor, '8080');
     strictEqual(emptyAnchor.port, nativeMethods.anchorPortGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Host
     anchor.host = 'yandex.com:1234';
@@ -71,6 +72,7 @@ test('anchor', function () {
     emptyAnchor.host = 'yandex.com:1234';
     nativeMethods.anchorHostSetter.call(etalonEmptyAnchor, 'yandex.com:1234');
     strictEqual(emptyAnchor.host, nativeMethods.anchorHostGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Hostname
     anchor.hostname = 'yandex.ru';
@@ -80,15 +82,18 @@ test('anchor', function () {
     emptyAnchor.hostname = 'yandex.ru';
     nativeMethods.anchorHostnameSetter.call(etalonEmptyAnchor, 'yandex.ru');
     strictEqual(emptyAnchor.hostname, nativeMethods.anchorHostnameGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Protocol
     anchor.protocol = 'http:';
     nativeMethods.anchorProtocolSetter.call(etalonAnchor, 'http:');
     strictEqual(anchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     emptyAnchor.protocol = 'https:';
     nativeMethods.anchorProtocolSetter.call(etalonEmptyAnchor, 'https:');
     strictEqual(emptyAnchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Pathname
     var newPathName = nativeMethods.anchorPathnameGetter.call(etalonAnchor) + '/index.php';
@@ -100,17 +105,7 @@ test('anchor', function () {
     emptyAnchor.pathname = 'temp/index.php'; // TODO: iOS!!!
     nativeMethods.anchorPathnameSetter.call(etalonEmptyAnchor, 'temp/index.php');
     strictEqual(emptyAnchor.pathname, nativeMethods.anchorPathnameGetter.call(etalonEmptyAnchor));
-
-    // Origin
-    if (nativeMethods.anchorOriginGetter) {
-        anchor.origin       = 'http://yandex.ru:2000';
-        etalonAnchor.origin = 'http://yandex.ru:2000';
-        strictEqual(anchor.origin, nativeMethods.anchorOriginGetter.call(etalonAnchor));
-
-        emptyAnchor.origin       = 'http://yandex.ru:2000';
-        etalonEmptyAnchor.origin = 'http://yandex.ru:2000';
-        strictEqual(emptyAnchor.origin, nativeMethods.anchorOriginGetter.call(etalonEmptyAnchor));
-    }
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Search
     anchor.search = '?test=temp';
@@ -120,6 +115,7 @@ test('anchor', function () {
     emptyAnchor.search = '?test=temp';
     nativeMethods.anchorSearchSetter.call(etalonEmptyAnchor, '?test=temp');
     strictEqual(emptyAnchor.search, nativeMethods.anchorSearchGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
 
     nativeMethods.anchorHrefSetter.call(anchorWithNotSupportedProtocol, 'javascript:;');
