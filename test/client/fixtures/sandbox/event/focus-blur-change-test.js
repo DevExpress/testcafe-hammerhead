@@ -261,6 +261,22 @@ asyncTest('without handlers', function () {
     testFocusing(0, startNext);
 });
 
+asyncTest('onfocus() must not be called on disabled input', function () {
+    var focused = false;
+    var onfocus = function () {
+        focused = true;
+    };
+
+    input1.onfocus  = onfocus;
+    input1.disabled = true;
+    focusBlur.focus(input1);
+    setDoubleTimeout()
+        .then(function () {
+            ok(!focused);
+            startNext();
+        });
+});
+
 asyncTest('ontype handlers', function () {
     var unbindHandlersAndTest = function () {
         input1.onfocus = null;

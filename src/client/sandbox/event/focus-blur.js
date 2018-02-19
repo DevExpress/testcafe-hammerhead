@@ -233,6 +233,9 @@ export default class FocusBlurSandbox extends SandboxBase {
     }
 
     focus (el, callback, silent, forMouseEvent, isNativeFocus, preventScrolling) {
+        if (el.disabled)
+            return null;
+
         if (this.shouldDisableOuterFocusHandlers && !domUtils.isShadowUIElement(el))
             return null;
 
