@@ -261,7 +261,7 @@ asyncTest('without handlers', function () {
     testFocusing(0, startNext);
 });
 
-asyncTest('onfocus() must not be called on disabled input', function () {
+asyncTest('disabled element', function () {
     var focused = false;
     var onfocus = function () {
         focused = true;
