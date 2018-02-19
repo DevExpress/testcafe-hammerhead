@@ -24,9 +24,9 @@ export default class FocusBlurSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, messageSandbox, shadowUI, timersSandbox, elementEditingWatcher) {
         super();
 
-        this.topWindow                       = null;
-        this.lastFocusedElement              = null;
-        this.scrollState                     = {};
+        this.topWindow          = null;
+        this.lastFocusedElement = null;
+        this.scrollState        = {};
 
         this.eventSimulator        = eventSimulator;
         this.activeWindowTracker   = new ActiveWindowTracker(messageSandbox);
