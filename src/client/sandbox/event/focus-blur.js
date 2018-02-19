@@ -24,7 +24,6 @@ export default class FocusBlurSandbox extends SandboxBase {
     constructor (listeners, eventSimulator, messageSandbox, shadowUI, timersSandbox, elementEditingWatcher) {
         super();
 
-        this.shouldDisableOuterFocusHandlers = false;
         this.topWindow                       = null;
         this.lastFocusedElement              = null;
         this.scrollState                     = {};
@@ -234,9 +233,6 @@ export default class FocusBlurSandbox extends SandboxBase {
 
     focus (el, callback, silent, forMouseEvent, isNativeFocus, preventScrolling) {
         if (el.disabled)
-            return null;
-
-        if (this.shouldDisableOuterFocusHandlers && !domUtils.isShadowUIElement(el))
             return null;
 
         // NOTE: el.focus() does not raise the event if the element is invisible. If the element is located
