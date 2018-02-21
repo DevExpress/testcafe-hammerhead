@@ -67,6 +67,10 @@ export default {
         if (parent.type === Syntax.RestElement)
             return false;
 
+        // Skip: typeof localStorage !== 'undefined'
+        if (parent.type === Syntax.UnaryExpression && parent.operator === 'typeof')
+            return false;
+
         return true;
     },
 
