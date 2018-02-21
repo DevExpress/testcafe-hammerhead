@@ -90,10 +90,12 @@ test('anchor', function () {
     strictEqual(anchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonAnchor));
     nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
-    emptyAnchor.protocol = 'https:';
-    nativeMethods.anchorProtocolSetter.call(etalonEmptyAnchor, 'https:');
-    strictEqual(emptyAnchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonEmptyAnchor));
-    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
+    if (!browserUtils.isSafari) {
+        emptyAnchor.protocol = 'https:';
+        nativeMethods.anchorProtocolSetter.call(etalonEmptyAnchor, 'https:');
+        strictEqual(emptyAnchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonEmptyAnchor));
+        nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
+    }
 
     // Pathname
     var newPathName = nativeMethods.anchorPathnameGetter.call(etalonAnchor) + '/index.php';
