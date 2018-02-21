@@ -256,11 +256,13 @@ export default class RequestPipelineContext {
     }
 
     toProxyUrl (url, isCrossDomain, resourceType, charset) {
+        const proxyProtocol = this.serverInfo.protocol;
         const proxyHostname = this.serverInfo.hostname;
         const proxyPort     = isCrossDomain ? this.serverInfo.crossDomainPort : this.serverInfo.port;
         const sessionId     = this.session.id;
 
         return urlUtils.getProxyUrl(url, {
+            proxyProtocol,
             proxyHostname,
             proxyPort,
             sessionId,
