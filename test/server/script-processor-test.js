@@ -783,6 +783,10 @@ describe('Script processor', () => {
             {
                 src:      'function x(param=localStorage){}',
                 expected: 'function x(param=__get$Storage(localStorage)){}'
+            },
+            {
+                src:      'if (typeof localStorage !== "undefined") {}',
+                expected: 'if (typeof localStorage !== "undefined") {}'
             }
         ]);
     });
