@@ -1,13 +1,5 @@
 var urlUtils = hammerhead.get('./utils/url');
 
-var accessors = hammerhead.sandbox.codeInstrumentation.elementPropertyAccessors;
-
-test('is anchor instance', function () {
-    var anchor = document.createElement('a');
-
-    ok(accessors.protocol.condition(anchor));
-});
-
 test('is document instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeDoc          = {

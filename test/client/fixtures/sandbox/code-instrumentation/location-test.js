@@ -7,6 +7,7 @@ var destLocation            = hammerhead.get('./utils/destination-location');
 var urlResolver             = hammerhead.get('./utils/url-resolver');
 
 var Promise       = hammerhead.Promise;
+var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 
@@ -14,12 +15,12 @@ test('iframe with empty src', function () {
     function assert (iframe) {
         new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
-        var hyperlink = iframe.contentDocument.createElement('a');
+        var anchor = iframe.contentDocument.createElement('a');
 
-        hyperlink.setAttribute('href', '/test');
-        iframe.contentDocument.body.appendChild(hyperlink);
+        anchor.setAttribute('href', '/test');
+        iframe.contentDocument.body.appendChild(anchor);
 
-        strictEqual(eval(processScript('hyperlink.href')), 'https://example.com/test');
+        strictEqual(anchor.href, 'https://example.com/test');
         strictEqual(eval(processScript('iframe.contentDocument.location.href')), 'about:blank');
     }
 
@@ -42,12 +43,12 @@ if (browserUtils.isWebKit) {
             .then(function (iframe) {
                 new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
 
-                var hyperlink = iframe.contentDocument.createElement('a');
+                var anchor = iframe.contentDocument.createElement('a');
 
-                hyperlink.setAttribute('href', '/test');
-                iframe.contentDocument.body.appendChild(hyperlink);
+                anchor.setAttribute('href', '/test');
+                iframe.contentDocument.body.appendChild(anchor);
 
-                strictEqual(eval(processScript('hyperlink.href')), 'https://example.com/test');
+                strictEqual(anchor.href, 'https://example.com/test');
                 strictEqual(eval(processScript('iframe.contentDocument.location.href')), 'about:blank');
             });
     });
@@ -278,17 +279,16 @@ test('emulate a native browser behaviour related with trailing slashes for locat
 
     var overrideGetResolverElement = function (resolvedHref) {
         urlResolver.getResolverElement = function () {
-            var obj = {};
+            var storedAnchorHrefGetter = nativeMethods.anchorHrefGetter;
+            var anchor = document.createElement('a');
 
-            Object.defineProperty(obj, 'href', {
-                get: function () {
-                    return resolvedHref;
-                },
-                set: function () {
-                }
-            });
+            nativeMethods.anchorHrefGetter = function () {
+                nativeMethods.anchorHrefGetter = storedAnchorHrefGetter;
 
-            return obj;
+                return resolvedHref;
+            };
+
+            return anchor;
         };
     };
 
@@ -318,6 +318,6 @@ test('set location with "javascript:" protocol', function () {
             });
         })
         .then(function (iframe) {
-            strictEqual(iframe.contentDocument.body.firstChild.href, urlUtils.getProxyUrl('/some', { resourceType: 'i' }));
+            strictEqual(nativeMethods.anchorHrefGetter.call(iframe.contentDocument.body.firstChild), urlUtils.getProxyUrl('/some', { resourceType: 'i' }));
         });
 });

@@ -1,3 +1,4 @@
+var nativeMethods    = hammerhead.nativeMethods;
 var browserUtils     = hammerhead.utils.browser;
 var eventUtils       = hammerhead.utils.event;
 var featureDetection = hammerhead.utils.featureDetection;
@@ -380,15 +381,15 @@ else {
 }
 
 test('drag and drop events', function () {
-    var link  = document.createElement('a');
-    var input = document.createElement('input');
+    var anchor = document.createElement('a');
+    var input  = document.createElement('input');
 
-    link.href = 'http://example.com';
-    link.id   = 'link';
-    link.setAttribute('draggable', true);
-    input.id = 'input';
+    nativeMethods.anchorHrefSetter.call(anchor, 'http://example.com');
+    anchor.setAttribute('draggable', true);
+    anchor.id = 'link';
+    input.id  = 'input';
 
-    document.body.appendChild(link);
+    document.body.appendChild(anchor);
     document.body.appendChild(input);
 
     var eventLog     = [];
@@ -406,17 +407,17 @@ test('drag and drop events', function () {
         var ev = tracedEvents[i];
 
         document.addEventListener(ev, dragEventListener);
-        link.addEventListener(ev, dragEventListener);
+        anchor.addEventListener(ev, dragEventListener);
         input.addEventListener(ev, dragEventListener);
     }
 
-    eventSimulator.dragstart(link, { dataTransfer: dataTransfer });
-    eventSimulator.drag(link, { dataTransfer: dataTransfer });
-    eventSimulator.dragenter(link, { dataTransfer: dataTransfer });
-    eventSimulator.dragover(link, { dataTransfer: dataTransfer });
-    eventSimulator.dragleave(link, { dataTransfer: dataTransfer });
+    eventSimulator.dragstart(anchor, { dataTransfer: dataTransfer });
+    eventSimulator.drag(anchor, { dataTransfer: dataTransfer });
+    eventSimulator.dragenter(anchor, { dataTransfer: dataTransfer });
+    eventSimulator.dragover(anchor, { dataTransfer: dataTransfer });
+    eventSimulator.dragleave(anchor, { dataTransfer: dataTransfer });
     eventSimulator.drop(input, { dataTransfer: dataTransfer });
-    eventSimulator.dragend(link, { dataTransfer: dataTransfer });
+    eventSimulator.dragend(anchor, { dataTransfer: dataTransfer });
 
     var expectedEvents = [
         'dragstart-link',
@@ -437,7 +438,7 @@ test('drag and drop events', function () {
 
     strictEqual(eventLog.join('\n'), expectedEvents.join('\n'));
 
-    document.body.removeChild(link);
+    document.body.removeChild(anchor);
     document.body.removeChild(input);
 });
 

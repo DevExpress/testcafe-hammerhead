@@ -41,15 +41,19 @@ export default class LocationWrapper extends EventEmitter {
             isForm:   parsedResourceType.isForm
         });
         const getHref        = () => {
+            /*eslint-disable no-restricted-properties*/
             if (window !== window.top && window.location.href === 'about:blank')
                 return 'about:blank';
+            /*eslint-enable no-restricted-properties*/
 
             const locationUrl    = getDestLocation();
             const resolveElement = urlResolver.getResolverElement(window.document);
 
-            resolveElement.href = locationUrl;
+            nativeMethods.anchorHrefSetter.call(resolveElement, locationUrl);
 
-            return ensureTrailingSlash(resolveElement.href, locationUrl);
+            const href = nativeMethods.anchorHrefGetter.call(resolveElement);
+
+            return ensureTrailingSlash(href, locationUrl);
         };
         const getProxiedHref = href => {
             if (isJsProtocol(href))
@@ -64,7 +68,9 @@ export default class LocationWrapper extends EventEmitter {
                 const parsedParentLocationUrl = parseProxyUrl(parentLocationUrl);
 
                 if (parsedParentLocationUrl && parsedParentLocationUrl.proxy) {
+                    /*eslint-disable no-restricted-properties*/
                     const parentProxyPort = parsedParentLocationUrl.proxy.port;
+                    /*eslint-enable no-restricted-properties*/
 
                     proxyPort = sameOriginCheck(parentLocationUrl, href)
                         ? parentProxyPort
@@ -77,14 +83,16 @@ export default class LocationWrapper extends EventEmitter {
 
             return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
         };
-        const urlProps       = ['port', 'host', 'hostname', 'pathname', 'protocol'];
 
         nativeMethods.objectDefineProperty.call(window.Object, this, 'href', createPropertyDesc({
             get: getHref,
             set: href => {
                 const proxiedHref = getProxiedHref(href);
 
+                /*eslint-disable no-restricted-properties*/
                 window.location.href = proxiedHref;
+                /*eslint-enable no-restricted-properties*/
+
                 onChanged(proxiedHref);
 
                 return href;
@@ -92,9 +100,12 @@ export default class LocationWrapper extends EventEmitter {
         }));
 
         nativeMethods.objectDefineProperty.call(window.Object, this, 'search', createPropertyDesc({
+            /*eslint-disable no-restricted-properties*/
             get: () => window.location.search,
+            /*eslint-enable no-restricted-properties*/
+
             set: search => {
-                const newLocation = changeDestUrlPart(window.location.toString(), 'search', search, resourceType);
+                const newLocation = changeDestUrlPart(window.location.toString(), nativeMethods.anchorSearchSetter, search, resourceType);
 
                 window.location = newLocation;
                 onChanged(newLocation);
@@ -117,11 +128,11 @@ export default class LocationWrapper extends EventEmitter {
             }
         }));
 
-        const overrideProperty = property => {
+        const overrideProperty = (property, nativePropSetter) => {
             nativeMethods.objectDefineProperty.call(window.Object, this, property, createPropertyDesc({
                 get: () => getParsedDestLocation()[property],
                 set: value => {
-                    const newLocation = changeDestUrlPart(window.location.toString(), property, value, resourceType);
+                    const newLocation = changeDestUrlPart(window.location.toString(), nativePropSetter, value, resourceType);
 
                     window.location = newLocation;
                     onChanged(newLocation);
@@ -131,8 +142,11 @@ export default class LocationWrapper extends EventEmitter {
             }));
         };
 
-        for (const urlProp of urlProps)
-            overrideProperty(urlProp);
+        overrideProperty('port', nativeMethods.anchorPortSetter);
+        overrideProperty('host', nativeMethods.anchorHostSetter);
+        overrideProperty('hostname', nativeMethods.anchorHostnameSetter);
+        overrideProperty('pathname', nativeMethods.anchorPathnameSetter);
+        overrideProperty('protocol', nativeMethods.anchorProtocolSetter);
 
         this.assign = url => {
             const proxiedHref = getProxiedHref(url);

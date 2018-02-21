@@ -147,8 +147,9 @@ test('head.children', function () {
     var link1 = document.createElement('link');
 
     link1.rel  = 'stylesheet';
-    link1.href = '/test.css';
     link1.type = 'text/css';
+
+    nativeMethods.linkHrefSetter.call(link1, '/test.css');
 
     shadowUI.addClass(link1, 'ui-stylesheet');
     document.head.insertBefore(link1, document.head.firstChild);
@@ -156,14 +157,15 @@ test('head.children', function () {
     var link2 = document.createElement('link');
 
     link2.rel  = 'stylesheet';
-    link2.href = '/test.css';
     link2.type = 'text/css';
+
+    nativeMethods.linkHrefSetter.call(link2, '/test.css');
 
     shadowUI.addClass(link2, 'ui-stylesheet');
     document.head.insertBefore(link2, document.head.firstChild);
 
     var children       = document.head.children;
-    var childrenLength = eval(processScript('children.length'));
+    var childrenLength = children.length;
 
     childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.head.children);
 
@@ -191,8 +193,9 @@ test('head.childNodes', function () {
     var link1 = document.createElement('link');
 
     link1.rel  = 'stylesheet';
-    link1.href = '/test.css';
     link1.type = 'text/css';
+
+    nativeMethods.linkHrefSetter.call(link1, '/test.css');
 
     shadowUI.addClass(link1, 'ui-stylesheet');
     document.head.insertBefore(link1, document.head.firstChild);
@@ -200,8 +203,9 @@ test('head.childNodes', function () {
     var link2 = document.createElement('link');
 
     link2.rel  = 'stylesheet';
-    link2.href = '/test.css';
     link2.type = 'text/css';
+
+    nativeMethods.linkHrefSetter.call(link2, '/test.css');
 
     shadowUI.addClass(link2, 'ui-stylesheet');
     document.head.insertBefore(link2, document.head.firstChild);
@@ -365,8 +369,9 @@ test('head.getElementsByTagName', function () {
     var link  = document.createElement('link');
 
     link.rel  = 'stylesheet';
-    link.href = '/test.css';
     link.type = 'text/css';
+
+    nativeMethods.linkHrefSetter.call(link, '/test.css');
 
     shadowUI.addClass(link, 'ui-stylesheet');
     document.head.appendChild(link);

@@ -68,8 +68,9 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookie.httponly)
             return false;
 
-        const parsedDestLocation = destLocation.getParsed();
-        const destProtocol       = parsedDestLocation.protocol;
+        /*eslint-disable no-restricted-properties*/
+        const destProtocol = destLocation.getParsed().protocol;
+        /*eslint-enable no-restricted-properties*/
 
         // NOTE: Hammerhead tunnels HTTPS requests via HTTP, so we need to validate the Secure attribute manually.
         if (parsedCookie.secure && destProtocol !== 'https:')
@@ -117,8 +118,10 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     setCookie (document, value, syncWithServer) {
+        /*eslint-disable no-restricted-properties*/
         if (value.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:')
             return value;
+        /*eslint-enable no-restricted-properties*/
 
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
@@ -150,7 +153,10 @@ export default class CookieSandbox extends SandboxBase {
             // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
             this.cookieSync.perform({
                 cookie: value,
-                url:    document.location.href
+
+                /*eslint-disable no-restricted-properties*/
+                url: document.location.href
+                /*eslint-enable no-restricted-properties*/
             });
         }
 

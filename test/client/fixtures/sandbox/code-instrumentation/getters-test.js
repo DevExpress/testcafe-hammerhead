@@ -172,8 +172,7 @@ test('CSSStyleSheet.href', function () {
         return { destUrl: 'expected-url' };
     };
 
-    strictEqual(getProperty(styleSheet, 'href'), 'expected-url');
-    strictEqual(setProperty(styleSheet, 'href', 'http://some.domain.com/style.css'), 'http://some.domain.com/style.css');
+    strictEqual(styleSheet.href, 'expected-url');
 
     urlUtils.parseProxyUrl = storedGetProxyUrl;
 });
@@ -331,18 +330,20 @@ test('HTMLElement.style', function () {
 module('regression');
 
 test('changing the link.href property must affect the stored attribute value (T123960)', function () {
-    var link     = $('<a>')[0];
+    var anchor   = document.createElement('a');
     var url      = '/path?param=value';
     var proxyUrl = urlUtils.getProxyUrl(url);
 
-    setProperty(link, 'href', url);
-    strictEqual(link.href, proxyUrl);
-    strictEqual(getProperty(link, 'href'), urlUtils.parseProxyUrl(proxyUrl).destUrl);
+    anchor.href = url;
 
-    eval(processScript('link.pathname="newPath"'));
-    ok(/newPath$/.test(getProperty(link, 'pathname')));
-    strictEqual(link.href, urlUtils.getProxyUrl('/newPath?param=value'));
-    ok(/\/newPath\?param=value$/.test(getProperty(link, 'href')));
+    strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
+    strictEqual(anchor.href, urlUtils.parseProxyUrl(proxyUrl).destUrl);
+
+    anchor.pathname = 'newPath';
+
+    ok(/newPath$/.test(anchor.pathname));
+    strictEqual(nativeMethods.anchorHrefGetter.call(anchor), urlUtils.getProxyUrl('/newPath?param=value'));
+    ok(/\/newPath\?param=value$/.test(anchor.href));
 });
 
 test('get script body (T296958) (GH-183)', function () {
@@ -366,14 +367,15 @@ test('get script body (T296958) (GH-183)', function () {
 
 test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
     var storedBind = Function.prototype.bind;
-    var a          = document.createElement('a');
+    var anchor          = document.createElement('a');
     var withError  = false;
 
-    a.href = 'test';
+    nativeMethods.anchorHrefSetter.call(anchor, 'test');
+
     delete Function.prototype.bind;
 
     try {
-        var attrs = attributesProperty.getAttributesProperty(a);
+        var attrs = attributesProperty.getAttributesProperty(anchor);
 
         strictEqual(attrs.getNamedItem('href').value, 'test');
     }
@@ -399,8 +401,8 @@ test('script.innerHtml must be cleaned up (T226885)', function () {
 });
 
 test('should not create proxy url for invalid url (GH-778)', function () {
-    var link       = document.createElement('a');
-    var nativeLink = nativeMethods.createElement.call(document, 'a');
+    var anchor       = document.createElement('a');
+    var nativeAnchor = nativeMethods.createElement.call(document, 'a');
 
     var testCases = [
         {
@@ -426,10 +428,10 @@ test('should not create proxy url for invalid url (GH-778)', function () {
         if (browserUtils.isIE && testCases[i].skipForIE)
             continue;
 
-        var linkVal       = link.setAttribute('href', testCases[i]);
-        var nativeLinkVal = nativeLink.setAttribute('href', testCases[i]);
+        var anchorValue       = anchor.setAttribute('href', testCases[i]);
+        var nativeAnchorValue = nativeAnchor.setAttribute('href', testCases[i]);
 
-        strictEqual(linkVal, nativeLinkVal);
+        strictEqual(anchorValue, nativeAnchorValue);
     }
 });
 

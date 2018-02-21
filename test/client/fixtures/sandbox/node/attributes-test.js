@@ -116,8 +116,6 @@ test('url', function () {
     };
 
     var testData = [
-        { tagName: 'a', attr: 'href' },
-        { tagName: 'link', attr: 'href' },
         { tagName: 'form', attr: 'action' },
         { tagName: 'input', attr: 'formAction' },
         { tagName: 'button', attr: 'formAction' }
@@ -194,7 +192,9 @@ test('url attributes overridden by descriptor', function () {
     var testData = [
         { tagName: 'object', attr: 'data', getter: nativeMethods.objectDataGetter },
         { tagName: 'script', attr: 'src', getter: nativeMethods.scriptSrcGetter },
-        { tagName: 'embed', attr: 'src', getter: nativeMethods.embedSrcGetter }
+        { tagName: 'embed', attr: 'src', getter: nativeMethods.embedSrcGetter },
+        { tagName: 'a', attr: 'href', getter: nativeMethods.anchorHrefGetter },
+        { tagName: 'link', attr: 'href', getter: nativeMethods.linkHrefGetter }
     ];
 
     for (var i = 0; i < testData.length; i++)
@@ -315,18 +315,18 @@ test('event - javascript protocol', function () {
 });
 
 test('url - javascript: protocol', function () {
-    var link      = document.createElement('a');
+    var anchor    = document.createElement('a');
     var hrefValue = 'javascript:location.href="managers.aspx?Delete=814";';
 
-    link.setAttribute('href', hrefValue);
+    anchor.setAttribute('href', hrefValue);
 
-    var href       = nativeMethods.getAttribute.call(link, 'href');
-    var storedHref = nativeMethods.getAttribute.call(link, DomProcessor.getStoredAttrName('href'));
+    var href       = nativeMethods.getAttribute.call(anchor, 'href');
+    var storedHref = nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href'));
 
     notEqual(href, storedHref);
     strictEqual(storedHref, hrefValue);
     strictEqual(href, 'javascript:' + processScript(hrefValue.replace('javascript:', ''), false, true));
-    strictEqual(link.getAttribute('href'), hrefValue);
+    strictEqual(anchor.getAttribute('href'), hrefValue);
 });
 
 test('iframe', function () {

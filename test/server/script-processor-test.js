@@ -190,15 +190,11 @@ describe('Script processor', () => {
             { src: 'var loc = location', expected: 'var loc = __get$Loc(location)' },
             { src: 'location ? true : false', expected: '__get$Loc(location) ? true : false' },
             { src: 'location + ""', expected: '__get$Loc(location) + ""' },
-            { src: 'location.hostname', expected: '__get$(__get$Loc(location), "hostname")' },
-            { src: 'location["hostname"]', expected: '__get$(__get$Loc(location), "hostname")' },
             { src: 'location[hostname]', expected: '__get$(__get$Loc(location), hostname)' },
             { src: 'location.href', expected: '__get$(__get$Loc(location), "href")' },
             { src: 'var func = function(location){}', expected: 'var func = function(location){}' },
             { src: 'function func(location){}', expected: 'function func(location){}' },
             { src: 'location[someProperty]', expected: '__get$(__get$Loc(location), someProperty)' },
-            { src: 'location.host.toString()', expected: '__get$(__get$Loc(location), "host").toString()' },
-            { src: 'location[host].toString()', expected: '__get$(__get$Loc(location), host).toString()' },
             {
                 src:      'obj.location = location = value;',
                 expected: '__set$(obj, "location", function(){return __set$Loc(location,value)||(location=value);}.call(this));'
@@ -232,20 +228,8 @@ describe('Script processor', () => {
                           '(location=__get$Loc(location)+(__get$Loc(location)+value));}.call(this)'
             },
             {
-                src:      'location.hostname+=value',
-                expected: '__set$(__get$Loc(location), "hostname", __get$(__get$Loc(location), "hostname") + value)'
-            },
-            {
                 src:      'location.href+=value',
                 expected: '__set$(__get$Loc(location), "href", __get$(__get$Loc(location), "href") + value)'
-            },
-            {
-                src:      'location[hostname]+=value',
-                expected: '__set$(__get$Loc(location), hostname, __get$(__get$Loc(location), hostname) + value)'
-            },
-            {
-                src:      'location["hostname"]+=value',
-                expected: '__set$(__get$Loc(location), "hostname", __get$(__get$Loc(location), "hostname") + value)'
             },
             {
                 src:      'location["href"]+=value',

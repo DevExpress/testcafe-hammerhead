@@ -41,23 +41,26 @@ export default {
 
     resolve (url, doc) {
         const resolver = this.getResolverElement(doc);
+        let href       = null;
 
         if (url === null)
             nativeMethods.removeAttribute.call(resolver, 'href');
         else {
-            resolver.href = url;
+            nativeMethods.anchorHrefSetter.call(resolver, url);
+
+            href = nativeMethods.anchorHrefGetter.call(resolver);
 
             // NOTE: It looks like a Chrome bug: in a nested iframe without src (when an iframe is placed into another
             // iframe) you cannot set a relative link href while the iframe loading is not completed. So, we'll do it with
             // the parent's urlResolver Safari demonstrates similar behavior, but urlResolver.href has a relative URL value.
             const needUseParentResolver = url && isIframeWithoutSrc && window.parent && window.parent.document &&
-                                          (!resolver.href || resolver.href.indexOf('/') === 0);
+                                          (!href || href.indexOf('/') === 0);
 
             if (needUseParentResolver)
                 return this.resolve(url, window.parent.document);
         }
 
-        return ensureTrailingSlash(url, resolver.href);
+        return ensureTrailingSlash(url, href);
     },
 
     updateBase (url, doc) {
@@ -66,9 +69,11 @@ export default {
 
         url = url || destLocation.get();
 
+        /*eslint-disable no-restricted-properties*/
         const parsedUrl             = parseUrl(url);
         const isRelativeUrl         = parsedUrl.protocol !== 'file:' && !parsedUrl.host;
         const isProtocolRelativeUrl = /^\/\//.test(url) && !!parsedUrl.host;
+        /*eslint-enable no-restricted-properties*/
 
         if (isRelativeUrl || isProtocolRelativeUrl) {
             const destinationLocation = destLocation.get();
@@ -86,13 +91,13 @@ export default {
         return nativeMethods.getAttribute.call(baseElement, 'href');
     },
 
-    changeUrlPart (url, prop, value, doc) {
+    changeUrlPart (url, nativePropSetter, value, doc) {
         const resolver = this.getResolverElement(doc);
 
-        resolver.href  = url;
-        resolver[prop] = value;
+        nativeMethods.anchorHrefSetter.call(resolver, url);
+        nativePropSetter.call(resolver, value);
 
-        return resolver.href;
+        return nativeMethods.anchorHrefGetter.call(resolver);
     },
 
     dispose (doc) {

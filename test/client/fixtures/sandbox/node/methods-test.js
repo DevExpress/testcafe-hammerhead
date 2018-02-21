@@ -39,22 +39,22 @@ test('element.insertAdjacentHTML', function () {
 
     ok(nativeMethodCalled);
     strictEqual(parentDiv.firstChild[INTERNAL_PROPS.processedContext], window);
-    strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl(url + 1));
+    strictEqual(nativeMethods.anchorHrefGetter.call(parentDiv.firstChild), urlUtils.getProxyUrl(url + 1));
 
     childDiv.insertAdjacentHTML('afterend', '<a href="' + url + '2"></a>');
 
     strictEqual(parentDiv.lastChild[INTERNAL_PROPS.processedContext], window);
-    strictEqual(parentDiv.lastChild.href, urlUtils.getProxyUrl(url + 2));
+    strictEqual(nativeMethods.anchorHrefGetter.call(parentDiv.lastChild), urlUtils.getProxyUrl(url + 2));
 
     parentDiv.insertAdjacentHTML('afterbegin', '<a href="' + url + '3"></a>');
 
     strictEqual(parentDiv.firstChild[INTERNAL_PROPS.processedContext], window);
-    strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl(url + 3));
+    strictEqual(nativeMethods.anchorHrefGetter.call(parentDiv.firstChild), urlUtils.getProxyUrl(url + 3));
 
     parentDiv.insertAdjacentHTML('beforeend', '<a href="' + url + '4"></a>');
 
     strictEqual(parentDiv.lastChild[INTERNAL_PROPS.processedContext], window);
-    strictEqual(parentDiv.lastChild.href, urlUtils.getProxyUrl(url + 4));
+    strictEqual(nativeMethods.anchorHrefGetter.call(parentDiv.lastChild), urlUtils.getProxyUrl(url + 4));
 });
 
 test('element.insertBefore', function () {
@@ -332,24 +332,27 @@ if (!browserUtils.isFirefox) {
 
 if (window.DOMParser) {
     test('DOMParser.parseFromString', function () {
-        var htmlStr        = '<a href="/path">Link</a>';
+        var htmlStr        = '<a href="/path">Anchor</a>';
         var domParser      = new DOMParser();
         var parsedDocument = domParser.parseFromString(htmlStr, 'text/html');
         var proxyUrl       = 'http://' + location.host + '/sessionId/https://example.com/path';
+        var anchor         = parsedDocument.querySelector('a');
 
-        strictEqual(parsedDocument.querySelector('a').href, proxyUrl);
+        strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
 
         throws(function () {
             domParser.parseFromString(htmlStr);
         }, TypeError);
 
         parsedDocument = domParser.parseFromString(htmlStr, 'application/xml');
+        anchor         = parsedDocument.querySelector('a');
 
-        strictEqual(nativeMethods.getAttribute.call(parsedDocument.querySelector('a'), 'href'), '/path');
+        strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), '/path');
 
         parsedDocument = domParser.parseFromString(htmlStr, 'text/html', 'third argument');
+        anchor         = parsedDocument.querySelector('a');
 
-        strictEqual(parsedDocument.querySelector('a').href, proxyUrl);
+        strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
     });
 }
 
@@ -500,11 +503,14 @@ test('element.cloneNode must be overridden (B234291)', function () {
 });
 
 test('link.href with an empty value must return root site url (Q519748)', function () {
-    var link        = $('<a href="">').appendTo('body');
-    var resolvedUrl = getProperty(link[0], 'href');
+    var anchor = document.createElement('a');
 
-    strictEqual(resolvedUrl, 'https://example.com');
-    link.remove();
+    anchor.href = '';
+    document.body.appendChild(anchor);
+
+    strictEqual(anchor.href, 'https://example.com');
+
+    document.body.removeChild(anchor);
 });
 
 test('document.createDocumentFragment must be overriden (B237717)', function () {
@@ -529,8 +535,9 @@ if (!browserUtils.isIE || browserUtils.version > 9) {
         range.selectNode(container);
 
         var fragment = range.createContextualFragment(tagString);
+        var anchor   = fragment.childNodes[0];
 
-        strictEqual(fragment.childNodes[0].href, urlUtils.getProxyUrl('http://some.domain.com/index.html'));
+        strictEqual(nativeMethods.anchorHrefGetter.call(anchor), urlUtils.getProxyUrl('http://some.domain.com/index.html'));
     });
 }
 

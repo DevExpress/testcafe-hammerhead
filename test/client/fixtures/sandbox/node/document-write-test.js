@@ -173,7 +173,7 @@ test('write html comment', function () {
             testWriteln('<div id="nonexistent">bla');
             testWriteln('this is comment');
             testWrite('-->');
-            testWrite('<a href="/link"></a>');
+            testWrite('<a href="/anchor"></a>');
             testWrite('</div>');
             close();
         });

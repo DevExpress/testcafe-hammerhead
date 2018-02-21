@@ -21,10 +21,8 @@ test('unsupported protocol', function () {
 });
 
 test('anchor', function () {
-    var anchor = document.createElement('a');
-    /* eslint-disable no-unused-vars */
-    var emptyAnchor = document.createElement('a');
-    /* eslint-enable no-unused-vars */
+    var anchor                               = document.createElement('a');
+    var emptyAnchor                          = document.createElement('a');
     var anchorWithNotSupportedProtocol       = document.createElement('a');
     var etalonAnchor                         = document.createElement('a');
     var etalonEmptyAnchor                    = document.createElement('a');
@@ -32,118 +30,108 @@ test('anchor', function () {
     var url                                  = 'https://google.com:1888/index.html?value#yo';
     var proxyUrl                             = urlUtils.getProxyUrl(url);
 
-    etalonAnchor.href = url;
-    anchor.href       = proxyUrl;
+    nativeMethods.anchorHrefSetter.call(etalonAnchor, url);
+    nativeMethods.anchorHrefSetter.call(anchor, proxyUrl);
 
-    var execScript = function (script) {
-        return eval(processScript(script));
-    };
+    strictEqual(anchor.port, nativeMethods.anchorPortGetter.call(etalonAnchor), 'Anchor - port');
+    strictEqual(anchor.host, nativeMethods.anchorHostGetter.call(etalonAnchor), 'Anchor - host');
+    strictEqual(anchor.hostname, nativeMethods.anchorHostnameGetter.call(etalonAnchor), 'Anchor - hostname');
+    strictEqual(anchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonAnchor), 'Anchor - protocol');
+    strictEqual(anchor.pathname, nativeMethods.anchorPathnameGetter.call(etalonAnchor), 'Anchor - pathname');
+    strictEqual(anchor.search, nativeMethods.anchorSearchGetter.call(etalonAnchor), 'Anchor - search');
+    strictEqual(anchor.hash, etalonAnchor.hash, 'Anchor - hash');
 
-    strictEqual(execScript('anchor.port'), etalonAnchor.port, 'Anchor - port');
-    strictEqual(execScript('anchor.host'), etalonAnchor.host, 'Anchor - host');
-    strictEqual(execScript('anchor.hostname'), etalonAnchor.hostname, 'Anchor - hostname');
-    strictEqual(execScript('anchor.protocol'), etalonAnchor.protocol, 'Anchor - protocol');
-    strictEqual(execScript('anchor.pathname'), etalonAnchor.pathname, 'Anchor - pathname');
-    strictEqual(execScript('anchor.search'), etalonAnchor.search, 'Anchor - search');
-    strictEqual(execScript('anchor.hash'), etalonAnchor.hash, 'Anchor - hash');
+    if (nativeMethods.anchorOriginGetter)
+        strictEqual(anchor.origin, nativeMethods.anchorOriginGetter.call(etalonAnchor));
 
+    strictEqual(emptyAnchor.port, nativeMethods.anchorPortGetter.call(etalonEmptyAnchor));
+    strictEqual(emptyAnchor.host, nativeMethods.anchorHostGetter.call(etalonEmptyAnchor));
+    strictEqual(emptyAnchor.hostname, nativeMethods.anchorHostnameGetter.call(etalonEmptyAnchor));
+    strictEqual(emptyAnchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonEmptyAnchor));
+    strictEqual(emptyAnchor.pathname, nativeMethods.anchorPathnameGetter.call(etalonEmptyAnchor));
+    strictEqual(emptyAnchor.search, nativeMethods.anchorSearchGetter.call(etalonEmptyAnchor));
 
-    if ('origin' in anchor)
-        strictEqual(execScript('anchor.origin'), etalonAnchor.origin);
-
-    strictEqual(execScript('emptyAnchor.port'), etalonEmptyAnchor.port);
-    strictEqual(execScript('emptyAnchor.host'), etalonEmptyAnchor.host);
-    strictEqual(execScript('emptyAnchor.hostname'), etalonEmptyAnchor.hostname);
-    strictEqual(execScript('emptyAnchor.protocol'), etalonEmptyAnchor.protocol);
-    strictEqual(execScript('emptyAnchor.pathname'), etalonEmptyAnchor.pathname);
-    strictEqual(execScript('emptyAnchor.search'), etalonEmptyAnchor.search);
-
-    if ('origin' in etalonEmptyAnchor)
-        strictEqual(execScript('emptyAnchor.origin'), etalonEmptyAnchor.origin);
+    if (nativeMethods.anchorOriginGetter)
+        strictEqual(emptyAnchor.origin, nativeMethods.anchorOriginGetter.call(etalonEmptyAnchor));
 
     // Port
-    execScript('anchor.port="8080";');
-    etalonAnchor.port = '8080';
-    strictEqual(execScript('anchor.port'), etalonAnchor.port);
+    anchor.port = '8080';
+    nativeMethods.anchorPortSetter.call(etalonAnchor, '8080');
+    strictEqual(anchor.port, nativeMethods.anchorPortGetter.call(etalonAnchor));
 
-    etalonEmptyAnchor.port = '8080';
-    execScript('emptyAnchor.port="8080";');
-    strictEqual(execScript('emptyAnchor.port'), etalonEmptyAnchor.port);
+    emptyAnchor.port = '8080';
+    nativeMethods.anchorPortSetter.call(etalonEmptyAnchor, '8080');
+    strictEqual(emptyAnchor.port, nativeMethods.anchorPortGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Host
-    execScript('anchor.host="yandex.com";');
-    etalonAnchor.host = 'yandex.com';
-    strictEqual(execScript('anchor.host'), etalonAnchor.host);
+    anchor.host = 'yandex.com:1234';
+    nativeMethods.anchorHostSetter.call(etalonAnchor, 'yandex.com:1234');
+    strictEqual(anchor.host, nativeMethods.anchorHostGetter.call(etalonAnchor));
 
-    execScript('emptyAnchor.host="yandex.com";');
-    etalonEmptyAnchor.host = 'yandex.com';
-    strictEqual(execScript('emptyAnchor.host'), etalonEmptyAnchor.host);
+    emptyAnchor.host = 'yandex.com:1234';
+    nativeMethods.anchorHostSetter.call(etalonEmptyAnchor, 'yandex.com:1234');
+    strictEqual(emptyAnchor.host, nativeMethods.anchorHostGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Hostname
-    execScript('anchor.hostname="yandex.ru";');
-    etalonAnchor.hostname = 'yandex.ru';
-    strictEqual(execScript('anchor.hostname'), etalonAnchor.hostname);
+    anchor.hostname = 'yandex.ru';
+    nativeMethods.anchorHostnameSetter.call(etalonAnchor, 'yandex.ru');
+    strictEqual(anchor.hostname, nativeMethods.anchorHostnameGetter.call(etalonAnchor));
 
-    execScript('emptyAnchor.hostname="yandex.ru";');
-    etalonEmptyAnchor.hostname = 'yandex.ru';
-    strictEqual(execScript('emptyAnchor.hostname'), etalonEmptyAnchor.hostname);
+    emptyAnchor.hostname = 'yandex.ru';
+    nativeMethods.anchorHostnameSetter.call(etalonEmptyAnchor, 'yandex.ru');
+    strictEqual(emptyAnchor.hostname, nativeMethods.anchorHostnameGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Protocol
-    execScript('anchor.protocol="http:";');
-    etalonAnchor.protocol = 'http:';
-    strictEqual(execScript('anchor.protocol'), etalonAnchor.protocol);
-
+    anchor.protocol = 'http:';
+    nativeMethods.anchorProtocolSetter.call(etalonAnchor, 'http:');
+    strictEqual(anchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     if (!browserUtils.isSafari) {
-        execScript('emptyAnchor.protocol="https:";');
-        etalonEmptyAnchor.protocol = 'https:';
-        strictEqual(execScript('emptyAnchor.protocol'), etalonEmptyAnchor.protocol);
+        emptyAnchor.protocol = 'https:';
+        nativeMethods.anchorProtocolSetter.call(etalonEmptyAnchor, 'https:');
+        strictEqual(emptyAnchor.protocol, nativeMethods.anchorProtocolGetter.call(etalonEmptyAnchor));
+        nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
     }
 
     // Pathname
-    var newPathName = etalonAnchor.pathname + '/index.php';
+    var newPathName = nativeMethods.anchorPathnameGetter.call(etalonAnchor) + '/index.php';
 
-    execScript('anchor.pathname="' + newPathName + '"');
-    etalonAnchor.pathname = newPathName;
-    strictEqual(execScript('anchor.pathname'), etalonAnchor.pathname);
+    anchor.pathname = newPathName;
+    nativeMethods.anchorPathnameSetter.call(etalonAnchor, newPathName);
+    strictEqual(anchor.pathname, nativeMethods.anchorPathnameGetter.call(etalonAnchor));
 
-    execScript('emptyAnchor.pathname="temp/index.php";'); // TODO: iOS!!!
-    etalonEmptyAnchor.pathname = 'temp/index.php';
-    strictEqual(execScript('emptyAnchor.pathname'), etalonEmptyAnchor.pathname);
-
-    // Origin
-    // NOTE: IE has no origin property.
-    if ('origin' in etalonEmptyAnchor) {
-        execScript('anchor.origin="http://yandex.ru:2000"');
-        etalonAnchor.origin = 'http://yandex.ru:2000';
-        strictEqual(execScript('anchor.origin'), etalonAnchor.origin);
-
-        execScript('emptyAnchor.origin="http://yandex.ru:2000";');
-        etalonEmptyAnchor.origin = 'http://yandex.ru:2000';
-        strictEqual(execScript('emptyAnchor.origin'), etalonEmptyAnchor.origin);
-    }
+    emptyAnchor.pathname = 'temp/index.php'; // TODO: iOS!!!
+    nativeMethods.anchorPathnameSetter.call(etalonEmptyAnchor, 'temp/index.php');
+    strictEqual(emptyAnchor.pathname, nativeMethods.anchorPathnameGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
     // Search
-    execScript('anchor.search="?test=temp"');
-    etalonAnchor.search = '?test=temp';
-    strictEqual(execScript('anchor.search'), etalonAnchor.search);
+    anchor.search = '?test=temp';
+    nativeMethods.anchorSearchSetter.call(etalonAnchor, '?test=temp');
+    strictEqual(anchor.search, nativeMethods.anchorSearchGetter.call(etalonAnchor));
 
-    execScript('emptyAnchor.search="?test=temp"');
-    etalonEmptyAnchor.search = '?test=temp';
-    strictEqual(execScript('emptyAnchor.search'), etalonEmptyAnchor.search);
+    emptyAnchor.search = '?test=temp';
+    nativeMethods.anchorSearchSetter.call(etalonEmptyAnchor, '?test=temp');
+    strictEqual(emptyAnchor.search, nativeMethods.anchorSearchGetter.call(etalonEmptyAnchor));
+    nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
-    anchorWithNotSupportedProtocol.href       = 'javascript:;';
-    etalonAnchorWithNotSupportedProtocol.href = 'javascript:;';
 
-    strictEqual(execScript('anchorWithNotSupportedProtocol.port'), etalonAnchorWithNotSupportedProtocol.port);
-    strictEqual(execScript('anchorWithNotSupportedProtocol.host'), etalonAnchorWithNotSupportedProtocol.host);
-    strictEqual(execScript('anchorWithNotSupportedProtocol.hostname'), etalonAnchorWithNotSupportedProtocol.hostname);
-    strictEqual(execScript('anchorWithNotSupportedProtocol.protocol'), etalonAnchorWithNotSupportedProtocol.protocol);
-    strictEqual(execScript('anchorWithNotSupportedProtocol.pathname'), etalonAnchorWithNotSupportedProtocol.pathname);
-    strictEqual(execScript('anchorWithNotSupportedProtocol.search'), etalonAnchorWithNotSupportedProtocol.search);
+    nativeMethods.anchorHrefSetter.call(anchorWithNotSupportedProtocol, 'javascript:;');
+    nativeMethods.anchorHrefSetter.call(etalonAnchorWithNotSupportedProtocol, 'javascript:;');
 
-    if ('origin' in anchorWithNotSupportedProtocol)
-        strictEqual(execScript('anchorWithNotSupportedProtocol.origin'), etalonAnchorWithNotSupportedProtocol.origin);
+    strictEqual(anchorWithNotSupportedProtocol.port, nativeMethods.anchorPortGetter.call(etalonAnchorWithNotSupportedProtocol));
+    strictEqual(anchorWithNotSupportedProtocol.host, nativeMethods.anchorHostGetter.call(etalonAnchorWithNotSupportedProtocol));
+    strictEqual(anchorWithNotSupportedProtocol.hostname, nativeMethods.anchorHostnameGetter.call(etalonAnchorWithNotSupportedProtocol));
+    strictEqual(anchorWithNotSupportedProtocol.protocol, nativeMethods.anchorProtocolGetter.call(etalonAnchorWithNotSupportedProtocol));
+    strictEqual(anchorWithNotSupportedProtocol.pathname, nativeMethods.anchorPathnameGetter.call(etalonAnchorWithNotSupportedProtocol));
+    strictEqual(anchorWithNotSupportedProtocol.search, nativeMethods.anchorSearchGetter.call(etalonAnchorWithNotSupportedProtocol));
+
+    if (nativeMethods.anchorOriginGetter)
+        strictEqual(anchorWithNotSupportedProtocol.origin, nativeMethods.anchorOriginGetter.call(etalonAnchorWithNotSupportedProtocol));
 });
 
 test('location as a local var', function () {
@@ -222,7 +210,7 @@ test('innerHTML', function () {
 
     strictEqual(div.children.length, 2);
     strictEqual(nativeMethods.scriptSrcGetter.call(div.children[0]), urlUtils.getProxyUrl(scriptUrl, { resourceType: 's', charset: 'utf-8' }));
-    strictEqual(div.children[1].href, urlUtils.getProxyUrl(linkUrl));
+    strictEqual(nativeMethods.anchorHrefGetter.call(div.children[1]), urlUtils.getProxyUrl(linkUrl));
 
     document[INTERNAL_PROPS.documentCharset] = null;
 });
@@ -344,7 +332,7 @@ test('outerHTML', function () {
     setProperty(childDiv, 'outerHTML', htmlText);
 
     strictEqual(parentDiv.children.length, 2);
-    strictEqual(parentDiv.firstChild.href, urlUtils.getProxyUrl('http://domain.com/'));
+    strictEqual(nativeMethods.anchorHrefGetter.call(parentDiv.firstChild), urlUtils.getProxyUrl('http://domain.com/'));
     strictEqual(nativeMethods.scriptSrcGetter.call(parentDiv.lastChild), urlUtils.getProxyUrl('http://domain.com/script', { resourceType: 's' }));
 
     parentDiv.innerHTML = '';
@@ -395,7 +383,7 @@ test('innerHTML in iframe (GH-620)', function () {
         .then(function (iframe) {
             eval(processScript('iframe.contentDocument.body.innerHTML = "<a href=\\"' + url + '\\">link</a>";'));
 
-            strictEqual(iframe.contentDocument.body.firstChild.href, proxyUrl);
+            strictEqual(nativeMethods.anchorHrefGetter.call(iframe.contentDocument.body.firstChild), proxyUrl);
         });
 });
 
@@ -445,30 +433,34 @@ test('iframe.body.innerHtml must be overriden (Q527555)', function () {
 
 test('setting the link.href attribute to "mailto" in iframe (T228218)', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
-    var link              = document.createElement('a');
+    var anchror           = document.createElement('a');
 
     urlUtils.getProxyUrl = function () {
         return 'http://replaced';
     };
 
-    eval(processScript('link.href="http://host.com/"'));
-    ok(link.href.indexOf('http://replaced') === 0);
+    anchror.href = 'http://host.com/';
 
-    eval(processScript('link.href="mailto:test@mail.com"'));
-    strictEqual(link.href, 'mailto:test@mail.com');
-    strictEqual(eval(processScript('link.href')), 'mailto:test@mail.com');
-    strictEqual(link.getAttribute('href'), 'mailto:test@mail.com');
+    ok(nativeMethods.anchorHrefGetter.call(anchror).indexOf('http://replaced') === 0);
+
+    anchror.href = 'mailto:test@mail.com';
+
+    strictEqual(nativeMethods.anchorHrefGetter.call(anchror), 'mailto:test@mail.com');
+    strictEqual(anchror.href, 'mailto:test@mail.com');
+    strictEqual(anchror.getAttribute('href'), 'mailto:test@mail.com');
 
     urlUtils.getProxyUrl = storedGetProxyUrl;
 });
 
 test('link without the href attrubute must return an empty value for href (B238838)', function () {
     var url             = 'http://www.test.com/';
-    var linkWithHref    = $('<a href="' + url + '">')[0];
-    var linkWithoutHref = $('<a>')[0];
+    var linkWithHref    = document.createElement('a');
+    var linkWithoutHref = document.createElement('a');
 
-    strictEqual(getProperty(linkWithHref, 'href'), url);
-    strictEqual(getProperty(linkWithoutHref, 'href'), '');
+    linkWithHref.href = url;
+
+    strictEqual(linkWithHref.href, url);
+    strictEqual(linkWithoutHref.href, '');
 });
 
 test('event.which must return undefined if originalEvent is null (T232468)', function () {
@@ -617,9 +609,9 @@ if (!browserUtils.isFirefox) {
 
         anchor.setAttribute('href', 'unsupported://some.link.com/path?x=10&y=20');
 
-        eval(processScript('anchor.search="?z=30";'));
+        anchor.search = '?z=30';
 
-        strictEqual(anchor.href, 'unsupported://some.link.com/path?z=30');
+        strictEqual(nativeMethods.anchorHrefGetter.call(anchor), 'unsupported://some.link.com/path?z=30');
     });
 }
 

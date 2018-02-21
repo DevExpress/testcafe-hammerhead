@@ -21,10 +21,14 @@ export default class ElectronSandbox extends SandboxBase {
         const path        = electronRequire('path');
         const destination = destinationLocation.getParsed();
 
+        /*eslint-disable no-restricted-properties*/
         if (destination.protocol !== 'file:')
             return;
 
-        const pathname = window.process.platform === 'win32' && destination.pathname[0] === '/' ? destination.pathname.substr(1) : destination.pathname;
+        const pathname = window.process.platform === 'win32' && destination.pathname[0] === '/'
+            ? destination.pathname.substr(1)
+            : destination.pathname;
+        /*eslint-enable no-restricted-properties*/
 
         window.__filename = path.normalize(decodeURIComponent(pathname));
         window.__dirname = path.dirname(window.__filename);

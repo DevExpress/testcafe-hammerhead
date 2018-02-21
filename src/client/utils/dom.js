@@ -105,7 +105,9 @@ export function getIframeLocation (iframe) {
     let documentLocation = null;
 
     try {
+        /*eslint-disable no-restricted-properties*/
         documentLocation = iframe.contentDocument.location.href;
+        /*eslint-enable no-restricted-properties*/
     }
     catch (e) {
         documentLocation = null;
@@ -532,7 +534,9 @@ export function isLocation (instance) {
         return true;
 
     try {
+        /*eslint-disable no-restricted-properties*/
         return instance && typeof instance === 'object' && instance.href !== void 0 && instance.assign !== void 0;
+        /*eslint-enable no-restricted-properties*/
     }
     catch (e) {
         // NOTE: Try to detect cross-domain window location.
@@ -685,7 +689,10 @@ export function parseDocumentCharset () {
 }
 
 export function getParents (el, selector) {
-    let parent    = el.parentNode || el.host;
+    /*eslint-disable no-restricted-properties*/
+    let parent = el.parentNode || el.host;
+    /*eslint-enable no-restricted-properties*/
+
     const parents = [];
 
     while (parent) {
@@ -693,7 +700,9 @@ export function getParents (el, selector) {
             selector && matches(parent, selector))
             parents.push(parent);
 
+        /*eslint-disable no-restricted-properties*/
         parent = parent.parentNode || parent.host;
+        /*eslint-enable no-restricted-properties*/
     }
 
     return parents;

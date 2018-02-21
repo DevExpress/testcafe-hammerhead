@@ -37,14 +37,16 @@ function testIframeFlagViaAttrs (doc, iframeFlagResults) {
             setProperty(el, 'target', targetValue);
             setProperty(el, urlAttr, url);
 
-            strictEqual(hasIframeFlag(el[urlAttr]), hasIframeFlagByTarget(tagName, targetValue),
+            strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)),
+                hasIframeFlagByTarget(tagName, targetValue),
                 tagName + ' target=' + targetValue);
 
             var nextTargetValue = keys[(index + 1) % keys.length];
 
             setProperty(el, 'target', nextTargetValue);
 
-            strictEqual(hasIframeFlag(el[urlAttr]), hasIframeFlagByTarget(tagName, nextTargetValue),
+            strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)),
+                hasIframeFlagByTarget(tagName, nextTargetValue),
                 tagName + ' target=' + nextTargetValue);
         });
 
@@ -139,17 +141,17 @@ test('move elements between windows (GH-564)', function () {
 
                 setProperty(el, urlAttr, 'https://example.com/');
 
-                strictEqual(hasIframeFlag(el[urlAttr]), false, tagName + ' into top window');
+                strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)), false, tagName + ' into top window');
 
                 document.body.removeChild(el);
                 iframeDocument.body.appendChild(el);
 
-                strictEqual(hasIframeFlag(el[urlAttr]), tagName !== 'base', tagName + ' into iframe');
+                strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)), tagName !== 'base', tagName + ' into iframe');
 
                 iframeDocument.body.removeChild(el);
                 document.body.appendChild(el);
 
-                strictEqual(hasIframeFlag(el[urlAttr]), false, tagName + ' into top window');
+                strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)), false, tagName + ' into top window');
 
                 document.body.removeChild(el);
             });
@@ -174,19 +176,19 @@ test('change iframe name', function () {
     setProperty(a, 'target', 'window_name_first');
     setProperty(a, 'href', url);
 
-    ok(hasIframeFlag(a.href));
+    ok(hasIframeFlag(nativeMethods.anchorHrefGetter.call(a)));
 
     iframe.contentWindow.name = 'window_name_second';
 
     provokeTargetCalculation(a);
 
-    ok(!hasIframeFlag(a.href));
+    ok(!hasIframeFlag(nativeMethods.anchorHrefGetter.call(a)));
 
     iframe.contentWindow.name = 'window_name_first';
 
     provokeTargetCalculation(a);
 
-    ok(hasIframeFlag(a.href));
+    ok(hasIframeFlag(nativeMethods.anchorHrefGetter.call(a)));
 
     document.body.removeChild(iframe);
     document.body.removeChild(a);

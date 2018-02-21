@@ -118,15 +118,17 @@ test('process a text node when it is appended to script', function () {
 
     var url      = 'http://example.com';
     var scriptEl = document.createElement('script');
-    var textNode = document.createTextNode('window.testLink = document.createElement("a"); window.testLink.href="' +
-                                           url + '";');
+    var textNode = document.createTextNode(
+        'window.testAnchor = document.createElement("a");' +
+        'window.testAnchor.href = "' + url + '";'
+    );
 
     scriptEl.appendChild(textNode);
     document.head.appendChild(scriptEl);
 
-    ok(window.testLink);
-    ok(window.testLink.tagName && window.testLink.tagName.toLowerCase() === 'a');
-    strictEqual(window.testLink.href, proxyUrl);
+    ok(window.testAnchor);
+    ok(window.testAnchor.tagName && window.testAnchor.tagName.toLowerCase() === 'a');
+    strictEqual(nativeMethods.anchorHrefGetter.call(window.testAnchor), proxyUrl);
 
     urlUtils.getProxyUrl = storedGetProxyUrl;
 });

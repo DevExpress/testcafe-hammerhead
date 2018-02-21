@@ -4,30 +4,32 @@ import nativeMethods from '../../native-methods';
 let anchor      = nativeMethods.createElement.call(document, 'a');
 let emptyAnchor = nativeMethods.createElement.call(document, 'a');
 
-export function getAnchorProperty (el, prop) {
-    if (el.href) {
-        const parsedProxyUrl = parseProxyUrl(el.href);
+export function getAnchorProperty (el, nativePropGetter) {
+    const href = nativeMethods.anchorHrefGetter.call(el);
 
-        anchor.href = parsedProxyUrl ? parsedProxyUrl.destUrl : el.href;
+    if (href) {
+        const parsedProxyUrl = parseProxyUrl(href);
 
-        return anchor[prop];
+        nativeMethods.anchorHrefSetter.call(anchor, parsedProxyUrl ? parsedProxyUrl.destUrl : href);
+
+        return nativePropGetter.call(anchor);
     }
 
-    return emptyAnchor[prop];
+    return nativePropGetter.call(emptyAnchor);
 }
 
-export function setAnchorProperty (el, prop, value) {
-    if (el.href) {
-        const parsedProxyUrl = parseProxyUrl(el.href);
+export function setAnchorProperty (el, nativePropSetter, value) {
+    const href = nativeMethods.anchorHrefGetter.call(el);
 
-        anchor.href  = parsedProxyUrl ? parsedProxyUrl.destUrl : el.href;
-        anchor[prop] = value;
-        el.setAttribute('href', anchor.href);
+    if (href) {
+        const parsedProxyUrl = parseProxyUrl(href);
 
-        return anchor[prop];
+        nativeMethods.anchorHrefSetter.call(anchor, parsedProxyUrl ? parsedProxyUrl.destUrl : href);
+        nativePropSetter.call(anchor, value);
+        el.setAttribute('href', nativeMethods.anchorHrefGetter.call(anchor));
     }
 
-    return '';
+    return value;
 }
 
 export function dispose () {

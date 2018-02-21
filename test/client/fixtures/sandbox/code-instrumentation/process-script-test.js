@@ -7,11 +7,12 @@ var url = 'http://example.com/test';
 QUnit.testStart(function () {
     // NOTE: add vars to the global context,
     // so that they can be used by eval.call
-    window.anchor      = document.createElement('a');
-    window.anchor.href = urlUtils.getProxyUrl(url);
+    window.anchor = document.createElement('a');
+
+    nativeMethods.anchorHrefSetter.call(window.anchor, urlUtils.getProxyUrl(url));
 
     window.func = function () {
-        return window.anchor.href;
+        return nativeMethods.anchorHrefGetter.call(window.anchor);
     };
 
     window.args = ['window.anchor.href'];

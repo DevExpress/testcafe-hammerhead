@@ -37,6 +37,7 @@ import overrideDescriptor from '../../utils/override-descriptor';
 import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
 import { HASH_RE } from '../../../utils/url';
 import UploadSandbox from '../upload';
+import { getAnchorProperty, setAnchorProperty } from '../code-instrumentation/properties/anchor';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -127,6 +128,14 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
+    _overrideUrlPropDescriptor (prop, nativePropGetter, nativePropSetter) {
+        overrideDescriptor(window.HTMLAnchorElement.prototype, prop, function () {
+            return getAnchorProperty(this, nativePropGetter);
+        }, function (value) {
+            return setAnchorProperty(this, nativePropSetter, value);
+        });
+    }
+
     static _wrapCSSGetPropertyValueIfNecessary (constructor, nativeGetPropertyValueFn) {
         if (nativeGetPropertyValueFn) {
             constructor.prototype.getPropertyValue = function (...args) {
@@ -164,8 +173,10 @@ export default class WindowSandbox extends SandboxBase {
         // NOTE: https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
         const parsedUrl = parseUrl(resolveUrlAsDest(url));
 
+        /*eslint-disable no-restricted-properties*/
         return ALLOWED_SERVICE_WORKER_PROTOCOLS.indexOf(parsedUrl.protocol) === -1 &&
                ALLOWED_SERVICE_WORKER_HOST_NAMES.indexOf(parsedUrl.hostname) === -1;
+        /*eslint-enable no-restricted-properties*/
     }
 
     handleEvent (event) {
@@ -466,13 +477,18 @@ export default class WindowSandbox extends SandboxBase {
                 const urlIndex = 1;
 
                 if (typeof args[urlIndex] === 'string') {
+                    /*eslint-disable no-restricted-properties*/
                     const destHostname = destLocation.getParsed().hostname;
-                    let isDestUrl      = '';
+                    /*eslint-enable no-restricted-properties*/
+
+                    let isDestUrl = '';
 
                     if (isFirefox) {
                         const parsedUrl = parseUrl(args[urlIndex]);
 
+                        /*eslint-disable no-restricted-properties*/
                         isDestUrl = parsedUrl.hostname && isSubDomain(destHostname, parsedUrl.hostname);
+                        /*eslint-enable no-restricted-properties*/
                     }
                     else
                         isDestUrl = destLocation.sameOriginCheck(destLocation.get(), args[urlIndex]);
@@ -543,8 +559,10 @@ export default class WindowSandbox extends SandboxBase {
             if (isWebSocket(target)) {
                 const parsedUrl = parseUrl(target.url);
 
+                /*eslint-disable no-restricted-properties*/
                 if (parsedUrl)
                     return parsedUrl.protocol + '//' + parsedUrl.host;
+                /*eslint-enable no-restricted-properties*/
             }
             else if (isWindow(target)) {
                 const data = nativeMethods.messageEventDataGetter
@@ -648,6 +666,42 @@ export default class WindowSandbox extends SandboxBase {
             window.HTMLFrameElement,
             window.HTMLIFrameElement
         ]);
+
+        this._overrideUrlAttrDescriptors('href', [
+            window.HTMLAnchorElement,
+            window.HTMLLinkElement,
+            window.HTMLAreaElement,
+            window.HTMLBaseElement
+        ]);
+
+        this._overrideUrlPropDescriptor('port', nativeMethods.anchorPortGetter, nativeMethods.anchorPortSetter);
+        this._overrideUrlPropDescriptor('host', nativeMethods.anchorHostGetter, nativeMethods.anchorHostSetter);
+        this._overrideUrlPropDescriptor('hostname', nativeMethods.anchorHostnameGetter, nativeMethods.anchorHostnameSetter);
+        this._overrideUrlPropDescriptor('pathname', nativeMethods.anchorPathnameGetter, nativeMethods.anchorPathnameSetter);
+        this._overrideUrlPropDescriptor('protocol', nativeMethods.anchorProtocolGetter, nativeMethods.anchorProtocolSetter);
+        this._overrideUrlPropDescriptor('search', nativeMethods.anchorSearchGetter, nativeMethods.anchorSearchSetter);
+
+        if (nativeMethods.anchorOriginGetter) {
+            overrideDescriptor(window.HTMLAnchorElement.prototype, 'origin', function () {
+                return getAnchorProperty(this, nativeMethods.anchorOriginGetter);
+            });
+        }
+
+        overrideDescriptor(window.StyleSheet.prototype, 'href', function () {
+            const href      = nativeMethods.styleSheetHrefGetter.call(this);
+            const parsedUrl = parseProxyUrl(href);
+
+            return parsedUrl ? parsedUrl.destUrl : href;
+        });
+
+        if (nativeMethods.cssStyleSheetHrefGetter) {
+            overrideDescriptor(window.CSSStyleSheet.prototype, 'href', function () {
+                const href      = nativeMethods.cssStyleSheetHrefGetter.call(this);
+                const parsedUrl = parseProxyUrl(href);
+
+                return parsedUrl ? parsedUrl.destUrl : href;
+            });
+        }
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
