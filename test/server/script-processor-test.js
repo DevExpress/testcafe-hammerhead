@@ -487,6 +487,18 @@ describe('Script processor', () => {
                 expected: 'window["eval"].apply(window, __proc$Script([script], true))'
             },
             {
+                src:      'var w = a.eval ? a.eval.bind(a) : function() {}',
+                expected: 'var w = __get$Eval(a.eval) ? __get$Eval(a.eval).bind(a) : function() {}'
+            },
+            {
+                src:      'var w = eval ? eval.bind(window) : function() {}',
+                expected: 'var w = __get$Eval(eval) ? __get$Eval(eval).bind(window) : function() {}'
+            },
+            {
+                src:      'var w = win["eval"] ? win["eval"].bind(win) : function() {}',
+                expected: 'var w = __get$Eval(win["eval"]) ? __get$Eval(win["eval"]).bind(win) : function() {}'
+            },
+            {
                 src:      'var a = eval, b = window.eval, c = window["eval"];',
                 expected: 'var a = __get$Eval(eval), b = __get$Eval(window.eval), c = __get$Eval(window["eval"]);'
             },
@@ -594,6 +606,10 @@ describe('Script processor', () => {
             {
                 src:      'some.postMessage.apply(window, ["", ""])',
                 expected: '__get$PostMessage(some).apply(window, ["", ""])'
+            },
+            {
+                src:      'var w = a.postMessage ? a.postMessage.bind(a) : function() {}',
+                expected: 'var w = __get$PostMessage(a) ? __get$PostMessage(a).bind(a) : function() {}'
             },
             {
                 src:      'some.win["postMessage"].apply(window, ["", ""])',
