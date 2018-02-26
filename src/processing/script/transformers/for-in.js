@@ -4,7 +4,12 @@
 // -------------------------------------------------------------
 
 import { Syntax } from '../tools/esotope';
-import { createTempVarIdentifier, createAssignmentExprStmt, createVarDeclaration } from '../node-builder';
+import {
+    createTempVarIdentifier,
+    createAssignmentExprStmt,
+    createVarDeclaration,
+    createBlockExprStmt
+} from '../node-builder';
 import replaceNode from './replace-node';
 
 // Transform:
@@ -23,7 +28,11 @@ export default {
         const varDeclaration     = createVarDeclaration(tempVarAst);
         const assignmentExprStmt = createAssignmentExprStmt(node.left, tempVarAst);
 
-        replaceNode(null, assignmentExprStmt, node.body, 'body');
+        if (node.body.type !== Syntax.BlockStatement)
+            replaceNode(node.body, createBlockExprStmt([assignmentExprStmt, node.body]), node, 'body');
+        else
+            replaceNode(null, assignmentExprStmt, node.body, 'body');
+
         replaceNode(node.left, varDeclaration, node, 'left');
 
         return null;

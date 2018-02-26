@@ -35,6 +35,13 @@ export function createAssignmentExprStmt (left, right) {
     };
 }
 
+export function createBlockExprStmt (children) {
+    return {
+        type: Syntax.BlockStatement,
+        body: children
+    };
+}
+
 export function createVarDeclaration (identifier) {
     return {
         type: Syntax.VariableDeclaration,

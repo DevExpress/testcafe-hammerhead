@@ -784,6 +784,14 @@ describe('Script processor', () => {
             {
                 src:      'for(obj["href"] in src){}',
                 expected: 'for(var __set$temp in src){__set$(obj, "href", __set$temp);}'
+            },
+            {
+                src:      'for(obj[prop] in src)obj[prop]=123;',
+                expected: 'for(var __set$temp in src){__set$(obj, prop, __set$temp);__set$(obj, prop, 123);}'
+            },
+            {
+                src:      'for(obj[prop] in src);',
+                expected: 'for(var __set$temp in src){__set$(obj, prop, __set$temp);;}'
             }
         ]);
     });
