@@ -942,10 +942,16 @@ describe('Script processor', () => {
         });
 
         it('Should process async function (GH-1260)', function () {
-            testProcessing({
-                src:      'async function foo() {  return await bar(obj[src]); }',
-                expected: 'async function foo() {  return await bar(__get$(obj, src)); }'
-            });
+            testProcessing([
+                {
+                    src:      'async function foo() { return await bar(obj[src]); }',
+                    expected: 'async function foo() { return await bar(__get$(obj, src)); }'
+                },
+                {
+                    src:      'const foo = new class { async bar() { async function t() {}; var t = async function () {}; return async () => { await t(obj[prop]); }; }}();',
+                    expected: 'const foo = new class { async bar() { async function t() {}; var t = async function () {}; return async () => { await t(__get$(obj, prop)); }; }}();'
+                }
+            ]);
         });
     });
 });
