@@ -7,13 +7,15 @@ import { createGetPostMessageMethCall } from '../node-builder';
 import { Syntax } from '../tools/esotope';
 import replaceNode from './replace-node';
 
-const INVOCATION_FUNC_NAME_RE = /^(call|apply)$/;
+const INVOCATION_FUNC_NAME_RE = /^(call|apply|bind)$/;
 
 // Transform:
 // postMessage.call(ctx, script);
-// postMessage.apply(ctx, script); -->
+// postMessage.apply(ctx, script);
+// postMessage.bind(...); -->
 // __get$PostMessage(postMessage).call(ctx, script);
 // __get$PostMessage(postMessage).apply(ctx, script);
+// __get$PostMessage(postMessage).bind(...);
 
 export default {
     nodeReplacementRequireTransform: false,
@@ -21,11 +23,11 @@ export default {
     nodeTypes: [Syntax.CallExpression],
 
     condition: node => {
-        // postMessage.<meth>(ctx, script, ...)
-        if (node.arguments.length < 2)
-            return false;
-
         if (node.callee.type === Syntax.MemberExpression && INVOCATION_FUNC_NAME_RE.test(node.callee.property.name)) {
+            // postMessage.<call|apply>(ctx, script, ...)
+            if (node.arguments.length < 2 && node.callee.property.name !== 'bind')
+                return false;
+
             const obj = node.callee.object;
 
             // obj.postMessage.<meth>(), obj[postMessage].<meth>(),
