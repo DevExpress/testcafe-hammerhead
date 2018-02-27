@@ -1123,6 +1123,9 @@ var ExprRawGen = {
     ArrowFunctionExpression: function generateArrowFunctionExpression ($expr, settings) {
         var parenthesize = Precedence.ArrowFunction < settings.precedence;
 
+        if ($expr.async)
+            _.js += 'async ';
+
         if (parenthesize)
             _.js += '(';
 
@@ -1346,6 +1349,9 @@ var ExprRawGen = {
     FunctionExpression: function generateFunctionExpression ($expr) {
         var isGenerator = !!$expr.generator;
 
+        if ($expr.async)
+            _.js += 'async ';
+
         _.js += isGenerator ? 'function*' : 'function';
 
         if ($expr.id) {
@@ -1404,7 +1410,8 @@ var ExprRawGen = {
         else {
             if ($expr.value.generator)
                 _.js += exprJs + '*' + keyJs;
-
+            else if ($expr.value.async)
+                _.js += exprJs + ' async ' + keyJs;
             else
                 _.js += join(exprJs, keyJs);
         }
@@ -2240,6 +2247,9 @@ var StmtRawGen = {
 
     FunctionDeclaration: function generateFunctionDeclaration ($stmt) {
         var isGenerator = !!$stmt.generator;
+
+        if ($stmt.async)
+            _.js += 'async ';
 
         _.js += isGenerator ? ('function*' + _.optSpace) : ('function' + _.space );
         _.js += $stmt.id.name;
