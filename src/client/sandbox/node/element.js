@@ -171,9 +171,10 @@ export default class ElementSandbox extends SandboxBase {
             args[valueIndex] = 'off';
         }
         else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
-            const newTarget = this.getTarget(el, value);
+            const currentTarget = nativeMethods.getAttribute.call(el, 'target');
+            const newTarget     = this.getTarget(el, value);
 
-            if (newTarget !== el.target) {
+            if (newTarget !== currentTarget) {
                 const storedTargetAttr = DomProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
@@ -743,7 +744,7 @@ export default class ElementSandbox extends SandboxBase {
 
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
         // See the usage of Parse5DomAdapter.needToProcessUrl
-        if (DomProcessor.isIframeFlagTag(tagName) && el.target === '_parent')
+        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, 'target') === '_parent')
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 }

@@ -128,6 +128,20 @@ export default class WindowSandbox extends SandboxBase {
         }
     }
 
+    _overrideAttrDescriptors (attr, elementConstructors) {
+        const windowSandbox = this;
+
+        for (const constructor of elementConstructors) {
+            overrideDescriptor(constructor.prototype, attr, function () {
+                return windowSandbox.nodeSandbox.element.getAttributeCore(this, [attr]) || '';
+            }, function (value) {
+                windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
+
+                return value;
+            });
+        }
+    }
+
     _overrideUrlPropDescriptor (prop, nativePropGetter, nativePropSetter) {
         overrideDescriptor(window.HTMLAnchorElement.prototype, prop, function () {
             return getAnchorProperty(this, nativePropGetter);
@@ -670,6 +684,13 @@ export default class WindowSandbox extends SandboxBase {
         this._overrideUrlAttrDescriptors('href', [
             window.HTMLAnchorElement,
             window.HTMLLinkElement,
+            window.HTMLAreaElement,
+            window.HTMLBaseElement
+        ]);
+
+        this._overrideAttrDescriptors('target', [
+            window.HTMLAnchorElement,
+            window.HTMLFormElement,
             window.HTMLAreaElement,
             window.HTMLBaseElement
         ]);

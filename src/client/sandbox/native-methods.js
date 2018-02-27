@@ -197,6 +197,10 @@ class NativeMethods {
         const anchorPortDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'port');
         const anchorProtocolDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'protocol');
         const anchorSearchDescriptor   = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'search');
+        const anchorTargetDescriptor   = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'target');
+        const formTargetDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLFormElement.prototype, 'target');
+        const areaTargetDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'target');
+        const baseTargetDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'target');
 
         // Setters
         this.objectDataSetter     = objectDataDescriptor.set;
@@ -220,6 +224,10 @@ class NativeMethods {
         this.anchorPortSetter     = anchorPortDescriptor.set;
         this.anchorProtocolSetter = anchorProtocolDescriptor.set;
         this.anchorSearchSetter   = anchorSearchDescriptor.set;
+        this.anchorTargetSetter   = anchorTargetDescriptor.set;
+        this.formTargetSetter     = formTargetDescriptor.set;
+        this.areaTargetSetter     = areaTargetDescriptor.set;
+        this.baseTargetSetter     = baseTargetDescriptor.set;
 
         // Getters
         if (win.WebSocket) {
@@ -256,6 +264,10 @@ class NativeMethods {
         this.anchorPortGetter               = anchorPortDescriptor.get;
         this.anchorProtocolGetter           = anchorProtocolDescriptor.get;
         this.anchorSearchGetter             = anchorSearchDescriptor.get;
+        this.anchorTargetGetter             = anchorTargetDescriptor.get;
+        this.formTargetGetter               = formTargetDescriptor.get;
+        this.areaTargetGetter               = areaTargetDescriptor.get;
+        this.baseTargetGetter               = baseTargetDescriptor.get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 

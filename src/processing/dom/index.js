@@ -24,7 +24,7 @@ const SVG_XLINK_HREF_TAGS = [
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base', 'button'];
+const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base'];
 const IFRAME_FLAG_TAGS = (() => {
     const arr = [];
 

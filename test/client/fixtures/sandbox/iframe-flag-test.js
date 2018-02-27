@@ -34,7 +34,7 @@ function testIframeFlagViaAttrs (doc, iframeFlagResults) {
         doc.body.appendChild(el);
 
         Object.keys(iframeFlagResults).forEach(function (targetValue, index, keys) {
-            setProperty(el, 'target', targetValue);
+            el.target = targetValue;
             setProperty(el, urlAttr, url);
 
             strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)),
@@ -43,7 +43,7 @@ function testIframeFlagViaAttrs (doc, iframeFlagResults) {
 
             var nextTargetValue = keys[(index + 1) % keys.length];
 
-            setProperty(el, 'target', nextTargetValue);
+            el.target = nextTargetValue;
 
             strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)),
                 hasIframeFlagByTarget(tagName, nextTargetValue),
