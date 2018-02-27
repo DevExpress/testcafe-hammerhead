@@ -200,14 +200,9 @@ class Hammerhead {
         if (isSpecialPage(destLocation) && isRelativeUrl(url))
             return;
 
-        // if (destLocation === 'about:blank' && isRelativeUrl(url)) {
-        //     debugger;
-        //     return;
-        // }
+        const proxyUrl = urlUtils.getProxyUrl(ensureHostEndedTrailingSlash(url));
 
-        const proxyUrl = urlUtils.getProxyUrl(url);
-
-        this.win.location = ensureHostEndedTrailingSlash(proxyUrl);
+        this.win.location = proxyUrl;
     }
 
     start (initSettings, win) {
@@ -219,7 +214,7 @@ class Hammerhead {
             if (initSettings.isFirstPageLoad)
                 Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, this.win);
         }
-        // debugger;
+
         this.sandbox.attach(this.win);
         this.pageNavigationWatch.start();
     }

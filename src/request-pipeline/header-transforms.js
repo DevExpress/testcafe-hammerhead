@@ -136,10 +136,12 @@ const responseTransforms = {
     'location': (src, ctx) => {
         // NOTE: The RFC 1945 standard requires location URLs to be absolute. However, most popular browsers
         // accept relative URLs. We transform relative URLs to absolute to correctly handle this situation.
-        // ???
         if (ctx.contentInfo.isRedirect)
             return resolveAndGetProxyUrl(src, ctx);
 
+        // console.log('responseTransforms location:');
+        // console.log('src =  ' + src);
+        // console.log('src_ = ' + urlUtils.ensureHostEndedTrailingSlash(src));
         return urlUtils.ensureHostEndedTrailingSlash(src);
     },
 
@@ -154,9 +156,9 @@ const responseTransforms = {
         const isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
         const proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 
-        // console.log('[!] x-frame-options url = ' + proxiedUrl);
-        // console.log('[!] x-frame-options ctx.dest.url = ' + ctx.dest.url);
-        // console.log('[!] x-frame-options src = ' + src);
+        // console.log('x-frame-options url = ' + proxiedUrl);
+        // console.log('x-frame-options ctx.dest.url = ' + ctx.dest.url);
+        // console.log('x-frame-options src = ' + src);
         return 'ALLOW-FROM ' + proxiedUrl;
     },
 

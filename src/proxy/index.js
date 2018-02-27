@@ -121,7 +121,7 @@ export default class Proxy extends Router {
     }
 
     _onTaskScriptRequest (req, res, serverInfo, isIframe) {
-        const referer     = req.headers['referer']; // + '/'; // ?
+        const referer     = req.headers['referer'];
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions[refererDest.sessionId];
 
@@ -135,8 +135,6 @@ export default class Proxy extends Router {
     }
 
     _onRequest (req, res, serverInfo) {
-        // console.log('hammerhead _onRequest req.url = ' + req.url);
-
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
             runRequestPipeline(req, res, serverInfo, this.openSessions);
@@ -170,8 +168,6 @@ export default class Proxy extends Router {
 
         if (!urlUtils.isSpecialPage(url))
             url = urlUtils.ensureHostEndedTrailingSlash(url);
-
-        // console.log('hammerhead openSession() url = ' + url);
 
         return urlUtils.getProxyUrl(url, {
             proxyHostname: this.server1Info.hostname,
