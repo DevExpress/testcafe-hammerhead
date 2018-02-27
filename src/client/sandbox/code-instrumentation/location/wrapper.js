@@ -9,7 +9,13 @@ import {
     isChangedOnlyHash,
     getCrossDomainProxyPort
 } from '../../../utils/url';
-import { getDomain, getResourceTypeString, sameOriginCheck, ensureTrailingSlash } from '../../../../utils/url';
+import {
+    getDomain,
+    getResourceTypeString,
+    sameOriginCheck,
+    ensureTrailingSlash,
+    ensureHostEndedTrailingSlash
+} from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
 import { processJsAttrValue, isJsProtocol } from '../../../../processing/dom/index';
@@ -56,6 +62,8 @@ export default class LocationWrapper extends EventEmitter {
             return ensureTrailingSlash(href, locationUrl);
         };
         const getProxiedHref = href => {
+            href = ensureHostEndedTrailingSlash(href);
+
             if (isJsProtocol(href))
                 return processJsAttrValue(href, { isJsProtocol: true, isEventAttr: false });
 

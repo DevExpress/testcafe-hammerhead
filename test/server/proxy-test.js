@@ -360,7 +360,7 @@ describe('Proxy', () => {
     describe('Session', () => {
         it('Should pass DNS errors to session', done => {
             session.handlePageError = (ctx, err) => {
-                expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url">http://www.some-unresolvable.url</a>.');
+                expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url/">http://www.some-unresolvable.url/</a>.');
                 ctx.res.end();
                 done();
                 return true;
@@ -378,7 +378,7 @@ describe('Proxy', () => {
 
         it('Should pass protocol DNS errors for existing host to session', done => {
             session.handlePageError = (ctx, err) => {
-                expect(err).eql('Failed to find a DNS-record for the resource at <a href="https://127.0.0.1:2000">https://127.0.0.1:2000</a>.');
+                expect(err).eql('Failed to find a DNS-record for the resource at <a href="https://127.0.0.1:2000/">https://127.0.0.1:2000/</a>.');
                 ctx.res.end();
                 done();
                 return true;
@@ -1813,8 +1813,8 @@ describe('Proxy', () => {
                     const host = 'http://127.0.0.1:' + port;
 
                     session.handlePageError = (ctx, err) => {
-                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '">' +
-                                        host + '</a>.');
+                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '/' + '">' +
+                                        host + '/' + '</a>.');
                         ctx.res.end();
                         done();
                         return true;

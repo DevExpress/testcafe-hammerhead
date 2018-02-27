@@ -211,10 +211,12 @@ export function parseProxyUrl (proxyUrl) {
 }
 
 export function getPathname (path) {
+    // console.log('hammerhead getPathname(' + path + ')');
     return path.replace(QUERY_AND_HASH_RE, '');
 }
 
 export function parseUrl (url) {
+    // console.log('hammerhead parseUrl(' + url + ')');
     const parsed = {};
 
     url = prepareUrl(url);
@@ -283,10 +285,12 @@ export function resolveUrlAsDest (url, getProxyUrlMeth) {
         return formatUrl(parsedProxyUrl.destResourceInfo);
     }
 
+    // console.log('hammerhead resolveUrlAsDest() return url = ' + url);
     return url;
 }
 
 export function formatUrl (parsedUrl) {
+    // console.log('hammerhead formatUrl(' + parsedUrl.protocol + parsedUrl.hostname + parsedUrl.partAfterHost + ')');
     // NOTE: the URL is relative.
     if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost;
@@ -310,6 +314,13 @@ export function formatUrl (parsedUrl) {
 
     if (parsedUrl.partAfterHost)
         url += parsedUrl.partAfterHost;
+
+    // console.log('hammerhead formatUrl');
+    // console.log('parsedUrl.protocol + parsedUrl.hostname = ' + parsedUrl.protocol + parsedUrl.hostname);
+    // console.log('parsedUrl.host = ' + parsedUrl.host);
+    // console.log('parsedUrl.partAfterHost = ' + parsedUrl.partAfterHost);
+    // console.log('return url = ' + url);
+    // console.log('======================');
 
     return url;
 }
@@ -337,6 +348,9 @@ export function prepareUrl (url) {
 }
 
 export function ensureTrailingSlash (srcUrl, processedUrl) {
+    // console.log('hammerhead ensureTrailingSlash():');
+    // console.log('srcUrl =              ' + srcUrl);
+    // console.log('processedUrl =        ' + processedUrl);
     const srcUrlEndsWithTrailingSlash       = TRAILING_SLASH_RE.test(srcUrl);
     const processedUrlEndsWithTrailingSlash = TRAILING_SLASH_RE.test(processedUrl);
 
@@ -345,6 +359,7 @@ export function ensureTrailingSlash (srcUrl, processedUrl) {
     else if (!srcUrlEndsWithTrailingSlash && processedUrlEndsWithTrailingSlash)
         processedUrl = processedUrl.replace(TRAILING_SLASH_RE, '');
 
+    // console.log('return processedUrl = ' + processedUrl);
     return processedUrl;
 }
 
@@ -368,4 +383,25 @@ export function isValidUrl (url) {
     const parsedUrl = parseUrl(url);
 
     return parsedUrl.protocol === 'file:' || parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
+}
+
+export function ensureHostEndedTrailingSlash (url) {
+    // if (isSpecialPage(url)) {
+    //     console.log('ensureHostEndedTrailingSlash:');
+    //     console.log('SpecialPage = ' + url);
+    //     return url;
+    // }
+
+    const parsedUrl = parseUrl(url);
+
+    // console.log('ensureHostEndedTrailingSlash:');
+    // console.log('url = ' + url);
+    // console.log('parsedUrl.partAfterHost = ' + parsedUrl.partAfterHost);
+
+    if (parsedUrl.partAfterHost === '') {
+        // console.log('[partAfterHost = \'\']return ' + url + '/');
+        return url + '/';
+    }
+
+    return url;
 }

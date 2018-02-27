@@ -13,7 +13,7 @@ import * as typeUtils from './utils/types';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
-import { isRelativeUrl, parseProxyUrl } from '../utils/url';
+import { isRelativeUrl, parseProxyUrl, isSpecialPage, ensureHostEndedTrailingSlash } from '../utils/url';
 import * as urlUtils from './utils/url';
 import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
@@ -197,10 +197,17 @@ class Hammerhead {
             destLocation = parsedProxyUrl && parsedProxyUrl.destUrl;
         }
 
-        if (destLocation === 'about:blank' && isRelativeUrl(url))
+        if (isSpecialPage(destLocation) && isRelativeUrl(url))
             return;
 
-        this.win.location = urlUtils.getProxyUrl(url);
+        // if (destLocation === 'about:blank' && isRelativeUrl(url)) {
+        //     debugger;
+        //     return;
+        // }
+
+        const proxyUrl = urlUtils.getProxyUrl(url);
+
+        this.win.location = ensureHostEndedTrailingSlash(proxyUrl);
     }
 
     start (initSettings, win) {
@@ -212,7 +219,7 @@ class Hammerhead {
             if (initSettings.isFirstPageLoad)
                 Hammerhead._cleanLocalStorageServiceData(initSettings.sessionId, this.win);
         }
-
+        // debugger;
         this.sandbox.attach(this.win);
         this.pageNavigationWatch.start();
     }
