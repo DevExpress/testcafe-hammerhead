@@ -21,7 +21,15 @@ function createTestedLink () {
 }
 
 function checkElementTarget (el, real, primary) {
-    strictEqual(el.target, real);
+    if (el.tagName === 'anchor')
+        strictEqual(nativeMethods.anchorTargetGetter.call(el), real);
+    else if (el.tagName === 'area')
+        strictEqual(nativeMethods.areaTargetGetter.call(el), real);
+    else if (el.tagName === 'base')
+        strictEqual(nativeMethods.baseTargetGetter.call(el), real);
+    else if (el.tagName === 'form')
+        strictEqual(nativeMethods.formTargetGetter.call(el), real);
+
     strictEqual(el.getAttribute('target'), primary);
 }
 
@@ -179,7 +187,7 @@ asyncTest('input inside form', function () {
     var input = document.createElement('input');
 
     form.appendChild(input);
-    form.target = '_blank';
+    nativeMethods.formTargetSetter.call(form, '_blank');
     input.type = 'submit';
     document.body.appendChild(form);
 
@@ -199,14 +207,14 @@ asyncTest('form.submit', function () {
     var storedNativeFormSubmit = nativeMethods.formSubmit;
 
     nativeMethods.formSubmit = function () {
-        strictEqual(form.target, '_top');
+        strictEqual(nativeMethods.formTargetGetter.call(form), '_top');
 
         nativeMethods.formSubmit = storedNativeFormSubmit;
         form.parentNode.removeChild(form);
         start();
     };
 
-    form.target = 'wrong_window_name';
+    nativeMethods.formTargetSetter.call(form, 'wrong_window_name');
     form.action = 'http://example.com';
 
     document.body.appendChild(form);

@@ -24,17 +24,10 @@ const SVG_XLINK_HREF_TAGS = [
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base', 'button'];
-const IFRAME_FLAG_TAGS = (() => {
-    const arr = [];
-
-    for (const tagName of TARGET_ATTR_TAGS) {
-        if (tagName !== 'base')
-            arr.push(tagName);
-    }
-
-    return arr;
-})();
+const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base'];
+/*eslint-disable hammerhead/proto-methods*/
+const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS.filter(tagName => tagName !== 'base').concat('button');
+/*eslint-enable hammerhead/proto-methods*/
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 

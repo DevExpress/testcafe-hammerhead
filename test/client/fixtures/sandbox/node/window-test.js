@@ -298,6 +298,18 @@ if (window.history.replaceState && window.history.pushState) {
     });
 }
 
+test('an overridden "target" attribute getter should return the same value as origin getter (attribute value is not defined)', function () {
+    var anchor = document.createElement('a');
+    var area   = document.createElement('area');
+    var base   = document.createElement('base');
+    var form   = document.createElement('form');
+
+    strictEqual(nativeMethods.anchorTargetGetter.call(anchor), anchor.target);
+    strictEqual(nativeMethods.areaTargetGetter.call(area), area.target);
+    strictEqual(nativeMethods.baseTargetGetter.call(base), base.target);
+    strictEqual(nativeMethods.formTargetGetter.call(form), form.target);
+});
+
 module('regression');
 
 // NOTE: https://connect.microsoft.com/IE/feedback/details/801810/web-workers-from-blob-urls-in-ie-10-and-11

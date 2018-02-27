@@ -5,7 +5,6 @@ import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
 import ShadowUI from '../../shadow-ui';
 import XhrSandbox from '../../xhr';
-import DomProcessor from '../../../../processing/dom/index';
 import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
@@ -547,16 +546,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: domUtils.isWindow,
                 get:       () => this.storageSandbox.sessionStorage,
                 set:       () => void 0
-            },
-
-            target: {
-                condition: el => domUtils.isDomElement(el) && DomProcessor.isTagWithTargetAttr(domUtils.getTagName(el)),
-                get:       el => el.target,
-                set:       (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['target', value]);
-
-                    return value;
-                }
             },
 
             text: {

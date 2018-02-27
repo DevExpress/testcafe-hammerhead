@@ -422,7 +422,7 @@ test('multiple document.write with html and body tags should not break markup (G
 
             strictEqual(doc.querySelector('h1').innerHTML, 'Header');
             ok(/Text( text){19}/.test(doc.querySelector('p').innerHTML));
-            strictEqual(doc.querySelector('a').target, '_top');
+            strictEqual(nativeMethods.anchorTargetGetter.call(doc.querySelector('a')), '_top');
             strictEqual(doc.querySelectorAll('body > table tr > td > a > img').length, 1);
         });
 });

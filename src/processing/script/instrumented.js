@@ -60,7 +60,6 @@ export const PROPERTIES = [
     'status',
     'style',
     'styleSheets',
-    'target',
     'text',
     'textContent',
     'URL',
