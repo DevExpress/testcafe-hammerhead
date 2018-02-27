@@ -1,10 +1,8 @@
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
-import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../../../request-pipeline/xhr/same-origin-policy';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
 import ShadowUI from '../../shadow-ui';
-import XhrSandbox from '../../xhr';
 import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
@@ -606,20 +604,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
-            status: {
-                condition: XhrSandbox.isOpenedXhr,
-                // NOTE: The browser returns a 0 status code if the same-origin policy check is failed. Node.js v5.11 or higher
-                // (https://github.com/nodejs/node/blob/v5.11.0/CHANGELOG.md, https://github.com/nodejs/node/pull/6291/files)
-                // does not allow returning a response with this code. So, we use a valid unused 222 status code and change
-                // it to 0 on the client side.
-                get:       xhr => xhr.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : xhr.status,
-                set:       (xhr, value) => {
-                    xhr.status = value;
-
-                    return value;
-                }
-            },
-
             // Event
             onbeforeunload: {
                 condition: domUtils.isWindow,
@@ -685,17 +669,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     doc.styleSheets = value;
 
                     return value;
-                }
-            },
-
-            // xhr
-            responseURL: {
-                condition: domUtils.isXMLHttpRequest,
-                get:       xhr => xhr.responseURL ? urlUtils.parseProxyUrl(xhr.responseURL).destUrl : xhr.responseURL,
-                set:       (xhr, url) => {
-                    xhr.responseURL = url;
-
-                    return url;
                 }
             }
         };

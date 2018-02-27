@@ -1,11 +1,13 @@
 import SandboxBase from './base';
 import nativeMethods from './native-methods';
-import { getProxyUrl } from '../utils/url';
+import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import XHR_HEADERS from '../../request-pipeline/xhr/headers';
 import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
 import { getOriginHeader } from '../utils/destination-location';
 import reEscape from '../../utils/regexp-escape';
 import * as JSON from '../json';
+import overrideDescriptor from '../utils/override-descriptor';
+import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
 
 const IS_OPENED_XHR               = 'hammerhead|xhr|is-opened-xhr';
 const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');
@@ -160,5 +162,18 @@ export default class XhrSandbox extends SandboxBase {
 
             return nativeMethods.xhrSetRequestHeader.call(this, header, value);
         };
+
+        overrideDescriptor(window.XMLHttpRequest.prototype, 'status', function () {
+            const status = nativeMethods.xhrStatusGetter.call(this);
+
+            return XhrSandbox.isOpenedXhr(this) && status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
+        });
+
+        overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', function () {
+            const responseUrl    = nativeMethods.xhrResponseURLGetter.call(this);
+            const parsedProxyUrl = responseUrl && parseProxyUrl(responseUrl);
+
+            return parsedProxyUrl ? parsedProxyUrl.destUrl : responseUrl;
+        });
     }
 }

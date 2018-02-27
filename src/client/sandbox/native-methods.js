@@ -243,6 +243,8 @@ class NativeMethods {
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'childElementCount').get;
         this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
         this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
+        this.xhrStatusGetter                = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
+        this.xhrResponseURLGetter           = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'responseURL').get;
         this.objectDataGetter               = objectDataDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
@@ -292,6 +294,12 @@ class NativeMethods {
         // NOTE: This condition is used for the Android 6.0 browser
         if (dataPropDescriptor)
             this.messageEventDataGetter = dataPropDescriptor.get;
+
+        if (win.fetch) {
+            this.responseStatusGetter = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'status').get;
+            this.responseTypeGetter   = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'type').get;
+            this.responseUrlGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
+        }
 
         // Stylesheets
         if (win.CSSStyleDeclaration) {

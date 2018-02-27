@@ -291,25 +291,6 @@ test('document.cookie on page with file protocol', function () {
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 });
 
-asyncTest('xhr.responseURL', function () {
-    var xhr       = new XMLHttpRequest();
-    var testCount = 0;
-
-    xhr.addEventListener('readystatechange', function () {
-        if (this.responseURL) {
-            strictEqual(getProperty(this, 'responseURL'), 'https://example.com/xhr-large-response');
-            ++testCount;
-        }
-
-        if (this.readyState === XMLHttpRequest.DONE) {
-            expect(testCount);
-            start();
-        }
-    });
-    xhr.open('GET', '/redirect/', true);
-    xhr.send(null);
-});
-
 test('HTMLElement.style', function () {
     var div = document.createElement('div');
 
