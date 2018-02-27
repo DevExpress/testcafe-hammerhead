@@ -124,38 +124,35 @@ export default class UploadInfoManager {
     }
 
     loadFileListData (input, fileList) {
-        /*eslint-disable no-else-return */
         if (!fileList.length)
             return Promise.resolve(new FileListWrapper([]));
-        else {
-            return new Promise(resolve => {
-                let index         = 0;
-                const fileReader  = new FileReader();
-                let file          = fileList[index];
-                const readedFiles = [];
 
-                fileReader.addEventListener('load', e => {
-                    readedFiles.push({
-                        data: e.target.result.substr(e.target.result.indexOf(',') + 1),
-                        blob: file.slice(0, file.size),
-                        info: {
-                            type:             file.type,
-                            name:             file.name,
-                            lastModifiedDate: file.lastModifiedDate
-                        }
-                    });
+        return new Promise(resolve => {
+            const fileReader  = new FileReader();
+            const readedFiles = [];
+            let index         = 0;
+            let file          = fileList[index];
 
-                    if (fileList[++index]) {
-                        file = fileList[index];
-                        fileReader.readAsDataURL(file);
+            fileReader.addEventListener('load', e => {
+                readedFiles.push({
+                    data: e.target.result.substr(e.target.result.indexOf(',') + 1),
+                    blob: file.slice(0, file.size),
+                    info: {
+                        type:             file.type,
+                        name:             file.name,
+                        lastModifiedDate: file.lastModifiedDate
                     }
-                    else
-                        resolve(new FileListWrapper(readedFiles));
                 });
-                fileReader.readAsDataURL(file);
+
+                if (fileList[++index]) {
+                    file = fileList[index];
+                    fileReader.readAsDataURL(file);
+                }
+                else
+                    resolve(new FileListWrapper(readedFiles));
             });
-        }
-        /*eslint-enable no-else-return */
+            fileReader.readAsDataURL(file);
+        });
     }
 
     setUploadInfo (input, fileList, value) {
