@@ -298,7 +298,7 @@ if (window.history.replaceState && window.history.pushState) {
     });
 }
 
-test('overridden "target" attribute getter must return same value as origin getter for elements without attribute', function () {
+test('an overridden "target" attribute getter should return the same value as origin getter (attribute value is not defined)', function () {
     var anchor = document.createElement('a');
     var area   = document.createElement('area');
     var base   = document.createElement('base');
