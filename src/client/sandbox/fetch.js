@@ -93,7 +93,7 @@ export default class FetchSandbox extends SandboxBase {
     attach (window) {
         super.attach(window, window.document);
 
-        if (!window.fetch)
+        if (!nativeMethods.fetch)
             return;
 
         const sandbox = this;
