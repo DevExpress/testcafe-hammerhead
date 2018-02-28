@@ -24,10 +24,6 @@ export default class XhrSandbox extends SandboxBase {
         this.cookieSandbox = cookieSandbox;
     }
 
-    static isOpenedXhr (obj) {
-        return obj[IS_OPENED_XHR];
-    }
-
     static createNativeXHR () {
         const xhr = new nativeMethods.XMLHttpRequest();
 
@@ -166,7 +162,7 @@ export default class XhrSandbox extends SandboxBase {
         overrideDescriptor(window.XMLHttpRequest.prototype, 'status', function () {
             const status = nativeMethods.xhrStatusGetter.call(this);
 
-            return XhrSandbox.isOpenedXhr(this) && status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
+            return this[IS_OPENED_XHR] && status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
         });
 
         if (nativeMethods.xhrResponseURLGetter) {
