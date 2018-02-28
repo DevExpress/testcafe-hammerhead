@@ -169,11 +169,13 @@ export default class XhrSandbox extends SandboxBase {
             return XhrSandbox.isOpenedXhr(this) && status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
         });
 
-        overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', function () {
-            const responseUrl    = nativeMethods.xhrResponseURLGetter.call(this);
-            const parsedProxyUrl = responseUrl && parseProxyUrl(responseUrl);
+        if (nativeMethods.xhrResponseURLGetter) {
+            overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', function () {
+                const responseUrl    = nativeMethods.xhrResponseURLGetter.call(this);
+                const parsedProxyUrl = responseUrl && parseProxyUrl(responseUrl);
 
-            return parsedProxyUrl ? parsedProxyUrl.destUrl : responseUrl;
-        });
+                return parsedProxyUrl ? parsedProxyUrl.destUrl : responseUrl;
+            });
+        }
     }
 }
