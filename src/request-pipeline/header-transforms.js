@@ -141,8 +141,8 @@ const responseTransforms = {
 
         // console.log('responseTransforms location:');
         // console.log('src =  ' + src);
-        // console.log('src_ = ' + urlUtils.ensureHostEndedTrailingSlash(src));
-        return urlUtils.ensureHostEndedTrailingSlash(src);
+        // console.log('src_ = ' + urlUtils.ensureOriginTrailingSlash(src));
+        return urlUtils.ensureOriginTrailingSlash(src);
     },
 
     'x-frame-options': (src, ctx) => {
@@ -151,14 +151,17 @@ const responseTransforms = {
 
         src = src.replace('ALLOW-FROM', '').trim();
 
-        // src = urlUtils.ensureHostEndedTrailingSlash(src);
+        // src = urlUtils.ensureOriginTrailingSlash(src);
 
         const isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
         const proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 
-        // console.log('x-frame-options url = ' + proxiedUrl);
-        // console.log('x-frame-options ctx.dest.url = ' + ctx.dest.url);
-        // console.log('x-frame-options src = ' + src);
+        // console.log('x-frame-options:');
+        // console.log('url          = ' + proxiedUrl);
+        // console.log('ctx.dest.url = ' + ctx.dest.url);
+        // console.log('src          = ' + src);
+        // console.log('proxiedUrl   = ' + proxiedUrl);
+        // console.log('return = ' + 'ALLOW-FROM ' + proxiedUrl);
         return 'ALLOW-FROM ' + proxiedUrl;
     },
 

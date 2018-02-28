@@ -112,7 +112,7 @@ function convertHostToLowerCase (url) {
 
 export function getProxyUrl (url, opts) {
     // if (!isSpecialPage(url))
-    //     url = ensureHostEndedTrailingSlash(url);
+    //     url = ensureOriginTrailingSlash(url);
 
     let params = [opts.sessionId];
 
@@ -373,7 +373,9 @@ export function isValidUrl (url) {
     return parsedUrl.protocol === 'file:' || parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
 }
 
-export function ensureHostEndedTrailingSlash (url) {
+export function ensureOriginTrailingSlash (url) {
+    // NOTE: If you request an url containing only port, host and protocol
+    // then browser adds the trailing slash itself.
     const parsedUrl = parseUrl(url);
 
     if (!parsedUrl.partAfterHost)

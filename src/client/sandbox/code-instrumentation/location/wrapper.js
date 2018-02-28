@@ -15,7 +15,7 @@ import {
     sameOriginCheck,
     ensureTrailingSlash,
     isSpecialPage,
-    ensureHostEndedTrailingSlash
+    ensureOriginTrailingSlash
 } from '../../../../utils/url';
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
@@ -64,7 +64,7 @@ export default class LocationWrapper extends EventEmitter {
         };
         const getProxiedHref = href => {
             if (!isSpecialPage(href))
-                href = ensureHostEndedTrailingSlash(href);
+                href = ensureOriginTrailingSlash(href);
 
             if (isJsProtocol(href))
                 return processJsAttrValue(href, { isJsProtocol: true, isEventAttr: false });
