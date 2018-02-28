@@ -34,7 +34,7 @@ export default class CookieSync {
     }
 
     _onRequestLoad (request) {
-        if (request.status === 204) {
+        if (nativeMethods.xhrStatusGetter.call(request) === 204) {
             this.sendedQueue    = null;
             this.activeReq      = null;
             this.failedReqCount = 0;

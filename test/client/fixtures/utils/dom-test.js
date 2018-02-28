@@ -251,27 +251,6 @@ test('isWindow for a window received from the MessageEvent.target property (GH-1
         });
 });
 
-test('isXMLHttpRequest', function () {
-    ok(domUtils.isXMLHttpRequest(new XMLHttpRequest()));
-    ok(!domUtils.isXMLHttpRequest({ responseTest: '' }));
-
-    var iframe = document.createElement('iframe');
-
-    iframe.id = 'test087';
-    document.body.appendChild(iframe);
-
-    ok(domUtils.isXMLHttpRequest(new iframe.contentWindow.XMLHttpRequest()));
-    ok(!domUtils.isXMLHttpRequest([
-        {
-            toString: function () {
-                ok(false);
-            }
-        }
-    ]));
-
-    document.body.removeChild(iframe);
-});
-
 test('closest element', function () {
     var div = document.createElement('div');
 

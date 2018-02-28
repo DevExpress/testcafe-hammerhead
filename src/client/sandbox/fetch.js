@@ -5,6 +5,7 @@ import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
+import overrideDescriptor from '../utils/override-descriptor';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
 
@@ -77,40 +78,9 @@ export default class FetchSandbox extends SandboxBase {
         return true;
     }
 
-    _processFetchPromise (promise) {
-        const originalThen = promise.then;
-        const win          = this.window;
-
-        promise.then = function (...args) {
-            const originalThenHandler = args[0];
-
-            args[0] = function (response) {
-                nativeMethods.objectDefineProperty.call(win.Object, response, 'type', {
-                    get:          () => FetchSandbox._getResponseType(response),
-                    set:          () => void 0,
-                    configurable: true
-                });
-
-                const responseStatus = response.status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : response.status;
-
-                nativeMethods.objectDefineProperty.call(win.Object, response, 'status', {
-                    get:          () => responseStatus,
-                    set:          () => void 0,
-                    configurable: true
-                });
-
-                if (originalThenHandler)
-                    return originalThenHandler.apply(this, arguments);
-
-                return response;
-            };
-
-            return originalThen.apply(this, args);
-        };
-    }
-
     static _getResponseType (response) {
-        const parsedResponseUrl = parseProxyUrl(response.url);
+        const responseUrl       = nativeMethods.responseUrlGetter.call(response);
+        const parsedResponseUrl = parseProxyUrl(responseUrl);
         const destUrl           = parsedResponseUrl && parsedResponseUrl.destUrl;
         const isSameOrigin      = sameOriginCheck(getDestLocation(), destUrl, true);
 
@@ -123,35 +93,52 @@ export default class FetchSandbox extends SandboxBase {
     attach (window) {
         super.attach(window, window.document);
 
+        if (!nativeMethods.fetch)
+            return;
+
         const sandbox = this;
 
-        if (window.fetch) {
-            window.Request           = function (...args) {
-                FetchSandbox._processArguments(args);
+        window.Request           = function (...args) {
+            FetchSandbox._processArguments(args);
 
-                if (args.length === 1)
-                    return new nativeMethods.Request(args[0]);
+            if (args.length === 1)
+                return new nativeMethods.Request(args[0]);
 
-                return new nativeMethods.Request(args[0], args[1]);
-            };
-            window.Request.prototype = nativeMethods.Request.prototype;
+            return new nativeMethods.Request(args[0], args[1]);
+        };
+        window.Request.prototype = nativeMethods.Request.prototype;
 
-            window.fetch = function (...args) {
-                if (!args.length)
-                    return nativeMethods.fetch.apply(this);
+        window.fetch = function (...args) {
+            if (!args.length)
+                return nativeMethods.fetch.apply(this);
 
-                if (!FetchSandbox._requestIsValid(args))
-                    return sandbox.window.Promise.reject(new TypeError());
+            if (!FetchSandbox._requestIsValid(args))
+                return sandbox.window.Promise.reject(new TypeError());
 
-                FetchSandbox._processArguments(args);
+            FetchSandbox._processArguments(args);
 
-                const fetchPromise = nativeMethods.fetch.apply(this, args);
+            const fetchPromise = nativeMethods.fetch.apply(this, args);
 
-                sandbox._processFetchPromise(fetchPromise);
-                sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
+            sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
-                return fetchPromise;
-            };
-        }
+            return fetchPromise;
+        };
+
+        overrideDescriptor(window.Response.prototype, 'type', function () {
+            return FetchSandbox._getResponseType(this);
+        });
+
+        overrideDescriptor(window.Response.prototype, 'status', function () {
+            const responseStatus = nativeMethods.responseStatusGetter.call(this);
+
+            return responseStatus === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : responseStatus;
+        });
+
+        overrideDescriptor(window.Response.prototype, 'url', function () {
+            const responseUrl       = nativeMethods.responseUrlGetter.call(this);
+            const parsedResponseUrl = responseUrl && parseProxyUrl(responseUrl);
+
+            return parsedResponseUrl ? parsedResponseUrl.destUrl : responseUrl;
+        });
     }
 }

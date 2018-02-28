@@ -69,6 +69,13 @@ if (window.fetch) {
             });
     });
 
+    test('response.url', function () {
+        return fetch('/xhr-test/100')
+            .then(function (response) {
+                strictEqual(response.url, 'https://example.com/xhr-test/100');
+            });
+    });
+
     module('Response.type', function () {
         test('basic', function () {
             return fetch('/xhr-test/100')
