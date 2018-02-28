@@ -112,7 +112,7 @@ test('iframe', function () {
     wrapper = LocationInstrumentation.getLocationWrapper(windowMock);
 
     wrapper.assign('http://new.domain.com:1444');
-    strictEqual(windowMock.location.toString(), getProxy('http://new.domain.com:1444'));
+    strictEqual(windowMock.location.toString(), getProxy('http://new.domain.com:1444/'));
 
     wrapper.replace('https://domain.com:1555/index.html');
     strictEqual(windowMock.location.toString(), getProxy('https://domain.com:1555/index.html'));

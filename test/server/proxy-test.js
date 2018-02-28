@@ -2238,7 +2238,7 @@ describe('Proxy', () => {
                 },
                 {
                     url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20https%3A%2F%2Fexample.com', session),
-                    expectedHeaderValue: 'ALLOW-FROM ' + proxy.openSession('https://example.com', session)
+                    expectedHeaderValue: 'ALLOW-FROM ' + proxy.openSession('https://example.com', session).replace(urlUtils.TRAILING_SLASH_RE, '')
                 },
                 {
                     url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20http%3A%2F%2F127.0.0.1%3A2000%2Fpage', session),

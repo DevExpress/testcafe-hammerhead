@@ -12,11 +12,11 @@ const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
 const PORT_RE            = /:([0-9]*)$/;
 const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
 const PATH_AFTER_HOST_RE = /^\/([^/]+?)\/([\S\s]+)$/;
-const TRAILING_SLASH_RE  = /\/$/;
 
 export const SUPPORTED_PROTOCOL_RE               = /^(?:https?|file):/i;
 export const HASH_RE                             = /^#/;
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
+export const TRAILING_SLASH_RE                   = /\/$/;
 export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
 
 export function parseResourceType (resourceType) {
@@ -375,7 +375,7 @@ export function isValidUrl (url) {
 
 export function ensureOriginTrailingSlash (url) {
     // NOTE: If you request an url containing only port, host and protocol
-    // then browser adds the trailing slash itself.
+    // then browser adds the trailing slash to window.location.href.
     const parsedUrl = parseUrl(url);
 
     if (!parsedUrl.partAfterHost)
