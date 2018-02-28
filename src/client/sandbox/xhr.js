@@ -9,7 +9,6 @@ import * as JSON from '../json';
 import overrideDescriptor from '../utils/override-descriptor';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
 
-const IS_OPENED_XHR               = 'hammerhead|xhr|is-opened-xhr';
 const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');
 const XHR_READY_STATES            = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
@@ -112,8 +111,6 @@ export default class XhrSandbox extends SandboxBase {
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
         xmlHttpRequestProto.open = function () {
-            this[IS_OPENED_XHR] = true;
-
             if (typeof arguments[1] === 'string')
                 arguments[1] = getProxyUrl(arguments[1]);
 
@@ -162,7 +159,7 @@ export default class XhrSandbox extends SandboxBase {
         overrideDescriptor(window.XMLHttpRequest.prototype, 'status', function () {
             const status = nativeMethods.xhrStatusGetter.call(this);
 
-            return this[IS_OPENED_XHR] && status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
+            return status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
         });
 
         if (nativeMethods.xhrResponseURLGetter) {
