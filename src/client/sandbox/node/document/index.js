@@ -8,13 +8,16 @@ import { isIframeWithoutSrc, getFrameElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
+import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
+import overrideDescriptor from '../../../utils/override-descriptor';
 
 export default class DocumentSandbox extends SandboxBase {
-    constructor (nodeSandbox) {
+    constructor (nodeSandbox, shadowUI) {
         super();
 
         this.nodeSandbox    = nodeSandbox;
         this.documentWriter = null;
+        this.shadowUI       = shadowUI;
     }
 
     _isUninitializedIframeWithoutSrc (win) {
@@ -152,5 +155,44 @@ export default class DocumentSandbox extends SandboxBase {
 
             return fragment;
         };
+
+        const docPrototype = window.Document.prototype;
+        let storedDomain   = '';
+
+        if (nativeMethods.documentDocumentURIGetter) {
+            overrideDescriptor(docPrototype, 'documentURI', function () {
+                const documentURI    = nativeMethods.documentDocumentURIGetter.call(this);
+                const parsedProxyUrl = urlUtils.parseProxyUrl(documentURI);
+
+                return parsedProxyUrl ? parsedProxyUrl.destUrl : documentURI;
+            });
+        }
+
+        overrideDescriptor(docPrototype, 'referrer', function () {
+            const referrer       = nativeMethods.documentReferrerGetter.call(this);
+            const parsedProxyUrl = urlUtils.parseProxyUrl(referrer);
+
+            return parsedProxyUrl ? parsedProxyUrl.destUrl : '';
+        });
+
+        overrideDescriptor(docPrototype, 'URL', function () {
+            /*eslint-disable no-restricted-properties*/
+            return LocationAccessorsInstrumentation.getLocationWrapper(this).href;
+            /*eslint-enable no-restricted-properties*/
+        });
+
+        overrideDescriptor(docPrototype, 'domain', () => {
+            /*eslint-disable no-restricted-properties*/
+            return storedDomain || LocationAccessorsInstrumentation.getLocationWrapper(window).hostname;
+            /*eslint-enable no-restricted-properties*/
+        }, value => {
+            storedDomain = value;
+
+            return value;
+        });
+
+        overrideDescriptor(docPrototype, 'styleSheets', function () {
+            return documentSandbox.shadowUI._filterStyleSheetList(nativeMethods.documentStyleSheetsGetter.call(this));
+        });
     }
 }

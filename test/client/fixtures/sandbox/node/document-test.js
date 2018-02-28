@@ -1,10 +1,12 @@
 var processScript       = hammerhead.get('../processing/script').processScript;
 var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
 var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
+var urlUtils            = hammerhead.get('./utils/url');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 var Promise       = hammerhead.Promise;
+var shadowUI      = hammerhead.sandbox.shadowUI;
 
 test('document.write for iframe.src with javascript protocol', function () {
     var $div = $('<div>').appendTo('body');
@@ -279,6 +281,78 @@ test('parameters passed to the native function in its original form', function (
 
     hammerhead.sandbox.node.doc._beforeDocumentCleaned = storedBeforeDocumentCleaned;
     nativeMethods.restoreDocumentMeths                 = storedRestoreDocumentMeths;
+});
+
+module('overridden descriptors');
+
+if (nativeMethods.documentDocumentURIGetter) {
+    test('document.documentURI', function () {
+        var savedParseProxyUrl = urlUtils.parseProxyUrl;
+
+        urlUtils.parseProxyUrl = function () {
+            return null;
+        };
+
+        strictEqual(document.documentURI, nativeMethods.documentDocumentURIGetter.call(document));
+
+        urlUtils.parseProxyUrl = function () {
+            return { destUrl: 'destUrl' };
+        };
+
+        strictEqual(document.documentURI, 'destUrl');
+
+        urlUtils.parseProxyUrl = savedParseProxyUrl;
+    });
+}
+
+test('document.referrer', function () {
+    var savedParseProxyUrl = urlUtils.parseProxyUrl;
+
+    urlUtils.parseProxyUrl = function () {
+        return null;
+    };
+
+    strictEqual(document.referrer, '');
+
+    urlUtils.parseProxyUrl = function () {
+        return { destUrl: '123' };
+    };
+
+    strictEqual(document.referrer, '123');
+
+    urlUtils.parseProxyUrl = savedParseProxyUrl;
+});
+
+test('document.URL', function () {
+    strictEqual(document.URL, 'https://example.com/');
+});
+
+test('document.domain', function () {
+    strictEqual(document.domain, 'example.com');
+
+    document.domain = 'localhost';
+
+    strictEqual(document.domain, 'localhost');
+});
+
+test('document.styleSheets (GH-1000)', function () {
+    var styleSheetsCollectionLength = document.styleSheets.length;
+    var shadowStyleSheet            = document.createElement('style');
+
+    shadowUI.addClass(shadowStyleSheet, 'ui-stylesheet');
+    document.body.appendChild(shadowStyleSheet);
+
+    strictEqual(styleSheetsCollectionLength, document.styleSheets.length);
+
+    var styleSheet = document.createElement('style');
+
+    document.body.appendChild(styleSheet);
+
+    strictEqual(styleSheetsCollectionLength + 1, document.styleSheets.length);
+    strictEqual(styleSheet, document.styleSheets.item(document.styleSheets.length - 1).ownerNode);
+
+    shadowStyleSheet.parentNode.removeChild(shadowStyleSheet);
+    styleSheet.parentNode.removeChild(styleSheet);
 });
 
 module('resgression');

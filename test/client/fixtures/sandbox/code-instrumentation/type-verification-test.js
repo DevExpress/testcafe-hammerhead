@@ -1,21 +1,5 @@
 var urlUtils = hammerhead.get('./utils/url');
 
-test('is document instance', function () {
-    var savedGetProxyUrl = urlUtils.getProxyUrl;
-    var fakeDoc          = {
-        referrer: ''
-    };
-
-    urlUtils.getProxyUrl = function () {
-        return 'http://proxy/';
-    };
-
-    setProperty(fakeDoc, 'referrer', 'referrer');
-    strictEqual(fakeDoc.referrer, 'referrer');
-
-    urlUtils.getProxyUrl = savedGetProxyUrl;
-});
-
 test('is window instance', function () {
     var savedGetProxyUrl = urlUtils.getProxyUrl;
     var fakeWin          = {

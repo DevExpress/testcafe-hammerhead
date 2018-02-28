@@ -1,13 +1,14 @@
 /*global Document, Window */
 class NativeMethods {
     constructor (doc, win) {
-        this.refreshDocumentMeths(doc);
+        this.refreshDocumentMeths(doc, win);
         this.refreshElementMeths(doc, win);
         this.refreshWindowMeths(win);
     }
 
-    refreshDocumentMeths (doc) {
+    refreshDocumentMeths (doc, win) {
         doc = doc || document;
+        win = win || window;
 
         const docProto = doc.constructor.prototype;
 
@@ -36,6 +37,17 @@ class NativeMethods {
         this.documentCreateEvent         = doc.createEvent || docProto.createEvent;
         this.documentCreateTouch         = doc.createTouch || docProto.createTouch;
         this.documentCreateTouchList     = doc.createTouchList || docProto.createTouchList;
+
+        // getters/setters
+        const docPrototype = win.Document.prototype;
+
+        this.documentReferrerGetter    = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
+        this.documentStyleSheetsGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
+
+        const documentDocumentURIDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'documentURI');
+
+        if (documentDocumentURIDescriptor)
+            this.documentDocumentURIGetter = documentDocumentURIDescriptor.get;
     }
 
     refreshElementMeths (doc, win) {

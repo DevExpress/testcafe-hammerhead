@@ -130,8 +130,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     }
 
     _createPropertyAccessors (window, document) {
-        let storedDomain = '';
-
         return {
             action: {
                 condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'action'),
@@ -190,26 +188,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: evt => PropertyAccessorsInstrumentation._isMessageEventWithoutDataPropGetter(evt),
                 get:       evt => evt.data.message,
                 set:       (evt, value) => value
-            },
-
-            documentURI: {
-                condition: doc => doc.documentURI && domUtils.isDocument(doc),
-                get:       doc => urlUtils.parseProxyUrl(doc.documentURI).destUrl,
-                set:       val => val
-            },
-
-            domain: {
-                condition: domUtils.isDocument,
-
-                /*eslint-disable no-restricted-properties*/
-                get: () => storedDomain || LocationAccessorsInstrumentation.getLocationWrapper(window).hostname,
-                /*eslint-enable no-restricted-properties*/
-
-                set: (doc, domain) => {
-                    storedDomain = domain;
-
-                    return domain;
-                }
             },
 
             firstChild: {
@@ -514,22 +492,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
-            referrer: {
-                condition: domUtils.isDocument,
-
-                get: doc => {
-                    const proxyUrl = urlUtils.parseProxyUrl(doc.referrer);
-
-                    return proxyUrl ? proxyUrl.destUrl : '';
-                },
-
-                set: (doc, value) => {
-                    doc.referrer = urlUtils.getProxyUrl(value);
-
-                    return value;
-                }
-            },
-
             sandbox: {
                 condition: domUtils.isIframeElement,
                 get:       el => this.elementSandbox.getAttributeCore(el, ['sandbox']),
@@ -562,16 +524,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 get: el => PropertyAccessorsInstrumentation.removeProcessingInstructions(el.textContent),
 
                 set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'textContent', text)
-            },
-
-            URL: {
-                condition: domUtils.isDocument,
-
-                /*eslint-disable no-restricted-properties*/
-                get: doc => LocationAccessorsInstrumentation.getLocationWrapper(doc).href,
-                /*eslint-enable no-restricted-properties*/
-
-                set: () => void 0
             },
 
             baseURI: {
@@ -657,16 +609,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 set: (el, value) => {
                     this.elementSandbox.setAttributeCore(el, ['style', value]);
-
-                    return value;
-                }
-            },
-
-            styleSheets: {
-                condition: domUtils.isDocument,
-                get:       doc => this.shadowUI._filterStyleSheetList(doc.styleSheets),
-                set:       (doc, value) => {
-                    doc.styleSheets = value;
 
                     return value;
                 }
