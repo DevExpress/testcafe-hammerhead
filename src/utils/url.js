@@ -112,9 +112,6 @@ function convertHostToLowerCase (url) {
 }
 
 export function getProxyUrl (url, opts) {
-    // if (!isSpecialPage(url))
-    //     url = ensureOriginTrailingSlash(url);
-
     let params = [opts.sessionId];
 
     if (opts.resourceType)

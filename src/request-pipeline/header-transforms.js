@@ -139,9 +139,6 @@ const responseTransforms = {
         if (ctx.contentInfo.isRedirect)
             return resolveAndGetProxyUrl(src, ctx);
 
-        // console.log('responseTransforms location:');
-        // console.log('src =  ' + src);
-        // console.log('src_ = ' + urlUtils.ensureOriginTrailingSlash(src));
         return urlUtils.ensureOriginTrailingSlash(src);
     },
 

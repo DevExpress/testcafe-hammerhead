@@ -105,6 +105,41 @@ test('isRelativeUrl', function () {
     ok(sharedUrlUtils.isRelativeUrl('C:\\index.htm'));
 });
 
+test('ensureOriginTrailingSlash', function () {
+    const SHOULD_ADD_TRAILING_SLASH = [
+        'http://example.com',
+        // '//example.com',
+        // 'example.com',
+        'http://localhost:8080',
+        // '//localhost:8080',
+        // 'localhost:8080',
+        'http://127.0.0.1:8080'
+        // '//127.0.0.1:8080',
+        // '127.0.0.1:8080'
+    ];
+
+    const SHOULD_NOT_ADD_TRAILING_SLASH = [
+        'about:blank',
+        'about:error',
+        'file://file.txt',
+        '//file.txt',
+        'http://example.com/page',
+        'http://example.com/page.html'
+    ];
+
+    SHOULD_ADD_TRAILING_SLASH.forEach(function (url) {
+        var processedUrl = sharedUrlUtils.ensureOriginTrailingSlash(url);
+
+        strictEqual(processedUrl, url + '/');
+    });
+
+    SHOULD_NOT_ADD_TRAILING_SLASH.forEach(function (url) {
+        var processedUrl = sharedUrlUtils.ensureOriginTrailingSlash(url);
+
+        strictEqual(processedUrl, url);
+    });
+});
+
 module('parse url');
 
 test('newline characters', function () {
