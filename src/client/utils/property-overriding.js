@@ -1,6 +1,6 @@
 import nativeMethods from '../sandbox/native-methods';
 
-export function createOverriddenDescriptor (obj, prop, getter, setter) {
+export function createOverriddenDescriptor (obj, prop, { getter, setter }) {
     const descriptor = nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, obj, prop);
 
     if (getter !== null)
@@ -12,8 +12,8 @@ export function createOverriddenDescriptor (obj, prop, getter, setter) {
     return descriptor;
 }
 
-export function overrideDescriptor (obj, prop, getter, setter) {
-    const descriptor = createOverriddenDescriptor(obj, prop, getter, setter);
+export function overrideDescriptor (obj, prop, propertyAccessors) {
+    const descriptor = createOverriddenDescriptor(obj, prop, propertyAccessors);
 
     nativeMethods.objectDefineProperty.call(window.Object, obj, prop, descriptor);
 }

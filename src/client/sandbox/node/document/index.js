@@ -9,7 +9,7 @@ import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
-import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/overriding';
+import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
 
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox, shadowUI) {
@@ -172,46 +172,59 @@ export default class DocumentSandbox extends SandboxBase {
         let storedDomain       = '';
 
         if (nativeMethods.documentDocumentURIGetter) {
-            overrideDescriptor(docPrototype, 'documentURI', function () {
-                const documentURI    = nativeMethods.documentDocumentURIGetter.call(this);
-                const parsedProxyUrl = urlUtils.parseProxyUrl(documentURI);
+            overrideDescriptor(docPrototype, 'documentURI', {
+                getter: function () {
+                    const documentURI    = nativeMethods.documentDocumentURIGetter.call(this);
+                    const parsedProxyUrl = urlUtils.parseProxyUrl(documentURI);
 
-                return parsedProxyUrl ? parsedProxyUrl.destUrl : documentURI;
+                    return parsedProxyUrl ? parsedProxyUrl.destUrl : documentURI;
+                }
             });
         }
 
-        const referrerOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'referrer', function () {
-            const referrer       = nativeMethods.documentReferrerGetter.call(this);
-            const parsedProxyUrl = urlUtils.parseProxyUrl(referrer);
+        const referrerOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'referrer', {
+            getter: function () {
+                const referrer       = nativeMethods.documentReferrerGetter.call(this);
+                const parsedProxyUrl = urlUtils.parseProxyUrl(referrer);
 
-            return parsedProxyUrl ? parsedProxyUrl.destUrl : '';
+                return parsedProxyUrl ? parsedProxyUrl.destUrl : '';
+            }
         });
 
         DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'referrer', referrerOverriddenDescriptor);
 
-        const urlOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'URL', function () {
-            /*eslint-disable no-restricted-properties*/
-            return LocationAccessorsInstrumentation.getLocationWrapper(this).href;
-            /*eslint-enable no-restricted-properties*/
+        const urlOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'URL', {
+            getter: function () {
+                /*eslint-disable no-restricted-properties*/
+                return LocationAccessorsInstrumentation.getLocationWrapper(this).href;
+                /*eslint-enable no-restricted-properties*/
+            }
         });
 
         DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'URL', urlOverriddenDescriptor);
 
         const domainPropertyOwner        = isFirefox ? htmlDocPrototype : docPrototype;
-        const domainOverriddenDescriptor = createOverriddenDescriptor(domainPropertyOwner, 'domain', () => {
-            /*eslint-disable no-restricted-properties*/
-            return storedDomain || LocationAccessorsInstrumentation.getLocationWrapper(window).hostname;
-            /*eslint-enable no-restricted-properties*/
-        }, value => {
-            storedDomain = value;
+        const domainOverriddenDescriptor = createOverriddenDescriptor(domainPropertyOwner, 'domain', {
+            getter: () => {
+                /*eslint-disable no-restricted-properties*/
+                return storedDomain || LocationAccessorsInstrumentation.getLocationWrapper(window).hostname;
+                /*eslint-enable no-restricted-properties*/
+            },
+            setter: value => {
+                storedDomain = value;
 
-            return value;
+                return value;
+            }
         });
 
         DocumentSandbox._definePropertyDescriptor(domainPropertyOwner, htmlDocPrototype, 'domain', domainOverriddenDescriptor);
 
-        overrideDescriptor(docPrototype, 'styleSheets', function () {
-            return documentSandbox.shadowUI._filterStyleSheetList(nativeMethods.documentStyleSheetsGetter.call(this));
+        overrideDescriptor(docPrototype, 'styleSheets', {
+            getter: function () {
+                const styleSheets = nativeMethods.documentStyleSheetsGetter.call(this);
+
+                return documentSandbox.shadowUI._filterStyleSheetList(styleSheets);
+            }
         });
     }
 }

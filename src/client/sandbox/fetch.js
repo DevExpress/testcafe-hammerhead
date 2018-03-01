@@ -5,7 +5,7 @@ import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../utils/destination-location';
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
-import { overrideDescriptor } from '../utils/overriding';
+import { overrideDescriptor } from '../utils/property-overriding';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
 
@@ -124,21 +124,27 @@ export default class FetchSandbox extends SandboxBase {
             return fetchPromise;
         };
 
-        overrideDescriptor(window.Response.prototype, 'type', function () {
-            return FetchSandbox._getResponseType(this);
+        overrideDescriptor(window.Response.prototype, 'type', {
+            getter: function () {
+                return FetchSandbox._getResponseType(this);
+            }
         });
 
-        overrideDescriptor(window.Response.prototype, 'status', function () {
-            const responseStatus = nativeMethods.responseStatusGetter.call(this);
+        overrideDescriptor(window.Response.prototype, 'status', {
+            getter: function () {
+                const responseStatus = nativeMethods.responseStatusGetter.call(this);
 
-            return responseStatus === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : responseStatus;
+                return responseStatus === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : responseStatus;
+            }
         });
 
-        overrideDescriptor(window.Response.prototype, 'url', function () {
-            const responseUrl       = nativeMethods.responseUrlGetter.call(this);
-            const parsedResponseUrl = responseUrl && parseProxyUrl(responseUrl);
+        overrideDescriptor(window.Response.prototype, 'url', {
+            getter: function () {
+                const responseUrl       = nativeMethods.responseUrlGetter.call(this);
+                const parsedResponseUrl = responseUrl && parseProxyUrl(responseUrl);
 
-            return parsedResponseUrl ? parsedResponseUrl.destUrl : responseUrl;
+                return parsedResponseUrl ? parsedResponseUrl.destUrl : responseUrl;
+            }
         });
     }
 }

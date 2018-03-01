@@ -33,7 +33,7 @@ import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-cal
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
-import { overrideDescriptor } from '../../utils/overriding';
+import { overrideDescriptor } from '../../utils/property-overriding';
 import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
 import { HASH_RE } from '../../../utils/url';
 import UploadSandbox from '../upload';
@@ -118,12 +118,15 @@ export default class WindowSandbox extends SandboxBase {
         const windowSandbox = this;
 
         for (const constructor of elementConstructors) {
-            overrideDescriptor(constructor.prototype, attr, function () {
-                return WindowSandbox._getUrlAttr(this, attr);
-            }, function (value) {
-                windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
+            overrideDescriptor(constructor.prototype, attr, {
+                getter: function () {
+                    return WindowSandbox._getUrlAttr(this, attr);
+                },
+                setter: function (value) {
+                    windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
 
-                return value;
+                    return value;
+                }
             });
         }
     }
@@ -132,21 +135,27 @@ export default class WindowSandbox extends SandboxBase {
         const windowSandbox = this;
 
         for (const constructor of elementConstructors) {
-            overrideDescriptor(constructor.prototype, attr, function () {
-                return windowSandbox.nodeSandbox.element.getAttributeCore(this, [attr]) || '';
-            }, function (value) {
-                windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
+            overrideDescriptor(constructor.prototype, attr, {
+                getter: function () {
+                    return windowSandbox.nodeSandbox.element.getAttributeCore(this, [attr]) || '';
+                },
+                setter: function (value) {
+                    windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
 
-                return value;
+                    return value;
+                }
             });
         }
     }
 
     _overrideUrlPropDescriptor (prop, nativePropGetter, nativePropSetter) {
-        overrideDescriptor(window.HTMLAnchorElement.prototype, prop, function () {
-            return getAnchorProperty(this, nativePropGetter);
-        }, function (value) {
-            return setAnchorProperty(this, nativePropSetter, value);
+        overrideDescriptor(window.HTMLAnchorElement.prototype, prop, {
+            getter: function () {
+                return getAnchorProperty(this, nativePropGetter);
+            },
+            setter: function (value) {
+                return setAnchorProperty(this, nativePropSetter, value);
+            }
         });
     }
 
@@ -554,118 +563,137 @@ export default class WindowSandbox extends SandboxBase {
             window.WebSocket.CLOSED     = nativeMethods.WebSocket.CLOSED;
 
             if (nativeMethods.webSocketUrlGetter) {
-                overrideDescriptor(window.WebSocket.prototype, 'url', function () {
-                    const url       = nativeMethods.webSocketUrlGetter.call(this);
-                    const parsedUrl = parseProxyUrl(url);
+                overrideDescriptor(window.WebSocket.prototype, 'url', {
+                    getter: function () {
+                        const url       = nativeMethods.webSocketUrlGetter.call(this);
+                        const parsedUrl = parseProxyUrl(url);
 
-                    if (parsedUrl && parsedUrl.destUrl)
-                        return parsedUrl.destUrl.replace(HTTP_PROTOCOL_RE, 'ws');
+                        if (parsedUrl && parsedUrl.destUrl)
+                            return parsedUrl.destUrl.replace(HTTP_PROTOCOL_RE, 'ws');
 
-                    return url;
+                        return url;
+                    }
                 });
             }
         }
 
-        overrideDescriptor(window.MessageEvent.prototype, 'origin', function () {
-            const target = this.target;
-            const origin = nativeMethods.messageEventOriginGetter.call(this);
+        overrideDescriptor(window.MessageEvent.prototype, 'origin', {
+            getter: function () {
+                const target = this.target;
+                const origin = nativeMethods.messageEventOriginGetter.call(this);
 
-            if (isWebSocket(target)) {
-                const parsedUrl = parseUrl(target.url);
+                if (isWebSocket(target)) {
+                    const parsedUrl = parseUrl(target.url);
 
-                /*eslint-disable no-restricted-properties*/
-                if (parsedUrl)
-                    return parsedUrl.protocol + '//' + parsedUrl.host;
-                /*eslint-enable no-restricted-properties*/
+                    /*eslint-disable no-restricted-properties*/
+                    if (parsedUrl)
+                        return parsedUrl.protocol + '//' + parsedUrl.host;
+                    /*eslint-enable no-restricted-properties*/
+                }
+                else if (isWindow(target)) {
+                    const data = nativeMethods.messageEventDataGetter
+                        ? nativeMethods.messageEventDataGetter.call(this)
+                        : this.data;
+
+                    if (data)
+                        return data.originUrl;
+                }
+
+                return origin;
             }
-            else if (isWindow(target)) {
-                const data = nativeMethods.messageEventDataGetter
-                    ? nativeMethods.messageEventDataGetter.call(this)
-                    : this.data;
-
-                if (data)
-                    return data.originUrl;
-            }
-
-            return origin;
         });
 
-        overrideDescriptor(window.HTMLCollection.prototype, 'length', function () {
-            const length = nativeMethods.htmlCollectionLengthGetter.call(this);
+        overrideDescriptor(window.HTMLCollection.prototype, 'length', {
+            getter: function () {
+                const length = nativeMethods.htmlCollectionLengthGetter.call(this);
 
-            if (ShadowUI.isShadowContainerCollection(this))
-                return ShadowUI.getShadowUICollectionLength(this, length);
+                if (ShadowUI.isShadowContainerCollection(this))
+                    return ShadowUI.getShadowUICollectionLength(this, length);
 
-            return length;
-        });
-
-        overrideDescriptor(window.NodeList.prototype, 'length', function () {
-            const length = nativeMethods.nodeListLengthGetter.call(this);
-
-            if (ShadowUI.isShadowContainerCollection(this))
-                return ShadowUI.getShadowUICollectionLength(this, length);
-
-            return length;
-        });
-
-        overrideDescriptor(window.Element.prototype, 'childElementCount', function () {
-            if (ShadowUI.isShadowContainer(this)) {
-                const childrenLength = nativeMethods.htmlCollectionLengthGetter.call(this.children);
-
-                return ShadowUI.getShadowUICollectionLength(this.children, childrenLength);
+                return length;
             }
+        });
 
-            return nativeMethods.elementChildElementCountGetter.call(this);
+        overrideDescriptor(window.NodeList.prototype, 'length', {
+            getter: function () {
+                const length = nativeMethods.nodeListLengthGetter.call(this);
+
+                if (ShadowUI.isShadowContainerCollection(this))
+                    return ShadowUI.getShadowUICollectionLength(this, length);
+
+                return length;
+            }
+        });
+
+        overrideDescriptor(window.Element.prototype, 'childElementCount', {
+            getter: function () {
+                if (ShadowUI.isShadowContainer(this)) {
+                    const childrenLength = nativeMethods.htmlCollectionLengthGetter.call(this.children);
+
+                    return ShadowUI.getShadowUICollectionLength(this.children, childrenLength);
+                }
+
+                return nativeMethods.elementChildElementCountGetter.call(this);
+            }
         });
 
         if (nativeMethods.performanceEntryNameGetter) {
-            overrideDescriptor(window.PerformanceEntry.prototype, 'name', function () {
-                const name = nativeMethods.performanceEntryNameGetter.call(this);
+            overrideDescriptor(window.PerformanceEntry.prototype, 'name', {
+                getter: function () {
+                    const name = nativeMethods.performanceEntryNameGetter.call(this);
 
-                if (isPerformanceNavigationTiming(this)) {
-                    const parsedProxyUrl = parseProxyUrl(name);
+                    if (isPerformanceNavigationTiming(this)) {
+                        const parsedProxyUrl = parseProxyUrl(name);
 
-                    if (parsedProxyUrl)
-                        return parsedProxyUrl.destUrl;
+                        if (parsedProxyUrl)
+                            return parsedProxyUrl.destUrl;
+                    }
+
+                    return name;
                 }
-
-                return name;
             });
         }
 
         const windowSandbox = this;
 
-        overrideDescriptor(window.HTMLInputElement.prototype, 'files', function () {
-            if (this.type.toLowerCase() === 'file')
-                return UploadSandbox.getFiles(this);
+        overrideDescriptor(window.HTMLInputElement.prototype, 'files', {
+            getter: function () {
+                if (this.type.toLowerCase() === 'file')
+                    return UploadSandbox.getFiles(this);
 
-            return nativeMethods.inputFilesGetter.call(this);
+                return nativeMethods.inputFilesGetter.call(this);
+            }
         });
 
-        overrideDescriptor(window.HTMLInputElement.prototype, 'value', function () {
-            if (this.type.toLowerCase() === 'file')
-                return UploadSandbox.getUploadElementValue(this);
+        overrideDescriptor(window.HTMLInputElement.prototype, 'value', {
+            getter: function () {
+                if (this.type.toLowerCase() === 'file')
+                    return UploadSandbox.getUploadElementValue(this);
 
-            return nativeMethods.inputValueGetter.call(this);
-        }, function (value) {
-            if (this.type.toLowerCase() === 'file')
-                return windowSandbox.uploadSandbox.setUploadElementValue(this, value);
+                return nativeMethods.inputValueGetter.call(this);
+            },
+            setter: function (value) {
+                if (this.type.toLowerCase() === 'file')
+                    return windowSandbox.uploadSandbox.setUploadElementValue(this, value);
 
-            nativeMethods.inputValueSetter.call(this, value);
+                nativeMethods.inputValueSetter.call(this, value);
 
-            if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
-                windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
+                if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
+                    windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
 
-            return value;
+                return value;
+            }
         });
 
-        overrideDescriptor(window.HTMLTextAreaElement.prototype, 'value', null, function (value) {
-            nativeMethods.textAreaValueSetter.call(this, value);
+        overrideDescriptor(window.HTMLTextAreaElement.prototype, 'value', {
+            setter: function (value) {
+                nativeMethods.textAreaValueSetter.call(this, value);
 
-            if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
-                windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
+                if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
+                    windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
 
-            return value;
+                return value;
+            }
         });
 
         this._overrideUrlAttrDescriptors('data', [window.HTMLObjectElement]);
@@ -703,24 +731,30 @@ export default class WindowSandbox extends SandboxBase {
         this._overrideUrlPropDescriptor('search', nativeMethods.anchorSearchGetter, nativeMethods.anchorSearchSetter);
 
         if (nativeMethods.anchorOriginGetter) {
-            overrideDescriptor(window.HTMLAnchorElement.prototype, 'origin', function () {
-                return getAnchorProperty(this, nativeMethods.anchorOriginGetter);
+            overrideDescriptor(window.HTMLAnchorElement.prototype, 'origin', {
+                getter: function () {
+                    return getAnchorProperty(this, nativeMethods.anchorOriginGetter);
+                }
             });
         }
 
-        overrideDescriptor(window.StyleSheet.prototype, 'href', function () {
-            const href      = nativeMethods.styleSheetHrefGetter.call(this);
-            const parsedUrl = parseProxyUrl(href);
-
-            return parsedUrl ? parsedUrl.destUrl : href;
-        });
-
-        if (nativeMethods.cssStyleSheetHrefGetter) {
-            overrideDescriptor(window.CSSStyleSheet.prototype, 'href', function () {
-                const href      = nativeMethods.cssStyleSheetHrefGetter.call(this);
+        overrideDescriptor(window.StyleSheet.prototype, 'href', {
+            getter: function () {
+                const href      = nativeMethods.styleSheetHrefGetter.call(this);
                 const parsedUrl = parseProxyUrl(href);
 
                 return parsedUrl ? parsedUrl.destUrl : href;
+            }
+        });
+
+        if (nativeMethods.cssStyleSheetHrefGetter) {
+            overrideDescriptor(window.CSSStyleSheet.prototype, 'href', {
+                getter: function () {
+                    const href      = nativeMethods.cssStyleSheetHrefGetter.call(this);
+                    const parsedUrl = parseProxyUrl(href);
+
+                    return parsedUrl ? parsedUrl.destUrl : href;
+                }
             });
         }
 
