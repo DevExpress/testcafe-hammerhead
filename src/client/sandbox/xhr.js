@@ -6,7 +6,7 @@ import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
 import { getOriginHeader } from '../utils/destination-location';
 import reEscape from '../../utils/regexp-escape';
 import * as JSON from '../json';
-import overrideDescriptor from '../utils/override-descriptor';
+import { overrideDescriptor } from '../utils/overriding';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
 
 const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');

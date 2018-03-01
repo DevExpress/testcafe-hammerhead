@@ -3,13 +3,13 @@ import IframeSandbox from '../../iframe';
 import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import * as urlUtils from '../../../utils/url';
-import { isIE } from '../../../utils/browser';
+import { isIE, isFirefox } from '../../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
-import overrideDescriptor from '../../../utils/override-descriptor';
+import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/overriding';
 
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox, shadowUI) {
@@ -61,6 +61,17 @@ export default class DocumentSandbox extends SandboxBase {
         catch (e) {
             return true;
         }
+    }
+
+    static _definePropertyDescriptor (owner, childOfOwner, prop, overriddenDescriptor) {
+        // NOTE: The 'URL', 'domain' and 'referrer' properties are non configurable in IE and Edge
+        if (!overriddenDescriptor.configurable) {
+            // NOTE: property doesn't redefined yet
+            if (!childOfOwner.hasOwnProperty(prop))
+                nativeMethods.objectDefineProperty.call(window.Object, childOfOwner, prop, overriddenDescriptor);
+        }
+        else
+            nativeMethods.objectDefineProperty.call(window.Object, owner, prop, overriddenDescriptor);
     }
 
     attach (window, document) {
@@ -156,8 +167,9 @@ export default class DocumentSandbox extends SandboxBase {
             return fragment;
         };
 
-        const docPrototype = window.Document.prototype;
-        let storedDomain   = '';
+        const docPrototype     = window.Document.prototype;
+        const htmlDocPrototype = window.HTMLDocument.prototype;
+        let storedDomain       = '';
 
         if (nativeMethods.documentDocumentURIGetter) {
             overrideDescriptor(docPrototype, 'documentURI', function () {
@@ -168,20 +180,25 @@ export default class DocumentSandbox extends SandboxBase {
             });
         }
 
-        overrideDescriptor(docPrototype, 'referrer', function () {
+        const referrerOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'referrer', function () {
             const referrer       = nativeMethods.documentReferrerGetter.call(this);
             const parsedProxyUrl = urlUtils.parseProxyUrl(referrer);
 
             return parsedProxyUrl ? parsedProxyUrl.destUrl : '';
         });
 
-        overrideDescriptor(docPrototype, 'URL', function () {
+        DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'referrer', referrerOverriddenDescriptor);
+
+        const urlOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'URL', function () {
             /*eslint-disable no-restricted-properties*/
             return LocationAccessorsInstrumentation.getLocationWrapper(this).href;
             /*eslint-enable no-restricted-properties*/
         });
 
-        overrideDescriptor(docPrototype, 'domain', () => {
+        DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'URL', urlOverriddenDescriptor);
+
+        const domainPropertyOwner        = isFirefox ? htmlDocPrototype : docPrototype;
+        const domainOverriddenDescriptor = createOverriddenDescriptor(domainPropertyOwner, 'domain', () => {
             /*eslint-disable no-restricted-properties*/
             return storedDomain || LocationAccessorsInstrumentation.getLocationWrapper(window).hostname;
             /*eslint-enable no-restricted-properties*/
@@ -190,6 +207,8 @@ export default class DocumentSandbox extends SandboxBase {
 
             return value;
         });
+
+        DocumentSandbox._definePropertyDescriptor(domainPropertyOwner, htmlDocPrototype, 'domain', domainOverriddenDescriptor);
 
         overrideDescriptor(docPrototype, 'styleSheets', function () {
             return documentSandbox.shadowUI._filterStyleSheetList(nativeMethods.documentStyleSheetsGetter.call(this));

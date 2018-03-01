@@ -33,7 +33,7 @@ import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-cal
 import INSTRUCTION from '../../../processing/script/instruction';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
-import overrideDescriptor from '../../utils/override-descriptor';
+import { overrideDescriptor } from '../../utils/overriding';
 import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
 import { HASH_RE } from '../../../utils/url';
 import UploadSandbox from '../upload';
