@@ -115,43 +115,6 @@ asyncTest('document properties', function () {
     }, 0);
 });
 
-test('document.URL', function () {
-    var url = eval(processScript('document.URL'));
-
-    strictEqual(url, 'https://example.com/');
-});
-
-test('document.referrer', function () {
-    var url                 = 'http://some.domain.com/index.html';
-    var storedDocumentClass = nativeMethods.documentClass;
-    var documentMock        = new DocumentMock('referrer', urlUtils.getProxyUrl(url));
-
-    nativeMethods.documentClass = DocumentMock;
-
-    strictEqual(getProperty(documentMock, 'referrer'), url);
-
-    nativeMethods.documentClass = storedDocumentClass;
-});
-
-test('document.documentURI', function () {
-    var url                 = 'http://some.domain.com/index.html';
-    var storedDocumentClass = nativeMethods.documentClass;
-    var documentMock        = new DocumentMock('documentURI', urlUtils.getProxyUrl(url));
-
-    nativeMethods.documentClass = DocumentMock;
-
-    strictEqual(getProperty(documentMock, 'documentURI'), url);
-
-    nativeMethods.documentClass = storedDocumentClass;
-});
-
-test("should returns a native 'document.documentURI' property value if it does not supported (GH-1270)", function () {
-    if (!document.documentURI)
-        strictEqual(document.documentURI, getProperty(document, 'documentURI'));
-    else
-        expect(0);
-});
-
 test('document.baseURI (GH-920)', function () {
     var url                 = 'http://some.domain.com/index.html';
     var storedDocumentClass = nativeMethods.documentClass;
@@ -165,6 +128,10 @@ test('document.baseURI (GH-920)', function () {
 });
 
 test('CSSStyleSheet.href', function () {
+    var style = document.createElement('style');
+
+    document.body.appendChild(style);
+
     var storedGetProxyUrl = urlUtils.parseProxyUrl;
     var styleSheet        = document.styleSheets[0];
 
@@ -175,6 +142,7 @@ test('CSSStyleSheet.href', function () {
     strictEqual(styleSheet.href, 'expected-url');
 
     urlUtils.parseProxyUrl = storedGetProxyUrl;
+    document.body.removeChild(style);
 });
 
 test('url in stylesheet properties', function () {
@@ -229,27 +197,6 @@ test('document.scripts', function () {
     strictEqual(scriptsCollectionLength, eval(processScript('document.scripts')).length);
 
     document.body.removeChild(scriptEl);
-});
-
-test('document.styleSheets (GH-1000)', function () {
-    var styleSheetsCollectionLength = eval(processScript('document.styleSheets')).length;
-    var shadowStyleSheet            = document.createElement('style');
-
-    shadowUI.addClass(shadowStyleSheet, 'ui-stylesheet');
-    document.body.appendChild(shadowStyleSheet);
-
-    strictEqual(styleSheetsCollectionLength, eval(processScript('document.styleSheets')).length);
-
-    var styleSheet = document.createElement('style');
-
-    document.body.appendChild(styleSheet);
-
-    var proxiedStyleSheetsCollection = getProperty(document, 'styleSheets');
-
-    strictEqual(styleSheet, proxiedStyleSheetsCollection.item(0).ownerNode);
-
-    shadowStyleSheet.parentNode.removeChild(shadowStyleSheet);
-    styleSheet.parentNode.removeChild(styleSheet);
 });
 
 test('input.formaction, button.formaction', function () {

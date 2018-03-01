@@ -7,7 +7,7 @@ import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
 import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';
-import overrideDescriptor from '../../utils/override-descriptor';
+import { overrideDescriptor } from '../../utils/property-overriding';
 
 const MESSAGE_TYPE = {
     service: 'hammerhead|service-msg',
@@ -130,14 +130,16 @@ export default class MessageSandbox extends SandboxBase {
         });
 
         if (nativeMethods.messageEventDataGetter) {
-            overrideDescriptor(window.MessageEvent.prototype, 'data', function () {
-                const target = this.target;
-                const data   = nativeMethods.messageEventDataGetter.call(this);
+            overrideDescriptor(window.MessageEvent.prototype, 'data', {
+                getter: function () {
+                    const target = this.target;
+                    const data   = nativeMethods.messageEventDataGetter.call(this);
 
-                if (data && data.type !== MESSAGE_TYPE.service && isWindow(target))
-                    return data.message;
+                    if (data && data.type !== MESSAGE_TYPE.service && isWindow(target))
+                        return data.message;
 
-                return data;
+                    return data;
+                }
             });
         }
     }

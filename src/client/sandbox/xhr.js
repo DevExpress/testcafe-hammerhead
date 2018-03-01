@@ -6,7 +6,7 @@ import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
 import { getOriginHeader } from '../utils/destination-location';
 import reEscape from '../../utils/regexp-escape';
 import * as JSON from '../json';
-import overrideDescriptor from '../utils/override-descriptor';
+import { overrideDescriptor } from '../utils/property-overriding';
 import { SAME_ORIGIN_CHECK_FAILED_STATUS_CODE } from '../../request-pipeline/xhr/same-origin-policy';
 
 const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');
@@ -156,18 +156,22 @@ export default class XhrSandbox extends SandboxBase {
             return nativeMethods.xhrSetRequestHeader.call(this, header, value);
         };
 
-        overrideDescriptor(window.XMLHttpRequest.prototype, 'status', function () {
-            const status = nativeMethods.xhrStatusGetter.call(this);
+        overrideDescriptor(window.XMLHttpRequest.prototype, 'status', {
+            getter: function () {
+                const status = nativeMethods.xhrStatusGetter.call(this);
 
-            return status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
+                return status === SAME_ORIGIN_CHECK_FAILED_STATUS_CODE ? 0 : status;
+            }
         });
 
         if (nativeMethods.xhrResponseURLGetter) {
-            overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', function () {
-                const responseUrl    = nativeMethods.xhrResponseURLGetter.call(this);
-                const parsedProxyUrl = responseUrl && parseProxyUrl(responseUrl);
+            overrideDescriptor(window.XMLHttpRequest.prototype, 'responseURL', {
+                getter: function () {
+                    const responseUrl    = nativeMethods.xhrResponseURLGetter.call(this);
+                    const parsedProxyUrl = responseUrl && parseProxyUrl(responseUrl);
 
-                return parsedProxyUrl ? parsedProxyUrl.destUrl : responseUrl;
+                    return parsedProxyUrl ? parsedProxyUrl.destUrl : responseUrl;
+                }
             });
         }
     }
