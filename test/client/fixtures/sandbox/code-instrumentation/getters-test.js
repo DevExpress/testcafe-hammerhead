@@ -128,6 +128,10 @@ test('document.baseURI (GH-920)', function () {
 });
 
 test('CSSStyleSheet.href', function () {
+    var style = document.createElement('style');
+
+    document.body.appendChild(style);
+
     var storedGetProxyUrl = urlUtils.parseProxyUrl;
     var styleSheet        = document.styleSheets[0];
 
@@ -138,6 +142,7 @@ test('CSSStyleSheet.href', function () {
     strictEqual(styleSheet.href, 'expected-url');
 
     urlUtils.parseProxyUrl = storedGetProxyUrl;
+    document.body.removeChild(style);
 });
 
 test('url in stylesheet properties', function () {
