@@ -151,17 +151,9 @@ const responseTransforms = {
 
         src = src.replace('ALLOW-FROM', '').trim();
 
-        // src = urlUtils.ensureOriginTrailingSlash(src);
-
         const isCrossDomain = ctx.isIframe && !urlUtils.sameOriginCheck(ctx.dest.url, src);
         const proxiedUrl    = ctx.toProxyUrl(src, isCrossDomain, ctx.contentInfo.contentTypeUrlToken);
 
-        // console.log('x-frame-options:');
-        // console.log('url          = ' + proxiedUrl);
-        // console.log('ctx.dest.url = ' + ctx.dest.url);
-        // console.log('src          = ' + src);
-        // console.log('proxiedUrl   = ' + proxiedUrl);
-        // console.log('return = ' + 'ALLOW-FROM ' + proxiedUrl);
         return 'ALLOW-FROM ' + proxiedUrl;
     },
 
