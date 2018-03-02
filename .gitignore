@@ -1,4 +1,5 @@
 test/playground/upload-storage
 node_modules
 .idea
+.vscode
 lib
