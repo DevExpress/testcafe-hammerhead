@@ -108,36 +108,36 @@ test('isRelativeUrl', function () {
 test('ensureOriginTrailingSlash', function () {
     const SHOULD_ADD_TRAILING_SLASH = [
         'http://example.com',
-        // '//example.com',
-        // 'example.com',
+        'https://example.com',
+        'http://localhost',
+        'https://localhost',
         'http://localhost:8080',
-        // '//localhost:8080',
-        // 'localhost:8080',
-        'http://127.0.0.1:8080'
-        // '//127.0.0.1:8080',
-        // '127.0.0.1:8080'
+        'https://localhost:8080',
+        'http://127.0.0.1',
+        'https://127.0.0.1',
+        'http://127.0.0.1:8080',
+        'https://127.0.0.1:8080'
     ];
 
     const SHOULD_NOT_ADD_TRAILING_SLASH = [
         'about:blank',
         'about:error',
-        'file://file.txt',
-        '//file.txt',
-        'http://example.com/page',
-        'http://example.com/page.html'
+        'file://C:\\file.txt',
+        '//C:\\file.txt',
+        'http://example.com/page.html',
+        'https://example.com/page.html'
     ];
 
-    SHOULD_ADD_TRAILING_SLASH.forEach(function (url) {
-        var processedUrl = sharedUrlUtils.ensureOriginTrailingSlash(url);
+    function checkTrailingSlash (urls, trailingSlashIsNeeded) {
+        urls.forEach(function (url) {
+            var processedUrl = sharedUrlUtils.ensureOriginTrailingSlash(url);
 
-        strictEqual(processedUrl, url + '/');
-    });
+            strictEqual(processedUrl, url + (trailingSlashIsNeeded ? '/' : ''));
+        });
+    }
 
-    SHOULD_NOT_ADD_TRAILING_SLASH.forEach(function (url) {
-        var processedUrl = sharedUrlUtils.ensureOriginTrailingSlash(url);
-
-        strictEqual(processedUrl, url);
-    });
+    checkTrailingSlash(SHOULD_ADD_TRAILING_SLASH, true);
+    checkTrailingSlash(SHOULD_NOT_ADD_TRAILING_SLASH, false);
 });
 
 module('parse url');

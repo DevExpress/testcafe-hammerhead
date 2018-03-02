@@ -296,6 +296,13 @@ describe('Proxy', () => {
                 .end();
         });
 
+        app.get('/location-header-with-trailing-slash/:url', (req, res) => {
+            res
+                .status(302)
+                .set('location', decodeURIComponent(req.params.url))
+                .end();
+        });
+
         app.get('/redirect-with-status/:statusCode', (req, res) => {
             res
                 .status(+req.params.statusCode)
@@ -2238,7 +2245,8 @@ describe('Proxy', () => {
                 },
                 {
                     url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20https%3A%2F%2Fexample.com', session),
-                    expectedHeaderValue: 'ALLOW-FROM ' + proxy.openSession('https://example.com', session).replace(urlUtils.TRAILING_SLASH_RE, '')
+                    expectedHeaderValue: 'ALLOW-FROM ' +
+                                         proxy.openSession('https://example.com', session).replace(urlUtils.TRAILING_SLASH_RE, '')
                 },
                 {
                     url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20http%3A%2F%2F127.0.0.1%3A2000%2Fpage', session),
@@ -2604,6 +2612,50 @@ describe('Proxy', () => {
                 testRedirectRequestStatusCode(200, false),
                 testRedirectRequestStatusCode(201, false),
                 testRedirectRequestStatusCode(202, false)
+            ]);
+        });
+
+        it('Should add the trailing slash to location header if url consist of origin', () => {
+            proxy.openSession('http://127.0.0.1:2000/', session);
+
+            function testRedirectRequest (redirectLocation, trailingSlashIsNeeded) {
+                const encodedUrl = encodeURIComponent(redirectLocation);
+                const options    = {
+                    url: urlUtils.getProxyUrl('http://127.0.0.1:2000/location-header-with-trailing-slash/' + encodedUrl, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                        resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
+                    }),
+
+                    resolveWithFullResponse: true,
+                    followRedirect:          false,
+                    simple:                  false,
+                };
+
+                return request(options)
+                    .then(res => {
+                        const parsedUrl = urlUtils.parseProxyUrl(res.headers['location']);
+
+                        expect(parsedUrl.destUrl).eql(redirectLocation + (trailingSlashIsNeeded ? '/' : ''));
+                    });
+            }
+
+            return Promise.all([
+                testRedirectRequest('http://example.com', true),
+                testRedirectRequest('https://example.com', true),
+                testRedirectRequest('http://localhost', true),
+                testRedirectRequest('https://localhost', true),
+                testRedirectRequest('http://localhost:2001', true),
+                testRedirectRequest('https://localhost:2001', true),
+                testRedirectRequest('http://127.0.0.1', true),
+                testRedirectRequest('https://127.0.0.1', true),
+                testRedirectRequest('http://127.0.0.1:2001', true),
+                testRedirectRequest('https://127.0.0.1:2001', true),
+                testRedirectRequest('about:blank', false),
+                testRedirectRequest('about:error', false),
+                testRedirectRequest('http://example.com/page.html', false),
+                testRedirectRequest('https://example.com/page.html', false),
             ]);
         });
     });

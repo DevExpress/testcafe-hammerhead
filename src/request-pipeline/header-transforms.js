@@ -49,6 +49,8 @@ function transformCookie (src, ctx) {
 }
 
 function resolveAndGetProxyUrl (url, ctx) {
+    url = urlUtils.ensureOriginTrailingSlash(url);
+
     const { host }    = parseUrl(url);
     let isCrossDomain = false;
 
@@ -139,7 +141,7 @@ const responseTransforms = {
         if (ctx.contentInfo.isRedirect)
             return resolveAndGetProxyUrl(src, ctx);
 
-        return urlUtils.ensureOriginTrailingSlash(src);
+        return src;
     },
 
     'x-frame-options': (src, ctx) => {

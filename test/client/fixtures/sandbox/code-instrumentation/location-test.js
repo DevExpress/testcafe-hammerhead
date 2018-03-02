@@ -157,6 +157,50 @@ test('special pages (GH-339)', function () {
     destLocation.forceLocation(storedForcedLocation);
 });
 
+test('should add the trailing slash to location.href if url consist of origin', function () {
+    var storedForcedLocation = destLocation.getLocation();
+
+    const SHOULD_ADD_TRAILING_SLASH = [
+        'http://example.com',
+        'https://example.com',
+        'http://localhost',
+        'https://localhost',
+        'http://localhost:8080',
+        'https://localhost:8080',
+        'http://127.0.0.1',
+        'https://127.0.0.1',
+        'http://127.0.0.1:8080',
+        'https://127.0.0.1:8080'
+    ];
+
+    const SHOULD_NOT_ADD_TRAILING_SLASH = [
+        'about:blank',
+        'about:error',
+        'http://example.com/page.html',
+        'https://example.com/page.html'
+    ];
+
+    function checkTrailingSlash (urls, trailingSlashIsNeeded) {
+        urls.forEach(function (url) {
+            destLocation.forceLocation(urlUtils.getProxyUrl(url));
+
+            var windowMock = {
+                location: {},
+                document: document
+            };
+
+            var locationWrapper = new LocationWrapper(windowMock);
+
+            strictEqual(locationWrapper.href, url + (trailingSlashIsNeeded ? '/' : ''));
+        });
+    }
+
+    checkTrailingSlash(SHOULD_ADD_TRAILING_SLASH, true);
+    checkTrailingSlash(SHOULD_NOT_ADD_TRAILING_SLASH, false);
+
+    destLocation.forceLocation(storedForcedLocation);
+});
+
 module('regression');
 
 if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1) {
@@ -280,7 +324,7 @@ test('emulate a native browser behaviour related with trailing slashes for locat
     var overrideGetResolverElement = function (resolvedHref) {
         urlResolver.getResolverElement = function () {
             var storedAnchorHrefGetter = nativeMethods.anchorHrefGetter;
-            var anchor = document.createElement('a');
+            var anchor                 = document.createElement('a');
 
             nativeMethods.anchorHrefGetter = function () {
                 nativeMethods.anchorHrefGetter = storedAnchorHrefGetter;
