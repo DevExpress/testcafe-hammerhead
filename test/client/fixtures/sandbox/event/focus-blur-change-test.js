@@ -1138,23 +1138,32 @@ asyncTest('should correctly handle the case when document.activeElement is null 
 });
 
 asyncTest('B238599, B239799 - Div with parent with tabindex focusing', function () {
-    var $parentDiv = $('<div></div>').addClass(TEST_ELEMENT_CLASS).attr('tabIndex', '0').appendTo('body');
-    var $input     = $('<input />').addClass(TEST_ELEMENT_CLASS).attr('tabIndex', '').attr('disabled', 'disabled').appendTo($parentDiv);
-    var focused    = false;
+    var parentDiv = document.createElement('div');
+    var input     = document.createElement('input');
+    var focused   = false;
 
-    $parentDiv[0].onfocus = function () {
+    parentDiv.className = TEST_ELEMENT_CLASS;
+
+    parentDiv.setAttribute('tabIndex', '0');
+    input.setAttribute('tabIndex', '');
+    input.setAttribute('disabled', 'disabled');
+
+    document.body.appendChild(parentDiv);
+    parentDiv.appendChild(input);
+
+    parentDiv.onfocus = function () {
         focused = true;
     };
 
-    $input[0].focus();
+    input.focus();
 
     window.setTimeout(function () {
         ok(!focused);
-        ok(document.activeElement !== $parentDiv[0]);
+        ok(document.activeElement !== parentDiv);
 
-        focusBlur.focus($input[0], function () {
+        focusBlur.focus(input, function () {
             ok(focused, 'focus handler checked');
-            ok(document.activeElement === $parentDiv[0], 'document.activeElement checked');
+            ok(document.activeElement === parentDiv, 'document.activeElement checked');
             startNext();
         }, false, true);
     }, 0);
