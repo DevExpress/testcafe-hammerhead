@@ -1,6 +1,4 @@
 /*global Document, Window */
-import { isFirefox } from '../utils/browser';
-
 class NativeMethods {
     constructor (doc, win) {
         this.refreshDocumentMeths(doc, win);
@@ -43,7 +41,7 @@ class NativeMethods {
         // getters/setters
         const docPrototype         = win.Document.prototype;
         const htmlDocPrototype     = win.HTMLDocument.prototype;
-        const documentAllPropOwner = isFirefox ? htmlDocPrototype : docPrototype;
+        const documentAllPropOwner = docPrototype.hasOwnProperty('all') ? docPrototype : htmlDocPrototype;
 
         this.documentReferrerGetter    = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
         this.documentStyleSheetsGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;

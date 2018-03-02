@@ -227,7 +227,11 @@ export default class DocumentSandbox extends SandboxBase {
             }
         });
 
-        overrideDescriptor(isFirefox ? htmlDocPrototype : docPrototype, 'all', {
+        const documentAllPropOwner = nativeMethods.objectHasOwnProperty.call(docPrototype, 'all')
+            ? docPrototype
+            : htmlDocPrototype;
+
+        overrideDescriptor(documentAllPropOwner, 'all', {
             getter: function () {
                 const all = nativeMethods.documentAllGetter.call(this);
 
