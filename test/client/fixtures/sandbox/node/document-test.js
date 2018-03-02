@@ -355,6 +355,34 @@ test('document.styleSheets (GH-1000)', function () {
     styleSheet.parentNode.removeChild(styleSheet);
 });
 
+test('document.all (GH-1046)', function () {
+    var allLength = document.all.length;
+    var div       = document.createElement('div');
+    var shadowDiv = document.createElement('div');
+
+    document.body.appendChild(div);
+
+    var allLengthAfterDivAppended = document.all.length;
+
+    shadowUI.addClass(shadowDiv, 'shadow-div');
+    document.body.appendChild(shadowDiv);
+
+    var allLengthAfterShadowDivAdded = document.all.length;
+
+    document.body.removeChild(div);
+
+    var allLengthAfterDivRemoved = document.all.length;
+
+    document.body.removeChild(shadowDiv);
+
+    var allLengthAfterShadowDivRemoved = document.all.length;
+
+    strictEqual(allLengthAfterDivAppended, allLength + 1);
+    strictEqual(allLengthAfterShadowDivAdded, allLength + 1);
+    strictEqual(allLengthAfterDivRemoved, allLength);
+    strictEqual(allLengthAfterShadowDivRemoved, allLength);
+});
+
 module('resgression');
 
 test('document.write for several tags in iframe (T215136)', function () {

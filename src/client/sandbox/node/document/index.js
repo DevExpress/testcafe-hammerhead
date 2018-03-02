@@ -226,5 +226,14 @@ export default class DocumentSandbox extends SandboxBase {
                 return documentSandbox.shadowUI._filterStyleSheetList(styleSheets);
             }
         });
+
+        overrideDescriptor(isFirefox ? htmlDocPrototype : docPrototype, 'all', {
+            getter: function () {
+                const all = nativeMethods.documentAllGetter.call(this);
+
+                return documentSandbox.shadowUI._filterNodeList(all);
+            },
+            setter: null
+        });
     }
 }
