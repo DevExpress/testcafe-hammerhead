@@ -815,7 +815,7 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
     }, false, true);
 });
 
-asyncTest("focus() must not scroll to the element if 'preventScrolling' argument is true", function () {
+asyncTest('focus() must not scroll to the element if "preventScrolling" argument is true', function () {
     var div = document.createElement('input');
 
     $(div)
@@ -1135,4 +1135,27 @@ asyncTest('should correctly handle the case when document.activeElement is null 
             innerDiv.focus();
             div.innerHTML = '<span>Replaced</span>';
         });
+});
+
+asyncTest('B238599, B239799 - Div with parent with tabindex focusing', function () {
+    var $parentDiv = $('<div></div>').addClass(TEST_ELEMENT_CLASS).attr('tabIndex', '0').appendTo('body');
+    var $input     = $('<input />').addClass(TEST_ELEMENT_CLASS).attr('tabIndex', '').attr('disabled', 'disabled').appendTo($parentDiv);
+    var focused    = false;
+
+    $parentDiv[0].onfocus = function () {
+        focused = true;
+    };
+
+    $input[0].focus();
+
+    window.setTimeout(function () {
+        ok(!focused);
+        ok(document.activeElement !== $parentDiv[0]);
+
+        focusBlur.focus($input[0], function () {
+            ok(focused, 'focus handler checked');
+            ok(document.activeElement === $parentDiv[0], 'document.activeElement checked');
+            startNext();
+        }, false, true);
+    }, 0);
 });
