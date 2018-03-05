@@ -227,11 +227,7 @@ export default class DocumentSandbox extends SandboxBase {
             }
         });
 
-        const documentAllPropOwner = nativeMethods.objectHasOwnProperty.call(docPrototype, 'all')
-            ? docPrototype
-            : htmlDocPrototype;
-
-        overrideDescriptor(documentAllPropOwner, 'all', {
+        overrideDescriptor(window[nativeMethods.documentAllPropOwnerName].prototype, 'all', {
             getter: function () {
                 const all = nativeMethods.documentAllGetter.call(this);
 
