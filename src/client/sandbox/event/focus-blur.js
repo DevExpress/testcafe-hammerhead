@@ -167,6 +167,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                     return;
                 }
             }
+
             el[FocusBlurSandbox.getInternalEventFlag(type)] = true;
             // NOTE: We should guarantee that activeElement will be changed, therefore we need to call the native
             // focus/blur event.
@@ -193,7 +194,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             // after element.blur() is called.
             else if (type === 'blur' && activeElement === el && el !== curDocument.body)
                 this._raiseEvent(curDocument.body, 'focus', simulateEvent, true);
-            else
+            else if (!el.disabled)
                 simulateEvent();
         }
         else
@@ -232,9 +233,6 @@ export default class FocusBlurSandbox extends SandboxBase {
     }
 
     focus (el, callback, silent, forMouseEvent, isNativeFocus, preventScrolling) {
-        if (el.disabled)
-            return null;
-
         // NOTE: el.focus() does not raise the event if the element is invisible. If the element is located
         // within an invisible iframe, all browsers except Chrome do not raise the event (GH-442)
         const raiseEventInIframe = !isNativeFocus || browserUtils.isWebKit ||
