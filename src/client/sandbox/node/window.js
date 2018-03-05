@@ -686,6 +686,7 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         overrideDescriptor(window.HTMLTextAreaElement.prototype, 'value', {
+            getter: null,
             setter: function (value) {
                 nativeMethods.textAreaValueSetter.call(this, value);
 
