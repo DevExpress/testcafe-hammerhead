@@ -10,6 +10,27 @@ var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
+var navigateTo    = hammerhead.navigateTo;
+
+const SHOULD_ADD_TRAILING_SLASH = [
+    'http://example.com',
+    'https://example.com',
+    'http://localhost',
+    'https://localhost',
+    'http://localhost:8080',
+    'https://localhost:8080',
+    'http://127.0.0.1',
+    'https://127.0.0.1',
+    'http://127.0.0.1:8080',
+    'https://127.0.0.1:8080'
+];
+
+const SHOULD_NOT_ADD_TRAILING_SLASH = [
+    'about:blank',
+    'about:error',
+    'http://example.com/page.html',
+    'https://example.com/page.html'
+];
 
 test('iframe with empty src', function () {
     function assert (iframe) {
@@ -157,28 +178,8 @@ test('special pages (GH-339)', function () {
     destLocation.forceLocation(storedForcedLocation);
 });
 
-test('should add the trailing slash to location.href if url consist of origin', function () {
+test('should add the trailing slash to location.href if url consist of origin (GH-1426)', function () {
     var storedForcedLocation = destLocation.getLocation();
-
-    const SHOULD_ADD_TRAILING_SLASH = [
-        'http://example.com',
-        'https://example.com',
-        'http://localhost',
-        'https://localhost',
-        'http://localhost:8080',
-        'https://localhost:8080',
-        'http://127.0.0.1',
-        'https://127.0.0.1',
-        'http://127.0.0.1:8080',
-        'https://127.0.0.1:8080'
-    ];
-
-    const SHOULD_NOT_ADD_TRAILING_SLASH = [
-        'about:blank',
-        'about:error',
-        'http://example.com/page.html',
-        'https://example.com/page.html'
-    ];
 
     function checkTrailingSlash (urls, trailingSlashIsNeeded) {
         urls.forEach(function (url) {
@@ -199,6 +200,30 @@ test('should add the trailing slash to location.href if url consist of origin', 
     checkTrailingSlash(SHOULD_NOT_ADD_TRAILING_SLASH, false);
 
     destLocation.forceLocation(storedForcedLocation);
+});
+
+test('should add the trailing slash to location when navigateTo() is called (GH-1426)', function () {
+    var getWindowMock = function () {
+        return {
+            navigateToUrl: navigateTo,
+
+            win: {
+                location: ''
+            },
+        };
+    };
+
+    var windowMock = getWindowMock();
+
+    function checkTrailingSlash (urls, trailingSlashIsNeeded) {
+        urls.forEach(function (url) {
+            windowMock.navigateToUrl(url);
+            strictEqual(urlUtils.parseProxyUrl(windowMock.win.location).destUrl, url + (trailingSlashIsNeeded ? '/' : ''));
+        });
+    }
+
+    checkTrailingSlash(SHOULD_ADD_TRAILING_SLASH, true);
+    checkTrailingSlash(SHOULD_NOT_ADD_TRAILING_SLASH, false);
 });
 
 module('regression');

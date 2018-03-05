@@ -365,6 +365,14 @@ describe('Proxy', () => {
     });
 
     describe('Session', () => {
+        it('Should add the trailing slash to the proxied url if it consist of origin (GH-1426)', () => {
+            const shouldAddTralingSlash    = proxy.openSession('http://example.com', session);
+            const shouldNotAddTralingSlash = proxy.openSession('http://example.com/index', session);
+
+            expect(urlUtils.parseProxyUrl(shouldAddTralingSlash).destUrl).eql('http://example.com/');
+            expect(urlUtils.parseProxyUrl(shouldNotAddTralingSlash).destUrl).eql('http://example.com/index');
+        });
+
         it('Should pass DNS errors to session', done => {
             session.handlePageError = (ctx, err) => {
                 expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url/">http://www.some-unresolvable.url/</a>.');
@@ -2615,7 +2623,7 @@ describe('Proxy', () => {
             ]);
         });
 
-        it('Should add the trailing slash to location header if url consist of origin', () => {
+        it('Should add the trailing slash to location header if url consist of origin (GH-1426)', () => {
             proxy.openSession('http://127.0.0.1:2000/', session);
 
             function testRedirectRequest (redirectLocation, trailingSlashIsNeeded) {
