@@ -106,38 +106,50 @@ test('isRelativeUrl', function () {
 });
 
 test('ensureOriginTrailingSlash', function () {
-    const SHOULD_ADD_TRAILING_SLASH = [
-        'http://example.com',
-        'https://example.com',
-        'http://localhost',
-        'https://localhost',
-        'http://localhost:8080',
-        'https://localhost:8080',
-        'http://127.0.0.1',
-        'https://127.0.0.1',
-        'http://127.0.0.1:8080',
-        'https://127.0.0.1:8080'
+    var URL_TEST_CASES = [
+        {
+            url:                   'http://example.com',
+            shoudAddTrailingSlash: true
+        },
+        {
+            url:                   'https://localhost:8080',
+            shoudAddTrailingSlash: true
+        },
+        {
+            url:                   'about:blank',
+            shoudAddTrailingSlash: false
+        },
+        {
+            url:                   'http://example.com/page.html',
+            shoudAddTrailingSlash: false
+        },
+        {
+            url:                   'file://localhost/etc/fstab', // Unix file URI scheme
+            shoudAddTrailingSlash: false
+        },
+        {
+            url:                   'file:///etc/fstab', // Unix file URI scheme
+            shoudAddTrailingSlash: false
+        },
+        {
+            url:                   'file://localhost/c:/WINDOWS/clock.avi', // Windows file URI scheme
+            shoudAddTrailingSlash: false
+        },
+        {
+            url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
+            shoudAddTrailingSlash: false
+        }
     ];
 
-    const SHOULD_NOT_ADD_TRAILING_SLASH = [
-        'about:blank',
-        'about:error',
-        'file://C:\\file.txt',
-        '//C:\\file.txt',
-        'http://example.com/page.html',
-        'https://example.com/page.html'
-    ];
+    function checkTrailingSlash (urlCases) {
+        urlCases.forEach(function (urlCase) {
+            var actualUrl = sharedUrlUtils.ensureOriginTrailingSlash(urlCase.url);
 
-    function checkTrailingSlash (urls, trailingSlashIsNeeded) {
-        urls.forEach(function (url) {
-            var processedUrl = sharedUrlUtils.ensureOriginTrailingSlash(url);
-
-            strictEqual(processedUrl, url + (trailingSlashIsNeeded ? '/' : ''));
+            strictEqual(actualUrl, urlCase.url + (urlCase.shoudAddTrailingSlash ? '/' : ''));
         });
     }
 
-    checkTrailingSlash(SHOULD_ADD_TRAILING_SLASH, true);
-    checkTrailingSlash(SHOULD_NOT_ADD_TRAILING_SLASH, false);
+    checkTrailingSlash(URL_TEST_CASES);
 });
 
 module('parse url');

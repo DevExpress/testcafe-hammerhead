@@ -29,6 +29,41 @@ const nodeVersion                          = parseFloat(require('node-version').
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 
+const URL_TEST_CASES = [
+    {
+        url:                   'http://example.com',
+        shoudAddTrailingSlash: true
+    },
+    {
+        url:                   'https://localhost:8080',
+        shoudAddTrailingSlash: true
+    },
+    {
+        url:                   'about:blank',
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'http://example.com/page.html',
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file://localhost/etc/fstab', // Unix file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file:///etc/fstab', // Unix file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file://localhost/c:/WINDOWS/clock.avi', // Windows file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
+        shoudAddTrailingSlash: false
+    }
+];
+
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
 }
@@ -296,13 +331,6 @@ describe('Proxy', () => {
                 .end();
         });
 
-        app.get('/location-header-with-trailing-slash/:url', (req, res) => {
-            res
-                .status(302)
-                .set('location', decodeURIComponent(req.params.url))
-                .end();
-        });
-
         app.get('/redirect-with-status/:statusCode', (req, res) => {
             res
                 .status(+req.params.statusCode)
@@ -365,12 +393,26 @@ describe('Proxy', () => {
     });
 
     describe('Session', () => {
-        it('Should add the trailing slash to the proxied url if it consist of origin (GH-1426)', () => {
-            const shouldAddTralingSlash    = proxy.openSession('http://example.com', session);
-            const shouldNotAddTralingSlash = proxy.openSession('http://example.com/index', session);
+        it('Should add the trailing slash to the proxied url using openSession() if url consist of origin (GH-1426)', () => {
+            function proxyUrlTrailingSlash (urlCase) {
+                const proxiedUrl = urlUtils.getProxyUrl(urlCase.url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                });
 
-            expect(urlUtils.parseProxyUrl(shouldAddTralingSlash).destUrl).eql('http://example.com/');
-            expect(urlUtils.parseProxyUrl(shouldNotAddTralingSlash).destUrl).eql('http://example.com/index');
+                return proxiedUrl + (urlCase.shoudAddTrailingSlash ? '/' : '');
+            }
+
+            function checkTrailingSlash (urlCases) {
+                urlCases.forEach(function (urlCase) {
+                    const actualUrl = proxy.openSession(urlCase.url, session);
+
+                    expect(actualUrl).eql(proxyUrlTrailingSlash(urlCase));
+                });
+            }
+
+            checkTrailingSlash(URL_TEST_CASES);
         });
 
         it('Should pass DNS errors to session', done => {
@@ -2624,17 +2666,28 @@ describe('Proxy', () => {
         });
 
         it('Should add the trailing slash to location header if url consist of origin (GH-1426)', () => {
-            proxy.openSession('http://127.0.0.1:2000/', session);
+            function proxyUrlTrailingSlash (proxiedCase) {
+                const proxiedUrl = urlUtils.getProxyUrl(proxiedCase.url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id
+                });
 
-            function testRedirectRequest (redirectLocation, trailingSlashIsNeeded) {
-                const encodedUrl = encodeURIComponent(redirectLocation);
+                return proxiedUrl + (proxiedCase.shoudAddTrailingSlash ? '/' : '');
+            }
+
+            const proxyUrls = URL_TEST_CASES.map(urlCase => {
+                return {
+                    proxiedUrl:            proxy.openSession(urlCase.url, session),
+                    shoudAddTrailingSlash: urlCase.shoudAddTrailingSlash,
+                    url:                   urlCase.url
+                };
+            });
+
+            const testPageRequest = proxiedCase => {
+                const encodedUrl = encodeURIComponent(proxiedCase.proxiedUrl);
                 const options    = {
-                    url: urlUtils.getProxyUrl('http://127.0.0.1:2000/location-header-with-trailing-slash/' + encodedUrl, {
-                        proxyHostname: '127.0.0.1',
-                        proxyPort:     1836,
-                        sessionId:     session.id,
-                        resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
-                    }),
+                    url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
 
                     resolveWithFullResponse: true,
                     followRedirect:          false,
@@ -2643,28 +2696,11 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(res => {
-                        const parsedUrl = urlUtils.parseProxyUrl(res.headers['location']);
-
-                        expect(parsedUrl.destUrl).eql(redirectLocation + (trailingSlashIsNeeded ? '/' : ''));
+                        expect(res.headers['location']).eql(proxyUrlTrailingSlash(proxiedCase));
                     });
-            }
+            };
 
-            return Promise.all([
-                testRedirectRequest('http://example.com', true),
-                testRedirectRequest('https://example.com', true),
-                testRedirectRequest('http://localhost', true),
-                testRedirectRequest('https://localhost', true),
-                testRedirectRequest('http://localhost:2001', true),
-                testRedirectRequest('https://localhost:2001', true),
-                testRedirectRequest('http://127.0.0.1', true),
-                testRedirectRequest('https://127.0.0.1', true),
-                testRedirectRequest('http://127.0.0.1:2001', true),
-                testRedirectRequest('https://127.0.0.1:2001', true),
-                testRedirectRequest('about:blank', false),
-                testRedirectRequest('about:error', false),
-                testRedirectRequest('http://example.com/page.html', false),
-                testRedirectRequest('https://example.com/page.html', false),
-            ]);
+            return Promise.all(proxyUrls.map(testPageRequest));
         });
     });
 });

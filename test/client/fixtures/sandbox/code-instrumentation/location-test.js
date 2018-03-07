@@ -10,26 +10,40 @@ var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
-var navigateTo    = hammerhead.navigateTo;
 
-const SHOULD_ADD_TRAILING_SLASH = [
-    'http://example.com',
-    'https://example.com',
-    'http://localhost',
-    'https://localhost',
-    'http://localhost:8080',
-    'https://localhost:8080',
-    'http://127.0.0.1',
-    'https://127.0.0.1',
-    'http://127.0.0.1:8080',
-    'https://127.0.0.1:8080'
-];
-
-const SHOULD_NOT_ADD_TRAILING_SLASH = [
-    'about:blank',
-    'about:error',
-    'http://example.com/page.html',
-    'https://example.com/page.html'
+var URL_TEST_CASES = [
+    {
+        url:                   'http://example.com',
+        shoudAddTrailingSlash: true
+    },
+    {
+        url:                   'https://localhost:8080',
+        shoudAddTrailingSlash: true
+    },
+    {
+        url:                   'about:blank',
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'http://example.com/page.html',
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file://localhost/etc/fstab', // Unix file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file:///etc/fstab', // Unix file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file://localhost/c:/WINDOWS/clock.avi', // Windows file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
+        shoudAddTrailingSlash: false
+    }
 ];
 
 test('iframe with empty src', function () {
@@ -178,52 +192,81 @@ test('special pages (GH-339)', function () {
     destLocation.forceLocation(storedForcedLocation);
 });
 
-test('should add the trailing slash to location.href if url consist of origin (GH-1426)', function () {
-    var storedForcedLocation = destLocation.getLocation();
+test('should add the trailing slash to location.href using href.set(), assign() and replace() functions if url consist of origin (GH-1426)', function () {
+    var setHref = function (url) {
+        this.href = url;
+    };
 
-    function checkTrailingSlash (urls, trailingSlashIsNeeded) {
-        urls.forEach(function (url) {
-            destLocation.forceLocation(urlUtils.getProxyUrl(url));
+    function proxyUrl (url) {
+        urlUtils.getProxyUrl(url);
+    }
 
-            var windowMock = {
-                location: {},
-                document: document
-            };
+    function proxyUrlTrailingSlash (urlCase) {
+        var proxiedUrl = urlUtils.getProxyUrl(urlCase.url);
 
-            var locationWrapper = new LocationWrapper(windowMock);
+        return proxiedUrl + (urlCase.shoudAddTrailingSlash ? '/' : '');
+    }
 
-            strictEqual(locationWrapper.href, url + (trailingSlashIsNeeded ? '/' : ''));
+    var windowMock = {
+        location: {
+            href:     '',
+            replace:  setHref,
+            assign:   setHref,
+            toString: function () {
+                return proxyUrl(this.location.href);
+            }
+        }
+    };
+
+    windowMock.top = windowMock;
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    function checkTrailingSlash (urlCases) {
+        urlCases.forEach(function (urlCase) {
+            locationWrapper.href = urlCase.url;
+            strictEqual(windowMock.location.href, proxyUrlTrailingSlash(urlCase));
+
+            locationWrapper.replace(urlCase.url);
+            strictEqual(windowMock.location.href, proxyUrlTrailingSlash(urlCase));
+
+            locationWrapper.assign(urlCase.url);
+            strictEqual(windowMock.location.href, proxyUrlTrailingSlash(urlCase));
         });
     }
 
-    checkTrailingSlash(SHOULD_ADD_TRAILING_SLASH, true);
-    checkTrailingSlash(SHOULD_NOT_ADD_TRAILING_SLASH, false);
-
-    destLocation.forceLocation(storedForcedLocation);
+    checkTrailingSlash(URL_TEST_CASES);
 });
 
 test('should add the trailing slash to location when navigateTo() is called (GH-1426)', function () {
+    var storedWindow = hammerhead.win;
+
+    function proxyUrlTrailingSlash (urlCase) {
+        var proxiedUrl = urlUtils.getProxyUrl(urlCase.url);
+
+        return proxiedUrl + (urlCase.shoudAddTrailingSlash ? '/' : '');
+    }
+
     var getWindowMock = function () {
         return {
-            navigateToUrl: navigateTo,
-
-            win: {
-                location: ''
-            },
+            location: ''
         };
     };
 
     var windowMock = getWindowMock();
 
-    function checkTrailingSlash (urls, trailingSlashIsNeeded) {
-        urls.forEach(function (url) {
-            windowMock.navigateToUrl(url);
-            strictEqual(urlUtils.parseProxyUrl(windowMock.win.location).destUrl, url + (trailingSlashIsNeeded ? '/' : ''));
+    hammerhead.win = windowMock;
+
+    function checkTrailingSlash (urlCases) {
+        urlCases.forEach(function (urlCase) {
+            hammerhead.navigateTo(urlCase.url);
+            strictEqual(hammerhead.win.location, proxyUrlTrailingSlash(urlCase));
         });
     }
 
-    checkTrailingSlash(SHOULD_ADD_TRAILING_SLASH, true);
-    checkTrailingSlash(SHOULD_NOT_ADD_TRAILING_SLASH, false);
+    checkTrailingSlash(URL_TEST_CASES);
+
+    hammerhead.win = storedWindow;
 });
 
 module('regression');
