@@ -35,12 +35,11 @@ const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.cr
 const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, cookieSandbox, shadowUI, storageSandbox, elementSandbox) {
+    constructor (nodeMutation, eventSandbox, shadowUI, storageSandbox, elementSandbox) {
         super();
 
         this.nodeMutation          = nodeMutation;
         this.messageSandbox        = eventSandbox.message;
-        this.cookieSandbox         = cookieSandbox;
         this.unloadSandbox         = eventSandbox.unload;
         this.listenersSandbox      = eventSandbox.listeners;
         this.shadowUI              = shadowUI;
@@ -175,12 +174,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return value;
                 }
-            },
-
-            cookie: {
-                condition: domUtils.isDocument,
-                get:       () => this.cookieSandbox.getCookie(),
-                set:       (doc, cookie) => this.cookieSandbox.setCookie(doc, String(cookie), true)
             },
 
             // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 6.0 browser

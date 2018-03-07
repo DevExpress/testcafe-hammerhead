@@ -39,13 +39,16 @@ class NativeMethods {
         this.documentCreateTouchList     = doc.createTouchList || docProto.createTouchList;
 
         // getters/setters
-        const docPrototype = win.Document.prototype;
+        const docPrototype             = win.Document.prototype;
+        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'cookie');
 
         this.documentAllPropOwnerName = docPrototype.hasOwnProperty('all') ? 'Document' : 'HTMLDocument';
 
         this.documentReferrerGetter    = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
         this.documentStyleSheetsGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
         this.documentAllGetter         = win.Object.getOwnPropertyDescriptor(win[this.documentAllPropOwnerName].prototype, 'all').get;
+        this.documentCookieGetter      = documentCookieDescriptor.get;
+        this.documentCookieSetter      = documentCookieDescriptor.set;
 
         const documentDocumentURIDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'documentURI');
 

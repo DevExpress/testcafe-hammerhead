@@ -15,7 +15,7 @@ const ATTRIBUTE_SELECTOR_REG_EX          = /\[([\w-]+)(\^?=.+?)]/g;
 const ATTRIBUTE_OPERATOR_WITH_HASH_VALUE = /^\W+\s*#/;
 
 export default class NodeSandbox extends SandboxBase {
-    constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI) {
+    constructor (nodeMutation, iframeSandbox, eventSandbox, uploadSandbox, shadowUI, cookieSandbox) {
         super();
 
         this.raiseBodyCreatedEvent = this._onBodyCreated;
@@ -31,7 +31,7 @@ export default class NodeSandbox extends SandboxBase {
         this.shadowUI      = shadowUI;
         this.mutation      = nodeMutation;
 
-        this.doc     = new DocumentSandbox(this, shadowUI);
+        this.doc     = new DocumentSandbox(this, shadowUI, cookieSandbox);
         this.win     = new WindowSandbox(this, eventSandbox.message, eventSandbox.listeners, eventSandbox.elementEditingWatcher, uploadSandbox);
         this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI, eventSandbox);
     }

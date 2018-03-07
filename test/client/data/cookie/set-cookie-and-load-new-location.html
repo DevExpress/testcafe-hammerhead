@@ -15,7 +15,7 @@
     });
 
     for (var i = 0; i < 20; i++)
-        __set$(document, 'cookie', 'value' + i + '=some value');
+        document.cookie = 'value' + i + '=some value';
 
     location = '/get-cookies/';
 </script>

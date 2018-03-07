@@ -184,12 +184,12 @@ test('send the origin header correctly (GH-284)', function () {
 asyncTest('set cookie from a header of the XMLHttpRequest response (GH-905)', function () {
     var xhr = new XMLHttpRequest();
 
-    strictEqual(getProperty(document, 'cookie'), '');
+    strictEqual(document.cookie, '');
 
     xhr.open('GET', '/xhr-set-cookie-header-test/', true);
     xhr.addEventListener('readystatechange', function () {
         if (this.readyState === this.DONE) {
-            strictEqual(getProperty(document, 'cookie'), 'hello=world');
+            strictEqual(document.cookie, 'hello=world');
             strictEqual(xhr.getResponseHeader(XHR_HEADERS.setCookie), null);
             strictEqual(xhr.getAllResponseHeaders().indexOf(XHR_HEADERS.setCookie), -1);
             strictEqual(xhr.getAllResponseHeaders().indexOf('hello=world'), -1);

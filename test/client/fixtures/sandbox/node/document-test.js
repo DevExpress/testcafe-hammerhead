@@ -2,6 +2,8 @@ var processScript       = hammerhead.get('../processing/script').processScript;
 var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
 var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
 var urlUtils            = hammerhead.get('./utils/url');
+var destLocation        = hammerhead.get('./utils/destination-location');
+var settings            = hammerhead.get('./settings');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -381,6 +383,26 @@ test('document.all (GH-1046)', function () {
     strictEqual(allLengthAfterShadowDivAdded, allLength + 1);
     strictEqual(allLengthAfterDivRemoved, allLength);
     strictEqual(allLengthAfterShadowDivRemoved, allLength);
+});
+
+test('document.cookie', function () {
+    document.cookie = 'document=cookie';
+
+    strictEqual(document.cookie, 'document=cookie');
+    strictEqual(nativeMethods.documentCookieGetter.call(document).indexOf('document=cookie'), -1);
+
+    settings.get().cookie = '';
+
+    strictEqual(document.cookie, '');
+});
+
+test('document.cookie on page with file protocol', function () {
+    destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
+
+    strictEqual(document.cookie = 'test=123', 'test=123');
+    strictEqual(document.cookie, '');
+
+    destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 });
 
 module('resgression');
