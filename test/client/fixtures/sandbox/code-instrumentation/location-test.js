@@ -11,7 +11,7 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 
-var URL_TEST_CASES = [
+var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
         url:                   'http://example.com',
         shoudAddTrailingSlash: true
@@ -192,28 +192,27 @@ test('special pages (GH-339)', function () {
     destLocation.forceLocation(storedForcedLocation);
 });
 
-test('should add the trailing slash to location.href using href.set(), assign() and replace() functions if url consist of origin (GH-1426)', function () {
-    var setHref = function (url) {
-        this.href = url;
-    };
+test('should ensure a trailing slash on page navigation using href setter, assign and replace methods (GH-1426)', function () {
+    function getExpectedProxyUrl (testCase) {
+        var proxiedUrl = urlUtils.getProxyUrl(testCase.url);
 
-    function proxyUrl (url) {
-        urlUtils.getProxyUrl(url);
-    }
-
-    function proxyUrlTrailingSlash (urlCase) {
-        var proxiedUrl = urlUtils.getProxyUrl(urlCase.url);
-
-        return proxiedUrl + (urlCase.shoudAddTrailingSlash ? '/' : '');
+        return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
     }
 
     var windowMock = {
         location: {
-            href:     '',
-            replace:  setHref,
-            assign:   setHref,
+            href: '',
+
+            replace: function (url) {
+                this.href = url;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
             toString: function () {
-                return proxyUrl(this.location.href);
+                return urlUtils.getProxyUrl(this.location.href);
             }
         }
     };
@@ -222,29 +221,29 @@ test('should add the trailing slash to location.href using href.set(), assign() 
 
     var locationWrapper = new LocationWrapper(windowMock);
 
-    function checkTrailingSlash (urlCases) {
-        urlCases.forEach(function (urlCase) {
-            locationWrapper.href = urlCase.url;
-            strictEqual(windowMock.location.href, proxyUrlTrailingSlash(urlCase));
+    function checkTrailingSlash (testCases) {
+        testCases.forEach(function (testCase) {
+            locationWrapper.href = testCase.url;
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase));
 
-            locationWrapper.replace(urlCase.url);
-            strictEqual(windowMock.location.href, proxyUrlTrailingSlash(urlCase));
+            locationWrapper.replace(testCase.url);
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase));
 
-            locationWrapper.assign(urlCase.url);
-            strictEqual(windowMock.location.href, proxyUrlTrailingSlash(urlCase));
+            locationWrapper.assign(testCase.url);
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase));
         });
     }
 
-    checkTrailingSlash(URL_TEST_CASES);
+    checkTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
 });
 
-test('should add the trailing slash to location when navigateTo() is called (GH-1426)', function () {
+test('should ensure a trailing slash on page navigation using hammerhead.navigateTo method (GH-1426)', function () {
     var storedWindow = hammerhead.win;
 
-    function proxyUrlTrailingSlash (urlCase) {
-        var proxiedUrl = urlUtils.getProxyUrl(urlCase.url);
+    function getExpectedProxyUrl (testCase) {
+        var proxiedUrl = urlUtils.getProxyUrl(testCase.url);
 
-        return proxiedUrl + (urlCase.shoudAddTrailingSlash ? '/' : '');
+        return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
     }
 
     var getWindowMock = function () {
@@ -257,14 +256,14 @@ test('should add the trailing slash to location when navigateTo() is called (GH-
 
     hammerhead.win = windowMock;
 
-    function checkTrailingSlash (urlCases) {
-        urlCases.forEach(function (urlCase) {
-            hammerhead.navigateTo(urlCase.url);
-            strictEqual(hammerhead.win.location, proxyUrlTrailingSlash(urlCase));
+    function checkTrailingSlash (testCases) {
+        testCases.forEach(function (testCase) {
+            hammerhead.navigateTo(testCase.url);
+            strictEqual(hammerhead.win.location, getExpectedProxyUrl(testCase));
         });
     }
 
-    checkTrailingSlash(URL_TEST_CASES);
+    checkTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
 
     hammerhead.win = storedWindow;
 });

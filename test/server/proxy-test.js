@@ -29,7 +29,7 @@ const nodeVersion                          = parseFloat(require('node-version').
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 
-const URL_TEST_CASES = [
+const ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
         url:                   'http://example.com',
         shoudAddTrailingSlash: true
@@ -393,26 +393,26 @@ describe('Proxy', () => {
     });
 
     describe('Session', () => {
-        it('Should add the trailing slash to the proxied url using openSession() if url consist of origin (GH-1426)', () => {
-            function proxyUrlTrailingSlash (urlCase) {
-                const proxiedUrl = urlUtils.getProxyUrl(urlCase.url, {
+        it('Should ensure a trailing slash on openSession() (GH-1426)', () => {
+            function getExpectedProxyUrl (testCase) {
+                const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
                     sessionId:     session.id,
                 });
 
-                return proxiedUrl + (urlCase.shoudAddTrailingSlash ? '/' : '');
+                return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
             }
 
-            function checkTrailingSlash (urlCases) {
-                urlCases.forEach(function (urlCase) {
-                    const actualUrl = proxy.openSession(urlCase.url, session);
+            function checkTrailingSlash (testCases) {
+                testCases.forEach(function (testCase) {
+                    const actualUrl = proxy.openSession(testCase.url, session);
 
-                    expect(actualUrl).eql(proxyUrlTrailingSlash(urlCase));
+                    expect(actualUrl).eql(getExpectedProxyUrl(testCase));
                 });
             }
 
-            checkTrailingSlash(URL_TEST_CASES);
+            checkTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
         });
 
         it('Should pass DNS errors to session', done => {
@@ -2665,8 +2665,8 @@ describe('Proxy', () => {
             ]);
         });
 
-        it('Should add the trailing slash to location header if url consist of origin (GH-1426)', () => {
-            function proxyUrlTrailingSlash (proxiedCase) {
+        it('Should ensure a trailing slash on location header (GH-1426)', () => {
+            function getExpectedProxyUrl (proxiedCase) {
                 const proxiedUrl = urlUtils.getProxyUrl(proxiedCase.url, {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
@@ -2676,11 +2676,11 @@ describe('Proxy', () => {
                 return proxiedUrl + (proxiedCase.shoudAddTrailingSlash ? '/' : '');
             }
 
-            const proxyUrls = URL_TEST_CASES.map(urlCase => {
+            const proxyUrls = ENSURE_URL_TRAILING_SLASH_TEST_CASES.map(testCase => {
                 return {
-                    proxiedUrl:            proxy.openSession(urlCase.url, session),
-                    shoudAddTrailingSlash: urlCase.shoudAddTrailingSlash,
-                    url:                   urlCase.url
+                    proxiedUrl:            proxy.openSession(testCase.url, session),
+                    shoudAddTrailingSlash: testCase.shoudAddTrailingSlash,
+                    url:                   testCase.url
                 };
             });
 
@@ -2696,7 +2696,7 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(res => {
-                        expect(res.headers['location']).eql(proxyUrlTrailingSlash(proxiedCase));
+                        expect(res.headers['location']).eql(getExpectedProxyUrl(proxiedCase));
                     });
             };
 

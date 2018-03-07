@@ -106,7 +106,7 @@ test('isRelativeUrl', function () {
 });
 
 test('ensureOriginTrailingSlash', function () {
-    var URL_TEST_CASES = [
+    var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
         {
             url:                   'http://example.com',
             shoudAddTrailingSlash: true
@@ -141,15 +141,15 @@ test('ensureOriginTrailingSlash', function () {
         }
     ];
 
-    function checkTrailingSlash (urlCases) {
-        urlCases.forEach(function (urlCase) {
-            var actualUrl = sharedUrlUtils.ensureOriginTrailingSlash(urlCase.url);
+    function checkTrailingSlash (testCases) {
+        testCases.forEach(function (testCase) {
+            var actualUrl = sharedUrlUtils.ensureOriginTrailingSlash(testCase.url);
 
-            strictEqual(actualUrl, urlCase.url + (urlCase.shoudAddTrailingSlash ? '/' : ''));
+            strictEqual(actualUrl, testCase.url + (testCase.shoudAddTrailingSlash ? '/' : ''));
         });
     }
 
-    checkTrailingSlash(URL_TEST_CASES);
+    checkTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
 });
 
 module('parse url');
