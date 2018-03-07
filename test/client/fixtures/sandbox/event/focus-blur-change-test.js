@@ -1168,3 +1168,46 @@ asyncTest('B238599, B239799 - Div with parent with tabindex focusing', function 
         }, false, true);
     }, 0);
 });
+
+asyncTest('an active input should not be blurred after a call of the focus on a disabled input (GH-testcafe#2123)', function () {
+    var activeInput   = document.createElement('input');
+    var disabledInput = document.createElement('input');
+
+    disabledInput.setAttribute('disabled', 'disabled');
+
+    activeInput.className = disabledInput.className = TEST_ELEMENT_CLASS;
+
+    document.body.appendChild(activeInput);
+    document.body.appendChild(disabledInput);
+
+    var isActiveInputFocused   = false;
+    var isActiveInputBlurred   = false;
+    var isDisabledInputFocused = false;
+
+    activeInput.onfocus = function () {
+        isActiveInputFocused = true;
+    };
+
+    activeInput.onblur = function () {
+        isActiveInputBlurred = true;
+    };
+
+    disabledInput.onfocus = function () {
+        isDisabledInputFocused = true;
+    };
+
+    activeInput.focus();
+
+    window.setTimeout(function () {
+        ok(isActiveInputFocused);
+
+        disabledInput.focus();
+
+        window.setTimeout(function () {
+            ok(!isActiveInputBlurred);
+            ok(!isDisabledInputFocused);
+
+            startNext();
+        }, 0);
+    }, 0);
+});

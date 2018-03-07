@@ -314,7 +314,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                             this.eventSimulator.blur(activeElement);
                     }
                 }
-                else
+                else if (!el.disabled)
                     needBlur = true;
             }
 
