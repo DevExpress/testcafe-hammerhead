@@ -228,7 +228,7 @@ export default class DocumentSandbox extends SandboxBase {
             }
         });
 
-        overrideDescriptor(window[nativeMethods.documentAllPropOwnerName].prototype, 'all', {
+        overrideDescriptor(window[nativeMethods.getDocumentPropOwnerName(docPrototype, 'all')].prototype, 'all', {
             getter: function () {
                 const all = nativeMethods.documentAllGetter.call(this);
 
@@ -237,7 +237,7 @@ export default class DocumentSandbox extends SandboxBase {
             setter: null
         });
 
-        overrideDescriptor(window[nativeMethods.documentCookiePropOwnerName].prototype, 'cookie', {
+        overrideDescriptor(window[nativeMethods.getDocumentPropOwnerName(docPrototype, 'cookie')].prototype, 'cookie', {
             getter: () => documentSandbox.cookieSandbox.getCookie(),
             setter: function (value) {
                 return documentSandbox.cookieSandbox.setCookie(this, String(value), true);

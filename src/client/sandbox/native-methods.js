@@ -6,6 +6,12 @@ class NativeMethods {
         this.refreshWindowMeths(win);
     }
 
+    getDocumentPropOwnerName (docPrototype, propName) {
+        const hasOwnProperty = this.objectHasOwnProperty || docPrototype.hasOwnProperty;
+
+        return hasOwnProperty.call(docPrototype, propName) ? 'Document' : 'HTMLDocument';
+    }
+
     refreshDocumentMeths (doc, win) {
         doc = doc || document;
         win = win || window;
@@ -39,16 +45,15 @@ class NativeMethods {
         this.documentCreateTouchList     = doc.createTouchList || docProto.createTouchList;
 
         // getters/setters
-        const docPrototype = win.Document.prototype;
+        const docPrototype                = win.Document.prototype;
+        const documentAllPropOwnerName    = this.getDocumentPropOwnerName(docPrototype, 'all');
+        const documentCookiePropOwnerName = this.getDocumentPropOwnerName(docPrototype, 'cookie');
 
-        this.documentAllPropOwnerName    = docPrototype.hasOwnProperty('all') ? 'Document' : 'HTMLDocument';
-        this.documentCookiePropOwnerName = docPrototype.hasOwnProperty('cookie') ? 'Document' : 'HTMLDocument';
-
-        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
+        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[documentCookiePropOwnerName].prototype, 'cookie');
 
         this.documentReferrerGetter    = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
         this.documentStyleSheetsGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
-        this.documentAllGetter         = win.Object.getOwnPropertyDescriptor(win[this.documentAllPropOwnerName].prototype, 'all').get;
+        this.documentAllGetter         = win.Object.getOwnPropertyDescriptor(win[documentAllPropOwnerName].prototype, 'all').get;
         this.documentCookieGetter      = documentCookieDescriptor.get;
         this.documentCookieSetter      = documentCookieDescriptor.set;
 
