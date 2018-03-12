@@ -1,6 +1,4 @@
 /*global Document, Window */
-import { isFirefox } from '../utils/browser';
-
 class NativeMethods {
     constructor (doc, win) {
         this.refreshDocumentMeths(doc, win);
@@ -41,11 +39,12 @@ class NativeMethods {
         this.documentCreateTouchList     = doc.createTouchList || docProto.createTouchList;
 
         // getters/setters
-        const docPrototype             = win.Document.prototype;
-        const htmlDocPrototype         = win.HTMLDocument.prototype;
-        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(isFirefox ? htmlDocPrototype : docPrototype, 'cookie');
+        const docPrototype = win.Document.prototype;
 
-        this.documentAllPropOwnerName = docPrototype.hasOwnProperty('all') ? 'Document' : 'HTMLDocument';
+        this.documentAllPropOwnerName    = docPrototype.hasOwnProperty('all') ? 'Document' : 'HTMLDocument';
+        this.documentCookiePropOwnerName = docPrototype.hasOwnProperty('cookie') ? 'Document' : 'HTMLDocument';
+
+        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         this.documentReferrerGetter    = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
         this.documentStyleSheetsGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
