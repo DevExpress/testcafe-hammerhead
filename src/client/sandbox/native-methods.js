@@ -1,4 +1,6 @@
 /*global Document, Window */
+import { isFirefox } from '../utils/browser';
+
 class NativeMethods {
     constructor (doc, win) {
         this.refreshDocumentMeths(doc, win);
@@ -40,7 +42,8 @@ class NativeMethods {
 
         // getters/setters
         const docPrototype             = win.Document.prototype;
-        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'cookie');
+        const htmlDocPrototype         = win.HTMLDocument.prototype;
+        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(isFirefox ? htmlDocPrototype : docPrototype, 'cookie');
 
         this.documentAllPropOwnerName = docPrototype.hasOwnProperty('all') ? 'Document' : 'HTMLDocument';
 

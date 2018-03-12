@@ -237,7 +237,7 @@ export default class DocumentSandbox extends SandboxBase {
             setter: null
         });
 
-        overrideDescriptor(docPrototype, 'cookie', {
+        overrideDescriptor(isFirefox ? htmlDocPrototype : docPrototype, 'cookie', {
             getter: () => documentSandbox.cookieSandbox.getCookie(),
             setter: function (value) {
                 return documentSandbox.cookieSandbox.setCookie(this, String(value), true);
