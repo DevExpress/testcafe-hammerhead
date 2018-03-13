@@ -10,6 +10,12 @@ var nativeMethods = hammerhead.nativeMethods;
 var Promise       = hammerhead.Promise;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 
+function wait (timeout) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, timeout);
+    });
+}
+
 test('document.write for iframe.src with javascript protocol', function () {
     var $div = $('<div>').appendTo('body');
 
@@ -417,21 +423,30 @@ test('document.activeElement', function () {
 
     shadowInput.focus();
 
-    strictEqual(document.activeElement, document.body);
-    strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
+    return wait(0)
+        .then(function () {
+            strictEqual(document.activeElement, document.body);
+            strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
 
-    input.focus();
+            input.focus();
 
-    strictEqual(document.activeElement, input);
-    strictEqual(nativeMethods.documentActiveElementGetter.call(document), input);
+            return wait(0);
+        })
+        .then(function () {
+            strictEqual(document.activeElement, input);
+            strictEqual(nativeMethods.documentActiveElementGetter.call(document), input);
 
-    shadowInput.focus();
+            shadowInput.focus();
 
-    strictEqual(document.activeElement, input);
-    strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
+            return wait(0);
+        })
+        .then(function () {
+            strictEqual(document.activeElement, input);
+            strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
 
-    document.body.removeChild(input);
-    shadowRoot.removeChild(shadowInput);
+            document.body.removeChild(input);
+            shadowRoot.removeChild(shadowInput);
+        });
 });
 
 test('document.activeElement when it equals null (GH-1226)', function () {
