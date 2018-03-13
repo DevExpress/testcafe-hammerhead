@@ -50,11 +50,12 @@ class NativeMethods {
 
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
-        this.documentReferrerGetter    = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
-        this.documentStyleSheetsGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
-        this.documentAllGetter         = win.Object.getOwnPropertyDescriptor(win[this.documentAllPropOwnerName].prototype, 'all').get;
-        this.documentCookieGetter      = documentCookieDescriptor.get;
-        this.documentCookieSetter      = documentCookieDescriptor.set;
+        this.documentReferrerGetter      = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
+        this.documentStyleSheetsGetter   = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
+        this.documentAllGetter           = win.Object.getOwnPropertyDescriptor(win[this.documentAllPropOwnerName].prototype, 'all').get;
+        this.documentActiveElementGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'activeElement').get;
+        this.documentCookieGetter        = documentCookieDescriptor.get;
+        this.documentCookieSetter        = documentCookieDescriptor.set;
 
         const documentDocumentURIDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'documentURI');
 

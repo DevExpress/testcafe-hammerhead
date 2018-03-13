@@ -73,12 +73,15 @@ export function instanceToString (instance) {
 export function getActiveElement (currentDocument) {
     // NOTE: Sometimes document.activeElement returns an empty object or null (IE11).
     // https://github.com/DevExpress/testcafe-hammerhead/issues/768
-    const doc = currentDocument || document;
+    const doc           = currentDocument || document;
+    const activeElement = nativeMethods.documentActiveElementGetter.call(doc);
 
-    let el = isDomElement(doc.activeElement) ? doc.activeElement : doc.body;
+    let el = isDomElement(activeElement) ? activeElement : doc.body;
 
     while (el && el.shadowRoot) {
+        /*eslint-disable no-restricted-properties*/
         const shadowEl = el.shadowRoot.activeElement;
+        /*eslint-enable no-restricted-properties*/
 
         if (!shadowEl)
             break;

@@ -86,35 +86,6 @@ test('attributes', function () {
     strictEqual(div.attributes, attributes);
 });
 
-asyncTest('document properties', function () {
-    var $input       = $('<input />').appendTo('body');
-    var $shadowInput = $('<input />').appendTo(shadowUI.getRoot());
-
-    expect(3);
-
-    strictEqual(getProperty(document, 'activeElement'), document.body);
-
-    $shadowInput[0].focus();
-
-    setTimeout(function () {
-        strictEqual(getProperty(document, 'activeElement'), document.body);
-
-        $input[0].focus();
-        setTimeout(function () {
-            $shadowInput[0].focus();
-
-            setTimeout(function () {
-                strictEqual(getProperty(document, 'activeElement'), $input[0]);
-
-                $input.remove();
-                $shadowInput.remove();
-
-                start();
-            }, 0);
-        }, 0);
-    }, 0);
-});
-
 test('document.baseURI (GH-920)', function () {
     var url                 = 'http://some.domain.com/index.html';
     var storedDocumentClass = nativeMethods.documentClass;
@@ -483,32 +454,6 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
 
         strictEqual(getProperty(svg, property), svgHasProperty ? style : void 0, property);
     });
-});
-
-test('document.activeElement when it equals null (GH-1226)', function () {
-    expect(1);
-
-    var div      = document.createElement('div');
-    var innerDiv = document.createElement('div');
-
-    div.id            = 'div';
-    innerDiv.id       = 'innerDiv';
-    innerDiv.tabIndex = 0;
-    div.appendChild(innerDiv);
-    document.body.appendChild(div);
-    innerDiv.focus();
-    setProperty(div, 'innerHTML', '<span>Replaced</span>');
-
-    try {
-        var instrumentedValue = getProperty(document, 'activeElement');
-
-        strictEqual(instrumentedValue, document.activeElement);
-    }
-    catch (err) {
-        ok(false);
-    }
-
-    div.parentNode.removeChild(div);
 });
 
 test('form.action should return element when the form contains element with the "action" attribute name (GH-1291)', function () {

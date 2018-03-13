@@ -405,6 +405,59 @@ test('document.cookie on page with file protocol', function () {
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 });
 
+test('document.activeElement', function () {
+    var shadowRoot  = shadowUI.getRoot();
+    var input       = document.createElement('input');
+    var shadowInput = document.createElement('input');
+
+    document.body.appendChild(input);
+    shadowRoot.appendChild(shadowInput);
+
+    strictEqual(document.activeElement, document.body);
+
+    shadowInput.focus();
+
+    strictEqual(document.activeElement, document.body);
+    strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
+
+    input.focus();
+
+    strictEqual(document.activeElement, input);
+    strictEqual(nativeMethods.documentActiveElementGetter.call(document), input);
+
+    shadowInput.focus();
+
+    strictEqual(document.activeElement, input);
+    strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
+
+    document.body.removeChild(input);
+    shadowRoot.removeChild(shadowInput);
+});
+
+test('document.activeElement when it equals null (GH-1226)', function () {
+    var parentDiv = document.createElement('div');
+    var childDiv  = document.createElement('div');
+
+    parentDiv.id      = 'div';
+    childDiv.id       = 'innerDiv';
+    childDiv.tabIndex = 0;
+
+    parentDiv.appendChild(childDiv);
+    document.body.appendChild(parentDiv);
+
+    childDiv.focus();
+    parentDiv.innerHTML = '<span>Replaced</span>';
+
+    try {
+        strictEqual(document.activeElement, nativeMethods.documentActiveElementGetter.call(document));
+    }
+    catch (err) {
+        ok(false);
+    }
+
+    document.body.removeChild(parentDiv);
+});
+
 module('resgression');
 
 test('document.write for several tags in iframe (T215136)', function () {

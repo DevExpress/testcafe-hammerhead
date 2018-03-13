@@ -12,7 +12,6 @@ export const METHODS = [
 
 export const PROPERTIES = [
     'action',
-    'activeElement',
     'attributes',
     'autocomplete',
     'background',
