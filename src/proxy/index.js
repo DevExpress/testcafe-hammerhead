@@ -166,6 +166,8 @@ export default class Proxy extends Router {
         if (externalProxyUrl)
             session.setExternalProxySettings(externalProxyUrl);
 
+        url = urlUtils.ensureOriginTrailingSlash(url);
+
         return urlUtils.getProxyUrl(url, {
             proxyHostname: this.server1Info.hostname,
             proxyPort:     this.server1Info.port,

@@ -29,6 +29,41 @@ const nodeVersion                          = parseFloat(require('node-version').
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 
+const ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
+    {
+        url:                   'http://example.com',
+        shoudAddTrailingSlash: true
+    },
+    {
+        url:                   'https://localhost:8080',
+        shoudAddTrailingSlash: true
+    },
+    {
+        url:                   'about:blank',
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'http://example.com/page.html',
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file://localhost/etc/fstab', // Unix file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file:///etc/fstab', // Unix file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file://localhost/c:/WINDOWS/clock.avi', // Windows file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
+        shoudAddTrailingSlash: false
+    }
+];
+
 function trim (str) {
     return str.replace(/^\s+|\s+$/g, '');
 }
@@ -358,9 +393,31 @@ describe('Proxy', () => {
     });
 
     describe('Session', () => {
+        it('Should ensure a trailing slash on openSession() (GH-1426)', () => {
+            function getExpectedProxyUrl (testCase) {
+                const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                });
+
+                return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
+            }
+
+            function testAddingTrailingSlash (testCases) {
+                testCases.forEach(function (testCase) {
+                    const actualUrl = proxy.openSession(testCase.url, session);
+
+                    expect(actualUrl).eql(getExpectedProxyUrl(testCase));
+                });
+            }
+
+            testAddingTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
+        });
+
         it('Should pass DNS errors to session', done => {
             session.handlePageError = (ctx, err) => {
-                expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url">http://www.some-unresolvable.url</a>.');
+                expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url/">http://www.some-unresolvable.url/</a>.');
                 ctx.res.end();
                 done();
                 return true;
@@ -378,7 +435,7 @@ describe('Proxy', () => {
 
         it('Should pass protocol DNS errors for existing host to session', done => {
             session.handlePageError = (ctx, err) => {
-                expect(err).eql('Failed to find a DNS-record for the resource at <a href="https://127.0.0.1:2000">https://127.0.0.1:2000</a>.');
+                expect(err).eql('Failed to find a DNS-record for the resource at <a href="https://127.0.0.1:2000/">https://127.0.0.1:2000/</a>.');
                 ctx.res.end();
                 done();
                 return true;
@@ -1813,8 +1870,8 @@ describe('Proxy', () => {
                     const host = 'http://127.0.0.1:' + port;
 
                     session.handlePageError = (ctx, err) => {
-                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '">' +
-                                        host + '</a>.');
+                        expect(err).eql('Failed to find a DNS-record for the resource at <a href="' + host + '/' + '">' +
+                                        host + '/' + '</a>.');
                         ctx.res.end();
                         done();
                         return true;
@@ -2238,7 +2295,8 @@ describe('Proxy', () => {
                 },
                 {
                     url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20https%3A%2F%2Fexample.com', session),
-                    expectedHeaderValue: 'ALLOW-FROM ' + proxy.openSession('https://example.com', session)
+                    expectedHeaderValue: 'ALLOW-FROM ' +
+                                         proxy.openSession('https://example.com', session).replace(urlUtils.TRAILING_SLASH_RE, '')
                 },
                 {
                     url:                 proxy.openSession('http://127.0.0.1:2000/x-frame-options/ALLOW-FROM%20http%3A%2F%2F127.0.0.1%3A2000%2Fpage', session),
@@ -2605,6 +2663,37 @@ describe('Proxy', () => {
                 testRedirectRequestStatusCode(201, false),
                 testRedirectRequestStatusCode(202, false)
             ]);
+        });
+
+        it('Should ensure a trailing slash on location header (GH-1426)', () => {
+            function getExpectedProxyUrl (testCase) {
+                const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id
+                });
+
+                return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
+            }
+
+            const testLocationHeaderValue = testCase => {
+                const proxiedUrl = proxy.openSession(testCase.url, session);
+                const encodedUrl = encodeURIComponent(proxiedUrl);
+                const options    = {
+                    url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
+
+                    resolveWithFullResponse: true,
+                    followRedirect:          false,
+                    simple:                  false,
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.headers['location']).eql(getExpectedProxyUrl(testCase));
+                    });
+            };
+
+            return Promise.all(ENSURE_URL_TRAILING_SLASH_TEST_CASES.map(testLocationHeaderValue));
         });
     });
 });

@@ -11,6 +11,41 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 
+var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
+    {
+        url:                   'http://example.com',
+        shoudAddTrailingSlash: true
+    },
+    {
+        url:                   'https://localhost:8080',
+        shoudAddTrailingSlash: true
+    },
+    {
+        url:                   'about:blank',
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'http://example.com/page.html',
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file://localhost/etc/fstab', // Unix file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file:///etc/fstab', // Unix file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file://localhost/c:/WINDOWS/clock.avi', // Windows file URI scheme
+        shoudAddTrailingSlash: false
+    },
+    {
+        url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
+        shoudAddTrailingSlash: false
+    }
+];
+
 test('iframe with empty src', function () {
     function assert (iframe) {
         new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
@@ -112,7 +147,7 @@ test('iframe', function () {
     wrapper = LocationInstrumentation.getLocationWrapper(windowMock);
 
     wrapper.assign('http://new.domain.com:1444');
-    strictEqual(windowMock.location.toString(), getProxy('http://new.domain.com:1444'));
+    strictEqual(windowMock.location.toString(), getProxy('http://new.domain.com:1444/'));
 
     wrapper.replace('https://domain.com:1555/index.html');
     strictEqual(windowMock.location.toString(), getProxy('https://domain.com:1555/index.html'));
@@ -155,6 +190,78 @@ test('special pages (GH-339)', function () {
     });
 
     destLocation.forceLocation(storedForcedLocation);
+});
+
+test('should ensure a trailing slash on page navigation using href setter, assign and replace methods (GH-1426)', function () {
+    function getExpectedProxyUrl (testCase) {
+        var proxiedUrl = urlUtils.getProxyUrl(testCase.url);
+
+        return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
+    }
+
+    var windowMock = {
+        location: {
+            href: '',
+
+            replace: function (url) {
+                this.href = url;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
+            toString: function () {
+                return urlUtils.getProxyUrl(this.location.href);
+            }
+        }
+    };
+
+    windowMock.top = windowMock;
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    function testAddingTrailingSlash (testCases) {
+        testCases.forEach(function (testCase) {
+            locationWrapper.href = testCase.url;
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase));
+
+            locationWrapper.replace(testCase.url);
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase));
+
+            locationWrapper.assign(testCase.url);
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase));
+        });
+    }
+
+    testAddingTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
+});
+
+test('should ensure a trailing slash on page navigation using hammerhead.navigateTo method (GH-1426)', function () {
+    var storedWindow = hammerhead.win;
+
+    function getExpectedProxyUrl (testCase) {
+        var proxiedUrl = urlUtils.getProxyUrl(testCase.url);
+
+        return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
+    }
+
+    var windowMock = {
+        location: ''
+    };
+
+    hammerhead.win = windowMock;
+
+    function testAddingTrailingSlash (testCases) {
+        testCases.forEach(function (testCase) {
+            hammerhead.navigateTo(testCase.url);
+            strictEqual(hammerhead.win.location, getExpectedProxyUrl(testCase));
+        });
+    }
+
+    testAddingTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
+
+    hammerhead.win = storedWindow;
 });
 
 module('regression');
@@ -280,7 +387,7 @@ test('emulate a native browser behaviour related with trailing slashes for locat
     var overrideGetResolverElement = function (resolvedHref) {
         urlResolver.getResolverElement = function () {
             var storedAnchorHrefGetter = nativeMethods.anchorHrefGetter;
-            var anchor = document.createElement('a');
+            var anchor                 = document.createElement('a');
 
             nativeMethods.anchorHrefGetter = function () {
                 nativeMethods.anchorHrefGetter = storedAnchorHrefGetter;
