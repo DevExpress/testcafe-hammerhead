@@ -126,13 +126,18 @@ describe('External proxy', () => {
         session.setExternalProxySettings(234);
         expect(session.externalProxySettings).eql(null);
 
-        session.setExternalProxySettings('admin:admin@127.0.0.1:2002');
+        const host        = 'admin:admin@127.0.0.1:2002';
+        const bypassRules = ['localhost'];
+
+        session.setExternalProxySettings({ host, bypassRules });
+
         expect(session.externalProxySettings).eql({
-            host:       '127.0.0.1:2002',
-            hostname:   '127.0.0.1',
-            port:       '2002',
-            proxyAuth:  'admin:admin',
-            authHeader: formatAuthHeader('admin:admin')
+            host:        '127.0.0.1:2002',
+            hostname:    '127.0.0.1',
+            port:        '2002',
+            proxyAuth:   'admin:admin',
+            authHeader:  formatAuthHeader('admin:admin'),
+            bypassRules: ['localhost']
         });
 
         session.setExternalProxySettings('127.0.0.1');
@@ -171,6 +176,18 @@ describe('External proxy', () => {
             });
     });
 
+    it('Should send the http request and bypass the proxy', () => {
+        session.setExternalProxySettings({ host: '127.0.0.1:2002', bypassRules: ['127.0.0.1:2000'] });
+
+        const proxyUrl = proxy.openSession('http://127.0.0.1:2000/path', session);
+
+        return request(proxyUrl)
+            .then(body => {
+                expect(body).eql('/path');
+                expect(proxyLogs.length).eql(0);
+            });
+    });
+
     it('Should send the https request through the proxy', () => {
         session.setExternalProxySettings('127.0.0.1:2002');
 
@@ -182,6 +199,18 @@ describe('External proxy', () => {
                 expect(proxyLogs.length).eql(1);
                 expect(proxyLogs[0].url).eql('127.0.0.1:2001');
                 expect(proxyLogs[0].auth).to.be.undefined;
+            });
+    });
+
+    it('Should send the https request and bypass the proxy', () => {
+        session.setExternalProxySettings({ host: '127.0.0.1:2002', bypassRules: ['127.0.0.1:2001'] });
+
+        const proxyUrl = proxy.openSession('https://127.0.0.1:2001/path', session);
+
+        return request(proxyUrl)
+            .then(body => {
+                expect(body).eql('/path');
+                expect(proxyLogs.length).eql(0);
             });
     });
 

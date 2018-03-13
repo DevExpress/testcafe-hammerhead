@@ -108,15 +108,22 @@ export default class Session extends EventEmitter {
         return taskScript;
     }
 
-    setExternalProxySettings (proxyUrl) {
-        const parsedUrl = typeof proxyUrl === 'string' ? parseUrl('http://' + proxyUrl) : null;
-        let settings    = null;
+    setExternalProxySettings (proxySettings) {
+        if (typeof proxySettings === 'string')
+            proxySettings = { host: proxySettings };
+
+        const { host, bypassRules } = proxySettings || {};
+        const parsedUrl             = typeof host === 'string' ? parseUrl('http://' + host) : null;
+        let settings                = null;
 
         if (parsedUrl && parsedUrl.host) {
             settings = {
                 host:     parsedUrl.host,
                 hostname: parsedUrl.hostname
             };
+
+            if (bypassRules)
+                settings.bypassRules = bypassRules;
 
             if (parsedUrl.port)
                 settings.port = parsedUrl.port;
