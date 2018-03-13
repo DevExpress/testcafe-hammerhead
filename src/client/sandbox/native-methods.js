@@ -269,6 +269,7 @@ class NativeMethods {
         this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
         this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
         this.xhrStatusGetter                = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
+        this.nodeBaseURIGetter              = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'baseURI').get;
         this.objectDataGetter               = objectDataDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;

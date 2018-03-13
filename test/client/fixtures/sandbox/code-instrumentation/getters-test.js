@@ -14,10 +14,6 @@ var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 
-var DocumentMock = function (prop, value) {
-    this[prop] = value;
-};
-
 test('autocomplete', function () {
     var input  = $('<input>')[0];
     var etalon = nativeMethods.createElement.call(document, 'input');
@@ -84,18 +80,6 @@ test('attributes', function () {
 
     eval(processScript('attributes = div.attributes'));
     strictEqual(div.attributes, attributes);
-});
-
-test('document.baseURI (GH-920)', function () {
-    var url                 = 'http://some.domain.com/index.html';
-    var storedDocumentClass = nativeMethods.documentClass;
-    var documentMock        = new DocumentMock('baseURI', urlUtils.getProxyUrl(url));
-
-    nativeMethods.documentClass = DocumentMock;
-
-    strictEqual(getProperty(documentMock, 'baseURI'), url);
-
-    nativeMethods.documentClass = storedDocumentClass;
 });
 
 test('CSSStyleSheet.href', function () {
