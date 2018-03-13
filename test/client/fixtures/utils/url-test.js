@@ -105,53 +105,6 @@ test('isRelativeUrl', function () {
     ok(sharedUrlUtils.isRelativeUrl('C:\\index.htm'));
 });
 
-test('ensureOriginTrailingSlash', function () {
-    var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
-        {
-            url:                   'http://example.com',
-            shoudAddTrailingSlash: true
-        },
-        {
-            url:                   'https://localhost:8080',
-            shoudAddTrailingSlash: true
-        },
-        {
-            url:                   'about:blank',
-            shoudAddTrailingSlash: false
-        },
-        {
-            url:                   'http://example.com/page.html',
-            shoudAddTrailingSlash: false
-        },
-        {
-            url:                   'file://localhost/etc/fstab', // Unix file URI scheme
-            shoudAddTrailingSlash: false
-        },
-        {
-            url:                   'file:///etc/fstab', // Unix file URI scheme
-            shoudAddTrailingSlash: false
-        },
-        {
-            url:                   'file://localhost/c:/WINDOWS/clock.avi', // Windows file URI scheme
-            shoudAddTrailingSlash: false
-        },
-        {
-            url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
-            shoudAddTrailingSlash: false
-        }
-    ];
-
-    function checkTrailingSlash (testCases) {
-        testCases.forEach(function (testCase) {
-            var actualUrl = sharedUrlUtils.ensureOriginTrailingSlash(testCase.url);
-
-            strictEqual(actualUrl, testCase.url + (testCase.shoudAddTrailingSlash ? '/' : ''));
-        });
-    }
-
-    checkTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
-});
-
 module('parse url');
 
 test('newline characters', function () {

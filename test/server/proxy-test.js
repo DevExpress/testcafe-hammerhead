@@ -404,7 +404,7 @@ describe('Proxy', () => {
                 return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
             }
 
-            function checkTrailingSlash (testCases) {
+            function testAddingTrailingSlash (testCases) {
                 testCases.forEach(function (testCase) {
                     const actualUrl = proxy.openSession(testCase.url, session);
 
@@ -412,7 +412,7 @@ describe('Proxy', () => {
                 });
             }
 
-            checkTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
+            testAddingTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
         });
 
         it('Should pass DNS errors to session', done => {
@@ -2666,26 +2666,19 @@ describe('Proxy', () => {
         });
 
         it('Should ensure a trailing slash on location header (GH-1426)', () => {
-            function getExpectedProxyUrl (proxiedCase) {
-                const proxiedUrl = urlUtils.getProxyUrl(proxiedCase.url, {
+            function getExpectedProxyUrl (testCase) {
+                const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
                     proxyHostname: '127.0.0.1',
                     proxyPort:     1836,
                     sessionId:     session.id
                 });
 
-                return proxiedUrl + (proxiedCase.shoudAddTrailingSlash ? '/' : '');
+                return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
             }
 
-            const proxyUrls = ENSURE_URL_TRAILING_SLASH_TEST_CASES.map(testCase => {
-                return {
-                    proxiedUrl:            proxy.openSession(testCase.url, session),
-                    shoudAddTrailingSlash: testCase.shoudAddTrailingSlash,
-                    url:                   testCase.url
-                };
-            });
-
-            const testPageRequest = proxiedCase => {
-                const encodedUrl = encodeURIComponent(proxiedCase.proxiedUrl);
+            const testLocationHeaderValue = testCase => {
+                const proxiedUrl = proxy.openSession(testCase.url, session);
+                const encodedUrl = encodeURIComponent(proxiedUrl);
                 const options    = {
                     url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
 
@@ -2696,11 +2689,11 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(res => {
-                        expect(res.headers['location']).eql(getExpectedProxyUrl(proxiedCase));
+                        expect(res.headers['location']).eql(getExpectedProxyUrl(testCase));
                     });
             };
 
-            return Promise.all(proxyUrls.map(testPageRequest));
+            return Promise.all(ENSURE_URL_TRAILING_SLASH_TEST_CASES.map(testLocationHeaderValue));
         });
     });
 });

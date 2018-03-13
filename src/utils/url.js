@@ -373,7 +373,7 @@ export function isValidUrl (url) {
 
 export function ensureOriginTrailingSlash (url) {
     // NOTE: If you request an url containing only port, host and protocol
-    // then browser adds the trailing slash to window.location.href.
+    // then browser adds the trailing slash itself.
     const parsedUrl = parseUrl(url);
 
     if (!parsedUrl.partAfterHost && HTTP_RE.test(parsedUrl.protocol))
