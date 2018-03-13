@@ -269,7 +269,6 @@ class NativeMethods {
         this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
         this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
         this.xhrStatusGetter                = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
-        this.nodeBaseURIGetter              = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'baseURI').get;
         this.objectDataGetter               = objectDataDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
@@ -307,6 +306,12 @@ class NativeMethods {
         // NOTE: only for IE11
         if (cssStyleSheetHrefDescriptor)
             this.cssStyleSheetHrefGetter = cssStyleSheetHrefDescriptor.get;
+
+        const nodeBaseURIDescriptor = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'baseURI');
+
+        // NOTE: only for IE11
+        if (nodeBaseURIDescriptor)
+            this.nodeBaseURIGetter = nodeBaseURIDescriptor.get;
 
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later

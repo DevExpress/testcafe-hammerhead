@@ -473,23 +473,25 @@ test('document.activeElement when it equals null (GH-1226)', function () {
     document.body.removeChild(parentDiv);
 });
 
-test('document.baseURI (GH-920)', function () {
-    var storedGetProxyUrl = urlUtils.parseProxyUrl;
+if (nativeMethods.nodeBaseURIGetter) {
+    test('document.baseURI (GH-920)', function () {
+        var storedGetProxyUrl = urlUtils.parseProxyUrl;
 
-    urlUtils.parseProxyUrl = function () {
-        return { destUrl: 'destUrl' };
-    };
+        urlUtils.parseProxyUrl = function () {
+            return { destUrl: 'destUrl' };
+        };
 
-    strictEqual(document.baseURI, 'destUrl');
+        strictEqual(document.baseURI, 'destUrl');
 
-    urlUtils.parseProxyUrl = function () {
-        return null;
-    };
+        urlUtils.parseProxyUrl = function () {
+            return null;
+        };
 
-    strictEqual(document.baseURI, location.toString());
+        strictEqual(document.baseURI, location.toString());
 
-    urlUtils.parseProxyUrl = storedGetProxyUrl;
-});
+        urlUtils.parseProxyUrl = storedGetProxyUrl;
+    });
+}
 
 module('resgression');
 

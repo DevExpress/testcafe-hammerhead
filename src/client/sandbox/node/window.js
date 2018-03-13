@@ -759,14 +759,16 @@ export default class WindowSandbox extends SandboxBase {
             });
         }
 
-        overrideDescriptor(window.Node.prototype, 'baseURI', {
-            getter: function () {
-                const baseURI   = nativeMethods.nodeBaseURIGetter.call(this);
-                const parsedUrl = parseProxyUrl(baseURI);
+        if (nativeMethods.nodeBaseURIGetter) {
+            overrideDescriptor(window.Node.prototype, 'baseURI', {
+                getter: function () {
+                    const baseURI   = nativeMethods.nodeBaseURIGetter.call(this);
+                    const parsedUrl = parseProxyUrl(baseURI);
 
-                return parsedUrl ? parsedUrl.destUrl : baseURI;
-            }
-        });
+                    return parsedUrl ? parsedUrl.destUrl : baseURI;
+                }
+            });
+        }
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
