@@ -12,12 +12,13 @@ import LocationAccessorsInstrumentation from '../../code-instrumentation/locatio
 import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
 
 export default class DocumentSandbox extends SandboxBase {
-    constructor (nodeSandbox, shadowUI) {
+    constructor (nodeSandbox, shadowUI, cookieSandbox) {
         super();
 
         this.nodeSandbox    = nodeSandbox;
         this.documentWriter = null;
         this.shadowUI       = shadowUI;
+        this.cookieSandbox  = cookieSandbox;
     }
 
     _isUninitializedIframeWithoutSrc (win) {
@@ -227,13 +228,24 @@ export default class DocumentSandbox extends SandboxBase {
             }
         });
 
-        overrideDescriptor(window[nativeMethods.documentAllPropOwnerName].prototype, 'all', {
+        const documentAllPropOwnerPrototype = window[nativeMethods.documentAllPropOwnerName].prototype;
+
+        overrideDescriptor(documentAllPropOwnerPrototype, 'all', {
             getter: function () {
                 const all = nativeMethods.documentAllGetter.call(this);
 
                 return documentSandbox.shadowUI._filterNodeList(all);
             },
             setter: null
+        });
+
+        const documentCookiePropOwnerPrototype = window[nativeMethods.documentCookiePropOwnerName].prototype;
+
+        overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
+            getter: () => documentSandbox.cookieSandbox.getCookie(),
+            setter: function (value) {
+                return documentSandbox.cookieSandbox.setCookie(this, String(value), true);
+            }
         });
     }
 }

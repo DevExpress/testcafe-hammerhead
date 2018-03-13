@@ -2,8 +2,9 @@ var cookieUtils = hammerhead.get('./utils/cookie');
 var settings    = hammerhead.get('./settings');
 var urlUtils    = hammerhead.get('./utils/url');
 
-var browserUtils = hammerhead.utils.browser;
-var cookieSync   = hammerhead.sandbox.cookie.cookieSync;
+var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
+var cookieSync    = hammerhead.sandbox.cookie.cookieSync;
 
 function setCookieWithoutServerSync (value) {
     var storedFn = cookieSync.perform;
@@ -11,19 +12,11 @@ function setCookieWithoutServerSync (value) {
     cookieSync.perform = function () {
     };
 
-    var result = setProperty(document, 'cookie', value);
+    var result = document.cookie = value;
 
     cookieSync.perform = storedFn;
 
     return result;
-}
-
-function setCookie (value) {
-    return setProperty(document, 'cookie', value);
-}
-
-function getCookie () {
-    return getProperty(document, 'cookie');
 }
 
 test('get/set', function () {
@@ -45,7 +38,7 @@ test('get/set', function () {
     for (var i = 0; i < cookieStrs.length; i++)
         setCookieWithoutServerSync(cookieStrs[i]);
 
-    strictEqual(getCookie(), 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
+    strictEqual(document.cookie, 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
 });
 
 test('path validation', function () {
@@ -71,7 +64,7 @@ test('remove real cookie after browser processing', function () {
     setCookieWithoutServerSync(cookieStr);
 
     strictEqual(settings.get().cookie, uniqKey + '=value');
-    ok(document.cookie.indexOf(uniqKey) === -1);
+    strictEqual(nativeMethods.documentCookieGetter.call(document).indexOf(uniqKey), -1);
 });
 
 module('regression');
@@ -89,16 +82,16 @@ test('overwrite (B239496)', function () {
 
     setCookieWithoutServerSync('TestKey1=TestVal1');
     setCookieWithoutServerSync('TestKey2=TestVal2');
-    strictEqual(getCookie(), 'TestKey1=TestVal1; TestKey2=TestVal2');
+    strictEqual(document.cookie, 'TestKey1=TestVal1; TestKey2=TestVal2');
 
     setCookieWithoutServerSync('TestKey1=AnotherValue');
-    strictEqual(getCookie(), 'TestKey1=AnotherValue; TestKey2=TestVal2');
+    strictEqual(document.cookie, 'TestKey1=AnotherValue; TestKey2=TestVal2');
 
     setCookieWithoutServerSync('TestKey2=12;');
-    strictEqual(getCookie(), 'TestKey1=AnotherValue; TestKey2=12');
+    strictEqual(document.cookie, 'TestKey1=AnotherValue; TestKey2=12');
 
     setCookieWithoutServerSync('TestKey1=NewValue');
-    strictEqual(getCookie(), 'TestKey1=NewValue; TestKey2=12');
+    strictEqual(document.cookie, 'TestKey1=NewValue; TestKey2=12');
 
     urlUtils.parseProxyUrl = savedUrlUtilParseProxyUrl;
 });
@@ -115,13 +108,13 @@ test('delete (B239496)', function () {
     };
 
     setCookieWithoutServerSync('CookieToDelete=DeleteMe');
-    strictEqual(getCookie(), 'CookieToDelete=DeleteMe');
+    strictEqual(document.cookie, 'CookieToDelete=DeleteMe');
 
     setCookieWithoutServerSync('NotExistent=; expires=Thu, 01 Jan 1970 00:00:01 GMT;');
-    strictEqual(getCookie(), 'CookieToDelete=DeleteMe');
+    strictEqual(document.cookie, 'CookieToDelete=DeleteMe');
 
     setCookieWithoutServerSync('CookieToDelete=; expires=Thu, 01 Jan 1970 00:00:01 GMT;');
-    strictEqual(getCookie(), '');
+    strictEqual(document.cookie, '');
 
     urlUtils.parseProxyUrl = savedUrlUtilParseProxyUrl;
 });
@@ -130,38 +123,38 @@ test('hammerhead crashes if client-side code contains "document.cookie=null" or 
     settings.get().cookie = '';
 
     setCookieWithoutServerSync(null);
-    strictEqual(getCookie(), 'null');
+    strictEqual(document.cookie, 'null');
 
     setCookieWithoutServerSync(void 0);
-    strictEqual(getCookie(), 'undefined');
+    strictEqual(document.cookie, 'undefined');
 
     setCookieWithoutServerSync(true);
-    strictEqual(getCookie(), 'true');
+    strictEqual(document.cookie, 'true');
 
     setCookieWithoutServerSync('');
-    strictEqual(getCookie(), '');
+    strictEqual(document.cookie, '');
 
     setCookieWithoutServerSync(123);
-    strictEqual(getCookie(), '123');
+    strictEqual(document.cookie, '123');
 });
 
 test('correct work with cookie with empty key (GH-899)', function () {
     settings.get().cookie = '';
 
     setCookieWithoutServerSync('123');
-    strictEqual(getCookie(), '123');
+    strictEqual(document.cookie, '123');
 
     setCookieWithoutServerSync('t=5');
-    strictEqual(getCookie(), '123; t=5');
+    strictEqual(document.cookie, '123; t=5');
 
     setCookieWithoutServerSync('12');
-    strictEqual(getCookie(), '12; t=5');
+    strictEqual(document.cookie, '12; t=5');
 
     setCookieWithoutServerSync('t=3');
-    strictEqual(getCookie(), '12; t=3');
+    strictEqual(document.cookie, '12; t=3');
 
     setCookieWithoutServerSync('');
-    strictEqual(getCookie(), '; t=3');
+    strictEqual(document.cookie, '; t=3');
 });
 
 // NOTE: Browsers on iOS platform doesn't support beforeunload event.
@@ -229,5 +222,5 @@ asyncTest('limit of the failed cookie-sync requests (GH-1193)', function () {
 
     settings.get().cookieSyncUrl = '/cookie-sync-fail/';
 
-    setCookie('a=b');
+    document.cookie = 'a=b';
 });

@@ -229,15 +229,6 @@ test('clean up outerHTML', function () {
     }
 });
 
-test('document.cookie on page with file protocol', function () {
-    destLocation.forceLocation('http://localhost/sessionId/file:///path/index.html');
-
-    strictEqual(setProperty(document, 'cookie', 'test=123'), 'test=123');
-    strictEqual(getProperty(document, 'cookie'), '');
-
-    destLocation.forceLocation('http://localhost/sessionId/https://example.com');
-});
-
 test('HTMLElement.style', function () {
     var div = document.createElement('div');
 

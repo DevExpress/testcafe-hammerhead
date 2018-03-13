@@ -51,7 +51,7 @@
                     return false;
             }
 
-            return document.cookie.indexOf(uniq) === -1;
+            return hammerhead.nativeMethods.documentCookieGetter.call(document).indexOf(uniq) === -1;
         }
     </script>
 </head>

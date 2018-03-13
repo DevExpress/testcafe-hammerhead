@@ -102,7 +102,7 @@ export function format (parsedCookie) {
 }
 
 export function get (document, name) {
-    const cookies = document.cookie.split(';');
+    const cookies = nativeMethods.documentCookieGetter.call(document).split(';');
 
     for (let i = 0; i < cookies.length; i++) {
         const cookie = trim(cookies[i]);
@@ -121,5 +121,5 @@ export function del (document, parsedCookie) {
     parsedCookie.value = '';
     /*eslint-enable no-restricted-properties*/
 
-    document.cookie = format(parsedCookie);
+    nativeMethods.documentCookieSetter.call(document, format(parsedCookie));
 }

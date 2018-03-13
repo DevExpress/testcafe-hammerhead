@@ -43,7 +43,7 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookieCopy.path && parsedCookieCopy.path !== '/')
             parsedCookieCopy.path = destLocation.getCookiePathPrefix() + parsedCookieCopy.path;
 
-        document.cookie = cookieUtils.format(parsedCookieCopy);
+        nativeMethods.documentCookieSetter.call(document, cookieUtils.format(parsedCookieCopy));
 
         const processedByBrowserCookieStr = cookieUtils.get(document, parsedCookieCopy.key);
 
@@ -86,7 +86,10 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
-        const cookies   = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
+        /*eslint-disable no-restricted-properties*/
+        const cookies = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
+        /*eslint-enable no-restricted-properties*/
+
         let replaced    = false;
         const searchStr = cookieKey === '' ? null : cookieKey + '=';
 
@@ -110,11 +113,15 @@ export default class CookieSandbox extends SandboxBase {
         if (!replaced && newCookieStr !== null)
             cookies.push(newCookieStr);
 
+        /*eslint-disable no-restricted-properties*/
         this._getSettings().cookie = cookies.join('; ');
+        /*eslint-enable no-restricted-properties*/
     }
 
     getCookie () {
+        /*eslint-disable no-restricted-properties*/
         return this._getSettings().cookie;
+        /*eslint-enable no-restricted-properties*/
     }
 
     setCookie (document, value, syncWithServer) {

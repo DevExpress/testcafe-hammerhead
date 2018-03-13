@@ -6,6 +6,10 @@ class NativeMethods {
         this.refreshWindowMeths(win);
     }
 
+    static _getDocumentPropOwnerName (docPrototype, propName) {
+        return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument';
+    }
+
     refreshDocumentMeths (doc, win) {
         doc = doc || document;
         win = win || window;
@@ -41,11 +45,16 @@ class NativeMethods {
         // getters/setters
         const docPrototype = win.Document.prototype;
 
-        this.documentAllPropOwnerName = docPrototype.hasOwnProperty('all') ? 'Document' : 'HTMLDocument';
+        this.documentAllPropOwnerName    = NativeMethods._getDocumentPropOwnerName(docPrototype, 'all');
+        this.documentCookiePropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'cookie');
+
+        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         this.documentReferrerGetter    = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
         this.documentStyleSheetsGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
         this.documentAllGetter         = win.Object.getOwnPropertyDescriptor(win[this.documentAllPropOwnerName].prototype, 'all').get;
+        this.documentCookieGetter      = documentCookieDescriptor.get;
+        this.documentCookieSetter      = documentCookieDescriptor.set;
 
         const documentDocumentURIDescriptor = win.Object.getOwnPropertyDescriptor(docPrototype, 'documentURI');
 

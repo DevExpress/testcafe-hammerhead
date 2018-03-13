@@ -1,5 +1,7 @@
 var cookieUtil = hammerhead.get('./utils/cookie');
 
+var nativeMethods = hammerhead.nativeMethods;
+
 test('parse', function () {
     var cookieStrs = [
         'Test1=Basic; expires=Wed, 13-Jan-2021 22:23:01 GMT',
@@ -114,7 +116,7 @@ test('get cookie string and delete cookie', function () {
     var cookieName = 'Test' + Math.round(new Date().getTime() / (3600 * 1000));
     var cookieStr  = cookieName + '=42';
 
-    document.cookie = cookieStr;
+    nativeMethods.documentCookieSetter.call(document, cookieStr);
 
     strictEqual(cookieUtil.get(document, cookieName), cookieStr);
 

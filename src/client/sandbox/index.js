@@ -41,18 +41,21 @@ export default class Sandbox extends SandboxBase {
         const eventSimulator        = new EventSimulator();
         const elementEditingWatcher = new ElementEditingWatcher(eventSimulator);
         const timersSandbox         = new TimersSandbox();
+        const cookieSandbox         = new CookieSandbox();
 
         // API
         this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
-        this.cookie              = new CookieSandbox();
-        this.xhr                 = new XhrSandbox(this.cookie);
+        /*eslint-disable no-restricted-properties*/
+        this.cookie              = cookieSandbox;
+        /*eslint-enable no-restricted-properties*/
+        this.xhr                 = new XhrSandbox(cookieSandbox);
         this.fetch               = new FetchSandbox();
-        this.iframe              = new IframeSandbox(nodeMutation, this.cookie);
+        this.iframe              = new IframeSandbox(nodeMutation, cookieSandbox);
         this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe);
         this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
-        this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI);
-        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.cookie, this.shadowUI, this.storageSandbox, this.node.element);
+        this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox);
+        this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.shadowUI, this.storageSandbox, this.node.element);
         this.console             = new ConsoleSandbox(messageSandbox);
         this.unload              = unloadSandbox;
 
@@ -202,7 +205,9 @@ export default class Sandbox extends SandboxBase {
         this.event.attach(window);
         this.node.attach(window);
         this.upload.attach(window);
+        /*eslint-disable no-restricted-properties*/
         this.cookie.attach(window);
+        /*eslint-enable no-restricted-properties*/
         this.console.attach(window);
 
         if (this.electron)

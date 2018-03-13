@@ -22,7 +22,6 @@ export const PROPERTIES = [
     'border-image',
     'borderImageSource',
     'border-image-source',
-    'cookie',
     'cssText',
     'cursor',
     'data',
