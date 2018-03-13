@@ -6,10 +6,8 @@ class NativeMethods {
         this.refreshWindowMeths(win);
     }
 
-    getDocumentPropOwnerName (docPrototype, propName) {
-        const hasOwnProperty = this.objectHasOwnProperty || docPrototype.hasOwnProperty;
-
-        return hasOwnProperty.call(docPrototype, propName) ? 'Document' : 'HTMLDocument';
+    static _getDocumentPropOwnerName (docPrototype, propName) {
+        return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument';
     }
 
     refreshDocumentMeths (doc, win) {
@@ -45,15 +43,16 @@ class NativeMethods {
         this.documentCreateTouchList     = doc.createTouchList || docProto.createTouchList;
 
         // getters/setters
-        const docPrototype                = win.Document.prototype;
-        const documentAllPropOwnerName    = this.getDocumentPropOwnerName(docPrototype, 'all');
-        const documentCookiePropOwnerName = this.getDocumentPropOwnerName(docPrototype, 'cookie');
+        const docPrototype = win.Document.prototype;
 
-        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[documentCookiePropOwnerName].prototype, 'cookie');
+        this.documentAllPropOwnerName    = NativeMethods._getDocumentPropOwnerName(docPrototype, 'all');
+        this.documentCookiePropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'cookie');
+
+        const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         this.documentReferrerGetter    = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
         this.documentStyleSheetsGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
-        this.documentAllGetter         = win.Object.getOwnPropertyDescriptor(win[documentAllPropOwnerName].prototype, 'all').get;
+        this.documentAllGetter         = win.Object.getOwnPropertyDescriptor(win[this.documentAllPropOwnerName].prototype, 'all').get;
         this.documentCookieGetter      = documentCookieDescriptor.get;
         this.documentCookieSetter      = documentCookieDescriptor.set;
 
