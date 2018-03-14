@@ -10,6 +10,7 @@ import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 import { respondOnWebSocket } from './websocket';
 import * as specialPage from './special-page';
+import matchUrl from 'match-url-wildcard';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -153,18 +154,21 @@ function createReqOpts (ctx) {
         body:        ctx.reqBody,
         isXhr:       ctx.isXhr,
 
-        proxy,
         headers
     };
 
-    if (proxy && ctx.dest.protocol === 'http:') {
-        options.path     = options.protocol + '//' + options.host + options.path;
-        options.host     = proxy.host;
-        options.hostname = proxy.hostname;
-        options.port     = proxy.port;
+    if (proxy && !matchUrl(ctx.dest.url, proxy.bypassRules)) {
+        options.proxy = proxy;
 
-        if (proxy.authHeader)
-            headers['proxy-authorization'] = proxy.authHeader;
+        if (ctx.dest.protocol === 'http:') {
+            options.path     = options.protocol + '//' + options.host + options.path;
+            options.host     = proxy.host;
+            options.hostname = proxy.hostname;
+            options.port     = proxy.port;
+
+            if (proxy.authHeader)
+                headers['proxy-authorization'] = proxy.authHeader;
+        }
     }
 
     return options;

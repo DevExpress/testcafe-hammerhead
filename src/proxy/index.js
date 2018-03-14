@@ -159,12 +159,12 @@ export default class Proxy extends Router {
         this._closeSockets();
     }
 
-    openSession (url, session, externalProxyUrl) {
+    openSession (url, session, externalProxySettings) {
         session.proxy                 = this;
         this.openSessions[session.id] = session;
 
-        if (externalProxyUrl)
-            session.setExternalProxySettings(externalProxyUrl);
+        if (externalProxySettings)
+            session.setExternalProxySettings(externalProxySettings);
 
         url = urlUtils.ensureOriginTrailingSlash(url);
 
