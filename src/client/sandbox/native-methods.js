@@ -303,9 +303,15 @@ class NativeMethods {
 
         const cssStyleSheetHrefDescriptor = win.Object.getOwnPropertyDescriptor(win.CSSStyleSheet.prototype, 'href');
 
-        // NOTE: only for IE11
+        // NOTE: IE11 doesn't support the 'href' property
         if (cssStyleSheetHrefDescriptor)
             this.cssStyleSheetHrefGetter = cssStyleSheetHrefDescriptor.get;
+
+        const nodeBaseURIDescriptor = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'baseURI');
+
+        // NOTE: IE11 doesn't support the 'baseURI' property
+        if (nodeBaseURIDescriptor)
+            this.nodeBaseURIGetter = nodeBaseURIDescriptor.get;
 
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later

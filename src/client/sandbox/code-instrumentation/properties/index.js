@@ -506,26 +506,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'textContent', text)
             },
 
-            baseURI: {
-                condition: domUtils.isDocument,
-
-                get: doc => {
-                    if (doc.baseURI) {
-                        const parsedURI = urlUtils.parseProxyUrl(doc.baseURI);
-
-                        if (parsedURI)
-                            return parsedURI.destUrl;
-                    }
-
-                    return doc.baseURI;
-                },
-                set: (doc, url) => {
-                    const result = doc.baseURI = url;
-
-                    return result;
-                }
-            },
-
             scripts: {
                 condition: domUtils.isDocument,
                 get:       doc => this.shadowUI._filterNodeList(doc.scripts),
