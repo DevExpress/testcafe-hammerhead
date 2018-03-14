@@ -7,7 +7,7 @@ import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
-import { HASH_RE } from '../../../../utils/url';
+import { ensureOriginTrailingSlash, HASH_RE } from '../../../../utils/url';
 import { isStyle } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAttributesProperty } from './attributes';
@@ -20,6 +20,7 @@ import { shouldInstrumentProperty } from '../../../../processing/script/instrume
 import nativeMethods from '../../native-methods';
 import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
 import DOMMutationTracker from '../../node/live-node-list/dom-mutation-tracker';
+import { isJsProtocol, processJsAttrValue } from '../../../../processing/dom';
 
 function checkElementTextProperties (el) {
     const result         = {};
@@ -422,10 +423,20 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
                         /*eslint-disable no-restricted-properties*/
-                        if (locationWrapper)
-                            locationWrapper.href = location;
+                        if (!locationWrapper) {
+                            if (!isJsProtocol(location)) {
+                                const url          = ensureOriginTrailingSlash(location);
+                                const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
+
+                                owner.location = destLocation.sameOriginCheck(location.toString(), url)
+                                    ? urlUtils.getProxyUrl(url, { resourceType })
+                                    : urlUtils.getCrossDomainIframeProxyUrl(url);
+                            }
+                            else
+                                owner.location = processJsAttrValue(location, { isJsProtocol: true, isEventAttr: false });
+                        }
                         else
-                            owner.location = location;
+                            locationWrapper.href = location;
                         /*eslint-enable no-restricted-properties*/
 
                         return location;
