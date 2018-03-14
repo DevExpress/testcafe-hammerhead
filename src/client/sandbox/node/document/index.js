@@ -4,7 +4,7 @@ import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import * as urlUtils from '../../../utils/url';
 import { isIE, isFirefox } from '../../../utils/browser';
-import { isIframeWithoutSrc, getFrameElement } from '../../../utils/dom';
+import { isIframeWithoutSrc, getFrameElement, isShadowUIElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
@@ -245,6 +245,17 @@ export default class DocumentSandbox extends SandboxBase {
             getter: () => documentSandbox.cookieSandbox.getCookie(),
             setter: function (value) {
                 return documentSandbox.cookieSandbox.setCookie(this, String(value), true);
+            }
+        });
+
+        overrideDescriptor(docPrototype, 'activeElement', {
+            getter: function () {
+                const activeElement = nativeMethods.documentActiveElementGetter.call(this);
+
+                if (activeElement && isShadowUIElement(activeElement))
+                    return documentSandbox.shadowUI.getLastActiveElement() || this.body;
+
+                return activeElement;
             }
         });
     }

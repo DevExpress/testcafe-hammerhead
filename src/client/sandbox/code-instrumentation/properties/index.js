@@ -146,19 +146,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
-            activeElement: {
-                condition: domUtils.isDocument,
-
-                get: el => {
-                    if (el.activeElement && domUtils.isShadowUIElement(el.activeElement))
-                        return this.shadowUI.getLastActiveElement() || el.body;
-
-                    return el.activeElement;
-                },
-
-                set: () => void 0
-            },
-
             attributes: {
                 condition: el => domUtils.isDomElement(el) && el.attributes instanceof window.NamedNodeMap,
 

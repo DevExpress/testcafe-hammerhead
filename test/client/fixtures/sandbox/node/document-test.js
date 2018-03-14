@@ -10,6 +10,12 @@ var nativeMethods = hammerhead.nativeMethods;
 var Promise       = hammerhead.Promise;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 
+function wait (timeout) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, timeout);
+    });
+}
+
 test('document.write for iframe.src with javascript protocol', function () {
     var $div = $('<div>').appendTo('body');
 
@@ -403,6 +409,68 @@ test('document.cookie on page with file protocol', function () {
     strictEqual(document.cookie, '');
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+});
+
+test('document.activeElement', function () {
+    var shadowRoot  = shadowUI.getRoot();
+    var input       = document.createElement('input');
+    var shadowInput = document.createElement('input');
+
+    document.body.appendChild(input);
+    shadowRoot.appendChild(shadowInput);
+
+    strictEqual(document.activeElement, document.body);
+
+    shadowInput.focus();
+
+    return wait(0)
+        .then(function () {
+            strictEqual(document.activeElement, document.body);
+            strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
+
+            input.focus();
+
+            return wait(0);
+        })
+        .then(function () {
+            strictEqual(document.activeElement, input);
+            strictEqual(nativeMethods.documentActiveElementGetter.call(document), input);
+
+            shadowInput.focus();
+
+            return wait(0);
+        })
+        .then(function () {
+            strictEqual(document.activeElement, input);
+            strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
+
+            document.body.removeChild(input);
+            shadowRoot.removeChild(shadowInput);
+        });
+});
+
+test('document.activeElement when it equals null (GH-1226)', function () {
+    var parentDiv = document.createElement('div');
+    var childDiv  = document.createElement('div');
+
+    parentDiv.id      = 'div';
+    childDiv.id       = 'innerDiv';
+    childDiv.tabIndex = 0;
+
+    parentDiv.appendChild(childDiv);
+    document.body.appendChild(parentDiv);
+
+    childDiv.focus();
+    parentDiv.innerHTML = '<span>Replaced</span>';
+
+    try {
+        strictEqual(document.activeElement, nativeMethods.documentActiveElementGetter.call(document));
+    }
+    catch (err) {
+        ok(false);
+    }
+
+    document.body.removeChild(parentDiv);
 });
 
 module('resgression');
