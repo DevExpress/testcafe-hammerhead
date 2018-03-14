@@ -110,11 +110,11 @@ export default class Session extends EventEmitter {
 
     setExternalProxySettings (proxySettings) {
         if (typeof proxySettings === 'string')
-            proxySettings = { host: proxySettings };
+            proxySettings = { url: proxySettings };
 
-        const { host, bypassRules } = proxySettings || {};
-        const parsedUrl             = typeof host === 'string' ? parseUrl('http://' + host) : null;
-        let settings                = null;
+        const { url, bypassRules } = proxySettings || {};
+        const parsedUrl            = typeof url === 'string' ? parseUrl('http://' + url) : null;
+        let settings               = null;
 
         if (parsedUrl && parsedUrl.host) {
             settings = {

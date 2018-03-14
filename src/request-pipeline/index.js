@@ -10,7 +10,7 @@ import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 import { respondOnWebSocket } from './websocket';
 import * as specialPage from './special-page';
-import proxyBypass from 'proxy-bypass';
+import matchUrl from 'match-url-wildcard';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -157,7 +157,7 @@ function createReqOpts (ctx) {
         headers
     };
 
-    if (proxy && !proxyBypass(ctx.dest.url, proxy.bypassRules)) {
+    if (proxy && !matchUrl(ctx.dest.url, proxy.bypassRules)) {
         options.proxy = proxy;
 
         if (ctx.dest.protocol === 'http:') {
