@@ -259,7 +259,9 @@ export default class DocumentSandbox extends SandboxBase {
             }
         });
 
-        overrideDescriptor(docPrototype, 'scripts', {
+        const documentScriptsPropOwnerPrototype = window[nativeMethods.documentScriptsPropOwnerName].prototype;
+
+        overrideDescriptor(documentScriptsPropOwnerPrototype, 'scripts', {
             getter: function () {
                 const scripts = nativeMethods.documentScriptsGetter.call(this);
 

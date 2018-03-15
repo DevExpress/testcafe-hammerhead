@@ -45,8 +45,9 @@ class NativeMethods {
         // getters/setters
         const docPrototype = win.Document.prototype;
 
-        this.documentAllPropOwnerName    = NativeMethods._getDocumentPropOwnerName(docPrototype, 'all');
-        this.documentCookiePropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'cookie');
+        this.documentAllPropOwnerName     = NativeMethods._getDocumentPropOwnerName(docPrototype, 'all');
+        this.documentCookiePropOwnerName  = NativeMethods._getDocumentPropOwnerName(docPrototype, 'cookie');
+        this.documentScriptsPropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'scripts');
 
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
@@ -54,7 +55,7 @@ class NativeMethods {
         this.documentStyleSheetsGetter   = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
         this.documentAllGetter           = win.Object.getOwnPropertyDescriptor(win[this.documentAllPropOwnerName].prototype, 'all').get;
         this.documentActiveElementGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'activeElement').get;
-        this.documentScriptsGetter       = win.Object.getOwnPropertyDescriptor(docPrototype, 'scripts').get;
+        this.documentScriptsGetter       = win.Object.getOwnPropertyDescriptor(win[this.documentScriptsPropOwnerName].prototype, 'scripts').get;
         this.documentCookieGetter        = documentCookieDescriptor.get;
         this.documentCookieSetter        = documentCookieDescriptor.set;
 
