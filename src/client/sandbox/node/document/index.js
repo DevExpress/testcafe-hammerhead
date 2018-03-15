@@ -258,5 +258,13 @@ export default class DocumentSandbox extends SandboxBase {
                 return activeElement;
             }
         });
+
+        overrideDescriptor(docPrototype, 'scripts', {
+            getter: function () {
+                const scripts = nativeMethods.documentScriptsGetter.call(this);
+
+                return documentSandbox.shadowUI._filterNodeList(scripts);
+            }
+        });
     }
 }

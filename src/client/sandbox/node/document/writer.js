@@ -2,11 +2,11 @@ import nativeMethods from '../../native-methods';
 import * as htmlUtils from '../../../utils/html';
 import { getTagName, isCommentNode, isStyleElement, isScriptElement } from '../../../utils/dom';
 import { isFirefox, isIE } from '../../../utils/browser';
-import SHADOW_UI_CLASSNAME from '../../../../shadow-ui/class-name';
 import { processScript } from '../../../../processing/script';
 import styleProcessor from '../../../../processing/style';
 import { getProxyUrl } from '../../../utils/url';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
+import createSelfRemovingScript from '../../../../utils/create-self-removing-script';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
@@ -23,34 +23,28 @@ const REMOVE_CLOSING_TAG_RE = /<\/[^<>]+>$/g;
 const PENDING_RE            = /<\/?(?:[A-Za-z][^>]*)?$/g;
 const UNCLOSED_ELEMENT_FLAG = 'hammerhead|unclosed-element-flag';
 
-const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = `
-    <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
-        (function () {
-            var hammerhead = window["${ INTERNAL_PROPS.hammerhead }"];
-            var sandbox    = hammerhead && hammerhead.sandbox;
-            var script     = document.currentScript || document.scripts[document.scripts.length - 1];
+const ON_WINDOW_RECREATION_SCRIPT_TEMPLATE = createSelfRemovingScript(`
+    var hammerhead = window["${ INTERNAL_PROPS.hammerhead }"];
+    var sandbox    = hammerhead && hammerhead.sandbox;
 
-            if (!sandbox) {
-                try {
-                    sandbox = window.parent["${ INTERNAL_PROPS.hammerhead }"].get('./sandbox/backup').get(window);
-                } catch(e) {}
-            }
+    if (!sandbox) {
+        try {
+            sandbox = window.parent["${ INTERNAL_PROPS.hammerhead }"].get('./sandbox/backup').get(window);
+        } catch(e) {}
+    }
 
-            if (sandbox) {
-                Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
-                
-                sandbox.node.mutation.onDocumentCleaned({
-                    window: window,
-                    document: document
-                });
+    if (sandbox) {
+        Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
+        
+        sandbox.node.mutation.onDocumentCleaned({
+            window: window,
+            document: document
+        });
 
-                /* NOTE: B234357 */
-                sandbox.node.processNodes(null, document);
-            }
-
-            script.parentNode.removeChild(script);
-        })();
-    </script>`.replace(/\n\s*/g, '');
+        /* NOTE: B234357 */
+        sandbox.node.processNodes(null, document);
+    }
+`);
 
 export default class DocumentWriter {
     constructor (window, document) {

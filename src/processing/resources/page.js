@@ -1,5 +1,4 @@
 import parse5 from 'parse5';
-import dedent from 'dedent';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import DomProcessor from '../dom';
 import DomAdapter from '../dom/parse5-dom-adapter';
@@ -8,17 +7,11 @@ import * as parse5Utils from '../../utils/parse5';
 import getBOM from '../../utils/get-bom';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import getStorageKey from '../../utils/get-storage-key';
+import createSelfRemovingScript from '../../utils/create-self-removing-script';
 
-const BODY_CREATED_EVENT_SCRIPT = dedent(`
-    <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
-        (function () {
-            if (window["${ INTERNAL_PROPS.hammerhead }"])
-                window["${ INTERNAL_PROPS.hammerhead }"].sandbox.node.raiseBodyCreatedEvent();
-
-            var script = document.currentScript || document.scripts[document.scripts.length - 1];
-            script.parentNode.removeChild(script);
-        })();
-    </script>
+const BODY_CREATED_EVENT_SCRIPT = createSelfRemovingScript(`
+    if (window["${ INTERNAL_PROPS.hammerhead }"])
+        window["${ INTERNAL_PROPS.hammerhead }"].sandbox.node.raiseBodyCreatedEvent();
 `);
 
 class PageProcessor extends ResourceProcessorBase {
@@ -35,16 +28,9 @@ class PageProcessor extends ResourceProcessorBase {
     }
 
     _createRestoreStoragesScript (storageKey, storages) {
-        const scriptStr = dedent(`
-            <script type="text/javascript" class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
-                (function () {
-                    window.localStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.localStorage) });
-                    window.sessionStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.sessionStorage) });
-
-                    var script = document.currentScript || document.scripts[document.scripts.length - 1];
-                    script.parentNode.removeChild(script);
-                })();
-            </script>
+        const scriptStr = createSelfRemovingScript(`
+            window.localStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.localStorage) });
+            window.sessionStorage.setItem("${ storageKey }", ${ JSON.stringify(storages.sessionStorage) });
         `);
 
         return this.parser.parseFragment(scriptStr).childNodes[0];

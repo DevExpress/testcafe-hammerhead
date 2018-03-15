@@ -20,7 +20,21 @@
     if (window['%hammerhead%'])
         window['%hammerhead%'].sandbox.node.raiseBodyCreatedEvent();
 
-    var script = document.currentScript || document.scripts[document.scripts.length - 1];
+    var script = document.currentScript;
+
+    if (!currentScript) {
+        var scripts;
+
+        try {
+            var hammerhead = window["%hammerhead%"] || parent["%hammerhead%"];
+
+            scripts = hammerhead ? hammerhead.nativeMethods.documentScriptsGetter.call(document) : document.scripts;
+        } catch (e) {
+            scripts = document.scripts;
+        }
+
+        currentScript = scripts[scripts.length - 1];
+    }
 
     script.parentNode.removeChild(script);
 </script>

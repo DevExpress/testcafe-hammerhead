@@ -54,6 +54,7 @@ class NativeMethods {
         this.documentStyleSheetsGetter   = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
         this.documentAllGetter           = win.Object.getOwnPropertyDescriptor(win[this.documentAllPropOwnerName].prototype, 'all').get;
         this.documentActiveElementGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'activeElement').get;
+        this.documentScriptsGetter       = win.Object.getOwnPropertyDescriptor(docPrototype, 'scripts').get;
         this.documentCookieGetter        = documentCookieDescriptor.get;
         this.documentCookieSetter        = documentCookieDescriptor.set;
 

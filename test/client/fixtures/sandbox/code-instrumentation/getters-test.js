@@ -12,7 +12,6 @@ var processHtml                          = hammerhead.get('../client/utils/html'
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
-var shadowUI      = hammerhead.sandbox.shadowUI;
 
 test('autocomplete', function () {
     var input  = $('<input>')[0];
@@ -140,18 +139,6 @@ test('get style body', function () {
 
     if (typeof style.text === 'string')
         strictEqual(eval(processScript('style.text')), styleText);
-});
-
-test('document.scripts', function () {
-    var scriptsCollectionLength = eval(processScript('document.scripts')).length;
-    var scriptEl                = document.createElement('script');
-
-    shadowUI.addClass(scriptEl, 'script');
-    document.body.appendChild(scriptEl);
-
-    strictEqual(scriptsCollectionLength, eval(processScript('document.scripts')).length);
-
-    document.body.removeChild(scriptEl);
 });
 
 test('input.formaction, button.formaction', function () {

@@ -2,15 +2,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 </head>
 
-<frameset rows="80,*" cols="*"><script type="text/javascript" class="self-removing-script-hammerhead-shadow-ui">
-    (function () {
-        if (window["%hammerhead%"])
-            window["%hammerhead%"].sandbox.node.raiseBodyCreatedEvent();
-
-        var script = document.currentScript || document.scripts[document.scripts.length - 1];
-        script.parentNode.removeChild(script);
-    })();
-</script>
+<frameset rows="80,*" cols="*"><script class="self-removing-script-hammerhead-shadow-ui">(function () {if (window["%hammerhead%"])window["%hammerhead%"].sandbox.node.raiseBodyCreatedEvent();var currentScript = document.currentScript;if (!currentScript) {var scripts;try {var hammerhead = window["%hammerhead%"] || parent["%hammerhead%"];scripts = hammerhead ? hammerhead.nativeMethods.documentScriptsGetter.call(document) : document.scripts;} catch (e) {scripts = document.scripts;}currentScript = scripts[scripts.length - 1];}currentScript.parentNode.removeChild(currentScript);})();</script>
     <frame src="http://127.0.0.1:1836/sessionId!i/http://127.0.0.1:2000/top.html" name="topFrame" scrolling="no" noresize="" src-hammerhead-stored-value="top.html">
     <frameset cols="80,*">
         <frame src="http://127.0.0.1:1836/sessionId!i/http://127.0.0.1:2000/left.html" name="leftFrame" scrolling="no" noresize="" src-hammerhead-stored-value="left.html">

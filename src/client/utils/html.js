@@ -11,6 +11,7 @@ import { isIE, isMSEdge } from './browser';
 import * as urlResolver from './url-resolver';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import { URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../processing/dom/attributes';
+import createSelfRemovingScript from '../../utils/create-self-removing-script';
 
 const FAKE_TAG_NAME_PREFIX    = 'hh_fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME   = 'hh_fake_doctype';
@@ -57,25 +58,19 @@ const SHADOW_UI_ELEMENTS_SELECTOR                    = `[class*="${SHADOW_UI_CLA
 const HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR = `[${INTERNAL_ATTRS.hoverPseudoClass}],[${INTERNAL_ATTRS.focusPseudoClass}]`;
 const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_TAG_NAME_PREFIX}head, ${FAKE_TAG_NAME_PREFIX}body`;
 
-export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = `
-    <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }" type="text/javascript">
-        (function () {
-            var parentHammerhead = null;
-            
-            if (!window["${ INTERNAL_PROPS.hammerhead }"])
-                Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
+export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
+    var parentHammerhead = null;
+    
+    if (!window["${ INTERNAL_PROPS.hammerhead }"])
+        Object.defineProperty(window, "${ INTERNAL_PROPS.documentWasCleaned }", { value: true, configurable: true });
 
-            try {
-                parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];
-            } catch(e) {}
+    try {
+        parentHammerhead = window.parent["${ INTERNAL_PROPS.hammerhead }"];
+    } catch(e) {}
 
-            if (parentHammerhead) parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
-
-            var script = document.currentScript || document.scripts[document.scripts.length - 1];
-
-            script.parentNode.removeChild(script);
-        })();
-    </script>`.replace(/\n\s*/g, '');
+    if (parentHammerhead)
+        parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
+`);
 
 let htmlDocument = document.implementation.createHTMLDocument('title');
 let htmlParser   = htmlDocument.createDocumentFragment();

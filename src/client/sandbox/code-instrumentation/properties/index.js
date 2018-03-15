@@ -517,16 +517,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'textContent', text)
             },
 
-            scripts: {
-                condition: domUtils.isDocument,
-                get:       doc => this.shadowUI._filterNodeList(doc.scripts),
-                set:       (doc, value) => {
-                    doc.scripts = value;
-
-                    return value;
-                }
-            },
-
             // Event
             onbeforeunload: {
                 condition: domUtils.isWindow,
