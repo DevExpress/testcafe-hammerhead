@@ -428,3 +428,24 @@ test('set location with "javascript:" protocol', function () {
             strictEqual(nativeMethods.anchorHrefGetter.call(iframe.contentDocument.body.firstChild), urlUtils.getProxyUrl('/some', { resourceType: 'i' }));
         });
 });
+
+asyncTest('should set a proxy url to an iframe location if iframe is not initialized (GH-1531)', function () {
+    var iframe = document.createElement('iframe');
+    var src    = getSameDomainPageUrl('../../../data/iframe/simple-iframe.html');
+
+    iframe.src = src;
+
+    iframe.addEventListener('load', function () {
+        var resourceType     = urlUtils.stringifyResourceType({ isIframe: true });
+        var expectedLocation = urlUtils.getProxyUrl(src, { resourceType: resourceType });
+
+        strictEqual(iframe.contentWindow.location.toString(), expectedLocation);
+
+        document.body.removeChild(iframe);
+        start();
+    });
+
+    document.body.appendChild(iframe);
+
+    setProperty(iframe.contentWindow, 'location', src);
+});
