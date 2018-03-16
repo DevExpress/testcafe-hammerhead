@@ -119,6 +119,7 @@ test('anchor', function () {
     strictEqual(emptyAnchor.search, nativeMethods.anchorSearchGetter.call(etalonEmptyAnchor));
     nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
+
     nativeMethods.anchorHrefSetter.call(anchorWithNotSupportedProtocol, 'javascript:;');
     nativeMethods.anchorHrefSetter.call(etalonAnchorWithNotSupportedProtocol, 'javascript:;');
 
