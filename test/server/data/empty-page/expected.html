@@ -1,8 +1,1 @@
-<html><head><meta class="charset-hammerhead-shadow-ui" charset="utf-8"><script type="text/javascript" class="script-hammerhead-shadow-ui" charset="UTF-8" src="http://127.0.0.1:1836/hammerhead.js"></script><script type="text/javascript" class="script-hammerhead-shadow-ui" charset="UTF-8" src="http://127.0.0.1:1836/task.js"></script></head><body><script type="text/javascript" class="self-removing-script-hammerhead-shadow-ui">
-(function () {
-   if (window["%hammerhead%"])
-       window["%hammerhead%"].sandbox.node.raiseBodyCreatedEvent();
-   var script = document.currentScript || document.scripts[document.scripts.length - 1];
-   script.parentNode.removeChild(script);
-})();
-</script></body></html>
+<html><head><meta class="charset-hammerhead-shadow-ui" charset="utf-8"><script type="text/javascript" class="script-hammerhead-shadow-ui" charset="UTF-8" src="http://127.0.0.1:1836/hammerhead.js"></script><script type="text/javascript" class="script-hammerhead-shadow-ui" charset="UTF-8" src="http://127.0.0.1:1836/task.js"></script></head><body><script class="self-removing-script-hammerhead-shadow-ui">(function () {if (window["%hammerhead%"])window["%hammerhead%"].sandbox.node.raiseBodyCreatedEvent();var currentScript = document.currentScript;if (!currentScript) {var scripts;try {var hammerhead = window["%hammerhead%"] || parent["%hammerhead%"];scripts = hammerhead ? hammerhead.nativeMethods.documentScriptsGetter.call(document) : document.scripts;} catch (e) {scripts = document.scripts;}currentScript = scripts[scripts.length - 1];}currentScript.parentNode.removeChild(currentScript);})();</script></body></html>

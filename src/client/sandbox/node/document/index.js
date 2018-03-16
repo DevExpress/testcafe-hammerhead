@@ -258,5 +258,15 @@ export default class DocumentSandbox extends SandboxBase {
                 return activeElement;
             }
         });
+
+        const documentScriptsPropOwnerPrototype = window[nativeMethods.documentScriptsPropOwnerName].prototype;
+
+        overrideDescriptor(documentScriptsPropOwnerPrototype, 'scripts', {
+            getter: function () {
+                const scripts = nativeMethods.documentScriptsGetter.call(this);
+
+                return documentSandbox.shadowUI._filterNodeList(scripts);
+            }
+        });
     }
 }

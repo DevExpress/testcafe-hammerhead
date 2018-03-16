@@ -49,7 +49,6 @@ export const PROPERTIES = [
     'onmessage',
     'outerHTML',
     'sandbox',
-    'scripts',
     'sessionStorage',
     'style',
     'text',
