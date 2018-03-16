@@ -51,6 +51,8 @@ const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
 const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
 const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javascript', 'application/x-javascript'];
 
+const SVG_ANIMATED_STRING_CONTEXT_ELEMENT = 'hammerhead|contextElement';
+
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox, elementEditingWatcher, uploadSandbox) {
         super();
@@ -63,6 +65,7 @@ export default class WindowSandbox extends SandboxBase {
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
+        // this.SVG_ANIMATED_STRING_CONTEXT_ELEMENT = 'hammerhead|contextElement'; ??
     }
 
     _raiseUncaughtJsErrorEvent (type, msg, window, pageUrl) {
@@ -744,6 +747,44 @@ export default class WindowSandbox extends SandboxBase {
         this._overrideUrlPropDescriptor('pathname', nativeMethods.anchorPathnameGetter, nativeMethods.anchorPathnameSetter);
         this._overrideUrlPropDescriptor('protocol', nativeMethods.anchorProtocolGetter, nativeMethods.anchorProtocolSetter);
         this._overrideUrlPropDescriptor('search', nativeMethods.anchorSearchGetter, nativeMethods.anchorSearchSetter);
+
+        overrideDescriptor(window.SVGImageElement.prototype, 'href', {
+            getter: function () {
+                const imageHref = nativeMethods.imageHrefGetter.call(this);
+
+                return Object.defineProperty(imageHref, SVG_ANIMATED_STRING_CONTEXT_ELEMENT, { value: this });
+            }
+        });
+
+        overrideDescriptor(window.SVGAnimatedString.prototype, 'baseVal', {
+            getter: function () {
+                const baseVal       = nativeMethods.baseValGetter.call(this);
+                const parsedBaseVal = parseProxyUrl(baseVal);
+
+                return parsedBaseVal ? parsedBaseVal.destUrl : baseVal;
+            },
+            setter: function (value) {
+                const proxyUrl = getProxyUrl(value);
+
+                nativeMethods.baseValSetter.call(this, proxyUrl);
+
+                const contextElemet = this[SVG_ANIMATED_STRING_CONTEXT_ELEMENT];
+
+                if (contextElemet)
+                    windowSandbox.nodeSandbox.element.setAttributeCore(contextElemet, ['xlink:href', value]);
+
+                return value;
+            }
+        });
+
+        overrideDescriptor(window.SVGAnimatedString.prototype, 'animVal', {
+            getter: function () {
+                const baseVal       = nativeMethods.animValGetter.call(this);
+                const parsedBaseVal = parseProxyUrl(baseVal);
+
+                return parsedBaseVal ? parsedBaseVal.destUrl : baseVal;
+            }
+        });
 
         if (nativeMethods.anchorOriginGetter) {
             overrideDescriptor(window.HTMLAnchorElement.prototype, 'origin', {

@@ -188,6 +188,28 @@ test('HTMLElement.style', function () {
     }
 });
 
+test('image (GH-1502)', function () {
+    var imageNS       = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    var nativeImageNS = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'image');
+    // var image    = document.createElement('image');
+    var url           = 'https://google.com:1888/index.html?value#yo';
+    var proxyUrl      = urlUtils.getProxyUrl(url);
+
+    imageNS.href.baseVal = url;
+    nativeMethods.baseValSetter.call(nativeMethods.imageHrefGetter.call(nativeImageNS), url);
+
+    strictEqual(nativeMethods.imageHrefGetter.call(imageNS)['hammerhead|contextElement'], imageNS); // ???
+    strictEqual(nativeMethods.animValGetter.call(imageNS.href), proxyUrl);
+    strictEqual(nativeMethods.baseValGetter.call(imageNS.href), proxyUrl);
+    strictEqual(imageNS.href.animVal, urlUtils.parseProxyUrl(proxyUrl).destUrl);
+    strictEqual(imageNS.href.baseVal, urlUtils.parseProxyUrl(proxyUrl).destUrl);
+
+    var nativeImageHref = nativeMethods.imageHrefGetter.call(nativeImageNS);
+
+    strictEqual(nativeMethods.animValGetter.call(nativeImageHref), urlUtils.parseProxyUrl(proxyUrl).destUrl);
+    strictEqual(nativeMethods.baseValGetter.call(nativeImageHref), urlUtils.parseProxyUrl(proxyUrl).destUrl);
+});
+
 module('regression');
 
 test('changing the link.href property must affect the stored attribute value (T123960)', function () {
@@ -228,7 +250,7 @@ test('get script body (T296958) (GH-183)', function () {
 
 test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
     var storedBind = Function.prototype.bind;
-    var anchor          = document.createElement('a');
+    var anchor     = document.createElement('a');
     var withError  = false;
 
     nativeMethods.anchorHrefSetter.call(anchor, 'test');

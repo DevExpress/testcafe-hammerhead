@@ -226,6 +226,9 @@ class NativeMethods {
         const formTargetDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLFormElement.prototype, 'target');
         const areaTargetDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'target');
         const baseTargetDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'target');
+        const imageHrefDescriptor      = win.Object.getOwnPropertyDescriptor(win.SVGImageElement.prototype, 'href');
+        const baseValDescriptor        = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'baseVal');
+        const animValDescriptor        = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'animVal');
 
         // Setters
         this.objectDataSetter     = objectDataDescriptor.set;
@@ -253,6 +256,7 @@ class NativeMethods {
         this.formTargetSetter     = formTargetDescriptor.set;
         this.areaTargetSetter     = areaTargetDescriptor.set;
         this.baseTargetSetter     = baseTargetDescriptor.set;
+        this.baseValSetter        = baseValDescriptor.set;
 
         // NOTE: Event properties is located in window prototype only in IE11
         this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
@@ -309,6 +313,9 @@ class NativeMethods {
         this.formTargetGetter               = formTargetDescriptor.get;
         this.areaTargetGetter               = areaTargetDescriptor.get;
         this.baseTargetGetter               = baseTargetDescriptor.get;
+        this.imageHrefGetter                = imageHrefDescriptor.get;
+        this.animValGetter                  = animValDescriptor.get;
+        this.baseValGetter                  = baseValDescriptor.get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 

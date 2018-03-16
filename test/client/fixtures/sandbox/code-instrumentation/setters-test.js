@@ -119,7 +119,6 @@ test('anchor', function () {
     strictEqual(emptyAnchor.search, nativeMethods.anchorSearchGetter.call(etalonEmptyAnchor));
     nativeMethods.removeAttribute.call(etalonEmptyAnchor, 'href');
 
-
     nativeMethods.anchorHrefSetter.call(anchorWithNotSupportedProtocol, 'javascript:;');
     nativeMethods.anchorHrefSetter.call(etalonAnchorWithNotSupportedProtocol, 'javascript:;');
 
@@ -132,6 +131,21 @@ test('anchor', function () {
 
     if (nativeMethods.anchorOriginGetter)
         strictEqual(anchorWithNotSupportedProtocol.origin, nativeMethods.anchorOriginGetter.call(etalonAnchorWithNotSupportedProtocol));
+});
+
+test('image (GH-1502)', function () {
+    var imageNS  = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    // var image    = document.createElement('image');
+    var url      = 'https://google.com:1888/index.html?value#yo';
+    var proxyUrl = urlUtils.getProxyUrl(url);
+
+    nativeMethods.baseValSetter.call(imageNS.href, proxyUrl); // should returns value ??
+
+    strictEqual(nativeMethods.animValGetter.call(imageNS.href), proxyUrl);
+    strictEqual(nativeMethods.baseValGetter.call(imageNS.href), proxyUrl);
+
+    // strictEqual(nativeMethods.imageHrefAnimValGetter.call(nativeMethods.imageHrefGetter.call(imageNS)), proxyUrl);
+    // strictEqual(nativeMethods.imageHrefBaseValGetter.call(nativeMethods.imageHrefGetter.call(imageNS)), proxyUrl);
 });
 
 test('location as a local var', function () {
