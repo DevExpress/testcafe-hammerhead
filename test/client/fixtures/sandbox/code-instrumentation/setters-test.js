@@ -139,13 +139,10 @@ test('image (GH-1502)', function () {
     var url      = 'https://google.com:1888/index.html?value#yo';
     var proxyUrl = urlUtils.getProxyUrl(url);
 
-    nativeMethods.baseValSetter.call(imageNS.href, proxyUrl); // should returns value ??
+    nativeMethods.baseValSetter.call(imageNS.href, proxyUrl);
 
     strictEqual(nativeMethods.animValGetter.call(imageNS.href), proxyUrl);
     strictEqual(nativeMethods.baseValGetter.call(imageNS.href), proxyUrl);
-
-    // strictEqual(nativeMethods.imageHrefAnimValGetter.call(nativeMethods.imageHrefGetter.call(imageNS)), proxyUrl);
-    // strictEqual(nativeMethods.imageHrefBaseValGetter.call(nativeMethods.imageHrefGetter.call(imageNS)), proxyUrl);
 });
 
 test('location as a local var', function () {

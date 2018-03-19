@@ -19,7 +19,6 @@ import { isFirefox, isIE, isAndroid } from '../../utils/browser';
 import {
     isCrossDomainWindows,
     isImgElement,
-    isSVGElement,
     isBlob,
     isWebSocket,
     isWindow,
@@ -52,7 +51,7 @@ const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
 const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
 const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javascript', 'application/x-javascript'];
 
-const CONTEXT_ELEMENT = 'hammerhead|contextElement';
+const CONTEXT_IMAGE_ELEMENT = 'hammerhead|contextImageElement';
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox, elementEditingWatcher, uploadSandbox) {
@@ -66,7 +65,6 @@ export default class WindowSandbox extends SandboxBase {
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
-        // this.CONTEXT_ELEMENT = 'hammerhead|contextElement'; ??
     }
 
     _raiseUncaughtJsErrorEvent (type, msg, window, pageUrl) {
@@ -753,16 +751,15 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const imageHref = nativeMethods.imageHrefGetter.call(this);
 
-                return Object.defineProperty(imageHref, CONTEXT_ELEMENT, { value: this });
+                return Object.defineProperty(imageHref, CONTEXT_IMAGE_ELEMENT, { value: this });
             }
         });
 
         overrideDescriptor(window.SVGAnimatedString.prototype, 'baseVal', {
             getter: function () {
-                let baseVal         = nativeMethods.baseValGetter.call(this);
-                const contextElemet = this[CONTEXT_ELEMENT];
+                let baseVal = nativeMethods.baseValGetter.call(this);
 
-                if (isSVGElement(contextElemet)) {
+                if (this[CONTEXT_IMAGE_ELEMENT]) {
                     const parsedHref = parseProxyUrl(baseVal);
 
                     baseVal = parsedHref ? parsedHref.destUrl : baseVal;
@@ -771,14 +768,13 @@ export default class WindowSandbox extends SandboxBase {
                 return baseVal;
             },
             setter: function (value) {
-                const contextElemet = this[CONTEXT_ELEMENT];
+                const contextImageElemet = this[CONTEXT_IMAGE_ELEMENT];
 
-                if (isSVGElement(contextElemet)) {
+                if (contextImageElemet) {
                     const proxyUrl = getProxyUrl(value);
 
                     nativeMethods.baseValSetter.call(this, proxyUrl);
-
-                    windowSandbox.nodeSandbox.element.setAttributeCore(contextElemet, ['xlink:href', value]);
+                    windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, ['href', value]);
 
                     return value;
                 }
@@ -793,9 +789,7 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const animVal = nativeMethods.animValGetter.call(this);
 
-                const contextElemet = this[CONTEXT_ELEMENT];
-
-                if (isSVGElement(contextElemet)) {
+                if (this[CONTEXT_IMAGE_ELEMENT]) {
                     const parsedAnimVal = parseProxyUrl(animVal);
 
                     return parsedAnimVal ? parsedAnimVal.destUrl : animVal;
