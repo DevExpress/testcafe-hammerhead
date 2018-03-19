@@ -8,7 +8,7 @@ export function inaccessibleTypeToStr (obj) {
 }
 
 export function isNullOrUndefined (obj) {
-    return !obj && (obj === null || typeof obj === 'undefined');
+    return obj === null || obj === void 0;
 }
 
 export function isPrimitiveType (obj) {

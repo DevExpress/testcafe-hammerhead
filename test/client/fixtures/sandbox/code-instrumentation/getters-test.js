@@ -455,3 +455,12 @@ test('form.action should return element when the form contains element with the 
 
     strictEqual(getProperty(form, 'action'), nativeForm.action);
 });
+
+test('getProperty function should not throw an error for document.all property (GH-1046)', function () {
+    try {
+        strictEqual(getProperty(document.all, 0), document.documentElement);
+    }
+    catch (e) {
+        ok(false);
+    }
+});
