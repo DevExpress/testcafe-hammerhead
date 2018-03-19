@@ -191,7 +191,6 @@ test('HTMLElement.style', function () {
 test('image (GH-1502)', function () {
     var imageNS       = document.createElementNS('http://www.w3.org/2000/svg', 'image');
     var nativeImageNS = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'image');
-    // var image    = document.createElement('image');
     var url           = 'https://google.com:1888/index.html?value#yo';
     var proxyUrl      = urlUtils.getProxyUrl(url);
 
