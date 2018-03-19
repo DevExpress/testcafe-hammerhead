@@ -228,17 +228,6 @@ export default class DocumentSandbox extends SandboxBase {
             }
         });
 
-        const documentAllPropOwnerPrototype = window[nativeMethods.documentAllPropOwnerName].prototype;
-
-        overrideDescriptor(documentAllPropOwnerPrototype, 'all', {
-            getter: function () {
-                const all = nativeMethods.documentAllGetter.call(this);
-
-                return documentSandbox.shadowUI._filterNodeList(all);
-            },
-            setter: null
-        });
-
         const documentCookiePropOwnerPrototype = window[nativeMethods.documentCookiePropOwnerName].prototype;
 
         overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
