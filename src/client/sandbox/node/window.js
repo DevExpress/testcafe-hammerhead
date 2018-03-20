@@ -771,17 +771,11 @@ export default class WindowSandbox extends SandboxBase {
                 const contextImageElemet = this[CONTEXT_IMAGE_ELEMENT];
 
                 if (contextImageElemet) {
-                    const proxyUrl = getProxyUrl(value);
-
-                    nativeMethods.baseValSetter.call(this, proxyUrl);
                     windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, ['href', value]);
-
-                    return value;
+                    value = getProxyUrl(value);
                 }
 
                 nativeMethods.baseValSetter.call(this, value);
-
-                return value;
             }
         });
 
