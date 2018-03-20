@@ -197,12 +197,12 @@ test('image (GH-1502)', function () {
     imageNS.href.baseVal = url;
     nativeMethods.baseValSetter.call(nativeMethods.imageHrefGetter.call(nativeImageNS), url);
 
-    strictEqual(nativeMethods.imageHrefGetter.call(imageNS)['hammerhead|contextImageElement'], imageNS);
     strictEqual(nativeMethods.getAttribute.call(imageNS, 'href-hammerhead-stored-value'), url);
     strictEqual(nativeMethods.animValGetter.call(imageNS.href), proxyUrl);
     strictEqual(nativeMethods.baseValGetter.call(imageNS.href), proxyUrl);
     strictEqual(imageNS.href.animVal, urlUtils.parseProxyUrl(proxyUrl).destUrl);
     strictEqual(imageNS.href.baseVal, urlUtils.parseProxyUrl(proxyUrl).destUrl);
+    strictEqual(nativeMethods.imageHrefGetter.call(imageNS)['hammerhead|contextImageElement'], imageNS);
 
     var nativeImageHref = nativeMethods.imageHrefGetter.call(nativeImageNS);
 
