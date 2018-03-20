@@ -669,13 +669,14 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.inputValueGetter.call(this);
             },
             setter: function (value) {
-                if (this.type.toLowerCase() === 'file')
-                    return windowSandbox.uploadSandbox.setUploadElementValue(this, value);
+                if (this.type.toLowerCase() !== 'file') {
+                    nativeMethods.inputValueSetter.call(this, value);
 
-                nativeMethods.inputValueSetter.call(this, value);
-
-                if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
-                    windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
+                    if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
+                        windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
+                }
+                else
+                    windowSandbox.uploadSandbox.setUploadElementValue(this, value);
             }
         });
 
