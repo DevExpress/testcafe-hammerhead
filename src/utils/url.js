@@ -28,7 +28,8 @@ export function parseResourceType (resourceType) {
             isScript:      false,
             isEventSource: false,
             isHtmlImport:  false,
-            isWebSocket:   false
+            isWebSocket:   false,
+            isAuthIframe:  false
         };
     }
 
@@ -38,7 +39,8 @@ export function parseResourceType (resourceType) {
         isScript:      /s/.test(resourceType),
         isEventSource: /e/.test(resourceType),
         isHtmlImport:  /h/.test(resourceType),
-        isWebSocket:   /w/.test(resourceType)
+        isWebSocket:   /w/.test(resourceType),
+        isAuthIframe:  /a/.test(resourceType)
     };
 }
 
@@ -46,7 +48,7 @@ export function getResourceTypeString (resourceType) {
     resourceType = resourceType || {};
 
     if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript && !resourceType.isEventSource &&
-        !resourceType.isHtmlImport && !resourceType.isWebSocket)
+        !resourceType.isHtmlImport && !resourceType.isWebSocket && !resourceType.isAuthIframe)
         return null;
 
     return [
@@ -55,7 +57,8 @@ export function getResourceTypeString (resourceType) {
         resourceType.isScript ? 's' : '',
         resourceType.isEventSource ? 'e' : '',
         resourceType.isHtmlImport ? 'h' : '',
-        resourceType.isWebSocket ? 'w' : ''
+        resourceType.isWebSocket ? 'w' : '',
+        resourceType.isAuthIframe ? 'a' : ''
     ].join('');
 }
 

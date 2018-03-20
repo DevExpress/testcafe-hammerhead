@@ -40,6 +40,7 @@ class PageProcessor extends ResourceProcessorBase {
         return {
             crossDomainProxyPort: ctx.serverInfo.crossDomainPort,
             isIframe:             ctx.isIframe,
+            isAuthIframe:         ctx.dest.isAuthIframe,
             stylesheets:          ctx.getInjectableStyles(),
             scripts:              ctx.getInjectableScripts(),
             urlReplacer:          urlReplacer,
@@ -143,7 +144,7 @@ class PageProcessor extends ResourceProcessorBase {
         PageProcessor._prepareHtml(html, processingOpts);
 
         const root       = this.parser.parse(html);
-        const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort);
+        const domAdapter = new DomAdapter(processingOpts.isIframe, processingOpts.crossDomainProxyPort, processingOpts.isAuthIframe);
         const elements   = parse5Utils.findElementsByTagNames(root, ['base', 'meta', 'head', 'body', 'frameset']);
         const base       = elements.base ? elements.base[0] : null;
         const baseUrl    = base ? domAdapter.getAttr(base, 'href') : '';
