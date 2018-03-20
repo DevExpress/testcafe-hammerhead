@@ -213,8 +213,6 @@ export default class DocumentSandbox extends SandboxBase {
             },
             setter: value => {
                 storedDomain = value;
-
-                return value;
             }
         });
 
@@ -233,7 +231,7 @@ export default class DocumentSandbox extends SandboxBase {
         overrideDescriptor(documentCookiePropOwnerPrototype, 'cookie', {
             getter: () => documentSandbox.cookieSandbox.getCookie(),
             setter: function (value) {
-                return documentSandbox.cookieSandbox.setCookie(this, String(value), true);
+                documentSandbox.cookieSandbox.setCookie(this, String(value), true);
             }
         });
 

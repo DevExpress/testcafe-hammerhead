@@ -124,8 +124,6 @@ export default class WindowSandbox extends SandboxBase {
                 },
                 setter: function (value) {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
-
-                    return value;
                 }
             });
         }
@@ -141,8 +139,6 @@ export default class WindowSandbox extends SandboxBase {
                 },
                 setter: function (value) {
                     windowSandbox.nodeSandbox.element.setAttributeCore(this, [attr, value]);
-
-                    return value;
                 }
             });
         }
@@ -154,7 +150,7 @@ export default class WindowSandbox extends SandboxBase {
                 return getAnchorProperty(this, nativePropGetter);
             },
             setter: function (value) {
-                return setAnchorProperty(this, nativePropSetter, value);
+                setAnchorProperty(this, nativePropSetter, value);
             }
         });
     }
@@ -680,8 +676,6 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
                     windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
-
-                return value;
             }
         });
 
@@ -692,8 +686,6 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
                     windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
-
-                return value;
             }
         });
 
