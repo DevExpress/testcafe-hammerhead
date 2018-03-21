@@ -15,7 +15,7 @@ export default class CodeInstrumentation extends SandboxBase {
 
         this.methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
         this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation();
-        this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(nodeMutation, eventSandbox,
+        this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(nodeMutation,
             shadowUI, storageSandbox, elementSandbox);
         this.storagesAccessorsInstrumentation = new StoragesAccessorsInstrumentation(storageSandbox);
     }

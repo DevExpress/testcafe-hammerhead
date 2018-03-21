@@ -155,6 +155,21 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
+    _overrideErrEventPropDescriptor (window, eventName, nativePropSetter) {
+        overrideDescriptor(window, 'on' + eventName, {
+            getter: null,
+            setter: handler => {
+                nativePropSetter.call(window, handler);
+
+                this.listenersSandbox.emit(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, {
+                    el:        window,
+                    listener:  handler,
+                    eventType: eventName
+                });
+            }
+        });
+    }
+
     static _wrapCSSGetPropertyValueIfNecessary (constructor, nativeGetPropertyValueFn) {
         if (nativeGetPropertyValueFn) {
             constructor.prototype.getPropertyValue = function (...args) {
@@ -233,6 +248,10 @@ export default class WindowSandbox extends SandboxBase {
             else if (e.eventType === 'error')
                 this._reattachHandler(window, 'error');
         });
+        this._overrideErrEventPropDescriptor(window, 'error', nativeMethods.winOnErrorSetter);
+
+        if (nativeMethods.winOnUnhandledRejectionSetter)
+            this._overrideErrEventPropDescriptor(window, 'unhandledrejection', nativeMethods.winOnUnhandledRejectionSetter);
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
             const message = e.message;

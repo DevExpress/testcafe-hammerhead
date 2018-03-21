@@ -448,10 +448,12 @@ test('window.onbeforeunload', function () {
     var evName = 'on' + unloadSandbox.beforeUnloadEventName;
 
     strictEqual(window[evName], null);
+
     // NOTE: If this test fails, a system dialog blocks the page before it is unloaded.
-    setProperty(window, evName, function () {
+    window[evName] = function () {
         return 'value';
-    });
+    };
+
     ok(window[evName]);
 });
 
