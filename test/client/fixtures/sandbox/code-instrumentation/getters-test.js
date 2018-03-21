@@ -202,12 +202,13 @@ test('image (GH-1502)', function () {
     strictEqual(nativeMethods.baseValGetter.call(imageNS.href), proxyUrl);
     strictEqual(imageNS.href.animVal, urlUtils.parseProxyUrl(proxyUrl).destUrl);
     strictEqual(imageNS.href.baseVal, urlUtils.parseProxyUrl(proxyUrl).destUrl);
-    strictEqual(nativeMethods.imageHrefGetter.call(imageNS)['hammerhead|contextImageElement'], imageNS);
+    strictEqual(imageNS.href['hammerhead|contextImageElement'], imageNS);
+
 
     var nativeImageHref = nativeMethods.imageHrefGetter.call(nativeImageNS);
 
-    strictEqual(nativeMethods.animValGetter.call(nativeImageHref), urlUtils.parseProxyUrl(proxyUrl).destUrl);
-    strictEqual(nativeMethods.baseValGetter.call(nativeImageHref), urlUtils.parseProxyUrl(proxyUrl).destUrl);
+    strictEqual(nativeMethods.animValGetter.call(nativeImageHref), url);
+    strictEqual(nativeMethods.baseValGetter.call(nativeImageHref), url);
 });
 
 module('regression');

@@ -771,7 +771,7 @@ export default class WindowSandbox extends SandboxBase {
                 const contextImageElemet = this[CONTEXT_IMAGE_ELEMENT];
 
                 if (contextImageElemet) {
-                    windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, ['href', value]);
+                    windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, ['http://www.w3.org/1999/xlink', 'href', value], true);
                     value = getProxyUrl(value);
                 }
 
