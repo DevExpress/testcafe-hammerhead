@@ -145,6 +145,9 @@ const responseTransforms = {
     },
 
     'x-frame-options': (src, ctx) => {
+        if (ctx.isAuthIframe)
+            return void 0;
+
         if (src.indexOf('ALLOW-FROM') === -1)
             return src;
 

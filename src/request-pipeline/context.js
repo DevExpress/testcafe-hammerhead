@@ -56,6 +56,7 @@ export default class RequestPipelineContext {
                 isScript:      parsedResourceType.isScript,
                 isEventSource: parsedResourceType.isEventSource,
                 isHtmlImport:  parsedResourceType.isHtmlImport,
+                isAuthIframe:  parsedResourceType.isAuthIframe,
                 isWebSocket:   parsedResourceType.isWebSocket,
                 charset:       parsed.charset,
                 reqOrigin:     parsed.reqOrigin
@@ -196,9 +197,10 @@ export default class RequestPipelineContext {
 
         let charset               = null;
         const contentTypeUrlToken = urlUtils.getResourceTypeString({
-            isIframe: this.isIframe,
-            isForm:   isForm,
-            isScript: isScript
+            isIframe:     this.isIframe,
+            isForm:       isForm,
+            isScript:     isScript,
+            isAuthIframe: this.dest.isAuthIframe
         });
 
         // NOTE: We need charset information if we are going to process the resource.

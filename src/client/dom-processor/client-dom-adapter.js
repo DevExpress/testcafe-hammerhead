@@ -83,6 +83,10 @@ export default class ClientDomAdapter extends BaseDomAdapter {
         }
     }
 
+    hasAuthIframeParent () {
+        return false;
+    }
+
     attachEventEmitter (domProcessor) {
         const eventEmitter = new EventEmitter();
 

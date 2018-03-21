@@ -77,6 +77,10 @@ export default class BaseDomAdapter {
         throw new Error('Not implemented');
     }
 
+    hasAuthIframeParent () {
+        throw new Error('Not implemented');
+    }
+
     getCrossDomainPort () {
         throw new Error('Not implemented');
     }

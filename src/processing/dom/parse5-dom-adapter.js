@@ -7,11 +7,12 @@ import { SVG_NAMESPACE } from './namespaces';
 import { isIframeFlagTag } from './index';
 
 export default class Parse5DomAdapter extends BaseDomAdapter {
-    constructor (isIframe, crossDomainPort) {
+    constructor (isIframe, crossDomainPort, isAuthIframe) {
         super();
 
         this.isIframe        = isIframe;
         this.crossDomainPort = crossDomainPort;
+        this.isAuthIframe    = isAuthIframe;
     }
 
     removeAttr (el, attr) {
@@ -88,6 +89,10 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
 
     hasIframeParent () {
         return this.isIframe;
+    }
+
+    hasAuthIframeParent () {
+        return this.isAuthIframe;
     }
 
     getCrossDomainPort () {
