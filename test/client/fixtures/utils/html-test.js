@@ -329,3 +329,19 @@ test('get a proxy url from a relative url after html processing (GH-718)', funct
     }), 'http://127.0.0.1:1337/sessionId/http://example.com/path/path/index.html');
     urlResolver.updateBase(null, document);
 });
+
+test('should not throw an error if the innerHTML property is defined on Node.prototype (GH-1538)', function () {
+    htmlUtils.dispose();
+
+    Node.prototype.__defineSetter__('innerHTML', function () {
+        throw new Error();
+    });
+
+    try {
+        setProperty(document.createElement('div'), 'innerHTML', 'html');
+        ok(true);
+    }
+    catch (e) {
+        ok(false);
+    }
+});
