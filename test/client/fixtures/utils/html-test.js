@@ -331,10 +331,12 @@ test('get a proxy url from a relative url after html processing (GH-718)', funct
 });
 
 test('should not throw an error if the innerHTML property is defined on Node.prototype (GH-1538)', function () {
-    htmlUtils.dispose();
+    Object.defineProperty(Node.prototype, 'innerHTML', {
+        set: function () {
+            throw new Error();
+        },
 
-    Node.prototype.__defineSetter__('innerHTML', function () {
-        throw new Error();
+        configurable: true
     });
 
     try {
@@ -343,5 +345,8 @@ test('should not throw an error if the innerHTML property is defined on Node.pro
     }
     catch (e) {
         ok(false);
+    }
+    finally {
+        delete Node.prototype.innerHTML;
     }
 });
