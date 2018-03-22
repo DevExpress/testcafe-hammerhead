@@ -143,7 +143,9 @@ export default class MessageSandbox extends SandboxBase {
             });
         }
 
-        overrideDescriptor(window, 'onmessage', {
+        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
+
+        overrideDescriptor(eventPropsOwner, 'onmessage', {
             getter: () => this.storedOnMessageHandler,
             setter: handler => {
                 this.storedOnMessageHandler = typeof handler === 'function' ? handler : null;

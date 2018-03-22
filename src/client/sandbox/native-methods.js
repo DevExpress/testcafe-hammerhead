@@ -228,37 +228,43 @@ class NativeMethods {
         const baseTargetDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'target');
 
         // Setters
-        this.objectDataSetter        = objectDataDescriptor.set;
-        this.inputValueSetter        = inputValueDescriptor.set;
-        this.textAreaValueSetter     = textAreaValueDescriptor.set;
-        this.imageSrcSetter          = imageSrcDescriptor.set;
-        this.scriptSrcSetter         = scriptSrcDescriptor.set;
-        this.embedSrcSetter          = embedSrcDescriptor.set;
-        this.sourceSrcSetter         = sourceSrcDescriptor.set;
-        this.mediaSrcSetter          = mediaSrcDescriptor.set;
-        this.inputSrcSetter          = inputSrcDescriptor.set;
-        this.frameSrcSetter          = frameSrcDescriptor.set;
-        this.iframeSrcSetter         = iframeSrcDescriptor.set;
-        this.anchorHrefSetter        = anchorHrefDescriptor.set;
-        this.linkHrefSetter          = linkHrefDescriptor.set;
-        this.areaHrefSetter          = areaHrefDescriptor.set;
-        this.baseHrefSetter          = baseHrefDescriptor.set;
-        this.anchorHostSetter        = anchorHostDescriptor.set;
-        this.anchorHostnameSetter    = anchorHostnameDescriptor.set;
-        this.anchorPathnameSetter    = anchorPathnameDescriptor.set;
-        this.anchorPortSetter        = anchorPortDescriptor.set;
-        this.anchorProtocolSetter    = anchorProtocolDescriptor.set;
-        this.anchorSearchSetter      = anchorSearchDescriptor.set;
-        this.anchorTargetSetter      = anchorTargetDescriptor.set;
-        this.formTargetSetter        = formTargetDescriptor.set;
-        this.areaTargetSetter        = areaTargetDescriptor.set;
-        this.baseTargetSetter        = baseTargetDescriptor.set;
-        this.winOnBeforeUnloadSetter = win.Object.getOwnPropertyDescriptor(win, 'onbeforeunload').set;
-        this.winOnPageHideSetter     = win.Object.getOwnPropertyDescriptor(win, 'onpagehide').set;
-        this.winOnMessageSetter      = win.Object.getOwnPropertyDescriptor(win, 'onmessage').set;
-        this.winOnErrorSetter        = win.Object.getOwnPropertyDescriptor(win, 'onerror').set;
+        this.objectDataSetter     = objectDataDescriptor.set;
+        this.inputValueSetter     = inputValueDescriptor.set;
+        this.textAreaValueSetter  = textAreaValueDescriptor.set;
+        this.imageSrcSetter       = imageSrcDescriptor.set;
+        this.scriptSrcSetter      = scriptSrcDescriptor.set;
+        this.embedSrcSetter       = embedSrcDescriptor.set;
+        this.sourceSrcSetter      = sourceSrcDescriptor.set;
+        this.mediaSrcSetter       = mediaSrcDescriptor.set;
+        this.inputSrcSetter       = inputSrcDescriptor.set;
+        this.frameSrcSetter       = frameSrcDescriptor.set;
+        this.iframeSrcSetter      = iframeSrcDescriptor.set;
+        this.anchorHrefSetter     = anchorHrefDescriptor.set;
+        this.linkHrefSetter       = linkHrefDescriptor.set;
+        this.areaHrefSetter       = areaHrefDescriptor.set;
+        this.baseHrefSetter       = baseHrefDescriptor.set;
+        this.anchorHostSetter     = anchorHostDescriptor.set;
+        this.anchorHostnameSetter = anchorHostnameDescriptor.set;
+        this.anchorPathnameSetter = anchorPathnameDescriptor.set;
+        this.anchorPortSetter     = anchorPortDescriptor.set;
+        this.anchorProtocolSetter = anchorProtocolDescriptor.set;
+        this.anchorSearchSetter   = anchorSearchDescriptor.set;
+        this.anchorTargetSetter   = anchorTargetDescriptor.set;
+        this.formTargetSetter     = formTargetDescriptor.set;
+        this.areaTargetSetter     = areaTargetDescriptor.set;
+        this.baseTargetSetter     = baseTargetDescriptor.set;
 
-        const winOnUnhandledRejectionDescriptor = win.Object.getOwnPropertyDescriptor(win, 'onunhandledrejection');
+        // NOTE: Event properties is located in window prototype only in IE11
+        this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
+
+        const eventPropsOwner = this.isEventPropsLocatedInProto ? win.Window.prototype : win;
+
+        this.winOnBeforeUnloadSetter = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onbeforeunload').set;
+        this.winOnPageHideSetter     = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onpagehide').set;
+        this.winOnMessageSetter      = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onmessage').set;
+        this.winOnErrorSetter        = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onerror').set;
+
+        const winOnUnhandledRejectionDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onunhandledrejection');
 
         if (winOnUnhandledRejectionDescriptor)
             this.winOnUnhandledRejectionSetter = winOnUnhandledRejectionDescriptor.set;

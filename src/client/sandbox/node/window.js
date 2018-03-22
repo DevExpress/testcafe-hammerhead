@@ -156,7 +156,9 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     _overrideErrEventPropDescriptor (window, eventName, nativePropSetter) {
-        overrideDescriptor(window, 'on' + eventName, {
+        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
+
+        overrideDescriptor(eventPropsOwner, 'on' + eventName, {
             getter: null,
             setter: handler => {
                 nativePropSetter.call(window, handler);

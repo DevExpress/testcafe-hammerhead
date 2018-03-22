@@ -90,7 +90,9 @@ export default class UnloadSandbox extends SandboxBase {
                 this._reattachBeforeUnloadListener();
         });
 
-        overrideDescriptor(window, 'on' + this.beforeUnloadEventName, {
+        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
+
+        overrideDescriptor(eventPropsOwner, 'on' + this.beforeUnloadEventName, {
             getter: () => this.storedBeforeUnloadHandler,
             setter: handler => this.setOnBeforeUnload(window, handler)
         });
