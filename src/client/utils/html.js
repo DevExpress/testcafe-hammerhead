@@ -112,7 +112,6 @@ function processHtmlInternal (html, process) {
 
     html = wrapHtmlText(html);
 
-    htmlParser.innerHTML = '';
     nativeMethods.appendChild.call(htmlParser, container);
 
     container.innerHTML = html;
