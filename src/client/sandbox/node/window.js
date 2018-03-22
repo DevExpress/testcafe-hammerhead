@@ -38,6 +38,7 @@ import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detec
 import { HASH_RE } from '../../../utils/url';
 import UploadSandbox from '../upload';
 import { getAnchorProperty, setAnchorProperty } from '../code-instrumentation/properties/anchor';
+import { XLINK_NAMESPACE } from '../../../processing/dom/namespaces';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -771,7 +772,11 @@ export default class WindowSandbox extends SandboxBase {
                 const contextImageElemet = this[CONTEXT_IMAGE_ELEMENT];
 
                 if (contextImageElemet) {
-                    windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, ['http://www.w3.org/1999/xlink', 'href', value], true);
+                    if (nativeMethods.hasAttributeNS.call(contextImageElemet, XLINK_NAMESPACE, 'href'))
+                        windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, [XLINK_NAMESPACE, 'href', value], true);
+                    else
+                        windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, ['href', value]);
+
                     value = getProxyUrl(value);
                 }
 
