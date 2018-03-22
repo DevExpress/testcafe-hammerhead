@@ -9,6 +9,7 @@ var styleProcessor                       = hammerhead.get('../processing/style')
 var destLocation                         = hammerhead.get('./utils/destination-location');
 var attributesProperty                   = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
 var processHtml                          = hammerhead.get('../client/utils/html').processHtml;
+var DomProcessor                         = hammerhead.get('../processing/dom');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -189,26 +190,21 @@ test('HTMLElement.style', function () {
 });
 
 test('image (GH-1502)', function () {
-    var imageNS       = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-    var nativeImageNS = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'image');
-    var url           = 'https://google.com:1888/index.html?value#yo';
-    var proxyUrl      = urlUtils.getProxyUrl(url);
+    var svgImageNS       = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    var nativeSvgImageNS = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'image');
+    var url              = 'https://google.com:1888/index.html?value#yo';
+    var proxyUrl         = urlUtils.getProxyUrl(url);
 
-    imageNS.href.baseVal = url;
-    nativeMethods.baseValSetter.call(nativeMethods.imageHrefGetter.call(nativeImageNS), url);
+    svgImageNS.href.baseVal = url;
+    nativeMethods.svgAnimStrBaseValSetter.call(nativeMethods.svgImageHrefGetter.call(nativeSvgImageNS), url);
 
-    strictEqual(nativeMethods.getAttribute.call(imageNS, 'href-hammerhead-stored-value'), url);
-    strictEqual(nativeMethods.animValGetter.call(imageNS.href), proxyUrl);
-    strictEqual(nativeMethods.baseValGetter.call(imageNS.href), proxyUrl);
-    strictEqual(imageNS.href.animVal, urlUtils.parseProxyUrl(proxyUrl).destUrl);
-    strictEqual(imageNS.href.baseVal, urlUtils.parseProxyUrl(proxyUrl).destUrl);
-    strictEqual(imageNS.href['hammerhead|contextImageElement'], imageNS);
+    var hrefStroredAttrName = DomProcessor.getStoredAttrName.call(svgImageNS, 'href');
 
-
-    var nativeImageHref = nativeMethods.imageHrefGetter.call(nativeImageNS);
-
-    strictEqual(nativeMethods.animValGetter.call(nativeImageHref), url);
-    strictEqual(nativeMethods.baseValGetter.call(nativeImageHref), url);
+    strictEqual(nativeMethods.getAttribute.call(svgImageNS, hrefStroredAttrName), url);
+    strictEqual(nativeMethods.svgAnimStrAnimValGetter.call(svgImageNS.href), proxyUrl);
+    strictEqual(nativeMethods.svgAnimStrBaseValGetter.call(svgImageNS.href), proxyUrl);
+    strictEqual(svgImageNS.href.animVal, nativeSvgImageNS.href.animVal);
+    strictEqual(svgImageNS.href.baseVal, nativeSvgImageNS.href.baseVal);
 });
 
 module('regression');

@@ -52,7 +52,7 @@ const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
 const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
 const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javascript', 'application/x-javascript'];
 
-const CONTEXT_IMAGE_ELEMENT = 'hammerhead|contextImageElement';
+const CONTEXT_IMAGE_ELEMENT = 'hammerhead|context-image-element';
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox, elementEditingWatcher, uploadSandbox) {
@@ -750,15 +750,22 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.SVGImageElement.prototype, 'href', {
             getter: function () {
-                const imageHref = nativeMethods.imageHrefGetter.call(this);
+                const imageHref = nativeMethods.svgImageHrefGetter.call(this);
 
-                return Object.defineProperty(imageHref, CONTEXT_IMAGE_ELEMENT, { value: this });
+                if (!imageHref[CONTEXT_IMAGE_ELEMENT]) {
+                    nativeMethods.objectDefineProperty(imageHref, CONTEXT_IMAGE_ELEMENT, {
+                        value:        this,
+                        configurable: true
+                    });
+                }
+
+                return imageHref;
             }
         });
 
         overrideDescriptor(window.SVGAnimatedString.prototype, 'baseVal', {
             getter: function () {
-                let baseVal = nativeMethods.baseValGetter.call(this);
+                let baseVal = nativeMethods.svgAnimStrBaseValGetter.call(this);
 
                 if (this[CONTEXT_IMAGE_ELEMENT]) {
                     const parsedHref = parseProxyUrl(baseVal);
@@ -780,13 +787,13 @@ export default class WindowSandbox extends SandboxBase {
                     value = getProxyUrl(value);
                 }
 
-                nativeMethods.baseValSetter.call(this, value);
+                nativeMethods.svgAnimStrBaseValSetter.call(this, value);
             }
         });
 
         overrideDescriptor(window.SVGAnimatedString.prototype, 'animVal', {
             getter: function () {
-                const animVal = nativeMethods.animValGetter.call(this);
+                const animVal = nativeMethods.svgAnimStrAnimValGetter.call(this);
 
                 if (this[CONTEXT_IMAGE_ELEMENT]) {
                     const parsedAnimVal = parseProxyUrl(animVal);
