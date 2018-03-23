@@ -189,22 +189,41 @@ test('HTMLElement.style', function () {
     }
 });
 
-test('image (GH-1502)', function () {
-    var svgImageNS       = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-    var nativeSvgImageNS = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'image');
-    var url              = 'https://google.com:1888/index.html?value#yo';
-    var proxyUrl         = urlUtils.getProxyUrl(url);
+test('SVGImageElement with href attribute (GH-1502)', function () {
+    var svgNameSpaceUrl = 'http://www.w3.org/2000/svg';
+    var svgImage        = document.createElementNS(svgNameSpaceUrl, 'image');
+    var nativeSvgImage  = nativeMethods.createElementNS.call(document, svgNameSpaceUrl, 'image');
+    var url             = 'http://domain.com/test.svg';
+    var proxyUrl        = urlUtils.getProxyUrl(url);
 
-    svgImageNS.href.baseVal = url;
-    nativeMethods.svgAnimStrBaseValSetter.call(nativeMethods.svgImageHrefGetter.call(nativeSvgImageNS), url);
+    svgImage.href.baseVal = url;
+    nativeMethods.svgAnimStrBaseValSetter.call(nativeMethods.svgImageHrefGetter.call(nativeSvgImage), url);
 
-    var hrefStroredAttrName = DomProcessor.getStoredAttrName.call(svgImageNS, 'href');
+    strictEqual(nativeMethods.svgAnimStrAnimValGetter.call(svgImage.href), proxyUrl);
+    strictEqual(nativeMethods.svgAnimStrBaseValGetter.call(svgImage.href), proxyUrl);
+    strictEqual(svgImage.href.animVal, nativeSvgImage.href.animVal);
+    strictEqual(svgImage.href.baseVal, nativeSvgImage.href.baseVal);
 
-    strictEqual(nativeMethods.getAttribute.call(svgImageNS, hrefStroredAttrName), url);
-    strictEqual(nativeMethods.svgAnimStrAnimValGetter.call(svgImageNS.href), proxyUrl);
-    strictEqual(nativeMethods.svgAnimStrBaseValGetter.call(svgImageNS.href), proxyUrl);
-    strictEqual(svgImageNS.href.animVal, nativeSvgImageNS.href.animVal);
-    strictEqual(svgImageNS.href.baseVal, nativeSvgImageNS.href.baseVal);
+    var hrefStroredAttrName = DomProcessor.getStoredAttrName.call(svgImage, 'href');
+
+    strictEqual(nativeMethods.getAttribute.call(svgImage, hrefStroredAttrName), url);
+    strictEqual(svgImage.getAttribute('href'), nativeMethods.getAttribute.call(nativeSvgImage, 'href'));
+});
+
+test('SVGImageElement with xlink:href attribute (GH-1502)', function () {
+    var svgNameSpaceUrl   = 'http://www.w3.org/2000/svg';
+    var xlinkNameSpaceUrl = 'http://www.w3.org/1999/xlink';
+    var svgImage          = document.createElementNS(svgNameSpaceUrl, 'image');
+    var nativeSvgImage    = nativeMethods.createElementNS.call(document, svgNameSpaceUrl, 'image');
+    var url               = 'http://domain.com/test.svg';
+
+    svgImage.setAttributeNS(xlinkNameSpaceUrl, 'href', url);
+    nativeMethods.setAttributeNS.call(nativeSvgImage, xlinkNameSpaceUrl, 'href', url);
+
+    var hrefStroredAttrName = DomProcessor.getStoredAttrName.call(svgImage, 'href');
+
+    strictEqual(nativeMethods.getAttributeNS.call(svgImage, xlinkNameSpaceUrl, hrefStroredAttrName), url);
+    strictEqual(svgImage.getAttributeNS(xlinkNameSpaceUrl, 'href'), nativeMethods.getAttributeNS.call(nativeSvgImage, xlinkNameSpaceUrl, 'href'));
 });
 
 module('regression');

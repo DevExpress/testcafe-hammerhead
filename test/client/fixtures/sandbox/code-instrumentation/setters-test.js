@@ -134,17 +134,6 @@ test('anchor', function () {
         strictEqual(anchorWithNotSupportedProtocol.origin, nativeMethods.anchorOriginGetter.call(etalonAnchorWithNotSupportedProtocol));
 });
 
-test('image (GH-1502)', function () {
-    var svgImageNS = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-    var url        = 'https://google.com:1888/index.html?value#yo';
-    var proxyUrl   = urlUtils.getProxyUrl(url);
-
-    nativeMethods.svgAnimStrBaseValSetter.call(svgImageNS.href, proxyUrl);
-
-    strictEqual(nativeMethods.svgAnimStrAnimValGetter.call(svgImageNS.href), proxyUrl);
-    strictEqual(nativeMethods.svgAnimStrBaseValGetter.call(svgImageNS.href), proxyUrl);
-});
-
 test('location as a local var', function () {
     var location = '';
 
