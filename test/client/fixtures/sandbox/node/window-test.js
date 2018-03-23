@@ -2,34 +2,36 @@ var urlUtils = hammerhead.get('./utils/url');
 
 var nativeMethods    = hammerhead.nativeMethods;
 var browserUtils     = hammerhead.utils.browser;
-var featureDetection = hammerhead.utils.featureDetection;
 
 test('window.onerror setter/getter', function () {
     var storedOnErrorHandler = window.onerror;
 
     window.onerror = null;
 
-    strictEqual(getProperty(window, 'onerror'), null);
+    strictEqual(window.onerror, null);
 
-    setProperty(window, 'onerror', 123);
-    strictEqual(getProperty(window, 'onerror'), null);
+    window.onerror = 123;
+
+    strictEqual(window.onerror, null);
 
     var handler = function () {
     };
 
-    setProperty(window, 'onerror', handler);
-    strictEqual(getProperty(window, 'onerror'), handler);
+    window.onerror = handler;
+
+    strictEqual(window.onerror, handler);
 
     window.onerror = storedOnErrorHandler;
 });
 
-if (featureDetection.hasUnhandledRejectionEvent) {
+if (nativeMethods.winOnUnhandledRejectionSetter) {
     module('unhandledrejection event (GH-1247)', function () {
         asyncTest('window.onunhandledrejection should be instrumented', function () {
-            strictEqual(getProperty(window, 'onunhandledrejection'), null);
+            strictEqual(window.onunhandledrejection, null);
 
-            setProperty(window, 'onunhandledrejection', 123);
-            strictEqual(getProperty(window, 'onunhandledrejection'), null);
+            window.onunhandledrejection = 123;
+
+            strictEqual(window.onunhandledrejection, null);
 
             var handler = function (event) {
                 ok(true, 'origin event called');
@@ -37,8 +39,9 @@ if (featureDetection.hasUnhandledRejectionEvent) {
                 ok(event instanceof window.PromiseRejectionEvent);
             };
 
-            setProperty(window, 'onunhandledrejection', handler);
-            strictEqual(getProperty(window, 'onunhandledrejection'), handler);
+            window.onunhandledrejection = handler;
+
+            strictEqual(window.onunhandledrejection, handler);
 
             hammerhead.on(hammerhead.EVENTS.unhandledRejection, function onUnhandledRejection (event) {
                 strictEqual(event.msg, 'unhandled rejection');
@@ -83,21 +86,21 @@ if (featureDetection.hasUnhandledRejectionEvent) {
 
             return hammerhead.Promise.resolve()
                 .then(function () {
-                    setProperty(window, 'onunhandledrejection', function () {
+                    window.onunhandledrejection = function () {
                         return false;
-                    });
+                    };
 
                     return testPreventing();
                 })
                 .then(function () {
-                    setProperty(window, 'onunhandledrejection', function (event) {
+                    window.onunhandledrejection = function (event) {
                         event.preventDefault();
-                    });
+                    };
 
                     return testPreventing();
                 })
                 .then(function () {
-                    setProperty(window, 'onunhandledrejection', null);
+                    window.onunhandledrejection = null;
 
                     window.addEventListener('unhandledrejection', function onUnhandledRejection (event) {
                         event.preventDefault();
@@ -397,13 +400,13 @@ test('should not raise internal events if an origin error event is prevented', f
 
     return hammerhead.Promise.resolve()
         .then(function () {
-            setProperty(window, 'onerror', function () {
+            window.onerror = function () {
                 setTimeout(function () {
-                    setProperty(window, 'onerror', null);
+                    window.onerror = null;
                 }, 10);
 
                 return true;
-            });
+            };
 
             return testPreventing();
         })

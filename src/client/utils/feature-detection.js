@@ -19,5 +19,3 @@ export const hasTouchPoints = browserUtils.isIE && (navigator.maxTouchPoints > 0
 export const isTouchDevice  = (browserUtils.isMobile || browserUtils.isTablet) && hasTouchEvents;
 
 export const hasDataTransfer = !!window.DataTransfer;
-
-export const hasUnhandledRejectionEvent = 'onunhandledrejection' in window;

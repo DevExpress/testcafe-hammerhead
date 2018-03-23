@@ -2,6 +2,7 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import createPropertyDesc from '../../utils/create-property-desc.js';
 import { isFirefox, isIOS } from '../../utils/browser';
+import { overrideDescriptor } from '../../utils/property-overriding';
 
 export default class UnloadSandbox extends SandboxBase {
     constructor (listeners) {
@@ -88,24 +89,32 @@ export default class UnloadSandbox extends SandboxBase {
             if (e.el === window && e.eventType === this.beforeUnloadEventName)
                 this._reattachBeforeUnloadListener();
         });
+
+        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
+
+        overrideDescriptor(eventPropsOwner, 'on' + this.beforeUnloadEventName, {
+            getter: () => this.storedBeforeUnloadHandler,
+            setter: handler => this.setOnBeforeUnload(window, handler)
+        });
     }
 
-    setOnBeforeUnload (window, value) {
-        if (typeof value === 'function') {
-            this.storedBeforeUnloadHandler = value;
+    setOnBeforeUnload (window, handler) {
+        const beforeUnloadEventPropSetter = isIOS
+            ? nativeMethods.winOnPageHideSetter
+            : nativeMethods.winOnBeforeUnloadSetter;
 
-            window['on' + this.beforeUnloadEventName] = e => this._onBeforeUnloadHandler(e, value);
+        if (typeof handler === 'function') {
+            this.storedBeforeUnloadHandler = handler;
+
+            beforeUnloadEventPropSetter.call(window, e => this._onBeforeUnloadHandler(e, handler));
 
             this._reattachBeforeUnloadListener();
         }
         else {
-            this.storedBeforeUnloadHandler            = null;
-            window['on' + this.beforeUnloadEventName] = null;
-        }
-    }
+            this.storedBeforeUnloadHandler = null;
 
-    getOnBeforeUnload () {
-        return this.storedBeforeUnloadHandler;
+            beforeUnloadEventPropSetter.call(window, null);
+        }
     }
 
     handleEvent () {

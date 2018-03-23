@@ -18,7 +18,7 @@ import { remove as removeProcessingHeader } from '../../../../processing/script/
 import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
-import { emptyActionAttrFallbacksToTheLocation, hasUnhandledRejectionEvent } from '../../../utils/feature-detection';
+import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-detection';
 import DOMMutationTracker from '../../node/live-node-list/dom-mutation-tracker';
 import { isJsProtocol, processJsAttrValue } from '../../../../processing/dom';
 
@@ -36,16 +36,13 @@ const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.cr
 const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, shadowUI, storageSandbox, elementSandbox) {
+    constructor (nodeMutation, shadowUI, storageSandbox, elementSandbox) {
         super();
 
-        this.nodeMutation          = nodeMutation;
-        this.messageSandbox        = eventSandbox.message;
-        this.unloadSandbox         = eventSandbox.unload;
-        this.listenersSandbox      = eventSandbox.listeners;
-        this.shadowUI              = shadowUI;
-        this.storageSandbox        = storageSandbox;
-        this.elementSandbox        = elementSandbox;
+        this.nodeMutation   = nodeMutation;
+        this.shadowUI       = shadowUI;
+        this.storageSandbox = storageSandbox;
+        this.elementSandbox = elementSandbox;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
@@ -351,40 +348,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
-            onerror: {
-                condition: domUtils.isWindow,
-                get:       owner => owner.onerror,
-
-                set: (owner, handler) => {
-                    owner.onerror = handler;
-
-                    this.listenersSandbox.emit(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, {
-                        el:        owner,
-                        listener:  handler,
-                        eventType: 'error'
-                    });
-
-                    return handler;
-                }
-            },
-
-            onunhandledrejection: {
-                condition: owner => hasUnhandledRejectionEvent && domUtils.isWindow(owner),
-                get:       owner => owner.onunhandledrejection,
-
-                set: (owner, handler) => {
-                    owner.onunhandledrejection = handler;
-
-                    this.listenersSandbox.emit(this.listenersSandbox.EVENT_LISTENER_ATTACHED_EVENT, {
-                        el:        owner,
-                        listener:  handler,
-                        eventType: 'unhandledrejection'
-                    });
-
-                    return handler;
-                }
-            },
-
             lastChild: {
                 condition: ShadowUI.isShadowContainer,
                 get:       el => this.shadowUI.getLastChild(el),
@@ -518,24 +481,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             },
 
             // Event
-            onbeforeunload: {
-                condition: domUtils.isWindow,
-                get:       () => this.unloadSandbox.getOnBeforeUnload(),
-                set:       (wnd, handler) => this.unloadSandbox.setOnBeforeUnload(wnd, handler)
-            },
-
-            onpagehide: {
-                condition: domUtils.isWindow,
-                get:       () => this.unloadSandbox.getOnBeforeUnload(),
-                set:       (wnd, handler) => this.unloadSandbox.setOnBeforeUnload(wnd, handler)
-            },
-
-            onmessage: {
-                condition: domUtils.isWindow,
-                get:       () => this.messageSandbox.getOnMessage(),
-                set:       (wnd, handler) => this.messageSandbox.setOnMessage(wnd, handler)
-            },
-
             which: {
                 condition: ev => ev[INTERNAL_PROPS.whichPropertyWrapper] !== void 0 ||
                                  ev.originalEvent &&

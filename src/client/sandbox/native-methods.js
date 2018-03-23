@@ -254,6 +254,21 @@ class NativeMethods {
         this.areaTargetSetter     = areaTargetDescriptor.set;
         this.baseTargetSetter     = baseTargetDescriptor.set;
 
+        // NOTE: Event properties is located in window prototype only in IE11
+        this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
+
+        const eventPropsOwner = this.isEventPropsLocatedInProto ? win.Window.prototype : win;
+
+        this.winOnBeforeUnloadSetter = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onbeforeunload').set;
+        this.winOnPageHideSetter     = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onpagehide').set;
+        this.winOnMessageSetter      = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onmessage').set;
+        this.winOnErrorSetter        = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onerror').set;
+
+        const winOnUnhandledRejectionDescriptor = win.Object.getOwnPropertyDescriptor(eventPropsOwner, 'onunhandledrejection');
+
+        if (winOnUnhandledRejectionDescriptor)
+            this.winOnUnhandledRejectionSetter = winOnUnhandledRejectionDescriptor.set;
+
         // Getters
         if (win.WebSocket) {
             const urlPropDescriptor = win.Object.getOwnPropertyDescriptor(win.WebSocket.prototype, 'url');

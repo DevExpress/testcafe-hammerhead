@@ -142,21 +142,19 @@ export default class MessageSandbox extends SandboxBase {
                 }
             });
         }
-    }
 
-    setOnMessage (window, value) {
-        if (typeof value === 'function') {
-            this.storedOnMessageHandler = value;
-            window.onmessage            = e => this._onWindowMessage(e, value);
-        }
-        else {
-            this.storedOnMessageHandler = null;
-            window.onmessage            = null;
-        }
-    }
+        const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
 
-    getOnMessage () {
-        return this.storedOnMessageHandler;
+        overrideDescriptor(eventPropsOwner, 'onmessage', {
+            getter: () => this.storedOnMessageHandler,
+            setter: handler => {
+                this.storedOnMessageHandler = typeof handler === 'function' ? handler : null;
+
+                nativeMethods.winOnMessageSetter.call(window, this.storedOnMessageHandler
+                    ? e => this._onWindowMessage(e, handler)
+                    : null);
+            }
+        });
     }
 
     postMessage (contentWindow, args) {

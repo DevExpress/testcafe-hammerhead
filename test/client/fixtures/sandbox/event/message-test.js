@@ -39,7 +39,7 @@ asyncTest('onmessage event', function () {
 
     createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-message.html') })
         .then(function (iframe) {
-            setProperty(window, 'onmessage', onMessageHandler);
+            window.onmessage = onMessageHandler;
             window.addEventListener('message', onMessageHandler);
             callMethod(iframe.contentWindow, 'postMessage', ['', '*']);
         });
@@ -68,7 +68,7 @@ asyncTest('cross-domain post messages between different windows', function () {
         checkResult();
     };
 
-    setProperty(window, 'onmessage', onMessageHandler);
+    window.onmessage = onMessageHandler;
 
     iframe.src = getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
@@ -77,18 +77,17 @@ asyncTest('cross-domain post messages between different windows', function () {
 test('message types', function () {
     var checkValue = function (value, test) {
         return new Promise(function (resove) {
-            var onMessageHandler = function (e) {
+            window.onmessage = function (e) {
                 if (test)
                     ok(test(getProperty(e, 'data')));
                 else
                     strictEqual(getProperty(e, 'data'), value);
 
-                setProperty(window, 'onmessage', void 0);
+                window.onmessage = void 0;
 
                 resove();
             };
 
-            setProperty(window, 'onmessage', onMessageHandler);
             callMethod(window, 'postMessage', [value, '*']);
         });
     };
@@ -285,7 +284,7 @@ asyncTest('send message from iframe with "about:blank" src (GH-1026)', function 
     iframe.id  = 'test-' + Date.now();
     iframe.src = 'javascript:\'<html><body><script>window.parent.postMessage("gh1026", "*")<' + '/script></body></html>\'';
 
-    setProperty(window, 'onmessage', function (e) {
+    window.onmessage = function (e) {
         if (getProperty(e, 'data') !== 'gh1026')
             return;
 
@@ -293,7 +292,7 @@ asyncTest('send message from iframe with "about:blank" src (GH-1026)', function 
         window.onmessage = null;
         ok(true);
         start();
-    });
+    };
 
     document.body.appendChild(iframe);
 });
