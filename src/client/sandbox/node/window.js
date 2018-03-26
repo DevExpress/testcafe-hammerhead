@@ -52,7 +52,10 @@ const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
 const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
 const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javascript', 'application/x-javascript'];
 
-const CONTEXT_IMAGE_ELEMENT = 'hammerhead|context-image-element';
+// NOTE: SVGAnimatedString prototype does not have a way to access the appropriate svg element.
+// This is why we use this property to store svg element for which animVal and baseVal properties were set.
+// It allows us to change the href-hammerhead-stored-value when it needs.
+const CONTEXT_SVG_IMAGE_ELEMENT = 'hammerhead|context-svg-image-element';
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox, elementEditingWatcher, uploadSandbox) {
@@ -752,8 +755,8 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const imageHref = nativeMethods.svgImageHrefGetter.call(this);
 
-                if (!imageHref[CONTEXT_IMAGE_ELEMENT]) {
-                    nativeMethods.objectDefineProperty(imageHref, CONTEXT_IMAGE_ELEMENT, {
+                if (!imageHref[CONTEXT_SVG_IMAGE_ELEMENT]) {
+                    nativeMethods.objectDefineProperty(imageHref, CONTEXT_SVG_IMAGE_ELEMENT, {
                         value:        this,
                         configurable: true
                     });
@@ -767,7 +770,7 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 let baseVal = nativeMethods.svgAnimStrBaseValGetter.call(this);
 
-                if (this[CONTEXT_IMAGE_ELEMENT]) {
+                if (this[CONTEXT_SVG_IMAGE_ELEMENT]) {
                     const parsedHref = parseProxyUrl(baseVal);
 
                     baseVal = parsedHref ? parsedHref.destUrl : baseVal;
@@ -776,7 +779,7 @@ export default class WindowSandbox extends SandboxBase {
                 return baseVal;
             },
             setter: function (value) {
-                const contextImageElemet = this[CONTEXT_IMAGE_ELEMENT];
+                const contextImageElemet = this[CONTEXT_SVG_IMAGE_ELEMENT];
 
                 if (contextImageElemet) {
                     if (nativeMethods.hasAttributeNS.call(contextImageElemet, XLINK_NAMESPACE, 'href'))
@@ -795,7 +798,7 @@ export default class WindowSandbox extends SandboxBase {
             getter: function () {
                 const animVal = nativeMethods.svgAnimStrAnimValGetter.call(this);
 
-                if (this[CONTEXT_IMAGE_ELEMENT]) {
+                if (this[CONTEXT_SVG_IMAGE_ELEMENT]) {
                     const parsedAnimVal = parseProxyUrl(animVal);
 
                     return parsedAnimVal ? parsedAnimVal.destUrl : animVal;
