@@ -12,6 +12,5 @@ export default {
     processScript:  '__proc$Script',
     processHtml:    '__proc$Html',
     getEval:        '__get$Eval',
-    getStorage:     '__get$Storage',
     getPostMessage: '__get$PostMessage'
 };

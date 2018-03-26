@@ -18,11 +18,11 @@ class Transport {
 
         storedMessages.push(msg);
 
-        window.localStorage.setItem(settings.get().sessionId, stringifyJSON(storedMessages));
+        nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(storedMessages));
     }
 
     static _getStoredMessages () {
-        const storedMessagesStr = window.localStorage.getItem(settings.get().sessionId);
+        const storedMessagesStr = nativeMethods.winLocalStorageGetter.call(window).getItem(settings.get().sessionId);
 
         return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
     }
@@ -38,7 +38,7 @@ class Transport {
             }
         }
 
-        window.localStorage.setItem(settings.get().sessionId, stringifyJSON(messages));
+        nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(messages));
     }
 
     _sendNextQueuedMsg (queueId) {
@@ -148,7 +148,7 @@ class Transport {
         if (storedMessages.length) {
             const tasks = [];
 
-            window.localStorage.removeItem(settings.get().sessionId);
+            nativeMethods.winLocalStorageGetter.call(window).removeItem(settings.get().sessionId);
 
             for (const storedMessage of storedMessages)
                 tasks.push(this.queuedAsyncServiceMsg(storedMessage));

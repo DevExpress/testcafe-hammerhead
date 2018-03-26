@@ -36,12 +36,11 @@ const SVG_ELEMENT_TEXT_PROPERTIES  = checkElementTextProperties(nativeMethods.cr
 const HTML_ELEMENT_TEXT_PROPERTIES = checkElementTextProperties(nativeMethods.createElement.call(document, 'div'));
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (nodeMutation, shadowUI, storageSandbox, elementSandbox) {
+    constructor (nodeMutation, shadowUI, elementSandbox) {
         super();
 
         this.nodeMutation   = nodeMutation;
         this.shadowUI       = shadowUI;
-        this.storageSandbox = storageSandbox;
         this.elementSandbox = elementSandbox;
     }
 
@@ -360,12 +359,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set:       () => void 0
             },
 
-            localStorage: {
-                condition: domUtils.isWindow,
-                get:       () => this.storageSandbox.localStorage,
-                set:       () => void 0
-            },
-
             location: {
                 condition: owner => domUtils.isDocument(owner) || domUtils.isWindow(owner),
 
@@ -454,12 +447,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return value;
                 }
-            },
-
-            sessionStorage: {
-                condition: domUtils.isWindow,
-                get:       () => this.storageSandbox.sessionStorage,
-                set:       () => void 0
             },
 
             text: {

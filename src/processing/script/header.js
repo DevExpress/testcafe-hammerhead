@@ -28,7 +28,6 @@ const HEADER = [
     `${ INSTRUCTION.getEval }=function(e){return e},`,
     `${ INSTRUCTION.processScript }=function(s){return s},`,
     `${ INSTRUCTION.processHtml }=function(h){return h},`,
-    `${ INSTRUCTION.getStorage }=function(s){return s},`,
     `${ INSTRUCTION.getPostMessage }=function(w,p){return arguments.length===1?w.postMessage:p};`,
     '}',
     SCRIPT_PROCESSING_END_HEADER_COMMENT,

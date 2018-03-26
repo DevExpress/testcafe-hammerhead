@@ -4,15 +4,19 @@ var settings       = hammerhead.get('./settings');
 var storageSandbox = hammerhead.sandbox.storageSandbox;
 var Promise        = hammerhead.Promise;
 var isIE           = hammerhead.utils.browser.isIE;
+var nativeMethods  = hammerhead.nativeMethods;
 
 var storageWrapperKey = 'hammerhead|storage-wrapper|' + settings.get().sessionId + '|example.com';
 
+var nativeLocalStorage   = nativeMethods.winLocalStorageGetter.call(window);
+var nativeSessionStorage = nativeMethods.winSessionStorageGetter.call(window);
+
 QUnit.testStart(function () {
     // NOTE: Clean up storage wrappers
-    window.localStorage.clear();
-    window.sessionStorage.clear();
-    storageSandbox.localStorage.clear();
-    storageSandbox.sessionStorage.clear();
+    nativeLocalStorage.clear();
+    nativeSessionStorage.clear();
+    localStorage.clear();
+    sessionStorage.clear();
 });
 
 function waitStorageUpdated () {
@@ -36,321 +40,220 @@ function waitStorageEvent (window, action) {
 module('storage sandbox API');
 
 test('clear', function () {
-    var localStorageWrapper   = storageSandbox.localStorage;
-    var sessionStorageWrapper = storageSandbox.sessionStorage;
+    localStorage.setItem('key11', 'value1');
+    sessionStorage.setItem('key12', 'value2');
 
-    localStorageWrapper.setItem('key11', 'value1');
-    sessionStorageWrapper.setItem('key12', 'value2');
-
-    strictEqual(localStorageWrapper.length, 1);
-    strictEqual(sessionStorageWrapper.length, 1);
-    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
-    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+    strictEqual(localStorage.length, 1);
+    strictEqual(sessionStorage.length, 1);
+    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
+    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
 
     storageSandbox.unloadSandbox.emit(storageSandbox.unloadSandbox.BEFORE_UNLOAD_EVENT);
 
-    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), '[["key11"],["value1"]]');
-    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), '[["key12"],["value2"]]');
+    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), '[["key11"],["value1"]]');
+    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), '[["key12"],["value2"]]');
 
     storageSandbox.clear();
 
-    strictEqual(localStorageWrapper.length, 1);
-    strictEqual(sessionStorageWrapper.length, 1);
-    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
-    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+    strictEqual(localStorage.length, 1);
+    strictEqual(sessionStorage.length, 1);
+    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
+    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
 });
 
 test('lock', function () {
-    var localStorageWrapper   = storageSandbox.localStorage;
-    var sessionStorageWrapper = storageSandbox.sessionStorage;
+    localStorage.setItem('key11', 'value1');
+    sessionStorage.setItem('key12', 'value2');
 
-    localStorageWrapper.setItem('key11', 'value1');
-    sessionStorageWrapper.setItem('key12', 'value2');
-
-    strictEqual(localStorageWrapper.length, 1);
-    strictEqual(sessionStorageWrapper.length, 1);
-    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
-    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+    strictEqual(localStorage.length, 1);
+    strictEqual(sessionStorage.length, 1);
+    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
+    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
 
     storageSandbox.lock();
     storageSandbox.unloadSandbox.emit(storageSandbox.unloadSandbox.BEFORE_UNLOAD_EVENT);
 
-    strictEqual(localStorage.getItem(localStorageWrapper.nativeStorageKey), null);
-    strictEqual(sessionStorage.getItem(sessionStorageWrapper.nativeStorageKey), null);
+    strictEqual(nativeLocalStorage.getItem(localStorage.nativeStorageKey), null);
+    strictEqual(nativeSessionStorage.getItem(sessionStorage.nativeStorageKey), null);
 
     storageSandbox.isLocked = false;
 });
 
 test('backup/restore', function () {
-    var localStorageWrapper   = storageSandbox.localStorage;
-    var sessionStorageWrapper = storageSandbox.sessionStorage;
-
-    localStorageWrapper.setItem('key7', 'value');
-    sessionStorageWrapper.setItem('key8', 'value');
+    localStorage.setItem('key7', 'value');
+    sessionStorage.setItem('key8', 'value');
 
     var backup = storageSandbox.backup();
 
-    strictEqual(localStorageWrapper.length, 1);
-    strictEqual(sessionStorageWrapper.length, 1);
+    strictEqual(localStorage.length, 1);
+    strictEqual(sessionStorage.length, 1);
     strictEqual(backup.localStorage, '[["key7"],["value"]]');
     strictEqual(backup.sessionStorage, '[["key8"],["value"]]');
 
-    localStorageWrapper.setItem('key9', 'value');
-    sessionStorageWrapper.removeItem('key8');
+    localStorage.setItem('key9', 'value');
+    sessionStorage.removeItem('key8');
 
-    strictEqual(localStorageWrapper.length, 2);
-    strictEqual(sessionStorageWrapper.length, 0);
+    strictEqual(localStorage.length, 2);
+    strictEqual(sessionStorage.length, 0);
 
     storageSandbox.restore(backup);
 
-    strictEqual(localStorageWrapper.length, 1);
-    strictEqual(sessionStorageWrapper.length, 1);
-    strictEqual(localStorageWrapper.getItem('key7'), 'value');
-    strictEqual(sessionStorageWrapper.getItem('key8'), 'value');
+    strictEqual(localStorage.length, 1);
+    strictEqual(sessionStorage.length, 1);
+    strictEqual(localStorage.getItem('key7'), 'value');
+    strictEqual(sessionStorage.getItem('key8'), 'value');
 });
 
 module('storage API');
 
 test('argument types', function () {
-    var storageWrapper = storageSandbox.localStorage;
+    localStorage.setItem({}, 'value');
+    strictEqual(localStorage.getItem({}), 'value');
 
-    storageWrapper.setItem({}, 'value');
-    strictEqual(storageWrapper.getItem({}), 'value');
+    localStorage.setItem({}, null);
+    strictEqual(localStorage.getItem({}), 'null');
 
-    storageWrapper.setItem({}, null);
-    strictEqual(storageWrapper.getItem({}), 'null');
-
-    storageWrapper.setItem(null, 'value1');
-    strictEqual(storageWrapper.getItem(null), 'value1');
+    localStorage.setItem(null, 'value1');
+    strictEqual(localStorage.getItem(null), 'value1');
 });
 
 test('get item', function () {
-    var storageWrapper = storageSandbox.sessionStorage;
+    sessionStorage.setItem('key1', 'value1');
+    sessionStorage.setItem('key2', 'value2');
 
-    storageWrapper.setItem('key1', 'value1');
-    storageWrapper.setItem('key2', 'value2');
-
-    strictEqual(storageWrapper.getItem('key1'), 'value1');
-    strictEqual(storageWrapper.getItem('key2'), 'value2');
-    strictEqual(storageWrapper.getItem('key3'), null);
+    strictEqual(sessionStorage.getItem('key1'), 'value1');
+    strictEqual(sessionStorage.getItem('key2'), 'value2');
+    strictEqual(sessionStorage.getItem('key3'), null);
 });
 
 test('set item', function () {
-    var storageWrapper = storageSandbox.localStorage;
+    localStorage.setItem('key1', 'value1');
+    localStorage.setItem('key2', {});
 
-    storageWrapper.setItem('key1', 'value1');
-    storageWrapper.setItem('key2', {});
+    strictEqual(localStorage.length, 2);
+    strictEqual(localStorage.getItem('key1'), 'value1');
+    strictEqual(localStorage.getItem('key2'), '[object Object]');
 
-    strictEqual(storageWrapper.length, 2);
-    strictEqual(storageWrapper.getItem('key1'), 'value1');
-    strictEqual(storageWrapper.getItem('key2'), '[object Object]');
+    localStorage.setItem('key1', null);
+    localStorage.setItem('key2', 'newValue');
 
-    storageWrapper.setItem('key1', null);
-    storageWrapper.setItem('key2', 'newValue');
-
-    strictEqual(storageWrapper.length, 2);
-    strictEqual(storageWrapper.getItem('key1'), 'null');
-    strictEqual(storageWrapper.getItem('key2'), 'newValue');
+    strictEqual(localStorage.length, 2);
+    strictEqual(localStorage.getItem('key1'), 'null');
+    strictEqual(localStorage.getItem('key2'), 'newValue');
 });
 
 test('get key', function () {
-    var storageWrapper = storageSandbox.sessionStorage;
+    sessionStorage.setItem('key1', 'value1');
+    sessionStorage.setItem('key2', 'value2');
 
-    storageWrapper.setItem('key1', 'value1');
-    storageWrapper.setItem('key2', 'value2');
-
-    strictEqual(storageWrapper.length, 2);
-    strictEqual(storageWrapper.key(-1), null);
-    strictEqual(storageWrapper.key(0), 'key1');
-    strictEqual(storageWrapper.key(1), 'key2');
-    strictEqual(storageWrapper.key(2), null);
+    strictEqual(sessionStorage.length, 2);
+    strictEqual(sessionStorage.key(-1), null);
+    strictEqual(sessionStorage.key(0), 'key1');
+    strictEqual(sessionStorage.key(1), 'key2');
+    strictEqual(sessionStorage.key(2), null);
 });
 
 test('remove item', function () {
-    var storageWrapper = storageSandbox.localStorage;
+    localStorage.setItem('key1', 'value1');
+    localStorage.setItem('key2', 'value2');
 
-    storageWrapper.setItem('key1', 'value1');
-    storageWrapper.setItem('key2', 'value2');
-
-    storageWrapper.removeItem('key3');
-    strictEqual(storageWrapper.length, 2);
-    storageWrapper.removeItem('key1');
-    strictEqual(storageWrapper.length, 1);
-    strictEqual(storageWrapper.getItem('key1'), null);
-    strictEqual(storageWrapper.getItem('key2'), 'value2');
-    strictEqual(storageWrapper.key(0), 'key2');
-    strictEqual(storageWrapper.key(1), null);
+    localStorage.removeItem('key3');
+    strictEqual(localStorage.length, 2);
+    localStorage.removeItem('key1');
+    strictEqual(localStorage.length, 1);
+    strictEqual(localStorage.getItem('key1'), null);
+    strictEqual(localStorage.getItem('key2'), 'value2');
+    strictEqual(localStorage.key(0), 'key2');
+    strictEqual(localStorage.key(1), null);
 });
 
 test('storage length', function () {
-    var storageWrapper = storageSandbox.sessionStorage;
+    sessionStorage.clear();
+    strictEqual(sessionStorage.length, 0);
 
-    storageWrapper.clear();
-    strictEqual(storageWrapper.length, 0);
+    sessionStorage.setItem('key1', 'value1');
+    strictEqual(sessionStorage.length, 1);
 
-    storageWrapper.setItem('key1', 'value1');
-    strictEqual(storageWrapper.length, 1);
+    sessionStorage.setItem('key2', 'value2');
+    strictEqual(sessionStorage.length, 2);
 
-    storageWrapper.setItem('key2', 'value2');
-    strictEqual(storageWrapper.length, 2);
+    sessionStorage.removeItem('key2');
+    strictEqual(sessionStorage.length, 1);
 
-    storageWrapper.removeItem('key2');
-    strictEqual(storageWrapper.length, 1);
-
-    storageWrapper.clear();
-    strictEqual(storageWrapper.length, 0);
-});
-
-module('code instrumentation');
-
-test('global invoke', function () {
-    var localStorageWrapper   = storageSandbox.localStorage;
-    var sessionStorageWrapper = storageSandbox.sessionStorage;
-
-    eval(processScript('localStorage.key1 = "value1"'));
-    eval(processScript('sessionStorage.key2 = "value2"'));
-
-    strictEqual(localStorageWrapper.key1, 'value1');
-    strictEqual(sessionStorageWrapper.key2, 'value2');
-
-    localStorageWrapper.setItem('key3', 'value3');
-    sessionStorageWrapper.setItem('key4', 'value4');
-
-    strictEqual(eval(processScript('localStorage.key3')), 'value3');
-    strictEqual(eval(processScript('sessionStorage.key4')), 'value4');
-
-    eval(processScript('localStorage.setItem("key5", "value5")'));
-    eval(processScript('sessionStorage.setItem("key6", "value6")'));
-
-    strictEqual(localStorageWrapper.key5, 'value5');
-    strictEqual(sessionStorageWrapper.key6, 'value6');
-
-    eval(processScript('window.localStorage.setItem("key7", "value7")'));
-    eval(processScript('window.sessionStorage.setItem("key8", "value8")'));
-
-    strictEqual(localStorageWrapper.key7, 'value7');
-    strictEqual(sessionStorageWrapper.key8, 'value8');
-
-    eval(processScript('window["localStorage"].setItem("key9", "value9")'));
-    eval(processScript('window["sessionStorage"].setItem("key10", "value10")'));
-
-    strictEqual(localStorageWrapper.key9, 'value9');
-    strictEqual(sessionStorageWrapper.key10, 'value10');
-
-    eval(processScript('localStorage["setItem"]("key11", "value11")'));
-    eval(processScript('sessionStorage["setItem"]("key12", "value12")'));
-
-    strictEqual(localStorageWrapper.key11, 'value11');
-    strictEqual(sessionStorageWrapper.key12, 'value12');
-
-    eval(processScript('localStorage["key13"] = "value13"'));
-    eval(processScript('sessionStorage["key14"] = "value14"'));
-
-    strictEqual(localStorageWrapper.key13, 'value13');
-    strictEqual(sessionStorageWrapper.key14, 'value14');
-
-    eval(processScript('var key = "key15"; localStorage[key] = "value15"'));
-    eval(processScript('var key = "key16"; sessionStorage[key] = "value16"'));
-
-    strictEqual(localStorageWrapper.key15, 'value15');
-    strictEqual(sessionStorageWrapper.key16, 'value16');
-});
-
-test('invoke as a member', function () {
-    var localStorageWrapper   = storageSandbox.localStorage;
-    var sessionStorageWrapper = storageSandbox.sessionStorage;
-
-    strictEqual(eval(processScript('window.localStorage')), localStorageWrapper);
-    strictEqual(eval(processScript('window.sessionStorage')), sessionStorageWrapper);
-
-    strictEqual(eval(processScript('window["localStorage"]')), localStorageWrapper);
-    strictEqual(eval(processScript('window["sessionStorage"]')), sessionStorageWrapper);
-
-    /* eslint-disable no-unused-vars */
-    var localStorageLiteral   = 'localStorage';
-    var sessionStorageLiteral = 'sessionStorage';
-    /* eslint-enable no-unused-vars */
-
-    strictEqual(eval(processScript('window[localStorageLiteral]')), localStorageWrapper);
-    strictEqual(eval(processScript('window[sessionStorageLiteral]')), sessionStorageWrapper);
+    sessionStorage.clear();
+    strictEqual(sessionStorage.length, 0);
 });
 
 module('direct record to the storage');
 
 test('setter', function () {
-    var storageWrapper = storageSandbox.sessionStorage;
+    sessionStorage.key1 = 'value1';
+    strictEqual(sessionStorage.getItem('key1'), 'value1');
+    strictEqual(sessionStorage.length, 1);
 
-    storageWrapper.key1 = 'value1';
-    strictEqual(storageWrapper.getItem('key1'), 'value1');
-    strictEqual(storageWrapper.length, 1);
-
-    storageWrapper.key1 = 'newValue';
-    strictEqual(storageWrapper.getItem('key1'), 'newValue');
-    strictEqual(storageWrapper.length, 1);
+    sessionStorage.key1 = 'newValue';
+    strictEqual(sessionStorage.getItem('key1'), 'newValue');
+    strictEqual(sessionStorage.length, 1);
 });
 
 test('getter', function () {
-    var storageWrapper = storageSandbox.localStorage;
+    localStorage.setItem('key1', 'value1');
+    strictEqual(localStorage.key1, 'value1');
 
-    storageWrapper.setItem('key1', 'value1');
-    strictEqual(storageWrapper.key1, 'value1');
+    localStorage.setItem('key1', null);
+    strictEqual(localStorage.key1, 'null');
 
-    storageWrapper.setItem('key1', null);
-    strictEqual(storageWrapper.key1, 'null');
+    localStorage.setItem(null, null);
+    strictEqual(localStorage.null, 'null');
 
-    storageWrapper.setItem(null, null);
-    strictEqual(storageWrapper.null, 'null');
-
-    storageWrapper.removeItem(null);
-    strictEqual(storageWrapper.null, void 0);
+    localStorage.removeItem(null);
+    strictEqual(localStorage.null, void 0);
 });
 
 module('area of visibility');
 
 test('iframe with empty src', function () {
-    var topStorage = storageSandbox.localStorage;
-
-    topStorage.key1 = 'value1';
+    localStorage.key1 = 'value1';
 
     return createTestIframe()
         .then(function (iframe) {
-            var iframeStorage = iframe.contentWindow['%hammerhead%'].sandbox.storageSandbox.localStorage;
+            var iframeLocalStorage = iframe.contentWindow.localStorage;
 
-            strictEqual(iframeStorage.key1, 'value1');
+            strictEqual(iframeLocalStorage.key1, 'value1');
 
-            iframeStorage.key2 = 'value2';
-            topStorage.key3    = 'value3';
+            iframeLocalStorage.key2 = 'value2';
+            localStorage.key3    = 'value3';
 
-            strictEqual(topStorage.key2, 'value2');
-            strictEqual(iframeStorage.key3, 'value3');
+            strictEqual(localStorage.key2, 'value2');
+            strictEqual(iframeLocalStorage.key3, 'value3');
         });
 });
 
 module('sync state with native');
 
 test('storages load their state from native', function () {
-    localStorage[storageWrapperKey]   = '[[ "key1" ],[ "value1" ]]';
-    sessionStorage[storageWrapperKey] = '[[ "key2" ],[ "value2" ]]';
+    nativeLocalStorage[storageWrapperKey]   = '[[ "key1" ],[ "value1" ]]';
+    nativeSessionStorage[storageWrapperKey] = '[[ "key2" ],[ "value2" ]]';
 
-    var localSandboxWrapper   = new StorageWrapper(window, localStorage, storageWrapperKey, hammerhead.sandbox.event.listeners);
-    var sessionSandboxWrapper = new StorageWrapper(window, sessionStorage, storageWrapperKey, hammerhead.sandbox.event.listeners);
+    var localSandboxWrapper   = new StorageWrapper(window, nativeLocalStorage, storageWrapperKey, hammerhead.sandbox.event.listeners);
+    var sessionSandboxWrapper = new StorageWrapper(window, nativeSessionStorage, storageWrapperKey, hammerhead.sandbox.event.listeners);
 
     strictEqual(localSandboxWrapper.key1, 'value1');
     strictEqual(sessionSandboxWrapper.key2, 'value2');
 });
 
 test('storages save their state on the beforeunload event', function () {
-    storageSandbox.localStorage.key1   = 'value1';
-    storageSandbox.sessionStorage.key2 = 'value2';
+    localStorage.key1   = 'value1';
+    sessionStorage.key2 = 'value2';
 
-    ok(!localStorage[storageWrapperKey]);
-    ok(!sessionStorage[storageWrapperKey]);
+    ok(!nativeLocalStorage[storageWrapperKey]);
+    ok(!nativeSessionStorage[storageWrapperKey]);
 
     // NOTE: Simulate page leaving
     hammerhead.sandbox.event.unload._emitBeforeUnloadEvent();
 
-    strictEqual(localStorage[storageWrapperKey], JSON.stringify([['key1'], ['value1']]));
-    strictEqual(sessionStorage[storageWrapperKey], JSON.stringify([['key2'], ['value2']]));
+    strictEqual(nativeLocalStorage[storageWrapperKey], JSON.stringify([['key1'], ['value1']]));
+    strictEqual(nativeSessionStorage[storageWrapperKey], JSON.stringify([['key2'], ['value2']]));
 });
 
 module('storage changed event');
@@ -374,7 +277,7 @@ test('event firing in all same host windows except current', function () {
 
             window.addEventListener('storage', topWindowHandler);
             iframe.contentWindow.addEventListener('storage', iframeWindowHandler);
-            iframe.contentWindow.eval(processScript('localStorage.key1 = "value1";'));
+            iframe.contentWindow.localStorage.key1 = 'value1';
 
             return waitStorageUpdated();
         })
@@ -386,9 +289,9 @@ test('event firing in all same host windows except current', function () {
             strictEqual(topStorageEventArgs[0].oldValue, isIE ? '' : null);
             strictEqual(topStorageEventArgs[0].newValue, 'value1');
             strictEqual(topStorageEventArgs[0].url, 'https://example.com');
-            strictEqual(topStorageEventArgs[0].storageArea, iframe.contentWindow.eval(processScript('localStorage')));
+            strictEqual(topStorageEventArgs[0].storageArea, iframe.contentWindow.localStorage);
 
-            eval(processScript('localStorage.key2 = "value2";'));
+            localStorage.key2 = 'value2';
 
             return waitStorageUpdated();
         })
@@ -400,7 +303,7 @@ test('event firing in all same host windows except current', function () {
             strictEqual(iframeStorageEventArgs[0].oldValue, isIE ? '' : null);
             strictEqual(iframeStorageEventArgs[0].newValue, 'value2');
             strictEqual(iframeStorageEventArgs[0].url, 'https://example.com');
-            strictEqual(iframeStorageEventArgs[0].storageArea, eval(processScript('localStorage')));
+            strictEqual(iframeStorageEventArgs[0].storageArea, localStorage);
 
             window.removeEventListener('storage', topWindowHandler);
         });
@@ -418,7 +321,7 @@ test('event argument parameters', function () {
 
     return createTestIframe()
         .then(function (iframe) {
-            iframeStorageSandbox = iframe.contentWindow.eval(processScript('localStorage'));
+            iframeStorageSandbox = iframe.contentWindow.localStorage;
             iframeStorageSandbox.clear();
 
             return waitStorageEvent(window, function () {
@@ -463,24 +366,22 @@ test('Storage wrapper should has Storage prototype (GH-955)', function () {
         }
     });
 
-    strictEqual(storageSandbox.localStorage['gh955'], 'gh955');
-    strictEqual(storageSandbox.sessionStorage['gh955'], 'gh955');
+    strictEqual(localStorage['gh955'], 'gh955');
+    strictEqual(sessionStorage['gh955'], 'gh955');
 });
 
 test("should work with keys named as wrapper's internal members (GH-735)", function () {
-    var storageWrapper = storageSandbox.sessionStorage;
+    sessionStorage.initialProperties.forEach(function (property) {
+        sessionStorage.setItem(property, 'test');
 
-    storageWrapper.initialProperties.forEach(function (property) {
-        storageWrapper.setItem(property, 'test');
-
-        ok(storageWrapper[property] !== 'test');
-        strictEqual(storageWrapper.getItem(property), 'test');
+        ok(sessionStorage[property] !== 'test');
+        strictEqual(sessionStorage.getItem(property), 'test');
     });
 
-    storageWrapper.wrapperMethods.forEach(function (method) {
-        storageWrapper.setItem(method, 'test');
+    sessionStorage.wrapperMethods.forEach(function (method) {
+        sessionStorage.setItem(method, 'test');
 
-        ok(storageWrapper[method] !== 'test');
-        strictEqual(storageWrapper.getItem(method), 'test');
+        ok(sessionStorage[method] !== 'test');
+        strictEqual(sessionStorage.getItem(method), 'test');
     });
 });

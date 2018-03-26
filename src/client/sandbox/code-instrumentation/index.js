@@ -2,7 +2,6 @@ import SandboxBase from '../base';
 import PropertyAccessorsInstrumentation from './properties';
 import LocationAccessorsInstrumentation from './location';
 import MethodCallInstrumentation from './methods';
-import StoragesAccessorsInstrumentation from './storages';
 import { getAttributeProperty } from './properties/attributes';
 import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
@@ -10,14 +9,13 @@ import nativeMethods from '../../sandbox/native-methods';
 import { processHtml } from '../../utils/html';
 
 export default class CodeInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, shadowUI, storageSandbox, elementSandbox) {
+    constructor (nodeMutation, eventSandbox, shadowUI, elementSandbox) {
         super();
 
         this.methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
         this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation();
         this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(nodeMutation,
-            shadowUI, storageSandbox, elementSandbox);
-        this.storagesAccessorsInstrumentation = new StoragesAccessorsInstrumentation(storageSandbox);
+            shadowUI, elementSandbox);
     }
 
     static getAttributesProperty (el) {
@@ -29,7 +27,6 @@ export default class CodeInstrumentation extends SandboxBase {
 
         this.methodCallInstrumentation.attach(window);
         this.locationAccessorsInstrumentation.attach(window);
-        this.storagesAccessorsInstrumentation.attach(window);
         this.elementPropertyAccessors = this.propertyAccessorsInstrumentation.attach(window);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.

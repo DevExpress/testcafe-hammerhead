@@ -10,6 +10,8 @@ var savedAjaxSendMethod = nativeMethods.xhrSend;
 
 var requestIsAsync = false;
 
+var nativeLocalStorage = nativeMethods.winLocalStorageGetter.call(window);
+
 settings.get().serviceMsgUrl = '/service-msg/100';
 
 function registerAfterAjaxSendHook (callback) {
@@ -121,7 +123,7 @@ test('batchUpdate - with stored messages', function () {
         { cmd: 'Type3', duration: 30 }
     ];
 
-    window.localStorage.setItem(settings.get().sessionId, JSON.stringify(messages));
+    nativeLocalStorage.setItem(settings.get().sessionId, JSON.stringify(messages));
 
     return transport.batchUpdate()
         .then(function () {
@@ -159,7 +161,7 @@ else {
         var xhrCount = 0;
         var value    = 'testValue';
 
-        ok(!window.localStorage.getItem(settings.get().sessionId));
+        ok(!nativeLocalStorage.getItem(settings.get().sessionId));
 
         registerAfterAjaxSendHook(function (xhr) {
             xhrCount++;
@@ -170,7 +172,7 @@ else {
             .then(function () {
                 strictEqual(xhrCount, 1);
 
-                var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
+                var storedMsgStr = nativeLocalStorage.getItem(settings.get().sessionId);
                 var storedMsg    = JSON.parse(storedMsgStr)[0];
 
                 ok(storedMsgStr);
@@ -178,14 +180,14 @@ else {
 
                 unregisterAfterAjaxSendHook();
 
-                window.localStorage.removeItem(settings.get().sessionId);
+                nativeLocalStorage.removeItem(settings.get().sessionId);
             });
     });
 
     test('do not duplicate messages in store (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 
-        ok(!window.localStorage.getItem(settings.get().sessionId));
+        ok(!nativeLocalStorage.getItem(settings.get().sessionId));
 
         registerAfterAjaxSendHook(function (xhr) {
             xhr.abort();
@@ -199,14 +201,14 @@ else {
 
         return Promise.all(msgPromises)
             .then(function () {
-                var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
+                var storedMsgStr = nativeLocalStorage.getItem(settings.get().sessionId);
                 var storedMsgArr = JSON.parse(storedMsgStr);
 
                 strictEqual(storedMsgArr.length, 1);
 
                 unregisterAfterAjaxSendHook();
 
-                window.localStorage.removeItem(settings.get().sessionId);
+                nativeLocalStorage.removeItem(settings.get().sessionId);
             });
     });
 }
@@ -217,7 +219,7 @@ if (browserUtils.isWebKit) {
 
         var xhrCount = 0;
 
-        ok(!window.localStorage.getItem(settings.get().sessionId));
+        ok(!nativeLocalStorage.getItem(settings.get().sessionId));
 
         registerAfterAjaxSendHook(function (xhr) {
             xhrCount++;
@@ -228,11 +230,11 @@ if (browserUtils.isWebKit) {
             .then(function () {
                 strictEqual(xhrCount, 1);
 
-                var storedMsgStr = window.localStorage.getItem(settings.get().sessionId);
+                var storedMsgStr = nativeLocalStorage.getItem(settings.get().sessionId);
 
                 strictEqual(storedMsgStr, '[]');
 
-                window.localStorage.removeItem(settings.get().sessionId);
+                nativeLocalStorage.removeItem(settings.get().sessionId);
 
                 unregisterAfterAjaxSendHook();
             });
@@ -265,11 +267,11 @@ test('hammerhead should remove service data from local storage on the first sess
     settings.get().isFirstPageLoad = true;
 
     // NOTE: Add service data.
-    window.localStorage.setItem(sessionId, 'some-serive-data');
+    nativeLocalStorage.setItem(sessionId, 'some-serive-data');
 
     var hh = new hammerhead.constructor(window);
 
     hh.start(settings.get(), window);
 
-    ok(!window.localStorage.getItem(sessionId));
+    ok(!nativeLocalStorage.getItem(sessionId));
 });

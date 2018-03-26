@@ -7,18 +7,19 @@ import { getTopSameDomainWindow } from '../../utils/dom';
 import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as JSON from '../../json';
+import { overrideDescriptor } from '../../utils/property-overriding';
 
 export default class StorageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox, eventSimulator) {
         super();
 
-        this.localStorage   = null;
-        this.sessionStorage = null;
-        this.listeners      = listeners;
-        this.unloadSandbox  = unloadSandbox;
-        this.eventSimulator = eventSimulator;
-        this.storages       = {};
-        this.isLocked       = false;
+        this.localStorageWrapper   = null;
+        this.sessionStorageWrapper = null;
+        this.listeners             = listeners;
+        this.unloadSandbox         = unloadSandbox;
+        this.eventSimulator        = eventSimulator;
+        this.storages              = {};
+        this.isLocked              = false;
     }
 
     _simulateStorageEventIfNecessary (event, storageArea) {
@@ -45,25 +46,25 @@ export default class StorageSandbox extends SandboxBase {
 
         // NOTE: Use the already created wrappers.
         if (topSameDomainStorages[storageKey]) {
-            this.localStorage   = topSameDomainStorages[storageKey].localStorage;
-            this.sessionStorage = topSameDomainStorages[storageKey].sessionStorage;
+            this.localStorageWrapper   = topSameDomainStorages[storageKey].localStorageWrapper;
+            this.sessionStorageWrapper = topSameDomainStorages[storageKey].sessionStorageWrapper;
         }
         // NOTE: Or create new.
         else {
-            this.localStorage   = new StorageWrapper(this.window, this.window.localStorage, storageKey);
-            this.sessionStorage = new StorageWrapper(this.window, this.window.sessionStorage, storageKey);
+            this.localStorageWrapper   = new StorageWrapper(this.window, nativeMethods.winLocalStorageGetter.call(this.window), storageKey);
+            this.sessionStorageWrapper = new StorageWrapper(this.window, nativeMethods.winSessionStorageGetter.call(this.window), storageKey);
 
             this.unloadSandbox.on(this.unloadSandbox.BEFORE_UNLOAD_EVENT, () => {
                 if (!this.isLocked) {
-                    this.localStorage.saveToNativeStorage();
-                    this.sessionStorage.saveToNativeStorage();
+                    this.localStorageWrapper.saveToNativeStorage();
+                    this.sessionStorageWrapper.saveToNativeStorage();
                 }
             });
 
             // NOTE: Push to the top same-domain sandbox.
             topSameDomainStorages[storageKey] = {
-                localStorage:   this.localStorage,
-                sessionStorage: this.sessionStorage
+                localStorageWrapper:   this.localStorageWrapper,
+                sessionStorageWrapper: this.sessionStorageWrapper
             };
         }
     }
@@ -94,8 +95,8 @@ export default class StorageSandbox extends SandboxBase {
     }
 
     clear () {
-        this.window.localStorage.removeItem(this.localStorage.nativeStorageKey);
-        this.window.sessionStorage.removeItem(this.sessionStorage.nativeStorageKey);
+        nativeMethods.winLocalStorageGetter.call(this.window).removeItem(this.localStorageWrapper.nativeStorageKey);
+        nativeMethods.winSessionStorageGetter.call(this.window).removeItem(this.sessionStorageWrapper.nativeStorageKey);
     }
 
     lock () {
@@ -104,14 +105,14 @@ export default class StorageSandbox extends SandboxBase {
 
     backup () {
         return {
-            localStorage:   JSON.stringify(this.localStorage.getCurrentState()),
-            sessionStorage: JSON.stringify(this.sessionStorage.getCurrentState())
+            localStorage:   JSON.stringify(this.localStorageWrapper.getCurrentState()),
+            sessionStorage: JSON.stringify(this.sessionStorageWrapper.getCurrentState())
         };
     }
 
     restore ({ localStorage, sessionStorage }) {
-        this.localStorage.restore(localStorage);
-        this.sessionStorage.restore(sessionStorage);
+        this.localStorageWrapper.restore(localStorage);
+        this.sessionStorageWrapper.restore(sessionStorage);
     }
 
     attach (window) {
@@ -119,8 +120,10 @@ export default class StorageSandbox extends SandboxBase {
 
         this._createStorageWrappers();
 
-        this.onLocalStorageChangeListener = this.localStorage.on(this.localStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.localStorage));
-        this.onSessionStorageListener     = this.sessionStorage.on(this.sessionStorage.STORAGE_CHANGED_EVENT, e => this._simulateStorageEventIfNecessary(e, this.sessionStorage));
+        this.onLocalStorageChangeListener = this.localStorageWrapper.on(this.localStorageWrapper.STORAGE_CHANGED_EVENT,
+            e => this._simulateStorageEventIfNecessary(e, this.localStorageWrapper));
+        this.onSessionStorageListener     = this.sessionStorageWrapper.on(this.sessionStorageWrapper.STORAGE_CHANGED_EVENT,
+            e => this._simulateStorageEventIfNecessary(e, this.sessionStorageWrapper));
 
         this.listeners.initElementListening(window, ['storage']);
         this.listeners.addInternalEventListener(window, ['storage'], (e, dispatched, preventEvent) => {
@@ -129,18 +132,34 @@ export default class StorageSandbox extends SandboxBase {
         });
 
         this._overrideStorageEvent();
+
+        overrideDescriptor(window, 'localStorage', {
+            getter: () => {
+                this.localStorageWrapper.setContext(window);
+
+                return this.localStorageWrapper;
+            }
+        });
+
+        overrideDescriptor(window, 'sessionStorage', {
+            getter: () => {
+                this.sessionStorageWrapper.setContext(window);
+
+                return this.sessionStorageWrapper;
+            }
+        });
     }
 
     dispose () {
-        this.localStorage.off(this.localStorage.STORAGE_CHANGED_EVENT, this.onLocalStorageChangeListener);
-        this.sessionStorage.off(this.sessionStorage.STORAGE_CHANGED_EVENT, this.onSessionStorageListener);
+        this.localStorageWrapper.off(this.localStorageWrapper.STORAGE_CHANGED_EVENT, this.onLocalStorageChangeListener);
+        this.sessionStorageWrapper.off(this.sessionStorageWrapper.STORAGE_CHANGED_EVENT, this.onSessionStorageListener);
 
         const topSameDomainWindow = getTopSameDomainWindow(this.window);
 
         // NOTE: For removed iframe without src in IE11 window.top equals iframe's window
         if (this.window === topSameDomainWindow && !topSameDomainWindow.frameElement) {
-            this.localStorage.dispose();
-            this.sessionStorage.dispose();
+            this.localStorageWrapper.dispose();
+            this.sessionStorageWrapper.dispose();
         }
     }
 }
