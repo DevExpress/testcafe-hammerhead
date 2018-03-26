@@ -4,7 +4,7 @@ class NativeMethods {
         win = win || window;
 
         // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
-        this.isStoragesPropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
+        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
 
         this.refreshDocumentMeths(doc, win);
         this.refreshElementMeths(doc, win);
@@ -16,7 +16,7 @@ class NativeMethods {
     }
 
     getStoragesPropsOwner (win) {
-        return this.isStoragesPropsLocatedInProto ? win.Window.prototype : win;
+        return this.isStoragePropsLocatedInProto ? win.Window.prototype : win;
     }
 
     refreshDocumentMeths (doc, win) {
@@ -362,7 +362,7 @@ class NativeMethods {
             this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
 
         // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
-        this.isStoragesPropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
+        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
 
         const storagesPropsOwner = this.getStoragesPropsOwner(win);
 

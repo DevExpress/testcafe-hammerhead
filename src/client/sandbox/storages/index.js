@@ -135,7 +135,13 @@ export default class StorageSandbox extends SandboxBase {
 
         const storagesPropsOwner = this.nativeMethods.getStoragesPropsOwner(window);
 
-        if (!nativeMethods.isStoragesPropsLocatedInProto || !window.hasOwnProperty('localStorage')) {
+        // NOTE: Storage properties is located in Window.prototype in the IE11 and these are non configurable.
+        // We define descriptors from a prototype with an overridden getter on a window instance.
+        // We don't need define descriptors again if these was overridden.
+        const shouldDefineStorageProps = !nativeMethods.isStoragePropsLocatedInProto ||
+                                         !nativeMethods.objectHasOwnProperty.call(window, 'localStorage');
+
+        if (shouldDefineStorageProps) {
             nativeMethods.objectDefineProperties.call(window.Object, window, {
                 'localStorage': createOverriddenDescriptor(storagesPropsOwner, 'localStorage', {
                     getter: () => {
