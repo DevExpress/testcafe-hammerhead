@@ -38,6 +38,7 @@ import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detec
 import { HASH_RE } from '../../../utils/url';
 import UploadSandbox from '../upload';
 import { getAnchorProperty, setAnchorProperty } from '../code-instrumentation/properties/anchor';
+import { XLINK_NAMESPACE } from '../../../processing/dom/namespaces';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -50,6 +51,11 @@ const HTTP_PROTOCOL_RE = /^http/i;
 const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
 const ALLOWED_SERVICE_WORKER_HOST_NAMES = ['localhost', '127.0.0.1'];
 const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javascript', 'application/x-javascript'];
+
+// NOTE: SVGAnimatedString prototype does not have a way to access the appropriate svg element.
+// This is why we use this property to store svg element for which animVal and baseVal properties were set.
+// It allows us to change the href-hammerhead-stored-value when it needs.
+const CONTEXT_SVG_IMAGE_ELEMENT = 'hammerhead|context-svg-image-element';
 
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, messageSandbox, listenersSandbox, elementEditingWatcher, uploadSandbox) {
@@ -744,6 +750,63 @@ export default class WindowSandbox extends SandboxBase {
         this._overrideUrlPropDescriptor('pathname', nativeMethods.anchorPathnameGetter, nativeMethods.anchorPathnameSetter);
         this._overrideUrlPropDescriptor('protocol', nativeMethods.anchorProtocolGetter, nativeMethods.anchorProtocolSetter);
         this._overrideUrlPropDescriptor('search', nativeMethods.anchorSearchGetter, nativeMethods.anchorSearchSetter);
+
+        overrideDescriptor(window.SVGImageElement.prototype, 'href', {
+            getter: function () {
+                const imageHref = nativeMethods.svgImageHrefGetter.call(this);
+
+                if (!imageHref[CONTEXT_SVG_IMAGE_ELEMENT]) {
+                    nativeMethods.objectDefineProperty(imageHref, CONTEXT_SVG_IMAGE_ELEMENT, {
+                        value:        this,
+                        configurable: true
+                    });
+                }
+
+                return imageHref;
+            }
+        });
+
+        overrideDescriptor(window.SVGAnimatedString.prototype, 'baseVal', {
+            getter: function () {
+                let baseVal = nativeMethods.svgAnimStrBaseValGetter.call(this);
+
+                if (this[CONTEXT_SVG_IMAGE_ELEMENT]) {
+                    const parsedHref = parseProxyUrl(baseVal);
+
+                    baseVal = parsedHref ? parsedHref.destUrl : baseVal;
+                }
+
+                return baseVal;
+            },
+            setter: function (value) {
+                const contextImageElemet = this[CONTEXT_SVG_IMAGE_ELEMENT];
+
+                if (contextImageElemet) {
+                    if (nativeMethods.hasAttributeNS.call(contextImageElemet, XLINK_NAMESPACE, 'href'))
+                        windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, [XLINK_NAMESPACE, 'href', value], true);
+                    else
+                        windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, ['href', value]);
+
+                    value = getProxyUrl(value);
+                }
+
+                nativeMethods.svgAnimStrBaseValSetter.call(this, value);
+            }
+        });
+
+        overrideDescriptor(window.SVGAnimatedString.prototype, 'animVal', {
+            getter: function () {
+                const animVal = nativeMethods.svgAnimStrAnimValGetter.call(this);
+
+                if (this[CONTEXT_SVG_IMAGE_ELEMENT]) {
+                    const parsedAnimVal = parseProxyUrl(animVal);
+
+                    return parsedAnimVal ? parsedAnimVal.destUrl : animVal;
+                }
+
+                return animVal;
+            }
+        });
 
         if (nativeMethods.anchorOriginGetter) {
             overrideDescriptor(window.HTMLAnchorElement.prototype, 'origin', {

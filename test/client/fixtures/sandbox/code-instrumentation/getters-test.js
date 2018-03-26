@@ -9,6 +9,7 @@ var styleProcessor                       = hammerhead.get('../processing/style')
 var destLocation                         = hammerhead.get('./utils/destination-location');
 var attributesProperty                   = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
 var processHtml                          = hammerhead.get('../client/utils/html').processHtml;
+var DomProcessor                         = hammerhead.get('../processing/dom');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -188,6 +189,43 @@ test('HTMLElement.style', function () {
     }
 });
 
+test('SVGImageElement with href attribute (GH-1502)', function () {
+    var svgNameSpaceUrl = 'http://www.w3.org/2000/svg';
+    var svgImage        = document.createElementNS(svgNameSpaceUrl, 'image');
+    var nativeSvgImage  = nativeMethods.createElementNS.call(document, svgNameSpaceUrl, 'image');
+    var url             = 'http://domain.com/test.svg';
+    var proxyUrl        = urlUtils.getProxyUrl(url);
+
+    svgImage.href.baseVal = url;
+    nativeMethods.svgAnimStrBaseValSetter.call(nativeMethods.svgImageHrefGetter.call(nativeSvgImage), url);
+
+    strictEqual(nativeMethods.svgAnimStrAnimValGetter.call(svgImage.href), proxyUrl);
+    strictEqual(nativeMethods.svgAnimStrBaseValGetter.call(svgImage.href), proxyUrl);
+    strictEqual(svgImage.href.animVal, nativeSvgImage.href.animVal);
+    strictEqual(svgImage.href.baseVal, nativeSvgImage.href.baseVal);
+
+    var hrefStroredAttrName = DomProcessor.getStoredAttrName.call(svgImage, 'href');
+
+    strictEqual(nativeMethods.getAttribute.call(svgImage, hrefStroredAttrName), url);
+    strictEqual(svgImage.getAttribute('href'), nativeMethods.getAttribute.call(nativeSvgImage, 'href'));
+});
+
+test('SVGImageElement with xlink:href attribute (GH-1502)', function () {
+    var svgNameSpaceUrl   = 'http://www.w3.org/2000/svg';
+    var xlinkNameSpaceUrl = 'http://www.w3.org/1999/xlink';
+    var svgImage          = document.createElementNS(svgNameSpaceUrl, 'image');
+    var nativeSvgImage    = nativeMethods.createElementNS.call(document, svgNameSpaceUrl, 'image');
+    var url               = 'http://domain.com/test.svg';
+
+    svgImage.setAttributeNS(xlinkNameSpaceUrl, 'href', url);
+    nativeMethods.setAttributeNS.call(nativeSvgImage, xlinkNameSpaceUrl, 'href', url);
+
+    var hrefStroredAttrName = DomProcessor.getStoredAttrName.call(svgImage, 'href');
+
+    strictEqual(nativeMethods.getAttributeNS.call(svgImage, xlinkNameSpaceUrl, hrefStroredAttrName), url);
+    strictEqual(svgImage.getAttributeNS(xlinkNameSpaceUrl, 'href'), nativeMethods.getAttributeNS.call(nativeSvgImage, xlinkNameSpaceUrl, 'href'));
+});
+
 module('regression');
 
 test('changing the link.href property must affect the stored attribute value (T123960)', function () {
@@ -228,7 +266,7 @@ test('get script body (T296958) (GH-183)', function () {
 
 test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
     var storedBind = Function.prototype.bind;
-    var anchor          = document.createElement('a');
+    var anchor     = document.createElement('a');
     var withError  = false;
 
     nativeMethods.anchorHrefSetter.call(anchor, 'test');
