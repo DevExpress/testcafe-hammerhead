@@ -7,7 +7,7 @@ import { getTopSameDomainWindow } from '../../utils/dom';
 import getStorageKey from '../../../utils/get-storage-key';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import * as JSON from '../../json';
-import { overrideDescriptor } from '../../utils/property-overriding';
+import { createOverriddenDescriptor } from '../../utils/property-overriding';
 
 export default class StorageSandbox extends SandboxBase {
     constructor (listeners, unloadSandbox, eventSimulator) {
@@ -133,21 +133,27 @@ export default class StorageSandbox extends SandboxBase {
 
         this._overrideStorageEvent();
 
-        overrideDescriptor(window, 'localStorage', {
-            getter: () => {
-                this.localStorageWrapper.setContext(window);
+        const storagesPropsOwner = nativeMethods.isStoragesPropsLocatedInProto ? window.Window.prototype : window;
 
-                return this.localStorageWrapper;
-            }
-        });
+        if (!nativeMethods.isStoragesPropsLocatedInProto || !window.hasOwnProperty('localStorage')) {
+            nativeMethods.objectDefineProperties.call(window.Object, window, {
+                'localStorage': createOverriddenDescriptor(storagesPropsOwner, 'localStorage', {
+                    getter: () => {
+                        this.localStorageWrapper.setContext(window);
 
-        overrideDescriptor(window, 'sessionStorage', {
-            getter: () => {
-                this.sessionStorageWrapper.setContext(window);
+                        return this.localStorageWrapper;
+                    }
+                }),
 
-                return this.sessionStorageWrapper;
-            }
-        });
+                'sessionStorage': createOverriddenDescriptor(storagesPropsOwner, 'sessionStorage', {
+                    getter: () => {
+                        this.sessionStorageWrapper.setContext(window);
+
+                        return this.sessionStorageWrapper;
+                    }
+                })
+            });
+        }
     }
 
     dispose () {

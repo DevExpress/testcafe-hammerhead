@@ -284,8 +284,6 @@ class NativeMethods {
         this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
         this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
         this.xhrStatusGetter                = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
-        this.winLocalStorageGetter          = win.Object.getOwnPropertyDescriptor(win, 'localStorage').get;
-        this.winSessionStorageGetter        = win.Object.getOwnPropertyDescriptor(win, 'sessionStorage').get;
         this.objectDataGetter               = objectDataDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
@@ -353,6 +351,14 @@ class NativeMethods {
         // NOTE: IE doesn't support the 'responseURL' property
         if (xhrResponseURLDescriptor)
             this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
+
+        // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
+        this.isStoragesPropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
+
+        const storagesPropsOwner = this.isStoragesPropsLocatedInProto ? win.Window.prototype : win;
+
+        this.winLocalStorageGetter   = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'localStorage').get;
+        this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
 
         // Stylesheets
         if (win.CSSStyleDeclaration) {
