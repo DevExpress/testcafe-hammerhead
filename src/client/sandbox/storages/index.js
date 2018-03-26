@@ -133,7 +133,7 @@ export default class StorageSandbox extends SandboxBase {
 
         this._overrideStorageEvent();
 
-        const storagesPropsOwner = nativeMethods.isStoragesPropsLocatedInProto ? window.Window.prototype : window;
+        const storagesPropsOwner = this.nativeMethods.getStoragesPropsOwner(window);
 
         if (!nativeMethods.isStoragesPropsLocatedInProto || !window.hasOwnProperty('localStorage')) {
             nativeMethods.objectDefineProperties.call(window.Object, window, {
