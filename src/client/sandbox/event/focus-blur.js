@@ -115,7 +115,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             this._restoreElementNonScrollableParentsScrollState(this.scrollState.elementNonScrollableParentsScrollState);
     }
 
-    _raiseEvent (el, type, callback, withoutHandlers, isAsync, forMouseEvent, preventScrolling) {
+    _raiseEvent (el, type, callback, withoutHandlers, isAsync, forMouseEvent, preventScrolling, relEl) {
         // NOTE: We cannot use Promise because 'resolve' will be called async, but we need to resolve
         // immediately in IE9 and IE10.
 
@@ -145,8 +145,8 @@ export default class FocusBlurSandbox extends SandboxBase {
                     this.eventSimulator[type](el);
                 }
                 else {
-                    this.eventSimulator[type](el);
-                    this.eventSimulator[bubblesEventType](el);
+                    this.eventSimulator[type](el, relEl);
+                    this.eventSimulator[bubblesEventType](el, relEl);
                 }
             }
 
@@ -280,7 +280,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                 else
                     this._raiseSelectionChange(callback, el);
 
-            }, withoutHandlers || silent, isAsync, forMouseEvent, preventScrolling);
+            }, withoutHandlers || silent, isAsync, forMouseEvent, preventScrolling, activeElement);
         };
 
         if (isNativeFocus && browserUtils.isIE) {
@@ -339,7 +339,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                     this.blur(domUtils.getIframeByElement(activeElement), raiseFocusEvent, true, isNativeFocus);
                 else
                     raiseFocusEvent();
-            }, silent, isNativeFocus);
+            }, silent, isNativeFocus, el);
         }
         else
             raiseFocusEvent();
@@ -347,7 +347,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         return null;
     }
 
-    blur (el, callback, withoutHandlers, isNativeBlur) {
+    blur (el, callback, withoutHandlers, isNativeBlur, relEl) {
         const activeElement = domUtils.getActiveElement(domUtils.findDocument(el));
         // NOTE: In IE, if you call the focus() or blur() method from script, an active element is changed
         // immediately but events are raised asynchronously after some timeout (in MSEdgethe focus/blur methods
@@ -365,7 +365,7 @@ export default class FocusBlurSandbox extends SandboxBase {
         this._raiseEvent(el, 'blur', () => {
             if (typeof callback === 'function')
                 callback();
-        }, withoutHandlers, isAsync);
+        }, withoutHandlers, isAsync, false, false, relEl);
     }
 
     static _processFocusPseudoClassSelector (selector) {

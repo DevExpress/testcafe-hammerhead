@@ -571,7 +571,7 @@ export default class EventSimulator {
         return this._raiseDispatchEvent(el, ev, args);
     }
 
-    _dispatchFocusEvent (el, name) {
+    _dispatchFocusEvent (el, name, relEl) {
         const browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
         let event                       = null;
         const bubbles                   = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
@@ -581,6 +581,7 @@ export default class EventSimulator {
                 bubbles:          bubbles,
                 cancelable:       false,
                 cancelBubble:     false,
+                relatedTarget:    relEl,
                 defaultPrevented: false
             });
         }
@@ -750,20 +751,20 @@ export default class EventSimulator {
     // NOTE: Control events.
     // NOTE: "focus", "blur" and "selectionchange" shouldn't bubble (T229732),
     // but "input", "change" and "submit" should do it (GH-318).
-    blur (el) {
-        return this._dispatchFocusEvent(el, 'blur');
+    blur (el, relEl) {
+        return this._dispatchFocusEvent(el, 'blur', relEl);
     }
 
-    focus (el) {
-        return this._dispatchFocusEvent(el, 'focus');
+    focus (el, relEl) {
+        return this._dispatchFocusEvent(el, 'focus', relEl);
     }
 
-    focusin (el) {
-        return this._dispatchFocusEvent(el, 'focusin');
+    focusin (el, relEl) {
+        return this._dispatchFocusEvent(el, 'focusin', relEl);
     }
 
-    focusout (el) {
-        return this._dispatchFocusEvent(el, 'focusout');
+    focusout (el, relEl) {
+        return this._dispatchFocusEvent(el, 'focusout', relEl);
     }
 
     storage (window, options) {
