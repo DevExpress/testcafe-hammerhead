@@ -58,14 +58,14 @@ const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javas
 const CONTEXT_SVG_IMAGE_ELEMENT = 'hammerhead|context-svg-image-element';
 
 export default class WindowSandbox extends SandboxBase {
-    constructor (nodeSandbox, messageSandbox, listenersSandbox, elementEditingWatcher, uploadSandbox) {
+    constructor (nodeSandbox, eventSandbox, uploadSandbox) {
         super();
 
         this.nodeSandbox           = nodeSandbox;
-        this.messageSandbox        = messageSandbox;
-        this.listenersSandbox      = listenersSandbox;
+        this.messageSandbox        = eventSandbox.message;
+        this.listenersSandbox      = eventSandbox.listeners;
+        this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
         this.uploadSandbox         = uploadSandbox;
-        this.elementEditingWatcher = elementEditingWatcher;
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';

@@ -81,24 +81,6 @@ export function createProcessScriptMethCall (arg, isApply) {
     return ast;
 }
 
-export function createGetStorageMethCall (storage) {
-    return {
-        type: Syntax.CallExpression,
-
-        callee: {
-            type: Syntax.Identifier,
-            name: INSTRUCTION.getStorage
-        },
-
-        arguments: [
-            {
-                type: Syntax.Identifier,
-                name: storage
-            }
-        ]
-    };
-}
-
 export function createLocationGetWrapper () {
     return {
         type: Syntax.CallExpression,

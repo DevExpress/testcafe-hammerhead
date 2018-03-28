@@ -1,6 +1,11 @@
 /*global Document, Window */
 class NativeMethods {
     constructor (doc, win) {
+        win = win || window;
+
+        // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
+        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
+
         this.refreshDocumentMeths(doc, win);
         this.refreshElementMeths(doc, win);
         this.refreshWindowMeths(win);
@@ -8,6 +13,10 @@ class NativeMethods {
 
     static _getDocumentPropOwnerName (docPrototype, propName) {
         return docPrototype.hasOwnProperty(propName) ? 'Document' : 'HTMLDocument';
+    }
+
+    getStoragesPropsOwner (win) {
+        return this.isStoragePropsLocatedInProto ? win.Window.prototype : win;
     }
 
     refreshDocumentMeths (doc, win) {
@@ -358,6 +367,14 @@ class NativeMethods {
         // NOTE: IE doesn't support the 'responseURL' property
         if (xhrResponseURLDescriptor)
             this.xhrResponseURLGetter = xhrResponseURLDescriptor.get;
+
+        // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
+        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
+
+        const storagesPropsOwner = this.getStoragesPropsOwner(win);
+
+        this.winLocalStorageGetter   = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'localStorage').get;
+        this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
 
         // Stylesheets
         if (win.CSSStyleDeclaration) {

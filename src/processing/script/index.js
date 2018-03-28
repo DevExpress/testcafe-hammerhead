@@ -27,7 +27,6 @@ const PROCESSED_SCRIPT_RE = new RegExp([
     reEscape(INSTRUCTION.callMethod),
     reEscape(INSTRUCTION.processScript),
     reEscape(INSTRUCTION.processHtml),
-    reEscape(INSTRUCTION.getStorage),
     reEscape(INSTRUCTION.getPostMessage)
 ].join('|'));
 

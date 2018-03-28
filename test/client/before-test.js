@@ -1,19 +1,20 @@
 (function () {
-    localStorage.clear();
-    sessionStorage.clear();
-
     // NOTE: Prevent Hammerhead from processing testing environment resources. There are only testing environment
     // resources on the page when this script is being executed. So, we can add the hammerhead class to all scripts
     // and link elements on the page.
     $('script').addClass('script-hammerhead-shadow-ui');
     $('link').addClass('ui-stylesheet-hammerhead-shadow-ui');
 
-    var hammerhead     = window['%hammerhead%'];
+    var hammerhead    = window['%hammerhead%'];
+    var nativeMethods = hammerhead.nativeMethods;
+
+    nativeMethods.winLocalStorageGetter.call(window).clear();
+    nativeMethods.winSessionStorageGetter.call(window).clear();
+
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
     var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
     var destLocation   = hammerhead.get('./utils/destination-location');
     var settings       = hammerhead.get('./settings');
-    var nativeMethods  = hammerhead.nativeMethods;
     var iframeSandbox  = hammerhead.sandbox.iframe;
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
