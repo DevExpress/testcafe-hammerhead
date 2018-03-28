@@ -21,7 +21,6 @@ export const PROPERTIES = [
     'border-image',
     'borderImageSource',
     'border-image-source',
-    'cssText',
     'cursor',
     'data',
     'firstChild',
@@ -43,7 +42,6 @@ export const PROPERTIES = [
     'onload',
     'outerHTML',
     'sandbox',
-    'style',
     'text',
     'textContent',
     'which'

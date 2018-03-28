@@ -1,25 +1,26 @@
-import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
-import SandboxBase from '../base';
-import NodeSandbox from '../node/index';
-import DomProcessor from '../../../processing/dom';
-import nativeMethods from '../native-methods';
-import domProcessor from '../../dom-processor';
-import { processScript } from '../../../processing/script';
-import styleProcessor from '../../../processing/style';
-import * as urlUtils from '../../utils/url';
-import * as domUtils from '../../utils/dom';
-import * as hiddenInfo from '../upload/hidden-info';
-import * as urlResolver from '../../utils/url-resolver';
-import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
-import { stopPropagation } from '../../utils/event';
-import { processHtml } from '../../utils/html';
-import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
-import { HASH_RE } from '../../../utils/url';
-import * as windowsStorage from '../windows-storage';
-import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
-import ShadowUI from '../shadow-ui';
-import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
-import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
+import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
+import SandboxBase from '../../base';
+import NodeSandbox from '../../node/index';
+import DomProcessor from '../../../../processing/dom';
+import nativeMethods from '../../native-methods';
+import domProcessor from '../../../dom-processor';
+import { processScript } from '../../../../processing/script';
+import styleProcessor from '../../../../processing/style';
+import * as urlUtils from '../../../utils/url';
+import * as domUtils from '../../../utils/dom';
+import * as hiddenInfo from '../../upload/hidden-info';
+import * as urlResolver from '../../../utils/url-resolver';
+import { sameOriginCheck, get as getDestLocation } from '../../../utils/destination-location';
+import { stopPropagation } from '../../../utils/event';
+import { processHtml } from '../../../utils/html';
+import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../../utils/query-selector';
+import { HASH_RE } from '../../../../utils/url';
+import * as windowsStorage from '../../windows-storage';
+import AttributesWrapper from '../../code-instrumentation/properties/attributes-wrapper';
+import ShadowUI from '../../shadow-ui';
+import DOMMutationTracker from '../live-node-list/dom-mutation-tracker';
+import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../../processing/dom/attributes';
+import StyleSandbox from './style';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -36,6 +37,7 @@ export default class ElementSandbox extends SandboxBase {
         this.uploadSandbox = uploadSandbox;
         this.iframeSandbox = iframeSandbox;
         this.eventSandbox  = eventSandbox;
+        this.styleSandbox  = new StyleSandbox(this);
 
         this.overriddenMethods = null;
 
@@ -615,6 +617,8 @@ export default class ElementSandbox extends SandboxBase {
         super.attach(window);
 
         this._createOverridedMethods();
+
+        this.styleSandbox.attach(window);
 
         window.Element.prototype.insertBefore              = this.overriddenMethods.insertBefore;
         window.Element.prototype.appendChild               = this.overriddenMethods.appendChild;

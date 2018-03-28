@@ -492,20 +492,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             'list-style':          PropertyAccessorsInstrumentation._createForStyleProperty('list-style'),
             listStyleImage:        PropertyAccessorsInstrumentation._createForStyleProperty('listStyleImage'),
             'list-style-image':    PropertyAccessorsInstrumentation._createForStyleProperty('list-style-image'),
-            cssText:               PropertyAccessorsInstrumentation._createForStyleProperty('cssText'),
-            cursor:                PropertyAccessorsInstrumentation._createForStyleProperty('cursor'),
-
-            style: {
-                condition: el => domUtils.isDomElement(el) && isStyle(el.style),
-
-                get: el => el.style,
-
-                set: (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['style', value]);
-
-                    return value;
-                }
-            }
+            cursor:                PropertyAccessorsInstrumentation._createForStyleProperty('cursor')
         };
     }
 

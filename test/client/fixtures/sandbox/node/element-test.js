@@ -1,3 +1,6 @@
+var urlUtils      = hammerhead.get('./utils/url');
+var nativeMethods = hammerhead.nativeMethods;
+
 test('check the "scriptElementEvent" event is raised', function () {
     var script1           = document.createElement('script');
     var addedScriptsCount = 0;
@@ -47,4 +50,32 @@ test('check the "scriptElementEvent" event is raised', function () {
     strictEqual(addedScriptsCount, 4);
 
     hammerhead.off(hammerhead.EVENTS.scriptElementAdded, handler);
+});
+
+module('styles');
+
+test('HTMLElement.style', function () {
+    var div = document.createElement('div');
+    var url = '/image.jpg';
+
+    div.style = 'background-image:url("' + url + '")';
+
+    var expectedBackgroundImageValue = nativeMethods.htmlElementStyleSetter
+        ? removeDoubleQuotes('url("' + urlUtils.getProxyUrl(url) + '")')
+        : '';
+
+    strictEqual(removeDoubleQuotes(div.style.backgroundImage), expectedBackgroundImageValue);
+});
+
+test('cssText', function () {
+    var div      = document.createElement('div');
+    var url      = '/image.png';
+    var proxyUrl = urlUtils.getProxyUrl(url);
+
+    div.style.cssText = 'background-image:url("' + url + '")';
+
+    var expectedBackgroundImageValue = removeDoubleQuotes('url("' + proxyUrl + '")');
+
+    strictEqual(removeDoubleQuotes(div.style.backgroundImage), expectedBackgroundImageValue);
+    strictEqual(div.style.cssText.indexOf(proxyUrl), -1);
 });

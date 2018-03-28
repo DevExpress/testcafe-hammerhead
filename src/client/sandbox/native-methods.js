@@ -116,6 +116,20 @@ class NativeMethods {
 
         this.svgFocus = win.SVGElement ? win.SVGElement.prototype.focus : this.focus;
         this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;
+
+        // Style
+        const htmlElementStyleDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'style');
+
+        this.htmlElementStyleGetter = htmlElementStyleDescriptor.get;
+
+        // NOTE: IE does not allow to set a style property
+        if (htmlElementStyleDescriptor.set)
+            this.htmlElementStyleSetter = htmlElementStyleDescriptor.set;
+
+        const styleCssTextDescriptor = win.Object.getOwnPropertyDescriptor(win.CSSStyleDeclaration.prototype, 'cssText');
+
+        this.styleCssTextGetter = styleCssTextDescriptor.get;
+        this.styleCssTextSetter = styleCssTextDescriptor.set;
     }
 
     refreshWindowMeths (win) {

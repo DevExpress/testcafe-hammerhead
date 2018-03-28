@@ -27,13 +27,6 @@ export function isStyle (instance) {
     return NATIVE_STYLE_STRINGS.indexOf(domUtils.instanceToString(instance)) !== -1;
 }
 
-export function isStyleSheet (instance) {
-    if (instance instanceof nativeMethods.styleSheetClass)
-        return true;
-
-    return domUtils.instanceToString(instance) === '[object CSSStyleSheet]';
-}
-
 export function get (el, property, doc, win) {
     el = el.documentElement || el;
 
