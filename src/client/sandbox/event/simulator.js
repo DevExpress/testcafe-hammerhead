@@ -17,7 +17,7 @@ const POINTER_EVENT_BUTTON = {
 };
 
 // NOTE: event.detail !=0 in some Mouse Events (User Interface Events).
-// See https://www.w3.org/TR/uievents/#events-uievents
+// See https://www.w3.org/TR/uievents/#events-mouseevents
 // https://github.com/DevExpress/testcafe/issues/2232
 const MOUSE_EVENT_DETAIL = {
     click:     browserUtils.isIE ? 0 : 1,
