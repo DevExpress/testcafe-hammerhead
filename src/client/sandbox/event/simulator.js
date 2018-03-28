@@ -16,6 +16,16 @@ const POINTER_EVENT_BUTTON = {
     rightButton: 2
 };
 
+// NOTE: event.detail !=0 in some Mouse Events (User Interface Events).
+// See https://www.w3.org/TR/uievents/#events-uievents
+// https://github.com/DevExpress/testcafe/issues/2232
+const MOUSE_EVENT_DETAIL = {
+    click:     browserUtils.isIE ? 0 : 1,
+    dblclick:  browserUtils.isIE ? 0 : 2,
+    mousedown: 1,
+    mouseup:   1
+};
+
 const KEY_EVENT_NAME_RE          = /^key\w+$/;
 const MOUSE_EVENT_NAME_RE        = /^((mouse\w+)|((dbl)?click)|(contextmenu)|(drag\w*)|(drop))$/;
 const TOUCH_EVENT_NAME_RE        = /^touch\w+$/;
@@ -107,6 +117,8 @@ export default class EventSimulator {
 
     static _getUIEventArgs (type, options) {
         const opts = options || {};
+
+        opts.detail = MOUSE_EVENT_DETAIL[type];
 
         return {
             type:       type,

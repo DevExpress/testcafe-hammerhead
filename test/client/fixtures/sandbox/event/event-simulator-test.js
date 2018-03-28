@@ -10,6 +10,7 @@ var $domElement = null;
 var domElement  = null;
 var raised      = false;
 var bubbled     = false;
+var detail      = 0;
 
 var lastTouchIdentifier = null;
 
@@ -19,6 +20,7 @@ QUnit.testStart(function () {
     raised              = false;
     bubbled             = false;
     lastTouchIdentifier = null;
+    detail              = 0;
 });
 
 QUnit.testDone(function () {
@@ -31,8 +33,10 @@ var bindMouseEvent = function (eventType, btn) {
     domElement['on' + eventType] = function (e) {
         var ev = e || window.event;
 
-        if (ev.button === button)
+        if (ev.button === button) {
             raised = true;
+            detail = ev.detail;
+        }
     };
 };
 
@@ -60,6 +64,40 @@ var bindBubbleListener = function (eventType) {
 var removeBubbleListener = function (eventType) {
     document.removeEventListener(eventType, bubbleEventListener);
 };
+
+test('mouse click event detail value', function () {
+    bindMouseEvent('click', eventUtils.BUTTON.left);
+    eventSimulator.click(domElement);
+    strictEqual(detail, browserUtils.isIE ? 0 : 1);
+});
+
+test('mouse double click event detail value', function () {
+    bindMouseEvent('dblclick', eventUtils.BUTTON.left);
+    eventSimulator.dblclick(domElement);
+    strictEqual(detail, browserUtils.isIE ? 0 : 2);
+});
+
+test('mouse mouse down event detail value', function () {
+    bindMouseEvent('mousedown', eventUtils.BUTTON.left);
+    eventSimulator.mousedown(domElement);
+    strictEqual(detail, 1);
+
+    detail = 0;
+    bindMouseEvent('mousedown', eventUtils.BUTTON.right);
+    eventSimulator.mousedown(domElement);
+    strictEqual(detail, 0);
+});
+
+test('mouse mouse up event detail value', function () {
+    bindMouseEvent('mouseup', eventUtils.BUTTON.left);
+    eventSimulator.mouseup(domElement);
+    strictEqual(detail, 1);
+
+    detail = 0;
+    bindMouseEvent('mouseup', eventUtils.BUTTON.right);
+    eventSimulator.mouseup(domElement);
+    strictEqual(detail, 0);
+});
 
 test('mouse left button click', function () {
     bindMouseEvent('click', eventUtils.BUTTON.left);
