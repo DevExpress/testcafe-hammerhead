@@ -137,12 +137,12 @@ export default class FocusBlurSandbox extends SandboxBase {
             if (!withoutHandlers) {
                 if (isAsync) {
                     // NOTE: focusin, focusout events are synchronously
-                    this.eventSimulator[bubblesEventType](el);
-                    this.timersSandbox.deferFunction(() => this.eventSimulator[type](el));
+                    this.eventSimulator[bubblesEventType](el, relEl);
+                    this.timersSandbox.deferFunction(() => this.eventSimulator[type](el, relEl));
                 }
                 else if (browserUtils.isMSEdge && type === 'blur') {
-                    this.eventSimulator[bubblesEventType](el);
-                    this.eventSimulator[type](el);
+                    this.eventSimulator[bubblesEventType](el, relEl);
+                    this.eventSimulator[type](el, relEl);
                 }
                 else {
                     this.eventSimulator[type](el, relEl);

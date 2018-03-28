@@ -571,7 +571,7 @@ export default class EventSimulator {
         return this._raiseDispatchEvent(el, ev, args);
     }
 
-    _dispatchFocusEvent (el, name, relEl) {
+    _dispatchFocusEvent (el, name, relEl = null) {
         const browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
         let event                       = null;
         const bubbles                   = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
@@ -588,7 +588,7 @@ export default class EventSimulator {
         else if (nativeMethods.documentCreateEvent) {
             event = nativeMethods.documentCreateEvent.call(document, 'FocusEvent');
 
-            event.initEvent(name, bubbles, true);
+            event.initFocusEvent(name, bubbles, true, null, 0, bubbles ? relEl : null);
         }
 
         if (event) {

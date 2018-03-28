@@ -1220,29 +1220,31 @@ asyncTest('relatedTarget property should be passed correctly to the FocusEvent',
     secondInput.className = TEST_ELEMENT_CLASS;
 
     var p1 = new Promise(function (resolve) {
-        firstInput.addEventListener('blur', function (e) {
-            strictEqual(e.relatedTarget, secondInput);
+        secondInput.addEventListener('focus', function (e) {
+            if (!browserUtils.isIE)
+                strictEqual(e.relatedTarget, firstInput);
             resolve();
         });
     });
 
     var p2 = new Promise(function (resolve) {
-        firstInput.addEventListener('focusout', function (e) {
-            strictEqual(e.relatedTarget, secondInput);
+        firstInput.addEventListener('blur', function (e) {
+            if (!browserUtils.isIE)
+                strictEqual(e.relatedTarget, secondInput);
             resolve();
         });
     });
 
     var p3 = new Promise(function (resolve) {
         secondInput.addEventListener('focusin', function (e) {
-            strictEqual(e.relatedTarget, firstInput);
+            strictEqual(e.relatedTarget, firstInput, 'on secondInput focusin relatedTarget is firstInput');
             resolve();
         });
     });
 
     var p4 = new Promise(function (resolve) {
-        secondInput.addEventListener('focus', function (e) {
-            strictEqual(e.relatedTarget, firstInput);
+        firstInput.addEventListener('focusout', function (e) {
+            strictEqual(e.relatedTarget, secondInput, 'on firstInput focusout relatedTarget is secondInput');
             resolve();
         });
     });
@@ -1253,8 +1255,7 @@ asyncTest('relatedTarget property should be passed correctly to the FocusEvent',
     firstInput.focus();
     secondInput.focus();
 
-    Promise.all([ p1, p2, p3, p4 ])
-        .then(() => {
-            startNext();
-        });
+    Promise.all([ p1, p2, p3, p4 ]).then(function () {
+        startNext();
+    });
 });
