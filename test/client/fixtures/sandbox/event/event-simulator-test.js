@@ -65,40 +65,6 @@ var removeBubbleListener = function (eventType) {
     document.removeEventListener(eventType, bubbleEventListener);
 };
 
-test('mouse click event detail value', function () {
-    bindMouseEvent('click', eventUtils.BUTTON.left);
-    eventSimulator.click(domElement);
-    strictEqual(detail, browserUtils.isIE ? 0 : 1);
-});
-
-test('mouse double click event detail value', function () {
-    bindMouseEvent('dblclick', eventUtils.BUTTON.left);
-    eventSimulator.dblclick(domElement);
-    strictEqual(detail, browserUtils.isIE ? 0 : 2);
-});
-
-test('mouse mouse down event detail value', function () {
-    bindMouseEvent('mousedown', eventUtils.BUTTON.left);
-    eventSimulator.mousedown(domElement);
-    strictEqual(detail, 1);
-
-    detail = 0;
-    bindMouseEvent('mousedown', eventUtils.BUTTON.right);
-    eventSimulator.mousedown(domElement);
-    strictEqual(detail, 0);
-});
-
-test('mouse mouse up event detail value', function () {
-    bindMouseEvent('mouseup', eventUtils.BUTTON.left);
-    eventSimulator.mouseup(domElement);
-    strictEqual(detail, 1);
-
-    detail = 0;
-    bindMouseEvent('mouseup', eventUtils.BUTTON.right);
-    eventSimulator.mouseup(domElement);
-    strictEqual(detail, 0);
-});
-
 test('mouse left button click', function () {
     bindMouseEvent('click', eventUtils.BUTTON.left);
     eventSimulator.click(domElement);
@@ -480,6 +446,50 @@ test('drag and drop events', function () {
     document.body.removeChild(input);
 });
 
+module('e.detail');
+
+test('mouse left click', function () {
+    bindMouseEvent('click', eventUtils.BUTTON.left);
+    eventSimulator.click(domElement);
+    strictEqual(detail, browserUtils.isIE ? 0 : 1);
+});
+
+// Check native behavior
+// test('mouse right click', function () {
+//     bindMouseEvent('click', eventUtils.BUTTON.left);
+//     eventSimulator.click(domElement);
+//     strictEqual(detail, browserUtils.isFirefox ? 1 : 0);
+// });
+
+test('mouse double click', function () {
+    bindMouseEvent('dblclick', eventUtils.BUTTON.left);
+    eventSimulator.dblclick(domElement);
+    strictEqual(detail, browserUtils.isIE ? 0 : 2);
+});
+
+test('mouse down left', function () {
+    bindMouseEvent('mousedown', eventUtils.BUTTON.left);
+    eventSimulator.mousedown(domElement);
+    strictEqual(detail, 1);
+});
+
+test('mouse up left', function () {
+    bindMouseEvent('mouseup', eventUtils.BUTTON.left);
+    eventSimulator.mouseup(domElement);
+    strictEqual(detail, 1);
+});
+
+test('mouse down right', function () {
+    bindMouseEvent('mousedown', eventUtils.BUTTON.right);
+    eventSimulator.mousedown(domElement);
+    strictEqual(detail, 0);
+});
+
+test('mouse up right', function () {
+    bindMouseEvent('mouseup', eventUtils.BUTTON.right);
+    eventSimulator.mouseup(domElement);
+    strictEqual(detail, 0);
+});
 
 module('regression');
 
