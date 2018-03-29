@@ -455,8 +455,8 @@ test('mouse left click', function () {
 });
 
 test('mouse right click', function () {
-    bindMouseEvent('click', eventUtils.BUTTON.left);
-    eventSimulator.click(domElement);
+    bindMouseEvent('click', eventUtils.BUTTON.right);
+    eventSimulator.rightclick(domElement);
     strictEqual(detail, browserUtils.isIE ? 0 : 1);
 });
 
@@ -480,14 +480,14 @@ test('mouse up left', function () {
 
 test('mouse down right', function () {
     bindMouseEvent('mousedown', eventUtils.BUTTON.right);
-    eventSimulator.mousedown(domElement);
-    strictEqual(detail, 0);
+    eventSimulator.mousedown(domElement, { button: eventUtils.BUTTON.right });
+    strictEqual(detail, 1);
 });
 
 test('mouse up right', function () {
     bindMouseEvent('mouseup', eventUtils.BUTTON.right);
-    eventSimulator.mouseup(domElement);
-    strictEqual(detail, 0);
+    eventSimulator.mouseup(domElement, { button: eventUtils.BUTTON.right });
+    strictEqual(detail, 1);
 });
 
 module('regression');
