@@ -571,7 +571,7 @@ export default class EventSimulator {
         return this._raiseDispatchEvent(el, ev, args);
     }
 
-    _dispatchFocusEvent (el, name, relEl = null) {
+    _dispatchFocusEvent (el, name, relatedTarget = null) {
         const browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
         let event                       = null;
         const bubbles                   = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
@@ -581,14 +581,14 @@ export default class EventSimulator {
                 bubbles:          bubbles,
                 cancelable:       false,
                 cancelBubble:     false,
-                relatedTarget:    relEl,
+                relatedTarget:    relatedTarget,
                 defaultPrevented: false
             });
         }
         else if (nativeMethods.documentCreateEvent) {
             event = nativeMethods.documentCreateEvent.call(document, 'FocusEvent');
 
-            event.initFocusEvent(name, bubbles, true, null, 0, bubbles ? relEl : null);
+            event.initFocusEvent(name, bubbles, true, null, 0, bubbles ? relatedTarget : null);
         }
 
         if (event) {
@@ -751,20 +751,20 @@ export default class EventSimulator {
     // NOTE: Control events.
     // NOTE: "focus", "blur" and "selectionchange" shouldn't bubble (T229732),
     // but "input", "change" and "submit" should do it (GH-318).
-    blur (el, relEl) {
-        return this._dispatchFocusEvent(el, 'blur', relEl);
+    blur (el, relatedTarget) {
+        return this._dispatchFocusEvent(el, 'blur', relatedTarget);
     }
 
-    focus (el, relEl) {
-        return this._dispatchFocusEvent(el, 'focus', relEl);
+    focus (el, relatedTarget) {
+        return this._dispatchFocusEvent(el, 'focus', relatedTarget);
     }
 
-    focusin (el, relEl) {
-        return this._dispatchFocusEvent(el, 'focusin', relEl);
+    focusin (el, relatedTarget) {
+        return this._dispatchFocusEvent(el, 'focusin', relatedTarget);
     }
 
-    focusout (el, relEl) {
-        return this._dispatchFocusEvent(el, 'focusout', relEl);
+    focusout (el, relatedTarget) {
+        return this._dispatchFocusEvent(el, 'focusout', relatedTarget);
     }
 
     storage (window, options) {
