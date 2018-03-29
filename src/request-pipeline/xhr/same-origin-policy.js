@@ -1,5 +1,5 @@
 import XHR_HEADERS from './headers';
-import castArray from 'cast-array';
+import { castArray } from 'lodash';
 
 export const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = 222;
 

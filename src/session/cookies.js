@@ -1,6 +1,6 @@
 import { CookieJar } from 'tough-cookie';
 import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
-import castArray from 'cast-array';
+import { castArray } from 'lodash';
 
 export default class Cookies {
     constructor () {
