@@ -114,21 +114,17 @@ export default class EventSimulator {
         return el.dispatchEvent(ev);
     }
 
-    static _getUIEventArgs (type, options) {
-        const opts = options || {};
-
-        opts.detail = MOUSE_EVENT_DETAIL[type];
-
+    static _getUIEventArgs (type, options = {}) {
         return {
             type:       type,
-            canBubble:  opts.canBubble !== false,
-            cancelable: opts.cancelable !== false,
-            view:       opts.view || window,
-            detail:     opts.detail || 0,
-            ctrlKey:    opts.ctrlKey || false,
-            altKey:     opts.altKey || false,
-            shiftKey:   opts.shiftKey || false,
-            metaKey:    opts.metaKey || false
+            canBubble:  options.canBubble !== false,
+            cancelable: options.cancelable !== false,
+            view:       options.view || window,
+            detail:     MOUSE_EVENT_DETAIL[type] || 0,
+            ctrlKey:    options.ctrlKey || false,
+            altKey:     options.altKey || false,
+            shiftKey:   options.shiftKey || false,
+            metaKey:    options.metaKey || false
         };
     }
 

@@ -454,12 +454,11 @@ test('mouse left click', function () {
     strictEqual(detail, browserUtils.isIE ? 0 : 1);
 });
 
-// Check native behavior
-// test('mouse right click', function () {
-//     bindMouseEvent('click', eventUtils.BUTTON.left);
-//     eventSimulator.click(domElement);
-//     strictEqual(detail, browserUtils.isFirefox ? 1 : 0);
-// });
+test('mouse right click', function () {
+    bindMouseEvent('click', eventUtils.BUTTON.left);
+    eventSimulator.click(domElement);
+    strictEqual(detail, browserUtils.isIE ? 0 : 1);
+});
 
 test('mouse double click', function () {
     bindMouseEvent('dblclick', eventUtils.BUTTON.left);
