@@ -32,6 +32,7 @@
     "pinkie": "1.0.0",
     "match-url-wildcard": "0.0.1",
     "read-file-relative": "^1.2.0",
+    "semver": "5.5.0",
     "tough-cookie": "2.3.3",
     "tunnel-agent": "0.6.0",
     "webauth": "^1.1.0",
@@ -70,7 +71,6 @@
     "publish-please": "^2.0.0",
     "request": "^2.34.0",
     "request-promise-native": "^1.0.5",
-    "semver": "5.5.0",
     "tmp": "0.0.26",
     "webmake": "0.3.42",
     "ws": "3.2.0"
