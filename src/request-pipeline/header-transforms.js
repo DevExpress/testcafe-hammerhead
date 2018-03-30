@@ -1,7 +1,7 @@
 import XHR_HEADERS from './xhr/headers';
 import AUTHORIZATION from './xhr/authorization';
 import * as urlUtils from '../utils/url';
-import castArray from 'cast-array';
+import { castArray } from 'lodash';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 
 // Skipping transform
