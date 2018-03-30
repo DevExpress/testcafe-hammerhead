@@ -26,7 +26,6 @@
     "mime": "~1.4.1",
     "mustache": "^2.1.1",
     "nanoid": "^0.2.2",
-    "node-version": "1.1.0",
     "os-family": "^1.0.0",
     "parse5": "^1.5.0",
     "pify": "^2.3.0",
@@ -71,6 +70,7 @@
     "publish-please": "^2.0.0",
     "request": "^2.34.0",
     "request-promise-native": "^1.0.5",
+    "semver": "5.5.0",
     "tmp": "0.0.26",
     "webmake": "0.3.42",
     "ws": "3.2.0"
