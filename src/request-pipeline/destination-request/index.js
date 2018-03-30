@@ -1,7 +1,7 @@
 import http from 'http';
 import https from 'https';
 import { noop } from 'lodash';
-import { short as shortNodeVersion } from 'node-version';
+import semver from 'semver';
 import * as requestAgent from './agent';
 import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
@@ -22,7 +22,7 @@ const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
 // to sites using SSL2 and SSL3 protocol versions. It affects the https core module
 // and can break a proxying of some sites. This is why, we are forced to use the special hack.
 // For details, see https://github.com/nodejs/node/issues/16196
-const IS_NODE_VERSION_GREATER_THAN_8_5 = parseFloat(shortNodeVersion) > 8.5;
+const IS_NODE_VERSION_GREATER_THAN_8_5 = semver.gt(process.version, '8.5.0');
 
 
 // DestinationRequest

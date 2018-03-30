@@ -25,7 +25,7 @@ const requestAgent                         = require('../../lib/request-pipeline
 const scriptHeader                         = require('../../lib/processing/script/header');
 const resourceProcessor                    = require('../../lib/processing/resources/');
 const urlUtils                             = require('../../lib/utils/url');
-const nodeVersion                          = parseFloat(require('node-version').short);
+const semver                               = require('semver');
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
 
@@ -2511,7 +2511,7 @@ describe('Proxy', () => {
         // NOTE: 'yakka' module does not keep alive socket in node 9.3 and higher.
         // It leads to a slowdown proxy. We will remove this condition after getting rid of 'yakka'.
         // After dropping node 0.10, 0.12 support,  we can use a standard agent from 'http/https' module.
-        if (nodeVersion < 9.3) {
+        if (semver.lt(process.version, '9.3.0')) {
             it('Should close a proxy connection if a connection to destination server hang up (GH-1384)', () => {
                 const agent        = new http.Agent({
                     keepAlive:      true,
