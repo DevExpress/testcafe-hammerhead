@@ -453,6 +453,7 @@ test('drag and drop events', function () {
     document.body.removeChild(input);
 });
 
+
 module('regression');
 
 if (browserUtils.isIE) {

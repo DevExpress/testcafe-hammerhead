@@ -115,12 +115,14 @@ export default class EventSimulator {
     }
 
     static _getUIEventArgs (type, options = {}) {
+        const detail = 'detail' in options ? options.detail : MOUSE_EVENT_DETAIL[type];
+
         return {
             type:       type,
             canBubble:  options.canBubble !== false,
             cancelable: options.cancelable !== false,
             view:       options.view || window,
-            detail:     MOUSE_EVENT_DETAIL[type] || 0,
+            detail:     detail || 0,
             ctrlKey:    options.ctrlKey || false,
             altKey:     options.altKey || false,
             shiftKey:   options.shiftKey || false,
