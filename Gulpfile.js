@@ -170,10 +170,8 @@ gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
 gulp.task('test-server', ['build'], () => {
     return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
-            ui:        'bdd',
-            reporter:  'spec',
             // NOTE: Disable timeouts in debug mode.
-            timeout:   typeof v8debug === 'undefined' ? 2000 : Infinity,
+            timeout:   typeof v8debug !== 'undefined' || !!process.debugPort ? Infinity : 2000,
             fullTrace: true
         }));
 });
