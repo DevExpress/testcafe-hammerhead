@@ -16,6 +16,15 @@ const POINTER_EVENT_BUTTON = {
     rightButton: 2
 };
 
+// NOTE: (IE11 only) 'MouseEvent.detail' value always equals 0 for 'click' and 'dblclick' events.
+// Otherwise, MouseEvent.detail behave as described in specification - https://www.w3.org/TR/uievents/#events-mouseevents
+const DEFAULT_MOUSE_EVENT_DETAIL_PROP_VALUE = {
+    click:     browserUtils.isIE ? 0 : 1,
+    dblclick:  browserUtils.isIE ? 0 : 2,
+    mousedown: 1,
+    mouseup:   1
+};
+
 const KEY_EVENT_NAME_RE          = /^key\w+$/;
 const MOUSE_EVENT_NAME_RE        = /^((mouse\w+)|((dbl)?click)|(contextmenu)|(drag\w*)|(drop))$/;
 const TOUCH_EVENT_NAME_RE        = /^touch\w+$/;
@@ -105,43 +114,39 @@ export default class EventSimulator {
         return el.dispatchEvent(ev);
     }
 
-    static _getUIEventArgs (type, options) {
-        const opts = options || {};
+    static _getUIEventArgs (type, options = {}) {
+        const detail = 'detail' in options ? options.detail : DEFAULT_MOUSE_EVENT_DETAIL_PROP_VALUE[type];
 
         return {
             type:       type,
-            canBubble:  opts.canBubble !== false,
-            cancelable: opts.cancelable !== false,
-            view:       opts.view || window,
-            detail:     opts.detail || 0,
-            ctrlKey:    opts.ctrlKey || false,
-            altKey:     opts.altKey || false,
-            shiftKey:   opts.shiftKey || false,
-            metaKey:    opts.metaKey || false
+            canBubble:  options.canBubble !== false,
+            cancelable: options.cancelable !== false,
+            view:       options.view || window,
+            detail:     detail || 0,
+            ctrlKey:    options.ctrlKey || false,
+            altKey:     options.altKey || false,
+            shiftKey:   options.shiftKey || false,
+            metaKey:    options.metaKey || false
         };
     }
 
-    static _getStorageEventArgs (options) {
-        const opts = options || {};
-
-        return extend(opts, {
-            canBubble:  opts.canBubble !== false,
-            cancelable: opts.cancelable !== false
+    static _getStorageEventArgs (options = {}) {
+        return extend(options, {
+            canBubble:  options.canBubble !== false,
+            cancelable: options.cancelable !== false
         });
     }
 
-    static _getMouseEventArgs (type, options) {
-        const opts = options || {};
-
+    static _getMouseEventArgs (type, options = {}) {
         return extend(EventSimulator._getUIEventArgs(type, options), {
-            screenX:       opts.screenX || 0,
-            screenY:       opts.screenY || 0,
-            clientX:       opts.clientX || 0,
-            clientY:       opts.clientY || 0,
-            button:        opts.button === void 0 ? eventUtils.BUTTON.left : opts.button,
-            buttons:       opts.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : opts.buttons,
-            relatedTarget: opts.relatedTarget || null,
-            which:         opts.which === void 0 ? eventUtils.WHICH_PARAMETER.leftButton : opts.which
+            screenX:       options.screenX || 0,
+            screenY:       options.screenY || 0,
+            clientX:       options.clientX || 0,
+            clientY:       options.clientY || 0,
+            button:        options.button === void 0 ? eventUtils.BUTTON.left : options.button,
+            buttons:       options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons,
+            relatedTarget: options.relatedTarget || null,
+            which:         options.which === void 0 ? eventUtils.WHICH_PARAMETER.leftButton : options.which
         });
     }
 
@@ -172,7 +177,7 @@ export default class EventSimulator {
         return modifiersString;
     }
 
-    _simulateEvent (el, event, userOptions, options) {
+    _simulateEvent (el, event, userOptions, options = {}) {
         let args     = null;
         let dispatch = null;
         // NOTE: We don't simulate a click on links with modifiers (ctrl, shift, ctrl+shift, alt),
@@ -191,7 +196,7 @@ export default class EventSimulator {
                 buttons:       userOptions.buttons,
                 relatedTarget: userOptions.relatedTarget
             } : {},
-            options || {});
+            options);
 
         if (!opts.relatedTarget)
             opts.relatedTarget = document.body;
@@ -242,15 +247,14 @@ export default class EventSimulator {
         return dispatch(el, args);
     }
 
-    _getTouchEventArgs (type, options) {
-        const opts = options || {};
-        const args = extend(EventSimulator._getUIEventArgs(type, opts), {
-            screenX:    opts.screenX || 0,
-            screenY:    opts.screenY || 0,
-            clientX:    opts.clientX || 0,
-            clientY:    opts.clientY || 0,
-            pageX:      opts.clientX || 0,
-            pageY:      opts.clientY || 0,
+    _getTouchEventArgs (type, options = {}) {
+        const args = extend(EventSimulator._getUIEventArgs(type, options), {
+            screenX:    options.screenX || 0,
+            screenY:    options.screenY || 0,
+            clientX:    options.clientX || 0,
+            clientY:    options.clientY || 0,
+            pageX:      options.clientX || 0,
+            pageY:      options.clientY || 0,
             identifier: this._getTouchIdentifier(type)
         });
 
@@ -690,9 +694,7 @@ export default class EventSimulator {
         });
     }
 
-    mousedown (el, options) {
-        options = options || {};
-
+    mousedown (el, options = {}) {
         options.button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
         options.which   = options.which === void 0 || options.button !== eventUtils.BUTTON.right
             ? eventUtils.WHICH_PARAMETER.leftButton
@@ -702,9 +704,7 @@ export default class EventSimulator {
         return this._simulateEvent(el, 'mousedown', options);
     }
 
-    mouseup (el, options) {
-        options = options || {};
-
+    mouseup (el, options = {}) {
         options.button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
         options.which   = options.which === void 0 || options.button !== eventUtils.BUTTON.right
             ? eventUtils.WHICH_PARAMETER.leftButton
