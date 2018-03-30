@@ -16,9 +16,9 @@ const POINTER_EVENT_BUTTON = {
     rightButton: 2
 };
 
-// NOTE: event.detail != 0 in some Mouse Events (User Interface Events).
-// See https://www.w3.org/TR/uievents/#events-mouseevents
-const MOUSE_EVENT_DETAIL = {
+// NOTE: (IE11 only) 'MouseEvent.detail' value always equals 0 for 'click' and 'dblclick' events.
+// Otherwise, MouseEvent.detail behave as described in specification - https://www.w3.org/TR/uievents/#events-mouseevents
+const DEFAULT_MOUSE_EVENT_DETAIL_PROP_VALUE = {
     click:     browserUtils.isIE ? 0 : 1,
     dblclick:  browserUtils.isIE ? 0 : 2,
     mousedown: 1,
@@ -115,7 +115,7 @@ export default class EventSimulator {
     }
 
     static _getUIEventArgs (type, options = {}) {
-        const detail = 'detail' in options ? options.detail : MOUSE_EVENT_DETAIL[type];
+        const detail = 'detail' in options ? options.detail : DEFAULT_MOUSE_EVENT_DETAIL_PROP_VALUE[type];
 
         return {
             type:       type,
