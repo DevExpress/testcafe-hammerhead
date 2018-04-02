@@ -749,11 +749,9 @@ export default class WindowSandbox extends SandboxBase {
                 const contextSVGImageElement = this[CONTEXT_SVG_IMAGE_ELEMENT];
 
                 if (contextSVGImageElement) {
-                    if (nativeMethods.hasAttributeNS.call(contextSVGImageElement, XLINK_NAMESPACE, 'href'))
-                        windowSandbox.nodeSandbox.element.setAttributeCore(contextSVGImageElement, ['xlink:href', value]);
-                    else
-                        windowSandbox.nodeSandbox.element.setAttributeCore(contextSVGImageElement, ['href', value]);
+                    const isXlinkHrefAttrExists = nativeMethods.hasAttributeNS.call(contextSVGImageElement, XLINK_NAMESPACE, 'href');
 
+                    windowSandbox.nodeSandbox.element.setAttributeCore(contextSVGImageElement, [isXlinkHrefAttrExists ? 'xlink:href' : 'href', value]);
                     value = getProxyUrl(value);
                 }
 

@@ -483,6 +483,26 @@ test('element.innerHTML', function () {
     checkElement($container.find('script')[0], 'src', '!s');
 });
 
+test('SVGImageElement should not contain duplicate stored href attributes after href.baseVal is changed', function () {
+    var svgNameSpaceUrl = 'http://www.w3.org/2000/svg';
+    var svg             = document.createElementNS(svgNameSpaceUrl, 'svg');
+    var changedUrl      = 'http://domain.com/test-test.svg';
+
+    document.body.appendChild(svg);
+    svg.outerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+                    '    <image id="svg-image-xlink-href" xlink:href="https://mdn.mozillademos.org/files/6457/mdn_logo_only_color.png"></image>\n' +
+                    '</svg>';
+
+    document.getElementById('svg-image-xlink-href').href.baseVal = changedUrl;
+
+    var html = '<image id="svg-image-xlink-href" ' +
+               'xmlns:xlink="http://www.w3.org/1999/xlink" ' +
+               'xlink:href="http://localhost:2000/sessionId/http://domain.com/test-test.svg" ' +
+               'xlink:href-hammerhead-stored-value="http://domain.com/test-test.svg"></image>';
+
+    strictEqual(document.getElementById('svg-image-xlink-href').outerHTML, html);
+});
+
 test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
     var url      = 'http://url.com/';
