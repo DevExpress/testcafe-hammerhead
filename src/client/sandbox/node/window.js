@@ -746,13 +746,13 @@ export default class WindowSandbox extends SandboxBase {
                 return baseVal;
             },
             setter: function (value) {
-                const contextImageElemet = this[CONTEXT_SVG_IMAGE_ELEMENT];
+                const contextSVGImageElement = this[CONTEXT_SVG_IMAGE_ELEMENT];
 
-                if (contextImageElemet) {
-                    if (nativeMethods.hasAttributeNS.call(contextImageElemet, XLINK_NAMESPACE, 'href'))
-                        windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, [XLINK_NAMESPACE, 'href', value], true);
+                if (contextSVGImageElement) {
+                    if (nativeMethods.hasAttributeNS.call(contextSVGImageElement, XLINK_NAMESPACE, 'href'))
+                        windowSandbox.nodeSandbox.element.setAttributeCore(contextSVGImageElement, ['xlink:href', value]);
                     else
-                        windowSandbox.nodeSandbox.element.setAttributeCore(contextImageElemet, ['href', value]);
+                        windowSandbox.nodeSandbox.element.setAttributeCore(contextSVGImageElement, ['href', value]);
 
                     value = getProxyUrl(value);
                 }
