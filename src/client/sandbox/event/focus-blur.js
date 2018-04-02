@@ -196,6 +196,8 @@ export default class FocusBlurSandbox extends SandboxBase {
                 this._raiseEvent(curDocument.body, 'focus', simulateEvent, true);
             else if (!el.disabled)
                 simulateEvent();
+            else
+                callback();
         }
         else
             simulateEvent();

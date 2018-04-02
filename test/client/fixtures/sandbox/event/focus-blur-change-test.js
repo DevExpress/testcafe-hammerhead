@@ -1196,18 +1196,14 @@ asyncTest('an active input should not be blurred after a call of the focus on a 
         isDisabledInputFocused = true;
     };
 
-    activeInput.focus();
-
-    window.setTimeout(function () {
+    focusBlur.focus(activeInput, function () {
         ok(isActiveInputFocused);
 
-        disabledInput.focus();
-
-        window.setTimeout(function () {
+        focusBlur.focus(disabledInput, function () {
             ok(!isActiveInputBlurred);
             ok(!isDisabledInputFocused);
 
             startNext();
-        }, 0);
-    }, 0);
+        });
+    });
 });
