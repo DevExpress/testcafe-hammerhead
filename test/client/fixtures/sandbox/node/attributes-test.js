@@ -485,11 +485,10 @@ test('element.innerHTML', function () {
 
 test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
     var div               = document.createElement('div');
-    var svgNameSpaceUrl   = 'http://www.w3.org/2000/svg';
     var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
     var newBaseVal        = 'http://example.com/test-1.svg';
 
-    var html = '<svg xmlns="' + svgNameSpaceUrl + '" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
+    var html = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
                '<image xlink:href="http://example.com/test.svg"></image>\n' +
                '</svg>';
 
