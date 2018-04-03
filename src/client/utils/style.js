@@ -6,25 +6,12 @@ import nativeMethods from '../sandbox/native-methods';
 // NOTE: For Chrome.
 const MIN_SELECT_SIZE_VALUE = 4;
 
-const NATIVE_STYLE_STRINGS = [
-    '[object CSSStyleDeclaration]',
-    '[object CSS2Properties]',
-    '[object MSStyleCSSProperties]'
-];
-
 function getIntValue (value) {
     value = value || '';
 
     const parsedValue = parseInt(value.replace('px', ''), 10);
 
     return isNaN(parsedValue) ? 0 : parsedValue;
-}
-
-export function isStyle (instance) {
-    if (instance instanceof nativeMethods.styleClass)
-        return true;
-
-    return NATIVE_STYLE_STRINGS.indexOf(domUtils.instanceToString(instance)) !== -1;
 }
 
 export function get (el, property, doc, win) {

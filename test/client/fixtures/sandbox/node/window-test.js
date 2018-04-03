@@ -451,28 +451,6 @@ test('the constructor field of a function should return a wrapped Function objec
     /*eslint-enable no-extend-native*/
 });
 
-test('getPropertyValue and setProperty methods of css object should be overridden (GH-1212)', function () {
-    var div      = document.createElement('div');
-    var url      = 'http://some.domain.com/image.png';
-    var proxyUrl = urlUtils.getProxyUrl(url);
-
-    div.style.setProperty('background', 'url(' + url + ')', '');
-
-    ok(div.style.background.indexOf(proxyUrl) !== -1);
-    ok(div.style.getPropertyValue('background').indexOf(proxyUrl) === -1);
-    ok(div.style.getPropertyValue('background').indexOf(url) !== -1);
-
-    var oldValue = div.style.removeProperty('background');
-
-    ok(oldValue.indexOf(proxyUrl) === -1);
-
-    div.style.setProperty('background', null);
-
-    ok(!div.style.background);
-    ok(!div.style.getPropertyValue('background'));
-    ok(!div.style.removeProperty('background'));
-});
-
 var canCreateBlobFromNumberArray = (function () {
     var array = [1, 2, 3, 4, 5];
 

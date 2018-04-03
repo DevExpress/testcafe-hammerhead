@@ -178,39 +178,6 @@ export default class WindowSandbox extends SandboxBase {
         });
     }
 
-    static _wrapCSSGetPropertyValueIfNecessary (constructor, nativeGetPropertyValueFn) {
-        if (nativeGetPropertyValueFn) {
-            constructor.prototype.getPropertyValue = function (...args) {
-                const value = nativeGetPropertyValueFn.apply(this, args);
-
-                return styleProcessor.cleanUp(value, parseProxyUrl);
-            };
-        }
-    }
-
-    static _wrapCSSSetPropertyIfNecessary (constructor, nativeSetPropertyFn) {
-        if (nativeSetPropertyFn) {
-            constructor.prototype.setProperty = function (...args) {
-                const value = args[1];
-
-                if (typeof value === 'string')
-                    args[1] = styleProcessor.process(value, getProxyUrl);
-
-                return nativeSetPropertyFn.apply(this, args);
-            };
-        }
-    }
-
-    static _wrapCSSRemovePropertyIfNecessary (constructor, nativeRemovePropertyFn) {
-        if (nativeRemovePropertyFn) {
-            constructor.prototype.removeProperty = function (...args) {
-                const oldValue = nativeRemovePropertyFn.apply(this, args);
-
-                return styleProcessor.cleanUp(oldValue, parseProxyUrl);
-            };
-        }
-    }
-
     static _isSecureOrigin (url) {
         // NOTE: https://www.chromium.org/Home/chromium-security/prefer-secure-origins-for-powerful-new-features
         const parsedUrl = parseUrl(resolveUrlAsDest(url));
@@ -855,26 +822,5 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.DOMParserParseFromString.apply(this, args);
             };
         }
-
-        WindowSandbox._wrapCSSGetPropertyValueIfNecessary(window.CSSStyleDeclaration,
-            nativeMethods.CSSStyleDeclarationGetPropertyValue);
-        WindowSandbox._wrapCSSGetPropertyValueIfNecessary(window.MSStyleCSSProperties,
-            nativeMethods.MSStyleCSSPropertiesGetPropertyValue);
-        WindowSandbox._wrapCSSGetPropertyValueIfNecessary(window.CSS2Property,
-            nativeMethods.CSS2PropertyGetPropertyValue);
-
-        WindowSandbox._wrapCSSSetPropertyIfNecessary(window.CSSStyleDeclaration,
-            nativeMethods.CSSStyleDeclarationSetProperty);
-        WindowSandbox._wrapCSSSetPropertyIfNecessary(window.MSStyleCSSProperties,
-            nativeMethods.MSStyleCSSPropertiesSetProperty);
-        WindowSandbox._wrapCSSSetPropertyIfNecessary(window.CSS2Property,
-            nativeMethods.CSS2PropertySetProperty);
-
-        WindowSandbox._wrapCSSRemovePropertyIfNecessary(window.CSSStyleDeclaration,
-            nativeMethods.CSSStyleDeclarationRemoveProperty);
-        WindowSandbox._wrapCSSRemovePropertyIfNecessary(window.MSStyleCSSProperties,
-            nativeMethods.MSStyleCSSPropertiesRemoveProperty);
-        WindowSandbox._wrapCSSRemovePropertyIfNecessary(window.CSS2Property,
-            nativeMethods.CSS2PropertyRemoveProperty);
     }
 }

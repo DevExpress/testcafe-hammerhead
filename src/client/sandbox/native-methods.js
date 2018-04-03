@@ -391,23 +391,12 @@ class NativeMethods {
         this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
 
         // Stylesheets
-        if (win.CSSStyleDeclaration) {
-            this.CSSStyleDeclarationGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
-            this.CSSStyleDeclarationSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
-            this.CSSStyleDeclarationRemoveProperty   = win.CSSStyleDeclaration.prototype.removeProperty;
-        }
+        const stylePropConstructorProto = win.CSSStyleDeclaration.prototype || win.MSStyleCSSProperties.prototype ||
+                                          win.CSS2Property.prototype;
 
-        if (win.MSStyleCSSProperties) {
-            this.MSStyleCSSPropertiesGetPropertyValue = win.MSStyleCSSProperties.prototype.getPropertyValue;
-            this.MSStyleCSSPropertiesSetProperty      = win.MSStyleCSSProperties.prototype.setProperty;
-            this.MSStyleCSSPropertiesRemoveProperty   = win.MSStyleCSSProperties.prototype.removeProperty;
-        }
-
-        if (win.CSS2Property) {
-            this.CSS2PropertyGetPropertyValue = win.CSS2Property.prototype.getPropertyValue;
-            this.CSS2PropertySetProperty      = win.CSS2Property.prototype.setProperty;
-            this.CSS2PropertyRemoveProperty   = win.CSS2Property.prototype.removeProperty;
-        }
+        this.styleGetPropertyValue = stylePropConstructorProto.getPropertyValue;
+        this.styleSetProperty      = stylePropConstructorProto.setProperty;
+        this.styleRemoveProperty   = stylePropConstructorProto.removeProperty;
 
         // Console
         this.console = win.console;
@@ -428,8 +417,6 @@ class NativeMethods {
         this.windowClass      = win.Window;
         this.documentClass    = win.Document;
         this.locationClass    = win.Location;
-        this.styleClass       = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties;
-        this.styleSheetClass  = win.CSSStyleSheet;
         this.elementClass     = win.Element;
         this.svgElementClass  = win.SVGElement;
         this.Worker           = win.Worker;
