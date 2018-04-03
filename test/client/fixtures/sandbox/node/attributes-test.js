@@ -497,8 +497,8 @@ test('SVGImageElement with an existing xlink:href should contain only one stored
     var image = div.getElementsByTagName('image')[0];
 
     var checkHrefStoredAttribute = function () {
-        // NOTE: IE add extra 'ns1:' namespace to stored xlink href attribute
-        var extraNamespace = browserUtils.isIE ? 'ns1:' : '';
+        // NOTE: IE11 add extra 'ns1:' namespace to stored xlink href attribute
+        var extraNamespace = browserUtils.isIE11 ? 'ns1:' : '';
 
         ok(nativeMethods.getAttribute.call(image, extraNamespace + 'xlink:' + DomProcessor.getStoredAttrName('href')));
         notOk(nativeMethods.getAttribute.call(image, DomProcessor.getStoredAttrName('href')));
