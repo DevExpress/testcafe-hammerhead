@@ -484,30 +484,31 @@ test('element.innerHTML', function () {
 });
 
 test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
-    function getStoredHrefAttrCount (obj) {
-        var count = 0;
+    var div               = document.createElement('div');
+    var svgNameSpaceUrl   = 'http://www.w3.org/2000/svg';
+    var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
+    var newBaseVal        = 'http://example.com/test-1.svg';
 
-        obj.getAttributeNames().forEach(function (attr) {
-            if (attr.indexOf(DomProcessor.getStoredAttrName('href')) !== -1)
-                count++;
-        });
+    var html = '<svg xmlns="' + svgNameSpaceUrl + '" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
+               '<image xlink:href="http://example.com/test.svg"></image>\n' +
+               '</svg>';
 
-        return count;
-    }
+    setProperty(div, 'innerHTML', html);
 
-    var svgNameSpaceUrl = 'http://www.w3.org/2000/svg';
-    var svg             = document.createElementNS(svgNameSpaceUrl, 'svg');
-    var changedUrl      = 'http://domain.com/test-test.svg';
+    var image = div.getElementsByTagName('image')[0];
 
-    document.body.appendChild(svg);
-    svg.outerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
-                    '<image id="svg-image-xlink-href" ' +
-                    '       xlink:href="test.svg" ' +
-                    '       xlink:' + DomProcessor.getStoredAttrName('href') + '="test.svg"></image>\n' +
-                    '</svg>';
+    var checkHrefStoredAttribute = function () {
+        ok(nativeMethods.getAttribute.call(image, 'xlink:' + DomProcessor.getStoredAttrName('href')));
+        notOk(nativeMethods.getAttribute.call(image, DomProcessor.getStoredAttrName('href')));
+        notOk(nativeMethods.getAttributeNS.call(image, xlinkNamespaceUrl, 'xlink:' + DomProcessor.getStoredAttrName('href')));
+        notOk(nativeMethods.getAttributeNS.call(image, xlinkNamespaceUrl, DomProcessor.getStoredAttrName('href')));
+    };
 
-    document.getElementById('svg-image-xlink-href').href.baseVal = changedUrl;
-    strictEqual(getStoredHrefAttrCount(document.getElementById('svg-image-xlink-href')), 1);
+    checkHrefStoredAttribute();
+
+    image.href.baseVal = newBaseVal;
+
+    checkHrefStoredAttribute();
 });
 
 test('anchor with target attribute', function () {
