@@ -483,14 +483,12 @@ test('element.innerHTML', function () {
     checkElement($container.find('script')[0], 'src', '!s');
 });
 
-test('SVGImageElement with an existing xlink:href should contain only one stored href attributes after href.baseVal is changed', function () {
-    var storedHrefAttr = 'href-hammerhead-stored-value';
-
+test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
     function getStoredHrefAttrCount (obj) {
         var count = 0;
 
         obj.getAttributeNames().forEach(function (attr) {
-            if (attr.indexOf(storedHrefAttr) !== -1)
+            if (attr.indexOf(DomProcessor.getStoredAttrName('href')) !== -1)
                 count++;
         });
 
@@ -505,7 +503,7 @@ test('SVGImageElement with an existing xlink:href should contain only one stored
     svg.outerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
                     '<image id="svg-image-xlink-href" ' +
                     '       xlink:href="test.svg" ' +
-                    '       xlink:href-hammerhead-stored-value="test.svg"></image>\n' +
+                    '       xlink:' + DomProcessor.getStoredAttrName('href') + '="test.svg"></image>\n' +
                     '</svg>';
 
     document.getElementById('svg-image-xlink-href').href.baseVal = changedUrl;
