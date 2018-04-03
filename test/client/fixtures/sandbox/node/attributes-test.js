@@ -515,7 +515,9 @@ test('HTMLElement.style', function () {
 
     div.setAttribute('style', 'background-image:url(index.png);');
 
-    strictEqual(removeDoubleQuotes(div.style.backgroundImage), removeDoubleQuotes(proxiedBackgroundImageValue));
+    var actualBackgroundImageValue = removeDoubleQuotes(nativeMethods.styleGetPropertyValue.call(div.style, 'background-image'));
+
+    strictEqual(actualBackgroundImageValue, removeDoubleQuotes(proxiedBackgroundImageValue));
     strictEqual(div.getAttribute('style'), 'background-image:url(index.png);');
 
 });

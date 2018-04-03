@@ -232,9 +232,3 @@ test('getSelectElementSize', function () {
 
     document.body.removeChild(select);
 });
-
-module('regression');
-
-test('isStyle throws an error for objects without the toString method (GH-561)', function () {
-    ok(!styleUtils.isStyle({ border: 0, toString: void 0 }));
-});
