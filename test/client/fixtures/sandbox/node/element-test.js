@@ -92,7 +92,7 @@ test('url in stylesheet properties', function () {
     var el            = document.createElement('div');
     var url           = 'http://some.domain.com/image.png';
     var proxyUrl      = urlUtils.getProxyUrl(url);
-    var cssProperties = ['background', 'backgroundImage', 'background-image', /*'borderImage', 'border-image',*/ 'cursor',
+    var cssProperties = ['background', 'backgroundImage', 'background-image', 'borderImage', 'border-image', 'cursor',
         'borderImageSource', 'border-image-source', 'listStyle', 'list-style', 'listStyleImage', 'list-style-image'];
 
     cssProperties.forEach(function (prop) {
@@ -105,7 +105,7 @@ test('url in stylesheet properties', function () {
         nativeMethods.styleSetProperty.call(el.style, prop.replace(/[A-Z]/g, '-$&').toLowerCase(), value);
 
         //var nativeValue  = el.style[affectedProp];
-        var nativeValue  = nativeMethods.styleGetPropertyValue.call(el.style, prop.replace(/[A-Z]/g, '-$&').toLowerCase());
+        var nativeValue  = nativeMethods.styleGetPropertyValue.call(el.style, affectedProp.replace(/[A-Z]/g, '-$&').toLowerCase());
         var proxiedValue = nativeValue && nativeValue.replace(url, proxyUrl);
 
         el.style[prop] = value;

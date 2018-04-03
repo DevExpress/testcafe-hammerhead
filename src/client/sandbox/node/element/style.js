@@ -1,80 +1,139 @@
-/*eslint-disable*/
 import SandboxBase from '../../base';
 import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
 import styleProcessor from '../../../../processing/style';
-import * as urlUtils from '../../../utils/url';
-import { parseProxyUrl } from '../../../utils/url';
-import { getProxyUrl } from '../../../utils/url';
+import { getProxyUrl, parseProxyUrl } from '../../../utils/url';
 
 const CSS_STYLE_IS_PROCESSED = 'hammerhead|style|is-processed';
-
-const stylePropertiesThatContainsUrl = ['background', 'backgroundImage', 'borderImage',
-    'borderImageSource', 'listStyle', 'listStyleImage', 'cursor'];
-
-function makeWithDash (prop) {
-    return prop.replace(/[A-Z]/g, '-$&').toLowerCase();
-}
-
-const stylePropertiesThatContainsUrlWithDash = [];
-
-for (const prop of stylePropertiesThatContainsUrl) {
-    const processedProp = makeWithDash(prop);
-
-    if (prop !== processedProp)
-        stylePropertiesThatContainsUrlWithDash.push(processedProp);
-}
+const CSS_STYLE_PROXY_OBJECT = 'hammerhead|style|proxy-object';
 
 export default class StyleSandbox extends SandboxBase {
     constructor () {
         super();
 
-        this.stylePropertyClass = window.CSSStyleDeclaration || window.MSStyleCSSProperties || window.CSS2Property;
+        this.URL_PROPS        = ['background', 'backgroundImage', 'borderImage',
+            'borderImageSource', 'listStyle', 'listStyleImage', 'cursor'];
+        this.DASHED_URL_PROPS = StyleSandbox._generateDashedProps(this.URL_PROPS);
 
-        this.cssStyleDeclarationHasPropDescriptors = this.nativeMethods.objectGetOwnPropertyDescriptor
-            .call(window.Object, window.CSSStyleDeclaration.prototype, 'background')
+        // NOTE: The CSS2Properties class is supported only in the Firefox
+        // and its prototype contains all property descriptors
+        this.isProtoContainsAllProps = !!window.CSS2Properties;
+
+        // NOTE: The CSSStyleDeclaration class contains not dashed url properties only in the IE
+        this.isProtoContainsUrlDescriptors = this.nativeMethods.objectHasOwnProperty
+            .call(window.CSSStyleDeclaration.prototype, 'background');
+
+        // NOTE: A style instance contains all url properties and they are non-configurable in the Safari
+        this.isPropsCannotBeOverridden = !this.nativeMethods.objectGetOwnPropertyDescriptor
+            .call(window.Object, document.documentElement.style, 'background').configurable;
     }
 
-    _overrideStyleSheetProp (proto, prop) {
+    static _convertToDashed (prop) {
+        return prop.replace(/[A-Z]/g, '-$&').toLowerCase();
+    }
+
+    static _generateDashedProps (props) {
+        const dashedProps = [];
+
+        for (const prop of props) {
+            const dashedProp = StyleSandbox._convertToDashed(prop);
+
+            if (prop !== dashedProp)
+                dashedProps.push(dashedProp);
+        }
+
+        return dashedProps;
+    }
+
+    _overrideStyleProp (proto, prop) {
         const nativeMethods = this.nativeMethods;
-        const propWithDash  = makeWithDash(prop);
+        const dashedProp    = StyleSandbox._convertToDashed(prop);
 
         overrideDescriptor(proto, prop, {
             getter: function () {
-                const value = nativeMethods.styleGetPropertyValue.call(this, propWithDash);
+                const value = nativeMethods.styleGetPropertyValue.call(this, dashedProp);
 
-                return styleProcessor.cleanUp(value, urlUtils.parseProxyUrl);
+                return styleProcessor.cleanUp(value, parseProxyUrl);
             },
             setter: function (value) {
                 if (typeof value === 'string')
-                    value = styleProcessor.process(value, urlUtils.getProxyUrl);
+                    value = styleProcessor.process(value, getProxyUrl);
 
-                nativeMethods.styleSetProperty.call(this, propWithDash, value);
+                nativeMethods.styleSetProperty.call(this, dashedProp, value);
             }
         });
     }
 
-    _overrideStyleSheetPropWithValue (style, prop) {
+    _overrideStyleInstanceProp (style, prop) {
         const nativeMethods = this.nativeMethods;
-        const propWithDash  = makeWithDash(prop);
+        const dashedProp    = StyleSandbox._convertToDashed(prop);
 
         const descriptor = createOverriddenDescriptor(style, prop, {
             getter: function () {
-                const value = nativeMethods.styleGetPropertyValue.call(this, propWithDash);
+                const value = nativeMethods.styleGetPropertyValue.call(this, dashedProp);
 
-                return styleProcessor.cleanUp(value, urlUtils.parseProxyUrl);
+                return styleProcessor.cleanUp(value, parseProxyUrl);
             },
             setter: function (value) {
                 if (typeof value === 'string')
-                    value = styleProcessor.process(value, urlUtils.getProxyUrl);
+                    value = styleProcessor.process(value, getProxyUrl);
 
-                nativeMethods.styleSetProperty.call(this, propWithDash, value);
+                nativeMethods.styleSetProperty.call(this, dashedProp, value);
             }
         });
 
+        /*eslint-disable no-restricted-properties*/
         delete descriptor.value;
+        /*eslint-enable no-restricted-properties*/
         delete descriptor.writable;
 
         nativeMethods.objectDefineProperty.call(window.Object, style, prop, descriptor);
+    }
+
+    _processStyleInstance (style) {
+        const isProcessed = style[CSS_STYLE_IS_PROCESSED];
+
+        if (!isProcessed) {
+            for (const prop of this.DASHED_URL_PROPS)
+                this._overrideStyleInstanceProp(style, prop);
+
+            if (!this.isProtoContainsUrlDescriptors) {
+                for (const prop of this.URL_PROPS)
+                    this._overrideStyleInstanceProp(style, prop);
+            }
+
+            this.nativeMethods.objectDefineProperty.call(window.Object, style, CSS_STYLE_IS_PROCESSED, { value: true });
+        }
+
+        return style;
+    }
+
+    _getStyleProxy (style) {
+        let proxyObject = style[CSS_STYLE_PROXY_OBJECT];
+
+        if (!proxyObject) {
+            proxyObject = new this.nativeMethods.Proxy(style, {
+                get: (obj, prop) => {
+                    if (this.URL_PROPS.indexOf(prop) !== -1 || this.DASHED_URL_PROPS.indexOf(prop) !== -1)
+                        return styleProcessor.cleanUp(obj[prop], parseProxyUrl);
+
+                    return obj[prop];
+                },
+                set: (obj, prop, value) => {
+                    if (this.URL_PROPS.indexOf(prop) !== -1 || this.DASHED_URL_PROPS.indexOf(prop) !== -1) {
+                        if (typeof value === 'string')
+                            value = styleProcessor.process(value, getProxyUrl);
+                    }
+
+                    obj[prop] = value;
+
+                    return true;
+                }
+            });
+
+            this.nativeMethods.objectDefineProperty.call(window.Object, style, CSS_STYLE_PROXY_OBJECT, { value: proxyObject });
+        }
+
+        return proxyObject;
     }
 
     attach (window) {
@@ -84,65 +143,54 @@ export default class StyleSandbox extends SandboxBase {
         const styleSandbox  = this;
 
         overrideDescriptor(window.HTMLElement.prototype, 'style', {
-            getter: window.CSS2Properties ? null : function () {
-                const style       = nativeMethods.htmlElementStyleGetter.call(this);
-                const isProcessed = style[CSS_STYLE_IS_PROCESSED];
+            getter: this.isProtoContainsAllProps ? null : function () {
+                const style = nativeMethods.htmlElementStyleGetter.call(this);
 
-                if (!isProcessed) {
-                    for (const prop of stylePropertiesThatContainsUrlWithDash)
-                        styleSandbox._overrideStyleSheetPropWithValue(style, prop);
+                if (styleSandbox.isPropsCannotBeOverridden)
+                    return styleSandbox._getStyleProxy(style);
 
-                    // chrome
-                    if (!styleSandbox.cssStyleDeclarationHasPropDescriptors) {
-                        for (const prop of stylePropertiesThatContainsUrl)
-                            styleSandbox._overrideStyleSheetPropWithValue(style, prop);
-                    }
-
-                    nativeMethods.objectDefineProperty.call(window.Object, style, CSS_STYLE_IS_PROCESSED, { value: true });
-                }
-
-                return style;
+                return styleSandbox._processStyleInstance(style);
             },
             setter: nativeMethods.htmlElementStyleSetter ? function (value) {
-                const processedCss = styleProcessor.process(value, urlUtils.getProxyUrl);
+                const processedCss = styleProcessor.process(value, getProxyUrl);
 
                 nativeMethods.htmlElementStyleSetter.call(this, processedCss);
             } : null
         });
 
-        if (window.CSS2Properties) {
-            for (const prop of stylePropertiesThatContainsUrl)
-                this._overrideStyleSheetProp(window.CSS2Properties.prototype, prop);
+        if (this.isProtoContainsAllProps) {
+            for (const prop of this.URL_PROPS)
+                this._overrideStyleProp(window.CSS2Properties.prototype, prop);
 
-            for (const prop of stylePropertiesThatContainsUrlWithDash)
-                this._overrideStyleSheetProp(window.CSS2Properties.prototype, prop);
+            for (const prop of this.DASHED_URL_PROPS)
+                this._overrideStyleProp(window.CSS2Properties.prototype, prop);
         }
-        else if (this.cssStyleDeclarationHasPropDescriptors) {
-            for (const prop of stylePropertiesThatContainsUrl)
-                this._overrideStyleSheetProp(window.CSSStyleDeclaration.prototype, prop);
+        else if (this.isProtoContainsUrlDescriptors) {
+            for (const prop of this.URL_PROPS)
+                this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
         }
 
         overrideDescriptor(window.CSSStyleDeclaration.prototype, 'cssText', {
             getter: function () {
                 const cssText = nativeMethods.styleCssTextGetter.call(this);
 
-                return styleProcessor.cleanUp(cssText, urlUtils.parseProxyUrl);
+                return styleProcessor.cleanUp(cssText, parseProxyUrl);
             },
             setter: function (value) {
                 if (typeof value === 'string')
-                    value = styleProcessor.process(value, urlUtils.getProxyUrl);
+                    value = styleProcessor.process(value, getProxyUrl);
 
                 nativeMethods.styleCssTextSetter.call(this, value);
             }
         });
 
-        this.stylePropertyClass.prototype.getPropertyValue = function (...args) {
+        window.CSSStyleDeclaration.prototype.getPropertyValue = function (...args) {
             const value = nativeMethods.styleGetPropertyValue.apply(this, args);
 
             return styleProcessor.cleanUp(value, parseProxyUrl);
         };
 
-        this.stylePropertyClass.prototype.setProperty = function (...args) {
+        window.CSSStyleDeclaration.prototype.setProperty = function (...args) {
             const value = args[1];
 
             if (typeof value === 'string')
@@ -151,7 +199,7 @@ export default class StyleSandbox extends SandboxBase {
             return nativeMethods.styleSetProperty.apply(this, args);
         };
 
-        this.stylePropertyClass.prototype.removeProperty = function (...args) {
+        window.CSSStyleDeclaration.prototype.removeProperty = function (...args) {
             const oldValue = nativeMethods.styleRemoveProperty.apply(this, args);
 
             return styleProcessor.cleanUp(oldValue, parseProxyUrl);

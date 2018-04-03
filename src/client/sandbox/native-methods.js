@@ -391,12 +391,9 @@ class NativeMethods {
         this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
 
         // Stylesheets
-        const stylePropConstructorProto = win.CSSStyleDeclaration.prototype || win.MSStyleCSSProperties.prototype ||
-                                          win.CSS2Property.prototype;
-
-        this.styleGetPropertyValue = stylePropConstructorProto.getPropertyValue;
-        this.styleSetProperty      = stylePropConstructorProto.setProperty;
-        this.styleRemoveProperty   = stylePropConstructorProto.removeProperty;
+        this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
+        this.styleSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
+        this.styleRemoveProperty   = win.CSSStyleDeclaration.prototype.removeProperty;
 
         // Console
         this.console = win.console;
@@ -430,6 +427,9 @@ class NativeMethods {
         this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
         this.WebSocket        = win.WebSocket;
+
+        if (win.Proxy)
+            this.Proxy = win.Proxy;
 
         if (win.DataTransfer)
             this.DataTransfer = win.DataTransfer;
