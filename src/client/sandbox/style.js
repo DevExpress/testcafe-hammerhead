@@ -158,7 +158,7 @@ export default class StyleSandbox extends SandboxBase {
             if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
                 typeof nativeFn === 'function') {
                 styleDeclarationProto[prop] = function () {
-                    return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET], arguments);
+                    return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET] || this, arguments);
                 };
             }
         }
