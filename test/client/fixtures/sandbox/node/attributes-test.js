@@ -486,21 +486,20 @@ test('element.innerHTML', function () {
 test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
     var div               = document.createElement('div');
     var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
-    var newBaseVal        = 'http://example.com/test-1.svg';
+    var baseVal           = 'http://example.com/test.svg';
 
+    // NOTE: IE11 adds extra 'ns1:' namespace to stored xlink href attribute during processing,
+    // so we use div.innerHTML = html with existed xlink:href-hammerhead-stored-value attribute for all cases.
     var html = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
-               '<image xlink:href="http://example.com/test.svg"></image>\n' +
+               '<image xlink:href="' + baseVal + '" xlink:href-hammerhead-stored-value="' + baseVal + '"></image>\n' +
                '</svg>';
 
-    setProperty(div, 'innerHTML', html);
+    div.innerHTML = html;
 
-    var image = div.getElementsByTagName('image')[0];
+    var image = div.querySelector('image');
 
     var checkHrefStoredAttribute = function () {
-        // NOTE: IE11 add extra 'ns1:' namespace to stored xlink href attribute
-        var extraNamespace = browserUtils.isIE11 ? 'ns1:' : '';
-
-        ok(nativeMethods.getAttribute.call(image, extraNamespace + 'xlink:' + DomProcessor.getStoredAttrName('href')));
+        strictEqual(nativeMethods.getAttribute.call(image, 'xlink:' + DomProcessor.getStoredAttrName('href')), baseVal);
         notOk(nativeMethods.getAttribute.call(image, DomProcessor.getStoredAttrName('href')));
         notOk(nativeMethods.getAttributeNS.call(image, xlinkNamespaceUrl, 'xlink:' + DomProcessor.getStoredAttrName('href')));
         notOk(nativeMethods.getAttributeNS.call(image, xlinkNamespaceUrl, DomProcessor.getStoredAttrName('href')));
@@ -508,7 +507,8 @@ test('SVGImageElement with an existing xlink:href should contain only one stored
 
     checkHrefStoredAttribute();
 
-    image.href.baseVal = newBaseVal;
+    baseVal            = 'http://example.com/test-1.svg';
+    image.href.baseVal = baseVal;
 
     checkHrefStoredAttribute();
 });
