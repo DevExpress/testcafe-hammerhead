@@ -1,5 +1,7 @@
 var urlUtils      = hammerhead.get('./utils/url');
 var nativeMethods = hammerhead.nativeMethods;
+var StyleSandbox  = hammerhead.get('./sandbox/node/element/style');
+var styleSandbox  = hammerhead.sandbox.node.element.styleSandbox;
 
 function getNativeStylePropValue (el, prop) {
     var nativeStyle = nativeMethods.htmlElementStyleGetter.call(el);
@@ -66,7 +68,7 @@ test('check the "scriptElementEvent" event is raised', function () {
 
 module('styles');
 
-test('HTMLElement.style', function () {
+test('set the "style" property', function () {
     var div = document.createElement('div');
     var url = '/image.jpg';
 
@@ -78,6 +80,18 @@ test('HTMLElement.style', function () {
         : '';
 
     strictEqual(actualBackgroundImageValue, expectedBackgroundImageValue);
+});
+
+test('set the "style" attribute', function () {
+    var div                         = document.createElement('div');
+    var proxiedBackgroundImageValue = 'url("' + urlUtils.getProxyUrl('index.png') + '")';
+
+    div.setAttribute('style', 'background-image:url(index.png);');
+
+    var actualBackgroundImageValue = removeDoubleQuotes(getNativeStylePropValue(div, 'background-image'));
+
+    strictEqual(actualBackgroundImageValue, removeDoubleQuotes(proxiedBackgroundImageValue));
+    strictEqual(div.getAttribute('style'), 'background-image:url(index.png);');
 });
 
 test('cssText', function () {
@@ -94,37 +108,42 @@ test('cssText', function () {
     strictEqual(div.style.cssText.indexOf(proxyUrl), -1);
 });
 
-test('url in stylesheet properties', function () {
-    var div           = document.createElement('div');
-    var url           = 'http://some.domain.com/image.png';
-    var proxyUrl      = urlUtils.getProxyUrl(url);
-    var cssProperties = ['background', 'backgroundImage', 'background-image', 'borderImage', 'border-image', 'cursor',
-        'borderImageSource', 'border-image-source', 'listStyle', 'list-style', 'listStyleImage', 'list-style-image'];
+test('url properties', function () {
+    var div      = document.createElement('div');
+    var url      = 'http://some.domain.com/image.png';
+    var proxyUrl = urlUtils.getProxyUrl(url);
+    var value    = 'url(' + url + ')';
 
-    cssProperties.forEach(function (prop) {
-        var value = 'url(' + url + ')';
+    styleSandbox.URL_PROPS.forEach(function (prop) {
+        // NOTE: If we setup `borderImage` property then it affects a `borderImageSource` property.
+        var affectedProp       = prop === 'borderImage' ? 'borderImageSource' : prop;
+        var dashedProp         = StyleSandbox._convertToDashed(prop);
+        var dashedAffectedProp = StyleSandbox._convertToDashed(affectedProp);
 
-        // NOTE: If we setup `borderImage` or `border-image` property then it affects a `borderImageSource` property.
-        var affectedProp = prop === 'borderImage' || prop === 'border-image' ? 'borderImageSource' : prop;
+        setNativeStyleProp(div, dashedProp, value);
 
-        //div.style[prop] = value;
-        setNativeStyleProp(div, prop.replace(/[A-Z]/g, '-$&').toLowerCase(), value);
-
-        //var nativeValue  = div.style[affectedProp];
-        var nativeValue  = getNativeStylePropValue(div, affectedProp.replace(/[A-Z]/g, '-$&').toLowerCase());
+        var nativeValue  = getNativeStylePropValue(div, dashedAffectedProp);
         var proxiedValue = nativeValue && nativeValue.replace(url, proxyUrl);
+
+        div.style.removeProperty(dashedProp);
 
         div.style[prop] = value;
 
-        //strictEqual(getProperty(div.style, affectedProp), nativeValue, prop);
-        //strictEqual(div.style[affectedProp], proxiedValue, prop);
+        strictEqual(div.style[affectedProp], nativeValue, prop + ' dest');
+        strictEqual(getNativeStylePropValue(div, dashedAffectedProp), proxiedValue, prop + ' proxy');
 
-        strictEqual(div.style[affectedProp], nativeValue, prop);
-        strictEqual(getNativeStylePropValue(div, affectedProp.replace(/[A-Z]/g, '-$&').toLowerCase()), proxiedValue, prop);
+        if (prop !== dashedProp) {
+            div.style.removeProperty(dashedProp);
+
+            div.style[dashedProp] = value;
+
+            strictEqual(div.style[dashedAffectedProp], nativeValue, dashedProp + ' dest');
+            strictEqual(getNativeStylePropValue(div, dashedAffectedProp), proxiedValue, dashedProp + ' proxy');
+        }
     });
 });
 
-test('getPropertyValue and setProperty methods of css object should be overridden (GH-1212)', function () {
+test('getPropertyValue, setProperty, getPropertyValue (GH-1212)', function () {
     var div      = document.createElement('div');
     var url      = 'http://some.domain.com/image.png';
     var proxyUrl = urlUtils.getProxyUrl(url);

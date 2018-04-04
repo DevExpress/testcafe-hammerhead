@@ -509,19 +509,6 @@ test('anchor with target attribute', function () {
     iframe.parentNode.removeChild(iframe);
 });
 
-test('HTMLElement.style', function () {
-    var div                         = document.createElement('div');
-    var proxiedBackgroundImageValue = 'url("' + urlUtils.getProxyUrl('index.png') + '")';
-
-    div.setAttribute('style', 'background-image:url(index.png);');
-
-    var actualBackgroundImageValue = removeDoubleQuotes(nativeMethods.styleGetPropertyValue.call(div.style, 'background-image'));
-
-    strictEqual(actualBackgroundImageValue, removeDoubleQuotes(proxiedBackgroundImageValue));
-    strictEqual(div.getAttribute('style'), 'background-image:url(index.png);');
-
-});
-
 test('anchor.toString()', function () {
     var anchor = document.createElement('a');
     var url    = 'http://some.domain.com/';
