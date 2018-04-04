@@ -5,6 +5,7 @@ import { getProxyUrl, parseProxyUrl } from '../../../utils/url';
 
 const CSS_STYLE_IS_PROCESSED = 'hammerhead|style|is-processed';
 const CSS_STYLE_PROXY_OBJECT = 'hammerhead|style|proxy-object';
+const CSS_STYLE_PROXY_TARGET = 'hammerhead|style|proxy-target';
 
 export default class StyleSandbox extends SandboxBase {
     constructor () {
@@ -23,8 +24,9 @@ export default class StyleSandbox extends SandboxBase {
             .call(window.CSSStyleDeclaration.prototype, 'background');
 
         // NOTE: A style instance contains all url properties and they are non-configurable in the Safari
-        this.isPropsCannotBeOverridden = !this.nativeMethods.objectGetOwnPropertyDescriptor
-            .call(window.Object, document.documentElement.style, 'background').configurable;
+        this.isPropsCannotBeOverridden = !this.isProtoContainsAllProps && !this.isProtoContainsUrlDescriptors &&
+                                         !this.nativeMethods.objectGetOwnPropertyDescriptor
+                                             .call(window.Object, document.documentElement.style, 'background').configurable;
     }
 
     static _convertToDashed (prop) {
@@ -112,19 +114,29 @@ export default class StyleSandbox extends SandboxBase {
 
         if (!proxyObject) {
             proxyObject = new this.nativeMethods.Proxy(style, {
-                get: (obj, prop) => {
+                get: (target, prop) => {
                     if (this.URL_PROPS.indexOf(prop) !== -1 || this.DASHED_URL_PROPS.indexOf(prop) !== -1)
-                        return styleProcessor.cleanUp(obj[prop], parseProxyUrl);
+                        return styleProcessor.cleanUp(target[prop], parseProxyUrl);
 
-                    return obj[prop];
+                    if (prop === CSS_STYLE_PROXY_TARGET)
+                        return target;
+
+                    if (this.nativeMethods.objectHasOwnProperty.call(window.CSSStyleDeclaration.prototype, prop) &&
+                        typeof target[prop] === 'function') {
+                        return function (...args) {
+                            return target[prop].apply(this[CSS_STYLE_PROXY_TARGET], args);
+                        };
+                    }
+
+                    return target[prop];
                 },
-                set: (obj, prop, value) => {
+                set: (target, prop, value) => {
                     if (this.URL_PROPS.indexOf(prop) !== -1 || this.DASHED_URL_PROPS.indexOf(prop) !== -1) {
                         if (typeof value === 'string')
                             value = styleProcessor.process(value, getProxyUrl);
                     }
 
-                    obj[prop] = value;
+                    target[prop] = value;
 
                     return true;
                 }

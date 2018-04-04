@@ -1,6 +1,18 @@
 var urlUtils      = hammerhead.get('./utils/url');
 var nativeMethods = hammerhead.nativeMethods;
 
+function getNativeStylePropValue (el, prop) {
+    var nativeStyle = nativeMethods.htmlElementStyleGetter.call(el);
+
+    return nativeMethods.styleGetPropertyValue.call(nativeStyle, prop);
+}
+
+function setNativeStyleProp (el, prop, value) {
+    var nativeStyle = nativeMethods.htmlElementStyleGetter.call(el);
+
+    return nativeMethods.styleSetProperty.call(nativeStyle, prop, value);
+}
+
 test('check the "scriptElementEvent" event is raised', function () {
     var script1           = document.createElement('script');
     var addedScriptsCount = 0;
@@ -53,25 +65,19 @@ test('check the "scriptElementEvent" event is raised', function () {
 });
 
 module('styles');
-// add tests for non-string values
+
 test('HTMLElement.style', function () {
     var div = document.createElement('div');
     var url = '/image.jpg';
 
     div.style = 'background-image:url("' + url + '")';
 
-    var actualBackgroundImageValue   = removeDoubleQuotes(nativeMethods.styleGetPropertyValue.call(div.style, 'background-image'));
+    var actualBackgroundImageValue   = removeDoubleQuotes(getNativeStylePropValue(div, 'background-image'));
     var expectedBackgroundImageValue = nativeMethods.htmlElementStyleSetter
         ? removeDoubleQuotes('url("' + urlUtils.getProxyUrl(url) + '")')
         : '';
 
     strictEqual(actualBackgroundImageValue, expectedBackgroundImageValue);
-    //
-    // div.style = {
-    //     toString: function () {
-    //         return 'background-image:url("' + url + '")';
-    //     }
-    // };
 });
 
 test('cssText', function () {
@@ -81,7 +87,7 @@ test('cssText', function () {
 
     div.style.cssText = 'background-image:url("' + url + '")';
 
-    var actualBackgroundImageValue   = removeDoubleQuotes(nativeMethods.styleGetPropertyValue.call(div.style, 'background-image'));
+    var actualBackgroundImageValue   = removeDoubleQuotes(getNativeStylePropValue(div, 'background-image'));
     var expectedBackgroundImageValue = removeDoubleQuotes('url("' + proxyUrl + '")');
 
     strictEqual(actualBackgroundImageValue, expectedBackgroundImageValue);
@@ -89,7 +95,7 @@ test('cssText', function () {
 });
 
 test('url in stylesheet properties', function () {
-    var el            = document.createElement('div');
+    var div           = document.createElement('div');
     var url           = 'http://some.domain.com/image.png';
     var proxyUrl      = urlUtils.getProxyUrl(url);
     var cssProperties = ['background', 'backgroundImage', 'background-image', 'borderImage', 'border-image', 'cursor',
@@ -101,20 +107,20 @@ test('url in stylesheet properties', function () {
         // NOTE: If we setup `borderImage` or `border-image` property then it affects a `borderImageSource` property.
         var affectedProp = prop === 'borderImage' || prop === 'border-image' ? 'borderImageSource' : prop;
 
-        //el.style[prop] = value;
-        nativeMethods.styleSetProperty.call(el.style, prop.replace(/[A-Z]/g, '-$&').toLowerCase(), value);
+        //div.style[prop] = value;
+        setNativeStyleProp(div, prop.replace(/[A-Z]/g, '-$&').toLowerCase(), value);
 
-        //var nativeValue  = el.style[affectedProp];
-        var nativeValue  = nativeMethods.styleGetPropertyValue.call(el.style, affectedProp.replace(/[A-Z]/g, '-$&').toLowerCase());
+        //var nativeValue  = div.style[affectedProp];
+        var nativeValue  = getNativeStylePropValue(div, affectedProp.replace(/[A-Z]/g, '-$&').toLowerCase());
         var proxiedValue = nativeValue && nativeValue.replace(url, proxyUrl);
 
-        el.style[prop] = value;
+        div.style[prop] = value;
 
-        //strictEqual(getProperty(el.style, affectedProp), nativeValue, prop);
-        //strictEqual(el.style[affectedProp], proxiedValue, prop);
+        //strictEqual(getProperty(div.style, affectedProp), nativeValue, prop);
+        //strictEqual(div.style[affectedProp], proxiedValue, prop);
 
-        strictEqual(el.style[affectedProp], nativeValue, prop);
-        strictEqual(nativeMethods.styleGetPropertyValue.call(el.style, affectedProp.replace(/[A-Z]/g, '-$&').toLowerCase()), proxiedValue, prop);
+        strictEqual(div.style[affectedProp], nativeValue, prop);
+        strictEqual(getNativeStylePropValue(div, affectedProp.replace(/[A-Z]/g, '-$&').toLowerCase()), proxiedValue, prop);
     });
 });
 
@@ -125,7 +131,7 @@ test('getPropertyValue and setProperty methods of css object should be overridde
 
     div.style.setProperty('background', 'url(' + url + ')', '');
 
-    ok(nativeMethods.styleGetPropertyValue.call(div.style, 'background').indexOf(proxyUrl) !== -1);
+    ok(getNativeStylePropValue(div, 'background').indexOf(proxyUrl) !== -1);
     ok(div.style.getPropertyValue('background').indexOf(proxyUrl) === -1);
     ok(div.style.getPropertyValue('background').indexOf(url) !== -1);
 
