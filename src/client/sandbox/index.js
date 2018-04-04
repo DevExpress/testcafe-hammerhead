@@ -19,6 +19,7 @@ import FetchSandbox from './fetch';
 import StorageSandbox from './storages';
 import ElectronSandbox from './electron';
 import ConsoleSandbox from './console';
+import StyleSandbox from './style';
 import { isIE, isWebKit, isElectron } from '../utils/browser';
 import { dispose as htmlUtilDispose } from '../utils/html';
 import { dispose as anchorCodeInstumentationDispose } from './code-instrumentation/properties/anchor';
@@ -57,6 +58,7 @@ export default class Sandbox extends SandboxBase {
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox);
         this.codeInstrumentation = new CodeInstrumentation(nodeMutation, this.event, this.shadowUI, this.node.element);
         this.console             = new ConsoleSandbox(messageSandbox);
+        this.style               = new StyleSandbox();
         this.unload              = unloadSandbox;
 
         if (isElectron)
@@ -209,6 +211,7 @@ export default class Sandbox extends SandboxBase {
         this.cookie.attach(window);
         /*eslint-enable no-restricted-properties*/
         this.console.attach(window);
+        this.style.attach(window);
 
         if (this.electron)
             this.electron.attach(window);

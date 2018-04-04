@@ -118,7 +118,10 @@ class NativeMethods {
         this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;
 
         // Style
-        const htmlElementStyleDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'style');
+        // NOTE: The 'style' descriptor is located in the Element.prototype in the Safari on IOS
+        this.htmlElementStylePropOwnerName = win.Element.prototype.hasOwnProperty('style') ? 'Element' : 'HTMLElement';
+
+        const htmlElementStyleDescriptor = win.Object.getOwnPropertyDescriptor(win[this.htmlElementStylePropOwnerName].prototype, 'style');
 
         this.htmlElementStyleGetter = htmlElementStyleDescriptor.get;
 

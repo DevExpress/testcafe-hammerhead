@@ -1,7 +1,7 @@
-import SandboxBase from '../../base';
-import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
-import styleProcessor from '../../../../processing/style';
-import { getProxyUrl, parseProxyUrl } from '../../../utils/url';
+import SandboxBase from './base';
+import { overrideDescriptor, createOverriddenDescriptor } from './../utils/property-overriding';
+import styleProcessor from './../../processing/style';
+import { getProxyUrl, parseProxyUrl } from './../utils/url';
 
 const CSS_STYLE_IS_PROCESSED = 'hammerhead|style|is-processed';
 const CSS_STYLE_PROXY_OBJECT = 'hammerhead|style|proxy-object';
@@ -14,19 +14,7 @@ export default class StyleSandbox extends SandboxBase {
         this.URL_PROPS        = ['background', 'backgroundImage', 'borderImage',
             'borderImageSource', 'listStyle', 'listStyleImage', 'cursor'];
         this.DASHED_URL_PROPS = StyleSandbox._generateDashedProps(this.URL_PROPS);
-
-        // NOTE: The CSS2Properties class is supported only in the Firefox
-        // and its prototype contains all property descriptors
-        this.isProtoContainsAllProps = !!window.CSS2Properties;
-
-        // NOTE: The CSSStyleDeclaration class contains not dashed url properties only in the IE
-        this.isProtoContainsUrlDescriptors = this.nativeMethods.objectHasOwnProperty
-            .call(window.CSSStyleDeclaration.prototype, 'background');
-
-        // NOTE: A style instance contains all url properties and they are non-configurable in the Safari
-        this.isPropsCannotBeOverridden = !this.isProtoContainsAllProps && !this.isProtoContainsUrlDescriptors &&
-                                         !this.nativeMethods.objectGetOwnPropertyDescriptor
-                                             .call(window.Object, document.documentElement.style, 'background').configurable;
+        this.FEATURES         = this._detectBrowserFeatures();
     }
 
     static _convertToDashed (prop) {
@@ -44,6 +32,24 @@ export default class StyleSandbox extends SandboxBase {
         }
 
         return dashedProps;
+    }
+
+    _detectBrowserFeatures () {
+        const features = {};
+
+        // NOTE: The CSS2Properties class is supported only in the Firefox
+        // and its prototype contains all property descriptors
+        features.protoContainsAllProps = !!window.CSS2Properties;
+
+        // NOTE: The CSSStyleDeclaration class contains not dashed url properties only in the IE
+        features.protoContainsUrlProps = this.nativeMethods.objectHasOwnProperty
+            .call(window.CSSStyleDeclaration.prototype, 'background');
+
+        // NOTE: A style instance contains all url properties and they are non-configurable in the Safari
+        features.propsCannotBeOverridden = !features.protoContainsAllProps && !features.protoContainsUrlProps &&
+                                           !this.nativeMethods.objectGetOwnPropertyDescriptor
+                                               .call(window.Object, document.documentElement.style, 'background').configurable;
+        return features;
     }
 
     _overrideStyleProp (proto, prop) {
@@ -98,7 +104,7 @@ export default class StyleSandbox extends SandboxBase {
             for (const prop of this.DASHED_URL_PROPS)
                 this._overrideStyleInstanceProp(style, prop);
 
-            if (!this.isProtoContainsUrlDescriptors) {
+            if (!this.FEATURES.protoContainsUrlProps) {
                 for (const prop of this.URL_PROPS)
                     this._overrideStyleInstanceProp(style, prop);
             }
@@ -121,13 +127,6 @@ export default class StyleSandbox extends SandboxBase {
                     if (prop === CSS_STYLE_PROXY_TARGET)
                         return target;
 
-                    if (this.nativeMethods.objectHasOwnProperty.call(window.CSSStyleDeclaration.prototype, prop) &&
-                        typeof target[prop] === 'function') {
-                        return function (...args) {
-                            return target[prop].apply(this[CSS_STYLE_PROXY_TARGET], args);
-                        };
-                    }
-
                     return target[prop];
                 },
                 set: (target, prop, value) => {
@@ -148,17 +147,34 @@ export default class StyleSandbox extends SandboxBase {
         return proxyObject;
     }
 
+    _overrideCSSStyleDeclarationFunctionsCtx (window) {
+        const styleDeclarationProto = window.CSSStyleDeclaration.prototype;
+
+        for (const prop in styleDeclarationProto) {
+            /*eslint-disable no-restricted-properties*/
+            const nativeFn = this.nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, styleDeclarationProto, prop).value;
+            /*eslint-enable no-restricted-properties*/
+
+            if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
+                typeof nativeFn === 'function') {
+                styleDeclarationProto[prop] = function () {
+                    return nativeFn.apply(this[CSS_STYLE_PROXY_TARGET], arguments);
+                };
+            }
+        }
+    }
+
     attach (window) {
         super.attach(window);
 
         const nativeMethods = this.nativeMethods;
         const styleSandbox  = this;
 
-        overrideDescriptor(window.HTMLElement.prototype, 'style', {
-            getter: this.isProtoContainsAllProps ? null : function () {
+        overrideDescriptor(window[nativeMethods.htmlElementStylePropOwnerName].prototype, 'style', {
+            getter: this.FEATURES.protoContainsAllProps ? null : function () {
                 const style = nativeMethods.htmlElementStyleGetter.call(this);
 
-                if (styleSandbox.isPropsCannotBeOverridden)
+                if (styleSandbox.FEATURES.propsCannotBeOverridden)
                     return styleSandbox._getStyleProxy(style);
 
                 return styleSandbox._processStyleInstance(style);
@@ -170,14 +186,14 @@ export default class StyleSandbox extends SandboxBase {
             } : null
         });
 
-        if (this.isProtoContainsAllProps) {
+        if (this.FEATURES.protoContainsAllProps) {
             for (const prop of this.URL_PROPS)
                 this._overrideStyleProp(window.CSS2Properties.prototype, prop);
 
             for (const prop of this.DASHED_URL_PROPS)
                 this._overrideStyleProp(window.CSS2Properties.prototype, prop);
         }
-        else if (this.isProtoContainsUrlDescriptors) {
+        else if (this.FEATURES.protoContainsUrlProps) {
             for (const prop of this.URL_PROPS)
                 this._overrideStyleProp(window.CSSStyleDeclaration.prototype, prop);
         }
@@ -216,5 +232,11 @@ export default class StyleSandbox extends SandboxBase {
 
             return styleProcessor.cleanUp(oldValue, parseProxyUrl);
         };
+
+        // NOTE: We need to override context of all functions from the CSSStyleDeclaration prototype if we use the Proxy feature.
+        // Can only call CSSStyleDeclaration.<function name> on instances of CSSStyleDeclaration
+        // The error above occurs if functions will be called on a proxy instance.
+        if (this.FEATURES.propsCannotBeOverridden)
+            this._overrideCSSStyleDeclarationFunctionsCtx(window);
     }
 }
