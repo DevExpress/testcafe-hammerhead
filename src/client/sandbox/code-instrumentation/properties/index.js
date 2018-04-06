@@ -8,7 +8,6 @@ import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
 import { ensureOriginTrailingSlash, HASH_RE } from '../../../../utils/url';
-import { isStyle } from '../../../utils/style';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAttributesProperty } from './attributes';
 import domProcessor from '../../../dom-processor';
@@ -102,23 +101,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             return SVG_ELEMENT_TEXT_PROPERTIES[prop];
 
         return HTML_ELEMENT_TEXT_PROPERTIES[prop];
-    }
-
-    static _createForStyleProperty (property) {
-        return {
-            condition: isStyle,
-
-            get: style => styleProcessor.cleanUp(style[property], urlUtils.parseProxyUrl),
-
-            set: (style, value) => {
-                if (typeof value === 'string')
-                    style[property] = styleProcessor.process(value, urlUtils.getProxyUrl);
-                else
-                    style[property] = value;
-
-                return value;
-            }
-        };
     }
 
     static _isMessageEventWithoutDataPropGetter (e) {
@@ -478,33 +460,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     : ev[INTERNAL_PROPS.whichPropertyWrapper],
 
                 set: () => void 0
-            },
-
-            // Style
-            background:            PropertyAccessorsInstrumentation._createForStyleProperty('background'),
-            backgroundImage:       PropertyAccessorsInstrumentation._createForStyleProperty('backgroundImage'),
-            'background-image':    PropertyAccessorsInstrumentation._createForStyleProperty('background-image'),
-            borderImage:           PropertyAccessorsInstrumentation._createForStyleProperty('borderImage'),
-            'border-image':        PropertyAccessorsInstrumentation._createForStyleProperty('border-image'),
-            'borderImageSource':   PropertyAccessorsInstrumentation._createForStyleProperty('borderImageSource'),
-            'border-image-source': PropertyAccessorsInstrumentation._createForStyleProperty('border-image-source'),
-            listStyle:             PropertyAccessorsInstrumentation._createForStyleProperty('listStyle'),
-            'list-style':          PropertyAccessorsInstrumentation._createForStyleProperty('list-style'),
-            listStyleImage:        PropertyAccessorsInstrumentation._createForStyleProperty('listStyleImage'),
-            'list-style-image':    PropertyAccessorsInstrumentation._createForStyleProperty('list-style-image'),
-            cssText:               PropertyAccessorsInstrumentation._createForStyleProperty('cssText'),
-            cursor:                PropertyAccessorsInstrumentation._createForStyleProperty('cursor'),
-
-            style: {
-                condition: el => domUtils.isDomElement(el) && isStyle(el.style),
-
-                get: el => el.style,
-
-                set: (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['style', value]);
-
-                    return value;
-                }
             }
         };
     }

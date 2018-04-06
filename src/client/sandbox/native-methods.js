@@ -116,6 +116,23 @@ class NativeMethods {
 
         this.svgFocus = win.SVGElement ? win.SVGElement.prototype.focus : this.focus;
         this.svgBlur  = win.SVGElement ? win.SVGElement.prototype.blur : this.blur;
+
+        // Style
+        // NOTE: The 'style' descriptor is located in the Element.prototype in the Safari on IOS
+        this.htmlElementStylePropOwnerName = win.Element.prototype.hasOwnProperty('style') ? 'Element' : 'HTMLElement';
+
+        const htmlElementStyleDescriptor = win.Object.getOwnPropertyDescriptor(win[this.htmlElementStylePropOwnerName].prototype, 'style');
+
+        this.htmlElementStyleGetter = htmlElementStyleDescriptor.get;
+
+        // NOTE: IE does not allow to set a style property
+        if (htmlElementStyleDescriptor.set)
+            this.htmlElementStyleSetter = htmlElementStyleDescriptor.set;
+
+        const styleCssTextDescriptor = win.Object.getOwnPropertyDescriptor(win.CSSStyleDeclaration.prototype, 'cssText');
+
+        this.styleCssTextGetter = styleCssTextDescriptor.get;
+        this.styleCssTextSetter = styleCssTextDescriptor.set;
     }
 
     refreshWindowMeths (win) {
@@ -377,23 +394,9 @@ class NativeMethods {
         this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
 
         // Stylesheets
-        if (win.CSSStyleDeclaration) {
-            this.CSSStyleDeclarationGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
-            this.CSSStyleDeclarationSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
-            this.CSSStyleDeclarationRemoveProperty   = win.CSSStyleDeclaration.prototype.removeProperty;
-        }
-
-        if (win.MSStyleCSSProperties) {
-            this.MSStyleCSSPropertiesGetPropertyValue = win.MSStyleCSSProperties.prototype.getPropertyValue;
-            this.MSStyleCSSPropertiesSetProperty      = win.MSStyleCSSProperties.prototype.setProperty;
-            this.MSStyleCSSPropertiesRemoveProperty   = win.MSStyleCSSProperties.prototype.removeProperty;
-        }
-
-        if (win.CSS2Property) {
-            this.CSS2PropertyGetPropertyValue = win.CSS2Property.prototype.getPropertyValue;
-            this.CSS2PropertySetProperty      = win.CSS2Property.prototype.setProperty;
-            this.CSS2PropertyRemoveProperty   = win.CSS2Property.prototype.removeProperty;
-        }
+        this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
+        this.styleSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;
+        this.styleRemoveProperty   = win.CSSStyleDeclaration.prototype.removeProperty;
 
         // Console
         this.console = win.console;
@@ -414,8 +417,6 @@ class NativeMethods {
         this.windowClass      = win.Window;
         this.documentClass    = win.Document;
         this.locationClass    = win.Location;
-        this.styleClass       = win.CSSStyleDeclaration || win.CSS2Properties || win.MSStyleCSSProperties;
-        this.styleSheetClass  = win.CSSStyleSheet;
         this.elementClass     = win.Element;
         this.svgElementClass  = win.SVGElement;
         this.Worker           = win.Worker;
@@ -429,6 +430,9 @@ class NativeMethods {
         this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
         this.WebSocket        = win.WebSocket;
+
+        if (win.Proxy)
+            this.Proxy = win.Proxy;
 
         if (win.DataTransfer)
             this.DataTransfer = win.DataTransfer;

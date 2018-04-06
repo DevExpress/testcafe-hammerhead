@@ -100,34 +100,6 @@ test('CSSStyleSheet.href', function () {
     document.body.removeChild(style);
 });
 
-test('url in stylesheet properties', function () {
-    var el            = document.createElement('div');
-    var url           = 'http://some.domain.com/image.png';
-    var proxyUrl      = urlUtils.getProxyUrl(url);
-    var cssProperties = ['background', 'backgroundImage', 'background-image', 'borderImage', 'border-image',
-        'borderImageSource', 'border-image-source', 'listStyle', 'list-style', 'listStyleImage',
-        'list-style-image', 'cssText', 'cursor'];
-
-    cssProperties.forEach(function (prop) {
-        var value = 'url(' + url + ')';
-
-        // NOTE: If we setup `borderImage` or `border-image` property then it affects a `borderImageSource` property.
-        var affectedProp = prop === 'borderImage' || prop === 'border-image' ? 'borderImageSource' : prop;
-
-        if (prop === 'cssText')
-            value = 'background:' + value;
-
-        el.style[prop] = value;
-
-        var nativeValue  = el.style[affectedProp];
-        var proxiedValue = nativeValue && nativeValue.replace(url, proxyUrl);
-
-        eval(processScript('el.style["' + prop + '"]="' + value + '"'));
-        strictEqual(getProperty(el.style, affectedProp), nativeValue, prop);
-        strictEqual(el.style[affectedProp], proxiedValue, prop);
-    });
-});
-
 test('get style body', function () {
     var style     = document.createElement('style');
     var styleText = 'div{background:url(http://some.domain.com/image.png)}';
@@ -169,23 +141,6 @@ test('clean up outerHTML', function () {
         var doc = document.implementation.createDocument(null, 'status', null);
 
         strictEqual(getProperty(doc.documentElement, 'outerHTML'), void 0);
-    }
-});
-
-test('HTMLElement.style', function () {
-    var div = document.createElement('div');
-
-    strictEqual(div.style, getProperty(div, 'style'));
-
-    // IE does not allow to set a style property in this way
-    if (!window.MSStyleCSSProperties) {
-        var returnedValue = setProperty(div, 'style', "background-image:url('/index.html')");
-
-        strictEqual(returnedValue, "background-image:url('/index.html')");
-
-        var expectedBackgroundImageValue = 'url("' + urlUtils.getProxyUrl('/index.html') + '")';
-
-        strictEqual(removeDoubleQuotes(div.style.backgroundImage), removeDoubleQuotes(expectedBackgroundImageValue));
     }
 });
 
