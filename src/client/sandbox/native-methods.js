@@ -203,6 +203,7 @@ class NativeMethods {
         this.WindowTouchEvent          = win.TouchEvent || winProto.TouchEvent;
         this.WindowKeyboardEvent       = win.KeyboardEvent || winProto.KeyboardEvent;
         this.WindowFocusEvent          = win.FocusEvent || winProto.FocusEvent;
+        this.WindowTextEvent           = win.TextEvent || winProto.TextEvent;
 
 
         this.canvasContextDrawImage = win.CanvasRenderingContext2D.prototype.drawImage;

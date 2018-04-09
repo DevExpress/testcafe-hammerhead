@@ -600,6 +600,23 @@ export default class EventSimulator {
         return null;
     }
 
+    _dispatchTextEvent (el, text) {
+        const name = browserUtils.isIE ? 'textinput' : 'textInput';
+
+        let event = null;
+
+        if (nativeMethods.WindowTextEvent && nativeMethods.documentCreateEvent) {
+            event = nativeMethods.documentCreateEvent.call(document, 'TextEvent');
+
+            event.initTextEvent(name, true, true, null, text, 0, '');
+        }
+
+        if (event)
+            return this._raiseDispatchEvent(el, event);
+
+        return null;
+    }
+
     _dispatchEvent (el, name, shouldBubble, flag) {
         let ev = null;
 
@@ -773,6 +790,10 @@ export default class EventSimulator {
 
     change (el) {
         return this._dispatchEvent(el, 'change', true, this.DISPATCHED_EVENT_FLAG);
+    }
+
+    textInput (el, text) {
+        return this._dispatchTextEvent(el, text);
     }
 
     input (el) {

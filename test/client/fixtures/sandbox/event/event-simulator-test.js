@@ -674,3 +674,26 @@ test('wrong type of the blur event (GH-947)', function () {
     eventSimulator.blur(domElement);
     ok(raised);
 });
+
+if (!browserUtils.isFirefox) {
+    test('Should handle textInput event and pass e.data property (GH-1956)', function () {
+
+        var handler = function (e) {
+            var ev = e || window.event;
+
+            if (ev instanceof Event && ev instanceof TextEvent && e.data === 'Hello')
+                raised = true;
+        };
+
+        document.addEventListener('textInput', handler); // Chrome way
+        document.addEventListener('textinput', handler); // IE way
+
+        eventSimulator.textInput(domElement, 'Hello');
+
+        document.removeEventListener('textInput', handler); // Chrome way
+        document.removeEventListener('textinput', handler); // IE way
+
+        ok(raised);
+    });
+}
+
