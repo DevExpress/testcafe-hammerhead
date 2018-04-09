@@ -483,6 +483,37 @@ test('element.innerHTML', function () {
     checkElement($container.find('script')[0], 'src', '!s');
 });
 
+// NOTE: IE11 adds extra 'NS' namespace to stored xlink href attribute during processing (GH-1083)
+if (!browserUtils.isIE11) {
+    test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
+        var div               = document.createElement('div');
+        var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
+        var baseVal           = 'http://example.com/test.svg';
+
+        var html = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
+                   '<image xlink:href="' + baseVal + '"></image>\n' +
+                   '</svg>';
+
+        setProperty(div, 'innerHTML', html);
+
+        var image = div.querySelector('image');
+
+        var checkHrefStoredAttribute = function (el) {
+            strictEqual(nativeMethods.getAttribute.call(el, 'xlink:' + DomProcessor.getStoredAttrName('href')), baseVal);
+            notOk(nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href')));
+            notOk(nativeMethods.getAttributeNS.call(el, xlinkNamespaceUrl, 'xlink:' + DomProcessor.getStoredAttrName('href')));
+            notOk(nativeMethods.getAttributeNS.call(el, xlinkNamespaceUrl, DomProcessor.getStoredAttrName('href')));
+        };
+
+        checkHrefStoredAttribute(image);
+
+        baseVal            = 'http://example.com/test-1.svg';
+        image.href.baseVal = baseVal;
+
+        checkHrefStoredAttribute(image);
+    });
+}
+
 test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
     var url      = 'http://url.com/';
