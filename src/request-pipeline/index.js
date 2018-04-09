@@ -12,14 +12,12 @@ import { respondOnWebSocket } from './websocket';
 import { PassThrough } from 'stream';
 import * as specialPage from './special-page';
 import matchUrl from 'match-url-wildcard';
-import * as requestEventInfo from '../session/request-event/info';
-import REQUEST_EVENT_NAMES from '../session/request-event/names';
-import {
-    ResponseEvent,
-    RequestEvent,
-    ConfigureResponseEvent,
-    ConfigureResponseEventOptions
-} from '../session/request-event/classes';
+import * as requestEventInfo from '../session/events/info';
+import REQUEST_EVENT_NAMES from '../session/events/names';
+import ResponseEvent from '../session/events/response-event';
+import RequestEvent from '../session/events/request-event';
+import ConfigureResponseEvent from '../session/events/configure-response-event';
+import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 

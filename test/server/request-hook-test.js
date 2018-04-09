@@ -5,7 +5,7 @@ const querystring                   = require('querystring');
 const expect                        = require('chai').expect;
 const ResponseMock                  = require('../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule             = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
-const ConfigureResponseEventOptions = require('../../lib/session/request-event/classes').ConfigureResponseEventOptions;
+const ConfigureResponseEventOptions = require('../../lib/session/events/configure-response-event-options');
 const noop                          = require('lodash').noop;
 
 describe('ResponseMock', () => {

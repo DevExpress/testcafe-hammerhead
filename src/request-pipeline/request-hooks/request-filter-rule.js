@@ -24,7 +24,7 @@ export default class RequestFilterRule {
         else if (typeof options === 'object')
             tmpOptions = Object.assign(tmpOptions, options);
         else
-            throw new Error('Wrong options will be passed to a RequestFilter.');
+            throw new TypeError('Wrong options have been passed to a request filter.');
 
         if (typeof tmpOptions.method === 'string')
             tmpOptions.method = tmpOptions.method.toLowerCase();

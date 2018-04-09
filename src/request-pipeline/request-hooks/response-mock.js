@@ -5,7 +5,7 @@ const EMPTY_PAGE_HTML   = '<html><body></body></html>';
 
 const INVALID_BODY_PARAMETER_TYPES = ['number', 'boolean'];
 
-const INVALID_STATUS_CODE_MESSAGE = 'Invalid status code. It should be more 100 and less 999';
+const INVALID_STATUS_CODE_MESSAGE = 'Invalid status code. It should be a number that is greater than 100 and less than 999.';
 
 export default class ResponseMock {
     constructor (body, statusCode, headers) {
@@ -22,7 +22,7 @@ export default class ResponseMock {
         const bodyType = typeof this.body;
 
         if (INVALID_BODY_PARAMETER_TYPES.indexOf(bodyType) !== -1)
-            throw new TypeError(`You specify invalid type ${bodyType} for body parameter`);
+            throw new TypeError(`The 'body' parameter has an invalid type - ${bodyType}.`);
     }
 
     _validateStatusCode () {
@@ -46,7 +46,7 @@ export default class ResponseMock {
             return;
 
         if (typeof this.headers !== 'object')
-            throw new TypeError('headers parameter should be an object');
+            throw new TypeError('Invalid type of the \'headers\' parameter. It should be an object.');
     }
 
     _validateParameters () {
