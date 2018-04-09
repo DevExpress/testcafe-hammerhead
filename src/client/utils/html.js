@@ -124,7 +124,7 @@ function processHtmlInternal (html, process) {
 
     // NOTE: hack for IE (GH-1083)
     if (isIE && !isMSEdge && html !== processedHtml)
-        processedHtml = removeExtraSvgNamespeces(html, processedHtml);
+        processedHtml = removeExtraSvgNamespaces(html, processedHtml);
 
     return processedHtml;
 }
@@ -243,7 +243,7 @@ export function dispose () {
     htmlDocument = null;
 }
 
-function removeExtraSvgNamespeces (html, processedHtml) {
+function removeExtraSvgNamespaces (html, processedHtml) {
     const initialSvgStrs = html.match(FIND_SVG_RE);
     let index            = 0;
 

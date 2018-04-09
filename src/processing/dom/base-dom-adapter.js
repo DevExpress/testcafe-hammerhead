@@ -10,7 +10,7 @@ export default class BaseDomAdapter {
             'onkeypress', 'onkeyup', 'onload', 'onmousedown', 'onmouseenter', 'onmouseleave',
             'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onpaste', 'onreset',
             'onresize', 'onscroll', 'onselect', 'onsubmit', 'ontextinput', 'onunload', 'onwheel',
-            'onpointerdown', 'onpoi nterup', 'onpointercancel', 'onpointermove', 'onpointerover', 'onpointerout',
+            'onpointerdown', 'onpointerup', 'onpointercancel', 'onpointermove', 'onpointerover', 'onpointerout',
             'onpointerenter', 'onpointerleave', 'ongotpointercapture', 'onlostpointercapture',
             'onmspointerdown', 'onmspointerup', 'onmspointercancel', 'onmspointermove', 'onmspointerover',
             'onmspointerout', 'onmspointerenter', 'onmspointerleave', 'onmsgotpointercapture', 'onmslostpointercapture'

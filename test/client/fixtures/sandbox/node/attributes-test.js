@@ -483,35 +483,36 @@ test('element.innerHTML', function () {
     checkElement($container.find('script')[0], 'src', '!s');
 });
 
-test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
-    var div               = document.createElement('div');
-    var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
-    var baseVal           = 'http://example.com/test.svg';
+// NOTE: IE11 adds extra 'NS' namespace to stored xlink href attribute during processing (GH-1083)
+if (!browserUtils.isIE11) {
+    test('SVGImageElement with an existing xlink:href should contain only one stored href attribute after href.baseVal is changed', function () {
+        var div               = document.createElement('div');
+        var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
+        var baseVal           = 'http://example.com/test.svg';
 
-    // NOTE: IE11 adds extra 'ns1:' namespace to stored xlink href attribute during processing,
-    // so we use div.innerHTML = html with existed xlink:href-hammerhead-stored-value attribute for all cases.
-    var html = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
-               '<image xlink:href="' + baseVal + '" xlink:href-hammerhead-stored-value="' + baseVal + '"></image>\n' +
-               '</svg>';
+        var html = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
+                   '<image xlink:href="' + baseVal + '"></image>\n' +
+                   '</svg>';
 
-    div.innerHTML = html;
+        setProperty(div, 'innerHTML', html);
 
-    var image = div.querySelector('image');
+        var image = div.querySelector('image');
 
-    var checkHrefStoredAttribute = function () {
-        strictEqual(nativeMethods.getAttribute.call(image, 'xlink:' + DomProcessor.getStoredAttrName('href')), baseVal);
-        notOk(nativeMethods.getAttribute.call(image, DomProcessor.getStoredAttrName('href')));
-        notOk(nativeMethods.getAttributeNS.call(image, xlinkNamespaceUrl, 'xlink:' + DomProcessor.getStoredAttrName('href')));
-        notOk(nativeMethods.getAttributeNS.call(image, xlinkNamespaceUrl, DomProcessor.getStoredAttrName('href')));
-    };
+        var checkHrefStoredAttribute = function (el) {
+            strictEqual(nativeMethods.getAttribute.call(el, 'xlink:' + DomProcessor.getStoredAttrName('href')), baseVal);
+            notOk(nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href')));
+            notOk(nativeMethods.getAttributeNS.call(el, xlinkNamespaceUrl, 'xlink:' + DomProcessor.getStoredAttrName('href')));
+            notOk(nativeMethods.getAttributeNS.call(el, xlinkNamespaceUrl, DomProcessor.getStoredAttrName('href')));
+        };
 
-    checkHrefStoredAttribute();
+        checkHrefStoredAttribute(image);
 
-    baseVal            = 'http://example.com/test-1.svg';
-    image.href.baseVal = baseVal;
+        baseVal            = 'http://example.com/test-1.svg';
+        image.href.baseVal = baseVal;
 
-    checkHrefStoredAttribute();
-});
+        checkHrefStoredAttribute(image);
+    });
+}
 
 test('anchor with target attribute', function () {
     var anchor   = document.createElement('a');
