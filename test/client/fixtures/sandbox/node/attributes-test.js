@@ -53,78 +53,6 @@ if (!browserUtils.isIE || browserUtils.version !== 11) {
     });
 }
 
-test('url', function () {
-    var testUrlAttr = function (tagName, attr) {
-        var el         = nativeMethods.createElement.call(document, tagName);
-        var storedAttr = DomProcessor.getStoredAttrName(attr);
-        var namespace  = 'http://www.w3.org/1999/xhtml';
-
-        var getAttr = function () {
-            return nativeMethods.getAttribute.call(el, attr);
-        };
-
-        var getWrapAttr = function () {
-            return nativeMethods.getAttribute.call(el, storedAttr);
-        };
-
-        el.setAttribute(attr, '');
-
-        var emptyAttrValue = el[attr];
-        var dest           = 'http://dest.com/';
-        var resourceType   = null;
-
-        if (tagName === 'script')
-            resourceType = 's';
-        else if (tagName === 'form' || attr === 'formAction')
-            resourceType = 'f';
-
-        var proxy = urlUtils.getProxyUrl(dest, { resourceType: resourceType });
-
-        setProperty(el, attr, dest);
-        strictEqual(el[attr], proxy);
-        strictEqual(getProperty(el, attr), dest);
-        strictEqual(getAttr(), proxy);
-        strictEqual(getWrapAttr(), dest);
-
-        var newUrl      = '/image';
-        var proxyNewUrl = urlUtils.getProxyUrl('/image', { resourceType: resourceType });
-
-        el.setAttribute(attr, newUrl);
-        strictEqual(el[attr], proxyNewUrl);
-        strictEqual(getProperty(el, attr), urlUtils.parseProxyUrl(proxyNewUrl).destUrl);
-        strictEqual(getAttr(), proxyNewUrl);
-        strictEqual(getWrapAttr(), newUrl);
-
-        setProperty(el, attr, '');
-        strictEqual(getWrapAttr(), '');
-        strictEqual(getAttr(), '');
-        strictEqual(el[attr], emptyAttrValue);
-        strictEqual(getProperty(el, attr), destLocation.get());
-
-        el.removeAttribute(attr);
-        strictEqual(getWrapAttr(), null);
-        strictEqual(getAttr(), null);
-
-        if (attr === 'action' && featureDetection.emptyActionAttrFallbacksToTheLocation)
-            strictEqual(getProperty(el, attr), destLocation.get());
-        else
-            strictEqual(getProperty(el, attr), '');
-
-        el.setAttributeNS(namespace, attr, dest);
-        strictEqual(nativeMethods.getAttributeNS.call(el, namespace, attr), proxy);
-        strictEqual(nativeMethods.getAttributeNS.call(el, namespace, storedAttr), dest);
-    };
-
-    var testData = [
-        { tagName: 'form', attr: 'action' },
-        { tagName: 'input', attr: 'formAction' },
-        { tagName: 'button', attr: 'formAction' }
-    ];
-
-    for (var i = 0; i < testData.length; i++)
-        testUrlAttr(testData[i].tagName, testData[i].attr);
-});
-
 test('url attributes overridden by descriptor', function () {
     var testUrlAttr = function (tagName, attr, getter) {
         var el         = document.createElement(tagName);
@@ -194,7 +122,10 @@ test('url attributes overridden by descriptor', function () {
         { tagName: 'script', attr: 'src', getter: nativeMethods.scriptSrcGetter },
         { tagName: 'embed', attr: 'src', getter: nativeMethods.embedSrcGetter },
         { tagName: 'a', attr: 'href', getter: nativeMethods.anchorHrefGetter },
-        { tagName: 'link', attr: 'href', getter: nativeMethods.linkHrefGetter }
+        { tagName: 'link', attr: 'href', getter: nativeMethods.linkHrefGetter },
+        { tagName: 'form', attr: 'action', getter: nativeMethods.formActionGetter },
+        { tagName: 'input', attr: 'formAction', getter: nativeMethods.inputFormActionGetter },
+        { tagName: 'button', attr: 'formAction', getter: nativeMethods.buttonFormActionGetter }
     ];
 
     if (nativeMethods.htmlManifestGetter)
@@ -218,14 +149,14 @@ if (!browserUtils.isIE || browserUtils.version > 9) {
         nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'f' }));
         input.setAttribute('formaction', './input.html');
         button.setAttribute('formaction', './button.html');
-        strictEqual(urlUtils.parseProxyUrl(input.formAction).resourceType, 'f');
-        strictEqual(urlUtils.parseProxyUrl(button.formAction).resourceType, 'f');
+        strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(input)).resourceType, 'f');
+        strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(button)).resourceType, 'f');
 
         nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'fi' }));
         input.setAttribute('formaction', './input.html');
         button.setAttribute('formaction', './button.html');
-        strictEqual(urlUtils.parseProxyUrl(input.formAction).resourceType, 'fi');
-        strictEqual(urlUtils.parseProxyUrl(button.formAction).resourceType, 'fi');
+        strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(input)).resourceType, 'fi');
+        strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(button)).resourceType, 'fi');
     });
 }
 

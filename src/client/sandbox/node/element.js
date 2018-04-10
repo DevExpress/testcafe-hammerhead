@@ -142,7 +142,7 @@ export default class ElementSandbox extends SandboxBase {
                         resourceType = 'f';
 
                         if (el.form) {
-                            const parsedFormAction = urlUtils.parseProxyUrl(el.form.action);
+                            const parsedFormAction = urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(el.form));
 
                             if (parsedFormAction)
                                 resourceType = parsedFormAction.resourceType;

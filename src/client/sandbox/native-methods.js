@@ -256,6 +256,9 @@ class NativeMethods {
         const svgAnimStrAnimValDescriptor = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'animVal');
         const svgAnimStrBaseValDescriptor = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'baseVal');
         const inputAutocompleteDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'autocomplete');
+        const formActionDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLFormElement.prototype, 'action');
+        const inputFormActionDescriptor   = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'formAction');
+        const buttonFormActionDescriptor  = win.Object.getOwnPropertyDescriptor(win.HTMLButtonElement.prototype, 'formAction');
 
         // Setters
         this.objectDataSetter        = objectDataDescriptor.set;
@@ -285,6 +288,9 @@ class NativeMethods {
         this.baseTargetSetter        = baseTargetDescriptor.set;
         this.svgAnimStrBaseValSetter = svgAnimStrBaseValDescriptor.set;
         this.inputAutocompleteSetter = inputAutocompleteDescriptor.set;
+        this.formActionSetter        = formActionDescriptor.set;
+        this.inputFormActionSetter   = inputFormActionDescriptor.set;
+        this.buttonFormActionSetter  = buttonFormActionDescriptor.set;
 
         // NOTE: Event properties is located in window prototype only in IE11
         this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
@@ -345,6 +351,9 @@ class NativeMethods {
         this.svgAnimStrAnimValGetter        = svgAnimStrAnimValDescriptor.get;
         this.svgAnimStrBaseValGetter        = svgAnimStrBaseValDescriptor.get;
         this.inputAutocompleteGetter        = inputAutocompleteDescriptor.get;
+        this.formActionGetter               = formActionDescriptor.get;
+        this.inputFormActionGetter          = inputFormActionDescriptor.get;
+        this.buttonFormActionGetter         = buttonFormActionDescriptor.get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 

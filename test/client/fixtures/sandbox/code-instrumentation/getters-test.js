@@ -118,8 +118,8 @@ test('input.formaction, button.formaction', function () {
     var button = document.createElement('button');
     var input  = document.createElement('input');
 
-    setProperty(button, 'formAction', './button.html');
-    setProperty(input, 'formAction', './input.html');
+    button.formAction = './button.html';
+    input.formAction  = './input.html';
 
     strictEqual(nativeMethods.getAttribute.call(button, 'formaction'), urlUtils.getProxyUrl('./button.html', { resourceType: 'f' }));
     strictEqual(nativeMethods.getAttribute.call(input, 'formaction'), urlUtils.getProxyUrl('./input.html', { resourceType: 'f' }));

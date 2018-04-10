@@ -11,12 +11,10 @@ export const METHODS = [
 ];
 
 export const PROPERTIES = [
-    'action',
     'attributes',
     'data',
     'firstChild',
     'firstElementChild',
-    'formAction',
     'href',
     'innerHTML',
     'innerText',

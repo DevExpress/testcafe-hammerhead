@@ -289,9 +289,9 @@ test('The form in the iframe (GH-880)', function () {
                 return false;
             };
 
-            strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'if');
+            strictEqual(urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(form)).resourceType, 'if');
             form.submit();
-            strictEqual(urlUtils.parseProxyUrl(form.action).resourceType, 'if');
+            strictEqual(urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(form)).resourceType, 'if');
         });
 });
 

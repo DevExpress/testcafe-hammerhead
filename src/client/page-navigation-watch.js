@@ -24,7 +24,7 @@ export default class PageNavigationWatch extends EventEmiter {
         const onFormSubmit = form => {
             const targetWindow = PageNavigationWatch._getTargetWindow(form);
 
-            PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, form.action);
+            PageNavigationWatch._onNavigationTriggeredInWindow(targetWindow, nativeMethods.formActionGetter.call(form));
         };
 
         // NOTE: fires when form.submit() is called

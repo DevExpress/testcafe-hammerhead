@@ -109,22 +109,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
     _createPropertyAccessors (window, document) {
         return {
-            action: {
-                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'action'),
-
-                get: el => {
-                    if (domUtils.isDomElement(el.action))
-                        return el.action;
-
-                    return PropertyAccessorsInstrumentation._getUrlAttr(el, 'action');
-                },
-                set: (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['action', value]);
-
-                    return value;
-                }
-            },
-
             attributes: {
                 condition: el => domUtils.isDomElement(el) && el.attributes instanceof window.NamedNodeMap,
 
@@ -149,17 +133,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 condition: ShadowUI.isShadowContainer,
                 get:       el => this.shadowUI.getFirstElementChild(el),
                 set:       () => void 0
-            },
-
-            formAction: {
-                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'formaction'),
-
-                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'formaction'),
-                set: (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['formaction', value]);
-
-                    return value;
-                }
             },
 
             href: {
