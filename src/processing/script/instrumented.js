@@ -13,7 +13,6 @@ export const METHODS = [
 export const PROPERTIES = [
     'action',
     'attributes',
-    'autocomplete',
     'data',
     'firstChild',
     'firstElementChild',
