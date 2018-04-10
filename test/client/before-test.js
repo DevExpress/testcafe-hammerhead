@@ -27,6 +27,7 @@
         '    serviceMsgUrl : "{{{serviceMsgUrl}}}",',
         '    cookieSyncUrl : "{{{cookieSyncUrl}}}",',
         '    sessionId : "sessionId",',
+        '    forceProxySrcForImage: ' + 'false,',
         '    iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}',
         '});'
     ].join('');
@@ -57,6 +58,7 @@
                 '    cookieSyncUrl: "' + cookieSyncUrl + '",',
                 '    sessionId: "sessionId",',
                 '    cookie: ' + JSON.stringify(cookie) + ',',
+                '    forceProxySrcForImage: ' + 'false,',
                 '    iframeTaskScriptTemplate: ' + iframeTaskScript + '',
                 '});'
             ].join(''));
@@ -64,10 +66,11 @@
     };
 
     hammerhead.start({
-        sessionId:            'sessionId',
-        cookie:               '',
-        cookieSyncUrl:        '/cookie-sync/100',
-        crossDomainProxyPort: 2001
+        sessionId:             'sessionId',
+        cookie:                '',
+        cookieSyncUrl:         '/cookie-sync/100',
+        crossDomainProxyPort:  2001,
+        forceProxySrcForImage: false
     });
 
     window.processDomMeth = window[INTERNAL_PROPS.processDomMethodName];

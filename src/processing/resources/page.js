@@ -157,6 +157,7 @@ class PageProcessor extends ResourceProcessorBase {
         const domProcessor = new DomProcessor(domAdapter);
         const replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
 
+        domProcessor.forceProxySrcForImage = ctx.session.hasRequestEventListeners();
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
 
         if (!ctx.isHtmlImport) {

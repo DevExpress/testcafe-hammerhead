@@ -3,8 +3,9 @@ import IframeSandbox from '../../iframe';
 import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import * as urlUtils from '../../../utils/url';
+import settings from '../../../settings';
 import { isIE, isFirefox } from '../../../utils/browser';
-import { isIframeWithoutSrc, getFrameElement, isShadowUIElement } from '../../../utils/dom';
+import { isIframeWithoutSrc, getFrameElement, isImgElement, isShadowUIElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
@@ -19,6 +20,11 @@ export default class DocumentSandbox extends SandboxBase {
         this.documentWriter = null;
         this.shadowUI       = shadowUI;
         this.cookieSandbox  = cookieSandbox;
+    }
+
+    static forceProxySrcForImageIfNecessary (element) {
+        if (isImgElement(element) && settings.get().forceProxySrcForImage)
+            element[INTERNAL_PROPS.forceProxySrcForImage] = true;
     }
 
     _isUninitializedIframeWithoutSrc (win) {
@@ -137,6 +143,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createElement = (...args) => {
             const el = nativeMethods.createElement.apply(document, args);
 
+            DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
             this.nodeSandbox.processNodes(el);
 
@@ -146,6 +153,7 @@ export default class DocumentSandbox extends SandboxBase {
         document.createElementNS = (...args) => {
             const el = nativeMethods.createElementNS.apply(document, args);
 
+            DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
             this.nodeSandbox.processNodes(el);
 

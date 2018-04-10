@@ -44,6 +44,7 @@ export default class DomProcessor {
         this.EVENTS = this.adapter.EVENTS;
 
         this.elementProcessorPatterns = this._createProcessorPatterns(this.adapter);
+        this.forceProxySrcForImage    = false;
     }
 
     static isTagWithTargetAttr (tagName) {
@@ -500,8 +501,11 @@ export default class DomProcessor {
 
                     this.adapter.setAttr(el, storedUrlAttr, resourceUrl);
 
-                    if (elTagName === 'img' && proxyUrl !== '' && !isSpecialPage)
-                        this.adapter.setAttr(el, pattern.urlAttr, urlUtils.resolveUrlAsDest(resourceUrl, urlReplacer));
+                    if (elTagName === 'img' && proxyUrl !== '' && !isSpecialPage) {
+                        const attrValue = this.forceProxySrcForImage ? proxyUrl : urlUtils.resolveUrlAsDest(resourceUrl, urlReplacer);
+
+                        this.adapter.setAttr(el, pattern.urlAttr, attrValue);
+                    }
                     else
                         this.adapter.setAttr(el, pattern.urlAttr, proxyUrl);
                 }
