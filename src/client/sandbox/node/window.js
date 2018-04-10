@@ -704,6 +704,9 @@ export default class WindowSandbox extends SandboxBase {
             window.HTMLBaseElement
         ]);
 
+        if (nativeMethods.htmlManifestGetter)
+            this._overrideUrlAttrDescriptors('manifest', [window.HTMLHtmlElement]);
+
         this._overrideAttrDescriptors('target', [
             window.HTMLAnchorElement,
             window.HTMLFormElement,
