@@ -31,6 +31,9 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
     if (checkedUrl)
         checkedUrl = resolveUrl(checkedUrl);
 
+    // NOTE: exclude the default port from 'same origin check'
+    location = location.replace(sharedUrlUtils.DEFAULT_PORT, '');
+
     return sharedUrlUtils.sameOriginCheck(location, checkedUrl, rejectForSubdomains);
 }
 

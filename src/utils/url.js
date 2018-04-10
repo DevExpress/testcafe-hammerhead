@@ -20,6 +20,8 @@ export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
 export const TRAILING_SLASH_RE                   = /\/$/;
 export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
 
+export const DEFAULT_PORT = ':80';
+
 export function parseResourceType (resourceType) {
     if (!resourceType) {
         return {
