@@ -255,6 +255,7 @@ class NativeMethods {
         const svgImageHrefDescriptor      = win.Object.getOwnPropertyDescriptor(win.SVGImageElement.prototype, 'href');
         const svgAnimStrAnimValDescriptor = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'animVal');
         const svgAnimStrBaseValDescriptor = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'baseVal');
+        const inputAutocompleteDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'autocomplete');
 
         // Setters
         this.objectDataSetter        = objectDataDescriptor.set;
@@ -283,6 +284,7 @@ class NativeMethods {
         this.areaTargetSetter        = areaTargetDescriptor.set;
         this.baseTargetSetter        = baseTargetDescriptor.set;
         this.svgAnimStrBaseValSetter = svgAnimStrBaseValDescriptor.set;
+        this.inputAutocompleteSetter = inputAutocompleteDescriptor.set;
 
         // NOTE: Event properties is located in window prototype only in IE11
         this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
@@ -342,6 +344,7 @@ class NativeMethods {
         this.svgImageHrefGetter             = svgImageHrefDescriptor.get;
         this.svgAnimStrAnimValGetter        = svgAnimStrAnimValDescriptor.get;
         this.svgAnimStrBaseValGetter        = svgAnimStrBaseValDescriptor.get;
+        this.inputAutocompleteGetter        = inputAutocompleteDescriptor.get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 

@@ -132,16 +132,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, value) => value
             },
 
-            autocomplete: {
-                condition: domUtils.isInputElement,
-                get:       input => this.elementSandbox.getAttributeCore(input, ['autocomplete']) || '',
-                set:       (input, value) => {
-                    this.elementSandbox.setAttributeCore(input, ['autocomplete', value]);
-
-                    return value;
-                }
-            },
-
             // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 6.0 browser
             data: {
                 condition: evt => PropertyAccessorsInstrumentation._isMessageEventWithoutDataPropGetter(evt),
