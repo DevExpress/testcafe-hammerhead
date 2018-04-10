@@ -23,7 +23,6 @@ export const PROPERTIES = [
     'lastChild',
     'lastElementChild',
     'location',
-    'manifest',
     'nextElementSibling',
     'nextSibling',
     'onload',

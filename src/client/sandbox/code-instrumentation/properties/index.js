@@ -374,17 +374,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
-            manifest: {
-                condition: el => domUtils.isDomElement(el) && domProcessor.isUrlAttr(el, 'manifest'),
-
-                get: el => PropertyAccessorsInstrumentation._getUrlAttr(el, 'manifest'),
-                set: (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['manifest', value]);
-
-                    return value;
-                }
-            },
-
             // NOTE: Cookie can be set up for the page by using the request initiated by img.
             // For example: img.src = '<url that responds with the Set-Cookie header>'
             // If img has the 'load' event handler, we redirect the request through proxy.

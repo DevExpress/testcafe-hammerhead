@@ -197,6 +197,9 @@ test('url attributes overridden by descriptor', function () {
         { tagName: 'link', attr: 'href', getter: nativeMethods.linkHrefGetter }
     ];
 
+    if (nativeMethods.htmlManifestGetter)
+        testData.push({ tagName: 'html', attr: 'manifest', getter: nativeMethods.htmlManifestGetter });
+
     for (var i = 0; i < testData.length; i++)
         testUrlAttr(testData[i].tagName, testData[i].attr, testData[i].getter);
 });
@@ -642,12 +645,14 @@ test('the "Maximum call stack size exceeded" error should not occurs when the se
         data:         document.createElement('object'),
         formaction:   document.createElement('input'),
         href:         document.createElement('a'),
-        manifest:     document.createElement('html'),
         sandbox:      document.createElement('iframe'),
         src:          document.createElement('img'),
         target:       document.createElement('a'),
         style:        document.createElement('span')
     };
+
+    if (nativeMethods.htmlManifestGetter)
+        testCases.manifest = document.createElement('html');
 
     try {
         Object.keys(testCases)

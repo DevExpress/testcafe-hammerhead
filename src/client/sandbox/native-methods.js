@@ -376,6 +376,14 @@ class NativeMethods {
         if (dataPropDescriptor)
             this.messageEventDataGetter = dataPropDescriptor.get;
 
+        const htmlManifestDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLHtmlElement.prototype, 'manifest');
+
+        // NOTE: Only the Safari browser supports the 'manifest' property
+        if (htmlManifestDescriptor) {
+            this.htmlManifestGetter = htmlManifestDescriptor.get;
+            this.htmlManifestSetter = htmlManifestDescriptor.set;
+        }
+
         if (win.fetch) {
             this.responseStatusGetter = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'status').get;
             this.responseTypeGetter   = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'type').get;
