@@ -1,7 +1,6 @@
 'use strict';
 
 const url                           = require('url');
-const querystring                   = require('querystring');
 const expect                        = require('chai').expect;
 const ResponseMock                  = require('../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule             = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
@@ -78,6 +77,7 @@ describe('ResponseMock', () => {
             expect(body).to.be.instanceof(Uint8Array);
             expect(body.length).eql(0);
         });
+
         it('Custom headers', () => {
             const script   = 'var t = 10';
             const mock     = new ResponseMock(script, 200, { 'content-type': 'application/javascript' });
@@ -93,10 +93,9 @@ describe('ResponseMock', () => {
                 res.headers['x-calculated-header-name'] = 'calculated-value';
                 res.statusCode                          = 555;
 
-                const parsedUrl         = url.parse(req.path);
-                const parsedQueryString = querystring.parse(parsedUrl.query);
+                const parsedUrl = url.parse(req.path, true);
 
-                res.setBody('calculated body' + parsedQueryString['param']);
+                res.setBody('calculated body' + parsedUrl.query['param']);
             });
 
             const reqOptions = {
