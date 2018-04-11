@@ -420,35 +420,6 @@ test('we should not process element\'s properties if they do not exist (GH-1164)
     });
 });
 
-test('form.action should return element when the form contains element with the "action" attribute name (GH-1291)', function () {
-    var form        = document.createElement('form');
-    var input       = document.createElement('input');
-    var nativeForm  = nativeMethods.createElement.call(document, 'form');
-    var nativeInput = nativeMethods.createElement.call(document, 'input');
-
-    form.setAttribute('action', 'http://example.com/test1');
-    input.setAttribute('name', 'action');
-    nativeMethods.setAttribute.call(nativeForm, 'action', 'http://example.com/test1');
-    nativeMethods.setAttribute.call(nativeInput, 'name', 'action');
-
-    strictEqual(getProperty(form, 'action'), nativeForm.action);
-
-    form.appendChild(input);
-    nativeForm.appendChild(nativeInput);
-
-    strictEqual(getProperty(form, 'action').tagName, nativeForm.action.tagName);
-
-    setProperty(form, 'action', 'http://example.com/test2');
-    nativeForm.action = 'http://example.com/test2';
-
-    strictEqual(getProperty(form, 'action').tagName, nativeForm.action.tagName);
-
-    form.removeChild(input);
-    nativeForm.removeChild(nativeInput);
-
-    strictEqual(getProperty(form, 'action'), nativeForm.action);
-});
-
 test('getProperty function should not throw an error for document.all property (GH-1046)', function () {
     try {
         strictEqual(getProperty(document.all, 0), document.documentElement);

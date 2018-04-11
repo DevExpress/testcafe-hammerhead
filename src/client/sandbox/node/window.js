@@ -697,24 +697,12 @@ export default class WindowSandbox extends SandboxBase {
             window.HTMLIFrameElement
         ]);
 
+        this._overrideUrlAttrDescriptors('action', [window.HTMLFormElement]);
+
         this._overrideUrlAttrDescriptors('formAction', [
             window.HTMLInputElement,
             window.HTMLButtonElement
         ]);
-
-        overrideDescriptor(window.HTMLFormElement.prototype, 'action', {
-            getter: function () {
-                const formAction = nativeMethods.formActionGetter.call(this);
-
-                if (typeof formAction !== 'string')
-                    return formAction;
-
-                return WindowSandbox._getUrlAttr(this, 'action');
-            },
-            setter: function (value) {
-                windowSandbox.nodeSandbox.element.setAttributeCore(this, ['action', value]);
-            }
-        });
 
         this._overrideUrlAttrDescriptors('href', [
             window.HTMLAnchorElement,
