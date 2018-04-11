@@ -30,6 +30,9 @@ const MOUSE_EVENT_NAME_RE        = /^((mouse\w+)|((dbl)?click)|(contextmenu)|(dr
 const TOUCH_EVENT_NAME_RE        = /^touch\w+$/;
 const FOCUS_IN_OUT_EVENT_NAME_RE = /^focus(in|out)$/;
 
+// NOTE: initTextEvent method required INPUT_METHOD param in IE
+const DOM_INPUT_METHOD_KEYBOARD = 1;
+
 export default class EventSimulator {
     constructor () {
         this.DISPATCHED_EVENT_FLAG = 'hammerhead|dispatched-event';
@@ -601,18 +604,23 @@ export default class EventSimulator {
     }
 
     _dispatchTextEvent (el, text) {
-        const name = browserUtils.isIE ? 'textinput' : 'textInput';
-
-        let event = null;
-
         if (nativeMethods.WindowTextEvent && nativeMethods.documentCreateEvent) {
-            event = nativeMethods.documentCreateEvent.call(document, 'TextEvent');
+            const event         = nativeMethods.documentCreateEvent.call(document, 'TextEvent');
 
-            event.initTextEvent(name, true, true, null, text, 0, '');
-        }
+            const args = {
+                eventType:   browserUtils.isIE ? 'textinput' : 'textInput',
+                bubbles:     true,
+                cancelable:  true,
+                view:        window,
+                data:        text,
+                inputMethod: DOM_INPUT_METHOD_KEYBOARD,
+                locale:      navigator.language
+            };
 
-        if (event)
+            event.initTextEvent(args.eventType, args.bubbles, args.cancelable, args.view, args.data, args.inputMethod, args.locale);
+
             return this._raiseDispatchEvent(el, event);
+        }
 
         return null;
     }
