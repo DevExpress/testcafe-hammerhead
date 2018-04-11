@@ -209,6 +209,9 @@ export default class ElementSandbox extends SandboxBase {
                 args[valueIndex] += !allowSameOrigin ? ' allow-same-origin' : '';
                 args[valueIndex] += !allowScripts ? ' allow-scripts' : '';
             }
+
+            if (el[this.nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN])
+                el[this.nodeSandbox.win.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN](value);
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
         else if (tagName === 'meta' && attr === 'http-equiv') {

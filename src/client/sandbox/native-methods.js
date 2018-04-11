@@ -270,6 +270,7 @@ class NativeMethods {
         const htmlElementInnerTextDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'innerText');
         const scriptTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'text');
         const anchorTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'text');
+        const iframeSandboxDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'sandbox');
 
         // NOTE: Html properties is located in HTMLElement prototype in IE11 only
         this.elementHTMLPropOwnerName = win.Element.prototype.hasOwnProperty('innerHTML') ? 'Element' : 'HTMLElement';
@@ -308,6 +309,7 @@ class NativeMethods {
         this.formActionSetter        = formActionDescriptor.set;
         this.inputFormActionSetter   = inputFormActionDescriptor.set;
         this.buttonFormActionSetter  = buttonFormActionDescriptor.set;
+        this.iframeSandboxSetter     = iframeSandboxDescriptor.set;
         this.htmlElementOnloadSetter = win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'onload').set;
 
         this.nodeTextContentSetter      = nodeTextContentDescriptor.set;
@@ -385,6 +387,7 @@ class NativeMethods {
         this.formActionGetter               = formActionDescriptor.get;
         this.inputFormActionGetter          = inputFormActionDescriptor.get;
         this.buttonFormActionGetter         = buttonFormActionDescriptor.get;
+        this.iframeSandboxGetter            = iframeSandboxDescriptor.get;
 
         this.nodeTextContentGetter      = nodeTextContentDescriptor.get;
         this.htmlElementInnerTextGetter = htmlElementInnerTextDescriptor.get;
@@ -485,6 +488,13 @@ class NativeMethods {
                 info:  win.console.info
             };
         }
+
+        // DOMTokenList
+        this.tokenListAdd      = win.DOMTokenList.prototype.add;
+        this.tokenListRemove   = win.DOMTokenList.prototype.remove;
+        this.tokenListReplace  = win.DOMTokenList.prototype.replace;
+        this.tokenListSupports = win.DOMTokenList.prototype.supports;
+        this.tokenListToggle   = win.DOMTokenList.prototype.toggle;
 
         this.refreshClasses(win);
     }

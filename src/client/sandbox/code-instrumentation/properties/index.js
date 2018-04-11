@@ -93,16 +93,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return owner.location;
                 }
-            },
-
-            sandbox: {
-                condition: domUtils.isIframeElement,
-                get:       el => this.elementSandbox.getAttributeCore(el, ['sandbox']),
-                set:       (el, value) => {
-                    this.elementSandbox.setAttributeCore(el, ['sandbox', value]);
-
-                    return value;
-                }
             }
         };
     }

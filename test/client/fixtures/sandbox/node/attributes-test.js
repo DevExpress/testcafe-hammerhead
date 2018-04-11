@@ -311,7 +311,7 @@ test('url - javascript: protocol', function () {
     strictEqual(anchor.getAttribute('href'), hrefValue);
 });
 
-test('iframe', function () {
+test('sandbox attribute', function () {
     var attr       = 'sandbox';
     var storedAttr = DomProcessor.getStoredAttrName(attr);
     var iframe     = document.createElement('iframe');
@@ -354,6 +354,78 @@ test('iframe', function () {
     strictEqual(nativeMethods.getAttribute.call(iframe, attr), 'allow-forms allow-same-origin allow-scripts');
     strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-forms');
     strictEqual(iframe.getAttribute(attr), 'allow-forms');
+});
+
+test('sandbox property', function () {
+    var iframe                 = document.createElement('iframe');
+    var storedAttr             = DomProcessor.getStoredAttrName('sandbox');
+    var nativeIframe           = nativeMethods.createElement.call(document, 'iframe');
+    var nativeSandboxTokenList = nativeMethods.iframeSandboxGetter.call(nativeIframe);
+
+    strictEqual(iframe.sandbox.length, nativeSandboxTokenList.length);
+
+    iframe.sandbox = 'allow-scripts';
+    // NOTE: Strange behavior in Chrome and Firefox. Native sandbox setter calls overridden getter
+    // and sets value to returned non-native DOMTokenList
+    var overriddenDescriptor = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'sandbox');
+
+    Object.defineProperty(HTMLIFrameElement.prototype, 'sandbox', { get: nativeMethods.iframeSandboxGetter, configurable: true });
+    nativeMethods.iframeSandboxSetter.call(nativeIframe, 'allow-scripts');
+    Object.defineProperty(HTMLIFrameElement.prototype, 'sandbox', overriddenDescriptor);
+
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts');
+    strictEqual(iframe.sandbox.length, nativeSandboxTokenList.length);
+    strictEqual(iframe.sandbox.item(0), nativeSandboxTokenList.item(0));
+
+    iframe.setAttribute('sandbox', 'allow-forms');
+    nativeMethods.setAttribute.call(nativeIframe, 'sandbox', 'allow-forms');
+
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-same-origin allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-forms');
+    strictEqual(iframe.sandbox.length, nativeSandboxTokenList.length);
+    strictEqual(iframe.sandbox.item(0), nativeSandboxTokenList.item(0));
+
+    iframe.setAttribute('sandbox', '');
+    nativeMethods.setAttribute.call(nativeIframe, 'sandbox', '');
+
+    iframe.sandbox.add('allow-scripts');
+    nativeMethods.tokenListAdd.call(nativeSandboxTokenList, 'allow-scripts');
+
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts');
+    strictEqual(iframe.sandbox.length, nativeSandboxTokenList.length);
+    strictEqual(iframe.sandbox.item(0), nativeSandboxTokenList.item(0));
+
+    iframe.sandbox.remove('allow-scripts');
+    nativeMethods.tokenListRemove.call(nativeSandboxTokenList, 'allow-scripts');
+
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), ' allow-same-origin allow-scripts');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), '');
+    strictEqual(iframe.sandbox.length, nativeSandboxTokenList.length);
+
+    iframe.sandbox.toggle('allow-scripts');
+    nativeMethods.tokenListToggle.call(nativeSandboxTokenList, 'allow-scripts');
+
+    strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-scripts allow-same-origin');
+    strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-scripts');
+    strictEqual(iframe.sandbox.length, nativeSandboxTokenList.length);
+    strictEqual(iframe.sandbox.item(0), nativeSandboxTokenList.item(0));
+
+    if (iframe.sandbox.replace) {
+        iframe.sandbox.replace('allow-scripts', 'allow-forms');
+        nativeMethods.tokenListReplace.call(nativeSandboxTokenList, 'allow-scripts', 'allow-forms');
+
+        strictEqual(nativeMethods.getAttribute.call(iframe, 'sandbox'), 'allow-forms allow-same-origin allow-scripts');
+        strictEqual(nativeMethods.getAttribute.call(iframe, storedAttr), 'allow-forms');
+        strictEqual(iframe.sandbox.length, nativeSandboxTokenList.length);
+        strictEqual(iframe.sandbox.item(0), nativeSandboxTokenList.item(0));
+    }
+
+    if (iframe.sandbox.supports) {
+        strictEqual(iframe.sandbox.supports('allow-scripts'), nativeMethods.tokenListSupports.call(nativeSandboxTokenList, 'allow-scripts'));
+        strictEqual(iframe.sandbox.supports('test123'), nativeMethods.tokenListSupports.call(nativeSandboxTokenList, 'test123'));
+    }
 });
 
 test('crossdomain iframe', function () {

@@ -13,8 +13,7 @@ export const METHODS = [
 export const PROPERTIES = [
     'data',
     'href',
-    'location',
-    'sandbox'
+    'location'
 ];
 
 const INSTRUMENTED_METHOD_RE   = new RegExp(`^(${METHODS.join('|')})$`);
