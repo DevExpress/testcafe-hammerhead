@@ -7,17 +7,15 @@ import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
-import { ensureOriginTrailingSlash, HASH_RE } from '../../../../utils/url';
+import { ensureOriginTrailingSlash } from '../../../../utils/url';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAttributesProperty } from './attributes';
-import domProcessor from '../../../dom-processor';
 import styleProcessor from '../../../../processing/style';
 import { processScript } from '../../../../processing/script';
 import { remove as removeProcessingHeader } from '../../../../processing/script/header';
 import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
-import { emptyActionAttrFallbacksToTheLocation } from '../../../utils/feature-detection';
 import DOMMutationTracker from '../../node/live-node-list/dom-mutation-tracker';
 import { isJsProtocol, processJsAttrValue } from '../../../../processing/dom';
 
@@ -47,21 +45,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     // JS engine doesn't optimize such functions.
     static _error (msg) {
         throw new Error(msg);
-    }
-
-    static _getUrlAttr (el, attr) {
-        const attrValue = nativeMethods.getAttribute.call(el, attr);
-
-        if (attrValue === '' || attrValue === null && attr === 'action' && emptyActionAttrFallbacksToTheLocation)
-            return destLocation.get();
-
-        else if (attrValue === null)
-            return '';
-
-        else if (HASH_RE.test(attrValue))
-            return destLocation.withHash(attrValue);
-
-        return urlUtils.resolveUrlAsDest(attrValue);
     }
 
     static _setTextProp (el, propName, text) {
