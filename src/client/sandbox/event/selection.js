@@ -185,9 +185,13 @@ export default class Selection {
 
     wrapSetterSelection (el, selectionSetter, needFocus, isContentEditable) {
         const curDocument = domUtils.findDocument(el);
-        let activeElement = null;
+        let activeElement = domUtils.getActiveElement(curDocument);
         let result        = null;
         let focusRaised   = false;
+
+        // NOTE: we should not call focus during selection setting
+        // if element has been focused already (TestCafe GH-2301)
+        needFocus = needFocus && activeElement !== el;
 
         const focusHandler = e => {
             if (e.target === el || el.style.display === 'none')
@@ -241,6 +245,7 @@ export default class Selection {
                 }
             }
         }
+
         return result;
     }
 }
