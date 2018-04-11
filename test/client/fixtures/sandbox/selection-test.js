@@ -130,10 +130,11 @@ asyncTest('Focus should not be called during setting selection if conteneditable
 });
 
 asyncTest('Focus should not be called during setting selection if editable element has been already focused (TestCafe GH - 2301)', function () {
-    var input    = createTestInput('text', 'some text');
-    var focused  = false;
-    var startPos = 1;
-    var endPos   = 3;
+    var input           = createTestInput('text', 'some text');
+    var focused         = false;
+    var shouldBeFocused = browserUtils.isIE11 || browserUtils.isMSEdge || browserUtils.isSafari;
+    var startPos        = 1;
+    var endPos          = 3;
 
     var isSelectionSet = function () {
         strictEqual(input.selectionStart, startPos);
@@ -147,7 +148,7 @@ asyncTest('Focus should not be called during setting selection if editable eleme
     input.setSelectionRange(startPos, endPos);
 
     window.setTimeout(function () {
-        strictEqual(focused, browserUtils.isIE11);
+        strictEqual(focused, shouldBeFocused);
         isSelectionSet();
 
         input.focus();
