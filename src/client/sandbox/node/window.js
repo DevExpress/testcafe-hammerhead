@@ -236,15 +236,20 @@ export default class WindowSandbox extends SandboxBase {
         });
 
         window.CanvasRenderingContext2D.prototype.drawImage = function (...args) {
-            const image = args[0];
+            let image = args[0];
 
             if (isImgElement(image) && !image[INTERNAL_PROPS.forceProxySrcForImage]) {
                 const src = nativeMethods.imageSrcGetter.call(image);
 
                 if (destLocation.sameOriginCheck(location.toString(), src)) {
-                    args[0] = nativeMethods.createElement.call(window.document, 'img');
+                    image = nativeMethods.createElement.call(window.document, 'img');
 
-                    nativeMethods.imageSrcSetter.call(args[0], getProxyUrl(src));
+                    nativeMethods.imageSrcSetter.call(image, getProxyUrl(src));
+
+                    args[0] = image;
+
+                    if (!image.complete)
+                        image.onload = () => nativeMethods.canvasContextDrawImage.apply(this, args);
                 }
             }
 
