@@ -1,9 +1,11 @@
 import nativeMethods from '../sandbox/native-methods';
 import * as browserUtils from './browser';
 
+const form = nativeMethods.createElement.call(document, 'form');
+
 // NOTE: In some browsers, elements without the url attribute return the location url
 // when accessing this attribute directly. See form.action in Edge 25 as an example.
-export const emptyActionAttrFallbacksToTheLocation = nativeMethods.createElement.call(document, 'form').action ===
+export const emptyActionAttrFallbacksToTheLocation = nativeMethods.formActionGetter.call(form) ===
                                                      window.location.toString();
 
 // NOTE: In Chrome, toString(window) equals '[object Window]' and toString(Window.prototype) equals '[object Blob]',

@@ -362,13 +362,13 @@ test('add element with `formaction` tag to the form', function () {
     var form  = document.createElement('form');
     var input = document.createElement('input');
 
-    form.action = urlUtils.getProxyUrl('./form.html', { resourceType: 'if' });
+    nativeMethods.formActionSetter.call(form, urlUtils.getProxyUrl('./form.html', { resourceType: 'if' }));
 
     input.setAttribute('formAction', './input.html');
-    strictEqual(input.formAction, urlUtils.getProxyUrl('./input.html', { resourceType: 'f' }));
+    strictEqual(nativeMethods.inputFormActionGetter.call(input), urlUtils.getProxyUrl('./input.html', { resourceType: 'f' }));
 
     form.appendChild(input);
-    strictEqual(input.formAction, urlUtils.getProxyUrl('./input.html', { resourceType: 'if' }));
+    strictEqual(nativeMethods.inputFormActionGetter.call(input), urlUtils.getProxyUrl('./input.html', { resourceType: 'if' }));
 });
 
 
@@ -672,7 +672,7 @@ test('should reprocess tags that doesn\'t processed on server side (GH-838)', fu
             var processedAnchor     = iframe.contentDocument.querySelector('#processed-anchor');
             var processedForm       = iframe.contentDocument.querySelector('#processed-form');
             var processedAnchorHref = nativeMethods.anchorHrefGetter.call(processedAnchor);
-            var processedFormAction = processedForm.action;
+            var processedFormAction = nativeMethods.formActionGetter.call(processedForm);
 
             strictEqual(processedAnchorHref, urlUtils.getProxyUrl('http://localhost/anchor-action.html'));
             strictEqual(processedFormAction, urlUtils.getProxyUrl('http://localhost/form-action.html', { resourceType: 'f' }));

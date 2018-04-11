@@ -697,6 +697,13 @@ export default class WindowSandbox extends SandboxBase {
             window.HTMLIFrameElement
         ]);
 
+        this._overrideUrlAttrDescriptors('action', [window.HTMLFormElement]);
+
+        this._overrideUrlAttrDescriptors('formAction', [
+            window.HTMLInputElement,
+            window.HTMLButtonElement
+        ]);
+
         this._overrideUrlAttrDescriptors('href', [
             window.HTMLAnchorElement,
             window.HTMLLinkElement,
