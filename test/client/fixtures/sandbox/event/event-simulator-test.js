@@ -453,6 +453,28 @@ test('drag and drop events', function () {
     document.body.removeChild(input);
 });
 
+// NOTE: Firefox does not support textInput event
+if (!browserUtils.isFirefox) {
+    test('text input', function () {
+
+        var handler = function (e) {
+            var ev = e || window.event;
+
+            if (ev instanceof Event && ev instanceof TextEvent && e.data === 'Hello')
+                raised = true;
+        };
+
+        document.addEventListener('textInput', handler); // Chrome way
+        document.addEventListener('textinput', handler); // IE way
+
+        eventSimulator.textInput(domElement, 'Hello');
+
+        document.removeEventListener('textInput', handler); // Chrome way
+        document.removeEventListener('textinput', handler); // IE way
+
+        ok(raised);
+    });
+}
 
 module('regression');
 
