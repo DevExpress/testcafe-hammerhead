@@ -394,14 +394,11 @@ export function omitDefaultPort (url) {
     // then browser remove this one itself.
     const parsedUrl = parseUrl(url);
 
-    // NOTE: Browsers may send the default port in the 'referer' header. But since we compose the destination
-    // URL from it, we need to skip the port number if it's the protocol's default port. Some servers have
-    // host conditions that do not include a port number.
     const hasDefaultPort = parsedUrl.protocol === 'https:' && parsedUrl.port === HTTPS_DEFAULT_PORT ||
                            parsedUrl.protocol === 'http:' && parsedUrl.port === HTTP_DEFAULT_PORT;
 
     if (hasDefaultPort) {
-        parsedUrl.host = parsedUrl.host.split(':')[0];
+        parsedUrl.host = parsedUrl.hostname;
         parsedUrl.port = '';
 
         return formatUrl(parsedUrl);
