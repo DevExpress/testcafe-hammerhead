@@ -7,7 +7,7 @@ import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
-import { ensureOriginTrailingSlash } from '../../../../utils/url';
+import { prepareUrl } from '../../../../utils/url';
 import { cleanUpHtml, processHtml } from '../../../utils/html';
 import { getAttributesProperty } from './attributes';
 import styleProcessor from '../../../../processing/style';
@@ -266,7 +266,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         /*eslint-disable no-restricted-properties*/
                         if (!locationWrapper) {
                             if (!isJsProtocol(location)) {
-                                const url          = ensureOriginTrailingSlash(location);
+                                const url          = prepareUrl(location);
                                 const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
 
                                 owner.location = destLocation.sameOriginCheck(location.toString(), url)

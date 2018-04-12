@@ -20,7 +20,7 @@ function getResourceUrlReplacer (ctx) {
 
         // NOTE: Resolves base URLs without a protocol ('//google.com/path' for example).
         baseUrl     = baseUrl ? url.resolve(ctx.dest.url, baseUrl) : '';
-        resourceUrl = urlUtil.prepareUrl(resourceUrl);
+        resourceUrl = urlUtil.processSpecialChars(resourceUrl);
 
         let resolvedUrl = url.resolve(baseUrl || ctx.dest.url, resourceUrl);
 

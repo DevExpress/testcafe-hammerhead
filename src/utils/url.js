@@ -20,7 +20,8 @@ export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
 export const TRAILING_SLASH_RE                   = /\/$/;
 export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
 
-export const DEFAULT_PORT = ':80';
+export const HTTP_DEFAULT_PORT  = '80';
+export const HTTPS_DEFAULT_PORT = '443';
 
 export function parseResourceType (resourceType) {
     if (!resourceType) {
@@ -220,7 +221,7 @@ export function getPathname (path) {
 export function parseUrl (url) {
     const parsed = {};
 
-    url = prepareUrl(url);
+    url = processSpecialChars(url);
 
     if (!url)
         return parsed;
@@ -249,6 +250,7 @@ export function parseUrl (url) {
     parsed.partAfterHost = remainder
         .replace(HOST_RE, (str, host, restPartSeparator) => {
             parsed.host = host;
+            parsed.port = '';
             return restPartSeparator;
         });
 
@@ -317,7 +319,7 @@ export function formatUrl (parsedUrl) {
     return url;
 }
 
-export function prepareUrl (url) {
+export function processSpecialChars (url) {
     // TODO: fix it
     /* eslint-disable no-undef */
     if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
@@ -383,6 +385,34 @@ export function ensureOriginTrailingSlash (url) {
 
     if (!parsedUrl.partAfterHost && HTTP_RE.test(parsedUrl.protocol))
         return url + '/';
+
+    return url;
+}
+
+export function omitDefaultPort (url) {
+    // NOTE: If you request an url containing default port
+    // then browser remove this one itself.
+    const parsedUrl = parseUrl(url);
+
+    // NOTE: Browsers may send the default port in the 'referer' header. But since we compose the destination
+    // URL from it, we need to skip the port number if it's the protocol's default port. Some servers have
+    // host conditions that do not include a port number.
+    const hasDefaultPort = parsedUrl.protocol === 'https:' && parsedUrl.port === HTTPS_DEFAULT_PORT ||
+                           parsedUrl.protocol === 'http:' && parsedUrl.port === HTTP_DEFAULT_PORT;
+
+    if (hasDefaultPort) {
+        parsedUrl.host = parsedUrl.host.split(':')[0];
+        parsedUrl.port = '';
+
+        return formatUrl(parsedUrl);
+    }
+
+    return url;
+}
+
+export function prepareUrl (url) {
+    url = omitDefaultPort(url);
+    url = ensureOriginTrailingSlash(url);
 
     return url;
 }
