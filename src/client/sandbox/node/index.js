@@ -46,7 +46,7 @@ export default class NodeSandbox extends SandboxBase {
     _processElement (el) {
         const processedContext = el[INTERNAL_PROPS.processedContext];
 
-        if (processedContext !== this.window) {
+        if (!domUtils.isShadowUIElement(el) && processedContext !== this.window) {
             let urlAttrName = null;
 
             if (processedContext) {

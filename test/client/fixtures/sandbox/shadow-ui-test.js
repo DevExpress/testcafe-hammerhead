@@ -1,5 +1,6 @@
 var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
 var ShadowUI            = hammerhead.get('./sandbox/shadow-ui');
+var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var domUtils      = hammerhead.utils.dom;
@@ -838,4 +839,13 @@ test('processed nodeList should have non-enumerable "item" and "namedItem" prope
     strictEqual(collectionKeys.indexOf('item'), -1, 'item');
     strictEqual(collectionKeys.indexOf('namedItem'), -1, 'namedItem');
     strictEqual(collectionKeys.indexOf('length'), -1, 'length');
+
+    document.body.removeChild(div);
+});
+
+test('should not process shadow ui elements (GH-1570)', function () {
+    var shadowUIElements = hammerhead.nativeMethods.querySelectorAll.call(document, '[class$="-hammerhead-shadow-ui"]');
+
+    for (var i = 0; i < shadowUIElements.length; i++)
+        ok(!shadowUIElements[i][INTERNAL_PROPS.processedContext]);
 });
