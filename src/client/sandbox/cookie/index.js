@@ -68,21 +68,22 @@ export default class CookieSandbox extends SandboxBase {
         if (parsedCookie.httponly)
             return false;
 
+        const parsedDestLocation = destLocation.getParsed();
+
         /*eslint-disable no-restricted-properties*/
-        const destProtocol = destLocation.getParsed().protocol;
+        const destProtocol = parsedDestLocation.protocol;
         /*eslint-enable no-restricted-properties*/
 
         // NOTE: Hammerhead tunnels HTTPS requests via HTTP, so we need to validate the Secure attribute manually.
         if (parsedCookie.secure && destProtocol !== 'https:')
             return false;
 
-        // NOTE: Add a relative protocol portion to the domain, so that we can use urlUtils for the same origin check.
-        const domain = parsedCookie.domain && '//' + parsedCookie.domain;
-
 
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
         // according to a test url.
-        return !domain || destLocation.sameOriginCheck(destLocation.get(), domain);
+        /*eslint-disable no-restricted-properties*/
+        return !parsedCookie.domain || parsedDestLocation.hostname === parsedCookie.domain;
+        /*eslint-enable no-restricted-properties*/
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
