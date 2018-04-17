@@ -35,10 +35,11 @@ import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
 import { overrideDescriptor } from '../../utils/property-overriding';
 import { emptyActionAttrFallbacksToTheLocation } from '../../utils/feature-detection';
-import { HASH_RE } from '../../../utils/url';
+import { HASH_RE, isValidUrl } from '../../../utils/url';
 import UploadSandbox from '../upload';
 import { getAnchorProperty, setAnchorProperty } from '../code-instrumentation/properties/anchor';
 import { XLINK_NAMESPACE } from '../../../processing/dom/namespaces';
+import urlResolver from '../../utils/url-resolver';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -116,6 +117,9 @@ export default class WindowSandbox extends SandboxBase {
 
         else if (HASH_RE.test(attrValue))
             return destLocation.withHash(attrValue);
+
+        else if (!isValidUrl(attrValue))
+            return urlResolver.resolve(attrValue, document);
 
         return resolveUrlAsDest(attrValue);
     }
