@@ -22,7 +22,11 @@ function getResourceUrlReplacer (ctx) {
         baseUrl     = baseUrl ? url.resolve(ctx.dest.url, baseUrl) : '';
         resourceUrl = urlUtil.prepareUrl(resourceUrl);
 
-        let resolvedUrl  = url.resolve(baseUrl || ctx.dest.url, resourceUrl);
+        let resolvedUrl = url.resolve(baseUrl || ctx.dest.url, resourceUrl);
+
+        if (!urlUtil.isValidUrl(resolvedUrl))
+            return resourceUrl;
+
         const isScript   = urlUtil.parseResourceType(resourceType).isScript;
         const charsetStr = charsetAttrValue || isScript && ctx.contentInfo.charset.get();
 

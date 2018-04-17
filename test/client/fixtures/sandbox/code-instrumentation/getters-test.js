@@ -284,7 +284,7 @@ test('should not create proxy url for invalid url (GH-778)', function () {
 
     var storedBaseUrl = urlResolver.getBaseUrl(document);
 
-    urlResolver.updateBase('http://localhost:2000/', document);
+    urlResolver.updateBase(location.origin, document);
 
     for (var i = 0; i < testCases.length; i++) {
         // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/9513048/
