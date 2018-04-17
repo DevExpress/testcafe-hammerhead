@@ -11,6 +11,8 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 
+const PORT_RE = /:([0-9][0-9]*)/;
+
 var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
         url:                   'http://example.com',
@@ -43,6 +45,52 @@ var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
         url:                   'file:///c:/WINDOWS/clock.avi', // Windows file URI scheme
         shoudAddTrailingSlash: false
+    }
+];
+
+var DEFAULT_PORT_OMITTING_TEST_CASES = [
+    // HTTP
+    {
+        url:                   'http://localhost:80/',
+        shouldOmitDefaultPort: true
+    },
+    {
+        url:                   'http://127.0.0.1:80/',
+        shouldOmitDefaultPort: true
+    },
+    {
+        url:                   'http://example.com:80/',
+        shouldOmitDefaultPort: true
+    },
+    {
+        url:                   'http://example.com:80/path',
+        shouldOmitDefaultPort: true
+    },
+    {
+        url:                   'http://example.com:443/', // NOTE: 443 is non-default port for http
+        shouldOmitDefaultPort: false
+    },
+
+    // HTTPS
+    {
+        url:                   'https://localhost:443/',
+        shouldOmitDefaultPort: true
+    },
+    {
+        url:                   'https://127.0.0.1:443/',
+        shouldOmitDefaultPort: true
+    },
+    {
+        url:                   'https://example.com:443/',
+        shouldOmitDefaultPort: true
+    },
+    {
+        url:                   'https://example.com:443/path',
+        shouldOmitDefaultPort: true
+    },
+    {
+        url:                   'https://example.com:80/', // NOTE: 80 is non-default port for https
+        shouldOmitDefaultPort: false
     }
 ];
 
@@ -260,6 +308,78 @@ test('should ensure a trailing slash on page navigation using hammerhead.navigat
     }
 
     testAddingTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
+
+    hammerhead.win = storedWindow;
+});
+
+test('should omit the default port on page navigation using href setter, assign and replace methods', function () {
+    function getExpectedProxyUrl (testCase) {
+        const url = testCase.shouldOmitDefaultPort ? testCase.url.replace(PORT_RE, '') : testCase.url;
+
+        return urlUtils.getProxyUrl(url);
+    }
+
+    var windowMock = {
+        location: {
+            href: '',
+
+            replace: function (url) {
+                this.href = url;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
+            toString: function () {
+                return urlUtils.getProxyUrl(this.location.href);
+            }
+        }
+    };
+
+    windowMock.top = windowMock;
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    function testDefaultPortOmitting (testCases) {
+        testCases.forEach(function (testCase) {
+            locationWrapper.href = testCase.url;
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase), 'href = ' + testCase.url);
+
+            locationWrapper.replace(testCase.url);
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase), 'replace(' + testCase.url + ')');
+
+            locationWrapper.assign(testCase.url);
+            strictEqual(windowMock.location.href, getExpectedProxyUrl(testCase), 'assign(' + testCase.url + ')');
+        });
+    }
+
+    testDefaultPortOmitting(DEFAULT_PORT_OMITTING_TEST_CASES);
+});
+
+test('should omit the default port on page navigation using hammerhead.navigateTo method', function () {
+    var storedWindow = hammerhead.win;
+
+    function getExpectedProxyUrl (testCase) {
+        const url = testCase.shouldOmitDefaultPort ? testCase.url.replace(PORT_RE, '') : testCase.url;
+
+        return urlUtils.getProxyUrl(url);
+    }
+
+    var windowMock = {
+        location: ''
+    };
+
+    hammerhead.win = windowMock;
+
+    function testDefaultPortOmitting (testCases) {
+        testCases.forEach(function (testCase) {
+            hammerhead.navigateTo(testCase.url);
+            strictEqual(hammerhead.win.location, getExpectedProxyUrl(testCase), 'navigateTo(' + testCase.url + ')');
+        });
+    }
+
+    testDefaultPortOmitting(DEFAULT_PORT_OMITTING_TEST_CASES);
 
     hammerhead.win = storedWindow;
 });
