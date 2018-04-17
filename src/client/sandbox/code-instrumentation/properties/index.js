@@ -106,18 +106,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set:       (evt, value) => value
             },
 
-            firstChild: {
-                condition: ShadowUI.isShadowContainer,
-                get:       el => this.shadowUI.getFirstChild(el),
-                set:       () => void 0
-            },
-
-            firstElementChild: {
-                condition: ShadowUI.isShadowContainer,
-                get:       el => this.shadowUI.getFirstElementChild(el),
-                set:       () => void 0
-            },
-
             href: {
                 condition: LocationAccessorsInstrumentation.isLocationWrapper,
 
@@ -216,25 +204,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 set: (el, text) => PropertyAccessorsInstrumentation._setTextProp(el, 'innerText', text)
             },
 
-            nextElementSibling: {
-                condition: node => node.nextElementSibling && domUtils.isDomElement(node) &&
-                                   domUtils.isDomElement(node.nextElementSibling),
-
-                get: node => domUtils.isShadowUIElement(node.nextElementSibling) ? null : node.nextElementSibling,
-                set: () => void 0
-            },
-
-            nextSibling: {
-                // NOTE: This property instrumentation needs only for body and head element children
-                condition: node => node.nextSibling &&
-                                   domUtils.isDomElement(node.nextSibling) &&
-                                   (domUtils.isDomElement(node) || domUtils.isTextNode(node) ||
-                                    domUtils.isProcessingInstructionNode(node) || domUtils.isCommentNode(node)),
-
-                get: node => domUtils.isShadowUIElement(node.nextSibling) ? null : node.nextSibling,
-                set: () => void 0
-            },
-
             outerHTML: {
                 condition: el => domUtils.isDomElement(el) &&
                                  PropertyAccessorsInstrumentation._elementHasTextProperty(el, 'outerHTML'),
@@ -273,18 +242,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                     return value;
                 }
-            },
-
-            lastChild: {
-                condition: ShadowUI.isShadowContainer,
-                get:       el => this.shadowUI.getLastChild(el),
-                set:       () => void 0
-            },
-
-            lastElementChild: {
-                condition: ShadowUI.isShadowContainer,
-                get:       el => this.shadowUI.getLastElementChild(el),
-                set:       () => void 0
             },
 
             location: {

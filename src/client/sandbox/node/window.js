@@ -66,6 +66,7 @@ export default class WindowSandbox extends SandboxBase {
         this.listenersSandbox      = eventSandbox.listeners;
         this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
         this.uploadSandbox         = uploadSandbox;
+        this.shadowUI              = nodeSandbox.shadowUI;
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
@@ -837,5 +838,65 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.DOMParserParseFromString.apply(this, args);
             };
         }
+
+        overrideDescriptor(window.Node.prototype, 'firstChild', {
+            getter: function () {
+                if (ShadowUI.isShadowContainer(this))
+                    return windowSandbox.shadowUI.getFirstChild(this);
+
+                return nativeMethods.nodeFirstChildGetter.call(this);
+            }
+        });
+
+        overrideDescriptor(window.Element.prototype, 'firstElementChild', {
+            getter: function () {
+                if (ShadowUI.isShadowContainer(this))
+                    return windowSandbox.shadowUI.getFirstElementChild(this);
+
+                return nativeMethods.elementFirstElementChildGetter.call(this);
+            }
+        });
+
+        overrideDescriptor(window.Node.prototype, 'lastChild', {
+            getter: function () {
+                if (ShadowUI.isShadowContainer(this))
+                    return windowSandbox.shadowUI.getLastChild(this);
+
+                return nativeMethods.nodeLastChildGetter.call(this);
+            }
+        });
+
+        overrideDescriptor(window.Element.prototype, 'lastElementChild', {
+            getter: function () {
+                if (ShadowUI.isShadowContainer(this))
+                    return windowSandbox.shadowUI.getLastElementChild(this);
+
+                return nativeMethods.elementLastElementChildGetter.call(this);
+            }
+        });
+
+        overrideDescriptor(window.Node.prototype, 'nextSibling', {
+            getter: function () {
+                let el = this;
+
+                do
+                    el = nativeMethods.nodeNextSiblingGetter.call(el);
+                while (el && isShadowUIElement(el));
+
+                return el;
+            }
+        });
+
+        overrideDescriptor(window.Element.prototype, 'nextElementSibling', {
+            getter: function () {
+                let el = this;
+
+                do
+                    el = nativeMethods.elementNextElementSiblingGetter.call(el);
+                while (el && isShadowUIElement(el));
+
+                return el;
+            }
+        });
     }
 }

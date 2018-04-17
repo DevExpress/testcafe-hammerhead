@@ -117,13 +117,13 @@ export default class DocumentWriter {
 
         beginMarker = container;
 
-        while (beginMarker.firstElementChild)
-            beginMarker = beginMarker.firstElementChild;
+        while (nativeMethods.elementFirstElementChildGetter.call(beginMarker))
+            beginMarker = nativeMethods.elementFirstElementChildGetter.call(beginMarker);
 
-        if (beginMarker.parentNode.firstChild !== beginMarker)
-            beginMarker = beginMarker.parentNode.firstChild;
-        else if (isCommentNode(beginMarker.firstChild))
-            beginMarker = beginMarker.firstChild;
+        if (nativeMethods.nodeFirstChildGetter.call(beginMarker.parentNode) !== beginMarker)
+            beginMarker = nativeMethods.nodeFirstChildGetter.call(beginMarker.parentNode);
+        else if (isCommentNode(nativeMethods.nodeFirstChildGetter.call(beginMarker)))
+            beginMarker = nativeMethods.nodeFirstChildGetter.call(beginMarker);
 
         return beginMarker;
     }
@@ -136,13 +136,13 @@ export default class DocumentWriter {
 
         endMarker = container;
 
-        while (endMarker.lastElementChild)
-            endMarker = endMarker.lastElementChild;
+        while (nativeMethods.elementLastElementChildGetter.call(endMarker))
+            endMarker = nativeMethods.elementLastElementChildGetter.call(endMarker);
 
-        if (endMarker.parentNode.lastChild !== endMarker)
-            endMarker = endMarker.parentNode.lastChild;
-        else if (isCommentNode(endMarker.lastChild))
-            endMarker = endMarker.lastChild;
+        if (nativeMethods.nodeLastChildGetter.call(endMarker.parentNode) !== endMarker)
+            endMarker = nativeMethods.nodeLastChildGetter.call(endMarker.parentNode);
+        else if (isCommentNode(nativeMethods.nodeLastChildGetter.call(endMarker)))
+            endMarker = nativeMethods.nodeLastChildGetter.call(endMarker);
 
         return endMarker;
     }
@@ -292,8 +292,8 @@ export default class DocumentWriter {
         if (!this.isEndMarkerInDOM && !this.isAddContentToEl) {
             let el = this.document.documentElement;
 
-            while (el.lastElementChild)
-                el = el.lastElementChild;
+            while (nativeMethods.elementLastElementChildGetter.call(el))
+                el = nativeMethods.elementLastElementChildGetter.call(el);
 
             this.nonClosedEl = el;
         }

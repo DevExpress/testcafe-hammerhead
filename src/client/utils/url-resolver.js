@@ -36,7 +36,7 @@ export default {
     },
 
     getResolverElement (doc) {
-        return this._getResolver(doc).body.firstChild;
+        return nativeMethods.nodeFirstChildGetter.call(this._getResolver(doc).body);
     },
 
     resolve (url, doc) {

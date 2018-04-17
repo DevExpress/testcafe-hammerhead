@@ -376,7 +376,7 @@ export default class ShadowUI extends SandboxBase {
             return;
 
         const isRootInDom     = domUtils.closest(this.root, 'html');
-        const isRootLastChild = !this.root.nextElementSibling;
+        const isRootLastChild = !this.nativeMethods.elementNextElementSiblingGetter.call(this.root);
         // NOTE: Fix for B239138 - The 'Cannot read property 'document' of null' error
         // is thrown on recording on the unroll.me site. There was an issue when
         // document.body was replaced, so we need to reattach a UI to a new body manually.
@@ -558,9 +558,10 @@ export default class ShadowUI extends SandboxBase {
     }
 
     insertBeforeRoot (el) {
-        const rootParent = this.getRoot().parentNode;
+        const rootParent      = this.getRoot().parentNode;
+        const lastParentChild = this.nativeMethods.nodeLastChildGetter.call(rootParent);
 
-        return nativeMethods.insertBefore.call(rootParent, el, rootParent.lastChild);
+        return nativeMethods.insertBefore.call(rootParent, el, lastParentChild);
     }
 
     static _markElementAsShadow (el) {
