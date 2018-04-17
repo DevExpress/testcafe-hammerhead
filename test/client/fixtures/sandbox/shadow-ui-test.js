@@ -846,6 +846,8 @@ test('processed nodeList should have non-enumerable "item" and "namedItem" prope
 test('should not process shadow ui elements (GH-1570)', function () {
     var shadowUIElements = hammerhead.nativeMethods.querySelectorAll.call(document, '[class$="-hammerhead-shadow-ui"]');
 
+    ok(shadowUIElements.length);
+
     for (var i = 0; i < shadowUIElements.length; i++)
         ok(!shadowUIElements[i][INTERNAL_PROPS.processedContext]);
 });

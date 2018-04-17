@@ -46,30 +46,31 @@ export default class NodeSandbox extends SandboxBase {
     _processElement (el) {
         const processedContext = el[INTERNAL_PROPS.processedContext];
 
-        if (!domUtils.isShadowUIElement(el) && processedContext !== this.window) {
-            let urlAttrName = null;
+        if (domUtils.isShadowUIElement(el) || processedContext === this.window)
+            return;
 
-            if (processedContext) {
-                urlAttrName = domProcessor.getUrlAttr(el);
-                urlAttrName = el.hasAttribute(urlAttrName) ? urlAttrName : null;
-            }
+        let urlAttrName = null;
 
-            const canAddNewProp         = nativeMethods.objectIsExtensible.call(window.Object, el);
-            const canUpdateExistingProp = processedContext && !nativeMethods.objectIsFrozen.call(window.Object, el);
-
-            if (canAddNewProp || canUpdateExistingProp) {
-                nativeMethods.objectDefineProperty.call(this.window, el, INTERNAL_PROPS.processedContext, {
-                    value:    this.window,
-                    writable: true
-                });
-            }
-
-            // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
-            if (urlAttrName)
-                el.setAttribute(urlAttrName, el.getAttribute(urlAttrName));
-
-            this.element.processElement(el);
+        if (processedContext) {
+            urlAttrName = domProcessor.getUrlAttr(el);
+            urlAttrName = el.hasAttribute(urlAttrName) ? urlAttrName : null;
         }
+
+        const canAddNewProp         = nativeMethods.objectIsExtensible.call(window.Object, el);
+        const canUpdateExistingProp = processedContext && !nativeMethods.objectIsFrozen.call(window.Object, el);
+
+        if (canAddNewProp || canUpdateExistingProp) {
+            nativeMethods.objectDefineProperty.call(this.window, el, INTERNAL_PROPS.processedContext, {
+                value:    this.window,
+                writable: true
+            });
+        }
+
+        // NOTE: We need to reprocess url attribute of element, if it's moved to different window (GH-564)
+        if (urlAttrName)
+            el.setAttribute(urlAttrName, el.getAttribute(urlAttrName));
+
+        this.element.processElement(el);
     }
 
     processNodes (el, doc) {
