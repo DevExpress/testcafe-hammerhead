@@ -10,6 +10,7 @@ var destLocation                         = hammerhead.get('./utils/destination-l
 var attributesProperty                   = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
 var processHtml                          = hammerhead.get('../client/utils/html').processHtml;
 var DomProcessor                         = hammerhead.get('../processing/dom');
+var urlResolver                          = hammerhead.get('./utils/url-resolver');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -260,6 +261,10 @@ test('should not create proxy url for invalid url (GH-778)', function () {
 
     var testCases = [
         {
+            value:     '//',
+            skipForIE: false
+        },
+        {
             value:     '//:0',
             skipForIE: false
         },
@@ -277,16 +282,23 @@ test('should not create proxy url for invalid url (GH-778)', function () {
         }
     ];
 
+    var storedBaseUrl = urlResolver.getBaseUrl(document);
+
+    urlResolver.updateBase(location.origin, document);
+
     for (var i = 0; i < testCases.length; i++) {
         // NOTE: https://developer.microsoft.com/en-us/microsoft-edge/platform/issues/9513048/
         if (browserUtils.isIE && testCases[i].skipForIE)
             continue;
 
-        var anchorValue       = anchor.setAttribute('href', testCases[i]);
-        var nativeAnchorValue = nativeAnchor.setAttribute('href', testCases[i]);
+        anchor.setAttribute('href', testCases[i].value);
+        nativeMethods.setAttribute.call(nativeAnchor, 'href', testCases[i].value);
 
-        strictEqual(anchorValue, nativeAnchorValue);
+        strictEqual(anchor.getAttribute('href'), nativeMethods.getAttribute.call(nativeAnchor, 'href'));
+        strictEqual(anchor.href, nativeMethods.anchorHrefGetter.call(nativeAnchor));
     }
+
+    urlResolver.updateBase(storedBaseUrl, document);
 });
 
 function checkProperty (text) {

@@ -281,7 +281,7 @@ export function resolveUrlAsDest (url, getProxyUrlMeth) {
         const proxyUrl       = getProxyUrlMeth(url);
         const parsedProxyUrl = parseProxyUrl(proxyUrl);
 
-        return formatUrl(parsedProxyUrl.destResourceInfo);
+        return parsedProxyUrl ? formatUrl(parsedProxyUrl.destResourceInfo) : url;
     }
 
     return url;
@@ -338,6 +338,9 @@ export function prepareUrl (url) {
 }
 
 export function ensureTrailingSlash (srcUrl, processedUrl) {
+    if (!isValidUrl(processedUrl))
+        return processedUrl;
+
     const srcUrlEndsWithTrailingSlash       = TRAILING_SLASH_RE.test(srcUrl);
     const processedUrlEndsWithTrailingSlash = TRAILING_SLASH_RE.test(processedUrl);
 

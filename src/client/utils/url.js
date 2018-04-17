@@ -17,9 +17,9 @@ export function getProxyUrl (url, opts) {
         return url;
 
     // NOTE: Resolves relative URLs.
-    url = destLocation.resolveUrl(url);
+    let resolvedUrl = destLocation.resolveUrl(url);
 
-    if (parsedResourceType.isWebSocket && !isValidWebSocketUrl(url) || !sharedUrlUtils.isValidUrl(url))
+    if (parsedResourceType.isWebSocket && !isValidWebSocketUrl(resolvedUrl) || !sharedUrlUtils.isValidUrl(resolvedUrl))
         return url;
 
     /*eslint-disable no-restricted-properties*/
@@ -37,7 +37,7 @@ export function getProxyUrl (url, opts) {
     // NOTE: If the relative URL contains no slash (e.g. 'img123'), the resolver will keep
     // the original proxy information, so that we can return such URL as is.
     // TODO: Implement the isProxyURL function.
-    const parsedProxyUrl = sharedUrlUtils.parseProxyUrl(url);
+    const parsedProxyUrl = sharedUrlUtils.parseProxyUrl(resolvedUrl);
 
     /*eslint-disable no-restricted-properties*/
     const isValidProxyUrl = !!parsedProxyUrl && parsedProxyUrl.proxy.hostname === proxyHostname &&
@@ -46,7 +46,7 @@ export function getProxyUrl (url, opts) {
 
     if (isValidProxyUrl) {
         if (resourceType && parsedProxyUrl.resourceType === resourceType)
-            return url;
+            return resolvedUrl;
 
         // NOTE: Need to change the proxy URL resource type.
         const destUrl = sharedUrlUtils.formatUrl(parsedProxyUrl.destResourceInfo);
@@ -62,7 +62,7 @@ export function getProxyUrl (url, opts) {
         });
     }
 
-    const parsedUrl = sharedUrlUtils.parseUrl(url);
+    const parsedUrl = sharedUrlUtils.parseUrl(resolvedUrl);
 
     charset = charset || parsedResourceType.isScript && document[INTERNAL_PROPS.documentCharset];
 
@@ -77,7 +77,7 @@ export function getProxyUrl (url, opts) {
         parsedUrl.hostname = parsedDestLocation.hostname;
         parsedUrl.port     = parsedDestLocation.port || '';
 
-        url = sharedUrlUtils.formatUrl(parsedUrl);
+        resolvedUrl = sharedUrlUtils.formatUrl(parsedUrl);
     }
     /*eslint-enable no-restricted-properties*/
 
@@ -86,11 +86,11 @@ export function getProxyUrl (url, opts) {
         parsedUrl.protocol = parsedUrl.protocol.replace('ws', 'http');
         /*eslint-enable no-restricted-properties*/
 
-        url       = sharedUrlUtils.formatUrl(parsedUrl);
-        reqOrigin = reqOrigin || encodeURIComponent(destLocation.getOriginHeader());
+        resolvedUrl = sharedUrlUtils.formatUrl(parsedUrl);
+        reqOrigin   = reqOrigin || encodeURIComponent(destLocation.getOriginHeader());
     }
 
-    return sharedUrlUtils.getProxyUrl(url, {
+    return sharedUrlUtils.getProxyUrl(resolvedUrl, {
         proxyProtocol,
         proxyHostname,
         proxyPort,
