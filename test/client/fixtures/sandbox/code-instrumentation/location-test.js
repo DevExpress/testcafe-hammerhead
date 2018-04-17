@@ -301,7 +301,7 @@ test('should omit the default port on page navigation', function () {
         location: ''
     };
 
-    function testCase (url, shouldOmitPort) {
+    function testUrl (url, shouldOmitPort) {
         locationWrapper.href = url;
         strictEqual(windowMock.location.href, getExpectedProxyUrl(url, shouldOmitPort), 'href = ' + url);
 
@@ -316,12 +316,12 @@ test('should omit the default port on page navigation', function () {
     }
 
     function testDefaultPortOmitting (protocol, defaultPort, defaultPortForAnotherProtocol) {
-        testCase(protocol + '//localhost:' + defaultPort + '/', true);
-        testCase(protocol + '//127.0.0.1:' + defaultPort + '/', true);
-        testCase(protocol + '//example.com:' + defaultPort + '/', true);
-        testCase(protocol + '//example.com:' + defaultPort + '/page.html', true);
-        testCase(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false);
-        testCase(protocol + '//localhost:2343/', false);
+        testUrl(protocol + '//localhost:' + defaultPort + '/', true);
+        testUrl(protocol + '//127.0.0.1:' + defaultPort + '/', true);
+        testUrl(protocol + '//example.com:' + defaultPort + '/', true);
+        testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true);
+        testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false);
+        testUrl(protocol + '//localhost:2343/', false);
     }
 
     testDefaultPortOmitting('http:', '80', '443');
