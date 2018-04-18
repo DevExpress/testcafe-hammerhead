@@ -623,16 +623,6 @@ test('should properly set value of instrumented property if it is readonly for D
             prop:   'attributes',
             value1: input.attributes,
             value2: null
-        },
-        {
-            prop:   'nextSibling',
-            value1: input,
-            value2: null
-        },
-        {
-            prop:   'nextElementSibling',
-            value1: input,
-            value2: null
         }
     ];
 

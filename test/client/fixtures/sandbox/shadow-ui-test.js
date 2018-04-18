@@ -153,7 +153,7 @@ test('head.children', function () {
     nativeMethods.linkHrefSetter.call(link1, '/test.css');
 
     shadowUI.addClass(link1, 'ui-stylesheet');
-    document.head.insertBefore(link1, document.head.firstChild);
+    document.head.insertBefore(link1, nativeMethods.nodeFirstChildGetter.call(document.head));
 
     var link2 = document.createElement('link');
 
@@ -163,7 +163,7 @@ test('head.children', function () {
     nativeMethods.linkHrefSetter.call(link2, '/test.css');
 
     shadowUI.addClass(link2, 'ui-stylesheet');
-    document.head.insertBefore(link2, document.head.firstChild);
+    document.head.insertBefore(link2, nativeMethods.nodeFirstChildGetter.call(document.head));
 
     var children       = document.head.children;
     var childrenLength = children.length;
@@ -199,7 +199,7 @@ test('head.childNodes', function () {
     nativeMethods.linkHrefSetter.call(link1, '/test.css');
 
     shadowUI.addClass(link1, 'ui-stylesheet');
-    document.head.insertBefore(link1, document.head.firstChild);
+    document.head.insertBefore(link1, nativeMethods.nodeFirstChildGetter.call(document.head));
 
     var link2 = document.createElement('link');
 
@@ -209,7 +209,7 @@ test('head.childNodes', function () {
     nativeMethods.linkHrefSetter.call(link2, '/test.css');
 
     shadowUI.addClass(link2, 'ui-stylesheet');
-    document.head.insertBefore(link2, document.head.firstChild);
+    document.head.insertBefore(link2, nativeMethods.nodeFirstChildGetter.call(document.head));
 
     var childNodes           = document.head.childNodes;
     var childNodesLength     = childNodes.length;
@@ -267,11 +267,11 @@ test('Node.nextSibling, NonDocumentTypeChildNode.nextElementSibling', function (
     ok(domUtils.isShadowUIElement(root));
     ok(!domUtils.isShadowUIElement(previous));
 
-    strictEqual(previous.nextSibling, root);
-    strictEqual(getProperty(previous, 'nextSibling'), null);
+    strictEqual(nativeMethods.nodeNextSiblingGetter.call(previous), root);
+    strictEqual(previous.nextSibling, null);
 
-    strictEqual(previous.nextElementSibling, root);
-    strictEqual(getProperty(previous, 'nextElementSibling'), null);
+    strictEqual(nativeMethods.elementNextElementSiblingGetter.call(previous), root);
+    strictEqual(previous.nextElementSibling, null);
 });
 
 test('Node.nextSibling when Node is not ELEMENT_NODE (GH-1465)', function () {
@@ -298,8 +298,8 @@ test('Node.nextSibling when Node is not ELEMENT_NODE (GH-1465)', function () {
         var notElementNode = notElementNodes[i];
 
         document.body.appendChild(notElementNode);
-        strictEqual(getProperty(notElementNode, 'nextSibling'), null);
-        strictEqual(notElementNode.nextSibling, shadowUI.getRoot());
+        strictEqual(notElementNode.nextSibling, null);
+        strictEqual(nativeMethods.nodeNextSiblingGetter.call(notElementNode), shadowUI.getRoot());
 
         notElementNode.parentNode.removeChild(notElementNode);
     }
@@ -312,7 +312,7 @@ test('Node.nextSibling when Node is TEXT_NODE and nextSibling is null (GH-1469)'
     div.appendChild(text);
     document.body.appendChild(div);
 
-    strictEqual(getProperty(text, 'nextSibling'), null);
+    strictEqual(text.nextSibling, null);
 
     div.parentNode.removeChild(div);
 });

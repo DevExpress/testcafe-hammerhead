@@ -484,8 +484,8 @@ test('document.write for several tags in iframe (T215136)', function () {
         .then(function (iframe) {
             var div = iframe.contentDocument.querySelector('#parent');
 
-            strictEqual(getProperty(div.children, 'length'), 3);
-            strictEqual(getProperty(div.parentNode, 'lastElementChild'), div);
+            strictEqual(div.children.length, 3);
+            strictEqual(div.parentNode.lastElementChild, div);
         });
 });
 
