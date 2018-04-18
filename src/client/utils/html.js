@@ -135,7 +135,7 @@ export function cleanUpHtml (html) {
 
         find(container, STORED_ATTRS_SELECTOR, el => {
             for (const { attr, storedAttr } of ATTRS_DATA_FOR_CLEANING) {
-                if (el.hasAttribute(attr))
+                if (el.hasAttribute(attr) && el.hasAttribute(storedAttr))
                     nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
                 else if (attr === 'autocomplete')
                     nativeMethods.removeAttribute.call(el, attr);

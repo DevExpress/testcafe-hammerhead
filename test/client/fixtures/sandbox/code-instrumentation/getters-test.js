@@ -440,3 +440,15 @@ test('getProperty function should not throw an error for document.all property (
         ok(false);
     }
 });
+
+test('leaving attributes, that are used in non-standard way, as they are (GH-2347)', function () {
+    var htmlText = '<input action="#test-me-out">';
+    var div      = document.createElement('div');
+
+    setProperty(div, 'innerHTML', htmlText);
+
+    var a = div.firstChild;
+
+    strictEqual(a.outerHTML, processHtml(htmlText));
+    strictEqual(getProperty(a, 'outerHTML'), htmlText);
+});
