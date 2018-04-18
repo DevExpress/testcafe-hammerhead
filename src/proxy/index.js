@@ -1,5 +1,6 @@
 import Router from './router';
 import http from 'http';
+import https from 'https';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
 import { respond204, respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
@@ -22,26 +23,36 @@ function parseAsJson (msg) {
     }
 }
 
-function createServerInfo (hostname, port, crossDomainPort) {
+function createServerInfo (hostname, port, crossDomainPort, protocol) {
     return {
         hostname:        hostname,
         port:            port,
         crossDomainPort: crossDomainPort,
-        domain:          `http://${hostname}:${port}`
+        protocol:        protocol,
+        domain:          `${protocol}//${hostname}:${port}`
     };
 }
 
 // Proxy
 export default class Proxy extends Router {
-    constructor (hostname, port1, port2) {
+    constructor (hostname, port1, port2, options) {
         super();
 
         this.openSessions = {};
 
-        this.server1Info = createServerInfo(hostname, port1, port2);
-        this.server2Info = createServerInfo(hostname, port2, port1);
-        this.server1     = http.createServer((req, res) => this._onRequest(req, res, this.server1Info));
-        this.server2     = http.createServer((req, res) => this._onRequest(req, res, this.server2Info));
+        options = options || {};
+
+        const serverProvider = options.ssl ? https : http;
+        const protocol = options.ssl ? 'https:' : 'http:';
+        const serverOptions = {
+            key:  options.key || '',
+            cert: options.cert || ''
+        };
+
+        this.server1Info = createServerInfo(hostname, port1, port2, protocol);
+        this.server2Info = createServerInfo(hostname, port2, port1, protocol);
+        this.server1     = serverProvider.createServer(serverOptions, (req, res) => this._onRequest(req, res, this.server1Info));
+        this.server2     = serverProvider.createServer(serverOptions, (req, res) => this._onRequest(req, res, this.server2Info));
 
         this.server1.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server1Info));
         this.server2.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server2Info));
@@ -171,6 +182,7 @@ export default class Proxy extends Router {
         return urlUtils.getProxyUrl(url, {
             proxyHostname: this.server1Info.hostname,
             proxyPort:     this.server1Info.port,
+            proxyProtocol: this.server1Info.protocol,
             sessionId:     session.id
         });
     }
