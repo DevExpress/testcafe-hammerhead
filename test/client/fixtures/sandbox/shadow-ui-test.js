@@ -312,7 +312,7 @@ test('Node.nextSibling when Node is TEXT_NODE and nextSibling is null (GH-1469)'
     div.appendChild(text);
     document.body.appendChild(div);
 
-    strictEqual(getProperty(text, 'nextSibling'), null);
+    strictEqual(text.nextSibling, null);
 
     div.parentNode.removeChild(div);
 });

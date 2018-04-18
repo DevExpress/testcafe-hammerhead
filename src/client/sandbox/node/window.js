@@ -877,25 +877,13 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window.Node.prototype, 'nextSibling', {
             getter: function () {
-                let el = this;
-
-                do
-                    el = nativeMethods.nodeNextSiblingGetter.call(el);
-                while (el && isShadowUIElement(el));
-
-                return el;
+                return windowSandbox.shadowUI.getNextSibling(this);
             }
         });
 
         overrideDescriptor(window.Element.prototype, 'nextElementSibling', {
             getter: function () {
-                let el = this;
-
-                do
-                    el = nativeMethods.elementNextElementSiblingGetter.call(el);
-                while (el && isShadowUIElement(el));
-
-                return el;
+                return windowSandbox.shadowUI.getNextElementSibling(this);
             }
         });
     }

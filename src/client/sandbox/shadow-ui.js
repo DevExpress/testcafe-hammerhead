@@ -426,6 +426,22 @@ export default class ShadowUI extends SandboxBase {
         return null;
     }
 
+    getNextSibling (el) {
+        do
+            el = nativeMethods.nodeNextSiblingGetter.call(el);
+        while (el && domUtils.isShadowUIElement(el));
+
+        return el;
+    }
+
+    getNextElementSibling (el) {
+        do
+            el = nativeMethods.elementNextElementSiblingGetter.call(el);
+        while (el && domUtils.isShadowUIElement(el));
+
+        return el;
+    }
+
     // Utils
     static _checkElementsPosition (collection, length) {
         if (!length)
