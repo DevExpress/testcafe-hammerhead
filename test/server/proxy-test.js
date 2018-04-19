@@ -591,8 +591,8 @@ describe('Proxy', () => {
                 });
         });
 
-        describe('Should process SET_COOKIE service message', () => {
-            it('Without set-cookie domain', () => {
+        describe.only('SET_COOKIE service message', () => {
+            it('Should process the message without domain directive', () => {
                 const options = {
                     method:                  'POST',
                     url:                     'http://localhost:1836/cookie-sync',
@@ -620,7 +620,7 @@ describe('Proxy', () => {
                     });
             });
 
-            it('With correct set-cookie domain and default port', () => {
+            it('Should process the message with correct domain directive on default port', () => {
                 const options = {
                     method:                  'POST',
                     url:                     'http://localhost:1836/cookie-sync',
@@ -669,7 +669,7 @@ describe('Proxy', () => {
                     });
             });
 
-            it('With correct set-cookie domain and non-default port', () => {
+            it('Should process the message with correct domain directive on non-default port', () => {
                 const options = {
                     method:                  'POST',
                     url:                     'http://localhost:1836/cookie-sync',
@@ -721,7 +721,7 @@ describe('Proxy', () => {
                     });
             });
 
-            it('With wrong set-cookie domain and default port', () => {
+            it('Should process the message with wrong domain directive on default port', () => {
                 const options = {
                     method:                  'POST',
                     url:                     'http://localhost:1836/cookie-sync',
@@ -750,23 +750,23 @@ describe('Proxy', () => {
                                 cookie: 'Test=Data; Domain=anotherdomain.com'
                             },
                             {
-                                url:    proxy.openSession('https://localhost:80', session),
+                                url:    proxy.openSession('https://localhost:443', session),
                                 cookie: 'TestSecure=Data; Domain=127.0.0.1; Secure'
                             },
                             {
-                                url:    proxy.openSession('https://127.0.0.1:80', session),
+                                url:    proxy.openSession('https://127.0.0.1:443', session),
                                 cookie: 'TestSecure=Data; Domain=localhost; Secure'
                             },
                             {
-                                url:    proxy.openSession('https://127.0.0.1:80', session),
+                                url:    proxy.openSession('https://127.0.0.1:443', session),
                                 cookie: 'TestSecure=Data; Domain=localhost:4512; Secure'
                             },
                             {
-                                url:    proxy.openSession('https://localhost:80', session),
+                                url:    proxy.openSession('https://localhost:443', session),
                                 cookie: 'TestSecure=Data; Domain=127.0.0.1:4723; Secure'
                             },
                             {
-                                url:    proxy.openSession('https://example.com:80', session),
+                                url:    proxy.openSession('https://example.com:443', session),
                                 cookie: 'TestSecure=Data; Domain=anotherdomain.com; Secure'
                             }
                         ]
