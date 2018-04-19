@@ -429,6 +429,38 @@ describe('Proxy', () => {
             testAddingTrailingSlash(ENSURE_URL_TRAILING_SLASH_TEST_CASES);
         });
 
+        it('Should omit default port on openSession()', () => {
+            const PORT_RE = /:([0-9][0-9]*)/;
+
+            function getExpectedProxyUrl (url, shouldOmitPort) {
+                url = shouldOmitPort ? url.replace(PORT_RE, '') : url;
+
+                return urlUtils.getProxyUrl(url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                });
+            }
+
+            function testUrl (url, shouldOmitPort) {
+                const actualUrl = proxy.openSession(url, session);
+
+                expect(actualUrl).eql(getExpectedProxyUrl(url, shouldOmitPort));
+            }
+
+            function testDefaultPortOmitting (protocol, defaultPort, defaultPortForAnotherProtocol) {
+                testUrl(protocol + '//localhost:' + defaultPort + '/', true);
+                testUrl(protocol + '//127.0.0.1:' + defaultPort + '/', true);
+                testUrl(protocol + '//example.com:' + defaultPort + '/', true);
+                testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true);
+                testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false);
+                testUrl(protocol + '//localhost:2343/', false);
+            }
+
+            testDefaultPortOmitting('http:', '80', '443');
+            testDefaultPortOmitting('https:', '443', '80');
+        });
+
         it('Should pass DNS errors to session', done => {
             session.handlePageError = (ctx, err) => {
                 expect(err).eql('Failed to find a DNS-record for the resource at <a href="http://www.some-unresolvable.url/">http://www.some-unresolvable.url/</a>.');
@@ -547,34 +579,6 @@ describe('Proxy', () => {
     });
 
     describe('Cookies', () => {
-        it('Should process SET_COOKIE service message', () => {
-            const options = {
-                method:                  'POST',
-                url:                     'http://localhost:1836/cookie-sync',
-                resolveWithFullResponse: true,
-                body:                    JSON.stringify({
-                    sessionId: session.id,
-                    queue:     [
-                        {
-                            url:    proxy.openSession('http://example.com', session),
-                            cookie: 'Test1=Data1'
-                        },
-                        {
-                            url:    proxy.openSession('http://example.com', session),
-                            cookie: 'Test2=Data2'
-                        }
-                    ]
-                })
-            };
-
-            return request(options)
-                .then(res => {
-                    expect(res.body).eql('');
-                    expect(res.statusCode).eql(204);
-                    expect(session.cookies.getClientString('http://example.com')).eql('Test1=Data1; Test2=Data2');
-                });
-        });
-
         it('Should handle "Cookie" and "Set-Cookie" headers', () => {
             const options = {
                 url:            proxy.openSession('http://127.0.0.1:2000/cookie/set-and-redirect', session),
@@ -585,6 +589,282 @@ describe('Proxy', () => {
                 .then(body => {
                     expect(body).eql('%% Test=value; value without key %%');
                 });
+        });
+
+        describe('Should process SET_COOKIE service message', () => {
+            it('Without set-cookie domain', () => {
+                const options = {
+                    method:                  'POST',
+                    url:                     'http://localhost:1836/cookie-sync',
+                    resolveWithFullResponse: true,
+                    body:                    JSON.stringify({
+                        sessionId: session.id,
+                        queue:     [
+                            {
+                                url:    proxy.openSession('http://example.com', session),
+                                cookie: 'Test1=Data1'
+                            },
+                            {
+                                url:    proxy.openSession('http://example.com', session),
+                                cookie: 'Test2=Data2'
+                            }
+                        ]
+                    })
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.body).eql('');
+                        expect(res.statusCode).eql(204);
+                        expect(session.cookies.getClientString('http://example.com')).eql('Test1=Data1; Test2=Data2');
+                    });
+            });
+
+            it('With correct set-cookie domain and default port', () => {
+                const options = {
+                    method:                  'POST',
+                    url:                     'http://localhost:1836/cookie-sync',
+                    resolveWithFullResponse: true,
+                    body:                    JSON.stringify({
+                        sessionId: session.id,
+                        queue:     [
+                            {
+                                url:    proxy.openSession('http://localhost:80', session),
+                                cookie: 'Test=Data0; Domain=localhost'
+                            },
+                            {
+                                url:    proxy.openSession('http://127.0.0.1:80', session),
+                                cookie: 'Test=Data1; Domain=127.0.0.1'
+                            },
+                            {
+                                url:    proxy.openSession('http://example.com:80', session),
+                                cookie: 'Test=Data2; Domain=example.com'
+                            },
+                            {
+                                url:    proxy.openSession('https://localhost:443', session),
+                                cookie: 'TestSecure=Data3; Domain=localhost; Secure'
+                            },
+                            {
+                                url:    proxy.openSession('https://127.0.0.1:443', session),
+                                cookie: 'TestSecure=Data4; Domain=127.0.0.1; Secure'
+                            },
+                            {
+                                url:    proxy.openSession('https://example.com:443', session),
+                                cookie: 'TestSecure=Data5; Domain=example.com; Secure'
+                            }
+                        ]
+                    })
+                };
+
+                return request(options)
+                    .then((res) => {
+                        expect(res.body).eql('');
+                        expect(res.statusCode).eql(204);
+                        expect(session.cookies.getClientString('http://localhost')).eql('Test=Data0');
+                        expect(session.cookies.getClientString('http://127.0.0.1')).eql('Test=Data1');
+                        expect(session.cookies.getClientString('http://example.com')).eql('Test=Data2');
+                        expect(session.cookies.getClientString('https://localhost')).eql('Test=Data0; TestSecure=Data3');
+                        expect(session.cookies.getClientString('https://127.0.0.1')).eql('Test=Data1; TestSecure=Data4');
+                        expect(session.cookies.getClientString('https://example.com')).eql('Test=Data2; TestSecure=Data5');
+                    });
+            });
+
+            it('With correct set-cookie domain and non-default port', () => {
+                const options = {
+                    method:                  'POST',
+                    url:                     'http://localhost:1836/cookie-sync',
+                    resolveWithFullResponse: true,
+                    body:                    JSON.stringify({
+                        sessionId: session.id,
+                        queue:     [
+                            {
+                                url:    proxy.openSession('http://localhost:2345', session),
+                                cookie: 'Test=Data0; Domain=localhost'
+                            },
+                            {
+                                url:    proxy.openSession('http://127.0.0.1:2345', session),
+                                cookie: 'Test=Data1; Domain=127.0.0.1'
+                            },
+                            {
+                                url:    proxy.openSession('http://example.com:2345', session),
+                                cookie: 'Test=Data2; Domain=example.com'
+                            },
+                            {
+                                url:    proxy.openSession('https://localhost:2345', session),
+                                cookie: 'TestSecure=Data3; Domain=localhost; Secure'
+                            },
+                            {
+                                url:    proxy.openSession('https://127.0.0.1:2345', session),
+                                cookie: 'TestSecure=Data4' + '; Domain=127.0.0.1; Secure'
+                            },
+                            {
+                                url:    proxy.openSession('https://example.com:2345', session),
+                                cookie: 'TestSecure=Data5' + '; Domain=example.com; Secure'
+                            }
+                        ]
+                    })
+                };
+
+                return request(options)
+                    .then((res) => {
+                        expect(res.body).eql('');
+                        expect(res.statusCode).eql(204);
+                        expect(session.cookies.getClientString('http://localhost:2345')).eql('Test=Data0');
+                        expect(session.cookies.getClientString('http://127.0.0.1:2345')).eql('Test=Data1');
+                        expect(session.cookies.getClientString('http://example.com:2345')).eql('Test=Data2');
+                        expect(session.cookies.getClientString('http://localhost')).eql('Test=Data0');
+                        expect(session.cookies.getClientString('http://127.0.0.1')).eql('Test=Data1');
+                        expect(session.cookies.getClientString('http://example.com')).eql('Test=Data2');
+                        expect(session.cookies.getClientString('https://localhost')).eql('Test=Data0; TestSecure=Data3');
+                        expect(session.cookies.getClientString('https://127.0.0.1')).eql('Test=Data1; TestSecure=Data4');
+                        expect(session.cookies.getClientString('https://example.com')).eql('Test=Data2; TestSecure=Data5');
+                    });
+            });
+
+            it('With wrong set-cookie domain and default port', () => {
+                const options = {
+                    method:                  'POST',
+                    url:                     'http://localhost:1836/cookie-sync',
+                    resolveWithFullResponse: true,
+                    body:                    JSON.stringify({
+                        sessionId: session.id,
+                        queue:     [
+                            {
+                                url:    proxy.openSession('http://localhost:80', session),
+                                cookie: 'Test=Data; Domain=127.0.0.1'
+                            },
+                            {
+                                url:    proxy.openSession('http://127.0.0.1:80', session),
+                                cookie: 'Test=Data; Domain=localhost'
+                            },
+                            {
+                                url:    proxy.openSession('http://127.0.0.1:80', session),
+                                cookie: 'Test=Data; Domain=localhost:4512'
+                            },
+                            {
+                                url:    proxy.openSession('http://localhost:80', session),
+                                cookie: 'Test=Data; Domain=127.0.0.1:4723'
+                            },
+                            {
+                                url:    proxy.openSession('http://example.com:80', session),
+                                cookie: 'Test=Data; Domain=anotherdomain.com'
+                            },
+                            {
+                                url:    proxy.openSession('https://localhost:80', session),
+                                cookie: 'TestSecure=Data; Domain=127.0.0.1; Secure'
+                            },
+                            {
+                                url:    proxy.openSession('https://127.0.0.1:80', session),
+                                cookie: 'TestSecure=Data; Domain=localhost; Secure'
+                            },
+                            {
+                                url:    proxy.openSession('https://127.0.0.1:80', session),
+                                cookie: 'TestSecure=Data; Domain=localhost:4512; Secure'
+                            },
+                            {
+                                url:    proxy.openSession('https://localhost:80', session),
+                                cookie: 'TestSecure=Data; Domain=127.0.0.1:4723; Secure'
+                            },
+                            {
+                                url:    proxy.openSession('https://example.com:80', session),
+                                cookie: 'TestSecure=Data; Domain=anotherdomain.com; Secure'
+                            }
+                        ]
+                    })
+                };
+
+                return request(options)
+                    .then((res) => {
+                        expect(res.body).eql('');
+                        expect(res.statusCode).eql(204);
+                        expect(session.cookies.getClientString('http://localhost')).eql('');
+                        expect(session.cookies.getClientString('http://127.0.0.1')).eql('');
+                        expect(session.cookies.getClientString('http://example.com')).eql('');
+                        expect(session.cookies.getClientString('https://localhost')).eql('');
+                        expect(session.cookies.getClientString('https://127.0.0.1')).eql('');
+                        expect(session.cookies.getClientString('https://example.com')).eql('');
+                    });
+            });
+        });
+    });
+
+    describe('Location header', () => {
+        it('Should ensure a trailing slash on location header (GH-1426)', () => {
+            function getExpectedProxyUrl (testCase) {
+                const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id
+                });
+
+                return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
+            }
+
+            const testLocationHeaderValue = testCase => {
+                const proxiedUrl = proxy.openSession(testCase.url, session);
+                const encodedUrl = encodeURIComponent(proxiedUrl);
+                const options    = {
+                    url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
+
+                    resolveWithFullResponse: true,
+                    followRedirect:          false,
+                    simple:                  false,
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.headers['location']).eql(getExpectedProxyUrl(testCase));
+                    });
+            };
+
+            return Promise.all(ENSURE_URL_TRAILING_SLASH_TEST_CASES.map(testLocationHeaderValue));
+        });
+
+        it('Should omit the default port on location header', () => {
+            const PORT_RE = /:([0-9][0-9]*)/;
+
+            function getExpectedProxyUrl (url, shouldOmitPort) {
+                url = shouldOmitPort ? url.replace(PORT_RE, '') : url;
+
+                return urlUtils.getProxyUrl(url, {
+                    proxyHostname: '127.0.0.1',
+                    proxyPort:     1836,
+                    sessionId:     session.id,
+                });
+            }
+
+            function testUrl (url, shouldOmitPort) {
+                const proxiedUrl = proxy.openSession(url, session);
+                const encodedUrl = encodeURIComponent(proxiedUrl);
+                const options    = {
+                    url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
+
+                    resolveWithFullResponse: true,
+                    followRedirect:          false,
+                    simple:                  false,
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.headers['location']).eql(getExpectedProxyUrl(url, shouldOmitPort));
+                    });
+            }
+
+            function testDefaultPortOmitting (protocol, defaultPort, defaultPortForAnotherProtocol) {
+                return Promise.all([
+                    testUrl(protocol + '//localhost:' + defaultPort + '/', true),
+                    testUrl(protocol + '//127.0.0.1:' + defaultPort + '/', true),
+                    testUrl(protocol + '//example.com:' + defaultPort + '/', true),
+                    testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true),
+                    testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false),
+                    testUrl(protocol + '//localhost:2343/', false)
+                ]);
+            }
+
+            return Promise.all([
+                testDefaultPortOmitting('http:', '80', '443'),
+                testDefaultPortOmitting('https:', '443', '80')
+            ]);
         });
     });
 
@@ -2950,37 +3230,6 @@ describe('Proxy', () => {
                 testRedirectRequestStatusCode(201, false),
                 testRedirectRequestStatusCode(202, false)
             ]);
-        });
-
-        it('Should ensure a trailing slash on location header (GH-1426)', () => {
-            function getExpectedProxyUrl (testCase) {
-                const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
-                    proxyHostname: '127.0.0.1',
-                    proxyPort:     1836,
-                    sessionId:     session.id
-                });
-
-                return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
-            }
-
-            const testLocationHeaderValue = testCase => {
-                const proxiedUrl = proxy.openSession(testCase.url, session);
-                const encodedUrl = encodeURIComponent(proxiedUrl);
-                const options    = {
-                    url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
-
-                    resolveWithFullResponse: true,
-                    followRedirect:          false,
-                    simple:                  false,
-                };
-
-                return request(options)
-                    .then(res => {
-                        expect(res.headers['location']).eql(getExpectedProxyUrl(testCase));
-                    });
-            };
-
-            return Promise.all(ENSURE_URL_TRAILING_SLASH_TEST_CASES.map(testLocationHeaderValue));
         });
     });
 });

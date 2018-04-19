@@ -1,6 +1,7 @@
-var cookieUtils = hammerhead.get('./utils/cookie');
-var settings    = hammerhead.get('./settings');
-var urlUtils    = hammerhead.get('./utils/url');
+var cookieUtils  = hammerhead.get('./utils/cookie');
+var settings     = hammerhead.get('./settings');
+var urlUtils     = hammerhead.get('./utils/url');
+var destLocation = hammerhead.get('./utils/destination-location');
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
@@ -20,9 +21,21 @@ function setCookieWithoutServerSync (value) {
 }
 
 test('get/set', function () {
-    settings.get().cookie = '';
+    var storedForcedLocation = destLocation.getLocation();
 
-    var cookieStrs = [
+    function testCookies (location, cookieStrs, expectedCookies) {
+        if (location !== storedForcedLocation)
+            destLocation.forceLocation(urlUtils.getProxyUrl(location));
+
+        settings.get().cookie = '';
+
+        for (var i = 0; i < cookieStrs.length; i++)
+            setCookieWithoutServerSync(cookieStrs[i]);
+
+        strictEqual(document.cookie, expectedCookies, 'destLocation = ' + destLocation.getLocation());
+    }
+
+    testCookies(storedForcedLocation, [
         'Test1=Basic; expires=Wed, 13-Jan-2021 22:23:01 GMT',
         'Test2=PathMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
         'Test4=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.example.com',
@@ -33,12 +46,21 @@ test('get/set', function () {
         'Test9=Duplicate; One=More; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/',
         'Test10=' + new Array(350).join('(big cookie)'),
         'value without key'
-    ];
+    ], 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
 
-    for (var i = 0; i < cookieStrs.length; i++)
-        setCookieWithoutServerSync(cookieStrs[i]);
+    testCookies('http://localhost', [
+        'Test1=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=localhost',
+        'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=localhost:80',
+        'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=127.0.0.1',
+    ], 'Test1=DomainMatch');
 
-    strictEqual(document.cookie, 'Test1=Basic; Test2=PathMatch; Test4=DomainMatch; Test7=Secure; Test9=Duplicate; value without key');
+    testCookies('http://127.0.0.1', [
+        'Test1=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=127.0.0.1',
+        'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=127.0.0.1:80',
+        'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=localhost',
+    ], 'Test1=DomainMatch');
+
+    destLocation.forceLocation(storedForcedLocation);
 });
 
 test('path validation', function () {
@@ -198,9 +220,9 @@ if (!browserUtils.isIOS) {
 }
 
 asyncTest('limit of the failed cookie-sync requests (GH-1193)', function () {
-    var storedCookieSyncUrl = settings.get().cookieSyncUrl;
+    var storedCookieSyncUrl  = settings.get().cookieSyncUrl;
     var nativeOnRequestError = cookieSync._onRequestError;
-    var failReqCount = 0;
+    var failReqCount         = 0;
 
     cookieSync._onRequestError = function () {
         nativeOnRequestError.apply(this, arguments);
@@ -214,7 +236,7 @@ asyncTest('limit of the failed cookie-sync requests (GH-1193)', function () {
             strictEqual(cookieSync.queue[0].cookie, 'a=b');
 
             settings.get().cookieSyncUrl = storedCookieSyncUrl;
-            cookieSync._onRequestError = nativeOnRequestError;
+            cookieSync._onRequestError   = nativeOnRequestError;
 
             start();
         }
