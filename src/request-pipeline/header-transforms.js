@@ -49,7 +49,7 @@ function transformCookie (src, ctx) {
 }
 
 function resolveAndGetProxyUrl (url, ctx) {
-    url = urlUtils.ensureOriginTrailingSlash(url);
+    url = urlUtils.prepareUrl(url);
 
     const { host }    = parseUrl(url);
     let isCrossDomain = false;

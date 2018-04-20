@@ -264,6 +264,72 @@ test('should ensure a trailing slash on page navigation using hammerhead.navigat
     hammerhead.win = storedWindow;
 });
 
+test('should omit the default port on page navigation', function () {
+    var storedWindow = hammerhead.win;
+
+    var PORT_RE = /:([0-9][0-9]*)/;
+
+    function getExpectedProxyUrl (url, shouldOmitPort) {
+        var expectedUrl = shouldOmitPort ? url.replace(PORT_RE, '') : url;
+
+        return urlUtils.getProxyUrl(expectedUrl);
+    }
+
+    var windowMock = {
+        location: {
+            href: '',
+
+            replace: function (url) {
+                this.href = url;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
+            toString: function () {
+                return urlUtils.getProxyUrl(this.location.href);
+            }
+        }
+    };
+
+    windowMock.top = windowMock;
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    hammerhead.win = {
+        location: ''
+    };
+
+    function testUrl (url, shouldOmitPort) {
+        locationWrapper.href = url;
+        strictEqual(windowMock.location.href, getExpectedProxyUrl(url, shouldOmitPort), 'href = ' + url);
+
+        locationWrapper.replace(url);
+        strictEqual(windowMock.location.href, getExpectedProxyUrl(url, shouldOmitPort), 'replace(' + url + ')');
+
+        locationWrapper.assign(url);
+        strictEqual(windowMock.location.href, getExpectedProxyUrl(url, shouldOmitPort), 'assign(' + url + ')');
+
+        hammerhead.navigateTo(url);
+        strictEqual(hammerhead.win.location, getExpectedProxyUrl(url, shouldOmitPort), 'navigateTo(' + url + ')');
+    }
+
+    function testDefaultPortOmitting (protocol, defaultPort, defaultPortForAnotherProtocol) {
+        testUrl(protocol + '//localhost:' + defaultPort + '/', true);
+        testUrl(protocol + '//127.0.0.1:' + defaultPort + '/', true);
+        testUrl(protocol + '//example.com:' + defaultPort + '/', true);
+        testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true);
+        testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false);
+        testUrl(protocol + '//localhost:2343/', false);
+    }
+
+    testDefaultPortOmitting('http:', '80', '443');
+    testDefaultPortOmitting('https:', '443', '80');
+
+    hammerhead.win = storedWindow;
+});
+
 module('regression');
 
 if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -1) {

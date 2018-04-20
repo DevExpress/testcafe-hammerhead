@@ -13,7 +13,7 @@ import * as typeUtils from './utils/types';
 import * as positionUtils from './utils/position';
 import * as styleUtils from './utils/style';
 import trim from '../utils/string-trim';
-import { isRelativeUrl, parseProxyUrl, isSpecialPage, ensureOriginTrailingSlash } from '../utils/url';
+import { isRelativeUrl, parseProxyUrl, isSpecialPage, prepareUrl } from '../utils/url';
 import * as urlUtils from './utils/url';
 import * as featureDetection from './utils/feature-detection';
 import * as htmlUtils from './utils/html';
@@ -201,7 +201,7 @@ class Hammerhead {
         if (isSpecialPage(destLocation) && isRelativeUrl(url))
             return;
 
-        url = ensureOriginTrailingSlash(url);
+        url = prepareUrl(url);
 
         const proxyUrl = urlUtils.getProxyUrl(url);
 

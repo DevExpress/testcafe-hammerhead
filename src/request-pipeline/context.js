@@ -5,8 +5,6 @@ import * as contentTypeUtils from '../utils/content-type';
 import genearateUniqueId from '../utils/generate-unique-id';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
-const HTTP_DEFAUL_PORT      = '80';
-const HTTPS_DEFAUL_PORT     = '443';
 
 export default class RequestPipelineContext {
     constructor (req, res, serverInfo) {
@@ -51,7 +49,7 @@ export default class RequestPipelineContext {
         if (parsed) {
             const parsedResourceType = urlUtils.parseResourceType(parsed.resourceType);
 
-            let dest = {
+            const dest = {
                 url:           parsed.destUrl,
                 protocol:      parsed.destResourceInfo.protocol,
                 host:          parsed.destResourceInfo.host,
@@ -68,8 +66,6 @@ export default class RequestPipelineContext {
                 reqOrigin:     parsed.reqOrigin
             };
 
-            dest = this._omitDefaultPort(dest);
-
             return {
                 dest:      dest,
                 sessionId: parsed.sessionId
@@ -77,21 +73,6 @@ export default class RequestPipelineContext {
         }
 
         return null;
-    }
-
-    _omitDefaultPort (dest) {
-        // NOTE: Browsers may send the default port in the 'referer' header. But since we compose the destination
-        // URL from it, we need to skip the port number if it's the protocol's default port. Some servers have
-        // host conditions that do not include a port number.
-        const hasDefaultPort = dest.protocol === 'https:' && dest.port === HTTPS_DEFAUL_PORT ||
-                               dest.protocol === 'http:' && dest.port === HTTP_DEFAUL_PORT;
-
-        if (hasDefaultPort) {
-            dest.host = dest.host.split(':')[0];
-            dest.port = '';
-        }
-
-        return dest;
     }
 
     _getDestFromReferer (parsedReferer) {

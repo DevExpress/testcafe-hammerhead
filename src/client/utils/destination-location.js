@@ -35,7 +35,7 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
 }
 
 export function resolveUrl (url, doc) {
-    url = sharedUrlUtils.prepareUrl(url);
+    url = sharedUrlUtils.processSpecialChars(url);
 
     /*eslint-disable no-restricted-properties*/
     if (url && url.indexOf('//') === 0)
