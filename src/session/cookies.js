@@ -3,12 +3,19 @@ import BYTES_PER_COOKIE_LIMIT from './cookie-limit';
 import { castArray } from 'lodash';
 import { parseUrl } from '../utils/url';
 
-const LOCALHOST_NAME = 'localhost';
-const LOCALHOST_IP   = '127.0.0.1';
+const LOCALHOST_DOMAIN = 'localhost';
+const LOCALHOST_IP     = '127.0.0.1';
 
 export default class Cookies {
     constructor () {
         this.cookieJar = new CookieJar();
+    }
+
+    static _hasLocalhostDomain (cookie) {
+        if (cookie)
+            return cookie.domain === LOCALHOST_DOMAIN || cookie.domain === LOCALHOST_IP;
+
+        return false;
     }
 
     _set (url, cookies, isClient) {
@@ -22,13 +29,9 @@ export default class Cookies {
 
             // NOTE: If cookie.domain and url hostname are equal to localhost/127.0.0.1,
             // we should remove 'Domain=...' form cookieStr (GH-1491)
-            if (cookie && cookie.domain) {
-                const isCookieDomainLocalhost = cookie.domain === LOCALHOST_NAME || cookie.domain === LOCALHOST_IP;
-
-                if (isCookieDomainLocalhost && parseUrl(url).hostname === cookie.domain) {
-                    cookie.domain = '';
-                    cookieStr     = cookie.toString();
-                }
+            if (Cookies._hasLocalhostDomain(cookie) && parseUrl(url).hostname === cookie.domain) {
+                cookie.domain = '';
+                cookieStr     = cookie.toString();
             }
 
             this.cookieJar.setCookieSync(cookieStr, url, {

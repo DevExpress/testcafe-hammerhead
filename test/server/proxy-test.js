@@ -591,7 +591,7 @@ describe('Proxy', () => {
                 });
         });
 
-        describe.only('SET_COOKIE service message', () => {
+        describe('SET_COOKIE service message', () => {
             it('Should process the message without domain directive', () => {
                 const options = {
                     method:                  'POST',
