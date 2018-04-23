@@ -181,6 +181,7 @@ export default class Sandbox extends SandboxBase {
         this.shadowUI.attach(window);
         // NOTE: T182337
         this.codeInstrumentation.attach(window);
+        this.node.win.attach(window, document);
         this.node.doc.attach(window, document);
         this.console.attach(window);
 

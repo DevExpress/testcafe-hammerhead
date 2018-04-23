@@ -264,8 +264,10 @@ class NativeMethods {
         const htmlElementInnerTextDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'innerText');
         const scriptTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'text');
         const anchorTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'text');
-        const elementInnerHTMLDescriptor     = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'innerHTML');
-        const elementOuterHTMLDescriptor     = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'outerHTML');
+        const elementInnerHTMLDescriptor     = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'innerHTML') ||
+                                               win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'innerHTML');
+        const elementOuterHTMLDescriptor     = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'outerHTML') ||
+                                               win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'outerHTML');
 
         // Setters
         this.objectDataSetter        = objectDataDescriptor.set;

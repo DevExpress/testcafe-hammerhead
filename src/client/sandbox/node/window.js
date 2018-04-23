@@ -15,7 +15,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest
 } from '../../utils/url';
-import { isFirefox, isIE, isAndroid } from '../../utils/browser';
+import { isFirefox, isIE, isAndroid, isMSEdge } from '../../utils/browser';
 import {
     isCrossDomainWindows,
     isImgElement,
@@ -925,7 +925,7 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
-        overrideDescriptor(window.Element.prototype, 'innerHTML', {
+        overrideDescriptor(isIE && !isMSEdge ? window.HTMLElement.prototype : window.Element.prototype, 'innerHTML', {
             getter: function () {
                 const innerHTML = nativeMethods.elementInnerHTMLGetter.call(this);
 
@@ -996,7 +996,7 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
-        overrideDescriptor(window.Element.prototype, 'outerHTML', {
+        overrideDescriptor(isIE && !isMSEdge ? window.HTMLElement.prototype : window.Element.prototype, 'outerHTML', {
             getter: function () {
                 const outerHTML = nativeMethods.elementOuterHTMLGetter.call(this);
 
