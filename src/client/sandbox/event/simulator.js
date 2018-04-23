@@ -190,6 +190,8 @@ export default class EventSimulator {
             userOptions ? {
                 clientX:       userOptions.clientX,
                 clientY:       userOptions.clientY,
+                screenX:       userOptions.screenX,
+                screenY:       userOptions.screenY,
                 altKey:        isClickOnLink ? false : userOptions.alt,
                 shiftKey:      isClickOnLink ? false : userOptions.shift,
                 ctrlKey:       isClickOnLink ? false : userOptions.ctrl,
