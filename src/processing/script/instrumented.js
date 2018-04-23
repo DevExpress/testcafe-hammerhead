@@ -14,14 +14,9 @@ export const PROPERTIES = [
     'attributes',
     'data',
     'href',
-    'innerHTML',
-    'innerText',
     'location',
     'onload',
-    'outerHTML',
     'sandbox',
-    'text',
-    'textContent',
     'which'
 ];
 

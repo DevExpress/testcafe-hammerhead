@@ -114,9 +114,9 @@ function processHtmlInternal (html, process) {
 
     nativeMethods.appendChild.call(htmlParser, container);
 
-    container.innerHTML = html;
+    nativeMethods.elementInnerHTMLSetter.call(container, html);
 
-    let processedHtml = process(container) ? container.innerHTML : html;
+    let processedHtml = process(container) ? nativeMethods.elementInnerHTMLGetter.call(container) : html;
 
     container.parentNode.removeChild(container);
 
@@ -154,22 +154,22 @@ export function cleanUpHtml (html) {
         });
 
         find(container, 'script', el => {
-            const textContent        = el.textContent;
+            const textContent        = nativeMethods.nodeTextContentGetter.call(el);
             const cleanedTextContent = removeProcessingHeader(textContent);
 
             if (textContent !== cleanedTextContent) {
-                el.textContent = cleanedTextContent;
+                nativeMethods.nodeTextContentSetter.call(el, cleanedTextContent);
 
                 changed = true;
             }
         });
 
         find(container, 'style', el => {
-            const textContent        = el.textContent;
+            const textContent        = nativeMethods.nodeTextContentGetter.call(el);
             const cleanedTextContent = styleProcessor.cleanUp(textContent, parseProxyUrl);
 
             if (textContent !== cleanedTextContent) {
-                el.textContent = cleanedTextContent;
+                nativeMethods.nodeTextContentSetter.call(el, cleanedTextContent);
 
                 changed = true;
             }
@@ -183,8 +183,10 @@ export function cleanUpHtml (html) {
         });
 
         find(container, FAKE_ELEMENTS_SELECTOR, el => {
-            if (el.innerHTML.indexOf(INIT_SCRIPT_FOR_IFRAME_TEMPLATE) !== -1) {
-                el.innerHTML = el.innerHTML.replace(INIT_SCRIPT_FOR_IFRAME_TEMPLATE, '');
+            const innerHtml = nativeMethods.elementInnerHTMLGetter.call(el);
+
+            if (innerHtml.indexOf(INIT_SCRIPT_FOR_IFRAME_TEMPLATE) !== -1) {
+                nativeMethods.elementInnerHTMLSetter.call(el, innerHtml.replace(INIT_SCRIPT_FOR_IFRAME_TEMPLATE, ''));
 
                 changed = true;
             }
@@ -215,8 +217,11 @@ export function processHtml (html, { parentTag, prepareDom, processedContext } =
             urlResolver.updateBase(nativeMethods.getAttribute.call(base, 'href'), document);
 
         for (const child of children) {
-            if (isScriptElement(child))
-                child.textContent = unwrapHtmlText(child.textContent);
+            if (isScriptElement(child)) {
+                const scriptContent = nativeMethods.nodeTextContentGetter.call(child);
+
+                nativeMethods.nodeTextContentSetter.call(child, unwrapHtmlText(scriptContent));
+            }
 
             child[INTERNAL_PROPS.processedContext] = processedContext;
             domProcessor.processElement(child, convertToProxyUrl);
@@ -228,8 +233,11 @@ export function processHtml (html, { parentTag, prepareDom, processedContext } =
         }
 
         if (!parentTag) {
-            for (const htmlElement of htmlElements)
-                htmlElement.innerHTML = INIT_SCRIPT_FOR_IFRAME_TEMPLATE + htmlElement.innerHTML;
+            for (const htmlElement of htmlElements) {
+                const innerHtml = nativeMethods.elementInnerHTMLGetter.call(htmlElement);
+
+                nativeMethods.elementInnerHTMLSetter.call(htmlElement, INIT_SCRIPT_FOR_IFRAME_TEMPLATE + innerHtml);
+            }
         }
 
         urlResolver.updateBase(storedBaseUrl, document);

@@ -32,7 +32,7 @@ export default class NodeSandbox extends SandboxBase {
         this.mutation      = nodeMutation;
 
         this.doc     = new DocumentSandbox(this, shadowUI, cookieSandbox);
-        this.win     = new WindowSandbox(this, eventSandbox, uploadSandbox);
+        this.win     = new WindowSandbox(this, eventSandbox, uploadSandbox, nodeMutation);
         this.element = new ElementSandbox(this, uploadSandbox, iframeSandbox, shadowUI, eventSandbox);
     }
 

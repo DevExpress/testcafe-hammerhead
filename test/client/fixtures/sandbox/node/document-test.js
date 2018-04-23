@@ -507,7 +507,7 @@ test('document.write for page html (T190753)', function () {
     var scripts = $iframe[0].contentDocument.getElementsByTagName('script');
 
     strictEqual(scripts.length, 1);
-    strictEqual(scripts[0].text.replace(/\s*/g, ''), processedScript);
+    strictEqual(nativeMethods.scriptTextGetter.call(scripts[0]).replace(/\s*/g, ''), processedScript);
 
     $iframe.remove();
     $div.remove();

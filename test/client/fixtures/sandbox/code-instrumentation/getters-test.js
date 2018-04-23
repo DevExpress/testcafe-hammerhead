@@ -1,14 +1,7 @@
-var INTERNAL_PROPS                       = hammerhead.get('../processing/dom/internal-properties');
 var urlUtils                             = hammerhead.get('./utils/url');
 var processScript                        = hammerhead.get('../processing/script').processScript;
-var removeProcessingHeader               = hammerhead.get('../processing/script/header').remove;
-var SCRIPT_PROCESSING_START_COMMENT      = hammerhead.get('../processing/script/header').SCRIPT_PROCESSING_START_COMMENT;
-var SCRIPT_PROCESSING_END_COMMENT        = hammerhead.get('../processing/script/header').SCRIPT_PROCESSING_END_COMMENT;
-var SCRIPT_PROCESSING_END_HEADER_COMMENT = hammerhead.get('../processing/script/header').SCRIPT_PROCESSING_END_HEADER_COMMENT;
-var styleProcessor                       = hammerhead.get('../processing/style');
 var destLocation                         = hammerhead.get('./utils/destination-location');
 var attributesProperty                   = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
-var processHtml                          = hammerhead.get('../client/utils/html').processHtml;
 var DomProcessor                         = hammerhead.get('../processing/dom');
 var urlResolver                          = hammerhead.get('./utils/url-resolver');
 
@@ -126,25 +119,6 @@ test('input.formaction, button.formaction', function () {
     strictEqual(nativeMethods.getAttribute.call(input, 'formaction'), urlUtils.getProxyUrl('./input.html', { resourceType: 'f' }));
 });
 
-test('clean up outerHTML', function () {
-    var htmlText = '<a href="http://domain.com/">link</a>';
-    var div      = document.createElement('div');
-
-    setProperty(div, 'innerHTML', htmlText);
-
-    var a = div.firstChild;
-
-    strictEqual(a.outerHTML, processHtml(htmlText));
-    strictEqual(getProperty(a, 'outerHTML'), htmlText);
-
-    // NOTE: This code checks PropertyAccessorsInstrumentation.attach(window).outerHTML.condition
-    if (browserUtils.isIE && !browserUtils.isMSEdge) {
-        var doc = document.implementation.createDocument(null, 'status', null);
-
-        strictEqual(getProperty(doc.documentElement, 'outerHTML'), void 0);
-    }
-});
-
 test('SVGImageElement with href attribute (GH-1502)', function () {
     var svgNameSpaceUrl = 'http://www.w3.org/2000/svg';
     var svgImage        = document.createElementNS(svgNameSpaceUrl, 'image');
@@ -201,25 +175,6 @@ test('changing the link.href property must affect the stored attribute value (T1
     ok(/\/newPath\?param=value$/.test(anchor.href));
 });
 
-test('get script body (T296958) (GH-183)', function () {
-    var script              = document.createElement('script');
-    var scriptCode          = 'var test = window.href;';
-    var processedScriptCode = processScript(scriptCode, true);
-    var cleanedScriptCode   = removeProcessingHeader(processedScriptCode);
-
-    setProperty(script, 'textContent', scriptCode);
-
-    notEqual(script.textContent, scriptCode);
-    strictEqual(script.textContent.replace(/\s/g, ''), processedScriptCode.replace(/\s/g, ''));
-    strictEqual(cleanedScriptCode.indexOf(INTERNAL_PROPS.processDomMethodName), -1);
-    strictEqual(getProperty(script, 'text'), cleanedScriptCode, 'text');
-    strictEqual(getProperty(script, 'textContent'), cleanedScriptCode, 'textContent');
-    strictEqual(getProperty(script, 'innerHTML'), cleanedScriptCode, 'innerHTML');
-
-    if (typeof script.innerText === 'string')
-        strictEqual(getProperty(script, 'innerText').replace(/\s/g, ''), cleanedScriptCode.replace(/\s/g, ''), 'innerText');
-});
-
 test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
     var storedBind = Function.prototype.bind;
     var anchor     = document.createElement('a');
@@ -244,15 +199,6 @@ test('the getAttributesProperty function should work correctly if Function.proto
         Function.prototype.bind = storedBind;
         /* eslint-enable no-extend-native */
     }
-});
-
-test('script.innerHtml must be cleaned up (T226885)', function () {
-    var code   = 'var t = 1;';
-    var script = document.createElement('script');
-
-    script.appendChild(document.createTextNode(code));
-    notEqual(script.innerHTML.replace(/^\s*|\s*$/g, ''), code);
-    strictEqual(eval(processScript('script.innerHTML')).replace(/^\s*|\s*$/g, ''), code);
 });
 
 test('should not create proxy url for invalid url (GH-778)', function () {
@@ -301,137 +247,6 @@ test('should not create proxy url for invalid url (GH-778)', function () {
     urlResolver.updateBase(storedBaseUrl, document);
 });
 
-function checkProperty (text) {
-    return text.indexOf(SCRIPT_PROCESSING_START_COMMENT) === -1 &&
-           text.indexOf(SCRIPT_PROCESSING_END_COMMENT) === -1 &&
-           text.indexOf(SCRIPT_PROCESSING_END_HEADER_COMMENT) === -1 &&
-           text.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT) === -1 &&
-           text.indexOf(styleProcessor.STYLESHEET_PROCESSING_END_COMMENT) === -1;
-}
-
-test('we should clean up hammerhead script and style for all elements(GH-1079)', function () {
-    var head         = document.head;
-    var style        = document.createElement('style');
-    var styleText    = 'div{background:url(http://some.domain.com/image.png)}';
-    var firstScript  = document.createElement('script');
-    var secondScript = document.createElement('script');
-    var scriptCode   = 'var test = window.href;';
-
-    setProperty(style, 'textContent', styleText);
-    head.appendChild(style);
-    setProperty(firstScript, 'textContent', scriptCode);
-    head.appendChild(firstScript);
-    setProperty(secondScript, 'textContent', scriptCode);
-    head.appendChild(secondScript);
-
-    var text        = getProperty(firstScript, 'text') || '';
-    var textContent = getProperty(head, 'textContent');
-    var innerText   = getProperty(head, 'innerText') || '';
-    var innerHTML   = getProperty(head, 'innerHTML');
-    var outerHTML   = getProperty(head, 'outerHTML');
-
-    head.removeChild(style);
-    head.removeChild(firstScript);
-    head.removeChild(secondScript);
-
-    ok(checkProperty(text));
-    ok(checkProperty(textContent));
-    ok(checkProperty(innerText));
-    ok(checkProperty(innerHTML));
-    ok(checkProperty(outerHTML));
-});
-
-test('we should clean up html and remove extra namespaces from svg (GH-1083)', function () {
-    var svg       = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    var a         = document.createElement('a');
-    var div       = document.createElement('div');
-    var nativeSvg = nativeMethods.createElementNS.call(document, 'http://www.w3.org/2000/svg', 'svg');
-    var nativeA   = nativeMethods.createElement.call(document, 'a');
-    var nativeDiv = nativeMethods.createElement.call(document, 'div');
-
-    a.setAttribute('href', '/path');
-    nativeMethods.setAttribute.call(nativeA, 'href', '/path');
-
-    a.innerText = nativeA.innerHTML = 'link';
-
-    svg.appendChild(a);
-    nativeMethods.appendChild.call(nativeSvg, nativeA);
-
-    div.appendChild(svg);
-    nativeMethods.appendChild.call(nativeDiv, nativeSvg);
-
-    strictEqual(getProperty(div, 'innerHTML'), nativeDiv.innerHTML);
-
-    div.innerHTML = nativeDiv.innerHTML = '';
-
-    svg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-    nativeMethods.setAttribute.call(nativeSvg, 'xmlns:xlink', 'http://www.w3.org/1999/xlink');
-
-    div.appendChild(svg.cloneNode(true));
-    nativeMethods.appendChild.call(nativeDiv, nativeMethods.cloneNode.call(nativeSvg, true));
-
-    strictEqual(getProperty(div, 'innerHTML'), nativeDiv.innerHTML);
-
-    // NOTE: IE added additional attributes with namespaces
-    // such as 'xmlns:NS2=""', NS2:xmlns:ns1=""
-    // after setting div.innerHTML property
-    div.innerHTML       = div.innerHTML;
-    nativeDiv.innerHTML = nativeDiv.innerHTML;
-
-    div.appendChild(svg);
-    nativeMethods.appendChild.call(nativeDiv, nativeSvg);
-
-    strictEqual(getProperty(div, 'innerHTML'), nativeDiv.innerHTML);
-});
-
-test('we should not process element\'s properties if they do not exist (GH-1164)', function () {
-    var div            = document.createElement('div');
-    var svg            = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    var html           = '<a href="/path">link</a>';
-    var processedHtml  = processHtml(html);
-    var style          = 'body {}';
-    var textProperties = ['innerText', 'textContent'];
-    var styleElement   = document.createElement('style');
-
-    div.appendChild(svg);
-
-    var svgHasInnerHTML = svg.innerHTML !== void 0;
-
-    strictEqual(getProperty(svg, 'innerHTML'), svg.innerHTML);
-
-    // NOTE: Only MSEdge puts additional 'xmlns' attribute for svg child nodes
-    svg.innerHTML = processedHtml;
-
-    var processedHtmlInsideSvg = svg.innerHTML;
-
-    setProperty(svg, 'innerHTML', html);
-
-    strictEqual(svg.innerHTML, svgHasInnerHTML ? processedHtmlInsideSvg : html);
-
-    svg.innerHTML = '';
-
-    var svgHasOuterHTML = svg.outerHTML !== void 0;
-
-    strictEqual(getProperty(svg, 'outerHTML'), svg.outerHTML);
-
-    setProperty(svg, 'outerHTML', html);
-
-    if (svgHasOuterHTML)
-        strictEqual(div.innerHTML, processedHtml);
-    else
-        strictEqual(svg.outerHTML, html);
-
-    setProperty(styleElement, 'innerHTML', style);
-
-    svg.appendChild(styleElement);
-
-    textProperties.forEach(function (property) {
-        var svgHasProperty = svg[property] !== void 0;
-
-        strictEqual(getProperty(svg, property), svgHasProperty ? style : void 0, property);
-    });
-});
-
 test('getProperty function should not throw an error for document.all property (GH-1046)', function () {
     try {
         strictEqual(getProperty(document.all, 0), document.documentElement);
@@ -439,16 +254,4 @@ test('getProperty function should not throw an error for document.all property (
     catch (e) {
         ok(false);
     }
-});
-
-test('leaving attributes, that are used in non-standard way, as they are (GH-2347)', function () {
-    var htmlText = '<input action="#test-me-out">';
-    var div      = document.createElement('div');
-
-    setProperty(div, 'innerHTML', htmlText);
-
-    var a = div.firstChild;
-
-    strictEqual(a.outerHTML, processHtml(htmlText));
-    strictEqual(getProperty(a, 'outerHTML'), htmlText);
 });
