@@ -203,17 +203,16 @@ test('event with options (ctrl, alt, shift, meta)', function () {
     ok(raised);
 });
 
-test('event with coords (clientX, clientY)', function () {
-    var clientX = 10;
-    var clientY = 10;
+test('event with coords (clientX, clientY, screenX, screenY)', function () {
+    var value = 10;
 
-    domElement['onmousedown'] = function (e) {
-        var ev = e || window.event;
+    domElement.onmousedown = function (e) {
+        var coordsAreCorrect = e.clientX === value && e.clientY === value && e.screenX === value && e.screenY === value;
 
-        if (ev.clientX === clientX && ev.clientY === clientY && ev.button === eventUtils.BUTTON.left)
-            raised = true;
+        raised = coordsAreCorrect && e.button === eventUtils.BUTTON.left;
     };
-    eventSimulator.mousedown(domElement, { clientX: clientX, clientY: clientY });
+
+    eventSimulator.mousedown(domElement, { clientX: value, clientY: value, screenX: value, screenY: value });
     ok(raised);
 });
 
