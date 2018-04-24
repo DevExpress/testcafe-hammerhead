@@ -1,3 +1,4 @@
+import IncomingMessageMock from '../incoming-message-mock';
 import { JSON_MIME } from '../../utils/content-type';
 
 const PAGE_CONTENT_TYPE = 'text/html; charset=utf-8';
@@ -76,28 +77,23 @@ export default class ResponseMock {
             statusCode: this.statusCode || 200
         };
 
-        if (this.body === void 0)
-            this.body = EMPTY_PAGE_HTML;
-        else if (typeof this.body === 'function') {
-            response.setBody = value => {
-                this.body = value;
-            };
-            response         = Object.assign(response, this.body(this.requestOptions, response));
-            delete response.setBody;
-        }
-
         if (this.headers)
             response.headers = Object.assign(response.headers, this.headers);
 
-        return response;
-    }
+        if (this.body === void 0)
+            response._body = EMPTY_PAGE_HTML;
+        else if (typeof this.body === 'function') {
+            response.setBody = value => {
+                response._body = value;
+            };
 
-    getBody () {
-        if (!this.body)
-            return new Uint8Array(0);
+            response = Object.assign(response, this.body(this.requestOptions, response));
 
-        const bodyStr = typeof this.body === 'object' ? JSON.stringify(this.body) : String(this.body);
+            delete response.setBody;
+        }
+        else
+            response._body = this.body;
 
-        return Buffer.from(bodyStr);
+        return new IncomingMessageMock(response);
     }
 }

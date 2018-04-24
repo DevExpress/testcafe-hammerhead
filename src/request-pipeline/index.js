@@ -11,7 +11,7 @@ import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 import { respondOnWebSocket } from './websocket';
 import { PassThrough } from 'stream';
-import * as specialPage from './special-page';
+import createSpecialPageResponse from './special-page';
 import matchUrl from 'match-url-wildcard';
 import * as requestEventInfo from '../session/events/info';
 import REQUEST_EVENT_NAMES from '../session/events/names';
@@ -35,7 +35,7 @@ const stages = {
 
     1: function sendDestinationRequest (ctx, next) {
         if (ctx.isSpecialPage) {
-            ctx.destRes = specialPage.getResponse();
+            ctx.destRes = createSpecialPageResponse();
             next();
         }
         else {
@@ -126,7 +126,7 @@ const stages = {
     },
 
     4: async function fetchContent (ctx, next) {
-        await getResponseBody(ctx);
+        ctx.destResBody = await fetchBody(ctx.destRes);
 
         if (ctx.requestFilterRules.length)
             ctx.saveNonProcessedDestResBody(ctx.destResBody);
@@ -291,15 +291,6 @@ function sendRequest (ctx, next) {
     req.on('fatalError', err => error(ctx, err));
 
     req.on('socketHangUp', () => ctx.req.socket.end());
-}
-
-async function getResponseBody (ctx) {
-    if (ctx.isSpecialPage)
-        ctx.destResBody = specialPage.getBody();
-    else if (ctx.mock)
-        ctx.destResBody = ctx.mock.getBody();
-    else
-        ctx.destResBody = await fetchBody(ctx.destRes);
 }
 
 // API

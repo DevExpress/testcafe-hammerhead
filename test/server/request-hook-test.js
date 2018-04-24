@@ -45,7 +45,7 @@ describe('ResponseMock', () => {
 
             expect(response.headers['content-type']).eql('application/json');
             expect(response.statusCode).eql(200);
-            expect(mock.getBody().toString()).eql(JSON.stringify(data));
+            expect(response.read().toString()).eql(JSON.stringify(data));
         });
 
         it('HTML page', () => {
@@ -55,7 +55,7 @@ describe('ResponseMock', () => {
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(200);
-            expect(mock.getBody().toString()).eql(html);
+            expect(response.read().toString()).eql(html);
         });
 
         it('Empty HTML page', () => {
@@ -64,18 +64,16 @@ describe('ResponseMock', () => {
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(200);
-            expect(mock.getBody().toString()).eql('<html><body></body></html>');
+            expect(response.read().toString()).eql('<html><body></body></html>');
         });
 
         it('Custom status code', () => {
             const mock     = new ResponseMock(null, 204);
             const response = mock.getResponse();
-            const body     = mock.getBody();
 
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(204);
-            expect(body).to.be.instanceof(Uint8Array);
-            expect(body.length).eql(0);
+            expect(response.read()).to.be.null;
         });
 
         it('Custom headers', () => {
@@ -85,7 +83,7 @@ describe('ResponseMock', () => {
 
             expect(response.headers['content-type']).eql('application/javascript');
             expect(response.statusCode).eql(200);
-            expect(mock.getBody().toString()).eql(script);
+            expect(response.read().toString()).eql(script);
         });
 
         it('Respond function', () => {
@@ -112,7 +110,7 @@ describe('ResponseMock', () => {
             expect(response.headers['content-type']).to.include('text/html');
             expect(response.statusCode).eql(555);
             expect(response.headers['x-calculated-header-name']).eql('calculated-value');
-            expect(mock.getBody().toString()).eql('calculated body3');
+            expect(response.read().toString()).eql('calculated body3');
         });
     });
 });
