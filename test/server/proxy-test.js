@@ -2125,29 +2125,86 @@ describe('Proxy', () => {
             });
         });
 
-        it('Should allow to use a response mock', () => {
-            const url           = 'http://dummy_page.com';
-            const mock          = new ResponseMock();
-            const rule          = new RequestFilterRule(url);
-            const processedHtml = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
+        describe('Response mock', () => {
+            it('Basic', () => {
+                const url           = 'http://dummy_page.com';
+                const mock          = new ResponseMock();
+                const rule          = new RequestFilterRule(url);
+                const processedHtml = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
 
-            session.addRequestEventListeners(rule, {
-                onRequest: e => e.setMock(mock)
+                session.addRequestEventListeners(rule, {
+                    onRequest: e => e.setMock(mock)
+                });
+
+                const options = {
+                    url:     proxy.openSession(url, session),
+                    headers: {
+                        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    }
+                };
+
+                return request(options)
+                    .then(body => {
+                        compareCode(body, processedHtml);
+
+                        session.removeRequestEventListeners(rule);
+                    });
             });
 
-            const options = {
-                url:     proxy.openSession(url, session),
-                headers: {
-                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
-                }
-            };
+            it('Should allow to mock response without body (page)', () => {
+                const url  = 'http://dummy_page.com';
+                const mock = new ResponseMock(null, 204);
+                const rule = new RequestFilterRule(url);
 
-            return request(options)
-                .then(body => {
-                    compareCode(body, processedHtml);
-
-                    session.removeRequestEventListeners(rule);
+                session.addRequestEventListeners(rule, {
+                    onRequest: e => e.setMock(mock)
                 });
+
+                const options = {
+                    url:                     proxy.openSession(url, session),
+                    resolveWithFullResponse: true,
+                    headers:                 {
+                        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                    }
+                };
+
+                return request(options)
+                    .then(res => {
+                        const expected = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
+
+                        compareCode(res.body, expected);
+                        expect(res.statusCode).eql(200);
+
+                        session.removeRequestEventListeners(rule);
+                    });
+            });
+
+            it('Should allow to mock a large response', () => {
+                const url           = 'http://example.com/get';
+                const largeResponse = '1234567890'.repeat(1000000);
+                const mock          = new ResponseMock(largeResponse);
+                const rule          = new RequestFilterRule(url);
+
+                session.addRequestEventListeners(rule, {
+                    onRequest: e => e.setMock(mock)
+                });
+
+                const options = {
+                    url:     proxy.openSession(url, session),
+                    headers: {
+                        accept:                      'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8',
+                        referer:                     proxy.openSession('http://example.com', session),
+                        [XHR_HEADERS.requestMarker]: 'true'
+                    }
+                };
+
+                return request(options)
+                    .then(body => {
+                        expect(body).eql(largeResponse);
+
+                        session.removeRequestEventListeners(rule);
+                    });
+            });
         });
 
         it('Should allow to set request options', () => {
