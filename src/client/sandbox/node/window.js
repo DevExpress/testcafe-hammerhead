@@ -674,9 +674,12 @@ export default class WindowSandbox extends SandboxBase {
             },
             setter: function (value) {
                 if (this.type.toLowerCase() !== 'file') {
+
                     nativeMethods.inputValueSetter.call(this, value);
 
-                    if (!isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
+                    const valueChanged = value !== nativeMethods.inputValueGetter.call(this);
+
+                    if (valueChanged && !isShadowUIElement(this) && isTextEditableElementAndEditingAllowed(this))
                         windowSandbox.elementEditingWatcher.restartWatchingElementEditing(this);
                 }
                 else
