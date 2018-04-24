@@ -1,13 +1,13 @@
 import { Readable } from 'stream';
 
 export default class IncomingMessageMock extends Readable {
-    constructor (responseInit) {
+    constructor (init) {
         super();
 
-        this.headers    = responseInit.headers;
-        this.trailers   = responseInit.trailers;
-        this.statusCode = responseInit.statusCode;
-        this._body      = this._getBody(responseInit._body);
+        this.headers    = init.headers;
+        this.trailers   = init.trailers;
+        this.statusCode = init.statusCode;
+        this._body      = this._getBody(init._body);
     }
 
     _read () {
