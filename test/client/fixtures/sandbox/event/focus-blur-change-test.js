@@ -1,13 +1,14 @@
 var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
 
-var Promise             = hammerhead.Promise;
-var browserUtils        = hammerhead.utils.browser;
-var styleUtil           = hammerhead.utils.style;
-var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
-var eventSimulator      = hammerhead.sandbox.event.eventSimulator;
-var focusBlur           = hammerhead.sandbox.event.focusBlur;
-var nativeMethods       = hammerhead.nativeMethods;
-var iframeSandbox       = hammerhead.sandbox.iframe;
+var Promise               = hammerhead.Promise;
+var browserUtils          = hammerhead.utils.browser;
+var styleUtil             = hammerhead.utils.style;
+var activeWindowTracker   = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
+var eventSimulator        = hammerhead.sandbox.event.eventSimulator;
+var focusBlur             = hammerhead.sandbox.event.focusBlur;
+var nativeMethods         = hammerhead.nativeMethods;
+var elementEditingWatcher = hammerhead.sandbox.event.elementEditingWatcher;
+var iframeSandbox         = hammerhead.sandbox.iframe;
 
 var input1                            = null;
 var input2                            = null;
@@ -548,6 +549,26 @@ asyncTest('blurring body with blur handler', function () {
             startNext();
         });
     });
+});
+
+test('should raise change event', function () {
+    var input        = document.createElement('input');
+    var changeRaised = false;
+
+    input.className = TEST_ELEMENT_CLASS;
+
+    input.onchange = function () {
+        changeRaised = true;
+    };
+
+    document.body.appendChild(input);
+    input.focus();
+    nativeMethods.inputValueSetter.call(input, 'A');
+
+    input.value = 'A';
+
+    elementEditingWatcher.processElementChanging(input);
+    ok(changeRaised);
 });
 
 module('native methods replacing');
