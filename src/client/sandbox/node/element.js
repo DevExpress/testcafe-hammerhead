@@ -198,8 +198,10 @@ export default class ElementSandbox extends SandboxBase {
             }
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
-        else if (tagName === 'meta' && ['http-equiv', 'content'].indexOf(attr) !== -1)
-            return null;
+        else if (tagName === 'meta' && attr === 'http-equiv') {
+            if (value && ['refresh', 'content-security-policy'].indexOf(String(value).toLowerCase()) !== -1)
+                return null;
+        }
         else if (loweredAttr === 'xlink:href' &&
                  domProcessor.SVG_XLINK_HREF_TAGS.indexOf(tagName) !== -1 &&
                  domUtils.isSVGElement(el)) {
