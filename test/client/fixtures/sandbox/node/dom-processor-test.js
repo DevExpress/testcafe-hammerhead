@@ -552,8 +552,30 @@ test('remove the meta tag with http-equiv="Content-Security-Policy" attribute fr
     document.head.appendChild(metaTag);
 
     ok(!metaTag.hasAttribute('http-equiv'));
-    ok(!metaTag.hasAttribute('content'));
+    ok(metaTag.hasAttribute('content'));
     metaTag.parentNode.removeChild(metaTag);
+});
+
+test('allow to set the content attribute to meta tag via setAttribute', function () {
+    var metaTag = document.createElement('meta');
+
+    metaTag.setAttribute('http-equiv', 'refresh');
+    metaTag.setAttribute('content', 'url');
+
+    strictEqual(metaTag.getAttribute('http-equiv'), null);
+    strictEqual(metaTag.getAttribute('content'), 'url');
+
+    metaTag.setAttribute('name', 'csrf-token');
+    metaTag.setAttribute('content', '1234567');
+
+    strictEqual(metaTag.getAttribute('name'), 'csrf-token');
+    strictEqual(metaTag.getAttribute('content'), '1234567');
+
+    metaTag.setAttribute('http-equiv', 'Content-Security-Policy');
+    metaTag.setAttribute('content', 'script-src');
+
+    strictEqual(metaTag.getAttribute('http-equiv'), null);
+    strictEqual(metaTag.getAttribute('content'), 'script-src');
 });
 
 test('script and style content added via a child text node must be overridden (GH-259)', function () {
