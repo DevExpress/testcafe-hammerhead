@@ -406,7 +406,7 @@ export default class EventSimulator {
             let defaultPrevented = false;
             let returnValue      = true;
 
-            // NOTE: the dispatchEvent method does not return false in the case when 'preventDefault' method
+            // NOTE: the dispatchEvent method does not return false in the case when preventDefault method
             // was called for events that were created with the KeyboardEvent constructor
             if (this.browserWithNewEventsStyle) {
                 ev.preventDefault = function () {
