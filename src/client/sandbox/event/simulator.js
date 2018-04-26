@@ -44,6 +44,8 @@ export default class EventSimulator {
         // the click is handled. (B237144)
         this.savedWindowEvents     = [];
         this.savedNativeClickCount = 0;
+
+        this.browserWithNewEventsStyle = !browserUtils.isIE11;
     }
 
     static _dispatchStorageEvent (el, args) {
@@ -173,7 +175,8 @@ export default class EventSimulator {
         let modifiersString = '';
 
         for (const modifier in eventUtils.KEYBOARD_MODIFIERS_PARAMETER) {
-            if (nativeMethods.objectHasOwnProperty.call(eventUtils.KEYBOARD_MODIFIERS_PARAMETER, modifier) && args[modifier])
+            if (nativeMethods.objectHasOwnProperty.call(eventUtils.KEYBOARD_MODIFIERS_PARAMETER, modifier) &&
+                args[modifier])
                 modifiersString += eventUtils.KEYBOARD_MODIFIERS_PARAMETER[modifier] + ' ';
         }
 
@@ -315,12 +318,12 @@ export default class EventSimulator {
         const curWindow       = domUtils.isElementInIframe(el) ? domUtils.getIframeByElement(el).contentWindow : window;
         const prevWindowEvent = curWindow.event;
 
-        if (browserUtils.isIE && browserUtils.version <= 11)
+        if (browserUtils.isIE11)
             delete curWindow.event;
 
         originClick.call(el);
 
-        if (browserUtils.isIE && browserUtils.version < 11) {
+        if (browserUtils.isIE11) {
             if (this.savedNativeClickCount--)
                 this.savedWindowEvents.shift();
 
@@ -343,10 +346,9 @@ export default class EventSimulator {
     }
 
     _dispatchKeyEvent (el, args) {
-        let ev                          = null;
-        const browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
+        let ev = null;
 
-        if (browserWithNewEventsStyle && nativeMethods.WindowKeyboardEvent) {
+        if (this.browserWithNewEventsStyle && nativeMethods.WindowKeyboardEvent) {
             const eventArgs = {
                 bubbles:          args.canBubble,
                 cancelable:       args.cancelable,
@@ -414,21 +416,18 @@ export default class EventSimulator {
                 });
             }
 
-            let prevented   = false;
-            let returnValue = true;
+            let defaultPrevented = false;
+            let returnValue      = true;
 
-            // NOTE: the dispatchEvent method does not return false in the case when preventDefault
-            // was raised for events that were created with the KeyboardEvent constructor
-            if (browserWithNewEventsStyle) {
-                nativeMethods.objectDefineProperty.call(window.Object, ev, 'preventDefault', {
-                    get: () => () => {
-                        prevented = true;
+            // NOTE: the dispatchEvent method does not return false in the case when 'preventDefault' method
+            // was called for events that were created with the KeyboardEvent constructor
+            if (this.browserWithNewEventsStyle) {
+                ev.preventDefault = function () {
+                    defaultPrevented = true;
+                    nativeMethods.preventDefault.call(ev);
 
-                        return false;
-                    },
-
-                    set: () => void 0
-                });
+                    return false;
+                };
             }
 
             // NOTE: the dispatchEvent method does not return false when returnValue was set to false (only in MSEdge)
@@ -447,11 +446,11 @@ export default class EventSimulator {
             const res = this._raiseDispatchEvent(el, ev, args);
 
             if (browserUtils.isMSEdge)
-                return returnValue && !prevented;
+                return returnValue && !defaultPrevented;
             else if (browserUtils.isIE)
                 return res;
 
-            return !prevented;
+            return !defaultPrevented;
         }
 
         return null;
@@ -577,11 +576,10 @@ export default class EventSimulator {
     }
 
     _dispatchFocusEvent (el, name, relatedTarget = null) {
-        const browserWithNewEventsStyle = !browserUtils.isIE || browserUtils.version > 11;
-        let event                       = null;
-        const bubbles                   = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
+        let event     = null;
+        const bubbles = FOCUS_IN_OUT_EVENT_NAME_RE.test(name);
 
-        if (browserWithNewEventsStyle && nativeMethods.WindowFocusEvent) {
+        if (this.browserWithNewEventsStyle && nativeMethods.WindowFocusEvent) {
             event = new nativeMethods.WindowFocusEvent(name, {
                 bubbles:          bubbles,
                 cancelable:       false,
@@ -607,7 +605,7 @@ export default class EventSimulator {
 
     _dispatchTextEvent (el, text) {
         if (nativeMethods.WindowTextEvent && nativeMethods.documentCreateEvent) {
-            const event         = nativeMethods.documentCreateEvent.call(document, 'TextEvent');
+            const event = nativeMethods.documentCreateEvent.call(document, 'TextEvent');
 
             const args = {
                 eventType:   browserUtils.isIE ? 'textinput' : 'textInput',
@@ -651,7 +649,7 @@ export default class EventSimulator {
         const iframe            = isElementInIframe ? domUtils.getIframeByElement(el) : null;
         const curWindow         = iframe ? iframe.contentWindow : window;
 
-        if (browserUtils.isIE) {
+        if (browserUtils.isIE11 && iframe) {
             // NOTE: In IE, when we raise an event by using the dispatchEvent function, the window.event object is null.
             // If a real event happens, there is a window.event object, but it is not identical with the first argument
             // of the event handler. The window.Event object is identical with the object that is created when we raise
@@ -662,12 +660,10 @@ export default class EventSimulator {
             // to false.
             // NOTE: In IE11, iframe's window.event object is null. We need to set
             // iframe's window.event object manually by using window.event (B254199).
-            if (browserUtils.version === 11 && iframe) {
-                nativeMethods.objectDefineProperty.call(window.Object, iframe.contentWindow, 'event', {
-                    get:          () => window.event,
-                    configurable: true
-                });
-            }
+            nativeMethods.objectDefineProperty.call(window.Object, iframe.contentWindow, 'event', {
+                get:          () => window.event,
+                configurable: true
+            });
         }
 
         const res = el.dispatchEvent(ev);

@@ -266,3 +266,19 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
     testHandlers(document);
     testHandlers(document.body);
 });
+
+test('event.preventDefault call should change the event.defaultPrevented property value (GH-1588)', function () {
+    var input = document.createElement('input');
+
+    document.body.appendChild(input);
+
+    input.addEventListener('keydown', function (e) {
+        e.preventDefault();
+
+        ok(e.defaultPrevented);
+
+        input.parentNode.removeChild(input);
+    });
+
+    eventSimulator.keydown(input);
+});
