@@ -322,18 +322,6 @@ export default class EventSimulator {
 
         originClick.call(el);
 
-        if (browserUtils.isIE11) {
-            if (this.savedNativeClickCount--)
-                this.savedWindowEvents.shift();
-
-            if (this.savedWindowEvents.length) {
-                nativeMethods.objectDefineProperty.call(window.Object, curWindow, 'event', {
-                    get:          () => this.savedWindowEvents[0],
-                    configurable: true
-                });
-            }
-        }
-
         // NOTE: Window.event becomes empty when the click event handler
         // triggers the click event for a different element in IE11.(GH-226).
         if (browserUtils.isIE11 && prevWindowEvent) {
