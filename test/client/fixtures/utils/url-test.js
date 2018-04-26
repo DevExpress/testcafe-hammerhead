@@ -2,7 +2,6 @@ var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
 var destLocation   = hammerhead.get('./utils/destination-location');
-var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -647,12 +646,7 @@ test('only first base tag should be affected', function () {
             });
 
             checkTestCase('innerHtml', function (doc) {
-                var baseHtmlStr = '<base href="https://example.com/inner-html/">';
-
-                if (INTERNAL_PROPS.processedContext in doc.head)
-                    setProperty(doc.head, 'innerHTML', baseHtmlStr);
-                else
-                    doc.head.innerHTML = baseHtmlStr;
+                doc.head.innerHTML = '<base href="https://example.com/inner-html/">';
             });
 
             checkTestCase('insert first base without href', function (doc) {

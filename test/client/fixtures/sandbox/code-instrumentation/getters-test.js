@@ -94,20 +94,6 @@ test('CSSStyleSheet.href', function () {
     document.body.removeChild(style);
 });
 
-test('get style body', function () {
-    var style     = document.createElement('style');
-    var styleText = 'div{background:url(http://some.domain.com/image.png)}';
-
-    eval(processScript('style.innerHTML = styleText'));
-
-    strictEqual(eval(processScript('style.innerHTML')), styleText);
-    strictEqual(eval(processScript('style.innerText')).replace(/\s/g, ''), styleText);
-    strictEqual(eval(processScript('style.textContent')), styleText);
-
-    if (typeof style.text === 'string')
-        strictEqual(eval(processScript('style.text')), styleText);
-});
-
 test('input.formaction, button.formaction', function () {
     var button = document.createElement('button');
     var input  = document.createElement('input');

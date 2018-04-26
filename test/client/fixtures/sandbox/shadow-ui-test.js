@@ -96,7 +96,7 @@ test('get root after body recreation', function () {
 test('set innerHTML for root', function () {
     var root = shadowUI.getRoot();
 
-    eval(processScript('root.innerHTML = "<div>"'));
+    root.innerHTML = '<div>';
 
     ok(domUtils.isShadowUIElement(root.childNodes[0]));
 });
@@ -661,7 +661,9 @@ test('stylesheets are restored after the document is cleaned', function () {
                 result += iframeUIStylesheet.id;
             }
 
-            ok(iframe.contentDocument.body.innerHTML.indexOf('Cleaned!') > -1);
+            var bodyInnerHtml = nativeMethods.elementInnerHTMLGetter.call(iframe.contentDocument.body);
+
+            ok(bodyInnerHtml.indexOf('Cleaned!') > -1);
             strictEqual(length, 3);
             strictEqual(result, 'id1id2');
 
@@ -695,8 +697,10 @@ test('append stylesheets to the iframe on initialization', function () {
 
             strictEqual(currentUIStylesheets.length, iframeUIStylesheets.length);
 
-            for (var i = 0; i < currentUIStylesheets.length; i++)
-                strictEqual(currentUIStylesheets[i].outerHTML, iframeUIStylesheets[i].outerHTML);
+            for (var i = 0; i < currentUIStylesheets.length; i++) {
+                strictEqual(nativeMethods.elementOuterHTMLGetter.call(currentUIStylesheets[i]),
+                    nativeMethods.elementOuterHTMLGetter.call(iframeUIStylesheets[i]));
+            }
 
             document.head.removeChild(link1);
             document.head.removeChild(link2);
@@ -729,7 +733,7 @@ test("do nothing if ShadowUIStylesheet doesn't exist", function () {
 module('regression');
 
 test('SVG elements\' className is of the SVGAnimatedString type instead of string (GH-354)', function () {
-    setProperty(document.body, 'innerHTML', '<svg></svg>' + getProperty(document.body, 'innerHTML'));
+    document.body.innerHTML = '<svg></svg>' + document.body.innerHTML;
 
     var svg                               = document.body.childNodes[0];
     var processedBodyChildrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);

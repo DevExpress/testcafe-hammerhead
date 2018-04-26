@@ -1154,7 +1154,7 @@ asyncTest('should correctly handle the case when document.activeElement is null 
             iframeDocument.body.appendChild(div);
 
             innerDiv.focus();
-            div.innerHTML = '<span>Replaced</span>';
+            nativeMethods.elementInnerHTMLSetter.call(div, '<span>Replaced</span>');
         });
 });
 

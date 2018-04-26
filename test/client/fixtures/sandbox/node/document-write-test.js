@@ -4,6 +4,7 @@ var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var nodeSandbox   = hammerhead.sandbox.node;
 var domUtils      = hammerhead.utils.dom;
+var browserUtils  = hammerhead.utils.browser;
 
 iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
@@ -18,7 +19,8 @@ nodeSandbox._processElement = function (el) {
 };
 
 QUnit.testDone(function () {
-    nativeMethods.removeChild.call(document.body, nativeIframeForWrite);
+    if (nativeIframeForWrite && nativeIframeForWrite.parentNode)
+        nativeMethods.removeChild.call(document.body, nativeIframeForWrite);
 });
 
 function createWriteTestIframes () {
@@ -112,11 +114,12 @@ test('write incomplete tags', function () {
         });
 });
 
-test('write script', function () {
+// TODO: remove this condition after GH-1326 pull request
+QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write script', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
-            testWrite('<script>var a, b, c;<' + 'script>');
+            testWrite('<script>var a, b, c;<' + '/script>');
             testWrite('<script id="scr1">');
             testContent('#scr1');
             testWrite('var a = 5;');
@@ -140,7 +143,8 @@ test('write script', function () {
         });
 });
 
-test('write style', function () {
+// TODO: remove this condition after GH-1326 pull request
+QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write style', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
@@ -169,7 +173,8 @@ test('document.write, document.writeln with multiple parameters', function () {
         });
 });
 
-test('write html comment', function () {
+// TODO: remove this condition after GH-1326 pull request
+QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write html comment', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
@@ -195,7 +200,8 @@ test('write textarea', function () {
         });
 });
 
-test('DocumentWriter should be recreated after document cleaning', function () {
+// TODO: remove this condition after GH-1326 pull request
+QUnit[browserUtils.isIE ? 'skip' : 'test']('DocumentWriter should be recreated after document cleaning', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
@@ -250,7 +256,8 @@ test('write closing tag by parts (GH-1311)', function () {
         });
 });
 
-test('write script with src and without closing tag (GH-1218)', function () {
+// TODO: remove this condition after GH-1326 pull request
+QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write script with src and without closing tag (GH-1218)', function () {
     return createWriteTestIframes()
         .then(function () {
             open();

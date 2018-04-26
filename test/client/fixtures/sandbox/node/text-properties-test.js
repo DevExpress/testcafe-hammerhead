@@ -389,3 +389,14 @@ test('leaving attributes, that are used in non-standard way, as they are (GH-TC-
     strictEqual(nativeMethods.elementOuterHTMLGetter.call(input), processHtml(htmlText));
     strictEqual(input.outerHTML, htmlText);
 });
+
+test('get style body', function () {
+    var style     = document.createElement('style');
+    var styleText = 'div{background:url(http://some.domain.com/image.png)}';
+
+    style.innerHTML = styleText;
+
+    strictEqual(style.innerHTML, styleText);
+    strictEqual(style.innerText.replace(/\s/g, ''), styleText);
+    strictEqual(style.textContent, styleText);
+});

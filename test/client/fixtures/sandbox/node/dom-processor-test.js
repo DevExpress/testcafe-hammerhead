@@ -69,7 +69,7 @@ test('anchor in iframe', function () {
 
     var iframeBody = iframe.contentDocument.body;
 
-    iframeBody.innerHTML = '<a href="/index.html"></a>';
+    nativeMethods.elementInnerHTMLSetter.call(iframeBody, '<a href="/index.html"></a>');
 
     domProcessor.processElement(iframeBody.childNodes[0], urlUtils.convertToProxyUrl);
     domProcessor.processElement(anchor, urlUtils.convertToProxyUrl);
@@ -85,7 +85,7 @@ test('comment inside script', function () {
     var testScript = function (scriptText) {
         var script = nativeMethods.createElement.call(document, 'script');
 
-        script.text = scriptText;
+        nativeMethods.scriptTextSetter.call(script, scriptText);
         domProcessor.processElement(script);
         nativeMethods.appendChild.call(document.head, script);
 
@@ -128,13 +128,14 @@ test('attribute value', function () {
 
     var container = nativeMethods.createElement.call(document, 'div');
 
-    container.innerHTML = html;
+    nativeMethods.elementInnerHTMLSetter.call(container, html);
 
     var elems = container.querySelectorAll('*');
 
     for (var i = 0; i < elems.length; i++)
         domProcessor.processElement(elems[i]);
 
+    strictEqual(nativeMethods.elementInnerHTMLGetter.call(container), expectedHTML);
     strictEqual(container.innerHTML, expectedHTML);
 });
 

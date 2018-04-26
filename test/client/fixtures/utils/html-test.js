@@ -56,7 +56,8 @@ test('shadow ui elements', function () {
 
     el.appendChild(uiElem);
 
-    var html = '<head>' + el.innerHTML + '</head><body>' + el.innerHTML + '</body>';
+    var shadowUIElemHtml = nativeMethods.elementInnerHTMLGetter.call(el);
+    var html             = '<head>' + shadowUIElemHtml + '</head><body>' + shadowUIElemHtml + '</body>';
 
     strictEqual(htmlUtils.cleanUpHtml(html), '<head></head><body></body>');
 });
@@ -68,7 +69,7 @@ test('attribute with a special proxying logic (GH-1448)', function () {
 
     var expectedOuterHtml = '<div style="color: black;"></div>';
 
-    strictEqual(getProperty(div, 'outerHTML'), expectedOuterHtml);
+    strictEqual(div.outerHTML, expectedOuterHtml);
 });
 
 test('form', function () {
@@ -117,12 +118,12 @@ test('encoded symbols', function () {
 
     divForEncoding.textContent = urlUtils.getProxyUrl(urlDecoded);
 
-    var proxyEncoded  = divForEncoding.innerHTML;
+    var proxyEncoded  = nativeMethods.elementInnerHTMLGetter.call(divForEncoding);
     var html          = '<' + tag + ' ' + attr + '="' + urlEncoded + '"></' + tag + '>';
     var processedHTML = '<' + tag + ' ' + attr + '="' + proxyEncoded + '" ' + storedAttr + '="' + urlEncoded + '"></' +
                         tag + '>';
 
-    div.innerHTML = htmlUtils.processHtml(html) + processedHTML;
+    nativeMethods.elementInnerHTMLSetter.call(div, htmlUtils.processHtml(html) + processedHTML);
 
     strictEqual(nativeMethods.getAttribute.call(div.firstChild, attr), nativeMethods.getAttribute.call(div.lastChild, attr));
     strictEqual(nativeMethods.getAttribute.call(div.firstChild, storedAttr), nativeMethods.getAttribute.call(div.lastChild, storedAttr));
@@ -141,14 +142,9 @@ test('text node', function () {
 });
 
 test('html fragment', function () {
-    var storedGetProxyUrl = urlUtils.getProxyUrl;
-    var htmlToProcess     = $('<a href="www.google.com">Link</a>')[0].innerHTML;
-    var processedHTML     = $('<a href="replaced" ' + DomProcessor.getStoredAttrName('href') +
-                              '="www.google.com">Link</a>')[0].innerHTML;
-
-    urlUtils.getProxyUrl = function () {
-        return 'replaced';
-    };
+    var htmlToProcess     = '<a href="//example.com">Link</a>';
+    var processedHTML     = '<a href="' + urlUtils.getProxyUrl('//example.com') + '" ' + DomProcessor.getStoredAttrName('href') +
+                            '="//example.com">Link</a>';
 
     var checkFragment = function (html, parentTag) {
         var src      = html.replace('%s', htmlToProcess);
@@ -163,8 +159,6 @@ test('html fragment', function () {
     checkFragment('<tr><td>Content1</td><td>Content2</td></tr>', 'table');
     checkFragment('%s', 'html');
     checkFragment('<div>Content</div>', 'html');
-
-    urlUtils.getProxyUrl = storedGetProxyUrl;
 });
 
 test('text nodes', function () {
@@ -314,9 +308,9 @@ test('html with special script is processed correctly (GH-684)', function () {
 test('process html with an unclosed "p" tag and the "header" tag (GH-688)', function () {
     var div = document.createElement('div');
 
-    div.innerHTML = '<p><header></header>';
+    nativeMethods.elementInnerHTMLSetter.call(div, '<p><header></header>');
 
-    strictEqual(htmlUtils.processHtml('<p><header></header>'), div.innerHTML);
+    strictEqual(htmlUtils.processHtml('<p><header></header>'), nativeMethods.elementInnerHTMLGetter.call(div));
 });
 
 test('get a proxy url from a relative url after html processing (GH-718)', function () {
@@ -340,7 +334,7 @@ test('should not throw an error if the innerHTML property is defined on Node.pro
     });
 
     try {
-        setProperty(document.createElement('div'), 'innerHTML', 'html');
+        document.createElement('div').innerHTML = 'html';
         ok(true);
     }
     catch (e) {

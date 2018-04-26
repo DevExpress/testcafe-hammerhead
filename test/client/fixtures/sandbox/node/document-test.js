@@ -433,7 +433,7 @@ test('document.activeElement when it equals null (GH-1226)', function () {
     document.body.appendChild(parentDiv);
 
     childDiv.focus();
-    parentDiv.innerHTML = '<span>Replaced</span>';
+    nativeMethods.elementInnerHTMLSetter.call(parentDiv, '<span>Replaced</span>');
 
     try {
         strictEqual(document.activeElement, nativeMethods.documentActiveElementGetter.call(document));
@@ -616,7 +616,7 @@ test('multiple document.write with html and body tags should not break markup (G
         .then(function (iframe) {
             var doc = iframe.contentDocument;
 
-            strictEqual(doc.querySelector('h1').innerHTML, 'Header');
+            strictEqual(doc.querySelector('h1').textContent, 'Header');
             ok(/Text( text){19}/.test(doc.querySelector('p').innerHTML));
             strictEqual(nativeMethods.anchorTargetGetter.call(doc.querySelector('a')), '_top');
             strictEqual(doc.querySelectorAll('body > table tr > td > a > img').length, 1);
@@ -735,7 +735,7 @@ test('should not throw an error when document.defualtView is null (GH-1272)', fu
 test('querySelector should return an element if a selector contains the href attribute with hash as a value (GH-922)', function () {
     var testDiv = document.createElement('div');
 
-    testDiv.innerHTML = '<a href="  #/"> Hash link </a>';
+    nativeMethods.elementInnerHTMLSetter.call(testDiv, '<a href="  #/"> Hash link </a>');
     document.body.appendChild(testDiv);
 
     ok(testDiv['hammerhead|element-processed']);

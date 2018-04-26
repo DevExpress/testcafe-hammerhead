@@ -1,5 +1,6 @@
 var activeWindowTracker = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var Promise             = hammerhead.Promise;
+var nativeMethods       = hammerhead.nativeMethods;
 
 QUnit.testDone(function () {
     document.body.focus();
@@ -83,16 +84,15 @@ module('regression');
 test('check that an error does not rise when trying to send serviceMessage to the removed iframe (GH-206)', function () {
     var src               = getSameDomainPageUrl('../../../data/active-window-tracker/active-window-tracker.html');
     var iframe            = null;
-    var link              = document.createElement('a');
+    var anchor            = document.createElement('a');
     var checkActiveWindow = function () {
         return activeWindowTracker.activeWindow === iframe.contentWindow;
     };
 
-    link.setAttribute('href', '#');
+    anchor.setAttribute('href', '#');
+    nativeMethods.anchorTextSetter.call(anchor, 'Link');
 
-    link.innerHTML = 'Link';
-
-    document.body.appendChild(link);
+    document.body.appendChild(anchor);
 
     return createTestIframe({ src: src })
         .then(function (createdIframe) {
@@ -106,7 +106,7 @@ test('check that an error does not rise when trying to send serviceMessage to th
         .then(function () {
             document.body.removeChild(iframe);
 
-            link.focus();
+            anchor.focus();
         })
         .catch(function (err) {
             return err;
@@ -114,7 +114,7 @@ test('check that an error does not rise when trying to send serviceMessage to th
         .then(function (err) {
             ok(!err, err);
 
-            document.body.removeChild(link);
+            document.body.removeChild(anchor);
         });
 });
 
