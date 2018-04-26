@@ -24,6 +24,8 @@ import settings from '../../settings';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
+const RESTRICTED_META_HTTP_EQUIV_VALUES = ['refresh', 'content-security-policy'];
+
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
 const arraySlice = Array.prototype.slice;
@@ -199,7 +201,9 @@ export default class ElementSandbox extends SandboxBase {
         }
         // TODO: remove after https://github.com/DevExpress/testcafe-hammerhead/issues/244 implementation
         else if (tagName === 'meta' && attr === 'http-equiv') {
-            if (value && ['refresh', 'content-security-policy'].indexOf(String(value).toLowerCase()) !== -1)
+            const loweredValue = value.toLowerCase();
+
+            if (RESTRICTED_META_HTTP_EQUIV_VALUES.indexOf(loweredValue) !== -1)
                 return null;
         }
         else if (loweredAttr === 'xlink:href' &&

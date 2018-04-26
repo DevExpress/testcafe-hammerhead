@@ -570,6 +570,12 @@ test('allow to set the content attribute to meta tag via setAttribute', function
 
     strictEqual(metaTag.getAttribute('name'), 'csrf-token');
     strictEqual(metaTag.getAttribute('content'), '1234567');
+
+    metaTag.setAttribute('http-equiv', 'Content-Security-Policy');
+    metaTag.setAttribute('content', 'script-src');
+
+    strictEqual(metaTag.getAttribute('http-equiv'), null);
+    strictEqual(metaTag.getAttribute('content'), 'script-src');
 });
 
 test('script and style content added via a child text node must be overridden (GH-259)', function () {
