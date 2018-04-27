@@ -1,4 +1,7 @@
-var urlUtils      = hammerhead.get('./utils/url');
+var urlUtils                = hammerhead.get('./utils/url');
+var htmlUtils               = hammerhead.get('../client/utils/html');
+var styleProcessor          = hammerhead.get('../processing/style');
+var scriptProcessingHeaders = hammerhead.get('../processing/script/header');
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
@@ -47,10 +50,17 @@ function close () {
 }
 
 function testHTML () {
-    strictEqual(processedIframeForWrite.contentDocument.documentElement.innerHTML,
-        nativeMethods.elementInnerHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
-    strictEqual(processedIframeForWrite.contentDocument.documentElement.outerHTML,
-        nativeMethods.elementOuterHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
+    var innerHTML = processedIframeForWrite.contentDocument.documentElement.innerHTML;
+    var outerHTML = processedIframeForWrite.contentDocument.documentElement.outerHTML;
+
+    // TODO: remove this condition after GH-1326 pull request
+    if (browserUtils.isFirefox || browserUtils.isIE) {
+        innerHTML = htmlUtils.cleanUpHtml(innerHTML);
+        outerHTML = htmlUtils.cleanUpHtml(outerHTML);
+    }
+
+    strictEqual(innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
+    strictEqual(outerHTML, nativeMethods.elementOuterHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
 }
 
 function testContent (selector) {
@@ -62,12 +72,20 @@ function testContent (selector) {
             var el       = elsFromIframe[i];
             var nativeEl = elsFromNativeIframe[i];
 
-            strictEqual(el.innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeEl));
-            strictEqual(el.innerText.trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
-            strictEqual(el.textContent, nativeMethods.nodeTextContentGetter.call(nativeEl));
+            // TODO: remove this function after GH-1326 pull request
+            var cleanUpTextIfNecessary = function (text) {
+                if (browserUtils.isFirefox || browserUtils.isIE)
+                    return scriptProcessingHeaders.remove(styleProcessor.cleanUp(text, urlUtils.parseProxyUrl));
+
+                return text;
+            };
+
+            strictEqual(cleanUpTextIfNecessary(el.innerHTML), nativeMethods.elementInnerHTMLGetter.call(nativeEl));
+            strictEqual(cleanUpTextIfNecessary(el.innerText).trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
+            strictEqual(cleanUpTextIfNecessary(el.textContent), nativeMethods.nodeTextContentGetter.call(nativeEl));
 
             if (domUtils.isScriptElement(el))
-                strictEqual(el.text, nativeMethods.scriptTextGetter.call(nativeEl));
+                strictEqual(cleanUpTextIfNecessary(el.text), nativeMethods.scriptTextGetter.call(nativeEl));
             else if (domUtils.isAnchorElement(el))
                 strictEqual(el.text, nativeMethods.anchorTextGetter.call(nativeEl));
             else
@@ -114,8 +132,7 @@ test('write incomplete tags', function () {
         });
 });
 
-// TODO: remove this condition after GH-1326 pull request
-QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write script', function () {
+test('write script', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
@@ -143,8 +160,7 @@ QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write scri
         });
 });
 
-// TODO: remove this condition after GH-1326 pull request
-QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write style', function () {
+test('write style', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
@@ -173,8 +189,7 @@ test('document.write, document.writeln with multiple parameters', function () {
         });
 });
 
-// TODO: remove this condition after GH-1326 pull request
-QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write html comment', function () {
+test('write html comment', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
@@ -200,8 +215,7 @@ test('write textarea', function () {
         });
 });
 
-// TODO: remove this condition after GH-1326 pull request
-QUnit[browserUtils.isIE ? 'skip' : 'test']('DocumentWriter should be recreated after document cleaning', function () {
+test('DocumentWriter should be recreated after document cleaning', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
@@ -256,8 +270,7 @@ test('write closing tag by parts (GH-1311)', function () {
         });
 });
 
-// TODO: remove this condition after GH-1326 pull request
-QUnit[browserUtils.isIE || browserUtils.isFirefox ? 'skip' : 'test']('write script with src and without closing tag (GH-1218)', function () {
+test('write script with src and without closing tag (GH-1218)', function () {
     return createWriteTestIframes()
         .then(function () {
             open();

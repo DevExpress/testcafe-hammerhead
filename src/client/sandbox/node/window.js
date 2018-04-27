@@ -952,9 +952,13 @@ export default class WindowSandbox extends SandboxBase {
                         processedValue = processHtml(processedValue, { parentTag: el.tagName });
                 }
 
-                DOMMutationTracker.onChildrenChanged(el);
+                if (!isStyleEl && !isScriptEl)
+                    DOMMutationTracker.onChildrenChanged(el);
 
                 nativeMethods.elementInnerHTMLSetter.call(el, processedValue);
+
+                if (isStyleEl || isScriptEl)
+                    return;
 
                 DOMMutationTracker.onChildrenChanged(el);
 
@@ -967,9 +971,6 @@ export default class WindowSandbox extends SandboxBase {
 
                 else if (isShadowUIElement(el))
                     ShadowUI.markElementAndChildrenAsShadow(el);
-                //
-                // if (isStyleEl || isScriptEl)
-                //     return value;
 
                 const parentDocument = findDocument(el);
                 const parentWindow   = parentDocument ? parentDocument.defaultView : null;
@@ -980,7 +981,6 @@ export default class WindowSandbox extends SandboxBase {
                     parentWindow[INTERNAL_PROPS.processDomMethodName](el, parentDocument);
                 else if (window[INTERNAL_PROPS.processDomMethodName])
                     window[INTERNAL_PROPS.processDomMethodName](el);
-
 
                 // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised
                 // during recording. There was an issue when the document.body was replaced, so we need to
@@ -1054,7 +1054,7 @@ export default class WindowSandbox extends SandboxBase {
                 return removeProcessingHeader(text);
             },
             setter: function (value) {
-                const processedValue = value ? processScript(String(value)) : value;
+                const processedValue = value ? processScript(String(value), true) : value;
 
                 nativeMethods.scriptTextSetter.call(this, processedValue);
             }
