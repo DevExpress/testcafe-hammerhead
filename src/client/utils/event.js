@@ -28,7 +28,7 @@ export const KEYBOARD_MODIFIERS_PARAMETER = {
 };
 
 export const DOM_EVENTS = ['click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover',
-    'mouseout', 'touchstart', 'touchmove', 'touchend', 'keydown', 'keypress', 'input', 'keyup', 'change', 'focus', 'blur',
+    'mouseout', 'touchstart', 'touchmove', 'touchend', 'keydown', 'keypress', 'textInput', 'textinput', 'input', 'keyup', 'change', 'focus', 'blur',
     'MSPointerDown', 'MSPointerMove', 'MSPointerOver', 'MSPointerOut', 'MSPointerUp', 'pointerdown',
     'pointermove', 'pointerover', 'pointerout', 'pointerup', 'focusin', 'focusout', 'mouseenter', 'mouseleave',
     'pointerenter', 'pointerleave'];
