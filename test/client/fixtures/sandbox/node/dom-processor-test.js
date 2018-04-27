@@ -448,9 +448,9 @@ test('process the "integrity" attribute in the link and script tags (GH-235)', f
     domProcessor.processElement(link, urlReplacer);
 
     ok(!script.hasAttribute('integrity'));
-    ok(nativeMethods.getAttribute.call(script, storedIntegrityAttrName));
+    strictEqual(nativeMethods.getAttribute.call(script, storedIntegrityAttrName), integrityValue);
     ok(!link.hasAttribute('integrity'));
-    ok(nativeMethods.getAttribute.call(link, storedIntegrityAttrName));
+    strictEqual(nativeMethods.getAttribute.call(link, storedIntegrityAttrName), integrityValue);
 });
 
 test('link with target="_parent" in iframe (T216999)', function () {
