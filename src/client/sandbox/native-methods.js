@@ -279,7 +279,6 @@ class NativeMethods {
         this.textAreaValueSetter     = textAreaValueDescriptor.set;
         this.imageSrcSetter          = imageSrcDescriptor.set;
         this.scriptSrcSetter         = scriptSrcDescriptor.set;
-        this.scriptIntegritySetter   = scriptIntegrityDescriptor.set;
         this.embedSrcSetter          = embedSrcDescriptor.set;
         this.sourceSrcSetter         = sourceSrcDescriptor.set;
         this.mediaSrcSetter          = mediaSrcDescriptor.set;
@@ -288,7 +287,6 @@ class NativeMethods {
         this.iframeSrcSetter         = iframeSrcDescriptor.set;
         this.anchorHrefSetter        = anchorHrefDescriptor.set;
         this.linkHrefSetter          = linkHrefDescriptor.set;
-        this.linkIntegritySetter     = linkIntegrityDescriptor.set;
         this.areaHrefSetter          = areaHrefDescriptor.set;
         this.baseHrefSetter          = baseHrefDescriptor.set;
         this.anchorHostSetter        = anchorHostDescriptor.set;
@@ -313,6 +311,14 @@ class NativeMethods {
         this.anchorTextSetter           = anchorTextDescriptor.set;
         this.elementInnerHTMLSetter     = elementInnerHTMLDescriptor.set;
         this.elementOuterHTMLSetter     = elementOuterHTMLDescriptor.set;
+
+        // NOTE: Edge and IE11 have no 'integrity' property in HTMLScriptElement
+        if (scriptIntegrityDescriptor)
+            this.scriptIntegritySetter = scriptIntegrityDescriptor.set;
+
+        // NOTE: Edge and IE11 have no 'integrity' property in HTMLLinkElement
+        if (linkIntegrityDescriptor)
+            this.linkIntegritySetter = linkIntegrityDescriptor.set;
 
         // NOTE: Event properties is located in window prototype only in IE11
         this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
@@ -349,7 +355,6 @@ class NativeMethods {
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
         this.imageSrcGetter                 = imageSrcDescriptor.get;
         this.scriptSrcGetter                = scriptSrcDescriptor.get;
-        this.scriptIntegrityGetter          = scriptIntegrityDescriptor.get;
         this.embedSrcGetter                 = embedSrcDescriptor.get;
         this.sourceSrcGetter                = sourceSrcDescriptor.get;
         this.mediaSrcGetter                 = mediaSrcDescriptor.get;
@@ -358,7 +363,6 @@ class NativeMethods {
         this.iframeSrcGetter                = iframeSrcDescriptor.get;
         this.anchorHrefGetter               = anchorHrefDescriptor.get;
         this.linkHrefGetter                 = linkHrefDescriptor.get;
-        this.linkIntegrityGetter            = linkIntegrityDescriptor.get;
         this.areaHrefGetter                 = areaHrefDescriptor.get;
         this.baseHrefGetter                 = baseHrefDescriptor.get;
         this.anchorHostGetter               = anchorHostDescriptor.get;
@@ -394,6 +398,14 @@ class NativeMethods {
         this.elementNextElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'nextElementSibling').get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
+
+        // NOTE: Edge and IE11 have no 'integrity' property in HTMLScriptElement
+        if (scriptIntegrityDescriptor)
+            this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
+
+        // NOTE: Edge and IE11 have no 'integrity' property in HTMLLinkElement
+        if (linkIntegrityDescriptor)
+            this.linkIntegrityGetter = linkIntegrityDescriptor.get;
 
         // NOTE: IE and Edge don't support origin property
         if (anchorOriginDescriptor)

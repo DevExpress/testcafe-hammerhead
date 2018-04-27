@@ -194,17 +194,19 @@ test('"integrity" attribute (GH-235)', function () {
     ok(!link.hasAttribute('integrity'));
     strictEqual(link.getAttribute('integrity'), integrityValue);
 
-    script = nativeMethods.createElement.call(document, 'script');
-    link   = nativeMethods.createElement.call(document, 'link');
+    // NOTE: Edge and IE11 have no 'integrity' property in HTMLScriptElement, HTMLLinkElement elements
+    if (!browserUtils.isIE) {
+        script = nativeMethods.createElement.call(document, 'script');
+        link   = nativeMethods.createElement.call(document, 'link');
 
-    script.integrity = integrityValue;
-    link.integrity   = integrityValue;
+        script.integrity = integrityValue;
+        link.integrity   = integrityValue;
 
-    ok(!script.hasAttribute('integrity'));
-    strictEqual(script.getAttribute('integrity'), integrityValue);
-    ok(!link.hasAttribute('integrity'));
-    strictEqual(link.getAttribute('integrity'), integrityValue);
-
+        ok(!script.hasAttribute('integrity'));
+        strictEqual(script.getAttribute('integrity'), integrityValue);
+        ok(!link.hasAttribute('integrity'));
+        strictEqual(link.getAttribute('integrity'), integrityValue);
+    }
 });
 
 test('iframe with "javascript: <html>...</html>" src', function () {
