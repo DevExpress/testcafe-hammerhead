@@ -233,6 +233,7 @@ class NativeMethods {
         const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
         const imageSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
         const scriptSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
+        const scriptIntegrityDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'integrity');
         const embedSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
         const sourceSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLSourceElement.prototype, 'src');
         const mediaSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLMediaElement.prototype, 'src');
@@ -241,6 +242,7 @@ class NativeMethods {
         const iframeSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'src');
         const anchorHrefDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'href');
         const linkHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'href');
+        const linkIntegrityDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'integrity');
         const areaHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'href');
         const baseHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'href');
         const anchorHostDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'host');
@@ -277,6 +279,7 @@ class NativeMethods {
         this.textAreaValueSetter     = textAreaValueDescriptor.set;
         this.imageSrcSetter          = imageSrcDescriptor.set;
         this.scriptSrcSetter         = scriptSrcDescriptor.set;
+        this.scriptIntegritySetter   = scriptIntegrityDescriptor.set;
         this.embedSrcSetter          = embedSrcDescriptor.set;
         this.sourceSrcSetter         = sourceSrcDescriptor.set;
         this.mediaSrcSetter          = mediaSrcDescriptor.set;
@@ -285,6 +288,7 @@ class NativeMethods {
         this.iframeSrcSetter         = iframeSrcDescriptor.set;
         this.anchorHrefSetter        = anchorHrefDescriptor.set;
         this.linkHrefSetter          = linkHrefDescriptor.set;
+        this.linkIntegritySetter     = linkIntegrityDescriptor.set;
         this.areaHrefSetter          = areaHrefDescriptor.set;
         this.baseHrefSetter          = baseHrefDescriptor.set;
         this.anchorHostSetter        = anchorHostDescriptor.set;
@@ -345,6 +349,7 @@ class NativeMethods {
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
         this.imageSrcGetter                 = imageSrcDescriptor.get;
         this.scriptSrcGetter                = scriptSrcDescriptor.get;
+        this.scriptIntegrityGetter          = scriptIntegrityDescriptor.get;
         this.embedSrcGetter                 = embedSrcDescriptor.get;
         this.sourceSrcGetter                = sourceSrcDescriptor.get;
         this.mediaSrcGetter                 = mediaSrcDescriptor.get;
@@ -353,6 +358,7 @@ class NativeMethods {
         this.iframeSrcGetter                = iframeSrcDescriptor.get;
         this.anchorHrefGetter               = anchorHrefDescriptor.get;
         this.linkHrefGetter                 = linkHrefDescriptor.get;
+        this.linkIntegrityGetter            = linkIntegrityDescriptor.get;
         this.areaHrefGetter                 = areaHrefDescriptor.get;
         this.baseHrefGetter                 = baseHrefDescriptor.get;
         this.anchorHostGetter               = anchorHostDescriptor.get;

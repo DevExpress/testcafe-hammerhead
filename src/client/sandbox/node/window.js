@@ -767,6 +767,11 @@ export default class WindowSandbox extends SandboxBase {
 
         this._overrideAttrDescriptors('autocomplete', [window.HTMLInputElement]);
 
+        this._overrideAttrDescriptors('integrity', [
+            window.HTMLScriptElement,
+            window.HTMLLinkElement
+        ])
+
         this._overrideUrlPropDescriptor('port', nativeMethods.anchorPortGetter, nativeMethods.anchorPortSetter);
         this._overrideUrlPropDescriptor('host', nativeMethods.anchorHostGetter, nativeMethods.anchorHostSetter);
         this._overrideUrlPropDescriptor('hostname', nativeMethods.anchorHostnameGetter, nativeMethods.anchorHostnameSetter);

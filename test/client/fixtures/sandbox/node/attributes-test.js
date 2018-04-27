@@ -181,6 +181,32 @@ test('script src', function () {
     settings.get().sessionId = storedSessionId;
 });
 
+test('"integrity" attribute (GH-235)', function () {
+    var script         = nativeMethods.createElement.call(document, 'script');
+    var link           = nativeMethods.createElement.call(document, 'link');
+    var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
+
+    script.setAttribute('integrity', integrityValue);
+    link.setAttribute('integrity', integrityValue);
+
+    ok(!script.hasAttribute('integrity'));
+    strictEqual(script.getAttribute('integrity'), integrityValue);
+    ok(!link.hasAttribute('integrity'));
+    strictEqual(link.getAttribute('integrity'), integrityValue);
+
+    script = nativeMethods.createElement.call(document, 'script');
+    link   = nativeMethods.createElement.call(document, 'link');
+
+    script.integrity = integrityValue;
+    link.integrity   = integrityValue;
+
+    ok(!script.hasAttribute('integrity'));
+    strictEqual(script.getAttribute('integrity'), integrityValue);
+    ok(!link.hasAttribute('integrity'));
+    strictEqual(link.getAttribute('integrity'), integrityValue);
+
+});
+
 test('iframe with "javascript: <html>...</html>" src', function () {
     return createTestIframe({ src: 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<' + '/script>"' })
         .then(function (iframe) {
