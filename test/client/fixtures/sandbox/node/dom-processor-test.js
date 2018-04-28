@@ -432,25 +432,37 @@ module('should create a proxy url for the img src attribute if the image has the
 module('regression');
 
 test('process the "integrity" attribute in the link and script tags (GH-235)', function () {
-    var script                  = nativeMethods.createElement.call(document, 'script');
-    var link                    = nativeMethods.createElement.call(document, 'link');
-    var storedIntegrityAttrName = DomProcessor.getStoredAttrName('integrity');
-    var integrityValue          = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
-
-    nativeMethods.setAttribute.call(script, 'integrity', integrityValue);
-    nativeMethods.setAttribute.call(link, 'integrity', integrityValue);
+    var script         = nativeMethods.createElement.call(document, 'script');
+    var link           = nativeMethods.createElement.call(document, 'link');
+    var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
 
     var urlReplacer = function (url) {
         return url;
     };
 
+    function checkIntegrityAttr (el) {
+        ok(el.hasAttribute('integrity'));
+        strictEqual(el.getAttribute('integrity'), integrityValue);
+        strictEqual(nativeMethods.getAttribute.call(el, 'integrity'), null);
+    }
+
+    function checkIntegrityProperty (el, elIntegrityGetter) {
+        if (elIntegrityGetter)
+            strictEqual(el.integrity, integrityValue);
+    }
+
+    nativeMethods.setAttribute.call(script, 'integrity', integrityValue);
+    nativeMethods.setAttribute.call(link, 'integrity', integrityValue);
+
     domProcessor.processElement(script, urlReplacer);
     domProcessor.processElement(link, urlReplacer);
 
-    ok(!script.hasAttribute('integrity'));
-    strictEqual(nativeMethods.getAttribute.call(script, storedIntegrityAttrName), integrityValue);
-    ok(!link.hasAttribute('integrity'));
-    strictEqual(nativeMethods.getAttribute.call(link, storedIntegrityAttrName), integrityValue);
+    checkIntegrityAttr(script);
+    checkIntegrityAttr(link);
+
+    // NOTE: Some browsers have no 'integrity' property in HTMLScriptElement, HTMLLinkElement elements
+    checkIntegrityProperty(script, nativeMethods.scriptIntegrityGetter);
+    checkIntegrityProperty(script, nativeMethods.linkIntegrityGetter);
 });
 
 test('link with target="_parent" in iframe (T216999)', function () {

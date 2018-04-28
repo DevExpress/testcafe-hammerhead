@@ -103,11 +103,11 @@ export default class ElementSandbox extends SandboxBase {
         // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
         // the correct SHA for the changed script.
         // getAttributeCore returns stored 'integrity' attribute value. (GH-235)
-        else if (loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName)) {
+        else if (loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName) && !isNs) {
             const storedIntegrityAttr = DomProcessor.getStoredAttrName(attr);
 
-            if (el.hasAttribute(storedIntegrityAttr))
-                args[isNs ? 1 : 0] = storedIntegrityAttr;
+            if (nativeMethods.hasAttribute.call(el, storedIntegrityAttr))
+                args[0] = storedIntegrityAttr;
         }
 
         return getAttrMeth.apply(el, args);
@@ -233,10 +233,10 @@ export default class ElementSandbox extends SandboxBase {
             setAttrMeth.apply(el, isNs ? [ns, storedStyleAttr, value] : [storedStyleAttr, value]);
             args[valueIndex] = styleProcessor.process(value, urlUtils.getProxyUrl);
         }
-        else if (loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName)) {
+        else if (loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName) && !isNs) {
             const storedIntegrityAttr = DomProcessor.getStoredAttrName(attr);
 
-            return setAttrMeth.apply(el, isNs ? [ns, storedIntegrityAttr, value] : [storedIntegrityAttr, value]);
+            return setAttrMeth.apply(el, [storedIntegrityAttr, value]);
         }
 
         const result = setAttrMeth.apply(el, args);
@@ -256,6 +256,14 @@ export default class ElementSandbox extends SandboxBase {
         if (typeof args[attributeNameArgIndex] === 'string' &&
             DomProcessor.isAddedAutocompleteAttr(args[attributeNameArgIndex], storedAutocompleteAttrValue))
             return false;
+
+        // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
+        // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
+        // the correct SHA for the changed script.
+        // _hasAttributeCore returns true for 'integrity' attribute if the stored attribute is exists. (GH-235)
+        if (args[attributeNameArgIndex] === 'integrity' &&
+            DomProcessor.isTagWithIntegrityAttr(domUtils.getTagName(el)) && !isNs)
+            args[attributeNameArgIndex] = DomProcessor.getStoredAttrName('integrity');
 
         return hasAttrMeth.apply(el, args);
     }

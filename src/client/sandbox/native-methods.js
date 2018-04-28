@@ -312,11 +312,11 @@ class NativeMethods {
         this.elementInnerHTMLSetter     = elementInnerHTMLDescriptor.set;
         this.elementOuterHTMLSetter     = elementOuterHTMLDescriptor.set;
 
-        // NOTE: Edge and IE11 have no 'integrity' property in HTMLScriptElement
+        // NOTE: Some browsers have no 'integrity' property in HTMLScriptElement
         if (scriptIntegrityDescriptor)
             this.scriptIntegritySetter = scriptIntegrityDescriptor.set;
 
-        // NOTE: Edge and IE11 have no 'integrity' property in HTMLLinkElement
+        // NOTE: Some browsers have no 'integrity' property in HTMLLinkElement
         if (linkIntegrityDescriptor)
             this.linkIntegritySetter = linkIntegrityDescriptor.set;
 

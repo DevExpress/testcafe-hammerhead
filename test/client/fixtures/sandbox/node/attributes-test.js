@@ -181,32 +181,39 @@ test('script src', function () {
     settings.get().sessionId = storedSessionId;
 });
 
-test('"integrity" attribute (GH-235)', function () {
-    var script         = nativeMethods.createElement.call(document, 'script');
-    var link           = nativeMethods.createElement.call(document, 'link');
-    var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
+test('\'integrity\' attribute, \'integrity\' property (GH-235)', function () {
+    var script                  = nativeMethods.createElement.call(document, 'script');
+    var link                    = nativeMethods.createElement.call(document, 'link');
+    var storedIntegrityAttrName = DomProcessor.getStoredAttrName('integrity');
+    var integrityValue          = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
+
+    function checkIntegrityAttr (el) {
+        ok(el.hasAttribute('integrity'));
+        strictEqual(el.getAttribute('integrity'), integrityValue);
+        strictEqual(nativeMethods.getAttribute.call(el, 'integrity'), null);
+        strictEqual(nativeMethods.getAttribute.call(el, storedIntegrityAttrName), integrityValue);
+    }
+
+    function checkIntegrityProperty (elTag, elIntegrityGetter) {
+        if (elIntegrityGetter) {
+            var el = nativeMethods.createElement.call(document, elTag);
+
+            el.integrity = integrityValue;
+
+            checkIntegrityAttr(el);
+            strictEqual(el.integrity, integrityValue);
+        }
+    }
 
     script.setAttribute('integrity', integrityValue);
     link.setAttribute('integrity', integrityValue);
 
-    ok(!script.hasAttribute('integrity'));
-    strictEqual(script.getAttribute('integrity'), integrityValue);
-    ok(!link.hasAttribute('integrity'));
-    strictEqual(link.getAttribute('integrity'), integrityValue);
+    checkIntegrityAttr(script);
+    checkIntegrityAttr(link);
 
-    // NOTE: Edge and IE11 have no 'integrity' property in HTMLScriptElement, HTMLLinkElement elements
-    if (!browserUtils.isIE) {
-        script = nativeMethods.createElement.call(document, 'script');
-        link   = nativeMethods.createElement.call(document, 'link');
-
-        script.integrity = integrityValue;
-        link.integrity   = integrityValue;
-
-        ok(!script.hasAttribute('integrity'));
-        strictEqual(script.getAttribute('integrity'), integrityValue);
-        ok(!link.hasAttribute('integrity'));
-        strictEqual(link.getAttribute('integrity'), integrityValue);
-    }
+    // NOTE: Some browsers have no 'integrity' property in HTMLScriptElement, HTMLLinkElement elements
+    checkIntegrityProperty('script', nativeMethods.scriptIntegrityGetter);
+    checkIntegrityProperty('link', nativeMethods.linkIntegrityGetter);
 });
 
 test('iframe with "javascript: <html>...</html>" src', function () {
