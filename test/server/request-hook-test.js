@@ -139,7 +139,7 @@ describe('RequestFilterRule', () => {
         expect(hook.options).eql(filterFn);
     });
 
-    it.only('Match', () => {
+    it('Match', () => {
         const requestInfo = {
             url:     'http://example.com/',
             method:  'post',
