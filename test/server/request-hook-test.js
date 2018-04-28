@@ -175,12 +175,8 @@ describe('RequestFilterRule', () => {
             method: 'Post',
             isAjax: 'test'
         }).match(requestInfo)).to.be.false;
-        /*eslint-disable no-unused-vars*/
-        expect(new RequestFilterRule(request => {}).match(requestInfo)).to.be.false;
-        /*eslint-enable no-unused-vars*/
-        expect(new RequestFilterRule(request => {
-            return request.url === 'wrong_url';
-        }).match(requestInfo)).to.be.false;
+        expect(new RequestFilterRule(() => {}).match(requestInfo)).to.be.false;
+        expect(new RequestFilterRule(request => request.url === 'wrong_url').match(requestInfo)).to.be.false;
         expect(new RequestFilterRule(request => {
             return request.url === 'http://example.com/' &&
                    request.method === 'post' &&
