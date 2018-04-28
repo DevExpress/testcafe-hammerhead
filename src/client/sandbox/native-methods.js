@@ -399,11 +399,11 @@ class NativeMethods {
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 
-        // NOTE: Edge and IE11 have no 'integrity' property in HTMLScriptElement
+        // NOTE: Some browsers have no 'integrity' property in HTMLScriptElement
         if (scriptIntegrityDescriptor)
             this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
 
-        // NOTE: Edge and IE11 have no 'integrity' property in HTMLLinkElement
+        // NOTE: Some browsers have no 'integrity' property in HTMLLinkElement
         if (linkIntegrityDescriptor)
             this.linkIntegrityGetter = linkIntegrityDescriptor.get;
 
