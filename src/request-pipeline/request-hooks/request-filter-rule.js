@@ -76,11 +76,11 @@ export default class RequestFilterRule {
     }
 
     _matchUsingFunctionOptions (requestInfo) {
-        return this.options.call(this, requestInfo);
+        return !!this.options.call(this, requestInfo);
     }
 
     match (requestInfo) {
-        if (this.options === 'function')
+        if (typeof this.options === 'function')
             return this._matchUsingFunctionOptions(requestInfo);
 
         return this._matchUsingObjectOptions(requestInfo);

@@ -139,7 +139,7 @@ describe('RequestFilterRule', () => {
         expect(hook.options).eql(filterFn);
     });
 
-    it('Match', () => {
+    it.only('Match', () => {
         const requestInfo = {
             url:     'http://example.com/',
             method:  'post',
@@ -175,8 +175,14 @@ describe('RequestFilterRule', () => {
             method: 'Post',
             isAjax: 'test'
         }).match(requestInfo)).to.be.false;
-        expect(new RequestFilterRule(function (request) {
-            return request.url === 'http://example.com' &&
+        /*eslint-disable no-unused-vars*/
+        expect(new RequestFilterRule(request => {}).match(requestInfo)).to.be.false;
+        /*eslint-enable no-unused-vars*/
+        expect(new RequestFilterRule(request => {
+            return request.url === 'wrong_url';
+        }).match(requestInfo)).to.be.false;
+        expect(new RequestFilterRule(request => {
+            return request.url === 'http://example.com/' &&
                    request.method === 'post' &&
                    request.isAjax &&
                    request.body === '{ test: true }' &&
