@@ -19,6 +19,9 @@ export default class IncomingMessageMock extends Readable {
         if (!body)
             return new Buffer(0);
 
+        else if (body instanceof Buffer)
+            return body;
+
         const bodyStr = typeof body === 'object' ? JSON.stringify(body) : String(body);
 
         return Buffer.from(bodyStr);

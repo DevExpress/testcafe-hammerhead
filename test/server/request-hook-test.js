@@ -58,6 +58,15 @@ describe('ResponseMock', () => {
             expect(response.read().toString()).eql(html);
         });
 
+        it('Binary data', () => {
+            const binaryData = Buffer.from([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x01, 0x00, 0x01]);
+            const mock       = new ResponseMock(binaryData);
+            const response   = mock.getResponse();
+
+            expect(response.statusCode).eql(200);
+            expect(response.read()).eql(binaryData);
+        });
+
         it('Empty HTML page', () => {
             const mock     = new ResponseMock();
             const response = mock.getResponse();
