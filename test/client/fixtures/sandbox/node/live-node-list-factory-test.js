@@ -152,19 +152,19 @@ module('getElementsByTagName', function () {
 
             assertions.push([refreshNodeListCount, 2, 'access after shadowUI element was added']);
 
-            setProperty(testDiv, 'innerHTML', '<div></div>');
+            testDiv.innerHTML = '<div></div>';
 
             elements[0];
 
             assertions.push([refreshNodeListCount, 3, "access after set element's innerHTML"]);
 
-            setProperty(testDiv.firstChild, 'outerHTML', '<span><b></b></span>');
+            testDiv.firstChild.outerHTML = '<span><b></b></span>';
 
             elements[0];
 
             assertions.push([refreshNodeListCount, 4, "access after set element's outerHTML"]);
 
-            setProperty(testDiv.firstChild, 'innerText', '123');
+            testDiv.firstChild.innerText = '123';
 
             elements[0];
 
@@ -271,25 +271,25 @@ module('getElementsByTagName', function () {
 
             assertions.push([refreshNodeListCount, 2, 'replaceChild for tracking and non-tracking nodes']);
 
-            setProperty(testDiv, 'innerHTML', '<div><textarea></textarea></div>');
+            testDiv.innerHTML = '<div><textarea></textarea></div>';
 
             elements[0];
 
             assertions.push([refreshNodeListCount, 3, "access after set element's innerHTML"]);
 
-            setProperty(testDiv.firstChild, 'innerText', 'text');
+            testDiv.firstChild.innerText = 'text';
 
             elements[0];
 
             assertions.push([refreshNodeListCount, 4, "access after set element's innerText"]);
 
-            setProperty(testDiv.firstChild, 'outerHTML', '<div></div>');
+            testDiv.firstChild.outerHTML = '<div></div>';
 
             elements[0];
 
             assertions.push([refreshNodeListCount, 4, "access after set element's outerHTML without textarea"]);
 
-            setProperty(testDiv.firstChild, 'outerHTML', '<textarea></textarea>');
+            testDiv.firstChild.outerHTML = '<textarea></textarea>';
 
             elements[0];
 

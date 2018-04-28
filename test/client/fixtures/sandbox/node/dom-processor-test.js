@@ -69,7 +69,7 @@ test('anchor in iframe', function () {
 
     var iframeBody = iframe.contentDocument.body;
 
-    iframeBody.innerHTML = '<a href="/index.html"></a>';
+    nativeMethods.elementInnerHTMLSetter.call(iframeBody, '<a href="/index.html"></a>');
 
     domProcessor.processElement(iframeBody.childNodes[0], urlUtils.convertToProxyUrl);
     domProcessor.processElement(anchor, urlUtils.convertToProxyUrl);
@@ -81,27 +81,11 @@ test('anchor in iframe', function () {
     anchor.parentNode.removeChild(anchor);
 });
 
-test('script text', function () {
-    var div             = nativeMethods.createElement.call(document, 'div');
-    var script          = 'var host = location.host';
-    var processedScript = processScript(script, true);
-
-    nativeMethods.appendChild.call(document.body, div);
-    div.innerHTML = '<script>' + script + '<' + '/script>';
-
-    domProcessor.processElement(div.firstChild);
-
-    notEqual(script, processedScript);
-    strictEqual(div.innerHTML.replace(/\s/g, ''), ('<script>' + processedScript + '<' + '/script>').replace(/\s/g, ''));
-
-    div.parentNode.removeChild(div);
-});
-
 test('comment inside script', function () {
     var testScript = function (scriptText) {
         var script = nativeMethods.createElement.call(document, 'script');
 
-        script.text = scriptText;
+        nativeMethods.scriptTextSetter.call(script, scriptText);
         domProcessor.processElement(script);
         nativeMethods.appendChild.call(document.head, script);
 
@@ -144,13 +128,14 @@ test('attribute value', function () {
 
     var container = nativeMethods.createElement.call(document, 'div');
 
-    container.innerHTML = html;
+    nativeMethods.elementInnerHTMLSetter.call(container, html);
 
     var elems = container.querySelectorAll('*');
 
     for (var i = 0; i < elems.length; i++)
         domProcessor.processElement(elems[i]);
 
+    strictEqual(nativeMethods.elementInnerHTMLGetter.call(container), expectedHTML);
     strictEqual(container.innerHTML, expectedHTML);
 });
 
@@ -309,31 +294,6 @@ test('clean up stylesheet', function () {
     check('@import \'' + proxyUrl + '\'', '@import \'' + url + '\'');
     check('@import ""', '@import ""');
     check('@import \'\'', '@import \'\'');
-});
-
-test('stylesheet after innerHTML', function () {
-    var div   = nativeMethods.createElement.call(document, 'div');
-    var style = nativeMethods.createElement.call(document, 'style');
-
-    nativeMethods.appendChild.call(document.body, style);
-
-    var check = function (cssText) {
-        strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT), 0);
-        strictEqual(cssText.indexOf(styleProcessor.STYLESHEET_PROCESSING_START_COMMENT, 1), -1);
-        strictEqual(cssText.replace(/^[\s\S]+url\(([\s\S]+)\)[\s\S]+$/, '$1'), urlUtils.getProxyUrl('http://domain.com'));
-    };
-
-    eval(processScript('div.innerHTML = "<style>.rule { background: url(http://domain.com) }</style>";'));
-    check(div.children[0].innerHTML);
-
-    eval(processScript('div.innerHTML = div.innerHTML;'));
-    check(div.children[0].innerHTML);
-
-    eval(processScript('style.innerHTML = ".rule { background: url(http://domain.com) }";'));
-    check(style.innerHTML);
-
-    eval(processScript('style.innerHTML = style.innerHTML;'));
-    check(style.innerHTML);
 });
 
 test('special pages (GH-339)', function () {
@@ -604,10 +564,10 @@ test('node.replaceChild must be overridden (GH-264)', function () {
     var styleTextNode2 = document.createTextNode('div.class2 { background-image: url("/image2.png"); }');
 
     style.appendChild(styleTextNode1);
-    ok(style.innerHTML.indexOf(urlUtils.getProxyUrl('/image1.png')) > -1);
+    ok(nativeMethods.elementInnerHTMLGetter.call(style).indexOf(urlUtils.getProxyUrl('/image1.png')) > -1);
 
     style.replaceChild(styleTextNode2, styleTextNode1);
-    ok(style.innerHTML.indexOf(urlUtils.getProxyUrl('/image2.png')) > -1);
+    ok(nativeMethods.elementInnerHTMLGetter.call(style).indexOf(urlUtils.getProxyUrl('/image2.png')) > -1);
 });
 
 test('script error when a new element is added to a "body" element that is not in the DOM (GH-296)', function () {

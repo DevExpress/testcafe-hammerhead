@@ -37,7 +37,7 @@
 
             var errorIsRaised = false;
             try {
-                setProperty(iframeDocument.body, "innerHTML", '...');
+                iframeDocument.body.innerHTML = '...';
             }
             catch (e) {
                 errorIsRaised = true;

@@ -251,12 +251,12 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _getUIStyleSheetsHtml () {
-        const stylesheets = this.nativeMethods.querySelectorAll.call(this.document, 'link.' +
-                                                                                    SHADOW_UI_CLASS_NAME.uiStylesheet);
-        let result        = '';
+        const stylesSelector = 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet;
+        const stylesheets    = this.nativeMethods.querySelectorAll.call(this.document, stylesSelector);
+        let result           = '';
 
         for (const stylesheet of stylesheets)
-            result += stylesheet.outerHTML;
+            result += nativeMethods.elementOuterHTMLGetter.call(stylesheet);
 
         return result;
     }
@@ -267,7 +267,7 @@ export default class ShadowUI extends SandboxBase {
 
         const parser = this.nativeMethods.createElement.call(this.document, 'div');
 
-        parser.innerHTML = uiStyleSheetsHtml;
+        nativeMethods.elementInnerHTMLSetter.call(parser, uiStyleSheetsHtml);
 
         for (let i = 0; i < parser.children.length; i++) {
             const refNode = head.children[i] || null;

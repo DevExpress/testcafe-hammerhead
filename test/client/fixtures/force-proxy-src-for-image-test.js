@@ -21,7 +21,7 @@ test('setAttribute', function () {
 test('innerHTML', function () {
     var div = document.createElement('div');
 
-    setProperty(div, 'innerHTML', '<img src="/test">');
+    div.innerHTML = '<img src="/test">';
     strictEqual(nativeMethods.getAttribute.call(div.children[0], 'src'), urlUtils.getProxyUrl('/test'));
 });
 

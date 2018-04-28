@@ -169,12 +169,16 @@ export default class DocumentWriter {
         DocumentWriter._setUnclosedElementFlag(elWithContent);
 
         if (this.isClosingContentEl && (isScriptElement(elWithContent) || isStyleElement(elWithContent))) {
-            this.contentForProcessing = this.nonClosedEl.textContent +
-                                        elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
-            elWithContent.textContent = '';
+            this.contentForProcessing = nativeMethods.nodeTextContentGetter.call(this.nonClosedEl) +
+                                        nativeMethods.nodeTextContentGetter.call(elWithContent).replace(BEGIN_REMOVE_RE, '');
+
+            nativeMethods.nodeTextContentSetter.call(elWithContent, '');
         }
-        else
-            elWithContent.textContent = elWithContent.textContent.replace(BEGIN_REMOVE_RE, '');
+        else {
+            const textContent = nativeMethods.nodeTextContentGetter.call(elWithContent);
+
+            nativeMethods.nodeTextContentSetter.call(elWithContent, textContent.replace(BEGIN_REMOVE_RE, ''));
+        }
 
         beginMarker = nativeMethods.createElement.call(document, BEGIN_MARKER_TAG_NAME);
 
@@ -206,18 +210,23 @@ export default class DocumentWriter {
 
     _processEndMarkerInContent (endMarker) {
         const elWithContent = endMarker;
+        const textContent   = nativeMethods.nodeTextContentGetter.call(elWithContent);
 
         DocumentWriter._setUnclosedElementFlag(elWithContent);
 
-        elWithContent.textContent = elWithContent.textContent.replace(END_REMOVE_RE, '');
-        endMarker                 = nativeMethods.createElement.call(document, END_MARKER_TAG_NAME);
+        nativeMethods.nodeTextContentSetter.call(elWithContent, textContent.replace(END_REMOVE_RE, ''));
+
+        endMarker = nativeMethods.createElement.call(document, END_MARKER_TAG_NAME);
 
         if (this.pending) {
             const startsWithClosingTagRegExp        = this._getStartsWithClosingTagRegExp(elWithContent.tagName);
             const isPendingStartsWithClosingTagPart = startsWithClosingTagRegExp.test(this.pending);
 
             if (!isPendingStartsWithClosingTagPart) {
-                elWithContent.textContent += this.pending;
+                const newContent = nativeMethods.nodeTextContentGetter.call(elWithContent) + this.pending;
+
+                nativeMethods.nodeTextContentSetter.call(elWithContent, newContent);
+
                 this.pending = '';
             }
         }
@@ -229,8 +238,7 @@ export default class DocumentWriter {
         const span = nativeMethods.createElement.call(endMarker.ownerDocument, 'span');
 
         nativeMethods.insertBefore.call(endMarker.parentNode, span, endMarker);
-
-        span.outerHTML = ON_WINDOW_RECREATION_SCRIPT_TEMPLATE;
+        nativeMethods.elementOuterHTMLSetter.call(span, ON_WINDOW_RECREATION_SCRIPT_TEMPLATE);
     }
 
     _prepareDom (container, isDocumentCleaned) {
@@ -278,10 +286,14 @@ export default class DocumentWriter {
         const htmlChunk = this._processHtmlChunk(arrayJoin.call(args, ''), isDocumentCleaned);
 
         if (this.nonClosedEl && this.contentForProcessing) {
+            let processedContent = this.contentForProcessing;
+
             if (isScriptElement(this.nonClosedEl))
-                this.nonClosedEl.textContent = processScript(this.contentForProcessing, true);
+                processedContent = processScript(this.contentForProcessing, true);
             else if (isStyleElement(this.nonClosedEl))
-                this.nonClosedEl.textContent = styleProcessor.process(this.contentForProcessing, getProxyUrl, true);
+                processedContent = styleProcessor.process(this.contentForProcessing, getProxyUrl, true);
+
+            nativeMethods.nodeTextContentSetter.call(this.nonClosedEl, processedContent);
 
             this.contentForProcessing = '';
         }

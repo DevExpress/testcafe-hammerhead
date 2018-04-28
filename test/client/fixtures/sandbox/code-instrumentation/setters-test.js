@@ -1,9 +1,6 @@
-var INTERNAL_PROPS    = hammerhead.get('../processing/dom/internal-properties');
 var urlUtils          = hammerhead.get('./utils/url');
 var DomProcessor      = hammerhead.get('../processing/dom');
 var processScript     = hammerhead.get('../processing/script').processScript;
-var styleProcessor    = hammerhead.get('../processing/style');
-var isScriptProcessed = hammerhead.get('../processing/script').isScriptProcessed;
 
 var Promise               = hammerhead.Promise;
 var nativeMethods         = hammerhead.nativeMethods;
@@ -154,13 +151,6 @@ test('simple type', function () {
     strictEqual(setProperty(1, 'prop_name', 2), 2);
 });
 
-test('script text', function () {
-    var script = document.createElement('script');
-
-    eval(processScript('script.text="var test = window.href;"'));
-    ok(isScriptProcessed(script.text));
-});
-
 test('iframe', function () {
     var iframe     = document.createElement('iframe');
     var storedAttr = DomProcessor.getStoredAttrName('sandbox');
@@ -199,109 +189,6 @@ test('iframe', function () {
     strictEqual(result, 'allow-forms');
 });
 
-test('innerHTML', function () {
-    var div       = document.createElement('div');
-    var scriptUrl = 'http://some.com/script.js';
-    var linkUrl   = 'http://some.com/page';
-
-    document[INTERNAL_PROPS.documentCharset] = 'utf-8';
-
-    eval(processScript('div.innerHTML = "<script src=\\"" + scriptUrl + "\\"><' + '/script><a href=\\"" + linkUrl + "\\"></a>";'));
-
-    strictEqual(div.children.length, 2);
-    strictEqual(nativeMethods.scriptSrcGetter.call(div.children[0]), urlUtils.getProxyUrl(scriptUrl, { resourceType: 's', charset: 'utf-8' }));
-    strictEqual(nativeMethods.anchorHrefGetter.call(div.children[1]), urlUtils.getProxyUrl(linkUrl));
-
-    document[INTERNAL_PROPS.documentCharset] = null;
-});
-
-test('innerHTML, innerText, text, textContent', function () {
-    var script              = document.createElement('script');
-    var style               = document.createElement('style');
-    var scriptText          = 'var test = window.href';
-    var styleText           = 'div {background:url(http://some.domain.com/image.png)}';
-    var processedScriptText = processScript(scriptText, true).replace(/\s/g, '');
-    var processedStyleText  = styleProcessor.process(styleText, urlUtils.getProxyUrl, true).replace(/\s/g, '');
-    var testProperties      = ['innerHTML', 'innerText', 'text', 'textContent'];
-
-    testProperties.forEach(function (property) {
-        var returnedValue = setProperty(script, property, scriptText);
-
-        strictEqual(returnedValue, scriptText);
-        strictEqual(script[property].replace(/\s/g, ''), processedScriptText);
-
-        returnedValue = setProperty(script, property, '');
-
-        strictEqual(returnedValue, '');
-        strictEqual(script[property], '');
-    });
-
-    testProperties.forEach(function (property) {
-        var returnedValue = setProperty(style, property, styleText);
-
-        strictEqual(returnedValue, styleText);
-
-        // NOTE: text property is not supported for style element
-        if (property === 'text')
-            strictEqual(style[property], styleText);
-        else
-            strictEqual(style[property].replace(/\s/g, ''), processedStyleText);
-
-        returnedValue = setProperty(style, property, '');
-
-        strictEqual(returnedValue, '');
-        strictEqual(style[property], '');
-    });
-
-    testProperties.forEach(function (property) {
-        var obj           = { a: 1 };
-        var returnedValue = setProperty(script, property, obj);
-
-        strictEqual(returnedValue, obj);
-        strictEqual(script[property], '[object Object]');
-    });
-
-    testProperties.forEach(function (property) {
-        var returnedValue = setProperty(script, property, null);
-        var propertyValue = script[property];
-
-        script[property] = null;
-
-        strictEqual(returnedValue, null);
-        strictEqual(propertyValue, script[property]);
-    });
-
-    testProperties.forEach(function (property) {
-        var returnedValue = setProperty(script, property, void 0);
-        var propertyValue = script[property];
-
-        script[property] = void 0;
-
-        strictEqual(returnedValue, void 0);
-        strictEqual(propertyValue, script[property]);
-    });
-
-});
-
-test('body.innerHTML in iframe', function () {
-    return createTestIframe({ src: getSameDomainPageUrl('../../../data/code-instrumentation/iframe.html') })
-        .then(function (iframe) {
-            var hasShadowUIRoot = function () {
-                var iframeBody               = iframe.contentDocument.body;
-                var bodyChildrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(iframeBody.children);
-                var root                     = iframeBody.children[bodyChildrenOriginLength - 1];
-
-                return root && root.id.indexOf('root-') === 0;
-            };
-
-            ok(hasShadowUIRoot());
-
-            eval(processScript('iframe.contentDocument.body.innerHTML = "";'));
-
-            return window.QUnitGlobals.wait(hasShadowUIRoot);
-        });
-});
-
 // NOTE: IE does not allow overriding the postMessage method.
 if (!browserUtils.isIE) {
     asyncTest('postMessage', function () {
@@ -318,86 +205,7 @@ if (!browserUtils.isIE) {
     });
 }
 
-test('outerHTML', function () {
-    var parentDiv = document.createElement('div');
-    var childDiv  = document.createElement('div');
-    var htmlText  = '<a href="http://domain.com/">link</a><script src="http://domain.com/script"><' + '/script>';
-    var obj       = { b: 1 };
-
-    parentDiv.appendChild(childDiv);
-
-    strictEqual(parentDiv.children.length, 1);
-    strictEqual(parentDiv.firstChild, childDiv);
-
-    setProperty(childDiv, 'outerHTML', htmlText);
-
-    strictEqual(parentDiv.children.length, 2);
-    strictEqual(nativeMethods.anchorHrefGetter.call(parentDiv.firstChild), urlUtils.getProxyUrl('http://domain.com/'));
-    strictEqual(nativeMethods.scriptSrcGetter.call(parentDiv.lastChild), urlUtils.getProxyUrl('http://domain.com/script', { resourceType: 's' }));
-
-    parentDiv.innerHTML = '';
-    parentDiv.appendChild(childDiv);
-
-    var returnedValue = setProperty(childDiv, 'outerHTML', obj);
-
-    strictEqual(returnedValue, obj);
-    strictEqual(parentDiv.innerHTML, '[object Object]');
-
-    parentDiv.innerHTML = '';
-    parentDiv.appendChild(childDiv);
-
-    returnedValue = setProperty(childDiv, 'outerHTML', null);
-
-    var propertyValue = parentDiv.innerHTML;
-
-    parentDiv.innerHTML = '';
-    parentDiv.appendChild(childDiv);
-
-    childDiv.outerHTML = null;
-
-    strictEqual(returnedValue, null);
-    strictEqual(propertyValue, parentDiv.innerHTML);
-
-    parentDiv.innerHTML = '';
-    parentDiv.appendChild(childDiv);
-
-    returnedValue = setProperty(childDiv, 'outerHTML', void 0);
-    propertyValue = parentDiv.innerHTML;
-
-    parentDiv.innerHTML = '';
-    parentDiv.appendChild(childDiv);
-
-    childDiv.outerHTML = void 0;
-
-    strictEqual(returnedValue, void 0);
-    strictEqual(propertyValue, parentDiv.innerHTML);
-});
-
 module('regression');
-
-test('innerHTML in iframe (GH-620)', function () {
-    var url      = 'somePage.html';
-    var proxyUrl = urlUtils.getProxyUrl(url, { resourceType: 'i' });
-
-    return createTestIframe()
-        .then(function (iframe) {
-            eval(processScript('iframe.contentDocument.body.innerHTML = "<a href=\\"' + url + '\\">link</a>";'));
-
-            strictEqual(nativeMethods.anchorHrefGetter.call(iframe.contentDocument.body.firstChild), proxyUrl);
-        });
-});
-
-test('script block inserted via element.innerHtml must not be executed (B237015)', function () {
-    var testPropertyName = 'testProperty';
-    var el               = document.createElement('div');
-    var body             = document.getElementsByTagName('body')[0];
-    var script           = '<script>window.' + testPropertyName + ' = true;<' + '/script>';
-
-    body.appendChild(el);
-    el.innerHTML = script;
-
-    ok(!window[testPropertyName]);
-});
 
 if (!browserUtils.isIE) {
     asyncTest('valid resource type for iframe.contentWindow.location must be calculated', function () {
@@ -418,18 +226,6 @@ if (!browserUtils.isIE) {
         document.body.appendChild(iframe);
     });
 }
-
-test('iframe.body.innerHtml must be overriden (Q527555)', function () {
-    return createTestIframe()
-        .then(function (iframe) {
-            var iframeBody = iframe.contentWindow.document.body;
-            var html       = '<a href="url" ' + DomProcessor.getStoredAttrName('src') + '="url1" />';
-
-            iframeBody.innerHTML = html;
-
-            ok(getProperty(iframeBody, 'innerHTML') !== html);
-        });
-});
 
 test('setting the link.href attribute to "mailto" in iframe (T228218)', function () {
     var storedGetProxyUrl = urlUtils.getProxyUrl;
@@ -532,7 +328,7 @@ test('restoring the removed RegExp.prototype.test function should not throw an e
 test('the client code gets access to the Hammerhead script (GH-479)', function () {
     var div = document.createElement('div');
 
-    eval(processScript('div.innerHTML="<html><body><div id=\\"test\\"></div></body></html>"'));
+    div.innerHTML = '<html><body><div id="test"></div></body></html>';
 
     strictEqual(div.childNodes.length, 1);
     strictEqual(div.childNodes[0].id, 'test');

@@ -173,7 +173,7 @@ test('send the origin header correctly (GH-284)', function () {
 
             var script = document.createElement('script');
 
-            script.innerHTML = '(' + xhrTestFunc.toString() + ')()';
+            nativeMethods.scriptTextSetter.call(script, '(' + xhrTestFunc.toString() + ')()');
 
             iframe.contentDocument.body.appendChild(script);
 

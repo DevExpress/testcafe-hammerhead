@@ -394,7 +394,7 @@ test('window.onbeforeunload', function () {
 test('element.innerHTML', function () {
     settings.get().sessionId = 'sessionId';
 
-    var $container   = $('<div>');
+    var container    = document.createElement('div');
     var checkElement = function (el, attr, resourceType) {
         var storedAttr     = DomProcessor.getStoredAttrName(attr);
         var exprectedValue = 'http://' + location.host + '/sessionId' + resourceType +
@@ -404,17 +404,15 @@ test('element.innerHTML', function () {
         strictEqual(nativeMethods.getAttribute.call(el, attr), exprectedValue);
     };
 
-    var html = ' <A iD = " fakeId1 " hRef = "/Images/1.png" attr="test" ></A>' +
-               ' <form iD="fakeId3 " action="/Images/1.png"    attr="test" ></form>' +
-               ' <link  iD = " fakeId5" href="/Images/1.png" attr="test" ></link>' +
-               ' <' + 'script  iD = "  fakeId6  " sRc=  "/Images/1.png" attr= "test"' + '>' + '</' + 'scriPt' + '>';
+    container.innerHTML = '<A iD = " fakeId1 " hRef = "/Images/1.png" attr="test"></A>' +
+                          '<form iD="fakeId3 " action="/Images/1.png" attr="test"></form>' +
+                          '<link  iD = " fakeId5" href="/Images/1.png" attr="test" ></link>' +
+                          '<script  iD = "  fakeId6  " sRc= "/Images/1.png" attr= "test">' + '</' + 'scriPt>';
 
-    setProperty($container[0], 'innerHTML', html);
-
-    checkElement($container.find('a')[0], 'href', '');
-    checkElement($container.find('form')[0], 'action', '!f');
-    checkElement($container.find('link')[0], 'href', '');
-    checkElement($container.find('script')[0], 'src', '!s');
+    checkElement(container.querySelector('a'), 'href', '');
+    checkElement(container.querySelector('form'), 'action', '!f');
+    checkElement(container.querySelector('link'), 'href', '');
+    checkElement(container.querySelector('script'), 'src', '!s');
 });
 
 // NOTE: IE11 adds extra 'NS' namespace to stored xlink href attribute during processing (GH-1083)
@@ -424,11 +422,9 @@ if (!browserUtils.isIE11) {
         var xlinkNamespaceUrl = 'http://www.w3.org/1999/xlink';
         var baseVal           = 'http://example.com/test.svg';
 
-        var html = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
-                   '<image xlink:href="' + baseVal + '"></image>\n' +
-                   '</svg>';
-
-        setProperty(div, 'innerHTML', html);
+        div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="' + xlinkNamespaceUrl + '">\n' +
+                        '<image xlink:href="' + baseVal + '"></image>\n' +
+                        '</svg>';
 
         var image = div.querySelector('image');
 

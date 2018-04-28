@@ -5,7 +5,7 @@ import nativeMethods from '../native-methods';
 import { processScript } from '../../../processing/script';
 import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
-import { processHtml } from '../../utils/html';
+import { cleanUpHtml, processHtml } from '../../utils/html';
 import {
     isSubDomain,
     parseUrl,
@@ -24,7 +24,12 @@ import {
     isWindow,
     isPerformanceNavigationTiming,
     isTextEditableElementAndEditingAllowed,
-    isShadowUIElement
+    isShadowUIElement,
+    isScriptElement,
+    isStyleElement,
+    findDocument,
+    isBodyElement,
+    isHtmlElement
 } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
 import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
@@ -40,6 +45,8 @@ import UploadSandbox from '../upload';
 import { getAnchorProperty, setAnchorProperty } from '../code-instrumentation/properties/anchor';
 import { XLINK_NAMESPACE } from '../../../processing/dom/namespaces';
 import urlResolver from '../../utils/url-resolver';
+import { remove as removeProcessingHeader } from '../../../processing/script/header';
+import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -59,7 +66,7 @@ const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javas
 const CONTEXT_SVG_IMAGE_ELEMENT = 'hammerhead|context-svg-image-element';
 
 export default class WindowSandbox extends SandboxBase {
-    constructor (nodeSandbox, eventSandbox, uploadSandbox) {
+    constructor (nodeSandbox, eventSandbox, uploadSandbox, nodeMutation) {
         super();
 
         this.nodeSandbox           = nodeSandbox;
@@ -68,6 +75,7 @@ export default class WindowSandbox extends SandboxBase {
         this.elementEditingWatcher = eventSandbox.elementEditingWatcher;
         this.uploadSandbox         = uploadSandbox;
         this.shadowUI              = nodeSandbox.shadowUI;
+        this.nodeMutation          = nodeMutation;
 
         this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
@@ -123,6 +131,29 @@ export default class WindowSandbox extends SandboxBase {
             return urlResolver.resolve(attrValue, document);
 
         return resolveUrlAsDest(attrValue);
+    }
+
+    static _removeProcessingInstructions (text) {
+        if (text) {
+            text = removeProcessingHeader(text);
+
+            return styleProcessor.cleanUp(text, parseProxyUrl);
+        }
+
+        return text;
+    }
+
+    static _processTextPropValue (el, text) {
+        const processedText = text !== null && text !== void 0 ? String(text) : text;
+
+        if (processedText) {
+            if (isScriptElement(el))
+                return processScript(processedText, true);
+            else if (isStyleElement(el))
+                return styleProcessor.process(processedText, getProxyUrl, true);
+        }
+
+        return processedText;
     }
 
     _overrideUrlAttrDescriptors (attr, elementConstructors) {
@@ -891,6 +922,171 @@ export default class WindowSandbox extends SandboxBase {
         overrideDescriptor(window.Element.prototype, 'nextElementSibling', {
             getter: function () {
                 return windowSandbox.shadowUI.getNextElementSibling(this);
+            }
+        });
+
+        overrideDescriptor(window[nativeMethods.elementHTMLPropOwnerName].prototype, 'innerHTML', {
+            getter: function () {
+                const innerHTML = nativeMethods.elementInnerHTMLGetter.call(this);
+
+                if (isScriptElement(this))
+                    return removeProcessingHeader(innerHTML);
+                else if (isStyleElement(this))
+                    return styleProcessor.cleanUp(innerHTML, parseProxyUrl);
+
+                return cleanUpHtml(innerHTML, this.tagName);
+            },
+            setter: function (value) {
+                const el         = this;
+                const isStyleEl  = isStyleElement(el);
+                const isScriptEl = isScriptElement(el);
+
+                let processedValue = value !== null && value !== void 0 ? String(value) : value;
+
+                if (processedValue) {
+                    if (isStyleEl)
+                        processedValue = styleProcessor.process(processedValue, getProxyUrl, true);
+                    else if (isScriptEl)
+                        processedValue = processScript(processedValue, true);
+                    else
+                        processedValue = processHtml(processedValue, { parentTag: el.tagName });
+                }
+
+                if (!isStyleEl && !isScriptEl)
+                    DOMMutationTracker.onChildrenChanged(el);
+
+                nativeMethods.elementInnerHTMLSetter.call(el, processedValue);
+
+                if (isStyleEl || isScriptEl)
+                    return;
+
+                DOMMutationTracker.onChildrenChanged(el);
+
+                if (windowSandbox.document.body === el) {
+                    const shadowUIRoot = windowSandbox.shadowUI.getRoot();
+
+                    windowSandbox.shadowUI.markShadowUIContainers(windowSandbox.document.head, el);
+                    ShadowUI.markElementAndChildrenAsShadow(shadowUIRoot);
+                }
+
+                else if (isShadowUIElement(el))
+                    ShadowUI.markElementAndChildrenAsShadow(el);
+
+                const parentDocument = findDocument(el);
+                const parentWindow   = parentDocument ? parentDocument.defaultView : null;
+
+                // NOTE: For the iframe with an empty src.
+                if (parentWindow && parentWindow !== window &&
+                    parentWindow[INTERNAL_PROPS.processDomMethodName])
+                    parentWindow[INTERNAL_PROPS.processDomMethodName](el, parentDocument);
+                else if (window[INTERNAL_PROPS.processDomMethodName])
+                    window[INTERNAL_PROPS.processDomMethodName](el);
+
+                // NOTE: Fix for B239138 - unroll.me 'Cannot read property 'document' of null' error raised
+                // during recording. There was an issue when the document.body was replaced, so we need to
+                // reattach UI to a new body manually.
+
+                // NOTE: This check is required because jQuery calls the set innerHTML method for an element
+                // in an unavailable window.
+                if (window.self) {
+                    // NOTE: Use timeout, so that changes take effect.
+                    if (isHtmlElement(el) || isBodyElement(el))
+                        nativeMethods.setTimeout.call(window, () => windowSandbox.nodeMutation.onBodyContentChanged(el), 0);
+                }
+            }
+        });
+
+        overrideDescriptor(window[nativeMethods.elementHTMLPropOwnerName].prototype, 'outerHTML', {
+            getter: function () {
+                const outerHTML = nativeMethods.elementOuterHTMLGetter.call(this);
+
+                return cleanUpHtml(outerHTML, this.parentNode && this.parentNode.tagName);
+            },
+            setter: function (value) {
+                const parentEl = this.parentNode;
+
+                DOMMutationTracker.onElementChanged(this);
+
+                if (parentEl && value !== null && value !== void 0) {
+                    const parentDocument = findDocument(parentEl);
+                    const parentWindow   = parentDocument ? parentDocument.defaultView : null;
+
+                    nativeMethods.elementOuterHTMLSetter.call(this, processHtml(String(value), { parentTag: parentEl.tagName }));
+
+                    DOMMutationTracker.onChildrenChanged(parentEl);
+
+                    // NOTE: For the iframe with an empty src.
+                    if (parentWindow && parentWindow !== window &&
+                        parentWindow[INTERNAL_PROPS.processDomMethodName])
+                        parentWindow[INTERNAL_PROPS.processDomMethodName](parentEl, parentDocument);
+                    else if (window[INTERNAL_PROPS.processDomMethodName])
+                        window[INTERNAL_PROPS.processDomMethodName](parentEl);
+
+                    // NOTE: This check is required for an element in an unavailable window.
+                    // NOTE: Use timeout, so that changes take effect.
+                    if (window.self && isBodyElement(this))
+                        nativeMethods.setTimeout.call(window, () => this.shadowUI.onBodyElementMutation(), 0);
+                }
+                else
+                    nativeMethods.elementOuterHTMLSetter.call(this, value);
+            }
+        });
+
+        overrideDescriptor(window.HTMLElement.prototype, 'innerText', {
+            getter: function () {
+                const textContent = nativeMethods.htmlElementInnerTextGetter.call(this);
+
+                return WindowSandbox._removeProcessingInstructions(textContent);
+            },
+            setter: function (value) {
+                const processedValue = WindowSandbox._processTextPropValue(this, value);
+
+                DOMMutationTracker.onChildrenChanged(this);
+
+                nativeMethods.htmlElementInnerTextSetter.call(this, processedValue);
+            }
+        });
+
+        overrideDescriptor(window.HTMLScriptElement.prototype, 'text', {
+            getter: function () {
+                const text = nativeMethods.scriptTextGetter.call(this);
+
+                return removeProcessingHeader(text);
+            },
+            setter: function (value) {
+                const processedValue = value ? processScript(String(value), true) : value;
+
+                nativeMethods.scriptTextSetter.call(this, processedValue);
+            }
+        });
+
+        overrideDescriptor(window.HTMLAnchorElement.prototype, 'text', {
+            getter: function () {
+                const textContent = nativeMethods.anchorTextGetter.call(this);
+
+                return WindowSandbox._removeProcessingInstructions(textContent);
+            },
+            setter: function (value) {
+                const processedValue = WindowSandbox._processTextPropValue(this, value);
+
+                DOMMutationTracker.onChildrenChanged(this);
+
+                nativeMethods.anchorTextSetter.call(this, processedValue);
+            }
+        });
+
+        overrideDescriptor(window.Node.prototype, 'textContent', {
+            getter: function () {
+                const textContent = nativeMethods.nodeTextContentGetter.call(this);
+
+                return WindowSandbox._removeProcessingInstructions(textContent);
+            },
+            setter: function (value) {
+                const processedValue = WindowSandbox._processTextPropValue(this, value);
+
+                DOMMutationTracker.onChildrenChanged(this);
+
+                nativeMethods.nodeTextContentSetter.call(this, processedValue);
             }
         });
     }

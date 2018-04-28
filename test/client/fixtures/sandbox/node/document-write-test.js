@@ -1,9 +1,13 @@
-var processScript = hammerhead.get('../processing/script').processScript;
-var urlUtils      = hammerhead.get('./utils/url');
+var urlUtils                = hammerhead.get('./utils/url');
+var htmlUtils               = hammerhead.get('../client/utils/html');
+var styleProcessor          = hammerhead.get('../processing/style');
+var scriptProcessingHeaders = hammerhead.get('../processing/script/header');
 
 var nativeMethods = hammerhead.nativeMethods;
 var iframeSandbox = hammerhead.sandbox.iframe;
 var nodeSandbox   = hammerhead.sandbox.node;
+var domUtils      = hammerhead.utils.dom;
+var browserUtils  = hammerhead.utils.browser;
 
 iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
@@ -18,7 +22,8 @@ nodeSandbox._processElement = function (el) {
 };
 
 QUnit.testDone(function () {
-    nativeMethods.removeChild.call(document.body, nativeIframeForWrite);
+    if (nativeIframeForWrite && nativeIframeForWrite.parentNode)
+        nativeMethods.removeChild.call(document.body, nativeIframeForWrite);
 });
 
 function createWriteTestIframes () {
@@ -45,10 +50,17 @@ function close () {
 }
 
 function testHTML () {
-    strictEqual(eval(processScript('processedIframeForWrite.contentDocument.documentElement.innerHTML')),
-        nativeIframeForWrite.contentDocument.documentElement.innerHTML);
-    strictEqual(eval(processScript('processedIframeForWrite.contentDocument.documentElement.outerHTML')),
-        nativeIframeForWrite.contentDocument.documentElement.outerHTML);
+    var innerHTML = processedIframeForWrite.contentDocument.documentElement.innerHTML;
+    var outerHTML = processedIframeForWrite.contentDocument.documentElement.outerHTML;
+
+    // TODO: remove this condition after GH-1326 pull request
+    if (browserUtils.isFirefox || browserUtils.isIE) {
+        innerHTML = htmlUtils.cleanUpHtml(innerHTML);
+        outerHTML = htmlUtils.cleanUpHtml(outerHTML);
+    }
+
+    strictEqual(innerHTML, nativeMethods.elementInnerHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
+    strictEqual(outerHTML, nativeMethods.elementOuterHTMLGetter.call(nativeIframeForWrite.contentDocument.documentElement));
 }
 
 function testContent (selector) {
@@ -57,15 +69,27 @@ function testContent (selector) {
 
     if (elsFromIframe.length === elsFromNativeIframe.length) {
         for (var i = 0; i < elsFromIframe.length; i++) {
-            /* eslint-disable no-unused-vars */
-            var el = elsFromIframe[i];
-            /* eslint-enable no-unused-vars */
+            var el       = elsFromIframe[i];
             var nativeEl = elsFromNativeIframe[i];
 
-            strictEqual(eval(processScript('el.innerHTML')), nativeEl.innerHTML);
-            strictEqual(eval(processScript('el.innerText.trim()')), nativeEl.innerText.trim());
-            strictEqual(eval(processScript('el.textContent')), nativeEl.textContent);
-            strictEqual(eval(processScript('el.text')), nativeEl.text);
+            // TODO: remove this function after GH-1326 pull request
+            var cleanUpTextIfNecessary = function (text) {
+                if (browserUtils.isFirefox || browserUtils.isIE)
+                    return scriptProcessingHeaders.remove(styleProcessor.cleanUp(text, urlUtils.parseProxyUrl));
+
+                return text;
+            };
+
+            strictEqual(cleanUpTextIfNecessary(el.innerHTML), nativeMethods.elementInnerHTMLGetter.call(nativeEl));
+            strictEqual(cleanUpTextIfNecessary(el.innerText).trim(), nativeMethods.htmlElementInnerTextGetter.call(nativeEl).trim());
+            strictEqual(cleanUpTextIfNecessary(el.textContent), nativeMethods.nodeTextContentGetter.call(nativeEl));
+
+            if (domUtils.isScriptElement(el))
+                strictEqual(cleanUpTextIfNecessary(el.text), nativeMethods.scriptTextGetter.call(nativeEl));
+            else if (domUtils.isAnchorElement(el))
+                strictEqual(el.text, nativeMethods.anchorTextGetter.call(nativeEl));
+            else
+                strictEqual(el.text, nativeEl.text);
         }
     }
     else
@@ -73,7 +97,7 @@ function testContent (selector) {
 }
 
 function testVariable (variableName) {
-    strictEqual(eval(processScript('processedIframeForWrite.contentWindow[variableName]')),
+    strictEqual(processedIframeForWrite.contentWindow[variableName],
         nativeIframeForWrite.contentWindow[variableName]);
 }
 
@@ -112,7 +136,7 @@ test('write script', function () {
     return createWriteTestIframes()
         .then(function () {
             open();
-            testWrite('<script>var a, b, c;<' + 'script>');
+            testWrite('<script>var a, b, c;<' + '/script>');
             testWrite('<script id="scr1">');
             testContent('#scr1');
             testWrite('var a = 5;');

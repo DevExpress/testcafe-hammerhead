@@ -228,38 +228,48 @@ class NativeMethods {
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
-        const objectDataDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
-        const inputValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
-        const textAreaValueDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
-        const imageSrcDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
-        const scriptSrcDescriptor         = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
-        const embedSrcDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
-        const sourceSrcDescriptor         = win.Object.getOwnPropertyDescriptor(win.HTMLSourceElement.prototype, 'src');
-        const mediaSrcDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLMediaElement.prototype, 'src');
-        const inputSrcDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'src');
-        const frameSrcDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLFrameElement.prototype, 'src');
-        const iframeSrcDescriptor         = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'src');
-        const anchorHrefDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'href');
-        const linkHrefDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'href');
-        const areaHrefDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'href');
-        const baseHrefDescriptor          = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'href');
-        const anchorHostDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'host');
-        const anchorHostnameDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'hostname');
-        const anchorPathnameDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'pathname');
-        const anchorPortDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'port');
-        const anchorProtocolDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'protocol');
-        const anchorSearchDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'search');
-        const anchorTargetDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'target');
-        const formTargetDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLFormElement.prototype, 'target');
-        const areaTargetDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'target');
-        const baseTargetDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'target');
-        const svgImageHrefDescriptor      = win.Object.getOwnPropertyDescriptor(win.SVGImageElement.prototype, 'href');
-        const svgAnimStrAnimValDescriptor = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'animVal');
-        const svgAnimStrBaseValDescriptor = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'baseVal');
-        const inputAutocompleteDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'autocomplete');
-        const formActionDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLFormElement.prototype, 'action');
-        const inputFormActionDescriptor   = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'formAction');
-        const buttonFormActionDescriptor  = win.Object.getOwnPropertyDescriptor(win.HTMLButtonElement.prototype, 'formAction');
+        const objectDataDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
+        const inputValueDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
+        const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
+        const imageSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
+        const scriptSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
+        const embedSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
+        const sourceSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLSourceElement.prototype, 'src');
+        const mediaSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLMediaElement.prototype, 'src');
+        const inputSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'src');
+        const frameSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLFrameElement.prototype, 'src');
+        const iframeSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'src');
+        const anchorHrefDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'href');
+        const linkHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'href');
+        const areaHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'href');
+        const baseHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'href');
+        const anchorHostDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'host');
+        const anchorHostnameDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'hostname');
+        const anchorPathnameDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'pathname');
+        const anchorPortDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'port');
+        const anchorProtocolDescriptor       = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'protocol');
+        const anchorSearchDescriptor         = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'search');
+        const anchorTargetDescriptor         = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'target');
+        const formTargetDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLFormElement.prototype, 'target');
+        const areaTargetDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'target');
+        const baseTargetDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'target');
+        const svgImageHrefDescriptor         = win.Object.getOwnPropertyDescriptor(win.SVGImageElement.prototype, 'href');
+        const svgAnimStrAnimValDescriptor    = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'animVal');
+        const svgAnimStrBaseValDescriptor    = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'baseVal');
+        const inputAutocompleteDescriptor    = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'autocomplete');
+        const formActionDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLFormElement.prototype, 'action');
+        const inputFormActionDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'formAction');
+        const buttonFormActionDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLButtonElement.prototype, 'formAction');
+        const nodeTextContentDescriptor      = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'textContent');
+        const htmlElementInnerTextDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'innerText');
+        const scriptTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'text');
+        const anchorTextDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'text');
+
+        // NOTE: Html properties is located in HTMLElement prototype in IE11 only
+        this.elementHTMLPropOwnerName = win.Element.prototype.hasOwnProperty('innerHTML') ? 'Element' : 'HTMLElement';
+
+        const elementInnerHTMLDescriptor = win.Object.getOwnPropertyDescriptor(win[this.elementHTMLPropOwnerName].prototype, 'innerHTML');
+        const elementOuterHTMLDescriptor = win.Object.getOwnPropertyDescriptor(win[this.elementHTMLPropOwnerName].prototype, 'outerHTML');
 
         // Setters
         this.objectDataSetter        = objectDataDescriptor.set;
@@ -292,6 +302,13 @@ class NativeMethods {
         this.formActionSetter        = formActionDescriptor.set;
         this.inputFormActionSetter   = inputFormActionDescriptor.set;
         this.buttonFormActionSetter  = buttonFormActionDescriptor.set;
+
+        this.nodeTextContentSetter      = nodeTextContentDescriptor.set;
+        this.htmlElementInnerTextSetter = htmlElementInnerTextDescriptor.set;
+        this.scriptTextSetter           = scriptTextDescriptor.set;
+        this.anchorTextSetter           = anchorTextDescriptor.set;
+        this.elementInnerHTMLSetter     = elementInnerHTMLDescriptor.set;
+        this.elementOuterHTMLSetter     = elementOuterHTMLDescriptor.set;
 
         // NOTE: Event properties is located in window prototype only in IE11
         this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
@@ -355,6 +372,13 @@ class NativeMethods {
         this.formActionGetter               = formActionDescriptor.get;
         this.inputFormActionGetter          = inputFormActionDescriptor.get;
         this.buttonFormActionGetter         = buttonFormActionDescriptor.get;
+
+        this.nodeTextContentGetter      = nodeTextContentDescriptor.get;
+        this.htmlElementInnerTextGetter = htmlElementInnerTextDescriptor.get;
+        this.scriptTextGetter           = scriptTextDescriptor.get;
+        this.anchorTextGetter           = anchorTextDescriptor.get;
+        this.elementInnerHTMLGetter     = elementInnerHTMLDescriptor.get;
+        this.elementOuterHTMLGetter     = elementOuterHTMLDescriptor.get;
 
         this.nodeFirstChildGetter            = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'firstChild').get;
         this.nodeLastChildGetter             = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'lastChild').get;

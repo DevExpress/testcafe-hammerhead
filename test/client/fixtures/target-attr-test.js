@@ -44,12 +44,10 @@ test('process html', function () {
 
     document.body.appendChild(container);
 
-    setProperty(container, 'innerHTML',
-        '<a href="about:blank" target="_blank" onclick="return false;"></a>' +
-        '<a href="about:blank" target="unknow_window" onclick="return false;"></a>' +
-        '<a href="about:blank" target="window_name" onclick="return false;"></a>' +
-        '<a href="about:blank" target="_self" onclick="return false;"></a>'
-    );
+    container.innerHTML = '<a href="about:blank" target="_blank" onclick="return false;"></a>' +
+                          '<a href="about:blank" target="unknow_window" onclick="return false;"></a>' +
+                          '<a href="about:blank" target="window_name" onclick="return false;"></a>' +
+                          '<a href="about:blank" target="_self" onclick="return false;"></a>';
 
     var children = container.children;
 

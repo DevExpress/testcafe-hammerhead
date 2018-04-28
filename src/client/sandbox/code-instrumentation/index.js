@@ -9,13 +9,12 @@ import nativeMethods from '../../sandbox/native-methods';
 import { processHtml } from '../../utils/html';
 
 export default class CodeInstrumentation extends SandboxBase {
-    constructor (nodeMutation, eventSandbox, shadowUI, elementSandbox) {
+    constructor (eventSandbox, elementSandbox) {
         super();
 
         this.methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
         this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation();
-        this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(nodeMutation,
-            shadowUI, elementSandbox);
+        this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(elementSandbox);
     }
 
     static getAttributesProperty (el) {

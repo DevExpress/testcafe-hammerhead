@@ -393,13 +393,14 @@ test('window.Image must be overriden (B234340)', function () {
     strictEqual(nativeMethods.getAttribute.call(img, 'src'), urlUtils.getProxyUrl('data/image.png'));
     strictEqual(nativeMethods.getAttribute.call(img, DomProcessor.getStoredAttrName('src')), 'data/image.png');
 
-    var NativeImage = nativeMethods.Image;
+    var NativeImage  = nativeMethods.Image;
+    var getOuterHTML = nativeMethods.elementOuterHTMLGetter;
 
-    strictEqual((new Image()).outerHTML, new NativeImage().outerHTML);
-    strictEqual((new Image(15)).outerHTML, new NativeImage(15).outerHTML);
-    strictEqual((new Image(15, 15)).outerHTML, new NativeImage(15, 15).outerHTML);
-    strictEqual((new Image(void 0)).outerHTML, new NativeImage(void 0).outerHTML);
-    strictEqual((new Image(void 0, void 0)).outerHTML, new NativeImage(void 0, void 0).outerHTML);
+    strictEqual(getOuterHTML.call(new Image()), getOuterHTML.call(new NativeImage()));
+    strictEqual(getOuterHTML.call(new Image(15)), getOuterHTML.call(new NativeImage(15)));
+    strictEqual(getOuterHTML.call(new Image(15, 15)), getOuterHTML.call(new NativeImage(15, 15)));
+    strictEqual(getOuterHTML.call(new Image(void 0)), getOuterHTML.call(new NativeImage(void 0)));
+    strictEqual(getOuterHTML.call(new Image(void 0, void 0)), getOuterHTML.call(new NativeImage(void 0, void 0)));
 });
 
 asyncTest('window.Blob with type=javascript must be overriden (T259367)', function () {

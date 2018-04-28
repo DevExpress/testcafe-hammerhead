@@ -48,19 +48,19 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     setScriptContent (script, content) {
-        script.text = content;
+        nativeMethods.scriptTextSetter.call(script, content);
     }
 
     getScriptContent (script) {
-        return script.text;
+        return nativeMethods.scriptTextGetter.call(script);
     }
 
     getStyleContent (style) {
-        return style.innerHTML;
+        return nativeMethods.elementInnerHTMLGetter.call(style);
     }
 
     setStyleContent (style, content) {
-        style.innerHTML = content;
+        nativeMethods.elementInnerHTMLSetter.call(style, content);
     }
 
     needToProcessContent (el) {
