@@ -446,11 +446,6 @@ test('process the "integrity" attribute in the link and script tags (GH-235)', f
         strictEqual(nativeMethods.getAttribute.call(el, 'integrity'), null);
     }
 
-    function checkIntegrityProperty (el, elIntegrityGetter) {
-        if (elIntegrityGetter)
-            strictEqual(el.integrity, integrityValue);
-    }
-
     nativeMethods.setAttribute.call(script, 'integrity', integrityValue);
     nativeMethods.setAttribute.call(link, 'integrity', integrityValue);
 
@@ -459,10 +454,6 @@ test('process the "integrity" attribute in the link and script tags (GH-235)', f
 
     checkIntegrityAttr(script);
     checkIntegrityAttr(link);
-
-    // NOTE: Some browsers have no 'integrity' property in HTMLScriptElement, HTMLLinkElement elements
-    checkIntegrityProperty(script, nativeMethods.scriptIntegrityGetter);
-    checkIntegrityProperty(script, nativeMethods.linkIntegrityGetter);
 });
 
 test('link with target="_parent" in iframe (T216999)', function () {

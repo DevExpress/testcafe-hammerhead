@@ -181,28 +181,15 @@ test('script src', function () {
     settings.get().sessionId = storedSessionId;
 });
 
-test('\'integrity\' attribute, \'integrity\' property (GH-235)', function () {
-    var script                  = nativeMethods.createElement.call(document, 'script');
-    var link                    = nativeMethods.createElement.call(document, 'link');
-    var storedIntegrityAttrName = DomProcessor.getStoredAttrName('integrity');
-    var integrityValue          = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
+test('"integrity" attribute (GH-235)', function () {
+    var script         = nativeMethods.createElement.call(document, 'script');
+    var link           = nativeMethods.createElement.call(document, 'link');
+    var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
 
     function checkIntegrityAttr (el) {
         ok(el.hasAttribute('integrity'));
         strictEqual(el.getAttribute('integrity'), integrityValue);
         strictEqual(nativeMethods.getAttribute.call(el, 'integrity'), null);
-        strictEqual(nativeMethods.getAttribute.call(el, storedIntegrityAttrName), integrityValue);
-    }
-
-    function checkIntegrityProperty (elTag, elIntegrityGetter) {
-        if (elIntegrityGetter) {
-            var el = nativeMethods.createElement.call(document, elTag);
-
-            el.integrity = integrityValue;
-
-            checkIntegrityAttr(el);
-            strictEqual(el.integrity, integrityValue);
-        }
     }
 
     script.setAttribute('integrity', integrityValue);
@@ -210,11 +197,33 @@ test('\'integrity\' attribute, \'integrity\' property (GH-235)', function () {
 
     checkIntegrityAttr(script);
     checkIntegrityAttr(link);
-
-    // NOTE: Some browsers have no 'integrity' property in HTMLScriptElement, HTMLLinkElement elements
-    checkIntegrityProperty('script', nativeMethods.scriptIntegrityGetter);
-    checkIntegrityProperty('link', nativeMethods.linkIntegrityGetter);
 });
+
+if (nativeMethods.scriptIntegrityGetter) {
+    test('HTMLScriptElement.integrity', function () {
+        var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
+
+        var script = nativeMethods.createElement.call(document, 'script');
+
+        script.integrity = integrityValue;
+
+        strictEqual(script.integrity, integrityValue);
+        strictEqual(nativeMethods.getAttribute.call(script, 'integrity'), null);
+    });
+}
+
+if (nativeMethods.linkIntegrityGetter) {
+    test('HTMLLinkElement.integrity', function () {
+        var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
+
+        var link = nativeMethods.createElement.call(document, 'link');
+
+        link.integrity = integrityValue;
+
+        strictEqual(link.integrity, integrityValue);
+        strictEqual(nativeMethods.getAttribute.call(link, 'integrity'), null);
+    });
+}
 
 test('iframe with "javascript: <html>...</html>" src', function () {
     return createTestIframe({ src: 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<' + '/script>"' })
