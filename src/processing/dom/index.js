@@ -296,7 +296,7 @@ export default class DomProcessor {
     // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
     // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
     // the correct SHA for the changed script.
-    // In addition, we create stored 'integrity' attribute with the current 'integrity' attribute value (GH-235)
+    // In addition, we create stored 'integrity' attribute with the current 'integrity' attribute value. (GH-235)
     _processIntegrityAttr (el) {
         const storedIntegrityAttr = DomProcessor.getStoredAttrName('integrity');
         const processed           = this.adapter.hasAttr(el, storedIntegrityAttr) && !this.adapter.hasAttr(el, 'integrity');

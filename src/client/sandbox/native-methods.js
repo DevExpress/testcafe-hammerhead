@@ -312,13 +312,12 @@ class NativeMethods {
         this.elementInnerHTMLSetter     = elementInnerHTMLDescriptor.set;
         this.elementOuterHTMLSetter     = elementOuterHTMLDescriptor.set;
 
-        // NOTE: Some browsers have no 'integrity' property in HTMLScriptElement
-        if (scriptIntegrityDescriptor)
+        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) have no 'integrity' property
+        // in both HTMLScriptElement and HTMLLinkElement elements.
+        if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
             this.scriptIntegritySetter = scriptIntegrityDescriptor.set;
-
-        // NOTE: Some browsers have no 'integrity' property in HTMLLinkElement
-        if (linkIntegrityDescriptor)
-            this.linkIntegritySetter = linkIntegrityDescriptor.set;
+            this.linkIntegritySetter   = linkIntegrityDescriptor.set;
+        }
 
         // NOTE: Event properties is located in window prototype only in IE11
         this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
@@ -399,13 +398,12 @@ class NativeMethods {
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 
-        // NOTE: Some browsers have no 'integrity' property in HTMLScriptElement
-        if (scriptIntegrityDescriptor)
+        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) have no 'integrity' property
+        // in both HTMLScriptElement and HTMLLinkElement elements.
+        if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
             this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
-
-        // NOTE: Some browsers have no 'integrity' property in HTMLLinkElement
-        if (linkIntegrityDescriptor)
-            this.linkIntegrityGetter = linkIntegrityDescriptor.get;
+            this.linkIntegrityGetter   = linkIntegrityDescriptor.get;
+        }
 
         // NOTE: IE and Edge don't support origin property
         if (anchorOriginDescriptor)

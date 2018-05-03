@@ -101,9 +101,8 @@ export default class ElementSandbox extends SandboxBase {
         }
         // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
         // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
-        // the correct SHA for the changed script.
-        // getAttributeCore returns stored 'integrity' attribute value. (GH-235)
-        else if (loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName) && !isNs) {
+        // the correct SHA for the changed script. (GH-235)
+        else if (!isNs && loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName)) {
             const storedIntegrityAttr = DomProcessor.getStoredAttrName(attr);
 
             if (nativeMethods.hasAttribute.call(el, storedIntegrityAttr))
@@ -233,7 +232,7 @@ export default class ElementSandbox extends SandboxBase {
             setAttrMeth.apply(el, isNs ? [ns, storedStyleAttr, value] : [storedStyleAttr, value]);
             args[valueIndex] = styleProcessor.process(value, urlUtils.getProxyUrl);
         }
-        else if (loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName) && !isNs) {
+        else if (!isNs && loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName)) {
             const storedIntegrityAttr = DomProcessor.getStoredAttrName(attr);
 
             return setAttrMeth.apply(el, [storedIntegrityAttr, value]);
@@ -261,8 +260,8 @@ export default class ElementSandbox extends SandboxBase {
         // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
         // the correct SHA for the changed script.
         // _hasAttributeCore returns true for 'integrity' attribute if the stored attribute is exists. (GH-235)
-        if (args[attributeNameArgIndex] === 'integrity' &&
-            DomProcessor.isTagWithIntegrityAttr(domUtils.getTagName(el)) && !isNs)
+        if (!isNs && args[attributeNameArgIndex] === 'integrity' &&
+            DomProcessor.isTagWithIntegrityAttr(domUtils.getTagName(el)))
             args[attributeNameArgIndex] = DomProcessor.getStoredAttrName('integrity');
 
         return hasAttrMeth.apply(el, args);
