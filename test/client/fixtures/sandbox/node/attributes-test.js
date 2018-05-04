@@ -186,9 +186,9 @@ test('"integrity" attribute (GH-235)', function () {
     var link           = nativeMethods.createElement.call(document, 'link');
     var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
 
-    function checkIntegrityAttr (el, hasCorrectIntegrityAttr) {
-        ok(hasCorrectIntegrityAttr ? el.hasAttribute('integrity') : !el.hasAttribute('integrity'));
-        strictEqual(el.getAttribute('integrity'), hasCorrectIntegrityAttr ? integrityValue : null);
+    function checkIntegrityAttr (el, hasIntegrityAttr) {
+        ok(hasIntegrityAttr ? el.hasAttribute('integrity') : !el.hasAttribute('integrity'));
+        strictEqual(el.getAttribute('integrity'), hasIntegrityAttr ? integrityValue : null);
         strictEqual(nativeMethods.getAttribute.call(el, 'integrity'), null);
     }
 
