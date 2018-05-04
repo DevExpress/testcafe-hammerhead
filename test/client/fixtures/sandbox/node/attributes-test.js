@@ -181,6 +181,54 @@ test('script src', function () {
     settings.get().sessionId = storedSessionId;
 });
 
+test('"integrity" attribute (GH-235)', function () {
+    var script         = nativeMethods.createElement.call(document, 'script');
+    var link           = nativeMethods.createElement.call(document, 'link');
+    var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
+
+    function checkIntegrityAttr (el, hasIntegrityAttr) {
+        ok(hasIntegrityAttr ? el.hasAttribute('integrity') : !el.hasAttribute('integrity'));
+        strictEqual(el.getAttribute('integrity'), hasIntegrityAttr ? integrityValue : null);
+        strictEqual(nativeMethods.getAttribute.call(el, 'integrity'), null);
+    }
+
+    script.setAttribute('integrity', integrityValue);
+    link.setAttribute('integrity', integrityValue);
+
+    checkIntegrityAttr(script, true);
+    checkIntegrityAttr(link, true);
+
+
+    // Check integrity attribute when only NS integrity attribute sets (incorrect integrity attribute)
+    script = nativeMethods.createElement.call(document, 'script');
+    link   = nativeMethods.createElement.call(document, 'link');
+
+    script.setAttributeNS('http://www.example.com/ns/specialspace', 'specialspace:integrity', integrityValue);
+    script.setAttributeNS('http://www.example.com/ns/specialspace', 'specialspace:integrity', integrityValue);
+
+    checkIntegrityAttr(script, false);
+    checkIntegrityAttr(link, false);
+});
+
+if (nativeMethods.scriptIntegrityGetter && nativeMethods.linkIntegrityGetter) {
+    test('"integrity" property', function () {
+        var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
+        var script         = nativeMethods.createElement.call(document, 'script');
+        var link           = nativeMethods.createElement.call(document, 'link');
+
+        function checkIntegrityAttr (el) {
+            strictEqual(el.integrity, integrityValue);
+            strictEqual(nativeMethods.getAttribute.call(el, 'integrity'), null);
+        }
+
+        script.integrity = integrityValue;
+        link.integrity   = integrityValue;
+
+        checkIntegrityAttr(script);
+        checkIntegrityAttr(link);
+    });
+}
+
 test('iframe with "javascript: <html>...</html>" src', function () {
     return createTestIframe({ src: 'javascript:"<script>var d = {}; d.src = 1; window.test = true;<' + '/script>"' })
         .then(function (iframe) {

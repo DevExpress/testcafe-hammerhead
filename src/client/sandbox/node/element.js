@@ -85,6 +85,7 @@ export default class ElementSandbox extends SandboxBase {
         const loweredAttr = attr.toLowerCase();
         const ns          = isNs ? args[0] : null;
         const getAttrMeth = isNs ? nativeMethods.getAttributeNS : nativeMethods.getAttribute;
+        const tagName     = domUtils.getTagName(el);
 
         // OPTIMIZATION: The hasAttribute method is very slow.
         if (domProcessor.isUrlAttr(el, loweredAttr, ns) ||
@@ -97,6 +98,15 @@ export default class ElementSandbox extends SandboxBase {
                 return null;
             else if (el.hasAttribute(storedAttrName))
                 args[isNs ? 1 : 0] = storedAttrName;
+        }
+        // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
+        // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
+        // the correct SHA for the changed script. (GH-235)
+        else if (!isNs && loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName)) {
+            const storedIntegrityAttr = DomProcessor.getStoredAttrName(attr);
+
+            if (nativeMethods.hasAttribute.call(el, storedIntegrityAttr))
+                args[0] = storedIntegrityAttr;
         }
 
         return getAttrMeth.apply(el, args);
@@ -222,6 +232,11 @@ export default class ElementSandbox extends SandboxBase {
             setAttrMeth.apply(el, isNs ? [ns, storedStyleAttr, value] : [storedStyleAttr, value]);
             args[valueIndex] = styleProcessor.process(value, urlUtils.getProxyUrl);
         }
+        else if (!isNs && loweredAttr === 'integrity' && DomProcessor.isTagWithIntegrityAttr(tagName)) {
+            const storedIntegrityAttr = DomProcessor.getStoredAttrName(attr);
+
+            return setAttrMeth.apply(el, [storedIntegrityAttr, value]);
+        }
 
         const result = setAttrMeth.apply(el, args);
 
@@ -240,6 +255,14 @@ export default class ElementSandbox extends SandboxBase {
         if (typeof args[attributeNameArgIndex] === 'string' &&
             DomProcessor.isAddedAutocompleteAttr(args[attributeNameArgIndex], storedAutocompleteAttrValue))
             return false;
+
+        // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
+        // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
+        // the correct SHA for the changed script.
+        // _hasAttributeCore returns true for 'integrity' attribute if the stored attribute is exists. (GH-235)
+        if (!isNs && args[attributeNameArgIndex] === 'integrity' &&
+            DomProcessor.isTagWithIntegrityAttr(domUtils.getTagName(el)))
+            args[attributeNameArgIndex] = DomProcessor.getStoredAttrName('integrity');
 
         return hasAttrMeth.apply(el, args);
     }

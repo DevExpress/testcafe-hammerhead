@@ -24,7 +24,8 @@ const SVG_XLINK_HREF_TAGS = [
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const TARGET_ATTR_TAGS = ['a', 'form', 'area', 'base'];
+const TARGET_ATTR_TAGS    = ['a', 'form', 'area', 'base'];
+const INTEGRITY_ATTR_TAGS = ['script', 'link'];
 /*eslint-disable hammerhead/proto-methods*/
 const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS.filter(tagName => tagName !== 'base').concat('button');
 /*eslint-enable hammerhead/proto-methods*/
@@ -49,6 +50,10 @@ export default class DomProcessor {
 
     static isTagWithTargetAttr (tagName) {
         return TARGET_ATTR_TAGS.indexOf(tagName) !== -1;
+    }
+
+    static isTagWithIntegrityAttr (tagName) {
+        return INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
     }
 
     static isIframeFlagTag (tagName) {
@@ -290,9 +295,18 @@ export default class DomProcessor {
 
     // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
     // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
-    // the correct SHA for the changed script. (GH-235)
+    // the correct SHA for the changed script.
+    // In addition, we create stored 'integrity' attribute with the current 'integrity' attribute value. (GH-235)
     _processIntegrityAttr (el) {
-        this.adapter.removeAttr(el, 'integrity');
+        const storedIntegrityAttr = DomProcessor.getStoredAttrName('integrity');
+        const processed           = this.adapter.hasAttr(el, storedIntegrityAttr) && !this.adapter.hasAttr(el, 'integrity');
+        const attrValue           = this.adapter.getAttr(el, processed ? storedIntegrityAttr : 'integrity');
+
+        if (attrValue)
+            this.adapter.setAttr(el, storedIntegrityAttr, attrValue);
+
+        if (!processed)
+            this.adapter.removeAttr(el, 'integrity');
     }
 
     _processJsAttr (el, attrName, { isJsProtocol, isEventAttr }) {

@@ -431,22 +431,29 @@ module('should create a proxy url for the img src attribute if the image has the
 
 module('regression');
 
-test('remove the "integrity" attribute from the link and script tags (GH-235)', function () {
-    var script = nativeMethods.createElement.call(document, 'script');
-    var link   = nativeMethods.createElement.call(document, 'link');
-
-    nativeMethods.setAttribute.call(script, 'integrity', 'sha384-Li9vy3DqF8tnTXuiaAJuML3ky+er10rcgNR/VqsVpcw+ThHmYcwiB1pbOxEbzJr7');
-    nativeMethods.setAttribute.call(link, 'integrity', 'sha384-Li9vy3DqF8tnTXuiaAJuML3ky+er10rcgNR/VqsVpcw+ThHmYcwiB1pbOxEbzJr7');
+test('process the "integrity" attribute in the link and script tags (GH-235)', function () {
+    var script         = nativeMethods.createElement.call(document, 'script');
+    var link           = nativeMethods.createElement.call(document, 'link');
+    var integrityValue = 'sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC';
 
     var urlReplacer = function (url) {
         return url;
     };
 
+    function checkIntegrityAttr (el) {
+        ok(el.hasAttribute('integrity'));
+        strictEqual(el.getAttribute('integrity'), integrityValue);
+        strictEqual(nativeMethods.getAttribute.call(el, 'integrity'), null);
+    }
+
+    nativeMethods.setAttribute.call(script, 'integrity', integrityValue);
+    nativeMethods.setAttribute.call(link, 'integrity', integrityValue);
+
     domProcessor.processElement(script, urlReplacer);
     domProcessor.processElement(link, urlReplacer);
 
-    ok(!script.hasAttribute('integrity'));
-    ok(!link.hasAttribute('integrity'));
+    checkIntegrityAttr(script);
+    checkIntegrityAttr(link);
 });
 
 test('link with target="_parent" in iframe (T216999)', function () {

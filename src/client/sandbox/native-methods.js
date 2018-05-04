@@ -233,6 +233,7 @@ class NativeMethods {
         const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
         const imageSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
         const scriptSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
+        const scriptIntegrityDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'integrity');
         const embedSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLEmbedElement.prototype, 'src');
         const sourceSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLSourceElement.prototype, 'src');
         const mediaSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLMediaElement.prototype, 'src');
@@ -241,6 +242,7 @@ class NativeMethods {
         const iframeSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'src');
         const anchorHrefDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'href');
         const linkHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'href');
+        const linkIntegrityDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'integrity');
         const areaHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'href');
         const baseHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'href');
         const anchorHostDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'host');
@@ -309,6 +311,12 @@ class NativeMethods {
         this.anchorTextSetter           = anchorTextDescriptor.set;
         this.elementInnerHTMLSetter     = elementInnerHTMLDescriptor.set;
         this.elementOuterHTMLSetter     = elementOuterHTMLDescriptor.set;
+
+        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
+        if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
+            this.scriptIntegritySetter = scriptIntegrityDescriptor.set;
+            this.linkIntegritySetter   = linkIntegrityDescriptor.set;
+        }
 
         // NOTE: Event properties is located in window prototype only in IE11
         this.isEventPropsLocatedInProto = win.Window.prototype.hasOwnProperty('onerror');
@@ -388,6 +396,12 @@ class NativeMethods {
         this.elementNextElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'nextElementSibling').get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
+
+        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
+        if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
+            this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
+            this.linkIntegrityGetter   = linkIntegrityDescriptor.get;
+        }
 
         // NOTE: IE and Edge don't support origin property
         if (anchorOriginDescriptor)
