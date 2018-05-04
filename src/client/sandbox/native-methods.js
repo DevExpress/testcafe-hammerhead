@@ -312,8 +312,7 @@ class NativeMethods {
         this.elementInnerHTMLSetter     = elementInnerHTMLDescriptor.set;
         this.elementOuterHTMLSetter     = elementOuterHTMLDescriptor.set;
 
-        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) have no 'integrity' property
-        // in both HTMLScriptElement and HTMLLinkElement elements.
+        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
         if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
             this.scriptIntegritySetter = scriptIntegrityDescriptor.set;
             this.linkIntegritySetter   = linkIntegrityDescriptor.set;
@@ -398,8 +397,7 @@ class NativeMethods {
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 
-        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) have no 'integrity' property
-        // in both HTMLScriptElement and HTMLLinkElement elements.
+        // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
         if (scriptIntegrityDescriptor && linkIntegrityDescriptor) {
             this.scriptIntegrityGetter = scriptIntegrityDescriptor.get;
             this.linkIntegrityGetter   = linkIntegrityDescriptor.get;
