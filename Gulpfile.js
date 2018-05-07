@@ -194,13 +194,13 @@ gulp.task('test-client-travis', ['build'], () => {
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
 });
 
-gulp.task('playground', ['set-dev-mode', 'build'], () => {
+gulp.task('http-playground', ['set-dev-mode', 'build'], () => {
     require('./test/playground/server.js').start();
 
     return hang();
 });
 
-gulp.task('playground https', ['set-dev-mode', 'build'], () => {
+gulp.task('https-playground', ['set-dev-mode', 'build'], () => {
     require('./test/playground/server.js').start({
         key:  selfSignedCertificate.key,
         cert: selfSignedCertificate.cert
