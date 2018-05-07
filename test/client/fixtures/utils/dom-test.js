@@ -251,7 +251,7 @@ test('isWindow for a window received from the MessageEvent.target property (GH-1
         });
 });
 
-test('closest element', function () {
+test('closest', function () {
     var div = document.createElement('div');
 
     div.className = 'parent';
@@ -285,6 +285,16 @@ test('closest element', function () {
     strictEqual(domUtils.closest(iframeDiv, 'body'), iframe.contentDocument.body);
 
     iframe.parentNode.removeChild(iframe);
+    div.parentNode.removeChild(div);
+});
+
+test('match', function () {
+    var div = document.createElement('div');
+
+    document.body.appendChild(div);
+
+    ok(domUtils.matches(div, 'div'));
+
     div.parentNode.removeChild(div);
 });
 
@@ -975,5 +985,25 @@ if (window.HTMLElement.prototype.createShadowRoot) {
 
         deepEqual(parents, [div, host, document.body, document.documentElement]);
         document.body.removeChild(host);
+    });
+}
+
+if (window.HTMLElement.prototype.matches && window.HTMLElement.prototype.closest) {
+    test('`closest` and `matches` methods should use stored native methods (GH-1603)', function () {
+        var div             = document.createElement('div');
+        var storedMatchesFn = window.HTMLElement.prototype.matches;
+
+        window.HTMLElement.prototype.matches = function () {
+            ok(false, 'Should not use the `HTMLElement.prototype.matches` method');
+        };
+        window.HTMLElement.prototype.closest = function () {
+            ok(false, 'Should not use the `HTMLElement.prototype.closest method`');
+        };
+        document.body.appendChild(div);
+
+        ok(domUtils.matches(div, 'div'));
+        strictEqual(domUtils.closest(div, 'div'), div);
+
+        window.HTMLElement.prototype.matches = storedMatchesFn;
     });
 }
