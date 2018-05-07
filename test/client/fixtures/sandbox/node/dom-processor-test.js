@@ -334,97 +334,57 @@ test('add element with `formaction` tag to the form', function () {
 
 module('should create a proxy url for the img src attribute if the image has the load handler (GH-651)', function () {
     module('onload property', function () {
-        asyncTest('attach the load handler before setting up the src', function () {
+        test('attach the load handler before setting up the src', function () {
             var img         = document.createElement('img');
             var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
             var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
 
-            document.body.appendChild(img);
-
-            setProperty(img, 'onload', function () {
-                strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
-
-                setProperty(img, 'onload', null);
-                img.setAttribute('src', imgUrl);
-
-                strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
-
-                img.parentNode.removeChild(img);
-                start();
-            });
+            img.onload = function () {};
 
             img.setAttribute('src', imgUrl);
+
+            strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
         });
 
-        asyncTest('attach the load handler after setting up the src', function () {
+        test('attach the load handler after setting up the src', function () {
             var img         = document.createElement('img');
             var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
             var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
 
-            document.body.appendChild(img);
-
             img.setAttribute('src', imgUrl);
 
-            setProperty(img, 'onload', function () {
-                strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
+            strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
 
-                setProperty(img, 'onload', null);
-                img.setAttribute('src', imgUrl);
+            img.onload = function () {};
 
-                strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
-
-                img.parentNode.removeChild(img);
-
-                start();
-            });
+            strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
         });
     });
 
     module('addEventListener', function () {
-        asyncTest('attach the load handler before setting up the src', function () {
+        test('attach the load handler before setting up the src', function () {
             var img         = document.createElement('img');
             var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
             var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
 
-            document.body.appendChild(img);
-
-            var testLoadHandler = function () {
-                strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
-
-                img.removeEventListener('load', testLoadHandler);
-                img.setAttribute('src', imgUrl);
-
-                strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
-
-                img.parentNode.removeChild(img);
-                start();
-            };
-
-            img.addEventListener('load', testLoadHandler);
+            img.addEventListener('load', function () {});
             img.setAttribute('src', imgUrl);
+
+            strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
         });
 
-        asyncTest('attach the load handler after setting up the src', function () {
+        test('attach the load handler after setting up the src', function () {
             var img         = document.createElement('img');
             var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
             var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
 
-            document.body.appendChild(img);
-
-            var testLoadHandler = function () {
-                strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
-
-                img.removeEventListener('load', testLoadHandler);
-                img.setAttribute('src', imgUrl);
-
-                strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
-
-                img.parentNode.removeChild(img);
-                start();
-            };
-
             img.setAttribute('src', imgUrl);
-            img.addEventListener('load', testLoadHandler);
+
+            strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
+
+            img.addEventListener('load', function () {});
+
+            strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
         });
     });
 });

@@ -26,16 +26,16 @@ asyncTest('prevent "error" event during image reloading', function () {
         errorEventRised = true;
     };
 
-    img.onload = function () {
+    nativeMethods.htmlElementOnloadSetter.call(img, function () {
         ok(!errorEventRised);
         strictEqual(nativeMethods.imageSrcGetter.call(img), storedGetProxyUrl.call(urlUtils, realImageUrl));
 
-        $(img).remove();
+        document.body.removeChild(img);
         urlUtils.getProxyUrl      = storedGetProxyUrl;
         urlUtils.resolveUrlAsDest = storedResolveUrlAsDest;
 
         start();
-    };
+    });
 
     img.src = fakeIamgeUrl;
 
@@ -53,8 +53,8 @@ asyncTest('reload image through the proxy', function () {
     document.body.appendChild(img1);
     document.body.appendChild(img2);
 
-    img2.onload = function () {
-        img2.onload = null;
+    nativeMethods.htmlElementOnloadSetter.call(img2, function () {
+        nativeMethods.htmlElementOnloadSetter.call(img2, null);
 
         notEqual(nativeMethods.imageSrcGetter.call(img1).indexOf(realImageUrl), -1);
         notEqual(nativeMethods.imageSrcGetter.call(img2).indexOf(realImageUrl), -1);
@@ -90,7 +90,7 @@ asyncTest('reload image through the proxy', function () {
         };
 
         img2.src = fakeIamgeUrl;
-    };
+    });
 
     img2.src = realImageUrl;
 });
