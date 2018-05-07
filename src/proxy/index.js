@@ -35,24 +35,24 @@ function createServerInfo (hostname, port, crossDomainPort, protocol) {
 
 // Proxy
 export default class Proxy extends Router {
-    constructor (hostname, port1, port2, options) {
+    constructor (hostname, port1, port2, sslOptions) {
         super();
 
         this.openSessions = {};
 
-        options = options || {};
-
-        const serverProvider = options.ssl ? https : http;
-        const protocol = options.ssl ? 'https:' : 'http:';
-        const serverOptions = {
-            key:  options.key || '',
-            cert: options.cert || ''
-        };
+        const protocol = sslOptions ? 'https:' : 'http:';
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol);
-        this.server1     = serverProvider.createServer(serverOptions, (req, res) => this._onRequest(req, res, this.server1Info));
-        this.server2     = serverProvider.createServer(serverOptions, (req, res) => this._onRequest(req, res, this.server2Info));
+
+        if (sslOptions) {
+            this.server1 = https.createServer(sslOptions, (req, res) => this._onRequest(req, res, this.server1Info));
+            this.server2 = https.createServer(sslOptions, (req, res) => this._onRequest(req, res, this.server2Info));
+        }
+        else {
+            this.server1 = http.createServer((req, res) => this._onRequest(req, res, this.server1Info));
+            this.server2 = http.createServer((req, res) => this._onRequest(req, res, this.server2Info));
+        }
 
         this.server1.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server1Info));
         this.server2.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server2Info));

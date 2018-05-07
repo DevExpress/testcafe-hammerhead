@@ -15,6 +15,8 @@ const util         = require('gulp-util');
 const ll           = require('gulp-ll');
 const path         = require('path');
 
+const selfSignedCertificate = require('openssl-self-signed-certificate');
+
 ll
     .tasks('lint')
     .onlyInDebug([
@@ -193,7 +195,12 @@ gulp.task('test-client-travis', ['build'], () => {
 });
 
 gulp.task('playground', ['set-dev-mode', 'build'], () => {
-    require('./test/playground/server.js').start();
+    const sslOptions = !util.env.ssl ? void 0 : {
+        key:  selfSignedCertificate.key,
+        cert: selfSignedCertificate.cert
+    };
+
+    require('./test/playground/server.js').start(sslOptions);
 
     return hang();
 });
