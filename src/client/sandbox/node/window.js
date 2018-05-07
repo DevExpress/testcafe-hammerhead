@@ -284,8 +284,10 @@ export default class WindowSandbox extends SandboxBase {
 
                     args[0] = image;
 
-                    if (!image.complete)
-                        image.onload = () => nativeMethods.canvasContextDrawImage.apply(this, args);
+                    if (!image.complete) {
+                        nativeMethods.addEventListener.call(image, 'load',
+                            () => nativeMethods.canvasContextDrawImage.apply(this, args));
+                    }
                 }
             }
 

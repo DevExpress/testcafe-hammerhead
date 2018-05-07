@@ -304,6 +304,7 @@ class NativeMethods {
         this.formActionSetter        = formActionDescriptor.set;
         this.inputFormActionSetter   = inputFormActionDescriptor.set;
         this.buttonFormActionSetter  = buttonFormActionDescriptor.set;
+        this.htmlElementOnloadSetter = win.Object.getOwnPropertyDescriptor(win.HTMLElement.prototype, 'onload').set;
 
         this.nodeTextContentSetter      = nodeTextContentDescriptor.set;
         this.htmlElementInnerTextSetter = htmlElementInnerTextDescriptor.set;

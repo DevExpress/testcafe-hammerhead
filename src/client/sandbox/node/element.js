@@ -11,7 +11,7 @@ import * as domUtils from '../../utils/dom';
 import * as hiddenInfo from '../upload/hidden-info';
 import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
-import { stopPropagation } from '../../utils/event';
+import { isValidEventListener, stopPropagation } from '../../utils/event';
 import { processHtml } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
@@ -21,6 +21,7 @@ import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
 import settings from '../../settings';
+import { overrideDescriptor } from '../../utils/property-overriding';
 
 const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
@@ -687,17 +688,20 @@ export default class ElementSandbox extends SandboxBase {
         // If img has the 'load' event handler, we redirect the request through proxy.
         // For details, see https://github.com/DevExpress/testcafe-hammerhead/issues/651
         this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_ATTACHED_EVENT, e => {
-            if (e.eventType === 'load' && domUtils.isImgElement(e.el)) {
-                const img = e.el;
+            if (e.eventType === 'load' && domUtils.isImgElement(e.el))
+                ElementSandbox._setProxiedSrc(e.el);
+        });
 
-                img[INTERNAL_PROPS.forceProxySrcForImage] = true;
+        overrideDescriptor(window.HTMLElement.prototype, 'onload', {
+            getter: null,
+            setter: function (handler) {
+                if (domUtils.isImgElement(this) && isValidEventListener(handler))
+                    ElementSandbox._setProxiedSrc(this);
 
-                const imgSrc = nativeMethods.imageSrcGetter.call(img);
-
-                if (imgSrc)
-                    img.setAttribute('src', imgSrc);
+                nativeMethods.htmlElementOnloadSetter.call(this, handler);
             }
         });
+
         this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_DETACHED_EVENT, e => {
             if (e.eventType === 'load' && domUtils.isImgElement(e.el)) {
                 const img    = e.el;
@@ -764,6 +768,8 @@ export default class ElementSandbox extends SandboxBase {
 
         switch (tagName) {
             case 'img':
+                this.eventSandbox.listeners.initElementListening(el, ['load']);
+
                 if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
                     this._setProxiedSrcUrlOnError(el);
                 break;

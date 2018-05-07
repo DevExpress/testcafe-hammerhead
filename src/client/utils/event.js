@@ -56,6 +56,10 @@ export function isObjectEventListener (listener) {
     return typeof listener === 'object' && listener && typeof listener.handleEvent === 'function';
 }
 
+export function isValidEventListener (listener) {
+    return typeof listener === 'function' || isObjectEventListener(listener);
+}
+
 export function callEventListener (ctx, listener, e) {
     if (isObjectEventListener(listener))
         return listener.handleEvent.call(listener, e);

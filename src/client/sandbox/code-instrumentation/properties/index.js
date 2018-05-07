@@ -103,32 +103,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 }
             },
 
-            // NOTE: Cookie can be set up for the page by using the request initiated by img.
-            // For example: img.src = '<url that responds with the Set-Cookie header>'
-            // If img has the 'load' event handler, we redirect the request through proxy.
-            // For details, see https://github.com/DevExpress/testcafe-hammerhead/issues/651
-            onload: {
-                condition: el => domUtils.isDomElement(el) && domUtils.isImgElement(el),
-
-                get: el => el.onload,
-                set: (el, handler) => {
-                    if (typeof handler === 'function') {
-                        el[INTERNAL_PROPS.forceProxySrcForImage] = true;
-
-                        const imgSrc = nativeMethods.imageSrcGetter.call(el);
-
-                        if (imgSrc)
-                            nativeMethods.imageSrcSetter.call(el, urlUtils.getProxyUrl(imgSrc));
-                    }
-                    else
-                        delete el[INTERNAL_PROPS.forceProxySrcForImage];
-
-                    el.onload = handler;
-
-                    return el.onload;
-                }
-            },
-
             sandbox: {
                 condition: domUtils.isIframeElement,
                 get:       el => this.elementSandbox.getAttributeCore(el, ['sandbox']),

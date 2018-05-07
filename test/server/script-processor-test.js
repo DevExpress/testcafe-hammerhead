@@ -253,8 +253,8 @@ describe('Script processor', () => {
             {
                 src: 'b.onerror = b.onload = function (a) { location = a; };',
 
-                expected: 'b.onerror = __set$(b,"onload",function(a){' +
-                          '0,function(){return__set$Loc(location,a)||(location=a);}.call(this);});'
+                expected: 'b.onerror = b.onload = function(a){' +
+                          '0,function(){return__set$Loc(location,a)||(location=a);}.call(this);};'
             },
             {
                 src: 'location = newLocation, x = 5;',

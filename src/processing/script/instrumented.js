@@ -15,7 +15,6 @@ export const PROPERTIES = [
     'data',
     'href',
     'location',
-    'onload',
     'sandbox',
     'which'
 ];
