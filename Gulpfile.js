@@ -195,12 +195,16 @@ gulp.task('test-client-travis', ['build'], () => {
 });
 
 gulp.task('playground', ['set-dev-mode', 'build'], () => {
-    const sslOptions = !util.env.ssl ? void 0 : {
+    require('./test/playground/server.js').start();
+
+    return hang();
+});
+
+gulp.task('playground https', ['set-dev-mode', 'build'], () => {
+    require('./test/playground/server.js').start({
         key:  selfSignedCertificate.key,
         cert: selfSignedCertificate.cert
-    };
-
-    require('./test/playground/server.js').start(sslOptions);
+    });
 
     return hang();
 });
