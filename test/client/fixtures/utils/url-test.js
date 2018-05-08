@@ -187,13 +187,6 @@ test('destination with host only', function () {
     strictEqual(proxyUrl, 'http://' + PROXY_HOST + '/sessionId/' + destUrl);
 });
 
-test('destination with host only (https proxy)', function () {
-    var destUrl  = 'http://test.example.com/';
-    var proxyUrl = getProxyUrl(destUrl, '', 'https:');
-
-    strictEqual(proxyUrl, 'https://' + PROXY_HOST + '/sessionId/' + destUrl);
-});
-
 test('destination with https protocol', function () {
     var destUrl  = 'https://test.example.com:53/';
     var proxyUrl = getProxyUrl(destUrl);
@@ -214,12 +207,6 @@ test('relative path', function () {
     ok(!parsedUrl.port);
     ok(!parsedUrl.protocol);
     strictEqual(parsedUrl.partAfterHost, 'share?id=1kjQMWh7IcHdTBbTv6otRvCGYr-p02q206M7aR7dmog0');
-});
-
-test('relative path (https proxy)', function () {
-    var proxyUrl = getProxyUrl('/Image1.jpg', '', 'https:');
-
-    strictEqual(proxyUrl, 'https://' + PROXY_HOST + '/sessionId/https://example.com/Image1.jpg');
 });
 
 if (window.navigator.platform.toLowerCase() === 'win32' && !browserUtils.isFirefox) {
@@ -292,14 +279,6 @@ test('special pages (GH-339)', function () {
     });
 });
 
-test('special pages (GH-339) (https proxy)', function () {
-    sharedUrlUtils.SPECIAL_PAGES.forEach(function (url) {
-        var proxyUrl = getProxyUrl(url, '', 'https:');
-
-        strictEqual(proxyUrl, 'https://' + PROXY_HOST + '/sessionId/' + url);
-    });
-});
-
 test('convert a charset to lower case (GH-752)', function () {
     var url  = 'http://example.com';
     var opts = {
@@ -312,10 +291,31 @@ test('convert a charset to lower case (GH-752)', function () {
     strictEqual(sharedUrlUtils.getProxyUrl(url, opts), 'http://localhost:5555/sessionId!utf-8/' + url);
 });
 
-module('parse proxy url');
+module('https proxy protocol');
 
-test('http', function () {
-    var proxyUrl      = 'http://' + PROXY_HOST + '/sessionId/http://test.example.com:53/PA/TH/?#testHash';
+test('destination with host only', function () {
+    var destUrl  = 'http://test.example.com/';
+    var proxyUrl = getProxyUrl(destUrl, '', 'https:');
+
+    strictEqual(proxyUrl, 'https://' + PROXY_HOST + '/sessionId/' + destUrl);
+});
+
+test('relative path', function () {
+    var proxyUrl = getProxyUrl('/Image1.jpg', '', 'https:');
+
+    strictEqual(proxyUrl, 'https://' + PROXY_HOST + '/sessionId/https://example.com/Image1.jpg');
+});
+
+test('special pages', function () {
+    sharedUrlUtils.SPECIAL_PAGES.forEach(function (url) {
+        var proxyUrl = getProxyUrl(url, '', 'https:');
+
+        strictEqual(proxyUrl, 'https://' + PROXY_HOST + '/sessionId/' + url);
+    });
+});
+
+test('parse proxy url', function () {
+    var proxyUrl      = 'https://' + PROXY_HOST + '/sessionId/http://test.example.com:53/PA/TH/?#testHash';
     var parsingResult = urlUtils.parseProxyUrl(proxyUrl);
 
     strictEqual(parsingResult.destUrl, 'http://test.example.com:53/PA/TH/?#testHash');
@@ -327,8 +327,10 @@ test('http', function () {
     strictEqual(parsingResult.sessionId, 'sessionId');
 });
 
-test('http (https proxy)', function () {
-    var proxyUrl      = 'https://' + PROXY_HOST + '/sessionId/http://test.example.com:53/PA/TH/?#testHash';
+module('parse proxy url');
+
+test('http', function () {
+    var proxyUrl      = 'http://' + PROXY_HOST + '/sessionId/http://test.example.com:53/PA/TH/?#testHash';
     var parsingResult = urlUtils.parseProxyUrl(proxyUrl);
 
     strictEqual(parsingResult.destUrl, 'http://test.example.com:53/PA/TH/?#testHash');
