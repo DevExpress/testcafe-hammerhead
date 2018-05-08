@@ -701,16 +701,6 @@ export default class ElementSandbox extends SandboxBase {
                 nativeMethods.htmlElementOnloadSetter.call(this, handler);
             }
         });
-
-        this.eventSandbox.listeners.on(this.eventSandbox.listeners.EVENT_LISTENER_DETACHED_EVENT, e => {
-            if (e.eventType === 'load' && domUtils.isImgElement(e.el)) {
-                const img    = e.el;
-                const imgSrc = nativeMethods.imageSrcGetter.call(img);
-
-                if (imgSrc && !settings.get().forceProxySrcForImage)
-                    img.setAttribute('src', DomProcessor.getStoredAttrName('src'));
-            }
-        });
     }
 
     _ensureTargetContainsExistingBrowsingContext (el) {

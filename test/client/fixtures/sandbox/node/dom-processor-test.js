@@ -344,12 +344,28 @@ module('should create a proxy url for the img src attribute if the image has the
             img.setAttribute('src', imgUrl);
 
             strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
+
+            img.onload = null;
+
+            strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
+
+            img.setAttribute('src', imgUrl);
+
+            strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
         });
 
         test('attach the load handler after setting up the src', function () {
             var img         = document.createElement('img');
             var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
             var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+
+            img.setAttribute('src', imgUrl);
+
+            strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
+
+            img.onload = null;
+
+            strictEqual(urlUtils.parseUrl(nativeMethods.imageSrcGetter.call(img)).partAfterHost, imgUrl);
 
             img.setAttribute('src', imgUrl);
 
@@ -366,8 +382,17 @@ module('should create a proxy url for the img src attribute if the image has the
             var img         = document.createElement('img');
             var imgUrl      = window.QUnitGlobals.getResourceUrl('../../../data/node-sandbox/image.png');
             var imgProxyUrl = urlUtils.getProxyUrl(imgUrl);
+            var listener    = function () {};
 
-            img.addEventListener('load', function () {});
+            img.addEventListener('load', listener);
+            img.setAttribute('src', imgUrl);
+
+            strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
+
+            img.removeEventListener('load', listener);
+
+            strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
+
             img.setAttribute('src', imgUrl);
 
             strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
