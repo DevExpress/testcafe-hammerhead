@@ -23,5 +23,5 @@ export const isTouchDevice  = (browserUtils.isMobile || browserUtils.isTablet) &
 export const hasDataTransfer = !!window.DataTransfer;
 
 // NOTE: In the Edge 17, the getNamedItem method of attributes object in non enumerable
-export const attrGetNamedItemInNonEnumerable = nativeMethods.objectGetOwnPropertyDescriptor
+export const attrGetNamedItemIsNotEnumerable = nativeMethods.objectGetOwnPropertyDescriptor
     .call(window.Object, NamedNodeMap.prototype, 'getNamedItem');
