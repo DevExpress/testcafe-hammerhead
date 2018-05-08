@@ -21,3 +21,7 @@ export const hasTouchPoints = browserUtils.isIE && (navigator.maxTouchPoints > 0
 export const isTouchDevice  = (browserUtils.isMobile || browserUtils.isTablet) && hasTouchEvents;
 
 export const hasDataTransfer = !!window.DataTransfer;
+
+// NOTE: In the Edge 17, the getNamedItem method of attributes object in non enumerable
+export const attrGetNamedItemInNonEnumerable = nativeMethods.objectGetOwnPropertyDescriptor
+    .call(window.Object, NamedNodeMap.prototype, 'getNamedItem');

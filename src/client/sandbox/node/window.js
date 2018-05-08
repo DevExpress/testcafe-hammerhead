@@ -15,7 +15,7 @@ import {
     stringifyResourceType,
     resolveUrlAsDest
 } from '../../utils/url';
-import { isFirefox, isIE, isAndroid } from '../../utils/browser';
+import { isFirefox, isIE, isAndroid, isMSEdge, version as browserVersion } from '../../utils/browser';
 import {
     isCrossDomainWindows,
     isImgElement,
@@ -433,9 +433,9 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (typeof url === 'string') {
                     if (WindowSandbox._isSecureOrigin(url)) {
-                        // NOTE: We cannot create an instance of the DOMException in the Android 6.0 browser.
+                        // NOTE: We cannot create an instance of the DOMException in the Android 6.0 and in the Edge 17 browsers.
                         // The 'TypeError: Illegal constructor' error is raised if we try to call the constructor.
-                        return Promise.reject(isAndroid
+                        return Promise.reject(isAndroid || isMSEdge && browserVersion >= 17
                             ? new Error('Only secure origins are allowed.')
                             : new DOMException('Only secure origins are allowed.', 'SecurityError'));
                     }
