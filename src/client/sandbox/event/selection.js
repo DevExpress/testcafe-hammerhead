@@ -26,6 +26,7 @@ export default class Selection {
             const el                 = this;
             const fn                 = domUtils.isTextAreaElement(el) ? nativeMethods.textAreaSetSelectionRange : nativeMethods.setSelectionRange;
             const activeElement      = domUtils.getActiveElement(domUtils.findDocument(el));
+            const curDocument        = domUtils.findDocument(el);
             let isElementActive      = false;
 
             const selectionSetter = () => {
@@ -37,7 +38,7 @@ export default class Selection {
                 if (changeType)
                     el.type = 'text';
 
-                // NOTE: In MSEdge, an error occurs  when the setSelectionRange method is called for an input with
+                // NOTE: In MSEdge, an error occurs when the setSelectionRange method is called for an input with
                 // 'display = none' and selectionStart !== selectionEnd in other IEs, the error doesn't occur, but
                 // as a result selectionStart === selectionEnd === 0.
                 try {
@@ -87,8 +88,10 @@ export default class Selection {
                 return selectionSetter();
             }
 
-            // NOTE: setSelectionRange leads to focusing an element only in IE.
-            return selection.wrapSetterSelection(el, selectionSetter, browserUtils.isIE && browserUtils.version < 12);
+            const needFocus = browserUtils.isIE11 ||
+                              browserUtils.isMSEdge && browserUtils.version > 16 && !curDocument.hasFocus();
+
+            return selection.wrapSetterSelection(el, selectionSetter, needFocus);
         };
 
         this.selectWrapper = function () {

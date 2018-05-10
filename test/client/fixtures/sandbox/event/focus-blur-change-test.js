@@ -871,10 +871,10 @@ asyncTest('events order', function () {
     var input                          = document.createElement('input');
     var nativeInput                    = nativeMethods.createElement.call(document, 'input');
     var getNativeEventLogFallbackValue = function () {
-        if (browserUtils.isMSEdge)
+        if (browserUtils.isMSEdge && browserUtils.version < 17)
             return 'focus|focusin|focusout|blur';
 
-        else if (browserUtils.isIE)
+        else if (browserUtils.isIE && !browserUtils.isMSEdge)
             return 'focusin|focusout|focus|blur|';
 
         return 'focus|focusin|blur|focusout|';

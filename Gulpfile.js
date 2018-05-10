@@ -37,8 +37,7 @@ const CLIENT_TESTS_SETTINGS = {
 const CLIENT_TESTS_BROWSERS = [
     {
         platform:    'Windows 10',
-        browserName: 'MicrosoftEdge',
-        version:     '16.16299'
+        browserName: 'MicrosoftEdge'
     },
     {
         platform:    'Windows 10',
@@ -93,7 +92,7 @@ const SAUCELABS_SETTINGS = {
     tags:      [process.env.TRAVIS_BRANCH || 'master'],
     browsers:  CLIENT_TESTS_BROWSERS,
     name:      'testcafe-hammerhead client tests',
-    timeout:   300
+    timeout:   360
 };
 
 function hang () {

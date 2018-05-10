@@ -2,6 +2,7 @@ import { isHammerheadAttr } from '../../../utils/dom';
 import fnBind from '../../../utils/fn-bind';
 import nativeMethods from '../../native-methods';
 import DomProcessor from '../../../../processing/dom';
+import { attrGetNamedItemIsNotEnumerable } from '../../../utils/feature-detection';
 
 const ELEMENT_ATTRIBUTE_WRAPPERS_PROP = 'hammerhead|element-attribute-wrappers-prop';
 const ATTRIBUTES_METHODS              = ['setNamedItem', 'setNamedItemNS', 'removeNamedItem', 'removeNamedItemNS', 'getNamedItem', 'getNamedItemNS'];
@@ -33,6 +34,9 @@ export default class AttributesWrapper {
                     this[field] = fnBind(el.attributes[field], el.attributes);
             }
         }
+
+        if (attrGetNamedItemIsNotEnumerable)
+            wrapMethod('getNamedItem');
     }
 
     static _assignAttributes (attributes) {
