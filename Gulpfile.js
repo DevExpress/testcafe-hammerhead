@@ -92,7 +92,7 @@ const SAUCELABS_SETTINGS = {
     tags:      [process.env.TRAVIS_BRANCH || 'master'],
     browsers:  CLIENT_TESTS_BROWSERS,
     name:      'testcafe-hammerhead client tests',
-    timeout:   300
+    timeout:   360
 };
 
 function hang () {
