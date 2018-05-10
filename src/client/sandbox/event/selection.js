@@ -88,7 +88,7 @@ export default class Selection {
                 return selectionSetter();
             }
 
-            const needFocus = browserUtils.isIE && browserUtils.version < 12 ||
+            const needFocus = browserUtils.isIE11 ||
                               browserUtils.isMSEdge && browserUtils.version > 16 && !curDocument.hasFocus();
 
             return selection.wrapSetterSelection(el, selectionSetter, needFocus);
