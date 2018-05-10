@@ -259,16 +259,6 @@ test('link without the href attrubute must return an empty value for href (B2388
     strictEqual(linkWithoutHref.href, '');
 });
 
-test('event.which must return undefined if originalEvent is null (T232468)', function () {
-    /* eslint-disable no-unused-vars */
-    var evtObj = {
-        originalEvent: null
-    };
-
-    strictEqual(eval(processScript('evtObj.which')), void 0);
-    /* eslint-enable no-unused-vars */
-});
-
 test('input\'s onchange event must not be raise after press Tab key (T221375)', function () {
     var $input     = $('<input value="0">');
     var firedCount = 0;

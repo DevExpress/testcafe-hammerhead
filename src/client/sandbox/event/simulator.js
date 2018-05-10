@@ -1,4 +1,3 @@
-import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import extend from '../../utils/extend';
 import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
@@ -554,7 +553,7 @@ export default class EventSimulator {
 
         // NOTE: T188166 (act.hover triggers the mouseenter event with the "which" parameter set to 1).
         if (args.which !== void 0 && browserUtils.isWebKit) {
-            nativeMethods.objectDefineProperty.call(window.Object, ev, INTERNAL_PROPS.whichPropertyWrapper, {
+            nativeMethods.objectDefineProperty.call(window.Object, ev, 'which', {
                 get: () => args.which
             });
         }
