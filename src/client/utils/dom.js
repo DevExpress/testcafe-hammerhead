@@ -636,20 +636,18 @@ export function isPerformanceNavigationTiming (entry) {
 }
 
 export function matches (el, selector) {
-    if (!el)
+    if (!isElementNode(el))
         return false;
 
-    const matchesSelector = el.matches || el.webkitMatchesSelector || el.msMatchesSelector;
-
-    if (!matchesSelector)
-        return false;
-
-    return matchesSelector.call(el, selector);
+    return nativeMethods.matches.call(el, selector);
 }
 
 export function closest (el, selector) {
-    if (el && el.closest)
-        return el.closest(selector);
+    if (!isElementNode(el))
+        return null;
+
+    if (nativeMethods.closest)
+        return nativeMethods.closest.call(el, selector);
 
     return closestFallback(el, selector);
 }

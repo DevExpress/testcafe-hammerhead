@@ -102,6 +102,8 @@ class NativeMethods {
         this.hasAttributeNS                = nativeElement.hasAttributeNS;
         this.hasAttributes                 = nativeElement.hasAttributes;
         this.anchorToString                = win.HTMLAnchorElement.prototype.toString;
+        this.matches                       = nativeElement.matches || nativeElement.msMatchesSelector;
+        this.closest                       = nativeElement.closest;
 
         // Event
         this.addEventListener          = nativeElement.addEventListener;
