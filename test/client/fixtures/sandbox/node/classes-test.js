@@ -23,129 +23,74 @@ if (window.PerformanceNavigationTiming) {
     });
 }
 
-test('window.Blob([data], { type: \'\' }) should return correct result for all possible data type cases (ArrayBuffer, TypedArray, ...) (GH-1599)', function () {
+test('window.Blob([data], { type: \'\' }) should return correct result for all possible data type cases (GH-1599)', function () {
+    var pngExample = {
+        mime:      'image/bmp',
+        signature: [0x42, 0x4D]
+    };
+
     var testCases = [
-        // Image types
         {
-            mime:      'image/x-icon',
-            signature: [0x00, 0x00, 0x01, 0x00]
+            type:        'ArrayBuffer',
+            constructor: ArrayBuffer.prototype.constructor
         },
         {
-            mime:      'image/x-icon',
-            signature: [0x00, 0x00, 0x02, 0x00]
+            type:        'Int8Array',
+            constructor: Int8Array.prototype.constructor
         },
         {
-            mime:      'image/bmp',
-            signature: [0x42, 0x4D]
+            type:        'Uint8Array',
+            constructor: Uint8Array.prototype.constructor
         },
         {
-            mime:      'image/gif',
-            signature: [0x47, 0x49, 0x46, 0x38, 0x37, 0x61]
+            type:        'Uint8ClampedArray',
+            constructor: Uint8ClampedArray.prototype.constructor
         },
         {
-            mime:      'image/gif',
-            signature: [0x47, 0x49, 0x46, 0x38, 0x39, 0x61]
+            type:        'Int16Array',
+            constructor: Int16Array.prototype.constructor
         },
         {
-            mime:      'image/webp',
-            signature: [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50]
+            type:        'Uint16Array',
+            constructor: Uint16Array.prototype.constructor
         },
         {
-            mime:      'image/png',
-            signature: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+            type:        'Int32Array',
+            constructor: Int32Array.prototype.constructor
         },
         {
-            mime:      'image/jpeg',
-            signature: [0xFF, 0xD8, 0xFF]
-        },
-
-        // Audio, video types
-        {
-            mime:      'audio/basic',
-            signature: [0x2E, 0x73, 0x6E, 0x64]
+            type:        'Uint32Array',
+            constructor: Uint32Array.prototype.constructor
         },
         {
-            mime:      'audio/aiff',
-            signature: [0x46, 0x4F, 0x52, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x41, 0x49, 0x46, 0x46]
+            type:        'Float32Array',
+            constructor: Float32Array.prototype.constructor
         },
         {
-            mime:      'audio/mpeg',
-            signature: [0x49, 0x44, 0x33]
-        },
-        {
-            mime:      'application/ogg',
-            signature: [0x4F, 0x67, 0x67, 0x53, 0x00]
-        },
-        {
-            mime:      'audio/midi',
-            signature: [0x4D, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06]
-        },
-        {
-            mime:      'video/avi',
-            signature: [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x41, 0x56, 0x49, 0x20]
-        },
-        {
-            mime:      'audio/wave',
-            signature: [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45]
-        },
-
-        // Font types
-        {
-            mime:      'application/vnd.ms-fontobject',
-            signature: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x50]
-        },
-        {
-            mime:      'application/octet-stream', // TrueType font  does not have an assigned MIME type
-            signature: [0x00, 0x01, 0x00, 0x00]
-        },
-        {
-            mime:      'application/octet-stream', // OpenType font  does not have an assigned MIME type
-            signature: [0x4F, 0x54, 0x54, 0x4F]
-        },
-        {
-            mime:      'application/octet-stream', // TrueType Collection
-            signature: [0x74, 0x74, 0x63, 0x66]
-        },
-        {
-            mime:      'application/font-woff',
-            signature: [0x77, 0x4F, 0x46, 0x46]
-        },
-
-        // Archive types
-        {
-            mime:      'application/x-gzip',
-            signature: [0x1F, 0x8B, 0x08]
-        },
-        {
-            mime:      'application/zip',
-            signature: [0x50, 0x4B, 0x03, 0x04]
-        },
-        {
-            mime:      'application/x-rar-compressed',
-            signature: [0x52, 0x61, 0x72, 0x20, 0x1A, 0x07, 0x00]
+            type:        'Float64Array',
+            constructor: Float64Array.prototype.constructor
         }
     ];
 
-    var createTestCasePromise = function (testCase, dataType) {
+    var createTestCasePromise = function (testCase) {
         return new Promise(function (resolve) {
             var data;
             var typedArray;
             var i;
 
-            if (dataType === 'ArrayBuffer') {
-                var arrayBuffer = new ArrayBuffer(testCase.signature.length);
+            if (testCase.type === 'ArrayBuffer') {
+                var arrayBuffer = new testCase.constructor(pngExample.signature.length);
 
                 typedArray = new Uint8Array(arrayBuffer);
 
                 for (i = 0; i < typedArray.length; i++)
-                    typedArray[i] = testCase.signature[i];
+                    typedArray[i] = pngExample.signature[i];
 
                 data = arrayBuffer;
             }
-            else if (dataType === 'Uint8Array') {
-                typedArray = new Uint8Array(testCase.signature);
-
-                data = typedArray;
+            else {
+                typedArray = new testCase.constructor(pngExample.signature);
+                data       = typedArray;
             }
 
             var resultBlob = new Blob([data], { type: '' });
@@ -153,12 +98,14 @@ test('window.Blob([data], { type: \'\' }) should return correct result for all p
 
             fileReader.onload = function () {
                 var resultArrayBuffer = this.result;
-                var resultTypedArray  = new Uint8Array(resultArrayBuffer);
+
+                var resultTypedArray = testCase.type === 'ArrayBuffer'
+                    ? new Uint8Array(resultArrayBuffer)
+                    : new testCase.constructor(resultArrayBuffer);
 
                 var resultArray = [].slice.call(resultTypedArray);
 
-                strictEqual(resultArray.toString(), testCase.signature.toString(), 'Data type: ' + dataType +
-                                                                                   ', mime-type: ' + testCase.mime);
+                strictEqual(resultArray.toString(), pngExample.signature.toString(), testCase.type);
                 resolve();
             };
             fileReader.readAsArrayBuffer(resultBlob);
@@ -167,12 +114,9 @@ test('window.Blob([data], { type: \'\' }) should return correct result for all p
 
     var promises = [];
 
-    promises.push(testCases.map(function (testCase) {
-        createTestCasePromise(testCase, 'ArrayBuffer');
-    }));
-    promises.push(testCases.map(function (testCase) {
-        createTestCasePromise(testCase, 'Uint8Array');
-    }));
+    testCases.forEach(function (testCase) {
+        promises.push(createTestCasePromise(testCase));
+    });
 
     return Promise.all(promises);
 });
