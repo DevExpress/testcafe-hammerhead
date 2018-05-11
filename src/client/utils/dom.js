@@ -636,7 +636,7 @@ export function isPerformanceNavigationTiming (entry) {
 }
 
 export function matches (el, selector) {
-    if (!el)
+    if (!isElementNode(el))
         return false;
 
     return nativeMethods.matches.call(el, selector);
