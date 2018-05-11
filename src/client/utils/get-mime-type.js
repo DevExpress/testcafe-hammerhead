@@ -1,3 +1,7 @@
+import { instanceToString } from './dom';
+
+const IS_ARRAY_BUFFER_RE = /^\[object ArrayBuffer]$/i;
+
 // https://mimesniff.spec.whatwg.org/
 
 const IMAGE_TYPE_PATTERNS       = [
@@ -106,7 +110,7 @@ const FONT_TYPE_PATTERNS        = [
         mask:    [0xFF, 0xFF, 0xFF, 0xFF]
     }
 ];
-const ARCHIVE_TYPE_PATTERNS = [
+const ARCHIVE_TYPE_PATTERNS     = [
     {
         mime:    'application/x-gzip',
         pattern: [0x1F, 0x8B, 0x08],
@@ -123,6 +127,17 @@ const ARCHIVE_TYPE_PATTERNS = [
         mask:    [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
     }
 ];
+
+function isArrayBufferData (array) {
+    if (array[0] instanceof ArrayBuffer)
+        return true;
+
+    return array[0] && IS_ARRAY_BUFFER_RE.test(instanceToString(array[0]));
+}
+
+function isViewData (array) {
+    return ArrayBuffer.isView(array[0]);
+}
 
 function matchPattern (pattern, data) {
     if (data.length < pattern.pattern.length)
@@ -146,6 +161,9 @@ function matchPattern (pattern, data) {
 }
 
 function matchMime (patternGroup, data) {
+    if (isArrayBufferData(data) || isViewData(data))
+        data = data[0];
+
     let byteArray = new Uint8Array(data);
 
     for (const pattern of patternGroup) {

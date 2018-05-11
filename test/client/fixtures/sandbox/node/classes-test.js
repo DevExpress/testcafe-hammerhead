@@ -3,6 +3,7 @@ var destLocation    = hammerhead.get('./utils/destination-location');
 var urlUtils        = hammerhead.get('./utils/url');
 var FileListWrapper = hammerhead.get('./sandbox/upload/file-list-wrapper');
 var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
+var Promise         = hammerhead.Promise;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -21,6 +22,160 @@ if (window.PerformanceNavigationTiming) {
         nativeMethods.performanceEntryNameGetter = storedNativePerformanceEntryNameGetter;
     });
 }
+
+test('window.Blob([data], { type: \'\' }) should return correct result for all possible data type cases (ArrayBuffer, TypedArray, ...) (GH-1599)', function () {
+    var testCases = [
+        // Image types
+        {
+            mime:      'image/x-icon',
+            signature: [0x00, 0x00, 0x01, 0x00]
+        },
+        {
+            mime:      'image/x-icon',
+            signature: [0x00, 0x00, 0x02, 0x00]
+        },
+        {
+            mime:      'image/bmp',
+            signature: [0x42, 0x4D]
+        },
+        {
+            mime:      'image/gif',
+            signature: [0x47, 0x49, 0x46, 0x38, 0x37, 0x61]
+        },
+        {
+            mime:      'image/gif',
+            signature: [0x47, 0x49, 0x46, 0x38, 0x39, 0x61]
+        },
+        {
+            mime:      'image/webp',
+            signature: [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50]
+        },
+        {
+            mime:      'image/png',
+            signature: [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
+        },
+        {
+            mime:      'image/jpeg',
+            signature: [0xFF, 0xD8, 0xFF]
+        },
+
+        // Audio, video types
+        {
+            mime:      'audio/basic',
+            signature: [0x2E, 0x73, 0x6E, 0x64]
+        },
+        {
+            mime:      'audio/aiff',
+            signature: [0x46, 0x4F, 0x52, 0x4D, 0x00, 0x00, 0x00, 0x00, 0x41, 0x49, 0x46, 0x46]
+        },
+        {
+            mime:      'audio/mpeg',
+            signature: [0x49, 0x44, 0x33]
+        },
+        {
+            mime:      'application/ogg',
+            signature: [0x4F, 0x67, 0x67, 0x53, 0x00]
+        },
+        {
+            mime:      'audio/midi',
+            signature: [0x4D, 0x54, 0x68, 0x64, 0x00, 0x00, 0x00, 0x06]
+        },
+        {
+            mime:      'video/avi',
+            signature: [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x41, 0x56, 0x49, 0x20]
+        },
+        {
+            mime:      'audio/wave',
+            signature: [0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45]
+        },
+
+        // Font types
+        {
+            mime:      'application/vnd.ms-fontobject',
+            signature: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x50]
+        },
+        {
+            mime:      'application/octet-stream', // TrueType font  does not have an assigned MIME type
+            signature: [0x00, 0x01, 0x00, 0x00]
+        },
+        {
+            mime:      'application/octet-stream', // OpenType font  does not have an assigned MIME type
+            signature: [0x4F, 0x54, 0x54, 0x4F]
+        },
+        {
+            mime:      'application/octet-stream', // TrueType Collection
+            signature: [0x74, 0x74, 0x63, 0x66]
+        },
+        {
+            mime:      'application/font-woff',
+            signature: [0x77, 0x4F, 0x46, 0x46]
+        },
+
+        // Archive types
+        {
+            mime:      'application/x-gzip',
+            signature: [0x1F, 0x8B, 0x08]
+        },
+        {
+            mime:      'application/zip',
+            signature: [0x50, 0x4B, 0x03, 0x04]
+        },
+        {
+            mime:      'application/x-rar-compressed',
+            signature: [0x52, 0x61, 0x72, 0x20, 0x1A, 0x07, 0x00]
+        }
+    ];
+
+    var createTestCasePromise = function (testCase, dataType) {
+        return new Promise(function (resolve) {
+            var data;
+            var typedArray;
+            var i;
+
+            if (dataType === 'ArrayBuffer') {
+                var arrayBuffer = new ArrayBuffer(testCase.signature.length);
+
+                typedArray = new Uint8Array(arrayBuffer);
+
+                for (i = 0; i < typedArray.length; i++)
+                    typedArray[i] = testCase.signature[i];
+
+                data = arrayBuffer;
+            }
+            else if (dataType === 'Uint8Array') {
+                typedArray = new Uint8Array(testCase.signature);
+
+                data = typedArray;
+            }
+
+            var resultBlob = new Blob([data], { type: '' });
+            var fileReader = new FileReader();
+
+            fileReader.onload = function () {
+                var resultArrayBuffer = this.result;
+                var resultTypedArray  = new Uint8Array(resultArrayBuffer);
+
+                var resultArray = [].slice.call(resultTypedArray);
+
+                strictEqual(resultArray.toString(), testCase.signature.toString(), 'Data type: ' + dataType +
+                                                                                   ', mime-type: ' + testCase.mime);
+                resolve();
+            };
+            fileReader.readAsArrayBuffer(resultBlob);
+        });
+    };
+
+    var promises = [];
+
+    promises.push(testCases.map(function (testCase) {
+        createTestCasePromise(testCase, 'ArrayBuffer');
+    }));
+    promises.push(testCases.map(function (testCase) {
+        createTestCasePromise(testCase, 'Uint8Array');
+    }));
+
+    return Promise.all(promises);
+});
 
 module('Image');
 
