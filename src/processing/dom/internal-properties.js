@@ -7,7 +7,6 @@ export default {
     processDomMethodName:  'hammerhead|process-dom-method',
     processedContext:      'hammerhead|processed-context',
     documentWasCleaned:    'hammerhead|document-was-cleaned',
-    whichPropertyWrapper:  'hammerhead|which-property-wrapper',
     documentCharset:       'hammerhead|document-charset',
     iframeNativeMethods:   'hammerhead|iframe-native-methods',
     hammerhead:            '%hammerhead%',
