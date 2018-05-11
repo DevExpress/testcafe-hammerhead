@@ -636,14 +636,17 @@ export function isPerformanceNavigationTiming (entry) {
 }
 
 export function matches (el, selector) {
-    if (!el || !el.matches)
+    if (!el)
         return false;
 
     return nativeMethods.matches.call(el, selector);
 }
 
 export function closest (el, selector) {
-    if (el && el.closest)
+    if (!isElementNode(el))
+        return null;
+
+    if (nativeMethods.closest)
         return nativeMethods.closest.call(el, selector);
 
     return closestFallback(el, selector);
