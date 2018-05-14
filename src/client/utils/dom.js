@@ -645,7 +645,7 @@ export function isArrayBuffer (data) {
 }
 
 export function isArrayBufferView (data) {
-    return data && nativeMethods.ArrayBuffer.isView(data);
+    return data && nativeMethods.arrayBufferIsView(data);
 }
 
 export function isDataView (data) {
