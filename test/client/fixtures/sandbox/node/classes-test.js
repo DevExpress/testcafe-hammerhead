@@ -69,17 +69,22 @@ test('window.Blob([data], { type: \'\' }) should return correct result for all p
         {
             type:        'Float64Array',
             constructor: Float64Array.prototype.constructor
+        },
+        {
+            type:        'DataView',
+            constructor: DataView.prototype.constructor
         }
     ];
 
     var createTestCasePromise = function (testCase) {
         return new Promise(function (resolve) {
+            var arrayBuffer;
             var data;
             var typedArray;
             var i;
 
             if (testCase.type === 'ArrayBuffer') {
-                var arrayBuffer = new testCase.constructor(pngExample.signature.length);
+                arrayBuffer = new testCase.constructor(pngExample.signature.length);
 
                 typedArray = new Uint8Array(arrayBuffer);
 
@@ -87,6 +92,18 @@ test('window.Blob([data], { type: \'\' }) should return correct result for all p
                     typedArray[i] = pngExample.signature[i];
 
                 data = arrayBuffer;
+            }
+            else if (testCase.type === 'DataView') {
+                arrayBuffer = new ArrayBuffer(pngExample.signature.length);
+
+                typedArray = new Uint8Array(arrayBuffer);
+
+                for (i = 0; i < typedArray.length; i++)
+                    typedArray[i] = pngExample.signature[i];
+
+                var dataView = new testCase.constructor(arrayBuffer);
+
+                data = dataView;
             }
             else {
                 typedArray = new testCase.constructor(pngExample.signature);
@@ -99,7 +116,7 @@ test('window.Blob([data], { type: \'\' }) should return correct result for all p
             fileReader.onload = function () {
                 var resultArrayBuffer = this.result;
 
-                var resultTypedArray = testCase.type === 'ArrayBuffer'
+                var resultTypedArray = testCase.type === 'ArrayBuffer' || testCase.type === 'DataView'
                     ? new Uint8Array(resultArrayBuffer)
                     : new testCase.constructor(resultArrayBuffer);
 

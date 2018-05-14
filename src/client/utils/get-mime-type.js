@@ -1,4 +1,4 @@
-import { isArrayBufferData, isViewData } from './dom';
+import { isArrayBuffer, isArrayBufferView, isDataView } from './dom';
 
 // https://mimesniff.spec.whatwg.org/
 
@@ -148,8 +148,10 @@ function matchPattern (pattern, data) {
 }
 
 function matchMime (patternGroup, data) {
-    if (isArrayBufferData(data) || isViewData(data))
+    if (isArrayBuffer(data[0]))
         data = data[0];
+    else if (isArrayBufferView(data[0]))
+        data = isDataView(data[0]) ? data[0].buffer : data[0];
 
     let byteArray = new Uint8Array(data);
 

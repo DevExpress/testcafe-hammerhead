@@ -26,6 +26,7 @@ const IS_PROCESSING_INSTRUCTION_RE     = /^\[object .*?ProcessingInstruction]$/i
 const IS_SVG_ELEMENT_RE                = /^\[object SVG\w+?Element]$/i;
 const IS_HTML_ELEMENT_RE               = /^\[object HTML.*?Element]$/i;
 const IS_ARRAY_BUFFER_RE               = /^\[object ArrayBuffer]$/i;
+const IS_DATA_VIEW_RE                  = /^\[object DataView]$/i;
 const NATIVE_TABLE_CELL_STR            = instanceToString(nativeMethods.createElement.call(document, 'td'));
 const ELEMENT_NODE_TYPE                = Node.ELEMENT_NODE;
 const NOT_CONTENT_EDITABLE_ELEMENTS_RE = /^(select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img)$/;
@@ -636,15 +637,22 @@ export function isPerformanceNavigationTiming (entry) {
     return instanceToString(entry) === '[object PerformanceNavigationTiming]';
 }
 
-export function isArrayBufferData (array) {
-    if (array[0] instanceof ArrayBuffer)
+export function isArrayBuffer (data) {
+    if (data instanceof ArrayBuffer)
         return true;
 
-    return array[0] && IS_ARRAY_BUFFER_RE.test(instanceToString(array[0]));
+    return data && IS_ARRAY_BUFFER_RE.test(instanceToString(data));
 }
 
-export function isViewData (array) {
-    return ArrayBuffer.isView(array[0]);
+export function isArrayBufferView (data) {
+    return ArrayBuffer.isView(data);
+}
+
+export function isDataView (data) {
+    if (data instanceof DataView)
+        return true;
+
+    return data && IS_DATA_VIEW_RE.test(instanceToString(data));
 }
 
 export function matches (el, selector) {

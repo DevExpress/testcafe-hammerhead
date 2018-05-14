@@ -192,6 +192,35 @@ if (window.PerformanceNavigationTiming) {
     });
 }
 
+test('isArrayBuffer', function () {
+    ok(domUtils.isArrayBuffer(new ArrayBuffer(0)), 'ArrayBuffer');
+    /*eslint-disable no-undefined*/
+    ok(!domUtils.isArrayBuffer(undefined), 'undefined');
+    /*eslint-enable no-undefined*/
+});
+
+test('isArrayBufferView', function () {
+    ok(domUtils.isArrayBufferView(new Int8Array(0)), 'Int8Array');
+    ok(domUtils.isArrayBufferView(new Uint8Array(0)), 'Uint8Array');
+    ok(domUtils.isArrayBufferView(new Uint8ClampedArray(0)), 'Uint8ClampedArray');
+    ok(domUtils.isArrayBufferView(new Int16Array(0)), 'Int16Array');
+    ok(domUtils.isArrayBufferView(new Uint16Array(0)), 'Uint16Array');
+    ok(domUtils.isArrayBufferView(new Int32Array(0)), 'Int32Array');
+    ok(domUtils.isArrayBufferView(new Uint32Array(0)), 'Uint32Array');
+    ok(domUtils.isArrayBufferView(new Float32Array(0)), 'Float32Array');
+    ok(domUtils.isArrayBufferView(new Float64Array(0)), 'Float64Array');
+    /*eslint-disable no-undefined*/
+    ok(!domUtils.isArrayBufferView(undefined), 'undefined');
+    /*eslint-enable no-undefined*/
+});
+
+test('isDataView', function () {
+    ok(domUtils.isDataView(new DataView(new ArrayBuffer(0))), 'DataView');
+    /*eslint-disable no-undefined*/
+    ok(!domUtils.isDataView(undefined), 'undefined');
+    /*eslint-enable no-undefined*/
+});
+
 test('getTopSameDomainWindow', function () {
     return createTestIframe()
         .then(function (iframe) {
