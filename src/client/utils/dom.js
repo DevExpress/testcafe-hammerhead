@@ -25,6 +25,7 @@ const IS_DOCUMENT_RE                   = /^\[object .*?Document]$/i;
 const IS_PROCESSING_INSTRUCTION_RE     = /^\[object .*?ProcessingInstruction]$/i;
 const IS_SVG_ELEMENT_RE                = /^\[object SVG\w+?Element]$/i;
 const IS_HTML_ELEMENT_RE               = /^\[object HTML.*?Element]$/i;
+const IS_ARRAY_BUFFER_RE               = /^\[object ArrayBuffer]$/i;
 const NATIVE_TABLE_CELL_STR            = instanceToString(nativeMethods.createElement.call(document, 'td'));
 const ELEMENT_NODE_TYPE                = Node.ELEMENT_NODE;
 const NOT_CONTENT_EDITABLE_ELEMENTS_RE = /^(select|option|applet|area|audio|canvas|datalist|keygen|map|meter|object|progress|source|track|video|img)$/;
@@ -633,6 +634,17 @@ export function isMessageEvent (e) {
 
 export function isPerformanceNavigationTiming (entry) {
     return instanceToString(entry) === '[object PerformanceNavigationTiming]';
+}
+
+export function isArrayBufferData (array) {
+    if (array[0] instanceof ArrayBuffer)
+        return true;
+
+    return array[0] && IS_ARRAY_BUFFER_RE.test(instanceToString(array[0]));
+}
+
+export function isViewData (array) {
+    return ArrayBuffer.isView(array[0]);
 }
 
 export function matches (el, selector) {

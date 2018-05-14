@@ -1,6 +1,4 @@
-import { instanceToString } from './dom';
-
-const IS_ARRAY_BUFFER_RE = /^\[object ArrayBuffer]$/i;
+import { isArrayBufferData, isViewData } from './dom';
 
 // https://mimesniff.spec.whatwg.org/
 
@@ -127,17 +125,6 @@ const ARCHIVE_TYPE_PATTERNS     = [
         mask:    [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
     }
 ];
-
-function isArrayBufferData (array) {
-    if (array[0] instanceof ArrayBuffer)
-        return true;
-
-    return array[0] && IS_ARRAY_BUFFER_RE.test(instanceToString(array[0]));
-}
-
-function isViewData (array) {
-    return ArrayBuffer.isView(array[0]);
-}
 
 function matchPattern (pattern, data) {
     if (data.length < pattern.pattern.length)
