@@ -638,18 +638,18 @@ export function isPerformanceNavigationTiming (entry) {
 }
 
 export function isArrayBuffer (data) {
-    if (data instanceof ArrayBuffer)
+    if (data instanceof nativeMethods.ArrayBuffer)
         return true;
 
     return data && IS_ARRAY_BUFFER_RE.test(instanceToString(data));
 }
 
 export function isArrayBufferView (data) {
-    return ArrayBuffer.isView(data);
+    return data && nativeMethods.ArrayBuffer.isView(data);
 }
 
 export function isDataView (data) {
-    if (data instanceof DataView)
+    if (data instanceof nativeMethods.DataView)
         return true;
 
     return data && IS_DATA_VIEW_RE.test(instanceToString(data));

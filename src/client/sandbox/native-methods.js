@@ -483,22 +483,33 @@ class NativeMethods {
     }
 
     refreshClasses (win) {
-        this.windowClass      = win.Window;
-        this.documentClass    = win.Document;
-        this.locationClass    = win.Location;
-        this.elementClass     = win.Element;
-        this.svgElementClass  = win.SVGElement;
-        this.Worker           = win.Worker;
-        this.Blob             = win.Blob;
-        this.XMLHttpRequest   = win.XMLHttpRequest;
-        this.Image            = win.Image;
-        this.Function         = win.Function;
-        this.functionToString = win.Function.toString;
-        this.FontFace         = win.FontFace;
-        this.StorageEvent     = win.StorageEvent;
-        this.MutationObserver = win.MutationObserver;
-        this.EventSource      = win.EventSource;
-        this.WebSocket        = win.WebSocket;
+        this.windowClass       = win.Window;
+        this.documentClass     = win.Document;
+        this.locationClass     = win.Location;
+        this.elementClass      = win.Element;
+        this.svgElementClass   = win.SVGElement;
+        this.Worker            = win.Worker;
+        this.ArrayBuffer       = win.ArrayBuffer;
+        this.Int8Array         = win.Int8Array;
+        this.Uint8Array        = win.Uint8Array;
+        this.Uint8ClampedArray = win.Uint8ClampedArray;
+        this.Int16Array        = win.Int16Array;
+        this.Uint16Array       = win.Uint16Array;
+        this.Int32Array        = win.Int32Array;
+        this.Uint32Array       = win.Uint32Array;
+        this.Float32Array      = win.Float32Array;
+        this.Float64Array      = win.Float64Array;
+        this.DataView          = win.DataView;
+        this.Blob              = win.Blob;
+        this.XMLHttpRequest    = win.XMLHttpRequest;
+        this.Image             = win.Image;
+        this.Function          = win.Function;
+        this.functionToString  = win.Function.toString;
+        this.FontFace          = win.FontFace;
+        this.StorageEvent      = win.StorageEvent;
+        this.MutationObserver  = win.MutationObserver;
+        this.EventSource       = win.EventSource;
+        this.WebSocket         = win.WebSocket;
 
         if (win.Proxy)
             this.Proxy = win.Proxy;

@@ -103,7 +103,7 @@ test('window.Blob([data], { type: \'\' }) should return correct result for all p
 
                 var dataView = new testCase.constructor(arrayBuffer);
 
-                data = dataView;
+                data = browserUtils.isIE11 ? dataView.buffer : dataView;
             }
             else {
                 typedArray = new testCase.constructor(pngExample.signature);

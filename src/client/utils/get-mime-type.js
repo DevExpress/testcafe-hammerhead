@@ -1,4 +1,5 @@
 import { isArrayBuffer, isArrayBufferView, isDataView } from './dom';
+import nativeMethods from '../sandbox/native-methods';
 
 // https://mimesniff.spec.whatwg.org/
 
@@ -153,7 +154,7 @@ function matchMime (patternGroup, data) {
     else if (isArrayBufferView(data[0]))
         data = isDataView(data[0]) ? data[0].buffer : data[0];
 
-    let byteArray = new Uint8Array(data);
+    let byteArray = new nativeMethods.Uint8Array(data);
 
     for (const pattern of patternGroup) {
         if (matchPattern(pattern, byteArray))
