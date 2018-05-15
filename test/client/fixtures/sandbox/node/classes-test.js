@@ -23,90 +23,41 @@ if (window.PerformanceNavigationTiming) {
     });
 }
 
-test('window.Blob([data], { type: \'\' }) should return correct result for all possible data type cases (GH-1599)', function () {
+test('window.Blob([data], { type: "" }) should return correct result for all possible data type cases (GH-1599)', function () {
     var pngExample = {
         mime:      'image/bmp',
         signature: [0x42, 0x4D]
     };
 
-    var testCases = [
-        {
-            type:        'ArrayBuffer',
-            constructor: ArrayBuffer.prototype.constructor
-        },
-        {
-            type:        'Int8Array',
-            constructor: Int8Array.prototype.constructor
-        },
-        {
-            type:        'Uint8Array',
-            constructor: Uint8Array.prototype.constructor
-        },
-        {
-            type:        'Uint8ClampedArray',
-            constructor: Uint8ClampedArray.prototype.constructor
-        },
-        {
-            type:        'Int16Array',
-            constructor: Int16Array.prototype.constructor
-        },
-        {
-            type:        'Uint16Array',
-            constructor: Uint16Array.prototype.constructor
-        },
-        {
-            type:        'Int32Array',
-            constructor: Int32Array.prototype.constructor
-        },
-        {
-            type:        'Uint32Array',
-            constructor: Uint32Array.prototype.constructor
-        },
-        {
-            type:        'Float32Array',
-            constructor: Float32Array.prototype.constructor
-        },
-        {
-            type:        'Float64Array',
-            constructor: Float64Array.prototype.constructor
-        },
-        {
-            type:        'DataView',
-            constructor: DataView.prototype.constructor
-        }
-    ];
-
-    var createTestCasePromise = function (testCase) {
+    var testConstructor = function (constructor) {
         return new Promise(function (resolve) {
             var arrayBuffer;
             var data;
             var typedArray;
             var i;
 
-            if (testCase.type === 'ArrayBuffer') {
-                arrayBuffer = new testCase.constructor(pngExample.signature.length);
-
-                typedArray = new Uint8Array(arrayBuffer);
+            if (constructor === ArrayBuffer) {
+                arrayBuffer = new constructor(pngExample.signature.length);
+                typedArray  = new Uint8Array(arrayBuffer);
 
                 for (i = 0; i < typedArray.length; i++)
                     typedArray[i] = pngExample.signature[i];
 
                 data = arrayBuffer;
             }
-            else if (testCase.type === 'DataView') {
+            else if (constructor === DataView) {
                 arrayBuffer = new ArrayBuffer(pngExample.signature.length);
-
-                typedArray = new Uint8Array(arrayBuffer);
+                typedArray  = new Uint8Array(arrayBuffer);
 
                 for (i = 0; i < typedArray.length; i++)
                     typedArray[i] = pngExample.signature[i];
 
-                var dataView = new testCase.constructor(arrayBuffer);
+                var dataView = new constructor(arrayBuffer);
 
                 data = browserUtils.isIE11 ? dataView.buffer : dataView;
             }
             else {
-                typedArray = new testCase.constructor(pngExample.signature);
+                typedArray = new constructor(pngExample.signature);
                 data       = typedArray;
             }
 
@@ -116,26 +67,33 @@ test('window.Blob([data], { type: \'\' }) should return correct result for all p
             fileReader.onload = function () {
                 var resultArrayBuffer = this.result;
 
-                var resultTypedArray = testCase.type === 'ArrayBuffer' || testCase.type === 'DataView'
+                var resultTypedArray = constructor === ArrayBuffer || constructor === DataView
                     ? new Uint8Array(resultArrayBuffer)
-                    : new testCase.constructor(resultArrayBuffer);
+                    : new constructor(resultArrayBuffer);
 
                 var resultArray = [].slice.call(resultTypedArray);
 
-                strictEqual(resultArray.toString(), pngExample.signature.toString(), testCase.type);
+                strictEqual(resultArray.toString(), pngExample.signature.toString());
                 resolve();
             };
+
             fileReader.readAsArrayBuffer(resultBlob);
         });
     };
 
-    var promises = [];
-
-    testCases.forEach(function (testCase) {
-        promises.push(createTestCasePromise(testCase));
-    });
-
-    return Promise.all(promises);
+    return Promise.all([
+        testConstructor(ArrayBuffer),
+        testConstructor(Int8Array),
+        testConstructor(Uint8Array),
+        testConstructor(Uint8ClampedArray),
+        testConstructor(Int16Array),
+        testConstructor(Uint16Array),
+        testConstructor(Int32Array),
+        testConstructor(Uint32Array),
+        testConstructor(Float32Array),
+        testConstructor(Float64Array),
+        testConstructor(DataView)
+    ]);
 });
 
 module('Image');

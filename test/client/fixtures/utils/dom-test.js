@@ -194,9 +194,7 @@ if (window.PerformanceNavigationTiming) {
 
 test('isArrayBuffer', function () {
     ok(domUtils.isArrayBuffer(new ArrayBuffer(0)), 'ArrayBuffer');
-    /*eslint-disable no-undefined*/
-    ok(!domUtils.isArrayBuffer(undefined), 'undefined');
-    /*eslint-enable no-undefined*/
+    ok(!domUtils.isArrayBuffer(void 0), 'undefined');
 });
 
 test('isArrayBufferView', function () {
@@ -209,16 +207,12 @@ test('isArrayBufferView', function () {
     ok(domUtils.isArrayBufferView(new Uint32Array(0)), 'Uint32Array');
     ok(domUtils.isArrayBufferView(new Float32Array(0)), 'Float32Array');
     ok(domUtils.isArrayBufferView(new Float64Array(0)), 'Float64Array');
-    /*eslint-disable no-undefined*/
-    ok(!domUtils.isArrayBufferView(undefined), 'undefined');
-    /*eslint-enable no-undefined*/
+    ok(!domUtils.isArrayBufferView(void 0), 'undefined');
 });
 
 test('isDataView', function () {
     ok(domUtils.isDataView(new DataView(new ArrayBuffer(0))), 'DataView');
-    /*eslint-disable no-undefined*/
-    ok(!domUtils.isDataView(undefined), 'undefined');
-    /*eslint-enable no-undefined*/
+    ok(!domUtils.isDataView(void 0), 'undefined');
 });
 
 test('getTopSameDomainWindow', function () {
