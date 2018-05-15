@@ -24,8 +24,7 @@ if (window.PerformanceNavigationTiming) {
 }
 
 test('window.Blob([data], { type: "" }) should return correct result for all possible data type cases (GH-1599)', function () {
-    var pngExample = {
-        mime:      'image/bmp',
+    var bmpExample = {
         signature: [0x42, 0x4D]
     };
 
@@ -37,27 +36,27 @@ test('window.Blob([data], { type: "" }) should return correct result for all pos
             var i;
 
             if (constructor === ArrayBuffer) {
-                arrayBuffer = new constructor(pngExample.signature.length);
+                arrayBuffer = new constructor(bmpExample.signature.length);
                 typedArray  = new Uint8Array(arrayBuffer);
 
                 for (i = 0; i < typedArray.length; i++)
-                    typedArray[i] = pngExample.signature[i];
+                    typedArray[i] = bmpExample.signature[i];
 
                 data = arrayBuffer;
             }
             else if (constructor === DataView) {
-                arrayBuffer = new ArrayBuffer(pngExample.signature.length);
+                arrayBuffer = new ArrayBuffer(bmpExample.signature.length);
                 typedArray  = new Uint8Array(arrayBuffer);
 
                 for (i = 0; i < typedArray.length; i++)
-                    typedArray[i] = pngExample.signature[i];
+                    typedArray[i] = bmpExample.signature[i];
 
                 var dataView = new constructor(arrayBuffer);
 
                 data = browserUtils.isIE11 ? dataView.buffer : dataView;
             }
             else {
-                typedArray = new constructor(pngExample.signature);
+                typedArray = new constructor(bmpExample.signature);
                 data       = typedArray;
             }
 
@@ -73,7 +72,7 @@ test('window.Blob([data], { type: "" }) should return correct result for all pos
 
                 var resultArray = [].slice.call(resultTypedArray);
 
-                strictEqual(resultArray.toString(), pngExample.signature.toString());
+                strictEqual(resultArray.toString(), bmpExample.signature.toString());
                 resolve();
             };
 
