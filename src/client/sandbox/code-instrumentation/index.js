@@ -2,7 +2,6 @@ import SandboxBase from '../base';
 import PropertyAccessorsInstrumentation from './properties';
 import LocationAccessorsInstrumentation from './location';
 import MethodCallInstrumentation from './methods';
-import { getAttributeProperty } from './properties/attributes';
 import { processScript } from '../../../processing/script';
 import INSTRUCTION from '../../../processing/script/instruction';
 import nativeMethods from '../../sandbox/native-methods';
@@ -15,10 +14,6 @@ export default class CodeInstrumentation extends SandboxBase {
         this.methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
         this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation();
         this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(elementSandbox);
-    }
-
-    static getAttributesProperty (el) {
-        return getAttributeProperty(el);
     }
 
     attach (window) {

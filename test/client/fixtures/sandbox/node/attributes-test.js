@@ -550,13 +550,9 @@ test('setting function to the link.href attribute value (T230764)', function () 
 test('instances of attributesWrapper should be synchronized (GH-924)', function () {
     var input = document.createElement('input');
 
-    var getProcessedAttributes = function () {
-        return eval(processScript('input.attributes'));
-    };
-
     input.setAttribute('name', 'test');
 
-    var initialAttributesWrapper = getProcessedAttributes();
+    var initialAttributesWrapper = input.attributes;
 
     input.setAttribute('maxLength', '10');
 
@@ -564,42 +560,42 @@ test('instances of attributesWrapper should be synchronized (GH-924)', function 
 
     attr.value = 'test';
 
-    getProcessedAttributes().setNamedItem(attr);
-    getProcessedAttributes().removeNamedItem('name');
+    input.attributes.setNamedItem(attr);
+    input.attributes.removeNamedItem('name');
 
-    for (var i = 0; i < getProcessedAttributes().length; i++) {
-        equal(getProcessedAttributes()[i].name, initialAttributesWrapper[i].name);
-        equal(getProcessedAttributes()[i].value, initialAttributesWrapper[i].value);
+    for (var i = 0; i < input.attributes.length; i++) {
+        equal(input.attributes[i].name, initialAttributesWrapper[i].name);
+        equal(input.attributes[i].value, initialAttributesWrapper[i].value);
     }
 });
 
 test('should hide "autocomplete" attribute form enumeration and existence check (GH-955)', function () {
     var input                 = document.createElement('input');
-    var attributeNamespaceURI = input.attributes.getNamedItem('autocomplete').namespaceURI;
+    var attributeNamespaceURI = nativeMethods.elementAttributesGetter.call(input).getNamedItem('autocomplete').namespaceURI;
 
     ok(!input.hasAttribute('autocomplete'));
     ok(!input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
     ok(!input.hasAttributes());
-    strictEqual(getProperty(input, 'attributes').length, 0);
+    strictEqual(input.attributes.length, 0);
 
     input.setAttribute('autocomplete', 'on');
 
     ok(input.hasAttribute('autocomplete'));
     ok(input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
     ok(input.hasAttributes());
-    strictEqual(getProperty(input, 'attributes').length, 1);
+    strictEqual(input.attributes.length, 1);
 
     input.removeAttribute('autocomplete');
     ok(!input.hasAttribute('autocomplete'));
     ok(!input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
     ok(!input.hasAttributes());
-    strictEqual(getProperty(input, 'attributes').length, 0);
+    strictEqual(input.attributes.length, 0);
 
     input.setAttribute('test', 'test');
     ok(input.hasAttribute('test'));
     ok(input.hasAttributeNS(attributeNamespaceURI, 'test'));
     ok(input.hasAttributes());
-    strictEqual(getProperty(input, 'attributes').length, 1);
+    strictEqual(input.attributes.length, 1);
 });
 
 test('the "Maximum call stack size exceeded" error should not occurs when the setAttribute or getAttribute function overridden by client (GH-1452)', function () {

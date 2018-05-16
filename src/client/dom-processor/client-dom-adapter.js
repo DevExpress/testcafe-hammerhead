@@ -31,7 +31,8 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     hasEventHandler (el) {
-        for (const attr of el.attributes) {
+        // eslint-disable-next-line no-restricted-properties
+        for (const attr of el.attributes) { // wtf???
             if (this.EVENTS.indexOf(attr))
                 return true;
         }

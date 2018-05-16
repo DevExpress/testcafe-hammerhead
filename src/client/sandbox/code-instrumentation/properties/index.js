@@ -7,7 +7,6 @@ import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
 import { prepareUrl } from '../../../../utils/url';
-import { getAttributesProperty } from './attributes';
 import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
@@ -32,13 +31,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
     _createPropertyAccessors (window, document) {
         return {
-            attributes: {
-                condition: el => domUtils.isDomElement(el) && el.attributes instanceof window.NamedNodeMap,
-
-                get: el => getAttributesProperty(el),
-                set: (el, value) => value
-            },
-
             // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 6.0 browser
             data: {
                 condition: evt => PropertyAccessorsInstrumentation._isMessageEventWithoutDataPropGetter(evt),

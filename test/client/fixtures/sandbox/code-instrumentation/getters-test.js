@@ -1,7 +1,6 @@
 var urlUtils                             = hammerhead.get('./utils/url');
 var processScript                        = hammerhead.get('../processing/script').processScript;
 var destLocation                         = hammerhead.get('./utils/destination-location');
-var attributesProperty                   = hammerhead.get('../client/sandbox/code-instrumentation/properties/attributes');
 var DomProcessor                         = hammerhead.get('../processing/dom');
 var urlResolver                          = hammerhead.get('./utils/url-resolver');
 
@@ -53,14 +52,14 @@ test('url', function () {
 });
 
 test('attributes', function () {
-    var link       = document.createElement('a');
-    var attributes = null;
+    var anchor = document.createElement('a');
 
-    link.setAttribute('href', 'http://some.com/');
-    link.setAttribute('rel', 'x');
+    anchor.setAttribute('href', 'http://some.com/');
+    anchor.setAttribute('rel', 'x');
 
-    eval(processScript('attributes = link.attributes'));
-    strictEqual(link.attributes.length, 3);
+    var attributes = anchor.attributes;
+
+    strictEqual(nativeMethods.elementAttributesGetter.call(anchor).length, 3);
     strictEqual(attributes.length, 2);
     strictEqual(attributes[0].value, attributes[0].name === 'href' ? 'http://some.com/' : 'x');
     strictEqual(attributes[1].value, attributes[1].name === 'rel' ? 'x' : 'http://some.com/');
@@ -70,10 +69,12 @@ test('attributes', function () {
     strictEqual(attributes['ReL'].value, 'x');
     strictEqual(attributes.getNamedItem('rel').value, 'x');
 
-    var div = $('<div attr1="value1" attr2="value2">')[0];
+    var div = document.createElement('div');
 
-    eval(processScript('attributes = div.attributes'));
-    strictEqual(div.attributes, attributes);
+    anchor.setAttribute('attr1', 'value1');
+    anchor.setAttribute('attr2', 'value2');
+
+    strictEqual(div.attributes, nativeMethods.elementAttributesGetter.call(div));
 });
 
 test('CSSStyleSheet.href', function () {
@@ -171,9 +172,9 @@ test('the getAttributesProperty function should work correctly if Function.proto
     delete Function.prototype.bind;
 
     try {
-        var attrs = attributesProperty.getAttributesProperty(anchor);
+        var attributes = anchor.attributes;
 
-        strictEqual(attrs.getNamedItem('href').value, 'test');
+        strictEqual(attributes.getNamedItem('href').value, 'test');
     }
     catch (e) {
         withError = true;
@@ -181,9 +182,8 @@ test('the getAttributesProperty function should work correctly if Function.proto
     finally {
         ok(!withError);
 
-        /* eslint-disable no-extend-native */
+        // eslint-disable-next-line no-extend-native
         Function.prototype.bind = storedBind;
-        /* eslint-enable no-extend-native */
     }
 });
 

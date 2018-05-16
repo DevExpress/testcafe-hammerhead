@@ -12,13 +12,13 @@ export default class AttributesWrapper {
         el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP] = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP] || [];
         el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP].push(this);
 
-        AttributesWrapper._assignAttributes.call(this, el.attributes);
+        AttributesWrapper._assignAttributes.call(this, nativeMethods.elementAttributesGetter.call(el));
 
         this.item = index => this[index];
 
         const wrapMethod = method => {
             this[method] = (...args) => {
-                const result = el.attributes[method].apply(el.attributes, args);
+                const result = nativeMethods.elementAttributesGetter.call(el)[method].apply(nativeMethods.elementAttributesGetter.call(el), args);
 
                 AttributesWrapper.refreshWrappers(el);
 
@@ -26,12 +26,12 @@ export default class AttributesWrapper {
             };
         };
 
-        for (const field in el.attributes) {
+        for (const field in nativeMethods.elementAttributesGetter.call(el)) {
             if (typeof this[field] === 'function' && field !== 'item') {
                 if (ATTRIBUTES_METHODS.indexOf(field) !== -1)
                     wrapMethod(field);
                 else
-                    this[field] = fnBind(el.attributes[field], el.attributes);
+                    this[field] = fnBind(nativeMethods.elementAttributesGetter.call(el)[field], nativeMethods.elementAttributesGetter.call(el));
             }
         }
 
@@ -83,8 +83,8 @@ export default class AttributesWrapper {
 
         if (attrWrappers) {
             for (let i = 0; i < attrWrappers.length; i++) {
-                AttributesWrapper._cleanAttributes.call(attrWrappers[i], el.attributes);
-                AttributesWrapper._assignAttributes.call(attrWrappers[i], el.attributes);
+                AttributesWrapper._cleanAttributes.call(attrWrappers[i], nativeMethods.elementAttributesGetter.call(el));
+                AttributesWrapper._assignAttributes.call(attrWrappers[i], nativeMethods.elementAttributesGetter.call(el));
             }
         }
     }

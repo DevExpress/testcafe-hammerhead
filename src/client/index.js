@@ -1,6 +1,5 @@
 import Promise from 'pinkie';
 import Sandbox from './sandbox';
-import CodeInstrumentation from './sandbox/code-instrumentation';
 import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
@@ -70,9 +69,8 @@ class Hammerhead {
         this.EventEmitter = EventEmitter;
 
         // Methods
-        this.getOriginElementAttributes = CodeInstrumentation.getAttributesProperty;
-        this.doUpload                   = (input, filePaths) => this.sandbox.upload.doUpload(input, filePaths);
-        this.createNativeXHR            = XhrSandbox.createNativeXHR;
+        this.doUpload        = (input, filePaths) => this.sandbox.upload.doUpload(input, filePaths);
+        this.createNativeXHR = XhrSandbox.createNativeXHR;
 
         this.processScript = processScript;
 
