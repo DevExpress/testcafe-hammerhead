@@ -1099,7 +1099,7 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
-        overrideDescriptor(window.Element.prototype, 'attributes', {
+        overrideDescriptor(window[nativeMethods.elementAttributesPropOwnerName].prototype, 'attributes', {
             getter: function () {
                 return getAttributesProperty(this);
             }

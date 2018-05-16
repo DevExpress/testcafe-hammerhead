@@ -351,7 +351,6 @@ class NativeMethods {
         this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
         this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
         this.xhrStatusGetter                = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
-        this.elementAttributesGetter        = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'attributes').get;
         this.objectDataGetter               = objectDataDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
@@ -422,6 +421,11 @@ class NativeMethods {
         // NOTE: IE11 doesn't support the 'baseURI' property
         if (nodeBaseURIDescriptor)
             this.nodeBaseURIGetter = nodeBaseURIDescriptor.get;
+
+        // NOTE: The 'attributes' property is located in Node prototype in IE11 only
+        this.elementAttributesPropOwnerName = win.Element.prototype.hasOwnProperty('attributes') ? 'Element' : 'Node';
+
+        this.elementAttributesGetter = win.Object.getOwnPropertyDescriptor(win[this.elementAttributesPropOwnerName].prototype, 'attributes').get;
 
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later
