@@ -69,10 +69,17 @@ test('attributes', function () {
     strictEqual(attributes['ReL'].value, 'x');
     strictEqual(attributes.getNamedItem('rel').value, 'x');
 
+    anchor.removeAttribute('rel');
+
+    strictEqual(attributes.length, 1);
+    strictEqual(attributes[0].value, 'http://some.com/');
+    strictEqual(attributes['href'].value, 'http://some.com/');
+    strictEqual(attributes['rel'], void 0);
+
     var div = document.createElement('div');
 
-    anchor.setAttribute('attr1', 'value1');
-    anchor.setAttribute('attr2', 'value2');
+    div.setAttribute('attr1', 'value1');
+    div.setAttribute('attr2', 'value2');
 
     strictEqual(div.attributes, nativeMethods.elementAttributesGetter.call(div));
 });

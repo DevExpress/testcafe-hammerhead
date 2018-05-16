@@ -7,8 +7,10 @@ const ELEMENT_ATTRIBUTE_WRAPPERS_PROP = 'hammerhead|element-attribute-wrappers-p
 
 function cleanAttributes (wrapper) {
     if (wrapper.length) {
-        for (let i = 0; i < wrapper.length; i++)
+        for (let i = 0; i < wrapper.length; i++) {
+            delete wrapper[wrapper[i].name];
             delete wrapper[i];
+        }
     }
 }
 

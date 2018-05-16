@@ -547,25 +547,37 @@ test('setting function to the link.href attribute value (T230764)', function () 
     }
 });
 
-test('instances of attributesWrapper should be synchronized (GH-924)', function () {
+test('instance of attributesWrapper should be synchronized with native attributes (GH-924)', function () {
     var input = document.createElement('input');
+    var nativeAttributes = nativeMethods.elementAttributesGetter.call(input);
+
+    notStrictEqual(input.attributes, nativeAttributes);
+
+    strictEqual(nativeAttributes.length, 2);
+    strictEqual(input.attributes.length, 0);
 
     input.setAttribute('name', 'test');
-
-    var initialAttributesWrapper = input.attributes;
-
     input.setAttribute('maxLength', '10');
+
+    strictEqual(input.attributes.length, 2);
 
     var attr = document.createAttribute('class');
 
     attr.value = 'test';
 
     input.attributes.setNamedItem(attr);
+
+    strictEqual(input.attributes.length, 3);
+
     input.attributes.removeNamedItem('name');
 
-    for (var i = 0; i < input.attributes.length; i++) {
-        equal(input.attributes[i].name, initialAttributesWrapper[i].name);
-        equal(input.attributes[i].value, initialAttributesWrapper[i].value);
+    strictEqual(input.attributes.length, 2);
+
+    for (var i = 0; i < 2; i++) {
+        var attrName = input.attributes[i].name;
+
+        strictEqual(input.attributes[i], nativeAttributes[attrName]);
+        strictEqual(input.attributes[attrName], nativeAttributes[attrName]);
     }
 });
 
