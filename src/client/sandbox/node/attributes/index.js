@@ -3,7 +3,7 @@ import { isHammerheadAttr } from '../../../utils/dom';
 import nativeMethods from '../../native-methods';
 import DomProcessor from '../../../../processing/dom';
 
-const ELEMENT_ATTRIBUTE_WRAPPERS_PROP = 'hammerhead|element-attribute-wrappers-prop';
+const ATTRIBUTES_WRAPPER = 'hammerhead|element-attribute-wrappers';
 
 function cleanAttributes (wrapper) {
     if (wrapper.length) {
@@ -44,9 +44,9 @@ export function assignAttributes (wrapper, attributes) {
     nativeMethods.objectDefineProperties.call(window.Object, wrapper, properties);
 }
 
-export function getAttributesProperty (el) {
-    if (el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP])
-        return el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP];
+export function getAttributes (el) {
+    if (el[ATTRIBUTES_WRAPPER])
+        return el[ATTRIBUTES_WRAPPER];
 
     const attributes = nativeMethods.elementAttributesGetter.call(el);
 
@@ -57,9 +57,9 @@ export function getAttributesProperty (el) {
         if (isHammerheadAttr(attr.name)) {
             AttributesWrapper.prototype = attributes;
 
-            el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP] = new AttributesWrapper(el, attributes);
+            el[ATTRIBUTES_WRAPPER] = new AttributesWrapper(el, attributes);
 
-            return el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP];
+            return el[ATTRIBUTES_WRAPPER];
         }
     }
 
@@ -67,7 +67,7 @@ export function getAttributesProperty (el) {
 }
 
 export function refreshAttributesWrapper (el) {
-    const attributesWrapper = el[ELEMENT_ATTRIBUTE_WRAPPERS_PROP];
+    const attributesWrapper = el[ATTRIBUTES_WRAPPER];
 
     if (attributesWrapper) {
         cleanAttributes(attributesWrapper);

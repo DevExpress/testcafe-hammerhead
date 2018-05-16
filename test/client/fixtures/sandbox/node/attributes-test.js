@@ -529,6 +529,12 @@ test('anchor.toString()', function () {
     strictEqual(anchor.toString(), url);
 });
 
+if (window.Node.prototype.hasOwnProperty('attributes')) {
+    test('the "attributes" property should return null for textNode in ie11', function () {
+        strictEqual(document.createTextNode('text').attributes, null);
+    });
+}
+
 module('regression');
 
 test('setting function to the link.href attribute value (T230764)', function () {

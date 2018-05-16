@@ -47,7 +47,7 @@ import { XLINK_NAMESPACE } from '../../../processing/dom/namespaces';
 import urlResolver from '../../utils/url-resolver';
 import { remove as removeProcessingHeader } from '../../../processing/script/header';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
-import { getAttributesProperty } from './attributes';
+import { getAttributes } from './attributes';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -1101,7 +1101,7 @@ export default class WindowSandbox extends SandboxBase {
 
         overrideDescriptor(window[nativeMethods.elementAttributesPropOwnerName].prototype, 'attributes', {
             getter: function () {
-                return getAttributesProperty(this);
+                return getAttributes(this);
             }
         });
     }

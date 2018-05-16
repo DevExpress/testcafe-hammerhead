@@ -36,7 +36,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
 
     hasEventHandler (el) {
         for (let i = 0; i < el.attrs.length; i++) {
-            if (this.EVENTS.indexOf(el.attrs[i].name))
+            if (this.EVENTS.indexOf(el.attrs[i].name) !== -1)
                 return true;
         }
 

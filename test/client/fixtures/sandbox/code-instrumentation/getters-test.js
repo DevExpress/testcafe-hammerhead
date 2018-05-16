@@ -169,7 +169,7 @@ test('changing the link.href property must affect the stored attribute value (T1
     ok(/\/newPath\?param=value$/.test(anchor.href));
 });
 
-test('the getAttributesProperty function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
+test('the getAttributes function should work correctly if Function.prototype.bind is removed (GH-359)', function () {
     var storedBind = Function.prototype.bind;
     var anchor     = document.createElement('a');
     var withError  = false;
