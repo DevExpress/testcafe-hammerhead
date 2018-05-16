@@ -16,7 +16,7 @@ import { processHtml } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
-import AttributesWrapper from './attributes/wrapper';
+import { refreshAttributesWrapper } from './attributes';
 import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
@@ -453,7 +453,7 @@ export default class ElementSandbox extends SandboxBase {
             setAttribute () {
                 const result = sandbox.setAttributeCore(this, arguments);
 
-                AttributesWrapper.refreshWrappers(this);
+                refreshAttributesWrapper(this);
 
                 return result;
             },
@@ -461,7 +461,7 @@ export default class ElementSandbox extends SandboxBase {
             setAttributeNS () {
                 const result = sandbox.setAttributeCore(this, arguments, true);
 
-                AttributesWrapper.refreshWrappers(this);
+                refreshAttributesWrapper(this);
 
                 return result;
             },
@@ -469,7 +469,7 @@ export default class ElementSandbox extends SandboxBase {
             removeAttribute () {
                 const result = sandbox._removeAttributeCore(this, arguments);
 
-                AttributesWrapper.refreshWrappers(this);
+                refreshAttributesWrapper(this);
 
                 return result;
             },
@@ -477,7 +477,7 @@ export default class ElementSandbox extends SandboxBase {
             removeAttributeNS () {
                 const result = sandbox._removeAttributeCore(this, arguments, true);
 
-                AttributesWrapper.refreshWrappers(this);
+                refreshAttributesWrapper(this);
 
                 return result;
             },
