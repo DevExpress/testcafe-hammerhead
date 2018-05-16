@@ -23,7 +23,7 @@ if (window.PerformanceNavigationTiming) {
     });
 }
 
-test('window.Blob([data], { type: "" }) should return correct result for all possible data type cases (GH-1599)', function () {
+test('window.Blob([data], { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types (GH-1599)', function () {
     var bmpExample = {
         signature: [0x42, 0x4D]
     };
@@ -82,15 +82,7 @@ test('window.Blob([data], { type: "" }) should return correct result for all pos
 
     return Promise.all([
         testConstructor(ArrayBuffer),
-        testConstructor(Int8Array),
         testConstructor(Uint8Array),
-        testConstructor(Uint8ClampedArray),
-        testConstructor(Int16Array),
-        testConstructor(Uint16Array),
-        testConstructor(Int32Array),
-        testConstructor(Uint32Array),
-        testConstructor(Float32Array),
-        testConstructor(Float64Array),
         testConstructor(DataView)
     ]);
 });

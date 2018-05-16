@@ -198,15 +198,7 @@ test('isArrayBuffer', function () {
 });
 
 test('isArrayBufferView', function () {
-    ok(domUtils.isArrayBufferView(new Int8Array(0)), 'Int8Array');
     ok(domUtils.isArrayBufferView(new Uint8Array(0)), 'Uint8Array');
-    ok(domUtils.isArrayBufferView(new Uint8ClampedArray(0)), 'Uint8ClampedArray');
-    ok(domUtils.isArrayBufferView(new Int16Array(0)), 'Int16Array');
-    ok(domUtils.isArrayBufferView(new Uint16Array(0)), 'Uint16Array');
-    ok(domUtils.isArrayBufferView(new Int32Array(0)), 'Int32Array');
-    ok(domUtils.isArrayBufferView(new Uint32Array(0)), 'Uint32Array');
-    ok(domUtils.isArrayBufferView(new Float32Array(0)), 'Float32Array');
-    ok(domUtils.isArrayBufferView(new Float64Array(0)), 'Float64Array');
     ok(!domUtils.isArrayBufferView(void 0), 'undefined');
 });
 

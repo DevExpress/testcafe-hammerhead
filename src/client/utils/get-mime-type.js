@@ -149,6 +149,7 @@ function matchPattern (pattern, data) {
 }
 
 function matchMime (patternGroup, data) {
+    // Now, we don't support the cases when the data is is divided into several parts and its parts have different types
     if (isArrayBuffer(data[0]))
         data = data[0];
     else if (isArrayBufferView(data[0]))
