@@ -1,3 +1,6 @@
+import { isArrayBuffer, isArrayBufferView, isDataView } from './dom';
+import nativeMethods from '../sandbox/native-methods';
+
 // https://mimesniff.spec.whatwg.org/
 
 const IMAGE_TYPE_PATTERNS       = [
@@ -106,7 +109,7 @@ const FONT_TYPE_PATTERNS        = [
         mask:    [0xFF, 0xFF, 0xFF, 0xFF]
     }
 ];
-const ARCHIVE_TYPE_PATTERNS = [
+const ARCHIVE_TYPE_PATTERNS     = [
     {
         mime:    'application/x-gzip',
         pattern: [0x1F, 0x8B, 0x08],
@@ -146,7 +149,13 @@ function matchPattern (pattern, data) {
 }
 
 function matchMime (patternGroup, data) {
-    let byteArray = new Uint8Array(data);
+    // Now, we don't support the cases when the data is is divided into several parts and its parts have different types
+    if (isArrayBuffer(data[0]))
+        data = data[0];
+    else if (isArrayBufferView(data[0]))
+        data = isDataView(data[0]) ? data[0].buffer : data[0];
+
+    let byteArray = new nativeMethods.Uint8Array(data);
 
     for (const pattern of patternGroup) {
         if (matchPattern(pattern, byteArray))

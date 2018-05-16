@@ -3,6 +3,7 @@ var destLocation    = hammerhead.get('./utils/destination-location');
 var urlUtils        = hammerhead.get('./utils/url');
 var FileListWrapper = hammerhead.get('./sandbox/upload/file-list-wrapper');
 var INTERNAL_ATTRS  = hammerhead.get('../processing/dom/internal-attributes');
+var Promise         = hammerhead.Promise;
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -21,6 +22,70 @@ if (window.PerformanceNavigationTiming) {
         nativeMethods.performanceEntryNameGetter = storedNativePerformanceEntryNameGetter;
     });
 }
+
+test('window.Blob([data], { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types (GH-1599)', function () {
+    var bmpExample = {
+        signature: [0x42, 0x4D]
+    };
+
+    var testConstructor = function (constructor) {
+        return new Promise(function (resolve) {
+            var arrayBuffer;
+            var data;
+            var typedArray;
+            var i;
+
+            if (constructor === ArrayBuffer) {
+                arrayBuffer = new constructor(bmpExample.signature.length);
+                typedArray  = new Uint8Array(arrayBuffer);
+
+                for (i = 0; i < typedArray.length; i++)
+                    typedArray[i] = bmpExample.signature[i];
+
+                data = arrayBuffer;
+            }
+            else if (constructor === DataView) {
+                arrayBuffer = new ArrayBuffer(bmpExample.signature.length);
+                typedArray  = new Uint8Array(arrayBuffer);
+
+                for (i = 0; i < typedArray.length; i++)
+                    typedArray[i] = bmpExample.signature[i];
+
+                var dataView = new constructor(arrayBuffer);
+
+                data = browserUtils.isIE11 ? dataView.buffer : dataView;
+            }
+            else {
+                typedArray = new constructor(bmpExample.signature);
+                data       = typedArray;
+            }
+
+            var resultBlob = new Blob([data], { type: '' });
+            var fileReader = new FileReader();
+
+            fileReader.onload = function () {
+                var resultArrayBuffer = this.result;
+
+                var resultTypedArray = constructor === ArrayBuffer || constructor === DataView
+                    ? new Uint8Array(resultArrayBuffer)
+                    : new constructor(resultArrayBuffer);
+
+                var resultArray = [].slice.call(resultTypedArray);
+
+                strictEqual(resultArray.toString(), bmpExample.signature.toString());
+                resolve();
+            };
+
+            fileReader.readAsArrayBuffer(resultBlob);
+        });
+    };
+
+    return Promise.all([
+        testConstructor(ArrayBuffer),
+        testConstructor(Uint8Array),
+        testConstructor(DataView)
+    ]);
+});
 
 module('Image');
 

@@ -230,6 +230,8 @@ class NativeMethods {
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
+        this.arrayBufferIsView = win.ArrayBuffer.prototype.constructor.isView;
+
         const objectDataDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
         const inputValueDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
         const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
@@ -489,6 +491,9 @@ class NativeMethods {
         this.elementClass     = win.Element;
         this.svgElementClass  = win.SVGElement;
         this.Worker           = win.Worker;
+        this.ArrayBuffer      = win.ArrayBuffer;
+        this.Uint8Array       = win.Uint8Array;
+        this.DataView         = win.DataView;
         this.Blob             = win.Blob;
         this.XMLHttpRequest   = win.XMLHttpRequest;
         this.Image            = win.Image;

@@ -192,6 +192,21 @@ if (window.PerformanceNavigationTiming) {
     });
 }
 
+test('isArrayBuffer', function () {
+    ok(domUtils.isArrayBuffer(new ArrayBuffer(0)), 'ArrayBuffer');
+    ok(!domUtils.isArrayBuffer(void 0), 'undefined');
+});
+
+test('isArrayBufferView', function () {
+    ok(domUtils.isArrayBufferView(new Uint8Array(0)), 'Uint8Array');
+    ok(!domUtils.isArrayBufferView(void 0), 'undefined');
+});
+
+test('isDataView', function () {
+    ok(domUtils.isDataView(new DataView(new ArrayBuffer(0))), 'DataView');
+    ok(!domUtils.isDataView(void 0), 'undefined');
+});
+
 test('getTopSameDomainWindow', function () {
     return createTestIframe()
         .then(function (iframe) {
