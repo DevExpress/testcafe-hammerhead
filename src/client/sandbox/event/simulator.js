@@ -594,7 +594,7 @@ export default class EventSimulator {
             const event = nativeMethods.documentCreateEvent.call(document, 'TextEvent');
 
             const args = {
-                eventType:   browserUtils.isIE ? 'textinput' : 'textInput',
+                eventType:   browserUtils.isIE11 ? 'textinput' : 'textInput',
                 bubbles:     true,
                 cancelable:  true,
                 view:        window,

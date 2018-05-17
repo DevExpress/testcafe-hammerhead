@@ -458,6 +458,7 @@ test('drag and drop events', function () {
 // NOTE: Firefox does not support textInput event
 if (!browserUtils.isFirefox) {
     test('text input', function () {
+        var textInputEventName = browserUtils.isIE11 ? 'textinput' : 'textInput';
 
         var handler = function (e) {
             var ev = e || window.event;
@@ -466,13 +467,9 @@ if (!browserUtils.isFirefox) {
                 raised = true;
         };
 
-        document.addEventListener('textInput', handler); // Chrome way
-        document.addEventListener('textinput', handler); // IE way
-
+        document.addEventListener(textInputEventName, handler);
         eventSimulator.textInput(domElement, 'Hello');
-
-        document.removeEventListener('textInput', handler); // Chrome way
-        document.removeEventListener('textinput', handler); // IE way
+        document.removeEventListener(textInputEventName, handler);
 
         ok(raised);
     });
