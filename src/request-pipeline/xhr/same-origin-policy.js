@@ -19,7 +19,7 @@ export function check (ctx) {
     const allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
     const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
     const allowedOrigins         = castArray(allowOriginHeader);
-    const wildcardAllowed        = allowedOrigins.indexOf('*') > -1;
+    const wildcardAllowed        = allowedOrigins.includes('*');
 
     // FAILED: Destination server doesn't provide the Access-Control-Allow-Origin header.
     // So cross-domain requests are denied
@@ -32,5 +32,5 @@ export function check (ctx) {
         return false;
 
     // FINAL CHECK: The request origin should match one of the allowed origins.
-    return wildcardAllowed || allowedOrigins.indexOf(reqOrigin) > -1;
+    return wildcardAllowed || allowedOrigins.includes(reqOrigin);
 }

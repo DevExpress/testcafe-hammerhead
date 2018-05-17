@@ -75,7 +75,7 @@ export default class FormData {
     parseContentTypeHeader (header) {
         header = String(header);
 
-        if (header.indexOf('multipart/form-data') > -1) {
+        if (header.includes('multipart/form-data')) {
             const boundaryMatch = header.match(BOUNDARY_RE);
             const token         = boundaryMatch && boundaryMatch[1];
 
