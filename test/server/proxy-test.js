@@ -106,6 +106,7 @@ describe('Proxy', () => {
     let crossDomainServer = null;
     let proxy             = null;
     let session           = null;
+    let sslOptions        = null;
 
     before(() => {
         const app = express();
@@ -398,7 +399,7 @@ describe('Proxy', () => {
         session.getAuthCredentials = () => null;
         session.handleFileDownload = () => void 0;
 
-        proxy = new Proxy('127.0.0.1', 1836, 1837);
+        proxy = new Proxy('127.0.0.1', 1836, 1837, sslOptions);
     });
 
     afterEach(() => {
@@ -2273,6 +2274,43 @@ describe('Proxy', () => {
                     session.removeRequestEventListeners(rule);
 
                     return testShouldProxyImageOptionValue(false);
+                });
+        });
+    });
+
+    describe('https proxy', () => {
+        before(() => {
+            sslOptions = {
+                key:  selfSignedCertificate.key,
+                cert: selfSignedCertificate.cert
+            };
+        });
+
+        after(() => {
+            sslOptions = null;
+        });
+
+        it('Should process pages', () => {
+            session.id = 'sessionId';
+            session.injectable.scripts.push('/script1.js');
+            session.injectable.scripts.push('/script2.js');
+            session.injectable.styles.push('/styles1.css');
+            session.injectable.styles.push('/styles2.css');
+
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/page', session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            expect(options.url).eql('https://127.0.0.1:1836/sessionId/http://127.0.0.1:2000/page');
+
+            return request(options)
+                .then(body => {
+                    const expected = fs.readFileSync('test/server/data/page/expected-https.html').toString();
+
+                    compareCode(body, expected);
                 });
         });
     });

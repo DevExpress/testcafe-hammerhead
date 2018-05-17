@@ -23,14 +23,18 @@ export function getProxyUrl (url, opts) {
         return url;
 
     /*eslint-disable no-restricted-properties*/
-    const proxyHostname = opts && opts.proxyHostname || location.hostname;
-    const proxyPort     = opts && opts.proxyPort || location.port.toString();
+    const proxyHostname       = opts && opts.proxyHostname || location.hostname;
+    const proxyPort           = opts && opts.proxyPort || location.port.toString();
+    const proxyServerProtocol = opts && opts.proxyProtocol || location.protocol;
     /*eslint-enable no-restricted-properties*/
 
-    const proxyProtocol = parsedResourceType.isWebSocket ? 'ws:' : void 0;
-    const sessionId     = opts && opts.sessionId || settings.get().sessionId;
-    let charset         = opts && opts.charset;
-    let reqOrigin       = opts && opts.reqOrigin;
+    const proxyProtocol = parsedResourceType.isWebSocket
+        ? proxyServerProtocol.replace('http', 'ws')
+        : proxyServerProtocol;
+
+    const sessionId = opts && opts.sessionId || settings.get().sessionId;
+    let charset     = opts && opts.charset;
+    let reqOrigin   = opts && opts.reqOrigin;
 
     const crossDomainPort = getCrossDomainProxyPort(proxyPort);
 
@@ -69,7 +73,8 @@ export function getProxyUrl (url, opts) {
     // NOTE: It seems that the relative URL had the leading slash or dots, so that the proxy info path part was
     // removed by the resolver and we have an origin URL with the incorrect host and protocol.
     /*eslint-disable no-restricted-properties*/
-    if (parsedUrl.protocol === 'http:' && parsedUrl.hostname === proxyHostname && parsedUrl.port === proxyPort) {
+    if (parsedUrl.protocol === proxyServerProtocol && parsedUrl.hostname === proxyHostname &&
+        parsedUrl.port === proxyPort) {
         const parsedDestLocation = destLocation.getParsed();
 
         parsedUrl.protocol = parsedDestLocation.protocol;

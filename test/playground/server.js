@@ -27,10 +27,10 @@ function createSession () {
     return session;
 }
 
-exports.start = () => {
+exports.start = sslOptions => {
     const app       = express();
-    const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2);
     const appServer = http.createServer(app);
+    const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2, sslOptions);
 
     app.use(express.bodyParser());
 
