@@ -31,8 +31,10 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     hasEventHandler (el) {
-        for (const attr of el.attributes) {
-            if (this.EVENTS.indexOf(attr))
+        const attributes = nativeMethods.elementAttributesGetter.call(el);
+
+        for (const attr of attributes) {
+            if (this.EVENTS.indexOf(attr.name) !== -1)
                 return true;
         }
 

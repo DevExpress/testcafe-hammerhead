@@ -400,28 +400,3 @@ if (!browserUtils.isFirefox) {
         strictEqual(nativeMethods.anchorHrefGetter.call(anchor), 'unsupported://some.link.com/path?z=30');
     });
 }
-
-test('should properly set value of instrumented property if it is readonly for DOM elements (GH-1351)', function () {
-    var input = document.createElement('input');
-
-    var testCases = [
-        {
-            prop:   'attributes',
-            value1: input.attributes,
-            value2: null
-        }
-    ];
-
-    var obj = {};
-
-    testCases.forEach(function (testCase) {
-        setProperty(obj, testCase.prop, testCase.value1);
-        strictEqual(getProperty(obj, testCase.prop), testCase.value1);
-
-        setProperty(obj, testCase.prop, testCase.value2);
-        strictEqual(getProperty(obj, testCase.prop), testCase.value2);
-
-        delete obj[testCase.prop];
-    });
-});
-

@@ -16,7 +16,7 @@ import { processHtml } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
 import * as windowsStorage from '../windows-storage';
-import AttributesWrapper from '../code-instrumentation/properties/attributes-wrapper';
+import { refreshAttributesWrapper } from './attributes';
 import ShadowUI from '../shadow-ui';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { ATTRS_WITH_SPECIAL_PROXYING_LOGIC } from '../../../processing/dom/attributes';
@@ -453,7 +453,7 @@ export default class ElementSandbox extends SandboxBase {
             setAttribute () {
                 const result = sandbox.setAttributeCore(this, arguments);
 
-                ElementSandbox._refreshAttributesWrappers(this);
+                refreshAttributesWrapper(this);
 
                 return result;
             },
@@ -461,7 +461,7 @@ export default class ElementSandbox extends SandboxBase {
             setAttributeNS () {
                 const result = sandbox.setAttributeCore(this, arguments, true);
 
-                ElementSandbox._refreshAttributesWrappers(this);
+                refreshAttributesWrapper(this);
 
                 return result;
             },
@@ -469,7 +469,7 @@ export default class ElementSandbox extends SandboxBase {
             removeAttribute () {
                 const result = sandbox._removeAttributeCore(this, arguments);
 
-                ElementSandbox._refreshAttributesWrappers(this);
+                refreshAttributesWrapper(this);
 
                 return result;
             },
@@ -477,7 +477,7 @@ export default class ElementSandbox extends SandboxBase {
             removeAttributeNS () {
                 const result = sandbox._removeAttributeCore(this, arguments, true);
 
-                ElementSandbox._refreshAttributesWrappers(this);
+                refreshAttributesWrapper(this);
 
                 return result;
             },
@@ -505,9 +505,9 @@ export default class ElementSandbox extends SandboxBase {
             },
 
             hasAttributes () {
-                if (this.attributes.length === 2 &&
-                    this.attributes.getNamedItem('autocomplete') &&
-                    this.attributes.getNamedItem(DomProcessor.getStoredAttrName('autocomplete')))
+                if (nativeMethods.elementAttributesGetter.call(this).length === 2 &&
+                    nativeMethods.elementAttributesGetter.call(this).getNamedItem('autocomplete') &&
+                    nativeMethods.elementAttributesGetter.call(this).getNamedItem(DomProcessor.getStoredAttrName('autocomplete')))
                     return sandbox._hasAttributeCore(this, ['autocomplete'], false);
 
                 return nativeMethods.hasAttributes.apply(this, arguments);
@@ -538,10 +538,6 @@ export default class ElementSandbox extends SandboxBase {
 
     static _removeFileInputInfo (el) {
         hiddenInfo.removeInputInfo(el);
-    }
-
-    static _refreshAttributesWrappers (el) {
-        AttributesWrapper.refreshWrappers(el);
     }
 
     static _hasShadowUIParentOrContainsShadowUIClassPostfix (el) {

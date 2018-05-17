@@ -529,6 +529,12 @@ test('anchor.toString()', function () {
     strictEqual(anchor.toString(), url);
 });
 
+if (window.Node.prototype.hasOwnProperty('attributes')) {
+    test('the "attributes" property should return null for textNode in ie11', function () {
+        strictEqual(document.createTextNode('text').attributes, null);
+    });
+}
+
 module('regression');
 
 test('setting function to the link.href attribute value (T230764)', function () {
@@ -547,59 +553,67 @@ test('setting function to the link.href attribute value (T230764)', function () 
     }
 });
 
-test('instances of attributesWrapper should be synchronized (GH-924)', function () {
+test('instance of attributesWrapper should be synchronized with native attributes (GH-924)', function () {
     var input = document.createElement('input');
+    var nativeAttributes = nativeMethods.elementAttributesGetter.call(input);
 
-    var getProcessedAttributes = function () {
-        return eval(processScript('input.attributes'));
-    };
+    notStrictEqual(input.attributes, nativeAttributes);
+
+    strictEqual(nativeAttributes.length, 2);
+    strictEqual(input.attributes.length, 0);
 
     input.setAttribute('name', 'test');
-
-    var initialAttributesWrapper = getProcessedAttributes();
-
     input.setAttribute('maxLength', '10');
+
+    strictEqual(input.attributes.length, 2);
 
     var attr = document.createAttribute('class');
 
     attr.value = 'test';
 
-    getProcessedAttributes().setNamedItem(attr);
-    getProcessedAttributes().removeNamedItem('name');
+    input.attributes.setNamedItem(attr);
 
-    for (var i = 0; i < getProcessedAttributes().length; i++) {
-        equal(getProcessedAttributes()[i].name, initialAttributesWrapper[i].name);
-        equal(getProcessedAttributes()[i].value, initialAttributesWrapper[i].value);
+    strictEqual(input.attributes.length, 3);
+
+    input.attributes.removeNamedItem('name');
+
+    strictEqual(input.attributes.length, 2);
+
+    for (var i = 0; i < 2; i++) {
+        var attrName = input.attributes[i].name;
+
+        strictEqual(input.attributes[i], nativeAttributes[attrName]);
+        strictEqual(input.attributes[attrName], nativeAttributes[attrName]);
     }
 });
 
 test('should hide "autocomplete" attribute form enumeration and existence check (GH-955)', function () {
     var input                 = document.createElement('input');
-    var attributeNamespaceURI = input.attributes.getNamedItem('autocomplete').namespaceURI;
+    var attributeNamespaceURI = nativeMethods.elementAttributesGetter.call(input).getNamedItem('autocomplete').namespaceURI;
 
     ok(!input.hasAttribute('autocomplete'));
     ok(!input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
     ok(!input.hasAttributes());
-    strictEqual(getProperty(input, 'attributes').length, 0);
+    strictEqual(input.attributes.length, 0);
 
     input.setAttribute('autocomplete', 'on');
 
     ok(input.hasAttribute('autocomplete'));
     ok(input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
     ok(input.hasAttributes());
-    strictEqual(getProperty(input, 'attributes').length, 1);
+    strictEqual(input.attributes.length, 1);
 
     input.removeAttribute('autocomplete');
     ok(!input.hasAttribute('autocomplete'));
     ok(!input.hasAttributeNS(attributeNamespaceURI, 'autocomplete'));
     ok(!input.hasAttributes());
-    strictEqual(getProperty(input, 'attributes').length, 0);
+    strictEqual(input.attributes.length, 0);
 
     input.setAttribute('test', 'test');
     ok(input.hasAttribute('test'));
     ok(input.hasAttributeNS(attributeNamespaceURI, 'test'));
     ok(input.hasAttributes());
-    strictEqual(getProperty(input, 'attributes').length, 1);
+    strictEqual(input.attributes.length, 1);
 });
 
 test('the "Maximum call stack size exceeded" error should not occurs when the setAttribute or getAttribute function overridden by client (GH-1452)', function () {

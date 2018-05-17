@@ -424,6 +424,11 @@ class NativeMethods {
         if (nodeBaseURIDescriptor)
             this.nodeBaseURIGetter = nodeBaseURIDescriptor.get;
 
+        // NOTE: The 'attributes' property is located in Node prototype in IE11 only
+        this.elementAttributesPropOwnerName = win.Element.prototype.hasOwnProperty('attributes') ? 'Element' : 'Node';
+
+        this.elementAttributesGetter = win.Object.getOwnPropertyDescriptor(win[this.elementAttributesPropOwnerName].prototype, 'attributes').get;
+
         // NOTE: At present we proxy only the PerformanceNavigationTiming.
         // Another types of the PerformanceEntry will be fixed later
         // https://developer.mozilla.org/en-US/docs/Web/API/PerformanceEntry

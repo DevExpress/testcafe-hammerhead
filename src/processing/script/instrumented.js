@@ -11,7 +11,6 @@ export const METHODS = [
 ];
 
 export const PROPERTIES = [
-    'attributes',
     'data',
     'href',
     'location',

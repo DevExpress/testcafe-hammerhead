@@ -273,11 +273,11 @@ test('markup with special characters must be cleaned up (T112153)', function () 
 });
 
 test('html and body attributes must be processed (T226655)', function () {
-    var attrValue           = 'var js = document.createElement(\'script\');js.src = \'http://google.com\'; document.body.appendChild(js);';
+    var attrValue           = 'document.location = \'http://example.com/\'';
     var expectedAttrValue   = processScript(attrValue, false).replace(/\s/g, '');
-    var htmlWithBody        = '<body onload="' + attrValue + '">';
-    var htmlWithHeadAndBody = '<head></head><body onload="' + attrValue + '"></body>';
-    var htmlWithHtmlTag     = '<html onload="' + attrValue + '">';
+    var htmlWithBody        = '<body onblur="' + attrValue + '">';
+    var htmlWithHeadAndBody = '<head></head><body onblur="' + attrValue + '"></body>';
+    var htmlWithHtmlTag     = '<html onblur="' + attrValue + '">';
 
     ok(htmlUtils.processHtml(htmlWithBody).replace(/\s/g, '').replace(/&quot;/ig, '"').indexOf(expectedAttrValue) !==
        -1);
