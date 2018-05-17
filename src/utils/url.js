@@ -356,7 +356,7 @@ export function ensureTrailingSlash (srcUrl, processedUrl) {
 }
 
 export function isSpecialPage (url) {
-    return SPECIAL_PAGES.indexOf(url) !== -1;
+    return SPECIAL_PAGES.includes(url);
 }
 
 export function isRelativeUrl (url) {
