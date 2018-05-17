@@ -18,7 +18,7 @@ function isCrossDomainXhrWithoutCredentials (ctx) {
 }
 
 function transformAuthorizationHeader (src, ctx) {
-    if (src.indexOf(AUTHORIZATION.valuePrefix) !== -1)
+    if (src.includes(AUTHORIZATION.valuePrefix))
         return src.replace(AUTHORIZATION.valuePrefix, '');
 
     return isCrossDomainXhrWithoutCredentials(ctx) ? void 0 : src;
@@ -145,7 +145,7 @@ const responseTransforms = {
     },
 
     'x-frame-options': (src, ctx) => {
-        if (src.indexOf('ALLOW-FROM') === -1)
+        if (!src.includes('ALLOW-FROM'))
             return src;
 
         src = src.replace('ALLOW-FROM', '').trim();

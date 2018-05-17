@@ -51,7 +51,7 @@ function getAgent (type) {
 }
 
 function isSSLProtocolErr (err) {
-    return err.message && err.message.indexOf('SSL routines') > -1;
+    return err.message && err.message.includes('SSL routines');
 }
 
 
