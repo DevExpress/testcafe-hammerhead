@@ -55,7 +55,7 @@ export function findElementsByTagNames (root, tagNames) {
     const elements = {};
 
     walkElements(root, el => {
-        if (tagNames.indexOf(el.tagName) !== -1) {
+        if (tagNames.includes(el.tagName)) {
             elements[el.tagName] = elements[el.tagName] || [];
             elements[el.tagName].push(el);
         }
