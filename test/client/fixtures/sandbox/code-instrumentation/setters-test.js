@@ -268,9 +268,8 @@ test('restoring the removed RegExp.prototype.test function should not throw an e
     }
     catch (e) {
         withError = true;
-        /* eslint-disable no-extend-native */
+        // eslint-disable-next-line no-extend-native
         RegExp.prototype.test = savedTest;
-        /* eslint-enable no-extend-native */
     }
 
     ok(!withError);
@@ -307,21 +306,6 @@ test("location assignment doesn't work (GH-640)", function () {
             strictEqual(parsedProxyUrl.resourceType, 'i');
             strictEqual(parsedProxyUrl.destResourceInfo.partAfterHost, urlUtils.parseUrl(iframeNewSrc).partAfterHost);
         });
-});
-
-test('setter returns a correct value (GH-907)', function () {
-    var checkReturnedValue = function (tagName, prop, value) {
-        strictEqual(setProperty(document.createElement(tagName), prop, value), value);
-    };
-
-    checkReturnedValue('form', 'action', './path');
-    checkReturnedValue('input', 'autocomplete', 'on');
-    checkReturnedValue('object', 'data', './path');
-    checkReturnedValue('a', 'href', './path');
-    checkReturnedValue('html', 'manifest', './path');
-    checkReturnedValue('iframe', 'sandbox', 'allow-scripts');
-    checkReturnedValue('img', 'src', './path');
-    checkReturnedValue('a', 'target', '_blank');
 });
 
 test('should not throw an error on setting the body.innerHtml when document.body equals null (GH-1172)', function () {

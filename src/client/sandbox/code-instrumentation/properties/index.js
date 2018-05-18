@@ -30,15 +30,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
             href: {
                 condition: LocationAccessorsInstrumentation.isLocationWrapper,
 
-                /*eslint-disable no-restricted-properties*/
+                // eslint-disable-next-line no-restricted-properties
                 get: locationWrapper => locationWrapper.href,
 
                 set: (locationWrapper, value) => {
+                    // eslint-disable-next-line no-restricted-properties
                     locationWrapper.href = destLocation.resolveUrl(value, document);
 
                     return value;
                 }
-                /*eslint-enable no-restricted-properties*/
             },
 
             location: {
@@ -60,7 +60,6 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                         const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
                         const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
-                        /*eslint-disable no-restricted-properties*/
                         if (!locationWrapper) {
                             if (!isJsProtocol(location)) {
                                 const url          = prepareUrl(location);
@@ -74,8 +73,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                                 owner.location = processJsAttrValue(location, { isJsProtocol: true, isEventAttr: false });
                         }
                         else
+                            // eslint-disable-next-line no-restricted-properties
                             locationWrapper.href = location;
-                        /*eslint-enable no-restricted-properties*/
 
                         return location;
                     }
@@ -133,9 +132,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     accessors[propName].condition(owner))
                     return accessors[propName].set(owner, value);
 
-                /* eslint-disable no-return-assign */
+                // eslint-disable-next-line no-return-assign
                 return owner[propName] = value;
-                /* eslint-enable no-return-assign */
             },
 
             configurable: true

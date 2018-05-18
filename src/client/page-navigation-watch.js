@@ -110,13 +110,13 @@ export default class PageNavigationWatch extends EventEmiter {
     }
 
     static _onNavigationTriggeredInWindow (win, url) {
-        /*eslint-disable no-empty */
+
         try {
             win['%hammerhead%'].pageNavigationWatch.onNavigationTriggered(url);
         }
+        // eslint-disable-next-line no-empty
         catch (e) {
         }
-        /*eslint-enable no-empty */
     }
 
     onNavigationTriggered (url) {

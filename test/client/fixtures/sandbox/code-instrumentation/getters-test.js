@@ -1,5 +1,4 @@
 var urlUtils                             = hammerhead.get('./utils/url');
-var processScript                        = hammerhead.get('../processing/script').processScript;
 var destLocation                         = hammerhead.get('./utils/destination-location');
 var DomProcessor                         = hammerhead.get('../processing/dom');
 var urlResolver                          = hammerhead.get('./utils/url-resolver');
@@ -36,19 +35,17 @@ test('autocomplete', function () {
 });
 
 test('url', function () {
-    /* eslint-disable no-unused-vars */
     var $scriptWithSrc      = $('<script src="http://some.com/script.js">');
     var $scriptWithEmptySrc = $('<script src="">');
     var $scriptWithoutSrc   = $('<script>');
-    var $linkWithOnlyHash   = $('<a href="#hash">');
+    var $anchorWithOnlyHash = $('<a href="#hash">');
 
     var proxyLocation = destLocation.get();
 
     strictEqual($scriptWithSrc[0].src, 'http://some.com/script.js');
     strictEqual($scriptWithEmptySrc[0].src, proxyLocation);
     strictEqual($scriptWithoutSrc[0].src, '');
-    strictEqual(eval(processScript('$linkWithOnlyHash[0].href')), proxyLocation + '#hash');
-    /* eslint-enable no-unused-vars */
+    strictEqual($anchorWithOnlyHash[0].href, proxyLocation + '#hash');
 });
 
 test('attributes', function () {

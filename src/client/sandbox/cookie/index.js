@@ -70,9 +70,8 @@ export default class CookieSandbox extends SandboxBase {
 
         const parsedDestLocation = destLocation.getParsed();
 
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         const destProtocol = parsedDestLocation.protocol;
-        /*eslint-enable no-restricted-properties*/
 
         // NOTE: Hammerhead tunnels HTTPS requests via HTTP, so we need to validate the Secure attribute manually.
         if (parsedCookie.secure && destProtocol !== 'https:')
@@ -81,15 +80,13 @@ export default class CookieSandbox extends SandboxBase {
 
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
         // according to a test url.
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         return !parsedCookie.domain || parsedDestLocation.hostname === parsedCookie.domain;
-        /*eslint-enable no-restricted-properties*/
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         const cookies = this._getSettings().cookie ? this._getSettings().cookie.split(';') : [];
-        /*eslint-enable no-restricted-properties*/
 
         let replaced    = false;
         const searchStr = cookieKey === '' ? null : cookieKey + '=';
@@ -114,22 +111,19 @@ export default class CookieSandbox extends SandboxBase {
         if (!replaced && newCookieStr !== null)
             cookies.push(newCookieStr);
 
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         this._getSettings().cookie = cookies.join('; ');
-        /*eslint-enable no-restricted-properties*/
     }
 
     getCookie () {
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         return this._getSettings().cookie;
-        /*eslint-enable no-restricted-properties*/
     }
 
     setCookie (document, value, syncWithServer) {
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         if (value.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:')
             return value;
-        /*eslint-enable no-restricted-properties*/
 
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
@@ -160,11 +154,9 @@ export default class CookieSandbox extends SandboxBase {
         if (syncWithServer) {
             // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
             this.cookieSync.perform({
-                cookie: value,
-
-                /*eslint-disable no-restricted-properties*/
-                url: document.location.href
-                /*eslint-enable no-restricted-properties*/
+                // eslint-disable-next-line no-restricted-properties
+                url:    document.location.href,
+                cookie: value
             });
         }
 

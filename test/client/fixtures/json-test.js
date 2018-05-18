@@ -19,9 +19,8 @@ test('JSON.isSerializable', function () {
 
     var obj3 = {
         prop1: function () {
-            /* eslint-disable no-alert */
+            // eslint-disable-next-line no-alert
             alert('1');
-            /* eslint-enable no-alert */
         }
     };
 

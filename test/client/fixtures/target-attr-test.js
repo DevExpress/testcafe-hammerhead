@@ -136,7 +136,7 @@ test('all possible elements', function () {
         provokeTargetCalculation(el);
         checkElementTarget(el, '_self', '_self');
 
-        setProperty(el, 'target', '_blank');
+        el.target = '_blank';
         checkElementTarget(el, '_top', '_blank');
         provokeTargetCalculation(el);
         checkElementTarget(el, '_top', '_blank');
@@ -257,9 +257,9 @@ test('change href after target attribute changed (GH-534)', function () {
         el.setAttribute('target', '');
         checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
 
-        setProperty(el, 'target', iframeName);
+        el.target = iframeName;
         checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
-        setProperty(el, 'target', '');
+        el.target = '';
         checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
 
         el.setAttribute('target', iframeName);

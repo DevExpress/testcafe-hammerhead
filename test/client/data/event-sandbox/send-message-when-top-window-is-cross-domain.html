@@ -20,8 +20,6 @@
         iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
         iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
 
-        var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
-        var setProperty    = window[INSTRUCTION.setProperty];
         var messageSandbox = hammerhead.sandbox.event.message;
         var postMessage    = hammerhead.sandbox.event.message.postMessage;
 

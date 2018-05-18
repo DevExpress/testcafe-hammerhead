@@ -20,7 +20,7 @@ if (!browserUtils.isIE || browserUtils.version !== 11) {
         var check = function () {
             strictEqual(form.getAttribute('onsubmit'), nativeMethods.getAttribute.call(etalon, 'onsubmit'));
 
-            var onsubmit = getProperty(form, 'onsubmit');
+            var onsubmit = form.onsubmit;
 
             strictEqual(onsubmit ? onsubmit() : onsubmit, etalon.onsubmit ? etalon.onsubmit() : etalon.onsubmit);
         };
@@ -31,9 +31,9 @@ if (!browserUtils.isIE || browserUtils.version !== 11) {
         nativeMethods.setAttribute.call(etalon, 'onsubmit', 'return 1;');
         check();
 
-        setProperty(form, 'onsubmit', function () {
+        form.onsubmit = function () {
             return 3;
-        });
+        };
         etalon.onsubmit = function () {
             return 3;
         };
@@ -47,7 +47,7 @@ if (!browserUtils.isIE || browserUtils.version !== 11) {
         nativeMethods.setAttribute.call(etalon, 'onsubmit', 'return 2;');
         check();
 
-        setProperty(form, 'onsubmit', null);
+        form.onsubmit = null;
         etalon.onsubmit = null;
         check();
     });
@@ -720,8 +720,9 @@ test('the "Maximum call stack size exceeded" error should not occurs when the se
             .forEach(function (attr) {
                 var element = testCases[attr];
 
-                setProperty(element, attr, 'value');
-                getProperty(element, attr);
+                element[attr] = 'value';
+                // eslint-disable-next-line no-unused-expressions
+                element[attr];
             });
 
         ok(true);

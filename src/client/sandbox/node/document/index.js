@@ -204,9 +204,8 @@ export default class DocumentSandbox extends SandboxBase {
 
         const urlOverriddenDescriptor = createOverriddenDescriptor(docPrototype, 'URL', {
             getter: function () {
-                /*eslint-disable no-restricted-properties*/
+                // eslint-disable-next-line no-restricted-properties
                 return LocationAccessorsInstrumentation.getLocationWrapper(this).href;
-                /*eslint-enable no-restricted-properties*/
             }
         });
 
@@ -215,9 +214,8 @@ export default class DocumentSandbox extends SandboxBase {
         const domainPropertyOwner        = isFirefox ? htmlDocPrototype : docPrototype;
         const domainOverriddenDescriptor = createOverriddenDescriptor(domainPropertyOwner, 'domain', {
             getter: () => {
-                /*eslint-disable no-restricted-properties*/
+                // eslint-disable-next-line no-restricted-properties
                 return storedDomain || LocationAccessorsInstrumentation.getLocationWrapper(window).hostname;
-                /*eslint-enable no-restricted-properties*/
             },
             setter: value => {
                 storedDomain = value;

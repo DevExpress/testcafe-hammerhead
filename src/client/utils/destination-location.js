@@ -37,10 +37,9 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
 export function resolveUrl (url, doc) {
     url = sharedUrlUtils.processSpecialChars(url);
 
-    /*eslint-disable no-restricted-properties*/
     if (url && url.indexOf('//') === 0)
+        // eslint-disable-next-line no-restricted-properties
         url = getParsed().protocol + url;
-    /*eslint-enable no-restricted-properties*/
 
     return urlResolver.resolve(url, doc || document);
 }
@@ -70,9 +69,8 @@ export function getParsed () {
     const resolver = urlResolver.getResolverElement(document);
     const dest     = get();
 
-    /*eslint-disable no-restricted-properties*/
+    // eslint-disable-next-line no-restricted-properties
     const destPort = sharedUrlUtils.parseUrl(dest).port;
-    /*eslint-enable no-restricted-properties*/
 
     // NOTE: IE browser adds the default port for the https protocol while resolving.
     nativeMethods.anchorHrefSetter.call(resolver, get());
@@ -101,7 +99,6 @@ export function getParsed () {
 export function getOriginHeader () {
     const parsedDest = getParsed();
 
-    /*eslint-disable no-restricted-properties*/
+    // eslint-disable-next-line no-restricted-properties
     return parsedDest.protocol === 'file:' ? get() : sharedUrlUtils.getDomain(parsedDest);
-    /*eslint-enable no-restricted-properties*/
 }

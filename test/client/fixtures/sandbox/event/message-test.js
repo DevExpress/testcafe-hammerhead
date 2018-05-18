@@ -202,7 +202,7 @@ asyncTest('service message handler should not call other handlers', function () 
 
     createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html') })
         .then(function (iframe) {
-            setProperty(window, 'onmessage', windowMessageHandler);
+            window.onmessage = windowMessageHandler;
             window.addEventListener('message', windowMessageHandler);
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
             messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);

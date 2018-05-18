@@ -47,10 +47,9 @@ export default class LocationWrapper extends EventEmitter {
             isForm:   parsedResourceType.isForm
         });
         const getHref        = () => {
-            /*eslint-disable no-restricted-properties*/
+            // eslint-disable-next-line no-restricted-properties
             if (window !== window.top && window.location.href === 'about:blank')
                 return 'about:blank';
-            /*eslint-enable no-restricted-properties*/
 
             const locationUrl    = getDestLocation();
             const resolveElement = urlResolver.getResolverElement(window.document);
@@ -76,9 +75,8 @@ export default class LocationWrapper extends EventEmitter {
                 const parsedParentLocationUrl = parseProxyUrl(parentLocationUrl);
 
                 if (parsedParentLocationUrl && parsedParentLocationUrl.proxy) {
-                    /*eslint-disable no-restricted-properties*/
+                    // eslint-disable-next-line no-restricted-properties
                     const parentProxyPort = parsedParentLocationUrl.proxy.port;
-                    /*eslint-enable no-restricted-properties*/
 
                     proxyPort = sameOriginCheck(parentLocationUrl, href)
                         ? parentProxyPort
@@ -97,9 +95,8 @@ export default class LocationWrapper extends EventEmitter {
             set: href => {
                 const proxiedHref = getProxiedHref(href);
 
-                /*eslint-disable no-restricted-properties*/
+                // eslint-disable-next-line no-restricted-properties
                 window.location.href = proxiedHref;
-                /*eslint-enable no-restricted-properties*/
 
                 onChanged(proxiedHref);
 
@@ -108,9 +105,8 @@ export default class LocationWrapper extends EventEmitter {
         }));
 
         nativeMethods.objectDefineProperty.call(window.Object, this, 'search', createPropertyDesc({
-            /*eslint-disable no-restricted-properties*/
+            // eslint-disable-next-line no-restricted-properties
             get: () => window.location.search,
-            /*eslint-enable no-restricted-properties*/
 
             set: search => {
                 const newLocation = changeDestUrlPart(window.location.toString(), nativeMethods.anchorSearchSetter, search, resourceType);
