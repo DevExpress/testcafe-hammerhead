@@ -6,7 +6,8 @@ import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../uti
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import { overrideDescriptor } from '../utils/property-overriding';
-import { inaccessibleTypeToStr, isPrimitiveType } from '../utils/types';
+import { inaccessibleTypeToStr } from '../utils/types';
+import * as browserUtils from '../utils/browser';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
 
@@ -64,11 +65,14 @@ export default class FetchSandbox extends SandboxBase {
             return true;
         }
 
-        const hasToStringMeth = nativeMethods.objectHasOwnProperty.call(nativeMethods.objectGetPrototypeOf(args[0]), 'toString');
+        try {
+            args[0] = String(args[0]);
 
-        args[0] = hasToStringMeth ? args[0].toString() : nativeMethods.objectToString.call(args[0]);
-
-        return isPrimitiveType(args[0]);
+            return true;
+        }
+        catch (e) {
+            return false;
+        }
     }
 
     static _requestIsValid (args) {
@@ -124,8 +128,13 @@ export default class FetchSandbox extends SandboxBase {
         window.Request.prototype = nativeMethods.Request.prototype;
 
         window.fetch = function (...args) {
-            if (!args.length)
-                return nativeMethods.fetch.apply(this);
+            if (!args.length) {
+                // NOTE: Safari processed `fetch()` without `Promise` rejection (GH-1613)
+                if (browserUtils.isSafari)
+                    args[0] = 'undefined';
+                else
+                    return nativeMethods.fetch.apply(this);
+            }
 
             if (!FetchSandbox._requestIsValid(args))
                 return sandbox.window.Promise.reject(new TypeError());

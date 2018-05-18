@@ -89,7 +89,7 @@ if (window.fetch) {
                 firstArg: {
                     url:      '/some-path',
                     toString: function () {
-                        return String(this.url);
+                        return this.url;
                     }
                 },
                 expectedUrl: 'https://example.com/some-path'
@@ -427,17 +427,7 @@ if (window.fetch) {
 
         test('request promise should be rejected on invalid calling (GH-939)', function () {
             var checkFirstArg = function (firstArg) {
-                if ('0' in arguments) {
-                    return fetch.call(window, firstArg)
-                        .then(function () {
-                            ok(false, 'wrong state of the request promise');
-                        })
-                        .catch(function () {
-                            ok(true);
-                        });
-                }
-
-                return fetch.call(window)
+                return fetch.apply(window, firstArg)
                     .then(function () {
                         ok(false, 'wrong state of the request promise');
                     })
@@ -447,14 +437,20 @@ if (window.fetch) {
 
             };
 
-            return Promise.all([
-                checkFirstArg(),
-                checkFirstArg({
-                    toString: function () {
-                        return {};
-                    }
-                })
-            ]);
+            var promises = [];
+
+            // NOTE: Safari processed `fetch()` without `Promise` rejection (GH-1613)
+            if (!browserUtils.isSafari)
+                promises.push(checkFirstArg());
+
+            promises.push(checkFirstArg({
+                toString: function () {
+                    return {};
+                }
+            }));
+
+
+            return Promise.all(promises);
         });
 
         test('should return non-overridden Promise on calling the "fetch" without parameters (GH-1099)', function () {

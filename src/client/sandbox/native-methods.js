@@ -227,7 +227,6 @@ class NativeMethods {
         this.objectGetOwnPropertyDescriptor = win.Object.getOwnPropertyDescriptor;
         this.objectHasOwnProperty           = win.Object.hasOwnProperty;
         this.objectGetOwnPropertyNames      = win.Object.getOwnPropertyNames;
-        this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
