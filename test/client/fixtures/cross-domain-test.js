@@ -11,7 +11,7 @@ asyncTest('cross domain messaging between windows', function () {
     window.onmessage = function (e) {
         strictEqual(e.origin, 'http://target_url');
 
-        messageCounter += parseInt(getProperty(e, 'data'), 10);
+        messageCounter += parseInt(e.data, 10);
 
         if (messageCounter >= 4) {
             iframe.parentNode.removeChild(iframe);

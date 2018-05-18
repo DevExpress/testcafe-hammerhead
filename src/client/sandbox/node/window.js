@@ -645,9 +645,7 @@ export default class WindowSandbox extends SandboxBase {
                     /*eslint-enable no-restricted-properties*/
                 }
                 else if (isWindow(target)) {
-                    const data = nativeMethods.messageEventDataGetter
-                        ? nativeMethods.messageEventDataGetter.call(this)
-                        : this.data;
+                    const data = nativeMethods.messageEventDataGetter.call(this);
 
                     if (data)
                         return data.originUrl;

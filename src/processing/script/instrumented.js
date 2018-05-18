@@ -11,7 +11,6 @@ export const METHODS = [
 ];
 
 export const PROPERTIES = [
-    'data',
     'href',
     'location'
 ];

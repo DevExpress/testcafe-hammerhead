@@ -25,19 +25,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         throw new Error(msg);
     }
 
-    static _isMessageEventWithoutDataPropGetter (e) {
-        return !nativeMethods.messageEventDataGetter && domUtils.isMessageEvent(e);
-    }
-
     _createPropertyAccessors (window, document) {
         return {
-            // NOTE: The data property of the MessageEvent object cannot be redefined in the Android 6.0 browser
-            data: {
-                condition: evt => PropertyAccessorsInstrumentation._isMessageEventWithoutDataPropGetter(evt),
-                get:       evt => evt.data.message,
-                set:       (evt, value) => value
-            },
-
             href: {
                 condition: LocationAccessorsInstrumentation.isLocationWrapper,
 

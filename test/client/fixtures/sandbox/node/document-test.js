@@ -571,7 +571,7 @@ asyncTest('the onDocumentCleaned event is not raised after calling document.writ
     var src     = getSameDomainPageUrl('../../../data/node-sandbox/iframe-without-document-cleaned-event.html');
     var handler = function (e) {
         window.removeEventListener('message', handler);
-        strictEqual(getProperty(e, 'data'), 'success');
+        strictEqual(e.data, 'success');
         iframe.parentNode.removeChild(iframe);
         start();
     };
@@ -590,7 +590,7 @@ asyncTest('document elements are overridden after document.write has been called
     var onMessageHandler = function (e) {
         window.removeEventListener('message', onMessageHandler);
 
-        var rawData = getProperty(e, 'data');
+        var rawData = e.data;
         var data    = rawData instanceof Object ? rawData : JSON.parse(rawData);
 
         strictEqual(data.length, 3);

@@ -201,7 +201,7 @@ if (!browserUtils.isIOS) {
             iframe.setAttribute('src', getSameDomainPageUrl(testedPages[urlIndex]));
 
             window.addEventListener('message', function onMessage (e) {
-                strictEqual(getProperty(e, 'data'), expectedCookies, testedPages[urlIndex]);
+                strictEqual(e.data, expectedCookies, testedPages[urlIndex]);
 
                 window.removeEventListener('message', onMessage);
                 document.body.removeChild(iframe);

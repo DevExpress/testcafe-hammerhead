@@ -15,7 +15,7 @@ function liveHandler( event ) {
         if ( fn.live === event.type ||
              fn.altLive && jQuery.inArray(event.type, fn.altLive) > -1 ) {
 
-            data =  __get$(fn,"data");
+            data = fn.data;
             if ( !(data.beforeFilter &&  __get$(data.beforeFilter,event.type) &&
                    ! __call$(data.beforeFilter,event.type,[event])) ) {
                 selectors.push( fn.selector );
@@ -49,7 +49,7 @@ function liveHandler( event ) {
     for ( i = 0, l = elems.length; i < l; i++ ) {
         match =  __get$(elems,i);
         event.currentTarget = match.elem;
-         __set$(event,"data",__get$(match.fn,"data"));
+        event.data = match.fn.data;
         if ( match.fn.apply( match.elem, args ) === false ) {
             stop = false;
             break;

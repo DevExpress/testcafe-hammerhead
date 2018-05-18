@@ -41,9 +41,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     static _getMessageData (e) {
-        const rawData = nativeMethods.messageEventDataGetter && isMessageEvent(e)
-            ? nativeMethods.messageEventDataGetter.call(e)
-            : e.data;
+        const rawData = isMessageEvent(e) ? nativeMethods.messageEventDataGetter.call(e) : e.data;
 
         return typeof rawData === 'string' ? parseJSON(rawData) : rawData;
     }
@@ -129,19 +127,17 @@ export default class MessageSandbox extends SandboxBase {
             configurable: true
         });
 
-        if (nativeMethods.messageEventDataGetter) {
-            overrideDescriptor(window.MessageEvent.prototype, 'data', {
-                getter: function () {
-                    const target = this.target;
-                    const data   = nativeMethods.messageEventDataGetter.call(this);
+        overrideDescriptor(window.MessageEvent.prototype, 'data', {
+            getter: function () {
+                const target = this.target;
+                const data   = nativeMethods.messageEventDataGetter.call(this);
 
-                    if (data && data.type !== MESSAGE_TYPE.service && isWindow(target))
-                        return data.message;
+                if (data && data.type !== MESSAGE_TYPE.service && isWindow(target))
+                    return data.message;
 
-                    return data;
-                }
-            });
-        }
+                return data;
+            }
+        });
 
         const eventPropsOwner = nativeMethods.isEventPropsLocatedInProto ? window.Window.prototype : window;
 

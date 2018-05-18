@@ -861,7 +861,7 @@ asyncTest('cross domain iframe that contains iframe without src should not throw
     iframe.src = getCrossDomainPageUrl('../../data/cross-domain/page-with-iframe-with-js-protocol.html');
 
     window.addEventListener('message', function (e) {
-        strictEqual(getProperty(e, 'data'), 'ok');
+        strictEqual(e.data, 'ok');
 
         document.body.removeChild(iframe);
 
