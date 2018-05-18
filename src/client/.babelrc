@@ -3,7 +3,7 @@
   "presets": [
     ["env", {
       "targets": {
-        "browsers": ["ie >= 9"]
+        "browsers": ["ie >= 11"]
       },
       "loose": true,
       "exclude": [

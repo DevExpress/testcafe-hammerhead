@@ -91,8 +91,8 @@ export default class RequestPipelineContext {
         const contentDisposition = this.destRes.headers['content-disposition'];
 
         return contentDisposition &&
-               contentDisposition.indexOf('attachment') > -1 &&
-               contentDisposition.indexOf('filename') > -1;
+               contentDisposition.includes('attachment') &&
+               contentDisposition.includes('filename');
     }
 
     _getInjectable (injectable) {
@@ -173,7 +173,7 @@ export default class RequestPipelineContext {
         const isFormWithEmptyResponse = isForm && this.destRes.statusCode === 204;
 
         const isRedirect              = this.destRes.headers['location'] &&
-                                        REDIRECT_STATUS_CODES.indexOf(this.destRes.statusCode) > -1;
+                                        REDIRECT_STATUS_CODES.includes(this.destRes.statusCode);
         const requireAssetsProcessing = (isCSS || isScript || isManifest) && this.destRes.statusCode !== 204;
         const isNotModified           = this.req.method === 'GET' && this.destRes.statusCode === 304 &&
                                         (this.req.headers['if-modified-since'] || this.req.headers['if-none-match']);

@@ -10,7 +10,7 @@ class ManifestProcessor extends ResourceProcessorBase {
             if (line && line !== 'CACHE MANIFEST' && line !== 'NETWORK:' && line !== 'FALLBACK:' &&
                 line !== 'CACHE:' && line[0] !== '#' && line !== '*') {
 
-                const isFallbackItem = line.indexOf(' ') !== -1;
+                const isFallbackItem = line.includes(' ');
 
                 if (isFallbackItem) {
                     const urls = line.split(' ');

@@ -22,7 +22,7 @@ export default class ResponseMock {
     _validateBody () {
         const bodyType = typeof this.body;
 
-        if (INVALID_BODY_PARAMETER_TYPES.indexOf(bodyType) !== -1)
+        if (INVALID_BODY_PARAMETER_TYPES.includes(bodyType))
             throw new TypeError(`The 'body' parameter has an invalid type - ${bodyType}.`);
     }
 
