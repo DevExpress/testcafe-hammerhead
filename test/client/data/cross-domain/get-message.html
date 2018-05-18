@@ -14,14 +14,13 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var INSTRUCTION     = hammerhead.get('../processing/script/instruction');
-    var getProperty     = window[INSTRUCTION.getProperty];
-    var callMethod      = window[INSTRUCTION.callMethod];
-    var getPostMessage  = window[INSTRUCTION.getPostMessage];
+    var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
+    var callMethod     = window[INSTRUCTION.callMethod];
+    var getPostMessage = window[INSTRUCTION.getPostMessage];
 
     window.onmessage = function (evt) {
         var data = {
-            msg: getProperty(evt,"origin")+( getProperty(evt,"data") ? ' failed' : '')
+            msg: evt.origin + (evt.data ? ' failed' : '')
         };
 
         callMethod(top, 'postMessage', [data, '*']);

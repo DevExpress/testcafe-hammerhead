@@ -552,7 +552,7 @@ if (window.navigator.serviceWorker) {
         var onMessageHandler = function (e) {
             window.removeEventListener('message', onMessageHandler);
 
-            var isRegisterServiceWorker = getProperty(e, 'data');
+            var isRegisterServiceWorker = e.data;
 
             strictEqual(isRegisterServiceWorker, browserUtils.isFirefox);
 

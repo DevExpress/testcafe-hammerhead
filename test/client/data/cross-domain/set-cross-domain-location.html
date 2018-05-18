@@ -13,7 +13,6 @@
 
     var INSTRUCTION = hammerhead.get('../processing/script/instruction');
     var urlUtils    = hammerhead.get('./utils/url');
-    var getProperty = window[INSTRUCTION.getProperty];
     var getLocation = window[INSTRUCTION.getLocation];
 
     var storedParseProxyUrl = urlUtils.parseProxyUrl;
@@ -31,7 +30,7 @@
     };
 
     window.onmessage = function (evt) {
-        getLocation(location).href = getProperty(evt, 'data');
+        getLocation(location).href = evt.data;
     };
 </script>
 </body>
