@@ -6,6 +6,7 @@ import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../uti
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import { overrideDescriptor } from '../utils/property-overriding';
+import { inaccessibleTypeToStr, isPrimitiveType } from '../utils/types';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
 
@@ -53,7 +54,21 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _isValidRequestArgs (args) {
-        return typeof args[0] === 'string' || isFetchRequest(args[0]);
+        if (typeof args[0] === 'string' || isFetchRequest(args[0]))
+            return true;
+
+        // NOTE: browsers process inaccessible `null` and `undefined` arguments without Promise rejection (GH-1613)
+        if (!args[0]) {
+            args[0] = inaccessibleTypeToStr(args[0]);
+
+            return true;
+        }
+
+        const hasToStringMeth = nativeMethods.objectHasOwnProperty.call(nativeMethods.objectGetPrototypeOf(args[0]), 'toString');
+
+        args[0] = hasToStringMeth ? args[0].toString() : nativeMethods.objectToString.call(args[0]);
+
+        return isPrimitiveType(args[0]);
     }
 
     static _requestIsValid (args) {

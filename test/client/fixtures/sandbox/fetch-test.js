@@ -62,6 +62,50 @@ if (window.fetch) {
             });
     });
 
+    test('should process some argument types (GH-1613)', function () {
+        var testCases = [
+            {
+                firstArg:    null,
+                expectedUrl: 'https://example.com/null'
+            },
+            {
+                firstArg:    void 0,
+                expectedUrl: 'https://example.com/undefined'
+            },
+            {
+                firstArg:    { url: '/some-path' },
+                expectedUrl: 'https://example.com/[object%20Object]'
+            },
+            {
+                firstArg: {
+                    url:      '/some-path',
+                    toString: function () {
+                        return this.url;
+                    }
+                },
+                expectedUrl: 'https://example.com/some-path'
+            },
+            {
+                firstArg: {
+                    url:      '/some-path',
+                    toString: function () {
+                        return String(this.url);
+                    }
+                },
+                expectedUrl: 'https://example.com/some-path'
+            }
+        ];
+
+        var createTestCasePromise = function (testCase) {
+            return fetch.call(window, testCase.firstArg)
+                .then(function (response) {
+                    strictEqual(response.url, testCase.expectedUrl);
+                });
+        };
+
+        return Promise.all(testCases.map(createTestCasePromise));
+    });
+
     test('the internal 222 status code should be replaced with 0 on the client side', function () {
         return fetch('/xhr-222/')
             .then(function (response) {
@@ -382,24 +426,35 @@ if (window.fetch) {
         });
 
         test('request promise should be rejected on invalid calling (GH-939)', function () {
-            var testCases = [
-                123,
-                function () {
-                },
-                null
-            ];
+            var checkFirstArg = function (firstArg) {
+                if ('0' in arguments) {
+                    return fetch.call(window, firstArg)
+                        .then(function () {
+                            ok(false, 'wrong state of the request promise');
+                        })
+                        .catch(function () {
+                            ok(true);
+                        });
+                }
 
-            var createTestCasePromise = function (firstArg) {
-                return fetch.call(window, firstArg)
+                return fetch.call(window)
                     .then(function () {
                         ok(false, 'wrong state of the request promise');
                     })
                     .catch(function () {
                         ok(true);
                     });
+
             };
 
-            return Promise.all(testCases.map(createTestCasePromise));
+            return Promise.all([
+                checkFirstArg(),
+                checkFirstArg({
+                    toString: function () {
+                        return {};
+                    }
+                })
+            ]);
         });
 
         test('should return non-overridden Promise on calling the "fetch" without parameters (GH-1099)', function () {
