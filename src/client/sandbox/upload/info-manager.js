@@ -101,9 +101,8 @@ export default class UploadInfoManager {
     getFiles (input) {
         const inputInfo = this.getUploadInfo(input);
 
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         return inputInfo ? inputInfo.files : new FileListWrapper([]);
-        /*eslint-enable no-restricted-properties*/
     }
 
     getUploadInfo (input) {
@@ -118,9 +117,8 @@ export default class UploadInfoManager {
     getValue (input) {
         const inputInfo = this.getUploadInfo(input);
 
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         return inputInfo ? inputInfo.value : '';
-        /*eslint-enable no-restricted-properties*/
     }
 
     loadFileListData (input, fileList) {

@@ -89,9 +89,8 @@ export default class StyleSandbox extends SandboxBase {
             }
         });
 
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         delete descriptor.value;
-        /*eslint-enable no-restricted-properties*/
         delete descriptor.writable;
 
         nativeMethods.objectDefineProperty.call(window.Object, style, prop, descriptor);
@@ -151,9 +150,8 @@ export default class StyleSandbox extends SandboxBase {
         const styleDeclarationProto = window.CSSStyleDeclaration.prototype;
 
         for (const prop in styleDeclarationProto) {
-            /*eslint-disable no-restricted-properties*/
+            // eslint-disable-next-line no-restricted-properties
             const nativeFn = this.nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, styleDeclarationProto, prop).value;
-            /*eslint-enable no-restricted-properties*/
 
             if (this.nativeMethods.objectHasOwnProperty.call(styleDeclarationProto, prop) &&
                 typeof nativeFn === 'function') {

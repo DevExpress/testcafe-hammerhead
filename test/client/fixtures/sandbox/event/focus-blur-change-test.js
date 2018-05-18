@@ -964,14 +964,14 @@ module('regression');
 test('querySelector must return active element even when browser is not focused (T285078)', function () {
     input1.focus();
 
-    var result = eval(processScript('document.querySelectorAll(":focus")'));
+    var result = document.querySelectorAll(':focus');
 
     strictEqual(result.length, 1);
     strictEqual(result[0], input1);
 
     input1.blur();
 
-    result = eval(processScript('document.querySelectorAll(":focus")'));
+    result = document.querySelectorAll(':focus');
 
     if (browserUtils.isIE && !browserUtils.isMSEdge) {
         strictEqual(result.length, 1);

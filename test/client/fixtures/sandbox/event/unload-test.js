@@ -1,4 +1,3 @@
-var INSTRUCTION  = hammerhead.get('../processing/script/instruction');
 var browserUtils = hammerhead.utils.browser;
 
 asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
@@ -24,9 +23,9 @@ asyncTest('BEFORE_UNLOAD_EVENT must be called last (GH-400)', function () {
 
             var beforeUnloadEventName = 'on' + unloadSandbox.beforeUnloadEventName;
 
-            iframeWindow[INSTRUCTION.setProperty](iframeWindow, beforeUnloadEventName, function () {
+            iframeWindow[beforeUnloadEventName] = function () {
                 uploadEventCounter++;
-            });
+            };
 
             iframeWindow.location.reload();
         });

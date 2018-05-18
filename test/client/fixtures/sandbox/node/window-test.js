@@ -49,11 +49,10 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
                 start();
             });
 
-            /*eslint-disable no-new*/
+            // eslint-disable-next-line no-new
             new Promise(function (resolve, reject) {
                 reject('unhandled rejection');
             });
-            /*eslint-enable no-new*/
         });
 
         test('should not rise hh event when the unhandledrejection event prevented', function () {
@@ -76,11 +75,10 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
 
                     hammerhead.on(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
 
-                    /*eslint-disable no-new*/
+                    // eslint-disable-next-line no-new
                     new Promise(function () {
                         throw new Error('unhandled rejection');
                     });
-                    /*eslint-enable no-new*/
                 });
             };
 
@@ -119,11 +117,10 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
                         resolve(event.msg);
                     });
 
-                    /*eslint-disable no-new*/
+                    // eslint-disable-next-line no-new
                     new Promise(function () {
                         throw err;
                     });
-                    /*eslint-enable no-new*/
                 });
             };
 
@@ -436,7 +433,7 @@ test('the constructor field of a function should return a wrapped Function objec
     var toString       = Function.toString;
     var nativeToString = Function.prototype.toString;
 
-    /*eslint-disable no-extend-native*/
+    // eslint-disable-next-line no-extend-native
     Function.prototype.toString = function () {
         var str = toString.call(this);
 
@@ -447,8 +444,8 @@ test('the constructor field of a function should return a wrapped Function objec
 
     strictEqual(f.toString().replace(/\s+/g, ''), 'functionf(){}');
 
+    // eslint-disable-next-line no-extend-native
     Function.prototype.toString = nativeToString;
-    /*eslint-enable no-extend-native*/
 });
 
 var canCreateBlobFromNumberArray = (function () {

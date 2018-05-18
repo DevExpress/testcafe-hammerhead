@@ -65,11 +65,9 @@ export function instanceToString (instance) {
     if (!instanceAndPrototypeToStringAreEqual)
         return nativeMethods.objectToString.call(instance);
 
-    /*eslint-disable no-restricted-globals*/
     return instance && typeof instance === 'object'
-        ? nativeMethods.objectToString.call(Object.getPrototypeOf(instance))
+        ? nativeMethods.objectToString.call(window.Object.getPrototypeOf(instance))
         : '';
-    /*eslint-enable no-restricted-globals*/
 }
 
 export function getActiveElement (currentDocument) {
@@ -81,9 +79,8 @@ export function getActiveElement (currentDocument) {
     let el = isDomElement(activeElement) ? activeElement : doc.body;
 
     while (el && el.shadowRoot) {
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         const shadowEl = el.shadowRoot.activeElement;
-        /*eslint-enable no-restricted-properties*/
 
         if (!shadowEl)
             break;
@@ -110,9 +107,8 @@ export function getIframeLocation (iframe) {
     let documentLocation = null;
 
     try {
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         documentLocation = iframe.contentDocument.location.href;
-        /*eslint-enable no-restricted-properties*/
     }
     catch (e) {
         documentLocation = null;
@@ -535,9 +531,8 @@ export function isLocation (instance) {
         return true;
 
     try {
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         return instance && typeof instance === 'object' && instance.href !== void 0 && instance.assign !== void 0;
-        /*eslint-enable no-restricted-properties*/
     }
     catch (e) {
         // NOTE: Try to detect cross-domain window location.
@@ -706,9 +701,8 @@ export function parseDocumentCharset () {
 }
 
 export function getParents (el, selector) {
-    /*eslint-disable no-restricted-properties*/
+    // eslint-disable-next-line no-restricted-properties
     let parent = el.parentNode || el.host;
-    /*eslint-enable no-restricted-properties*/
 
     const parents = [];
 
@@ -717,9 +711,8 @@ export function getParents (el, selector) {
             selector && matches(parent, selector))
             parents.push(parent);
 
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         parent = parent.parentNode || parent.host;
-        /*eslint-enable no-restricted-properties*/
     }
 
     return parents;

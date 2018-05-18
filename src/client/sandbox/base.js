@@ -15,9 +15,8 @@ export default class SandboxBase extends EventEmitter {
     isDeactivated () {
         try {
             // NOTE: In IE11, a situation when the document is not active may occur.
-            /*eslint-disable no-unused-expressions */
+            // eslint-disable-next-line no-unused-expressions
             this.document.body;
-            /*eslint-enable no-unused-expressions */
 
             if (this.window[INTERNAL_PROPS.hammerhead]) {
                 const frameElement = getFrameElement(this.window);
@@ -25,10 +24,9 @@ export default class SandboxBase extends EventEmitter {
                 return frameElement && !isElementInDocument(frameElement, findDocument(frameElement));
             }
         }
-        /*eslint-disable no-empty */
+        // eslint-disable-next-line no-empty
         catch (e) {
         }
-        /*eslint-enable no-empty */
 
         return true;
     }

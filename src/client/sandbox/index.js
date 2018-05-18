@@ -45,10 +45,9 @@ export default class Sandbox extends SandboxBase {
         const cookieSandbox         = new CookieSandbox();
 
         // API
-        this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         this.cookie              = cookieSandbox;
-        /*eslint-enable no-restricted-properties*/
+        this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
         this.xhr                 = new XhrSandbox(cookieSandbox);
         this.fetch               = new FetchSandbox();
         this.iframe              = new IframeSandbox(nodeMutation, cookieSandbox);
@@ -207,9 +206,8 @@ export default class Sandbox extends SandboxBase {
         this.event.attach(window);
         this.node.attach(window);
         this.upload.attach(window);
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         this.cookie.attach(window);
-        /*eslint-enable no-restricted-properties*/
         this.console.attach(window);
         this.style.attach(window);
 

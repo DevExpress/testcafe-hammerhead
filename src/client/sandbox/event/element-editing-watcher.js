@@ -29,9 +29,8 @@ export default class ElementEditingWatcher {
         else if (isTextAreaElement(el))
             return nativeMethods.textAreaValueGetter.call(el);
 
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         return el.value;
-        /*eslint-enable no-restricted-properties*/
     }
 
     stopWatching (el) {

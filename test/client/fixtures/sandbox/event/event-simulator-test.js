@@ -624,11 +624,8 @@ asyncTest('hammerhead functions should not be in strict mode (GH-344)', function
         var exceptionRaised = false;
 
         try {
-            /*eslint-disable no-caller*/
-
+            // eslint-disable-next-line no-caller
             var caller = arguments.callee.caller;
-
-            /*eslint-enable no-caller*/
 
             while (caller && caller.arguments && caller.arguments.callee)
                 caller = caller.arguments.callee.caller;

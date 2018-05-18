@@ -321,10 +321,9 @@ export function formatUrl (parsedUrl) {
 
 export function processSpecialChars (url) {
     // TODO: fix it
-    /* eslint-disable no-undef */
+    // eslint-disable-next-line no-undef
     if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
         return '';
-    /* eslint-enable no-undef */
 
     url = String(url);
     url = url.replace(/\n|\t/g, '');

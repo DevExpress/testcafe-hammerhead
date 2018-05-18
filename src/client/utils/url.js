@@ -87,9 +87,8 @@ export function getProxyUrl (url, opts) {
     /*eslint-enable no-restricted-properties*/
 
     if (parsedResourceType.isWebSocket) {
-        /*eslint-disable no-restricted-properties*/
+        // eslint-disable-next-line no-restricted-properties
         parsedUrl.protocol = parsedUrl.protocol.replace('ws', 'http');
-        /*eslint-enable no-restricted-properties*/
 
         resolvedUrl = sharedUrlUtils.formatUrl(parsedUrl);
         reqOrigin   = reqOrigin || encodeURIComponent(destLocation.getOriginHeader());
@@ -114,17 +113,15 @@ export function getCrossDomainIframeProxyUrl (url) {
 }
 
 export function getCrossDomainProxyPort (proxyPort) {
-    /*eslint-disable no-restricted-properties*/
     return settings.get().crossDomainProxyPort === proxyPort
+        // eslint-disable-next-line no-restricted-properties
         ? location.port.toString()
         : settings.get().crossDomainProxyPort;
-    /*eslint-enable no-restricted-properties*/
 }
 
 export function getCrossDomainProxyUrl () {
-    /*eslint-disable no-restricted-properties*/
+    // eslint-disable-next-line no-restricted-properties
     return location.protocol + '//' + location.hostname + ':' + settings.get().crossDomainProxyPort + '/';
-    /*eslint-enable no-restricted-properties*/
 }
 
 export function resolveUrlAsDest (url) {

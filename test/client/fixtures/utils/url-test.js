@@ -442,15 +442,14 @@ test('sameOriginCheck for third-level domain (T106172)', function () {
 });
 
 test('location.port must return the empty string (T262593)', function () {
-    /* eslint-disable no-undef */
     eval(processScript([
         // NOTE: From att.com, iframesrc === https://att.com:null/?IFRAME.
         'var port = (document.location.port == "") ? "" : (":" + document.location.port);',
         'var iframesrc = document.location.protocol + "//" + document.location.hostname + port + "/" + "?IFRAME";'
     ].join('\n')));
 
+    // eslint-disable-next-line no-undef
     strictEqual(iframesrc, 'https://example.com/?IFRAME');
-    /* eslint-enable no-undef */
 });
 
 test('a correct proxy URL should be obtained from a destination that has a URL in its path (GH-471)', function () {

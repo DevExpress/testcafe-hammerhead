@@ -26,9 +26,8 @@ const SVG_XLINK_HREF_TAGS = [
 
 const TARGET_ATTR_TAGS    = ['a', 'form', 'area', 'base'];
 const INTEGRITY_ATTR_TAGS = ['script', 'link'];
-/*eslint-disable hammerhead/proto-methods*/
+// eslint-disable-next-line hammerhead/proto-methods
 const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS.filter(tagName => tagName !== 'base').concat('button');
-/*eslint-enable hammerhead/proto-methods*/
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -70,10 +69,9 @@ export default class DomProcessor {
 
         value = processScript(value, false, isJsProtocol && !isEventAttr);
 
-        /*eslint-disable no-script-url*/
         if (isJsProtocol)
+            // eslint-disable-next-line no-script-url
             value = 'javascript:' + value;
-        /*eslint-enable no-script-url*/
 
         return value;
     }

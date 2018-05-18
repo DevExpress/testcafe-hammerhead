@@ -125,9 +125,8 @@ export default class XhrSandbox extends SandboxBase {
             // server side. So, we pass the CORS support flag to inform the proxy that it can analyze the
             // Access-Control_Allow_Origin flag and skip "preflight" requests.
             nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.requestMarker, 'true');
-            /*eslint-disable no-restricted-properties*/
+            // eslint-disable-next-line no-restricted-properties
             nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.origin, getOriginHeader());
-            /*eslint-enable no-restricted-properties*/
 
             if (this.withCredentials)
                 nativeMethods.xhrSetRequestHeader.call(this, XHR_HEADERS.withCredentials, 'true');

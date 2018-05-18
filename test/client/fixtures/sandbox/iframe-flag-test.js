@@ -35,7 +35,7 @@ function testIframeFlagViaAttrs (doc, iframeFlagResults) {
 
         Object.keys(iframeFlagResults).forEach(function (targetValue, index, keys) {
             el.target = targetValue;
-            setProperty(el, urlAttr, url);
+            el[urlAttr] = url;
 
             strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)),
                 hasIframeFlagByTarget(tagName, targetValue),
@@ -139,7 +139,7 @@ test('move elements between windows (GH-564)', function () {
 
                 document.body.appendChild(el);
 
-                setProperty(el, urlAttr, 'https://example.com/');
+                el[urlAttr] = 'https://example.com/';
 
                 strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)), false, tagName + ' into top window');
 
@@ -173,8 +173,8 @@ test('change iframe name', function () {
     document.body.appendChild(iframe);
     document.body.appendChild(a);
 
-    setProperty(a, 'target', 'window_name_first');
-    setProperty(a, 'href', url);
+    a.target = 'window_name_first';
+    a.href   = url;
 
     ok(hasIframeFlag(nativeMethods.anchorHrefGetter.call(a)));
 

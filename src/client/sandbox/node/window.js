@@ -554,18 +554,16 @@ export default class WindowSandbox extends SandboxBase {
                 const urlIndex = 1;
 
                 if (typeof args[urlIndex] === 'string') {
-                    /*eslint-disable no-restricted-properties*/
+                    // eslint-disable-next-line no-restricted-properties
                     const destHostname = destLocation.getParsed().hostname;
-                    /*eslint-enable no-restricted-properties*/
 
                     let isDestUrl = '';
 
                     if (isFirefox) {
                         const parsedUrl = parseUrl(args[urlIndex]);
 
-                        /*eslint-disable no-restricted-properties*/
+                        // eslint-disable-next-line no-restricted-properties
                         isDestUrl = parsedUrl.hostname && isSubDomain(destHostname, parsedUrl.hostname);
-                        /*eslint-enable no-restricted-properties*/
                     }
                     else
                         isDestUrl = destLocation.sameOriginCheck(destLocation.get(), args[urlIndex]);
@@ -639,10 +637,9 @@ export default class WindowSandbox extends SandboxBase {
                 if (isWebSocket(target)) {
                     const parsedUrl = parseUrl(target.url);
 
-                    /*eslint-disable no-restricted-properties*/
                     if (parsedUrl)
+                        // eslint-disable-next-line no-restricted-properties
                         return parsedUrl.protocol + '//' + parsedUrl.host;
-                    /*eslint-enable no-restricted-properties*/
                 }
                 else if (isWindow(target)) {
                     const data = nativeMethods.messageEventDataGetter.call(this);

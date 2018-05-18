@@ -112,9 +112,8 @@ if (window.Worker) {
         }, TypeError);
 
         throws(function () {
-            /*eslint-disable no-new*/
+            // eslint-disable-next-line no-new
             new Worker();
-            /*eslint-enable no-new*/
         }, TypeError);
     });
 
@@ -127,9 +126,8 @@ if (window.Worker) {
             strictEqual(arguments.length, 1);
             strictEqual(scriptURL, urlUtils.getProxyUrl('/test', { resourceType: resourceType }));
         };
-        /* eslint-disable no-new */
+        // eslint-disable-next-line no-new
         new Worker('/test');
-        /* eslint-enable no-new */
 
         nativeMethods.Worker = function (scriptURL, options) {
             strictEqual(arguments.length, 2);
@@ -182,9 +180,8 @@ if (window.EventSource) {
             strictEqual(url, 'http://' + location.host + '/sessionId!e/http://localhost/event');
         };
 
-        /* eslint-disable no-new */
+        // eslint-disable-next-line no-new
         new EventSource('http://localhost/event');
-        /* eslint-enable no-new */
 
         nativeMethods.EventSource = nativeEventSource;
     });
@@ -205,9 +202,8 @@ if (window.EventSource) {
             strictEqual(url, 'http://' + location.host + '/sessionId!e/http://localhost/event');
         };
 
-        /* eslint-disable no-new */
+        // eslint-disable-next-line no-new
         new EventSource('http://localhost/event');
-        /* eslint-enable no-new */
 
         nativeMethods.EventSource = function (url, opts) {
             strictEqual(arguments.length, 2);
@@ -215,9 +211,8 @@ if (window.EventSource) {
             strictEqual(opts.withCredentials, true);
         };
 
-        /* eslint-disable no-new */
+        // eslint-disable-next-line no-new
         new EventSource('http://localhost/event', { withCredentials: true });
-        /* eslint-enable no-new */
 
         nativeMethods.EventSource = nativeEventSource;
     });
@@ -522,7 +517,7 @@ test('window.Function must be overriden (T423261) (GH-769)', function () {
         return fn.toString().replace(/^[^{]+\{\s+|\s+}$/g, '');
     };
 
-    /*eslint-disable no-new-func*/
+    /* eslint-disable no-new-func */
     strictEqual(getFnBody(new Function('arg1', 'arg2', codeStr)), processedCodeStr);
     strictEqual(getFnBody(Function('arg1', 'arg2', codeStr)), processedCodeStr);
     strictEqual(getFnBody(fnCtor('arg1', 'arg2', 'arg3', codeStr)), processedCodeStr);
@@ -530,5 +525,5 @@ test('window.Function must be overriden (T423261) (GH-769)', function () {
     strictEqual(getFnBody(Function.call(null, 'arg1', codeStr)), processedCodeStr);
 
     ok(Function() instanceof Function);
-    /*eslint-enable no-new-func*/
+    /* eslint-enable no-new-func */
 });

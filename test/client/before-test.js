@@ -126,10 +126,9 @@
         try {
             owner[methodName].apply(owner, args);
         }
-            /*eslint-disable no-empty */
+        // eslint-disable-next-line no-empty
         catch (e) {
         }
-        /*eslint-enable no-empty */
 
         return nativeCalled && passed;
     };

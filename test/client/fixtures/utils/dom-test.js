@@ -46,11 +46,10 @@ test('isDomElement', function () {
     //T184805
     var p = Element.prototype;
 
-    /* eslint-disable no-extra-parens */
     do
         ok(!domUtils.isDomElement(p));
+    // eslint-disable-next-line no-extra-parens
     while ((p = Object.getPrototypeOf(p)));
-    /* eslint-enable no-extra-parens */
 
     if (window.Proxy)
         ok(!domUtils.isDomElement(new Proxy({}, {})));
@@ -72,11 +71,10 @@ test('isDomElement for iframe elements', function () {
 
             var p = iframe.contentWindow.Element.prototype;
 
-            /* eslint-disable no-extra-parens */
             do
                 ok(!domUtils.isDomElement(p));
+            // eslint-disable-next-line no-extra-parens
             while ((p = Object.getPrototypeOf(p)));
-            /* eslint-enable no-extra-parens */
 
             if (window.Proxy)
                 ok(!domUtils.isDomElement(new Proxy({}, {})));
@@ -829,30 +827,6 @@ test('isDomElement for <object> tag (B252941)', function () {
     ok(domUtils.isDomElement(objectElement));
 
     objectElement.parentNode.removeChild(objectElement);
-});
-
-test('isDomElement for object that simulate HTMLInputElement (T230802)', function () {
-    /* eslint-disable no-unused-vars */
-    var obj = {
-        size:    null,
-        tagName: 'input',
-        type:    'text',
-        value:   ''
-    };
-
-    strictEqual(eval(processScript('obj.value')), '');
-    /* eslint-enable no-unused-vars */
-});
-
-test('isDomElement for plain object (T198784)', function () {
-    /* eslint-disable no-unused-vars */
-    var obj = {
-        target:  'ok',
-        tagName: -1
-    };
-
-    strictEqual(eval(processScript('obj.target')), 'ok');
-    /* eslint-enable no-unused-vars */
 });
 
 asyncTest('cross domain iframe that contains iframe without src should not throw the security error (GH-114)', function () {

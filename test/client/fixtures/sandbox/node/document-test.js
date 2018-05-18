@@ -251,10 +251,7 @@ test('special selectors', function () {
     div.appendChild(document.createElement('undefined'));
 
     ok(div.querySelector(null));
-
-    /*eslint-disable no-undefined*/
-    ok(div.querySelectorAll(undefined));
-    /*eslint-enable no-undefined*/
+    ok(div.querySelectorAll(void 0));
 });
 
 test('parameters passed to the native function in its original form', function () {
@@ -668,13 +665,13 @@ if (!browserUtils.isIE) {
                 iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><title></title><span></span><script type="text/javascript"><' + '/script>');
                 iframe.contentDocument.close();
 
-                strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
+                strictEqual(iframe.contentDocument.childNodes.length, 2);
 
                 iframe.contentDocument.open();
                 iframe.contentDocument.write('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"><title></title><span></span><script type="text/javascript"><' + '/script>');
                 iframe.contentDocument.close();
 
-                strictEqual(getProperty(iframe.contentDocument.childNodes, 'length'), 2);
+                strictEqual(iframe.contentDocument.childNodes.length, 2);
             });
     });
 }

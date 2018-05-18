@@ -76,9 +76,8 @@ class Hammerhead {
 
         // NOTE: We should provide a function to retrieve modules, because hammerhead will be bundled into a single
         // file and we will not have access to the internal modules by default.
-        /*eslint-disable no-undef*/
+        // eslint-disable-next-line no-undef
         this.get = require;
-        /*eslint-enable no-undef*/
 
         // Modules
         this.Promise       = Promise;
