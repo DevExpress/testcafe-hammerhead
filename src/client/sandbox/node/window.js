@@ -66,6 +66,10 @@ const JAVASCRIPT_MIME_TYPES             = ['text/javascript', 'application/javas
 // It allows us to change the href-hammerhead-stored-value when it needs.
 const CONTEXT_SVG_IMAGE_ELEMENT = 'hammerhead|context-svg-image-element';
 
+const SANDBOX_DOM_TOKEN_LIST           = 'hammerhead|sandbox-dom-token-list';
+const SANDBOX_DOM_TOKEN_LIST_OWNER     = 'hammerhead|sandbox-dom-token-list-owner';
+const SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = 'hammerhead|sandbox-dom-token-list-update';
+
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, eventSandbox, uploadSandbox, nodeMutation) {
         super();
@@ -78,8 +82,9 @@ export default class WindowSandbox extends SandboxBase {
         this.shadowUI              = nodeSandbox.shadowUI;
         this.nodeMutation          = nodeMutation;
 
-        this.UNCAUGHT_JS_ERROR_EVENT   = 'hammerhead|event|uncaught-js-error';
-        this.UNHANDLED_REJECTION_EVENT = 'hammerhead|event|unhandled-rejection';
+        this.UNCAUGHT_JS_ERROR_EVENT          = 'hammerhead|event|uncaught-js-error';
+        this.UNHANDLED_REJECTION_EVENT        = 'hammerhead|event|unhandled-rejection';
+        this.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = SANDBOX_DOM_TOKEN_LIST_UPDATE_FN;
     }
 
     _raiseUncaughtJsErrorEvent (type, msg, window, pageUrl) {
@@ -213,6 +218,21 @@ export default class WindowSandbox extends SandboxBase {
                 });
             }
         });
+    }
+
+    _createOverriddenDOMTokenListMethod (nativeMethod) {
+        const windowSandbox = this;
+
+        return function () {
+            const executionResult = nativeMethod.apply(this, arguments);
+            const tokenListOwner  = this[SANDBOX_DOM_TOKEN_LIST_OWNER];
+
+            if (tokenListOwner)
+                // eslint-disable-next-line no-restricted-properties
+                windowSandbox.nodeSandbox.element.setAttributeCore(tokenListOwner, ['sandbox', this.toString()]);
+
+            return executionResult;
+        };
     }
 
     static _isSecureOrigin (url) {
@@ -776,6 +796,35 @@ export default class WindowSandbox extends SandboxBase {
             this._overrideAttrDescriptors('integrity', [window.HTMLLinkElement]);
         }
 
+        overrideDescriptor(window.HTMLIFrameElement.prototype, 'sandbox', {
+            getter: function () {
+                let domTokenList = this[SANDBOX_DOM_TOKEN_LIST];
+
+                if (!domTokenList) {
+                    const span = nativeMethods.createElement.call(document, 'span');
+
+                    domTokenList   = span.classList;
+                    span.className = windowSandbox.nodeSandbox.element.getAttributeCore(this, ['sandbox']) || '';
+
+                    nativeMethods.objectDefineProperty.call(window.Object, domTokenList, SANDBOX_DOM_TOKEN_LIST_OWNER, { value: this });
+                    nativeMethods.objectDefineProperty.call(window.Object, this, SANDBOX_DOM_TOKEN_LIST, { value: domTokenList });
+                    nativeMethods.objectDefineProperty.call(window.Object, this, SANDBOX_DOM_TOKEN_LIST_UPDATE_FN, {
+                        value: function (value) {
+                            span.className = value;
+                        }
+                    });
+                }
+
+                return domTokenList;
+            },
+            setter: function (value) {
+                windowSandbox.nodeSandbox.element.setAttributeCore(this, ['sandbox', value]);
+
+                if (this[SANDBOX_DOM_TOKEN_LIST_UPDATE_FN])
+                    this[SANDBOX_DOM_TOKEN_LIST_UPDATE_FN](windowSandbox.nodeSandbox.element.getAttributeCore(this, ['sandbox']) || '');
+            }
+        });
+
         this._overrideUrlPropDescriptor('port', nativeMethods.anchorPortGetter, nativeMethods.anchorPortSetter);
         this._overrideUrlPropDescriptor('host', nativeMethods.anchorHostGetter, nativeMethods.anchorHostSetter);
         this._overrideUrlPropDescriptor('hostname', nativeMethods.anchorHostnameGetter, nativeMethods.anchorHostnameSetter);
@@ -1104,5 +1153,24 @@ export default class WindowSandbox extends SandboxBase {
                 return getAttributes(this);
             }
         });
+
+        window.DOMTokenList.prototype.add    = this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListAdd);
+        window.DOMTokenList.prototype.remove = this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListRemove);
+        window.DOMTokenList.prototype.toggle = this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListToggle);
+
+        if (nativeMethods.tokenListReplace)
+            window.DOMTokenList.prototype.replace = this._createOverriddenDOMTokenListMethod(nativeMethods.tokenListReplace);
+
+        if (nativeMethods.tokenListSupports) {
+            window.DOMTokenList.prototype.supports = function () {
+                if (this[SANDBOX_DOM_TOKEN_LIST_OWNER]) {
+                    const nativeTokenList = nativeMethods.iframeSandboxGetter.call(this[SANDBOX_DOM_TOKEN_LIST_OWNER]);
+
+                    return nativeMethods.tokenListSupports.apply(nativeTokenList, arguments);
+                }
+
+                return nativeMethods.tokenListSupports.apply(this, arguments);
+            };
+        }
     }
 }
