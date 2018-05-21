@@ -657,14 +657,6 @@ test('addClass', function () {
     domUtils.addClass(div, 'test');
     strictEqual(div.className, 'test');
 
-    div.className = 'test1';
-    domUtils.addClass(div, 'test2 test3');
-    strictEqual(div.className, 'test1 test2 test3');
-
-    div.className = 'test1 test2';
-    domUtils.addClass(div, 'test2 test3');
-    strictEqual(div.className, 'test1 test2 test3');
-
     div.parentNode.removeChild(div);
 });
 
@@ -680,22 +672,6 @@ test('removeClass', function () {
     div.className = 'test';
     domUtils.removeClass(div, 'test');
     strictEqual(div.className, '');
-
-    div.className = 'test1 test2 test3';
-    domUtils.removeClass(div, 'test1');
-    strictEqual(div.className, 'test2 test3');
-
-    div.className = 'test1 test2 test3';
-    domUtils.removeClass(div, 'test2');
-    strictEqual(div.className, 'test1 test3');
-
-    div.className = 'test1 test2 test3';
-    domUtils.removeClass(div, 'test3');
-    strictEqual(div.className, 'test1 test2');
-
-    div.className = 'test1 test2 test3';
-    domUtils.removeClass(div, 'test1 test3');
-    strictEqual(div.className, 'test2');
 
     div.parentNode.removeChild(div);
 });
