@@ -58,7 +58,7 @@ export default class FetchSandbox extends SandboxBase {
         }
     }
 
-    static _validateSameOrigin (args) {
+    static _sameOriginCheck (args) {
         let url         = null;
         let requestMode = null;
 
@@ -71,8 +71,10 @@ export default class FetchSandbox extends SandboxBase {
             requestMode = (args[1] || {}).mode;
         }
 
-        if (requestMode === 'same-origin' && !sameOriginCheck(getDestLocation(), url, true))
-            throw new TypeError();
+        if (requestMode === 'same-origin')
+            return sameOriginCheck(getDestLocation(), url, true);
+
+        return true;
     }
 
     static _getResponseType (response) {
@@ -110,13 +112,19 @@ export default class FetchSandbox extends SandboxBase {
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this);
 
+            // NOTE: If the input argument(args[0]) is not a `string` and is not a `Request` object,
+            // we are trying to convert the input argument to `string` primitive value using `String()`.
+            // This approach helps us simulate the browsers behavior by throwing the 'TypeError' exception
+            // if the input object can not be converted to a primitive value. (GH-1613)
             try {
                 FetchSandbox._processArguments(args);
-                FetchSandbox._validateSameOrigin(args);
             }
             catch (e) {
                 return sandbox.window.Promise.reject(e);
             }
+
+            if (!FetchSandbox._sameOriginCheck(args))
+                return sandbox.window.Promise.reject(new TypeError());
 
             const fetchPromise = nativeMethods.fetch.apply(this, args);
 
