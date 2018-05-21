@@ -6,7 +6,6 @@ import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../uti
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import { overrideDescriptor } from '../utils/property-overriding';
-import { inaccessibleTypeToStr } from '../utils/types';
 import * as browserUtils from '../utils/browser';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
@@ -52,33 +51,14 @@ export default class FetchSandbox extends SandboxBase {
         }
         else if (inputIsFetchRequest && init)
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
-    }
-
-    static _isValidRequestArgs (args) {
-        if (typeof args[0] === 'string' || isFetchRequest(args[0]))
-            return true;
-
-        // NOTE: browsers process inaccessible `null` and `undefined` arguments without Promise rejection (GH-1613)
-        if (!args[0]) {
-            args[0] = inaccessibleTypeToStr(args[0]);
-
-            return true;
-        }
-
-        try {
-            args[0] = String(args[0]);
-
-            return true;
-        }
-        catch (e) {
-            return false;
+        else if (!inputIsFetchRequest) {
+            args[0] = getProxyUrl(String(args[0]));
+            init    = init || {};
+            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
         }
     }
 
-    static _requestIsValid (args) {
-        if (!FetchSandbox._isValidRequestArgs(args))
-            return false;
-
+    static _validateSameOrigin (args) {
         let url         = null;
         let requestMode = null;
 
@@ -87,14 +67,12 @@ export default class FetchSandbox extends SandboxBase {
             requestMode = args[0].mode;
         }
         else {
-            url         = args[0];
+            url         = parseProxyUrl(args[0]).destUrl;
             requestMode = (args[1] || {}).mode;
         }
 
-        if (requestMode === 'same-origin')
-            return sameOriginCheck(getDestLocation(), url, true);
-
-        return true;
+        if (requestMode === 'same-origin' && !sameOriginCheck(getDestLocation(), url, true))
+            throw new TypeError();
     }
 
     static _getResponseType (response) {
@@ -128,18 +106,17 @@ export default class FetchSandbox extends SandboxBase {
         window.Request.prototype = nativeMethods.Request.prototype;
 
         window.fetch = function (...args) {
-            if (!args.length) {
-                // NOTE: Safari processed `fetch()` without `Promise` rejection (GH-1613)
-                if (browserUtils.isSafari)
-                    args[0] = 'undefined';
-                else
-                    return nativeMethods.fetch.apply(this);
+            // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
+            if (!args.length && !browserUtils.isSafari)
+                return nativeMethods.fetch.apply(this);
+
+            try {
+                FetchSandbox._processArguments(args);
+                FetchSandbox._validateSameOrigin(args);
             }
-
-            if (!FetchSandbox._requestIsValid(args))
-                return sandbox.window.Promise.reject(new TypeError());
-
-            FetchSandbox._processArguments(args);
+            catch (e) {
+                return sandbox.window.Promise.reject(e);
+            }
 
             const fetchPromise = nativeMethods.fetch.apply(this, args);
 
