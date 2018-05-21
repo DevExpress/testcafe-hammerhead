@@ -42,7 +42,7 @@ export function createBlockExprStmt (children) {
     };
 }
 
-export function createVarDeclaration (identifier) {
+export function createVarDeclaration (identifier, init) {
     return {
         type: Syntax.VariableDeclaration,
 
@@ -50,7 +50,7 @@ export function createVarDeclaration (identifier) {
             {
                 type: Syntax.VariableDeclarator,
                 id:   identifier,
-                init: null
+                init: init || null
             }
         ],
 
@@ -100,6 +100,12 @@ export function createLocationGetWrapper () {
 }
 
 export function createLocationSetWrapper (value, wrapWithSequence) {
+    const tempIdentifier = createTempVarIdentifier();
+    const locationIdentifier = {
+        type: Syntax.Identifier,
+        name: 'location'
+    };
+
     let wrapper = {
         type: Syntax.CallExpression,
 
@@ -116,6 +122,7 @@ export function createLocationSetWrapper (value, wrapWithSequence) {
                 body: {
                     type: Syntax.BlockStatement,
                     body: [
+                        createVarDeclaration(tempIdentifier, value),
                         {
                             type: Syntax.ReturnStatement,
 
@@ -131,25 +138,14 @@ export function createLocationSetWrapper (value, wrapWithSequence) {
                                         name: INSTRUCTION.setLocation
                                     },
 
-                                    arguments: [
-                                        {
-                                            type: Syntax.Identifier,
-                                            name: 'location'
-                                        },
-                                        value
-                                    ]
+                                    arguments: [locationIdentifier, tempIdentifier]
                                 },
 
                                 right: {
                                     type:     Syntax.AssignmentExpression,
                                     operator: '=',
-
-                                    left: {
-                                        type: Syntax.Identifier,
-                                        name: 'location'
-                                    },
-
-                                    right: value
+                                    left:     locationIdentifier,
+                                    right:    tempIdentifier
                                 }
                             }
                         }

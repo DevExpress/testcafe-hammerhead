@@ -180,7 +180,7 @@ describe('Script processor', () => {
             { src: 'var location = value', expected: 'var location = value' },
             {
                 src:      'location = value',
-                expected: '0,function(){return __set$Loc(location,value)||(location=value);}.call(this)'
+                expected: '0,function(){var __set$temp = value; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this)'
             },
             {
                 src:      '{ location: 123 }',
@@ -197,11 +197,11 @@ describe('Script processor', () => {
             { src: 'location[someProperty]', expected: '__get$(__get$Loc(location), someProperty)' },
             {
                 src:      'obj.location = location = value;',
-                expected: '__set$(obj, "location", function(){return __set$Loc(location,value)||(location=value);}.call(this));'
+                expected: '__set$(obj, "location", function(){var __set$temp = value; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this));'
             },
             {
                 src:      'a(location = value)',
-                expected: 'a(function() { return __set$Loc(location, value) || (location = value); }.call(this))'
+                expected: 'a(function() { var __set$temp = value; return __set$Loc(location, __set$temp) || (location = __set$temp); }.call(this))'
             },
             {
                 src:      'obj.location = obj.location = obj.location',
@@ -219,13 +219,13 @@ describe('Script processor', () => {
 
             {
                 src:      'location+=value',
-                expected: '0,function(){return __set$Loc(location,__get$Loc(location)+value)||' +
-                          '(location=__get$Loc(location)+value);}.call(this)'
+                expected: '0,function(){ var __set$temp = __get$Loc(location)+value; return __set$Loc(location,__set$temp)||' +
+                          '(location=__set$temp);}.call(this)'
             },
             {
                 src:      'location+=location+value',
-                expected: '0,function(){return __set$Loc(location,__get$Loc(location)+(__get$Loc(location)+value))||' +
-                          '(location=__get$Loc(location)+(__get$Loc(location)+value));}.call(this)'
+                expected: '0,function(){var __set$temp = __get$Loc(location)+(__get$Loc(location)+value); return __set$Loc(location,__set$temp)||' +
+                          '(location=__set$temp);}.call(this)'
             },
             {
                 src:      'location.href+=value',
@@ -247,38 +247,38 @@ describe('Script processor', () => {
             {
                 src: 'new function(a){location=str,a.click();}();',
 
-                expected: 'new function(a) {(0,function(){return__set$Loc(location,str)||' +
-                          '(location=str);}.call(this)), a.click();}();'
+                expected: 'new function(a) {(0,function(){var __set$temp = str; return __set$Loc(location,__set$temp)||' +
+                          '(location=__set$temp);}.call(this)), a.click();}();'
             },
             {
                 src: 'b.onerror = b.onload = function (a) { location = a; };',
 
                 expected: 'b.onerror = b.onload = function(a){' +
-                          '0,function(){return__set$Loc(location,a)||(location=a);}.call(this);};'
+                          '0,function(){var __set$temp = a; return__set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);};'
             },
             {
                 src: 'location = newLocation, x = 5;',
 
-                expected: '0,function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this), x = 5;'
+                expected: '0,function(){var __set$temp = newLocation; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this), x = 5;'
             },
             {
                 src: 'x = 5, location = newLocation;',
 
-                expected: 'x = 5, function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this);'
+                expected: 'x = 5, function(){var __set$temp = newLocation; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);'
             },
             {
                 src: 'location ? location = newLocation : location = "#123";',
 
                 expected: '__get$Loc(location)' +
-                          '? function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this)' +
-                          ': function(){return __set$Loc(location,"#123")||(location="#123");}.call(this);'
+                          '? function(){var __set$temp = newLocation; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this)' +
+                          ': function(){var __set$temp = "#123"; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);'
             },
             {
                 src: 'if (location) { location = newLocation; } else location = "#123";',
 
                 expected: 'if (__get$Loc(location)) {' +
-                          '0,function(){return __set$Loc(location,newLocation)||(location=newLocation);}.call(this);}' +
-                          'else 0,function(){return __set$Loc(location,"#123")||(location="#123");}.call(this);'
+                          '0,function(){var __set$temp = newLocation; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);}' +
+                          'else 0,function(){var __set$temp = "#123"; return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);'
             },
             {
                 src:      'var obj = { location: function location() {} }',
@@ -311,6 +311,11 @@ describe('Script processor', () => {
             {
                 src:      'function x(param=location){}',
                 expected: 'function x(param=__get$Loc(location)){}'
+            },
+            {
+                // NOTE: The fn function must be called once
+                src:      'location = fn();',
+                expected: '0,function(){var __set$temp = fn(); return __set$Loc(location,__set$temp)||(location=__set$temp);}.call(this);'
             }
         ]);
     });
