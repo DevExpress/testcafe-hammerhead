@@ -44,18 +44,13 @@ export default class FetchSandbox extends SandboxBase {
         const inputIsFetchRequest = isFetchRequest(input);
         let init                  = args[1];
 
-        if (inputIsString) {
-            args[0] = getProxyUrl(input);
+        if (!inputIsFetchRequest) {
+            args[0] = getProxyUrl(inputIsString ? input : String(input));
             init    = init || {};
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
         }
-        else if (inputIsFetchRequest && init)
+        else if (init)
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
-        else if (!inputIsFetchRequest) {
-            args[0] = getProxyUrl(String(args[0]));
-            init    = init || {};
-            args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
-        }
     }
 
     static _sameOriginCheck (args) {

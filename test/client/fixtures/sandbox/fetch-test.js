@@ -88,7 +88,7 @@ if (window.fetch) {
         ];
 
         var createTestCasePromise = function (testCase) {
-            return fetch.call(window, testCase.firstArg)
+            return fetch(testCase.firstArg)
                 .then(function (response) {
                     strictEqual(response.url, testCase.expectedUrl);
                 });
@@ -416,29 +416,31 @@ if (window.fetch) {
             ]);
         });
 
-        // NOTE: Safari processed these cases without `Promise` rejection (GH-1613)
-        if (!browserUtils.isSafari) {
-            test('request promise should be rejected on invalid calling (GH-939)', function () {
-                var checkFirstArg = function (firstArg) {
-                    return fetch.apply(window, firstArg)
-                        .then(function () {
-                            ok(false, 'wrong state of the request promise');
-                        })
-                        .catch(function () {
-                            ok(true);
-                        });
-                };
-
-                return Promise.all([
-                    checkFirstArg(),
-                    checkFirstArg({
-                        toString: function () {
-                            return {};
-                        }
+        test('request promise should be rejected on invalid calling (GH-939)', function () {
+            var checkArg = function () {
+                return fetch.apply(window, arguments)
+                    .then(function () {
+                        ok(false, 'wrong state of the request promise');
                     })
-                ]);
-            });
-        }
+                    .catch(function () {
+                        ok(true);
+                    });
+            };
+
+            var promises = [];
+
+            // NOTE: Safari processed `fetch()` without `Promise` rejection (GH-1613)
+            if (!browserUtils.isSafari)
+                promises.push(checkArg());
+
+            promises.push(checkArg({
+                toString: function () {
+                    return {};
+                }
+            }));
+
+            return Promise.all(promises);
+        });
 
         test('should return non-overridden Promise on calling the "fetch" without parameters (GH-1099)', function () {
             var storedWindowPromise = window.Promise;
