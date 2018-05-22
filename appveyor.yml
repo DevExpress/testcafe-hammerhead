@@ -9,9 +9,9 @@ install:
 - ps: >-
     Install-Product node $env:NODEJS_VERSION
 
-    choco install GoogleChrome
+    choco install GoogleChrome | out-null
 
-    choco install Firefox
+    choco install Firefox | out-null
 
 - cmd: >-
     node --version
