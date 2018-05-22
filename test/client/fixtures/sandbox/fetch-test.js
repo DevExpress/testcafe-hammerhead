@@ -65,6 +65,10 @@ if (window.fetch) {
     test('should process some argument types (GH-1613)', function () {
         var testCases = [
             {
+                args:        [new URL('https://example.com/some-path')],
+                expectedUrl: 'https://example.com/some-path'
+            },
+            {
                 args:        [null],
                 expectedUrl: 'https://example.com/null'
             },
