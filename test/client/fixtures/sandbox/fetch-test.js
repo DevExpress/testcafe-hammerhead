@@ -65,30 +65,37 @@ if (window.fetch) {
     test('should process some argument types (GH-1613)', function () {
         var testCases = [
             {
-                firstArg:    null,
+                args:        [null],
                 expectedUrl: 'https://example.com/null'
             },
             {
-                firstArg:    void 0,
+                args:        [void 0],
                 expectedUrl: 'https://example.com/undefined'
             },
             {
-                firstArg:    { url: '/some-path' },
+                args:        [{ url: '/some-path' }],
                 expectedUrl: 'https://example.com/[object%20Object]'
             },
             {
-                firstArg: {
+                args: [{
                     url:      '/some-path',
                     toString: function () {
                         return this.url;
                     }
-                },
+                }],
                 expectedUrl: 'https://example.com/some-path'
             }
         ];
 
+        if (browserUtils.isSafari) {
+            testCases.push({
+                args:        [],
+                expectedUrl: 'https://example.com/undefined'
+            });
+        }
+
         var createTestCasePromise = function (testCase) {
-            return fetch(testCase.firstArg)
+            return fetch.apply(window, testCase.args)
                 .then(function (response) {
                     strictEqual(response.url, testCase.expectedUrl);
                 });
@@ -427,19 +434,19 @@ if (window.fetch) {
                     });
             };
 
-            var promises = [];
+            var cases = [
+                checkArg({
+                    toString: function () {
+                        return {};
+                    }
+                })
+            ];
 
             // NOTE: Safari processed `fetch()` without `Promise` rejection (GH-1613)
             if (!browserUtils.isSafari)
-                promises.push(checkArg());
+                cases.push(checkArg());
 
-            promises.push(checkArg({
-                toString: function () {
-                    return {};
-                }
-            }));
-
-            return Promise.all(promises);
+            return Promise.all(cases);
         });
 
         test('should return non-overridden Promise on calling the "fetch" without parameters (GH-1099)', function () {
