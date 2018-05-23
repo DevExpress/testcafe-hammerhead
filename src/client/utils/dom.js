@@ -671,14 +671,20 @@ export function addClass (el, className) {
     if (!el)
         return;
 
-    nativeMethods.tokenListAdd.call(el.classList, className);
+    const classNames = className.split(/\s+/);
+
+    for (const currentClassName of classNames)
+        nativeMethods.tokenListAdd.call(el.classList, currentClassName);
 }
 
 export function removeClass (el, className) {
     if (!el)
         return;
 
-    nativeMethods.tokenListRemove.call(el.classList, className);
+    const classNames = className.split(/\s+/);
+
+    for (const currentClassName of classNames)
+        nativeMethods.tokenListRemove.call(el.classList, currentClassName);
 }
 
 export function hasClass (el, className) {
