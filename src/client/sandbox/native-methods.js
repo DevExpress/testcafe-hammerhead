@@ -495,6 +495,7 @@ class NativeMethods {
         this.tokenListReplace  = win.DOMTokenList.prototype.replace;
         this.tokenListSupports = win.DOMTokenList.prototype.supports;
         this.tokenListToggle   = win.DOMTokenList.prototype.toggle;
+        this.tokenListContains = win.DOMTokenList.prototype.contains;
 
         this.refreshClasses(win);
     }

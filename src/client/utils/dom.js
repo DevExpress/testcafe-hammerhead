@@ -674,7 +674,7 @@ export function addClass (el, className) {
     const classNames = className.split(/\s+/);
 
     for (const currentClassName of classNames)
-        el.classList.add(currentClassName);
+        nativeMethods.tokenListAdd.call(el.classList, currentClassName);
 }
 
 export function removeClass (el, className) {
@@ -684,14 +684,14 @@ export function removeClass (el, className) {
     const classNames = className.split(/\s+/);
 
     for (const currentClassName of classNames)
-        el.classList.remove(currentClassName);
+        nativeMethods.tokenListRemove.call(el.classList, currentClassName);
 }
 
 export function hasClass (el, className) {
     if (!el)
         return false;
 
-    return el.classList.contains(className);
+    return nativeMethods.tokenListContains.call(el.classList, className);
 }
 
 export function parseDocumentCharset () {
