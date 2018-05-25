@@ -3,6 +3,7 @@ var XHR_HEADERS   = hammerhead.get('./../request-pipeline/xhr/headers');
 var AUTHORIZATION = hammerhead.get('./../request-pipeline/xhr/authorization');
 var destLocation  = hammerhead.get('./utils/destination-location');
 var settings      = hammerhead.get('./settings');
+var urlUtils      = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
@@ -77,52 +78,56 @@ test('toString, instanceof, constructor and static properties', function () {
     strictEqual(XMLHttpRequest.DONE, nativeMethods.XMLHttpRequest.DONE);
 });
 
-// NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
-if (!browserUtils.isIE11) {
-    test('should process some argument types and get correct "responseUrl" (GH-1613)', function () {
-        var testCases = [
-            {
-                url:         new URL('https://example.com/some-path'),
-                expectedUrl: 'https://example.com/some-path'
+test('overridden "open" function should process some url argument types before the native "XMLHttpRequest.open" method calling (GH-1613)', function () {
+    var testCases = [
+        {
+            urlArg:         null,
+            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/null')
+        },
+        {
+            urlArg:         void 0,
+            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/undefined')
+        },
+        {
+            urlArg:         { url: '/some-path' },
+            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/[object%20Object]')
+        },
+        {
+            urlArg: {
+                toString: function () {
+                    return '/some-path';
+                }
             },
-            {
-                url:         null,
-                expectedUrl: 'https://example.com/null'
-            },
-            {
-                url:         void 0,
-                expectedUrl: 'https://example.com/undefined'
-            },
-            {
-                url:         { url: '/some-path' },
-                expectedUrl: 'https://example.com/[object%20Object]'
-            },
-            {
-                url: {
-                    url:      '/some-path',
-                    toString: function () {
-                        return this.url;
-                    }
-                },
-                expectedUrl: 'https://example.com/some-path'
-            }
-        ];
+            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/some-path')
+        }
+    ];
 
+    // NOTE: IE11 doesn't support 'URL()'
+    if (!browserUtils.isIE11) {
         testCases.push({
-            url:         new URL('https://example.com/some-path'),
-            expectedUrl: 'https://example.com/some-path'
+            urlArg:         new URL('https://example.com/some-path'),
+            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/some-path')
         });
+    }
 
-        testCases.forEach(function (testCase) {
-            var xhr = new XMLHttpRequest();
+    var storedNativeXhrOpen = nativeMethods.xhrOpen;
 
-            xhr.open('GET', testCase.url, false);
-            xhr.send();
+    var testUrlArg = function () {
+        var expectedUrlArg = arguments[arguments.length - 1];
 
-            strictEqual(xhr.responseURL, testCase.expectedUrl);
-        });
+        strictEqual(arguments[1], expectedUrlArg);
+    };
+
+    nativeMethods.xhrOpen = testUrlArg;
+
+    testCases.forEach(function (testCase) {
+        var xhr = new XMLHttpRequest();
+
+        xhr.open('GET', testCase.urlArg, testCase.expectedUrlArg);
     });
-}
+
+    nativeMethods.xhrOpen = storedNativeXhrOpen;
+});
 
 test('should throwing error on invalid calling "open" (GH-1613)', function () {
     var url = {

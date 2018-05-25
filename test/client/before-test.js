@@ -99,13 +99,6 @@
         return str.replace(/"/g, '');
     };
 
-    var encodeComponentArg = function (arg) {
-        return encodeURIComponent(String(arg))
-            .replace(/%5B/g, '[')
-            .replace(/%5D/g, ']')
-            .replace(/%0A/g, '');
-    }
-
     var MAX_ARG_COUNT = 3;
 
     var checkNativeFunctionCalling = function (methodName, nativeMethodName, owner, args) {
@@ -123,10 +116,8 @@
                 passed = false;
 
             for (var i = 0; i < args.length; i++) {
-                if (typeof arguments[i] !== typeof args[i]) {
-                    if (typeof arguments[i] === 'string' && arguments[i].indexOf(encodeComponentArg(args[i])) === -1)
-                        passed = false;
-                }
+                if (typeof arguments[i] !== typeof args[i])
+                    passed = false;
             }
 
             nativeCalled = true;

@@ -198,7 +198,6 @@ test('parameters passed to the native function in its original form', function (
     var xhr = new nativeMethods.XMLHttpRequest();
 
     checkNativeFunctionArgs('abort', 'xhrAbort', xhr);
-    checkNativeFunctionArgs('open', 'xhrOpen', xhr);
 
     nativeMethods.xhrOpen.call(xhr, 'GET', '/path', true);
     checkNativeFunctionArgs('send', 'xhrSend', xhr);
