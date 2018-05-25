@@ -45,6 +45,7 @@ export default class FetchSandbox extends SandboxBase {
         let init                  = args[1];
 
         if (!inputIsFetchRequest) {
+            // NOTE: we must convert url-object to 'string' (GH-1613)
             args[0] = getProxyUrl(inputIsString ? input : String(input));
             init    = init || {};
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);

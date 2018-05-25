@@ -7,6 +7,7 @@ var settings      = hammerhead.get('./settings');
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
 var Promise       = hammerhead.Promise;
+var browserUtils  = hammerhead.utils.browser;
 
 function getPrototypeFromChainContainsProp (obj, prop) {
     while (obj && !obj.hasOwnProperty(prop))
@@ -76,6 +77,74 @@ test('toString, instanceof, constructor and static properties', function () {
     strictEqual(XMLHttpRequest.DONE, nativeMethods.XMLHttpRequest.DONE);
 });
 
+// NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
+if (!browserUtils.isIE11) {
+    test('should process some argument types and get correct "responseUrl" (GH-1613)', function () {
+        var testCases = [
+            {
+                url:         new URL('https://example.com/some-path'),
+                expectedUrl: 'https://example.com/some-path'
+            },
+            {
+                url:         null,
+                expectedUrl: 'https://example.com/null'
+            },
+            {
+                url:         void 0,
+                expectedUrl: 'https://example.com/undefined'
+            },
+            {
+                url:         { url: '/some-path' },
+                expectedUrl: 'https://example.com/[object%20Object]'
+            },
+            {
+                url: {
+                    url:      '/some-path',
+                    toString: function () {
+                        return this.url;
+                    }
+                },
+                expectedUrl: 'https://example.com/some-path'
+            }
+        ];
+
+        testCases.push({
+            url:         new URL('https://example.com/some-path'),
+            expectedUrl: 'https://example.com/some-path'
+        });
+
+        testCases.forEach(function (testCase) {
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('GET', testCase.url, false);
+            xhr.send();
+
+            strictEqual(xhr.responseURL, testCase.expectedUrl);
+        });
+    });
+}
+
+test('should throwing error on invalid calling "open" (GH-1613)', function () {
+    var url = {
+        toString: function () {
+            return {};
+        }
+    };
+
+    var exception = false;
+    var xhr       = new XMLHttpRequest();
+
+    try {
+        xhr.open('GET', url, false);
+    }
+    catch (e) {
+        exception = true;
+    }
+    finally {
+        ok(exception);
+    }
+});
+
 module('regression');
 
 asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
@@ -127,24 +196,27 @@ test('the internal 222 status code should be replaced with 0 on the client side'
     strictEqual(xhr.status, 0);
 });
 
-asyncTest('xhr.responseURL', function () {
-    var xhr       = new XMLHttpRequest();
-    var testCount = 0;
+// NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
+if (browserUtils.isIE11) {
+    asyncTest('xhr.responseURL', function () {
+        var xhr       = new XMLHttpRequest();
+        var testCount = 0;
 
-    xhr.addEventListener('readystatechange', function () {
-        if (this.responseURL) {
-            strictEqual(this.responseURL, 'https://example.com/xhr-large-response');
-            ++testCount;
-        }
+        xhr.addEventListener('readystatechange', function () {
+            if (this.responseURL) {
+                strictEqual(this.responseURL, 'https://example.com/xhr-large-response');
+                ++testCount;
+            }
 
-        if (this.readyState === XMLHttpRequest.DONE) {
-            expect(testCount);
-            start();
-        }
+            if (this.readyState === XMLHttpRequest.DONE) {
+                expect(testCount);
+                start();
+            }
+        });
+        xhr.open('GET', '/redirect/', true);
+        xhr.send(null);
     });
-    xhr.open('GET', '/redirect/', true);
-    xhr.send(null);
-});
+}
 
 test('send the origin header correctly (GH-284)', function () {
     var xhrTestFunc = function () {

@@ -192,6 +192,74 @@ test('special pages (GH-339)', function () {
     destLocation.forceLocation(storedForcedLocation);
 });
 
+test('should process some url types (GH-1613)', function () {
+    var testCases = [
+        {
+            url:         null,
+            expectedUrl: 'https://example.com/null'
+        },
+        {
+            url:         void 0,
+            expectedUrl: 'https://example.com/undefined'
+        },
+        {
+            url:         { url: '/some-path' },
+            expectedUrl: 'https://example.com/[object%20Object]'
+        },
+        {
+            url: {
+                url:      '/some-path',
+                toString: function () {
+                    return this.url;
+                }
+            },
+            expectedUrl: 'https://example.com/some-path'
+        }
+    ];
+
+    // NOTE: IE11 doesn't support 'URL()'
+    if (!browserUtils.isIE11) {
+        testCases.push({
+            url:         new URL('https://example.com/some-path'),
+            expectedUrl: 'https://example.com/some-path'
+        });
+    }
+
+    var windowMock = {
+        location: {
+            href: '',
+
+            replace: function (url) {
+                this.href = url;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
+            toString: function () {
+                return urlUtils.getProxyUrl(this.location.href);
+            }
+        }
+    };
+
+    windowMock.top = windowMock;
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    testCases.map(function (testCase) {
+        locationWrapper.href = testCase.url;
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(testCase.expectedUrl));
+
+        locationWrapper.replace(testCase.url);
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(testCase.expectedUrl));
+
+        locationWrapper.assign(testCase.url);
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(testCase.expectedUrl));
+    });
+});
+
+
 test('should ensure a trailing slash on page navigation using href setter, assign and replace methods (GH-1426)', function () {
     function getExpectedProxyUrl (testCase) {
         var proxiedUrl = urlUtils.getProxyUrl(testCase.url);

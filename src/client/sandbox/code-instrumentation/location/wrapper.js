@@ -61,6 +61,10 @@ export default class LocationWrapper extends EventEmitter {
             return ensureTrailingSlash(href, locationUrl);
         };
         const getProxiedHref = href => {
+            // NOTE: we must convert url-object to 'string' (GH-1613)
+            if (typeof href !== 'string')
+                href = String(href);
+
             href = prepareUrl(href);
 
             if (isJsProtocol(href))
