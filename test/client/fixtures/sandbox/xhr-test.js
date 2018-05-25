@@ -79,51 +79,39 @@ test('toString, instanceof, constructor and static properties', function () {
 });
 
 test('overridden "open" function should process some url argument types before the native "XMLHttpRequest.open" method calling (GH-1613)', function () {
-    var testCases = [
-        {
-            urlArg:         null,
-            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/null')
-        },
-        {
-            urlArg:         void 0,
-            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/undefined')
-        },
-        {
-            urlArg:         { url: '/some-path' },
-            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/[object%20Object]')
-        },
-        {
-            urlArg: {
-                toString: function () {
-                    return '/some-path';
-                }
-            },
-            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/some-path')
-        }
-    ];
+    var storedNativeXhrOpen = nativeMethods.xhrOpen;
+    var xhr                 = new XMLHttpRequest();
 
     // NOTE: IE11 doesn't support 'URL()'
     if (!browserUtils.isIE11) {
-        testCases.push({
-            urlArg:         new URL('https://example.com/some-path'),
-            expectedUrlArg: urlUtils.getProxyUrl('https://example.com/some-path')
-        });
+        nativeMethods.xhrOpen = function () {
+            strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/some-path'));
+        };
+        xhr.open('GET', new URL('https://example.com/some-path'));
     }
 
-    var storedNativeXhrOpen = nativeMethods.xhrOpen;
-
-    var testUrlArg = function () {
-        var expectedUrlArg = arguments[arguments.length - 1];
-
-        strictEqual(arguments[1], expectedUrlArg);
+    nativeMethods.xhrOpen = function () {
+        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/null'));
     };
+    xhr.open('GET', null);
 
-    nativeMethods.xhrOpen = testUrlArg;
+    nativeMethods.xhrOpen = function () {
+        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/undefined'));
+    };
+    xhr.open('GET', void 0);
 
-    testCases.forEach(function (testCase) {
-        var xhr = new XMLHttpRequest();
+    nativeMethods.xhrOpen = function () {
+        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/[object%20Object]'));
+    };
+    xhr.open('GET', { url: '/some-path' });
 
-        xhr.open('GET', testCase.urlArg, testCase.expectedUrlArg);
+    nativeMethods.xhrOpen = function () {
+        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/some-path'));
+    };
+    xhr.open('GET', {
+        toString: function () {
+            return '/some-path';
+        }
     });
 
     nativeMethods.xhrOpen = storedNativeXhrOpen;
