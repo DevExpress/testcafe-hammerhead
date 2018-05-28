@@ -56,30 +56,29 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 },
 
                 set: (owner, location) => {
-                    if (typeof location === 'string') {
-                        const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
-                        const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
+                    const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
+                    const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
-                        if (!locationWrapper) {
-                            if (!isJsProtocol(location)) {
-                                const url          = prepareUrl(location);
-                                const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
+                    if (!locationWrapper) {
+                        if (typeof location !== 'string')
+                            location = String(location);
 
-                                owner.location = destLocation.sameOriginCheck(location.toString(), url)
-                                    ? urlUtils.getProxyUrl(url, { resourceType })
-                                    : urlUtils.getCrossDomainIframeProxyUrl(url);
-                            }
-                            else
-                                owner.location = processJsAttrValue(location, { isJsProtocol: true, isEventAttr: false });
+                        if (!isJsProtocol(location)) {
+                            const url          = prepareUrl(location);
+                            const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
+
+                            owner.location = destLocation.sameOriginCheck(location.toString(), url)
+                                ? urlUtils.getProxyUrl(url, { resourceType })
+                                : urlUtils.getCrossDomainIframeProxyUrl(url);
                         }
                         else
-                            // eslint-disable-next-line no-restricted-properties
-                            locationWrapper.href = location;
-
-                        return location;
+                            owner.location = processJsAttrValue(location, { isJsProtocol: true, isEventAttr: false });
                     }
+                    else
+                        // eslint-disable-next-line no-restricted-properties
+                        locationWrapper.href = location;
 
-                    return owner.location;
+                    return location;
                 }
             }
         };
