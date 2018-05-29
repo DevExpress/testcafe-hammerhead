@@ -92,8 +92,8 @@ module.exports = function (app) {
         res.send(req.headers['x-hammerhead|xhr|origin']);
     });
 
-    app.get('/xhr-set-cookie-header-test/', function (req, res) {
-        res.setHeader('x-hammerhead|xhr|set-cookie', '["hello=world"]');
+    app.get('/xhr-with-sync-cookie/', function (req, res) {
+        res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||4023940293=world;path=/');
         res.send();
     });
 

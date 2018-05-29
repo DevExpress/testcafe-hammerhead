@@ -134,6 +134,12 @@ describe('Proxy', () => {
 
         app.get('/', (req, res) => res.end(req.url));
 
+        app.get('/cookie-server-sync/:cookies', (req, res) => {
+            res
+                .set('set-cookie', decodeURIComponent(req.params.cookies))
+                .end();
+        });
+
         app.get('/cookie/set-and-redirect', (req, res) => {
             res.statusCode = 302;
 
@@ -596,6 +602,61 @@ describe('Proxy', () => {
                 });
         });
 
+        describe('Server synchronization with client', function () {
+            it('Should generate cookie for synchronization', function () {
+                const cookie  = encodeURIComponent('aaa=111;path=/path');
+                const options = {
+                    url: proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
+
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.headers['set-cookie'][0].replace(/[0-9]+=/, '%lastAccessed%='))
+                            .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%=111;path=/`);
+                    });
+            });
+
+            it('Should remove obsolete synchronization cookie', function () {
+                const obsoleteTime = new Date().getTime() - 1000;
+                const cookie       = encodeURIComponent('bbb=321;path=/');
+                const options      = {
+                    url:     proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
+                    headers: {
+                        cookie: `s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=321;path=/`
+                    },
+
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.headers['set-cookie'][0])
+                            .eql(`s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                        expect(res.headers['set-cookie'][1].replace(/[0-9]+=/, '%lastAccessed%='))
+                            .eql(`s|${session.id}|bbb|127.0.0.1|%2F||%lastAccessed%=321;path=/`);
+                    });
+            });
+
+            it('Should skip httpOnly cookie', function () {
+                const cookie  = encodeURIComponent('ccc=123;httpOnly');
+                const options = {
+                    url: proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
+
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.headers['set-cookie']).eql(void 0);
+                    });
+            });
+        });
+
         describe('SET_COOKIE service message', () => {
             it('Should process the message without domain directive', () => {
                 const options = {
@@ -846,7 +907,7 @@ describe('Proxy', () => {
 
                     resolveWithFullResponse: true,
                     followRedirect:          false,
-                    simple:                  false,
+                    simple:                  false
                 };
 
                 return request(options)

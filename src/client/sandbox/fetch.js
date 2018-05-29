@@ -11,8 +11,10 @@ import * as browserUtils from '../utils/browser';
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
 
 export default class FetchSandbox extends SandboxBase {
-    constructor () {
+    constructor (cookieSandbox) {
         super();
+
+        this.cookieSandbox = cookieSandbox;
 
         this.FETCH_REQUEST_SENT_EVENT = 'hammerhead|event|fetch-request-sent-event';
     }
@@ -121,7 +123,12 @@ export default class FetchSandbox extends SandboxBase {
 
             sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
-            return fetchPromise;
+            return fetchPromise
+                .then(response => {
+                    sandbox.cookieSandbox.syncServerCookie();
+
+                    return response;
+                });
         };
 
         overrideDescriptor(window.Response.prototype, 'type', {

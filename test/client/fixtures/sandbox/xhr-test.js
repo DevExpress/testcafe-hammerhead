@@ -1,5 +1,4 @@
 var XhrSandbox    = hammerhead.get('./sandbox/xhr');
-var XHR_HEADERS   = hammerhead.get('./../request-pipeline/xhr/headers');
 var AUTHORIZATION = hammerhead.get('./../request-pipeline/xhr/authorization');
 var destLocation  = hammerhead.get('./utils/destination-location');
 var settings      = hammerhead.get('./settings');
@@ -242,27 +241,6 @@ test('send the origin header correctly (GH-284)', function () {
 
             strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
         });
-});
-
-asyncTest('set cookie from a header of the XMLHttpRequest response (GH-905)', function () {
-    var xhr = new XMLHttpRequest();
-
-    strictEqual(document.cookie, '');
-
-    xhr.open('GET', '/xhr-set-cookie-header-test/', true);
-    xhr.addEventListener('readystatechange', function () {
-        if (this.readyState === this.DONE) {
-            strictEqual(document.cookie, 'hello=world');
-            strictEqual(xhr.getResponseHeader(XHR_HEADERS.setCookie), null);
-            strictEqual(xhr.getAllResponseHeaders().indexOf(XHR_HEADERS.setCookie), -1);
-            strictEqual(xhr.getAllResponseHeaders().indexOf('hello=world'), -1);
-
-            settings.get().cookie = '';
-
-            start();
-        }
-    });
-    xhr.send();
 });
 
 asyncTest('authorization headers by client should be processed (GH-1016)', function () {

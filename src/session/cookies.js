@@ -21,9 +21,9 @@ export default class Cookies {
     _set (url, cookies, isClient) {
         cookies = castArray(cookies);
 
-        cookies.forEach(cookieStr => {
+        return cookies.reduce((resultCookies, cookieStr) => {
             if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
-                return;
+                return resultCookies;
 
             const cookie = Cookie.parse(cookieStr);
 
@@ -34,12 +34,17 @@ export default class Cookies {
                 cookieStr     = cookie.toString();
             }
 
-            this.cookieJar.setCookieSync(cookieStr, url, {
+            const parsedCookie = this.cookieJar.setCookieSync(cookieStr, url, {
                 http:        !isClient,
                 ignoreError: true,
                 loose:       true
             });
-        });
+
+            if (parsedCookie)
+                resultCookies.push(parsedCookie);
+
+            return resultCookies;
+        }, []);
     }
 
     serializeJar () {
@@ -53,7 +58,7 @@ export default class Cookies {
     }
 
     setByServer (url, cookies) {
-        this._set(url, cookies, false);
+        return this._set(url, cookies, false);
     }
 
     setByClient (url, cookies) {
