@@ -259,89 +259,44 @@ test('should process some url types in locationWrapper (href, replace, assign) (
     });
 });
 
-// test('should process some url types in the "location" property (GH-1613)', function () {
-//     var storedGetProxyUrl     = urlUtils.getProxyUrl;
-//     var storedSameOriginCheck = destLocation.sameOriginCheck;
-//
-//     var src = 'http://localhost:2000/fixtures/sandbox/code-instrumentation/';
-//
-//     var iframe1 = null;
-//     var iframe2 = null;
-//
-//     var createIframePromise = function (iframe) {
-//         return new Promise(function (resolve) {
-//             iframe.onload = function () {
-//                 resolve();
-//             };
-//         });
-//     };
-//
-//     var checkUrl = function (iframe1UrlObj, iframe2UrlStr) {
-//         var iframe1Promise = createIframePromise(iframe1);
-//         var iframe2Promise = createIframePromise(iframe2);
-//
-//         iframe1.contentWindow.location = iframe1UrlObj;
-//         eval(processScript('iframe2.contentWindow.location = ' + iframe2UrlStr + ';'));
-//
-//         return Promise.all([
-//             iframe1Promise,
-//             iframe2Promise
-//         ]);
-//     };
-//
-//     return Promise.all([
-//         createTestIframe({ src: src }),
-//         createTestIframe({ src: src })
-//     ])
-//         .then(function (results) {
-//             iframe1 = results[0];
-//             iframe2 = results[1];
-//
-//             urlUtils.getProxyUrl = function (url) {
-//                 return src + url;
-//             };
-//
-//             destLocation.sameOriginCheck = function () {
-//                 return true;
-//             };
-//         })
-//         .then(function () {
-//             return checkUrl(null, 'null');
-//         })
-//         .then(function () {
-//             strictEqual(iframe1.contentWindow.location.toString(), iframe2.contentWindow.location.toString());
-//         })
-//         .then(function () {
-//             return checkUrl(void 0, 'void 0');
-//         })
-//         .then(function () {
-//             strictEqual(iframe1.contentWindow.location.toString(), iframe2.contentWindow.location.toString());
-//         })
-//         .then(function () {
-//             return checkUrl({ url: '/some-path' }, '{ url: "/some-path" }');
-//         })
-//         .then(function () {
-//             strictEqual(iframe1.contentWindow.location.toString(), iframe2.contentWindow.location.toString());
-//         })
-//         .then(function () {
-//             return checkUrl({
-//                 toString: function () {
-//                     return 'some-path';
-//                 }
-//             }, '{\n' +
-//                '    toString: function () {\n' +
-//                '        return \'some-path\';\n' +
-//                '    }\n' +
-//                '}');
-//         })
-//         .then(function () {
-//             strictEqual(iframe1.contentWindow.location.toString(), iframe2.contentWindow.location.toString());
-//         })
-//         .then(function () {
-//             urlUtils.getProxyUrl         = storedGetProxyUrl;
-//             destLocation.sameOriginCheck = storedSameOriginCheck;
-//         });
-// });
+test('should process some url types in the "location" property (GH-1613)', function () {
+    var checkLocation = function (iframe) {
+        return new Promise(function (resolve, reject) {
+            iframe.onload = function () {
+                try {
+                    resolve(iframe.contentWindow.location.toString());
+                }
+                catch (e) {
+                    ok(false, 'iframe.contentWindow.location.toString()');
+                    reject(e);
+                }
+            };
+        });
+    };
+
+    var checkIframesLocation = function (url) {
+        return Promise.all([createTestIframe(), createTestIframe()])
+            .then(function (iframes) {
+                var nativeIframePromise = checkLocation(iframes[0]);
+                var iframePromise       = checkLocation(iframes[1]);
+
+                iframes[0].contentWindow.location = url;
+                eval(processScript('iframes[1].contentWindow.location = ' + url));
+
+                return Promise.all([nativeIframePromise, iframePromise]);
+            })
+            .then(function (urls) {
+                var nativeLocation = urls[0].replace('fixtures/sandbox/code-instrumentation', 'sessionId!i/https://example.com');
+
+                strictEqual(nativeLocation, urls[1]);
+            });
+    };
+
+    return Promise.all([
+        checkIframesLocation(null),
+        checkIframesLocation(void 0)
+    ]);
+});
 
 test('should ensure a trailing slash on page navigation using href setter, assign and replace methods (GH-1426)', function () {
     function getExpectedProxyUrl (testCase) {
