@@ -261,41 +261,53 @@ test('should process some url types in locationWrapper (href, replace, assign) (
 
 test('should process some url types in the "location" property (GH-1613)', function () {
     var checkLocation = function (iframe) {
-        return new Promise(function (resolve, reject) {
-            iframe.onload = function () {
-                try {
-                    resolve(iframe.contentWindow.location.toString());
-                }
-                catch (e) {
-                    ok(false, 'iframe.contentWindow.location.toString()');
-                    reject(e);
-                }
-            };
+        return new Promise(function (resolve) {
+            iframe.addEventListener('load', function () {
+                resolve(iframe.contentWindow.location.toString());
+            });
         });
     };
 
-    var checkIframesLocation = function (url) {
+    var checkIframesLocation = function (nativeIframeUrl, processedIframeUrl) {
         return Promise.all([createTestIframe(), createTestIframe()])
             .then(function (iframes) {
                 var nativeIframePromise = checkLocation(iframes[0]);
                 var iframePromise       = checkLocation(iframes[1]);
 
-                iframes[0].contentWindow.location = url;
-                eval(processScript('iframes[1].contentWindow.location = ' + url));
+                iframes[0].contentWindow.location = nativeIframeUrl;
+                eval(processScript('iframes[1].contentWindow.location = ' + processedIframeUrl));
 
                 return Promise.all([nativeIframePromise, iframePromise]);
             })
             .then(function (urls) {
-                var nativeLocation = urls[0].replace('fixtures/sandbox/code-instrumentation', 'sessionId!i/https://example.com');
 
-                strictEqual(nativeLocation, urls[1]);
+                var nativeIframeLocation    = urls[0].slice(urls[0].lastIndexOf('/') + 1);
+                var processedIframeLocation = urls[1].slice(urls[1].lastIndexOf('/') + 1);
+
+                strictEqual(nativeIframeLocation, processedIframeLocation);
             });
     };
 
-    return Promise.all([
-        checkIframesLocation(null),
-        checkIframesLocation(void 0)
-    ]);
+    var cases = [
+        checkIframesLocation(null, 'null'),
+        checkIframesLocation(void 0, 'void 0'),
+        checkIframesLocation({}, '{}'),
+        checkIframesLocation({
+            toString: function () {
+                return '/some-path';
+            }
+        }, '{' +
+           '    toString: function () {\n' +
+           '        return \'/some-path\';\n' +
+           '    }' +
+           '}')
+    ];
+
+    // NOTE: IE11 doesn't support 'URL()'
+    if (!browserUtils.isIE11)
+        cases.push(checkIframesLocation(new URL('http://localhost:2000/some-path'), 'new URL(\'http://localhost:2000/some-path\')'));
+
+    return Promise.all(cases);
 });
 
 test('should ensure a trailing slash on page navigation using href setter, assign and replace methods (GH-1426)', function () {

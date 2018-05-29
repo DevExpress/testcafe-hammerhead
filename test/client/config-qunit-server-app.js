@@ -173,4 +173,17 @@ module.exports = function (app) {
 
         delete cookies[userAgent];
     });
+
+    var iframeLocationUrlCallback = function (req, res, next) {
+        var locationPossibleValues = ['null', 'undefined', '[object Object]', 'some-path'];
+
+        if (locationPossibleValues.includes(req.params.url))
+            res.send(req.params.url);
+        else
+            next();
+    };
+
+    app.get('/fixtures/sandbox/code-instrumentation/:url', iframeLocationUrlCallback);
+
+    app.get('/:url', iframeLocationUrlCallback);
 };
