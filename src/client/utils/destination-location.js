@@ -35,11 +35,13 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
 }
 
 export function resolveUrl (url, doc) {
-    url = sharedUrlUtils.processSpecialChars(url);
+    // eslint-disable-next-line no-restricted-properties
+    const pageProtocol = getParsed().protocol;
+
+    url = sharedUrlUtils.processSpecialChars(url, pageProtocol);
 
     if (url && url.indexOf('//') === 0)
-        // eslint-disable-next-line no-restricted-properties
-        url = getParsed().protocol + url;
+        url = pageProtocol + url;
 
     return urlResolver.resolve(url, doc || document);
 }

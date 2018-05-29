@@ -255,6 +255,19 @@ test('remove unnecessary slashes form the begin of the url', function () {
     strictEqual(proxy, 'http://localhost:5555/sessionId!resourceType/https://example.com');
 });
 
+
+test('should ensure triple starting slashes in a scheme-less file URLs', function () {
+    var storedLocation = destLocation.getLocation();
+
+    destLocation.forceLocation(urlUtils.getProxyUrl('file:///home/testcafe/site'));
+
+    strictEqual(urlUtils.getProxyUrl('/////home/testcafe/site2'), 'http://localhost:2000/sessionId/file:///home/testcafe/site2');
+    strictEqual(urlUtils.getProxyUrl('/////D:/testcafe/site2'), 'http://localhost:2000/sessionId/file:///D:/testcafe/site2');
+    strictEqual(urlUtils.getProxyUrl('//D:/testcafe/site2'), 'http://localhost:2000/sessionId/file:///D:/testcafe/site2');
+
+    destLocation.forceLocation(storedLocation);
+});
+
 test('convert destination host and protocol to lower case', function () {
     // BUG: GH-1
     var proxy = getProxyUrl('hTtp://eXamPle.Com:123/paTh/Image?Name=Value&#Hash');
