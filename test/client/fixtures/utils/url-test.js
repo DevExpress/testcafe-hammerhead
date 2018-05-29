@@ -261,9 +261,11 @@ test('should ensure triple starting slashes in a scheme-less file URLs', functio
 
     destLocation.forceLocation(urlUtils.getProxyUrl('file:///home/testcafe/site'));
 
-    strictEqual(urlUtils.getProxyUrl('/////home/testcafe/site2'), 'http://localhost:2000/sessionId/file:///home/testcafe/site2');
-    strictEqual(urlUtils.getProxyUrl('/////D:/testcafe/site2'), 'http://localhost:2000/sessionId/file:///D:/testcafe/site2');
-    strictEqual(urlUtils.getProxyUrl('//D:/testcafe/site2'), 'http://localhost:2000/sessionId/file:///D:/testcafe/site2');
+    var opts = { proxyHostname: 'localhost' };
+
+    strictEqual(urlUtils.getProxyUrl('/////home/testcafe/site2', opts), 'http://localhost:2000/sessionId/file:///home/testcafe/site2');
+    strictEqual(urlUtils.getProxyUrl('/////D:/testcafe/site2', opts), 'http://localhost:2000/sessionId/file:///D:/testcafe/site2');
+    strictEqual(urlUtils.getProxyUrl('//D:/testcafe/site2', opts), 'http://localhost:2000/sessionId/file:///D:/testcafe/site2');
 
     destLocation.forceLocation(storedLocation);
 });
