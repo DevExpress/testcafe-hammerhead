@@ -115,6 +115,15 @@ function convertHostToLowerCase (url) {
     return (parsedUrl.protocol + protocolHostSeparator + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
 }
 
+export function getURLString (url) {
+    // TODO: fix it
+    // eslint-disable-next-line no-undef
+    if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
+        return '';
+
+    return String(url).replace(/\n|\t/g, '');
+}
+
 export function getProxyUrl (url, opts) {
     let params = [opts.sessionId];
 
@@ -320,15 +329,7 @@ export function formatUrl (parsedUrl) {
     return url;
 }
 
-export function processSpecialChars (url, pageProtocol = '') {
-    // TODO: fix it
-    // eslint-disable-next-line no-undef
-    if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
-        return '';
-
-    url = String(url);
-    url = url.replace(/\n|\t/g, '');
-
+export function correctMultipleSlashes (url, pageProtocol = '') {
     // NOTE: Remove unnecessary slashes from the beginning of the url and after scheme.
     // For example:
     // "//////example.com" -> "//example.com" (scheme-less HTTP(S) URL)
@@ -344,6 +345,10 @@ export function processSpecialChars (url, pageProtocol = '') {
     }
 
     return url.replace(/^(https?:)?\/+(\/\/.*$)/i, '$1$2');
+}
+
+export function processSpecialChars (url) {
+    return correctMultipleSlashes(getURLString(url));
 }
 
 export function ensureTrailingSlash (srcUrl, processedUrl) {
