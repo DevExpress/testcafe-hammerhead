@@ -263,7 +263,6 @@ test('should process some url types in the "location" property (GH-1613)', funct
     var checkLocation = function (iframe) {
         return new Promise(function (resolve) {
             iframe.addEventListener('load', function () {
-                ok(true, 'load' + iframe.contentWindow.location.toString());
                 resolve(iframe.contentWindow.location.toString());
             });
         });
@@ -285,9 +284,6 @@ test('should process some url types in the "location" property (GH-1613)', funct
                 var processedIframeLocation = urls[1].slice(urls[1].lastIndexOf('/') + 1);
 
                 strictEqual(nativeIframeLocation, processedIframeLocation);
-            })
-            .catch(function (e) {
-                ok(false, 'error' + e.message);
             });
     };
 
@@ -308,7 +304,7 @@ test('should process some url types in the "location" property (GH-1613)', funct
 
     // NOTE: IE11 doesn't support 'URL()'
     if (!browserUtils.isIE11)
-        cases.push(checkIframesLocation(new URL('http://localhost:2000/some-path'), 'new URL(\'http://localhost:2000/some-path\')'));
+        cases.push(checkIframesLocation(new URL(location.origin + '/some-path'), 'new URL(location.origin + "/some-path")'));
 
     return Promise.all(cases);
 });
