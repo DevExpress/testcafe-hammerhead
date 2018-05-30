@@ -263,6 +263,7 @@ test('should process some url types in the "location" property (GH-1613)', funct
     var checkLocation = function (iframe) {
         return new Promise(function (resolve) {
             iframe.addEventListener('load', function () {
+                ok(true, 'load' + iframe.contentWindow.location.toString());
                 resolve(iframe.contentWindow.location.toString());
             });
         });
@@ -280,11 +281,13 @@ test('should process some url types in the "location" property (GH-1613)', funct
                 return Promise.all([nativeIframePromise, iframePromise]);
             })
             .then(function (urls) {
-
                 var nativeIframeLocation    = urls[0].slice(urls[0].lastIndexOf('/') + 1);
                 var processedIframeLocation = urls[1].slice(urls[1].lastIndexOf('/') + 1);
 
                 strictEqual(nativeIframeLocation, processedIframeLocation);
+            })
+            .catch(function (e) {
+                ok(false, 'error' + e.message);
             });
     };
 
