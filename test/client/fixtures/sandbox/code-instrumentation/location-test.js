@@ -297,7 +297,7 @@ test('should process some url types in the "location" property (GH-1613)', funct
             }
         }, '{' +
            '    toString: function () {\n' +
-           '        return \'/some-path\';\n' +
+           '        return "/some-path";\n' +
            '    }' +
            '}')
     ];

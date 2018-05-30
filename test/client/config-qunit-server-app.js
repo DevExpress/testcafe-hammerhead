@@ -174,6 +174,7 @@ module.exports = function (app) {
         delete cookies[userAgent];
     });
 
+    // We should add routes for iframe loading in IE 11 ("location" property test) (GH-1613)
     var iframeLocationUrlCallback = function (req, res, next) {
         var locationPossibleValues = ['null', 'undefined', '[object Object]', 'some-path'];
 
