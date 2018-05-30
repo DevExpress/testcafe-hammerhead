@@ -15,6 +15,7 @@ const selfSignedCertificate                = require('openssl-self-signed-certif
 const getFreePort                          = require('endpoint-utils').getFreePort;
 const WebSocket                            = require('ws');
 const noop                                 = require('lodash').noop;
+const isWindows                            = require('os-family').win;
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
 const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
@@ -98,7 +99,7 @@ function newLineReplacer (content) {
 }
 
 function getFileProtocolUrl (filePath) {
-    return 'file:///' + path.resolve(__dirname, filePath).replace(/\\/g, '/');
+    return 'file:' + (isWindows ? '///' : '//') + path.resolve(__dirname, filePath).replace(/\\/g, '/');
 }
 
 describe('Proxy', () => {

@@ -35,11 +35,16 @@ export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
 }
 
 export function resolveUrl (url, doc) {
-    url = sharedUrlUtils.processSpecialChars(url);
+    url = sharedUrlUtils.getURLString(url);
 
-    if (url && url.indexOf('//') === 0)
+    if (url && url.indexOf('//') === 0) {
         // eslint-disable-next-line no-restricted-properties
-        url = getParsed().protocol + url;
+        const pageProtocol = getParsed().protocol;
+
+        url = pageProtocol + sharedUrlUtils.correctMultipleSlashes(url, pageProtocol);
+    }
+    else
+        url = sharedUrlUtils.correctMultipleSlashes(url);
 
     return urlResolver.resolve(url, doc || document);
 }
