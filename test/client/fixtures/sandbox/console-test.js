@@ -13,7 +13,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
     test('consoleMethCalled event', function () {
         var log                       = [];
         var handledConsoleMethodNames = [];
-        var handledConsoleMethodArgs  = [];
+        var handledConsoleMethodLines = [];
 
         var originMethods = {
             log:   nativeMethods.consoleMeths.log,
@@ -35,7 +35,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
 
         function onConsoleMethCalled (e) {
             handledConsoleMethodNames.push(e.meth);
-            handledConsoleMethodArgs = handledConsoleMethodArgs.concat(Array.prototype.slice.call(e.args));
+            handledConsoleMethodLines.push(e.line);
         }
 
         hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
@@ -49,7 +49,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
 
         deepEqual(handledConsoleMethodNames, ['log', 'warn', 'error', 'info']);
         deepEqual(log, [1, 2, 3, 4, 5, 6, 7, 8]);
-        deepEqual(handledConsoleMethodArgs, [1, 2, 3, 4, 5, 6, 7, 8]);
+        deepEqual(handledConsoleMethodLines, ['1 2', '3 4', '5 6', '7 8']);
 
         nativeMethods.consoleMeths = {
             log:   originMethods.log,
@@ -63,14 +63,14 @@ if (window.console && typeof window.console.log !== 'undefined') {
 
     if (!browserUtils.isIE && !browserUtils.isMSEdge) { //TODO: remove this with the #1326 issue fix.
         test('`consoleMethCalled event` should be raised after document.write in an iframe', function () {
-            var lastMsg    = '';
+            var lastLine   = '';
             var lastMeth   = '';
             var testIframe = '';
 
             hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
 
             function onConsoleMethCalled (e) {
-                lastMsg  = e.args[0];
+                lastLine = e.line;
                 lastMeth = e.meth;
             }
 
@@ -83,7 +83,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
                     return wait(50);
                 })
                 .then(function () {
-                    equal(lastMsg, 'msg1');
+                    equal(lastLine, 'msg1');
                     equal(lastMeth, 'log');
 
                     testIframe.contentDocument.write('<div>dummy</div>');
@@ -92,11 +92,29 @@ if (window.console && typeof window.console.log !== 'undefined') {
                     return wait(50);
                 })
                 .then(function () {
-                    equal(lastMsg, 'msg2');
+                    equal(lastLine, 'msg2');
                     equal(lastMeth, 'info');
 
                     hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
                 });
         });
     }
+
+    test('console message with circular structure object from iframe (GH-1546)', function () {
+        return createTestIframe()
+            .then(function (iframe) {
+                return new Promise(function (resolve) {
+                    var circularStructure = {};
+
+                    circularStructure.prop = circularStructure;
+
+                    iframe.contentWindow.console.log(circularStructure);
+
+                    hammerhead.on(hammerhead.EVENTS.consoleMethCalled, resolve);
+                });
+            })
+            .then(function (consoleEvent) {
+                strictEqual(consoleEvent.line, '[object Object]');
+            });
+    });
 }

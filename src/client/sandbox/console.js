@@ -1,6 +1,10 @@
 import SandboxBase from './base';
 import { isCrossDomainWindows } from '../utils/dom';
 
+// NOTE: We should avoid using native object prototype methods,
+// since they can be overridden by the client code. (GH-245)
+const arrayMap = Array.prototype.map;
+
 export default class ConsoleSandbox extends SandboxBase {
     constructor (messageSandbox) {
         super();
@@ -14,13 +18,14 @@ export default class ConsoleSandbox extends SandboxBase {
         this.window.console[meth] = (...args) => {
             if (!isCrossDomainWindows(window, window.top)) {
                 const sendToTopWindow = window !== window.top;
+                const line            = arrayMap.call(args, String).join(' ');
 
                 if (sendToTopWindow) {
-                    this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, args, inIframe: true });
-                    this.messageSandbox.sendServiceMsg({ meth, args, cmd: this.CONSOLE_METH_CALLED_EVENT }, window.top);
+                    this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line, inIframe: true });
+                    this.messageSandbox.sendServiceMsg({ meth, line, cmd: this.CONSOLE_METH_CALLED_EVENT }, window.top);
                 }
                 else
-                    this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, args });
+                    this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line });
             }
 
             this.nativeMethods.consoleMeths[meth].apply(this.nativeMethods.console, args);
@@ -37,11 +42,9 @@ export default class ConsoleSandbox extends SandboxBase {
 
         const messageSandbox = this.messageSandbox;
 
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
-            const message = e.message;
-
+        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message }) => {
             if (message.cmd === this.CONSOLE_METH_CALLED_EVENT)
-                this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth: message.meth, args: message.args });
+                this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth: message.meth, line: message.line });
         });
     }
 }
