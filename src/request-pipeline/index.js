@@ -84,7 +84,7 @@ const stages = {
         else if (!ctx.contentInfo.requireProcessing) {
             sendResponseHeaders(ctx);
 
-            if (!ctx.isSpecialPage && !ctx.contentInfo.isNotModified) {
+            if (!ctx.isSpecialPage) {
                 ctx.requestFilterRules.forEach(rule => {
                     const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
 
@@ -96,7 +96,11 @@ const stages = {
                         ctx.onResponseEventDataWithoutBody.push({ rule, opts: configureResponseEvent.opts });
                 });
 
-                ctx.destRes.pipe(ctx.res);
+                if (ctx.contentInfo.isNotModified)
+                    ctx.res.end('');
+                else
+                    ctx.destRes.pipe(ctx.res);
+
                 if (ctx.onResponseEventDataWithoutBody.length) {
                     ctx.res.on('finish', () => {
                         const responseInfo = requestEventInfo.createResponseInfo(ctx);
