@@ -15,6 +15,13 @@ if (window.console && typeof window.console.log !== 'undefined') {
         var handledConsoleMethodNames = [];
         var handledConsoleMethodLines = [];
 
+        var emptyObj        = {};
+        var objWithToString = {
+            toString: function () {
+                return '123';
+            }
+        };
+
         var originMethods = {
             log:   nativeMethods.consoleMeths.log,
             warn:  nativeMethods.consoleMeths.warn,
@@ -45,11 +52,12 @@ if (window.console && typeof window.console.log !== 'undefined') {
         window.console.warn(3, 4);
         window.console.error(5, 6);
         window.console.info(7, 8);
+        window.console.log(void 0, null, emptyObj, objWithToString);
         /* eslint-enable no-console */
 
-        deepEqual(handledConsoleMethodNames, ['log', 'warn', 'error', 'info']);
-        deepEqual(log, [1, 2, 3, 4, 5, 6, 7, 8]);
-        deepEqual(handledConsoleMethodLines, ['1 2', '3 4', '5 6', '7 8']);
+        deepEqual(handledConsoleMethodNames, ['log', 'warn', 'error', 'info', 'log']);
+        deepEqual(log, [1, 2, 3, 4, 5, 6, 7, 8, void 0, null, emptyObj, objWithToString]);
+        deepEqual(handledConsoleMethodLines, ['1 2', '3 4', '5 6', '7 8', 'undefined null [object Object] 123']);
 
         nativeMethods.consoleMeths = {
             log:   originMethods.log,
@@ -99,6 +107,8 @@ if (window.console && typeof window.console.log !== 'undefined') {
                 });
         });
     }
+
+    module('regression');
 
     test('console message with circular structure object from iframe (GH-1546)', function () {
         return createTestIframe()
