@@ -84,7 +84,7 @@ const stages = {
         else if (!ctx.contentInfo.requireProcessing) {
             sendResponseHeaders(ctx);
 
-            if (!ctx.isSpecialPage) {
+            if (!ctx.isSpecialPage && !ctx.contentInfo.isNotModified) {
                 ctx.requestFilterRules.forEach(rule => {
                     const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
 
