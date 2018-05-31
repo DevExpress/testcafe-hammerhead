@@ -63,7 +63,7 @@ export function isObsoleteSyncCookie (currentCookie, newCookie) {
            newCookie.lastAccessed > currentCookie.lastAccessed;
 }
 
-export function deleteSyncCookie (cookie) {
+export function generateDeleteSyncCookieStr (cookie) {
     return cookie.syncKey + '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
 }
 
@@ -88,7 +88,7 @@ export function processServerCookie (ctx, parsedCookies) {
 
                 return false;
             })
-            .map(deleteSyncCookie)
+            .map(generateDeleteSyncCookieStr)
         : [];
 
     return obsoleteSyncCookies.concat(syncWithClientCookies);

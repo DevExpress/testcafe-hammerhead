@@ -8,7 +8,7 @@ import trim from '../../../utils/string-trim';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import BYTES_PER_COOKIE_LIMIT from '../../../session/cookie-limit';
 import nativeMethods from '../../sandbox/native-methods';
-import { deleteSyncCookie, parseClientSyncCookieStr } from '../../../utils/cookie';
+import { generateDeleteSyncCookieStr, parseClientSyncCookieStr } from '../../../utils/cookie';
 
 export default class CookieSandbox extends SandboxBase {
     constructor () {
@@ -174,7 +174,7 @@ export default class CookieSandbox extends SandboxBase {
             if (settings.get().sessionId === parsedCookie.sid && parsedCookie.isServerSync) {
                 this.setCookie(this.document, parsedCookie, false);
 
-                nativeMethods.documentCookieSetter.call(this.document, deleteSyncCookie(parsedCookie));
+                nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
             }
         }
     }
