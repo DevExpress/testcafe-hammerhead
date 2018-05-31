@@ -17,10 +17,16 @@ export default function (script) {
                 /* NOTE: IE11 doesn't support the 'currentScript' property */
                 if (!currentScript) {
                     var scripts;
+                    var hammerhead;
 
                     try {
-                        var hammerhead = window["${ INTERNAL_PROPS.hammerhead }"] || parent["${ INTERNAL_PROPS.hammerhead }"];
-                        
+                        hammerhead = parent["${ INTERNAL_PROPS.hammerhead }"] || window["${ INTERNAL_PROPS.hammerhead }"];
+                    }
+                    catch (e) {
+                        hammerhead = window["${ INTERNAL_PROPS.hammerhead }"];
+                    }
+                    
+                    try {
                         scripts = hammerhead ? hammerhead.nativeMethods.documentScriptsGetter.call(document) : document.scripts;
                     } catch (e) {
                         scripts = document.scripts;

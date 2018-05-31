@@ -291,3 +291,22 @@ if (browserUtils.isWebKit) {
             });
     });
 }
+
+test('self-removing script shouldn\'t throw an error (GH-TC-2469)', function () {
+    var iframe = document.createElement('iframe');
+
+    expect(0);
+
+    iframe.id = 'test' + Date.now();
+    iframe.src = 'javascript:""';
+    document.body.appendChild(iframe);
+
+    var iframeDocument = iframe.contentDocument;
+
+    iframeDocument.open();
+    iframe.contentWindow.onerror = function (e) {
+        ok(false, e);
+    };
+    iframeDocument.write('<html><head></head><body></body></html>');
+    iframeDocument.close();
+});
