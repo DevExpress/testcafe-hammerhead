@@ -51,7 +51,7 @@ export default class UploadStorage {
 
     async store (fileNames, data) {
         return await this._processFiles(fileNames, async (resolvedPath, fileName) => {
-            const content = new Buffer(data[fileNames.indexOf(fileName)], 'base64');
+            const content = Buffer.from(data[fileNames.indexOf(fileName)], 'base64');
 
             await writeFile(resolvedPath, content);
         });

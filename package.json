@@ -52,7 +52,7 @@
     "endpoint-utils": "^1.0.1",
     "eslint": "4.17.0",
     "eslint-plugin-hammerhead": "0.1.10",
-    "express": "3.2.5",
+    "express": "4.16.3",
     "express-ntlm": "2.1.5",
     "gulp": "^3.8.7",
     "gulp-babel": "^6.1.1",

@@ -24,7 +24,7 @@ function closeSockets () {
 }
 
 function formatAuthHeader (auth) {
-    return 'Basic ' + new Buffer(auth).toString('base64');
+    return 'Basic ' + Buffer.from(auth).toString('base64');
 }
 
 describe('External proxy', () => {

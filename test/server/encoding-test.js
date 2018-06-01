@@ -6,7 +6,7 @@ const decodeContent = require('../../lib/processing/encoding').decodeContent;
 const Charset       = require('../../lib/processing/encoding/charset');
 
 describe('Content encoding', () => {
-    const src = new Buffer('Answer to the Ultimate Question of Life, the Universe, and Everything.');
+    const src = Buffer.from('Answer to the Ultimate Question of Life, the Universe, and Everything.');
 
     it('Should encode and decode content', () => {
         function testConfiguration (encoding, charsetStr) {

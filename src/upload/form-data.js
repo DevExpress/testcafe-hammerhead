@@ -80,8 +80,8 @@ export default class FormData {
             const token         = boundaryMatch && boundaryMatch[1];
 
             if (token) {
-                this.boundary    = new Buffer('--' + token);
-                this.boundaryEnd = new Buffer('--' + token + '--');
+                this.boundary    = Buffer.from('--' + token);
+                this.boundaryEnd = Buffer.from('--' + token + '--');
             }
         }
     }

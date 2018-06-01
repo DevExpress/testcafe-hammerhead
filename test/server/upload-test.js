@@ -36,7 +36,7 @@ const data = dataFiles.reduce((dataFile, filename) => {
 }, {});
 
 function newLineReplacer (content) {
-    return new Buffer(content.toString().replace(/\r\n|\n/gm, '\r\n'));
+    return Buffer.from(content.toString().replace(/\r\n|\n/gm, '\r\n'));
 }
 
 function initFormData (name) {

@@ -2,7 +2,7 @@ import IncomingMessageMock from './incoming-message-mock';
 
 export default function createSpecialPageResponse () {
     return new IncomingMessageMock({
-        _body:      new Buffer(0),
+        _body:      Buffer.alloc(0),
         statusCode: 200,
         trailers:   {},
         headers:    {

@@ -70,33 +70,33 @@ describe('Content charset', () => {
 
         app
             .get('/page-with-bom', (req, res) => {
-                res.set('content-type', 'text/html; charset=utf-8');
+                res.setHeader('content-type', 'text/html; charset=utf-8');
                 res.end(iconv.encode(pageWithMetaSrc, 'utf-16be', { addBOM: true }));
             })
             .get('/page-with-content-type-header', (req, res) => {
-                res.set('content-type', 'text/html; charset=utf-8');
+                res.setHeader('content-type', 'text/html; charset=utf-8');
                 res.end(iconv.encode(pageWithMetaSrc, 'utf-8'));
             })
             .get('/page-with-meta-tag', (req, res) => {
-                res.set('content-type', 'text/html');
+                res.setHeader('content-type', 'text/html');
                 res.end(iconv.encode(pageWithMetaSrc, 'windows-1251'));
             })
             .get('/page-default', (req, res) => {
-                res.set('content-type', 'text/html');
+                res.setHeader('content-type', 'text/html');
                 res.end(iconv.encode(pageWithoutMetaSrc, 'iso-8859-1'));
             });
 
         app
             .get('/script-with-bom', (req, res) => {
-                res.set('content-type', 'application/javascript; charset=utf-8');
+                res.setHeader('content-type', 'application/javascript; charset=utf-8');
                 res.end(iconv.encode(scriptSrc, 'utf-16be', { addBOM: true }));
             })
             .get('/script-with-content-type-header', (req, res) => {
-                res.set('content-type', 'application/javascript; charset=utf-8');
+                res.setHeader('content-type', 'application/javascript; charset=utf-8');
                 res.end(iconv.encode(scriptSrc, 'utf-8'));
             })
             .get('/script-with-charset-in-url', (req, res) => {
-                res.set('content-type', 'application/javascript');
+                res.setHeader('content-type', 'application/javascript');
                 res.end(iconv.encode(scriptSrc, 'utf-16le'));
             });
 
@@ -118,15 +118,15 @@ describe('Content charset', () => {
 
                 switch (req.params.charsetType) {
                     case 'bom':
-                        res.set('content-type', contentType + '; charset=utf-8');
+                        res.setHeader('content-type', contentType + '; charset=utf-8');
                         res.end(iconv.encode(src, 'utf-16be', { addBOM: true }));
                         break;
                     case 'content-type':
-                        res.set('content-type', contentType + '; charset=utf-8');
+                        res.setHeader('content-type', contentType + '; charset=utf-8');
                         res.end(iconv.encode(src, 'utf-8'));
                         break;
                     default:
-                        res.set('content-type', contentType);
+                        res.setHeader('content-type', contentType);
                         res.end(iconv.encode(src, 'iso-8859-1'));
                 }
             });
@@ -191,28 +191,28 @@ describe('Content charset', () => {
         }
 
         it('Should set content charset from BOM', () => {
-            testDocumentCharset(
+            return testDocumentCharset(
                 '/page-with-bom',
                 getExpectedStr(pageWithMetaSrc, 'utf-16be', true)
             );
         });
 
         it('Should set content charset from Content-Type header', () => {
-            testDocumentCharset(
+            return testDocumentCharset(
                 '/page-with-content-type-header',
                 getExpectedStr(pageWithMetaSrc, 'utf-8', false)
             );
         });
 
         it('Should set content charset from meta', () => {
-            testDocumentCharset(
+            return testDocumentCharset(
                 '/page-with-meta-tag',
                 getExpectedStr(pageWithMetaSrc, 'windows-1251', false)
             );
         });
 
         it('Should set default content charset', () => {
-            testDocumentCharset(
+            return testDocumentCharset(
                 '/page-default',
                 getExpectedStr(pageWithoutMetaSrc, 'iso-8859-1', false)
             );
@@ -238,7 +238,7 @@ describe('Content charset', () => {
         }
 
         it('Should set content charset from BOM', () => {
-            testScriptCharset(
+            return testScriptCharset(
                 '/script-with-bom',
                 'utf-16be',
                 iconv.encode(processedScript, 'utf-16be', { addBOM: true }).toString()
@@ -246,7 +246,7 @@ describe('Content charset', () => {
         });
 
         it('Should set content charset from Content-Type header', () => {
-            testScriptCharset(
+            return testScriptCharset(
                 '/script-with-content-type-header',
                 'utf-8',
                 iconv.encode(processedScript, 'utf-8').toString()
@@ -254,7 +254,7 @@ describe('Content charset', () => {
         });
 
         it('Should set content charset from url', () => {
-            testScriptCharset(
+            return testScriptCharset(
                 '/script-with-charset-in-url',
                 'utf-16le',
                 iconv.encode(processedScript, 'utf-16le').toString()
