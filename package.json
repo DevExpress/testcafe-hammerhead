@@ -48,7 +48,7 @@
     "babel-preset-es2015": "^6.24.1",
     "basic-auth": "1.0.4",
     "chai": "^2.3.0",
-    "del": "^0.1.2",
+    "del": "^3.0.0",
     "endpoint-utils": "^1.0.1",
     "eslint": "4.17.0",
     "eslint-plugin-hammerhead": "0.1.10",

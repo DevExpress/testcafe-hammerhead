@@ -1807,6 +1807,7 @@ describe('Proxy', () => {
             httpsServer.close();
         });
 
+        // Add a timeout to avoid "Error [ERR_STREAM_DESTROYED]" error (GH-1635)
         afterEach(function () {
             return new Promise(function (resolve) {
                 setTimeout(resolve, 0);

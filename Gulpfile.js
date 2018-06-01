@@ -105,8 +105,8 @@ function hang () {
 }
 
 // Build
-gulp.task('clean', cb => {
-    del(['./lib'], cb);
+gulp.task('clean', () => {
+    del(['./lib']);
 });
 
 gulp.task('templates', ['clean'], () => {
