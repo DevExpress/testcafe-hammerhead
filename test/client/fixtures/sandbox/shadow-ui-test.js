@@ -764,9 +764,7 @@ test('setter shouldn\'t throw an error after rewriting body via iframe.body.oute
     return createTestIframe()
         .then(function (iframe) {
             return new Promise(function (resolve, reject) {
-                iframe.contentWindow.onerror = function (e) {
-                    reject(e);
-                };
+                iframe.contentWindow.onerror = reject;
 
                 setTimeout(resolve, 200);
 
