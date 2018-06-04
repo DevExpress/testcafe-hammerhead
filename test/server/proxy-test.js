@@ -16,6 +16,7 @@ const getFreePort                          = require('endpoint-utils').getFreePo
 const WebSocket                            = require('ws');
 const noop                                 = require('lodash').noop;
 const isWindows                            = require('os-family').win;
+const promisifyEvent                       = require('promisify-event');
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
 const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
@@ -1807,13 +1808,6 @@ describe('Proxy', () => {
             httpsServer.close();
         });
 
-        // Add a timeout to avoid "Error [ERR_STREAM_DESTROYED]" error (GH-1635)
-        afterEach(function () {
-            return new Promise(function (resolve) {
-                setTimeout(resolve, 0);
-            });
-        });
-
         const askSocket = (ws, msg) => {
             return new Promise(resolve => {
                 ws.once('message', resolve);
@@ -1854,7 +1848,11 @@ describe('Proxy', () => {
                 .then(msg => {
                     expect(msg).eql('echo');
 
+                    const wsClosePromise = promisifyEvent(ws, 'close');
+
                     ws.close();
+
+                    return wsClosePromise;
                 });
         });
 
@@ -1880,7 +1878,11 @@ describe('Proxy', () => {
                 .then(msg => {
                     expect(msg).eql('http://example.com');
 
+                    const wsClosePromise = promisifyEvent(ws, 'close');
+
                     ws.close();
+
+                    return wsClosePromise;
                 });
         });
 
