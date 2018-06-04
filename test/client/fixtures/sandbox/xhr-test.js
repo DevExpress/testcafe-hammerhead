@@ -117,7 +117,7 @@ test('overridden "open" function should process some url argument types before t
     nativeMethods.xhrOpen = storedNativeXhrOpen;
 });
 
-test('should throwing error on invalid calling "open" (GH-1613)', function () {
+test('should throwing an error on invalid calling "open" (GH-1613)', function () {
     var url = {
         toString: function () {
             return {};

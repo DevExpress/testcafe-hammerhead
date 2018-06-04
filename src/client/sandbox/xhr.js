@@ -114,7 +114,6 @@ export default class XhrSandbox extends SandboxBase {
             const url         = arguments[1];
             const urlIsString = typeof input === 'string';
 
-            // NOTE: we must convert url-object to 'string' (GH-1613)
             arguments[1] = getProxyUrl(urlIsString ? url : String(url));
 
             nativeMethods.xhrOpen.apply(this, arguments);

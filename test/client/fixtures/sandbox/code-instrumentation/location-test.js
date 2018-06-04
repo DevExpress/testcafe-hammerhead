@@ -259,6 +259,64 @@ test('should process some url types in locationWrapper (href, replace, assign) (
     });
 });
 
+test('should throwing an error on invalid url-object in locationWrapper (href, replace, assign) (GH-1613)', function () {
+    expect(browserUtils.isIE11 ? 1 : 3);
+
+    var invalidUrlObject = {
+        toString: function () {
+            return {};
+        }
+    };
+
+    var windowMock = {
+        location: {
+            href: '',
+
+            replace: function (url) {
+                this.href = url;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
+            toString: function () {
+                return urlUtils.getProxyUrl(this.location.href);
+            }
+        }
+    };
+
+    windowMock.top = windowMock;
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    try {
+        locationWrapper.href = invalidUrlObject;
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
+    }
+    catch (e) {
+        ok(true, 'href');
+    }
+
+    if (!browserUtils.isIE11) {
+        try {
+            locationWrapper.replace(invalidUrlObject);
+            strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
+        }
+        catch (e) {
+            ok(true, 'replace');
+        }
+
+        try {
+            locationWrapper.assign(invalidUrlObject);
+            strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
+        }
+        catch (e) {
+            ok(true, 'assign');
+        }
+    }
+});
+
 test('should process some url types in the "location" property (GH-1613)', function () {
     var checkLocation = function (iframe) {
         return new Promise(function (resolve) {
@@ -307,6 +365,29 @@ test('should process some url types in the "location" property (GH-1613)', funct
         cases.push(checkIframesLocation(new URL(location.origin + '/some-path'), 'new URL(location.origin + "/some-path")'));
 
     return Promise.all(cases);
+});
+
+test('should not navigate in case of invalid "location" property assigment (GH-1613)', function () {
+    expect(0);
+
+    var invalidUrlObject = '{ toString: function () { return {} } }';
+
+    var checkLocation = function (iframe) {
+        return new Promise(function () {
+            iframe.addEventListener('load', function () {
+                ok(false, 'should not navigate');
+            });
+        });
+    };
+
+    createTestIframe()
+        .then(function (iframe) {
+            var iframePromise = checkLocation(iframe);
+
+            eval(processScript('iframe.contentWindow.location = ' + invalidUrlObject));
+
+            return iframePromise;
+        });
 });
 
 test('should ensure a trailing slash on page navigation using href setter, assign and replace methods (GH-1426)', function () {
