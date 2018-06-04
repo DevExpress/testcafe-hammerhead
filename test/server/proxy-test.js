@@ -1848,11 +1848,11 @@ describe('Proxy', () => {
                 .then(msg => {
                     expect(msg).eql('echo');
 
-                    const wsClosePromise = promisifyEvent(ws, 'close');
+                    const wsCloseEventPromise = promisifyEvent(ws, 'close');
 
                     ws.close();
 
-                    return wsClosePromise;
+                    return wsCloseEventPromise;
                 });
         });
 
@@ -1878,11 +1878,11 @@ describe('Proxy', () => {
                 .then(msg => {
                     expect(msg).eql('http://example.com');
 
-                    const wsClosePromise = promisifyEvent(ws, 'close');
+                    const wsCloseEventPromise = promisifyEvent(ws, 'close');
 
                     ws.close();
 
-                    return wsClosePromise;
+                    return wsCloseEventPromise;
                 });
         });
 
@@ -2840,7 +2840,7 @@ describe('Proxy', () => {
                 port:     2000,
                 path:     '/wait/150',
                 method:   'GET',
-                body:     Buffer.from([]),
+                body:     Buffer.alloc(0),
                 isXhr:    false,
                 headers:  []
             });
