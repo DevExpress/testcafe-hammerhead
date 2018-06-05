@@ -211,9 +211,9 @@ gulp.task('https-playground', ['set-dev-mode', 'build'], () => {
 });
 
 
-gulp.task('test-functional-testcafe-travis', gulpRunCommand([
-    'chmod +x ./test/testcafe-functional-test.sh',
-    './test/testcafe-functional-test.sh'
+gulp.task('test-functional-testcafe-travis', ['build'], gulpRunCommand([
+    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+    './test/functional/run-testcafe-functional-tests.sh'
 ]));
 
 gulp.task('travis', [process.env.GULP_TASK || '']);
