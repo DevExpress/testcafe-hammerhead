@@ -1,19 +1,20 @@
-const babel        = require('babel-core');
-const gulpBabel    = require('gulp-babel');
-const del          = require('del');
-const eslint       = require('gulp-eslint');
-const fs           = require('fs');
-const gulp         = require('gulp');
-const qunitHarness = require('gulp-qunit-harness');
-const mocha        = require('gulp-mocha');
-const mustache     = require('gulp-mustache');
-const rename       = require('gulp-rename');
-const webmake      = require('gulp-webmake');
-const uglify       = require('gulp-uglify');
-const gulpif       = require('gulp-if');
-const util         = require('gulp-util');
-const ll           = require('gulp-ll');
-const path         = require('path');
+const babel          = require('babel-core');
+const gulpBabel      = require('gulp-babel');
+const del            = require('del');
+const eslint         = require('gulp-eslint');
+const fs             = require('fs');
+const gulp           = require('gulp');
+const qunitHarness   = require('gulp-qunit-harness');
+const mocha          = require('gulp-mocha');
+const mustache       = require('gulp-mustache');
+const rename         = require('gulp-rename');
+const webmake        = require('gulp-webmake');
+const uglify         = require('gulp-uglify');
+const gulpif         = require('gulp-if');
+const util           = require('gulp-util');
+const ll             = require('gulp-ll');
+const gulpRunCommand = require('gulp-run-command').default;
+const path           = require('path');
 
 const selfSignedCertificate = require('openssl-self-signed-certificate');
 
@@ -208,6 +209,12 @@ gulp.task('https-playground', ['set-dev-mode', 'build'], () => {
 
     return hang();
 });
+
+
+gulp.task('test-functional-testcafe-travis', ['build'], gulpRunCommand([
+    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+    './test/functional/run-testcafe-functional-tests.sh'
+]));
 
 gulp.task('travis', [process.env.GULP_TASK || '']);
 
