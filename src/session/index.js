@@ -128,7 +128,7 @@ export default class Session extends EventEmitter {
 
             if (parsedUrl.auth) {
                 settings.proxyAuth  = parsedUrl.auth;
-                settings.authHeader = 'Basic ' + new Buffer(parsedUrl.auth).toString('base64');
+                settings.authHeader = 'Basic ' + Buffer.from(parsedUrl.auth).toString('base64');
             }
         }
 

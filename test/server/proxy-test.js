@@ -16,6 +16,7 @@ const getFreePort                          = require('endpoint-utils').getFreePo
 const WebSocket                            = require('ws');
 const noop                                 = require('lodash').noop;
 const isWindows                            = require('os-family').win;
+const promisifyEvent                       = require('promisify-event');
 const XHR_HEADERS                          = require('../../lib/request-pipeline/xhr/headers');
 const AUTHORIZATION                        = require('../../lib/request-pipeline/xhr/authorization');
 const SAME_ORIGIN_CHECK_FAILED_STATUS_CODE = require('../../lib/request-pipeline/xhr/same-origin-check-failed-status-code');
@@ -95,7 +96,7 @@ function compareCode (code1, code2) {
 }
 
 function newLineReplacer (content) {
-    return new Buffer(content.toString().replace(/\r\n|\n/gm, '\r\n'));
+    return Buffer.from(content.toString().replace(/\r\n|\n/gm, '\r\n'));
 }
 
 function getFileProtocolUrl (filePath) {
@@ -136,24 +137,26 @@ describe('Proxy', () => {
         app.get('/cookie/set-and-redirect', (req, res) => {
             res.statusCode = 302;
 
-            res.set('set-cookie', 'Test=value; Path=/cookie');
-            res.set('set-cookie', 'Test2=' + new Array(350).join('(big cookie)'));
-            res.set('set-cookie', 'value without key');
+            res.setHeader('Set-Cookie', [
+                'Test=value; Path=/cookie',
+                'Test2=' + new Array(350).join('(big cookie)'),
+                'value without key'
+            ]);
             res.set('location', '/cookie/echo');
 
             res.end();
         });
 
         app.get('/cookie/set1', (req, res) => {
-            res.set('set-cookie', 'Set1_1=value1');
-            res.set('set-cookie', 'Set1_2=value2');
+            res.cookie('Set1_1', 'value1');
+            res.cookie('Set1_2', 'value2');
 
             res.end();
         });
 
         app.get('/cookie/set2', (req, res) => {
-            res.set('set-cookie', 'Set2_1=value1');
-            res.set('set-cookie', 'Set2_2=value2');
+            res.cookie('Set2_1', 'value1');
+            res.cookie('Set2_2', 'value2');
 
             res.end();
         });
@@ -163,27 +166,27 @@ describe('Proxy', () => {
         });
 
         app.get('/page', (req, res) => {
-            res.set('content-type', 'text/html');
+            res.setHeader('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/page/src.html').toString());
         });
 
         app.get('/html-import-page', (req, res) => {
-            res.set('content-type', 'text/html');
+            res.setHeader('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/html-import-page/src.html').toString());
         });
 
         app.get('/html-import-page-in-iframe', (req, res) => {
-            res.set('content-type', 'text/html');
+            res.setHeader('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/html-import-page/src-iframe.html').toString());
         });
 
         app.get('/page-with-frameset', (req, res) => {
-            res.set('content-type', 'text/html');
+            res.setHeader('content-type', 'text/html');
             res.end(fs.readFileSync('test/server/data/page-with-frameset/src.html').toString());
         });
 
         app.get('/script', (req, res) => {
-            res.set('content-type', 'application/javascript; charset=utf-8');
+            res.setHeader('content-type', 'application/javascript; charset=utf-8');
             res.set('sourcemap', '/src.js.map');
             res.end(fs.readFileSync('test/server/data/script/src.js').toString());
         });
@@ -193,7 +196,7 @@ describe('Proxy', () => {
         });
 
         app.get('/manifest', (req, res) => {
-            res.set('content-type', 'text/cache-manifest');
+            res.setHeader('content-type', 'text/cache-manifest');
             res.end(fs.readFileSync('test/server/data/manifest/src.manifest')).toString();
         });
 
@@ -209,7 +212,7 @@ describe('Proxy', () => {
 
         app.get('/page/plain-text', (req, res) => {
             res.set('content-encoding', 'gzip');
-            res.set('content-type', 'text/html; charset=utf-8');
+            res.setHeader('content-type', 'text/html; charset=utf-8');
             res.end('42');
         });
 
@@ -226,7 +229,7 @@ describe('Proxy', () => {
 
             if (authHeader) {
                 const expectedAuthCredentials = 'testUsername:testPassword';
-                const expectedAuthHeader      = 'Basic ' + new Buffer(expectedAuthCredentials).toString('base64');
+                const expectedAuthHeader      = 'Basic ' + Buffer.from(expectedAuthCredentials).toString('base64');
 
                 if (authHeader === expectedAuthHeader) {
                     res.end('42');
@@ -266,7 +269,7 @@ describe('Proxy', () => {
         });
 
         app.get('/B239430/empty-page', (req, res) => {
-            res.set('content-type', 'text/html; charset=utf-8');
+            res.setHeader('content-type', 'text/html; charset=utf-8');
             res.end();
         });
 
@@ -317,7 +320,7 @@ describe('Proxy', () => {
         });
 
         app.get('/GH-1014/pdf-content-type', (req, res) => {
-            res.set('content-type', 'content-type');
+            res.setHeader('content-type', 'content-type');
             res.end('pdf');
         });
 
@@ -369,7 +372,7 @@ describe('Proxy', () => {
         const crossDomainApp = express();
 
         crossDomainApp.get('/without-access-control-allow-origin-header', (req, res) => {
-            res.set('content-type', 'text/html');
+            res.setHeader('content-type', 'text/html');
             res.end(EMPTY_PAGE_MARKUP);
         });
 
@@ -1845,7 +1848,11 @@ describe('Proxy', () => {
                 .then(msg => {
                     expect(msg).eql('echo');
 
+                    const wsCloseEventPromise = promisifyEvent(ws, 'close');
+
                     ws.close();
+
+                    return wsCloseEventPromise;
                 });
         });
 
@@ -1871,7 +1878,11 @@ describe('Proxy', () => {
                 .then(msg => {
                     expect(msg).eql('http://example.com');
 
+                    const wsCloseEventPromise = promisifyEvent(ws, 'close');
+
                     ws.close();
+
+                    return wsCloseEventPromise;
                 });
         });
 
@@ -2829,7 +2840,7 @@ describe('Proxy', () => {
                 port:     2000,
                 path:     '/wait/150',
                 method:   'GET',
-                body:     new Buffer([]),
+                body:     Buffer.alloc(0),
                 isXhr:    false,
                 headers:  []
             });

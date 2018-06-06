@@ -3,7 +3,7 @@ const LF          = 0x0A;
 const CR          = 0x0D;
 const CRLF_LENGTH = 2;
 
-export const CRLF = new Buffer([CR, LF]);
+export const CRLF = Buffer.from([CR, LF]);
 
 // API
 export function createLineIterator (buffer) {

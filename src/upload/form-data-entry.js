@@ -36,7 +36,7 @@ export default class FormDataEntry {
 
         this._setContentDisposition(fileInfo.name, file.name);
 
-        this.body                    = [new Buffer(file.data, 'base64')];
+        this.body                    = [Buffer.from(file.data, 'base64')];
         this.headers['Content-Type'] = file.type;
     }
 
@@ -57,7 +57,7 @@ export default class FormDataEntry {
         Object.keys(this.headers).forEach(name => {
             const value = this.headers[name];
 
-            chunks.push(new Buffer(`${name}: ${value}`));
+            chunks.push(Buffer.from(`${name}: ${value}`));
             chunks.push(bufferUtils.CRLF);
         });
 

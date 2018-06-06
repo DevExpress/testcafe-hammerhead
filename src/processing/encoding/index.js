@@ -34,7 +34,7 @@ export async function decodeContent (content, encoding, charset) {
         content = await inflateWithFallback(content);
 
     else if (encoding === BROTLI_CONTENT_ENCODING)
-        content = new Buffer(require('brotli').decompress(content));
+        content = Buffer.from(require('brotli').decompress(content));
 
     charset.fromBOM(content);
 
@@ -51,7 +51,7 @@ export async function encodeContent (content, encoding, charset) {
         return deflate(content);
 
     if (encoding === BROTLI_CONTENT_ENCODING)
-        return new Buffer(require('brotli').compress(content));
+        return Buffer.from(require('brotli').compress(content));
 
     return content;
 }

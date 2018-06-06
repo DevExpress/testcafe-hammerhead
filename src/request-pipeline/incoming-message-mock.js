@@ -17,7 +17,7 @@ export default class IncomingMessageMock extends Readable {
 
     _getBody (body) {
         if (!body)
-            return new Buffer(0);
+            return Buffer.alloc(0);
 
         else if (body instanceof Buffer)
             return body;
