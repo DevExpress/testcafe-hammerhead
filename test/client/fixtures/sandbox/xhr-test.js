@@ -189,27 +189,25 @@ test('the internal 222 status code should be replaced with 0 on the client side'
     strictEqual(xhr.status, 0);
 });
 
-// NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
-if (!browserUtils.isIE11) {
-    asyncTest('xhr.responseURL', function () {
-        var xhr       = new XMLHttpRequest();
-        var testCount = 0;
+asyncTest('xhr.responseURL', function () {
+    var xhr       = new XMLHttpRequest();
+    var testCount = 0;
 
-        xhr.addEventListener('readystatechange', function () {
-            if (this.responseURL) {
-                strictEqual(this.responseURL, 'https://example.com/xhr-large-response');
-                ++testCount;
-            }
+    xhr.addEventListener('readystatechange', function () {
+        // NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
+        if (this.responseURL) {
+            strictEqual(this.responseURL, 'https://example.com/xhr-large-response');
+            ++testCount;
+        }
 
-            if (this.readyState === XMLHttpRequest.DONE) {
-                expect(testCount);
-                start();
-            }
-        });
-        xhr.open('GET', '/redirect/', true);
-        xhr.send(null);
+        if (this.readyState === XMLHttpRequest.DONE) {
+            expect(testCount);
+            start();
+        }
     });
-}
+    xhr.open('GET', '/redirect/', true);
+    xhr.send(null);
+});
 
 test('send the origin header correctly (GH-284)', function () {
     var xhrTestFunc = function () {
