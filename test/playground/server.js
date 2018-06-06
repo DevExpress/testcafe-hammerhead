@@ -1,9 +1,10 @@
 'use strict';
 
-const express = require('express');
-const http    = require('http');
-const path    = require('path');
-const process = require('child_process');
+const express    = require('express');
+const http       = require('http');
+const path       = require('path');
+const process    = require('child_process');
+const bodyParser = require('body-parser');
 
 const Proxy   = require('../../lib/proxy');
 const Session = require('../../lib/session');
@@ -32,19 +33,20 @@ exports.start = sslOptions => {
     const appServer = http.createServer(app);
     const proxy     = new Proxy('localhost', PROXY_PORT_1, PROXY_PORT_2, sslOptions);
 
-    app.use(express.bodyParser());
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
 
     app.get('*', (req, res) => {
-        res.sendfile(path.resolve(__dirname, 'views/index.html'));
+        res.sendFile(path.resolve(__dirname, 'views/index.html'));
     });
 
     app.post('*', (req, res) => {
-        let url = req.param('url');
+        let url = req.body.url;
 
         if (!url) {
             res
                 .status(403)
-                .sendfile(path.resolve(__dirname, 'views/403.html'));
+                .sendFile(path.resolve(__dirname, 'views/403.html'));
         }
         else {
             if (!/^(?:file|https?):\/\//.test(url)) {
