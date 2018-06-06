@@ -107,10 +107,6 @@ export default class FetchSandbox extends SandboxBase {
             if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this);
 
-            // NOTE: If the input argument(args[0]) is not a `string` and is not a `Request` object,
-            // we are trying to convert the input argument to `string` primitive value using `String()`.
-            // This approach helps us simulate the browsers behavior by throwing the 'TypeError' exception
-            // if the input object can not be converted to a primitive value. (GH-1613)
             try {
                 FetchSandbox._processArguments(args);
             }

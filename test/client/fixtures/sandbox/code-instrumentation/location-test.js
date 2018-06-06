@@ -192,7 +192,7 @@ test('special pages (GH-339)', function () {
     destLocation.forceLocation(storedForcedLocation);
 });
 
-test('should process some url types in locationWrapper (href, replace, assign) (GH-1613)', function () {
+test('different url types for locationWrapper methods (href, replace, assign) (GH-1613)', function () {
     var testCases = [
         {
             url:         null,
@@ -259,7 +259,7 @@ test('should process some url types in locationWrapper (href, replace, assign) (
     });
 });
 
-test('should throwing an error on invalid url-object in locationWrapper (href, replace, assign) (GH-1613)', function () {
+test('throwing errors on calling locationWrapper methods (href, replace, assign) with invalid arguments', function () {
     expect(browserUtils.isIE11 ? 1 : 3);
 
     var invalidUrlObject = {
@@ -317,7 +317,7 @@ test('should throwing an error on invalid url-object in locationWrapper (href, r
     }
 });
 
-test('should process some url types in the "location" property (GH-1613)', function () {
+test('different url types for "location" property (GH-1613)', function () {
     var checkLocation = function (iframe) {
         return new Promise(function (resolve) {
             iframe.addEventListener('load', function () {
@@ -326,7 +326,7 @@ test('should process some url types in the "location" property (GH-1613)', funct
         });
     };
 
-    var checkIframesLocation = function (nativeIframeUrl, processedIframeUrl) {
+    var checkLocationAssignment  = function (nativeIframeUrl, processedIframeUrl) {
         return Promise.all([createTestIframe(), createTestIframe()])
             .then(function (iframes) {
                 var nativeIframePromise = checkLocation(iframes[0]);
@@ -346,10 +346,10 @@ test('should process some url types in the "location" property (GH-1613)', funct
     };
 
     var cases = [
-        checkIframesLocation(null, 'null'),
-        checkIframesLocation(void 0, 'void 0'),
-        checkIframesLocation({}, '{}'),
-        checkIframesLocation({
+        checkLocationAssignment(null, 'null'),
+        checkLocationAssignment(void 0, 'void 0'),
+        checkLocationAssignment({}, '{}'),
+        checkLocationAssignment({
             toString: function () {
                 return '/some-path';
             }
@@ -362,7 +362,7 @@ test('should process some url types in the "location" property (GH-1613)', funct
 
     // NOTE: IE11 doesn't support 'URL()'
     if (!browserUtils.isIE11)
-        cases.push(checkIframesLocation(new URL(location.origin + '/some-path'), 'new URL(location.origin + "/some-path")'));
+        cases.push(checkLocationAssignment(new URL(location.origin + '/some-path'), 'new URL(location.origin + "/some-path")'));
 
     return Promise.all(cases);
 });

@@ -78,7 +78,7 @@ test('toString, instanceof, constructor and static properties', function () {
     strictEqual(XMLHttpRequest.DONE, nativeMethods.XMLHttpRequest.DONE);
 });
 
-test('overridden "open" function should process some url argument types before the native "XMLHttpRequest.open" method calling (GH-1613)', function () {
+test('different url types for xhr.open method (GH-1613)', function () {
     var storedNativeXhrOpen = nativeMethods.xhrOpen;
     var xhr                 = new XMLHttpRequest();
 
@@ -117,7 +117,7 @@ test('overridden "open" function should process some url argument types before t
     nativeMethods.xhrOpen = storedNativeXhrOpen;
 });
 
-test('should throwing an error on invalid calling "open" (GH-1613)', function () {
+test('throwing an error on invalid calling "open" method (GH-1613)', function () {
     var url = {
         toString: function () {
             return {};
@@ -190,7 +190,7 @@ test('the internal 222 status code should be replaced with 0 on the client side'
 });
 
 // NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
-if (browserUtils.isIE11) {
+if (!browserUtils.isIE11) {
     asyncTest('xhr.responseURL', function () {
         var xhr       = new XMLHttpRequest();
         var testCount = 0;

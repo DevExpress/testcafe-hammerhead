@@ -62,7 +62,7 @@ if (window.fetch) {
             });
     });
 
-    test('should process some argument types (GH-1613)', function () {
+    test('different url types for "fetch" (GH-1613)', function () {
         var testCases = [
             {
                 args:        [new URL('https://example.com/some-path')],
