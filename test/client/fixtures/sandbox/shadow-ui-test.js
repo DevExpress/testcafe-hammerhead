@@ -6,6 +6,7 @@ var shadowUI      = hammerhead.sandbox.shadowUI;
 var domUtils      = hammerhead.utils.dom;
 var positionUtils = hammerhead.utils.position;
 var nativeMethods = hammerhead.nativeMethods;
+var Promise       = hammerhead.Promise;
 
 var TEST_DIV_SELECTOR   = '#testDiv';
 var TEST_CLASS_NAME     = 'test-class';
@@ -744,18 +745,34 @@ test('SVG elements\' className is of the SVGAnimatedString type instead of strin
     svg.parentNode.removeChild(svg);
 });
 
-test('after clean up iframe.body.innerHtml ShadowUI\'s root must exist (T225944)', function () {
+test('after clean up iframe.body.innerHTML ShadowUI\'s root must exist (T225944)', function () {
     return createTestIframe()
         .then(function (iframe) {
             var root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
             strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
 
-            iframe.contentDocument.body.innerHTMl = '';
+            iframe.contentDocument.body.innerHTML = '';
 
             root = iframe.contentWindow['%hammerhead%'].shadowUI.getRoot();
 
             strictEqual(root.parentNode.parentNode.parentNode, iframe.contentDocument);
+        });
+});
+
+test('setter shouldn\'t throw an error after rewriting body via iframe.body.outerHTML (GH-1639)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            return new Promise(function (resolve, reject) {
+                iframe.contentWindow.onerror = reject;
+
+                setTimeout(resolve, 200);
+
+                iframe.contentDocument.body.outerHTML = '<body></body>';
+            });
+        })
+        .then(function () {
+            ok(true, 'without errors');
         });
 });
 

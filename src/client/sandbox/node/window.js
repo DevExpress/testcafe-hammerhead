@@ -1078,7 +1078,7 @@ export default class WindowSandbox extends SandboxBase {
                     // NOTE: This check is required for an element in an unavailable window.
                     // NOTE: Use timeout, so that changes take effect.
                     if (window.self && isBodyElement(this))
-                        nativeMethods.setTimeout.call(window, () => this.shadowUI.onBodyElementMutation(), 0);
+                        nativeMethods.setTimeout.call(window, () => windowSandbox.shadowUI.onBodyElementMutation(), 0);
                 }
                 else
                     nativeMethods.elementOuterHTMLSetter.call(this, value);
