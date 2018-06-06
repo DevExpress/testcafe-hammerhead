@@ -111,8 +111,10 @@ export default class XhrSandbox extends SandboxBase {
         // NOTE: Redirect all requests to the Hammerhead proxy and ensure that requests don't
         // violate Same Origin Policy.
         xmlHttpRequestProto.open = function () {
-            if (typeof arguments[1] === 'string')
-                arguments[1] = getProxyUrl(arguments[1]);
+            const url         = arguments[1];
+            const urlIsString = typeof input === 'string';
+
+            arguments[1] = getProxyUrl(urlIsString ? url : String(url));
 
             nativeMethods.xhrOpen.apply(this, arguments);
         };

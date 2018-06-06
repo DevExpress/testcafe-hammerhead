@@ -192,6 +192,204 @@ test('special pages (GH-339)', function () {
     destLocation.forceLocation(storedForcedLocation);
 });
 
+test('different url types for locationWrapper methods (href, replace, assign) (GH-1613)', function () {
+    var testCases = [
+        {
+            url:         null,
+            expectedUrl: 'https://example.com/null'
+        },
+        {
+            url:         void 0,
+            expectedUrl: 'https://example.com/undefined'
+        },
+        {
+            url:         { url: '/some-path' },
+            expectedUrl: 'https://example.com/[object%20Object]'
+        },
+        {
+            url: {
+                url:      '/some-path',
+                toString: function () {
+                    return this.url;
+                }
+            },
+            expectedUrl: 'https://example.com/some-path'
+        }
+    ];
+
+    // NOTE: IE11 doesn't support 'URL()'
+    if (!browserUtils.isIE11) {
+        testCases.push({
+            url:         new URL('https://example.com/some-path'),
+            expectedUrl: 'https://example.com/some-path'
+        });
+    }
+
+    var windowMock = {
+        location: {
+            href: '',
+
+            replace: function (url) {
+                this.href = url;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
+            toString: function () {
+                return urlUtils.getProxyUrl(this.location.href);
+            }
+        }
+    };
+
+    windowMock.top = windowMock;
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    testCases.map(function (testCase) {
+        locationWrapper.href = testCase.url;
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(testCase.expectedUrl));
+
+        locationWrapper.replace(testCase.url);
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(testCase.expectedUrl));
+
+        locationWrapper.assign(testCase.url);
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(testCase.expectedUrl));
+    });
+});
+
+test('throwing errors on calling locationWrapper methods (href, replace, assign) with invalid arguments', function () {
+    expect(browserUtils.isIE11 ? 1 : 3);
+
+    var invalidUrlObject = {
+        toString: function () {
+            return {};
+        }
+    };
+
+    var windowMock = {
+        location: {
+            href: '',
+
+            replace: function (url) {
+                this.href = url;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
+            toString: function () {
+                return urlUtils.getProxyUrl(this.location.href);
+            }
+        }
+    };
+
+    windowMock.top = windowMock;
+
+    var locationWrapper = new LocationWrapper(windowMock);
+
+    try {
+        locationWrapper.href = invalidUrlObject;
+        strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
+    }
+    catch (e) {
+        ok(true, 'href');
+    }
+
+    if (!browserUtils.isIE11) {
+        try {
+            locationWrapper.replace(invalidUrlObject);
+            strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
+        }
+        catch (e) {
+            ok(true, 'replace');
+        }
+
+        try {
+            locationWrapper.assign(invalidUrlObject);
+            strictEqual(windowMock.location.href, urlUtils.getProxyUrl(''));
+        }
+        catch (e) {
+            ok(true, 'assign');
+        }
+    }
+});
+
+test('different url types for "location" property (GH-1613)', function () {
+    var checkLocation = function (iframe) {
+        return new Promise(function (resolve) {
+            iframe.addEventListener('load', function () {
+                resolve(iframe.contentWindow.location.toString());
+            });
+        });
+    };
+
+    var checkLocationAssignment  = function (nativeIframeUrl, processedIframeUrl) {
+        return Promise.all([createTestIframe(), createTestIframe()])
+            .then(function (iframes) {
+                var nativeIframePromise = checkLocation(iframes[0]);
+                var iframePromise       = checkLocation(iframes[1]);
+
+                iframes[0].contentWindow.location = nativeIframeUrl;
+                eval(processScript('iframes[1].contentWindow.location = ' + processedIframeUrl));
+
+                return Promise.all([nativeIframePromise, iframePromise]);
+            })
+            .then(function (urls) {
+                var nativeIframeLocation    = urls[0].slice(urls[0].lastIndexOf('/') + 1);
+                var processedIframeLocation = urls[1].slice(urls[1].lastIndexOf('/') + 1);
+
+                strictEqual(nativeIframeLocation, processedIframeLocation);
+            });
+    };
+
+    var cases = [
+        checkLocationAssignment(null, 'null'),
+        checkLocationAssignment(void 0, 'void 0'),
+        checkLocationAssignment({}, '{}'),
+        checkLocationAssignment({
+            toString: function () {
+                return '/some-path';
+            }
+        }, '{' +
+           '    toString: function () {\n' +
+           '        return "/some-path";\n' +
+           '    }' +
+           '}')
+    ];
+
+    // NOTE: IE11 doesn't support 'URL()'
+    if (!browserUtils.isIE11)
+        cases.push(checkLocationAssignment(new URL(location.origin + '/some-path'), 'new URL(location.origin + "/some-path")'));
+
+    return Promise.all(cases);
+});
+
+test('should not navigate in case of invalid "location" property assigment (GH-1613)', function () {
+    expect(0);
+
+    var invalidUrlObject = '{ toString: function () { return {} } }';
+
+    var checkLocation = function (iframe) {
+        return new Promise(function () {
+            iframe.addEventListener('load', function () {
+                ok(false, 'should not navigate');
+            });
+        });
+    };
+
+    createTestIframe()
+        .then(function (iframe) {
+            var iframePromise = checkLocation(iframe);
+
+            eval(processScript('iframe.contentWindow.location = ' + invalidUrlObject));
+
+            return iframePromise;
+        });
+});
+
 test('should ensure a trailing slash on page navigation using href setter, assign and replace methods (GH-1426)', function () {
     function getExpectedProxyUrl (testCase) {
         var proxiedUrl = urlUtils.getProxyUrl(testCase.url);

@@ -62,6 +62,52 @@ if (window.fetch) {
             });
     });
 
+    test('different url types for "fetch" (GH-1613)', function () {
+        var testCases = [
+            {
+                args:        [new URL('https://example.com/some-path')],
+                expectedUrl: 'https://example.com/some-path'
+            },
+            {
+                args:        [null],
+                expectedUrl: 'https://example.com/null'
+            },
+            {
+                args:        [void 0],
+                expectedUrl: 'https://example.com/undefined'
+            },
+            {
+                args:        [{ url: '/some-path' }],
+                expectedUrl: 'https://example.com/[object%20Object]'
+            },
+            {
+                args: [{
+                    url:      '/some-path',
+                    toString: function () {
+                        return this.url;
+                    }
+                }],
+                expectedUrl: 'https://example.com/some-path'
+            }
+        ];
+
+        if (browserUtils.isSafari) {
+            testCases.push({
+                args:        [],
+                expectedUrl: 'https://example.com/undefined'
+            });
+        }
+
+        var createTestCasePromise = function (testCase) {
+            return fetch.apply(window, testCase.args)
+                .then(function (response) {
+                    strictEqual(response.url, testCase.expectedUrl);
+                });
+        };
+
+        return Promise.all(testCases.map(createTestCasePromise));
+    });
+
     test('the internal 222 status code should be replaced with 0 on the client side', function () {
         return fetch('/xhr-222/')
             .then(function (response) {
@@ -382,15 +428,8 @@ if (window.fetch) {
         });
 
         test('request promise should be rejected on invalid calling (GH-939)', function () {
-            var testCases = [
-                123,
-                function () {
-                },
-                null
-            ];
-
-            var createTestCasePromise = function (firstArg) {
-                return fetch.call(window, firstArg)
+            var checkArg = function () {
+                return fetch.apply(window, arguments)
                     .then(function () {
                         ok(false, 'wrong state of the request promise');
                     })
@@ -399,7 +438,19 @@ if (window.fetch) {
                     });
             };
 
-            return Promise.all(testCases.map(createTestCasePromise));
+            var cases = [
+                checkArg({
+                    toString: function () {
+                        return {};
+                    }
+                })
+            ];
+
+            // NOTE: Safari processed `fetch()` without `Promise` rejection (GH-1613)
+            if (!browserUtils.isSafari)
+                cases.push(checkArg());
+
+            return Promise.all(cases);
         });
 
         test('should return non-overridden Promise on calling the "fetch" without parameters (GH-1099)', function () {

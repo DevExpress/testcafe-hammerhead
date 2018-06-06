@@ -3,10 +3,12 @@ var XHR_HEADERS   = hammerhead.get('./../request-pipeline/xhr/headers');
 var AUTHORIZATION = hammerhead.get('./../request-pipeline/xhr/authorization');
 var destLocation  = hammerhead.get('./utils/destination-location');
 var settings      = hammerhead.get('./settings');
+var urlUtils      = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;
 var xhrSandbox    = hammerhead.sandbox.xhr;
 var Promise       = hammerhead.Promise;
+var browserUtils  = hammerhead.utils.browser;
 
 function getPrototypeFromChainContainsProp (obj, prop) {
     while (obj && !obj.hasOwnProperty(prop))
@@ -76,6 +78,66 @@ test('toString, instanceof, constructor and static properties', function () {
     strictEqual(XMLHttpRequest.DONE, nativeMethods.XMLHttpRequest.DONE);
 });
 
+test('different url types for xhr.open method (GH-1613)', function () {
+    var storedNativeXhrOpen = nativeMethods.xhrOpen;
+    var xhr                 = new XMLHttpRequest();
+
+    // NOTE: IE11 doesn't support 'URL()'
+    if (!browserUtils.isIE11) {
+        nativeMethods.xhrOpen = function () {
+            strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/some-path'));
+        };
+        xhr.open('GET', new URL('https://example.com/some-path'));
+    }
+
+    nativeMethods.xhrOpen = function () {
+        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/null'));
+    };
+    xhr.open('GET', null);
+
+    nativeMethods.xhrOpen = function () {
+        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/undefined'));
+    };
+    xhr.open('GET', void 0);
+
+    nativeMethods.xhrOpen = function () {
+        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/[object%20Object]'));
+    };
+    xhr.open('GET', { url: '/some-path' });
+
+    nativeMethods.xhrOpen = function () {
+        strictEqual(arguments[1], urlUtils.getProxyUrl('https://example.com/some-path'));
+    };
+    xhr.open('GET', {
+        toString: function () {
+            return '/some-path';
+        }
+    });
+
+    nativeMethods.xhrOpen = storedNativeXhrOpen;
+});
+
+test('throwing an error on invalid calling "open" method (GH-1613)', function () {
+    var url = {
+        toString: function () {
+            return {};
+        }
+    };
+
+    var exception = false;
+    var xhr       = new XMLHttpRequest();
+
+    try {
+        xhr.open('GET', url, false);
+    }
+    catch (e) {
+        exception = true;
+    }
+    finally {
+        ok(exception);
+    }
+});
+
 module('regression');
 
 asyncTest('unexpected text modifying during typing text in the search input on the http://www.google.co.uk (B238528)', function () {
@@ -132,6 +194,7 @@ asyncTest('xhr.responseURL', function () {
     var testCount = 0;
 
     xhr.addEventListener('readystatechange', function () {
+        // NOTE: IE11 doesn't support 'XMLHttpRequest.responseURL'
         if (this.responseURL) {
             strictEqual(this.responseURL, 'https://example.com/xhr-large-response');
             ++testCount;

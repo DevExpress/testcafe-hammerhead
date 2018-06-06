@@ -6,6 +6,7 @@ import { getOriginHeader, sameOriginCheck, get as getDestLocation } from '../uti
 import { isFetchHeaders, isFetchRequest } from '../utils/dom';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 import { overrideDescriptor } from '../utils/property-overriding';
+import * as browserUtils from '../utils/browser';
 
 const DEFAULT_REQUEST_CREDENTIALS = nativeMethods.Request ? new nativeMethods.Request(window.location.toString()).credentials : void 0;
 
@@ -43,23 +44,16 @@ export default class FetchSandbox extends SandboxBase {
         const inputIsFetchRequest = isFetchRequest(input);
         let init                  = args[1];
 
-        if (inputIsString) {
-            args[0] = getProxyUrl(input);
+        if (!inputIsFetchRequest) {
+            args[0] = getProxyUrl(inputIsString ? input : String(input));
             init    = init || {};
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
         }
-        else if (inputIsFetchRequest && init)
+        else if (init)
             args[1] = FetchSandbox._addSpecialHeadersToRequestInit(init);
     }
 
-    static _isValidRequestArgs (args) {
-        return typeof args[0] === 'string' || isFetchRequest(args[0]);
-    }
-
-    static _requestIsValid (args) {
-        if (!FetchSandbox._isValidRequestArgs(args))
-            return false;
-
+    static _sameOriginCheck (args) {
         let url         = null;
         let requestMode = null;
 
@@ -68,7 +62,7 @@ export default class FetchSandbox extends SandboxBase {
             requestMode = args[0].mode;
         }
         else {
-            url         = args[0];
+            url         = parseProxyUrl(args[0]).destUrl;
             requestMode = (args[1] || {}).mode;
         }
 
@@ -109,13 +103,19 @@ export default class FetchSandbox extends SandboxBase {
         window.Request.prototype = nativeMethods.Request.prototype;
 
         window.fetch = function (...args) {
-            if (!args.length)
+            // NOTE: Safari processed the empty `fetch()` request without `Promise` rejection (GH-1613)
+            if (!args.length && !browserUtils.isSafari)
                 return nativeMethods.fetch.apply(this);
 
-            if (!FetchSandbox._requestIsValid(args))
-                return sandbox.window.Promise.reject(new TypeError());
+            try {
+                FetchSandbox._processArguments(args);
+            }
+            catch (e) {
+                return sandbox.window.Promise.reject(e);
+            }
 
-            FetchSandbox._processArguments(args);
+            if (!FetchSandbox._sameOriginCheck(args))
+                return sandbox.window.Promise.reject(new TypeError());
 
             const fetchPromise = nativeMethods.fetch.apply(this, args);
 
