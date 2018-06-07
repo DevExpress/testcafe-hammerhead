@@ -4,6 +4,7 @@ const del            = require('del');
 const eslint         = require('gulp-eslint');
 const fs             = require('fs');
 const gulp           = require('gulp');
+const gulpStep       = require('gulp-step');
 const qunitHarness   = require('gulp-qunit-harness');
 const mocha          = require('gulp-mocha');
 const mustache       = require('gulp-mustache');
@@ -12,18 +13,20 @@ const webmake        = require('gulp-webmake');
 const uglify         = require('gulp-uglify');
 const gulpif         = require('gulp-if');
 const util           = require('gulp-util');
-const ll             = require('gulp-ll');
+// const ll             = require('gulp-ll');
 const gulpRunCommand = require('gulp-run-command').default;
 const path           = require('path');
 
 const selfSignedCertificate = require('openssl-self-signed-certificate');
 
-ll
-    .tasks('lint')
-    .onlyInDebug([
-        'server-scripts',
-        'client-scripts-bundle'
-    ]);
+gulpStep.install();
+
+// ll
+//     .tasks('lint')
+//     .onlyInDebug([
+//         'server-scripts',
+//         'client-scripts-bundle'
+//     ]);
 
 const CLIENT_TESTS_SETTINGS = {
     basePath:        './test/client/fixtures',
@@ -105,25 +108,11 @@ function hang () {
 }
 
 // Build
-gulp.task('clean', cb => {
-    del(['./lib'], cb);
+gulp.task('clean', () => {
+    return del(['./lib']);
 });
 
-gulp.task('templates', ['clean'], () => {
-    return gulp
-        .src('./src/client/task.js.mustache', { silent: false })
-        .pipe(gulp.dest('./lib/client'));
-});
-
-gulp.task('client-scripts', ['client-scripts-bundle'], () => {
-    return gulp.src('./src/client/index.js.wrapper.mustache')
-        .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
-        .pipe(rename('hammerhead.js'))
-        .pipe(gulpif(!util.env.dev, uglify()))
-        .pipe(gulp.dest('./lib/client'));
-});
-
-gulp.task('client-scripts-bundle', ['clean'], () => {
+gulp.step('client-scripts-bundle', () => {
     return gulp.src('./src/client/index.js')
         .pipe(webmake({
             sourceMap: false,
@@ -148,10 +137,26 @@ gulp.task('client-scripts-bundle', ['clean'], () => {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.task('server-scripts', ['clean'], () => {
+gulp.step('client-scripts-render', () => {
+    return gulp.src('./src/client/index.js.wrapper.mustache')
+        .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
+        .pipe(rename('hammerhead.js'))
+        .pipe(gulpif(!util.env.dev, uglify()))
+        .pipe(gulp.dest('./lib/client'));
+});
+
+gulp.step('client-scripts', gulp.series('client-scripts-bundle', 'client-scripts-render'));
+
+gulp.step('server-scripts', () => {
     return gulp.src(['./src/**/*.js', '!./src/client/**/*.js'])
         .pipe(gulpBabel())
         .pipe(gulp.dest('lib/'));
+});
+
+gulp.step('templates', () => {
+    return gulp
+        .src('./src/client/task.js.mustache', { silent: false })
+        .pipe(gulp.dest('./lib/client'));
 });
 
 gulp.task('lint', () => {
@@ -167,10 +172,20 @@ gulp.task('lint', () => {
         .pipe(eslint.failAfterError());
 });
 
-gulp.task('build', ['client-scripts', 'server-scripts', 'templates', 'lint']);
+gulp.task('build',
+    gulp.series(
+        'clean',
+        gulp.parallel(
+            'client-scripts',
+            'server-scripts',
+            'templates',
+            'lint'
+        )
+    )
+);
 
 // Test
-gulp.task('test-server', ['build'], () => {
+gulp.step('test-server-run', () => {
     return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
             // NOTE: Disable timeouts in debug mode.
@@ -179,29 +194,42 @@ gulp.task('test-server', ['build'], () => {
         }));
 });
 
-gulp.task('test-client', ['build'], () => {
-    gulp.watch('./src/**', ['build']);
+gulp.task('test-server', gulp.series('build', 'test-server-run'));
+
+gulp.step('test-client-run', () => {
+    gulp.watch('./src/**', gulp.series('build'));
 
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS));
 });
 
-gulp.task('test-client-dev', ['set-dev-mode', 'test-client']);
+gulp.task('test-client', gulp.series('build', 'test-client-run'));
 
-gulp.task('test-client-travis', ['build'], () => {
+gulp.step('set-dev-mode', done => {
+    util.env.dev = true;
+    done();
+});
+
+gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
+
+gulp.step('test-client-travis-run', () => {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
 });
 
-gulp.task('http-playground', ['set-dev-mode', 'build'], () => {
+gulp.task('test-client-travis', gulp.series('build', 'test-client-travis-run'));
+
+gulp.step('http-playground-run', () => {
     require('./test/playground/server.js').start();
 
     return hang();
 });
 
-gulp.task('https-playground', ['set-dev-mode', 'build'], () => {
+gulp.task('http-playground', gulp.series('set-dev-mode', 'build', 'http-playground-run'));
+
+gulp.step('https-playground-run', () => {
     require('./test/playground/server.js').start({
         key:  selfSignedCertificate.key,
         cert: selfSignedCertificate.cert
@@ -210,14 +238,15 @@ gulp.task('https-playground', ['set-dev-mode', 'build'], () => {
     return hang();
 });
 
+gulp.task('https-playground', gulp.series('set-dev-mode', 'build', 'https-playground-run'));
 
-gulp.task('test-functional-testcafe-travis', ['build'], gulpRunCommand([
-    'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
-    './test/functional/run-testcafe-functional-tests.sh'
-]));
+gulp.task('test-functional-testcafe-travis',
+    gulp.series('build',
+        gulpRunCommand([
+            'chmod +x ./test/functional/run-testcafe-functional-tests.sh',
+            './test/functional/run-testcafe-functional-tests.sh'
+        ])
+    )
+);
 
-gulp.task('travis', [process.env.GULP_TASK || '']);
-
-gulp.task('set-dev-mode', function () {
-    util.env.dev = true;
-});
+gulp.task('travis', process.env.GULP_TASK ? gulp.series(process.env.GULP_TASK) : () => {});
