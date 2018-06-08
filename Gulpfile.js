@@ -13,7 +13,7 @@ const webmake        = require('gulp-webmake');
 const uglify         = require('gulp-uglify');
 const gulpif         = require('gulp-if');
 const util           = require('gulp-util');
-// const ll             = require('gulp-ll');
+const ll             = require('gulp-ll-next');
 const gulpRunCommand = require('gulp-run-command').default;
 const path           = require('path');
 
@@ -21,12 +21,12 @@ const selfSignedCertificate = require('openssl-self-signed-certificate');
 
 gulpStep.install();
 
-// ll
-//     .tasks('lint')
-//     .onlyInDebug([
-//         'server-scripts',
-//         'client-scripts-bundle'
-//     ]);
+ll
+    .tasks('lint')
+    .onlyInDebug([
+        'server-scripts',
+        'client-scripts-bundle'
+    ]);
 
 const CLIENT_TESTS_SETTINGS = {
     basePath:        './test/client/fixtures',
