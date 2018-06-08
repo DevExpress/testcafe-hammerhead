@@ -22,6 +22,7 @@ const selfSignedCertificate = require('openssl-self-signed-certificate');
 gulpStep.install();
 
 ll
+    .install()
     .tasks('lint')
     .onlyInDebug([
         'server-scripts',
