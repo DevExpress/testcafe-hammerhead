@@ -138,7 +138,7 @@ gulp.step('client-scripts-bundle', () => {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.step('client-scripts-render', () => {
+gulp.step('client-scripts-processing', () => {
     return gulp.src('./src/client/index.js.wrapper.mustache')
         .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
         .pipe(rename('hammerhead.js'))
@@ -146,7 +146,7 @@ gulp.step('client-scripts-render', () => {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.step('client-scripts', gulp.series('client-scripts-bundle', 'client-scripts-render'));
+gulp.step('client-scripts', gulp.series('client-scripts-bundle', 'client-scripts-processing'));
 
 gulp.step('server-scripts', () => {
     return gulp.src(['./src/**/*.js', '!./src/client/**/*.js'])
@@ -186,7 +186,7 @@ gulp.task('build',
 );
 
 // Test
-gulp.step('test-server-run', () => {
+gulp.step('mocha', () => {
     return gulp.src('./test/server/*-test.js', { read: false })
         .pipe(mocha({
             // NOTE: Disable timeouts in debug mode.
@@ -195,9 +195,9 @@ gulp.step('test-server-run', () => {
         }));
 });
 
-gulp.task('test-server', gulp.series('build', 'test-server-run'));
+gulp.task('test-server', gulp.series('build', 'mocha'));
 
-gulp.step('test-client-run', () => {
+gulp.step('qunit', () => {
     gulp.watch('./src/**', gulp.series('build'));
 
     return gulp
@@ -205,7 +205,7 @@ gulp.step('test-client-run', () => {
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS));
 });
 
-gulp.task('test-client', gulp.series('build', 'test-client-run'));
+gulp.task('test-client', gulp.series('build', 'qunit'));
 
 gulp.step('set-dev-mode', done => {
     util.env.dev = true;
@@ -214,23 +214,23 @@ gulp.step('set-dev-mode', done => {
 
 gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 
-gulp.step('test-client-travis-run', () => {
+gulp.step('travis-saucelabs-qunit', () => {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
         .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
 });
 
-gulp.task('test-client-travis', gulp.series('build', 'test-client-travis-run'));
+gulp.task('test-client-travis', gulp.series('build', 'travis-saucelabs-qunit'));
 
-gulp.step('http-playground-run', () => {
+gulp.step('http-playground-server', () => {
     require('./test/playground/server.js').start();
 
     return hang();
 });
 
-gulp.task('http-playground', gulp.series('set-dev-mode', 'build', 'http-playground-run'));
+gulp.task('http-playground', gulp.series('set-dev-mode', 'build', 'http-playground-server'));
 
-gulp.step('https-playground-run', () => {
+gulp.step('https-playground-server', () => {
     require('./test/playground/server.js').start({
         key:  selfSignedCertificate.key,
         cert: selfSignedCertificate.cert
@@ -239,7 +239,7 @@ gulp.step('https-playground-run', () => {
     return hang();
 });
 
-gulp.task('https-playground', gulp.series('set-dev-mode', 'build', 'https-playground-run'));
+gulp.task('https-playground', gulp.series('set-dev-mode', 'build', 'https-playground-server'));
 
 gulp.task('test-functional-testcafe-travis',
     gulp.series('build',
