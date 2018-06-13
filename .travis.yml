@@ -8,7 +8,7 @@ addons:
    - dbus
 
 before_install:
- - if [[ `npm -v` == 3* ]]; then npm i -g npm@latest; fi echo "npm latest version is installed"
+ - npm i -g npm@latest
  - export $(dbus-launch)
 
 matrix:
