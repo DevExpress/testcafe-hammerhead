@@ -8,7 +8,8 @@ addons:
    - dbus
 
 before_install:
- - npm i -g npm@latest
+ # Update npm version (GH-1644)
+ - npm_version=$(npm -v); if [ ${npm_version:1:1} = 3 ]; then npm i -g npm@latest; fi
  - export $(dbus-launch)
 
 matrix:
