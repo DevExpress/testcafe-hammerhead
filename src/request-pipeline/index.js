@@ -97,7 +97,7 @@ const stages = {
                 });
 
                 if (ctx.contentInfo.isNotModified)
-                    ctx.res.end('');
+                    ctx.res.end();
                 else
                     ctx.destRes.pipe(ctx.res);
 
@@ -121,7 +121,7 @@ const stages = {
                 }
             }
             else
-                ctx.res.end('');
+                ctx.res.end();
 
             return;
         }
