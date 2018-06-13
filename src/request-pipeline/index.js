@@ -96,7 +96,11 @@ const stages = {
                         ctx.onResponseEventDataWithoutBody.push({ rule, opts: configureResponseEvent.opts });
                 });
 
-                ctx.destRes.pipe(ctx.res);
+                if (ctx.contentInfo.isNotModified)
+                    ctx.res.end();
+                else
+                    ctx.destRes.pipe(ctx.res);
+
                 if (ctx.onResponseEventDataWithoutBody.length) {
                     ctx.res.on('finish', () => {
                         const responseInfo = requestEventInfo.createResponseInfo(ctx);
@@ -117,7 +121,7 @@ const stages = {
                 }
             }
             else
-                ctx.res.end('');
+                ctx.res.end();
 
             return;
         }
