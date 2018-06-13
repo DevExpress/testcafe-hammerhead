@@ -75,7 +75,7 @@
     "request-promise-native": "^1.0.5",
     "tmp": "0.0.26",
     "webmake": "0.3.42",
-    "ws": "3.2.0"
+    "ws": "^5.2.0"
   },
   "main": "lib/index",
   "engines": {
