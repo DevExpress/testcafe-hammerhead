@@ -11,8 +11,7 @@ before_install:
  # https://github.com/inikulin/publish-please/issues/66
  - |
    npm_version=$(npm -v);
-   if [ ${npm_version:0:1} = 3 ]; then
-    echo "succes";
+   if [ ${npm_version:0:1} <= 3 ]; then
     npm install -g npm@latest;
    fi
  - export $(dbus-launch)
