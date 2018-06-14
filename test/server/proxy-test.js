@@ -1933,7 +1933,7 @@ describe('Proxy', () => {
                 });
         });
 
-        it('Should exposes number of bytes received', function (done) {
+        it('Should send/receive message', function (done) {
             getFreePort()
                 .then(port => {
                     const url = urlUtils.getProxyUrl('http://localhost:' + port, {
@@ -1948,8 +1948,8 @@ describe('Proxy', () => {
                     const wsTemporaryServer = new WebSocket.Server({ port: port }, () => {
                         const ws = new WebSocket(url);
 
-                        ws.on('message', () => {
-                            expect(ws.bytesReceived).eql(8);
+                        ws.on('message', message => {
+                            expect(message).eql('foobar');
                             wsTemporaryServer.close(done);
                         });
                     });
