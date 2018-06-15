@@ -19,7 +19,7 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
     callMethod(window, 'postMessage', [testMessage, '*']);
 });
 
-asyncTest('should pass "transfer" argument in PostMessage (GH-1535)', function () {
+asyncTest('should pass "transfer" argument for "postMessage" (GH-1535)', function () {
     expect(2);
 
     var channel = new MessageChannel();
