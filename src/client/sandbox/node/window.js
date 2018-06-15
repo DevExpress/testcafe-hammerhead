@@ -36,6 +36,7 @@ import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import constructorIsCalledWithoutNewKeyword from '../../utils/constructor-is-called-without-new-keyword';
 import INSTRUCTION from '../../../processing/script/instruction';
+import FunctionWrapper from './function-wrapper';
 import Promise from 'pinkie';
 import getMimeType from '../../utils/get-mime-type';
 import { overrideDescriptor } from '../../utils/property-overriding';
@@ -504,15 +505,6 @@ export default class WindowSandbox extends SandboxBase {
             return image;
         };
         window.Image.prototype = nativeMethods.Image.prototype;
-
-        const FunctionWrapper = function (...args) {
-            const functionBodyArgIndex = args.length - 1;
-
-            if (typeof args[functionBodyArgIndex] === 'string')
-                args[functionBodyArgIndex] = processScript(args[functionBodyArgIndex], false);
-
-            return nativeMethods.Function.apply(this, args);
-        };
 
         window.Function                       = FunctionWrapper;
         window.Function.prototype             = nativeMethods.Function.prototype;
@@ -1167,5 +1159,11 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.tokenListSupports.apply(this, arguments);
             };
         }
+    }
+
+    dispose () {
+        window.Function                       = nativeMethods.Function;
+        window.Function.prototype             = nativeMethods.Function.prototype;
+        window.Function.prototype.constructor = nativeMethods.Function.constructor;
     }
 }
