@@ -20,17 +20,13 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
 });
 
 asyncTest('should pass "transfer" argument in PostMessage (GH-1535)', function () {
-    var channel     = new MessageChannel();
-    var transfer    = channel.port1;
-    var testMessage = {
-        message: 'test',
-        port:    channel.port1
-    };
+    expect(2);
+
+    var channel = new MessageChannel();
 
     var eventHandlerObject = {
         handleEvent: function (e) {
-            strictEqual(e.data.message, 'test');
-            ok(e.data.port);
+            strictEqual(e.data, 'test');
             strictEqual(e.ports.length, 1);
             window.removeEventListener('message', eventHandlerObject);
             start();
@@ -38,7 +34,7 @@ asyncTest('should pass "transfer" argument in PostMessage (GH-1535)', function (
     };
 
     window.addEventListener('message', eventHandlerObject);
-    callMethod(window, 'postMessage', [testMessage, '*', [transfer]]);
+    callMethod(window, 'postMessage', ['test', '*', [channel.port1]]);
 });
 
 asyncTest('onmessage event', function () {
@@ -74,7 +70,7 @@ asyncTest('cross-domain post messages between different windows', function () {
     var result           = 0;
     var onMessageHandler = null;
     var checkResult      = function () {
-        if (result === 5) {
+        if (result === 4) {
             iframe.parentNode.removeChild(iframe);
             window.removeEventListener('message', onMessageHandler);
             start();
@@ -84,9 +80,7 @@ asyncTest('cross-domain post messages between different windows', function () {
     iframe.id = 'test02';
 
     onMessageHandler = function (e) {
-        var message = e.data.message || e.data;
-
-        if (parseInt(message, 10))
+        if (parseInt(e.data, 10))
             result++;
 
         checkResult();

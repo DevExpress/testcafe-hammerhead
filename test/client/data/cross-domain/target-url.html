@@ -20,18 +20,6 @@
     callMethod(top, 'postMessage', ['0', 'http://example.com']);
     callMethod(top, 'postMessage', ['1', 'https://sub.example.com']);
     callMethod(top, 'postMessage', ['1', '*']);
-
-    var channel  = new MessageChannel();
-    var transfer = channel.port1;
-
-    callMethod(top, 'postMessage', [
-        {
-            message: '1',
-            port:    channel.port1,
-        },
-        'https://example.com',
-        [transfer]
-    ]);
 </script>
 </body>
 </html>
