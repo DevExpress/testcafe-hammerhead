@@ -74,7 +74,7 @@ asyncTest('cross-domain post messages between different windows', function () {
     var result           = 0;
     var onMessageHandler = null;
     var checkResult      = function () {
-        if (result === 4) {
+        if (result === 5) {
             iframe.parentNode.removeChild(iframe);
             window.removeEventListener('message', onMessageHandler);
             start();
@@ -84,7 +84,9 @@ asyncTest('cross-domain post messages between different windows', function () {
     iframe.id = 'test02';
 
     onMessageHandler = function (e) {
-        if (parseInt(e.data, 10))
+        var message = e.data.message || e.data;
+
+        if (parseInt(message, 10))
             result++;
 
         checkResult();
