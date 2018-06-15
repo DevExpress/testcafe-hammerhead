@@ -1,7 +1,6 @@
 var XhrSandbox    = hammerhead.get('./sandbox/xhr');
-var AUTHORIZATION = hammerhead.get('./../request-pipeline/xhr/authorization');
+var AUTHORIZATION = hammerhead.get('../request-pipeline/xhr/authorization');
 var destLocation  = hammerhead.get('./utils/destination-location');
-var settings      = hammerhead.get('./settings');
 var urlUtils      = hammerhead.get('./utils/url');
 
 var nativeMethods = hammerhead.nativeMethods;

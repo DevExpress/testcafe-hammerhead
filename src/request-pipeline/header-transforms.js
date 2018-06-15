@@ -2,7 +2,12 @@ import XHR_HEADERS from './xhr/headers';
 import AUTHORIZATION from './xhr/authorization';
 import * as urlUtils from '../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
-import { processServerCookie } from '../utils/cookie';
+import {
+    formatSyncCookie,
+    generateDeleteSyncCookieStr,
+    isOutdatedSyncCookie,
+    parseClientSyncCookieStr
+} from '../utils/cookie';
 
 // Skipping transform
 function skip () {
@@ -46,6 +51,33 @@ function transformCookie (src, ctx) {
         return transformCookieForFetch(src, ctx);
 
     return src;
+}
+
+function generateServerSyncCookie (ctx, parsedCookies) {
+    parsedCookies = parsedCookies.filter(cookie => !cookie.httpOnly);
+
+    const syncWithClientCookies = parsedCookies
+        .map(cookie => {
+            cookie.isServerSync = true;
+            cookie.sid          = ctx.session.id;
+
+            return formatSyncCookie(cookie);
+        });
+
+    const obsoleteSyncCookies = ctx.req.headers.cookie
+        ? parseClientSyncCookieStr(ctx.req.headers.cookie)
+            .filter(clientCookie => {
+                for (const serverCookie of parsedCookies) {
+                    if (isOutdatedSyncCookie(clientCookie, serverCookie))
+                        return true;
+                }
+
+                return false;
+            })
+            .map(generateDeleteSyncCookieStr)
+        : [];
+
+    return obsoleteSyncCookies.concat(syncWithClientCookies);
 }
 
 function resolveAndGetProxyUrl (url, ctx) {
@@ -110,9 +142,8 @@ const responseTransforms = {
             const parsedCookies = ctx.session.cookies.setByServer(ctx.dest.url, src);
 
             if (!ctx.isPage && !ctx.isIframe)
-                return processServerCookie(ctx, parsedCookies);
+                return generateServerSyncCookie(ctx, parsedCookies);
         }
-
 
         // NOTE: Delete header.
         return void 0;

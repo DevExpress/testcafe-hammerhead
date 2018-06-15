@@ -5,8 +5,10 @@
 
 import trim from './string-trim';
 
-const SERVER_SYNCHRONIZATION_FLAG = 's';
-const CLIENT_SYNCHRONIZATION_FLAG = 'c';
+const SYNCHRONIZATION_TYPE = {
+    server: 's',
+    client: 'c'
+};
 
 export function parseClientSyncCookieStr (cookieStr) {
     const cookies       = cookieStr ? cookieStr.split(';') : '';
@@ -23,14 +25,14 @@ export function parseClientSyncCookieStr (cookieStr) {
 }
 
 export function formatSyncCookie (cookie) {
-    const flag         = cookie.isServerSync ? SERVER_SYNCHRONIZATION_FLAG : CLIENT_SYNCHRONIZATION_FLAG;
+    const syncType     = cookie.isServerSync ? SYNCHRONIZATION_TYPE.server : SYNCHRONIZATION_TYPE.client;
     const key          = encodeURIComponent(cookie.key);
     const domain       = encodeURIComponent(cookie.domain);
     const path         = encodeURIComponent(cookie.path);
     const expires      = cookie.expires !== 'Infinity' ? cookie.expires.getTime() : '';
     const lastAccessed = cookie.lastAccessed.getTime();
 
-    return `${flag}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}=${cookie.value};path=/`;
+    return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}=${cookie.value};path=/`;
 }
 
 export function parseSyncCookie (cookieStr) {
@@ -42,7 +44,7 @@ export function parseSyncCookie (cookieStr) {
         return null;
 
     return {
-        isServerSync: parsedKey[0] === SERVER_SYNCHRONIZATION_FLAG,
+        isServerSync: parsedKey[0] === SYNCHRONIZATION_TYPE.server,
         sid:          parsedKey[1],
         key:          decodeURIComponent(parsedKey[2]),
         domain:       decodeURIComponent(parsedKey[3]),
@@ -54,7 +56,7 @@ export function parseSyncCookie (cookieStr) {
     };
 }
 
-export function isObsoleteSyncCookie (currentCookie, newCookie) {
+export function isOutdatedSyncCookie (currentCookie, newCookie) {
     return newCookie.isServerSync === currentCookie.isServerSync &&
            newCookie.sid === currentCookie.sid &&
            newCookie.key === currentCookie.key &&
@@ -65,31 +67,4 @@ export function isObsoleteSyncCookie (currentCookie, newCookie) {
 
 export function generateDeleteSyncCookieStr (cookie) {
     return cookie.syncKey + '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
-}
-
-export function processServerCookie (ctx, parsedCookies) {
-    parsedCookies = parsedCookies.filter(cookie => !cookie.httpOnly);
-
-    const syncWithClientCookies = parsedCookies
-        .map(cookie => {
-            cookie.isServerSync = true;
-            cookie.sid          = ctx.session.id;
-
-            return formatSyncCookie(cookie);
-        });
-
-    const obsoleteSyncCookies = ctx.req.headers.cookie
-        ? parseClientSyncCookieStr(ctx.req.headers.cookie)
-            .filter(clientCookie => {
-                for (const serverCookie of parsedCookies) {
-                    if (isObsoleteSyncCookie(clientCookie, serverCookie))
-                        return true;
-                }
-
-                return false;
-            })
-            .map(generateDeleteSyncCookieStr)
-        : [];
-
-    return obsoleteSyncCookies.concat(syncWithClientCookies);
 }
