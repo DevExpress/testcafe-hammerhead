@@ -19,6 +19,22 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
     callMethod(window, 'postMessage', [testMessage, '*']);
 });
 
+asyncTest('should pass "transfer" argument for "postMessage" (GH-1535)', function () {
+    var channel = new MessageChannel();
+
+    var eventHandlerObject = {
+        handleEvent: function (e) {
+            strictEqual(e.data, 'test');
+            strictEqual(e.ports.length, 1);
+            window.removeEventListener('message', eventHandlerObject);
+            start();
+        }
+    };
+
+    window.addEventListener('message', eventHandlerObject);
+    callMethod(window, 'postMessage', ['test', '*', [channel.port1]]);
+});
+
 asyncTest('onmessage event', function () {
     var count = 0;
 

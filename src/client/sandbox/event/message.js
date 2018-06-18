@@ -181,7 +181,7 @@ export default class MessageSandbox extends SandboxBase {
             return this.window.eval('this.window.tc_cw_375fb9e7.postMessage(this.window.tc_a_375fb9e7[0], this.window.tc_a_375fb9e7[1]); delete this.window.tc_cw_375fb9e7; delete this.window.tc_a_375fb9e7');
         }
 
-        return contentWindow.postMessage(args[0], args[1]);
+        return fastApply(contentWindow, 'postMessage', args);
     }
 
     sendServiceMsg (msg, targetWindow) {
