@@ -20,8 +20,6 @@ asyncTest('onmessage event (handler has "object" type) (GH-133)', function () {
 });
 
 asyncTest('should pass "transfer" argument for "postMessage" (GH-1535)', function () {
-    expect(2);
-
     var channel = new MessageChannel();
 
     var eventHandlerObject = {
