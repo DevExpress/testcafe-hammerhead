@@ -5,6 +5,7 @@
 
 import trim from './string-trim';
 
+const TIME_RADIX           = 36;
 const SYNCHRONIZATION_TYPE = {
     server: 's',
     client: 'c'
@@ -29,8 +30,8 @@ export function formatSyncCookie (cookie) {
     const key          = encodeURIComponent(cookie.key);
     const domain       = encodeURIComponent(cookie.domain);
     const path         = encodeURIComponent(cookie.path);
-    const expires      = cookie.expires !== 'Infinity' ? cookie.expires.getTime() : '';
-    const lastAccessed = cookie.lastAccessed.getTime();
+    const expires      = cookie.expires !== 'Infinity' ? cookie.expires.getTime().toString(TIME_RADIX) : '';
+    const lastAccessed = cookie.lastAccessed.getTime().toString(TIME_RADIX);
 
     return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}=${cookie.value};path=/`;
 }
@@ -49,8 +50,8 @@ export function parseSyncCookie (cookieStr) {
         key:          decodeURIComponent(parsedKey[2]),
         domain:       decodeURIComponent(parsedKey[3]),
         path:         decodeURIComponent(parsedKey[4]),
-        expires:      parsedKey[5] ? new Date(parseInt(parsedKey[5], 10)) : 'Infinity',
-        lastAccessed: new Date(parseInt(parsedKey[6], 10)),
+        expires:      parsedKey[5] ? new Date(parseInt(parsedKey[5], TIME_RADIX)) : 'Infinity',
+        lastAccessed: new Date(parseInt(parsedKey[6], TIME_RADIX)),
         value:        parsedCookie.join('='),
         syncKey:      key
     };

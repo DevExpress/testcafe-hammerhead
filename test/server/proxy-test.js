@@ -603,6 +603,10 @@ describe('Proxy', () => {
         });
 
         describe('Server synchronization with client', function () {
+            function replaceLastAccessedTime (cookie) {
+                return cookie.replace(/[a-z0-9]+=/, '%lastAccessed%=');
+            }
+
             it('Should generate cookie for synchronization', function () {
                 const cookie  = encodeURIComponent('aaa=111;path=/path');
                 const options = {
@@ -614,13 +618,13 @@ describe('Proxy', () => {
 
                 return request(options)
                     .then(res => {
-                        expect(res.headers['set-cookie'][0].replace(/[0-9]+=/, '%lastAccessed%='))
+                        expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
                             .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%=111;path=/`);
                     });
             });
 
             it('Should remove obsolete synchronization cookie', function () {
-                const obsoleteTime = new Date().getTime() - 1000;
+                const obsoleteTime = (new Date().getTime() - 1000).toString(36);
                 const cookie       = encodeURIComponent('bbb=321;path=/');
                 const options      = {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
@@ -636,7 +640,7 @@ describe('Proxy', () => {
                     .then(res => {
                         expect(res.headers['set-cookie'][0])
                             .eql(`s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
-                        expect(res.headers['set-cookie'][1].replace(/[0-9]+=/, '%lastAccessed%='))
+                        expect(replaceLastAccessedTime(res.headers['set-cookie'][1]))
                             .eql(`s|${session.id}|bbb|127.0.0.1|%2F||%lastAccessed%=321;path=/`);
                     });
             });

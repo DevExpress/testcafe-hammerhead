@@ -96,7 +96,7 @@ test('process synchronization cookies on document.cookie getter', function () {
 
     strictEqual(document.cookie, '');
 
-    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||4023940293345=123;path=/');
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
 
     strictEqual(document.cookie, 'test=123');
     strictEqual(nativeMethods.documentCookieGetter.call(document), '');

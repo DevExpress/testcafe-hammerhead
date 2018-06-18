@@ -93,7 +93,7 @@ module.exports = function (app) {
     });
 
     app.get('/xhr-with-sync-cookie/', function (req, res) {
-        res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||4023940293=world;path=/');
+        res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||1fckm5lnl=world;path=/');
         res.send();
     });
 
