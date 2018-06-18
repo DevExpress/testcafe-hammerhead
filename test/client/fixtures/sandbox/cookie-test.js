@@ -102,6 +102,21 @@ test('process synchronization cookies on document.cookie getter', function () {
     strictEqual(nativeMethods.documentCookieGetter.call(document), '');
 });
 
+test('process synchronization cookies on document.cookie setter', function () {
+    settings.get().cookie = '';
+
+    strictEqual(document.cookie, '');
+
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+
+    strictEqual(settings.get().cookie, '');
+
+    document.cookie = 'temp=temp';
+
+    strictEqual(settings.get().cookie, 'test=123; temp=temp');
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+});
+
 asyncTest('set cookie from the XMLHttpRequest', function () {
     settings.get().cookie = '';
 

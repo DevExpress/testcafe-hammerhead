@@ -128,9 +128,14 @@ export default class CookieSandbox extends SandboxBase {
         if (value.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:')
             return value;
 
+        const setByClient = typeof value === 'string';
+
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
-        const parsedCookie = typeof value === 'string' ? cookieUtils.parse(value) : value;
+        const parsedCookie = setByClient ? cookieUtils.parse(value) : value;
+
+        if (setByClient)
+            this.syncServerCookie();
 
         if (CookieSandbox._isValidCookie(parsedCookie)) {
             // NOTE: These attributes don't have to be processed by a browser.
