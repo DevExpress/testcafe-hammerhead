@@ -169,9 +169,10 @@ export default class CookieSandbox extends SandboxBase {
     syncServerCookie () {
         const cookies       = nativeMethods.documentCookieGetter.call(this.document);
         const parsedCookies = parseClientSyncCookieStr(cookies);
+        const sessionId     = settings.get().sessionId;
 
         for (const parsedCookie of parsedCookies) {
-            if (settings.get().sessionId === parsedCookie.sid && parsedCookie.isServerSync) {
+            if (sessionId === parsedCookie.sid && parsedCookie.isServerSync) {
                 this.setCookie(this.document, parsedCookie, false);
 
                 nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
