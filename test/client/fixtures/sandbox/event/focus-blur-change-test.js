@@ -918,6 +918,35 @@ asyncTest('events order', function () {
     }, 100);
 });
 
+asyncTest('events order with not native focus', function () {
+    var eventLog = '';
+
+    var handler = function (e) {
+        eventLog += e.type + '|';
+    };
+
+    var getEventOrderLog = function () {
+        if (browserUtils.isIE11)
+            return 'focusin|focus|focusout|blur|';
+
+        return 'focus|focusin|blur|focusout|';
+    };
+
+    input1.addEventListener('focus', handler);
+    input1.addEventListener('focusin', handler);
+    input1.addEventListener('blur', handler);
+    input1.addEventListener('focusout', handler);
+
+    focusBlur.focus(input1, null, false, false, false);
+    focusBlur.focus(input2, null, false, false, false);
+
+    window.setTimeout(function () {
+        strictEqual(eventLog, getEventOrderLog());
+
+        startNext();
+    }, 100);
+});
+
 test('label.htmlFor', function () {
     var label    = document.createElement('label');
     var input    = document.createElement('input');
