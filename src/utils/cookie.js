@@ -5,8 +5,9 @@
 
 import trim from './string-trim';
 
-const TIME_RADIX           = 36;
-const SYNCHRONIZATION_TYPE = {
+const TIME_RADIX             = 36;
+const CLEAR_COOKIE_VALUE_STR = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
+const SYNCHRONIZATION_TYPE   = {
     server: 's',
     client: 'c'
 };
@@ -67,5 +68,5 @@ export function isOutdatedSyncCookie (currentCookie, newCookie) {
 }
 
 export function generateDeleteSyncCookieStr (cookie) {
-    return cookie.syncKey + '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    return cookie.syncKey + CLEAR_COOKIE_VALUE_STR;
 }
