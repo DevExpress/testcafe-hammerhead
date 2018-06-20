@@ -135,8 +135,7 @@ export default class FocusBlurSandbox extends SandboxBase {
             if (!withoutHandlers) {
 
                 const bubblesEventType               = eventsMap.bubbles[type];
-                const isMSEdgeBlur                   = browserUtils.isMSEdge && browserUtils.version < 17 && type === 'blur';
-                const bubblesEventShouldRaiseFirstly = browserUtils.isIE11 || isMSEdgeBlur;
+                const bubblesEventShouldRaiseFirstly = browserUtils.isIE11 || browserUtils.isMSEdge && browserUtils.version < 17 && type === 'blur';
 
                 if (isAsync) {
                     // NOTE: focusin, focusout events are synchronously
