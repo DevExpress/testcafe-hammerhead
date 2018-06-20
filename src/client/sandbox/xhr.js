@@ -4,13 +4,10 @@ import { getProxyUrl, parseProxyUrl } from '../utils/url';
 import XHR_HEADERS from '../../request-pipeline/xhr/headers';
 import AUTHORIZATION from '../../request-pipeline/xhr/authorization';
 import { getOriginHeader } from '../utils/destination-location';
-import reEscape from '../../utils/regexp-escape';
-import * as JSON from '../json';
 import { overrideDescriptor } from '../utils/property-overriding';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from '../../request-pipeline/xhr/same-origin-check-failed-status-code';
 
-const REMOVE_SET_COOKIE_HH_HEADER = new RegExp(`${ reEscape(XHR_HEADERS.setCookie) }:[^\n]*\n`, 'gi');
-const XHR_READY_STATES            = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
+const XHR_READY_STATES = ['UNSENT', 'OPENED', 'HEADERS_RECEIVED', 'LOADING', 'DONE'];
 
 export default class XhrSandbox extends SandboxBase {
     constructor (cookieSandbox) {
@@ -63,14 +60,7 @@ export default class XhrSandbox extends SandboxBase {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
-            let cookies = nativeMethods.xhrGetResponseHeader.call(this, XHR_HEADERS.setCookie);
-
-            if (cookies) {
-                cookies = JSON.parse(cookies);
-
-                for (const cookie of cookies)
-                    xhrSandbox.cookieSandbox.setCookie(window.document, cookie);
-            }
+            xhrSandbox.cookieSandbox.syncServerCookie();
 
             nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
         };
@@ -138,16 +128,6 @@ export default class XhrSandbox extends SandboxBase {
             // NOTE: For xhr with the sync mode
             emitXhrCompletedEventIfNecessary.call(this);
             syncCookieWithClientIfNecessary.call(this);
-        };
-
-        xmlHttpRequestProto.getResponseHeader = function (name) {
-            return name === XHR_HEADERS.setCookie ? null : nativeMethods.xhrGetResponseHeader.call(this, name);
-        };
-
-        xmlHttpRequestProto.getAllResponseHeaders = function () {
-            const headers = nativeMethods.xhrGetAllResponseHeaders.call(this);
-
-            return headers ? headers.replace(REMOVE_SET_COOKIE_HH_HEADER, '') : headers;
         };
 
         xmlHttpRequestProto.setRequestHeader = function (header, value) {

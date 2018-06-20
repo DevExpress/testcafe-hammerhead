@@ -8,6 +8,7 @@ import trim from '../../../utils/string-trim';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import BYTES_PER_COOKIE_LIMIT from '../../../session/cookie-limit';
 import nativeMethods from '../../sandbox/native-methods';
+import { generateDeleteSyncCookieStr, parseClientSyncCookieStr } from '../../../utils/cookie';
 
 export default class CookieSandbox extends SandboxBase {
     constructor () {
@@ -116,6 +117,8 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     getCookie () {
+        this.syncServerCookie();
+
         // eslint-disable-next-line no-restricted-properties
         return this._getSettings().cookie;
     }
@@ -125,9 +128,14 @@ export default class CookieSandbox extends SandboxBase {
         if (value.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:')
             return value;
 
+        const setByClient = typeof value === 'string';
+
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
-        const parsedCookie = cookieUtils.parse(value);
+        const parsedCookie = setByClient ? cookieUtils.parse(value) : value;
+
+        if (setByClient)
+            this.syncServerCookie();
 
         if (CookieSandbox._isValidCookie(parsedCookie)) {
             // NOTE: These attributes don't have to be processed by a browser.
@@ -161,5 +169,19 @@ export default class CookieSandbox extends SandboxBase {
         }
 
         return value;
+    }
+
+    syncServerCookie () {
+        const cookies       = nativeMethods.documentCookieGetter.call(this.document);
+        const parsedCookies = parseClientSyncCookieStr(cookies);
+        const sessionId     = settings.get().sessionId;
+
+        for (const parsedCookie of parsedCookies) {
+            if (sessionId === parsedCookie.sid && parsedCookie.isServerSync) {
+                this.setCookie(this.document, parsedCookie, false);
+
+                nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
+            }
+        }
     }
 }

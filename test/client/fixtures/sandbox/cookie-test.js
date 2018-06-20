@@ -89,6 +89,67 @@ test('remove real cookie after browser processing', function () {
     strictEqual(nativeMethods.documentCookieGetter.call(document).indexOf(uniqKey), -1);
 });
 
+module('server synchronization with client');
+
+test('process synchronization cookies on document.cookie getter', function () {
+    settings.get().cookie = '';
+
+    strictEqual(document.cookie, '');
+
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+
+    strictEqual(document.cookie, 'test=123');
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+});
+
+test('process synchronization cookies on document.cookie setter', function () {
+    settings.get().cookie = '';
+
+    strictEqual(document.cookie, '');
+
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+
+    strictEqual(settings.get().cookie, '');
+
+    document.cookie = 'temp=temp';
+
+    strictEqual(settings.get().cookie, 'test=123; temp=temp');
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+});
+
+asyncTest('set cookie from the XMLHttpRequest', function () {
+    settings.get().cookie = '';
+
+    var xhr = new XMLHttpRequest();
+
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+    strictEqual(document.cookie, '');
+
+    xhr.open('GET', '/xhr-with-sync-cookie/', true);
+    xhr.addEventListener('load', function () {
+        strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+        strictEqual(document.cookie, 'hello=world');
+
+        start();
+    });
+    xhr.send();
+});
+
+if (window.fetch) {
+    test('set cookie from the fetch request', function () {
+        settings.get().cookie = '';
+
+        strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+        strictEqual(document.cookie, '');
+
+        return fetch('/xhr-with-sync-cookie/', { credentials: 'same-origin' })
+            .then(function () {
+                strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+                strictEqual(document.cookie, 'hello=world');
+            });
+    });
+}
+
 module('regression');
 
 test('overwrite (B239496)', function () {

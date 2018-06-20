@@ -1,8 +1,13 @@
 import XHR_HEADERS from './xhr/headers';
 import AUTHORIZATION from './xhr/authorization';
 import * as urlUtils from '../utils/url';
-import { castArray } from 'lodash';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
+import {
+    formatSyncCookie,
+    generateDeleteSyncCookieStr,
+    isOutdatedSyncCookie,
+    parseClientSyncCookieStr
+} from '../utils/cookie';
 
 // Skipping transform
 function skip () {
@@ -46,6 +51,33 @@ function transformCookie (src, ctx) {
         return transformCookieForFetch(src, ctx);
 
     return src;
+}
+
+function generateServerSyncCookie (ctx, parsedCookies) {
+    parsedCookies = parsedCookies.filter(cookie => !cookie.httpOnly);
+
+    const syncWithClientCookies = parsedCookies
+        .map(cookie => {
+            cookie.isServerSync = true;
+            cookie.sid          = ctx.session.id;
+
+            return formatSyncCookie(cookie);
+        });
+
+    const obsoleteSyncCookies = ctx.req.headers.cookie
+        ? parseClientSyncCookieStr(ctx.req.headers.cookie)
+            .filter(clientCookie => {
+                for (const serverCookie of parsedCookies) {
+                    if (isOutdatedSyncCookie(clientCookie, serverCookie))
+                        return true;
+                }
+
+                return false;
+            })
+            .map(generateDeleteSyncCookieStr)
+        : [];
+
+    return obsoleteSyncCookies.concat(syncWithClientCookies);
 }
 
 function resolveAndGetProxyUrl (url, ctx) {
@@ -107,10 +139,10 @@ const requestForced = {
 const responseTransforms = {
     'set-cookie': (src, ctx) => {
         if (src) {
-            let cookies = castArray(src);
+            const parsedCookies = ctx.session.cookies.setByServer(ctx.dest.url, src);
 
-            cookies = cookies.filter(cookieStr => !!cookieStr);
-            ctx.session.cookies.setByServer(ctx.dest.url, cookies);
+            if (!ctx.isPage && !ctx.isIframe)
+                return generateServerSyncCookie(ctx, parsedCookies);
         }
 
         // NOTE: Delete header.
@@ -163,19 +195,6 @@ const responseTransforms = {
     'refresh': (src, ctx) => transformRefreshHeader(src, ctx)
 };
 
-const responseForced = {
-    [XHR_HEADERS.setCookie]: (src, ctx) => {
-        if (ctx.isXhr && ctx.destRes && ctx.destRes.headers && ctx.destRes.headers['set-cookie']) {
-            const setCookieHeader = ctx.destRes.headers['set-cookie'];
-            const cookieArr       = castArray(setCookieHeader);
-
-            return JSON.stringify(cookieArr);
-        }
-
-        return void 0;
-    }
-};
-
 // Transformation routine
 function transformHeaders (srcHeaders, ctx, transformList, forced) {
     const destHeaders = {};
@@ -203,5 +222,5 @@ export function forRequest (ctx) {
 }
 
 export function forResponse (ctx) {
-    return transformHeaders(ctx.destRes.headers, ctx, responseTransforms, responseForced);
+    return transformHeaders(ctx.destRes.headers, ctx, responseTransforms);
 }
