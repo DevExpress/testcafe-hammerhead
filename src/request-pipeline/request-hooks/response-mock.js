@@ -12,11 +12,24 @@ export default class ResponseMock {
     constructor (body, statusCode, headers) {
         this.body       = body;
         this.statusCode = statusCode;
-        this.headers    = headers;
+        this.headers    = this._lowerCaseHeaderNames(headers);
 
         this.requestOptions = null;
 
         this._validateParameters();
+    }
+
+    _lowerCaseHeaderNames (headers) {
+        if (!headers)
+            return void 0;
+
+        const lowerCaseHeaders = {};
+
+        Object.keys(headers).forEach(headerName => {
+            lowerCaseHeaders[headerName.toLowerCase()] = headers[headerName];
+        });
+
+        return lowerCaseHeaders;
     }
 
     _validateBody () {
