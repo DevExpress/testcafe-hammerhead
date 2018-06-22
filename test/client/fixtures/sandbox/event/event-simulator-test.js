@@ -479,12 +479,16 @@ test('mouse event buttons properties', function () {
     var actualLog   = {};
     var expectedLog = {};
 
+    var getButtonsProperty = function (buttons) {
+        return browserUtils.isSafari ? void 0 : buttons;
+    };
+
     var eventHandler = function (e) {
         actualLog[e.type] = actualLog[e.type] || [];
 
         actualLog[e.type].push({
             button:  e.button,
-            buttons: e.buttons,
+            buttons: getButtonsProperty(e.buttons),
             which:   e.which
         });
     };
@@ -495,7 +499,7 @@ test('mouse event buttons properties', function () {
         // NOTE: Safari doesn't support buttons property
         expectedLog[type].push({
             button:  button,
-            buttons: browserUtils.isSafari ? void 0 : buttons,
+            buttons: getButtonsProperty(buttons),
             which:   which
         });
     };
@@ -512,6 +516,11 @@ test('mouse event buttons properties', function () {
     fillExpectedLog('mouseenter', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
     fillExpectedLog('mouseleave', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
     fillExpectedLog('mousemove', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
+    fillExpectedLog(
+        'mousemove',
+        eventUtils.BUTTON.left,
+        eventUtils.BUTTONS_PARAMETER.noButton,
+        browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.noButton : eventUtils.WHICH_PARAMETER.leftButton);
 
     domElement.addEventListener('click', eventHandler);
     domElement.addEventListener('dblclick', eventHandler);
@@ -536,6 +545,7 @@ test('mouse event buttons properties', function () {
     eventSimulator.mouseenter(domElement);
     eventSimulator.mouseleave(domElement);
     eventSimulator.mousemove(domElement);
+    eventSimulator.mousemove(domElement, { buttons: eventUtils.BUTTONS_PARAMETER.noButton, which: eventUtils.WHICH_PARAMETER.noButton });
 
     deepEqual(actualLog, expectedLog);
 });
