@@ -21,7 +21,7 @@ export default class ResponseMock {
 
     _lowerCaseHeaderNames (headers) {
         if (!headers)
-            return void 0;
+            return headers;
 
         const lowerCaseHeaders = {};
 
