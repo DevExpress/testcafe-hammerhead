@@ -45,8 +45,11 @@ export function assignAttributes (wrapper, attributes) {
 }
 
 export function getAttributes (el) {
-    if (el[ATTRIBUTES_WRAPPER])
+    if (el[ATTRIBUTES_WRAPPER]) {
+        refreshAttributesWrapper(el);
+
         return el[ATTRIBUTES_WRAPPER];
+    }
 
     const attributes = nativeMethods.elementAttributesGetter.call(el);
 
