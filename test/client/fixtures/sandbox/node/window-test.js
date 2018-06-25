@@ -1,7 +1,7 @@
 var urlUtils = hammerhead.get('./utils/url');
 
-var nativeMethods    = hammerhead.nativeMethods;
-var browserUtils     = hammerhead.utils.browser;
+var nativeMethods = hammerhead.nativeMethods;
+var browserUtils  = hammerhead.utils.browser;
 
 test('window.onerror setter/getter', function () {
     var storedOnErrorHandler = window.onerror;
@@ -307,6 +307,14 @@ test('an overridden "target" attribute getter should return the same value as or
     strictEqual(nativeMethods.areaTargetGetter.call(area), area.target);
     strictEqual(nativeMethods.baseTargetGetter.call(base), base.target);
     strictEqual(nativeMethods.formTargetGetter.call(form), form.target);
+});
+
+test('an overridden "formtarget" attribute getter should return the same value as origin getter (attribute value is not defined)', function () {
+    var input  = document.createElement('input');
+    var button = document.createElement('button');
+
+    strictEqual(nativeMethods.inputFormTargetGetter.call(input), input.formTarget);
+    strictEqual(nativeMethods.buttonFormTargetGetter.call(button), button.formTarget);
 });
 
 module('regression');

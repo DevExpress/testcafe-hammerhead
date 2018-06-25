@@ -24,10 +24,11 @@ const SVG_XLINK_HREF_TAGS = [
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const TARGET_ATTR_TAGS    = ['a', 'form', 'area', 'base'];
-const INTEGRITY_ATTR_TAGS = ['script', 'link'];
+const TARGET_ATTR_TAGS     = ['a', 'form', 'area', 'base'];
+const FORMTARGET_ATTR_TAGS = ['input', 'button'];
+const INTEGRITY_ATTR_TAGS  = ['script', 'link'];
 // eslint-disable-next-line hammerhead/proto-methods
-const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS.filter(tagName => tagName !== 'base').concat('button');
+const IFRAME_FLAG_TAGS     = TARGET_ATTR_TAGS.filter(tagName => tagName !== 'base').concat('button');
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -49,6 +50,10 @@ export default class DomProcessor {
 
     static isTagWithTargetAttr (tagName) {
         return TARGET_ATTR_TAGS.indexOf(tagName) !== -1;
+    }
+
+    static isTagWithFormTargetAttr (tagName) {
+        return FORMTARGET_ATTR_TAGS.indexOf(tagName) !== -1;
     }
 
     static isTagWithIntegrityAttr (tagName) {
@@ -101,6 +106,10 @@ export default class DomProcessor {
             HAS_ACTION_ATTR: el => this.isUrlAttr(el, 'action'),
 
             HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction'),
+
+            HAS_FORMTARGET_ATTR: el => {
+                return DomProcessor.isTagWithFormTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'formtarget');
+            },
 
             HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest'),
 
@@ -159,6 +168,11 @@ export default class DomProcessor {
                 selector:          selectors.HAS_FORMACTION_ATTR,
                 urlAttr:           'formaction',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+            },
+            {
+                selector:          selectors.HAS_FORMTARGET_ATTR,
+                urlAttr:           'formtarget',
+                elementProcessors: [this._processFormTargetBlank]
             },
             {
                 selector:          selectors.HAS_MANIFEST_ATTR,
@@ -447,6 +461,23 @@ export default class DomProcessor {
             if (attrValue === '_blank' || attrValue === 'blank') {
                 this.adapter.setAttr(el, 'target', '_top');
                 this.adapter.setAttr(el, storedTargetAttr, attrValue);
+            }
+        }
+    }
+
+    _processFormTargetBlank (el) {
+        const storedFormTargetAttr = DomProcessor.getStoredAttrName('formtarget');
+        const processed            = this.adapter.hasAttr(el, storedFormTargetAttr);
+
+        if (!processed) {
+            let attrValue = this.adapter.getAttr(el, 'formtarget');
+
+            // NOTE: Value may have whitespace.
+            attrValue = attrValue && attrValue.replace(/\s/g, '');
+
+            if (attrValue === '_blank' || attrValue === 'blank') {
+                this.adapter.setAttr(el, 'formtarget', '_top');
+                this.adapter.setAttr(el, storedFormTargetAttr, attrValue);
             }
         }
     }

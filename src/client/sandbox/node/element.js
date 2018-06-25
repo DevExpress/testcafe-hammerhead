@@ -198,6 +198,19 @@ export default class ElementSandbox extends SandboxBase {
             else
                 return null;
         }
+        else if (loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
+            const currentFormTarget = nativeMethods.getAttribute.call(el, 'formtarget');
+            const newFormTarget     = this.getTarget(el, value);
+
+            if (newFormTarget !== currentFormTarget) {
+                const storedFormTargetAttr = DomProcessor.getStoredAttrName(attr);
+
+                setAttrMeth.apply(el, isNs ? [ns, storedFormTargetAttr, value] : [storedFormTargetAttr, value]);
+                args[valueIndex] = newFormTarget;
+            }
+            else
+                return null;
+        }
         else if (attr === 'sandbox') {
             const storedSandboxAttr = DomProcessor.getStoredAttrName(attr);
             const allowSameOrigin   = value.indexOf('allow-same-origin') !== -1;
@@ -281,7 +294,8 @@ export default class ElementSandbox extends SandboxBase {
         if (domProcessor.isUrlAttr(el, formatedAttr, isNs ? args[0] : null) || formatedAttr === 'sandbox' ||
             formatedAttr === 'autocomplete' ||
             domProcessor.EVENTS.indexOf(formatedAttr) !== -1 ||
-            formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
+            formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
+            formatedAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
             const storedAttr = DomProcessor.getStoredAttrName(attr);
 
             if (formatedAttr === 'autocomplete')

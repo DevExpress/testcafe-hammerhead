@@ -21,16 +21,29 @@ function createTestedLink () {
 }
 
 function checkElementTarget (el, real, primary) {
-    if (el.tagName === 'anchor')
+    var tagName = el.tagName.toLowerCase();
+
+    if (tagName === 'a')
         strictEqual(nativeMethods.anchorTargetGetter.call(el), real);
-    else if (el.tagName === 'area')
+    else if (tagName === 'area')
         strictEqual(nativeMethods.areaTargetGetter.call(el), real);
-    else if (el.tagName === 'base')
+    else if (tagName === 'base')
         strictEqual(nativeMethods.baseTargetGetter.call(el), real);
-    else if (el.tagName === 'form')
+    else if (tagName === 'form')
         strictEqual(nativeMethods.formTargetGetter.call(el), real);
 
     strictEqual(el.getAttribute('target'), primary);
+}
+
+function checkElementFormTarget (el, real, primary) {
+    var tagName = el.tagName.toLowerCase();
+
+    if (tagName === 'input')
+        strictEqual(nativeMethods.inputFormTargetGetter.call(el), real);
+    else if (tagName === 'button')
+        strictEqual(nativeMethods.buttonFormTargetGetter.call(el), real);
+
+    strictEqual(el.getAttribute('formtarget'), primary);
 }
 
 function provokeTargetCalculation (link) {
@@ -156,6 +169,110 @@ test('all possible elements', function () {
         provokeTargetCalculation(el);
         checkElementTarget(el, '', null);
     }
+});
+
+
+module('"formtarget" attribute');
+
+test('process html', function () {
+    var form = document.createElement('form');
+
+    document.body.appendChild(form);
+
+    form.innerHTML = '<input type="submit" formtarget="_blank">' +
+                     '<input type="submit" formtarget="_parent">' +
+                     '<input type="submit" formtarget="_self">' +
+                     '<input type="submit" formtarget="_top">' +
+                     '<input type="submit" formtarget="unknown_window">' +
+                     '<input type="submit" formtarget="window_name">' +
+                     '<button type="submit" formtarget="_blank"></button>' +
+                     '<button type="submit" formtarget="_parent"></button>' +
+                     '<button type="submit" formtarget="_self"></button>' +
+                     '<button type="submit" formtarget="_top"></button>' +
+                     '<button type="submit" formtarget="unknown_window"></button>' +
+                     '<button type="submit" formtarget="window_name"></button>';
+
+    var children = form.children;
+
+    checkElementFormTarget(children[0], '_top', '_blank');
+    checkElementFormTarget(children[1], '_parent', '_parent');
+    checkElementFormTarget(children[2], '_self', '_self');
+    checkElementFormTarget(children[3], '_top', '_top');
+    checkElementFormTarget(children[4], 'unknown_window', 'unknown_window');
+    checkElementFormTarget(children[5], 'window_name', 'window_name');
+
+    checkElementFormTarget(children[6], '_top', '_blank');
+    checkElementFormTarget(children[7], '_parent', '_parent');
+    checkElementFormTarget(children[8], '_self', '_self');
+    checkElementFormTarget(children[9], '_top', '_top');
+    checkElementFormTarget(children[10], 'unknown_window', 'unknown_window');
+    checkElementFormTarget(children[11], 'window_name', 'window_name');
+
+    document.body.removeChild(form);
+});
+
+test('setAttribute', function () {
+    var form   = document.createElement('form');
+    var input  = document.createElement('input');
+    var button = document.createElement('button');
+
+    document.body.appendChild(form);
+
+    input.type  = 'submit';
+    button.type = 'submit';
+
+    function testFormtargetAttr (el, real, primary) {
+        el.setAttribute('formtarget', primary);
+
+        checkElementFormTarget(el, real, primary);
+    }
+
+    form.appendChild(input);
+    form.appendChild(button);
+
+    testFormtargetAttr(input, '_top', '_blank');
+    testFormtargetAttr(input, '_parent', '_parent');
+    testFormtargetAttr(input, '_self', '_self');
+    testFormtargetAttr(input, '_top', '_top');
+    testFormtargetAttr(input, 'window_name', 'window_name');
+    testFormtargetAttr(input, '_top', 'unknown_window');
+
+    testFormtargetAttr(button, '_top', '_blank');
+    testFormtargetAttr(button, '_parent', '_parent');
+    testFormtargetAttr(button, '_self', '_self');
+    testFormtargetAttr(button, '_top', '_top');
+    testFormtargetAttr(button, 'window_name', 'window_name');
+    testFormtargetAttr(button, '_top', 'unknown_window');
+
+    document.body.removeChild(form);
+});
+
+test('removeAttribute, hasAttribute', function () {
+    var form   = document.createElement('form');
+    var input  = document.createElement('input');
+    var button = document.createElement('button');
+
+    document.body.appendChild(form);
+
+    input.type  = 'submit';
+    button.type = 'submit';
+
+    input.setAttribute('formtarget', '_self');
+    button.setAttribute('formtarget', '_self');
+
+    ok(input.hasAttribute('formtarget'));
+    ok(button.hasAttribute('formtarget'));
+
+    input.removeAttribute('formtarget');
+    button.removeAttribute('formtarget');
+
+    checkElementFormTarget(input, '', null);
+    checkElementFormTarget(button, '', null);
+
+    ok(!input.hasAttribute('formtarget'));
+    ok(!button.hasAttribute('formtarget'));
+
+    document.body.removeChild(form);
 });
 
 
