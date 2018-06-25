@@ -657,6 +657,16 @@ test('instance of attributesWrapper should be synchronized with native attribute
         strictEqual(input.attributes[i], nativeAttributes[attrName]);
         strictEqual(input.attributes[attrName], nativeAttributes[attrName]);
     }
+
+    input.attributes.removeNamedItem('maxLength');
+    input.attributes.removeNamedItem('class');
+
+    strictEqual(input.attributes.length, 0);
+
+    input.disabled = true;
+
+    strictEqual(input.attributes.length, 1);
+    strictEqual(input.attributes[0].name, 'disabled');
 });
 
 test('should hide "autocomplete" attribute form enumeration and existence check (GH-955)', function () {
