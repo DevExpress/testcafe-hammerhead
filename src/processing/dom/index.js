@@ -458,9 +458,9 @@ export default class DomProcessor {
     }
 
     _processTargetBlank (el, urlReplacer, pattern) {
-        const targetAttr           = pattern.targetAttr;
-        const storedFormTargetAttr = DomProcessor.getStoredAttrName(targetAttr);
-        const processed            = this.adapter.hasAttr(el, storedFormTargetAttr);
+        const targetAttr       = pattern.targetAttr;
+        const storedTargetAttr = DomProcessor.getStoredAttrName(targetAttr);
+        const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
         if (!processed) {
             let attrValue = this.adapter.getAttr(el, targetAttr);
@@ -470,7 +470,7 @@ export default class DomProcessor {
 
             if (attrValue === '_blank' || attrValue === 'blank') {
                 this.adapter.setAttr(el, targetAttr, '_top');
-                this.adapter.setAttr(el, storedFormTargetAttr, attrValue);
+                this.adapter.setAttr(el, storedTargetAttr, attrValue);
             }
         }
     }
