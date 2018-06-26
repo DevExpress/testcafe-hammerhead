@@ -150,7 +150,7 @@ export default class EventSimulator {
             button:        options.button === void 0 ? eventUtils.BUTTON.left : options.button,
             buttons:       options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons,
             relatedTarget: options.relatedTarget || null,
-            which:         options.which === void 0 ? eventUtils.WHICH_PARAMETER.leftButton : options.which
+            which:         options.which
         });
     }
 
@@ -219,7 +219,7 @@ export default class EventSimulator {
 
             args = EventSimulator._getMouseEventArgs(event, opts);
             // eslint-disable-next-line no-shadow
-            dispatch = (el, args) => this._dispatchMouseEvent(el, args, userOptions ? userOptions.dataTransfer : void 0);
+            dispatch = (el, args) => this._dispatchMouseRelatedEvents(el, args, userOptions ? userOptions.dataTransfer : void 0);
         }
 
         else if (KEY_EVENT_NAME_RE.test(event)) {
@@ -509,8 +509,7 @@ export default class EventSimulator {
         this._raiseDispatchEvent(el, pointEvent, pointerArgs);
     }
 
-    _dispatchMouseEvent (el, args, dataTransfer) {
-        let ev              = null;
+    _dispatchMouseRelatedEvents (el, args, dataTransfer) {
         const pointerRegExp = /mouse(down|up|move|over|out)/;
 
         // NOTE: In IE, submit doesn't work if a click is simulated for some submit button's children (for example,
@@ -530,33 +529,59 @@ export default class EventSimulator {
         if (eventUtils.hasPointerEvents && pointerRegExp.test(args.type))
             this._dispatchPointerEvent(el, args);
 
-        ev = nativeMethods.documentCreateEvent.call(document, 'MouseEvents');
-        ev.initMouseEvent(args.type, args.canBubble, args.cancelable, window, args.detail, args.screenX,
-            args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey,
-            args.button, args.relatedTarget);
+        return this._dispatchMouseEvent(el, args, dataTransfer);
+    }
 
-        if (dataTransfer) {
-            nativeMethods.objectDefineProperty.call(window.Object, ev, 'dataTransfer', {
-                configurable: true,
-                enumerable:   true,
-                get:          () => dataTransfer
+    _dispatchMouseEvent (el, args, dataTransfer) {
+        let event = null;
+
+        if (this.browserWithNewEventsStyle && nativeMethods.WindowMouseEvent) {
+            event = new nativeMethods.WindowMouseEvent(args.type, {
+                bubbles:       args.canBubble,
+                cancelable:    args.cancelable,
+                view:          window,
+                detail:        args.detail,
+                screenX:       args.screenX,
+                screenY:       args.screenY,
+                clientX:       args.clientX,
+                clientY:       args.clientY,
+                ctrlKey:       args.ctrlKey,
+                altKey:        args.altKey,
+                shiftKey:      args.shiftKey,
+                metaKey:       args.metaKey,
+                button:        args.button,
+                buttons:       args.buttons,
+                relatedTarget: args.relatedTarget
             });
         }
+        else {
+            event = nativeMethods.documentCreateEvent.call(document, 'MouseEvents');
 
-        if (browserUtils.isFirefox || browserUtils.isIE) {
-            nativeMethods.objectDefineProperty.call(window.Object, ev, 'buttons', {
+            event.initMouseEvent(args.type, args.canBubble, args.cancelable, window, args.detail, args.screenX,
+                args.screenY, args.clientX, args.clientY, args.ctrlKey, args.altKey, args.shiftKey, args.metaKey,
+                args.button, args.relatedTarget);
+
+            nativeMethods.objectDefineProperty.call(window.Object, event, 'buttons', {
                 get: () => args.buttons
             });
         }
 
         // NOTE: T188166 (act.hover triggers the mouseenter event with the "which" parameter set to 1).
         if (args.which !== void 0 && browserUtils.isWebKit) {
-            nativeMethods.objectDefineProperty.call(window.Object, ev, 'which', {
+            nativeMethods.objectDefineProperty.call(window.Object, event, 'which', {
                 get: () => args.which
             });
         }
 
-        return this._raiseDispatchEvent(el, ev, args);
+        if (dataTransfer) {
+            nativeMethods.objectDefineProperty.call(window.Object, event, 'dataTransfer', {
+                configurable: true,
+                enumerable:   true,
+                get:          () => dataTransfer
+            });
+        }
+
+        return this._raiseDispatchEvent(el, event, args);
     }
 
     _dispatchFocusEvent (el, name, relatedTarget = null) {
@@ -697,16 +722,12 @@ export default class EventSimulator {
     contextmenu (el, options) {
         return this._simulateEvent(el, 'contextmenu', options, {
             button:  eventUtils.BUTTON.right,
-            which:   eventUtils.WHICH_PARAMETER.rightButton,
             buttons: eventUtils.BUTTONS_PARAMETER.rightButton
         });
     }
 
     mousedown (el, options = {}) {
         options.button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
-        options.which   = options.which === void 0 || options.button !== eventUtils.BUTTON.right
-            ? eventUtils.WHICH_PARAMETER.leftButton
-            : eventUtils.WHICH_PARAMETER.rightButton;
         options.buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
 
         return this._simulateEvent(el, 'mousedown', options);
@@ -714,9 +735,6 @@ export default class EventSimulator {
 
     mouseup (el, options = {}) {
         options.button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
-        options.which   = options.which === void 0 || options.button !== eventUtils.BUTTON.right
-            ? eventUtils.WHICH_PARAMETER.leftButton
-            : eventUtils.WHICH_PARAMETER.rightButton;
         options.buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
 
         return this._simulateEvent(el, 'mouseup', options);
