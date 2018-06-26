@@ -107,6 +107,10 @@ export default class DomProcessor {
 
             HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction'),
 
+            HAS_TARGET_ATTR: el => {
+                return DomProcessor.isTagWithTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'target');
+            },
+
             HAS_FORMTARGET_ATTR: el => {
                 return DomProcessor.isTagWithFormTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'formtarget');
             },
@@ -152,27 +156,32 @@ export default class DomProcessor {
             {
                 selector:          selectors.HAS_HREF_ATTR,
                 urlAttr:           'href',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_SRC_ATTR,
                 urlAttr:           'src',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_ACTION_ATTR,
                 urlAttr:           'action',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_FORMACTION_ATTR,
                 urlAttr:           'formaction',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
+            },
+            {
+                selector:          selectors.HAS_TARGET_ATTR,
+                targetAttr:        'target',
+                elementProcessors: [this._processTargetBlank]
             },
             {
                 selector:          selectors.HAS_FORMTARGET_ATTR,
-                urlAttr:           'formtarget',
-                elementProcessors: [this._processFormTargetBlank]
+                targetAttr:        'formtarget',
+                elementProcessors: [this._processTargetBlank]
             },
             {
                 selector:          selectors.HAS_MANIFEST_ATTR,
@@ -448,35 +457,19 @@ export default class DomProcessor {
         }
     }
 
-    _processTargetBlank (el) {
-        const storedTargetAttr = DomProcessor.getStoredAttrName('target');
-        const processed        = this.adapter.hasAttr(el, storedTargetAttr);
-
-        if (!processed) {
-            let attrValue = this.adapter.getAttr(el, 'target');
-
-            // NOTE: Value may have whitespace.
-            attrValue = attrValue && attrValue.replace(/\s/g, '');
-
-            if (attrValue === '_blank' || attrValue === 'blank') {
-                this.adapter.setAttr(el, 'target', '_top');
-                this.adapter.setAttr(el, storedTargetAttr, attrValue);
-            }
-        }
-    }
-
-    _processFormTargetBlank (el) {
-        const storedFormTargetAttr = DomProcessor.getStoredAttrName('formtarget');
+    _processTargetBlank (el, urlReplacer, pattern) {
+        const targetAttr           = pattern.targetAttr;
+        const storedFormTargetAttr = DomProcessor.getStoredAttrName(targetAttr);
         const processed            = this.adapter.hasAttr(el, storedFormTargetAttr);
 
         if (!processed) {
-            let attrValue = this.adapter.getAttr(el, 'formtarget');
+            let attrValue = this.adapter.getAttr(el, targetAttr);
 
             // NOTE: Value may have whitespace.
             attrValue = attrValue && attrValue.replace(/\s/g, '');
 
             if (attrValue === '_blank' || attrValue === 'blank') {
-                this.adapter.setAttr(el, 'formtarget', '_top');
+                this.adapter.setAttr(el, targetAttr, '_top');
                 this.adapter.setAttr(el, storedFormTargetAttr, attrValue);
             }
         }

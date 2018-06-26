@@ -184,8 +184,9 @@ export default class ElementSandbox extends SandboxBase {
 
             args[valueIndex] = 'off';
         }
-        else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
-            const currentTarget = nativeMethods.getAttribute.call(el, 'target');
+        else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
+                 loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
+            const currentTarget = nativeMethods.getAttribute.call(el, loweredAttr);
             const newTarget     = this.getTarget(el, value);
 
             if (newTarget !== currentTarget) {
@@ -194,19 +195,6 @@ export default class ElementSandbox extends SandboxBase {
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
                 args[valueIndex]        = newTarget;
                 needToCallTargetChanged = true;
-            }
-            else
-                return null;
-        }
-        else if (loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
-            const currentFormTarget = nativeMethods.getAttribute.call(el, 'formtarget');
-            const newFormTarget     = this.getTarget(el, value);
-
-            if (newFormTarget !== currentFormTarget) {
-                const storedFormTargetAttr = DomProcessor.getStoredAttrName(attr);
-
-                setAttrMeth.apply(el, isNs ? [ns, storedFormTargetAttr, value] : [storedFormTargetAttr, value]);
-                args[valueIndex] = newFormTarget;
             }
             else
                 return null;
