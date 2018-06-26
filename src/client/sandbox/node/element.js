@@ -193,8 +193,10 @@ export default class ElementSandbox extends SandboxBase {
                 const storedTargetAttr = DomProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
-                args[valueIndex]        = newTarget;
-                needToCallTargetChanged = true;
+                args[valueIndex] = newTarget;
+
+                if (loweredAttr === 'target')
+                    needToCallTargetChanged = true;
             }
             else
                 return null;
