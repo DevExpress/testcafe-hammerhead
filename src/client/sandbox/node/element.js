@@ -54,12 +54,19 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     static _onTargetChanged (el) {
-        const tagName = domUtils.getTagName(el);
+        const tagName    = domUtils.getTagName(el);
+        const targetAttr = domProcessor.getTargetAttr(el);
 
         if (!DomProcessor.isIframeFlagTag(tagName))
             return;
 
-        const urlAttr       = tagName === 'form' ? 'action' : 'href';
+        let urlAttr;
+
+        if (targetAttr === 'target')
+            urlAttr = tagName === 'form' ? 'action' : 'href';
+        else if (targetAttr === 'formtarget')
+            urlAttr = 'formaction';
+
         const storedUrlAttr = DomProcessor.getStoredAttrName(urlAttr);
 
         if (el.hasAttribute(storedUrlAttr)) {
@@ -151,7 +158,7 @@ export default class ElementSandbox extends SandboxBase {
                     let resourceType       = domProcessor.getElementResourceType(el);
                     const elCharset        = isScript && el.charset;
 
-                    if (loweredAttr === 'formaction') {
+                    if (loweredAttr === 'formaction' && !el.hasAttribute('formtarget')) {
                         resourceType = 'f';
 
                         if (el.form) {
@@ -195,8 +202,7 @@ export default class ElementSandbox extends SandboxBase {
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
                 args[valueIndex] = newTarget;
 
-                if (loweredAttr === 'target')
-                    needToCallTargetChanged = true;
+                needToCallTargetChanged = true;
             }
             else
                 return null;
@@ -300,7 +306,8 @@ export default class ElementSandbox extends SandboxBase {
         if (formatedAttr !== 'autocomplete')
             result = removeAttrFunc.apply(el, args);
 
-        if (formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName))
+        if (formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
+            formatedAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName))
             ElementSandbox._onTargetChanged(el);
 
         return result;

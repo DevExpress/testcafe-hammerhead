@@ -8,7 +8,7 @@ import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
 import { XML_NAMESPACE } from './namespaces';
-import { URL_ATTR_TAGS, URL_ATTRS } from './attributes';
+import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
 
 const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
@@ -24,11 +24,10 @@ const SVG_XLINK_HREF_TAGS = [
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const TARGET_ATTR_TAGS     = ['a', 'form', 'area', 'base'];
-const FORMTARGET_ATTR_TAGS = ['input', 'button'];
-const INTEGRITY_ATTR_TAGS  = ['script', 'link'];
+const INTEGRITY_ATTR_TAGS = ['script', 'link'];
+
 // eslint-disable-next-line hammerhead/proto-methods
-const IFRAME_FLAG_TAGS     = TARGET_ATTR_TAGS.filter(tagName => tagName !== 'base').concat('button');
+const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS['target'].filter(tagName => tagName !== 'base').concat(TARGET_ATTR_TAGS['formtarget']);
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -49,11 +48,11 @@ export default class DomProcessor {
     }
 
     static isTagWithTargetAttr (tagName) {
-        return TARGET_ATTR_TAGS.indexOf(tagName) !== -1;
+        return TARGET_ATTR_TAGS['target'].indexOf(tagName) !== -1;
     }
 
     static isTagWithFormTargetAttr (tagName) {
-        return FORMTARGET_ATTR_TAGS.indexOf(tagName) !== -1;
+        return TARGET_ATTR_TAGS['formtarget'].indexOf(tagName) !== -1;
     }
 
     static isTagWithIntegrityAttr (tagName) {
@@ -272,10 +271,22 @@ export default class DomProcessor {
         return null;
     }
 
-    _isOpenLinkInIframe (el) {
+    getTargetAttr (el) {
         const tagName = this.adapter.getTagName(el);
-        const target  = this.adapter.getAttr(el, 'target');
-        const rel     = this._getRelAttribute(el);
+
+        for (const targetAttr of TARGET_ATTRS) {
+            if (TARGET_ATTR_TAGS[targetAttr].indexOf(tagName) !== -1)
+                return targetAttr;
+        }
+
+        return null;
+    }
+
+    _isOpenLinkInIframe (el) {
+        const tagName    = this.adapter.getTagName(el);
+        const targetAttr = this.getTargetAttr(el);
+        const target     = this.adapter.getAttr(el, targetAttr);
+        const rel        = this._getRelAttribute(el);
 
         if (target !== '_top') {
             const mustProcessTag = DomProcessor.isIframeFlagTag(tagName) ||
