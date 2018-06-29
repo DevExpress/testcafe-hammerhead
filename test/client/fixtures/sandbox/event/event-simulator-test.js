@@ -210,7 +210,8 @@ test('event with coords (clientX, clientY, screenX, screenY)', function () {
     var screenY = 4;
 
     domElement.onmousedown = function (e) {
-        var coordsAreCorrect = e.clientX === clientX && e.clientY === clientY && e.screenX === screenX && e.screenY === screenY;
+        var coordsAreCorrect = e.clientX === clientX && e.clientY === clientY && e.screenX === screenX && e.screenY ===
+                               screenY;
 
         raised = coordsAreCorrect && e.button === eventUtils.BUTTON.left;
     };
@@ -476,51 +477,109 @@ if (!browserUtils.isFirefox) {
 }
 
 test('mouse event buttons properties', function () {
-    var actualLog   = {};
-    var expectedLog = {};
+    var actualLog = {};
 
     var getButtonsProperty = function (buttons) {
         return browserUtils.isSafari ? void 0 : buttons;
     };
 
     var eventHandler = function (e) {
-        actualLog[e.type] = actualLog[e.type] || [];
-
-        actualLog[e.type].push({
+        var args = {
+            type:    e.type,
             button:  e.button,
             buttons: getButtonsProperty(e.buttons),
             which:   e.which
-        });
+        };
+
+        actualLog[e.type] = args;
     };
 
-    var fillExpectedLog = function (type, button, buttons, which) {
-        expectedLog[type] = expectedLog[type] || [];
 
-        // NOTE: Safari doesn't support buttons property
-        expectedLog[type].push({
+    var getArgs = function (type, button, buttons, which) {
+        return {
+            type:    type,
             button:  button,
             buttons: getButtonsProperty(buttons),
             which:   which
-        });
+        };
     };
 
-    fillExpectedLog('click', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog('dblclick', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog('contextmenu', eventUtils.BUTTON.right, eventUtils.BUTTONS_PARAMETER.rightButton, eventUtils.WHICH_PARAMETER.rightButton);
-    fillExpectedLog('mousedown', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog('mousedown', eventUtils.BUTTON.right, eventUtils.BUTTONS_PARAMETER.rightButton, eventUtils.WHICH_PARAMETER.rightButton);
-    fillExpectedLog('mouseup', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog('mouseup', eventUtils.BUTTON.right, eventUtils.BUTTONS_PARAMETER.rightButton, eventUtils.WHICH_PARAMETER.rightButton);
-    fillExpectedLog('mouseover', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog('mouseout', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog('mouseenter', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog('mouseleave', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog('mousemove', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton);
-    fillExpectedLog(
-        'mousemove',
-        eventUtils.BUTTON.left,
-        eventUtils.BUTTONS_PARAMETER.noButton,
-        browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.noButton : eventUtils.WHICH_PARAMETER.leftButton);
+    const testData = [{
+        expected:  getArgs('click', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.click(domElement);
+        }
+    }, {
+        expected:  getArgs('dblclick', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.dblclick(domElement);
+        }
+    }, {
+        expected:  getArgs('contextmenu', eventUtils.BUTTON.right, eventUtils.BUTTONS_PARAMETER.rightButton, eventUtils.WHICH_PARAMETER.rightButton),
+        simulator: function () {
+            eventSimulator.contextmenu(domElement);
+        }
+    }, {
+        expected:  getArgs('mousedown', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.mousedown(domElement);
+        }
+    }, {
+        expected:  getArgs('mousedown', eventUtils.BUTTON.right, eventUtils.BUTTONS_PARAMETER.rightButton, eventUtils.WHICH_PARAMETER.rightButton),
+        simulator: function () {
+            eventSimulator.mousedown(domElement, {
+                button:  eventUtils.BUTTON.right,
+                buttons: eventUtils.BUTTONS_PARAMETER.rightButton
+            });
+        }
+    }, {
+        expected:  getArgs('mouseup', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.mouseup(domElement);
+        }
+    }, {
+        expected:  getArgs('mouseup', eventUtils.BUTTON.right, eventUtils.BUTTONS_PARAMETER.rightButton, eventUtils.WHICH_PARAMETER.rightButton),
+        simulator: function () {
+            eventSimulator.mouseup(domElement, {
+                button:  eventUtils.BUTTON.right,
+                buttons: eventUtils.BUTTONS_PARAMETER.rightButton
+            });
+        }
+    }, {
+        expected:  getArgs('mouseover', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.mouseover(domElement);
+        }
+    }, {
+        expected:  getArgs('mouseout', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.mouseout(domElement);
+        }
+    }, {
+        expected:  getArgs('mouseenter', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.mouseenter(domElement);
+        }
+    }, {
+        expected:  getArgs('mouseleave', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.mouseleave(domElement);
+        }
+    }, {
+        expected:  getArgs('mousemove', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton, eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.mousemove(domElement);
+        }
+    }, {
+        expected: getArgs('mousemove', eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.noButton,
+            browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.noButton : eventUtils.WHICH_PARAMETER.leftButton),
+        simulator: function () {
+            eventSimulator.mousemove(domElement, {
+                buttons: eventUtils.BUTTONS_PARAMETER.noButton,
+                which:   eventUtils.WHICH_PARAMETER.noButton
+            });
+        }
+    }];
 
     domElement.addEventListener('click', eventHandler);
     domElement.addEventListener('dblclick', eventHandler);
@@ -533,21 +592,10 @@ test('mouse event buttons properties', function () {
     domElement.addEventListener('mouseleave', eventHandler);
     domElement.addEventListener('mousemove', eventHandler);
 
-    eventSimulator.click(domElement);
-    eventSimulator.dblclick(domElement);
-    eventSimulator.contextmenu(domElement);
-    eventSimulator.mousedown(domElement);
-    eventSimulator.mousedown(domElement, { button: eventUtils.BUTTON.right, buttons: eventUtils.BUTTONS_PARAMETER.rightButton });
-    eventSimulator.mouseup(domElement);
-    eventSimulator.mouseup(domElement, { button: eventUtils.BUTTON.right, buttons: eventUtils.BUTTONS_PARAMETER.rightButton });
-    eventSimulator.mouseover(domElement);
-    eventSimulator.mouseout(domElement);
-    eventSimulator.mouseenter(domElement);
-    eventSimulator.mouseleave(domElement);
-    eventSimulator.mousemove(domElement);
-    eventSimulator.mousemove(domElement, { buttons: eventUtils.BUTTONS_PARAMETER.noButton, which: eventUtils.WHICH_PARAMETER.noButton });
-
-    deepEqual(actualLog, expectedLog);
+    testData.forEach(function (item) {
+        item.simulator();
+        deepEqual(actualLog[item.expected.type], item.expected);
+    });
 });
 
 module('regression');
