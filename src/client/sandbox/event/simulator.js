@@ -181,6 +181,27 @@ export default class EventSimulator {
         return modifiersString;
     }
 
+    static _updateMouseEventButtonProperties (options) {
+        options = options || {};
+
+        const buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.noButton : options.buttons;
+        const button  = eventUtils.BUTTON.left;
+
+        options.buttons = buttons;
+        options.button  = options.button || button;
+
+        if (browserUtils.isWebKit) {
+            options.which = eventUtils.WHICH_PARAMETER.leftButton;
+
+            if (options.buttons === eventUtils.BUTTONS_PARAMETER.noButton)
+                options.which = eventUtils.WHICH_PARAMETER.noButton;
+            if (options.buttons === eventUtils.BUTTONS_PARAMETER.rightButton)
+                options.which = eventUtils.WHICH_PARAMETER.rightButton;
+        }
+
+        return options;
+    }
+
     _simulateEvent (el, event, userOptions, options = {}) {
         let args     = null;
         let dispatch = null;
@@ -697,7 +718,7 @@ export default class EventSimulator {
     click (el, options) {
         return this._simulateEvent(el, 'click', options, {
             button:  eventUtils.BUTTON.left,
-            buttons: eventUtils.BUTTONS_PARAMETER.leftButton
+            buttons: eventUtils.BUTTONS_PARAMETER.noButton
         });
     }
 
@@ -708,7 +729,7 @@ export default class EventSimulator {
     dblclick (el, options) {
         return this._simulateEvent(el, 'dblclick', options, {
             button:  eventUtils.BUTTON.left,
-            buttons: eventUtils.BUTTONS_PARAMETER.leftButton
+            buttons: eventUtils.BUTTONS_PARAMETER.noButton
         });
     }
 
@@ -722,42 +743,48 @@ export default class EventSimulator {
     contextmenu (el, options) {
         return this._simulateEvent(el, 'contextmenu', options, {
             button:  eventUtils.BUTTON.right,
-            buttons: eventUtils.BUTTONS_PARAMETER.rightButton
+            buttons: browserUtils.isSafari ? eventUtils.BUTTONS_PARAMETER.rightButton : eventUtils.BUTTONS_PARAMETER.noButton
         });
     }
 
     mousedown (el, options = {}) {
-        options.button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
-        options.buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
+        const button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
+        const buttons = button === eventUtils.BUTTON.left ? eventUtils.BUTTONS_PARAMETER.leftButton : eventUtils.BUTTONS_PARAMETER.rightButton;
+
+        options.button  = button;
+        options.buttons = options.buttons === void 0 ? buttons : options.buttons;
 
         return this._simulateEvent(el, 'mousedown', options);
     }
 
     mouseup (el, options = {}) {
-        options.button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
-        options.buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.leftButton : options.buttons;
+        const button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
+        const buttons = eventUtils.BUTTONS_PARAMETER.noButton;
+
+        options.button  = button;
+        options.buttons = options.buttons === void 0 ? buttons : options.buttons;
 
         return this._simulateEvent(el, 'mouseup', options);
     }
 
     mouseover (el, options) {
-        return this._simulateEvent(el, 'mouseover', options);
+        return this._simulateEvent(el, 'mouseover', EventSimulator._updateMouseEventButtonProperties(options));
     }
 
     mousemove (el, options) {
-        return this._simulateEvent(el, 'mousemove', options, { cancelable: false });
+        return this._simulateEvent(el, 'mousemove', EventSimulator._updateMouseEventButtonProperties(options), { cancelable: false });
     }
 
     mouseout (el, options) {
-        return this._simulateEvent(el, 'mouseout', options);
+        return this._simulateEvent(el, 'mouseout', EventSimulator._updateMouseEventButtonProperties(options));
     }
 
     mouseenter (el, options) {
-        return this._simulateEvent(el, 'mouseenter', options, { canBubble: false });
+        return this._simulateEvent(el, 'mouseenter', EventSimulator._updateMouseEventButtonProperties(options), { canBubble: false });
     }
 
     mouseleave (el, options) {
-        return this._simulateEvent(el, 'mouseleave', options, { canBubble: false });
+        return this._simulateEvent(el, 'mouseleave', EventSimulator._updateMouseEventButtonProperties(options), { canBubble: false });
     }
 
     // NOTE: Keyboard events.
