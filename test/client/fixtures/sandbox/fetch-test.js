@@ -217,7 +217,12 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual('omit', headers[xhrHeaders.fetchRequestCredentials]);
+                        // NOTE: The Fetch API's Request.credentials property now defaults to "same-origin" per the latest
+                        // revision of the specification. https://developer.mozilla.org/en-US/Firefox/Releases/61
+                        if (browserUtils.isFirefox && browserUtils.version > 60)
+                            strictEqual(headers[xhrHeaders.fetchRequestCredentials], 'same-origin');
+                        else
+                            strictEqual(headers[xhrHeaders.fetchRequestCredentials], 'omit');
                     });
             });
 
@@ -234,7 +239,12 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual('omit', headers[xhrHeaders.fetchRequestCredentials]);
+                        // NOTE: The Fetch API's Request.credentials property now defaults to "same-origin" per the latest
+                        // revision of the specification. https://developer.mozilla.org/en-US/Firefox/Releases/61
+                        if (browserUtils.isFirefox && browserUtils.version > 60)
+                            strictEqual(headers[xhrHeaders.fetchRequestCredentials], 'same-origin');
+                        else
+                            strictEqual(headers[xhrHeaders.fetchRequestCredentials], 'omit');
                     });
             });
 
@@ -250,7 +260,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual('same-origin', headers[xhrHeaders.fetchRequestCredentials]);
+                        strictEqual(headers[xhrHeaders.fetchRequestCredentials], 'same-origin');
                     });
             });
 
@@ -268,7 +278,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual('same-origin', headers[xhrHeaders.fetchRequestCredentials]);
+                        strictEqual(headers[xhrHeaders.fetchRequestCredentials], 'same-origin');
                     });
             });
         });
@@ -287,7 +297,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual('https://example.com', headers[xhrHeaders.origin]);
+                        strictEqual(headers[xhrHeaders.origin], 'https://example.com');
                     });
             });
 
@@ -304,7 +314,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual('https://example.com', headers[xhrHeaders.origin]);
+                        strictEqual(headers[xhrHeaders.origin], 'https://example.com');
                     });
             });
 
@@ -323,7 +333,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual('https://example.com', headers[xhrHeaders.origin]);
+                        strictEqual(headers[xhrHeaders.origin], 'https://example.com');
                     });
             });
 
@@ -342,7 +352,7 @@ if (window.fetch) {
                         return response.json();
                     })
                     .then(function (headers) {
-                        strictEqual('https://example.com', headers[xhrHeaders.origin]);
+                        strictEqual(headers[xhrHeaders.origin], 'https://example.com');
                     });
             });
 
