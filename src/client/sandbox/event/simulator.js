@@ -181,9 +181,7 @@ export default class EventSimulator {
         return modifiersString;
     }
 
-    static _updateMouseEventButtonProperties (options) {
-        options = options || {};
-
+    static _updateMouseEventButtonProperties (options = {}) {
         const buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.noButton : options.buttons;
         const button  = eventUtils.BUTTON.left;
 

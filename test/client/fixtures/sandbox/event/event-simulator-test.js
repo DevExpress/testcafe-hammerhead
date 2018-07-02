@@ -210,8 +210,7 @@ test('event with coords (clientX, clientY, screenX, screenY)', function () {
     var screenY = 4;
 
     domElement.onmousedown = function (e) {
-        var coordsAreCorrect = e.clientX === clientX && e.clientY === clientY && e.screenX === screenX && e.screenY ===
-                               screenY;
+        var coordsAreCorrect = e.clientX === clientX && e.clientY === clientY && e.screenX === screenX && e.screenY === screenY;
 
         raised = coordsAreCorrect && e.button === eventUtils.BUTTON.left;
     };
@@ -504,98 +503,108 @@ test('mouse event buttons properties', function () {
     };
 
     var getExpectedMouseMoveEvents = function (type) {
-        return [{
-            expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.noButton,
-                browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.noButton : eventUtils.WHICH_PARAMETER.leftButton),
-            action: function () {
-                eventSimulator[type](domElement);
-            }
-        }, {
-            expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton,
-                browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.leftButton : eventUtils.WHICH_PARAMETER.leftButton),
-            action: function () {
-                eventSimulator[type](domElement, { buttons: eventUtils.BUTTONS_PARAMETER.leftButton });
-            }
-        }, {
-            expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.rightButton,
-                browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.rightButton : eventUtils.WHICH_PARAMETER.leftButton),
-            action: function () {
-                eventSimulator[type](domElement, { buttons: eventUtils.BUTTONS_PARAMETER.rightButton });
-            }
-        }];
+        return [
+            {
+                expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.noButton,
+                    browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.noButton : eventUtils.WHICH_PARAMETER.leftButton),
+                action: function () {
+                    eventSimulator[type](domElement);
+                }
+            },
+            {
+                expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton,
+                    eventUtils.WHICH_PARAMETER.leftButton),
+                action: function () {
+                    eventSimulator[type](domElement, { buttons: eventUtils.BUTTONS_PARAMETER.leftButton });
+                }
+            },
+            {
+                expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.rightButton,
+                    browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.rightButton : eventUtils.WHICH_PARAMETER.leftButton),
+                action: function () {
+                    eventSimulator[type](domElement, { buttons: eventUtils.BUTTONS_PARAMETER.rightButton });
+                }
+            }];
     };
 
-    const testData = [{
-        expected:
-            getArgs(
-                'click',
-                eventUtils.BUTTON.left,
-                eventUtils.BUTTONS_PARAMETER.noButton,
-                eventUtils.WHICH_PARAMETER.leftButton),
-        action: function () {
-            eventSimulator.click(domElement);
+    const testData = [
+        {
+            expected:
+                    getArgs(
+                        'click',
+                        eventUtils.BUTTON.left,
+                        eventUtils.BUTTONS_PARAMETER.noButton,
+                        eventUtils.WHICH_PARAMETER.leftButton),
+            action: function () {
+                eventSimulator.click(domElement);
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'dblclick',
+                    eventUtils.BUTTON.left,
+                    eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.WHICH_PARAMETER.leftButton),
+            action: function () {
+                eventSimulator.dblclick(domElement);
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'contextmenu',
+                    eventUtils.BUTTON.right,
+                    browserUtils.isSafari ? eventUtils.BUTTONS_PARAMETER.rightButton : eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.WHICH_PARAMETER.rightButton),
+            action: function () {
+                eventSimulator.contextmenu(domElement);
+            }
+        }, {
+            expected:
+                getArgs(
+                    'mousedown',
+                    eventUtils.BUTTON.left,
+                    eventUtils.BUTTONS_PARAMETER.leftButton,
+                    eventUtils.WHICH_PARAMETER.leftButton),
+            action: function () {
+                eventSimulator.mousedown(domElement);
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'mousedown',
+                    eventUtils.BUTTON.right,
+                    eventUtils.BUTTONS_PARAMETER.rightButton,
+                    eventUtils.WHICH_PARAMETER.rightButton),
+            action: function () {
+                eventSimulator.mousedown(domElement, { button: eventUtils.BUTTON.right });
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'mouseup',
+                    eventUtils.BUTTON.left,
+                    eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.WHICH_PARAMETER.leftButton),
+            action: function () {
+                eventSimulator.mouseup(domElement);
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'mouseup',
+                    eventUtils.BUTTON.right,
+                    eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.WHICH_PARAMETER.rightButton),
+            action: function () {
+                eventSimulator.mouseup(domElement, { button: eventUtils.BUTTON.right });
+            }
         }
-    }, {
-        expected:
-            getArgs(
-                'dblclick',
-                eventUtils.BUTTON.left,
-                eventUtils.BUTTONS_PARAMETER.noButton,
-                eventUtils.WHICH_PARAMETER.leftButton),
-        action: function () {
-            eventSimulator.dblclick(domElement);
-        }
-    }, {
-        expected:
-            getArgs(
-                'contextmenu',
-                eventUtils.BUTTON.right,
-                browserUtils.isSafari ? eventUtils.BUTTONS_PARAMETER.rightButton : eventUtils.BUTTONS_PARAMETER.noButton,
-                eventUtils.WHICH_PARAMETER.rightButton),
-        action: function () {
-            eventSimulator.contextmenu(domElement);
-        }
-    }, {
-        expected:
-            getArgs(
-                'mousedown',
-                eventUtils.BUTTON.left,
-                eventUtils.BUTTONS_PARAMETER.leftButton,
-                eventUtils.WHICH_PARAMETER.leftButton),
-        action: function () {
-            eventSimulator.mousedown(domElement);
-        }
-    }, {
-        expected:
-            getArgs(
-                'mousedown',
-                eventUtils.BUTTON.right,
-                eventUtils.BUTTONS_PARAMETER.rightButton,
-                eventUtils.WHICH_PARAMETER.rightButton),
-        action: function () {
-            eventSimulator.mousedown(domElement, { button: eventUtils.BUTTON.right });
-        }
-    }, {
-        expected:
-            getArgs(
-                'mouseup',
-                eventUtils.BUTTON.left,
-                eventUtils.BUTTONS_PARAMETER.noButton,
-                eventUtils.WHICH_PARAMETER.leftButton),
-        action: function () {
-            eventSimulator.mouseup(domElement);
-        }
-    }, {
-        expected:
-            getArgs(
-                'mouseup',
-                eventUtils.BUTTON.right,
-                eventUtils.BUTTONS_PARAMETER.noButton,
-                eventUtils.WHICH_PARAMETER.rightButton),
-        action: function () {
-            eventSimulator.mouseup(domElement, { button: eventUtils.BUTTON.right });
-        }
-    }]
+    ]
         .concat(getExpectedMouseMoveEvents('mousemove'))
         .concat(getExpectedMouseMoveEvents('mouseover'))
         .concat(getExpectedMouseMoveEvents('mouseout'))
