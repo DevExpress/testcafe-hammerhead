@@ -486,9 +486,9 @@ export default class EventSimulator {
         pointerArgs.type    = pointerEventType;
         pointerArgs.offsetX = args.clientX - elClientPosition.x;
         pointerArgs.offsetY = args.clientY - elClientPosition.y;
-        pointerArgs.button  = args.buttons === eventUtils.BUTTONS_PARAMETER.noButton
-            ? POINTER_EVENT_BUTTON.noButton
-            : pointerArgs.button;
+
+        if (eventShortType === 'move' || eventShortType === 'over' || eventShortType === 'out')
+            pointerArgs.button = args.buttons === eventUtils.BUTTONS_PARAMETER.noButton ? POINTER_EVENT_BUTTON.noButton : pointerArgs.button;
 
         if (browserUtils.isIE) {
             pointerArgs.rotation = 0;
@@ -757,12 +757,11 @@ export default class EventSimulator {
 
     mouseup (el, options = {}) {
         const button  = options.button === void 0 ? eventUtils.BUTTON.left : options.button;
-        const buttons = eventUtils.BUTTONS_PARAMETER.noButton;
 
-        options.button  = button;
-        options.buttons = options.buttons === void 0 ? buttons : options.buttons;
-
-        return this._simulateEvent(el, 'mouseup', options);
+        return this._simulateEvent(el, 'mouseup', options, {
+            button,
+            buttons: eventUtils.BUTTONS_PARAMETER.noButton
+        });
     }
 
     mouseover (el, options) {
