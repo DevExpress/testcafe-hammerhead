@@ -34,7 +34,7 @@ function testIframeFlagViaAttrs (doc, iframeFlagResults) {
         doc.body.appendChild(el);
 
         Object.keys(iframeFlagResults).forEach(function (targetValue, index, keys) {
-            el.target = targetValue;
+            el.target   = targetValue;
             el[urlAttr] = url;
 
             strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)),
@@ -51,6 +51,47 @@ function testIframeFlagViaAttrs (doc, iframeFlagResults) {
         });
 
         doc.body.removeChild(el);
+    });
+}
+
+var tagFormTargetAttr = {
+    input:  'formAction',
+    button: 'formAction'
+};
+
+function testIframeFlagViaFormTarget (doc, iframeFlagResults) {
+    var url                   = 'https://example.com/';
+    var hasIframeFlagByTarget = function (tagName, targetValue) {
+        return tagName === 'base' ? false : iframeFlagResults[targetValue];
+    };
+
+    Object.keys(tagFormTargetAttr).forEach(function (tagName) {
+        var el      = doc.createElement(tagName);
+        var urlAttr = tagFormTargetAttr[tagName];
+        var form;
+
+        form = doc.createElement('form');
+        doc.body.appendChild(form);
+        form.appendChild(el);
+
+        Object.keys(iframeFlagResults).forEach(function (targetValue, index, keys) {
+            el.formTarget = targetValue;
+            el[urlAttr]   = url;
+
+            strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)),
+                hasIframeFlagByTarget(tagName, targetValue),
+                tagName + ' formtarget=' + targetValue);
+
+            var nextTargetValue = keys[(index + 1) % keys.length];
+
+            el.formTarget = nextTargetValue;
+
+            strictEqual(hasIframeFlag(nativeMethods.getAttribute.call(el, urlAttr)),
+                hasIframeFlagByTarget(tagName, nextTargetValue),
+                tagName + ' formtarget=' + nextTargetValue);
+        });
+
+        doc.body.removeChild(form);
     });
 }
 
@@ -226,6 +267,26 @@ test('change iframe name', function () {
 //    document.body.removeChild(iframe);
 //    document.body.removeChild(a);
 //});
+
+
+module('formtarget');
+
+test('assign a "formaction" attribute to elements with the "formtarget" attribute in top window', function () {
+    return createTestIframe({ name: 'window_name' })
+        .then(function () {
+            /* eslint-disable camelcase */
+            testIframeFlagViaFormTarget(document, {
+                _blank:        false,
+                _self:         false,
+                _parent:       false,
+                _top:          false,
+                window_name:   true,
+                unknow_window: false
+            });
+            /* eslint-enable camelcase */
+        });
+});
+
 
 module('location');
 

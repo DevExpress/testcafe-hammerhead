@@ -193,22 +193,6 @@ test('javascript protocol', function () {
     strictEqual(nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href')), attrValue);
 });
 
-test('anchor with target attribute', function () {
-    var anchor   = nativeMethods.createElement.call(document, 'a');
-    var testUrl  = 'http://url.com/';
-    var proxyUrl = urlUtils.getProxyUrl(testUrl, { resourceType: 'i' });
-
-    nativeMethods.setAttribute.call(anchor, 'href', testUrl);
-    nativeMethods.setAttribute.call(anchor, 'target', 'iframeName');
-
-    domProcessor.processElement(anchor, function (url, resourceType) {
-        return urlUtils.getProxyUrl(url, { resourceType: resourceType });
-    });
-
-    strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), proxyUrl);
-    strictEqual(nativeMethods.getAttribute.call(anchor, DomProcessor.getStoredAttrName('href')), testUrl);
-});
-
 test('autocomplete attribute', function () {
     var input1 = nativeMethods.createElement.call(document, 'input');
     var input2 = nativeMethods.createElement.call(document, 'input');

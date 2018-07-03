@@ -174,39 +174,51 @@ test('all possible elements', function () {
 
 module('"formtarget" attribute');
 
-test('process html', function () {
+test('process html, correct resource type in "formaction" attribute', function () {
     var form = document.createElement('form');
 
     document.body.appendChild(form);
 
-    form.innerHTML = '<input type="submit" formtarget="_blank">' +
-                     '<input type="submit" formtarget="_parent">' +
-                     '<input type="submit" formtarget="_self">' +
-                     '<input type="submit" formtarget="_top">' +
-                     '<input type="submit" formtarget="unknown_window">' +
-                     '<input type="submit" formtarget="window_name">' +
-                     '<button type="submit" formtarget="_blank"></button>' +
-                     '<button type="submit" formtarget="_parent"></button>' +
-                     '<button type="submit" formtarget="_self"></button>' +
-                     '<button type="submit" formtarget="_top"></button>' +
-                     '<button type="submit" formtarget="unknown_window"></button>' +
-                     '<button type="submit" formtarget="window_name"></button>';
+    form.innerHTML = '<input type="submit" formaction="http://input.formaction.com/" formtarget="_blank">' +
+                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="_parent">' +
+                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="_self">' +
+                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="_top">' +
+                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="unknown_window">' +
+                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="window_name">' +
+                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="_blank"></button>' +
+                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="_parent"></button>' +
+                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="_self"></button>' +
+                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="_top"></button>' +
+                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="unknown_window"></button>' +
+                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="window_name"></button>';
 
     var children = form.children;
 
     checkElementFormTarget(children[0], '_top', '_blank');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[0])).resourceType, 'f');
     checkElementFormTarget(children[1], '_parent', '_parent');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[1])).resourceType, 'f');
     checkElementFormTarget(children[2], '_self', '_self');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[2])).resourceType, 'f');
     checkElementFormTarget(children[3], '_top', '_top');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[3])).resourceType, 'f');
     checkElementFormTarget(children[4], 'unknown_window', 'unknown_window');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[4])).resourceType, 'f');
     checkElementFormTarget(children[5], 'window_name', 'window_name');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[5])).resourceType, 'if');
 
     checkElementFormTarget(children[6], '_top', '_blank');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[6])).resourceType, 'f');
     checkElementFormTarget(children[7], '_parent', '_parent');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[7])).resourceType, 'f');
     checkElementFormTarget(children[8], '_self', '_self');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[8])).resourceType, 'f');
     checkElementFormTarget(children[9], '_top', '_top');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[9])).resourceType, 'f');
     checkElementFormTarget(children[10], 'unknown_window', 'unknown_window');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[10])).resourceType, 'f');
     checkElementFormTarget(children[11], 'window_name', 'window_name');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[11])).resourceType, 'if');
 
     document.body.removeChild(form);
 });
@@ -273,6 +285,69 @@ test('removeAttribute, hasAttribute', function () {
     ok(!button.hasAttribute('formtarget'));
 
     document.body.removeChild(form);
+});
+
+test('change "formaction" after "formtarget" attribute changed', function () {
+    var iframe     = document.createElement('iframe');
+    var url        = 'http://some.domain.com/index.html';
+    var iframeName = 'iframe-window';
+    var form       = document.createElement('form');
+
+    iframe.id   = 'test-' + Date.now();
+    iframe.name = iframeName;
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+
+    var checkResourceType = function (elUrl, hasFormFlag, hasIframeFlag) {
+        var expected = null;
+
+        if (hasIframeFlag)
+            expected = 'i';
+
+        if (hasFormFlag)
+            expected = (expected || '') + 'f';
+
+        strictEqual(urlUtils.parseProxyUrl(elUrl).resourceType, expected);
+    };
+
+    var checkElement = function (el, attr, hasFormFlag, hasIframeFlag) {
+        form.appendChild(el);
+
+        el.setAttribute(attr, url);
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+
+        el.setAttribute('formtarget', iframeName);
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        el.removeAttribute('formtarget');
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+
+        el.setAttribute('formtarget', iframeName);
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        el.setAttribute('formtarget', '');
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+
+        el.formTarget = iframeName;
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        el.formTarget = '';
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+
+        el.setAttribute('formtarget', iframeName);
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        el.setAttribute('formtarget', '_Self');
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+
+        el.setAttribute('formtarget', iframeName);
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        el.setAttribute('formtarget', '_parent');
+        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+
+        el.parentNode.removeChild(el);
+    };
+
+    checkElement(document.createElement('input'), 'formaction', true, true);
+    checkElement(document.createElement('button'), 'formaction', true, true);
+
+    iframe.parentNode.removeChild(iframe);
 });
 
 

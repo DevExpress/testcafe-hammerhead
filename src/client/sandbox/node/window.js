@@ -783,6 +783,11 @@ export default class WindowSandbox extends SandboxBase {
             window.HTMLBaseElement
         ]);
 
+        this._overrideAttrDescriptors('formTarget', [
+            window.HTMLInputElement,
+            window.HTMLButtonElement
+        ]);
+
         this._overrideAttrDescriptors('autocomplete', [window.HTMLInputElement]);
 
         // NOTE: Some browsers (for example, Edge, Internet Explorer 11, Safari) don't support the 'integrity' property.
@@ -1001,8 +1006,12 @@ export default class WindowSandbox extends SandboxBase {
                         processedValue = styleProcessor.process(processedValue, getProxyUrl, true);
                     else if (isScriptEl)
                         processedValue = processScript(processedValue, true);
-                    else
-                        processedValue = processHtml(processedValue, { parentTag: el.tagName });
+                    else {
+                        processedValue = processHtml(processedValue, {
+                            parentTag:        el.tagName,
+                            processedContext: el[INTERNAL_PROPS.processedContext]
+                        });
+                    }
                 }
 
                 if (!isStyleEl && !isScriptEl)

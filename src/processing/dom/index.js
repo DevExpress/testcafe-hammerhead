@@ -153,6 +153,17 @@ export default class DomProcessor {
 
         return [
             {
+                selector:          selectors.HAS_TARGET_ATTR,
+                targetAttr:        'target',
+                elementProcessors: [this._processTargetBlank]
+            },
+            {
+                selector:          selectors.HAS_FORMTARGET_ATTR,
+                urlAttr:           'formaction',
+                targetAttr:        'formtarget',
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+            },
+            {
                 selector:          selectors.HAS_HREF_ATTR,
                 urlAttr:           'href',
                 elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
@@ -170,17 +181,8 @@ export default class DomProcessor {
             {
                 selector:          selectors.HAS_FORMACTION_ATTR,
                 urlAttr:           'formaction',
-                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
-            },
-            {
-                selector:          selectors.HAS_TARGET_ATTR,
-                targetAttr:        'target',
-                elementProcessors: [this._processTargetBlank]
-            },
-            {
-                selector:          selectors.HAS_FORMTARGET_ATTR,
                 targetAttr:        'formtarget',
-                elementProcessors: [this._processTargetBlank]
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_MANIFEST_ATTR,
@@ -296,7 +298,7 @@ export default class DomProcessor {
             if (target === '_parent')
                 return mustProcessTag && !this.adapter.isTopParentIframe(el);
 
-            if (mustProcessTag && (this.adapter.hasIframeParent(el) || isNameTarget))
+            if (mustProcessTag && (this.adapter.hasIframeParent(el) || isNameTarget && this.adapter.isExistingTarget(target)))
                 return true;
         }
 
@@ -496,11 +498,12 @@ export default class DomProcessor {
             // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
                 if (urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) {
-                    const elTagName = this.adapter.getTagName(el);
-                    const isIframe  = elTagName === 'iframe' || elTagName === 'frame';
-                    const isScript  = elTagName === 'script';
-                    const isAnchor  = elTagName === 'a';
-                    const target    = this.adapter.getAttr(el, 'target');
+                    const elTagName  = this.adapter.getTagName(el);
+                    const isIframe   = elTagName === 'iframe' || elTagName === 'frame';
+                    const isScript   = elTagName === 'script';
+                    const isAnchor   = elTagName === 'a';
+                    const targetAttr = pattern.targetAttr ? pattern.targetAttr : 'target';
+                    const target     = this.adapter.getAttr(el, targetAttr);
 
                     // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
                     // know what is the parent of the processed page (an iframe or the top window).

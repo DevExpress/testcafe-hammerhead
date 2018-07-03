@@ -96,4 +96,8 @@ export default class BaseDomAdapter {
     getClassName () {
         throw new Error('Not implemented');
     }
+
+    isExistingTarget () {
+        throw new Error('Not implemented');
+    }
 }
