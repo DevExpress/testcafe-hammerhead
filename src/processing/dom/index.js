@@ -156,16 +156,19 @@ export default class DomProcessor {
             {
                 selector:          selectors.HAS_HREF_ATTR,
                 urlAttr:           'href',
+                targetAttr:        'target',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_SRC_ATTR,
                 urlAttr:           'src',
+                targetAttr:        'target',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_ACTION_ATTR,
                 urlAttr:           'action',
+                targetAttr:        'target',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
@@ -461,18 +464,17 @@ export default class DomProcessor {
     }
 
     _processTargetBlank (el, urlReplacer, pattern) {
-        const targetAttr       = pattern.targetAttr || 'target';
-        const storedTargetAttr = DomProcessor.getStoredAttrName(targetAttr);
+        const storedTargetAttr = DomProcessor.getStoredAttrName(pattern.targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
         if (!processed) {
-            let attrValue = this.adapter.getAttr(el, targetAttr);
+            let attrValue = this.adapter.getAttr(el, pattern.targetAttr);
 
             // NOTE: Value may have whitespace.
             attrValue = attrValue && attrValue.replace(/\s/g, '');
 
             if (attrValue === '_blank' || attrValue === 'blank') {
-                this.adapter.setAttr(el, targetAttr, '_top');
+                this.adapter.setAttr(el, pattern.targetAttr, '_top');
                 this.adapter.setAttr(el, storedTargetAttr, attrValue);
             }
         }
@@ -488,12 +490,11 @@ export default class DomProcessor {
             // NOTE: Page resource URL with proxy URL.
             if ((resourceUrl || resourceUrl === '') && !processedOnServer) {
                 if (urlUtils.isSupportedProtocol(resourceUrl) || isSpecialPage) {
-                    const elTagName  = this.adapter.getTagName(el);
-                    const isIframe   = elTagName === 'iframe' || elTagName === 'frame';
-                    const isScript   = elTagName === 'script';
-                    const isAnchor   = elTagName === 'a';
-                    const targetAttr = pattern.targetAttr || 'target';
-                    const target     = this.adapter.getAttr(el, targetAttr);
+                    const elTagName = this.adapter.getTagName(el);
+                    const isIframe  = elTagName === 'iframe' || elTagName === 'frame';
+                    const isScript  = elTagName === 'script';
+                    const isAnchor  = elTagName === 'a';
+                    const target    = this.adapter.getAttr(el, pattern.targetAttr);
 
                     // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
                     // know what is the parent of the processed page (an iframe or the top window).
