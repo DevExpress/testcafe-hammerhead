@@ -106,10 +106,6 @@ export default class DomProcessor {
 
             HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction'),
 
-            HAS_TARGET_ATTR: el => {
-                return DomProcessor.isTagWithTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'target');
-            },
-
             HAS_FORMTARGET_ATTR: el => {
                 return DomProcessor.isTagWithFormTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'formtarget');
             },
@@ -153,30 +149,24 @@ export default class DomProcessor {
 
         return [
             {
-                selector:          selectors.HAS_TARGET_ATTR,
-                targetAttr:        'target',
-                elementProcessors: [this._processTargetBlank]
-            },
-            {
                 selector:          selectors.HAS_FORMTARGET_ATTR,
-                urlAttr:           'formaction',
                 targetAttr:        'formtarget',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processTargetBlank]
             },
             {
                 selector:          selectors.HAS_HREF_ATTR,
                 urlAttr:           'href',
-                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_SRC_ATTR,
                 urlAttr:           'src',
-                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_ACTION_ATTR,
                 urlAttr:           'action',
-                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
+                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_FORMACTION_ATTR,
@@ -471,7 +461,7 @@ export default class DomProcessor {
     }
 
     _processTargetBlank (el, urlReplacer, pattern) {
-        const targetAttr       = pattern.targetAttr;
+        const targetAttr       = pattern.targetAttr || 'target';
         const storedTargetAttr = DomProcessor.getStoredAttrName(targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
@@ -502,7 +492,7 @@ export default class DomProcessor {
                     const isIframe   = elTagName === 'iframe' || elTagName === 'frame';
                     const isScript   = elTagName === 'script';
                     const isAnchor   = elTagName === 'a';
-                    const targetAttr = pattern.targetAttr ? pattern.targetAttr : 'target';
+                    const targetAttr = pattern.targetAttr || 'target';
                     const target     = this.adapter.getAttr(el, targetAttr);
 
                     // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't

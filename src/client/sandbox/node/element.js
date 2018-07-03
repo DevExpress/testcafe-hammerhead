@@ -158,10 +158,10 @@ export default class ElementSandbox extends SandboxBase {
                     let resourceType       = domProcessor.getElementResourceType(el);
                     const elCharset        = isScript && el.charset;
 
-                    if (loweredAttr === 'formaction' && !el.hasAttribute('formtarget')) {
+                    if (loweredAttr === 'formaction' && !nativeMethods.hasAttribute.call(el, 'formtarget')) {
                         resourceType = 'f';
 
-                        if (el.form && el.form.hasAttribute('action')) {
+                        if (el.form && nativeMethods.hasAttribute.call(el.form, 'action')) {
                             const parsedFormAction = urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(el.form));
 
                             if (parsedFormAction)
