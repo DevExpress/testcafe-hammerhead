@@ -555,7 +555,7 @@ test('mouse event buttons properties', function () {
                 getArgs(
                     'contextmenu',
                     eventUtils.BUTTON.right,
-                    browserUtils.isSafari ? eventUtils.BUTTONS_PARAMETER.rightButton : eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.BUTTONS_PARAMETER.noButton,
                     eventUtils.WHICH_PARAMETER.rightButton),
             action: function () {
                 eventSimulator.contextmenu(domElement);

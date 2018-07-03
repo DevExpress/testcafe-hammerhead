@@ -741,7 +741,7 @@ export default class EventSimulator {
     contextmenu (el, options) {
         return this._simulateEvent(el, 'contextmenu', options, {
             button:  eventUtils.BUTTON.right,
-            buttons: browserUtils.isSafari ? eventUtils.BUTTONS_PARAMETER.rightButton : eventUtils.BUTTONS_PARAMETER.noButton
+            buttons: eventUtils.BUTTONS_PARAMETER.noButton
         });
     }
 
