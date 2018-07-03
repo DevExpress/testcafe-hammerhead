@@ -56,7 +56,7 @@ function transformCookie (src, ctx) {
 function generateServerSyncCookie (ctx, parsedCookies) {
     parsedCookies = parsedCookies.filter(cookie => !cookie.httpOnly);
 
-    const syncWithClientCookies = parsedCookies
+    let syncWithClientCookies = parsedCookies
         .map(cookie => {
             cookie.isServerSync = true;
             cookie.sid          = ctx.session.id;
@@ -64,20 +64,24 @@ function generateServerSyncCookie (ctx, parsedCookies) {
             return formatSyncCookie(cookie);
         });
 
-    const obsoleteSyncCookies = ctx.req.headers.cookie
-        ? parseClientSyncCookieStr(ctx.req.headers.cookie)
-            .filter(clientCookie => {
+    if (ctx.req.headers.cookie) {
+        const parsedClientSyncCookie = parseClientSyncCookieStr(ctx.req.headers.cookie);
+
+        const obsoleteSyncCookies = parsedClientSyncCookie.outdated
+            .concat(parsedClientSyncCookie.actual.filter(clientCookie => {
                 for (const serverCookie of parsedCookies) {
                     if (isOutdatedSyncCookie(clientCookie, serverCookie))
                         return true;
                 }
 
                 return false;
-            })
-            .map(generateDeleteSyncCookieStr)
-        : [];
+            }))
+            .map(generateDeleteSyncCookieStr);
 
-    return obsoleteSyncCookies.concat(syncWithClientCookies);
+        syncWithClientCookies = obsoleteSyncCookies.concat(syncWithClientCookies);
+    }
+
+    return syncWithClientCookies;
 }
 
 function resolveAndGetProxyUrl (url, ctx) {

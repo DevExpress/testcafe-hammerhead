@@ -172,16 +172,22 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     syncServerCookie () {
-        const cookies       = nativeMethods.documentCookieGetter.call(this.document);
-        const parsedCookies = parseClientSyncCookieStr(cookies);
-        const sessionId     = settings.get().sessionId;
+        const cookies        = nativeMethods.documentCookieGetter.call(this.document);
+        const parsedCookies  = parseClientSyncCookieStr(cookies);
+        const sessionId      = settings.get().sessionId;
+        const cookiesForSync = [];
 
-        for (const parsedCookie of parsedCookies) {
+        for (const outdatedCookie of parsedCookies.outdated)
+            nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(outdatedCookie));
+
+        for (const parsedCookie of parsedCookies.actual) {
             if (sessionId === parsedCookie.sid && parsedCookie.isServerSync) {
                 this.setCookie(this.document, parsedCookie, false);
-
-                nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
+                cookiesForSync.push(parsedCookie);
             }
         }
+
+        for (const parsedCookie of cookiesForSync)
+            nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
     }
 }

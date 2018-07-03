@@ -1,11 +1,13 @@
-var cookieUtils  = hammerhead.get('./utils/cookie');
-var settings     = hammerhead.get('./settings');
-var urlUtils     = hammerhead.get('./utils/url');
-var destLocation = hammerhead.get('./utils/destination-location');
+var cookieUtils       = hammerhead.get('./utils/cookie');
+var sharedCookieUtils = hammerhead.get('../utils/cookie');
+var settings          = hammerhead.get('./settings');
+var urlUtils          = hammerhead.get('./utils/url');
+var destLocation      = hammerhead.get('./utils/destination-location');
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var cookieSync    = hammerhead.sandbox.cookie.cookieSync;
+var Promise       = hammerhead.Promise;
 
 function setCookieWithoutServerSync (value) {
     var storedFn = cookieSync.perform;
@@ -89,6 +91,73 @@ test('remove real cookie after browser processing', function () {
     strictEqual(nativeMethods.documentCookieGetter.call(document).indexOf(uniqKey), -1);
 });
 
+module('unnecessary synchronization cookies');
+
+test('different path', function () {
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2Fpath||1fckm5lnl=123;path=/');
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1=321;path=/');
+
+    var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
+
+    strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2Fpath||1fckm5lnl');
+    strictEqual(parsedCookie.actual[1].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
+
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[1]));
+});
+
+test('different domain', function () {
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.uk|%2F||1fckm5ln1=321;path=/');
+
+    var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
+
+    strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5lnl');
+    strictEqual(parsedCookie.actual[1].syncKey, 's|sessionId|test|example.uk|%2F||1fckm5ln1');
+
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[1]));
+});
+
+test('same lastAccessed time and different expire time', function () {
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F|1fm3324lk|1fckm5ln1=123;path=/');
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F|1fm3g5ln1|1fckm5ln1=321;path=/');
+
+    var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
+
+    strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F|1fm3g5ln1|1fckm5ln1');
+    strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F|1fm3324lk|1fckm5ln1');
+
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.outdated[0]));
+});
+
+test('different lastAccessed time and first is lower', function () {
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1=123;path=/');
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2=321;path=/');
+
+    var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
+
+    strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2');
+    strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
+
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.outdated[0]));
+});
+
+test('different lastAccessed time and last is lower', function () {
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2=123;path=/');
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln1=321;path=/');
+
+    var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
+
+    strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2');
+    strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
+
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
+    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.outdated[0]));
+});
+
 module('server synchronization with client');
 
 test('process synchronization cookies on document.cookie getter', function () {
@@ -117,7 +186,7 @@ test('process synchronization cookies on document.cookie setter', function () {
     strictEqual(nativeMethods.documentCookieGetter.call(document), '');
 });
 
-asyncTest('set cookie from the XMLHttpRequest', function () {
+test('set cookie from the XMLHttpRequest', function () {
     settings.get().cookie = '';
 
     var xhr = new XMLHttpRequest();
@@ -125,14 +194,15 @@ asyncTest('set cookie from the XMLHttpRequest', function () {
     strictEqual(nativeMethods.documentCookieGetter.call(document), '');
     strictEqual(document.cookie, '');
 
-    xhr.open('GET', '/xhr-with-sync-cookie/', true);
-    xhr.addEventListener('load', function () {
-        strictEqual(nativeMethods.documentCookieGetter.call(document), '');
-        strictEqual(document.cookie, 'hello=world');
-
-        start();
-    });
-    xhr.send();
+    return new Promise(function (resolve) {
+        xhr.open('GET', '/xhr-with-sync-cookie/', true);
+        xhr.addEventListener('load', resolve);
+        xhr.send();
+    })
+        .then(function () {
+            strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+            strictEqual(document.cookie, 'hello=world');
+        });
 });
 
 if (window.fetch) {

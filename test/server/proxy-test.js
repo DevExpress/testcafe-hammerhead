@@ -629,7 +629,11 @@ describe('Proxy', () => {
                 const options      = {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
                     headers: {
-                        cookie: `s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=321;path=/`
+                        cookie: [
+                            `s|${session.id}|aaa|127.0.0.1|%2F||123456788=temp`,
+                            `s|${session.id}|aaa|127.0.0.1|%2F||123456789=test`,
+                            `s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=321`
+                        ].join('; ')
                     },
 
                     resolveWithFullResponse: true,
@@ -639,8 +643,10 @@ describe('Proxy', () => {
                 return request(options)
                     .then(res => {
                         expect(res.headers['set-cookie'][0])
+                            .eql(`s|${session.id}|aaa|127.0.0.1|%2F||123456788=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                        expect(res.headers['set-cookie'][1])
                             .eql(`s|${session.id}|bbb|127.0.0.1|%2F||${obsoleteTime}=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
-                        expect(replaceLastAccessedTime(res.headers['set-cookie'][1]))
+                        expect(replaceLastAccessedTime(res.headers['set-cookie'][2]))
                             .eql(`s|${session.id}|bbb|127.0.0.1|%2F||%lastAccessed%=321;path=/`);
                     });
             });
