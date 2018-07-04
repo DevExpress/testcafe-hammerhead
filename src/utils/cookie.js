@@ -12,6 +12,41 @@ const SYNCHRONIZATION_TYPE   = {
     client: 'c'
 };
 
+function isSameCookies (cookie1, cookie2) {
+    return cookie1.sid === cookie2.sid &&
+           cookie1.key === cookie2.key &&
+           cookie1.domain === cookie2.domain &&
+           cookie1.path === cookie2.path;
+}
+
+function sortByOutdatedAndActual (parsedCookies) {
+    const outdated = [];
+    const actual   = [];
+
+    for (let current = 0; current < parsedCookies.length; current++) {
+        let other = current + 1;
+
+        for (; other < parsedCookies.length; other++) {
+            if (isSameCookies(parsedCookies[current], parsedCookies[other])) {
+                if (parsedCookies[current].lastAccessed > parsedCookies[other].lastAccessed) {
+                    const temp = parsedCookies[current];
+
+                    parsedCookies[current] = parsedCookies[other];
+                    parsedCookies[other]   = temp;
+                }
+
+                outdated.push(parsedCookies[current]);
+                break;
+            }
+        }
+
+        if (other === parsedCookies.length)
+            actual.push(parsedCookies[current]);
+    }
+
+    return { outdated, actual };
+}
+
 export function parseClientSyncCookieStr (cookieStr) {
     const cookies       = cookieStr ? cookieStr.split(';') : '';
     const parsedCookies = [];
@@ -23,7 +58,7 @@ export function parseClientSyncCookieStr (cookieStr) {
             parsedCookies.push(parsedCookie);
     }
 
-    return parsedCookies;
+    return sortByOutdatedAndActual(parsedCookies);
 }
 
 export function formatSyncCookie (cookie) {
