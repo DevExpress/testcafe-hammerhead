@@ -475,6 +475,160 @@ if (!browserUtils.isFirefox) {
     });
 }
 
+test('mouse event buttons properties', function () {
+    var actualLog = {};
+
+    var getButtonsProperty = function (buttons) {
+        return browserUtils.isSafari ? void 0 : buttons;
+    };
+
+    var eventHandler = function (e) {
+        var args = {
+            type:    e.type,
+            button:  e.button,
+            buttons: getButtonsProperty(e.buttons),
+            which:   e.which
+        };
+
+        actualLog[e.type] = args;
+    };
+
+    var getArgs = function (type, button, buttons, which) {
+        return {
+            type:    type,
+            button:  button,
+            buttons: getButtonsProperty(buttons),
+            which:   which
+        };
+    };
+
+    var getExpectedMouseMoveEvents = function (type) {
+        return [
+            {
+                expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.noButton,
+                    browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.noButton : eventUtils.WHICH_PARAMETER.leftButton),
+                action: function () {
+                    eventSimulator[type](domElement);
+                }
+            },
+            {
+                expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.leftButton,
+                    eventUtils.WHICH_PARAMETER.leftButton),
+                action: function () {
+                    eventSimulator[type](domElement, { buttons: eventUtils.BUTTONS_PARAMETER.leftButton });
+                }
+            },
+            {
+                expected: getArgs(type, eventUtils.BUTTON.left, eventUtils.BUTTONS_PARAMETER.rightButton,
+                    browserUtils.isWebKit ? eventUtils.WHICH_PARAMETER.rightButton : eventUtils.WHICH_PARAMETER.leftButton),
+                action: function () {
+                    eventSimulator[type](domElement, { buttons: eventUtils.BUTTONS_PARAMETER.rightButton });
+                }
+            }];
+    };
+
+    const testCases = [
+        {
+            expected:
+                    getArgs(
+                        'click',
+                        eventUtils.BUTTON.left,
+                        eventUtils.BUTTONS_PARAMETER.noButton,
+                        eventUtils.WHICH_PARAMETER.leftButton),
+            action: function () {
+                eventSimulator.click(domElement);
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'dblclick',
+                    eventUtils.BUTTON.left,
+                    eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.WHICH_PARAMETER.leftButton),
+            action: function () {
+                eventSimulator.dblclick(domElement);
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'contextmenu',
+                    eventUtils.BUTTON.right,
+                    eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.WHICH_PARAMETER.rightButton),
+            action: function () {
+                eventSimulator.contextmenu(domElement);
+            }
+        }, {
+            expected:
+                getArgs(
+                    'mousedown',
+                    eventUtils.BUTTON.left,
+                    eventUtils.BUTTONS_PARAMETER.leftButton,
+                    eventUtils.WHICH_PARAMETER.leftButton),
+            action: function () {
+                eventSimulator.mousedown(domElement);
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'mousedown',
+                    eventUtils.BUTTON.right,
+                    eventUtils.BUTTONS_PARAMETER.rightButton,
+                    eventUtils.WHICH_PARAMETER.rightButton),
+            action: function () {
+                eventSimulator.mousedown(domElement, { button: eventUtils.BUTTON.right });
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'mouseup',
+                    eventUtils.BUTTON.left,
+                    eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.WHICH_PARAMETER.leftButton),
+            action: function () {
+                eventSimulator.mouseup(domElement);
+            }
+        },
+        {
+            expected:
+                getArgs(
+                    'mouseup',
+                    eventUtils.BUTTON.right,
+                    eventUtils.BUTTONS_PARAMETER.noButton,
+                    eventUtils.WHICH_PARAMETER.rightButton),
+            action: function () {
+                eventSimulator.mouseup(domElement, { button: eventUtils.BUTTON.right });
+            }
+        }
+    ]
+        .concat(getExpectedMouseMoveEvents('mousemove'))
+        .concat(getExpectedMouseMoveEvents('mouseover'))
+        .concat(getExpectedMouseMoveEvents('mouseout'))
+        .concat(getExpectedMouseMoveEvents('mouseenter'))
+        .concat(getExpectedMouseMoveEvents('mouseleave'));
+
+    domElement.addEventListener('click', eventHandler);
+    domElement.addEventListener('dblclick', eventHandler);
+    domElement.addEventListener('contextmenu', eventHandler);
+    domElement.addEventListener('mousedown', eventHandler);
+    domElement.addEventListener('mouseup', eventHandler);
+    domElement.addEventListener('mouseover', eventHandler);
+    domElement.addEventListener('mouseout', eventHandler);
+    domElement.addEventListener('mouseenter', eventHandler);
+    domElement.addEventListener('mouseleave', eventHandler);
+    domElement.addEventListener('mousemove', eventHandler);
+
+    testCases.forEach(function (testCase) {
+        testCase.action();
+
+        deepEqual(actualLog[testCase.expected.type], testCase.expected);
+    });
+});
+
 module('regression');
 
 if (browserUtils.isIE) {
@@ -692,3 +846,4 @@ test('wrong type of the blur event (GH-947)', function () {
     eventSimulator.blur(domElement);
     ok(raised);
 });
+
