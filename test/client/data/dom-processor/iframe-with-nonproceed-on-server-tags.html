@@ -16,8 +16,15 @@
     });
 </script>
 <a id="processed-anchor" target="_parent" href="http://localhost/anchor-action.html">link</a>
-<form id="processed-form" target="_parent" action="http://localhost/form-action.html"></form>
+<form id="tst-form" target="_blank" action="http://localhost/form-action.html"></form>
+<form id="processed-form" target="_parent" action="http://localhost/form-action.html">
+    <input id="processed-input" formaction="http://localhost/input-formAction.html" formtarget="_parent">
+    <button id="processed-button" formaction="http://localhost/button-formAction.html" formtarget="_parent"></button>
+</form>
 <a id="non-processed-anchor" target="_self" href="http://localhost/anchor-action.html">link</a>
-<form id="non-processed-form" action="http://localhost/form-action.html"></form>
+<form id="non-processed-form" action="http://localhost/form-action.html">
+    <input id="non-processed-input" formaction="http://localhost/input-formAction.html">
+    <button id="non-processed-button" formaction="http://localhost/button-formAction.html"></button>
+</form>
 </body>
 </html>

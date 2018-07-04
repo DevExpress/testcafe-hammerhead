@@ -627,23 +627,35 @@ test('should reprocess tags that doesn\'t processed on server side (GH-838)', fu
 
     return createTestIframe({ src: src })
         .then(function (iframe) {
-            var processedAnchor     = iframe.contentDocument.querySelector('#processed-anchor');
-            var processedForm       = iframe.contentDocument.querySelector('#processed-form');
-            var processedAnchorHref = nativeMethods.anchorHrefGetter.call(processedAnchor);
-            var processedFormAction = nativeMethods.formActionGetter.call(processedForm);
+            var processedAnchor           = iframe.contentDocument.querySelector('#processed-anchor');
+            var processedForm             = iframe.contentDocument.querySelector('#processed-form');
+            var processedInput            = iframe.contentDocument.querySelector('#processed-input');
+            var processedButton           = iframe.contentDocument.querySelector('#processed-button');
+            var processedAnchorHref       = nativeMethods.anchorHrefGetter.call(processedAnchor);
+            var processedFormAction       = nativeMethods.formActionGetter.call(processedForm);
+            var processedInputFormAction  = nativeMethods.inputFormActionGetter.call(processedInput);
+            var processedButtonFormAction = nativeMethods.buttonFormActionGetter.call(processedButton);
 
             strictEqual(processedAnchorHref, urlUtils.getProxyUrl('http://localhost/anchor-action.html'));
             strictEqual(processedFormAction, urlUtils.getProxyUrl('http://localhost/form-action.html', { resourceType: 'f' }));
+            strictEqual(processedInputFormAction, urlUtils.getProxyUrl('http://localhost/input-formAction.html', { resourceType: 'f' }));
+            strictEqual(processedButtonFormAction, urlUtils.getProxyUrl('http://localhost/button-formAction.html', { resourceType: 'f' }));
 
             // NOTE: These tags shouldn't be reprocessed on the client side
             // because they are already processed on the server
-            var nonProcessedAnchor     = iframe.contentDocument.querySelector('#non-processed-anchor');
-            var nonProcessedForm       = iframe.contentDocument.querySelector('#non-processed-form');
-            var nonProcessedAnchorHref = nativeMethods.anchorHrefGetter.call(nonProcessedAnchor);
-            var nonProcessedFormAction = nonProcessedForm.action;
+            var nonProcessedAnchor           = iframe.contentDocument.querySelector('#non-processed-anchor');
+            var nonProcessedForm             = iframe.contentDocument.querySelector('#non-processed-form');
+            var nonProcessedInput            = iframe.contentDocument.querySelector('#non-processed-input');
+            var nonProcessedButton           = iframe.contentDocument.querySelector('#non-processed-button');
+            var nonProcessedAnchorHref       = nativeMethods.anchorHrefGetter.call(nonProcessedAnchor);
+            var nonProcessedFormAction       = nonProcessedForm.action;
+            var nonProcessedInputFormAction  = nonProcessedInput.formAction;
+            var nonProcessedButtonFormAction = nonProcessedButton.formAction;
 
             strictEqual(nonProcessedAnchorHref, 'http://localhost/anchor-action.html');
             strictEqual(nonProcessedFormAction, 'http://localhost/form-action.html');
+            strictEqual(nonProcessedInputFormAction, 'http://localhost/input-formAction.html');
+            strictEqual(nonProcessedButtonFormAction, 'http://localhost/button-formAction.html');
         });
 });
 
