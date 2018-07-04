@@ -174,7 +174,7 @@ test('all possible elements', function () {
 
 module('"formtarget" attribute');
 
-test('process html, correct resource type in "formaction" attribute', function () {
+test('process html', function () {
     var form = document.createElement('form');
 
     document.body.appendChild(form);

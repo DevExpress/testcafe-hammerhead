@@ -62,7 +62,7 @@ var tagFormTargetAttr = {
 function testIframeFlagViaFormTarget (doc, iframeFlagResults) {
     var url                   = 'https://example.com/';
     var hasIframeFlagByTarget = function (tagName, targetValue) {
-        return tagName === 'base' ? false : iframeFlagResults[targetValue];
+        return iframeFlagResults[targetValue];
     };
 
     Object.keys(tagFormTargetAttr).forEach(function (tagName) {
@@ -279,6 +279,62 @@ test('assign a "formaction" attribute to elements with the "formtarget" attribut
                 _blank:        false,
                 _self:         false,
                 _parent:       false,
+                _top:          false,
+                window_name:   true,
+                unknow_window: false
+            });
+            /* eslint-enable camelcase */
+        });
+});
+
+test('assign a "formaction" attribute to elements with the "formtarget" attribute in iframe', function () {
+    // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
+    var src          = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
+    var parentIframe = null;
+
+    return createTestIframe({ src: src })
+        .then(function (iframe) {
+            parentIframe = iframe;
+
+            return createTestIframe({ name: 'window_name' }, iframe.contentDocument.body);
+        })
+        .then(function () {
+            /* eslint-disable camelcase */
+            testIframeFlagViaFormTarget(parentIframe.contentDocument, {
+                _blank:        false,
+                _self:         true,
+                _parent:       false,
+                _top:          false,
+                window_name:   true,
+                unknow_window: false
+            });
+            /* eslint-enable camelcase */
+        });
+});
+
+test('assign a "formaction" attribute to elements with the "formtarget" attribute in embedded iframe', function () {
+    // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
+    var src            = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
+    var embeddedIframe = null;
+
+    return createTestIframe({ src: src })
+        .then(function (iframe) {
+            return createTestIframe(null, iframe.contentDocument.body);
+        })
+        .then(function (iframe) {
+            embeddedIframe = iframe;
+
+            return createTestIframe({
+                src:  getSameDomainPageUrl('../../data/iframe/simple-iframe.html'),
+                name: 'window_name'
+            }, embeddedIframe.contentDocument.body);
+        })
+        .then(function () {
+            /* eslint-disable camelcase */
+            testIframeFlagViaFormTarget(embeddedIframe.contentDocument, {
+                _blank:        false,
+                _self:         true,
+                _parent:       true,
                 _top:          false,
                 window_name:   true,
                 unknow_window: false
