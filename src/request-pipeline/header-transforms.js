@@ -66,19 +66,19 @@ function generateServerSyncCookie (ctx, parsedCookies) {
 
     if (ctx.req.headers.cookie) {
         const parsedClientSyncCookie = parseClientSyncCookieStr(ctx.req.headers.cookie);
+        const outdatedSyncCookies    = parsedClientSyncCookie.actual.filter(clientCookie => {
+            for (const serverCookie of parsedCookies) {
+                if (isOutdatedSyncCookie(clientCookie, serverCookie))
+                    return true;
+            }
 
-        const obsoleteSyncCookies = parsedClientSyncCookie.outdated
-            .concat(parsedClientSyncCookie.actual.filter(clientCookie => {
-                for (const serverCookie of parsedCookies) {
-                    if (isOutdatedSyncCookie(clientCookie, serverCookie))
-                        return true;
-                }
+            return false;
+        });
 
-                return false;
-            }))
-            .map(generateDeleteSyncCookieStr);
-
-        syncWithClientCookies = obsoleteSyncCookies.concat(syncWithClientCookies);
+        syncWithClientCookies = parsedClientSyncCookie.outdated
+            .concat(outdatedSyncCookies)
+            .map(generateDeleteSyncCookieStr)
+            .concat(syncWithClientCookies);
     }
 
     return syncWithClientCookies;

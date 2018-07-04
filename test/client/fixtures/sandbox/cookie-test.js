@@ -1,3 +1,6 @@
+// NOTE: You should clear a browser's cookie if tests are fail,
+// because document.cookie can contains cookie from another sites which was run through playground
+
 var cookieUtils       = hammerhead.get('./utils/cookie');
 var sharedCookieUtils = hammerhead.get('../utils/cookie');
 var settings          = hammerhead.get('./settings');
@@ -8,6 +11,18 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var cookieSync    = hammerhead.sandbox.cookie.cookieSync;
 var Promise       = hammerhead.Promise;
+
+QUnit.testDone(function () {
+    nativeMethods.documentCookieGetter.call(document)
+        .split(';')
+        .forEach(function (cookie) {
+            var key = cookie.split('=')[0];
+
+            nativeMethods.documentCookieSetter.call(document, key + '=;Path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT');
+        });
+
+    settings.get().cookie = '';
+});
 
 function setCookieWithoutServerSync (value) {
     var storedFn = cookieSync.perform;
@@ -75,8 +90,6 @@ test('path validation', function () {
 });
 
 test('remove real cookie after browser processing', function () {
-    settings.get().cookie = '';
-
     var uniqKey = Math.floor(Math.random() * 1e10).toString() + '_test_key';
 
     var cookieStr = cookieUtils.format({
@@ -91,7 +104,7 @@ test('remove real cookie after browser processing', function () {
     strictEqual(nativeMethods.documentCookieGetter.call(document).indexOf(uniqKey), -1);
 });
 
-module('unnecessary synchronization cookies');
+module('sharedCookieUtils.parseClientSyncCookieStr');
 
 test('different path', function () {
     nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2Fpath||1fckm5lnl=123;path=/');
@@ -101,9 +114,6 @@ test('different path', function () {
 
     strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2Fpath||1fckm5lnl');
     strictEqual(parsedCookie.actual[1].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
-
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[1]));
 });
 
 test('different domain', function () {
@@ -114,9 +124,6 @@ test('different domain', function () {
 
     strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5lnl');
     strictEqual(parsedCookie.actual[1].syncKey, 's|sessionId|test|example.uk|%2F||1fckm5ln1');
-
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[1]));
 });
 
 test('same lastAccessed time and different expire time', function () {
@@ -127,9 +134,6 @@ test('same lastAccessed time and different expire time', function () {
 
     strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F|1fm3g5ln1|1fckm5ln1');
     strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F|1fm3324lk|1fckm5ln1');
-
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.outdated[0]));
 });
 
 test('different lastAccessed time and first is lower', function () {
@@ -140,9 +144,6 @@ test('different lastAccessed time and first is lower', function () {
 
     strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2');
     strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
-
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.outdated[0]));
 });
 
 test('different lastAccessed time and last is lower', function () {
@@ -153,16 +154,11 @@ test('different lastAccessed time and last is lower', function () {
 
     strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2');
     strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
-
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.actual[0]));
-    nativeMethods.documentCookieSetter.call(document, sharedCookieUtils.generateDeleteSyncCookieStr(parsedCookie.outdated[0]));
 });
 
 module('server synchronization with client');
 
 test('process synchronization cookies on document.cookie getter', function () {
-    settings.get().cookie = '';
-
     strictEqual(document.cookie, '');
 
     nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
@@ -172,8 +168,6 @@ test('process synchronization cookies on document.cookie getter', function () {
 });
 
 test('process synchronization cookies on document.cookie setter', function () {
-    settings.get().cookie = '';
-
     strictEqual(document.cookie, '');
 
     nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
@@ -187,8 +181,6 @@ test('process synchronization cookies on document.cookie setter', function () {
 });
 
 test('set cookie from the XMLHttpRequest', function () {
-    settings.get().cookie = '';
-
     var xhr = new XMLHttpRequest();
 
     strictEqual(nativeMethods.documentCookieGetter.call(document), '');
@@ -207,8 +199,6 @@ test('set cookie from the XMLHttpRequest', function () {
 
 if (window.fetch) {
     test('set cookie from the fetch request', function () {
-        settings.get().cookie = '';
-
         strictEqual(nativeMethods.documentCookieGetter.call(document), '');
         strictEqual(document.cookie, '');
 
@@ -223,8 +213,6 @@ if (window.fetch) {
 module('regression');
 
 test('overwrite (B239496)', function () {
-    settings.get().cookie = '';
-
     var savedUrlUtilParseProxyUrl = urlUtils.parseProxyUrl;
 
     urlUtils.parseProxyUrl = function (url) {
@@ -250,8 +238,6 @@ test('overwrite (B239496)', function () {
 });
 
 test('delete (B239496)', function () {
-    settings.get().cookie = '';
-
     var savedUrlUtilParseProxyUrl = urlUtils.parseProxyUrl;
 
     urlUtils.parseProxyUrl = function (url) {
@@ -273,8 +259,6 @@ test('delete (B239496)', function () {
 });
 
 test('hammerhead crashes if client-side code contains "document.cookie=null" or "document.cookie=undefined" (GH-444, T349254).', function () {
-    settings.get().cookie = '';
-
     setCookieWithoutServerSync(null);
     strictEqual(document.cookie, 'null');
 
@@ -292,8 +276,6 @@ test('hammerhead crashes if client-side code contains "document.cookie=null" or 
 });
 
 test('correct work with cookie with empty key (GH-899)', function () {
-    settings.get().cookie = '';
-
     setCookieWithoutServerSync('123');
     strictEqual(document.cookie, '123');
 
