@@ -181,7 +181,7 @@ export default class EventSimulator {
         return modifiersString;
     }
 
-    static _updateMouseEventButtonProperties (options = {}) {
+    static _prepareMouseEventOptions (options = {}) {
         const buttons = options.buttons === void 0 ? eventUtils.BUTTONS_PARAMETER.noButton : options.buttons;
         const button  = eventUtils.BUTTON.left;
 
@@ -765,23 +765,33 @@ export default class EventSimulator {
     }
 
     mouseover (el, options) {
-        return this._simulateEvent(el, 'mouseover', EventSimulator._updateMouseEventButtonProperties(options));
+        options = EventSimulator._prepareMouseEventOptions(options);
+
+        return this._simulateEvent(el, 'mouseover', options);
     }
 
     mousemove (el, options) {
-        return this._simulateEvent(el, 'mousemove', EventSimulator._updateMouseEventButtonProperties(options), { cancelable: false });
+        options = EventSimulator._prepareMouseEventOptions(options);
+
+        return this._simulateEvent(el, 'mousemove', options, { cancelable: false });
     }
 
     mouseout (el, options) {
-        return this._simulateEvent(el, 'mouseout', EventSimulator._updateMouseEventButtonProperties(options));
+        options = EventSimulator._prepareMouseEventOptions(options);
+
+        return this._simulateEvent(el, 'mouseout', options);
     }
 
     mouseenter (el, options) {
-        return this._simulateEvent(el, 'mouseenter', EventSimulator._updateMouseEventButtonProperties(options), { canBubble: false });
+        options = EventSimulator._prepareMouseEventOptions(options);
+
+        return this._simulateEvent(el, 'mouseenter', options, { canBubble: false });
     }
 
     mouseleave (el, options) {
-        return this._simulateEvent(el, 'mouseleave', EventSimulator._updateMouseEventButtonProperties(options), { canBubble: false });
+        options = EventSimulator._prepareMouseEventOptions(options);
+
+        return this._simulateEvent(el, 'mouseleave', options, { canBubble: false });
     }
 
     // NOTE: Keyboard events.

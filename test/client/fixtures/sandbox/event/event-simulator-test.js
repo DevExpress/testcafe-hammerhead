@@ -527,7 +527,7 @@ test('mouse event buttons properties', function () {
             }];
     };
 
-    const testData = [
+    const testCases = [
         {
             expected:
                     getArgs(
@@ -622,9 +622,10 @@ test('mouse event buttons properties', function () {
     domElement.addEventListener('mouseleave', eventHandler);
     domElement.addEventListener('mousemove', eventHandler);
 
-    testData.forEach(function (item) {
-        item.action();
-        deepEqual(actualLog[item.expected.type], item.expected);
+    testCases.forEach(function (testCase) {
+        testCase.action();
+
+        deepEqual(actualLog[testCase.expected.type], testCase.expected);
     });
 });
 
