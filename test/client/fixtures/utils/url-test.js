@@ -417,6 +417,20 @@ test('special pages (GH-339)', function () {
     });
 });
 
+test('special page with hash (GH-1671)', function () {
+    var specialPageUrlWithHash = 'about:error#hash';
+    var proxyUrl               = 'http://' + PROXY_HOST + '/sessionId/' + specialPageUrlWithHash;
+    var parsingResult          = urlUtils.parseProxyUrl(proxyUrl);
+
+    strictEqual(parsingResult.destUrl, specialPageUrlWithHash);
+    strictEqual(parsingResult.destResourceInfo.protocol, 'about:');
+    strictEqual(parsingResult.destResourceInfo.host, '');
+    strictEqual(parsingResult.destResourceInfo.hostname, '');
+    strictEqual(parsingResult.destResourceInfo.port, '');
+    strictEqual(parsingResult.destResourceInfo.partAfterHost, '');
+    strictEqual(parsingResult.sessionId, 'sessionId');
+});
+
 test('hash with whitespace (GH-971)', function () {
     var url           = 'http://' + PROXY_HOST + '/sessionId/http://some.domain.com/path/#word word';
     var parsingResult = urlUtils.parseProxyUrl(url);

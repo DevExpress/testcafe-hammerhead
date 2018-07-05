@@ -196,10 +196,13 @@ export function parseProxyUrl (proxyUrl) {
 
     const destUrl = match[2];
 
-    if (!isSpecialPage(destUrl) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
+    // Browser can redirect to a special page with hash (GH-1671)
+    const destUrlWithoutHash = destUrl.replace(/#[\S\s]*$/, '');
+
+    if (!isSpecialPage(destUrlWithoutHash) && !SUPPORTED_PROTOCOL_RE.test(destUrl))
         return null;
 
-    const destResourceInfo = !isSpecialPage(destUrl) ? parseUrl(match[2]) : {
+    const destResourceInfo = !isSpecialPage(destUrlWithoutHash) ? parseUrl(match[2]) : {
         protocol:      'about:',
         host:          '',
         hostname:      '',
