@@ -190,7 +190,7 @@ test('process html', function () {
 
     function checkTag (formTargetCase, tagName) {
         form.innerHTML = '<' + tagName + ' type="submit" formaction="http://input.formaction.com/" formtarget=' +
-                         formTargetCase.primary + (tagName === 'button' ? '></button>' : '>');
+                         formTargetCase.primary + '>';
 
         checkElementFormTarget(form.firstChild, formTargetCase.real, formTargetCase.primary);
         strictEqual(urlUtils.parseProxyUrl(nativeMethods.getAttribute.call(form.firstChild, 'formaction')).resourceType, formTargetCase.resourceType);
