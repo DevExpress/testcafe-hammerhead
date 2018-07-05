@@ -175,50 +175,31 @@ test('all possible elements', function () {
 module('"formtarget" attribute');
 
 test('process html', function () {
+    var formTargetCases = [
+        { real: '_top', primary: '_blank', resourceType: 'f' },
+        { real: '_parent', primary: '_parent', resourceType: 'f' },
+        { real: '_self', primary: '_self', resourceType: 'f' },
+        { real: '_top', primary: '_top', resourceType: 'f' },
+        { real: 'unknown_window', primary: 'unknown_window', resourceType: 'f' },
+        { real: 'window_name', primary: 'window_name', resourceType: 'if' }
+    ];
+
     var form = document.createElement('form');
 
     document.body.appendChild(form);
 
-    form.innerHTML = '<input type="submit" formaction="http://input.formaction.com/" formtarget="_blank">' +
-                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="_parent">' +
-                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="_self">' +
-                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="_top">' +
-                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="unknown_window">' +
-                     '<input type="submit" formaction="http://input.formaction.com/" formtarget="window_name">' +
-                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="_blank"></button>' +
-                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="_parent"></button>' +
-                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="_self"></button>' +
-                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="_top"></button>' +
-                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="unknown_window"></button>' +
-                     '<button type="submit" formaction="http://button.formaction.com/" formtarget="window_name"></button>';
+    function checkTag (formTargetCase, tagName) {
+        form.innerHTML = '<' + tagName + ' type="submit" formaction="http://input.formaction.com/" formtarget=' +
+                         formTargetCase.primary + (tagName === 'button' ? '></button>' : '>');
 
-    var children = form.children;
+        checkElementFormTarget(form.firstChild, formTargetCase.real, formTargetCase.primary);
+        strictEqual(urlUtils.parseProxyUrl(nativeMethods.getAttribute.call(form.firstChild, 'formaction')).resourceType, formTargetCase.resourceType);
+    }
 
-    checkElementFormTarget(children[0], '_top', '_blank');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[0])).resourceType, 'f');
-    checkElementFormTarget(children[1], '_parent', '_parent');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[1])).resourceType, 'f');
-    checkElementFormTarget(children[2], '_self', '_self');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[2])).resourceType, 'f');
-    checkElementFormTarget(children[3], '_top', '_top');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[3])).resourceType, 'f');
-    checkElementFormTarget(children[4], 'unknown_window', 'unknown_window');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[4])).resourceType, 'f');
-    checkElementFormTarget(children[5], 'window_name', 'window_name');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(children[5])).resourceType, 'if');
-
-    checkElementFormTarget(children[6], '_top', '_blank');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[6])).resourceType, 'f');
-    checkElementFormTarget(children[7], '_parent', '_parent');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[7])).resourceType, 'f');
-    checkElementFormTarget(children[8], '_self', '_self');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[8])).resourceType, 'f');
-    checkElementFormTarget(children[9], '_top', '_top');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[9])).resourceType, 'f');
-    checkElementFormTarget(children[10], 'unknown_window', 'unknown_window');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[10])).resourceType, 'f');
-    checkElementFormTarget(children[11], 'window_name', 'window_name');
-    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(children[11])).resourceType, 'if');
+    formTargetCases.forEach(function (formTargetCase) {
+        checkTag(formTargetCase, 'input');
+        checkTag(formTargetCase, 'button');
+    });
 
     document.body.removeChild(form);
 });
@@ -287,7 +268,7 @@ test('removeAttribute, hasAttribute', function () {
     document.body.removeChild(form);
 });
 
-test('change "formaction" after "formtarget" attribute changed', function () {
+test('change the "formaction" resource type after "formtarget" attribute changed', function () {
     var iframe     = document.createElement('iframe');
     var url        = 'http://some.domain.com/index.html';
     var iframeName = 'iframe-window';
@@ -298,54 +279,46 @@ test('change "formaction" after "formtarget" attribute changed', function () {
     document.body.appendChild(iframe);
     document.body.appendChild(form);
 
-    var checkResourceType = function (elUrl, hasFormFlag, hasIframeFlag) {
-        var expected = null;
-
-        if (hasIframeFlag)
-            expected = 'i';
-
-        if (hasFormFlag)
-            expected = (expected || '') + 'f';
-
-        strictEqual(urlUtils.parseProxyUrl(elUrl).resourceType, expected);
+    var checkResourceType = function (elFormAction, expected) {
+        strictEqual(urlUtils.parseProxyUrl(elFormAction).resourceType, expected);
     };
 
-    var checkElement = function (el, attr, hasFormFlag, hasIframeFlag) {
+    var checkElementFormActionResourceType = function (el) {
         form.appendChild(el);
 
-        el.setAttribute(attr, url);
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+        el.setAttribute('formaction', url);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'f');
 
         el.setAttribute('formtarget', iframeName);
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'if');
         el.removeAttribute('formtarget');
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'f');
 
         el.setAttribute('formtarget', iframeName);
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'if');
         el.setAttribute('formtarget', '');
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'f');
 
         el.formTarget = iframeName;
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'if');
         el.formTarget = '';
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'f');
 
         el.setAttribute('formtarget', iframeName);
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'if');
         el.setAttribute('formtarget', '_Self');
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'f');
 
         el.setAttribute('formtarget', iframeName);
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag, hasIframeFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'if');
         el.setAttribute('formtarget', '_parent');
-        checkResourceType(nativeMethods.getAttribute.call(el, attr), hasFormFlag);
+        checkResourceType(nativeMethods.getAttribute.call(el, 'formaction'), 'f');
 
         el.parentNode.removeChild(el);
     };
 
-    checkElement(document.createElement('input'), 'formaction', true, true);
-    checkElement(document.createElement('button'), 'formaction', true, true);
+    checkElementFormActionResourceType(document.createElement('input'));
+    checkElementFormActionResourceType(document.createElement('button'));
 
     iframe.parentNode.removeChild(iframe);
 });

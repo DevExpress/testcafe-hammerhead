@@ -48,11 +48,11 @@ export default class DomProcessor {
     }
 
     static isTagWithTargetAttr (tagName) {
-        return TARGET_ATTR_TAGS['target'].indexOf(tagName) !== -1;
+        return TARGET_ATTR_TAGS['target'].indexOf(tagName) > -1;
     }
 
     static isTagWithFormTargetAttr (tagName) {
-        return TARGET_ATTR_TAGS['formtarget'].indexOf(tagName) !== -1;
+        return TARGET_ATTR_TAGS['formtarget'].indexOf(tagName) > -1;
     }
 
     static isTagWithIntegrityAttr (tagName) {
@@ -270,7 +270,7 @@ export default class DomProcessor {
         const tagName = this.adapter.getTagName(el);
 
         for (const targetAttr of TARGET_ATTRS) {
-            if (TARGET_ATTR_TAGS[targetAttr].indexOf(tagName) !== -1)
+            if (TARGET_ATTR_TAGS[targetAttr].indexOf(tagName) > -1)
                 return targetAttr;
         }
 
