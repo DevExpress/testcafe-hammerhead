@@ -42,7 +42,7 @@ export default class Sandbox extends SandboxBase {
         const eventSimulator        = new EventSimulator();
         const elementEditingWatcher = new ElementEditingWatcher(eventSimulator);
         const timersSandbox         = new TimersSandbox();
-        const cookieSandbox         = new CookieSandbox();
+        const cookieSandbox         = new CookieSandbox(messageSandbox);
 
         // API
         // eslint-disable-next-line no-restricted-properties

@@ -210,6 +210,132 @@ if (window.fetch) {
     });
 }
 
+module('synchronization between frames');
+
+test('same-domain frames', function () {
+    var iframe         = null;
+    var embeddedIframe = null;
+
+    return createTestIframe()
+        .then(function (createdIframe) {
+            iframe = createdIframe;
+
+            return createTestIframe(null, iframe.contentDocument.body);
+        })
+        .then(function (createdIframe) {
+            embeddedIframe = createdIframe;
+
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl=321;path=/');
+
+            strictEqual(settings.get().cookie, '');
+            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, '');
+            strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, '');
+
+            document.cookie; // eslint-disable-line no-unused-expressions
+
+            strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+            strictEqual(settings.get().cookie, 'test=123; cafe=321');
+            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=123; cafe=321');
+            strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=123; cafe=321');
+
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lz3=321;path=/');
+
+            iframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
+
+            strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+            strictEqual(settings.get().cookie, 'test=321; cafe=321');
+            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=321; cafe=321');
+            strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=321; cafe=321');
+
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6=value;path=/');
+
+            embeddedIframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
+
+            strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+            strictEqual(settings.get().cookie, 'test=321');
+            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=321');
+            strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=321');
+        });
+});
+
+test('cross-domain frames', function () {
+    var iframes = null;
+
+    function checkCrossDomainIframeCookie (iframe, expectedValue) {
+        return new Promise(function (resolve) {
+            var handler = function (e) {
+                if (e.source !== iframe.contentWindow)
+                    return;
+
+                window.removeEventListener('message', handler);
+                strictEqual(e.data, expectedValue);
+                resolve();
+            };
+
+            window.addEventListener('message', handler);
+            callMethod(iframe.contentWindow, 'postMessage', ['get cookie', '*']);
+        });
+    }
+
+    function realCookieIsEmpty () {
+        return nativeMethods.documentCookieGetter.call(document) === '';
+    }
+
+    return Promise.all([
+        createTestIframe({ src: getCrossDomainPageUrl('../../data/cookie-sandbox/cross-domain-iframe.html') }),
+        createTestIframe(),
+        createTestIframe({ src: getCrossDomainPageUrl('../../data/cookie-sandbox/cross-domain-iframe.html') })
+    ])
+        .then(function (frames) {
+            iframes = frames;
+
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl=321;path=/');
+
+            strictEqual(settings.get().cookie, '');
+            strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, '');
+
+            return Promise.all([
+                checkCrossDomainIframeCookie(iframes[0], ''),
+                checkCrossDomainIframeCookie(iframes[2], '')
+            ]);
+        })
+        .then(function () {
+            document.cookie; // eslint-disable-line no-unused-expressions
+
+            strictEqual(nativeMethods.documentCookieGetter.call(document), [
+                'f|sessionId|test|example.com|%2F||1fckm5lnl=123',
+                'f|sessionId|cafe|example.com|%2F||1fckm5lnl=321'
+            ].join('; '));
+            strictEqual(settings.get().cookie, 'test=123; cafe=321');
+            strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=123; cafe=321');
+
+            return window.QUnitGlobals.wait(realCookieIsEmpty, 5000);
+        })
+        .then(function () {
+            return Promise.all([
+                checkCrossDomainIframeCookie(iframes[0], 'test=123; cafe=321'),
+                checkCrossDomainIframeCookie(iframes[2], 'test=123; cafe=321')
+            ]);
+        })
+        .then(function () {
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6=value;path=/');
+            callMethod(iframes[0].contentWindow, 'postMessage', ['set cookie', '*']);
+
+            return window.QUnitGlobals.wait(realCookieIsEmpty, 5000);
+        })
+        .then(function () {
+            strictEqual(settings.get().cookie, 'test=123; set=cookie');
+            strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=123; set=cookie');
+
+            return Promise.all([
+                checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie'),
+                checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie')
+            ]);
+        });
+});
+
 module('regression');
 
 test('overwrite (B239496)', function () {
