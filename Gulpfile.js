@@ -30,16 +30,18 @@ ll
         'client-scripts-bundle'
     ]);
 
-const CLIENT_TESTS_SETTINGS = {
-    basePath:        './test/client/fixtures',
-    port:            2000,
-    crossDomainPort: 2001,
-    scripts:         [
-        { src: '/hammerhead.js', path: './lib/client/hammerhead.js' },
-        { src: '/before-test.js', path: './test/client/before-test.js' }
-    ],
+const getClientTestSettings = () => {
+    return {
+        basePath:        './test/client/fixtures',
+        port:            2000,
+        crossDomainPort: 2001,
+        scripts:         [
+            { src: '/hammerhead.js', path: util.env.dev ? './lib/client/hammerhead.js' : './lib/client/hammerhead.min.js' },
+            { src: '/before-test.js', path: './test/client/before-test.js' }
+        ],
 
-    configApp: require('./test/client/config-qunit-server-app')
+        configApp: require('./test/client/config-qunit-server-app')
+    };
 };
 
 const CLIENT_TESTS_BROWSERS = [
@@ -202,7 +204,7 @@ gulp.step('qunit', () => {
 
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
-        .pipe(qunitHarness(CLIENT_TESTS_SETTINGS));
+        .pipe(qunitHarness(getClientTestSettings()));
 });
 
 gulp.task('test-client', gulp.series('build', 'qunit'));
@@ -217,7 +219,7 @@ gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 gulp.step('travis-saucelabs-qunit', () => {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
-        .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
+        .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
 gulp.task('test-client-travis', gulp.series('build', 'travis-saucelabs-qunit'));
@@ -228,7 +230,7 @@ gulp.step('http-playground-server', () => {
     return hang();
 });
 
-gulp.task('http-playground', gulp.series('set-dev-mode', 'build', 'http-playground-server'));
+gulp.task('http-playground', gulp.series('build', 'http-playground-server'));
 
 gulp.step('https-playground-server', () => {
     require('./test/playground/server.js').start({
@@ -239,7 +241,7 @@ gulp.step('https-playground-server', () => {
     return hang();
 });
 
-gulp.task('https-playground', gulp.series('set-dev-mode', 'build', 'https-playground-server'));
+gulp.task('https-playground', gulp.series('build', 'https-playground-server'));
 
 gulp.task('test-functional-testcafe-travis',
     gulp.series('build',
