@@ -105,4 +105,8 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     sameOriginCheck (location, checkedUrl) {
         return urlUtils.sameOriginCheck(location, checkedUrl);
     }
+
+    isExistingTarget () {
+        return false;
+    }
 }

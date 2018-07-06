@@ -260,6 +260,8 @@ class NativeMethods {
         const formTargetDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLFormElement.prototype, 'target');
         const areaTargetDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'target');
         const baseTargetDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'target');
+        const inputFormTargetDescriptor      = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'formTarget');
+        const buttonFormTargetDescriptor     = win.Object.getOwnPropertyDescriptor(win.HTMLButtonElement.prototype, 'formTarget');
         const svgImageHrefDescriptor         = win.Object.getOwnPropertyDescriptor(win.SVGImageElement.prototype, 'href');
         const svgAnimStrAnimValDescriptor    = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'animVal');
         const svgAnimStrBaseValDescriptor    = win.Object.getOwnPropertyDescriptor(win.SVGAnimatedString.prototype, 'baseVal');
@@ -305,6 +307,8 @@ class NativeMethods {
         this.formTargetSetter        = formTargetDescriptor.set;
         this.areaTargetSetter        = areaTargetDescriptor.set;
         this.baseTargetSetter        = baseTargetDescriptor.set;
+        this.inputFormTargetSetter   = inputFormTargetDescriptor.set;
+        this.buttonFormTargetSetter  = buttonFormTargetDescriptor.set;
         this.svgAnimStrBaseValSetter = svgAnimStrBaseValDescriptor.set;
         this.inputAutocompleteSetter = inputAutocompleteDescriptor.set;
         this.formActionSetter        = formActionDescriptor.set;
@@ -381,6 +385,8 @@ class NativeMethods {
         this.formTargetGetter               = formTargetDescriptor.get;
         this.areaTargetGetter               = areaTargetDescriptor.get;
         this.baseTargetGetter               = baseTargetDescriptor.get;
+        this.inputFormTargetGetter          = inputFormTargetDescriptor.get;
+        this.buttonFormTargetGetter         = buttonFormTargetDescriptor.get;
         this.svgImageHrefGetter             = svgImageHrefDescriptor.get;
         this.svgAnimStrAnimValGetter        = svgAnimStrAnimValDescriptor.get;
         this.svgAnimStrBaseValGetter        = svgAnimStrBaseValDescriptor.get;

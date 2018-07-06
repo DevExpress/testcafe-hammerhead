@@ -160,6 +160,46 @@ if (!browserUtils.isIE || browserUtils.version > 9) {
     });
 }
 
+test('set and remove "formtarget" attribute on form child element with existing "formaction" attribute', function () {
+    var iframe = document.createElement('iframe');
+    var form   = document.createElement('form');
+    var input  = document.createElement('input');
+    var button = document.createElement('button');
+
+    iframe.id   = 'test' + Date.now();
+    iframe.name = 'iframe-name';
+    input.type  = 'submit';
+    button.type = 'submit';
+
+    form.appendChild(input);
+    form.appendChild(button);
+
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+
+    nativeMethods.setAttribute.call(form, 'action', urlUtils.getProxyUrl('./action.html', { resourceType: 'f' }));
+    form.setAttribute('target', '_self');
+
+    input.setAttribute('formaction', './input.html');
+    input.setAttribute('formtarget', 'iframe-name');
+    button.setAttribute('formaction', './input.html');
+    button.setAttribute('formtarget', 'iframe-name');
+
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(input)).resourceType, 'if');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(button)).resourceType, 'if');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(form)).resourceType, 'f');
+
+    input.removeAttribute('formtarget');
+    button.removeAttribute('formtarget');
+
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.inputFormActionGetter.call(input)).resourceType, 'f');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.buttonFormActionGetter.call(button)).resourceType, 'f');
+    strictEqual(urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(form)).resourceType, 'f');
+
+    iframe.parentNode.removeChild(iframe);
+    form.parentNode.removeChild(form);
+});
+
 test('script src', function () {
     var storedSessionId = settings.get().sessionId;
 

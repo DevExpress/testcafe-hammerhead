@@ -54,12 +54,19 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     static _onTargetChanged (el) {
-        const tagName = domUtils.getTagName(el);
+        const tagName    = domUtils.getTagName(el);
+        const targetAttr = domProcessor.getTargetAttr(el);
 
         if (!DomProcessor.isIframeFlagTag(tagName))
             return;
 
-        const urlAttr       = tagName === 'form' ? 'action' : 'href';
+        let urlAttr;
+
+        if (targetAttr === 'target')
+            urlAttr = tagName === 'form' ? 'action' : 'href';
+        else if (targetAttr === 'formtarget')
+            urlAttr = 'formaction';
+
         const storedUrlAttr = DomProcessor.getStoredAttrName(urlAttr);
 
         if (el.hasAttribute(storedUrlAttr)) {
@@ -151,10 +158,10 @@ export default class ElementSandbox extends SandboxBase {
                     let resourceType       = domProcessor.getElementResourceType(el);
                     const elCharset        = isScript && el.charset;
 
-                    if (loweredAttr === 'formaction') {
+                    if (loweredAttr === 'formaction' && !nativeMethods.hasAttribute.call(el, 'formtarget')) {
                         resourceType = 'f';
 
-                        if (el.form) {
+                        if (el.form && nativeMethods.hasAttribute.call(el.form, 'action')) {
                             const parsedFormAction = urlUtils.parseProxyUrl(nativeMethods.formActionGetter.call(el.form));
 
                             if (parsedFormAction)
@@ -184,15 +191,17 @@ export default class ElementSandbox extends SandboxBase {
 
             args[valueIndex] = 'off';
         }
-        else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
-            const currentTarget = nativeMethods.getAttribute.call(el, 'target');
+        else if (loweredAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
+                 loweredAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
+            const currentTarget = nativeMethods.getAttribute.call(el, loweredAttr);
             const newTarget     = this.getTarget(el, value);
 
             if (newTarget !== currentTarget) {
                 const storedTargetAttr = DomProcessor.getStoredAttrName(attr);
 
                 setAttrMeth.apply(el, isNs ? [ns, storedTargetAttr, value] : [storedTargetAttr, value]);
-                args[valueIndex]        = newTarget;
+                args[valueIndex] = newTarget;
+
                 needToCallTargetChanged = true;
             }
             else
@@ -281,7 +290,8 @@ export default class ElementSandbox extends SandboxBase {
         if (domProcessor.isUrlAttr(el, formatedAttr, isNs ? args[0] : null) || formatedAttr === 'sandbox' ||
             formatedAttr === 'autocomplete' ||
             domProcessor.EVENTS.indexOf(formatedAttr) !== -1 ||
-            formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName)) {
+            formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
+            formatedAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName)) {
             const storedAttr = DomProcessor.getStoredAttrName(attr);
 
             if (formatedAttr === 'autocomplete')
@@ -296,7 +306,8 @@ export default class ElementSandbox extends SandboxBase {
         if (formatedAttr !== 'autocomplete')
             result = removeAttrFunc.apply(el, args);
 
-        if (formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName))
+        if (formatedAttr === 'target' && DomProcessor.isTagWithTargetAttr(tagName) ||
+            formatedAttr === 'formtarget' && DomProcessor.isTagWithFormTargetAttr(tagName))
             ElementSandbox._onTargetChanged(el);
 
         return result;
@@ -781,7 +792,9 @@ export default class ElementSandbox extends SandboxBase {
 
         // NOTE: we need to reprocess a tag client-side if it wasn't processed on the server.
         // See the usage of Parse5DomAdapter.needToProcessUrl
-        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, 'target') === '_parent')
+        const targetAttr = domProcessor.getTargetAttr(el);
+
+        if (DomProcessor.isIframeFlagTag(tagName) && nativeMethods.getAttribute.call(el, targetAttr) === '_parent')
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
     }
 }

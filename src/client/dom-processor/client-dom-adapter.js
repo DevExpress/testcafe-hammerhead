@@ -8,6 +8,7 @@ import { getProxyUrl } from '../utils/url';
 import * as domUtils from '../utils/dom';
 import fastApply from '../utils/fast-apply';
 import { hasUnclosedElementFlag } from '../sandbox/node/document/writer';
+import { findByName } from '../sandbox/windows-storage';
 
 export default class ClientDomAdapter extends BaseDomAdapter {
     removeAttr (el, attr) {
@@ -109,5 +110,9 @@ export default class ClientDomAdapter extends BaseDomAdapter {
 
     sameOriginCheck (location, checkedUrl) {
         return sameOriginCheck(location, checkedUrl);
+    }
+
+    isExistingTarget (target) {
+        return !!findByName(target);
     }
 }

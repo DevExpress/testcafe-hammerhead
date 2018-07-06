@@ -8,7 +8,7 @@ import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
 import { XML_NAMESPACE } from './namespaces';
-import { URL_ATTR_TAGS, URL_ATTRS } from './attributes';
+import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
 
 const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
@@ -24,10 +24,10 @@ const SVG_XLINK_HREF_TAGS = [
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
-const TARGET_ATTR_TAGS    = ['a', 'form', 'area', 'base'];
 const INTEGRITY_ATTR_TAGS = ['script', 'link'];
+
 // eslint-disable-next-line hammerhead/proto-methods
-const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS.filter(tagName => tagName !== 'base').concat('button');
+const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS['target'].filter(tagName => tagName !== 'base').concat(TARGET_ATTR_TAGS['formtarget']);
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -48,7 +48,11 @@ export default class DomProcessor {
     }
 
     static isTagWithTargetAttr (tagName) {
-        return TARGET_ATTR_TAGS.indexOf(tagName) !== -1;
+        return TARGET_ATTR_TAGS['target'].indexOf(tagName) > -1;
+    }
+
+    static isTagWithFormTargetAttr (tagName) {
+        return TARGET_ATTR_TAGS['formtarget'].indexOf(tagName) > -1;
     }
 
     static isTagWithIntegrityAttr (tagName) {
@@ -102,6 +106,10 @@ export default class DomProcessor {
 
             HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction'),
 
+            HAS_FORMTARGET_ATTR: el => {
+                return DomProcessor.isTagWithFormTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'formtarget');
+            },
+
             HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest'),
 
             HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data'),
@@ -141,24 +149,33 @@ export default class DomProcessor {
 
         return [
             {
+                selector:          selectors.HAS_FORMTARGET_ATTR,
+                targetAttr:        'formtarget',
+                elementProcessors: [this._processTargetBlank]
+            },
+            {
                 selector:          selectors.HAS_HREF_ATTR,
                 urlAttr:           'href',
+                targetAttr:        'target',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_SRC_ATTR,
                 urlAttr:           'src',
+                targetAttr:        'target',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_ACTION_ATTR,
                 urlAttr:           'action',
+                targetAttr:        'target',
                 elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_FORMACTION_ATTR,
                 urlAttr:           'formaction',
-                elementProcessors: [this._processTargetBlank, this._processUrlAttrs, this._processUrlJsAttr]
+                targetAttr:        'formtarget',
+                elementProcessors: [this._processUrlAttrs, this._processUrlJsAttr]
             },
             {
                 selector:          selectors.HAS_MANIFEST_ATTR,
@@ -249,10 +266,22 @@ export default class DomProcessor {
         return null;
     }
 
-    _isOpenLinkInIframe (el) {
+    getTargetAttr (el) {
         const tagName = this.adapter.getTagName(el);
-        const target  = this.adapter.getAttr(el, 'target');
-        const rel     = this._getRelAttribute(el);
+
+        for (const targetAttr of TARGET_ATTRS) {
+            if (TARGET_ATTR_TAGS[targetAttr].indexOf(tagName) > -1)
+                return targetAttr;
+        }
+
+        return null;
+    }
+
+    _isOpenLinkInIframe (el) {
+        const tagName    = this.adapter.getTagName(el);
+        const targetAttr = this.getTargetAttr(el);
+        const target     = this.adapter.getAttr(el, targetAttr);
+        const rel        = this._getRelAttribute(el);
 
         if (target !== '_top') {
             const mustProcessTag = DomProcessor.isIframeFlagTag(tagName) ||
@@ -262,7 +291,7 @@ export default class DomProcessor {
             if (target === '_parent')
                 return mustProcessTag && !this.adapter.isTopParentIframe(el);
 
-            if (mustProcessTag && (this.adapter.hasIframeParent(el) || isNameTarget))
+            if (mustProcessTag && (this.adapter.hasIframeParent(el) || isNameTarget && this.adapter.isExistingTarget(target)))
                 return true;
         }
 
@@ -434,18 +463,18 @@ export default class DomProcessor {
         }
     }
 
-    _processTargetBlank (el) {
-        const storedTargetAttr = DomProcessor.getStoredAttrName('target');
+    _processTargetBlank (el, urlReplacer, pattern) {
+        const storedTargetAttr = DomProcessor.getStoredAttrName(pattern.targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
         if (!processed) {
-            let attrValue = this.adapter.getAttr(el, 'target');
+            let attrValue = this.adapter.getAttr(el, pattern.targetAttr);
 
             // NOTE: Value may have whitespace.
             attrValue = attrValue && attrValue.replace(/\s/g, '');
 
             if (attrValue === '_blank' || attrValue === 'blank') {
-                this.adapter.setAttr(el, 'target', '_top');
+                this.adapter.setAttr(el, pattern.targetAttr, '_top');
                 this.adapter.setAttr(el, storedTargetAttr, attrValue);
             }
         }
@@ -465,7 +494,7 @@ export default class DomProcessor {
                     const isIframe  = elTagName === 'iframe' || elTagName === 'frame';
                     const isScript  = elTagName === 'script';
                     const isAnchor  = elTagName === 'a';
-                    const target    = this.adapter.getAttr(el, 'target');
+                    const target    = this.adapter.getAttr(el, pattern.targetAttr);
 
                     // NOTE: Elements with target=_parent shouldn’t be processed on the server,because we don't
                     // know what is the parent of the processed page (an iframe or the top window).
