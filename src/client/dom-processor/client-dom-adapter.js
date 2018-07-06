@@ -113,6 +113,6 @@ export default class ClientDomAdapter extends BaseDomAdapter {
     }
 
     isExistingTarget (target) {
-        return findByName(target);
+        return !!findByName(target);
     }
 }
