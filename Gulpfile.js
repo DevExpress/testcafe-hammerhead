@@ -11,10 +11,11 @@ const mustache       = require('gulp-mustache');
 const rename         = require('gulp-rename');
 const webmake        = require('gulp-webmake');
 const uglify         = require('gulp-uglify');
-const gulpif         = require('gulp-if');
 const util           = require('gulp-util');
 const ll             = require('gulp-ll-next');
 const gulpRunCommand = require('gulp-run-command').default;
+const clone          = require('gulp-clone');
+const mergeStreams   = require('merge-stream');
 const path           = require('path');
 
 const selfSignedCertificate = require('openssl-self-signed-certificate');
@@ -50,12 +51,6 @@ const CLIENT_TESTS_BROWSERS = [
         platform:    'Windows 10',
         browserName: 'chrome'
     },
-    // NOTE: version: 'beta' don't work anymore
-    // {
-    //     platform:    'Windows 10',
-    //     browserName: 'chrome',
-    //     version:     'beta'
-    // },
     {
         platform:    'Windows 10',
         browserName: 'firefox'
@@ -139,10 +134,15 @@ gulp.step('client-scripts-bundle', () => {
 });
 
 gulp.step('client-scripts-processing', () => {
-    return gulp.src('./src/client/index.js.wrapper.mustache')
+    const script = gulp.src('./src/client/index.js.wrapper.mustache')
         .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
-        .pipe(rename('hammerhead.js'))
-        .pipe(gulpif(!util.env.dev, uglify()))
+        .pipe(rename('hammerhead.js'));
+
+    const bundledScript = script.pipe(clone())
+        .pipe(uglify())
+        .pipe(rename('hammerhead.min.js'));
+
+    return mergeStreams(script, bundledScript)
         .pipe(gulp.dest('./lib/client'));
 });
 
