@@ -211,31 +211,23 @@ test('setAttribute', function () {
 
     document.body.appendChild(form);
 
-    input.type  = 'submit';
-    button.type = 'submit';
-
     function testFormtargetAttr (el, real, primary) {
         el.setAttribute('formtarget', primary);
 
         checkElementFormTarget(el, real, primary);
     }
 
-    form.appendChild(input);
-    form.appendChild(button);
+    [input, button].forEach(function (el) {
+        el.type = 'submit';
+        form.appendChild(el);
 
-    testFormtargetAttr(input, '_top', '_blank');
-    testFormtargetAttr(input, '_parent', '_parent');
-    testFormtargetAttr(input, '_self', '_self');
-    testFormtargetAttr(input, '_top', '_top');
-    testFormtargetAttr(input, 'window_name', 'window_name');
-    testFormtargetAttr(input, '_top', 'unknown_window');
-
-    testFormtargetAttr(button, '_top', '_blank');
-    testFormtargetAttr(button, '_parent', '_parent');
-    testFormtargetAttr(button, '_self', '_self');
-    testFormtargetAttr(button, '_top', '_top');
-    testFormtargetAttr(button, 'window_name', 'window_name');
-    testFormtargetAttr(button, '_top', 'unknown_window');
+        testFormtargetAttr(el, '_top', '_blank');
+        testFormtargetAttr(el, '_parent', '_parent');
+        testFormtargetAttr(el, '_self', '_self');
+        testFormtargetAttr(el, '_top', '_top');
+        testFormtargetAttr(el, 'window_name', 'window_name');
+        testFormtargetAttr(el, '_top', 'unknown_window');
+    });
 
     document.body.removeChild(form);
 });
