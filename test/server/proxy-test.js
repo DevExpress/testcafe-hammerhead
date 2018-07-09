@@ -2148,11 +2148,26 @@ describe('Proxy', () => {
             });
 
             it('Ajax request', () => {
+                let requestEventIsRaised          = false;
+                let configureResponseEventIsRaised = false;
+                let responseEventIsRaised          = false;
+
                 const rule = new RequestFilterRule('http://127.0.0.1:2000/page/plain-text');
 
                 session.addRequestEventListeners(rule, {
                     onRequest: e => {
                         expect(e.isAjax).to.be.true;
+
+                        requestEventIsRaised = true;
+                    },
+
+                    onConfigureResponse: () => {
+                        configureResponseEventIsRaised = true;
+                    },
+
+                    onResponse: e => {
+                        expect(e.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                        responseEventIsRaised = true;
                     }
                 });
 
@@ -2168,6 +2183,9 @@ describe('Proxy', () => {
                 return request(options)
                     .then(res => {
                         expect(res.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                        expect(requestEventIsRaised).to.be.true;
+                        expect(configureResponseEventIsRaised).to.be.true;
+                        expect(responseEventIsRaised).to.be.true;
 
                         session.removeRequestEventListeners(rule);
                     });
@@ -2289,6 +2307,8 @@ describe('Proxy', () => {
                         session.removeRequestEventListeners(rule);
                     });
             });
+
+
         });
 
         it('Should allow to set request options', () => {

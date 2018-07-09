@@ -5,7 +5,6 @@ import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';
 import connectionResetGuard from './connection-reset-guard';
-import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
@@ -63,7 +62,14 @@ const stages = {
     2: function checkSameOriginPolicyCompliance (ctx, next) {
         ctx.buildContentInfo();
 
-        if ((ctx.isXhr || ctx.isFetch) && !ctx.contentInfo.isNotModified && !checkSameOriginPolicy(ctx)) {
+        if (!ctx.isKeepSameOriginPolicy()) {
+            ctx.requestFilterRules.forEach(rule => {
+                const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
+
+                ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+
+                callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, configureResponseEvent);
+            });
             ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
             return;
         }
@@ -266,6 +272,17 @@ function callOnResponseEventCallbackWithCollectedBody (ctx, rule, configureOpts)
     });
 
     ctx.destRes.pipe(destResBodyCollectorStream);
+}
+
+function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, configureOpts) {
+    const responseInfo  = requestEventInfo.createResponseInfo(ctx);
+
+    responseInfo.statusCode = SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
+
+    const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureOpts);
+    const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
+
+    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
 }
 
 function mockResponse (ctx) {

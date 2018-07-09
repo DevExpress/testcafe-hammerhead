@@ -3,6 +3,7 @@ import Charset from '../processing/encoding/charset';
 import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
 import genearateUniqueId from '../utils/generate-unique-id';
+import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
 
@@ -261,5 +262,14 @@ export default class RequestPipelineContext {
             resourceType,
             charset
         });
+    }
+
+    isKeepSameOriginPolicy () {
+        const isNotModifiedAjaxRequest = (this.isXhr || this.isFetch) && !this.contentInfo.isNotModified;
+
+        if (isNotModifiedAjaxRequest)
+            return checkSameOriginPolicy(this);
+
+        return true;
     }
 }
