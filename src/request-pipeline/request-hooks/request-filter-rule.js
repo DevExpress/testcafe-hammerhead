@@ -1,4 +1,4 @@
-import { isRegExp } from 'lodash';
+import { isRegExp, isString } from 'lodash';
 import { ensureOriginTrailingSlash } from '../../utils/url';
 
 const DEFAULT_OPTIONS = {
@@ -8,6 +8,8 @@ const DEFAULT_OPTIONS = {
 };
 
 const MATCH_ANY_REQUEST_REG_EX = /.*/;
+
+const CORS_VALIDATION_FAILED_MSG_PREFIX = 'CORS validation failed for a request specified as ';
 
 export default class RequestFilterRule {
     constructor (options) {
@@ -79,6 +81,28 @@ export default class RequestFilterRule {
         return !!this.options.call(this, requestInfo);
     }
 
+    _stringifyFunctionOptions () {
+        return `${CORS_VALIDATION_FAILED_MSG_PREFIX}{ <predicate> }`;
+    }
+
+    _stringifyObjectOptions () {
+        const stringifiedOptions = [
+            { name: 'url', value: this.options.url },
+            { name: 'method', value: this.options.method },
+            { name: 'isAjax', value: this.options.isAjax }
+        ];
+
+        const msg = stringifiedOptions.filter(option => !!option.value)
+            .map(option => {
+                const stringifiedOptionValue = isString(option.value) ? `"${option.value}"` : option.value;
+
+                return `${option.name}: ${stringifiedOptionValue}`;
+            })
+            .join(', ');
+
+        return `${CORS_VALIDATION_FAILED_MSG_PREFIX}{ ${msg} }`;
+    }
+
     match (requestInfo) {
         if (typeof this.options === 'function')
             return this._matchUsingFunctionOptions(requestInfo);
@@ -88,5 +112,11 @@ export default class RequestFilterRule {
 
     static get ANY () {
         return new RequestFilterRule(MATCH_ANY_REQUEST_REG_EX);
+    }
+
+    toString () {
+        const isFunctionOptions = typeof this.options === 'function';
+
+        return isFunctionOptions ? this._stringifyFunctionOptions() : this._stringifyObjectOptions();
     }
 }
