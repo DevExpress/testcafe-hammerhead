@@ -60,7 +60,7 @@ export default class XhrSandbox extends SandboxBase {
             if (this.readyState < this.HEADERS_RECEIVED)
                 return;
 
-            xhrSandbox.cookieSandbox.syncServerCookie();
+            xhrSandbox.cookieSandbox.syncCookie();
 
             nativeMethods.xhrRemoveEventListener.call(this, 'readystatechange', syncCookieWithClientIfNecessary);
         };

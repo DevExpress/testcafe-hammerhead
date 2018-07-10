@@ -336,6 +336,28 @@ test('cross-domain frames', function () {
         });
 });
 
+test('actual cookie in iframe even if a synchronization message does not received yet', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+
+            var storedCookieSandbox = iframe.contentWindow['%hammerhead%'].sandbox.cookie;
+
+            iframe.contentWindow['%hammerhead%'].sandbox.cookie = null;
+
+            strictEqual(document.cookie, 'test=123');
+
+            iframe.contentWindow['%hammerhead%'].sandbox.cookie = storedCookieSandbox;
+
+            strictEqual(nativeMethods.documentCookieGetter.call(document), 'f|sessionId|test|example.com|%2F||1fckm5lnl=123');
+            strictEqual(iframe.contentDocument.cookie, 'test=123');
+
+            return window.QUnitGlobals.wait(function () {
+                return nativeMethods.documentCookieGetter.call(document) === '';
+            }, 5000);
+        });
+});
+
 module('regression');
 
 test('overwrite (B239496)', function () {
