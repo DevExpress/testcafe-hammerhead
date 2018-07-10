@@ -267,9 +267,6 @@ export default class RequestPipelineContext {
     isKeepSameOriginPolicy () {
         const isNotModifiedAjaxRequest = (this.isXhr || this.isFetch) && !this.contentInfo.isNotModified;
 
-        if (isNotModifiedAjaxRequest)
-            return checkSameOriginPolicy(this);
-
-        return true;
+        return isNotModifiedAjaxRequest ? checkSameOriginPolicy(this) : true;
     }
 }

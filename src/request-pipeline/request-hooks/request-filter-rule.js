@@ -115,9 +115,8 @@ export default class RequestFilterRule {
     }
 
     toString () {
-        if (typeof this.options === 'function')
-            return this._stringifyFunctionOptions();
+        const isFunctionOptions = typeof this.options === 'function';
 
-        return this._stringifyObjectOptions();
+        return isFunctionOptions ? this._stringifyFunctionOptions() : this._stringifyObjectOptions();
     }
 }

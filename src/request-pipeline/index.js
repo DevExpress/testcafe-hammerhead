@@ -67,10 +67,10 @@ const stages = {
                 const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
 
                 ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
-
                 callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, configureResponseEvent);
             });
             ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+
             return;
         }
 
@@ -275,7 +275,7 @@ function callOnResponseEventCallbackWithCollectedBody (ctx, rule, configureOpts)
 }
 
 function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, configureOpts) {
-    const responseInfo  = requestEventInfo.createResponseInfo(ctx);
+    const responseInfo = requestEventInfo.createResponseInfo(ctx);
 
     responseInfo.statusCode = SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
 
