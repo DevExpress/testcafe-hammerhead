@@ -265,8 +265,9 @@ export default class RequestPipelineContext {
     }
 
     isKeepSameOriginPolicy () {
-        const isNotModifiedAjaxRequest = (this.isXhr || this.isFetch) && !this.contentInfo.isNotModified;
+        const isAjaxRequest          = this.isXhr || this.isFetch;
+        const shouldPerformCORSCheck = isAjaxRequest && !this.contentInfo.isNotModified;
 
-        return isNotModifiedAjaxRequest ? checkSameOriginPolicy(this) : true;
+        return shouldPerformCORSCheck ? checkSameOriginPolicy(this) : true;
     }
 }
