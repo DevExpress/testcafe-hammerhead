@@ -213,10 +213,12 @@ if (window.fetch) {
 module('synchronization between frames');
 
 test('same-domain frames', function () {
+    // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
+    var src            = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
     var iframe         = null;
     var embeddedIframe = null;
 
-    return createTestIframe()
+    return createTestIframe( { src: src })
         .then(function (createdIframe) {
             iframe = createdIframe;
 

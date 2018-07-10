@@ -116,7 +116,7 @@ export default class CookieSandbox extends SandboxBase {
         this.syncCookie();
 
         // eslint-disable-next-line no-restricted-properties
-        return settings.get().cookie;
+        return settings.get().cookie || '';
     }
 
     setCookie (document, value, syncWithServer) {
