@@ -8,7 +8,6 @@ import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 
 // Const
-const CLIENT_SCRIPT             = read('../client/hammerhead.js');
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
 // Static
@@ -35,7 +34,7 @@ function createServerInfo (hostname, port, crossDomainPort, protocol) {
 
 // Proxy
 export default class Proxy extends Router {
-    constructor (hostname, port1, port2, sslOptions) {
+    constructor (hostname, port1, port2, sslOptions, debugMode) {
         super();
 
         this.openSessions = {};
@@ -64,7 +63,7 @@ export default class Proxy extends Router {
 
         // BUG: GH-89
         this._startSocketsCollecting();
-        this._registerServiceRoutes();
+        this._registerServiceRoutes(debugMode);
     }
 
     _closeSockets () {
@@ -81,10 +80,13 @@ export default class Proxy extends Router {
         this.server2.on('connection', handler);
     }
 
-    _registerServiceRoutes () {
+    _registerServiceRoutes (debugMode) {
+        const hammerheadFileName      = debugMode ? 'hammerhead.js' : 'hammerhead.min.js';
+        const hammerheadScriptContent = read(`../client/${hammerheadFileName}`);
+
         this.GET('/hammerhead.js', {
             contentType: 'application/x-javascript',
-            content:     CLIENT_SCRIPT
+            content:     hammerheadScriptContent
         });
 
         this.POST('/messaging', (req, res, serverInfo) => this._onServiceMessage(req, res, serverInfo));

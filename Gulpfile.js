@@ -11,10 +11,11 @@ const mustache       = require('gulp-mustache');
 const rename         = require('gulp-rename');
 const webmake        = require('gulp-webmake');
 const uglify         = require('gulp-uglify');
-const gulpif         = require('gulp-if');
 const util           = require('gulp-util');
 const ll             = require('gulp-ll-next');
 const gulpRunCommand = require('gulp-run-command').default;
+const clone          = require('gulp-clone');
+const mergeStreams   = require('merge-stream');
 const path           = require('path');
 
 const selfSignedCertificate = require('openssl-self-signed-certificate');
@@ -29,16 +30,18 @@ ll
         'client-scripts-bundle'
     ]);
 
-const CLIENT_TESTS_SETTINGS = {
-    basePath:        './test/client/fixtures',
-    port:            2000,
-    crossDomainPort: 2001,
-    scripts:         [
-        { src: '/hammerhead.js', path: './lib/client/hammerhead.js' },
-        { src: '/before-test.js', path: './test/client/before-test.js' }
-    ],
+const getClientTestSettings = () => {
+    return {
+        basePath:        './test/client/fixtures',
+        port:            2000,
+        crossDomainPort: 2001,
+        scripts:         [
+            { src: '/hammerhead.js', path: util.env.dev ? './lib/client/hammerhead.js' : './lib/client/hammerhead.min.js' },
+            { src: '/before-test.js', path: './test/client/before-test.js' }
+        ],
 
-    configApp: require('./test/client/config-qunit-server-app')
+        configApp: require('./test/client/config-qunit-server-app')
+    };
 };
 
 const CLIENT_TESTS_BROWSERS = [
@@ -50,12 +53,6 @@ const CLIENT_TESTS_BROWSERS = [
         platform:    'Windows 10',
         browserName: 'chrome'
     },
-    // NOTE: version: 'beta' don't work anymore
-    // {
-    //     platform:    'Windows 10',
-    //     browserName: 'chrome',
-    //     version:     'beta'
-    // },
     {
         platform:    'Windows 10',
         browserName: 'firefox'
@@ -139,10 +136,15 @@ gulp.step('client-scripts-bundle', () => {
 });
 
 gulp.step('client-scripts-processing', () => {
-    return gulp.src('./src/client/index.js.wrapper.mustache')
+    const script = gulp.src('./src/client/index.js.wrapper.mustache')
         .pipe(mustache({ source: fs.readFileSync('./lib/client/hammerhead.js').toString() }))
-        .pipe(rename('hammerhead.js'))
-        .pipe(gulpif(!util.env.dev, uglify()))
+        .pipe(rename('hammerhead.js'));
+
+    const bundledScript = script.pipe(clone())
+        .pipe(uglify())
+        .pipe(rename('hammerhead.min.js'));
+
+    return mergeStreams(script, bundledScript)
         .pipe(gulp.dest('./lib/client'));
 });
 
@@ -202,7 +204,7 @@ gulp.step('qunit', () => {
 
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
-        .pipe(qunitHarness(CLIENT_TESTS_SETTINGS));
+        .pipe(qunitHarness(getClientTestSettings()));
 });
 
 gulp.task('test-client', gulp.series('build', 'qunit'));
@@ -217,7 +219,7 @@ gulp.task('test-client-dev', gulp.series('set-dev-mode', 'test-client'));
 gulp.step('travis-saucelabs-qunit', () => {
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
-        .pipe(qunitHarness(CLIENT_TESTS_SETTINGS, SAUCELABS_SETTINGS));
+        .pipe(qunitHarness(getClientTestSettings(), SAUCELABS_SETTINGS));
 });
 
 gulp.task('test-client-travis', gulp.series('build', 'travis-saucelabs-qunit'));
@@ -228,7 +230,7 @@ gulp.step('http-playground-server', () => {
     return hang();
 });
 
-gulp.task('http-playground', gulp.series('set-dev-mode', 'build', 'http-playground-server'));
+gulp.task('http-playground', gulp.series('build', 'http-playground-server'));
 
 gulp.step('https-playground-server', () => {
     require('./test/playground/server.js').start({
@@ -239,7 +241,7 @@ gulp.step('https-playground-server', () => {
     return hang();
 });
 
-gulp.task('https-playground', gulp.series('set-dev-mode', 'build', 'https-playground-server'));
+gulp.task('https-playground', gulp.series('build', 'https-playground-server'));
 
 gulp.task('test-functional-testcafe-travis',
     gulp.series('build',
