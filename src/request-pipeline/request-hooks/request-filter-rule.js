@@ -9,7 +9,7 @@ const DEFAULT_OPTIONS = {
 
 const MATCH_ANY_REQUEST_REG_EX = /.*/;
 
-const CORS_VALIDATION_FAILED_MSG_PREFIX = 'CORS validation failed for a request specified as ';
+const STRINGIFIED_FUNCTION_OPTIONS = '{ <predicate> }';
 
 export default class RequestFilterRule {
     constructor (options) {
@@ -81,10 +81,6 @@ export default class RequestFilterRule {
         return !!this.options.call(this, requestInfo);
     }
 
-    _stringifyFunctionOptions () {
-        return `${CORS_VALIDATION_FAILED_MSG_PREFIX}{ <predicate> }`;
-    }
-
     _stringifyObjectOptions () {
         const stringifiedOptions = [
             { name: 'url', value: this.options.url },
@@ -100,7 +96,7 @@ export default class RequestFilterRule {
             })
             .join(', ');
 
-        return `${CORS_VALIDATION_FAILED_MSG_PREFIX}{ ${msg} }`;
+        return `{ ${msg} }`;
     }
 
     match (requestInfo) {
@@ -117,6 +113,6 @@ export default class RequestFilterRule {
     toString () {
         const isFunctionOptions = typeof this.options === 'function';
 
-        return isFunctionOptions ? this._stringifyFunctionOptions() : this._stringifyObjectOptions();
+        return isFunctionOptions ? STRINGIFIED_FUNCTION_OPTIONS : this._stringifyObjectOptions();
     }
 }

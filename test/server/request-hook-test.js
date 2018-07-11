@@ -139,25 +139,25 @@ describe('RequestFilterRule', () => {
         expect(hook.options.url).eql('http://example.com');
         expect(hook.options.method).to.be.undefined;
         expect(hook.options.isAjax).to.be.undefined;
-        expect(hook.toString()).contains('{ url: "http://example.com" }');
+        expect(hook.toString()).eql('{ url: "http://example.com" }');
 
         hook = new RequestFilterRule(/example.com/);
         expect(hook.options.url).eql(/example.com/);
         expect(hook.options.method).to.be.undefined;
         expect(hook.options.isAjax).to.be.undefined;
-        expect(hook.toString()).contains('{ url: /example.com/ }');
+        expect(hook.toString()).eql('{ url: /example.com/ }');
 
         hook = new RequestFilterRule({ url: 'http://example.com', method: 'GET', isAjax: false });
         expect(hook.options.url).eql('http://example.com');
         expect(hook.options.method).eql('get');
         expect(hook.options.isAjax).eql(false);
-        expect(hook.toString()).contains('{ url: "http://example.com", method: "get" }');
+        expect(hook.toString()).eql('{ url: "http://example.com", method: "get" }');
 
         const filterFn = () => false;
 
         hook = new RequestFilterRule(filterFn);
         expect(hook.options).eql(filterFn);
-        expect(hook.toString()).contains('{ <predicate> }');
+        expect(hook.toString()).eql('{ <predicate> }');
     });
 
     it('Match', () => {
