@@ -212,13 +212,11 @@ if (window.fetch) {
 
 module('synchronization between frames');
 
-QUnit.skip('same-domain frames', function () {
-    // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
-    var src            = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
+test('same-domain frames', function () {
     var iframe         = null;
     var embeddedIframe = null;
 
-    return createTestIframe( { src: src })
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/cookie-sandbox/same-domain-iframe.html') })
         .then(function (createdIframe) {
             iframe = createdIframe;
 
@@ -261,7 +259,7 @@ QUnit.skip('same-domain frames', function () {
         });
 });
 
-QUnit.skip('cross-domain frames', function () {
+test('cross-domain frames', function () {
     var iframes = null;
 
     function checkCrossDomainIframeCookie (iframe, expectedValue) {
@@ -338,7 +336,7 @@ QUnit.skip('cross-domain frames', function () {
         });
 });
 
-QUnit.skip('actual cookie in iframe even if a synchronization message does not received yet', function () {
+test('actual cookie in iframe even if a synchronization message does not received yet', function () {
     return createTestIframe()
         .then(function (iframe) {
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
