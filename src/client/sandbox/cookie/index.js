@@ -125,19 +125,26 @@ export default class CookieSandbox extends SandboxBase {
             return value;
 
         const setByClient = typeof value === 'string';
+        let parsedCookie;
 
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
-        const parsedCookie = setByClient ? cookieUtils.parse(value) : {
-            key:     value.key,
-            domain:  value.domain,
-            path:    value.path,
-            expires: value.expires === 'Infinity' ? void 0 : value.expires.toUTCString(),
-            value:   value.value // eslint-disable-line no-restricted-properties
-        };
-
-        if (setByClient)
+        if (setByClient) {
             this.syncCookie();
+
+            parsedCookie = cookieUtils.parse(value);
+        }
+        else {
+            parsedCookie = {
+                key:    value.key,
+                domain: value.domain,
+                path:   value.path,
+                value:  value.value // eslint-disable-line no-restricted-properties
+            };
+
+            if (value.expires !== 'Infinity')
+                parsedCookie.expires = value.expires.toUTCString();
+        }
 
         if (CookieSandbox._isValidCookie(parsedCookie)) {
             // NOTE: These attributes don't have to be processed by a browser.
