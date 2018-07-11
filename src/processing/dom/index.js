@@ -48,15 +48,15 @@ export default class DomProcessor {
     }
 
     static isTagWithTargetAttr (tagName) {
-        return TARGET_ATTR_TAGS['target'].indexOf(tagName) > -1;
+        return tagName && TARGET_ATTR_TAGS['target'].indexOf(tagName) > -1;
     }
 
     static isTagWithFormTargetAttr (tagName) {
-        return TARGET_ATTR_TAGS['formtarget'].indexOf(tagName) > -1;
+        return tagName && TARGET_ATTR_TAGS['formtarget'].indexOf(tagName) > -1;
     }
 
     static isTagWithIntegrityAttr (tagName) {
-        return INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
+        return tagName && INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
     }
 
     static isIframeFlagTag (tagName) {
@@ -198,7 +198,11 @@ export default class DomProcessor {
             },
 
             { selector: selectors.ALL, elementProcessors: [this._processStyleAttr] },
-            { selector: selectors.IS_LINK, elementProcessors: [this._processIntegrityAttr] },
+            {
+                selector:          selectors.IS_LINK,
+                relAttr:           'rel',
+                elementProcessors: [this._processIntegrityAttr, this._processRelPrefetch]
+            },
             { selector: selectors.IS_STYLE, elementProcessors: [this._processStylesheetElement] },
             { selector: selectors.IS_INPUT, elementProcessors: [this._processAutoComplete] },
             { selector: selectors.HAS_EVENT_HANDLER, elementProcessors: [this._processEvtAttr] },
@@ -334,6 +338,24 @@ export default class DomProcessor {
 
         if (!processed)
             this.adapter.removeAttr(el, 'integrity');
+    }
+
+    // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
+    // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
+    _processRelPrefetch (el, urlReplacer, pattern) {
+        const storedRelAttr = DomProcessor.getStoredAttrName(pattern.relAttr);
+        const processed     = this.adapter.hasAttr(el, storedRelAttr) && !this.adapter.hasAttr(el, pattern.relAttr);
+        let attrValue       = this.adapter.getAttr(el, processed ? storedRelAttr : pattern.relAttr);
+
+        // NOTE: Value may have whitespace.
+        attrValue = attrValue && attrValue.replace(/\s/g, '');
+
+        if (attrValue === 'prefetch') {
+            this.adapter.setAttr(el, storedRelAttr, attrValue);
+
+            if (!processed)
+                this.adapter.removeAttr(el, pattern.relAttr);
+        }
     }
 
     _processJsAttr (el, attrName, { isJsProtocol, isEventAttr }) {

@@ -248,6 +248,7 @@ class NativeMethods {
         const anchorHrefDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'href');
         const linkHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'href');
         const linkIntegrityDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'integrity');
+        const linkRelDescriptor              = win.Object.getOwnPropertyDescriptor(win.HTMLLinkElement.prototype, 'rel');
         const areaHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLAreaElement.prototype, 'href');
         const baseHrefDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLBaseElement.prototype, 'href');
         const anchorHostDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'host');
@@ -295,6 +296,7 @@ class NativeMethods {
         this.iframeSrcSetter         = iframeSrcDescriptor.set;
         this.anchorHrefSetter        = anchorHrefDescriptor.set;
         this.linkHrefSetter          = linkHrefDescriptor.set;
+        this.linkRelSetter           = linkRelDescriptor.set;
         this.areaHrefSetter          = areaHrefDescriptor.set;
         this.baseHrefSetter          = baseHrefDescriptor.set;
         this.anchorHostSetter        = anchorHostDescriptor.set;
@@ -373,6 +375,7 @@ class NativeMethods {
         this.iframeSrcGetter                = iframeSrcDescriptor.get;
         this.anchorHrefGetter               = anchorHrefDescriptor.get;
         this.linkHrefGetter                 = linkHrefDescriptor.get;
+        this.linkRelGetter                  = linkRelDescriptor.get;
         this.areaHrefGetter                 = areaHrefDescriptor.get;
         this.baseHrefGetter                 = baseHrefDescriptor.get;
         this.anchorHostGetter               = anchorHostDescriptor.get;

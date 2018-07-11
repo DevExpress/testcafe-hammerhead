@@ -117,6 +117,15 @@ export default class ElementSandbox extends SandboxBase {
                 args[0] = storedIntegrityAttr;
         }
 
+        // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
+        // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
+        if (!isNs && loweredAttr === 'rel' && tagName === 'link') {
+            const storedRelAttr = DomProcessor.getStoredAttrName(attr);
+
+            if (nativeMethods.hasAttribute.call(el, storedRelAttr))
+                args[0] = storedRelAttr;
+        }
+
         return getAttrMeth.apply(el, args);
     }
 
@@ -251,6 +260,18 @@ export default class ElementSandbox extends SandboxBase {
             return setAttrMeth.apply(el, [storedIntegrityAttr, value]);
         }
 
+        else if (!isNs && loweredAttr === 'rel' && tagName === 'link') {
+            const storedRelAttr = DomProcessor.getStoredAttrName(attr);
+
+            if (value === 'prefetch') {
+                nativeMethods.removeAttribute.call(el, attr);
+
+                return setAttrMeth.apply(el, [storedRelAttr, value]);
+            }
+
+            nativeMethods.removeAttribute.call(el, storedRelAttr);
+        }
+
         const result = setAttrMeth.apply(el, args);
 
         if (needToCallTargetChanged)
@@ -264,6 +285,7 @@ export default class ElementSandbox extends SandboxBase {
         const hasAttrMeth                 = isNs ? nativeMethods.hasAttributeNS : nativeMethods.hasAttribute;
         const storedAutocompleteAttrName  = DomProcessor.getStoredAttrName('autocomplete');
         const storedAutocompleteAttrValue = nativeMethods.getAttribute.call(el, storedAutocompleteAttrName);
+        const tagName                     = domUtils.getTagName(el);
 
         if (typeof args[attributeNameArgIndex] === 'string' &&
             DomProcessor.isAddedAutocompleteAttr(args[attributeNameArgIndex], storedAutocompleteAttrValue))
@@ -274,8 +296,18 @@ export default class ElementSandbox extends SandboxBase {
         // the correct SHA for the changed script.
         // _hasAttributeCore returns true for 'integrity' attribute if the stored attribute is exists. (GH-235)
         if (!isNs && args[attributeNameArgIndex] === 'integrity' &&
-            DomProcessor.isTagWithIntegrityAttr(domUtils.getTagName(el)))
+            DomProcessor.isTagWithIntegrityAttr(tagName))
             args[attributeNameArgIndex] = DomProcessor.getStoredAttrName('integrity');
+
+        // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
+        // resource type is unknown.
+        // _hasAttributeCore returns true for 'rel' attribute if the original 'rel' or stored attribute is exists.
+        // https://github.com/DevExpress/testcafe/issues/2528
+        if (!isNs && args[attributeNameArgIndex] === 'rel' && tagName === 'link') {
+            const storedRelAttr = DomProcessor.getStoredAttrName(args[attributeNameArgIndex]);
+
+            return hasAttrMeth.apply(el, args) || hasAttrMeth.apply(el, [storedRelAttr]);
+        }
 
         return hasAttrMeth.apply(el, args);
     }
@@ -298,6 +330,12 @@ export default class ElementSandbox extends SandboxBase {
                 nativeMethods.setAttribute.call(el, storedAttr, domProcessor.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER);
             else
                 removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
+        }
+
+        if (!isNs && formatedAttr === 'rel' && tagName === 'link') {
+            const storedRelAttr = DomProcessor.getStoredAttrName(formatedAttr);
+
+            removeAttrFunc.apply(el, [storedRelAttr]);
         }
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))

@@ -395,6 +395,11 @@ describe('Proxy', () => {
             res.json(req.headers);
         });
 
+        app.get('/link-prefetch-header', (req, res) => {
+            res.setHeader('link', '<http://some.url.com>; rel=prefetch');
+            res.end('42');
+        });
+
         crossDomainServer = crossDomainApp.listen(2002);
     });
 
@@ -864,83 +869,97 @@ describe('Proxy', () => {
         });
     });
 
-    describe('Location header', () => {
-        it('Should ensure a trailing slash on location header (GH-1426)', () => {
-            function getExpectedProxyUrl (testCase) {
-                const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
-                    proxyHostname: '127.0.0.1',
-                    proxyPort:     1836,
-                    sessionId:     session.id
-                });
-
-                return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
-            }
-
-            const testLocationHeaderValue = testCase => {
-                const proxiedUrl = proxy.openSession(testCase.url, session);
-                const encodedUrl = encodeURIComponent(proxiedUrl);
-                const options    = {
-                    url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
-
-                    resolveWithFullResponse: true,
-                    followRedirect:          false,
-                    simple:                  false,
-                };
-
-                return request(options)
-                    .then(res => {
-                        expect(res.headers['location']).eql(getExpectedProxyUrl(testCase));
-                    });
+    describe('Headers', () => {
+        it('Should omit a "link" header from response (https://github.com/DevExpress/testcafe/issues/2528)', () => {
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:2000/link-prefetch-header', session),
+                resolveWithFullResponse: true
             };
 
-            return Promise.all(ENSURE_URL_TRAILING_SLASH_TEST_CASES.map(testLocationHeaderValue));
+            return request(options)
+                .then(res => {
+                    expect(res.headers['link']).is.undefined;
+                });
         });
 
-        it('Should omit the default port on location header', () => {
-            const PORT_RE = /:([0-9][0-9]*)/;
+        describe('Location header', () => {
+            it('Should ensure a trailing slash on location header (GH-1426)', () => {
+                function getExpectedProxyUrl (testCase) {
+                    const proxiedUrl = urlUtils.getProxyUrl(testCase.url, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id
+                    });
 
-            function getExpectedProxyUrl (url, shouldOmitPort) {
-                url = shouldOmitPort ? url.replace(PORT_RE, '') : url;
+                    return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
+                }
 
-                return urlUtils.getProxyUrl(url, {
-                    proxyHostname: '127.0.0.1',
-                    proxyPort:     1836,
-                    sessionId:     session.id,
-                });
-            }
+                const testLocationHeaderValue = testCase => {
+                    const proxiedUrl = proxy.openSession(testCase.url, session);
+                    const encodedUrl = encodeURIComponent(proxiedUrl);
+                    const options    = {
+                        url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
 
-            function testUrl (url, shouldOmitPort) {
-                const proxiedUrl = proxy.openSession(url, session);
-                const encodedUrl = encodeURIComponent(proxiedUrl);
-                const options    = {
-                    url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
+                        resolveWithFullResponse: true,
+                        followRedirect:          false,
+                        simple:                  false,
+                    };
 
-                    resolveWithFullResponse: true,
-                    followRedirect:          false,
-                    simple:                  false
+                    return request(options)
+                        .then(res => {
+                            expect(res.headers['location']).eql(getExpectedProxyUrl(testCase));
+                        });
                 };
 
-                return request(options)
-                    .then(res => {
-                        expect(res.headers['location']).eql(getExpectedProxyUrl(url, shouldOmitPort));
+                return Promise.all(ENSURE_URL_TRAILING_SLASH_TEST_CASES.map(testLocationHeaderValue));
+            });
+
+            it('Should omit the default port on location header', () => {
+                const PORT_RE = /:([0-9][0-9]*)/;
+
+                function getExpectedProxyUrl (url, shouldOmitPort) {
+                    url = shouldOmitPort ? url.replace(PORT_RE, '') : url;
+
+                    return urlUtils.getProxyUrl(url, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
                     });
-            }
+                }
 
-            function testDefaultPortOmitting (protocol, defaultPort, defaultPortForAnotherProtocol) {
+                function testUrl (url, shouldOmitPort) {
+                    const proxiedUrl = proxy.openSession(url, session);
+                    const encodedUrl = encodeURIComponent(proxiedUrl);
+                    const options    = {
+                        url: 'http://127.0.0.1:2000/redirect/' + encodedUrl,
+
+                        resolveWithFullResponse: true,
+                        followRedirect:          false,
+                        simple:                  false
+                    };
+
+                    return request(options)
+                        .then(res => {
+                            expect(res.headers['location']).eql(getExpectedProxyUrl(url, shouldOmitPort));
+                        });
+                }
+
+                function testDefaultPortOmitting (protocol, defaultPort, defaultPortForAnotherProtocol) {
+                    return Promise.all([
+                        testUrl(protocol + '//localhost:' + defaultPort + '/', true),
+                        testUrl(protocol + '//127.0.0.1:' + defaultPort + '/', true),
+                        testUrl(protocol + '//example.com:' + defaultPort + '/', true),
+                        testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true),
+                        testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false),
+                        testUrl(protocol + '//localhost:2343/', false)
+                    ]);
+                }
+
                 return Promise.all([
-                    testUrl(protocol + '//localhost:' + defaultPort + '/', true),
-                    testUrl(protocol + '//127.0.0.1:' + defaultPort + '/', true),
-                    testUrl(protocol + '//example.com:' + defaultPort + '/', true),
-                    testUrl(protocol + '//example.com:' + defaultPort + '/page.html', true),
-                    testUrl(protocol + '//localhost:' + defaultPortForAnotherProtocol + '/', false),
-                    testUrl(protocol + '//localhost:2343/', false)
+                    testDefaultPortOmitting('http:', '80', '443'),
+                    testDefaultPortOmitting('https:', '443', '80')
                 ]);
-            }
-
-            return Promise.all([
-                testDefaultPortOmitting('http:', '80', '443'),
-                testDefaultPortOmitting('https:', '443', '80')
-            ]);
+            });
         });
     });
 
