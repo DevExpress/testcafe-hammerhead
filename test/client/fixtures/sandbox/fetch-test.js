@@ -7,6 +7,10 @@ var browserUtils  = hammerhead.utils.browser;
 var Promise       = hammerhead.Promise;
 
 if (window.fetch) {
+    test('fetch.toString (GH-1662)', function () {
+        strictEqual(fetch.toString(), nativeMethods.fetch.toString());
+    });
+
     test('global fetch - redirect request to proxy', function () {
         return fetch('/xhr-test/100')
             .then(function (response) {

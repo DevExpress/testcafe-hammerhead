@@ -131,6 +131,10 @@ export default class FetchSandbox extends SandboxBase {
                 });
         };
 
+        const fetchToString = nativeMethods.fetch.toString();
+
+        window.fetch.toString = () => fetchToString;
+
         overrideDescriptor(window.Response.prototype, 'type', {
             getter: function () {
                 return FetchSandbox._getResponseType(this);
