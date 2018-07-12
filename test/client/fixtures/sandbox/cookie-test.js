@@ -187,7 +187,8 @@ test('set cookie from the XMLHttpRequest', function () {
     strictEqual(document.cookie, '');
 
     return new Promise(function (resolve) {
-        xhr.open('GET', '/xhr-with-sync-cookie/', true);
+        xhr.open('GET', '/xhr-with-sync-cookie/?rand=' + Math.random(), true);
+        xhr.setRequestHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         xhr.addEventListener('load', resolve);
         xhr.send();
     })

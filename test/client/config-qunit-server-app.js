@@ -94,7 +94,8 @@ module.exports = function (app) {
 
     app.get('/xhr-with-sync-cookie/', function (req, res) {
         res.setHeader('set-cookie', 's|sessionId|hello|example.com|%2F||1fckm5lnl=world;path=/');
-        res.setHeader('cache-control', 'no-cache, no-store, must-revalidate, max-age=0');
+        res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('pragma', 'no-cache');
         res.send();
     });
 
