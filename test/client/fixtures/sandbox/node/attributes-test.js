@@ -653,6 +653,7 @@ module('"rel" attribute');
 test('process html', function () {
     var relAttrCases = [
         { valueToSet: 'prefetch', hasRelAttr: false, hasStoredRel: true },
+        { valueToSet: '  prEFEtch ', hasRelAttr: false, hasStoredRel: true },
         { valueToSet: 'autor', hasRelAttr: true, hasStoredRel: false },
         { valueToSet: 'dns-prefetch', hasRelAttr: true, hasStoredRel: false },
         { valueToSet: 'help', hasRelAttr: true, hasStoredRel: false },
@@ -684,6 +685,7 @@ test('process html', function () {
 test('setAttribute', function () {
     var relAttrCases = [
         { valueToSet: 'prefetch', nativeGetAttrExpected: null },
+        { valueToSet: '  prEFEtch ', nativeGetAttrExpected: null },
         { valueToSet: 'autor', nativeGetAttrExpected: 'autor' },
         { valueToSet: 'dns-prefetch', nativeGetAttrExpected: 'dns-prefetch' },
         { valueToSet: 'help', nativeGetAttrExpected: 'help' },
@@ -724,7 +726,7 @@ test('hasAttribute, removeAttribute', function () {
     link.removeAttribute('rel');
     ok(!link.hasAttribute('rel'));
 
-    link.setAttribute('rel', 'autor');
+    link.setAttribute('rel', '  prEFEtch ');
     ok(link.hasAttribute('rel'));
 
     link.removeAttribute('rel');
@@ -746,6 +748,7 @@ test('"rel" property', function () {
     }
 
     checkRelAttr('prefetch', null);
+    checkRelAttr('  prEFEtch ', null);
     checkRelAttr('autor', 'autor');
 
     link.parentNode.removeChild(link);

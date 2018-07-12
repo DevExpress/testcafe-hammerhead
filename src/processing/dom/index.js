@@ -7,6 +7,7 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
+import trim from '../../utils/string-trim';
 import { XML_NAMESPACE } from './namespaces';
 import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
 
@@ -27,7 +28,7 @@ const SVG_XLINK_HREF_TAGS = [
 const INTEGRITY_ATTR_TAGS = ['script', 'link'];
 
 // eslint-disable-next-line hammerhead/proto-methods
-const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS['target'].filter(tagName => tagName !== 'base').concat(TARGET_ATTR_TAGS['formtarget']);
+const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS.target.filter(tagName => tagName !== 'base').concat(TARGET_ATTR_TAGS.formtarget);
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -48,11 +49,11 @@ export default class DomProcessor {
     }
 
     static isTagWithTargetAttr (tagName) {
-        return tagName && TARGET_ATTR_TAGS['target'].indexOf(tagName) > -1;
+        return tagName && TARGET_ATTR_TAGS.target.indexOf(tagName) > -1;
     }
 
     static isTagWithFormTargetAttr (tagName) {
-        return tagName && TARGET_ATTR_TAGS['formtarget'].indexOf(tagName) > -1;
+        return tagName && TARGET_ATTR_TAGS.formtarget.indexOf(tagName) > -1;
     }
 
     static isTagWithIntegrityAttr (tagName) {
@@ -345,16 +346,17 @@ export default class DomProcessor {
     _processRelPrefetch (el, urlReplacer, pattern) {
         const storedRelAttr = DomProcessor.getStoredAttrName(pattern.relAttr);
         const processed     = this.adapter.hasAttr(el, storedRelAttr) && !this.adapter.hasAttr(el, pattern.relAttr);
-        let attrValue       = this.adapter.getAttr(el, processed ? storedRelAttr : pattern.relAttr);
+        const attrValue     = this.adapter.getAttr(el, processed ? storedRelAttr : pattern.relAttr);
 
-        // NOTE: Value may have whitespace.
-        attrValue = attrValue && attrValue.replace(/\s/g, '');
+        if (attrValue) {
+            const formatedValue = trim(attrValue.toLowerCase());
 
-        if (attrValue === 'prefetch') {
-            this.adapter.setAttr(el, storedRelAttr, attrValue);
+            if (formatedValue === 'prefetch') {
+                this.adapter.setAttr(el, storedRelAttr, attrValue);
 
-            if (!processed)
-                this.adapter.removeAttr(el, pattern.relAttr);
+                if (!processed)
+                    this.adapter.removeAttr(el, pattern.relAttr);
+            }
         }
     }
 

@@ -15,6 +15,7 @@ import { isValidEventListener, stopPropagation } from '../../utils/event';
 import { processHtml } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
+import trim from '../../../utils/string-trim';
 import * as windowsStorage from '../windows-storage';
 import { refreshAttributesWrapper } from './attributes';
 import ShadowUI from '../shadow-ui';
@@ -261,15 +262,15 @@ export default class ElementSandbox extends SandboxBase {
         }
 
         else if (!isNs && loweredAttr === 'rel' && tagName === 'link') {
+            const formatedValue = trim(value.toLowerCase());
             const storedRelAttr = DomProcessor.getStoredAttrName(attr);
 
-            if (value === 'prefetch') {
+            if (formatedValue === 'prefetch') {
                 nativeMethods.removeAttribute.call(el, attr);
-
-                return setAttrMeth.apply(el, [storedRelAttr, value]);
+                args[0] = storedRelAttr;
             }
-
-            nativeMethods.removeAttribute.call(el, storedRelAttr);
+            else
+                nativeMethods.removeAttribute.call(el, storedRelAttr);
         }
 
         const result = setAttrMeth.apply(el, args);

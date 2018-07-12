@@ -199,7 +199,7 @@ const responseTransforms = {
     'refresh': (src, ctx) => transformRefreshHeader(src, ctx),
 
     'link': src => {
-        if (/[;\s]rel=prefetch/i.test(src))
+        if (/[;\s]rel=\s*prefetch/i.test(src))
             return void 0;
 
         return src;
