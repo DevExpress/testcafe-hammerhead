@@ -213,54 +213,54 @@ if (window.fetch) {
 module('synchronization between frames');
 
 test('same-domain frames', function () {
+    var sameDomainSrc  = getSameDomainPageUrl('../../data/cookie-sandbox/same-domain-iframe.html');
     var iframe         = null;
     var embeddedIframe = null;
 
-    return createTestIframe({ src: getSameDomainPageUrl('../../data/cookie-sandbox/same-domain-iframe.html') })
+    return createTestIframe({ src: sameDomainSrc })
         .then(function (createdIframe) {
             iframe = createdIframe;
 
-            return createTestIframe(null, iframe.contentDocument.body);
+            return createTestIframe({ src: sameDomainSrc + '&iframe=embedded' }, iframe.contentDocument.body);
         })
         .then(function (createdIframe) {
             embeddedIframe = createdIframe;
 
+            function checkCookies (expectedCookies) {
+                strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+                strictEqual(settings.get().cookie, expectedCookies);
+                strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, expectedCookies);
+                strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, expectedCookies);
+            }
+
+            checkCookies('');
+
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl=321;path=/');
 
-            strictEqual(settings.get().cookie, '');
-            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, '');
-            strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, '');
-
             document.cookie; // eslint-disable-line no-unused-expressions
 
-            strictEqual(nativeMethods.documentCookieGetter.call(document), '');
-            strictEqual(settings.get().cookie, 'test=123; cafe=321');
-            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=123; cafe=321');
-            strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=123; cafe=321');
+            checkCookies(browserUtils.isSafari ? 'cafe=321; test=123' : 'test=123; cafe=321');
 
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lz3=321;path=/');
 
             iframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
 
-            strictEqual(nativeMethods.documentCookieGetter.call(document), '');
-            strictEqual(settings.get().cookie, 'test=321; cafe=321');
-            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=321; cafe=321');
-            strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=321; cafe=321');
+            checkCookies(browserUtils.isSafari ? 'cafe=321; test=321' : 'test=321; cafe=321');
 
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6=value;path=/');
 
             embeddedIframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
 
-            strictEqual(nativeMethods.documentCookieGetter.call(document), '');
-            strictEqual(settings.get().cookie, 'test=321');
-            strictEqual(iframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=321');
-            strictEqual(embeddedIframe.contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=321');
+            checkCookies(browserUtils.isSafari ? ' test=321' : 'test=321');
         });
 });
 
 test('cross-domain frames', function () {
-    var iframes = null;
+    var sameDomainSrc   = getSameDomainPageUrl('../../data/cookie-sandbox/same-domain-iframe.html');
+    var crossDomainSrc  = getCrossDomainPageUrl('../../data/cookie-sandbox/cross-domain-iframe.html');
+    var iframes         = null;
+    var expectedCookies = '';
 
     function checkCrossDomainIframeCookie (iframe, expectedValue) {
         return new Promise(function (resolve) {
@@ -283,9 +283,9 @@ test('cross-domain frames', function () {
     }
 
     return Promise.all([
-        createTestIframe({ src: getCrossDomainPageUrl('../../data/cookie-sandbox/cross-domain-iframe.html') }),
-        createTestIframe(),
-        createTestIframe({ src: getCrossDomainPageUrl('../../data/cookie-sandbox/cross-domain-iframe.html') })
+        createTestIframe({ src: crossDomainSrc }),
+        createTestIframe({ src: sameDomainSrc }),
+        createTestIframe({ src: crossDomainSrc })
     ])
         .then(function (frames) {
             iframes = frames;
@@ -304,19 +304,17 @@ test('cross-domain frames', function () {
         .then(function () {
             document.cookie; // eslint-disable-line no-unused-expressions
 
-            strictEqual(nativeMethods.documentCookieGetter.call(document), [
-                'f|sessionId|test|example.com|%2F||1fckm5lnl=123',
-                'f|sessionId|cafe|example.com|%2F||1fckm5lnl=321'
-            ].join('; '));
-            strictEqual(settings.get().cookie, 'test=123; cafe=321');
-            strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, 'test=123; cafe=321');
+            expectedCookies = browserUtils.isSafari ? 'cafe=321; test=123' : 'test=123; cafe=321';
+
+            strictEqual(settings.get().cookie, expectedCookies);
+            strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, expectedCookies);
 
             return window.QUnitGlobals.wait(realCookieIsEmpty, 5000);
         })
         .then(function () {
             return Promise.all([
-                checkCrossDomainIframeCookie(iframes[0], 'test=123; cafe=321'),
-                checkCrossDomainIframeCookie(iframes[2], 'test=123; cafe=321')
+                checkCrossDomainIframeCookie(iframes[0], expectedCookies),
+                checkCrossDomainIframeCookie(iframes[2], expectedCookies)
             ]);
         })
         .then(function () {
@@ -337,7 +335,7 @@ test('cross-domain frames', function () {
 });
 
 test('actual cookie in iframe even if a synchronization message does not received yet', function () {
-    return createTestIframe()
+    return createTestIframe({ src: getSameDomainPageUrl('../../data/cookie-sandbox/same-domain-iframe.html') })
         .then(function (iframe) {
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
 

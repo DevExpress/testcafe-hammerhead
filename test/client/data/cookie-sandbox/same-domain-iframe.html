@@ -3,10 +3,14 @@
 <head>
     <script src="/hammerhead.js" class="script-hammerhead-shadow-ui"></script>
     <script type="text/javascript">
-        var hammerhead = window['%hammerhead%'];
+        var hammerhead    = window['%hammerhead%'];
+        var iframeSandbox = hammerhead.sandbox.iframe;
 
         hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
         hammerhead.start({ crossDomainProxyPort: 2001, cookie: '', sessionId: 'sessionId' });
+
+        iframeSandbox.on(iframeSandbox.RUN_TASK_SCRIPT_EVENT, parent.initIframeTestHandler);
+        iframeSandbox.off(iframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeSandbox.iframeReadyToInitHandler);
     </script>
 </head>
 </html>
