@@ -2,7 +2,7 @@
   "compact": false,
   "presets": [
     ["env", {
-      "targets": { "node": "4" },
+      "targets": { "node": "6" },
       "loose": true,
       "exclude": [
         "transform-regenerator"
