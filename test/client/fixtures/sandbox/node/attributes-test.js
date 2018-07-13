@@ -652,52 +652,52 @@ module('"rel" attribute');
 
 test('process html', function () {
     var relAttrCases = [
-        { valueToSet: 'prefetch', hasRelAttr: false, hasStoredRel: true },
-        { valueToSet: '  prEFEtch ', hasRelAttr: false, hasStoredRel: true },
-        { valueToSet: 'autor', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'dns-prefetch', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'help', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'icon', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'license', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'next', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'pingback', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'preconnect', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'preload', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'prev', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'search', hasRelAttr: true, hasStoredRel: false },
-        { valueToSet: 'stylesheet', hasRelAttr: true, hasStoredRel: false }
+        { relValue: 'prefetch', hasRelAttr: false, hasStoredRelAttr: true },
+        { relValue: '  prEFEtch ', hasRelAttr: false, hasStoredRelAttr: true },
+        { relValue: 'autor', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'dns-prefetch', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'help', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'icon', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'license', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'next', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'pingback', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'preconnect', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'preload', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'prev', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'search', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'stylesheet', hasRelAttr: true, hasStoredRelAttr: false }
     ];
 
     relAttrCases.forEach(function (relAttrCase) {
         var link = nativeMethods.createElement.call(document, 'link');
 
-        nativeMethods.linkRelSetter.call(link, relAttrCase.valueToSet);
+        nativeMethods.linkRelSetter.call(link, relAttrCase.relValue);
 
         domProcessor.processElement(link);
 
         strictEqual(nativeMethods.elementOuterHTMLGetter.call(link),
-            '<link' + (relAttrCase.hasRelAttr ? ' rel="' + relAttrCase.valueToSet + '"' : '')
-            + (relAttrCase.hasStoredRel ? ' rel-hammerhead-stored-value="' + relAttrCase.valueToSet + '"' : '') + '>',
-            relAttrCase.valueToSet);
+            '<link' + (relAttrCase.hasRelAttr ? ' rel="' + relAttrCase.relValue + '"' : '')
+            + (relAttrCase.hasStoredRelAttr ? ' rel-hammerhead-stored-value="' + relAttrCase.relValue + '"' : '') + '>',
+            relAttrCase.relValue);
     });
 });
 
 test('setAttribute', function () {
     var relAttrCases = [
-        { valueToSet: 'prefetch', nativeGetAttrExpected: null },
-        { valueToSet: '  prEFEtch ', nativeGetAttrExpected: null },
-        { valueToSet: 'autor', nativeGetAttrExpected: 'autor' },
-        { valueToSet: 'dns-prefetch', nativeGetAttrExpected: 'dns-prefetch' },
-        { valueToSet: 'help', nativeGetAttrExpected: 'help' },
-        { valueToSet: 'icon', nativeGetAttrExpected: 'icon' },
-        { valueToSet: 'license', nativeGetAttrExpected: 'license' },
-        { valueToSet: 'next', nativeGetAttrExpected: 'next' },
-        { valueToSet: 'pingback', nativeGetAttrExpected: 'pingback' },
-        { valueToSet: 'preconnect', nativeGetAttrExpected: 'preconnect' },
-        { valueToSet: 'preload', nativeGetAttrExpected: 'preload' },
-        { valueToSet: 'prev', nativeGetAttrExpected: 'prev' },
-        { valueToSet: 'search', nativeGetAttrExpected: 'search' },
-        { valueToSet: 'stylesheet', nativeGetAttrExpected: 'stylesheet' }
+        { relValue: 'prefetch', nativeGetAttrExpected: null },
+        { relValue: '  prEFEtch ', nativeGetAttrExpected: null },
+        { relValue: 'autor', nativeGetAttrExpected: 'autor' },
+        { relValue: 'dns-prefetch', nativeGetAttrExpected: 'dns-prefetch' },
+        { relValue: 'help', nativeGetAttrExpected: 'help' },
+        { relValue: 'icon', nativeGetAttrExpected: 'icon' },
+        { relValue: 'license', nativeGetAttrExpected: 'license' },
+        { relValue: 'next', nativeGetAttrExpected: 'next' },
+        { relValue: 'pingback', nativeGetAttrExpected: 'pingback' },
+        { relValue: 'preconnect', nativeGetAttrExpected: 'preconnect' },
+        { relValue: 'preload', nativeGetAttrExpected: 'preload' },
+        { relValue: 'prev', nativeGetAttrExpected: 'prev' },
+        { relValue: 'search', nativeGetAttrExpected: 'search' },
+        { relValue: 'stylesheet', nativeGetAttrExpected: 'stylesheet' }
     ];
 
     var link = nativeMethods.createElement.call(document, 'link');
@@ -705,9 +705,9 @@ test('setAttribute', function () {
     document.body.appendChild(link);
 
     relAttrCases.forEach(function (relAttrCase) {
-        link.setAttribute('rel', relAttrCase.valueToSet);
-        strictEqual(nativeMethods.getAttribute.call(link, 'rel'), relAttrCase.nativeGetAttrExpected, relAttrCase.valueToSet);
-        strictEqual(link.getAttribute('rel'), relAttrCase.valueToSet, relAttrCase.valueToSet);
+        link.setAttribute('rel', relAttrCase.relValue);
+        strictEqual(nativeMethods.getAttribute.call(link, 'rel'), relAttrCase.nativeGetAttrExpected, relAttrCase.relValue);
+        strictEqual(link.getAttribute('rel'), relAttrCase.relValue, relAttrCase.relValue);
     });
 
     link.parentNode.removeChild(link);
@@ -718,19 +718,15 @@ test('hasAttribute, removeAttribute', function () {
 
     document.body.appendChild(link);
 
-    ok(!link.hasAttribute('rel'));
+    ok(!link.hasAttribute('rel'), 'nonexistent rel attribute');
 
-    link.setAttribute('rel', 'prefetch');
-    ok(link.hasAttribute('rel'));
+    ['prefetch', '  prEFEtch ', 'autor'].forEach(function (relValue) {
+        link.setAttribute('rel', relValue);
+        ok(link.hasAttribute('rel'), relValue);
 
-    link.removeAttribute('rel');
-    ok(!link.hasAttribute('rel'));
-
-    link.setAttribute('rel', '  prEFEtch ');
-    ok(link.hasAttribute('rel'));
-
-    link.removeAttribute('rel');
-    ok(!link.hasAttribute('rel'));
+        link.removeAttribute('rel');
+        ok(!link.hasAttribute('rel'), 'nonexistent rel attribute');
+    });
 
     link.parentNode.removeChild(link);
 });
@@ -740,11 +736,11 @@ test('"rel" property', function () {
 
     document.body.appendChild(link);
 
-    function checkRelAttr (valueToSet, nativeGetAttrExpected) {
-        link.rel = valueToSet;
+    function checkRelAttr (relValue, nativeGetAttrExpected) {
+        link.rel = relValue;
 
-        strictEqual(link.rel, valueToSet, valueToSet);
-        strictEqual(nativeMethods.getAttribute.call(link, 'rel'), nativeGetAttrExpected, valueToSet);
+        strictEqual(link.rel, relValue, relValue);
+        strictEqual(nativeMethods.getAttribute.call(link, 'rel'), nativeGetAttrExpected, relValue);
     }
 
     checkRelAttr('prefetch', null);
