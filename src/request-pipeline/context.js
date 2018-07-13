@@ -103,11 +103,10 @@ export default class RequestPipelineContext {
     _initRequestNatureInfo () {
         const acceptHeader = this.req.headers['accept'];
 
-        this.isXhr          = !!this.req.headers[XHR_HEADERS.requestMarker];
-        this.isPage         = !this.isXhr && acceptHeader && contentTypeUtils.isPage(acceptHeader) ||
-                              this.dest.isHtmlImport;
-        this.isHtmlImport   = this.dest.isHtmlImport;
         this.isWebSocket    = this.dest.isWebSocket;
+        this.isHtmlImport   = this.dest.isHtmlImport;
+        this.isPage         = !this.isXhr && !this.isFetch && !this.isWebSocket && acceptHeader &&
+                              contentTypeUtils.isPage(acceptHeader) || this.isHtmlImport;
         this.isIframe       = this.dest.isIframe;
         this.isSpecialPage  = urlUtils.isSpecialPage(this.dest.url);
         this.isFileProtocol = this.dest.protocol === 'file:';
