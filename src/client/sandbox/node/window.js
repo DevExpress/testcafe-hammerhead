@@ -796,6 +796,8 @@ export default class WindowSandbox extends SandboxBase {
             this._overrideAttrDescriptors('integrity', [window.HTMLLinkElement]);
         }
 
+        this._overrideAttrDescriptors('rel', [window.HTMLLinkElement]);
+
         overrideDescriptor(window.HTMLIFrameElement.prototype, 'sandbox', {
             getter: function () {
                 let domTokenList = this[SANDBOX_DOM_TOKEN_LIST];

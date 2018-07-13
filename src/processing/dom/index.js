@@ -7,6 +7,7 @@ import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
+import trim from '../../utils/string-trim';
 import { XML_NAMESPACE } from './namespaces';
 import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
 
@@ -27,7 +28,7 @@ const SVG_XLINK_HREF_TAGS = [
 const INTEGRITY_ATTR_TAGS = ['script', 'link'];
 
 // eslint-disable-next-line hammerhead/proto-methods
-const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS['target'].filter(tagName => tagName !== 'base').concat(TARGET_ATTR_TAGS['formtarget']);
+const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS.target.filter(tagName => tagName !== 'base').concat(TARGET_ATTR_TAGS.formtarget);
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
@@ -48,15 +49,15 @@ export default class DomProcessor {
     }
 
     static isTagWithTargetAttr (tagName) {
-        return TARGET_ATTR_TAGS['target'].indexOf(tagName) > -1;
+        return tagName && TARGET_ATTR_TAGS.target.indexOf(tagName) > -1;
     }
 
     static isTagWithFormTargetAttr (tagName) {
-        return TARGET_ATTR_TAGS['formtarget'].indexOf(tagName) > -1;
+        return tagName && TARGET_ATTR_TAGS.formtarget.indexOf(tagName) > -1;
     }
 
     static isTagWithIntegrityAttr (tagName) {
-        return INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
+        return tagName && INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
     }
 
     static isIframeFlagTag (tagName) {
@@ -198,7 +199,11 @@ export default class DomProcessor {
             },
 
             { selector: selectors.ALL, elementProcessors: [this._processStyleAttr] },
-            { selector: selectors.IS_LINK, elementProcessors: [this._processIntegrityAttr] },
+            {
+                selector:          selectors.IS_LINK,
+                relAttr:           'rel',
+                elementProcessors: [this._processIntegrityAttr, this._processRelPrefetch]
+            },
             { selector: selectors.IS_STYLE, elementProcessors: [this._processStylesheetElement] },
             { selector: selectors.IS_INPUT, elementProcessors: [this._processAutoComplete] },
             { selector: selectors.HAS_EVENT_HANDLER, elementProcessors: [this._processEvtAttr] },
@@ -334,6 +339,25 @@ export default class DomProcessor {
 
         if (!processed)
             this.adapter.removeAttr(el, 'integrity');
+    }
+
+    // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
+    // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
+    _processRelPrefetch (el, urlReplacer, pattern) {
+        const storedRelAttr = DomProcessor.getStoredAttrName(pattern.relAttr);
+        const processed     = this.adapter.hasAttr(el, storedRelAttr) && !this.adapter.hasAttr(el, pattern.relAttr);
+        const attrValue     = this.adapter.getAttr(el, processed ? storedRelAttr : pattern.relAttr);
+
+        if (attrValue) {
+            const formatedValue = trim(attrValue.toLowerCase());
+
+            if (formatedValue === 'prefetch') {
+                this.adapter.setAttr(el, storedRelAttr, attrValue);
+
+                if (!processed)
+                    this.adapter.removeAttr(el, pattern.relAttr);
+            }
+        }
     }
 
     _processJsAttr (el, attrName, { isJsProtocol, isEventAttr }) {

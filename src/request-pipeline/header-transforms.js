@@ -196,7 +196,14 @@ const responseTransforms = {
 
     'referrer-policy': () => 'unsafe-url',
 
-    'refresh': (src, ctx) => transformRefreshHeader(src, ctx)
+    'refresh': (src, ctx) => transformRefreshHeader(src, ctx),
+
+    'link': src => {
+        if (/[;\s]rel=\s*prefetch/i.test(src))
+            return void 0;
+
+        return src;
+    }
 };
 
 // Transformation routine

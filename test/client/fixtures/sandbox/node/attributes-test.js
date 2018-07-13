@@ -647,6 +647,110 @@ if (window.Node.prototype.hasOwnProperty('attributes')) {
     });
 }
 
+
+module('"rel" attribute');
+
+test('process html', function () {
+    var relAttrCases = [
+        { relValue: 'prefetch', hasRelAttr: false, hasStoredRelAttr: true },
+        { relValue: '  prEFEtch ', hasRelAttr: false, hasStoredRelAttr: true },
+        { relValue: 'autor', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'dns-prefetch', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'help', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'icon', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'license', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'next', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'pingback', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'preconnect', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'preload', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'prev', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'search', hasRelAttr: true, hasStoredRelAttr: false },
+        { relValue: 'stylesheet', hasRelAttr: true, hasStoredRelAttr: false }
+    ];
+
+    relAttrCases.forEach(function (relAttrCase) {
+        var link = nativeMethods.createElement.call(document, 'link');
+
+        nativeMethods.linkRelSetter.call(link, relAttrCase.relValue);
+
+        domProcessor.processElement(link);
+
+        strictEqual(nativeMethods.elementOuterHTMLGetter.call(link),
+            '<link' + (relAttrCase.hasRelAttr ? ' rel="' + relAttrCase.relValue + '"' : '')
+            + (relAttrCase.hasStoredRelAttr ? ' rel-hammerhead-stored-value="' + relAttrCase.relValue + '"' : '') + '>',
+            relAttrCase.relValue);
+    });
+});
+
+test('setAttribute', function () {
+    var relAttrCases = [
+        { relValue: 'prefetch', nativeGetAttrExpected: null },
+        { relValue: '  prEFEtch ', nativeGetAttrExpected: null },
+        { relValue: 'autor', nativeGetAttrExpected: 'autor' },
+        { relValue: 'dns-prefetch', nativeGetAttrExpected: 'dns-prefetch' },
+        { relValue: 'help', nativeGetAttrExpected: 'help' },
+        { relValue: 'icon', nativeGetAttrExpected: 'icon' },
+        { relValue: 'license', nativeGetAttrExpected: 'license' },
+        { relValue: 'next', nativeGetAttrExpected: 'next' },
+        { relValue: 'pingback', nativeGetAttrExpected: 'pingback' },
+        { relValue: 'preconnect', nativeGetAttrExpected: 'preconnect' },
+        { relValue: 'preload', nativeGetAttrExpected: 'preload' },
+        { relValue: 'prev', nativeGetAttrExpected: 'prev' },
+        { relValue: 'search', nativeGetAttrExpected: 'search' },
+        { relValue: 'stylesheet', nativeGetAttrExpected: 'stylesheet' }
+    ];
+
+    var link = nativeMethods.createElement.call(document, 'link');
+
+    document.body.appendChild(link);
+
+    relAttrCases.forEach(function (relAttrCase) {
+        link.setAttribute('rel', relAttrCase.relValue);
+        strictEqual(nativeMethods.getAttribute.call(link, 'rel'), relAttrCase.nativeGetAttrExpected, relAttrCase.relValue);
+        strictEqual(link.getAttribute('rel'), relAttrCase.relValue, relAttrCase.relValue);
+    });
+
+    link.parentNode.removeChild(link);
+});
+
+test('hasAttribute, removeAttribute', function () {
+    var link = nativeMethods.createElement.call(document, 'link');
+
+    document.body.appendChild(link);
+
+    ok(!link.hasAttribute('rel'), 'nonexistent rel attribute');
+
+    ['prefetch', '  prEFEtch ', 'autor'].forEach(function (relValue) {
+        link.setAttribute('rel', relValue);
+        ok(link.hasAttribute('rel'), relValue);
+
+        link.removeAttribute('rel');
+        ok(!link.hasAttribute('rel'), 'nonexistent rel attribute');
+    });
+
+    link.parentNode.removeChild(link);
+});
+
+test('"rel" property', function () {
+    var link = nativeMethods.createElement.call(document, 'link');
+
+    document.body.appendChild(link);
+
+    function checkRelAttr (relValue, nativeGetAttrExpected) {
+        link.rel = relValue;
+
+        strictEqual(link.rel, relValue, relValue);
+        strictEqual(nativeMethods.getAttribute.call(link, 'rel'), nativeGetAttrExpected, relValue);
+    }
+
+    checkRelAttr('prefetch', null);
+    checkRelAttr('  prEFEtch ', null);
+    checkRelAttr('autor', 'autor');
+
+    link.parentNode.removeChild(link);
+});
+
+
 module('regression');
 
 test('setting function to the link.href attribute value (T230764)', function () {
