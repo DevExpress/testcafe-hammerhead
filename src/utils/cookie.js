@@ -51,7 +51,7 @@ function sortByOutdatedAndActual (parsedCookies) {
     return { outdated, actual };
 }
 
-function formatSyncType (cookie) {
+function stringifySyncType (cookie) {
     return (cookie.isServerSync ? SYNCHRONIZATION_TYPE.server : '') +
            (cookie.isClientSync ? SYNCHRONIZATION_TYPE.client : '') +
            (cookie.isFramesSync ? SYNCHRONIZATION_TYPE.frames : '');
@@ -72,7 +72,7 @@ export function parseClientSyncCookieStr (cookieStr) {
 }
 
 export function formatSyncCookie (cookie) {
-    const syncType     = formatSyncType(cookie);
+    const syncType     = stringifySyncType(cookie);
     const key          = encodeURIComponent(cookie.key);
     const domain       = encodeURIComponent(cookie.domain);
     const path         = encodeURIComponent(cookie.path);
@@ -108,7 +108,7 @@ export function parseSyncCookie (cookieStr) {
 }
 
 export function applySyncType (cookie) {
-    const newSyncTypeStr = formatSyncType(cookie);
+    const newSyncTypeStr = stringifySyncType(cookie);
 
     cookie.syncKey   = cookie.syncKey.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
     cookie.cookieStr = cookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);

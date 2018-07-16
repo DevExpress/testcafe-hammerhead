@@ -1,9 +1,9 @@
 import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
+import createAutoIncrementIdGenerator from '../../utils/auto-increment-id-generator';
 
-const MAX_SAFE_INTEGER       = Math.pow(2, 53) - 1;
-const SYNC_COOKIE_KEYS_EVENT = 'hammerhead|event|sync-cookie-keys';
-const SYNC_COOKIE_DONE_EVENT = 'hammerhead|event|sync-cookie-done';
+const SYNC_COOKIE_START_EVENT = 'hammerhead|event|sync-cookie-start';
+const SYNC_COOKIE_DONE_EVENT  = 'hammerhead|event|sync-cookie-done';
 
 export default class FrameSync {
     constructor (win, cookieSandbox, messageSandbox) {
@@ -11,12 +11,12 @@ export default class FrameSync {
         this.cookieSandbox  = cookieSandbox;
         this.messageSandbox = messageSandbox;
 
-        this.syncMessageCounter = 0;
+        this.messageIdGenerator = createAutoIncrementIdGenerator();
 
         this.resolvers = {};
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
-            if (message.cmd === SYNC_COOKIE_KEYS_EVENT) {
+            if (message.cmd === SYNC_COOKIE_START_EVENT) {
                 const syncResultPromise = this.cookieSandbox.syncFrameCookie(message.cookies, source);
                 const callback = () => this.messageSandbox.sendServiceMsg({
                     id:  message.id,
@@ -81,7 +81,7 @@ export default class FrameSync {
                     syncMessages.push(syncResultPromise);
             }
             else
-                syncMessages.push(this.sendSyncMessage(win, SYNC_COOKIE_KEYS_EVENT, cookies));
+                syncMessages.push(this.sendSyncMessage(win, SYNC_COOKIE_START_EVENT, cookies));
         }
 
         if (syncMessages.length) {
@@ -97,12 +97,7 @@ export default class FrameSync {
     }
 
     sendSyncMessage (win, cmd, cookies) {
-        const id = this.syncMessageCounter;
-
-        this.syncMessageCounter = this.syncMessageCounter + 1;
-
-        if (this.syncMessageCounter > MAX_SAFE_INTEGER)
-            this.syncMessageCounter = 0;
+        const id = this.messageIdGenerator.increment();
 
         return new Promise(resolve => {
             this.resolvers[id] = resolve;
