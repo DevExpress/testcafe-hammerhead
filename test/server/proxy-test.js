@@ -1998,7 +1998,7 @@ describe('Proxy', () => {
             });
         });
 
-        it('Should close webSocket from server side', function (done) {
+        it('Should close webSocket from server side', done => {
             getFreePort()
                 .then(port => {
                     const url = urlUtils.getProxyUrl('http://127.0.0.1:' + port, {
@@ -2023,7 +2023,7 @@ describe('Proxy', () => {
                 });
         });
 
-        it('Should send/receive message', function (done) {
+        it('Should send/receive message', done => {
             getFreePort()
                 .then(port => {
                     const url = urlUtils.getProxyUrl('http://localhost:' + port, {
@@ -2046,6 +2046,35 @@ describe('Proxy', () => {
 
                     wsTemporaryServer.on('connection', ws => ws.send('foobar'));
                 });
+        });
+
+        it('Should not call the "handlePageError" method even if a request has the "text/html" accept', done => {
+            const url = urlUtils.getProxyUrl('http://127.0.0.1:2003/ws', {
+                proxyHostname: '127.0.0.1',
+                proxyPort:     1836,
+                sessionId:     session.id,
+                resourceType:  urlUtils.getResourceTypeString({ isWebSocket: true }),
+                reqOrigin:     encodeURIComponent('http://example.com')
+            });
+
+            proxy.openSession('http://127.0.0.1:2003/', session);
+
+            const ws = new WebSocket(url, { headers: { 'accept': 'text/html' } });
+
+            const timeout = setTimeout(() => {
+                expect(true).eql(true);
+                done();
+            }, 2000);
+
+            session.handlePageError = () => {
+                expect(false).eql(true);
+                clearTimeout(timeout);
+                done();
+            };
+
+            ws.on('error', err => {
+                expect(err.message).eql('socket hang up');
+            });
         });
     });
 
