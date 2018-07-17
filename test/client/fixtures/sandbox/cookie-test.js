@@ -236,24 +236,24 @@ test('same-domain frames', function () {
 
             checkCookies('');
 
-            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl=321;path=/');
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
 
             document.cookie; // eslint-disable-line no-unused-expressions
 
-            checkCookies(browserUtils.isSafari ? 'cafe=321; test=123' : 'test=123; cafe=321');
+            checkCookies('cafe=321; test=123');
 
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lz3=321;path=/');
 
             iframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
 
-            checkCookies(browserUtils.isSafari ? 'cafe=321; test=321' : 'test=321; cafe=321');
+            checkCookies('cafe=321; test=321');
 
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F|0|1fckm5lz6=value;path=/');
 
             embeddedIframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
 
-            checkCookies(browserUtils.isSafari ? ' test=321' : 'test=321');
+            checkCookies('test=321');
         });
 });
 
@@ -291,8 +291,8 @@ test('cross-domain frames', function () {
         .then(function (frames) {
             iframes = frames;
 
-            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
             nativeMethods.documentCookieSetter.call(document, 's|sessionId|cafe|example.com|%2F||1fckm5lnl=321;path=/');
+            nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
 
             strictEqual(settings.get().cookie, '');
             strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, '');
@@ -305,7 +305,7 @@ test('cross-domain frames', function () {
         .then(function () {
             document.cookie; // eslint-disable-line no-unused-expressions
 
-            expectedCookies = browserUtils.isSafari ? 'cafe=321; test=123' : 'test=123; cafe=321';
+            expectedCookies = 'cafe=321; test=123';
 
             strictEqual(settings.get().cookie, expectedCookies);
             strictEqual(iframes[1].contentWindow['%hammerhead%'].get('./settings').get().cookie, expectedCookies);

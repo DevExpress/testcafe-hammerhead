@@ -1,7 +1,7 @@
 import nativeMethods from '../../native-methods';
 import { getTagName, isShadowUIElement } from '../../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../../utils/query-selector';
-import createAutoIncrementIdGenerator from '../../../utils/auto-increment-id-generator';
+import createIntegerIdGenerator from '../../../utils/integer-id-generator';
 
 class DOMMutationTracker {
     constructor () {
@@ -54,16 +54,16 @@ class DOMMutationTracker {
         const isTagTracked = tagName in this._mutations;
 
         if (!isTagTracked)
-            this._mutations[tagName] = createAutoIncrementIdGenerator();
+            this._mutations[tagName] = createIntegerIdGenerator();
 
-        const lastVersion = this._mutations[tagName].get();
+        const lastVersion = this._mutations[tagName].value; // eslint-disable-line no-restricted-properties
 
         return version < lastVersion;
     }
 
     getVersion (tagName) {
         if (this._mutations[tagName])
-            return this._mutations[tagName].get();
+            return this._mutations[tagName].value; // eslint-disable-line no-restricted-properties
 
         return -Infinity;
     }

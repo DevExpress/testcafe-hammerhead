@@ -1,6 +1,6 @@
 import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
-import createAutoIncrementIdGenerator from '../../utils/auto-increment-id-generator';
+import createIntegerIdGenerator from '../../utils/integer-id-generator';
 
 const SYNC_COOKIE_START_EVENT = 'hammerhead|event|sync-cookie-start';
 const SYNC_COOKIE_DONE_EVENT  = 'hammerhead|event|sync-cookie-done';
@@ -11,7 +11,7 @@ export default class FrameSync {
         this.cookieSandbox  = cookieSandbox;
         this.messageSandbox = messageSandbox;
 
-        this.messageIdGenerator = createAutoIncrementIdGenerator();
+        this.messageIdGenerator = createIntegerIdGenerator();
 
         this.resolvers = {};
 
