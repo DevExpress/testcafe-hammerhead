@@ -4,13 +4,14 @@
 // -------------------------------------------------------------
 
 export default {
-    processDomMethodName:  'hammerhead|process-dom-method',
-    processedContext:      'hammerhead|processed-context',
-    documentWasCleaned:    'hammerhead|document-was-cleaned',
-    documentCharset:       'hammerhead|document-charset',
-    iframeNativeMethods:   'hammerhead|iframe-native-methods',
-    hammerhead:            '%hammerhead%',
-    selection:             'hammerhead|selection',
-    shadowUIElement:       'hammerhead|shadow-ui-element',
-    forceProxySrcForImage: 'hammerhead|image|force-proxy-src-flag'
+    processDomMethodName:      'hammerhead|process-dom-method',
+    processedContext:          'hammerhead|processed-context',
+    documentWasCleaned:        'hammerhead|document-was-cleaned',
+    documentCharset:           'hammerhead|document-charset',
+    iframeNativeMethods:       'hammerhead|iframe-native-methods',
+    hammerhead:                '%hammerhead%',
+    selection:                 'hammerhead|selection',
+    shadowUIElement:           'hammerhead|shadow-ui-element',
+    forceProxySrcForImage:     'hammerhead|image|force-proxy-src-flag',
+    skipNextLoadEventForImage: 'hammerhead|image|skip-next-load-event-flag'
 };

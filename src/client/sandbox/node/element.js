@@ -80,12 +80,15 @@ export default class ElementSandbox extends SandboxBase {
 
     static _setProxiedSrc (img) {
         if (!img[INTERNAL_PROPS.forceProxySrcForImage]) {
-            img[INTERNAL_PROPS.forceProxySrcForImage] = true;
+            const imgSrc            = nativeMethods.imageSrcGetter.call(img);
+            const skipNextLoadEvent = !!imgSrc && img.complete;
 
-            const imgSrc = nativeMethods.imageSrcGetter.call(img);
+            img[INTERNAL_PROPS.forceProxySrcForImage] = true;
 
             if (imgSrc)
                 img.setAttribute('src', imgSrc);
+
+            img[INTERNAL_PROPS.skipNextLoadEventForImage] = skipNextLoadEvent;
         }
     }
 
@@ -161,6 +164,9 @@ export default class ElementSandbox extends SandboxBase {
             setAttrMeth.apply(el, isNs ? [ns, storedUrlAttr, value] : [storedUrlAttr, value]);
 
             if (tagName !== 'img' || el[INTERNAL_PROPS.forceProxySrcForImage]) {
+                if (tagName === 'img')
+                    el[INTERNAL_PROPS.skipNextLoadEventForImage] = false;
+
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
                     const isIframe         = tagName === 'iframe' || tagName === 'frame';
                     const isScript         = tagName === 'script';
@@ -808,6 +814,15 @@ export default class ElementSandbox extends SandboxBase {
         switch (tagName) {
             case 'img':
                 this.eventSandbox.listeners.initElementListening(el, ['load']);
+                this.eventSandbox.listeners.addInternalEventListener(el, ['load'], (e, dispatched, preventEvent, cancelHandlers, stopEventPropagation) => {
+                    if (!el[INTERNAL_PROPS.skipNextLoadEventForImage])
+                        return;
+
+                    el[INTERNAL_PROPS.skipNextLoadEventForImage] = false;
+
+                    preventEvent();
+                    stopEventPropagation();
+                });
 
                 if (!el[INTERNAL_PROPS.forceProxySrcForImage] && !settings.get().forceProxySrcForImage)
                     this._setProxiedSrcUrlOnError(el);

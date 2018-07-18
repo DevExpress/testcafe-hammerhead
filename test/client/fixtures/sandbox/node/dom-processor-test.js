@@ -7,6 +7,7 @@ var styleProcessor = hammerhead.get('../processing/style');
 var settings       = hammerhead.get('./settings');
 var urlUtils       = hammerhead.get('./utils/url');
 var sharedUrlUtils = hammerhead.get('../utils/url');
+var destLocation   = hammerhead.get('./utils/destination-location');
 
 var nativeMethods = hammerhead.nativeMethods;
 
@@ -358,6 +359,68 @@ module('should create a proxy url for the img src attribute if the image has the
             img.onload = function () {};
 
             strictEqual(nativeMethods.imageSrcGetter.call(img), imgProxyUrl);
+        });
+
+        asyncTest('attach the load handler after setting up the src(image is loaded)', function () {
+            var img                  = document.createElement('img');
+            var storedForcedLocation = destLocation.getLocation();
+
+            destLocation.forceLocation('http://localhost/sessionId/' + location.origin);
+
+            img.src = 'http://localhost:2000/image.png?rand=' + Math.random() + '&timeout=0';
+
+            nativeMethods.htmlElementOnloadSetter.call(img, function () {
+                var onloadHandlerCalled = false;
+
+                img.onload = function () {
+                    onloadHandlerCalled = true;
+                };
+
+                img.addEventListener('load', function () {
+                    onloadHandlerCalled = true;
+                });
+
+                setTimeout(function () {
+                    img.onload = null;
+                    ok(!onloadHandlerCalled);
+                    destLocation.forceLocation(storedForcedLocation);
+                    start();
+                }, 1000);
+            });
+        });
+
+        asyncTest('attach the load handler after setting up the src(image is not loaded)', function () {
+            var img                  = document.createElement('img');
+            var storedForcedLocation = destLocation.getLocation();
+
+            destLocation.forceLocation('http://localhost/sessionId/' + location.origin);
+
+            img.src    = 'http://localhost:2000/image.png?rand=' + Math.random() + '&timeout=300';
+            img.onload = function () {
+                ok(true);
+                destLocation.forceLocation(storedForcedLocation);
+                start();
+            };
+        });
+
+        asyncTest('attach the load handler after setting up the src(image is loaded and set new src)', function () {
+            var img                  = document.createElement('img');
+            var storedForcedLocation = destLocation.getLocation();
+
+            destLocation.forceLocation('http://localhost/sessionId/' + location.origin);
+
+            img.src = 'http://localhost:2000/image.png?rand=' + Math.random() + '&timeout=0';
+
+            nativeMethods.htmlElementOnloadSetter.call(img, function () {
+                img.onload = function () {
+                    img.onload = null;
+                    ok(true);
+                    destLocation.forceLocation(storedForcedLocation);
+                    start();
+                };
+
+                img.src = 'http://localhost:2000/image.png?rand=' + Math.random() + '&timeout=0';
+            });
         });
     });
 

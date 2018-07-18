@@ -187,4 +187,27 @@ module.exports = function (app) {
     app.get('/fixtures/sandbox/code-instrumentation/:url', iframeLocationUrlCallback);
 
     app.get('/:url', iframeLocationUrlCallback);
+
+    app.get('/image.png', function (req, res) {
+        var promise = null;
+
+        if (req.query.timeout) {
+            promise = new Promise(function (resolve) {
+                setTimeout(resolve, req.query.timeout);
+            });
+        }
+        else
+            promise = Promise.resolve();
+
+        promise
+            .then(function () {
+                res
+                    .set('content-type', 'image/png')
+                    .set('cache-control', 'no-cache, no-store, must-revalidate')
+                    .set('pragma', 'no-cache')
+                    .send(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0I' +
+                                      'Ars4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqG' +
+                                      'QAAAAMSURBVBhXY9j6TBYABAwBuZFzS6sAAAAASUVORK5CYII=', 'base64'));
+            });
+    });
 };
