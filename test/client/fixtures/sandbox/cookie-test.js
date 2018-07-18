@@ -253,7 +253,7 @@ test('same-domain frames', function () {
 
             embeddedIframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
 
-            checkCookies('test=321');
+            checkCookies(' test=321');
         });
 });
 
