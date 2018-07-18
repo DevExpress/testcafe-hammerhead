@@ -628,6 +628,46 @@ describe('Proxy', () => {
                     });
             });
 
+            it('Should not generate cookie for synchronization for page', function () {
+                const cookie  = encodeURIComponent('aaa=111;path=/path');
+                const options = {
+                    url:     proxy.openSession('http://127.0.0.1:2000/cookie-server-sync/' + cookie, session),
+                    headers: { accept: 'text/html' },
+
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                return request(options)
+                    .then(res => {
+                        expect(res.headers).to.not.have.property('set-cookie');
+                    });
+            });
+
+            it('Should generate cookie for synchronization for iframe', function () {
+                const cookie  = encodeURIComponent('aaa=111;path=/path');
+                const options = {
+                    url: urlUtils.getProxyUrl('http://127.0.0.1:2000/cookie-server-sync/' + cookie, {
+                        proxyHostname: '127.0.0.1',
+                        proxyPort:     1836,
+                        sessionId:     session.id,
+                        resourceType:  urlUtils.getResourceTypeString({ isIframe: true })
+                    }),
+
+                    headers:                 { accept: 'text/html' },
+                    resolveWithFullResponse: true,
+                    simple:                  false
+                };
+
+                proxy.openSession('http://127.0.0.1:2000/', session);
+
+                return request(options)
+                    .then(res => {
+                        expect(replaceLastAccessedTime(res.headers['set-cookie'][0]))
+                            .eql(`s|${session.id}|aaa|127.0.0.1|%2Fpath||%lastAccessed%=111;path=/`);
+                    });
+            });
+
             it('Should remove obsolete synchronization cookie', function () {
                 const obsoleteTime = (new Date().getTime() - 1000).toString(36);
                 const cookie       = encodeURIComponent('bbb=321;path=/');
