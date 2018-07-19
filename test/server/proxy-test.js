@@ -2405,7 +2405,6 @@ describe('Proxy', () => {
             session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     e.requestOptions.path = '/script';
-                    e.requestOptions.url  = 'http://127.0.0.1:2000/script';
                 }
             });
 

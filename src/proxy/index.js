@@ -34,7 +34,7 @@ function createServerInfo (hostname, port, crossDomainPort, protocol) {
 
 // Proxy
 export default class Proxy extends Router {
-    constructor (hostname, port1, port2, sslOptions, debugMode) {
+    constructor (hostname, port1, port2, sslOptions, developmentMode) {
         super();
 
         this.openSessions = {};
@@ -63,7 +63,7 @@ export default class Proxy extends Router {
 
         // BUG: GH-89
         this._startSocketsCollecting();
-        this._registerServiceRoutes(debugMode);
+        this._registerServiceRoutes(developmentMode);
     }
 
     _closeSockets () {
@@ -80,8 +80,8 @@ export default class Proxy extends Router {
         this.server2.on('connection', handler);
     }
 
-    _registerServiceRoutes (debugMode) {
-        const hammerheadFileName      = debugMode ? 'hammerhead.js' : 'hammerhead.min.js';
+    _registerServiceRoutes (developmentMode) {
+        const hammerheadFileName      = developmentMode ? 'hammerhead.js' : 'hammerhead.min.js';
         const hammerheadScriptContent = read(`../client/${hammerheadFileName}`);
 
         this.GET('/hammerhead.js', {
