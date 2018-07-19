@@ -145,7 +145,7 @@ const responseTransforms = {
         if (src) {
             const parsedCookies = ctx.session.cookies.setByServer(ctx.dest.url, src);
 
-            if (!ctx.isPage && !ctx.isIframe)
+            if (!ctx.isPage || ctx.isIframe)
                 return generateServerSyncCookie(ctx, parsedCookies);
         }
 
