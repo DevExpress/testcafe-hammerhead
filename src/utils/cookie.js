@@ -11,10 +11,10 @@ const CLEAR_COOKIE_VALUE_STR = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
 export const SYNCHRONIZATION_TYPE = {
     server: 's',
     client: 'c',
-    frames: 'f'
+    window: 'f'
 };
 
-const SYNCHRONIZATION_TYPE_RE = new RegExp(`^[${SYNCHRONIZATION_TYPE.server}${SYNCHRONIZATION_TYPE.client}${SYNCHRONIZATION_TYPE.frames}]+`);
+const SYNCHRONIZATION_TYPE_RE = new RegExp(`^[${SYNCHRONIZATION_TYPE.server}${SYNCHRONIZATION_TYPE.client}${SYNCHRONIZATION_TYPE.window}]+`);
 
 function isSameCookies (cookie1, cookie2) {
     return cookie1.sid === cookie2.sid &&
@@ -54,7 +54,7 @@ function sortByOutdatedAndActual (parsedCookies) {
 function stringifySyncType (cookie) {
     return (cookie.isServerSync ? SYNCHRONIZATION_TYPE.server : '') +
            (cookie.isClientSync ? SYNCHRONIZATION_TYPE.client : '') +
-           (cookie.isFramesSync ? SYNCHRONIZATION_TYPE.frames : '');
+           (cookie.isWindowSync ? SYNCHRONIZATION_TYPE.window : '');
 }
 
 export function parseClientSyncCookieStr (cookieStr) {
@@ -93,7 +93,7 @@ export function parseSyncCookie (cookieStr) {
     return {
         isServerSync: parsedKey[0].indexOf(SYNCHRONIZATION_TYPE.server) > -1,
         isClientSync: parsedKey[0].indexOf(SYNCHRONIZATION_TYPE.client) > -1,
-        isFramesSync: parsedKey[0].indexOf(SYNCHRONIZATION_TYPE.frames) > -1,
+        isWindowSync: parsedKey[0].indexOf(SYNCHRONIZATION_TYPE.window) > -1,
         sid:          parsedKey[1],
         key:          decodeURIComponent(parsedKey[2]),
         domain:       decodeURIComponent(parsedKey[3]),
@@ -107,11 +107,21 @@ export function parseSyncCookie (cookieStr) {
     };
 }
 
-export function applySyncType (cookie) {
-    const newSyncTypeStr = stringifySyncType(cookie);
+export function changeSyncType (parsedCookie, flags) {
+    if ('server' in flags)
+        parsedCookie.isServerSync = flags.server;
 
-    cookie.syncKey   = cookie.syncKey.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
-    cookie.cookieStr = cookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
+    if ('client' in flags)
+        parsedCookie.isClientSync = flags.client;
+
+    if ('window' in flags)
+        parsedCookie.isWindowSync = flags.window;
+
+    const newSyncTypeStr = stringifySyncType(parsedCookie);
+
+    parsedCookie.syncKey   = parsedCookie.syncKey.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
+    parsedCookie.cookieStr = parsedCookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
+
 }
 
 export function isOutdatedSyncCookie (currentCookie, newCookie) {

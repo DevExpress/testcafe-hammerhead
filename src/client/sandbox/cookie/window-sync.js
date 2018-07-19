@@ -2,25 +2,24 @@ import Promise from 'pinkie';
 import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 import createIntegerIdGenerator from '../../utils/integer-id-generator';
 
-const SYNC_COOKIE_START_EVENT = 'hammerhead|event|sync-cookie-start';
-const SYNC_COOKIE_DONE_EVENT  = 'hammerhead|event|sync-cookie-done';
+const SYNC_COOKIE_START_CMD = 'hammerhead|command|sync-cookie-start';
+const SYNC_COOKIE_DONE_CMD  = 'hammerhead|command|sync-cookie-done';
 
-export default class FrameSync {
+export default class WindowSync {
     constructor (win, cookieSandbox, messageSandbox) {
         this.win            = win;
         this.cookieSandbox  = cookieSandbox;
         this.messageSandbox = messageSandbox;
 
         this.messageIdGenerator = createIntegerIdGenerator();
-
-        this.resolvers = {};
+        this.resolversMap       = {};
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
-            if (message.cmd === SYNC_COOKIE_START_EVENT) {
-                const syncResultPromise = this.cookieSandbox.syncFrameCookie(message.cookies, source);
+            if (message.cmd === SYNC_COOKIE_START_CMD) {
+                const syncResultPromise = this.cookieSandbox.syncWindowCookie(message.cookies, source);
                 const callback = () => this.messageSandbox.sendServiceMsg({
                     id:  message.id,
-                    cmd: SYNC_COOKIE_DONE_EVENT
+                    cmd: SYNC_COOKIE_DONE_CMD
                 }, source);
 
                 if (syncResultPromise)
@@ -28,10 +27,10 @@ export default class FrameSync {
                 else
                     callback();
             }
-            else if (message.cmd === SYNC_COOKIE_DONE_EVENT) {
-                this.resolvers[message.id]();
+            else if (message.cmd === SYNC_COOKIE_DONE_CMD) {
+                this.resolversMap[message.id]();
 
-                delete this.resolvers[message.id];
+                delete this.resolversMap[message.id];
             }
         });
     }
@@ -52,7 +51,7 @@ export default class FrameSync {
         if (this.win !== this.win.parent && this.win.parent !== initiator)
             windows.push(this.win.parent);
 
-        for (const frameWin of this.win.frames) {
+        for (const frameWin of this.win.window) {
             if (frameWin !== initiator)
                 windows.push(frameWin);
         }
@@ -60,7 +59,7 @@ export default class FrameSync {
         return windows;
     }
 
-    syncBetweenFrames (cookies, initiator, callback) {
+    syncBetweenWindows (cookies, initiator, callback) {
         if (!cookies.length) {
             if (callback)
                 callback();
@@ -72,16 +71,16 @@ export default class FrameSync {
         const syncMessages   = [];
 
         for (const win of windowsForSync) {
-            const cookieSandbox = FrameSync._getCookieSandbox(win);
+            const cookieSandbox = WindowSync._getCookieSandbox(win);
 
             if (cookieSandbox) {
-                const syncResultPromise = cookieSandbox.syncFrameCookie(cookies, this.win);
+                const syncResultPromise = cookieSandbox.syncWindowCookie(cookies, this.win);
 
                 if (syncResultPromise)
                     syncMessages.push(syncResultPromise);
             }
             else
-                syncMessages.push(this.sendSyncMessage(win, SYNC_COOKIE_START_EVENT, cookies));
+                syncMessages.push(this.sendSyncMessage(win, SYNC_COOKIE_START_CMD, cookies));
         }
 
         if (syncMessages.length) {
@@ -100,7 +99,7 @@ export default class FrameSync {
         const id = this.messageIdGenerator.increment();
 
         return new Promise(resolve => {
-            this.resolvers[id] = resolve;
+            this.resolversMap[id] = resolve;
             this.messageSandbox.sendServiceMsg({ id, cmd, cookies }, win);
         });
     }

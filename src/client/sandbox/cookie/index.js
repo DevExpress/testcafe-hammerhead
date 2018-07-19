@@ -1,14 +1,16 @@
 import SandboxBase from '../base';
 import settings from '../../settings';
 import CookieSync from './cookie-sync';
-import FrameSync from './frame-sync';
+import WindowSync from './window-sync';
 import * as destLocation from '../../utils/destination-location';
 import * as cookieUtils from '../../utils/cookie';
 import trim from '../../../utils/string-trim';
 import BYTES_PER_COOKIE_LIMIT from '../../../session/cookie-limit';
 import nativeMethods from '../../sandbox/native-methods';
 import {
-    applySyncType, formatSyncCookie, generateDeleteSyncCookieStr,
+    changeSyncType,
+    formatSyncCookie,
+    generateDeleteSyncCookieStr,
     parseClientSyncCookieStr
 } from '../../../utils/cookie';
 
@@ -18,7 +20,7 @@ export default class CookieSandbox extends SandboxBase {
 
         this.messageSandbox = messageSandbox;
         this.cookieSync     = new CookieSync();
-        this.frameSync      = null;
+        this.windowSync     = null;
     }
 
     // NOTE: Let a browser validate other stuff (e.g. the Path attribute). For this purpose, we add a unique prefix
@@ -119,12 +121,12 @@ export default class CookieSandbox extends SandboxBase {
         return settings.get().cookie || '';
     }
 
-    setCookie (document, value, syncWithServer) {
+    setCookie (document, cookie, syncWithServer) {
         // eslint-disable-next-line no-restricted-properties
-        if (value.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:')
-            return value;
+        if (cookie.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:')
+            return cookie;
 
-        const setByClient = typeof value === 'string';
+        const setByClient = typeof cookie === 'string';
         let parsedCookie;
 
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
@@ -132,18 +134,18 @@ export default class CookieSandbox extends SandboxBase {
         if (setByClient) {
             this.syncCookie();
 
-            parsedCookie = cookieUtils.parse(value);
+            parsedCookie = cookieUtils.parse(cookie);
         }
         else {
             parsedCookie = {
-                key:    value.key,
-                domain: value.domain,
-                path:   value.path,
-                value:  value.value // eslint-disable-line no-restricted-properties
+                key:    cookie.key,
+                domain: cookie.domain,
+                path:   cookie.path,
+                value:  cookie.value // eslint-disable-line no-restricted-properties
             };
 
-            if (value.expires !== 'Infinity')
-                parsedCookie.expires = value.expires.toUTCString();
+            if (cookie.expires !== 'Infinity')
+                parsedCookie.expires = cookie.expires.toUTCString();
         }
 
         if (CookieSandbox._isValidCookie(parsedCookie)) {
@@ -172,12 +174,13 @@ export default class CookieSandbox extends SandboxBase {
             // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
             this.cookieSync.perform({
                 // eslint-disable-next-line no-restricted-properties
-                url:    document.location.href,
-                cookie: value
+                url: document.location.href,
+
+                cookie
             });
         }
 
-        return value;
+        return cookie;
     }
 
     syncCookie () {
@@ -195,7 +198,7 @@ export default class CookieSandbox extends SandboxBase {
 
             if (parsedCookie.isServerSync)
                 serverSyncCookies.push(parsedCookie);
-            else if (parsedCookie.isFramesSync)
+            else if (parsedCookie.isWindowSync)
                 this.setCookie(this.document, parsedCookie, false);
         }
 
@@ -207,22 +210,17 @@ export default class CookieSandbox extends SandboxBase {
             this.setCookie(this.document, parsedCookie, false);
 
             nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
-
-            parsedCookie.isServerSync = false;
-            parsedCookie.isFramesSync = true;
-
-            applySyncType(parsedCookie);
-
+            changeSyncType(parsedCookie, { server: false, window: true });
             nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
         }
 
-        this.frameSync.syncBetweenFrames(parsedCookies, null, () => {
+        this.windowSync.syncBetweenWindows(parsedCookies, null, () => {
             for (const parsedCookie of parsedCookies)
                 nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
         });
     }
 
-    syncFrameCookie (parsedCookies, win) {
+    syncWindowCookie (parsedCookies, win) {
         const clientCookie  = nativeMethods.documentCookieGetter.call(this.document);
         const actualCookies = [];
 
@@ -236,12 +234,12 @@ export default class CookieSandbox extends SandboxBase {
             }
         }
 
-        return this.frameSync.syncBetweenFrames(actualCookies, win);
+        return this.windowSync.syncBetweenWindows(actualCookies, win);
     }
 
     attach (window) {
         super.attach(window);
 
-        this.frameSync = new FrameSync(window, this, this.messageSandbox);
+        this.windowSync = new WindowSync(window, this, this.messageSandbox);
     }
 }
