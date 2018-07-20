@@ -85,8 +85,8 @@ export default class CookieSandbox extends SandboxBase {
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
         // eslint-disable-next-line no-restricted-properties
-        const cookies = settings.get().cookie ? settings.get().cookie.split(';') : [];
-
+        const cookieStr = settings.get().cookie;
+        const cookies   = cookieStr ? cookieStr.split(';') : [];
         let replaced    = false;
         const searchStr = cookieKey === '' ? null : cookieKey + '=';
 
