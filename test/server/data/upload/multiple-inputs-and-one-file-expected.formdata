@@ -1,0 +1,10 @@
+--separator
+Content-Disposition: form-data; name="picture_file"; filename="image.png"
+Content-Type: image/png
+
+text
+--separator
+Content-Disposition: form-data; name="picture_file"; filename=""
+
+
+--separator--
