@@ -11,6 +11,14 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var unloadSandbox = hammerhead.sandbox.event.unload;
 
+var requireAttrInputTypeCases = [
+    'file', 'text', 'search', 'url', 'tel', 'email', 'password', 'number', 'checkbox', 'radio'
+];
+
+// NOTE: IE11 doesn't support date/time 'input' types
+if (!browserUtils.isIE11)
+    requireAttrInputTypeCases.push('date', 'datetime-local', 'month', 'week', 'time');
+
 // NOTE: IE11 has a strange bug that does not allow this test to pass
 if (!browserUtils.isIE || browserUtils.version !== 11) {
     test('onsubmit', function () {
@@ -748,6 +756,108 @@ test('"rel" property', function () {
     checkRelAttr('autor', 'autor');
 
     link.parentNode.removeChild(link);
+});
+
+
+module('"required" attribute');
+
+test('process html', function () {
+    var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+    var requiredAttrCases  = [
+        { requiredValue: '', hasRequiredAttr: false, hasStoredRequiredAttr: true },
+        { requiredValue: 'required', hasRequiredAttr: false, hasStoredRequiredAttr: true }
+    ];
+
+    requireAttrInputTypeCases.forEach(function (inputTypeCase) {
+        requiredAttrCases.forEach(function (requiredAttrCase) {
+            var input = nativeMethods.createElement.call(document, 'input');
+
+            nativeMethods.setAttribute.call(input, 'required', requiredAttrCase.requiredValue);
+            nativeMethods.setAttribute.call(input, 'type', inputTypeCase);
+
+            domProcessor.processElement(input);
+
+            strictEqual(nativeMethods.getAttribute.call(input, 'required'),
+                inputTypeCase === 'file' ? null : requiredAttrCase.requiredValue,
+                'type="' + inputTypeCase + '", required="' + requiredAttrCase.requiredValue + '"');
+            strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr),
+                inputTypeCase === 'file' ? requiredAttrCase.requiredValue : null,
+                'type="' + inputTypeCase + '", required="' + requiredAttrCase.requiredValue + '"');
+        });
+    });
+});
+
+test('setAttribute', function () {
+    var input = nativeMethods.createElement.call(document, 'input');
+
+    document.body.appendChild(input);
+
+    requireAttrInputTypeCases.forEach(function (inputTypeCase) {
+        nativeMethods.setAttribute.call(input, 'type', inputTypeCase);
+
+        ['', 'required'].forEach(function (requiredValue) {
+            input.setAttribute('required', requiredValue);
+            strictEqual(nativeMethods.getAttribute.call(input, 'required'), inputTypeCase === 'file' ? null : requiredValue,
+                'type="' + inputTypeCase + '", required="' + requiredValue + '"');
+            strictEqual(input.getAttribute('required'), requiredValue,
+                'type="' + inputTypeCase + '", required="' + requiredValue + '"');
+        });
+    });
+
+    input.parentNode.removeChild(input);
+});
+
+test('hasAttribute, removeAttribute', function () {
+    var input = nativeMethods.createElement.call(document, 'input');
+
+    document.body.appendChild(input);
+
+    ok(!input.hasAttribute('required'), 'nonexistent required attribute');
+
+    requireAttrInputTypeCases.forEach(function (inputTypeCase) {
+        ['', 'required'].forEach(function (requiredValue) {
+            // input.type = inputTypeCase;
+            nativeMethods.setAttribute.call(input, 'type', inputTypeCase);
+            input.setAttribute('required', requiredValue);
+            ok(input.hasAttribute('required'), 'type="' + inputTypeCase + '", required="' + requiredValue + '"');
+
+            input.removeAttribute('required');
+            ok(!input.hasAttribute('required'), 'type="' + inputTypeCase + ' nonexistent required attribute');
+        });
+    });
+
+    input.parentNode.removeChild(input);
+});
+
+test('"required" property', function () {
+    var input              = nativeMethods.createElement.call(document, 'input');
+    var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+
+    document.body.appendChild(input);
+
+    requireAttrInputTypeCases.forEach(function (inputTypeCase) {
+        [true, false].forEach(function (requiredValue) {
+            nativeMethods.setAttribute.call(input, 'type', inputTypeCase);
+            input.required = requiredValue;
+
+            strictEqual(input.required, requiredValue, 'type="' + inputTypeCase + '", input.required=' + requiredValue);
+
+            if (inputTypeCase === 'file') {
+                strictEqual(nativeMethods.getAttribute.call(input, 'required'), null,
+                    'type="' + inputTypeCase + '", input.required=' + requiredValue);
+                strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr), requiredValue ? '' : null,
+                    'type="' + inputTypeCase + '", input.required=' + requiredValue);
+            }
+            else {
+                strictEqual(nativeMethods.getAttribute.call(input, 'required'), requiredValue ? '' : null,
+                    'type="' + inputTypeCase + '", input.required=' + requiredValue);
+                strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr), null,
+                    'type="' + inputTypeCase + '", input.required=' + requiredValue);
+            }
+        });
+    });
+
+    input.parentNode.removeChild(input);
 });
 
 

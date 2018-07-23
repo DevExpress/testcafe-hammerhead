@@ -234,7 +234,9 @@ class NativeMethods {
         this.arrayBufferIsView = win.ArrayBuffer.prototype.constructor.isView;
 
         const objectDataDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
+        const inputFilesDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files');
         const inputValueDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
+        const inputRequiredDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'required');
         const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
         const imageSrcDescriptor             = win.Object.getOwnPropertyDescriptor(win.HTMLImageElement.prototype, 'src');
         const scriptSrcDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLScriptElement.prototype, 'src');
@@ -284,7 +286,9 @@ class NativeMethods {
 
         // Setters
         this.objectDataSetter        = objectDataDescriptor.set;
+        this.inputFilesSetter        = inputFilesDescriptor.set;
         this.inputValueSetter        = inputValueDescriptor.set;
+        this.inputRequiredSetter     = inputRequiredDescriptor.set;
         this.textAreaValueSetter     = textAreaValueDescriptor.set;
         this.imageSrcSetter          = imageSrcDescriptor.set;
         this.scriptSrcSetter         = scriptSrcDescriptor.set;
@@ -359,11 +363,12 @@ class NativeMethods {
         this.htmlCollectionLengthGetter     = win.Object.getOwnPropertyDescriptor(win.HTMLCollection.prototype, 'length').get;
         this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(win.NodeList.prototype, 'length').get;
         this.elementChildElementCountGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'childElementCount').get;
-        this.inputFilesGetter               = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'files').get;
         this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
         this.xhrStatusGetter                = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
         this.objectDataGetter               = objectDataDescriptor.get;
+        this.inputFilesGetter               = inputFilesDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
+        this.inputRequiredGetter            = inputRequiredDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;
         this.imageSrcGetter                 = imageSrcDescriptor.get;
         this.scriptSrcGetter                = scriptSrcDescriptor.get;

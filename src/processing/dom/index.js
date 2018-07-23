@@ -129,6 +129,12 @@ export default class DomProcessor {
 
             IS_INPUT: el => adapter.getTagName(el) === 'input',
 
+            IS_FILE_INPUT: el => {
+                return adapter.getTagName(el) === 'input' &&
+                       adapter.hasAttr(el, 'type') && // ??
+                       adapter.getAttr(el, 'type').toLowerCase() === 'file';
+            },
+
             IS_STYLE: el => adapter.getTagName(el) === 'style',
 
             HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
@@ -206,6 +212,7 @@ export default class DomProcessor {
             },
             { selector: selectors.IS_STYLE, elementProcessors: [this._processStylesheetElement] },
             { selector: selectors.IS_INPUT, elementProcessors: [this._processAutoComplete] },
+            { selector: selectors.IS_FILE_INPUT, elementProcessors: [this._processRequired] },
             { selector: selectors.HAS_EVENT_HANDLER, elementProcessors: [this._processEvtAttr] },
             { selector: selectors.IS_SANDBOXED_IFRAME, elementProcessors: [this._processSandboxedIframe] },
             {
@@ -323,6 +330,19 @@ export default class DomProcessor {
         }
 
         this.adapter.setAttr(el, 'autocomplete', 'off');
+    }
+
+    _processRequired (el) {
+        const storedRequired  = DomProcessor.getStoredAttrName('required');
+        const hasRequiredAttr = this.adapter.hasAttr(el, 'required');
+        const processed       = this.adapter.hasAttr(el, storedRequired) && !hasRequiredAttr;
+
+        if (!processed && hasRequiredAttr) {
+            const attrValue = this.adapter.getAttr(el, 'required');
+
+            this.adapter.setAttr(el, storedRequired, attrValue);
+            this.adapter.removeAttr(el, 'required');
+        }
     }
 
     // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script

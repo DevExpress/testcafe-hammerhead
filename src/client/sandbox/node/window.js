@@ -711,6 +711,9 @@ export default class WindowSandbox extends SandboxBase {
                     return UploadSandbox.getFiles(this);
 
                 return nativeMethods.inputFilesGetter.call(this);
+            },
+            setter: function (value) {
+                return nativeMethods.inputFilesSetter.call(this, value);
             }
         });
 
@@ -733,6 +736,22 @@ export default class WindowSandbox extends SandboxBase {
                 }
                 else
                     windowSandbox.uploadSandbox.setUploadElementValue(this, value);
+            }
+        });
+
+        overrideDescriptor(window.HTMLInputElement.prototype, 'required', {
+            getter: function () {
+                return windowSandbox.nodeSandbox.element.getAttributeCore(this, ['required']) !== null;
+            },
+            setter: function (value) {
+                if (this.type.toLowerCase() === 'file') {
+                    if (value)
+                        windowSandbox.nodeSandbox.element.setAttributeCore(this, ['required', '']);
+                    else
+                        windowSandbox.nodeSandbox.element._removeAttributeCore(this, ['required']);
+                }
+                else
+                    nativeMethods.inputRequiredSetter.call(this, value);
             }
         });
 
