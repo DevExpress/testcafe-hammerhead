@@ -711,9 +711,6 @@ export default class WindowSandbox extends SandboxBase {
                     return UploadSandbox.getFiles(this);
 
                 return nativeMethods.inputFilesGetter.call(this);
-            },
-            setter: function (value) {
-                return nativeMethods.inputFilesSetter.call(this, value);
             }
         });
 
