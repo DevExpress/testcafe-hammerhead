@@ -45,10 +45,31 @@ export default class StyleSandbox extends SandboxBase {
         features.protoContainsUrlProps = this.nativeMethods.objectHasOwnProperty
             .call(window.CSSStyleDeclaration.prototype, 'background');
 
-        // NOTE: A style instance contains all url properties and they are non-configurable in the Safari
-        features.propsCannotBeOverridden = !features.protoContainsAllProps && !features.protoContainsUrlProps &&
-                                           !this.nativeMethods.objectGetOwnPropertyDescriptor
-                                               .call(window.Object, document.documentElement.style, 'background').configurable;
+        if (!features.protoContainsAllProps && !features.protoContainsUrlProps) {
+            const testDiv              = this.nativeMethods.createElement.call(document, 'div');
+            let propertySetterIsCalled = false;
+            const testDivDescriptor    = this.nativeMethods.objectGetOwnPropertyDescriptor
+                .call(window.Object, testDiv.style, 'background');
+
+            if (testDivDescriptor.configurable) {
+                // eslint-disable-next-line no-restricted-properties
+                delete testDivDescriptor.value;
+                delete testDivDescriptor.writable;
+                testDivDescriptor.set = () => {
+                    propertySetterIsCalled = true;
+                };
+
+                this.nativeMethods.objectDefineProperty.call(window.Object, testDiv.style, 'background', testDivDescriptor);
+
+                testDiv.style.background = 'url';
+            }
+
+            // NOTE: A style instance contains all url properties.
+            // They are non-configurable in Safari less than 11.1.
+            // Their setter cannot be called in Safari 11.1.
+            features.propsCannotBeOverridden =  !testDivDescriptor.configurable || !propertySetterIsCalled;
+        }
+
         return features;
     }
 
