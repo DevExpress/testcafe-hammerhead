@@ -815,9 +815,7 @@ export default class WindowSandbox extends SandboxBase {
         this._overrideAttrDescriptors('rel', [window.HTMLLinkElement]);
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'type', {
-            getter: function () {
-                return nativeMethods.inputTypeGetter.call(this);
-            },
+            getter: null,
             setter: function (value) {
                 windowSandbox.nodeSandbox.element.setAttributeCore(this, ['type', value]);
             }

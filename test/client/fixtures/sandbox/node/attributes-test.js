@@ -655,20 +655,6 @@ if (window.Node.prototype.hasOwnProperty('attributes')) {
     });
 }
 
-// If 'type' attribute is not specified, the default type adopted is 'text'
-// (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types).
-test('"type" default property value (HTMLInputElement)', function () {
-    var input = nativeMethods.createElement.call(document, 'input');
-
-    document.body.appendChild(input);
-
-    strictEqual(input.type, 'text');
-    ok(!nativeMethods.hasAttribute.call(input, 'type'));
-    strictEqual(input.getAttribute('type'), null);
-
-    input.parentNode.removeChild(input);
-});
-
 
 module('"rel" attribute (HTMLLinkElement)');
 
