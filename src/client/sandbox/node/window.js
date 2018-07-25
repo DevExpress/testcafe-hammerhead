@@ -122,10 +122,11 @@ export default class WindowSandbox extends SandboxBase {
     }
 
     static _getUrlAttr (el, attr) {
-        const attrValue = nativeMethods.getAttribute.call(el, attr);
+        const attrValue       = nativeMethods.getAttribute.call(el, attr);
+        const currentDocument = el.ownerDocument || document;
 
         if (attrValue === '' || attrValue === null && attr === 'action' && emptyActionAttrFallbacksToTheLocation)
-            return destLocation.get();
+            return urlResolver.resolve('', currentDocument);
 
         else if (attrValue === null)
             return '';
@@ -134,7 +135,7 @@ export default class WindowSandbox extends SandboxBase {
             return destLocation.withHash(attrValue);
 
         else if (!isValidUrl(attrValue))
-            return urlResolver.resolve(attrValue, document);
+            return urlResolver.resolve(attrValue, currentDocument);
 
         return resolveUrlAsDest(attrValue);
     }

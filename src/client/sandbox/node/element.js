@@ -173,6 +173,7 @@ export default class ElementSandbox extends SandboxBase {
                     const isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
                     let resourceType       = domProcessor.getElementResourceType(el);
                     const elCharset        = isScript && el.charset;
+                    const currentDocument  = el.ownerDocument || this.document;
 
                     if (loweredAttr === 'formaction' && !nativeMethods.hasAttribute.call(el, 'formtarget')) {
                         resourceType = 'f';
@@ -186,12 +187,12 @@ export default class ElementSandbox extends SandboxBase {
                     }
 
                     if (ElementSandbox._isHrefAttrForBaseElement(el, attr) &&
-                        domUtils.isElementInDocument(el, this.document))
-                        urlResolver.updateBase(value, this.document);
+                        domUtils.isElementInDocument(el, currentDocument))
+                        urlResolver.updateBase(value, currentDocument);
 
                     args[valueIndex] = isIframe && isCrossDomainUrl
                         ? urlUtils.getCrossDomainIframeProxyUrl(value)
-                        : urlUtils.getProxyUrl(value, { resourceType, charset: elCharset });
+                        : urlUtils.getProxyUrl(value, { resourceType, charset: elCharset, doc: currentDocument });
                 }
             }
             else if (value && !isSpecialPage && !urlUtils.parseProxyUrl(value)) {
@@ -604,7 +605,9 @@ export default class ElementSandbox extends SandboxBase {
     }
 
     _isFirstBaseTagOnPage (el) {
-        return nativeMethods.querySelector.call(this.document, 'base') === el;
+        const doc = el.ownerDocument || this.document;
+
+        return nativeMethods.querySelector.call(doc, 'base') === el;
     }
 
     _onAddFileInputInfo (el) {
@@ -838,7 +841,7 @@ export default class ElementSandbox extends SandboxBase {
                 const storedUrlAttr = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('href'));
 
                 if (storedUrlAttr !== null)
-                    urlResolver.updateBase(storedUrlAttr, this.document);
+                    urlResolver.updateBase(storedUrlAttr, el.ownerDocument || this.document);
 
                 break;
             }

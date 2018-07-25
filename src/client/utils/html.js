@@ -72,7 +72,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
         parentHammerhead.sandbox.onIframeDocumentRecreated(window.frameElement);
 `);
 
-let htmlDocument = document.implementation.createHTMLDocument('title');
+let htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
 let htmlParser   = htmlDocument.createDocumentFragment();
 
 function getHtmlDocument () {
@@ -82,7 +82,7 @@ function getHtmlDocument () {
             htmlDocument.location.toString();
     }
     catch (e) {
-        htmlDocument = document.implementation.createHTMLDocument('title');
+        htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
         htmlParser   = htmlDocument.createDocumentFragment();
     }
 

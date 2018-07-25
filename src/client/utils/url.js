@@ -17,7 +17,7 @@ export function getProxyUrl (url, opts) {
         return url;
 
     // NOTE: Resolves relative URLs.
-    let resolvedUrl = destLocation.resolveUrl(url);
+    let resolvedUrl = destLocation.resolveUrl(url, opts && opts.doc);
 
     if (parsedResourceType.isWebSocket && !isValidWebSocketUrl(resolvedUrl) || !sharedUrlUtils.isValidUrl(resolvedUrl))
         return url;
