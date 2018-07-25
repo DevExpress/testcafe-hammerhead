@@ -892,21 +892,21 @@ test('the "Maximum call stack size exceeded" error should not occurs when the se
 test('Url resolving in an instance of document.implementation (GH-1673)', function () {
     var implementation = document.implementation.createHTMLDocument('temp');
     var baseEl         = implementation.createElement('base');
-    var resolver       = implementation.createElement('a');
+    var anchorEl       = implementation.createElement('a');
 
-    resolver.href = '';
+    anchorEl.href = '';
 
-    strictEqual(resolver.href, 'https://example.com');
+    strictEqual(anchorEl.href, 'https://example.com');
 
     implementation.head.appendChild(baseEl);
 
-    baseEl.href   = 'https://example.com/some/path';
-    resolver.href = '';
+    baseEl.href   = 'https://example.com/some/path/';
+    anchorEl.href = '';
 
-    strictEqual(resolver.href, 'https://example.com/some/path');
+    strictEqual(anchorEl.href, 'https://example.com/some/path');
 
     baseEl.href   = 'http://localhost:1993/some/';
-    resolver.href = 'page.html';
+    anchorEl.href = 'page.html';
 
-    strictEqual(resolver.href, 'http://localhost:1993/some/page.html');
+    strictEqual(anchorEl.href, 'http://localhost:1993/some/page.html');
 });
