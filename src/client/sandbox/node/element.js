@@ -295,8 +295,9 @@ export default class ElementSandbox extends SandboxBase {
             const currentRequired    = nativeMethods.hasAttribute.call(el, storedRequiredAttr)
                 ? nativeMethods.getAttribute.call(el, storedRequiredAttr)
                 : nativeMethods.getAttribute.call(el, 'required');
+            const typeIsChanged      = !currentType || newType !== currentType.toLowerCase();
 
-            if ((!currentType || newType !== currentType.toLowerCase()) && currentRequired !== null) {
+            if (typeIsChanged && currentRequired !== null) {
                 if (newType === 'file') {
                     nativeMethods.setAttribute.apply(el, [storedRequiredAttr, currentRequired]);
                     nativeMethods.removeAttribute.call(el, 'required');
@@ -345,7 +346,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (!isNs && args[0] === 'required' && domUtils.isFileInput(el)) {
             const storedRequiredAttr = DomProcessor.getStoredAttrName(args[0]);
 
-            return hasAttrMeth.apply(el, args) || hasAttrMeth.apply(el, [storedRequiredAttr]);
+            return hasAttrMeth.apply(el, args) || hasAttrMeth.call(el, storedRequiredAttr);
         }
 
         return hasAttrMeth.apply(el, args);
@@ -378,7 +379,7 @@ export default class ElementSandbox extends SandboxBase {
         else if (!isNs && formatedAttr === 'required' && domUtils.isFileInput(el)) {
             const storedRequiredAttr = DomProcessor.getStoredAttrName(attr);
 
-            removeAttrFunc.apply(el, [storedRequiredAttr]);
+            removeAttrFunc.call(el, storedRequiredAttr);
         }
         else if (!isNs && formatedAttr === 'type' && domUtils.isInputElement(el)) {
             const storedRequiredAttr = DomProcessor.getStoredAttrName('required');

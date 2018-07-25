@@ -741,14 +741,12 @@ export default class WindowSandbox extends SandboxBase {
                 return windowSandbox.nodeSandbox.element.getAttributeCore(this, ['required']) !== null;
             },
             setter: function (value) {
-                if (this.type.toLowerCase() === 'file') {
-                    if (value)
-                        windowSandbox.nodeSandbox.element.setAttributeCore(this, ['required', '']);
-                    else
-                        windowSandbox.nodeSandbox.element._removeAttributeCore(this, ['required']);
-                }
-                else
+                if (this.type.toLowerCase() !== 'file')
                     nativeMethods.inputRequiredSetter.call(this, value);
+                else if (value)
+                    windowSandbox.nodeSandbox.element.setAttributeCore(this, ['required', '']);
+                else
+                    windowSandbox.nodeSandbox.element._removeAttributeCore(this, ['required']);
             }
         });
 
