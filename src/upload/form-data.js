@@ -30,17 +30,17 @@ export default class FormData {
     _injectFileInfo (fileInfo) {
         const entries = this.getEntriesByName(fileInfo.name);
 
-        if (!fileInfo.files.length)
-            return;
+        for (let idx = 0; idx < fileInfo.files.length; idx++) {
+            let entry = entries[idx];
 
-        while (entries.length < fileInfo.files.length) {
-            const newEntry = new FormDataEntry();
+            if (!entry) {
+                entry = new FormDataEntry();
 
-            this.entries.push(newEntry);
-            entries.push(newEntry);
+                this.entries.push(entry);
+            }
+
+            entry.addFileInfo(fileInfo, idx);
         }
-
-        entries.forEach((entry, idx) => entry.addFileInfo(fileInfo, idx));
     }
 
     _isBoundary (line) {

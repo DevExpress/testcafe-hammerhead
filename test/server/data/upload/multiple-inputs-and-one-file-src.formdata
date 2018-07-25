@@ -1,0 +1,13 @@
+--separator
+Content-Disposition: form-data; name="picture_file"; filename=""
+
+
+--separator
+Content-Disposition: form-data; name="picture_file"; filename=""
+
+
+--separator
+Content-Disposition: form-data; name="hammerhead|upload-info-hidden-input-name"
+
+[{"id":"","name":"picture_file","files":[{"name":"image.png","type":"image/png","data":"dGV4dA=="}],"value":"C:\\fakepath\\page.html"}]
+--separator--

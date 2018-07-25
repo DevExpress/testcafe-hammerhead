@@ -324,11 +324,24 @@ describe('Upload', () => {
     });
 
     it('Should inject uploads', () => {
-        const src      = newLineReplacer(fs.readFileSync('test/server/data/upload/src.formdata'));
-        const expected = newLineReplacer(fs.readFileSync('test/server/data/upload/expected.formdata'));
-        const actual   = upload.inject(CONTENT_TYPE, src);
+        const testCases = [
+            {
+                srcPath:      'test/server/data/upload/src.formdata',
+                expectedPath: 'test/server/data/upload/expected.formdata'
+            },
+            {
+                srcPath:      'test/server/data/upload/multiple-inputs-and-one-file-src.formdata',
+                expectedPath: 'test/server/data/upload/multiple-inputs-and-one-file-expected.formdata'
+            }
+        ];
 
-        expect(actual.toString()).eql(expected.toString());
+        testCases.forEach(({ srcPath, expectedPath }) => {
+            const src      = newLineReplacer(fs.readFileSync(srcPath));
+            const expected = newLineReplacer(fs.readFileSync(expectedPath));
+            const actual   = upload.inject(CONTENT_TYPE, src);
+
+            expect(actual.toString()).eql(expected.toString());
+        });
     });
 
     it('Should remove only the information about hidden input (GH-395)', () => {
