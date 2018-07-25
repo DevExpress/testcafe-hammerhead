@@ -234,6 +234,7 @@ class NativeMethods {
         this.arrayBufferIsView = win.ArrayBuffer.prototype.constructor.isView;
 
         const objectDataDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLObjectElement.prototype, 'data');
+        const inputTypeDescriptor            = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'type');
         const inputValueDescriptor           = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'value');
         const inputRequiredDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLInputElement.prototype, 'required');
         const textAreaValueDescriptor        = win.Object.getOwnPropertyDescriptor(win.HTMLTextAreaElement.prototype, 'value');
@@ -285,6 +286,7 @@ class NativeMethods {
 
         // Setters
         this.objectDataSetter        = objectDataDescriptor.set;
+        this.inputTypeSetter         = inputTypeDescriptor.set;
         this.inputValueSetter        = inputValueDescriptor.set;
         this.inputRequiredSetter     = inputRequiredDescriptor.set;
         this.textAreaValueSetter     = textAreaValueDescriptor.set;
@@ -365,6 +367,7 @@ class NativeMethods {
         this.styleSheetHrefGetter           = win.Object.getOwnPropertyDescriptor(win.StyleSheet.prototype, 'href').get;
         this.xhrStatusGetter                = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'status').get;
         this.objectDataGetter               = objectDataDescriptor.get;
+        this.inputTypeGetter                = inputTypeDescriptor.get;
         this.inputValueGetter               = inputValueDescriptor.get;
         this.inputRequiredGetter            = inputRequiredDescriptor.get;
         this.textAreaValueGetter            = textAreaValueDescriptor.get;

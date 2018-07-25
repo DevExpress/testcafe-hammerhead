@@ -655,8 +655,22 @@ if (window.Node.prototype.hasOwnProperty('attributes')) {
     });
 }
 
+// If 'type' attribute is not specified, the default type adopted is 'text'
+// (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types).
+test('"type" default property value (HTMLInputElement)', function () {
+    var input = nativeMethods.createElement.call(document, 'input');
 
-module('"rel" attribute');
+    document.body.appendChild(input);
+
+    strictEqual(input.type, 'text');
+    ok(!nativeMethods.hasAttribute.call(input, 'type'));
+    strictEqual(input.getAttribute('type'), null);
+
+    input.parentNode.removeChild(input);
+});
+
+
+module('"rel" attribute (HTMLLinkElement)');
 
 test('process html', function () {
     var relAttrCases = [
@@ -759,7 +773,7 @@ test('"rel" property', function () {
 });
 
 
-module('"required" attribute');
+module('"required" attribute (HTMLInputElement)');
 
 test('process html', function () {
     var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
@@ -778,11 +792,9 @@ test('process html', function () {
             domProcessor.processElement(input);
 
             strictEqual(nativeMethods.getAttribute.call(input, 'required'),
-                inputTypeCase === 'file' ? null : requiredAttrCase.requiredValue,
-                'type="' + inputTypeCase + '", required="' + requiredAttrCase.requiredValue + '"');
+                inputTypeCase === 'file' ? null : requiredAttrCase.requiredValue);
             strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr),
-                inputTypeCase === 'file' ? requiredAttrCase.requiredValue : null,
-                'type="' + inputTypeCase + '", required="' + requiredAttrCase.requiredValue + '"');
+                inputTypeCase === 'file' ? requiredAttrCase.requiredValue : null);
         });
     });
 });
@@ -797,10 +809,8 @@ test('setAttribute', function () {
 
         ['', 'required'].forEach(function (requiredValue) {
             input.setAttribute('required', requiredValue);
-            strictEqual(nativeMethods.getAttribute.call(input, 'required'), inputTypeCase === 'file' ? null : requiredValue,
-                'type="' + inputTypeCase + '", required="' + requiredValue + '"');
-            strictEqual(input.getAttribute('required'), requiredValue,
-                'type="' + inputTypeCase + '", required="' + requiredValue + '"');
+            strictEqual(nativeMethods.getAttribute.call(input, 'required'), inputTypeCase === 'file' ? null : requiredValue);
+            strictEqual(input.getAttribute('required'), requiredValue);
         });
     });
 
@@ -812,17 +822,16 @@ test('hasAttribute, removeAttribute', function () {
 
     document.body.appendChild(input);
 
-    ok(!input.hasAttribute('required'), 'nonexistent required attribute');
+    ok(!input.hasAttribute('required'));
 
     requireAttrInputTypeCases.forEach(function (inputTypeCase) {
         ['', 'required'].forEach(function (requiredValue) {
-            // input.type = inputTypeCase;
             nativeMethods.setAttribute.call(input, 'type', inputTypeCase);
             input.setAttribute('required', requiredValue);
-            ok(input.hasAttribute('required'), 'type="' + inputTypeCase + '", required="' + requiredValue + '"');
+            ok(input.hasAttribute('required'));
 
             input.removeAttribute('required');
-            ok(!input.hasAttribute('required'), 'type="' + inputTypeCase + ' nonexistent required attribute');
+            ok(!input.hasAttribute('required'));
         });
     });
 
@@ -840,24 +849,104 @@ test('"required" property', function () {
             nativeMethods.setAttribute.call(input, 'type', inputTypeCase);
             input.required = requiredValue;
 
-            strictEqual(input.required, requiredValue, 'type="' + inputTypeCase + '", input.required=' + requiredValue);
+            strictEqual(input.required, requiredValue);
 
             if (inputTypeCase === 'file') {
-                strictEqual(nativeMethods.getAttribute.call(input, 'required'), null,
-                    'type="' + inputTypeCase + '", input.required=' + requiredValue);
-                strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr), requiredValue ? '' : null,
-                    'type="' + inputTypeCase + '", input.required=' + requiredValue);
+                strictEqual(nativeMethods.getAttribute.call(input, 'required'), null);
+                strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr), requiredValue ? '' : null);
             }
             else {
-                strictEqual(nativeMethods.getAttribute.call(input, 'required'), requiredValue ? '' : null,
-                    'type="' + inputTypeCase + '", input.required=' + requiredValue);
-                strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr), null,
-                    'type="' + inputTypeCase + '", input.required=' + requiredValue);
+                strictEqual(nativeMethods.getAttribute.call(input, 'required'), requiredValue ? '' : null);
+                strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr), null);
             }
         });
     });
 
     input.parentNode.removeChild(input);
+});
+
+test('"type" attribute changed (GH-1645)', function () {
+    var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+
+    var typeAttrCases = [
+        { currentTypeValue: 'text', newTypeValue: 'search', hasRequiredAttr: true, hasStoredRequiredAttr: false },
+        { currentTypeValue: 'text', newTypeValue: 'file', hasRequiredAttr: false, hasStoredRequiredAttr: true },
+        { currentTypeValue: 'file', newTypeValue: 'text', hasRequiredAttr: true, hasStoredRequiredAttr: false },
+        { currentTypeValue: 'file', newTypeValue: '', hasRequiredAttr: true, hasStoredRequiredAttr: false },
+    ];
+
+    typeAttrCases.forEach(function (inputTypeCase) {
+        ['', 'required'].forEach(function (requiredValue) {
+            var input = nativeMethods.createElement.call(document, 'input');
+
+            document.body.appendChild(input);
+
+            input.setAttribute('required', requiredValue);
+            input.setAttribute('type', inputTypeCase.currentTypeValue);
+
+            input.setAttribute('type', inputTypeCase.newTypeValue);
+
+            strictEqual(nativeMethods.getAttribute.call(input, 'required'),
+                inputTypeCase.newTypeValue === 'file' ? null : requiredValue);
+            strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr),
+                inputTypeCase.newTypeValue === 'file' ? requiredValue : null);
+
+            input.parentNode.removeChild(input);
+        });
+    });
+});
+
+test('"type" property changed (GH-1645)', function () {
+    var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+
+    var typeAttrCases = [
+        { currentTypeValue: 'text', newTypeValue: 'search', hasRequiredAttr: true, hasStoredRequiredAttr: false },
+        { currentTypeValue: 'text', newTypeValue: 'file', hasRequiredAttr: false, hasStoredRequiredAttr: true },
+        { currentTypeValue: 'file', newTypeValue: 'text', hasRequiredAttr: true, hasStoredRequiredAttr: false },
+        { currentTypeValue: 'file', newTypeValue: '', hasRequiredAttr: true, hasStoredRequiredAttr: false },
+    ];
+
+    typeAttrCases.forEach(function (inputTypeCase) {
+        ['', 'required'].forEach(function (requiredValue) {
+            var input = nativeMethods.createElement.call(document, 'input');
+
+            document.body.appendChild(input);
+
+            input.setAttribute('required', requiredValue);
+            input.type = inputTypeCase.currentTypeValue;
+
+            input.type = inputTypeCase.newTypeValue;
+
+            strictEqual(nativeMethods.getAttribute.call(input, 'required'),
+                inputTypeCase.newTypeValue === 'file' ? null : requiredValue);
+            strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr),
+                inputTypeCase.newTypeValue === 'file' ? requiredValue : null);
+
+            input.parentNode.removeChild(input);
+        });
+    });
+});
+
+test('"type" attribute removed (GH-1645)', function () {
+    var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+
+    ['file', 'text'].forEach(function (typeValue) {
+        ['', 'required'].forEach(function (requiredValue) {
+            var input = nativeMethods.createElement.call(document, 'input');
+
+            document.body.appendChild(input);
+
+            input.setAttribute('required', requiredValue);
+            input.setAttribute('type', typeValue);
+
+            input.removeAttribute('type');
+
+            strictEqual(nativeMethods.getAttribute.call(input, 'required'), requiredValue);
+            strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr), null);
+
+            input.parentNode.removeChild(input);
+        });
+    });
 });
 
 

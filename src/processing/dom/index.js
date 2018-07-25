@@ -131,7 +131,7 @@ export default class DomProcessor {
 
             IS_FILE_INPUT: el => {
                 return adapter.getTagName(el) === 'input' &&
-                       adapter.hasAttr(el, 'type') && // ??
+                       adapter.hasAttr(el, 'type') &&
                        adapter.getAttr(el, 'type').toLowerCase() === 'file';
             },
 

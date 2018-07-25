@@ -288,6 +288,25 @@ export default class ElementSandbox extends SandboxBase {
             nativeMethods.removeAttribute.call(el, attr);
             args[0] = storedRequiredAttr;
         }
+        else if (!isNs && loweredAttr === 'type' && domUtils.isInputElement(el)) {
+            const currentType        = nativeMethods.getAttribute.call(el, loweredAttr);
+            const newType            = value.toLowerCase();
+            const storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+            const currentRequired    = nativeMethods.hasAttribute.call(el, storedRequiredAttr)
+                ? nativeMethods.getAttribute.call(el, storedRequiredAttr)
+                : nativeMethods.getAttribute.call(el, 'required');
+
+            if ((!currentType || newType !== currentType.toLowerCase()) && currentRequired !== null) {
+                if (newType === 'file') {
+                    nativeMethods.setAttribute.apply(el, [storedRequiredAttr, currentRequired]);
+                    nativeMethods.removeAttribute.call(el, 'required');
+                }
+                else if (currentType === 'file') {
+                    nativeMethods.setAttribute.apply(el, ['required', currentRequired]);
+                    nativeMethods.removeAttribute.call(el, storedRequiredAttr);
+                }
+            }
+        }
 
         const result = setAttrMeth.apply(el, args);
 
@@ -360,6 +379,16 @@ export default class ElementSandbox extends SandboxBase {
             const storedRequiredAttr = DomProcessor.getStoredAttrName(attr);
 
             removeAttrFunc.apply(el, [storedRequiredAttr]);
+        }
+        else if (!isNs && formatedAttr === 'type' && domUtils.isInputElement(el)) {
+            const storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+
+            if (nativeMethods.hasAttribute.call(el, storedRequiredAttr)) {
+                const currentRequired = nativeMethods.getAttribute.call(el, storedRequiredAttr);
+
+                nativeMethods.setAttribute.apply(el, ['required', currentRequired]);
+                nativeMethods.removeAttribute.call(el, storedRequiredAttr);
+            }
         }
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))
