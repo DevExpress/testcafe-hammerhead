@@ -338,6 +338,14 @@ describe('Proxy', () => {
 
         app.get('/GH-1014/empty-page-without-content-type/', (req, res) => res.end(''));
 
+        app.get('/GH-1666', (req, res) => {
+            res
+                .set('content-type', 'text/html')
+                .set('content-security-policy', 'frame-ancestors http:')
+                .set('x-frame-options', 'deny')
+                .send('');
+        });
+
         app.get('/x-frame-options/:value', (req, res) => {
             const value = req.params.value;
 
@@ -3578,6 +3586,21 @@ describe('Proxy', () => {
             return request(options)
                 .then(rawHeadersNames => {
                     expect(rawHeadersNames).to.include.members(['if-none-match', 'X-Requested-With', 'ConTEnt-tyPE']);
+                });
+        });
+
+        it('Should skip the "x-frame-options" header if request has the CSP header and it contains "frame-ancestors" option (GH-1666)', () => {
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:2000/GH-1666', session),
+                resolveWithFullResponse: true,
+                simple:                  false
+            };
+
+            return request(options)
+                .then((res) => {
+                    expect(res.headers).to.not.have.property('x-frame-options');
+                    expect(res.headers).to.not.have.property('content-security-policy');
+                    expect(res.headers).to.have.property('content-type');
                 });
         });
     });
