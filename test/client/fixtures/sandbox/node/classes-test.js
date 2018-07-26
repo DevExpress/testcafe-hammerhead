@@ -23,6 +23,36 @@ if (window.PerformanceNavigationTiming) {
     });
 }
 
+test('refreshed classes "toString" method', function () {
+    var refreshedClassCases = [
+        { name: 'Window', storedName: 'windowClass' },
+        { name: 'Document', storedName: 'documentClass' },
+        { name: 'Location', storedName: 'locationClass' },
+        { name: 'Element', storedName: 'elementClass' },
+        { name: 'SVGElement', storedName: 'svgElementClass' },
+        { name: 'Worker', storedName: 'Worker' },
+        { name: 'ArrayBuffer', storedName: 'ArrayBuffer' },
+        { name: 'Uint8Array', storedName: 'Uint8Array' },
+        { name: 'DataView', storedName: 'DataView' },
+        { name: 'Blob', storedName: 'Blob' },
+        { name: 'XMLHttpRequest', storedName: 'XMLHttpRequest' },
+        { name: 'Image', storedName: 'Image' },
+        { name: 'Function', storedName: 'Function' },
+        { name: 'FontFace', storedName: 'FontFace' },
+        { name: 'StorageEvent', storedName: 'StorageEvent' },
+        { name: 'MutationObserver', storedName: 'MutationObserver' },
+        { name: 'EventSource', storedName: 'EventSource' },
+        { name: 'WebSocket', storedName: 'WebSocket' }
+    ];
+
+    refreshedClassCases.forEach(function (refreshedClassCase) {
+        var windowClass = window[refreshedClassCase.name];
+
+        if (windowClass)
+            strictEqual(windowClass.toString(), nativeMethods[refreshedClassCase.storedName].toString(), refreshedClassCase.name);
+    });
+});
+
 test('window.Blob([data], { type: "" }) should return correct result for `ArrayBuffer`, `Uint8Array` and `DataView` data types (GH-1599)', function () {
     var bmpExample = {
         signature: [0x42, 0x4D]

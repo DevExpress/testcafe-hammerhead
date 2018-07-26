@@ -367,6 +367,7 @@ export default class WindowSandbox extends SandboxBase {
                 return new nativeMethods.FontFace(family, source, descriptors);
             };
             window.FontFace.prototype = nativeMethods.FontFace.prototype;
+            window.FontFace.toString  = () => nativeMethods.FontFace.toString();
         }
 
         if (window.Worker) {
@@ -385,6 +386,7 @@ export default class WindowSandbox extends SandboxBase {
                     : new nativeMethods.Worker(scriptURL, options);
             };
             window.Worker.prototype = nativeMethods.Worker.prototype;
+            window.Worker.toString  = () => nativeMethods.Worker.toString();
         }
 
         if (window.Blob) {
@@ -407,6 +409,7 @@ export default class WindowSandbox extends SandboxBase {
                 return arguments.length === 1 ? new nativeMethods.Blob(array) : new nativeMethods.Blob(array, opts);
             };
             window.Blob.prototype = nativeMethods.Blob.prototype;
+            window.Blob.toString  = () => nativeMethods.Blob.toString();
         }
 
         if (window.EventSource) {
@@ -426,6 +429,7 @@ export default class WindowSandbox extends SandboxBase {
             window.EventSource.CONNECTING = nativeMethods.EventSource.CONNECTING;
             window.EventSource.OPEN       = nativeMethods.EventSource.OPEN;
             window.EventSource.CLOSED     = nativeMethods.EventSource.CLOSED;
+            window.EventSource.toString   = () => nativeMethods.EventSource.toString();
         }
 
         if (window.MutationObserver) {
@@ -446,6 +450,7 @@ export default class WindowSandbox extends SandboxBase {
             };
 
             window.MutationObserver.prototype = nativeMethods.MutationObserver.prototype;
+            window.MutationObserver.toString  = () => nativeMethods.MutationObserver.toString();
         }
 
         if (nativeMethods.registerServiceWorker) {
@@ -504,6 +509,7 @@ export default class WindowSandbox extends SandboxBase {
             return image;
         };
         window.Image.prototype = nativeMethods.Image.prototype;
+        window.Image.toString  = () => nativeMethods.Image.toString();
 
         const FunctionWrapper = function (...args) {
             const functionBodyArgIndex = args.length - 1;
@@ -627,6 +633,8 @@ export default class WindowSandbox extends SandboxBase {
                     }
                 });
             }
+
+            window.WebSocket.toString = () => nativeMethods.WebSocket.toString();
         }
 
         overrideDescriptor(window.MessageEvent.prototype, 'origin', {

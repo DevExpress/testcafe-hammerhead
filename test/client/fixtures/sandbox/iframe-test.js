@@ -119,14 +119,21 @@ test('native methods are properly initialized in an iframe without src (GH-279)'
             var iframeHammerhead       = iframeWindow['%hammerhead%'];
             var nativeCreateElement    = iframeHammerhead.sandbox.nativeMethods.createElement.toString();
             var nativeAppendChild      = iframeHammerhead.sandbox.nativeMethods.appendChild.toString();
-            var nativeImage            = iframeHammerhead.sandbox.nativeMethods.Image.toString();
             var overridedCreateElement = iframeDocument.createElement.toString();
             var overridedAppendChild   = iframeDocument.createElement('div').appendChild.toString();
-            var overridedImage         = iframeWindow.Image.toString();
 
             ok(nativeCreateElement !== overridedCreateElement);
             ok(nativeAppendChild !== overridedAppendChild);
-            ok(nativeImage !== overridedImage);
+
+            var nativeImage     = new iframeHammerhead.sandbox.nativeMethods.Image(10, 10);
+            var overridedImage  = new iframeWindow.Image(10, 10);
+            var nativeSrcGetter = iframeHammerhead.sandbox.nativeMethods.imageSrcGetter;
+            var imageSrc        = 'test.jpg';
+
+            nativeImage.src    = imageSrc;
+            overridedImage.src = imageSrc;
+
+            ok(nativeSrcGetter.call(nativeImage) !== nativeSrcGetter.call(overridedImage));
         });
 });
 
