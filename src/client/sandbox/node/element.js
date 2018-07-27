@@ -120,14 +120,19 @@ export default class ElementSandbox extends SandboxBase {
             if (nativeMethods.hasAttribute.call(el, storedIntegrityAttr))
                 args[0] = storedIntegrityAttr;
         }
-
         // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
         // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
-        if (!isNs && loweredAttr === 'rel' && tagName === 'link') {
+        else if (!isNs && loweredAttr === 'rel' && tagName === 'link') {
             const storedRelAttr = DomProcessor.getStoredAttrName(attr);
 
             if (nativeMethods.hasAttribute.call(el, storedRelAttr))
                 args[0] = storedRelAttr;
+        }
+        else if (!isNs && loweredAttr === 'required' && domUtils.isFileInput(el)) {
+            const storedRequiredAttr = DomProcessor.getStoredAttrName(attr);
+
+            if (nativeMethods.hasAttribute.call(el, storedRequiredAttr))
+                args[0] = storedRequiredAttr;
         }
 
         return getAttrMeth.apply(el, args);
@@ -266,7 +271,6 @@ export default class ElementSandbox extends SandboxBase {
 
             return setAttrMeth.apply(el, [storedIntegrityAttr, value]);
         }
-
         else if (!isNs && loweredAttr === 'rel' && tagName === 'link') {
             const formatedValue = trim(value.toLowerCase());
             const storedRelAttr = DomProcessor.getStoredAttrName(attr);
@@ -277,6 +281,32 @@ export default class ElementSandbox extends SandboxBase {
             }
             else
                 nativeMethods.removeAttribute.call(el, storedRelAttr);
+        }
+        else if (!isNs && loweredAttr === 'required' && domUtils.isFileInput(el)) {
+            const storedRequiredAttr = DomProcessor.getStoredAttrName(attr);
+
+            nativeMethods.removeAttribute.call(el, attr);
+            args[0] = storedRequiredAttr;
+        }
+        else if (!isNs && loweredAttr === 'type' && domUtils.isInputElement(el)) {
+            const currentType        = nativeMethods.getAttribute.call(el, loweredAttr);
+            const newType            = value.toLowerCase();
+            const storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+            const currentRequired    = nativeMethods.hasAttribute.call(el, storedRequiredAttr)
+                ? nativeMethods.getAttribute.call(el, storedRequiredAttr)
+                : nativeMethods.getAttribute.call(el, 'required');
+            const typeIsChanged      = !currentType || newType !== currentType.toLowerCase();
+
+            if (typeIsChanged && currentRequired !== null) {
+                if (newType === 'file') {
+                    nativeMethods.setAttribute.call(el, storedRequiredAttr, currentRequired);
+                    nativeMethods.removeAttribute.call(el, 'required');
+                }
+                else if (currentType === 'file') {
+                    nativeMethods.setAttribute.call(el, 'required', currentRequired);
+                    nativeMethods.removeAttribute.call(el, storedRequiredAttr);
+                }
+            }
         }
 
         const result = setAttrMeth.apply(el, args);
@@ -297,23 +327,26 @@ export default class ElementSandbox extends SandboxBase {
         if (typeof args[attributeNameArgIndex] === 'string' &&
             DomProcessor.isAddedAutocompleteAttr(args[attributeNameArgIndex], storedAutocompleteAttrValue))
             return false;
-
         // NOTE: We simply remove the 'integrity' attribute because its value will not be relevant after the script
         // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
         // the correct SHA for the changed script.
         // _hasAttributeCore returns true for 'integrity' attribute if the stored attribute is exists. (GH-235)
-        if (!isNs && args[attributeNameArgIndex] === 'integrity' &&
-            DomProcessor.isTagWithIntegrityAttr(tagName))
-            args[attributeNameArgIndex] = DomProcessor.getStoredAttrName('integrity');
-
+        else if (!isNs && args[0] === 'integrity' &&
+                 DomProcessor.isTagWithIntegrityAttr(tagName))
+            args[0] = DomProcessor.getStoredAttrName('integrity');
         // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
         // resource type is unknown.
         // _hasAttributeCore returns true for 'rel' attribute if the original 'rel' or stored attribute is exists.
         // https://github.com/DevExpress/testcafe/issues/2528
-        if (!isNs && args[attributeNameArgIndex] === 'rel' && tagName === 'link') {
-            const storedRelAttr = DomProcessor.getStoredAttrName(args[attributeNameArgIndex]);
+        else if (!isNs && args[0] === 'rel' && tagName === 'link') {
+            const storedRelAttr = DomProcessor.getStoredAttrName(args[0]);
 
             return hasAttrMeth.apply(el, args) || hasAttrMeth.apply(el, [storedRelAttr]);
+        }
+        else if (!isNs && args[0] === 'required' && domUtils.isFileInput(el)) {
+            const storedRequiredAttr = DomProcessor.getStoredAttrName(args[0]);
+
+            return hasAttrMeth.apply(el, args) || hasAttrMeth.call(el, storedRequiredAttr);
         }
 
         return hasAttrMeth.apply(el, args);
@@ -338,11 +371,25 @@ export default class ElementSandbox extends SandboxBase {
             else
                 removeAttrFunc.apply(el, isNs ? [args[0], storedAttr] : [storedAttr]);
         }
-
-        if (!isNs && formatedAttr === 'rel' && tagName === 'link') {
-            const storedRelAttr = DomProcessor.getStoredAttrName(formatedAttr);
+        else if (!isNs && formatedAttr === 'rel' && tagName === 'link') {
+            const storedRelAttr = DomProcessor.getStoredAttrName(attr);
 
             removeAttrFunc.apply(el, [storedRelAttr]);
+        }
+        else if (!isNs && formatedAttr === 'required' && domUtils.isFileInput(el)) {
+            const storedRequiredAttr = DomProcessor.getStoredAttrName(attr);
+
+            removeAttrFunc.call(el, storedRequiredAttr);
+        }
+        else if (!isNs && formatedAttr === 'type' && domUtils.isInputElement(el)) {
+            const storedRequiredAttr = DomProcessor.getStoredAttrName('required');
+
+            if (nativeMethods.hasAttribute.call(el, storedRequiredAttr)) {
+                const currentRequired = nativeMethods.getAttribute.call(el, storedRequiredAttr);
+
+                nativeMethods.setAttribute.call(el, 'required', currentRequired);
+                nativeMethods.removeAttribute.call(el, storedRequiredAttr);
+            }
         }
 
         if (ElementSandbox._isHrefAttrForBaseElement(el, formatedAttr))

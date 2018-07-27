@@ -736,6 +736,20 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
+        overrideDescriptor(window.HTMLInputElement.prototype, 'required', {
+            getter: function () {
+                return windowSandbox.nodeSandbox.element.getAttributeCore(this, ['required']) !== null;
+            },
+            setter: function (value) {
+                if (this.type.toLowerCase() !== 'file')
+                    nativeMethods.inputRequiredSetter.call(this, value);
+                else if (value)
+                    windowSandbox.nodeSandbox.element.setAttributeCore(this, ['required', '']);
+                else
+                    windowSandbox.nodeSandbox.element._removeAttributeCore(this, ['required']);
+            }
+        });
+
         overrideDescriptor(window.HTMLTextAreaElement.prototype, 'value', {
             getter: null,
             setter: function (value) {
@@ -797,6 +811,13 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         this._overrideAttrDescriptors('rel', [window.HTMLLinkElement]);
+
+        overrideDescriptor(window.HTMLInputElement.prototype, 'type', {
+            getter: null,
+            setter: function (value) {
+                windowSandbox.nodeSandbox.element.setAttributeCore(this, ['type', value]);
+            }
+        });
 
         overrideDescriptor(window.HTMLIFrameElement.prototype, 'sandbox', {
             getter: function () {
