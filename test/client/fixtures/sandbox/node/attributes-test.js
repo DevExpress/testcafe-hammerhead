@@ -11,14 +11,6 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var unloadSandbox = hammerhead.sandbox.event.unload;
 
-var requireAttrInputTypeCases = [
-    'file', 'text', 'search', 'url', 'tel', 'email', 'password', 'number', 'checkbox', 'radio'
-];
-
-// NOTE: IE11 doesn't support date/time 'input' types
-if (!browserUtils.isIE11)
-    requireAttrInputTypeCases.push('date', 'datetime-local', 'month', 'week', 'time');
-
 // NOTE: IE11 has a strange bug that does not allow this test to pass
 if (!browserUtils.isIE || browserUtils.version !== 11) {
     test('onsubmit', function () {

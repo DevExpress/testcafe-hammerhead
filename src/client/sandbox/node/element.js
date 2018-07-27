@@ -299,11 +299,11 @@ export default class ElementSandbox extends SandboxBase {
 
             if (typeIsChanged && currentRequired !== null) {
                 if (newType === 'file') {
-                    nativeMethods.setAttribute.apply(el, [storedRequiredAttr, currentRequired]);
+                    nativeMethods.setAttribute.call(el, storedRequiredAttr, currentRequired);
                     nativeMethods.removeAttribute.call(el, 'required');
                 }
                 else if (currentType === 'file') {
-                    nativeMethods.setAttribute.apply(el, ['required', currentRequired]);
+                    nativeMethods.setAttribute.call(el, 'required', currentRequired);
                     nativeMethods.removeAttribute.call(el, storedRequiredAttr);
                 }
             }
@@ -387,7 +387,7 @@ export default class ElementSandbox extends SandboxBase {
             if (nativeMethods.hasAttribute.call(el, storedRequiredAttr)) {
                 const currentRequired = nativeMethods.getAttribute.call(el, storedRequiredAttr);
 
-                nativeMethods.setAttribute.apply(el, ['required', currentRequired]);
+                nativeMethods.setAttribute.call(el, 'required', currentRequired);
                 nativeMethods.removeAttribute.call(el, storedRequiredAttr);
             }
         }
