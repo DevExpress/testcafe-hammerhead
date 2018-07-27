@@ -42,7 +42,12 @@ test('refreshed classes "toString" method', function () {
         { name: 'StorageEvent', storedName: 'StorageEvent' },
         { name: 'MutationObserver', storedName: 'MutationObserver' },
         { name: 'EventSource', storedName: 'EventSource' },
-        { name: 'WebSocket', storedName: 'WebSocket' }
+        { name: 'WebSocket', storedName: 'WebSocket' },
+        { name: 'Proxy', storedName: 'Proxy' },
+        { name: 'DataTransfer', storedName: 'DataTransfer' },
+        { name: 'DataTransferItemList', storedName: 'DataTransferItemList' },
+        { name: 'DataTransferItem', storedName: 'DataTransferItem' },
+        { name: 'FileList', storedName: 'FileList' }
     ];
 
     refreshedClassCases.forEach(function (refreshedClassCase) {
