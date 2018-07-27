@@ -870,7 +870,7 @@ test('"required" property', function () {
     input.parentNode.removeChild(input);
 });
 
-test('"type" attribute changed (GH-1645)', function () {
+test('"type" attribute/property changed (GH-1645)', function () {
     var testCases = [
         { currentTypeValue: 'radio', newTypeValue: 'file', requiredValue: '' },
         { currentTypeValue: 'file', newTypeValue: 'radio', requiredValue: 'required' },
@@ -899,33 +899,6 @@ test('"type" attribute changed (GH-1645)', function () {
         input.setAttribute('type', testCase.newTypeValue);
         checkRequiredAttr(input, testCase.newTypeValue, testCase.requiredValue);
 
-        input.parentNode.removeChild(input);
-    });
-});
-
-test('"type" property changed (GH-1645)', function () {
-    var testCases = [
-        { currentTypeValue: 'radio', newTypeValue: 'file', requiredValue: '' },
-        { currentTypeValue: 'file', newTypeValue: 'radio', requiredValue: 'required' },
-        { currentTypeValue: null, newTypeValue: 'file', requiredValue: 'required' },
-        { currentTypeValue: 'file', newTypeValue: null, requiredValue: '' },
-    ];
-
-    var storedRequiredAttr = DomProcessor.getStoredAttrName('required');
-
-    function checkRequiredAttr (input, typeValue, requiredValue) {
-        strictEqual(nativeMethods.getAttribute.call(input, 'required'),
-            typeValue === 'file' ? null : requiredValue);
-        strictEqual(nativeMethods.getAttribute.call(input, storedRequiredAttr),
-            typeValue === 'file' ? requiredValue : null);
-    }
-
-    testCases.forEach(function (testCase) {
-        var input = document.createElement('input');
-
-        document.body.appendChild(input);
-
-        input.setAttribute('required', testCase.requiredValue);
         input.type = testCase.currentTypeValue;
         checkRequiredAttr(input, testCase.currentTypeValue, testCase.requiredValue);
 
