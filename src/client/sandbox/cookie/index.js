@@ -58,6 +58,28 @@ export default class CookieSandbox extends SandboxBase {
         return null;
     }
 
+    // NOTE: Perform cookie domain validation that can't be processed by a browser due to proxying.
+    static _isValidDomain (currentHost, cookieDomain) {
+        currentHost = currentHost.trim().replace(/^\./, '').toLowerCase();
+        cookieDomain = cookieDomain.trim().replace(/^\./, '').toLowerCase();
+
+        if (currentHost === cookieDomain)
+            return true;
+
+        const cookieDomainIdx = currentHost.indexOf(cookieDomain);
+
+        if (cookieDomainIdx <= 0)
+            return false;
+
+        if (currentHost.length !== cookieDomain.length + cookieDomainIdx)
+            return false;
+
+        if (currentHost.substr(cookieDomainIdx - 1, 1) !== '.')
+            return false;
+
+        return true;
+    }
+
     // NOTE: Perform validations that can't be processed by a browser due to proxying.
     static _isValidCookie (parsedCookie) {
         if (!parsedCookie)
@@ -80,7 +102,7 @@ export default class CookieSandbox extends SandboxBase {
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
         // according to a test url.
         // eslint-disable-next-line no-restricted-properties
-        return !parsedCookie.domain || parsedDestLocation.hostname === parsedCookie.domain;
+        return !parsedCookie.domain || CookieSandbox._isValidDomain(parsedDestLocation.hostname, parsedCookie.domain);
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
