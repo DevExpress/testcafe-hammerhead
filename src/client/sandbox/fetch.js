@@ -125,7 +125,7 @@ export default class FetchSandbox extends SandboxBase {
 
             return fetchPromise
                 .then(response => {
-                    sandbox.cookieSandbox.syncServerCookie();
+                    sandbox.cookieSandbox.syncCookie();
 
                     return response;
                 });

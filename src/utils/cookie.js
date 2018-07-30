@@ -7,10 +7,14 @@ import trim from './string-trim';
 
 const TIME_RADIX             = 36;
 const CLEAR_COOKIE_VALUE_STR = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
-const SYNCHRONIZATION_TYPE   = {
+
+export const SYNCHRONIZATION_TYPE = {
     server: 's',
-    client: 'c'
+    client: 'c',
+    window: 'f'
 };
+
+const SYNCHRONIZATION_TYPE_RE = new RegExp(`^[${SYNCHRONIZATION_TYPE.server}${SYNCHRONIZATION_TYPE.client}${SYNCHRONIZATION_TYPE.window}]+`);
 
 function isSameCookies (cookie1, cookie2) {
     return cookie1.sid === cookie2.sid &&
@@ -47,6 +51,12 @@ function sortByOutdatedAndActual (parsedCookies) {
     return { outdated, actual };
 }
 
+function stringifySyncType (cookie) {
+    return (cookie.isServerSync ? SYNCHRONIZATION_TYPE.server : '') +
+           (cookie.isClientSync ? SYNCHRONIZATION_TYPE.client : '') +
+           (cookie.isWindowSync ? SYNCHRONIZATION_TYPE.window : '');
+}
+
 export function parseClientSyncCookieStr (cookieStr) {
     const cookies       = cookieStr ? cookieStr.split(';') : '';
     const parsedCookies = [];
@@ -62,7 +72,7 @@ export function parseClientSyncCookieStr (cookieStr) {
 }
 
 export function formatSyncCookie (cookie) {
-    const syncType     = cookie.isServerSync ? SYNCHRONIZATION_TYPE.server : SYNCHRONIZATION_TYPE.client;
+    const syncType     = stringifySyncType(cookie);
     const key          = encodeURIComponent(cookie.key);
     const domain       = encodeURIComponent(cookie.domain);
     const path         = encodeURIComponent(cookie.path);
@@ -81,7 +91,9 @@ export function parseSyncCookie (cookieStr) {
         return null;
 
     return {
-        isServerSync: parsedKey[0] === SYNCHRONIZATION_TYPE.server,
+        isServerSync: parsedKey[0].indexOf(SYNCHRONIZATION_TYPE.server) > -1,
+        isClientSync: parsedKey[0].indexOf(SYNCHRONIZATION_TYPE.client) > -1,
+        isWindowSync: parsedKey[0].indexOf(SYNCHRONIZATION_TYPE.window) > -1,
         sid:          parsedKey[1],
         key:          decodeURIComponent(parsedKey[2]),
         domain:       decodeURIComponent(parsedKey[3]),
@@ -89,8 +101,27 @@ export function parseSyncCookie (cookieStr) {
         expires:      parsedKey[5] ? new Date(parseInt(parsedKey[5], TIME_RADIX)) : 'Infinity',
         lastAccessed: new Date(parseInt(parsedKey[6], TIME_RADIX)),
         value:        parsedCookie.join('='),
-        syncKey:      key
+        syncKey:      key,
+
+        cookieStr
     };
+}
+
+export function changeSyncType (parsedCookie, flags) {
+    if ('server' in flags)
+        parsedCookie.isServerSync = flags.server;
+
+    if ('client' in flags)
+        parsedCookie.isClientSync = flags.client;
+
+    if ('window' in flags)
+        parsedCookie.isWindowSync = flags.window;
+
+    const newSyncTypeStr = stringifySyncType(parsedCookie);
+
+    parsedCookie.syncKey   = parsedCookie.syncKey.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
+    parsedCookie.cookieStr = parsedCookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
+
 }
 
 export function isOutdatedSyncCookie (currentCookie, newCookie) {

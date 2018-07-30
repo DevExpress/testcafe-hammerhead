@@ -1,9 +1,7 @@
 import nativeMethods from '../../native-methods';
 import { getTagName, isShadowUIElement } from '../../../utils/dom';
 import { getNativeQuerySelectorAll } from '../../../utils/query-selector';
-
-const MAX_SAFE_INTEGER = Math.pow(2, 53) - 1;
-const MIN_SAFE_INTEGER = -MAX_SAFE_INTEGER;
+import createIntegerIdGenerator from '../../../utils/integer-id-generator';
 
 class DOMMutationTracker {
     constructor () {
@@ -16,12 +14,8 @@ class DOMMutationTracker {
     }
 
     _updateVersion (tagName) {
-        if (tagName in this._mutations) {
-            if (this._mutations[tagName] === MAX_SAFE_INTEGER)
-                this._mutations[tagName] = MIN_SAFE_INTEGER;
-            else
-                ++this._mutations[tagName];
-        }
+        if (tagName in this._mutations)
+            this._mutations[tagName].increment();
     }
 
     _processElement (el) {
@@ -60,15 +54,18 @@ class DOMMutationTracker {
         const isTagTracked = tagName in this._mutations;
 
         if (!isTagTracked)
-            this._mutations[tagName] = MIN_SAFE_INTEGER;
+            this._mutations[tagName] = createIntegerIdGenerator();
 
-        const lastVersion = this._mutations[tagName];
+        const lastVersion = this._mutations[tagName].value; // eslint-disable-line no-restricted-properties
 
         return version < lastVersion;
     }
 
     getVersion (tagName) {
-        return this._mutations[tagName];
+        if (this._mutations[tagName])
+            return this._mutations[tagName].value; // eslint-disable-line no-restricted-properties
+
+        return -Infinity;
     }
 }
 

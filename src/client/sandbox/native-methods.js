@@ -59,6 +59,19 @@ class NativeMethods {
 
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
+        // TODO: remove this condition after the GH-1649 fix
+        if (documentCookieDescriptor.get.toString().indexOf('native code') === -1) {
+            try {
+                const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
+
+                documentCookieDescriptor.get = parentNativeMethods.documentCookieGetter;
+                documentCookieDescriptor.set = parentNativeMethods.documentCookieSetter;
+            }
+            // eslint-disable-next-line no-empty
+            catch (e) {
+            }
+        }
+
         this.documentReferrerGetter      = win.Object.getOwnPropertyDescriptor(docPrototype, 'referrer').get;
         this.documentStyleSheetsGetter   = win.Object.getOwnPropertyDescriptor(docPrototype, 'styleSheets').get;
         this.documentActiveElementGetter = win.Object.getOwnPropertyDescriptor(docPrototype, 'activeElement').get;

@@ -7,7 +7,7 @@ export default class WrapperState {
     constructor (nodeList, tagName) {
         this.nodeList         = nodeList;
         this.filteredNodeList = null;
-        this.version          = -Infinity;
+        this.version          = DOMMutationTracker.getVersion(this.tagName);
         this.tagName          = tagName;
 
         this.refreshNodeListIfNecessary();
