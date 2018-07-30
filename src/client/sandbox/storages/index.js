@@ -91,6 +91,8 @@ export default class StorageSandbox extends SandboxBase {
 
             return event;
         };
+
+        window.StorageEvent.toString = () => nativeMethods.StorageEvent.toString();
     }
 
     clear () {
