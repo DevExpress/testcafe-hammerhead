@@ -24,37 +24,35 @@ if (window.PerformanceNavigationTiming) {
 }
 
 test('refreshed classes "toString" method', function () {
-    var refreshedClassCases = [
-        { name: 'Window', storedName: 'windowClass' },
-        { name: 'Document', storedName: 'documentClass' },
-        { name: 'Location', storedName: 'locationClass' },
-        { name: 'Element', storedName: 'elementClass' },
-        { name: 'SVGElement', storedName: 'svgElementClass' },
-        { name: 'Worker', storedName: 'Worker' },
-        { name: 'ArrayBuffer', storedName: 'ArrayBuffer' },
-        { name: 'Uint8Array', storedName: 'Uint8Array' },
-        { name: 'DataView', storedName: 'DataView' },
-        { name: 'Blob', storedName: 'Blob' },
-        { name: 'XMLHttpRequest', storedName: 'XMLHttpRequest' },
-        { name: 'Image', storedName: 'Image' },
-        { name: 'Function', storedName: 'Function' },
-        { name: 'FontFace', storedName: 'FontFace' },
-        { name: 'StorageEvent', storedName: 'StorageEvent' },
-        { name: 'MutationObserver', storedName: 'MutationObserver' },
-        { name: 'EventSource', storedName: 'EventSource' },
-        { name: 'WebSocket', storedName: 'WebSocket' },
-        { name: 'Proxy', storedName: 'Proxy' },
-        { name: 'DataTransfer', storedName: 'DataTransfer' },
-        { name: 'DataTransferItemList', storedName: 'DataTransferItemList' },
-        { name: 'DataTransferItem', storedName: 'DataTransferItem' },
-        { name: 'FileList', storedName: 'FileList' }
+    var testCases = [
+        { refreshedClass: window.Window, storedClass: nativeMethods.windowClass },
+        { refreshedClass: window.Document, storedClass: nativeMethods.documentClass },
+        { refreshedClass: window.Location, storedClass: nativeMethods.locationClass },
+        { refreshedClass: window.Element, storedClass: nativeMethods.elementClass },
+        { refreshedClass: window.SVGElement, storedClass: nativeMethods.svgElementClass },
+        { refreshedClass: window.Worker, storedClass: nativeMethods.Worker },
+        { refreshedClass: window.ArrayBuffer, storedClass: nativeMethods.ArrayBuffer },
+        { refreshedClass: window.Uint8Array, storedClass: nativeMethods.Uint8Array },
+        { refreshedClass: window.DataView, storedClass: nativeMethods.DataView },
+        { refreshedClass: window.Blob, storedClass: nativeMethods.Blob },
+        { refreshedClass: window.XMLHttpRequest, storedClass: nativeMethods.XMLHttpRequest },
+        { refreshedClass: window.Image, storedClass: nativeMethods.Image },
+        { refreshedClass: window.Function, storedClass: nativeMethods.Function },
+        { refreshedClass: window.StorageEvent, storedClass: nativeMethods.StorageEvent },
+        { refreshedClass: window.MutationObserver, storedClass: nativeMethods.MutationObserver },
+        { refreshedClass: window.WebSocket, storedClass: nativeMethods.WebSocket },
+        { refreshedClass: window.DataTransfer, storedClass: nativeMethods.DataTransfer },
+        { refreshedClass: window.FileList, storedClass: nativeMethods.FileList },
+        { refreshedClass: window.FontFace, storedClass: nativeMethods.FontFace },
+        { refreshedClass: window.EventSource, storedClass: nativeMethods.EventSource },
+        { refreshedClass: window.Proxy, storedClass: nativeMethods.Proxy },
+        { refreshedClass: window.DataTransferItemList, storedClass: nativeMethods.DataTransferItemList },
+        { refreshedClass: window.DataTransferItem, storedClass: nativeMethods.DataTransferItem }
     ];
 
-    refreshedClassCases.forEach(function (refreshedClassCase) {
-        var windowClass = window[refreshedClassCase.name];
-
-        if (windowClass)
-            strictEqual(windowClass.toString(), nativeMethods[refreshedClassCase.storedName].toString(), refreshedClassCase.name);
+    testCases.forEach(function (testCase) {
+        if (testCase.refreshedClass)
+            strictEqual(testCase.refreshedClass.toString(), testCase.storedClass.toString());
     });
 });
 
