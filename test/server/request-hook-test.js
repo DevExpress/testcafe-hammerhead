@@ -8,13 +8,26 @@ const ConfigureResponseEventOptions = require('../../lib/session/events/configur
 const noop                          = require('lodash').noop;
 
 describe('ResponseMock', () => {
-    it('Header names should be lowercased', () => {
-        const body     = '<html><body><h1>Test</h1></body></html>';
-        const mock     = new ResponseMock(body, 200, { 'Access-Control-Allow-Origin': '*' });
-        const response = mock.getResponse();
+    describe('Header names should be lowercased', () => {
+        it('"Headers" parameter', () => {
+            const body     = '<html><body><h1>Test</h1></body></html>';
+            const mock     = new ResponseMock(body, 200, { 'Access-Control-Allow-Origin': '*' });
+            const response = mock.getResponse();
 
-        expect(response.headers['access-control-allow-origin']).eql('*');
+            expect(response.headers['access-control-allow-origin']).eql('*');
+        });
+
+        it('Respond function', () => {
+            const mock = new ResponseMock((req, res) => {
+                res.headers['Access-Control-Allow-Origin'] = '*';
+            });
+
+            const response = mock.getResponse();
+
+            expect(response.headers['access-control-allow-origin']).eql('*');
+        });
     });
+
 
     describe('Validation', () => {
         it('Body', () => {
