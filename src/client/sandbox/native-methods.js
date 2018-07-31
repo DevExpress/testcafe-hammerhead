@@ -44,6 +44,8 @@ class NativeMethods {
         this.querySelector        = doc.querySelector || docProto.querySelector;
         this.querySelectorAll     = doc.querySelectorAll || docProto.querySelectorAll;
 
+        this.createHTMLDocument = win.DOMImplementation.prototype.createHTMLDocument;
+
         // Event
         this.documentAddEventListener    = doc.addEventListener || docProto.addEventListener;
         this.documentRemoveEventListener = doc.removeEventListener || docProto.removeEventListener;

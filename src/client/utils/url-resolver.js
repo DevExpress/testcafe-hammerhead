@@ -6,7 +6,7 @@ const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
 
 export default {
     _createResolver (doc) {
-        const htmlDocument = doc.implementation.createHTMLDocument('title');
+        const htmlDocument = nativeMethods.createHTMLDocument.call(doc.implementation, 'title');
         const a            = nativeMethods.createElement.call(htmlDocument, 'a');
         const base         = nativeMethods.createElement.call(htmlDocument, 'base');
 
