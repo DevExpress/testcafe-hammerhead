@@ -107,6 +107,8 @@ export default class ResponseMock {
         else
             response._body = this.body;
 
+        response.headers = this._lowerCaseHeaderNames(response.headers);
+
         return new IncomingMessageMock(response);
     }
 }
