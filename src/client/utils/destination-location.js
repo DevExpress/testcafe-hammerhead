@@ -50,9 +50,10 @@ export function resolveUrl (url, doc) {
 }
 
 export function get () {
-    const location = getLocation();
+    const location       = getLocation();
+    const parsedProxyUrl = sharedUrlUtils.parseProxyUrl(location);
 
-    return sharedUrlUtils.parseProxyUrl(location).destUrl;
+    return parsedProxyUrl ? parsedProxyUrl.destUrl : location;
 }
 
 export function withHash (hash) {

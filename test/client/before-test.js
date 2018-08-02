@@ -14,8 +14,8 @@
     var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
     var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
     var destLocation   = hammerhead.get('./utils/destination-location');
-    var settings       = hammerhead.get('./settings');
     var iframeSandbox  = hammerhead.sandbox.iframe;
+    var cookieSandbox  = hammerhead.sandbox.cookie;
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
@@ -46,7 +46,7 @@
         var location         = "http://localhost/sessionId/https://example.com";
         var serviceMsgUrl    = "/service-msg/100";
         var cookieSyncUrl    = "/cookie-sync/100";
-        var cookie           = settings.get().cookie;
+        var cookie           = cookieSandbox.getCookie();
         var iframeTaskScript = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, cookieSyncUrl, location, cookie));
 
         if (e.iframe.id.indexOf('test') !== -1) {
