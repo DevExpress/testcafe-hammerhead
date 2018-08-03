@@ -58,26 +58,18 @@ export default class CookieSandbox extends SandboxBase {
         return null;
     }
 
-    // NOTE: Perform cookie domain validation that can't be processed by a browser due to proxying.
-    static _isValidDomain (currentHost, cookieDomain) {
-        currentHost = currentHost.trim().replace(/^\./, '').toLowerCase();
-        cookieDomain = cookieDomain.trim().replace(/^\./, '').toLowerCase();
+    static _isValidDomain (currentDomain, cookieDomain) {
+        currentDomain = currentDomain.toLowerCase();
+        cookieDomain  = cookieDomain.toLowerCase();
 
-        if (currentHost === cookieDomain)
+        if (currentDomain === cookieDomain)
             return true;
 
-        const cookieDomainIdx = currentHost.indexOf(cookieDomain);
+        const cookieDomainIdx = currentDomain.indexOf(cookieDomain);
 
-        if (cookieDomainIdx <= 0)
-            return false;
-
-        if (currentHost.length !== cookieDomain.length + cookieDomainIdx)
-            return false;
-
-        if (currentHost.substr(cookieDomainIdx - 1, 1) !== '.')
-            return false;
-
-        return true;
+        return cookieDomainIdx > 0 &&
+               currentDomain.length === cookieDomain.length + cookieDomainIdx &&
+               currentDomain.charAt(cookieDomainIdx - 1) === '.';
     }
 
     // NOTE: Perform validations that can't be processed by a browser due to proxying.
