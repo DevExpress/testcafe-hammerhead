@@ -58,7 +58,7 @@ export default class CookieSandbox extends SandboxBase {
         return null;
     }
 
-    static _isValidDomain (currentDomain, cookieDomain) {
+    static _isMatchDomain (currentDomain, cookieDomain) {
         currentDomain = currentDomain.toLowerCase();
         cookieDomain  = cookieDomain.toLowerCase();
 
@@ -94,7 +94,7 @@ export default class CookieSandbox extends SandboxBase {
         // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
         // according to a test url.
         // eslint-disable-next-line no-restricted-properties
-        return !parsedCookie.domain || CookieSandbox._isValidDomain(parsedDestLocation.hostname, parsedCookie.domain);
+        return !parsedCookie.domain || CookieSandbox._isMatchDomain(parsedDestLocation.hostname, parsedCookie.domain);
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
