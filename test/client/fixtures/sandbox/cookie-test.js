@@ -357,7 +357,8 @@ test('actual cookie in iframe even if a synchronization message does not receive
         });
 });
 
-// NOTE: Firefox has another behavior than other browsers
+// NOTE: This test works only if the load event is triggered synchronously after an iframe is appended to the body.
+// It fails in Firefox because in this browser, the load event is triggered asynchronously.
 if (!browserUtils.isFirefox) {
     test('cookieSandbox is not attached to iframe', function () {
         var iframe = document.createElement('iframe');
