@@ -357,6 +357,30 @@ test('actual cookie in iframe even if a synchronization message does not receive
         });
 });
 
+// NOTE: This test works only if the load event is triggered synchronously after an iframe is appended to the body.
+// It fails in Firefox because in this browser, the load event is triggered asynchronously.
+if (!browserUtils.isFirefox) {
+    test('cookieSandbox is not attached to iframe', function () {
+        var iframe = document.createElement('iframe');
+
+        iframe.id = 'test' + Date.now();
+
+        nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5lnl=123;path=/');
+
+        document.body.appendChild(iframe);
+
+        strictEqual(document.cookie, 'test=123');
+        strictEqual(nativeMethods.documentCookieGetter.call(document), 'f|sessionId|test|example.com|%2F||1fckm5lnl=123');
+
+        return window.QUnitGlobals.wait(function () {
+            return nativeMethods.documentCookieGetter.call(document) === '';
+        }, 2000)
+            .then(function () {
+                document.body.removeChild(iframe);
+            });
+    });
+}
+
 module('regression');
 
 test('overwrite (B239496)', function () {

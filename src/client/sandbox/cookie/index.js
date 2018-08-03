@@ -1,3 +1,4 @@
+import Promise from 'pinkie';
 import SandboxBase from '../base';
 import settings from '../../settings';
 import CookieSync from './cookie-sync';
@@ -21,6 +22,8 @@ export default class CookieSandbox extends SandboxBase {
         this.messageSandbox = messageSandbox;
         this.cookieSync     = new CookieSync();
         this.windowSync     = null;
+
+        this.pendingWindowSync = [];
     }
 
     // NOTE: Let a browser validate other stuff (e.g. the Path attribute). For this purpose, we add a unique prefix
@@ -220,7 +223,24 @@ export default class CookieSandbox extends SandboxBase {
         });
     }
 
+    _processPendingWindowSync () {
+        for (const { parsedCookies, win, resolve } of this.pendingWindowSync) {
+            const syncResultPromise = this.syncWindowCookie(parsedCookies, win);
+
+            if (syncResultPromise)
+                syncResultPromise.then(resolve);
+            else
+                resolve();
+        }
+
+        this.pendingWindowSync = [];
+    }
+
     syncWindowCookie (parsedCookies, win) {
+        // NOTE: This function can be called before the 'attach' call.
+        if (!this.document)
+            return new Promise(resolve => this.pendingWindowSync.push({ parsedCookies, win, resolve }));
+
         const clientCookie  = nativeMethods.documentCookieGetter.call(this.document);
         const actualCookies = [];
 
@@ -241,5 +261,7 @@ export default class CookieSandbox extends SandboxBase {
         super.attach(window);
 
         this.windowSync = new WindowSync(window, this, this.messageSandbox);
+
+        this._processPendingWindowSync();
     }
 }
