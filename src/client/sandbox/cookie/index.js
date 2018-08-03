@@ -23,7 +23,7 @@ export default class CookieSandbox extends SandboxBase {
         this.cookieSync     = new CookieSync();
         this.windowSync     = null;
 
-        this.storedWindowSync = [];
+        this.pendingWindowSync = [];
     }
 
     // NOTE: Let a browser validate other stuff (e.g. the Path attribute). For this purpose, we add a unique prefix
@@ -223,10 +223,23 @@ export default class CookieSandbox extends SandboxBase {
         });
     }
 
+    _processPendingWindowSync () {
+        for (const { parsedCookies, win, resolve } of this.pendingWindowSync) {
+            const syncResultPromise = this.syncWindowCookie(parsedCookies, win);
+
+            if (syncResultPromise)
+                syncResultPromise.then(resolve);
+            else
+                resolve();
+        }
+
+        this.pendingWindowSync = [];
+    }
+
     syncWindowCookie (parsedCookies, win) {
-        // NOTE: Current function can be called before the 'attach' function was called
+        // NOTE: This function can be called before the 'attach' call.
         if (!this.document)
-            return new Promise(resolve => this.storedWindowSync.push({ parsedCookies, win, resolve }));
+            return new Promise(resolve => this.pendingWindowSync.push({ parsedCookies, win, resolve }));
 
         const clientCookie  = nativeMethods.documentCookieGetter.call(this.document);
         const actualCookies = [];
@@ -249,15 +262,6 @@ export default class CookieSandbox extends SandboxBase {
 
         this.windowSync = new WindowSync(window, this, this.messageSandbox);
 
-        for (const { parsedCookies, win, resolve } of this.storedWindowSync) {
-            const syncResultPromise = this.syncWindowCookie(parsedCookies, win);
-
-            if (syncResultPromise)
-                syncResultPromise.then(resolve);
-            else
-                resolve();
-        }
-
-        this.storedWindowSync = [];
+        this._processPendingWindowSync();
     }
 }

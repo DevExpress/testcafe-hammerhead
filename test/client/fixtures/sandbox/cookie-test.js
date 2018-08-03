@@ -357,6 +357,7 @@ test('actual cookie in iframe even if a synchronization message does not receive
         });
 });
 
+// NOTE: Firefox has another behavior than other browsers
 if (!browserUtils.isFirefox) {
     test('cookieSandbox is not attached to iframe', function () {
         var iframe = document.createElement('iframe');
