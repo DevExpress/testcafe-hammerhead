@@ -77,6 +77,18 @@ test('get/set', function () {
         'Test2=DomainNotMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=localhost',
     ], 'Test1=DomainMatch');
 
+    testCookies('http://sub.example.com/', [
+        'Test1=DomainMatch; domain=sub.example.com',
+        'Test2=DomainMatch; domain=.sub.example.com',
+        'Test3=DomainMatch; Domain=SUB.Example.com',
+        'Test4=DomainMatch; Domain=example.com',
+        'Test5=DomainMatch; Domain=.example.com',
+        'Test6=DomainNotMatch; domain=123',
+        'Test7=DomainNotMatch; domain=sub.example',
+        'Test8=DomainNotMatch; domain=example.co',
+        'Test9=DomainNotMatch; domain=b.example.com'
+    ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
+
     destLocation.forceLocation(storedForcedLocation);
 });
 
