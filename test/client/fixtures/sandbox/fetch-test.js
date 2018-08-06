@@ -565,6 +565,47 @@ if (window.fetch) {
             strictEqual(origin, 'https://example.com');
             strictEqual(fetchRequestCredentials, 'same-origin');
         });
+
+        test('should use the native "then" function (GH-TC-2686)', function () {
+            var storedPromiseThen = window.Promise.prototype.then;
+
+            window.Promise.prototype.then = function () {
+                throw new Error('non-native function is called');
+            };
+
+            var fetchPromise = fetch('/xhr-test/100');
+
+            window.Promise.prototype.then = storedPromiseThen;
+
+            return fetchPromise
+                .then(function (response) {
+                    strictEqual(response.status, 200);
+                });
+        });
+
+        test('should use the native "reject" function (GH-TC-2686)', function () {
+            var storedPromiseReject = window.Promise.reject;
+
+            window.Promise.reject = function () {
+                throw new Error('non-native function is called');
+            };
+
+            return fetch('https://sub-domain.example.com', { mode: 'same-origin' })
+                .catch(function () {
+                    ok(true);
+
+                    return fetch({
+                        toString: function () {
+                            return {};
+                        }
+                    });
+                })
+                .catch(function () {
+                    window.Promise.reject = storedPromiseReject;
+
+                    ok(true);
+                });
+        });
     });
 }
 
