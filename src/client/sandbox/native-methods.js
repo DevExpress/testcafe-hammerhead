@@ -489,6 +489,11 @@ class NativeMethods {
             this.responseUrlGetter    = win.Object.getOwnPropertyDescriptor(win.Response.prototype, 'url').get;
         }
 
+        if (win.Promise) {
+            this.promiseThen   = win.Promise.prototype.then;
+            this.promiseReject = win.Promise.reject;
+        }
+
         const xhrResponseURLDescriptor = win.Object.getOwnPropertyDescriptor(win.XMLHttpRequest.prototype, 'responseURL');
 
         // NOTE: IE doesn't support the 'responseURL' property

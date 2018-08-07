@@ -113,22 +113,21 @@ export default class FetchSandbox extends SandboxBase {
                 FetchSandbox._processArguments(args);
             }
             catch (e) {
-                return sandbox.window.Promise.reject(e);
+                return nativeMethods.promiseReject.call(sandbox.window.Promise, e);
             }
 
             if (!FetchSandbox._sameOriginCheck(args))
-                return sandbox.window.Promise.reject(new TypeError());
+                return nativeMethods.promiseReject.call(sandbox.window.Promise, new TypeError());
 
             const fetchPromise = nativeMethods.fetch.apply(this, args);
 
             sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
-            return fetchPromise
-                .then(response => {
-                    sandbox.cookieSandbox.syncCookie();
+            return nativeMethods.promiseThen.call(fetchPromise, response => {
+                sandbox.cookieSandbox.syncCookie();
 
-                    return response;
-                });
+                return response;
+            });
         };
 
         const fetchToString = nativeMethods.fetch.toString();
