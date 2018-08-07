@@ -300,8 +300,11 @@ export default class DomProcessor {
                                    DomProcessor._isHtmlImportLink(tagName, rel);
             const isNameTarget   = target ? target[0] !== '_' : false;
 
-            if (target === '_parent')
-                return mustProcessTag && !this.adapter.isTopParentIframe(el);
+            if (target === '_parent') {
+                const isTopParentIframe = this.adapter.isTopParentIframe(el);
+
+                return mustProcessTag && isTopParentIframe !== void 0 && !isTopParentIframe;
+            }
 
             if (mustProcessTag && (this.adapter.hasIframeParent(el) || isNameTarget && this.adapter.isExistingTarget(target)))
                 return true;
