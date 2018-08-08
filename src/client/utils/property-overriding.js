@@ -1,13 +1,23 @@
 import nativeMethods from '../sandbox/native-methods';
 
+function replaceNativeAccessor (descriptor, accessorName, newAccessor) {
+    if (newAccessor && descriptor[accessorName]) {
+        const stringifiedNativeAccessor = descriptor[accessorName].toString();
+
+        newAccessor.toString = () => stringifiedNativeAccessor;
+    }
+
+    descriptor[accessorName] = newAccessor;
+}
+
 export function createOverriddenDescriptor (obj, prop, { getter, setter }) {
     const descriptor = nativeMethods.objectGetOwnPropertyDescriptor.call(window.Object, obj, prop);
 
     if (getter !== null)
-        descriptor.get = getter;
+        replaceNativeAccessor(descriptor, 'get', getter);
 
     if (setter !== null)
-        descriptor.set = setter;
+        replaceNativeAccessor(descriptor, 'set', setter);
 
     return descriptor;
 }

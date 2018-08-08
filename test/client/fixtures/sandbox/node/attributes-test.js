@@ -1088,3 +1088,12 @@ test('Url resolving in an instance of document.implementation (GH-1673)', functi
 
     strictEqual(anchorEl.href, 'http://localhost:1993/some/page.html');
 });
+
+test('The toString function should return native string for overridden descriptor accessors (GH-1713)', function () {
+    ok(HTMLElement.prototype.__lookupGetter__('firstChild').toString().indexOf('[native code]') !== -1);
+    ok(HTMLElement.prototype.__lookupGetter__('lastChild').toString().indexOf('[native code]') !== -1);
+    ok(HTMLAnchorElement.prototype.__lookupGetter__('port').toString().indexOf('[native code]') !== -1);
+    ok(HTMLAnchorElement.prototype.__lookupSetter__('port').toString().indexOf('[native code]') !== -1);
+    ok(HTMLAnchorElement.prototype.__lookupGetter__('pathname').toString().indexOf('[native code]') !== -1);
+    ok(HTMLAnchorElement.prototype.__lookupSetter__('pathname').toString().indexOf('[native code]') !== -1);
+});
