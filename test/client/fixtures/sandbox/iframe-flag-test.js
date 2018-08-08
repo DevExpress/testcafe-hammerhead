@@ -235,6 +235,22 @@ test('change iframe name', function () {
     document.body.removeChild(a);
 });
 
+test('overridden "document.write" must process HTML with actual context (GH-1680)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var iframeDocument = iframe.contentDocument;
+            var HTMLText       = '<form action="some-path.html" target="_parent"></form>';
+
+            iframeDocument.open();
+            iframeDocument.write(HTMLText);
+            iframeDocument.close();
+
+            var form = iframeDocument.forms[0];
+
+            ok(!hasIframeFlag(nativeMethods.getAttribute.call(form, 'action')));
+        });
+});
+
 // TODO
 //test('change the "target" attribute in the "base" tag', function () {
 //    var url    = 'https://example.com/';
