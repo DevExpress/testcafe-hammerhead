@@ -62,7 +62,8 @@ class NativeMethods {
         const documentCookieDescriptor = win.Object.getOwnPropertyDescriptor(win[this.documentCookiePropOwnerName].prototype, 'cookie');
 
         // TODO: remove this condition after the GH-1649 fix
-        if (documentCookieDescriptor.get.toString().indexOf('native code') === -1) {
+        if (documentCookieDescriptor.get.toString().indexOf('native code') === -1 ||
+            documentCookieDescriptor.get.toString.toString().indexOf('native code') === -1) {
             try {
                 const parentNativeMethods = win.parent['%hammerhead%'].nativeMethods;
 
