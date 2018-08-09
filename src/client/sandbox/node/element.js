@@ -470,21 +470,23 @@ export default class ElementSandbox extends SandboxBase {
             insertAdjacentHTML (...args) {
                 const position = args[0];
                 const html     = args[1];
+                const el       = this;
+                const parentEl = el.parentNode;
 
                 if (args.length > 1 && html !== null) {
                     args[1] = processHtml(String(html), {
-                        parentTag:        this.parentNode && this.parentNode.tagName,
-                        processedContext: this[INTERNAL_PROPS.processedContext]
+                        parentTag:        parentEl && parentEl.tagName,
+                        processedContext: el[INTERNAL_PROPS.processedContext]
                     });
                 }
 
-                nativeMethods.insertAdjacentHTML.apply(this, args);
-                sandbox.nodeSandbox.processNodes(this.parentNode || this);
+                nativeMethods.insertAdjacentHTML.apply(el, args);
+                sandbox.nodeSandbox.processNodes(parentEl || el);
 
                 if (position === 'afterbegin' || position === 'beforeend')
-                    DOMMutationTracker.onChildrenChanged(this);
-                else if (this.parentNode)
-                    DOMMutationTracker.onChildrenChanged(this.parentNode);
+                    DOMMutationTracker.onChildrenChanged(el);
+                else if (parentEl)
+                    DOMMutationTracker.onChildrenChanged(parentEl);
             },
 
             formSubmit () {
