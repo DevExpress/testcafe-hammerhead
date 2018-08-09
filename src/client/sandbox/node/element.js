@@ -471,8 +471,12 @@ export default class ElementSandbox extends SandboxBase {
                 const position = args[0];
                 const html     = args[1];
 
-                if (args.length > 1 && html !== null)
-                    args[1] = processHtml(String(html), { parentTag: this.parentNode && this.parentNode.tagName });
+                if (args.length > 1 && html !== null) {
+                    args[1] = processHtml(String(html), {
+                        parentTag:        this.parentNode && this.parentNode.tagName,
+                        processedContext: this[INTERNAL_PROPS.processedContext]
+                    });
+                }
 
                 nativeMethods.insertAdjacentHTML.apply(this, args);
                 sandbox.nodeSandbox.processNodes(this.parentNode || this);

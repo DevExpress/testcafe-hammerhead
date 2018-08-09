@@ -1105,7 +1105,10 @@ export default class WindowSandbox extends SandboxBase {
                     const parentDocument = findDocument(parentEl);
                     const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
-                    nativeMethods.elementOuterHTMLSetter.call(this, processHtml(String(value), { parentTag: parentEl.tagName }));
+                    nativeMethods.elementOuterHTMLSetter.call(this, processHtml(String(value), {
+                        parentTag:        parentEl.tagName,
+                        processedContext: this[INTERNAL_PROPS.processedContext]
+                    }));
 
                     DOMMutationTracker.onChildrenChanged(parentEl);
 

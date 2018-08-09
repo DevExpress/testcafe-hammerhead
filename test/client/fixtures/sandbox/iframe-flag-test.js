@@ -235,22 +235,6 @@ test('change iframe name', function () {
     document.body.removeChild(a);
 });
 
-test('overridden "document.write" must process HTML with actual context (GH-1680)', function () {
-    return createTestIframe()
-        .then(function (iframe) {
-            var iframeDocument = iframe.contentDocument;
-            var HTMLText       = '<form action="some-path.html" target="_parent"></form>';
-
-            iframeDocument.open();
-            iframeDocument.write(HTMLText);
-            iframeDocument.close();
-
-            var form = iframeDocument.forms[0];
-
-            ok(!hasIframeFlag(nativeMethods.getAttribute.call(form, 'action')));
-        });
-});
-
 // TODO
 //test('change the "target" attribute in the "base" tag', function () {
 //    var url    = 'https://example.com/';
@@ -375,6 +359,57 @@ test('change a url via location from cross-domain window', function () {
         }
     }, ['https://example.com/']);
 });
+
+
+module('"processHTML" with actual context');
+
+test('"document.write" (GH-1680)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var iframeDocument = iframe.contentDocument;
+            var HTMLText       = '<form action="some-path.html" target="_parent"></form>';
+
+            iframeDocument.open();
+            iframeDocument.write(HTMLText);
+            iframeDocument.close();
+
+            var processedForm = iframeDocument.forms[0];
+
+            ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
+        });
+});
+
+test('"insertAdjacentHTML" (GH-1680)', function () {
+    var parentDiv = document.createElement('div');
+    var childDiv  = parentDiv.appendChild(document.createElement('div'));
+
+    document.body.appendChild(parentDiv);
+
+    childDiv.insertAdjacentHTML('beforebegin', '<form action="some-path.html" target="_parent"></form>');
+
+    var processedForm = parentDiv.querySelector('form');
+
+    ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
+
+    parentDiv.parentNode.removeChild(parentDiv);
+});
+
+test('"outerHTML" setter (GH-1680)', function () {
+    var parentDiv = document.createElement('div');
+    var childDiv  = parentDiv.appendChild(document.createElement('div'));
+    var htmlText  = '<form action="some-path.html" target="_parent"></form>';
+
+    document.body.appendChild(parentDiv);
+
+    childDiv.outerHTML = htmlText;
+
+    var processedForm = parentDiv.firstChild;
+
+    ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
+
+    parentDiv.parentNode.removeChild(parentDiv);
+});
+
 
 module('regression');
 
