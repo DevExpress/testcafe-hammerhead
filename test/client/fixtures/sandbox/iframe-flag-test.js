@@ -361,9 +361,9 @@ test('change a url via location from cross-domain window', function () {
 });
 
 
-module('"processHTML" with actual context');
+module('pass the actual "processedContext" parameter to "processHTML" (GH-1680)');
 
-test('"document.write" (GH-1680)', function () {
+test('document.write', function () {
     return createTestIframe()
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
@@ -378,7 +378,7 @@ test('"document.write" (GH-1680)', function () {
         });
 });
 
-test('"Element.insertAdjacentHTML" (GH-1680)', function () {
+test('Element.insertAdjacentHTML', function () {
     var parentDiv = document.createElement('div');
     var childDiv  = parentDiv.appendChild(document.createElement('div'));
 
@@ -393,7 +393,7 @@ test('"Element.insertAdjacentHTML" (GH-1680)', function () {
     parentDiv.parentNode.removeChild(parentDiv);
 });
 
-test('"Element.outerHTML" setter (GH-1680)', function () {
+test('Element.outerHTML setter', function () {
     var parentDiv = document.createElement('div');
     var childDiv  = parentDiv.appendChild(document.createElement('div'));
 
@@ -408,7 +408,7 @@ test('"Element.outerHTML" setter (GH-1680)', function () {
     parentDiv.parentNode.removeChild(parentDiv);
 });
 
-test('"Range.createContextualFragment" (GH-1680)', function () {
+test('Range.createContextualFragment', function () {
     var range     = document.createRange();
     var container = document.createElement('div');
 
