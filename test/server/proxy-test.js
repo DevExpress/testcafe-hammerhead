@@ -314,6 +314,12 @@ describe('Proxy', () => {
 
         app.get('/echo-headers', (req, res) => res.end(JSON.stringify(req.headers)));
 
+        app.get('/echo-raw-headers-names', (req, res) => {
+            const rawHeadersNames = req.rawHeaders.filter((str, index) => !(index & 1));
+
+            res.end(JSON.stringify(rawHeadersNames));
+        });
+
         app.get('/empty-response', (req, res) => {
             for (const header in req.headers)
                 res.set(header, req.headers[header]);
@@ -3011,16 +3017,17 @@ describe('Proxy', () => {
             DestinationRequest.TIMEOUT = 100;
 
             const destReq = new DestinationRequest({
-                url:      'http://127.0.0.1:2000/wait/150',
-                protocol: 'http:',
-                hostname: '127.0.0.1',
-                host:     '127.0.0.1:2000',
-                port:     2000,
-                path:     '/wait/150',
-                method:   'GET',
-                body:     Buffer.alloc(0),
-                isXhr:    false,
-                headers:  []
+                url:        'http://127.0.0.1:2000/wait/150',
+                protocol:   'http:',
+                hostname:   '127.0.0.1',
+                host:       '127.0.0.1:2000',
+                port:       2000,
+                path:       '/wait/150',
+                method:     'GET',
+                body:       Buffer.alloc(0),
+                isXhr:      false,
+                headers:    {},
+                rawHeaders: []
             });
 
             destReq.on('error', () => {
@@ -3554,6 +3561,23 @@ describe('Proxy', () => {
                     expect(res.headers['content-length']).eql('5');
                     expect(body).eql('');
                     server.close();
+                });
+        });
+
+        it('Should not change request headers to lowercase (GH-1380)', () => {
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/echo-raw-headers-names', session),
+                json:    true,
+                headers: {
+                    'if-none-match':    'NQQ6Iyi1ttEATRNQs+U9yQ==',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'ConTEnt-tyPE':     'application/json'
+                }
+            };
+
+            return request(options)
+                .then(rawHeadersNames => {
+                    expect(rawHeadersNames).to.include.members(['if-none-match', 'X-Requested-With', 'ConTEnt-tyPE']);
                 });
         });
     });

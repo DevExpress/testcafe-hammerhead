@@ -197,6 +197,7 @@ function createReqOpts (ctx) {
         credentials: ctx.session.getAuthCredentials(),
         body:        ctx.reqBody,
         isXhr:       ctx.isXhr,
+        rawHeaders:  ctx.req.rawHeaders,
 
         headers
     };
