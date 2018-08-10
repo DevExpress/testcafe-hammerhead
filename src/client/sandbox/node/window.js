@@ -481,14 +481,16 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Range.prototype.createContextualFragment) {
-            window.Range.prototype.createContextualFragment = function () {
-                if (typeof arguments[0] === 'string') {
-                    arguments[0] = processHtml(arguments[0], {
+            window.Range.prototype.createContextualFragment = function (...args) {
+                const tagString = args[0];
+
+                if (typeof tagString === 'string') {
+                    args[0] = processHtml(tagString, {
                         processedContext: this.startContainer && this.startContainer[INTERNAL_PROPS.processedContext]
                     });
                 }
 
-                const fragment = nativeMethods.createContextualFragment.apply(this, arguments);
+                const fragment = nativeMethods.createContextualFragment.apply(this, args);
 
                 nodeSandbox.processNodes(fragment);
 
