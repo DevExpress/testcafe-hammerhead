@@ -367,10 +367,9 @@ test('"document.write" (GH-1680)', function () {
     return createTestIframe()
         .then(function (iframe) {
             var iframeDocument = iframe.contentDocument;
-            var HTMLText       = '<form action="some-path.html" target="_parent"></form>';
 
             iframeDocument.open();
-            iframeDocument.write(HTMLText);
+            iframeDocument.write('<form action="some-path.html" target="_parent"></form>');
             iframeDocument.close();
 
             var processedForm = iframeDocument.forms[0];
@@ -379,7 +378,7 @@ test('"document.write" (GH-1680)', function () {
         });
 });
 
-test('"insertAdjacentHTML" (GH-1680)', function () {
+test('"Element.insertAdjacentHTML" (GH-1680)', function () {
     var parentDiv = document.createElement('div');
     var childDiv  = parentDiv.appendChild(document.createElement('div'));
 
@@ -394,20 +393,35 @@ test('"insertAdjacentHTML" (GH-1680)', function () {
     parentDiv.parentNode.removeChild(parentDiv);
 });
 
-test('"outerHTML" setter (GH-1680)', function () {
+test('"Element.outerHTML" setter (GH-1680)', function () {
     var parentDiv = document.createElement('div');
     var childDiv  = parentDiv.appendChild(document.createElement('div'));
-    var htmlText  = '<form action="some-path.html" target="_parent"></form>';
 
     document.body.appendChild(parentDiv);
 
-    childDiv.outerHTML = htmlText;
+    childDiv.outerHTML = '<form action="some-path.html" target="_parent"></form>';
 
     var processedForm = parentDiv.firstChild;
 
     ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
 
     parentDiv.parentNode.removeChild(parentDiv);
+});
+
+test('"Range.createContextualFragment" (GH-1680)', function () {
+    var range     = document.createRange();
+    var container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    range.selectNode(container);
+
+    var fragment      = range.createContextualFragment('<form action="some-path.html" target="_parent"></form>');
+    var processedForm = fragment.querySelector('form');
+
+    ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
+
+    container.parentNode.removeChild(container);
 });
 
 

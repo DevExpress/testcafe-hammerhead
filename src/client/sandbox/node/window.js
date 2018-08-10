@@ -482,8 +482,11 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.Range.prototype.createContextualFragment) {
             window.Range.prototype.createContextualFragment = function () {
-                if (typeof arguments[0] === 'string')
-                    arguments[0] = processHtml(arguments[0]);
+                if (typeof arguments[0] === 'string') {
+                    arguments[0] = processHtml(arguments[0], {
+                        processedContext: this.startContainer && this.startContainer[INTERNAL_PROPS.processedContext]
+                    });
+                }
 
                 const fragment = nativeMethods.createContextualFragment.apply(this, arguments);
 
@@ -1107,7 +1110,7 @@ export default class WindowSandbox extends SandboxBase {
                     const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
                     nativeMethods.elementOuterHTMLSetter.call(el, processHtml(String(value), {
-                        parentTag:        parentEl.tagName,
+                        parentTag:        parentEl && parentEl.tagName,
                         processedContext: el[INTERNAL_PROPS.processedContext]
                     }));
 
