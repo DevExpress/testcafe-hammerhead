@@ -360,6 +360,71 @@ test('change a url via location from cross-domain window', function () {
     }, ['https://example.com/']);
 });
 
+
+module('pass the actual "processedContext" parameter to "processHTML" (GH-1680)');
+
+test('document.write', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var iframeDocument = iframe.contentDocument;
+
+            iframeDocument.open();
+            iframeDocument.write('<form action="some-path.html" target="_parent"></form>');
+            iframeDocument.close();
+
+            var processedForm = iframeDocument.forms[0];
+
+            ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
+        });
+});
+
+test('Element.insertAdjacentHTML', function () {
+    var parentDiv = document.createElement('div');
+    var childDiv  = parentDiv.appendChild(document.createElement('div'));
+
+    document.body.appendChild(parentDiv);
+
+    childDiv.insertAdjacentHTML('beforebegin', '<form action="some-path.html" target="_parent"></form>');
+
+    var processedForm = parentDiv.querySelector('form');
+
+    ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
+
+    parentDiv.parentNode.removeChild(parentDiv);
+});
+
+test('Element.outerHTML setter', function () {
+    var parentDiv = document.createElement('div');
+    var childDiv  = parentDiv.appendChild(document.createElement('div'));
+
+    document.body.appendChild(parentDiv);
+
+    childDiv.outerHTML = '<form action="some-path.html" target="_parent"></form>';
+
+    var processedForm = parentDiv.firstChild;
+
+    ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
+
+    parentDiv.parentNode.removeChild(parentDiv);
+});
+
+test('Range.createContextualFragment', function () {
+    var range     = document.createRange();
+    var container = document.createElement('div');
+
+    document.body.appendChild(container);
+
+    range.selectNode(container);
+
+    var fragment      = range.createContextualFragment('<form action="some-path.html" target="_parent"></form>');
+    var processedForm = fragment.querySelector('form');
+
+    ok(!hasIframeFlag(nativeMethods.getAttribute.call(processedForm, 'action')));
+
+    container.parentNode.removeChild(container);
+});
+
+
 module('regression');
 
 test('setAttribute: frame src (GH-1070)', function () {

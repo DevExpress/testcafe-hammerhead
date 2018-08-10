@@ -481,11 +481,16 @@ export default class WindowSandbox extends SandboxBase {
         }
 
         if (window.Range.prototype.createContextualFragment) {
-            window.Range.prototype.createContextualFragment = function () {
-                if (typeof arguments[0] === 'string')
-                    arguments[0] = processHtml(arguments[0]);
+            window.Range.prototype.createContextualFragment = function (...args) {
+                const tagString = args[0];
 
-                const fragment = nativeMethods.createContextualFragment.apply(this, arguments);
+                if (typeof tagString === 'string') {
+                    args[0] = processHtml(tagString, {
+                        processedContext: this.startContainer && this.startContainer[INTERNAL_PROPS.processedContext]
+                    });
+                }
+
+                const fragment = nativeMethods.createContextualFragment.apply(this, args);
 
                 nodeSandbox.processNodes(fragment);
 
@@ -1097,15 +1102,19 @@ export default class WindowSandbox extends SandboxBase {
                 return cleanUpHtml(outerHTML, this.parentNode && this.parentNode.tagName);
             },
             setter: function (value) {
-                const parentEl = this.parentNode;
+                const el       = this;
+                const parentEl = el.parentNode;
 
-                DOMMutationTracker.onElementChanged(this);
+                DOMMutationTracker.onElementChanged(el);
 
                 if (parentEl && value !== null && value !== void 0) {
                     const parentDocument = findDocument(parentEl);
                     const parentWindow   = parentDocument ? parentDocument.defaultView : null;
 
-                    nativeMethods.elementOuterHTMLSetter.call(this, processHtml(String(value), { parentTag: parentEl.tagName }));
+                    nativeMethods.elementOuterHTMLSetter.call(el, processHtml(String(value), {
+                        parentTag:        parentEl && parentEl.tagName,
+                        processedContext: el[INTERNAL_PROPS.processedContext]
+                    }));
 
                     DOMMutationTracker.onChildrenChanged(parentEl);
 
@@ -1118,11 +1127,11 @@ export default class WindowSandbox extends SandboxBase {
 
                     // NOTE: This check is required for an element in an unavailable window.
                     // NOTE: Use timeout, so that changes take effect.
-                    if (window.self && isBodyElement(this))
+                    if (window.self && isBodyElement(el))
                         nativeMethods.setTimeout.call(window, () => windowSandbox.shadowUI.onBodyElementMutation(), 0);
                 }
                 else
-                    nativeMethods.elementOuterHTMLSetter.call(this, value);
+                    nativeMethods.elementOuterHTMLSetter.call(el, value);
             }
         });
 
