@@ -56,6 +56,9 @@ export default class DestinationRequest extends EventEmitter {
             const timeout       = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
             const storedHeaders = this.opts.headers;
 
+            // NOTE: The headers are converted to raw headers because some sites ignore headers in a lower case. (GH-1380)
+            // We also need to restore the request option headers to a lower case because headers may change
+            // if a request is unauthorized, so there can be duplicated headers, for example, 'www-authenticate' and 'WWW-Authenticate'.
             this.opts.headers = transformHeadersCaseToRaw(this.opts.headers, this.opts.rawHeaders);
             this.req          = this.protocolInterface.request(this.opts, res => {
                 if (waitForData) {
