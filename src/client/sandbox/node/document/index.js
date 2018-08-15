@@ -177,7 +177,7 @@ export default class DocumentSandbox extends SandboxBase {
             return fragment;
         };
 
-        DOMImplementation.prototype.createHTMLDocument = function (...args) {
+        window.DOMImplementation.prototype.createHTMLDocument = function (...args) {
             const doc = nativeMethods.createHTMLDocument.apply(this, args);
 
             urlResolver.init(doc);
