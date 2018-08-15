@@ -11,7 +11,6 @@ import ShadowUI from './../../shadow-ui';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
 import { overrideDescriptor, createOverriddenDescriptor } from '../../../utils/property-overriding';
-import urlResolver from '../../../utils/url-resolver';
 
 export default class DocumentSandbox extends SandboxBase {
     constructor (nodeSandbox, shadowUI, cookieSandbox) {
@@ -175,14 +174,6 @@ export default class DocumentSandbox extends SandboxBase {
             documentSandbox.nodeSandbox.processNodes(fragment);
 
             return fragment;
-        };
-
-        window.DOMImplementation.prototype.createHTMLDocument = function (...args) {
-            const doc = nativeMethods.createHTMLDocument.apply(this, args);
-
-            urlResolver.init(doc);
-
-            return doc;
         };
 
         const docPrototype     = window.Document.prototype;

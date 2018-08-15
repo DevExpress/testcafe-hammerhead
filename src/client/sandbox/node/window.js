@@ -1217,5 +1217,13 @@ export default class WindowSandbox extends SandboxBase {
                 return nativeMethods.tokenListSupports.apply(this, arguments);
             };
         }
+
+        window.DOMImplementation.prototype.createHTMLDocument = function (...args) {
+            const doc = nativeMethods.createHTMLDocument.apply(this, args);
+
+            urlResolver.init(doc);
+
+            return doc;
+        };
     }
 }

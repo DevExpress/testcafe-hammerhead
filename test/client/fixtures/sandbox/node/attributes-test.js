@@ -1097,6 +1097,7 @@ test('The overridden "createHTMLDocument" method should has right context (GH-17
             iframeDestLocation.forceLocation(void 0);
 
             document.body.removeChild(iframe);
+            // NOTE: The next line causes an error if the 'createHTMLDocument' method has wrong context
             document.implementation.createHTMLDocument('temp');
 
             ok(true);
