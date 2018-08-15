@@ -7,6 +7,7 @@ import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
+import { transformHeadersCaseToRaw } from '../header-transforms';
 
 // HACK: Ignore SSL auth. The rejectUnauthorized option in the https.request method
 // doesn't work (see: https://github.com/mikeal/request/issues/418).
@@ -52,14 +53,20 @@ export default class DestinationRequest extends EventEmitter {
 
     _send (waitForData) {
         connectionResetGuard(() => {
-            const timeout = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
+            const timeout       = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
+            const storedHeaders = this.opts.headers;
 
-            this.req = this.protocolInterface.request(this.opts, res => {
+            // NOTE: The headers are converted to raw headers because some sites ignore headers in a lower case. (GH-1380)
+            // We also need to restore the request option headers to a lower case because headers may change
+            // if a request is unauthorized, so there can be duplicated headers, for example, 'www-authenticate' and 'WWW-Authenticate'.
+            this.opts.headers = transformHeadersCaseToRaw(this.opts.headers, this.opts.rawHeaders);
+            this.req          = this.protocolInterface.request(this.opts, res => {
                 if (waitForData) {
                     res.on('data', noop);
                     res.once('end', () => this._onResponse(res));
                 }
             });
+            this.opts.headers = storedHeaders;
 
             if (!waitForData)
                 this.req.on('response', res => this._onResponse(res));
