@@ -226,43 +226,18 @@ export function getElementRectangle (el) {
     return rectangle;
 }
 
-export function getOffsetPosition (el) {
-    if (domUtils.isMapElement(el)) {
-        const rectangle = getMapElementRectangle(el);
+function calcOffsetPosition (el, borders, offsetPosition) {
+    const isSvg = domUtils.isSVGElementOrChild(el);
 
-        return {
-            left: rectangle.left,
-            top:  rectangle.top
-        };
-    }
+    const relativeRectangle = isSvg ? getSvgElementRelativeRectangle(el) : null;
 
-    const doc             = domUtils.findDocument(el);
-    const isInIframe      = domUtils.isElementInIframe(el, doc);
-    const currentIframe   = isInIframe ? domUtils.getIframeByElement(doc) : null;
-    const offsetPosition  = doc === el ? styleUtils.getOffset(doc.documentElement) : styleUtils.getOffset(el);
-    let relativeRectangle = null;
-
-    // NOTE: The jquery .offset() function doesn't take the body's border into account (except IE7)
-    // http://bugs.jquery.com/ticket/7948.
-
-    // NOTE: Sometimes, in IE, the getElementFromPoint method returns a cross-domain iframe's documentElement,
-    // but there’s no way to access its body.
-    const borders = doc.body ? styleUtils.getBordersWidth(doc.body) : {
-        left: 0,
-        top:  0
+    return {
+        left: isSvg ? relativeRectangle.left + borders.left : offsetPosition.left + borders.left,
+        top:  isSvg ? relativeRectangle.top + borders.top : offsetPosition.top + borders.top
     };
+}
 
-    if (!isInIframe || !currentIframe) {
-        const isSvg = domUtils.isSVGElementOrChild(el);
-
-        relativeRectangle = isSvg ? getSvgElementRelativeRectangle(el) : null;
-
-        return {
-            left: Math.round(isSvg ? relativeRectangle.left + borders.left : offsetPosition.left + borders.left),
-            top:  Math.round(isSvg ? relativeRectangle.top + borders.top : offsetPosition.top + borders.top)
-        };
-    }
-
+function calcOffsetPositionInIframe (el, borders, offsetPosition, doc, currentIframe) {
     const iframeBorders = styleUtils.getBordersWidth(currentIframe);
 
     borders.left += iframeBorders.left;
@@ -273,7 +248,7 @@ export function getOffsetPosition (el) {
     let clientPosition  = null;
 
     if (domUtils.isSVGElementOrChild(el)) {
-        relativeRectangle = getSvgElementRelativeRectangle(el);
+        const relativeRectangle = getSvgElementRelativeRectangle(el);
 
         clientPosition = {
             x: relativeRectangle.left - (document.body.scrollLeft || document.documentElement.scrollLeft) +
@@ -289,9 +264,44 @@ export function getOffsetPosition (el) {
     }
 
     return {
-        left: Math.round(iframeOffset.left + clientPosition.x + iframePadding.left),
-        top:  Math.round(iframeOffset.top + clientPosition.y + iframePadding.top)
+        left: iframeOffset.left + clientPosition.x + iframePadding.left,
+        top:  iframeOffset.top + clientPosition.y + iframePadding.top
     };
+}
+
+export function getOffsetPosition (el) {
+    if (domUtils.isMapElement(el)) {
+        const rectangle = getMapElementRectangle(el);
+
+        return {
+            left: rectangle.left,
+            top:  rectangle.top
+        };
+    }
+
+    const doc            = domUtils.findDocument(el);
+    const isInIframe     = domUtils.isElementInIframe(el, doc);
+    const currentIframe  = isInIframe ? domUtils.getIframeByElement(doc) : null;
+    const offsetPosition = doc === el ? styleUtils.getOffset(doc.documentElement) : styleUtils.getOffset(el);
+
+    // NOTE: The jquery .offset() function doesn't take the body's border into account (except IE7)
+    // http://bugs.jquery.com/ticket/7948.
+
+    // NOTE: Sometimes, in IE, the getElementFromPoint method returns a cross-domain iframe's documentElement,
+    // but there’s no way to access its body.
+    const borders = doc.body ? styleUtils.getBordersWidth(doc.body) : {
+        left: 0,
+        top:  0
+    };
+
+    const calcOffsetPositionFn = !isInIframe || !currentIframe ? calcOffsetPosition : calcOffsetPositionInIframe;
+
+    let { left, top } = calcOffsetPositionFn(el, borders, offsetPosition, doc, currentIframe);
+
+    left = Math.ceil(left);
+    top  = Math.ceil(top);
+
+    return { left, top };
 }
 
 export function offsetToClientCoords (coords, currentDocument) {
