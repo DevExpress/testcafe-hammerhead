@@ -42,6 +42,8 @@ export default class RequestPipelineContext {
         this.requestFilterRules             = [];
         this.onResponseEventDataWithoutBody = [];
 
+        this.isBrowserConnectionReset = false;
+
         this.reqOpts = null;
     }
 

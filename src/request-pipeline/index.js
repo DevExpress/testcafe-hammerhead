@@ -23,7 +23,25 @@ const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
 // Stages
 const stages = {
-    0: async function fetchProxyRequestBody (ctx, next) {
+    0: function handleSocketError (ctx, next) {
+        // NOTE: In some case on MacOS, browser reset connection with server and we need to catch this exception.
+        if (ctx.isWebSocket) {
+            ctx.res.on('error', e => {
+                if (e.code === 'ECONNRESET' && !ctx.mock) {
+                    if (ctx.destRes)
+                        ctx.destRes.destroy();
+                    else
+                        ctx.isBrowserConnectionReset = true;
+                }
+                else
+                    throw e;
+            });
+        }
+
+        next();
+    },
+
+    1: async function fetchProxyRequestBody (ctx, next) {
         if (ctx.isPage && !ctx.isIframe && !ctx.isHtmlImport)
             ctx.session.onPageRequest(ctx);
 
@@ -32,7 +50,7 @@ const stages = {
         next();
     },
 
-    1: function sendDestinationRequest (ctx, next) {
+    2: function sendDestinationRequest (ctx, next) {
         if (ctx.isSpecialPage) {
             ctx.destRes = createSpecialPageResponse();
             next();
@@ -59,7 +77,7 @@ const stages = {
         }
     },
 
-    2: function checkSameOriginPolicyCompliance (ctx, next) {
+    3: function checkSameOriginPolicyCompliance (ctx, next) {
         ctx.buildContentInfo();
 
         if (!ctx.isKeepSameOriginPolicy()) {
@@ -77,7 +95,7 @@ const stages = {
         next();
     },
 
-    3: function decideOnProcessingStrategy (ctx, next) {
+    4: function decideOnProcessingStrategy (ctx, next) {
         if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
             ctx.destRes.statusCode = 200;
 
@@ -135,7 +153,7 @@ const stages = {
         next();
     },
 
-    4: async function fetchContent (ctx, next) {
+    5: async function fetchContent (ctx, next) {
         ctx.destResBody = await fetchBody(ctx.destRes);
 
         if (ctx.requestFilterRules.length)
@@ -152,7 +170,7 @@ const stages = {
         next();
     },
 
-    5: async function processContent (ctx, next) {
+    6: async function processContent (ctx, next) {
         try {
             ctx.destResBody = await processResource(ctx);
             next();
@@ -162,7 +180,7 @@ const stages = {
         }
     },
 
-    6: function sendProxyResponse (ctx) {
+    7: function sendProxyResponse (ctx) {
         sendResponseHeaders(ctx);
 
         connectionResetGuard(() => {
@@ -302,6 +320,12 @@ function sendRequest (ctx, next) {
     const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts) : new DestinationRequest(ctx.reqOpts);
 
     req.on('response', res => {
+        if (ctx.isBrowserConnectionReset) {
+            res.destroy();
+
+            return;
+        }
+
         ctx.destRes = res;
         next();
     });
