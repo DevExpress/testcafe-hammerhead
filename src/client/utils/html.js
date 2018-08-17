@@ -198,6 +198,7 @@ export function cleanUpHtml (html) {
 
 export function processHtml (html, { parentTag, prepareDom, processedContext } = {}) {
     return processHtmlInternal(html, container => {
+        let doctypeElement  = null;
         const htmlElements  = [];
         let children        = [];
         const storedBaseUrl = urlResolver.getBaseUrl(document);
@@ -230,14 +231,17 @@ export function processHtml (html, { parentTag, prepareDom, processedContext } =
 
             if (elTagName === `${FAKE_TAG_NAME_PREFIX}head` || elTagName === `${FAKE_TAG_NAME_PREFIX}body`)
                 htmlElements.push(child);
+            else if (elTagName === `${FAKE_DOCTYPE_TAG_NAME}`)
+                doctypeElement = child;
         }
 
         if (!parentTag) {
-            for (const htmlElement of htmlElements) {
-                const innerHtml = nativeMethods.elementInnerHTMLGetter.call(htmlElement);
-
-                nativeMethods.elementInnerHTMLSetter.call(htmlElement, INIT_SCRIPT_FOR_IFRAME_TEMPLATE + innerHtml);
+            if (htmlElements.length) {
+                for (const htmlElement of htmlElements)
+                    nativeMethods.insertAdjacentHTML.call(htmlElement, 'afterbegin', INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
             }
+            else if (doctypeElement && isIE)
+                nativeMethods.insertAdjacentHTML.call(doctypeElement, 'afterend', INIT_SCRIPT_FOR_IFRAME_TEMPLATE);
         }
 
         urlResolver.updateBase(storedBaseUrl, document);

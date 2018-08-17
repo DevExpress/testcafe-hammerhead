@@ -115,6 +115,20 @@ function testWriteln () {
     testHTML();
 }
 
+test('write "doctype" markup without head and body tags (https://github.com/DevExpress/testcafe/issues/2639)', function () {
+    nativeIframeForWrite    = nativeMethods.createElement.call(document, 'iframe');
+    nativeIframeForWrite.id = 'test' + Date.now();
+    nativeMethods.appendChild.call(document.body, nativeIframeForWrite);
+
+    processedIframeForWrite    = document.createElement('iframe');
+    processedIframeForWrite.id = 'test' + Date.now();
+    document.body.appendChild(processedIframeForWrite);
+
+    testWrite('<!DOCTYPE html><div>x</div>');
+
+    processedIframeForWrite.parentNode.removeChild(processedIframeForWrite);
+});
+
 test('write incomplete tags', function () {
     return createWriteTestIframes()
         .then(function () {
