@@ -15,6 +15,8 @@ import createSelfRemovingScript from '../../utils/create-self-removing-script';
 
 const FAKE_TAG_NAME_PREFIX    = 'hh_fake_tag_name_';
 const FAKE_DOCTYPE_TAG_NAME   = 'hh_fake_doctype';
+const FAKE_HEAD_TAG_NAME      = `${FAKE_TAG_NAME_PREFIX}head`;
+const FAKE_BODY_TAG_NAME      = `${FAKE_TAG_NAME_PREFIX}body`;
 const FAKE_ATTR_WITH_TAG_NAME = 'hh_fake_attr';
 
 const FAKE_TAG_NAME_RE   = new RegExp('(<\\/?)' + FAKE_TAG_NAME_PREFIX, 'ig');
@@ -56,7 +58,7 @@ const STORED_ATTRS_SELECTOR = (() => {
 
 const SHADOW_UI_ELEMENTS_SELECTOR                    = `[class*="${SHADOW_UI_CLASSNAME.postfix}"]`;
 const HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR = `[${INTERNAL_ATTRS.hoverPseudoClass}],[${INTERNAL_ATTRS.focusPseudoClass}]`;
-const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_TAG_NAME_PREFIX}head, ${FAKE_TAG_NAME_PREFIX}body`;
+const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_HEAD_TAG_NAME}, ${FAKE_BODY_TAG_NAME}`;
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
     var parentHammerhead = null;
@@ -229,9 +231,9 @@ export function processHtml (html, { parentTag, prepareDom, processedContext } =
 
             const elTagName = getTagName(child);
 
-            if (elTagName === `${FAKE_TAG_NAME_PREFIX}head` || elTagName === `${FAKE_TAG_NAME_PREFIX}body`)
+            if (elTagName === FAKE_HEAD_TAG_NAME || elTagName === FAKE_BODY_TAG_NAME)
                 htmlElements.push(child);
-            else if (elTagName === `${FAKE_DOCTYPE_TAG_NAME}`)
+            else if (elTagName === FAKE_DOCTYPE_TAG_NAME)
                 doctypeElement = child;
         }
 

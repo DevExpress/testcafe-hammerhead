@@ -317,3 +317,22 @@ test('self-removing script shouldn\'t throw an error (GH-TC-2469)', function () 
     iframeDocument.write('<html><head></head><body></body></html>');
     iframeDocument.close();
 });
+
+test('write "doctype" markup without head and body tags (https://github.com/DevExpress/testcafe/issues/2639)', function () {
+    var iframe = document.createElement('iframe');
+
+    expect(0);
+
+    iframe.id = 'test' + Date.now();
+    document.body.appendChild(iframe);
+
+    try {
+        iframe.contentDocument.write('<!DOCTYPE html><div>x</div>');
+    }
+    catch (e) {
+        ok(false, e);
+    }
+
+    iframe.contentDocument.close();
+    iframe.parentNode.removeChild(iframe);
+});
