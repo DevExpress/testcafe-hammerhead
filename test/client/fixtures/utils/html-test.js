@@ -8,6 +8,7 @@ var urlResolver    = hammerhead.get('./utils/url-resolver');
 
 var nativeMethods = hammerhead.nativeMethods;
 var shadowUI      = hammerhead.sandbox.shadowUI;
+var browserUtils  = hammerhead.utils.browser;
 
 module('clean up html');
 
@@ -344,3 +345,12 @@ test('should not throw an error if the innerHTML property is defined on Node.pro
         delete Node.prototype.innerHTML;
     }
 });
+
+if (browserUtils.isIE) {
+    test('must add init script for iframe template after doctype declaration if the markup does not have head and body tags (https://github.com/DevExpress/testcafe/issues/2639)', function () {
+        var htmlSrc      = '<!doctype html><div>x</div>';
+        var htmlExpected = '<!doctype html>' + htmlUtils.INIT_SCRIPT_FOR_IFRAME_TEMPLATE + '<div>x</div>';
+
+        strictEqual(htmlUtils.processHtml(htmlSrc), htmlExpected);
+    });
+}
