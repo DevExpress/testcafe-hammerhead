@@ -1,126 +1,97 @@
 var cookieUtil = hammerhead.get('./utils/cookie');
 
-var nativeMethods = hammerhead.nativeMethods;
-
 test('parse', function () {
-    var cookieStrs = [
-        'Test1=Basic; expires=Wed, 13-Jan-2021 22:23:01 GMT',
-        'Test2=PathMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/TestPath',
-        'Test3=DomainMatch; expires=Wed, 13-Jan-2021 22:23:01 GMT; domain=.dc5f4ce48f6.com',
-        'Test4=HttpOnly; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; HttpOnly',
-        'Test5=Secure; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/; Secure',
-        'Test6=Duplicate; One=More; expires=Wed, 13-Jan-2021 22:23:01 GMT; path=/'
-    ];
+    deepEqual(cookieUtil.parse('Test1=Basic; expires=Wed, 13 Jan 2021 22:23:01 GMT'), {
+        key:     'Test1',
+        value:   'Basic',
+        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT')
+    });
 
-    var expectedResults = [
-        {
-            'key':     'Test1',
-            'value':   'Basic',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT'
-        },
-        {
-            'key':     'Test2',
-            'value':   'PathMatch',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT',
-            'path':    '/TestPath'
-        },
-        {
-            'key':     'Test3',
-            'value':   'DomainMatch',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT',
-            'domain':  'dc5f4ce48f6.com'
-        },
+    deepEqual(cookieUtil.parse('Test2=PathMatch; expires=Wed, 13 Jan 2021 22:23:01 GMT; path=/TestPath'), {
+        key:     'Test2',
+        value:   'PathMatch',
+        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        path:    '/TestPath'
+    });
 
-        {
-            'key':      'Test4',
-            'value':    'HttpOnly',
-            'expires':  'Wed, 13-Jan-2021 22:23:01 GMT',
-            'path':     '/',
-            'httponly': true
-        },
-        {
-            'key':     'Test5',
-            'value':   'Secure',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT',
-            'path':    '/',
-            'secure':  true
-        },
-        {
-            'key':     'Test6',
-            'value':   'Duplicate',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT',
-            'path':    '/'
-        }
-    ];
+    deepEqual(cookieUtil.parse('Test3=DomainMatch; expires=Wed, 13 Jan 2021 22:23:01 GMT; domain=.dc5f4ce48f6.com'), {
+        key:     'Test3',
+        value:   'DomainMatch',
+        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        domain:  'dc5f4ce48f6.com'
+    });
 
-    for (var i = 0; i < cookieStrs.length; i++) {
-        var parsedCookie = cookieUtil.parse(cookieStrs[i]);
+    deepEqual(cookieUtil.parse('Test4=HttpOnly; expires=Wed, 13 Jan 2021 22:23:01 GMT; path=/; HttpOnly'), {
+        key:      'Test4',
+        value:    'HttpOnly',
+        expires:  new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        path:     '/',
+        httpOnly: true
+    });
 
-        deepEqual(parsedCookie, expectedResults[i]);
-    }
+    deepEqual(cookieUtil.parse('Test5=Secure; expires=Wed, 13 Jan 2021 22:23:01 GMT; path=/; Secure'), {
+        key:     'Test5',
+        value:   'Secure',
+        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        path:    '/',
+        secure:  true
+    });
 
+    deepEqual(cookieUtil.parse('Test6=Duplicate; One=More; expires=Wed, 13 Jan 2021 22:23:01 GMT; path=/'), {
+        key:     'Test6',
+        value:   'Duplicate',
+        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        path:    '/'
+    });
+
+    deepEqual(cookieUtil.parse('Test7=Duplicate; Max-Age=35; path=/'), {
+        key:    'Test7',
+        value:  'Duplicate',
+        maxAge: '35',
+        path:   '/'
+    });
 });
 
-// NOTE: We can't guarantee the order of keys in a serialized cookie string, so we use the
-// format-parse technique to test cookie formatting.
-test('format-parse', function () {
-    var parsedCookies = [
-        {
-            'key':     'Test1',
-            'value':   'Basic',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT'
-        },
-        {
-            'key':     'Test2',
-            'value':   'PathMatch',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT',
-            'path':    '/TestPath'
-        },
-        {
-            'key':     'Test3',
-            'value':   'DomainMatch',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT',
-            'domain':  'dc5f4ce48f6.com'
-        },
+test('formatClientString', function () {
+    strictEqual(cookieUtil.formatClientString({
+        key:     'Test1',
+        value:   'Basic',
+        expires: new Date('Wed, 13 Jan 2021 22:23:01 GMT'),
+        secure:  true
+    }), 'Test1=Basic');
 
-        {
-            'key':      'Test4',
-            'value':    'HttpOnly',
-            'expires':  'Wed, 13-Jan-2021 22:23:01 GMT',
-            'path':     '/',
-            'httponly': true
-        },
-        {
-            'key':     'Test5',
-            'value':   'Secure',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT',
-            'path':    '/',
-            'secure':  true
-        },
-        {
-            'key':     'Test6',
-            'value':   'Duplicate',
-            'expires': 'Wed, 13-Jan-2021 22:23:01 GMT',
-            'path':    '/'
-        }
-    ];
+    strictEqual(cookieUtil.formatClientString({
+        key:   '',
+        value: 'Basic'
+    }), 'Basic');
 
-    for (var i = 0; i < parsedCookies.length; i++) {
-        var formattedCookie = cookieUtil.format(parsedCookies[i]);
-
-        deepEqual(cookieUtil.parse(formattedCookie), parsedCookies[i]);
-    }
+    strictEqual(cookieUtil.formatClientString({
+        key:   '',
+        value: ''
+    }), '');
 });
 
-test('get cookie string and delete cookie', function () {
-    var cookieName = 'Test' + Math.round(new Date().getTime() / (3600 * 1000));
-    var cookieStr  = cookieName + '=42';
+test('domainMatch', function () {
+    ok(cookieUtil.domainMatch('sub.example.com', 'sub.example.com'));
+    ok(cookieUtil.domainMatch('sub.example.com', 'SUB.Example.com'));
+    ok(cookieUtil.domainMatch('sub.example.com', 'example.com'));
 
-    nativeMethods.documentCookieSetter.call(document, cookieStr);
-
-    strictEqual(cookieUtil.get(document, cookieName), cookieStr);
-
-    cookieUtil.del(document, cookieUtil.parse(cookieStr));
-    ok(!cookieUtil.get(document, cookieName));
+    notOk(cookieUtil.domainMatch('sub.example.com', '123'));
+    notOk(cookieUtil.domainMatch('sub.example.com', 'sub.example'));
+    notOk(cookieUtil.domainMatch('sub.example.com', 'example.co'));
+    notOk(cookieUtil.domainMatch('sub.example.com', 'b.example.com'));
+    notOk(cookieUtil.domainMatch('sub.example.com', 'sub.sub.example.com'));
 });
 
+test('pathMatch', function () {
+    ok(cookieUtil.pathMatch('/', '/'));
+    ok(cookieUtil.pathMatch('/path', '/'));
+    ok(cookieUtil.pathMatch('/path', '/path'));
+    ok(cookieUtil.pathMatch('/path/some', '/path'));
+    ok(cookieUtil.pathMatch('/path/some', '/path/'));
+
+    notOk(cookieUtil.pathMatch('/path/some', '/some'));
+    notOk(cookieUtil.pathMatch('/path/some', '123'));
+    notOk(cookieUtil.pathMatch('/path/some', '/path/some/123'));
+    notOk(cookieUtil.pathMatch('/path/some', '/path/some/'));
+});

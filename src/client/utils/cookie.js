@@ -1,8 +1,8 @@
 import trim from '../../utils/string-trim';
-import nativeMethods from '../../../src/client/sandbox/native-methods';
 
 const COOKIE_PAIR_REGEX        = /^((?:=)?([^=;]*)\s*=\s*)?([^\n\r\0]*)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;
+const FIX_COOKIE_DATE          = /((?:\s|,)[0-9]{1,2})(?:\s|-)([A-Za-z]{3})(?:\s|-)([0-9]{4}\s)/;
 
 export function parse (str) {
     str = trim(str);
@@ -39,6 +39,7 @@ export function parse (str) {
         const separatorIdx = attrValueStr.indexOf('=');
         let key            = null;
         let value          = null;
+        let date           = null;
 
         if (separatorIdx === -1)
             key = attrValueStr;
@@ -51,14 +52,28 @@ export function parse (str) {
 
         switch (key) {
             case 'expires':
+                value = value.replace(FIX_COOKIE_DATE, '$1 $2 $3');
+                date  = getUTCDate(Date.parse(value));
+
+                if (date)
+                    parsedCookie.expires = date;
+
+                break;
+
             case 'max-age':
+                parsedCookie.maxAge = value;
+                break;
+
             case 'path':
-                parsedCookie[key] = value;
+                parsedCookie.path = value;
                 break;
 
             case 'secure':
+                parsedCookie.secure = true;
+                break;
+
             case 'httponly':
-                parsedCookie[key] = true;
+                parsedCookie.httpOnly = true;
                 break;
 
             case 'domain':
@@ -74,50 +89,46 @@ export function parse (str) {
     return parsedCookie;
 }
 
-export function format (parsedCookie) {
+export function formatClientString (parsedCookie) {
     // eslint-disable-next-line no-restricted-properties
     let cookieStr = parsedCookie.value || '';
 
     if (parsedCookie.key !== '')
         cookieStr = parsedCookie.key + '=' + cookieStr;
 
-    cookieStr += ';';
-
-    for (const attrName in parsedCookie) {
-        if (nativeMethods.objectHasOwnProperty.call(parsedCookie, attrName)) {
-            if (attrName !== 'key' && attrName !== 'value') {
-                cookieStr += attrName;
-
-                // NOTE: Skip attributes without value and boolean attributes (e.g. Secure).
-                if (parsedCookie[attrName] !== void 0 && parsedCookie[attrName] !== true)
-                    cookieStr += '=' + parsedCookie[attrName];
-
-                cookieStr += ';';
-            }
-        }
-    }
-
     return cookieStr;
 }
 
-export function get (document, name) {
-    const cookies = nativeMethods.documentCookieGetter.call(document).split(';');
+export function domainMatch (currentDomain, cookieDomain) {
+    currentDomain = currentDomain.toLowerCase();
+    cookieDomain  = cookieDomain.toLowerCase();
 
-    for (let i = 0; i < cookies.length; i++) {
-        const cookie = trim(cookies[i]);
+    if (currentDomain === cookieDomain)
+        return true;
 
-        if (cookie.indexOf(name + '=') === 0 || cookie === name)
-            return cookie;
-    }
+    const cookieDomainIdx = currentDomain.indexOf(cookieDomain);
 
-    return null;
+    return cookieDomainIdx > 0 &&
+           currentDomain.length === cookieDomain.length + cookieDomainIdx &&
+           currentDomain.charAt(cookieDomainIdx - 1) === '.';
 }
 
-export function del (document, parsedCookie) {
-    parsedCookie.expires = 'Thu, 01 Jan 1970 00:00:01 GMT';
+export function pathMatch (currentPath, cookiePath) {
+    if (currentPath === cookiePath)
+        return true;
 
-    // eslint-disable-next-line no-restricted-properties
-    parsedCookie.value = '';
+    return currentPath.length > cookiePath.length && currentPath.indexOf(cookiePath) === 0 &&
+           (cookiePath.charAt(cookiePath.length - 1) === '/' || currentPath.charAt(cookiePath.length) === '/');
+}
 
-    nativeMethods.documentCookieSetter.call(document, format(parsedCookie));
+export function getUTCDate (timestamp) {
+    if (!arguments.length)
+        timestamp = Date.now();
+    else if (isNaN(timestamp))
+        return null;
+
+    // NOTE: remove milliseconds
+    timestamp = Math.floor(timestamp / 1000) * 1000;
+
+    return new Date(timestamp);
 }

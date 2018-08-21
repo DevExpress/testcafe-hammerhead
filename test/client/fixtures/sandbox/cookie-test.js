@@ -1,7 +1,5 @@
 // NOTE: You should clear a browser's cookie if tests are fail,
 // because document.cookie can contains cookie from another sites which was run through playground
-
-var cookieUtils       = hammerhead.get('./utils/cookie');
 var sharedCookieUtils = hammerhead.get('../utils/cookie');
 var settings          = hammerhead.get('./settings');
 var urlUtils          = hammerhead.get('./utils/url');
@@ -30,11 +28,9 @@ function setCookieWithoutServerSync (value) {
     cookieSync.perform = function () {
     };
 
-    var result = document.cookie = value;
+    document.cookie = value;
 
     cookieSync.perform = storedFn;
-
-    return result;
 }
 
 test('get/set', function () {
@@ -90,6 +86,8 @@ test('get/set', function () {
     ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
 
     destLocation.forceLocation(storedForcedLocation);
+
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
 });
 
 test('path validation', function () {
@@ -99,21 +97,6 @@ test('path validation', function () {
         .then(function (iframe) {
             ok(iframe.contentWindow.runTest());
         });
-});
-
-test('remove real cookie after browser processing', function () {
-    var uniqKey = Math.floor(Math.random() * 1e10).toString() + '_test_key';
-
-    var cookieStr = cookieUtils.format({
-        value: 'value',
-        key:   uniqKey,
-        path:  location.path || location.pathname.replace(/\/.*$/, '')
-    });
-
-    setCookieWithoutServerSync(cookieStr);
-
-    strictEqual(settings.get().cookie, uniqKey + '=value');
-    strictEqual(nativeMethods.documentCookieGetter.call(document).indexOf(uniqKey), -1);
 });
 
 module('sharedCookieUtils.parseClientSyncCookieStr');
@@ -542,3 +525,17 @@ asyncTest('limit of the failed cookie-sync requests (GH-1193)', function () {
 
     document.cookie = 'a=b';
 });
+
+if (browserUtils.isIE) {
+    test('should not set cookie in iframe without the src attribute in IE only', function () {
+        return createTestIframe()
+            .then(function (iframe) {
+                var iframeDocument = iframe.contentDocument;
+
+                iframeDocument.cookie = 'test=iframe without src';
+                nativeMethods.documentCookieSetter.call(iframeDocument, 'test_native=iframe without src');
+
+                strictEqual(iframeDocument.cookie, nativeMethods.documentCookieGetter.call(iframeDocument));
+            });
+    });
+}
