@@ -8,10 +8,8 @@ import COMMAND from './command';
 import { parseProxyUrl } from '../utils/url';
 import generateUniqueId from '../utils/generate-unique-id';
 
-// Const
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
-// Session
 export default class Session extends EventEmitter {
     constructor (uploadsRoot) {
         super();
@@ -66,40 +64,55 @@ export default class Session extends EventEmitter {
         throw new Error('Malformed service message or message handler is not implemented');
     }
 
-    _fillTaskScriptTemplate (serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript) {
-        referer = referer === null ? '{{{referer}}}' : referer;
-        cookie  = cookie === null ? '{{{cookie}}}' : cookie;
+    _fillTaskScriptTemplate ({ serverInfo, isFirstPageLoad, referer, cookie, iframeTaskScriptTemplate, payloadScript }) {
+        referer                  = referer || '{{{referer}}}';
+        cookie                   = cookie || '{{{cookie}}}';
+        iframeTaskScriptTemplate = iframeTaskScriptTemplate || '{{{iframeTaskScriptTemplate}}}';
 
-        iframeTaskScriptTemplate = iframeTaskScriptTemplate ===
-                                   null ? '{{{iframeTaskScriptTemplate}}}' : iframeTaskScriptTemplate;
+        const { domain, crossDomainPort } = serverInfo;
 
         return mustache.render(TASK_TEMPLATE, {
-            sessionId:                this.id,
-            serviceMsgUrl:            serverInfo.domain + '/messaging',
-            cookieSyncUrl:            serverInfo.domain + '/cookie-sync',
-            crossDomainPort:          serverInfo.crossDomainPort,
-            isFirstPageLoad:          isFirstPageLoad,
-            referer:                  referer,
-            cookie:                   cookie,
-            forceProxySrcForImage:    this.hasRequestEventListeners(),
-            iframeTaskScriptTemplate: iframeTaskScriptTemplate,
-            payloadScript:            payloadScript
+            sessionId:             this.id,
+            serviceMsgUrl:         domain + '/messaging',
+            cookieSyncUrl:         domain + '/cookie-sync',
+            forceProxySrcForImage: this.hasRequestEventListeners(),
+            crossDomainPort,
+            isFirstPageLoad,
+            referer,
+            cookie,
+            iframeTaskScriptTemplate,
+            payloadScript
         });
     }
 
     getIframeTaskScriptTemplate (serverInfo) {
-        return JSON.stringify(this._fillTaskScriptTemplate(serverInfo, false, null, null, null, this._getIframePayloadScript(true)));
+        const taskScriptTemplate = this._fillTaskScriptTemplate({
+            serverInfo,
+            isFirstPageLoad:          false,
+            referer:                  null,
+            cookie:                   null,
+            iframeTaskScriptTemplate: null,
+            payloadScript:            this._getIframePayloadScript(true)
+        });
+
+        return JSON.stringify(taskScriptTemplate);
     }
 
-    getTaskScript (referer, cookieUrl, serverInfo, isIframe, withPayload) {
+    getTaskScript ({ referer, cookieUrl, serverInfo, isIframe, withPayload }) {
         const cookies     = JSON.stringify(this.cookies.getClientString(cookieUrl));
         let payloadScript = '';
 
         if (withPayload)
             payloadScript = isIframe ? this._getIframePayloadScript() : this._getPayloadScript();
 
-        const taskScript = this._fillTaskScriptTemplate(serverInfo, this.pageLoadCount === 0, referer,
-            cookies, this.getIframeTaskScriptTemplate(serverInfo), payloadScript);
+        const taskScript = this._fillTaskScriptTemplate({
+            serverInfo,
+            isFirstPageLoad:          this.pageLoadCount === 0,
+            referer,
+            cookie:                   cookies,
+            iframeTaskScriptTemplate: this.getIframeTaskScriptTemplate(serverInfo),
+            payloadScript
+        });
 
         this.pageLoadCount++;
 
@@ -207,15 +220,14 @@ export default class Session extends EventEmitter {
     getAuthCredentials () {
         throw new Error('Not implemented');
     }
+
+    // Service message handlers
+    async [COMMAND.uploadFiles] (msg) {
+        return await this.uploadStorage.store(msg.fileNames, msg.data);
+    }
+
+    async [COMMAND.getUploadedFiles] (msg) {
+        return await this.uploadStorage.get(msg.filePaths);
+    }
 }
 
-// Service message handlers
-const ServiceMessages = Session.prototype;
-
-ServiceMessages[COMMAND.uploadFiles] = async function (msg) {
-    return await this.uploadStorage.store(msg.fileNames, msg.data);
-};
-
-ServiceMessages[COMMAND.getUploadedFiles] = async function (msg) {
-    return await this.uploadStorage.get(msg.filePaths);
-};

@@ -1,5 +1,6 @@
 var urlUtils = hammerhead.get('./utils/url');
 
+var windowSandox  = hammerhead.sandbox.node.win;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 
@@ -116,7 +117,6 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
                         hammerhead.off(hammerhead.EVENTS.unhandledRejection, onUnhandledRejection);
                         resolve(event.msg);
                     });
-
                     // eslint-disable-next-line no-new
                     new Promise(function () {
                         throw err;
@@ -127,38 +127,47 @@ if (nativeMethods.winOnUnhandledRejectionSetter) {
             return testMsg(null)
                 .then(function (msg) {
                     ok(['undefined', '[object Null]'].indexOf(msg) !== -1);
+
                     return testMsg(void 0);
                 })
                 .then(function (msg) {
                     strictEqual(msg, 'undefined');
+
                     return testMsg('string message');
                 })
                 .then(function (msg) {
                     strictEqual(msg, 'string message');
+
                     return testMsg(1);
                 })
                 .then(function (msg) {
                     strictEqual(msg, '1');
+
                     return testMsg(true);
                 })
                 .then(function (msg) {
                     strictEqual(msg, 'true');
+
                     return testMsg(Symbol('foo'));
                 })
                 .then(function (msg) {
                     strictEqual(msg, 'Symbol(foo)');
+
                     return testMsg(new Error('error message'));
                 })
                 .then(function (msg) {
                     strictEqual(msg, 'error message');
+
                     return testMsg(new TypeError('type error'));
                 })
                 .then(function (msg) {
                     strictEqual(msg, 'type error');
+
                     return testMsg({ a: 1 });
                 })
                 .then(function (msg) {
                     strictEqual(msg, '[object Object]');
+
                     return testMsg(function () {
                     });
                 })
@@ -316,6 +325,93 @@ test('an overridden "formtarget" attribute getter should return the same value a
     strictEqual(nativeMethods.inputFormTargetGetter.call(input), input.formTarget);
     strictEqual(nativeMethods.buttonFormTargetGetter.call(button), button.formTarget);
 });
+
+module('should format "stack" property');
+
+test('UNCAUGHT_JS_ERROR_EVENT', function () {
+    var Promise = window.Promise || hammerhead.Promise;
+
+    var testCases = [
+        {
+            error: {
+                message: void 0,
+                stack:   void 0
+            },
+            expectedStack: 'undefined:\n    No stack trace available'
+        },
+        {
+            error: {
+                message: 'test message',
+                stack:   '    line 1\n    line2'
+            },
+            expectedStack: 'test message:\n    line 1\n    line2'
+        },
+        {
+            error: {
+                message: 'test message',
+                stack:   'Error: test message:\n    line1\n    line2'
+            },
+            expectedStack: 'Error: test message:\n    line1\n    line2'
+        }
+    ];
+
+    var testStack = function (testCase) {
+        return new Promise(function (resolve) {
+            var handler = function (msg) {
+                windowSandox.off(hammerhead.EVENTS.uncaughtJsError, handler);
+
+                strictEqual(testCase.expectedStack, msg.stack);
+                resolve();
+            };
+
+            windowSandox.on(hammerhead.EVENTS.uncaughtJsError, handler);
+            windowSandox._raiseUncaughtJsErrorEvent(hammerhead.EVENTS.uncaughtJsError, { error: testCase.error }, window);
+        });
+    };
+
+    return Promise.all(testCases.map(function (item) {
+        return testStack(item);
+    }));
+});
+
+if (nativeMethods.winOnUnhandledRejectionSetter) {
+    test('UNHANDLED_REJECTION_EVENT', function () {
+        var error = new Error('test');
+
+        var testCases = [
+            {
+                reason:        'test reason',
+                expectedStack: 'test reason:\n    No stack trace available'
+            },
+            {
+                reason:        null,
+                expectedStack: '[object Null]:\n    No stack trace available'
+            },
+            {
+                reason:        error,
+                expectedStack: error.stack
+            }
+        ];
+
+        var testStack = function (testCase) {
+            return new Promise(function (resolve) {
+                var handler = function (msg) {
+                    windowSandox.off(hammerhead.EVENTS.unhandledRejection, handler);
+
+                    strictEqual(testCase.expectedStack, msg.stack);
+                    resolve();
+                };
+
+                windowSandox.on(hammerhead.EVENTS.unhandledRejection, handler);
+                windowSandox._raiseUncaughtJsErrorEvent(hammerhead.EVENTS.unhandledRejection, { reason: testCase.reason }, window);
+            });
+        };
+
+        return Promise.all(testCases.map(function (item) {
+            return testStack(item);
+        }));
+    });
+}
 
 module('regression');
 

@@ -7,10 +7,8 @@ import { respond204, respond500, respondWithJSON, fetchBody, preventCaching } fr
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 
-// Const
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
-// Static
 function parseAsJson (msg) {
     msg = msg.toString();
 
@@ -32,7 +30,6 @@ function createServerInfo (hostname, port, crossDomainPort, protocol) {
     };
 }
 
-// Proxy
 export default class Proxy extends Router {
     constructor (hostname, port1, port2, options = {}) {
         super(options);
@@ -143,7 +140,16 @@ export default class Proxy extends Router {
         if (session) {
             res.setHeader('content-type', 'application/x-javascript');
             preventCaching(res);
-            res.end(session.getTaskScript(referer, refererDest.destUrl, serverInfo, isIframe, true));
+
+            const taskScript = session.getTaskScript({
+                referer,
+                cookieUrl:   refererDest.destUrl,
+                serverInfo,
+                isIframe,
+                withPayload: true
+            });
+
+            res.end(taskScript);
         }
         else
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
