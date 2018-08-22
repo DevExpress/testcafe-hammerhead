@@ -8,6 +8,7 @@
     "babel-preset-stage-2"
   ],
   "plugins": [
+    "transform-es2015-classes",
     "transform-runtime",
     "add-module-exports"
   ]
