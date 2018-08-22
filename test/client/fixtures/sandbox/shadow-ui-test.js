@@ -452,6 +452,28 @@ test('elementFromPoint', function () {
     strictEqual(document.elementFromPoint(shadowDivPos.left + 1, shadowDivPos.top + 1), null);
 });
 
+test('elementFromPoint2', function () {
+    var testDiv = document.querySelector(TEST_DIV_SELECTOR);
+    var parent  = document.createElement('div');
+    var child   = document.createElement('div');
+
+    parent.style.width           = '20px';
+    parent.style.height          = '20px';
+    parent.style.backgroundColor = 'red';
+    parent.style.padding         = '0.3px';
+    child.style.width            = '10px';
+    child.style.height           = '10px';
+    child.style.backgroundColor  = 'blue';
+
+    parent.appendChild(child);
+    testDiv.appendChild(parent);
+
+    var offsetPosition = positionUtils.getOffsetPosition(child);
+    var elementInPoint = document.elementFromPoint(offsetPosition.left, offsetPosition.top);
+
+    strictEqual(elementInPoint, child);
+});
+
 if (document.caretPositionFromPoint) {
     test('caretPositionFromPoint', function () {
         var testDiv   = document.querySelector(TEST_DIV_SELECTOR);
