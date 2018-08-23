@@ -8,7 +8,7 @@
 <body>
 <script>
     var domContentLoadedIsRaised = false;
-    var refreshNodeListCount     = 0;
+    var refreshCollectionCount   = 0;
     var assertions               = [];
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -20,7 +20,7 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var WrapperState = hammerhead.get('./sandbox/node/live-node-list/wrapper-state');
+    var DOMMutationTrackerProto = Object.getPrototypeOf(hammerhead.get('./sandbox/node/live-node-list/dom-mutation-tracker'));
 
     var testDiv = document.createElement('div');
 
@@ -36,16 +36,13 @@
     testDiv.appendChild(textarea1);
     testDiv.appendChild(textarea2);
 
-    var elements                = document.getElementsByTagName('textarea');
-    var storedRefreshNodeListFn = WrapperState.prototype.refreshNodeListIfNecessary;
+    var elements         = document.getElementsByTagName('textarea');
+    var storedGetVersion = DOMMutationTrackerProto.getVersion;
 
-    WrapperState.prototype.refreshNodeListIfNecessary = function () {
-        var storedFilteredNodeList = this.filteredNodeList;
+    DOMMutationTrackerProto.getVersion = function () {
+        refreshCollectionCount++;
 
-        storedRefreshNodeListFn.apply(this, arguments);
-
-        if (storedFilteredNodeList !== this.filteredNodeList)
-            refreshNodeListCount++;
+        return storedGetVersion.apply(this, arguments);
     };
 
     assertions.push([elements[0], textarea1, 'elements[0]']);
@@ -58,7 +55,7 @@
     assertions.push([elements[0], textarea1, 'elements[0] after remove textarea2']);
     assertions.push([elements[1], void 0, 'elements[1] after remove textarea2']);
     assertions.push([elements.length, 1, 'elements.length after remove textarea2']);
-    assertions.push([refreshNodeListCount, 7, 'count of the refreshNodeList calls']);
+    assertions.push([refreshCollectionCount, 7, 'count of the refreshNodeList calls']);
     assertions.push([domContentLoadedIsRaised, false, 'domContentLoadedIsRaised']);
 </script>
 </body>

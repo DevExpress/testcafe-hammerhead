@@ -9,13 +9,14 @@ import SHADOW_UI_CLASS_NAME from '../../shadow-ui/class-name';
 import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
-import LiveNodeListFactory from './node/live-node-list/factory';
+import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
 
 const IS_SHADOW_CONTAINER_FLAG            = 'hammerhead|shadow-ui|container-flag';
 const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-collection-flag';
+const HTML_COLLECTION_WRAPPER             = 'hammerhead|shadow-ui|html-collection-wrapper';
 
 export default class ShadowUI extends SandboxBase {
     constructor (nodeMutation, messageSandbox, iframeSandbox) {
@@ -95,12 +96,18 @@ export default class ShadowUI extends SandboxBase {
 
             getElementsByTagName (nativeGetElementsByTagNameFnName) {
                 return function (...args) {
-                    const nativeResult = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
+                    const nativeCollection = nativeMethods[nativeGetElementsByTagNameFnName].apply(this, args);
+                    const tagName          = args[0];
 
-                    return LiveNodeListFactory.createNodeListForGetElementsByTagNameFn({
-                        nodeList: nativeResult,
-                        tagName:  args[0]
-                    });
+                    if (typeof tagName !== 'string')
+                        return nativeCollection;
+
+                    if (!nativeCollection[HTML_COLLECTION_WRAPPER])
+                        nativeCollection[HTML_COLLECTION_WRAPPER] = new HTMLCollectionWrapper(nativeCollection, tagName);
+                    else
+                        nativeCollection[HTML_COLLECTION_WRAPPER].refreshHtmlCollection();
+
+                    return nativeCollection[HTML_COLLECTION_WRAPPER];
                 };
             },
 
