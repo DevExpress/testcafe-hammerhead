@@ -181,6 +181,11 @@ const responseTransforms = {
     },
 
     'x-frame-options': (src, ctx) => {
+        const cspHeader = ctx.destRes.headers['content-security-policy'];
+
+        if (cspHeader && cspHeader.includes('frame-ancestors '))
+            return void 0;
+
         if (!src.includes('ALLOW-FROM'))
             return src;
 
