@@ -15,7 +15,7 @@ export default function HTMLCollectionWrapper (htmlCollection, tagName) {
         htmlCollection:         { value: htmlCollection },
         filteredHtmlCollection: { value: [] },
         tagName:                { value: tagName },
-        version:                { value: DOMMutationTracker.getVersion(tagName), writable: true },
+        version:                { value: -Infinity, writable: true },
         namedProps:             { value: ELEMENTS_WITH_NAME_ATTRIBUTE.indexOf(tagName) !== -1 ? [] : null }
     });
 
