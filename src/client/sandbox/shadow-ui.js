@@ -105,7 +105,7 @@ export default class ShadowUI extends SandboxBase {
                     if (!nativeCollection[HTML_COLLECTION_WRAPPER])
                         nativeCollection[HTML_COLLECTION_WRAPPER] = new HTMLCollectionWrapper(nativeCollection, tagName);
                     else
-                        nativeCollection[HTML_COLLECTION_WRAPPER].refreshHtmlCollection();
+                        nativeCollection[HTML_COLLECTION_WRAPPER]._refreshCollection();
 
                     return nativeCollection[HTML_COLLECTION_WRAPPER];
                 };

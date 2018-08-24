@@ -24,11 +24,18 @@ QUnit.testStart(function () {
 });
 
 module('getElementsByTagName', function () {
+    var checkAssertions = function (assertions) {
+        assertions.forEach(function (assertion) {
+            strictEqual.apply(window, assertion);
+        });
+    };
+
     test('wrong arguments', function () {
         var testCases    = [
             null,
             void 0,
             {},
+            '',
             function () {
             }
         ];
@@ -147,13 +154,40 @@ module('getElementsByTagName', function () {
         strictEqual(collectionWrapper, document.getElementsByTagName('*'));
     });
 
-    module('performance', function () {
-        var checkAssertions = function (assertions) {
-            assertions.forEach(function (assertion) {
-                strictEqual.apply(window, assertion);
-            });
-        };
+    test('index properties of collection proto', function () {
+        var assertions                  = [];
+        var divCollection               = document.getElementsByTagName('div');
+        var starCollection              = document.getElementsByTagName('*');
+        var divCollectionLength         = divCollection.length;
+        var starCollectionLength        = starCollection.length;
+        var collectionProtoGettersCount = starCollectionLength + 10;
 
+        assertions.push([collectionProtoGettersCount in starCollection, false]);
+        assertions.push([collectionProtoGettersCount - 1 in starCollection, true]);
+        assertions.push([collectionProtoGettersCount in divCollection, false]);
+        assertions.push([collectionProtoGettersCount - 1 in divCollection, true]);
+
+        document.body.appendChild(document.createElement('div'));
+        document.body.appendChild(document.createElement('div'));
+
+        assertions.push([divCollection.length, divCollectionLength + 2, true]);
+
+        assertions.push([collectionProtoGettersCount in starCollection, false]);
+        assertions.push([collectionProtoGettersCount - 1 in starCollection, true]);
+        assertions.push([collectionProtoGettersCount in divCollection, false]);
+        assertions.push([collectionProtoGettersCount - 1 in divCollection, true]);
+
+        assertions.push([starCollection.length, starCollectionLength + 2, true]);
+
+        assertions.push([collectionProtoGettersCount + 2 in starCollection, false]);
+        assertions.push([collectionProtoGettersCount + 1 in starCollection, true]);
+        assertions.push([collectionProtoGettersCount + 2 in divCollection, false]);
+        assertions.push([collectionProtoGettersCount + 1 in divCollection, true]);
+
+        checkAssertions(assertions);
+    });
+
+    module('performance', function () {
         test('before DOMContentLoaded event is raised', function () {
             return createTestIframe({ src: getSameDomainPageUrl('../../../data/live-node-list/getElementsByTagName.html') })
                 .then(function (iframe) {

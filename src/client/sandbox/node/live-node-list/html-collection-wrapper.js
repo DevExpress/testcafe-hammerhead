@@ -3,95 +3,75 @@ import nativeMethods from '../../native-methods';
 import { isShadowUIElement } from '../../../utils/dom';
 
 // NOTE: Tags from https://www.w3schools.com/tags/att_name.asp
-const ELEMENTS_WITH_NAME_ATTRIBUTE = ['button', 'fieldset', 'form', 'iframe',
+const ELEMENTS_WITH_NAME_ATTRIBUTE     = ['button', 'fieldset', 'form', 'iframe',
     'input', 'map', 'meta', 'object', 'output', 'param', 'select', 'textarea'];
-const DEFAULT_SHADOW_GETTERS_SHIFT = 10;
-let shadowGettersCount             = 0;
+const COLLECTION_PROTO_GETTERS_RESERVE = 10;
+let collectionProtoGettersCount        = 0;
 
-export default function HTMLCollectionWrapper (htmlCollection, tagName) {
+export default function HTMLCollectionWrapper (collection, tagName) {
     tagName = tagName.toLowerCase();
 
     nativeMethods.objectDefineProperties.call(Object, this, {
-        htmlCollection:         { value: htmlCollection },
-        filteredHtmlCollection: { value: [] },
-        tagName:                { value: tagName },
-        version:                { value: -Infinity, writable: true },
-        namedProps:             { value: ELEMENTS_WITH_NAME_ATTRIBUTE.indexOf(tagName) !== -1 ? [] : null }
+        _collection:         { value: collection },
+        _filteredCollection: { value: [] },
+        _tagName:            { value: tagName },
+        _version:            { value: -Infinity, writable: true },
+        _namedProps:         { value: ELEMENTS_WITH_NAME_ATTRIBUTE.indexOf(tagName) !== -1 ? [] : null }
     });
 
-    this.refreshHtmlCollection();
+    this._refreshCollection();
 }
 
 HTMLCollectionWrapper.prototype = nativeMethods.objectCreate.call(Object, HTMLCollection.prototype);
 
 HTMLCollectionWrapper.prototype.item = function (index) {
-    this.refreshHtmlCollection();
+    this._refreshCollection();
 
-    return this.filteredHtmlCollection[index];
+    return this._filteredCollection[index];
 };
 
 if (HTMLCollection.prototype.namedItem) {
     HTMLCollectionWrapper.prototype.namedItem = function (...args) {
-        const findNamedItem = this.htmlCollection.namedItem.apply(this.htmlCollection, args);
+        this._refreshCollection();
+
+        const findNamedItem = this._collection.namedItem.apply(this._collection, args);
 
         return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
     };
 }
 
-Object.defineProperties(HTMLCollectionWrapper.prototype, {
+nativeMethods.objectDefineProperties.call(Object, HTMLCollectionWrapper.prototype, {
     length: {
         configurable: true,
         enumerable:   true,
         get:          function () {
-            this.refreshHtmlCollection();
+            this._refreshCollection();
 
-            return this.filteredHtmlCollection.length;
+            return this._filteredCollection.length;
         }
     },
 
-    refreshHtmlCollection: {
+    _refreshCollection: {
         value: function () {
-            if (!DOMMutationTracker.isOutdated(this.tagName, this.version))
+            if (!DOMMutationTracker.isOutdated(this._tagName, this._version))
                 return;
 
-            const storedFilteredCollectionLength = this.filteredHtmlCollection.length;
-            const collectionLength               = nativeMethods.htmlCollectionLengthGetter.call(this.htmlCollection);
-            const currentNamedProps              = this.namedProps ? [] : null;
+            const storedFilteredCollectionLength = this._filteredCollection.length;
+            const currentNamedProps              = filterCollection(this);
 
-            this.filteredHtmlCollection.length = 0;
+            this._version = DOMMutationTracker.getVersion(this._tagName);
 
-            for (let i = 0; i < collectionLength; i++) {
-                const el = this.htmlCollection[i];
-
-                if (isShadowUIElement(el))
-                    continue;
-
-                this.filteredHtmlCollection.push(el);
-
-                if (!currentNamedProps)
-                    continue;
-
-                const nameAttr = nativeMethods.getAttribute.call(el, 'name');
-
-                if (nameAttr !== null)
-                    currentNamedProps.push(nameAttr);
-            }
-
-            this.version = DOMMutationTracker.getVersion(this.tagName);
-
-            updateHtmlCollectionElementGetters(this, storedFilteredCollectionLength, this.filteredHtmlCollection.length);
-
-            if (currentNamedProps)
-                updateNamedProps(this, this.namedProps, currentNamedProps);
+            updateCollectionIndexGetters(this, storedFilteredCollectionLength, this._filteredCollection.length);
+            updateNamedProps(this, this._namedProps, currentNamedProps);
         }
     }
 });
 
-addShadowGetters(DEFAULT_SHADOW_GETTERS_SHIFT);
+addShadowGetters(COLLECTION_PROTO_GETTERS_RESERVE);
 
 function addShadowGetters (count) {
     for (let i = 0; i < count; i++) {
-        const idx = shadowGettersCount++;
+        const idx = collectionProtoGettersCount++;
 
         nativeMethods.objectDefineProperty.call(Object, HTMLCollectionWrapper.prototype, idx, {
             get: function () {
@@ -101,7 +81,7 @@ function addShadowGetters (count) {
     }
 }
 
-function updateHtmlCollectionElementGetters (wrapper, oldLength, currentLength) {
+function updateCollectionIndexGetters (wrapper, oldLength, currentLength) {
     if (oldLength === currentLength)
         return;
 
@@ -118,27 +98,58 @@ function updateHtmlCollectionElementGetters (wrapper, oldLength, currentLength) 
     while (oldLength > currentLength)
         delete wrapper[--oldLength];
 
-    if (currentLength > shadowGettersCount - DEFAULT_SHADOW_GETTERS_SHIFT)
-        addShadowGetters(currentLength - (shadowGettersCount - DEFAULT_SHADOW_GETTERS_SHIFT));
+    if (currentLength > collectionProtoGettersCount - COLLECTION_PROTO_GETTERS_RESERVE)
+        addShadowGetters(currentLength - (collectionProtoGettersCount - COLLECTION_PROTO_GETTERS_RESERVE));
 }
 
 function updateNamedProps (wrapper, oldNamedProps, currentNamedProps) {
+    if (!currentNamedProps)
+        return;
+
     for (const oldProp of oldNamedProps) {
         if (currentNamedProps.indexOf(oldProp) === -1)
             delete wrapper[oldProp];
     }
 
     for (const prop of currentNamedProps) {
-        if (!wrapper.htmlCollection[prop])
+        if (!wrapper._collection[prop])
             continue;
 
         nativeMethods.objectDefineProperty.call(Object, wrapper, prop, {
             configurable: true,
             get:          function () {
-                this.refreshHtmlCollection();
+                this._refreshCollection();
 
-                return wrapper.htmlCollection[prop];
+                return wrapper._collection[prop];
             }
         });
     }
+}
+
+function filterCollection (wrapper) {
+    const nativeCollection       = wrapper._collection;
+    const nativeCollectionLength = nativeMethods.htmlCollectionLengthGetter.call(nativeCollection);
+    const currentNamedProps      = wrapper._namedProps ? [] : null;
+    const filteredCollection     = wrapper._filteredCollection;
+
+    filteredCollection.length = 0;
+
+    for (let i = 0; i < nativeCollectionLength; i++) {
+        const el = nativeCollection[i];
+
+        if (isShadowUIElement(el))
+            continue;
+
+        filteredCollection.push(el);
+
+        if (!currentNamedProps)
+            continue;
+
+        const nameAttr = nativeMethods.getAttribute.call(el, 'name');
+
+        if (nameAttr !== null)
+            currentNamedProps.push(nameAttr);
+    }
+
+    return currentNamedProps;
 }
