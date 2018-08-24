@@ -98,8 +98,10 @@ function updateCollectionIndexGetters (wrapper, oldLength, currentLength) {
     while (oldLength > currentLength)
         delete wrapper[--oldLength];
 
-    if (currentLength > collectionProtoGettersCount - COLLECTION_PROTO_GETTERS_RESERVE)
-        addShadowGetters(currentLength - (collectionProtoGettersCount - COLLECTION_PROTO_GETTERS_RESERVE));
+    const maxCollectionLength = collectionProtoGettersCount - COLLECTION_PROTO_GETTERS_RESERVE;
+
+    if (currentLength > maxCollectionLength)
+        addShadowGetters(currentLength - maxCollectionLength);
 }
 
 function updateNamedProps (wrapper, oldNamedProps, currentNamedProps) {
