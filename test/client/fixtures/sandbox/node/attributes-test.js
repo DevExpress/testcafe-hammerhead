@@ -1074,19 +1074,49 @@ test('Url resolving in an instance of document.implementation (GH-1673)', functi
 
     anchorEl.href = '';
 
-    strictEqual(anchorEl.href, 'https://example.com');
+    strictEqual(anchorEl.href, 'https://example.com/');
 
     implementation.head.appendChild(baseEl);
+
+    baseEl.href   = 'https://example.com';
+    anchorEl.href = '';
+
+    strictEqual(anchorEl.href, 'https://example.com/');
+
+    baseEl.href   = 'https://example.com/';
+    anchorEl.href = '';
+
+    strictEqual(anchorEl.href, 'https://example.com/');
 
     baseEl.href   = 'https://example.com/some/path/';
     anchorEl.href = '';
 
-    strictEqual(anchorEl.href, 'https://example.com/some/path');
+    strictEqual(anchorEl.href, 'https://example.com/some/path/');
 
     baseEl.href   = 'http://localhost:1993/some/';
     anchorEl.href = 'page.html';
 
     strictEqual(anchorEl.href, 'http://localhost:1993/some/page.html');
+
+    baseEl.href   = 'http://example.com/some';
+    anchorEl.href = '';
+
+    strictEqual(anchorEl.href, browserUtils.isIE11 ? 'http://example.com/' : 'http://example.com/some');
+
+    baseEl.href   = 'http://example.com/some';
+    anchorEl.href = 'page.html';
+
+    strictEqual(anchorEl.href, 'http://example.com/page.html');
+
+    baseEl.href   = 'https://example.com/some';
+    anchorEl.href = '#hash';
+
+    strictEqual(anchorEl.href, 'https://example.com/some#hash');
+
+    baseEl.href   = 'https://example.com/page.html';
+    anchorEl.href = '';
+
+    strictEqual(anchorEl.href, browserUtils.isIE11 ? 'https://example.com/' : 'https://example.com/page.html');
 });
 
 test('The overridden "createHTMLDocument" method should has right context (GH-1722)', function () {

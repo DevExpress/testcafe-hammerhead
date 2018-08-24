@@ -17,7 +17,7 @@
     var iframeSandbox  = hammerhead.sandbox.iframe;
     var cookieSandbox  = hammerhead.sandbox.cookie;
 
-    destLocation.forceLocation('http://localhost/sessionId/https://example.com');
+    destLocation.forceLocation('http://localhost/sessionId/https://example.com/');
 
     var iframeTaskScriptTempate = [
         'window["%hammerhead%"].get("./utils/destination-location").forceLocation("{{{location}}}");',

@@ -288,7 +288,7 @@ test('event firing in all same host windows except current', function () {
             strictEqual(topStorageEventArgs[0].key, 'key1');
             strictEqual(topStorageEventArgs[0].oldValue, isIE ? '' : null);
             strictEqual(topStorageEventArgs[0].newValue, 'value1');
-            strictEqual(topStorageEventArgs[0].url, 'https://example.com');
+            strictEqual(topStorageEventArgs[0].url, 'https://example.com/');
             strictEqual(topStorageEventArgs[0].storageArea, iframe.contentWindow.localStorage);
 
             localStorage.key2 = 'value2';
@@ -302,7 +302,7 @@ test('event firing in all same host windows except current', function () {
             strictEqual(iframeStorageEventArgs[0].key, 'key2');
             strictEqual(iframeStorageEventArgs[0].oldValue, isIE ? '' : null);
             strictEqual(iframeStorageEventArgs[0].newValue, 'value2');
-            strictEqual(iframeStorageEventArgs[0].url, 'https://example.com');
+            strictEqual(iframeStorageEventArgs[0].url, 'https://example.com/');
             strictEqual(iframeStorageEventArgs[0].storageArea, localStorage);
 
             window.removeEventListener('storage', topWindowHandler);
@@ -315,7 +315,7 @@ test('event argument parameters', function () {
         strictEqual(e.key, key);
         strictEqual(e.oldValue, oldValue);
         strictEqual(e.newValue, newValue);
-        strictEqual(e.url, 'https://example.com');
+        strictEqual(e.url, 'https://example.com/');
         strictEqual(e.storageArea, iframeStorageSandbox);
     };
 
