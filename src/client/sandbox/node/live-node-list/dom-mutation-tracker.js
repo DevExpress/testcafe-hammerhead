@@ -62,7 +62,7 @@ class DOMMutationTracker {
     }
 
     getVersion (tagName) {
-        if (this._mutations[tagName])
+        if (tagName in this._mutations)
             return this._mutations[tagName].value; // eslint-disable-line no-restricted-properties
 
         return -Infinity;
