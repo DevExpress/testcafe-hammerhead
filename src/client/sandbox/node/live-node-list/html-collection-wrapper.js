@@ -34,9 +34,9 @@ if (HTMLCollection.prototype.namedItem) {
     HTMLCollectionWrapper.prototype.namedItem = function (...args) {
         this._refreshCollection();
 
-        const findNamedItem = this._collection.namedItem.apply(this._collection, args);
+        const namedItem = this._collection.namedItem.apply(this._collection, args);
 
-        return findNamedItem && isShadowUIElement(findNamedItem) ? null : findNamedItem;
+        return namedItem && isShadowUIElement(namedItem) ? null : namedItem;
     };
 }
 
