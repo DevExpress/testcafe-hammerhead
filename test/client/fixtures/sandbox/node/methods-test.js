@@ -508,7 +508,7 @@ test('link.href with an empty value must return root site url (Q519748)', functi
     anchor.href = '';
     document.body.appendChild(anchor);
 
-    strictEqual(anchor.href, 'https://example.com');
+    strictEqual(anchor.href, 'https://example.com/');
 
     document.body.removeChild(anchor);
 });

@@ -363,7 +363,7 @@ export function ensureTrailingSlash (srcUrl, processedUrl) {
 
     if (srcUrlEndsWithTrailingSlash && !processedUrlEndsWithTrailingSlash)
         processedUrl += '/';
-    else if (!srcUrlEndsWithTrailingSlash && processedUrlEndsWithTrailingSlash)
+    else if (srcUrl && !srcUrlEndsWithTrailingSlash && processedUrlEndsWithTrailingSlash)
         processedUrl = processedUrl.replace(TRAILING_SLASH_RE, '');
 
     return processedUrl;

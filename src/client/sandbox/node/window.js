@@ -132,7 +132,7 @@ export default class WindowSandbox extends SandboxBase {
             return '';
 
         else if (HASH_RE.test(attrValue))
-            return destLocation.withHash(attrValue);
+            return urlResolver.resolve(attrValue, currentDocument);
 
         else if (!isValidUrl(attrValue))
             return urlResolver.resolve(attrValue, currentDocument);
