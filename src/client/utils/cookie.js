@@ -1,4 +1,5 @@
 import trim from '../../utils/string-trim';
+import nativeMethods from '../sandbox/native-methods';
 
 const COOKIE_PAIR_REGEX        = /^((?:=)?([^=;]*)\s*=\s*)?([^\n\r\0]*)/;
 const TRAILING_SEMICOLON_REGEX = /;+$/;
@@ -123,12 +124,12 @@ export function pathMatch (currentPath, cookiePath) {
 
 export function getUTCDate (timestamp) {
     if (!arguments.length)
-        timestamp = Date.now();
+        timestamp = nativeMethods.dateNow();
     else if (isNaN(timestamp))
         return null;
 
     // NOTE: remove milliseconds
     timestamp = Math.floor(timestamp / 1000) * 1000;
 
-    return new Date(timestamp);
+    return new nativeMethods.date(timestamp); // eslint-disable-line new-cap
 }

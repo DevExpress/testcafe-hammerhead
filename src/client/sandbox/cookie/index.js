@@ -15,7 +15,7 @@ import {
     parseClientSyncCookieStr
 } from '../../../utils/cookie';
 
-const EXPIRED_DATE = new Date(0).toUTCString();
+const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
 
 export default class CookieSandbox extends SandboxBase {
     constructor (messageSandbox) {
@@ -54,17 +54,21 @@ export default class CookieSandbox extends SandboxBase {
         return !parsedCookie.domain || cookieUtils.domainMatch(parsedDestLocation.hostname, parsedCookie.domain);
     }
 
-    _isCannotSetCookie () {
-        const clientCookie = `key${Math.random()}=value`;
+    _canSetCookie (cookie, setByClient) {
+        // eslint-disable-next-line no-restricted-properties
+        if (setByClient && (cookie.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:'))
+            return false;
+
+        const clientCookie = `key${nativeMethods.mathRandom.call(nativeMethods.math)}=value`;
 
         nativeMethods.documentCookieSetter.call(this.document, clientCookie);
 
         const documentCookieIsEmpty = !nativeMethods.documentCookieGetter.call(this.document);
 
         if (!documentCookieIsEmpty)
-            nativeMethods.documentCookieSetter.call(this.document, `${clientCookie};expires=${EXPIRED_DATE}`);
+            nativeMethods.documentCookieSetter.call(this.document, `${clientCookie};expires=${MIN_DATE_VALUE}`);
 
-        return documentCookieIsEmpty;
+        return !documentCookieIsEmpty;
     }
 
     _updateClientCookieStr (cookieKey, newCookieStr) {
@@ -106,20 +110,20 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     setCookie (document, cookie, syncWithServer) {
-        if (this._isCannotSetCookie())
+        const setByClient = typeof cookie === 'string';
+
+        // NOTE: Cookie cannot be set in iframe without src in IE
+        // Also cookie cannot be set on a page with 'file:' protocol
+        // or if the length of cookie higher than limit
+        if (!this._canSetCookie(cookie, setByClient))
             return;
 
-        const setByClient = typeof cookie === 'string';
         let parsedCookie;
 
         // NOTE: First, update our client cookies cache with a client-validated cookie string,
         // so that sync code can immediately access cookies.
         if (setByClient) {
             this.syncCookie();
-
-            // eslint-disable-next-line no-restricted-properties
-            if (cookie.length > BYTES_PER_COOKIE_LIMIT || destLocation.getParsed().protocol === 'file:')
-                return;
 
             parsedCookie = cookieUtils.parse(cookie);
         }
