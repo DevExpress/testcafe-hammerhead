@@ -13,11 +13,15 @@ function buildRouteParamsMap (routeMatch, paramNames) {
     }, {});
 }
 
+const DEFAULT_CACHE_MAX_AGE = 30;
+
 // Router
 export default class Router {
-    constructor () {
+    constructor ({ staticResourcesMaxAge } = {}) {
         this.routes           = {};
         this.routesWithParams = [];
+
+        this.staticResourcesMaxAge = Number.isInteger(staticResourcesMaxAge) ? staticResourcesMaxAge : DEFAULT_CACHE_MAX_AGE;
     }
 
     _registerRoute (route, method, handler) {
@@ -70,7 +74,7 @@ export default class Router {
 
         if (route) {
             if (route.isStatic)
-                respondStatic(req, res, route.handler);
+                respondStatic(req, res, route.handler, { cacheMaxAge: this.staticResourcesMaxAge });
 
             else
                 route.handler(req, res, serverInfo);

@@ -34,8 +34,10 @@ function createServerInfo (hostname, port, crossDomainPort, protocol) {
 
 // Proxy
 export default class Proxy extends Router {
-    constructor (hostname, port1, port2, sslOptions, developmentMode) {
-        super();
+    constructor (hostname, port1, port2, options) {
+        super(options);
+
+        const { sslOptions, developmentMode } = options || {};
 
         this.openSessions = {};
 

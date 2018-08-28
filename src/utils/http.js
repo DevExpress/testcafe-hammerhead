@@ -27,14 +27,16 @@ export function respondWithJSON (res, data, skipContentType) {
     res.end(data ? JSON.stringify(data) : '');
 }
 
-export function respondStatic (req, res, resource) {
+export function respondStatic (req, res, resource, { cacheMaxAge } = {}) {
     if (resource.etag === req.headers['if-none-match']) {
         res.statusCode = 304;
         res.end();
     }
 
     else {
-        res.setHeader('cache-control', 'max-age=30, must-revalidate');
+        if (Number.isInteger(cacheMaxAge))
+            res.setHeader('cache-control', `max-age=${cacheMaxAge}`);
+
         res.setHeader('etag', resource.etag);
         res.setHeader('content-type', resource.contentType);
         res.end(resource.content);
