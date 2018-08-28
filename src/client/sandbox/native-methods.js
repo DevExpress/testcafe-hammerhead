@@ -232,6 +232,10 @@ class NativeMethods {
         this.date    = win.Date;
         this.dateNow = win.Date.now;
 
+        // Math
+        this.math       = win.Math;
+        this.mathRandom = win.Math.random;
+
         // Object
         this.objectToString                 = win.Object.prototype.toString;
         this.objectAssign                   = win.Object.assign;

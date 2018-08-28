@@ -65,12 +65,6 @@ export function withHash (hash) {
     return location + hash;
 }
 
-export function getCookiePathPrefix () {
-    const parsedLocation = sharedUrlUtils.parseProxyUrl(getLocation());
-
-    return parsedLocation.partAfterHost.replace(parsedLocation.destResourceInfo.partAfterHost, '');
-}
-
 export function getParsed () {
     const resolver = urlResolver.getResolverElement(document);
     const dest     = get();
