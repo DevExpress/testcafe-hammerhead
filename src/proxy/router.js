@@ -1,6 +1,7 @@
 import md5 from 'crypto-md5';
+import { defaultsDeep as defaultOptions } from 'lodash';
 import { getPathname } from '../utils/url';
-import { respondStatic } from '../utils/http';
+import { respondStatic, STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS } from '../utils/http';
 
 // Const
 const PARAM_RE = /^{(\S+)}$/;
@@ -13,15 +14,15 @@ function buildRouteParamsMap (routeMatch, paramNames) {
     }, {});
 }
 
-const DEFAULT_CACHE_MAX_AGE = 30;
 
 // Router
 export default class Router {
-    constructor ({ staticResourcesMaxAge } = {}) {
+    constructor (options) {
+        options = defaultOptions({ cachingOptions: STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS }, options);
+
+        this.options          = options;
         this.routes           = {};
         this.routesWithParams = [];
-
-        this.staticResourcesMaxAge = Number.isInteger(staticResourcesMaxAge) ? staticResourcesMaxAge : DEFAULT_CACHE_MAX_AGE;
     }
 
     _registerRoute (route, method, handler) {
@@ -74,7 +75,7 @@ export default class Router {
 
         if (route) {
             if (route.isStatic)
-                respondStatic(req, res, route.handler, { cacheMaxAge: this.staticResourcesMaxAge });
+                respondStatic(req, res, route.handler, this.options.cachingOptions);
 
             else
                 route.handler(req, res, serverInfo);

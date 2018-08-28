@@ -68,6 +68,8 @@ class Transport {
 
             const errorHandler = function () {
                 if (msg.disableResending) {
+                    transport.activeServiceMessagesCounter--;
+
                     callback(new Error(`XHR request failed, status: ${request.status}`));
 
                     return;
@@ -131,10 +133,10 @@ class Transport {
     asyncServiceMsg (msg) {
         return new Promise((resolve, reject) => {
             this._performRequest(msg, (err, data) => {
-                if (err && msg.allowRejecting)
-                    reject(err);
-                else if (!err)
+                if (!err)
                     resolve(data);
+                else if (msg.allowRejecting)
+                    reject(err);
             });
         });
     }

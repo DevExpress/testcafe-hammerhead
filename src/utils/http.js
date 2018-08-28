@@ -1,3 +1,11 @@
+import { defaultsDeep as defaultOptions } from 'lodash';
+
+
+export const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
+    maxAge:         30,
+    mustRevalidate: true
+};
+
 export function preventCaching (res) {
     res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
     res.setHeader('pragma', 'no-cache');
@@ -27,16 +35,17 @@ export function respondWithJSON (res, data, skipContentType) {
     res.end(data ? JSON.stringify(data) : '');
 }
 
-export function respondStatic (req, res, resource, { cacheMaxAge } = {}) {
+export function respondStatic (req, res, resource, cachingOptions) {
+    cachingOptions = defaultOptions(STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS, cachingOptions);
+
     if (resource.etag === req.headers['if-none-match']) {
         res.statusCode = 304;
         res.end();
     }
-
     else {
-        if (Number.isInteger(cacheMaxAge))
-            res.setHeader('cache-control', `max-age=${cacheMaxAge}`);
+        const { maxAge, mustRevalidate } = cachingOptions;
 
+        res.setHeader('cache-control', `max-age=${maxAge}${mustRevalidate ? ', must-revalidate' : ''}`);
         res.setHeader('etag', resource.etag);
         res.setHeader('content-type', resource.contentType);
         res.end(resource.content);

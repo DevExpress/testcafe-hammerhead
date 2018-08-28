@@ -181,6 +181,9 @@ class Hammerhead {
     navigateTo (url) {
         const navigationUrl = urlUtils.getNavigationUrl(url, this.win);
 
+        if (!navigationUrl)
+            return;
+
         this.win.location = navigationUrl;
     }
 
