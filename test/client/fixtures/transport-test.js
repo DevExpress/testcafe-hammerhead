@@ -258,6 +258,77 @@ else {
     });
 }
 
+test('asyncServiceMessage - should reject if enableRejecting is true', function () {
+    var xhrCount = 0;
+
+    registerAfterAjaxSendHook(function (xhr) {
+        xhrCount++;
+        xhr.abort();
+    });
+
+    return transport.asyncServiceMsg({ disableResending: true, allowRejecting: true })
+        .then(function () {
+            throw new Error('Promise rejection expected');
+        })
+        .catch(error => {
+            strictEqual(xhrCount, 1);
+            strictEqual(error.message, 'XHR request failed, status: 0');
+
+            unregisterAfterAjaxSendHook();
+        });
+});
+
+test('queuedAsyncServiceMessage - should work with failed and rejected attempts', function () {
+    let xhrCount          = 0;
+    let firstMsgResolved  = false;
+    let firstMsgRejected  = false;
+    let secondMsgRejected = false;
+    let thirdMsgResolved  = false;
+
+    registerAfterAjaxSendHook(function (xhr) {
+        xhrCount++;
+
+        if (xhrCount < 3)
+            xhr.abort();
+    });
+
+    // NOTE: expected to fail, but not reject
+    transport
+        .queuedAsyncServiceMsg({ disableResending: true })
+        .then(function () {
+            firstMsgResolved = true;
+        })
+        .catch(function () {
+            firstMsgRejected = true;
+        });
+
+    // NOTE: expected to fail and reject
+    const secondMsgPromise = transport
+        .queuedAsyncServiceMsg({ disableResending: true, allowRejecting: true })
+        .catch(function () {
+            secondMsgRejected = true;
+        });
+
+    // NOTE: expected to pass
+    const thirdMsgPromise = transport
+        .queuedAsyncServiceMsg({ disableResending: true, allowRejecting: true })
+        .then(function () {
+            thirdMsgResolved = true;
+        });
+
+    return Promise
+        .all([secondMsgPromise, thirdMsgPromise])
+        .then(function () {
+            strictEqual(xhrCount, 3);
+            ok(!firstMsgResolved);
+            ok(!firstMsgRejected);
+            ok(secondMsgRejected);
+            ok(thirdMsgResolved);
+
+            unregisterAfterAjaxSendHook();
+        });
+});
+
 module('regression');
 
 test('hammerhead should remove service data from local storage on the first session page load (GH-100)', function () {

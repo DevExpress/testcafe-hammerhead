@@ -1,7 +1,7 @@
 import { defaultsDeep as defaultOptions } from 'lodash';
 
 
-export const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
+const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
     maxAge:         30,
     mustRevalidate: true
 };
@@ -35,8 +35,8 @@ export function respondWithJSON (res, data, skipContentType) {
     res.end(data ? JSON.stringify(data) : '');
 }
 
-export function respondStatic (req, res, resource, cachingOptions) {
-    cachingOptions = defaultOptions(STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS, cachingOptions);
+export function respondStatic (req, res, resource, cachingOptions = {}) {
+    cachingOptions = defaultOptions(cachingOptions, STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS);
 
     if (resource.etag === req.headers['if-none-match']) {
         res.statusCode = 304;

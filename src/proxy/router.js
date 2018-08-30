@@ -1,7 +1,6 @@
 import md5 from 'crypto-md5';
-import { defaultsDeep as defaultOptions } from 'lodash';
 import { getPathname } from '../utils/url';
-import { respondStatic, STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS } from '../utils/http';
+import { respondStatic } from '../utils/http';
 
 // Const
 const PARAM_RE = /^{(\S+)}$/;
@@ -17,9 +16,7 @@ function buildRouteParamsMap (routeMatch, paramNames) {
 
 // Router
 export default class Router {
-    constructor (options) {
-        options = defaultOptions({ cachingOptions: STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS }, options);
-
+    constructor (options = {}) {
         this.options          = options;
         this.routes           = {};
         this.routesWithParams = [];
@@ -75,8 +72,7 @@ export default class Router {
 
         if (route) {
             if (route.isStatic)
-                respondStatic(req, res, route.handler, this.options.cachingOptions);
-
+                respondStatic(req, res, route.handler, this.options.staticContentCaching);
             else
                 route.handler(req, res, serverInfo);
 
