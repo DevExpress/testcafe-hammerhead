@@ -165,21 +165,17 @@ class Transport {
 
         msg.allowRejecting = true;
 
-        const sendMsgPromise = this.msgQueue[msg.cmd]
+        this.msgQueue[msg.cmd] = this.msgQueue[msg.cmd]
+            .catch(noop)
             .then(() => this.asyncServiceMsg(msg));
 
-        const msgResultPromise = sendMsgPromise
+        return this.msgQueue[msg.cmd]
             .catch(err => {
                 if (isRejectingAllowed)
                     return Promise.reject(err);
 
                 return createUnresolvablePromise();
             });
-
-        this.msgQueue[msg.cmd] = sendMsgPromise
-            .catch(noop);
-
-        return msgResultPromise;
     }
 }
 

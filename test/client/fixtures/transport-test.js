@@ -270,7 +270,7 @@ test('asyncServiceMessage - should reject if enableRejecting is true', function 
         .then(function () {
             throw new Error('Promise rejection expected');
         })
-        .catch(error => {
+        .catch(function (error) {
             strictEqual(xhrCount, 1);
             strictEqual(error.message, 'XHR request failed, status: 0');
 
