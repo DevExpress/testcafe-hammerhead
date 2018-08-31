@@ -110,6 +110,9 @@ export function setDefaultValues (parsedCookie, parsedDestLocation) {
 
         parsedCookie.path = defaultPath || '/';
     }
+
+    if (!parsedCookie.expires)
+        parsedCookie.expires = 'Infinity';
 }
 
 export function domainMatch (currentDomain, cookieDomain) {

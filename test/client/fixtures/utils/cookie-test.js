@@ -72,6 +72,7 @@ test('formatClientString', function () {
 });
 
 test('domainMatch', function () {
+    ok(cookieUtil.domainMatch('sub.example.com'));
     ok(cookieUtil.domainMatch('sub.example.com', 'sub.example.com'));
     ok(cookieUtil.domainMatch('sub.example.com', 'SUB.Example.com'));
     ok(cookieUtil.domainMatch('sub.example.com', 'example.com'));
@@ -84,14 +85,16 @@ test('domainMatch', function () {
 });
 
 test('pathMatch', function () {
+    ok(cookieUtil.pathMatch('/'));
     ok(cookieUtil.pathMatch('/', '/'));
     ok(cookieUtil.pathMatch('/path', '/'));
     ok(cookieUtil.pathMatch('/path', '/path'));
     ok(cookieUtil.pathMatch('/path/some', '/path'));
     ok(cookieUtil.pathMatch('/path/some', '/path/'));
+    ok(cookieUtil.pathMatch('/path/some', '123'));
 
+    notOk(cookieUtil.pathMatch('/path/some', '/123'));
     notOk(cookieUtil.pathMatch('/path/some', '/some'));
-    notOk(cookieUtil.pathMatch('/path/some', '123'));
     notOk(cookieUtil.pathMatch('/path/some', '/path/some/123'));
     notOk(cookieUtil.pathMatch('/path/some', '/path/some/'));
 });

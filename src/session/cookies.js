@@ -28,7 +28,7 @@ export default class Cookies {
                 if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
                     return resultCookies;
 
-                cookie = Cookie.parse(cookieStr);
+                cookie = Cookie.parse(cookieStr, { loose: true });
             }
             else
                 cookie = cookieStr;
