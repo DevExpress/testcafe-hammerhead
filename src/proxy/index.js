@@ -34,19 +34,21 @@ function createServerInfo (hostname, port, crossDomainPort, protocol) {
 
 // Proxy
 export default class Proxy extends Router {
-    constructor (hostname, port1, port2, sslOptions, developmentMode) {
-        super();
+    constructor (hostname, port1, port2, options = {}) {
+        super(options);
+
+        const { ssl, developmentMode } = options;
 
         this.openSessions = {};
 
-        const protocol = sslOptions ? 'https:' : 'http:';
+        const protocol = ssl ? 'https:' : 'http:';
 
         this.server1Info = createServerInfo(hostname, port1, port2, protocol);
         this.server2Info = createServerInfo(hostname, port2, port1, protocol);
 
-        if (sslOptions) {
-            this.server1 = https.createServer(sslOptions, (req, res) => this._onRequest(req, res, this.server1Info));
-            this.server2 = https.createServer(sslOptions, (req, res) => this._onRequest(req, res, this.server2Info));
+        if (ssl) {
+            this.server1 = https.createServer(ssl, (req, res) => this._onRequest(req, res, this.server1Info));
+            this.server2 = https.createServer(ssl, (req, res) => this._onRequest(req, res, this.server2Info));
         }
         else {
             this.server1 = http.createServer((req, res) => this._onRequest(req, res, this.server1Info));

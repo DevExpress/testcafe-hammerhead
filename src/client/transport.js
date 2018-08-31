@@ -3,6 +3,8 @@ import settings from './settings';
 import XhrSandbox from './sandbox/xhr';
 import { stringify as stringifyJSON, parse as parseJSON } from './json';
 import { isWebKit } from './utils/browser';
+import createUnresolvablePromise from './utils/create-unresolvable-promise';
+import noop from './utils/noop';
 import Promise from 'pinkie';
 
 const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
@@ -41,21 +43,6 @@ class Transport {
         nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(messages));
     }
 
-    _sendNextQueuedMsg (queueId) {
-        const queueItem = this.msgQueue[queueId][0];
-
-        this.asyncServiceMsg(queueItem.msg)
-            .then(res => {
-                if (queueItem.callback)
-                    queueItem.callback(res);
-
-                this.msgQueue[queueId].shift();
-
-                if (this.msgQueue[queueId].length)
-                    this._sendNextQueuedMsg(queueId);
-            });
-    }
-
     // TODO: Rewrite this using Promise after getting rid of syncServiceMsg.
     _performRequest (msg, callback) {
         msg.sessionId = settings.get().sessionId;
@@ -69,17 +56,24 @@ class Transport {
             const isAsyncRequest = !forced;
             const transport      = this;
             let request          = XhrSandbox.createNativeXHR();
-            const msgCallback    = function () {
+
+            const msgCallback = function () {
                 transport.activeServiceMessagesCounter--;
 
                 const response = this.responseText && parseJSON(this.responseText);
 
                 request = null;
-                callback(response);
+                callback(null, response);
             };
-            const errorHandler   = function () {
-                if (msg.disableResending)
+
+            const errorHandler = function () {
+                if (msg.disableResending) {
+                    transport.activeServiceMessagesCounter--;
+
+                    callback(new Error(`XHR request failed, status: ${request.status}`));
+
                     return;
+                }
 
                 if (isWebKit) {
                     Transport._storeMessage(msg);
@@ -137,8 +131,13 @@ class Transport {
     }
 
     asyncServiceMsg (msg) {
-        return new Promise(resolve => {
-            this._performRequest(msg, data => resolve(data));
+        return new Promise((resolve, reject) => {
+            this._performRequest(msg, (err, data) => {
+                if (!err)
+                    resolve(data);
+                else if (msg.allowRejecting)
+                    reject(err);
+            });
         });
     }
 
@@ -159,19 +158,24 @@ class Transport {
     }
 
     queuedAsyncServiceMsg (msg) {
-        return new Promise(resolve => {
-            if (!this.msgQueue[msg.cmd])
-                this.msgQueue[msg.cmd] = [];
+        if (!this.msgQueue[msg.cmd])
+            this.msgQueue[msg.cmd] = Promise.resolve();
 
-            this.msgQueue[msg.cmd].push({
-                msg:      msg,
-                callback: resolve
+        const isRejectingAllowed = msg.allowRejecting;
+
+        msg.allowRejecting = true;
+
+        this.msgQueue[msg.cmd] = this.msgQueue[msg.cmd]
+            .catch(noop)
+            .then(() => this.asyncServiceMsg(msg));
+
+        return this.msgQueue[msg.cmd]
+            .catch(err => {
+                if (isRejectingAllowed)
+                    return Promise.reject(err);
+
+                return createUnresolvablePromise();
             });
-
-            // NOTE: If we don't have pending messages except the current one, send the latter immediately.
-            if (this.msgQueue[msg.cmd].length === 1)
-                this._sendNextQueuedMsg(msg.cmd);
-        });
     }
 }
 

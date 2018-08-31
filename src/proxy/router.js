@@ -13,9 +13,11 @@ function buildRouteParamsMap (routeMatch, paramNames) {
     }, {});
 }
 
+
 // Router
 export default class Router {
-    constructor () {
+    constructor (options = {}) {
+        this.options          = options;
         this.routes           = {};
         this.routesWithParams = [];
     }
@@ -70,8 +72,7 @@ export default class Router {
 
         if (route) {
             if (route.isStatic)
-                respondStatic(req, res, route.handler);
-
+                respondStatic(req, res, route.handler, this.options.staticContentCaching);
             else
                 route.handler(req, res, serverInfo);
 

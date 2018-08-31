@@ -126,6 +126,58 @@ describe('Router', () => {
         testRoute('/some/static/css', cssHandler);
     });
 
+    it('Should allow to customize the cache-control header for static resources', () => {
+        const router = new Router({ staticContentCaching: { maxAge: 3600, mustRevalidate: false } });
+
+        router._processStaticContent = noop;
+
+        function testRoute (url, handler) {
+            const reqMock = {
+                url:     url,
+                method:  'GET',
+                headers: {
+                    'if-none-match': 'some-random-value'
+                }
+            };
+
+            const resMock = {
+                headers:    {},
+                content:    null,
+                statusCode: null,
+
+                setHeader: function (name, value) {
+                    this.headers[name] = value;
+                },
+
+                end: function (content) {
+                    this.content = content;
+                }
+            };
+
+
+            router._route(reqMock, resMock);
+            expect(resMock.content).eql(handler.content);
+            expect(resMock.headers['content-type']).eql(handler.contentType);
+            expect(resMock.headers['cache-control']).eql('max-age=3600');
+        }
+
+        const jsHandler = {
+            contentType: 'application/x-javascript',
+            content:     'js'
+        };
+
+        const cssHandler = {
+            contentType: 'text/css',
+            content:     'css'
+        };
+
+        router.GET('/some/static/js', jsHandler);
+        router.GET('/some/static/css', cssHandler);
+
+        testRoute('/some/static/js', jsHandler);
+        testRoute('/some/static/css', cssHandler);
+    });
+
     it('Should respond 304 for static resources if ETag match', () => {
         const router = new Router();
 

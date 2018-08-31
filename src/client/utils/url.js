@@ -105,6 +105,31 @@ export function getProxyUrl (url, opts) {
     });
 }
 
+export function getNavigationUrl (url, win) {
+    // NOTE: For the 'about:blank' page, we perform url proxing only for the top window, 'location' object and links.
+    // For images and iframes, we keep urls as they were.
+    // See details in https://github.com/DevExpress/testcafe-hammerhead/issues/339
+    let destinationLocation  = null;
+
+    const isIframe    = win.top !== win;
+    const winLocation = win.location.toString();
+
+    if (isIframe)
+        destinationLocation = winLocation;
+    else {
+        const parsedProxyUrl = parseProxyUrl(winLocation);
+
+        destinationLocation = parsedProxyUrl && parsedProxyUrl.destUrl;
+    }
+
+    if (isSpecialPage(destinationLocation) && sharedUrlUtils.isRelativeUrl(url))
+        return '';
+
+    url = sharedUrlUtils.prepareUrl(url);
+
+    return getProxyUrl(url);
+}
+
 export function getCrossDomainIframeProxyUrl (url) {
     return getProxyUrl(url, {
         proxyPort:    settings.get().crossDomainProxyPort,
