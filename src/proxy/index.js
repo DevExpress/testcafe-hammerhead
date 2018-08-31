@@ -3,7 +3,7 @@ import http from 'http';
 import https from 'https';
 import * as urlUtils from '../utils/url';
 import { readSync as read } from 'read-file-relative';
-import { respond204, respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
+import { respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 
@@ -89,7 +89,6 @@ export default class Proxy extends Router {
         });
 
         this.POST('/messaging', (req, res, serverInfo) => this._onServiceMessage(req, res, serverInfo));
-        this.POST('/cookie-sync', (req, res, serverInfo) => this._onCookieSync(req, res, serverInfo));
         this.GET('/task.js', (req, res, serverInfo) => this._onTaskScriptRequest(req, res, serverInfo, false));
         this.GET('/iframe-task.js', (req, res, serverInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
     }
@@ -104,25 +103,6 @@ export default class Proxy extends Router {
                 const result = await session.handleServiceMessage(msg, serverInfo);
 
                 respondWithJSON(res, result || '');
-            }
-            catch (err) {
-                respond500(res, err.toString());
-            }
-        }
-        else
-            respond500(res, SESSION_IS_NOT_OPENED_ERR);
-    }
-
-    async _onCookieSync (req, res) {
-        const body    = await fetchBody(req);
-        const msg     = parseAsJson(body);
-        const session = msg && this.openSessions[msg.sessionId];
-
-        if (session) {
-            try {
-                session.setCookie(msg.queue);
-
-                respond204(res);
             }
             catch (err) {
                 respond500(res, err.toString());

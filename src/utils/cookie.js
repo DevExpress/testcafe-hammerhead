@@ -11,7 +11,7 @@ const CLEAR_COOKIE_VALUE_STR = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
 export const SYNCHRONIZATION_TYPE = {
     server: 's',
     client: 'c',
-    window: 'f'
+    window: 'w'
 };
 
 const SYNCHRONIZATION_TYPE_RE = new RegExp(`^[${SYNCHRONIZATION_TYPE.server}${SYNCHRONIZATION_TYPE.client}${SYNCHRONIZATION_TYPE.window}]+`);
@@ -57,6 +57,17 @@ function stringifySyncType (cookie) {
            (cookie.isWindowSync ? SYNCHRONIZATION_TYPE.window : '');
 }
 
+function formatSyncCookieKey (cookie) {
+    const syncType     = stringifySyncType(cookie);
+    const key          = encodeURIComponent(cookie.key);
+    const domain       = encodeURIComponent(cookie.domain);
+    const path         = encodeURIComponent(cookie.path);
+    const expires      = cookie.expires !== 'Infinity' ? cookie.expires.getTime().toString(TIME_RADIX) : '';
+    const lastAccessed = cookie.lastAccessed.getTime().toString(TIME_RADIX);
+
+    return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}`;
+}
+
 export function parseClientSyncCookieStr (cookieStr) {
     const cookies       = cookieStr ? cookieStr.split(';') : '';
     const parsedCookies = [];
@@ -71,23 +82,23 @@ export function parseClientSyncCookieStr (cookieStr) {
     return sortByOutdatedAndActual(parsedCookies);
 }
 
-export function formatSyncCookie (cookie) {
-    const syncType     = stringifySyncType(cookie);
-    const key          = encodeURIComponent(cookie.key);
-    const domain       = encodeURIComponent(cookie.domain);
-    const path         = encodeURIComponent(cookie.path);
-    const expires      = cookie.expires !== 'Infinity' ? cookie.expires.getTime().toString(TIME_RADIX) : '';
-    const lastAccessed = cookie.lastAccessed.getTime().toString(TIME_RADIX);
+export function generateSyncCookieProperties (cookie) {
+    cookie.syncKey   = cookie.syncKey || formatSyncCookieKey(cookie);
+    cookie.cookieStr = cookie.cookieStr || `${cookie.syncKey}=${cookie.value}`;
+}
 
-    return `${syncType}|${cookie.sid}|${key}|${domain}|${path}|${expires}|${lastAccessed}=${cookie.value};path=/`;
+export function formatSyncCookie (cookie) {
+    if (cookie.cookieStr)
+        return `${cookie.cookieStr};path=/`;
+
+    return `${formatSyncCookieKey(cookie)}=${cookie.value};path=/`;
 }
 
 export function parseSyncCookie (cookieStr) {
-    const parsedCookie = cookieStr.split('=');
-    const key          = parsedCookie.length < 2 ? '' : parsedCookie.shift();
-    const parsedKey    = key.split('|');
+    const [key, value] = cookieStr.split('=', 2);
+    const parsedKey    = value !== void 0 && key.split('|');
 
-    if (parsedKey.length !== 7)
+    if (parsedKey && parsedKey.length !== 7)
         return null;
 
     return {
@@ -100,9 +111,9 @@ export function parseSyncCookie (cookieStr) {
         path:         decodeURIComponent(parsedKey[4]),
         expires:      parsedKey[5] ? new Date(parseInt(parsedKey[5], TIME_RADIX)) : 'Infinity',
         lastAccessed: new Date(parseInt(parsedKey[6], TIME_RADIX)),
-        value:        parsedCookie.join('='),
         syncKey:      key,
 
+        value,
         cookieStr
     };
 }
@@ -121,7 +132,6 @@ export function changeSyncType (parsedCookie, flags) {
 
     parsedCookie.syncKey   = parsedCookie.syncKey.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
     parsedCookie.cookieStr = parsedCookie.cookieStr.replace(SYNCHRONIZATION_TYPE_RE, newSyncTypeStr);
-
 }
 
 export function isOutdatedSyncCookie (currentCookie, newCookie) {

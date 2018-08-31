@@ -100,7 +100,22 @@ export function formatClientString (parsedCookie) {
     return cookieStr;
 }
 
+export function setDefaultValues (parsedCookie, parsedDestLocation) {
+    if (!parsedCookie.domain)
+        parsedCookie.domain = parsedDestLocation.hostname; // eslint-disable-line no-restricted-properties
+
+    if (!parsedCookie.path || parsedCookie.path.charAt(0) !== '/') {
+        const path        = parsedDestLocation.pathname; // eslint-disable-line no-restricted-properties
+        const defaultPath = path.slice(0, path.lastIndexOf('/'));
+
+        parsedCookie.path = defaultPath || '/';
+    }
+}
+
 export function domainMatch (currentDomain, cookieDomain) {
+    if (!cookieDomain)
+        return true;
+
     currentDomain = currentDomain.toLowerCase();
     cookieDomain  = cookieDomain.toLowerCase();
 
@@ -115,7 +130,7 @@ export function domainMatch (currentDomain, cookieDomain) {
 }
 
 export function pathMatch (currentPath, cookiePath) {
-    if (currentPath === cookiePath)
+    if (!cookiePath || cookiePath.charAt(0) !== '/' || currentPath === cookiePath)
         return true;
 
     return currentPath.length > cookiePath.length && currentPath.indexOf(cookiePath) === 0 &&

@@ -4,6 +4,7 @@ import * as urlUtils from '../utils/url';
 import * as contentTypeUtils from '../utils/content-type';
 import genearateUniqueId from '../utils/generate-unique-id';
 import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
+import { parseClientSyncCookieStr } from '../utils/cookie';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
 
@@ -45,6 +46,8 @@ export default class RequestPipelineContext {
         this.isBrowserConnectionReset = false;
 
         this.reqOpts = null;
+
+        this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
     }
 
     // TODO: Rewrite parseProxyUrl instead.
@@ -153,6 +156,9 @@ export default class RequestPipelineContext {
                 this.dest.reqOrigin = this.req.headers[XHR_HEADERS.origin];
 
             this._initRequestNatureInfo();
+
+            if (this.parsedClientSyncCookie)
+                this.session.cookies.setByClient(this.parsedClientSyncCookie.actual.filter(syncCookie => syncCookie.isClientSync && syncCookie.sid === this.session.id));
 
             return true;
         }

@@ -25,18 +25,16 @@
         '    referer : "{{{referer}}}",',
         '    cookie: {{{cookie}}},',
         '    serviceMsgUrl : "{{{serviceMsgUrl}}}",',
-        '    cookieSyncUrl : "{{{cookieSyncUrl}}}",',
         '    sessionId : "sessionId",',
         '    forceProxySrcForImage: ' + 'false,',
         '    iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}',
         '});'
     ].join('');
 
-    window.getIframeTaskScript = function (referer, serviceMsgUrl, cookieSyncUrl, location, cookie) {
+    window.getIframeTaskScript = function (referer, serviceMsgUrl, location, cookie) {
         return iframeTaskScriptTempate
             .replace('{{{referer}}}', referer || '')
             .replace('{{{serviceMsgUrl}}}', serviceMsgUrl || '')
-            .replace('{{{cookieSyncUrl}}}', cookieSyncUrl)
             .replace('{{{location}}}', location || '')
             .replace('{{{cookie}}}', JSON.stringify(cookie || ''));
     };
@@ -45,9 +43,8 @@
         var referer          = "http://localhost/sessionId/https://example.com";
         var location         = "http://localhost/sessionId/https://example.com";
         var serviceMsgUrl    = "/service-msg/100";
-        var cookieSyncUrl    = "/cookie-sync/100";
         var cookie           = cookieSandbox.getCookie();
-        var iframeTaskScript = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, cookieSyncUrl, location, cookie));
+        var iframeTaskScript = JSON.stringify(window.getIframeTaskScript(referer, serviceMsgUrl, location, cookie));
 
         if (e.iframe.id.indexOf('test') !== -1) {
             e.iframe.contentWindow.eval.call(e.iframe.contentWindow, [
@@ -55,7 +52,6 @@
                 'window["%hammerhead%"].start({',
                 '    referer: "' + referer + '",',
                 '    serviceMsgUrl: "' + serviceMsgUrl + '",',
-                '    cookieSyncUrl: "' + cookieSyncUrl + '",',
                 '    sessionId: "sessionId",',
                 '    cookie: ' + JSON.stringify(cookie) + ',',
                 '    forceProxySrcForImage: ' + 'false,',
@@ -68,7 +64,6 @@
     hammerhead.start({
         sessionId:             'sessionId',
         cookie:                '',
-        cookieSyncUrl:         '/cookie-sync/100',
         crossDomainProxyPort:  2001,
         forceProxySrcForImage: false
     });

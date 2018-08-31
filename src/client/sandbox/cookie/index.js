@@ -1,7 +1,6 @@
 import Promise from 'pinkie';
 import SandboxBase from '../base';
 import settings from '../../settings';
-import CookieSync from './cookie-sync';
 import WindowSync from './window-sync';
 import * as destLocation from '../../utils/destination-location';
 import * as cookieUtils from '../../utils/cookie';
@@ -12,7 +11,8 @@ import {
     changeSyncType,
     formatSyncCookie,
     generateDeleteSyncCookieStr,
-    parseClientSyncCookieStr
+    parseClientSyncCookieStr,
+    generateSyncCookieProperties
 } from '../../../utils/cookie';
 
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
@@ -22,36 +22,9 @@ export default class CookieSandbox extends SandboxBase {
         super();
 
         this.messageSandbox = messageSandbox;
-        this.cookieSync     = new CookieSync();
         this.windowSync     = null;
 
         this.pendingWindowSync = [];
-    }
-
-    // NOTE: Perform validations that can't be processed by a browser due to proxying.
-    static _isValidCookie (parsedCookie) {
-        if (!parsedCookie)
-            return false;
-
-        // NOTE: HttpOnly cookies can't be accessed from the client code.
-        if (parsedCookie.httpOnly)
-            return false;
-
-        const parsedDestLocation = destLocation.getParsed();
-        const destProtocol       = parsedDestLocation.protocol; // eslint-disable-line no-restricted-properties
-
-        // NOTE: Hammerhead tunnels HTTPS requests via HTTP, so we need to validate the Secure attribute manually.
-        if (parsedCookie.secure && destProtocol !== 'https:')
-            return false;
-
-        // eslint-disable-next-line no-restricted-properties
-        if (parsedCookie.path && !cookieUtils.pathMatch(parsedDestLocation.pathname, parsedCookie.path))
-            return false;
-
-        // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
-        // according to a test url.
-        // eslint-disable-next-line no-restricted-properties
-        return !parsedCookie.domain || cookieUtils.domainMatch(parsedDestLocation.hostname, parsedCookie.domain);
     }
 
     _canSetCookie (cookie, setByClient) {
@@ -71,7 +44,7 @@ export default class CookieSandbox extends SandboxBase {
         return !documentCookieIsEmpty;
     }
 
-    _updateClientCookieStr (cookieKey, newCookieStr) {
+    static _updateClientCookieStr (cookieKey, newCookieStr) {
         // eslint-disable-next-line no-restricted-properties
         const cookieStr = settings.get().cookie;
         const cookies   = cookieStr ? cookieStr.split(';') : [];
@@ -109,7 +82,7 @@ export default class CookieSandbox extends SandboxBase {
         return settings.get().cookie || '';
     }
 
-    setCookie (document, cookie, syncWithServer) {
+    setCookie (document, cookie) {
         const setByClient = typeof cookie === 'string';
 
         // NOTE: Cookie cannot be set in iframe without src in IE
@@ -118,32 +91,38 @@ export default class CookieSandbox extends SandboxBase {
         if (!this._canSetCookie(cookie, setByClient))
             return;
 
-        let parsedCookie;
+        const parsedCookie = setByClient ? cookieUtils.parse(cookie) : cookie;
 
-        // NOTE: First, update our client cookies cache with a client-validated cookie string,
-        // so that sync code can immediately access cookies.
-        if (setByClient) {
-            this.syncCookie();
+        if (!parsedCookie || parsedCookie.httpOnly)
+            return;
 
-            parsedCookie = cookieUtils.parse(cookie);
-        }
-        else
-            parsedCookie = cookie;
+        const parsedDestLocation = destLocation.getParsed();
 
-        if (CookieSandbox._isValidCookie(parsedCookie)) {
+        // NOTE: All Hammerhad sessions have the same domain, so we need to validate the Domain attribute manually
+        // according to a test url.
+        // eslint-disable-next-line no-restricted-properties
+        if (!cookieUtils.domainMatch(parsedDestLocation.hostname, parsedCookie.domain))
+            return;
+
+        // eslint-disable-next-line no-restricted-properties
+        if ((!parsedCookie.secure || parsedDestLocation.protocol === 'https:') &&
+            // eslint-disable-next-line no-restricted-properties
+            cookieUtils.pathMatch(parsedDestLocation.pathname, parsedCookie.path)) {
             const currentDate   = cookieUtils.getUTCDate();
             let clientCookieStr = null;
 
             if (!parsedCookie.expires || parsedCookie.expires === 'Infinity' || parsedCookie.expires > currentDate)
                 clientCookieStr = cookieUtils.formatClientString(parsedCookie);
 
-            this._updateClientCookieStr(parsedCookie.key, clientCookieStr);
+            CookieSandbox._updateClientCookieStr(parsedCookie.key, clientCookieStr);
         }
 
-        // NOTE: Meanwhile, synchronize cookies with the server cookie jar.
-        if (syncWithServer)
-            // eslint-disable-next-line no-restricted-properties
-            this.cookieSync.perform({ url: document.location.href, cookie });
+        if (setByClient) {
+            cookieUtils.setDefaultValues(parsedCookie, parsedDestLocation);
+
+            this._syncClientCookie(parsedCookie);
+            this.syncCookie();
+        }
     }
 
     syncCookie () {
@@ -162,7 +141,7 @@ export default class CookieSandbox extends SandboxBase {
             if (parsedCookie.isServerSync)
                 serverSyncCookies.push(parsedCookie);
             else if (parsedCookie.isWindowSync)
-                this.setCookie(this.document, parsedCookie, false);
+                this.setCookie(this.document, parsedCookie);
         }
 
         this._syncServerCookie(serverSyncCookies);
@@ -170,7 +149,7 @@ export default class CookieSandbox extends SandboxBase {
 
     _syncServerCookie (parsedCookies) {
         for (const parsedCookie of parsedCookies) {
-            this.setCookie(this.document, parsedCookie, false);
+            this.setCookie(this.document, parsedCookie);
 
             nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
             changeSyncType(parsedCookie, { server: false, window: true });
@@ -180,6 +159,23 @@ export default class CookieSandbox extends SandboxBase {
         this.windowSync.syncBetweenWindows(parsedCookies, null, () => {
             for (const parsedCookie of parsedCookies)
                 nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
+        });
+    }
+
+    _syncClientCookie (parsedCookie) {
+        parsedCookie.isClientSync = true;
+        parsedCookie.isWindowSync = true;
+        parsedCookie.sid          = settings.get().sessionId;
+        parsedCookie.lastAccessed = new nativeMethods.date(); // eslint-disable-line new-cap
+
+        generateSyncCookieProperties(parsedCookie);
+
+        nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
+
+        this.windowSync.syncBetweenWindows([parsedCookie], null, () => {
+            nativeMethods.documentCookieSetter.call(this.document, generateDeleteSyncCookieStr(parsedCookie));
+            changeSyncType(parsedCookie, { window: false });
+            nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
         });
     }
 
@@ -209,7 +205,7 @@ export default class CookieSandbox extends SandboxBase {
             const endIndex   = startIndex + parsedCookie.cookieStr.length;
 
             if (startIndex > -1 && (clientCookie.length === endIndex || clientCookie.charAt(endIndex) === ';')) {
-                this.setCookie(this.document, parsedCookie, false);
+                this.setCookie(this.document, parsedCookie);
                 actualCookies.push(parsedCookie);
             }
         }

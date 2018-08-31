@@ -79,7 +79,7 @@ export function getParsed () {
     let pathname   = nativeMethods.anchorPathnameGetter.call(resolver);
 
     // NOTE: IE ignores the first '/' symbol in the pathname.
-    if (pathname.indexOf('/') !== 0)
+    if (pathname.charAt(0) !== '/')
         pathname = '/' + pathname;
 
     // TODO: Describe default ports logic.
