@@ -746,12 +746,13 @@ describe('Proxy', () => {
         describe('Client synchronization with server', () => {
             it('Should process the cookie header that contain a sync cookie data', () => {
                 const options = {
-                    url:                     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
-                    headers:                 {
+                    url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
+                    headers: {
                         cookie: `c|${session.id}|Test1|127.0.0.1|%2Fcookie||1fdkm5ln1=Data1; ` +
                                 `cw|${session.id}|Test2|127.0.0.1|%2F||1fdkm5ln1=Data2; ` +
                                 `c|${session.id}|Test3|example.com|%2F||1fdkm5ln1=Data3`
                     },
+
                     resolveWithFullResponse: true
                 };
 
