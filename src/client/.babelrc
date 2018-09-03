@@ -2,9 +2,6 @@
   "compact": false,
   "presets": [
     ["env", {
-      "targets": {
-        "browsers": ["ie >= 11"]
-      },
       "loose": true,
       "exclude": [
         "transform-es2015-typeof-symbol"
