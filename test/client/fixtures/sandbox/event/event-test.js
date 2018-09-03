@@ -51,6 +51,55 @@ test('document.addEventListener (Q532574)', function () {
     strictEqual(docClickRaisedCount, 1);
 });
 
+test('add/remove event listeners in the context of optional parameters ("options" object or "useCapture") (GH-1737)', function () {
+    expect(browserUtils.isIE11 ? 0 : 4);
+
+    function expectedClickHandler () {
+        ok(true);
+    }
+
+    function unexpectedClickHandler () {
+        ok(false);
+    }
+
+    var paramsCases = [
+        { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler] },
+        { addEventListener: [unexpectedClickHandler, true], removeEventListener: [unexpectedClickHandler, true] },
+        { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, false] },
+        { addEventListener: [unexpectedClickHandler, false], removeEventListener: [unexpectedClickHandler] },
+        { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler, { capture: false }] }
+    ];
+
+    if (!browserUtils.isIE11) {
+        paramsCases = paramsCases.concat([
+            { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler] },
+            { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, { capture: false }] },
+            { addEventListener: [expectedClickHandler, { capture: true }], removeEventListener: [expectedClickHandler, false] },
+            { addEventListener: [expectedClickHandler, false], removeEventListener: [expectedClickHandler, { capture: true }] }
+        ]);
+    }
+
+    function test (el) {
+        paramsCases.forEach(function (paramsCase) {
+            el.addEventListener.apply(el, ['click'].concat(paramsCase.addEventListener));
+            el.removeEventListener.apply(el, ['click'].concat(paramsCase.removeEventListener));
+
+            el.click();
+
+            if (paramsCase.addEventListener[0] === expectedClickHandler)
+                el.removeEventListener.apply(el, ['click'].concat(paramsCase.addEventListener));
+        });
+    }
+
+    var divEl = document.body.appendChild(document.createElement('div'));
+
+    listeners.initElementListening(document, ['click']);
+    listeners.initElementListening(divEl, ['click']);
+
+    test(document.body);
+    test(divEl);
+});
+
 test('firing and dispatching the events created in different ways (Q532574)', function () {
     var $div                      = $('<div>').appendTo('body');
     var div                       = $div[0];
