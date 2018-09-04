@@ -14,6 +14,60 @@ asyncTest('override setTimeout error (T203986)', function () {
     }, 10, str);
 });
 
+test('remove event listener in the context of optional parameters ("options" object or "useCapture") (GH-1737)', function () {
+    expect(browserUtils.isIE11 ? 0 : 4);
+
+    function expectedClickHandler () {
+        ok(true);
+    }
+
+    function unexpectedClickHandler () {
+        ok(false);
+    }
+
+    var testCases = [
+        { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler] },
+        { addEventListener: [unexpectedClickHandler, true], removeEventListener: [unexpectedClickHandler, true] },
+        { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, false] },
+        { addEventListener: [unexpectedClickHandler, false], removeEventListener: [unexpectedClickHandler] },
+        { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler, { capture: false }] }
+    ];
+
+    // NOTE: IE11 doesn't support 'options.capture' option
+    if (!browserUtils.isIE11) {
+        testCases = testCases.concat([
+            { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler] },
+            { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, { capture: false }] },
+            { addEventListener: [expectedClickHandler, { capture: true }], removeEventListener: [expectedClickHandler, false] },
+            { addEventListener: [expectedClickHandler, false], removeEventListener: [expectedClickHandler, { capture: true }] }
+        ]);
+    }
+
+    function checkEventListenerRemoving (el) {
+        testCases.forEach(function (testCase) {
+            var addEventListenerArgs    = ['click'].concat(testCase.addEventListener);
+            var removeEventListenerArgs = ['click'].concat(testCase.removeEventListener);
+
+            el.addEventListener.apply(el, addEventListenerArgs);
+            el.removeEventListener.apply(el, removeEventListenerArgs);
+
+            el.click();
+
+            if (testCase.addEventListener[0] === expectedClickHandler)
+                el.removeEventListener.apply(el, addEventListenerArgs);
+        });
+    }
+
+    var divEl = document.body.appendChild(document.createElement('div'));
+
+    listeners.initElementListening(document, ['click']);
+    listeners.initElementListening(divEl, ['click']);
+
+    checkEventListenerRemoving(document.body);
+    checkEventListenerRemoving(divEl);
+});
+
+
 module('regression');
 
 asyncTest('focus / blur events in iframe (B253685)', function () {

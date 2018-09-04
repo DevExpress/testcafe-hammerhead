@@ -84,6 +84,15 @@ export default class Listeners extends EventEmitter {
         return true;
     }
 
+    static _getUseCaptureParam (optionalParam) {
+        if (optionalParam && typeof optionalParam === 'boolean')
+            return optionalParam;
+        else if (optionalParam && typeof optionalParam === 'object')
+            return !!optionalParam.capture;
+
+        return false;
+    }
+
     _createEventHandler () {
         const listeners = this;
 
@@ -136,7 +145,7 @@ export default class Listeners extends EventEmitter {
             addEventListener: function (...args) {
                 const type                   = args[0];
                 const listener               = args[1];
-                const useCapture             = args[2];
+                const useCapture             = Listeners._getUseCaptureParam(args[2]);
                 const eventListeningInfo     = listeningCtx.getEventCtx(el, type);
                 const nativeAddEventListener = Listeners._getNativeAddEventListener(el);
 
@@ -165,7 +174,7 @@ export default class Listeners extends EventEmitter {
             removeEventListener: function (...args) {
                 const type                      = args[0];
                 const listener                  = args[1];
-                const useCapture                = args[2];
+                const useCapture                = Listeners._getUseCaptureParam(args[2]);
                 const nativeRemoveEventListener = Listeners._getNativeRemoveEventListener(el);
                 const eventCtx                  = listeningCtx.getEventCtx(el, type);
 
@@ -189,12 +198,15 @@ export default class Listeners extends EventEmitter {
         const nativeRemoveEventListener = (() => doc.body.removeEventListener)();
 
         return {
-            addEventListener: function (type, listener, useCapture) {
+            addEventListener: function (...args) {
+                const type                  = args[0];
+                const listener              = args[1];
+                const useCapture            = Listeners._getUseCaptureParam(args[2]);
                 const docEventListeningInfo = listeningCtx.getEventCtx(doc, type);
                 const eventListeningInfo    = listeningCtx.getEventCtx(this, type);
 
                 if (!docEventListeningInfo || !isValidEventListener(listener))
-                    return nativeAddEventListener.call(this, type, listener, useCapture);
+                    return nativeAddEventListener.apply(this, args);
 
                 // NOTE: T233158
                 const isDifferentHandler = Listeners._isDifferentHandler(eventListeningInfo.outerHandlers, listener, useCapture);
@@ -217,7 +229,11 @@ export default class Listeners extends EventEmitter {
                 return res;
             },
 
-            removeEventListener: function (type, listener, useCapture) {
+            removeEventListener: function (...args) {
+                const type       = args[0];
+                const listener   = args[1];
+                const useCapture = Listeners._getUseCaptureParam(args[2]);
+
                 const eventListeningInfo = listeningCtx.getEventCtx(this, type);
 
                 if (!eventListeningInfo || !isValidEventListener(listener))
