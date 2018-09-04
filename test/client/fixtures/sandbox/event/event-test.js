@@ -25,7 +25,7 @@ test('remove event listener in the context of optional parameters ("options" obj
         ok(false);
     }
 
-    var paramsCases = [
+    var testCases = [
         { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler] },
         { addEventListener: [unexpectedClickHandler, true], removeEventListener: [unexpectedClickHandler, true] },
         { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, false] },
@@ -35,7 +35,7 @@ test('remove event listener in the context of optional parameters ("options" obj
 
     // NOTE: IE11 doesn't support 'options.capture' option
     if (!browserUtils.isIE11) {
-        paramsCases = paramsCases.concat([
+        testCases = testCases.concat([
             { addEventListener: [unexpectedClickHandler, { capture: false }], removeEventListener: [unexpectedClickHandler] },
             { addEventListener: [unexpectedClickHandler], removeEventListener: [unexpectedClickHandler, { capture: false }] },
             { addEventListener: [expectedClickHandler, { capture: true }], removeEventListener: [expectedClickHandler, false] },
@@ -44,14 +44,17 @@ test('remove event listener in the context of optional parameters ("options" obj
     }
 
     function checkEventListenerRemoving (el) {
-        paramsCases.forEach(function (paramsCase) {
-            el.addEventListener.apply(el, ['click'].concat(paramsCase.addEventListener));
-            el.removeEventListener.apply(el, ['click'].concat(paramsCase.removeEventListener));
+        testCases.forEach(function (testCase) {
+            var addEventListenerArgs    = ['click'].concat(testCase.addEventListener);
+            var removeEventListenerArgs = ['click'].concat(testCase.removeEventListener);
+
+            el.addEventListener.apply(el, addEventListenerArgs);
+            el.removeEventListener.apply(el, removeEventListenerArgs);
 
             el.click();
 
-            if (paramsCase.addEventListener[0] === expectedClickHandler)
-                el.removeEventListener.apply(el, ['click'].concat(paramsCase.addEventListener));
+            if (testCase.addEventListener[0] === expectedClickHandler)
+                el.removeEventListener.apply(el, addEventListenerArgs);
         });
     }
 

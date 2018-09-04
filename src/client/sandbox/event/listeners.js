@@ -88,7 +88,7 @@ export default class Listeners extends EventEmitter {
         if (optionalParam && typeof optionalParam === 'boolean')
             return optionalParam;
         else if (optionalParam && typeof optionalParam === 'object')
-            return optionalParam.capture || false;
+            return !!optionalParam.capture;
 
         return false;
     }
