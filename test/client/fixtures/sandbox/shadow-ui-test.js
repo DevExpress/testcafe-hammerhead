@@ -102,141 +102,156 @@ test('set innerHTML for root', function () {
     ok(domUtils.isShadowUIElement(root.childNodes[0]));
 });
 
-module('childNodes');
+module('childNodes', function () {
+    module('length', function () {
+        test('body.childNodes', function () {
+            var root                   = shadowUI.getRoot();
+            var found                  = false;
+            var childNodes             = document.body.childNodes;
+            var childNodesOriginLength = nativeMethods.nodeListLengthGetter.call(childNodes);
+            var childNodesLength       = childNodes.length;
 
-test('body.childNodes', function () {
-    var root                   = shadowUI.getRoot();
-    var found                  = false;
-    var childNodes             = document.body.childNodes;
-    var childNodesOriginLength = nativeMethods.nodeListLengthGetter.call(childNodes);
-    var childNodesLength       = childNodes.length;
+            strictEqual(childNodesLength, childNodesOriginLength - 1);
 
-    strictEqual(childNodesLength, childNodesOriginLength - 1);
+            for (var i = 0; i < childNodesLength; i++) {
+                if (childNodes[i] === root)
+                    found = true;
+            }
 
-    for (var i = 0; i < childNodesLength; i++) {
-        if (childNodes[i] === root)
-            found = true;
-    }
+            ok(!found);
+        });
 
-    ok(!found);
+        test('body.children', function () {
+            var root                 = shadowUI.getRoot();
+            var found                = false;
+            var children             = document.body.children;
+            var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(children);
+            var childrenLength       = children.length;
+
+            strictEqual(childrenLength, childrenOriginLength - 1);
+
+            for (var i = 0; i < childrenLength; i++) {
+                if (children[i] === root)
+                    found = true;
+            }
+
+            ok(!found);
+        });
+
+        test('head.children', function () {
+            var shadowUIElementsCount   = 0;
+            var childrenOriginLength    = nativeMethods.htmlCollectionLengthGetter.call(document.head.children);
+
+            for (var i = 0; i < childrenOriginLength; i++)
+                shadowUIElementsCount += domUtils.isShadowUIElement(document.head.children[i]) ? 1 : 0;
+
+            var found = false;
+            var link1 = document.createElement('link');
+
+            link1.rel  = 'stylesheet';
+            link1.type = 'text/css';
+
+            nativeMethods.linkHrefSetter.call(link1, '/test.css');
+
+            shadowUI.addClass(link1, 'ui-stylesheet');
+            document.head.insertBefore(link1, nativeMethods.nodeFirstChildGetter.call(document.head));
+
+            var link2 = document.createElement('link');
+
+            link2.rel  = 'stylesheet';
+            link2.type = 'text/css';
+
+            nativeMethods.linkHrefSetter.call(link2, '/test.css');
+
+            shadowUI.addClass(link2, 'ui-stylesheet');
+            document.head.insertBefore(link2, nativeMethods.nodeFirstChildGetter.call(document.head));
+
+            var children       = document.head.children;
+            var childrenLength = children.length;
+
+            childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.head.children);
+
+            strictEqual(childrenLength, childrenOriginLength - 2 - shadowUIElementsCount);
+
+            for (var j = 0; j < childrenLength; j++) {
+                if (children[j] === link1 || children[j] === link2)
+                    found = true;
+            }
+
+            link1.parentNode.removeChild(link1);
+            link2.parentNode.removeChild(link2);
+
+            ok(!found, 'check that document.head.children does not return Hammerhead elements');
+        });
+
+        test('head.childNodes', function () {
+            var shadowUIElementsCount   = 0;
+            var childNodesOriginLength  = nativeMethods.nodeListLengthGetter.call(document.head.childNodes);
+
+            for (var i = 0; i < childNodesOriginLength; i++)
+                shadowUIElementsCount += domUtils.isShadowUIElement(document.head.childNodes[i]) ? 1 : 0;
+
+            var found = false;
+            var link1 = document.createElement('link');
+
+            link1.rel  = 'stylesheet';
+            link1.type = 'text/css';
+
+            nativeMethods.linkHrefSetter.call(link1, '/test.css');
+
+            shadowUI.addClass(link1, 'ui-stylesheet');
+            document.head.insertBefore(link1, nativeMethods.nodeFirstChildGetter.call(document.head));
+
+            var link2 = document.createElement('link');
+
+            link2.rel  = 'stylesheet';
+            link2.type = 'text/css';
+
+            nativeMethods.linkHrefSetter.call(link2, '/test.css');
+
+            shadowUI.addClass(link2, 'ui-stylesheet');
+            document.head.insertBefore(link2, nativeMethods.nodeFirstChildGetter.call(document.head));
+
+            var childNodes           = document.head.childNodes;
+            var childNodesLength     = childNodes.length;
+
+            childNodesOriginLength = nativeMethods.nodeListLengthGetter.call(childNodes);
+
+            strictEqual(childNodesLength, childNodesOriginLength - 2 - shadowUIElementsCount);
+
+            for (var j = 0; j < childNodesLength; j++) {
+                if (childNodes[j] === link1 || childNodes[j] === link2)
+                    found = true;
+            }
+
+            link1.parentNode.removeChild(link1);
+            link2.parentNode.removeChild(link2);
+
+            ok(!found, 'check that document.head.childNodes does not return Hammerhead elements');
+        });
+    });
+
+    test('isShadowContainerCollection', function () {
+        var el         = document.body.insertBefore(document.createElement('div'), document.body.firstChild);
+        var collection = document.querySelectorAll('body *');
+
+        strictEqual(collection[0], el);
+        ok(!ShadowUI.isShadowContainerCollection(collection));
+    });
+
+    test('access by index (GH-1747)', function () {
+        expect(0);
+
+        var root = shadowUI.getRoot();
+
+        for (var i = 0, childNode; childNode = getProperty(document.body.childNodes, i); i++) { // eslint-disable-line no-cond-assign
+            if (childNode === root)
+                ok(false, 'ShadowUI root was found');
+        }
+    });
 });
 
-test('body.children', function () {
-    var root                 = shadowUI.getRoot();
-    var found                = false;
-    var children             = document.body.children;
-    var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(children);
-    var childrenLength       = children.length;
-
-    strictEqual(childrenLength, childrenOriginLength - 1);
-
-    for (var i = 0; i < childrenLength; i++) {
-        if (children[i] === root)
-            found = true;
-    }
-
-    ok(!found);
-});
-
-test('head.children', function () {
-    var shadowUIElementsCount   = 0;
-    var childrenOriginLength    = nativeMethods.htmlCollectionLengthGetter.call(document.head.children);
-
-    for (var i = 0; i < childrenOriginLength; i++)
-        shadowUIElementsCount += domUtils.isShadowUIElement(document.head.children[i]) ? 1 : 0;
-
-    var found = false;
-    var link1 = document.createElement('link');
-
-    link1.rel  = 'stylesheet';
-    link1.type = 'text/css';
-
-    nativeMethods.linkHrefSetter.call(link1, '/test.css');
-
-    shadowUI.addClass(link1, 'ui-stylesheet');
-    document.head.insertBefore(link1, nativeMethods.nodeFirstChildGetter.call(document.head));
-
-    var link2 = document.createElement('link');
-
-    link2.rel  = 'stylesheet';
-    link2.type = 'text/css';
-
-    nativeMethods.linkHrefSetter.call(link2, '/test.css');
-
-    shadowUI.addClass(link2, 'ui-stylesheet');
-    document.head.insertBefore(link2, nativeMethods.nodeFirstChildGetter.call(document.head));
-
-    var children       = document.head.children;
-    var childrenLength = children.length;
-
-    childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.head.children);
-
-    strictEqual(childrenLength, childrenOriginLength - 2 - shadowUIElementsCount);
-
-    for (var j = 0; j < childrenLength; j++) {
-        if (children[j] === link1 || children[j] === link2)
-            found = true;
-    }
-
-    link1.parentNode.removeChild(link1);
-    link2.parentNode.removeChild(link2);
-
-    ok(!found, 'check that document.head.children does not return Hammerhead elements');
-});
-
-test('head.childNodes', function () {
-    var shadowUIElementsCount   = 0;
-    var childNodesOriginLength  = nativeMethods.nodeListLengthGetter.call(document.head.childNodes);
-
-    for (var i = 0; i < childNodesOriginLength; i++)
-        shadowUIElementsCount += domUtils.isShadowUIElement(document.head.childNodes[i]) ? 1 : 0;
-
-    var found = false;
-    var link1 = document.createElement('link');
-
-    link1.rel  = 'stylesheet';
-    link1.type = 'text/css';
-
-    nativeMethods.linkHrefSetter.call(link1, '/test.css');
-
-    shadowUI.addClass(link1, 'ui-stylesheet');
-    document.head.insertBefore(link1, nativeMethods.nodeFirstChildGetter.call(document.head));
-
-    var link2 = document.createElement('link');
-
-    link2.rel  = 'stylesheet';
-    link2.type = 'text/css';
-
-    nativeMethods.linkHrefSetter.call(link2, '/test.css');
-
-    shadowUI.addClass(link2, 'ui-stylesheet');
-    document.head.insertBefore(link2, nativeMethods.nodeFirstChildGetter.call(document.head));
-
-    var childNodes           = document.head.childNodes;
-    var childNodesLength     = childNodes.length;
-
-    childNodesOriginLength = nativeMethods.nodeListLengthGetter.call(childNodes);
-
-    strictEqual(childNodesLength, childNodesOriginLength - 2 - shadowUIElementsCount);
-
-    for (var j = 0; j < childNodesLength; j++) {
-        if (childNodes[j] === link1 || childNodes[j] === link2)
-            found = true;
-    }
-
-    link1.parentNode.removeChild(link1);
-    link2.parentNode.removeChild(link2);
-
-    ok(!found, 'check that document.head.childNodes does not return Hammerhead elements');
-});
-
-test('isShadowContainerCollection', function () {
-    var el         = document.body.insertBefore(document.createElement('div'), document.body.firstChild);
-    var collection = document.querySelectorAll('body *');
-
-    strictEqual(collection[0], el);
-    ok(!ShadowUI.isShadowContainerCollection(collection));
-});
+module('element methods');
 
 test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function () {
     var input = document.createElement('input');
@@ -317,8 +332,6 @@ test('Node.nextSibling when Node is TEXT_NODE and nextSibling is null (GH-1469)'
 
     div.parentNode.removeChild(div);
 });
-
-module('element methods');
 
 test('Node.childElementCount', function () {
     var bodyChildCount = nativeMethods.elementChildElementCountGetter.call(document.body);
