@@ -111,7 +111,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     accessors[propName].condition(owner))
                     return accessors[propName].get(owner);
 
-                return owner[propName];
+                const propertyValue = owner[propName];
+
+                if (propertyValue && domUtils.isShadowUIElement(propertyValue))
+                    return void 0;
+
+                return propertyValue;
             },
 
             configurable: true
