@@ -235,7 +235,7 @@ module('childNodes', function () {
             test('for ...of', function () {
                 expect(0);
 
-                // NOTE: We are forced to use this hack because IE11 raised a syntax error if page contains the 'for..of' loop
+                // NOTE: We are forced to use this hack because IE11 raises a syntax error if a page contains the 'for..of' loop
                 var code = [
                     'var root = shadowUI.getRoot();',
                     'for (var childNode of document.body.childNodes) {',
