@@ -249,6 +249,17 @@ module('childNodes', function () {
                 ok(false, 'ShadowUI root was found');
         }
     });
+
+    test('for ...of', function () {
+        expect(0);
+
+        var root = shadowUI.getRoot();
+
+        for (var childNode of document.body.childNodes) {
+            if (childNode === root)
+                ok(false, 'ShadowUI root was found');
+        }
+    });
 });
 
 module('element methods');
