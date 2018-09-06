@@ -229,6 +229,17 @@ module('childNodes', function () {
 
             ok(!found, 'check that document.head.childNodes does not return Hammerhead elements');
         });
+
+        test('for ...of', function () {
+            expect(0);
+
+            var root = shadowUI.getRoot();
+
+            for (var childNode of document.body.childNodes) {
+                if (childNode === root)
+                    ok(false, 'ShadowUI root was found');
+            }
+        });
     });
 
     test('isShadowContainerCollection', function () {
@@ -245,17 +256,6 @@ module('childNodes', function () {
         var root = shadowUI.getRoot();
 
         for (var i = 0, childNode; childNode = getProperty(document.body.childNodes, i); i++) { // eslint-disable-line no-cond-assign
-            if (childNode === root)
-                ok(false, 'ShadowUI root was found');
-        }
-    });
-
-    test('for ...of', function () {
-        expect(0);
-
-        var root = shadowUI.getRoot();
-
-        for (var childNode of document.body.childNodes) {
             if (childNode === root)
                 ok(false, 'ShadowUI root was found');
         }
