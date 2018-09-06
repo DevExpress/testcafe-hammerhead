@@ -94,11 +94,8 @@ export default class WindowSandbox extends SandboxBase {
         // NOTE: Firefox does not include an error message in a stack trace (unlike other browsers)
         // It is possible to get a stack trace for unhandled Promise rejections only if Promise is rejected with the 'Error' instance value.
         // This is why we should convert the stack to a common format.
-        stack = stack || NO_STACK_TRACE_AVAILABLE_MESSAGE;
-
-        if (stack.indexOf(msg) === -1) {
-            if (stack === NO_STACK_TRACE_AVAILABLE_MESSAGE)
-                stack = '    ' + stack;
+        if (!stack || stack.indexOf(msg) === -1) {
+            stack = stack || `    ${NO_STACK_TRACE_AVAILABLE_MESSAGE}`;
 
             return `${msg}:\n${stack}`;
         }
