@@ -116,7 +116,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 if (propertyValue && domUtils.isShadowUIElement(propertyValue))
                     return void 0;
 
-                return owner[propName];
+                return propertyValue;
             },
 
             configurable: true
