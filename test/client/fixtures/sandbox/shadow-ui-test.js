@@ -4,6 +4,7 @@ var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties'
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var domUtils      = hammerhead.utils.dom;
+var browserUtils  = hammerhead.utils.browser;
 var positionUtils = hammerhead.utils.position;
 var nativeMethods = hammerhead.nativeMethods;
 var Promise       = hammerhead.Promise;
@@ -230,16 +231,22 @@ module('childNodes', function () {
             ok(!found, 'check that document.head.childNodes does not return Hammerhead elements');
         });
 
-        test('for ...of', function () {
-            expect(0);
+        if (!browserUtils.isIE11) {
+            test('for ...of', function () {
+                expect(0);
 
-            var root = shadowUI.getRoot();
+                // NOTE: We are forced to use this hack because IE11 raised a syntax error if page contains the 'for..of' loop
+                var code = [
+                    'var root = shadowUI.getRoot();',
+                    'for (var childNode of document.body.childNodes) {',
+                    '    if (childNode === root)',
+                    '        ok(false, "ShadowUI root was found");',
+                    '}'
+                ].join('\n');
 
-            for (var childNode of document.body.childNodes) {
-                if (childNode === root)
-                    ok(false, 'ShadowUI root was found');
-            }
-        });
+                eval(code);
+            });
+        }
     });
 
     test('isShadowContainerCollection', function () {
