@@ -48,6 +48,7 @@ import urlResolver from '../../utils/url-resolver';
 import { remove as removeProcessingHeader } from '../../../processing/script/header';
 import DOMMutationTracker from './live-node-list/dom-mutation-tracker';
 import { getAttributes } from './attributes';
+import replaceProxiedUrlsInStack from '../../utils/replace-proxied-urls-in-stack';
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
@@ -70,6 +71,8 @@ const SANDBOX_DOM_TOKEN_LIST           = 'hammerhead|sandbox-dom-token-list';
 const SANDBOX_DOM_TOKEN_LIST_OWNER     = 'hammerhead|sandbox-dom-token-list-owner';
 const SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = 'hammerhead|sandbox-dom-token-list-update';
 
+const NO_STACK_TRACE_AVAILABLE_MESSAGE = 'No stack trace available';
+
 export default class WindowSandbox extends SandboxBase {
     constructor (nodeSandbox, eventSandbox, uploadSandbox, nodeMutation) {
         super();
@@ -87,20 +90,46 @@ export default class WindowSandbox extends SandboxBase {
         this.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = SANDBOX_DOM_TOKEN_LIST_UPDATE_FN;
     }
 
-    _raiseUncaughtJsErrorEvent (type, msg, window, pageUrl) {
-        if (!isCrossDomainWindows(window, window.top)) {
-            const sendToTopWindow = window !== window.top;
+    static _prepareStack (msg, stack) {
+        // NOTE: Firefox does not include an error message in a stack trace (unlike other browsers)
+        // It is possible to get a stack trace for unhandled Promise rejections only if Promise is rejected with the 'Error' instance value.
+        // This is why we should convert the stack to a common format.
+        if (!stack || stack.indexOf(msg) === -1) {
+            stack = stack || `    ${NO_STACK_TRACE_AVAILABLE_MESSAGE}`;
 
-            if (!pageUrl)
-                pageUrl = destLocation.get();
-
-            if (sendToTopWindow) {
-                this.emit(type, { msg, pageUrl, inIframe: true });
-                this.messageSandbox.sendServiceMsg({ msg, pageUrl, cmd: type }, window.top);
-            }
-            else
-                this.emit(type, { msg, pageUrl });
+            return `${msg}:\n${stack}`;
         }
+
+        return stack;
+    }
+
+    _raiseUncaughtJsErrorEvent (type, event, window) {
+        if (isCrossDomainWindows(window, window.top))
+            return;
+
+        const sendToTopWindow = window !== window.top;
+        const pageUrl         = destLocation.get();
+        let msg               = null;
+        let stack             = null;
+
+        if (type === this.UNHANDLED_REJECTION_EVENT) {
+            msg   = WindowSandbox._formatUnhandledRejectionReason(event.reason);
+            stack = event.reason && event.reason.stack;
+        }
+        else if (type === this.UNCAUGHT_JS_ERROR_EVENT) {
+            msg   = event.error.message;
+            stack = event.error.stack;
+        }
+
+        stack = WindowSandbox._prepareStack(msg, stack);
+        stack = replaceProxiedUrlsInStack(stack);
+
+        if (sendToTopWindow) {
+            this.emit(type, { msg, pageUrl, stack, inIframe: true });
+            this.messageSandbox.sendServiceMsg({ msg, pageUrl, stack, cmd: type }, window.top);
+        }
+        else
+            this.emit(type, { msg, pageUrl, stack });
     }
 
     _reattachHandler (window, eventName) {
@@ -250,16 +279,13 @@ export default class WindowSandbox extends SandboxBase {
         if (event.defaultPrevented)
             return;
 
-        if (event.type === 'unhandledrejection') {
-            const reason = WindowSandbox._formatUnhandledRejectionReason(event.reason);
-
-            this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, reason, this.window);
-        }
+        if (event.type === 'unhandledrejection')
+            this._raiseUncaughtJsErrorEvent(this.UNHANDLED_REJECTION_EVENT, event, this.window);
         else if (event.type === 'error') {
             if (event.message.indexOf('NS_ERROR_NOT_INITIALIZED') !== -1)
                 event.preventDefault();
             else
-                this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, event.message, window);
+                this._raiseUncaughtJsErrorEvent(this.UNCAUGHT_JS_ERROR_EVENT, event, window);
         }
     }
 
@@ -268,6 +294,7 @@ export default class WindowSandbox extends SandboxBase {
 
         const messageSandbox = this.messageSandbox;
         const nodeSandbox    = this.nodeSandbox;
+        const windowSandbox  = this;
 
         this._reattachHandler(window, 'unhandledrejection');
         this._reattachHandler(window, 'error');
@@ -287,10 +314,10 @@ export default class WindowSandbox extends SandboxBase {
             this._overrideErrEventPropDescriptor(window, 'unhandledrejection', nativeMethods.winOnUnhandledRejectionSetter);
 
         messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
-            const message = e.message;
+            const { msg, pageUrl, stack, cmd } = e.message;
 
-            if (message.cmd === this.UNCAUGHT_JS_ERROR_EVENT || message.cmd === this.UNHANDLED_REJECTION_EVENT)
-                this._raiseUncaughtJsErrorEvent(message.cmd, message.msg, window, message.pageUrl);
+            if (cmd === this.UNCAUGHT_JS_ERROR_EVENT || cmd === this.UNHANDLED_REJECTION_EVENT)
+                windowSandbox.emit(cmd, { msg, pageUrl, stack });
         });
 
         window.CanvasRenderingContext2D.prototype.drawImage = function (...args) {
@@ -716,8 +743,6 @@ export default class WindowSandbox extends SandboxBase {
                 }
             });
         }
-
-        const windowSandbox = this;
 
         overrideDescriptor(window.HTMLInputElement.prototype, 'files', {
             getter: function () {
