@@ -507,6 +507,20 @@ export default class WindowSandbox extends SandboxBase {
             };
         }
 
+        if (nativeMethods.getRegistrationServiceWorker) {
+            window.navigator.serviceWorker.getRegistration = (...args) => {
+                const scopeUrl = args[0];
+
+                if (typeof scopeUrl === 'string') {
+                    args[0] = getProxyUrl(scopeUrl, {
+                        resourceType: stringifyResourceType({ isScript: true })
+                    });
+                }
+
+                return nativeMethods.getRegistrationServiceWorker.apply(window.navigator.serviceWorker, args);
+            };
+        }
+
         if (window.Range.prototype.createContextualFragment) {
             window.Range.prototype.createContextualFragment = function (...args) {
                 const tagString = args[0];

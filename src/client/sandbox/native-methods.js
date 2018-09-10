@@ -200,6 +200,13 @@ class NativeMethods {
             this.registerServiceWorker = null;
         }
 
+        try {
+            this.getRegistrationServiceWorker = win.navigator.serviceWorker.getRegistration;
+        }
+        catch (e) {
+            this.getRegistrationServiceWorker = null;
+        }
+
         this.createContextualFragment = win.Range.prototype.createContextualFragment;
 
         const nativePerformance    = win.performance;
