@@ -277,9 +277,11 @@ function callOnRequestEventCallback (ctx, rule, reqInfo) {
 
 function callOnResponseEventCallbackWithCollectedBody (ctx, rule, configureOpts) {
     const destResBodyCollectorStream = new PassThrough();
+    const chunks                     = [];
 
-    destResBodyCollectorStream.on('finish', () => {
-        const data = destResBodyCollectorStream.read();
+    destResBodyCollectorStream.on('data', chunk => chunks.push(chunk));
+    destResBodyCollectorStream.on('end', () => {
+        const data = Buffer.concat(chunks);
 
         ctx.saveNonProcessedDestResBody(data);
 
