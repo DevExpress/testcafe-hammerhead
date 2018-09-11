@@ -304,6 +304,24 @@ if (window.navigator.serviceWorker) {
                     ok(false, err);
                 });
         });
+
+        test('window.navigator.serviceWorker.getReqistration (GH-1618)', function () {
+            expect(1);
+
+            var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
+            var scopeUrl  = '/';
+
+            return window.navigator.serviceWorker.register(scriptUrl, { scope: scopeUrl })
+                .then(function () {
+                    window.navigator.serviceWorker.getRegistration(scopeUrl)
+                        .then(function (serviceWorkerRegistration) {
+                            ok(!!serviceWorkerRegistration);
+                        })
+                        .catch(function (err) {
+                            ok(false, err);
+                        });
+                });
+        });
     }
 }
 

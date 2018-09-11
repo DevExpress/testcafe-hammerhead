@@ -194,10 +194,12 @@ class NativeMethods {
         this.xhrDispatchEvent         = win.XMLHttpRequest.prototype.dispatchEvent;
 
         try {
-            this.registerServiceWorker = win.navigator.serviceWorker.register;
+            this.registerServiceWorker        = win.navigator.serviceWorker.register;
+            this.getRegistrationServiceWorker = win.navigator.serviceWorker.getRegistration;
         }
         catch (e) {
-            this.registerServiceWorker = null;
+            this.registerServiceWorker        = null;
+            this.getRegistrationServiceWorker = null;
         }
 
         this.createContextualFragment = win.Range.prototype.createContextualFragment;
