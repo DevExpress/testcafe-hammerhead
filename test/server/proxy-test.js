@@ -387,6 +387,23 @@ describe('Proxy', () => {
             res.json(TEST_OBJ);
         });
 
+        app.get('/large-json', (req, res) => {
+            const result = {};
+            const COUNT_ITEMS = 3000;
+
+            for (let i = 0; i < COUNT_ITEMS; i++) {
+                const item = {
+                    'strProp':  'strProp' + i,
+                    'intProp':  i,
+                    'boolProp': !!(i % 2)
+                };
+
+                result[i] = item;
+            }
+
+            res.json(result);
+        });
+
         destServer = app.listen(2000);
 
         const crossDomainApp = express();
@@ -2325,6 +2342,35 @@ describe('Proxy', () => {
                     .then(() => {
                         expect(countOnResponseEvents).eql(3);
                         rules.forEach(rule => session.removeRequestEventListeners(rule));
+                    });
+            });
+
+            it('Pipe a large response (TC-GH-2725)', () => {
+                const url           = 'http://127.0.0.1:2000/large-json';
+                const rule          = new RequestFilterRule(url);
+                let responseWasSent = false;
+
+                session.addRequestEventListeners(rule, {
+                    onConfigureResponse: e => {
+                        e.opts.includeBody = true;
+                    },
+
+                    onResponse: () => {
+                        responseWasSent = true;
+                    }
+                });
+
+                const options = {
+                    url:  proxy.openSession(url, session),
+                    json: true
+                };
+
+                return request(options)
+                    .then(body => {
+                        expect(body).not.empty;
+                        expect(responseWasSent).eql(true);
+
+                        session.removeRequestEventListeners(rule);
                     });
             });
         });
