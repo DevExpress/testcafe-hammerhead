@@ -194,16 +194,11 @@ class NativeMethods {
         this.xhrDispatchEvent         = win.XMLHttpRequest.prototype.dispatchEvent;
 
         try {
-            this.registerServiceWorker = win.navigator.serviceWorker.register;
-        }
-        catch (e) {
-            this.registerServiceWorker = null;
-        }
-
-        try {
+            this.registerServiceWorker        = win.navigator.serviceWorker.register;
             this.getRegistrationServiceWorker = win.navigator.serviceWorker.getRegistration;
         }
         catch (e) {
+            this.registerServiceWorker        = null;
             this.getRegistrationServiceWorker = null;
         }
 

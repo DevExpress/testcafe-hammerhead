@@ -305,7 +305,7 @@ if (window.navigator.serviceWorker) {
                 });
         });
 
-        test('should get existing ServiceWorkerRegistration object for given "scope" URL (GH-1618)', function () {
+        test('window.navigator.serviceWorker.getReqistration (GH-1618)', function () {
             expect(1);
 
             var scriptUrl = window.QUnitGlobals.getResourceUrl('../../../data/serviceWorker.js');
