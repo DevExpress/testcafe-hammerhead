@@ -1004,10 +1004,21 @@ export default class WindowSandbox extends SandboxBase {
 
         if (window.DOMParser) {
             window.DOMParser.prototype.parseFromString = function (...args) {
-                if (args.length > 1 && typeof args[0] === 'string' && args[1] === 'text/html')
-                    args[0] = processHtml(args[0]);
+                const str  = args[0];
+                const type = args[1];
+                let processedHtml;
 
-                return nativeMethods.DOMParserParseFromString.apply(this, args);
+                if (args.length > 1 && typeof str === 'string' && type === 'text/html') {
+                    processedHtml = processHtml(str);
+                    args[0]       = processedHtml;
+                }
+
+                const document = nativeMethods.DOMParserParseFromString.apply(this, args);
+
+                if (processedHtml)
+                    ShadowUI.removeSelfRemovingScripts(document);
+
+                return document;
             };
         }
 

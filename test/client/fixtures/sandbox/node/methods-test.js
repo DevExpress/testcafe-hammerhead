@@ -1,6 +1,7 @@
-var INTERNAL_PROPS = hammerhead.get('../processing/dom/internal-properties');
-var DomProcessor   = hammerhead.get('../processing/dom');
-var urlUtils       = hammerhead.get('./utils/url');
+var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
+var DomProcessor        = hammerhead.get('../processing/dom');
+var urlUtils            = hammerhead.get('./utils/url');
+var SHADOW_UI_CLASSNAME = hammerhead.get('../shadow-ui/class-name');
 
 var browserUtils  = hammerhead.utils.browser;
 var nativeMethods = hammerhead.nativeMethods;
@@ -349,28 +350,47 @@ if (!browserUtils.isFirefox) {
 }
 
 if (window.DOMParser) {
-    test('DOMParser.parseFromString', function () {
-        var htmlStr        = '<a href="/path">Anchor</a>';
-        var domParser      = new DOMParser();
-        var parsedDocument = domParser.parseFromString(htmlStr, 'text/html');
-        var proxyUrl       = 'http://' + location.host + '/sessionId/https://example.com/path';
-        var anchor         = parsedDocument.querySelector('a');
+    module('DOMParser', function () {
+        test('parseFromString', function () {
+            var htmlStr        = '<a href="/path">Anchor</a>';
+            var domParser      = new DOMParser();
+            var parsedDocument = domParser.parseFromString(htmlStr, 'text/html');
+            var proxyUrl       = 'http://' + location.host + '/sessionId/https://example.com/path';
+            var anchor         = parsedDocument.querySelector('a');
 
-        strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
+            strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
 
-        throws(function () {
-            domParser.parseFromString(htmlStr);
-        }, TypeError);
+            throws(function () {
+                domParser.parseFromString(htmlStr);
+            }, TypeError);
 
-        parsedDocument = domParser.parseFromString(htmlStr, 'application/xml');
-        anchor         = parsedDocument.querySelector('a');
+            parsedDocument = domParser.parseFromString(htmlStr, 'application/xml');
+            anchor         = parsedDocument.querySelector('a');
 
-        strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), '/path');
+            strictEqual(nativeMethods.getAttribute.call(anchor, 'href'), '/path');
 
-        parsedDocument = domParser.parseFromString(htmlStr, 'text/html', 'third argument');
-        anchor         = parsedDocument.querySelector('a');
+            parsedDocument = domParser.parseFromString(htmlStr, 'text/html', 'third argument');
+            anchor         = parsedDocument.querySelector('a');
 
-        strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
+            strictEqual(nativeMethods.anchorHrefGetter.call(anchor), proxyUrl);
+        });
+
+        test('parseFromString result Document should not contain self-removing scripts (GH-1619)', function () {
+            var domParser = new DOMParser();
+            var testCases = [
+                '',
+                '<!DOCTYPE html>',
+                '<!DOCTYPE html><html><head></head><body></body></html>'
+            ];
+
+            testCases.forEach(function (html) {
+                var parsedDocument      = domParser.parseFromString(html, 'text/html');
+                var selfRemovingScripts = nativeMethods.querySelectorAll.call(parsedDocument,
+                    '.' + SHADOW_UI_CLASSNAME.selfRemovingScript);
+
+                strictEqual(selfRemovingScripts.length, 0);
+            });
+        });
     });
 }
 
