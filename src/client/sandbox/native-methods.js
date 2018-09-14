@@ -563,6 +563,9 @@ class NativeMethods {
         this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
         this.WebSocket        = win.WebSocket;
+        this.HTMLCollection   = win.HTMLCollection;
+        this.NodeList         = win.NodeList;
+        this.Node             = win.Node;
 
         if (win.Proxy)
             this.Proxy = win.Proxy;
