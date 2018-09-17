@@ -12,7 +12,7 @@ import {
     formatSyncCookie,
     generateDeleteSyncCookieStr,
     parseClientSyncCookieStr,
-    generateSyncCookieProperties
+    prepareSyncCookieProperties
 } from '../../../utils/cookie';
 
 const MIN_DATE_VALUE = new nativeMethods.date(0).toUTCString(); // eslint-disable-line new-cap
@@ -168,7 +168,7 @@ export default class CookieSandbox extends SandboxBase {
         parsedCookie.sid          = settings.get().sessionId;
         parsedCookie.lastAccessed = new nativeMethods.date(); // eslint-disable-line new-cap
 
-        generateSyncCookieProperties(parsedCookie);
+        prepareSyncCookieProperties(parsedCookie);
 
         nativeMethods.documentCookieSetter.call(this.document, formatSyncCookie(parsedCookie));
 

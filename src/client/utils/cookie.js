@@ -100,12 +100,12 @@ export function formatClientString (parsedCookie) {
     return cookieStr;
 }
 
-export function setDefaultValues (parsedCookie, parsedDestLocation) {
+export function setDefaultValues (parsedCookie, { hostname, pathname }) {
     if (!parsedCookie.domain)
-        parsedCookie.domain = parsedDestLocation.hostname; // eslint-disable-line no-restricted-properties
+        parsedCookie.domain = hostname; // eslint-disable-line no-restricted-properties
 
     if (!parsedCookie.path || parsedCookie.path.charAt(0) !== '/') {
-        const path        = parsedDestLocation.pathname; // eslint-disable-line no-restricted-properties
+        const path        = pathname; // eslint-disable-line no-restricted-properties
         const defaultPath = path.slice(0, path.lastIndexOf('/'));
 
         parsedCookie.path = defaultPath || '/';

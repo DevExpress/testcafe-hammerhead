@@ -72,7 +72,7 @@ test('formatClientString', function () {
 });
 
 test('domainMatch', function () {
-    ok(cookieUtil.domainMatch('sub.example.com'));
+    ok(cookieUtil.domainMatch('sub.example.com', void 0));
     ok(cookieUtil.domainMatch('sub.example.com', 'sub.example.com'));
     ok(cookieUtil.domainMatch('sub.example.com', 'SUB.Example.com'));
     ok(cookieUtil.domainMatch('sub.example.com', 'example.com'));
@@ -85,7 +85,7 @@ test('domainMatch', function () {
 });
 
 test('pathMatch', function () {
-    ok(cookieUtil.pathMatch('/'));
+    ok(cookieUtil.pathMatch('/', void 0));
     ok(cookieUtil.pathMatch('/', '/'));
     ok(cookieUtil.pathMatch('/path', '/'));
     ok(cookieUtil.pathMatch('/path', '/path'));
