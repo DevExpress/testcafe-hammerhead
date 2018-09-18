@@ -157,8 +157,12 @@ export default class RequestPipelineContext {
 
             this._initRequestNatureInfo();
 
-            if (this.parsedClientSyncCookie)
-                this.session.cookies.setByClient(this.parsedClientSyncCookie.actual.filter(syncCookie => syncCookie.isClientSync && syncCookie.sid === this.session.id));
+            if (this.parsedClientSyncCookie) {
+                const clientCookie = this.parsedClientSyncCookie.actual.filter(
+                    syncCookie => syncCookie.isClientSync && syncCookie.sid === this.session.id);
+
+                this.session.cookies.setByClient(clientCookie);
+            }
 
             return true;
         }

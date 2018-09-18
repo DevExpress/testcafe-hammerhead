@@ -98,3 +98,89 @@ test('pathMatch', function () {
     notOk(cookieUtil.pathMatch('/path/some', '/path/some/123'));
     notOk(cookieUtil.pathMatch('/path/some', '/path/some/'));
 });
+
+test('setDefaultValues', function () {
+    var parsedCookie = { key: 'test', value: 'test' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test', path: '/path' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test', path: '123' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/example' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test', domain: 'localhost' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/example' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'localhost',
+        path:    '/path',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test', expires: new Date() };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/example' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: parsedCookie.expires
+    });
+});

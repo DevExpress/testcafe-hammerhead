@@ -744,13 +744,29 @@ describe('Proxy', () => {
         });
 
         describe('Client synchronization with server', () => {
-            it('Should process the cookie header that contain a sync cookie data', () => {
+            it('Should process cookie with localhost domain', () => {
                 const options = {
                     url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
                     headers: {
-                        cookie: `c|${session.id}|Test1|127.0.0.1|%2Fcookie||1fdkm5ln1=Data1; ` +
-                                `cw|${session.id}|Test2|127.0.0.1|%2F||1fdkm5ln1=Data2; ` +
-                                `c|${session.id}|Test3|example.com|%2F||1fdkm5ln1=Data3`
+                        cookie: `c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1=Data1; ` +
+                                `c|${session.id}|Test2|localhost|%2F||1fdkm5ln1=Data2`
+                    }
+                };
+
+                return request(options)
+                    .then(body => {
+                        expect(body).eql('%% Test1=Data1 %%');
+                        expect(session.cookies.getClientString('http://127.0.0.1/')).eql('Test1=Data1');
+                        expect(session.cookies.getClientString('http://localhost/')).eql('Test2=Data2');
+                    });
+            });
+
+            it('Should remove sync cookie from client if it contains only the client flag (without the window flag)', () => {
+                const options = {
+                    url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
+                    headers: {
+                        cookie: `c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1=Data1; ` +
+                                `cw|${session.id}|Test2|127.0.0.1|%2F||1fdkm5ln1=Data2`
                     },
 
                     resolveWithFullResponse: true
@@ -759,208 +775,28 @@ describe('Proxy', () => {
                 return request(options)
                     .then(res => {
                         expect(res.body).eql('%% Test1=Data1; Test2=Data2 %%');
+                        expect(res.headers['set-cookie'].length).eql(1);
                         expect(res.headers['set-cookie'][0])
-                            .eql(`c|${session.id}|Test1|127.0.0.1|%2Fcookie||1fdkm5ln1=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
-                        expect(res.headers['set-cookie'][1])
-                            .eql(`c|${session.id}|Test3|example.com|%2F||1fdkm5ln1=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
-                        expect(session.cookies.getClientString('http://127.0.0.1/cookie')).eql('Test1=Data1; Test2=Data2');
+                            .eql(`c|${session.id}|Test1|127.0.0.1|%2F||1fdkm5ln1=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT`);
+                        expect(session.cookies.getClientString('http://127.0.0.1:12354/')).eql('Test1=Data1; Test2=Data2');
+                    });
+            });
+
+            it('Should consider the path parameter', () => {
+                const options = {
+                    url:     proxy.openSession('http://127.0.0.1:2000/cookie/echo', session),
+                    headers: {
+                        cookie: `c|${session.id}|Test1|example.com|%2Fcookie||1fdkm5ln1=Data1; ` +
+                                `c|${session.id}|Test2|example.com|%2Fpath||1fdkm5ln1=Data2; ` +
+                                `c|${session.id}|Test3|example.com|%2F||1fdkm5ln1=Data3`
+                    }
+                };
+
+                return request(options)
+                    .then(() => {
                         expect(session.cookies.getClientString('http://example.com/')).eql('Test3=Data3');
-                    });
-            });
-        });
-
-        describe.skip('SET_COOKIE service message', () => {
-            it('Should process the message without domain directive', () => {
-                const options = {
-                    method:                  'POST',
-                    url:                     'http://localhost:1836/cookie-sync',
-                    resolveWithFullResponse: true,
-                    body:                    JSON.stringify({
-                        sessionId: session.id,
-                        queue:     [
-                            {
-                                url:    proxy.openSession('http://example.com', session),
-                                cookie: 'Test1=Data1'
-                            },
-                            {
-                                url:    proxy.openSession('http://example.com', session),
-                                cookie: 'Test2=Data2'
-                            }
-                        ]
-                    })
-                };
-
-                return request(options)
-                    .then(res => {
-                        expect(res.body).eql('');
-                        expect(res.statusCode).eql(204);
-                        expect(session.cookies.getClientString('http://example.com')).eql('Test1=Data1; Test2=Data2');
-                    });
-            });
-
-            it('Should process the message with correct domain directive on default port', () => {
-                const options = {
-                    method:                  'POST',
-                    url:                     'http://localhost:1836/cookie-sync',
-                    resolveWithFullResponse: true,
-                    body:                    JSON.stringify({
-                        sessionId: session.id,
-                        queue:     [
-                            {
-                                url:    proxy.openSession('http://localhost:80', session),
-                                cookie: 'Test=Data0; Domain=localhost'
-                            },
-                            {
-                                url:    proxy.openSession('http://127.0.0.1:80', session),
-                                cookie: 'Test=Data1; Domain=127.0.0.1'
-                            },
-                            {
-                                url:    proxy.openSession('http://example.com:80', session),
-                                cookie: 'Test=Data2; Domain=example.com'
-                            },
-                            {
-                                url:    proxy.openSession('https://localhost:443', session),
-                                cookie: 'TestSecure=Data3; Domain=localhost; Secure'
-                            },
-                            {
-                                url:    proxy.openSession('https://127.0.0.1:443', session),
-                                cookie: 'TestSecure=Data4; Domain=127.0.0.1; Secure'
-                            },
-                            {
-                                url:    proxy.openSession('https://example.com:443', session),
-                                cookie: 'TestSecure=Data5; Domain=example.com; Secure'
-                            }
-                        ]
-                    })
-                };
-
-                return request(options)
-                    .then((res) => {
-                        expect(res.body).eql('');
-                        expect(res.statusCode).eql(204);
-                        expect(session.cookies.getClientString('http://localhost')).eql('Test=Data0');
-                        expect(session.cookies.getClientString('http://127.0.0.1')).eql('Test=Data1');
-                        expect(session.cookies.getClientString('http://example.com')).eql('Test=Data2');
-                        expect(session.cookies.getClientString('https://localhost')).eql('Test=Data0; TestSecure=Data3');
-                        expect(session.cookies.getClientString('https://127.0.0.1')).eql('Test=Data1; TestSecure=Data4');
-                        expect(session.cookies.getClientString('https://example.com')).eql('Test=Data2; TestSecure=Data5');
-                    });
-            });
-
-            it('Should process the message with correct domain directive on non-default port', () => {
-                const options = {
-                    method:                  'POST',
-                    url:                     'http://localhost:1836/cookie-sync',
-                    resolveWithFullResponse: true,
-                    body:                    JSON.stringify({
-                        sessionId: session.id,
-                        queue:     [
-                            {
-                                url:    proxy.openSession('http://localhost:2345', session),
-                                cookie: 'Test=Data0; Domain=localhost'
-                            },
-                            {
-                                url:    proxy.openSession('http://127.0.0.1:2345', session),
-                                cookie: 'Test=Data1; Domain=127.0.0.1'
-                            },
-                            {
-                                url:    proxy.openSession('http://example.com:2345', session),
-                                cookie: 'Test=Data2; Domain=example.com'
-                            },
-                            {
-                                url:    proxy.openSession('https://localhost:2345', session),
-                                cookie: 'TestSecure=Data3; Domain=localhost; Secure'
-                            },
-                            {
-                                url:    proxy.openSession('https://127.0.0.1:2345', session),
-                                cookie: 'TestSecure=Data4' + '; Domain=127.0.0.1; Secure'
-                            },
-                            {
-                                url:    proxy.openSession('https://example.com:2345', session),
-                                cookie: 'TestSecure=Data5' + '; Domain=example.com; Secure'
-                            }
-                        ]
-                    })
-                };
-
-                return request(options)
-                    .then((res) => {
-                        expect(res.body).eql('');
-                        expect(res.statusCode).eql(204);
-                        expect(session.cookies.getClientString('http://localhost:2345')).eql('Test=Data0');
-                        expect(session.cookies.getClientString('http://127.0.0.1:2345')).eql('Test=Data1');
-                        expect(session.cookies.getClientString('http://example.com:2345')).eql('Test=Data2');
-                        expect(session.cookies.getClientString('http://localhost')).eql('Test=Data0');
-                        expect(session.cookies.getClientString('http://127.0.0.1')).eql('Test=Data1');
-                        expect(session.cookies.getClientString('http://example.com')).eql('Test=Data2');
-                        expect(session.cookies.getClientString('https://localhost')).eql('Test=Data0; TestSecure=Data3');
-                        expect(session.cookies.getClientString('https://127.0.0.1')).eql('Test=Data1; TestSecure=Data4');
-                        expect(session.cookies.getClientString('https://example.com')).eql('Test=Data2; TestSecure=Data5');
-                    });
-            });
-
-            it('Should process the message with wrong domain directive on default port', () => {
-                const options = {
-                    method:                  'POST',
-                    url:                     'http://localhost:1836/cookie-sync',
-                    resolveWithFullResponse: true,
-                    body:                    JSON.stringify({
-                        sessionId: session.id,
-                        queue:     [
-                            {
-                                url:    proxy.openSession('http://localhost:80', session),
-                                cookie: 'Test=Data; Domain=127.0.0.1'
-                            },
-                            {
-                                url:    proxy.openSession('http://127.0.0.1:80', session),
-                                cookie: 'Test=Data; Domain=localhost'
-                            },
-                            {
-                                url:    proxy.openSession('http://127.0.0.1:80', session),
-                                cookie: 'Test=Data; Domain=localhost:4512'
-                            },
-                            {
-                                url:    proxy.openSession('http://localhost:80', session),
-                                cookie: 'Test=Data; Domain=127.0.0.1:4723'
-                            },
-                            {
-                                url:    proxy.openSession('http://example.com:80', session),
-                                cookie: 'Test=Data; Domain=anotherdomain.com'
-                            },
-                            {
-                                url:    proxy.openSession('https://localhost:443', session),
-                                cookie: 'TestSecure=Data; Domain=127.0.0.1; Secure'
-                            },
-                            {
-                                url:    proxy.openSession('https://127.0.0.1:443', session),
-                                cookie: 'TestSecure=Data; Domain=localhost; Secure'
-                            },
-                            {
-                                url:    proxy.openSession('https://127.0.0.1:443', session),
-                                cookie: 'TestSecure=Data; Domain=localhost:4512; Secure'
-                            },
-                            {
-                                url:    proxy.openSession('https://localhost:443', session),
-                                cookie: 'TestSecure=Data; Domain=127.0.0.1:4723; Secure'
-                            },
-                            {
-                                url:    proxy.openSession('https://example.com:443', session),
-                                cookie: 'TestSecure=Data; Domain=anotherdomain.com; Secure'
-                            }
-                        ]
-                    })
-                };
-
-                return request(options)
-                    .then((res) => {
-                        expect(res.body).eql('');
-                        expect(res.statusCode).eql(204);
-                        expect(session.cookies.getClientString('http://localhost')).eql('');
-                        expect(session.cookies.getClientString('http://127.0.0.1')).eql('');
-                        expect(session.cookies.getClientString('http://example.com')).eql('');
-                        expect(session.cookies.getClientString('https://localhost')).eql('');
-                        expect(session.cookies.getClientString('https://127.0.0.1')).eql('');
-                        expect(session.cookies.getClientString('https://example.com')).eql('');
+                        expect(session.cookies.getClientString('http://example.com/cookie')).eql('Test1=Data1; Test3=Data3');
+                        expect(session.cookies.getClientString('http://example.com/path')).eql('Test2=Data2; Test3=Data3');
                     });
             });
         });

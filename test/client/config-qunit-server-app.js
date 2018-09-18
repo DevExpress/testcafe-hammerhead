@@ -66,14 +66,6 @@ module.exports = function (app) {
         }, delay);
     });
 
-    app.post('/cookie-sync/:delay', function (req, res) {
-        var delay = req.params.delay || 0;
-
-        setTimeout(function () {
-            res.status(204).send();
-        }, delay);
-    });
-
     app.get('/xhr-test/:delay', function (req, res) {
         var delay = req.params.delay || 0;
 

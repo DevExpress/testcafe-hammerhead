@@ -193,6 +193,62 @@ if (window.fetch) {
     });
 }
 
+module('client synchronization with server');
+
+test('cookie with httpOnly flag', function () {
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'HttpOnly=HttpOnly; HttpOnly';
+
+    strictEqual(settings.get().cookie, '');
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+});
+
+test('cross domain cookie', function () {
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'cross=domain; Domain=localhost';
+
+    strictEqual(settings.get().cookie, '');
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+});
+
+test('cookie with the invalid path', function () {
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'invalid=path; Path=/path';
+
+    strictEqual(settings.get().cookie, '');
+    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+        'c|sessionId|invalid|example.com|%2Fpath||lastAccessed=path');
+});
+
+test('cookie with the invalid secure', function () {
+    var storedForcedLocation = destLocation.getLocation();
+
+    destLocation.forceLocation(storedForcedLocation.replace(/\/https/, '/http'));
+
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'Secure=Secure; Secure';
+
+    strictEqual(settings.get().cookie, '');
+    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+        'c|sessionId|Secure|example.com|%2F||lastAccessed=Secure');
+
+    destLocation.forceLocation(storedForcedLocation);
+});
+
+test('valid the secure and path parameters', function () {
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'test=test; Path=/; Secure';
+
+    strictEqual(settings.get().cookie, 'test=test');
+    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+        'c|sessionId|test|example.com|%2F||lastAccessed=test');
+});
+
 module('synchronization between frames');
 
 test('same-domain frames', function () {
@@ -313,6 +369,26 @@ test('cross-domain frames', function () {
             return Promise.all([
                 checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie'),
                 checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie')
+            ]);
+        })
+        .then(function () {
+            document.cookie = 'client=cookie';
+
+            strictEqual(settings.get().cookie, 'test=123; set=cookie; client=cookie');
+            strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+                'cw|sessionId|client|example.com|%2F||lastAccessed=cookie');
+
+            return window.QUnitGlobals.wait(function () {
+                return nativeMethods.documentCookieGetter.call(document).indexOf('c|sessionId') === 0;
+            }, 5000);
+        })
+        .then(function () {
+            strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+                'c|sessionId|client|example.com|%2F||lastAccessed=cookie');
+
+            return Promise.all([
+                checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie; client=cookie'),
+                checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie; client=cookie')
             ]);
         });
 });
