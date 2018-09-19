@@ -375,8 +375,11 @@ test('cross-domain frames', function () {
             document.cookie = 'client=cookie';
 
             strictEqual(settings.get().cookie, 'test=123; set=cookie; client=cookie');
-            strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
-                'cw|sessionId|client|example.com|%2F||lastAccessed=cookie');
+
+            if (!browserUtils.isIE) {
+                strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+                    'cw|sessionId|client|example.com|%2F||lastAccessed=cookie');// ??
+            }
 
             return window.QUnitGlobals.wait(function () {
                 return nativeMethods.documentCookieGetter.call(document).indexOf('c|sessionId') === 0;
