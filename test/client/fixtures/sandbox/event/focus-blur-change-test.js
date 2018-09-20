@@ -1305,3 +1305,18 @@ asyncTest('relatedTarget property should be passed correctly to the FocusEvent',
         startNext();
     });
 });
+
+test('focus should not raise an error in IE11 when is called with element within a removed iframe (GH-1684)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var input = document.createElement('input');
+
+            iframe.contentDocument.body.appendChild(input);
+
+            document.body.removeChild(iframe);
+
+            eventSimulator.focus(input);
+
+            ok(true);
+        });
+});
