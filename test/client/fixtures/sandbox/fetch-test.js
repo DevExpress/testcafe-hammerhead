@@ -548,7 +548,7 @@ if (window.fetch) {
                 });
         });
 
-        test('should not dublicate values of internal headers (GH-1360)', function () {
+        test('should not duplicate values of internal headers (GH-1360)', function () {
             var reqInit = {
                 credentials: 'same-origin',
                 headers:     new Headers({
@@ -604,6 +604,16 @@ if (window.fetch) {
                     window.Promise.reject = storedPromiseReject;
 
                     ok(true);
+                });
+        });
+
+        test('should not throw an error when a data-url is used (GH-TC-2865)', function () {
+            return fetch('data:text/plain,foo')
+                .then(function (res) {
+                    return res.text();
+                })
+                .then(function (body) {
+                    strictEqual(body, 'foo');
                 });
         });
     });

@@ -64,7 +64,9 @@ export default class FetchSandbox extends SandboxBase {
             requestMode = args[0].mode;
         }
         else {
-            url         = parseProxyUrl(args[0]).destUrl;
+            const parsedProxyUrl = parseProxyUrl(args[0]);
+
+            url         = parsedProxyUrl ? parsedProxyUrl.destUrl : args[0];
             requestMode = (args[1] || {}).mode;
         }
 
