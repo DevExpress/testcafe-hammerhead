@@ -259,7 +259,10 @@ describe('Upload', () => {
             return storage
                 .store(['file-to-upload.txt'], [fs.readFileSync(srcFilePath)])
                 .then(result => {
-                    expect(result).to.be.null;
+                    expect(result.length).eql(1);
+                    expect(result[0]).to.not.have.property('err');
+                    expect(result[0].file).eql('file-to-upload.txt');
+                    expect(result[0].path).eql(storedFilePath);
                     assertFileExistence(storedFilePath);
                     assertFileContentsIdentical(storedFilePath, srcFilePath);
 
@@ -303,7 +306,7 @@ describe('Upload', () => {
             return storage
                 .store(['expected.formdata', 'src.formdata'], [fs.readFileSync(file1Path), fs.readFileSync(file2Path)])
                 .then(result => {
-                    expect(result).to.be.null;
+                    expect(result.length).eql(2);
                     assertFileExistence(file1StoragePath);
                     assertFileExistence(file2StoragePath);
                     assertFileContentsIdentical(file1StoragePath, file1Path);
@@ -319,6 +322,29 @@ describe('Upload', () => {
 
                     fs.unlinkSync(file1StoragePath);
                     fs.unlinkSync(file2StoragePath);
+                });
+        });
+
+        it('Should not rewrite a file if it has a same name', () => {
+            const storage        = new UploadStorage(tmpDirObj.name);
+            const storedFilePath = getStoredFilePath('file.txt');
+
+            return storage
+                .store(['file.txt'], [Buffer.from('text')])
+                .then(result => {
+                    expect(result.length).eql(1);
+                    expect(result[0]).to.not.have.property('err');
+                    expect(result[0].file).eql('file.txt');
+                    expect(result[0].path).eql(storedFilePath);
+
+                    return storage.store(['file.txt'], [Buffer.from('text')]);
+                })
+                .then(result => {
+                    expect(result.length).eql(1);
+                    expect(result[0].err.indexOf('EEXIST')).not.eql(-1);
+                    expect(result[0].path).eql(storedFilePath);
+
+                    fs.unlinkSync(storedFilePath);
                 });
         });
     });

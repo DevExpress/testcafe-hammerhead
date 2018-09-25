@@ -35,7 +35,8 @@ export default class UploadStorage {
         catch (e) {
             return {
                 err:  e.toString(),
-                path: resolvedPath
+                path: resolvedPath,
+                file: fileName
             };
         }
     }
@@ -53,7 +54,12 @@ export default class UploadStorage {
         return await this._processFiles(fileNames, async (resolvedPath, fileName) => {
             const content = Buffer.from(data[fileNames.indexOf(fileName)], 'base64');
 
-            await writeFile(resolvedPath, content);
+            await writeFile(resolvedPath, content, { flag: 'wx' });
+
+            return {
+                path: resolvedPath,
+                file: fileName
+            };
         });
     }
 
