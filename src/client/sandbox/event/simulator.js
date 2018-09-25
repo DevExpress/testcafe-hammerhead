@@ -677,7 +677,7 @@ export default class EventSimulator {
         const iframe            = isElementInIframe ? domUtils.getIframeByElement(el) : null;
         const curWindow         = iframe ? iframe.contentWindow : window;
 
-        if (browserUtils.isIE11 && iframe) {
+        if (browserUtils.isIE11 && iframe && curWindow) {
             // NOTE: In IE, when we raise an event by using the dispatchEvent function, the window.event object is null.
             // If a real event happens, there is a window.event object, but it is not identical with the first argument
             // of the event handler. The window.Event object is identical with the object that is created when we raise
@@ -688,7 +688,7 @@ export default class EventSimulator {
             // to false.
             // NOTE: In IE11, iframe's window.event object is null. We need to set
             // iframe's window.event object manually by using window.event (B254199).
-            nativeMethods.objectDefineProperty.call(window.Object, iframe.contentWindow, 'event', {
+            nativeMethods.objectDefineProperty.call(window.Object, curWindow, 'event', {
                 get:          () => window.event,
                 configurable: true
             });
@@ -697,7 +697,7 @@ export default class EventSimulator {
         const res = el.dispatchEvent(ev);
 
         // NOTE: GH-226
-        if (browserUtils.isIE11)
+        if (browserUtils.isIE11 && curWindow)
             delete curWindow.event;
 
         return res;
