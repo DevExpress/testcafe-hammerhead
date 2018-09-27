@@ -5,13 +5,7 @@
     <script>
         var hammerhead = window['%hammerhead%'];
 
-        hammerhead.start();
-
-        var cookieSandbox = hammerhead.sandbox.cookie;
-
-        function setCookie (cookie) {
-            cookieSandbox.setCookie(document, cookie);
-        }
+        hammerhead.start({ sessionId: 'sessionId' });
 
         window.runTest = function () {
             var uniq           = Math.floor(Math.random() * 1e10);
@@ -34,12 +28,12 @@
             var i;
 
             for (i = 0; i < validCookies.length; i++)
-                setCookie(validCookies[i]);
+                document.cookie = validCookies[i];
 
             for (i = 0; i < invalidCookies.length; i++)
-                setCookie(invalidCookies[i]);
+                document.cookie = invalidCookies[i];
 
-            var cookie = cookieSandbox.getCookie();
+            var cookie = document.cookie;
 
             for (i = 1; i < validCookies.length + 1; i++) {
                 if (cookie.indexOf('Valid' + i) === -1)
@@ -51,7 +45,7 @@
                     return false;
             }
 
-            return hammerhead.nativeMethods.documentCookieGetter.call(document).indexOf(uniq) === -1;
+            return true;
         }
     </script>
 </head>

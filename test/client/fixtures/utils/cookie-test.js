@@ -72,6 +72,7 @@ test('formatClientString', function () {
 });
 
 test('domainMatch', function () {
+    ok(cookieUtil.domainMatch('sub.example.com', void 0));
     ok(cookieUtil.domainMatch('sub.example.com', 'sub.example.com'));
     ok(cookieUtil.domainMatch('sub.example.com', 'SUB.Example.com'));
     ok(cookieUtil.domainMatch('sub.example.com', 'example.com'));
@@ -84,14 +85,102 @@ test('domainMatch', function () {
 });
 
 test('pathMatch', function () {
+    ok(cookieUtil.pathMatch('/', void 0));
     ok(cookieUtil.pathMatch('/', '/'));
     ok(cookieUtil.pathMatch('/path', '/'));
     ok(cookieUtil.pathMatch('/path', '/path'));
     ok(cookieUtil.pathMatch('/path/some', '/path'));
     ok(cookieUtil.pathMatch('/path/some', '/path/'));
+    ok(cookieUtil.pathMatch('/path/some', '123'));
 
+    notOk(cookieUtil.pathMatch('/path/some', '/123'));
     notOk(cookieUtil.pathMatch('/path/some', '/some'));
-    notOk(cookieUtil.pathMatch('/path/some', '123'));
     notOk(cookieUtil.pathMatch('/path/some', '/path/some/123'));
     notOk(cookieUtil.pathMatch('/path/some', '/path/some/'));
+});
+
+test('setDefaultValues', function () {
+    var parsedCookie = { key: 'test', value: 'test' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test', path: '/path' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test', path: '123' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/example' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test', domain: 'localhost' };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/example' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'localhost',
+        path:    '/path',
+        expires: 'Infinity'
+    });
+
+    parsedCookie = { key: 'test', value: 'test', expires: new Date() };
+
+    cookieUtil.setDefaultValues(parsedCookie, { hostname: 'example.com', pathname: '/path/example' });
+
+    deepEqual(parsedCookie, {
+        key:     'test',
+        value:   'test',
+        domain:  'example.com',
+        path:    '/path',
+        expires: parsedCookie.expires
+    });
 });

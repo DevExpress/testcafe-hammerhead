@@ -7,7 +7,6 @@ var destLocation      = hammerhead.get('./utils/destination-location');
 
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
-var cookieSync    = hammerhead.sandbox.cookie.cookieSync;
 var Promise       = hammerhead.Promise;
 
 QUnit.testDone(function () {
@@ -22,17 +21,6 @@ QUnit.testDone(function () {
     settings.get().cookie = '';
 });
 
-function setCookieWithoutServerSync (value) {
-    var storedFn = cookieSync.perform;
-
-    cookieSync.perform = function () {
-    };
-
-    document.cookie = value;
-
-    cookieSync.perform = storedFn;
-}
-
 test('get/set', function () {
     var storedForcedLocation = destLocation.getLocation();
 
@@ -43,7 +31,7 @@ test('get/set', function () {
         settings.get().cookie = '';
 
         for (var i = 0; i < cookieStrs.length; i++)
-            setCookieWithoutServerSync(cookieStrs[i]);
+            document.cookie = cookieStrs[i];
 
         strictEqual(document.cookie, expectedCookies, 'destLocation = ' + destLocation.getLocation());
     }
@@ -86,8 +74,6 @@ test('get/set', function () {
     ], 'Test1=DomainMatch; Test2=DomainMatch; Test3=DomainMatch; Test4=DomainMatch; Test5=DomainMatch');
 
     destLocation.forceLocation(storedForcedLocation);
-
-    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
 });
 
 test('path validation', function () {
@@ -171,8 +157,9 @@ test('process synchronization cookies on document.cookie setter', function () {
 
     document.cookie = 'temp=temp';
 
-    strictEqual(settings.get().cookie, 'test=123; temp=temp');
-    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+    strictEqual(settings.get().cookie, 'temp=temp; test=123');
+    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+        'c|sessionId|temp|example.com|%2F||lastAccessed=temp');
 });
 
 test('set cookie from the XMLHttpRequest', function () {
@@ -205,6 +192,62 @@ if (window.fetch) {
             });
     });
 }
+
+module('client synchronization with server');
+
+test('cookie with httpOnly flag', function () {
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'HttpOnly=HttpOnly; HttpOnly';
+
+    strictEqual(settings.get().cookie, '');
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+});
+
+test('cross domain cookie', function () {
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'cross=domain; Domain=localhost';
+
+    strictEqual(settings.get().cookie, '');
+    strictEqual(nativeMethods.documentCookieGetter.call(document), '');
+});
+
+test('cookie with the invalid path', function () {
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'invalid=path; Path=/path';
+
+    strictEqual(settings.get().cookie, '');
+    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+        'c|sessionId|invalid|example.com|%2Fpath||lastAccessed=path');
+});
+
+test('cookie with the invalid secure', function () {
+    var storedForcedLocation = destLocation.getLocation();
+
+    destLocation.forceLocation(storedForcedLocation.replace(/\/https/, '/http'));
+
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'Secure=Secure; Secure';
+
+    strictEqual(settings.get().cookie, '');
+    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+        'c|sessionId|Secure|example.com|%2F||lastAccessed=Secure');
+
+    destLocation.forceLocation(storedForcedLocation);
+});
+
+test('valid the secure and path parameters', function () {
+    strictEqual(document.cookie, '');
+
+    document.cookie = 'test=test; Path=/; Secure';
+
+    strictEqual(settings.get().cookie, 'test=test');
+    strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+        'c|sessionId|test|example.com|%2F||lastAccessed=test');
+});
 
 module('synchronization between frames');
 
@@ -327,6 +370,29 @@ test('cross-domain frames', function () {
                 checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie'),
                 checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie')
             ]);
+        })
+        .then(function () {
+            document.cookie = 'client=cookie';
+
+            strictEqual(settings.get().cookie, 'test=123; set=cookie; client=cookie');
+
+            if (!browserUtils.isIE) {
+                strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+                    'cw|sessionId|client|example.com|%2F||lastAccessed=cookie');// ??
+            }
+
+            return window.QUnitGlobals.wait(function () {
+                return nativeMethods.documentCookieGetter.call(document).indexOf('c|sessionId') === 0;
+            }, 5000);
+        })
+        .then(function () {
+            strictEqual(nativeMethods.documentCookieGetter.call(document).replace(/\|[^|]+=/, '|lastAccessed='),
+                'c|sessionId|client|example.com|%2F||lastAccessed=cookie');
+
+            return Promise.all([
+                checkCrossDomainIframeCookie(iframes[0], 'test=123; set=cookie; client=cookie'),
+                checkCrossDomainIframeCookie(iframes[2], 'test=123; set=cookie; client=cookie')
+            ]);
         });
 });
 
@@ -343,7 +409,7 @@ test('actual cookie in iframe even if a synchronization message does not receive
 
             iframe.contentWindow['%hammerhead%'].sandbox.cookie = storedCookieSandbox;
 
-            strictEqual(nativeMethods.documentCookieGetter.call(document), 'f|sessionId|test|example.com|%2F||1fckm5lnl=123');
+            strictEqual(nativeMethods.documentCookieGetter.call(document), 'w|sessionId|test|example.com|%2F||1fckm5lnl=123');
             strictEqual(iframe.contentDocument.cookie, 'test=123');
 
             return window.QUnitGlobals.wait(function () {
@@ -365,7 +431,7 @@ if (!browserUtils.isFirefox) {
         document.body.appendChild(iframe);
 
         strictEqual(document.cookie, 'test=123');
-        strictEqual(nativeMethods.documentCookieGetter.call(document), 'f|sessionId|test|example.com|%2F||1fckm5lnl=123');
+        strictEqual(nativeMethods.documentCookieGetter.call(document), 'w|sessionId|test|example.com|%2F||1fckm5lnl=123');
 
         return window.QUnitGlobals.wait(function () {
             return nativeMethods.documentCookieGetter.call(document) === '';
@@ -387,17 +453,17 @@ test('overwrite (B239496)', function () {
         };
     };
 
-    setCookieWithoutServerSync('TestKey1=TestVal1');
-    setCookieWithoutServerSync('TestKey2=TestVal2');
+    document.cookie = 'TestKey1=TestVal1';
+    document.cookie = 'TestKey2=TestVal2';
     strictEqual(document.cookie, 'TestKey1=TestVal1; TestKey2=TestVal2');
 
-    setCookieWithoutServerSync('TestKey1=AnotherValue');
+    document.cookie = 'TestKey1=AnotherValue';
     strictEqual(document.cookie, 'TestKey1=AnotherValue; TestKey2=TestVal2');
 
-    setCookieWithoutServerSync('TestKey2=12;');
+    document.cookie = 'TestKey2=12;';
     strictEqual(document.cookie, 'TestKey1=AnotherValue; TestKey2=12');
 
-    setCookieWithoutServerSync('TestKey1=NewValue');
+    document.cookie = 'TestKey1=NewValue';
     strictEqual(document.cookie, 'TestKey1=NewValue; TestKey2=12');
 
     urlUtils.parseProxyUrl = savedUrlUtilParseProxyUrl;
@@ -412,118 +478,50 @@ test('delete (B239496)', function () {
         };
     };
 
-    setCookieWithoutServerSync('CookieToDelete=DeleteMe');
+    document.cookie = 'CookieToDelete=DeleteMe';
     strictEqual(document.cookie, 'CookieToDelete=DeleteMe');
 
-    setCookieWithoutServerSync('NotExistent=; expires=Thu, 01 Jan 1970 00:00:01 GMT;');
+    document.cookie = 'NotExistent=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     strictEqual(document.cookie, 'CookieToDelete=DeleteMe');
 
-    setCookieWithoutServerSync('CookieToDelete=; expires=Thu, 01 Jan 1970 00:00:01 GMT;');
+    document.cookie = 'CookieToDelete=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     strictEqual(document.cookie, '');
 
     urlUtils.parseProxyUrl = savedUrlUtilParseProxyUrl;
 });
 
 test('hammerhead crashes if client-side code contains "document.cookie=null" or "document.cookie=undefined" (GH-444, T349254).', function () {
-    setCookieWithoutServerSync(null);
+    document.cookie = null;
     strictEqual(document.cookie, 'null');
 
-    setCookieWithoutServerSync(void 0);
+    document.cookie = void 0;
     strictEqual(document.cookie, 'undefined');
 
-    setCookieWithoutServerSync(true);
+    document.cookie = true;
     strictEqual(document.cookie, 'true');
 
-    setCookieWithoutServerSync('');
+    document.cookie = '';
     strictEqual(document.cookie, '');
 
-    setCookieWithoutServerSync(123);
+    document.cookie = 123;
     strictEqual(document.cookie, '123');
 });
 
 test('correct work with cookie with empty key (GH-899)', function () {
-    setCookieWithoutServerSync('123');
+    document.cookie = '123';
     strictEqual(document.cookie, '123');
 
-    setCookieWithoutServerSync('t=5');
+    document.cookie = 't=5';
     strictEqual(document.cookie, '123; t=5');
 
-    setCookieWithoutServerSync('12');
+    document.cookie = '12';
     strictEqual(document.cookie, '12; t=5');
 
-    setCookieWithoutServerSync('t=3');
+    document.cookie = 't=3';
     strictEqual(document.cookie, '12; t=3');
 
-    setCookieWithoutServerSync('');
+    document.cookie = '';
     strictEqual(document.cookie, '; t=3');
-});
-
-// NOTE: Browsers on iOS platform doesn't support beforeunload event.
-// We cann't use the pagehide event for cookie synchronization.
-// Request for a new page will be handled earlier than sync xhr request was sent from pagehide event handler.
-if (!browserUtils.isIOS) {
-    asyncTest('set cookie before unload (GH-1086)', function () {
-        var iframe          = document.createElement('iframe');
-        var expectedCookies = [];
-        var testedPages     = [
-            '../../data/cookie/set-cookie-and-load-new-location.html',
-            '../../data/cookie/set-cookie-and-form-submit.html'
-        ];
-
-        for (var i = 0; i < 20; i++)
-            expectedCookies.push('value' + i + '=some value');
-
-        expectedCookies = expectedCookies.join('; ');
-
-        var nextCookieTest = function (urlIndex) {
-            iframe.setAttribute('id', 'test' + Date.now());
-            iframe.setAttribute('src', getSameDomainPageUrl(testedPages[urlIndex]));
-
-            window.addEventListener('message', function onMessage (e) {
-                strictEqual(e.data, expectedCookies, testedPages[urlIndex]);
-
-                window.removeEventListener('message', onMessage);
-                document.body.removeChild(iframe);
-
-                if (testedPages[urlIndex + 1])
-                    nextCookieTest(urlIndex + 1);
-                else
-                    start();
-            });
-
-            document.body.appendChild(iframe);
-        };
-
-        nextCookieTest(0);
-    });
-}
-
-asyncTest('limit of the failed cookie-sync requests (GH-1193)', function () {
-    var storedCookieSyncUrl  = settings.get().cookieSyncUrl;
-    var nativeOnRequestError = cookieSync._onRequestError;
-    var failReqCount         = 0;
-
-    cookieSync._onRequestError = function () {
-        nativeOnRequestError.apply(this, arguments);
-
-        failReqCount++;
-
-        if (failReqCount === 3) {
-            strictEqual(cookieSync.activeReq.readyState, XMLHttpRequest.DONE);
-            strictEqual(cookieSync.activeReq.status, 404);
-            strictEqual(cookieSync.queue.length, 1);
-            strictEqual(cookieSync.queue[0].cookie, 'a=b');
-
-            settings.get().cookieSyncUrl = storedCookieSyncUrl;
-            cookieSync._onRequestError   = nativeOnRequestError;
-
-            start();
-        }
-    };
-
-    settings.get().cookieSyncUrl = '/cookie-sync-fail/';
-
-    document.cookie = 'a=b';
 });
 
 if (browserUtils.isIE) {

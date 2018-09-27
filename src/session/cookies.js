@@ -22,19 +22,23 @@ export default class Cookies {
         cookies = castArray(cookies);
 
         return cookies.reduce((resultCookies, cookieStr) => {
-            if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
-                return resultCookies;
+            let cookie;
 
-            const cookie = Cookie.parse(cookieStr);
+            if (!isClient) {
+                if (cookieStr.length > BYTES_PER_COOKIE_LIMIT)
+                    return resultCookies;
+
+                cookie = Cookie.parse(cookieStr, { loose: true });
+            }
+            else
+                cookie = cookieStr;
 
             // NOTE: If cookie.domain and url hostname are equal to localhost/127.0.0.1,
             // we should remove 'Domain=...' form cookieStr (GH-1491)
-            if (Cookies._hasLocalhostDomain(cookie) && parseUrl(url).hostname === cookie.domain) {
+            if (Cookies._hasLocalhostDomain(cookie) && (isClient || parseUrl(url).hostname === cookie.domain))
                 cookie.domain = '';
-                cookieStr     = cookie.toString();
-            }
 
-            const parsedCookie = this.cookieJar.setCookieSync(cookieStr, url, {
+            const parsedCookie = this.cookieJar.setCookieSync(cookie, url, {
                 http:        !isClient,
                 ignoreError: true,
                 loose:       true
@@ -61,8 +65,13 @@ export default class Cookies {
         return this._set(url, cookies, false);
     }
 
-    setByClient (url, cookies) {
-        this._set(url, cookies, true);
+    setByClient (syncCookies) {
+        for (const syncCookie of syncCookies) {
+            const cookie = new Cookie(syncCookie);
+            const url    = { hostname: syncCookie.domain, pathname: syncCookie.path };
+
+            this._set(url, cookie, true);
+        }
     }
 
     getClientString (url) {

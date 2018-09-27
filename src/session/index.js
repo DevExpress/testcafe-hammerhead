@@ -5,7 +5,6 @@ import { parse as parseUrl } from 'url';
 import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
-import { parseProxyUrl } from '../utils/url';
 import generateUniqueId from '../utils/generate-unique-id';
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
@@ -74,7 +73,6 @@ export default class Session extends EventEmitter {
         return mustache.render(TASK_TEMPLATE, {
             sessionId:             this.id,
             serviceMsgUrl:         domain + '/messaging',
-            cookieSyncUrl:         domain + '/cookie-sync',
             forceProxySrcForImage: this.hasRequestEventListeners(),
             crossDomainPort,
             isFirstPageLoad,
@@ -154,15 +152,6 @@ export default class Session extends EventEmitter {
             ctx.restoringStorages     = this.pendingStateSnapshot.storages;
             this.requireStateSwitch   = false;
             this.pendingStateSnapshot = null;
-        }
-    }
-
-    setCookie (queue) {
-        for (const msg of queue) {
-            const parsedUrl = parseProxyUrl(msg.url);
-            const cookieUrl = parsedUrl ? parsedUrl.destUrl : msg.url;
-
-            this.cookies.setByClient(cookieUrl, msg.cookie);
         }
     }
 

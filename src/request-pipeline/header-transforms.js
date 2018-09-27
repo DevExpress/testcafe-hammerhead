@@ -5,8 +5,7 @@ import { parse as parseUrl, resolve as resolveUrl } from 'url';
 import {
     formatSyncCookie,
     generateDeleteSyncCookieStr,
-    isOutdatedSyncCookie,
-    parseClientSyncCookieStr
+    isOutdatedSyncCookie
 } from '../utils/cookie';
 
 // Skipping transform
@@ -53,10 +52,10 @@ function transformCookie (src, ctx) {
     return src;
 }
 
-function generateServerSyncCookie (ctx, parsedCookies) {
-    parsedCookies = parsedCookies.filter(cookie => !cookie.httpOnly);
+function generateSyncCookie (ctx, parsedServerCookies) {
+    parsedServerCookies = parsedServerCookies.filter(cookie => !cookie.httpOnly);
 
-    let syncWithClientCookies = parsedCookies
+    let syncWithClientCookies = parsedServerCookies
         .map(cookie => {
             cookie.isServerSync = true;
             cookie.sid          = ctx.session.id;
@@ -64,10 +63,12 @@ function generateServerSyncCookie (ctx, parsedCookies) {
             return formatSyncCookie(cookie);
         });
 
-    if (ctx.req.headers.cookie) {
-        const parsedClientSyncCookie = parseClientSyncCookieStr(ctx.req.headers.cookie);
-        const outdatedSyncCookies    = parsedClientSyncCookie.actual.filter(clientCookie => {
-            for (const serverCookie of parsedCookies) {
+    if (ctx.parsedClientSyncCookie) {
+        const outdatedSyncCookies = ctx.parsedClientSyncCookie.actual.filter(clientCookie => {
+            if (clientCookie.isClientSync && !clientCookie.isWindowSync)
+                return true;
+
+            for (const serverCookie of parsedServerCookies) {
                 if (isOutdatedSyncCookie(clientCookie, serverCookie))
                     return true;
             }
@@ -75,7 +76,7 @@ function generateServerSyncCookie (ctx, parsedCookies) {
             return false;
         });
 
-        syncWithClientCookies = parsedClientSyncCookie.outdated
+        syncWithClientCookies = ctx.parsedClientSyncCookie.outdated
             .concat(outdatedSyncCookies)
             .map(generateDeleteSyncCookieStr)
             .concat(syncWithClientCookies);
@@ -141,18 +142,6 @@ const requestForced = {
 
 // Response headers
 const responseTransforms = {
-    'set-cookie': (src, ctx) => {
-        if (src) {
-            const parsedCookies = ctx.session.cookies.setByServer(ctx.dest.url, src);
-
-            if (!ctx.isPage || ctx.isIframe)
-                return generateServerSyncCookie(ctx, parsedCookies);
-        }
-
-        // NOTE: Delete header.
-        return void 0;
-    },
-
     // NOTE: Disable Content Security Policy (see http://en.wikipedia.org/wiki/Content_Security_Policy).
     'content-security-policy':               skip,
     'content-security-policy-report-only':   skip,
@@ -211,6 +200,20 @@ const responseTransforms = {
     }
 };
 
+const responseForced = {
+    'set-cookie': (src, ctx) => {
+        let parsedCookies;
+
+        if (src)
+            parsedCookies = ctx.session.cookies.setByServer(ctx.dest.url, src);
+
+        if (!ctx.isPage || ctx.isIframe)
+            return generateSyncCookie(ctx, parsedCookies || []);
+
+        return [];
+    }
+};
+
 // Transformation routine
 function transformHeaders (srcHeaders, ctx, transformList, forced) {
     const destHeaders = {};
@@ -238,7 +241,7 @@ export function forRequest (ctx) {
 }
 
 export function forResponse (ctx) {
-    return transformHeaders(ctx.destRes.headers, ctx, responseTransforms);
+    return transformHeaders(ctx.destRes.headers, ctx, responseTransforms, responseForced);
 }
 
 export function transformHeadersCaseToRaw (headers, rawHeaders) {
