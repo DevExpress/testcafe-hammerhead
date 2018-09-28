@@ -117,8 +117,8 @@ export default class WindowSandbox extends SandboxBase {
             stack = event.reason && event.reason.stack;
         }
         else if (type === this.UNCAUGHT_JS_ERROR_EVENT) {
-            msg   = event.error.message;
-            stack = event.error.stack;
+            msg   = event.error ? event.error.message : event.message;
+            stack = event.error && event.error.stack;
         }
 
         stack = WindowSandbox._prepareStack(msg, stack);
