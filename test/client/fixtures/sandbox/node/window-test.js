@@ -333,25 +333,38 @@ test('UNCAUGHT_JS_ERROR_EVENT', function () {
 
     var testCases = [
         {
-            error: {
-                message: void 0,
-                stack:   void 0
+            event: {
+                error: {
+                    message: void 0,
+                    stack:   void 0
+                },
             },
             expectedStack: 'undefined:\n    No stack trace available'
         },
         {
-            error: {
-                message: 'test message',
-                stack:   '    line 1\n    line2'
+            event: {
+                error: {
+                    message: 'test message',
+                    stack:   '    line 1\n    line2'
+                },
             },
             expectedStack: 'test message:\n    line 1\n    line2'
         },
         {
-            error: {
-                message: 'test message',
-                stack:   'Error: test message:\n    line1\n    line2'
+            event: {
+                error: {
+                    message: 'test message',
+                    stack:   'Error: test message:\n    line1\n    line2'
+                },
             },
             expectedStack: 'Error: test message:\n    line1\n    line2'
+        },
+        {
+            event: {
+                error:   null,
+                message: 'test message'
+            },
+            expectedStack: 'test message:\n    No stack trace available'
         }
     ];
 
@@ -365,7 +378,7 @@ test('UNCAUGHT_JS_ERROR_EVENT', function () {
             };
 
             windowSandox.on(hammerhead.EVENTS.uncaughtJsError, handler);
-            windowSandox._raiseUncaughtJsErrorEvent(hammerhead.EVENTS.uncaughtJsError, { error: testCase.error }, window);
+            windowSandox._raiseUncaughtJsErrorEvent(hammerhead.EVENTS.uncaughtJsError, testCase.event, window);
         });
     };
 
