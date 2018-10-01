@@ -903,3 +903,11 @@ test('should not process shadow ui elements (GH-1570)', function () {
     for (var i = 0; i < shadowUIElements.length; i++)
         ok(!shadowUIElements[i][INTERNAL_PROPS.processedContext]);
 });
+
+test('isShadowUIElement should not throw an error if a cross-domain window is passed', function () {
+    return createTestIframe({ src: getCrossDomainPageUrl('../../data/cross-domain/get-message.html') })
+        .then(function (crossDomainIframe) {
+            notOk(domUtils.isShadowUIElement(void 0));
+            notOk(domUtils.isShadowUIElement(crossDomainIframe.contentWindow));
+        });
+});
