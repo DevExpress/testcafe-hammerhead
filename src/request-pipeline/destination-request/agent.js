@@ -3,9 +3,6 @@ import https from 'https';
 import LRUCache from 'lru-cache';
 import tunnel from 'tunnel-agent';
 
-const httpAgent  = http.Agent;
-const httpsAgent = https.Agent;
-
 // Const
 const SSL3_HOST_CACHE_SIZE = 1000;
 
@@ -22,18 +19,18 @@ const ssl3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
 const agents = {
     [TYPE.SSL3]: {
         instance:       null,
-        Ctor:           httpsAgent,
+        Ctor:           https.Agent,
         secureProtocol: 'SSLv3_method'
     },
 
     [TYPE.TLS]: {
         instance: null,
-        Ctor:     httpsAgent
+        Ctor:     https.Agent
     },
 
     [TYPE.HTTP]: {
         instance: null,
-        Ctor:     httpAgent
+        Ctor:     http.Agent
     }
 };
 
