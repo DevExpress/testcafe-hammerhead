@@ -1,4 +1,5 @@
-import Agent from 'yakaa';
+import http from 'http';
+import https from 'https';
 import LRUCache from 'lru-cache';
 import tunnel from 'tunnel-agent';
 
@@ -15,23 +16,21 @@ const TYPE = {
 // Static
 const ssl3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
 
-// NOTE: We need an agent with proper keep-alive behavior. Such an agent has landed in Node 0.12. Since we
-// still support Node 0.10, we will use a third-party agent that is the extraction of Node 0.12 Agent code.
 const agents = {
     [TYPE.SSL3]: {
         instance:       null,
-        Ctor:           Agent.SSL,
+        Ctor:           https.Agent,
         secureProtocol: 'SSLv3_method'
     },
 
     [TYPE.TLS]: {
         instance: null,
-        Ctor:     Agent.SSL
+        Ctor:     https.Agent
     },
 
     [TYPE.HTTP]: {
         instance: null,
-        Ctor:     Agent
+        Ctor:     http.Agent
     }
 };
 
