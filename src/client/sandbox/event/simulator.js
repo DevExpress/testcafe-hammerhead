@@ -490,7 +490,7 @@ export default class EventSimulator {
         if (eventShortType === 'move' || eventShortType === 'over' || eventShortType === 'out')
             pointerArgs.button = args.buttons === eventUtils.BUTTONS_PARAMETER.noButton ? POINTER_EVENT_BUTTON.noButton : pointerArgs.button;
 
-        if (browserUtils.isIE) {
+        if (browserUtils.isIE11) {
             pointerArgs.rotation = 0;
 
             pointEvent = nativeMethods.documentCreateEvent.call(document, 'PointerEvent');
