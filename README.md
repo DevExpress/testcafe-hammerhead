@@ -1,4 +1,5 @@
 # testcafe-hammerhead
+`testcafe-hammerhead` is a powerful Web proxy used as a core for the [TestCafe](https://github.com/devexpress/testcafe) testing framework.
 
 ## Core Concepts
 
@@ -7,7 +8,7 @@
 In addition, the proxied web page does not know that it is opened under a proxy. The proxy intercepts access attempts to all URL-containing properties and provides the original values.
 
 ## First look
-1. Install the Hammerhead proxy (`npm install testcafe-hammerhead --save`), 
+1. Clone the Hammerhead repository (`git clone https://github.com/DevExpress/testcafe-hammerhead.git`)
 2. Build it (`gulp run build`)
 3. Run the [Hammerhead playground](https://github.com/DevExpress/testcafe-hammerhead/blob/master/test/playground/server.js) (`npm run http-playground`) to see our proxy in action.
 
