@@ -16,14 +16,3 @@ export function isPrimitiveType (obj) {
 
     return objType !== 'object' && objType !== 'function';
 }
-
-export function isConvertibleToString (obj) {
-    try {
-        String(obj);
-
-        return true;
-    }
-    catch (e) {
-        return false;
-    }
-}

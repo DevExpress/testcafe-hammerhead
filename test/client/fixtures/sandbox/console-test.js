@@ -13,12 +13,6 @@ if (window.console && typeof window.console.log !== 'undefined') {
     test('must convert `log`, `warn`, `error` and `info` methods arguments to string lines (GH-1750)', function () {
         var handledConsoleMethodLines = [];
 
-        var objWithoutPrototype = {
-            key: 'value'
-        };
-
-        Object.setPrototypeOf(objWithoutPrototype, null);
-
         var testCases = [
             true,
             false,
@@ -27,15 +21,16 @@ if (window.console && typeof window.console.log !== 'undefined') {
             42,
             'string',
             {},
+            Object.create(null),
             {
                 toString: function () {
-                    return '123';
+                    return Object.create(null);
                 }
-            },
-            objWithoutPrototype
+            }
         ];
 
-        var expectedHandledConsoleMethodLines = ['true', 'false', 'null', 'undefined', '42', 'string', '[object Object]', '123', '{"key":"value"}'];
+        var expectedHandledConsoleMethodLines = ['true', 'false', 'null', 'undefined', '42', 'string', '[object Object]',
+            'object', 'object'];
 
         // NOTE: IE11 doesn't support 'Symbol'
         if (!browserUtils.isIE11) {

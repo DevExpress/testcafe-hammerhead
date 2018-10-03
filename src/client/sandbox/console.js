@@ -1,7 +1,5 @@
 import SandboxBase from './base';
 import { isCrossDomainWindows } from '../utils/dom';
-import { isConvertibleToString } from '../utils/types';
-import { stringify as stringifyJSON } from '../json';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overridden by the client code. (GH-245)
@@ -16,18 +14,20 @@ export default class ConsoleSandbox extends SandboxBase {
         this.messageSandbox = messageSandbox;
     }
 
-    _convertToStringOrStringify (obj) {
-        if (isConvertibleToString(obj))
+    _toString (obj) {
+        try {
             return String(obj);
-
-        return stringifyJSON(obj);
+        }
+        catch (e) {
+            return 'object';
+        }
     }
 
     _proxyConsoleMeth (meth) {
         this.window.console[meth] = (...args) => {
             if (!isCrossDomainWindows(window, window.top)) {
                 const sendToTopWindow = window !== window.top;
-                const line            = arrayMap.call(args, this._convertToStringOrStringify).join(' ');
+                const line            = arrayMap.call(args, this._toString).join(' ');
 
                 if (sendToTopWindow) {
                     this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line, inIframe: true });
