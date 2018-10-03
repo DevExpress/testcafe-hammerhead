@@ -10,6 +10,59 @@ function wait (ms) {
 }
 
 if (window.console && typeof window.console.log !== 'undefined') {
+    test('must convert `log`, `warn`, `error` and `info` methods arguments to string lines (GH-1750)', function () {
+        var handledConsoleMethodLines = [];
+
+        var testCases = [
+            true,
+            false,
+            null,
+            void 0,
+            42,
+            'string',
+            {},
+            Object.create(null),
+            {
+                toString: function () {
+                    return Object.create(null);
+                }
+            }
+        ];
+
+        var expectedHandledConsoleMethodLines = ['true', 'false', 'null', 'undefined', '42', 'string', '[object Object]',
+            'object', 'object'];
+
+        // NOTE: IE11 doesn't support 'Symbol'
+        if (!browserUtils.isIE11) {
+            testCases.push(Symbol('foo'));
+            expectedHandledConsoleMethodLines.push('Symbol(foo)');
+        }
+
+        function onConsoleMethCalled (e) {
+            handledConsoleMethodLines.push(e.line);
+        }
+
+        hammerhead.on(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
+
+        [
+            window.console.log,
+            window.console.warn,
+            window.console.error,
+            window.console.info
+        ]
+            .forEach(function (consoleMeth) {
+                handledConsoleMethodLines = [];
+
+                testCases.forEach(function (testCase) {
+                    consoleMeth(testCase);
+                });
+
+                deepEqual(handledConsoleMethodLines, expectedHandledConsoleMethodLines);
+            });
+
+        hammerhead.off(hammerhead.EVENTS.consoleMethCalled, onConsoleMethCalled);
+    });
+
     test('consoleMethCalled event', function () {
         var log                       = [];
         var handledConsoleMethodNames = [];

@@ -14,11 +14,20 @@ export default class ConsoleSandbox extends SandboxBase {
         this.messageSandbox = messageSandbox;
     }
 
+    _toString (obj) {
+        try {
+            return String(obj);
+        }
+        catch (e) {
+            return 'object';
+        }
+    }
+
     _proxyConsoleMeth (meth) {
         this.window.console[meth] = (...args) => {
             if (!isCrossDomainWindows(window, window.top)) {
                 const sendToTopWindow = window !== window.top;
-                const line            = arrayMap.call(args, String).join(' ');
+                const line            = arrayMap.call(args, this._toString).join(' ');
 
                 if (sendToTopWindow) {
                     this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line, inIframe: true });
