@@ -7,7 +7,7 @@
 
 In addition, the proxied web page does not know that it is opened under a proxy. The proxy intercepts access attempts to all URL-containing properties and provides the original values.
 
-## First look
+## First Look
 1. Clone the Hammerhead repository (`git clone https://github.com/DevExpress/testcafe-hammerhead.git`)
 2. Build it (`gulp run build`)
 3. Run the [Hammerhead playground](https://github.com/DevExpress/testcafe-hammerhead/blob/master/test/playground/server.js) (`npm run http-playground`) to see our proxy in action.
@@ -20,14 +20,14 @@ This opens a playground page where you can specify a webpage to proxy. Enter the
 * WebSockets, EventSource
 * file upload
 * request events (`onRequest`, `onResponse`)
-* bypass requests
-* custom UI on web page
+* bypassing requests
+* custom UI on a web page
 
 ##  Reporting Issues and Contributing
 
-* if your website works differently with and without a proxy, create an issue.
-* if you find a problem, please provide a public link to your website or create a simple example to reproduce it.
-* all PRs with bug fixes should contain tests (there may be rare exceptions)
+* If your website works differently with and without a proxy, create an issue.
+* If you find a problem, please provide a public link to your website or create a simple example to reproduce it.
+* All PRs with bug fixes should contain tests (there may be rare exceptions)
 
 [![Build Status](https://travis-ci.org/DevExpress/testcafe-hammerhead.svg)](https://travis-ci.org/DevExpress/testcafe-hammerhead)
 
