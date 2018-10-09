@@ -53,7 +53,7 @@ export default class NodeSandbox extends SandboxBase {
 
         if (processedContext) {
             urlAttrName = domProcessor.getUrlAttr(el);
-            urlAttrName = el.hasAttribute(urlAttrName) ? urlAttrName : null;
+            urlAttrName = urlAttrName && el.hasAttribute(urlAttrName) ? urlAttrName : null;
         }
 
         const canAddNewProp         = nativeMethods.objectIsExtensible.call(window.Object, el);

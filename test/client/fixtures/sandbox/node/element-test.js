@@ -1,3 +1,5 @@
+var nativeMethods = hammerhead.nativeMethods;
+
 test('check the "scriptElementEvent" event is raised', function () {
     var script1           = document.createElement('script');
     var addedScriptsCount = 0;
@@ -47,4 +49,25 @@ test('check the "scriptElementEvent" event is raised', function () {
     strictEqual(addedScriptsCount, 4);
 
     hammerhead.off(hammerhead.EVENTS.scriptElementAdded, handler);
+});
+
+module('regression');
+
+test('a document fragment should correctly process when it is appending to iframe (GH-912)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var fragment = document.createDocumentFragment();
+            var anchor   = document.createElement('a');
+
+            anchor.href = 'http://example.com/';
+            anchor.text = 'Anchor';
+
+            fragment.appendChild(anchor);
+
+            strictEqual(nativeMethods.anchorHrefGetter.call(anchor), location.origin + '/sessionId/http://example.com/');
+
+            iframe.contentDocument.body.appendChild(fragment);
+
+            strictEqual(nativeMethods.anchorHrefGetter.call(anchor), location.origin + '/sessionId!i/http://example.com/');
+        });
 });
