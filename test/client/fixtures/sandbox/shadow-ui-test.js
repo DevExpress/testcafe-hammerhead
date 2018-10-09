@@ -205,7 +205,12 @@ module('childNodes', function () {
                 .then(function () {
                     checkLengthAndFlag();
 
-                    return wait(2000);
+                    return wait(2500);
+                })
+                .then(function () {
+                    checkLengthAndFlag();
+
+                    return wait(2500);
                 })
                 .then(checkLengthAndFlag);
         });
