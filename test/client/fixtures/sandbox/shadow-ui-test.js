@@ -185,6 +185,31 @@ module('childNodes', function () {
             ok(!found, 'check that document.head.children does not return Hammerhead elements');
         });
 
+        // IE11 and Edge have a strange behavior:
+        // shadow container collection flag (or any other document.body.children property) may be lost (GH-1763)
+        test('body.children.length and shadow container collection flag (GH-1763)', function () {
+            function wait (timeout) {
+                return new Promise(function (resolve) {
+                    setTimeout(resolve, timeout);
+                });
+            }
+
+            var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
+
+            function checkLengthAndFlag () {
+                strictEqual(document.body.children.length, childrenOriginLength - 1);
+                ok(ShadowUI.isShadowContainerCollection(document.body.children));
+            }
+
+            return wait(0)
+                .then(function () {
+                    checkLengthAndFlag();
+
+                    return wait(2000);
+                })
+                .then(checkLengthAndFlag);
+        });
+
         test('head.childNodes', function () {
             var shadowUIElementsCount   = 0;
             var childNodesOriginLength  = nativeMethods.nodeListLengthGetter.call(document.head.childNodes);
