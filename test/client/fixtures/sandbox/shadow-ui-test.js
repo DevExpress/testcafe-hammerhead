@@ -22,6 +22,34 @@ QUnit.testStart(function () {
     $(TEST_CLASS_SELECTOR).remove();
 });
 
+// IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
+test('shadow container collection flag should not be lost (GH-1763)', function () {
+    var anchor               = document.createElement('a');
+    var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
+
+    function wait (timeout) {
+        return new Promise(function (resolve) {
+            setTimeout(resolve, timeout);
+        });
+    }
+
+    function checkFlagAndLength () {
+        document.body.appendChild(anchor);
+        anchor.parentNode.removeChild(anchor);
+
+        ok(ShadowUI.isShadowContainerCollection(document.body.children));
+        strictEqual(document.body.children.length, childrenOriginLength - 1);
+    }
+
+    return wait(0)
+        .then(function () {
+            checkFlagAndLength();
+
+            return wait(5000);
+        })
+        .then(checkFlagAndLength);
+});
+
 test('add UI class and get UI element with selector', function () {
     var uiElem = document.createElement('div');
 
@@ -183,36 +211,6 @@ module('childNodes', function () {
             link2.parentNode.removeChild(link2);
 
             ok(!found, 'check that document.head.children does not return Hammerhead elements');
-        });
-
-        // IE11 and Edge have a strange behavior:
-        // shadow container collection flag (or any other document.body.children property) may be lost (GH-1763)
-        test('body.children.length and shadow container collection flag (GH-1763)', function () {
-            function wait (timeout) {
-                return new Promise(function (resolve) {
-                    setTimeout(resolve, timeout);
-                });
-            }
-
-            var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
-
-            function checkLengthAndFlag () {
-                strictEqual(document.body.children.length, childrenOriginLength - 1);
-                ok(ShadowUI.isShadowContainerCollection(document.body.children));
-            }
-
-            return wait(0)
-                .then(function () {
-                    checkLengthAndFlag();
-
-                    return wait(5000);
-                })
-                .then(function () {
-                    checkLengthAndFlag();
-
-                    return wait(5000);
-                })
-                .then(checkLengthAndFlag);
         });
 
         test('head.childNodes', function () {
