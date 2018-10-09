@@ -29,6 +29,7 @@ import {
     isStyleElement,
     findDocument,
     isBodyElement,
+    isHeadOrBodyElement,
     isHtmlElement
 } from '../../utils/dom';
 import { isPrimitiveType } from '../../utils/types';
@@ -713,6 +714,12 @@ export default class WindowSandbox extends SandboxBase {
 
                 if (ShadowUI.isShadowContainerCollection(this))
                     return ShadowUI.getShadowUICollectionLength(this, length);
+                // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
+                else if (isIE && length && isHeadOrBodyElement(this[0].parentNode)) {
+                    ShadowUI.markCollectionAsShadow(this);
+
+                    return ShadowUI.getShadowUICollectionLength(this, length);
+                }
 
                 return length;
             }

@@ -392,6 +392,12 @@ export function isHeadElement (el) {
     return instanceToString(el) === '[object HTMLHeadElement]';
 }
 
+export function isHeadOrBodyElement (el) {
+    const elString = instanceToString(el);
+
+    return elString === '[object HTMLHeadElement]' || elString === '[object HTMLBodyElement]';
+}
+
 export function isBaseElement (el) {
     return instanceToString(el) === '[object HTMLBaseElement]';
 }
