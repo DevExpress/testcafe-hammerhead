@@ -27,7 +27,8 @@ export default class WindowSync {
                 else
                     callback();
             }
-            else if (message.cmd === SYNC_COOKIE_DONE_CMD) {
+            // NOTE: We need to remove the second part of the condition after a fix of GH-1715
+            else if (message.cmd === SYNC_COOKIE_DONE_CMD && this.resolversMap[message.id]) {
                 this.resolversMap[message.id]();
 
                 delete this.resolversMap[message.id];
