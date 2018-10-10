@@ -46,6 +46,9 @@ class NativeMethods {
 
         this.createHTMLDocument = win.DOMImplementation.prototype.createHTMLDocument;
 
+        if (doc.registerElement)
+            this.registerElement = doc.registerElement || docProto.registerElement;
+
         // Event
         this.documentAddEventListener    = doc.addEventListener || docProto.addEventListener;
         this.documentRemoveEventListener = doc.removeEventListener || docProto.removeEventListener;

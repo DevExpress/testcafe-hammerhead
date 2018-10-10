@@ -59,6 +59,7 @@ const STORED_ATTRS_SELECTOR = (() => {
 const SHADOW_UI_ELEMENTS_SELECTOR                    = `[class*="${SHADOW_UI_CLASSNAME.postfix}"]`;
 const HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR = `[${INTERNAL_ATTRS.hoverPseudoClass}],[${INTERNAL_ATTRS.focusPseudoClass}]`;
 const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_HEAD_TAG_NAME}, ${FAKE_BODY_TAG_NAME}`;
+const HTML_PARSER_ELEMENT_FLAG                       = 'hammerhead|html-parser-element-flag';
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
     var parentHammerhead = null;
@@ -77,6 +78,8 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
 let htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
 let htmlParser   = htmlDocument.createDocumentFragment();
 
+htmlParser[HTML_PARSER_ELEMENT_FLAG] = true;
+
 function getHtmlDocument () {
     try {
         // NOTE: IE bug: access denied.
@@ -86,6 +89,8 @@ function getHtmlDocument () {
     catch (e) {
         htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
         htmlParser   = htmlDocument.createDocumentFragment();
+
+        htmlParser[HTML_PARSER_ELEMENT_FLAG] = true;
     }
 
     return htmlDocument;
@@ -255,6 +260,13 @@ export function processHtml (html, { parentTag, prepareDom, processedContext } =
 export function dispose () {
     htmlParser   = null;
     htmlDocument = null;
+}
+
+export function isInternalHtmlParserElement (el) {
+    while (el.parentNode)
+        el = el.parentNode;
+
+    return !!el[HTML_PARSER_ELEMENT_FLAG];
 }
 
 function removeExtraSvgNamespaces (html, processedHtml) {

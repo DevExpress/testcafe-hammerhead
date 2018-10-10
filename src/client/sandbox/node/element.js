@@ -12,7 +12,7 @@ import * as hiddenInfo from '../upload/hidden-info';
 import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { isValidEventListener, stopPropagation } from '../../utils/event';
-import { processHtml } from '../../utils/html';
+import { processHtml, isInternalHtmlParserElement } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
 import trim from '../../../utils/string-trim';
@@ -631,6 +631,21 @@ export default class ElementSandbox extends SandboxBase {
                 const parsedProxyHref = urlUtils.parseProxyUrl(href);
 
                 return parsedProxyHref ? parsedProxyHref.destUrl : href;
+            },
+
+            registerElement (...args) {
+                const opts = args[1];
+
+                if (opts && opts.prototype && opts.prototype.createdCallback) {
+                    const storedCreatedCallback = opts.prototype.createdCallback;
+
+                    opts.prototype.createdCallback = function () {
+                        if (!isInternalHtmlParserElement(this))
+                            storedCreatedCallback.call(this);
+                    };
+                }
+
+                return nativeMethods.registerElement.apply(this, args);
             }
         };
     }
@@ -786,6 +801,9 @@ export default class ElementSandbox extends SandboxBase {
         window.HTMLTableRowElement.prototype.insertCell    = this.overriddenMethods.insertCell;
         window.HTMLFormElement.prototype.submit            = this.overriddenMethods.formSubmit;
         window.HTMLAnchorElement.prototype.toString        = this.overriddenMethods.anchorToString;
+
+        if (window.Document.prototype.registerElement)
+            window.Document.prototype.registerElement = this.overriddenMethods.registerElement;
 
         if (window.Element.prototype.insertAdjacentHTML)
             window.Element.prototype.insertAdjacentHTML = this.overriddenMethods.insertAdjacentHTML;
