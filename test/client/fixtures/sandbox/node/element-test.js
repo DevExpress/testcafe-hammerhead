@@ -71,3 +71,51 @@ test('a document fragment should correctly process when it is appending to ifram
             strictEqual(nativeMethods.anchorHrefGetter.call(anchor), location.origin + '/sessionId!i/http://example.com/');
         });
 });
+
+test('[registerElement] the lifecycle callbacks should not be called twice (GH-695)', function () {
+    if (!document.registerElement) {
+        expect(0);
+        return;
+    }
+
+    var createdCallbackCalledCount  = 0;
+    var attachedCallbackCalledCount = 0;
+    var detachedCallbackCalledCount = 0;
+    var newTagProto                 = Object.create(HTMLElement.prototype);
+
+    newTagProto.createdCallback  = function () {
+        createdCallbackCalledCount++;
+    };
+    newTagProto.attachedCallback = function () {
+        attachedCallbackCalledCount++;
+    };
+    newTagProto.detachedCallback = function () {
+        detachedCallbackCalledCount++;
+    };
+
+    var NewTag         = document.registerElement('new-tag', { prototype: newTagProto });
+    var newTagInstance = new NewTag();
+    var testDiv        = document.createElement('div');
+
+    document.body.appendChild(testDiv);
+
+    testDiv.appendChild(newTagInstance);
+    testDiv.removeChild(newTagInstance);
+
+    strictEqual(createdCallbackCalledCount, 1);
+    strictEqual(attachedCallbackCalledCount, 1);
+    strictEqual(detachedCallbackCalledCount, 1);
+
+    createdCallbackCalledCount  = 0;
+    attachedCallbackCalledCount = 0;
+    detachedCallbackCalledCount = 0;
+
+    testDiv.innerHTML = '<new-tag/>';
+    testDiv.innerHTML = '';
+
+    strictEqual(createdCallbackCalledCount, 1);
+    strictEqual(attachedCallbackCalledCount, 1);
+    strictEqual(detachedCallbackCalledCount, 1);
+
+    document.body.removeChild(testDiv);
+});
