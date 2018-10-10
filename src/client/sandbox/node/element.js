@@ -12,7 +12,7 @@ import * as hiddenInfo from '../upload/hidden-info';
 import * as urlResolver from '../../utils/url-resolver';
 import { sameOriginCheck, get as getDestLocation } from '../../utils/destination-location';
 import { isValidEventListener, stopPropagation } from '../../utils/event';
-import { processHtml, isParsingElement } from '../../utils/html';
+import { processHtml, isInternalHtmlParserElement } from '../../utils/html';
 import { getNativeQuerySelector, getNativeQuerySelectorAll } from '../../utils/query-selector';
 import { HASH_RE } from '../../../utils/url';
 import trim from '../../../utils/string-trim';
@@ -640,7 +640,7 @@ export default class ElementSandbox extends SandboxBase {
                     const storedCreatedCallback = opts.prototype.createdCallback;
 
                     opts.prototype.createdCallback = function () {
-                        if (!isParsingElement(this))
+                        if (!isInternalHtmlParserElement(this))
                             storedCreatedCallback.call(this);
                     };
                 }

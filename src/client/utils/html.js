@@ -59,7 +59,7 @@ const STORED_ATTRS_SELECTOR = (() => {
 const SHADOW_UI_ELEMENTS_SELECTOR                    = `[class*="${SHADOW_UI_CLASSNAME.postfix}"]`;
 const HOVER_AND_FOCUS_PSEUDO_CLASS_ELEMENTS_SELECTOR = `[${INTERNAL_ATTRS.hoverPseudoClass}],[${INTERNAL_ATTRS.focusPseudoClass}]`;
 const FAKE_ELEMENTS_SELECTOR                         = `${FAKE_HEAD_TAG_NAME}, ${FAKE_BODY_TAG_NAME}`;
-const PARSING_CONTAINER_FLAG                         = 'hammerhead|parsing-container-flag';
+const HTML_PARSER_ELEMENT_FLAG                       = 'hammerhead|html-parser-element-flag';
 
 export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
     var parentHammerhead = null;
@@ -78,7 +78,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
 let htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
 let htmlParser   = htmlDocument.createDocumentFragment();
 
-htmlParser[PARSING_CONTAINER_FLAG] = true;
+htmlParser[HTML_PARSER_ELEMENT_FLAG] = true;
 
 function getHtmlDocument () {
     try {
@@ -90,7 +90,7 @@ function getHtmlDocument () {
         htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
         htmlParser   = htmlDocument.createDocumentFragment();
 
-        htmlParser[PARSING_CONTAINER_FLAG] = true;
+        htmlParser[HTML_PARSER_ELEMENT_FLAG] = true;
     }
 
     return htmlDocument;
@@ -262,11 +262,11 @@ export function dispose () {
     htmlDocument = null;
 }
 
-export function isParsingElement (el) {
+export function isInternalHtmlParserElement (el) {
     while (el.parentNode)
         el = el.parentNode;
 
-    return !!el[PARSING_CONTAINER_FLAG];
+    return !!el[HTML_PARSER_ELEMENT_FLAG];
 }
 
 function removeExtraSvgNamespaces (html, processedHtml) {
