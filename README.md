@@ -8,9 +8,22 @@
 In addition, the proxied web page does not know that it is opened under a proxy. The proxy intercepts access attempts to all URL-containing properties and provides the original values.
 
 ## First Look
-1. Clone the Hammerhead repository (`git clone https://github.com/DevExpress/testcafe-hammerhead.git`)
-2. Build it (`gulp run build`)
-3. Run the [Hammerhead playground](https://github.com/DevExpress/testcafe-hammerhead/blob/master/test/playground/server.js) (`npm run http-playground`) to see our proxy in action.
+1. Clone the Hammerhead repository
+    ```cmd
+    git clone https://github.com/DevExpress/testcafe-hammerhead.git
+    ```
+1. Go to the `testcafe-hammerhead` folder
+    ```cmd
+    cd testcafe-hammerhead
+    ```
+1. Install the dependencies
+    ```cmd
+    npm install
+    ```
+1. Run the [Hammerhead playground](https://github.com/DevExpress/testcafe-hammerhead/blob/master/test/playground/server.js) to see our proxy in action
+    ```cmd
+    node node_modules/gulp/bin/gulp http-playground
+    ```
 
 This opens a playground page where you can specify a webpage to proxy. Enter the page URL and hit **Proxy!**.
 
