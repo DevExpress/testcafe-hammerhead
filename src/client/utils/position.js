@@ -226,6 +226,19 @@ export function getElementRectangle (el) {
     return rectangle;
 }
 
+export function isPositionInsideElement (el, x, y) {
+    const rect    = getElementRectangle(el);
+    const borders = styleUtils.getBordersWidth(el);
+    const padding = styleUtils.getElementPadding(el);
+
+    const left   = rect.left + borders.left + padding.left;
+    const top    = rect.top + borders.top + padding.top;
+    const right  = rect.left + rect.width - borders.right - padding.right;
+    const bottom = rect.top + rect.height - borders.bottom - padding.bottom;
+
+    return x >= left && x <= right && y >= top && y <= bottom;
+}
+
 function calcOffsetPosition (el, borders, offsetPosition) {
     const isSvg = domUtils.isSVGElementOrChild(el);
 

@@ -336,3 +336,119 @@ test('event.preventDefault call should change the event.defaultPrevented propert
 
     eventSimulator.keydown(input);
 });
+
+asyncTest('mouse events in iframe', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var $div    = $('<div>').appendTo('body');
+            var $iframe = $(iframe);
+
+            $div.css('display', 'inline-block');
+
+            $iframe.css({
+                width:           300,
+                height:          100,
+                border:          '5px solid black',
+                padding:         20,
+                backgroundColor: 'yellow'
+            });
+
+            $iframe.appendTo($div);
+
+            var actualEvents = [];
+
+            var simulatorMethods = [
+                'mousedown',
+                'mouseup',
+                'mousemove',
+                'mouseover',
+                'mouseenter',
+                'click',
+                'dblclick',
+                'contextmenu'
+            ];
+
+            var allEvents = [
+                'pointerdown',
+                'mousedown',
+                'pointerup',
+                'mouseup',
+                'pointermove',
+                'mousemove',
+                'pointerover',
+                'mouseover',
+                'mouseenter',
+                'click',
+                'dblclick',
+                'contextmenu'
+            ];
+
+            var getHandler = function (i) {
+                return function () {
+                    actualEvents.push(allEvents[i]);
+                };
+            };
+
+            for (var i = 0; i < allEvents.length; i++)
+                iframe.addEventListener(allEvents[i], getHandler(i));
+
+            for (i = 0; i < simulatorMethods.length; i++)
+                eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 130 });
+
+            deepEqual(actualEvents, ['pointerover', 'mouseover', 'mouseenter']);
+
+            actualEvents = [];
+
+            for (i = 0; i < simulatorMethods.length; i++)
+                eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
+
+            deepEqual(actualEvents, allEvents);
+
+            $div.remove();
+
+            start();
+        });
+
+});
+
+asyncTest('hover style in iframe', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var $style  = $('<style>').appendTo('body');
+            var $div    = $('<div>').appendTo('body');
+            var $iframe = $(iframe);
+
+            $style.html('iframe: hover { background-color: blue!important; }');
+            $div.css('display', 'inline-block');
+
+            $iframe.css({
+                width:           300,
+                height:          100,
+                border:          '5px solid black',
+                padding:         20,
+                backgroundColor: 'yellow'
+            });
+
+            $iframe.appendTo($div);
+
+            var initialBackgroundColor = $iframe.css('backgroundColor');
+
+            eventSimulator.mouseover(iframe, { clientX: 190, clientY: 130 });
+            if (browserUtils.isIE)
+                equal($iframe.css('backgroundColor'), initialBackgroundColor);
+            else
+                notEqual($iframe.css('backgroundColor'), initialBackgroundColor);
+
+            eventSimulator.mouseover(document.body, { clientX: 0, clientY: 0 });
+            equal($iframe.css('backgroundColor'), initialBackgroundColor);
+
+            eventSimulator.mouseover(iframe, { clientX: 190, clientY: 70 });
+            notEqual($iframe.css('backgroundColor'), initialBackgroundColor);
+
+            $div.remove();
+            $style.remove();
+
+            start();
+        });
+
+});

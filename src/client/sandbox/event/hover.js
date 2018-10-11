@@ -2,6 +2,8 @@ import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as domUtils from '../../utils/dom';
+import * as positionUtils from '../../utils/position';
+import * as browserUtils from '../../utils/browser';
 
 export default class HoverSandbox extends SandboxBase {
     constructor (listeners) {
@@ -56,6 +58,14 @@ export default class HoverSandbox extends SandboxBase {
         return jointParent;
     }
 
+    _onHover ({ target, clientX, clientY }) {
+        const isIframeContent = domUtils.getTagName(target) === 'iframe' && positionUtils.isPositionInsideElement(target, clientX, clientY);
+        const hoverIsDisabled = browserUtils.isIE && isIframeContent;
+
+        if (!hoverIsDisabled)
+            this._hover(target);
+    }
+
     _hover (el) {
         if (!this.hoverElementFixed && !domUtils.isShadowUIElement(el)) {
             const jointParent = this._clearHoverMarkerUntilJointParent(el);
@@ -77,6 +87,6 @@ export default class HoverSandbox extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        this.listeners.addInternalEventListener(window, ['mouseover', 'touchstart'], e => this._hover(e.target));
+        this.listeners.addInternalEventListener(window, ['mouseover', 'touchstart'], e => this._onHover(e));
     }
 }

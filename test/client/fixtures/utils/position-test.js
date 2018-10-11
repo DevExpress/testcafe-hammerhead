@@ -39,3 +39,49 @@ test('`getOffsetPosition` with `roundFn` arg', function () {
     notDeepEqual(offsetPositionCeil, offsetPositionRound);
     strictEqual(elementInPoint, child);
 });
+
+test('`isPositionInsideElement`', function () {
+    var testDiv = document.querySelector(TEST_DIV_SELECTOR);
+    var div   = document.createElement('div');
+
+    div.style.width  = '300px';
+    div.style.height = '100px';
+
+    var borderWidth  = 5;
+    var paddingWidth = 10;
+
+    div.style.border = borderWidth + 'px solid black';
+    div.style.padding = paddingWidth + 'px';
+
+    testDiv.appendChild(div);
+
+    var rect = positionUtils.getElementRectangle(div);
+
+    rect.right  = rect.left + rect.width;
+    rect.bottom = rect.top + rect.height;
+
+    notOk(positionUtils.isPositionInsideElement(div, rect.left, rect.top));
+    notOk(positionUtils.isPositionInsideElement(div, rect.left, rect.bottom));
+    notOk(positionUtils.isPositionInsideElement(div, rect.right, rect.top));
+    notOk(positionUtils.isPositionInsideElement(div, rect.right, rect.bottom));
+
+    rect.left += borderWidth + paddingWidth;
+    rect.right -= borderWidth + paddingWidth;
+    rect.top += borderWidth + paddingWidth;
+    rect.bottom -= borderWidth + paddingWidth;
+
+    ok(positionUtils.isPositionInsideElement(div, rect.left, rect.top));
+    ok(positionUtils.isPositionInsideElement(div, rect.left, rect.bottom));
+    ok(positionUtils.isPositionInsideElement(div, rect.right, rect.top));
+    ok(positionUtils.isPositionInsideElement(div, rect.right, rect.bottom));
+
+    rect.left -= 1;
+    rect.right += 1;
+    rect.top -= 1;
+    rect.bottom += 1;
+
+    notOk(positionUtils.isPositionInsideElement(div, rect.left, rect.top));
+    notOk(positionUtils.isPositionInsideElement(div, rect.left, rect.bottom));
+    notOk(positionUtils.isPositionInsideElement(div, rect.right, rect.top));
+    notOk(positionUtils.isPositionInsideElement(div, rect.right, rect.bottom));
+});
