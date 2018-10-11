@@ -1,4 +1,5 @@
 var browserUtils   = hammerhead.utils.browser;
+var eventUtils     = hammerhead.utils.event;
 var nativeMethods  = hammerhead.nativeMethods;
 var listeners      = hammerhead.sandbox.event.listeners;
 var focusBlur      = hammerhead.sandbox.event.focusBlur;
@@ -320,6 +321,7 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
                 nativeMethods.windowRemoveEventListener.call(target, 'click', handler);
             }
             catch (e) {
+                //
             }
         });
     };
@@ -391,6 +393,20 @@ asyncTest('mouse events in iframe', function () {
                 'contextmenu'
             ];
 
+            var eventsInsideFrame = ['pointerover', 'mouseover', 'mouseenter'];
+
+            if (!eventUtils.hasPointerEvents) {
+                const pointerRegExp = /pointer(down|up|move|over)/;
+
+                allEvents = allEvents.filter(function (eventName) {
+                    return !pointerRegExp.test(eventName);
+                });
+
+                eventsInsideFrame = eventsInsideFrame.filter(function (eventName) {
+                    return !pointerRegExp.test(eventName);
+                });
+            }
+
             var getHandler = function (i) {
                 return function () {
                     actualEvents.push(allEvents[i]);
@@ -403,7 +419,7 @@ asyncTest('mouse events in iframe', function () {
             for (i = 0; i < simulatorMethods.length; i++)
                 eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 130 });
 
-            deepEqual(actualEvents, ['pointerover', 'mouseover', 'mouseenter']);
+            deepEqual(actualEvents, eventsInsideFrame);
 
             actualEvents = [];
 
@@ -442,12 +458,13 @@ asyncTest('hover style in iframe', function () {
             var initialBackgroundColor = $iframe.css('backgroundColor');
 
             eventSimulator.mouseover(iframe, { clientX: 190, clientY: 130 });
+
             if (browserUtils.isIE)
                 equal($iframe.css('backgroundColor'), initialBackgroundColor);
             else
                 notEqual($iframe.css('backgroundColor'), initialBackgroundColor);
 
-            eventSimulator.mouseover(document.body, { clientX: 0, clientY: 0 });
+            eventSimulator.mouseover($div[0], { clientX: 0, clientY: 0 });
             equal($iframe.css('backgroundColor'), initialBackgroundColor);
 
             eventSimulator.mouseover(iframe, { clientX: 190, clientY: 70 });
