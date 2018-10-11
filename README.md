@@ -9,15 +9,19 @@ In addition, the proxied web page does not know that it is opened under a proxy.
 
 ## First Look
 1. Clone the Hammerhead repository
-    ```
+    ```cmd
     git clone https://github.com/DevExpress/testcafe-hammerhead.git
     ```
-1. Install dependencies
+1. Follow to the `testcafe-hammerhead` folder
+    ```cmd
+    cd testcafe-hammerhead
     ```
+1. Install dependencies
+    ```cmd
     npm install
     ```
 1. Run the [Hammerhead playground](https://github.com/DevExpress/testcafe-hammerhead/blob/master/test/playground/server.js) to see our proxy in action
-    ```
+    ```cmd
     node node_modules/gulp/bin/gulp http-playground
     ```
 
