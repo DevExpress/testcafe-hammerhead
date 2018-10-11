@@ -314,6 +314,14 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
         });
 
         strictEqual(listeningCtx.getEventCtx(target, 'click').wrappers.length, storedHandlerWrappersCount);
+
+        handlers.forEach(function (handler) {
+            try {
+                nativeMethods.windowRemoveEventListener.call(target, 'click', handler);
+            }
+            catch (e) {
+            }
+        });
     };
 
     testHandlers(window);
