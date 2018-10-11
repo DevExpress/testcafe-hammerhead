@@ -12,11 +12,11 @@ In addition, the proxied web page does not know that it is opened under a proxy.
     ```cmd
     git clone https://github.com/DevExpress/testcafe-hammerhead.git
     ```
-1. Follow to the `testcafe-hammerhead` folder
+1. Go to the `testcafe-hammerhead` folder
     ```cmd
     cd testcafe-hammerhead
     ```
-1. Install dependencies
+1. Install the dependencies
     ```cmd
     npm install
     ```
