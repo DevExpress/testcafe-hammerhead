@@ -226,10 +226,17 @@ export function getElementRectangle (el) {
     return rectangle;
 }
 
-export function isPositionInsideElement (el, x, y) {
+export function shouldIgnoreMouseEventInsideIframe (el, x, y) {
+    if (domUtils.getTagName(el) !== 'iframe')
+        return false;
+
     const rect    = getElementRectangle(el);
     const borders = styleUtils.getBordersWidth(el);
     const padding = styleUtils.getElementPadding(el);
+
+    // NOTE: we detect element's 'content' position: left, right, top and bottom
+    // which does not consider borders and paddings, so we need to
+    // subtract it for right and bottom, and add for left and top
 
     const left   = rect.left + borders.left + padding.left;
     const top    = rect.top + borders.top + padding.top;

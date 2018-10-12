@@ -1,6 +1,6 @@
 var positionUtils = hammerhead.utils.position;
 
-var TEST_DIV_SELECTOR   = '#testDiv';
+var TEST_DIV_SELECTOR = '#testDiv';
 
 QUnit.testStart(function () {
     if (!$(TEST_DIV_SELECTOR).length)
@@ -40,48 +40,51 @@ test('`getOffsetPosition` with `roundFn` arg', function () {
     strictEqual(elementInPoint, child);
 });
 
-test('`isPositionInsideElement`', function () {
-    var testDiv = document.querySelector(TEST_DIV_SELECTOR);
-    var div   = document.createElement('div');
+asyncTest('`shouldIgnoreMouseEventInsideIframe`', function () {
+    return createTestIframe().then(function (iframe) {
+        var testDiv = document.querySelector(TEST_DIV_SELECTOR);
 
-    div.style.width  = '300px';
-    div.style.height = '100px';
+        iframe.style.width  = '300px';
+        iframe.style.height = '100px';
 
-    var borderWidth  = 5;
-    var paddingWidth = 10;
+        var borderWidth  = 5;
+        var paddingWidth = 10;
 
-    div.style.border = borderWidth + 'px solid black';
-    div.style.padding = paddingWidth + 'px';
+        iframe.style.border  = borderWidth + 'px solid black';
+        iframe.style.padding = paddingWidth + 'px';
 
-    testDiv.appendChild(div);
+        testDiv.appendChild(iframe);
 
-    var rect = positionUtils.getElementRectangle(div);
+        var rect = positionUtils.getElementRectangle(iframe);
 
-    rect.right  = rect.left + rect.width;
-    rect.bottom = rect.top + rect.height;
+        rect.right  = rect.left + rect.width;
+        rect.bottom = rect.top + rect.height;
 
-    notOk(positionUtils.isPositionInsideElement(div, rect.left, rect.top));
-    notOk(positionUtils.isPositionInsideElement(div, rect.left, rect.bottom));
-    notOk(positionUtils.isPositionInsideElement(div, rect.right, rect.top));
-    notOk(positionUtils.isPositionInsideElement(div, rect.right, rect.bottom));
+        notOk(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.left, rect.top));
+        notOk(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.left, rect.bottom));
+        notOk(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.right, rect.top));
+        notOk(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.right, rect.bottom));
 
-    rect.left += borderWidth + paddingWidth;
-    rect.right -= borderWidth + paddingWidth;
-    rect.top += borderWidth + paddingWidth;
-    rect.bottom -= borderWidth + paddingWidth;
+        rect.left += borderWidth + paddingWidth;
+        rect.right -= borderWidth + paddingWidth;
+        rect.top += borderWidth + paddingWidth;
+        rect.bottom -= borderWidth + paddingWidth;
 
-    ok(positionUtils.isPositionInsideElement(div, rect.left, rect.top));
-    ok(positionUtils.isPositionInsideElement(div, rect.left, rect.bottom));
-    ok(positionUtils.isPositionInsideElement(div, rect.right, rect.top));
-    ok(positionUtils.isPositionInsideElement(div, rect.right, rect.bottom));
+        ok(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.left, rect.top));
+        ok(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.left, rect.bottom));
+        ok(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.right, rect.top));
+        ok(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.right, rect.bottom));
 
-    rect.left -= 1;
-    rect.right += 1;
-    rect.top -= 1;
-    rect.bottom += 1;
+        rect.left -= 1;
+        rect.right += 1;
+        rect.top -= 1;
+        rect.bottom += 1;
 
-    notOk(positionUtils.isPositionInsideElement(div, rect.left, rect.top));
-    notOk(positionUtils.isPositionInsideElement(div, rect.left, rect.bottom));
-    notOk(positionUtils.isPositionInsideElement(div, rect.right, rect.top));
-    notOk(positionUtils.isPositionInsideElement(div, rect.right, rect.bottom));
+        notOk(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.left, rect.top));
+        notOk(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.left, rect.bottom));
+        notOk(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.right, rect.top));
+        notOk(positionUtils.shouldIgnoreMouseEventInsideIframe(iframe, rect.right, rect.bottom));
+
+        start();
+    });
 });

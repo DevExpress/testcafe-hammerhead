@@ -59,8 +59,7 @@ export default class HoverSandbox extends SandboxBase {
     }
 
     _onHover ({ target, clientX, clientY }) {
-        const isIframeContent = domUtils.getTagName(target) === 'iframe' && positionUtils.isPositionInsideElement(target, clientX, clientY);
-        const hoverIsDisabled = browserUtils.isIE && isIframeContent;
+        const hoverIsDisabled = browserUtils.isIE && positionUtils.shouldIgnoreMouseEventInsideIframe(target, clientX, clientY);
 
         if (!hoverIsDisabled)
             this._hover(target);
