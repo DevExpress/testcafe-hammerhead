@@ -532,7 +532,7 @@ export default class EventSimulator {
         const isIframeContent = domUtils.getTagName(el) === 'iframe' && isPositionInsideElement(el, args.clientX, args.clientY);
 
         if (isIframeContent && args.type !== 'mouseover' && args.type !== 'mouseenter')
-            return false;
+            return true;
 
         const pointerRegExp = /mouse(down|up|move|over|out)/;
 
