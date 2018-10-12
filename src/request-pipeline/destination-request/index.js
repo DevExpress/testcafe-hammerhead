@@ -7,7 +7,7 @@ import { EventEmitter } from 'events';
 import { getAuthInfo, addCredentials, requiresResBody } from 'webauth';
 import connectionResetGuard from '../connection-reset-guard';
 import { MESSAGE, getText } from '../../messages';
-import { transformHeadersCaseToRaw } from '../header-transforms';
+import { transformHeadersCaseToRaw } from '../header-transforms-api';
 
 // HACK: Ignore SSL auth. The rejectUnauthorized option in the https.request method
 // doesn't work (see: https://github.com/mikeal/request/issues/418).

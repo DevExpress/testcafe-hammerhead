@@ -1,4 +1,4 @@
-import * as headerTransforms from './header-transforms';
+import * as headerTransforms from './header-transforms-api';
 
 function writeWebSocketHead (socket, destRes, headers) {
     const { httpVersion, statusCode, statusMessage } = destRes;
