@@ -10,6 +10,7 @@ import { get as getStyle, set as setStyle } from '../utils/style';
 import { stopPropagation } from '../utils/event';
 import { getNativeQuerySelectorAll } from '../utils/query-selector';
 import HTMLCollectionWrapper from './node/live-node-list/html-collection-wrapper';
+import { getElementsByNameReturnsHTMLCollection } from '../utils/feature-detection';
 
 const IS_NON_STATIC_POSITION_RE = /fixed|relative|absolute/;
 const CLASSNAME_RE              = /\.((?:\\.|[-\w]|[^\x00-\xa0])+)/g;
@@ -43,11 +44,10 @@ export default class ShadowUI extends SandboxBase {
         return el && domUtils.isShadowUIElement(el) ? null : el;
     }
 
-    _filterList (list, predicate) {
+    _filterList (list, listLength, predicate) {
         const filteredList = [];
-        const nlLength     = list.length;
 
-        for (let i = 0; i < nlLength; i++) {
+        for (let i = 0; i < listLength; i++) {
             const el = predicate(list[i]);
 
             if (el)
@@ -64,15 +64,15 @@ export default class ShadowUI extends SandboxBase {
             });
         }
 
-        return filteredList.length === nlLength ? list : filteredList;
+        return filteredList.length === listLength ? list : filteredList;
     }
 
-    _filterNodeList (nodeList) {
-        return this._filterList(nodeList, item => ShadowUI._filterElement(item));
+    _filterNodeList (nodeList, nodeListLength) {
+        return this._filterList(nodeList, nodeListLength, item => ShadowUI._filterElement(item));
     }
 
-    _filterStyleSheetList (styleSheetList) {
-        return this._filterList(styleSheetList, item => ShadowUI._filterElement(item.ownerNode));
+    _filterStyleSheetList (styleSheetList, styleSheetListLength) {
+        return this._filterList(styleSheetList, styleSheetListLength, item => ShadowUI._filterElement(item.ownerNode));
     }
 
     static _getFirstNonShadowElement (nodeList) {
@@ -90,7 +90,10 @@ export default class ShadowUI extends SandboxBase {
         return {
             getElementsByClassName (nativeGetElementsByClassNameFnName) {
                 return function (...args) {
-                    return sandbox._filterNodeList(nativeMethods[nativeGetElementsByClassNameFnName].apply(this, args));
+                    const elements = nativeMethods[nativeGetElementsByClassNameFnName].apply(this, args);
+                    const length   = nativeMethods.htmlCollectionLengthGetter.call(elements);
+
+                    return sandbox._filterNodeList(elements, length);
                 };
             },
 
@@ -131,7 +134,10 @@ export default class ShadowUI extends SandboxBase {
                     if (typeof args[0] === 'string')
                         args[0] = NodeSandbox.processSelector(args[0]);
 
-                    return sandbox._filterNodeList(nativeMethods[nativeQuerySelectorAllFnName].apply(this, args));
+                    const list = nativeMethods[nativeQuerySelectorAllFnName].apply(this, args);
+                    const length = nativeMethods.nodeListLengthGetter.call(list);
+
+                    return sandbox._filterNodeList(list, length);
                 };
             }
         };
@@ -229,7 +235,12 @@ export default class ShadowUI extends SandboxBase {
         };
 
         docProto.getElementsByName = function (...args) {
-            return shadowUI._filterNodeList(nativeMethods.getElementsByName.apply(this, args));
+            const elements = nativeMethods.getElementsByName.apply(this, args);
+            const length   = getElementsByNameReturnsHTMLCollection
+                ? nativeMethods.htmlCollectionLengthGetter.call(elements)
+                : nativeMethods.nodeListLengthGetter.call(elements);
+
+            return shadowUI._filterNodeList(elements, length);
         };
 
         docProto.getElementsByClassName = this.wrapperCreators.getElementsByClassName('getElementsByClassName');
@@ -397,14 +408,18 @@ export default class ShadowUI extends SandboxBase {
 
     // Accessors
     getFirstChild (el) {
-        const filteredNodes = this._filterNodeList(el.childNodes);
+        const nativeNodes   = el.childNodes;
+        const length        = nativeMethods.nodeListLengthGetter.call(nativeNodes);
+        const filteredNodes = this._filterNodeList(nativeNodes, length);
 
-        return filteredNodes.length && filteredNodes[0] ? filteredNodes[0] : null;
+        return filteredNodes[0] || null;
     }
 
     getFirstElementChild (el) {
-        const filteredNodes = this._filterNodeList(el.childNodes);
-        const cnLength      = filteredNodes.length;
+        const nativeNodes   = el.childNodes;
+        const length        = nativeMethods.nodeListLengthGetter.call(nativeNodes);
+        const filteredNodes = this._filterNodeList(nativeNodes, length);
+        const cnLength      = nativeNodes === filteredNodes ? length : filteredNodes.length;
 
         for (let i = 0; i < cnLength; i++) {
             if (domUtils.isElementNode(filteredNodes[i]))
@@ -415,15 +430,19 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getLastChild (el) {
-        const filteredNodes = this._filterNodeList(el.childNodes);
-        const index         = filteredNodes.length - 1;
+        const nativeNodes   = el.childNodes;
+        const length        = nativeMethods.nodeListLengthGetter.call(nativeNodes);
+        const filteredNodes = this._filterNodeList(nativeNodes, length);
+        const index         = nativeNodes === filteredNodes ? length - 1 : filteredNodes.length - 1;
 
         return index >= 0 ? filteredNodes[index] : null;
     }
 
     getLastElementChild (el) {
-        const filteredNodes = this._filterNodeList(el.childNodes);
-        const cnLength      = filteredNodes.length;
+        const nativeNodes   = el.childNodes;
+        const length        = nativeMethods.nodeListLengthGetter.call(nativeNodes);
+        const filteredNodes = this._filterNodeList(nativeNodes, length);
+        const cnLength      = nativeNodes === filteredNodes ? length : filteredNodes.length;
 
         for (let i = cnLength - 1; i >= 0; i--) {
             if (domUtils.isElementNode(filteredNodes[i]))

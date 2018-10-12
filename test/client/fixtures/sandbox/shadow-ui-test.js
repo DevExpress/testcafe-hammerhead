@@ -703,8 +703,8 @@ test('stylesheets are restored after the document is cleaned', function () {
     link1.id        = 'id1';
     link2.id        = 'id2';
 
-    document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
+    document.head.insertBefore(link2, document.head.firstChild);
 
     return createTestIframe()
         .then(function (iframe) {

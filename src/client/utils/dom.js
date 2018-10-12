@@ -66,7 +66,7 @@ export function instanceToString (instance) {
         return nativeMethods.objectToString.call(instance);
 
     return instance && typeof instance === 'object'
-        ? nativeMethods.objectToString.call(window.Object.getPrototypeOf(instance))
+        ? nativeMethods.objectToString.call(nativeMethods.objectGetPrototypeOf.call(window.Object, instance))
         : '';
 }
 
