@@ -408,48 +408,33 @@ export default class ShadowUI extends SandboxBase {
 
     // Accessors
     getFirstChild (el) {
-        const nativeNodes   = el.childNodes;
-        const length        = nativeMethods.nodeListLengthGetter.call(nativeNodes);
-        const filteredNodes = this._filterNodeList(nativeNodes, length);
+        const length        = nativeMethods.nodeListLengthGetter.call(el.childNodes);
+        const filteredNodes = this._filterNodeList(el.childNodes, length);
 
         return filteredNodes[0] || null;
     }
 
     getFirstElementChild (el) {
-        const nativeNodes   = el.childNodes;
-        const length        = nativeMethods.nodeListLengthGetter.call(nativeNodes);
-        const filteredNodes = this._filterNodeList(nativeNodes, length);
-        const cnLength      = nativeNodes === filteredNodes ? length : filteredNodes.length;
+        const length        = nativeMethods.htmlCollectionLengthGetter.call(el.children);
+        const filteredNodes = this._filterNodeList(el.children, length);
 
-        for (let i = 0; i < cnLength; i++) {
-            if (domUtils.isElementNode(filteredNodes[i]))
-                return filteredNodes[i];
-        }
-
-        return null;
+        return filteredNodes[0] || null;
     }
 
     getLastChild (el) {
-        const nativeNodes   = el.childNodes;
-        const length        = nativeMethods.nodeListLengthGetter.call(nativeNodes);
-        const filteredNodes = this._filterNodeList(nativeNodes, length);
-        const index         = nativeNodes === filteredNodes ? length - 1 : filteredNodes.length - 1;
+        const length        = nativeMethods.nodeListLengthGetter.call(el.childNodes);
+        const filteredNodes = this._filterNodeList(el.childNodes, length);
+        const index         = el.childNodes === filteredNodes ? length - 1 : filteredNodes.length - 1;
 
         return index >= 0 ? filteredNodes[index] : null;
     }
 
     getLastElementChild (el) {
-        const nativeNodes   = el.childNodes;
-        const length        = nativeMethods.nodeListLengthGetter.call(nativeNodes);
-        const filteredNodes = this._filterNodeList(nativeNodes, length);
-        const cnLength      = nativeNodes === filteredNodes ? length : filteredNodes.length;
+        const length         = nativeMethods.htmlCollectionLengthGetter.call(el.children);
+        const filteredNodes  = this._filterNodeList(el.children, length);
+        const index          = el.children === filteredNodes ? length - 1 : filteredNodes.length - 1;
 
-        for (let i = cnLength - 1; i >= 0; i--) {
-            if (domUtils.isElementNode(filteredNodes[i]))
-                return filteredNodes[i];
-        }
-
-        return null;
+        return index >= 0 ? filteredNodes[index] : null;
     }
 
     getNextSibling (el) {
