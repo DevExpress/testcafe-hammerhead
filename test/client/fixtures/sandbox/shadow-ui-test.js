@@ -23,34 +23,26 @@ QUnit.testStart(function () {
 });
 
 // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
-if (browserUtils.isIE) {
-    test('shadow container collection flag should not be lost (GH-1763)', function () {
-        var anchor               = document.createElement('a');
-        var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
+test('shadow container collection flag should not be lost (GH-1763)', function () {
+    var anchor               = document.createElement('a');
+    var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
 
-        function wait (timeout) {
-            return new Promise(function (resolve) {
-                setTimeout(resolve, timeout);
-            });
-        }
+    function checkFlagAndLength () {
+        document.body.appendChild(anchor);
+        anchor.parentNode.removeChild(anchor);
 
-        function checkFlagAndLength () {
-            document.body.appendChild(anchor);
-            anchor.parentNode.removeChild(anchor);
+        ok(ShadowUI.isShadowContainerCollection(document.body.children));
+        strictEqual(document.body.children.length, childrenOriginLength - 1);
+    }
 
-            ok(ShadowUI.isShadowContainerCollection(document.body.children));
-            strictEqual(document.body.children.length, childrenOriginLength - 1);
-        }
+    return window.wait(0)
+        .then(function () {
+            checkFlagAndLength();
 
-        return wait(0)
-            .then(function () {
-                checkFlagAndLength();
-
-                return wait(5000);
-            })
-            .then(checkFlagAndLength);
-    });
-}
+            return window.wait(5000);
+        })
+        .then(checkFlagAndLength);
+});
 
 test('add UI class and get UI element with selector', function () {
     var uiElem = document.createElement('div');

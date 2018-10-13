@@ -716,7 +716,7 @@ export default class WindowSandbox extends SandboxBase {
                     return ShadowUI.getShadowUICollectionLength(this, length);
                 // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
                 else if (isIE && length && isHeadOrBodyElement(this[0].parentNode)) {
-                    ShadowUI.markCollectionAsShadow(this);
+                    ShadowUI.markAsShadowContainerCollection(this);
 
                     return ShadowUI.getShadowUICollectionLength(this, length);
                 }

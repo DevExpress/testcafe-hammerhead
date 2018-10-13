@@ -8,6 +8,8 @@
     var hammerhead    = window['%hammerhead%'];
     var nativeMethods = hammerhead.nativeMethods;
 
+    var Promise = hammerhead.Promise;
+
     nativeMethods.winLocalStorageGetter.call(window).clear();
     nativeMethods.winSessionStorageGetter.call(window).clear();
 
@@ -18,6 +20,12 @@
     var cookieSandbox  = hammerhead.sandbox.cookie;
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com/');
+
+    window.wait = function (timeout) {
+        return new Promise(function (resolve) {
+            setTimeout(resolve, timeout);
+        });
+    };
 
     var iframeTaskScriptTempate = [
         'window["%hammerhead%"].get("./utils/destination-location").forceLocation("{{{location}}}");',

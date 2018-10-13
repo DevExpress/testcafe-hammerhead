@@ -67,12 +67,12 @@ export default class ShadowUI extends SandboxBase {
         return filteredList.length === listLength ? list : filteredList;
     }
 
-    _filterNodeList (nodeList, nodeListLength) {
-        return this._filterList(nodeList, nodeListLength, item => ShadowUI._filterElement(item));
+    _filterNodeList (nodeList, originLength) {
+        return this._filterList(nodeList, originLength, item => ShadowUI._filterElement(item));
     }
 
-    _filterStyleSheetList (styleSheetList, styleSheetListLength) {
-        return this._filterList(styleSheetList, styleSheetListLength, item => ShadowUI._filterElement(item.ownerNode));
+    _filterStyleSheetList (styleSheetList, originLength) {
+        return this._filterList(styleSheetList, originLength, item => ShadowUI._filterElement(item.ownerNode));
     }
 
     static _getFirstNonShadowElement (nodeList) {
@@ -134,7 +134,7 @@ export default class ShadowUI extends SandboxBase {
                     if (typeof args[0] === 'string')
                         args[0] = NodeSandbox.processSelector(args[0]);
 
-                    const list = nativeMethods[nativeQuerySelectorAllFnName].apply(this, args);
+                    const list   = nativeMethods[nativeQuerySelectorAllFnName].apply(this, args);
                     const length = nativeMethods.nodeListLengthGetter.call(list);
 
                     return sandbox._filterNodeList(list, length);
@@ -145,7 +145,7 @@ export default class ShadowUI extends SandboxBase {
 
     _markShadowUIContainerAndCollections (containerEl) {
         nativeMethods.objectDefineProperty.call(this.window.Object, containerEl, IS_SHADOW_CONTAINER_FLAG, { value: true });
-        ShadowUI.markCollectionAsShadow(containerEl.children);
+        ShadowUI.markAsShadowContainerCollection(containerEl.children);
         nativeMethods.objectDefineProperty.call(this.window.Object, containerEl.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
     }
 
@@ -604,7 +604,7 @@ export default class ShadowUI extends SandboxBase {
             ShadowUI._markElementAsShadow(childElement);
     }
 
-    static markCollectionAsShadow (collection) {
+    static markAsShadowContainerCollection (collection) {
         nativeMethods.objectDefineProperty(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
     }
 

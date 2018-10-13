@@ -10,12 +10,6 @@ var nativeMethods = hammerhead.nativeMethods;
 var Promise       = hammerhead.Promise;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 
-function wait (timeout) {
-    return new Promise(function (resolve) {
-        setTimeout(resolve, timeout);
-    });
-}
-
 test('document.write for iframe.src with javascript protocol', function () {
     var $div = $('<div>').appendTo('body');
 
@@ -392,14 +386,14 @@ test('document.activeElement', function () {
 
     shadowInput.focus();
 
-    return wait(0)
+    return window.wait(0)
         .then(function () {
             strictEqual(document.activeElement, document.body);
             strictEqual(nativeMethods.documentActiveElementGetter.call(document), shadowInput);
 
             input.focus();
 
-            return wait(0);
+            return window.wait(0);
         })
         .then(function () {
             strictEqual(document.activeElement, input);
@@ -407,7 +401,7 @@ test('document.activeElement', function () {
 
             shadowInput.focus();
 
-            return wait(0);
+            return window.wait(0);
         })
         .then(function () {
             strictEqual(document.activeElement, input);
