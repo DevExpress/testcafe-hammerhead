@@ -1,4 +1,5 @@
 var browserUtils   = hammerhead.utils.browser;
+var eventUtils     = hammerhead.utils.event;
 var nativeMethods  = hammerhead.nativeMethods;
 var listeners      = hammerhead.sandbox.event.listeners;
 var focusBlur      = hammerhead.sandbox.event.focusBlur;
@@ -314,6 +315,17 @@ test('should not wrap invalid event handlers (GH-1251)', function () {
         });
 
         strictEqual(listeningCtx.getEventCtx(target, 'click').wrappers.length, storedHandlerWrappersCount);
+
+        // NOTE: we need to remove global event handlers before next test starts
+        // we need try/catch statement because we have incorrect handler object
+        handlers.forEach(function (handler) {
+            try {
+                nativeMethods.windowRemoveEventListener.call(target, 'click', handler);
+            }
+            catch (e) {
+                //
+            }
+        });
     };
 
     testHandlers(window);
@@ -335,4 +347,133 @@ test('event.preventDefault call should change the event.defaultPrevented propert
     });
 
     eventSimulator.keydown(input);
+});
+
+asyncTest('mouse events in iframe', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            iframe.style.width = '300px';
+            iframe.style.height = '100px';
+            iframe.style.border = '5px solid black';
+            iframe.style.padding = '20px';
+            iframe.style.backgroundColor = 'yellow';
+
+            var div = document.createElement('div');
+
+            div.style.display = 'inline-block';
+
+            div.appendChild(iframe);
+            document.body.appendChild(div);
+
+            var actualEvents = [];
+
+            var simulatorMethods = [
+                'mousedown',
+                'mouseup',
+                'mousemove',
+                'mouseover',
+                'mouseenter',
+                'click',
+                'dblclick',
+                'contextmenu'
+            ];
+
+            var allEvents = [
+                'pointerdown',
+                'mousedown',
+                'pointerup',
+                'mouseup',
+                'pointermove',
+                'mousemove',
+                'pointerover',
+                'mouseover',
+                'mouseenter',
+                'click',
+                'dblclick',
+                'contextmenu'
+            ];
+
+            var eventsInsideFrame = ['pointerover', 'mouseover', 'mouseenter'];
+
+            if (!eventUtils.hasPointerEvents) {
+                const pointerRegExp = /pointer(down|up|move|over)/;
+
+                allEvents = allEvents.filter(function (eventName) {
+                    return !pointerRegExp.test(eventName);
+                });
+
+                eventsInsideFrame = eventsInsideFrame.filter(function (eventName) {
+                    return !pointerRegExp.test(eventName);
+                });
+            }
+
+            var getHandler = function (i) {
+                return function () {
+                    actualEvents.push(allEvents[i]);
+                };
+            };
+
+            for (var i = 0; i < allEvents.length; i++)
+                iframe.addEventListener(allEvents[i], getHandler(i));
+
+            for (i = 0; i < simulatorMethods.length; i++)
+                eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 130 });
+
+            deepEqual(actualEvents, eventsInsideFrame);
+
+            actualEvents = [];
+
+            for (i = 0; i < simulatorMethods.length; i++)
+                eventSimulator[simulatorMethods[i]](iframe, { clientX: 190, clientY: 70 });
+
+            deepEqual(actualEvents, allEvents);
+
+            document.body.removeChild(div);
+
+            start();
+        });
+
+});
+
+asyncTest('hover style in iframe', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var style = document.createElement('style');
+            var div   = document.createElement('div');
+
+            div.style.display = 'inline-block';
+            style.innerHTML   = 'iframe: hover { background-color: blue!important; }';
+
+            document.body.appendChild(style);
+            document.body.appendChild(div);
+
+            iframe.style.width = '300px';
+            iframe.style.height = '100px';
+            iframe.style.border = '5px solid black';
+            iframe.style.padding = '20px';
+            iframe.style.backgroundColor = 'yellow';
+
+            div.appendChild(iframe);
+
+            var initialBackgroundColor = window.getComputedStyle(iframe).backgroundColor;
+
+            eventSimulator.mouseover(iframe, { clientX: 190, clientY: 130 });
+
+            if (browserUtils.isIE)
+                equal(window.getComputedStyle(iframe).backgroundColor, initialBackgroundColor);
+            else
+                notEqual(window.getComputedStyle(iframe).backgroundColor, initialBackgroundColor);
+
+            eventSimulator.mouseover(div, { clientX: 0, clientY: 0 });
+            equal(window.getComputedStyle(iframe).backgroundColor, initialBackgroundColor);
+
+            eventSimulator.mouseover(iframe, { clientX: 190, clientY: 70 });
+            notEqual(window.getComputedStyle(iframe).backgroundColor, initialBackgroundColor);
+
+            document.body.removeChild(div);
+            document.body.removeChild(style);
+
+            start();
+        });
+
 });

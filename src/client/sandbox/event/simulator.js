@@ -3,7 +3,7 @@ import nativeMethods from '../native-methods';
 import * as browserUtils from '../../utils/browser';
 import * as domUtils from '../../utils/dom';
 import * as eventUtils from '../../utils/event';
-import { getOffsetPosition, offsetToClientCoords } from '../../utils/position';
+import { getOffsetPosition, offsetToClientCoords, shouldIgnoreMouseEventInsideIframe } from '../../utils/position';
 import { getBordersWidth } from '../../utils/style';
 
 const TOUCH_EVENT_RADIUS = 25;
@@ -529,6 +529,9 @@ export default class EventSimulator {
     }
 
     _dispatchMouseRelatedEvents (el, args, dataTransfer) {
+        if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
+            return true;
+
         const pointerRegExp = /mouse(down|up|move|over|out)/;
 
         // NOTE: In IE, submit doesn't work if a click is simulated for some submit button's children (for example,
