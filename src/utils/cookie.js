@@ -8,6 +8,7 @@ import trim from './string-trim';
 const TIME_RADIX                            = 36;
 const CLEAR_COOKIE_VALUE_STR                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
 const CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT = 7;
+const KEY_VALUE_REGEX                       = /(?:^([^=]+)=([\s\S]*))?/;
 
 export const SYNCHRONIZATION_TYPE = {
     server: 's',
@@ -96,8 +97,8 @@ export function formatSyncCookie (cookie) {
 }
 
 export function parseSyncCookie (cookieStr) {
-    const [key, value] = cookieStr.split('=', 2);
-    const parsedKey    = value !== void 0 && key.split('|');
+    const [, key, value] = KEY_VALUE_REGEX.exec(cookieStr);
+    const parsedKey      = key !== void 0 && value !== void 0 && key.split('|');
 
     if (parsedKey && parsedKey.length !== CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT)
         return null;

@@ -137,6 +137,18 @@ test('different lastAccessed time and last is lower', function () {
     strictEqual(parsedCookie.outdated[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln1');
 });
 
+test('a cookie value contains the "=" character', function () {
+    nativeMethods.documentCookieSetter.call(document, 's|sessionId|test|example.com|%2F||1fckm5ln2=123=456=789;path=/');
+    nativeMethods.documentCookieSetter.call(document, 'test=cookie;path=/');
+
+    var parsedCookie = sharedCookieUtils.parseClientSyncCookieStr(nativeMethods.documentCookieGetter.call(document));
+
+    strictEqual(parsedCookie.actual.length, 1);
+    strictEqual(parsedCookie.outdated.length, 0);
+    strictEqual(parsedCookie.actual[0].syncKey, 's|sessionId|test|example.com|%2F||1fckm5ln2');
+    strictEqual(parsedCookie.actual[0].value, '123=456=789');
+});
+
 module('server synchronization with client');
 
 test('process synchronization cookies on document.cookie getter', function () {
