@@ -529,7 +529,7 @@ export default class EventSimulator {
     }
 
     _dispatchMouseRelatedEvents (el, args, dataTransfer) {
-        if (shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY) && args.type !== 'mouseover' && args.type !== 'mouseenter')
+        if (args.type !== 'mouseover' && args.type !== 'mouseenter' && shouldIgnoreMouseEventInsideIframe(el, args.clientX, args.clientY))
             return true;
 
         const pointerRegExp = /mouse(down|up|move|over|out)/;
