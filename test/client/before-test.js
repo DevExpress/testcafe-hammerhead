@@ -19,6 +19,12 @@
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com/');
 
+    window.wait = function (timeout) {
+        return new hammerhead.Promise(function (resolve) {
+            setTimeout(resolve, timeout);
+        });
+    };
+
     var iframeTaskScriptTempate = [
         'window["%hammerhead%"].get("./utils/destination-location").forceLocation("{{{location}}}");',
         'window["%hammerhead%"].start({',

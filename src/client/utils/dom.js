@@ -66,7 +66,7 @@ export function instanceToString (instance) {
         return nativeMethods.objectToString.call(instance);
 
     return instance && typeof instance === 'object'
-        ? nativeMethods.objectToString.call(window.Object.getPrototypeOf(instance))
+        ? nativeMethods.objectToString.call(nativeMethods.objectGetPrototypeOf.call(window.Object, instance))
         : '';
 }
 
@@ -390,6 +390,12 @@ export function isBodyElement (el) {
 
 export function isHeadElement (el) {
     return instanceToString(el) === '[object HTMLHeadElement]';
+}
+
+export function isHeadOrBodyElement (el) {
+    const elString = instanceToString(el);
+
+    return elString === '[object HTMLHeadElement]' || elString === '[object HTMLBodyElement]';
 }
 
 export function isBaseElement (el) {

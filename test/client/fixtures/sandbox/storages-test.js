@@ -20,9 +20,7 @@ QUnit.testStart(function () {
 });
 
 function waitStorageUpdated () {
-    return new Promise(function (resolve) {
-        window.setTimeout(resolve, 100);
-    });
+    return window.wait(100);
 }
 
 function waitStorageEvent (window, action) {

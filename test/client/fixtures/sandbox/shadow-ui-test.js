@@ -22,6 +22,28 @@ QUnit.testStart(function () {
     $(TEST_CLASS_SELECTOR).remove();
 });
 
+// IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
+test('shadow container collection flag should not be lost (GH-1763)', function () {
+    var anchor               = document.createElement('a');
+    var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(document.body.children);
+
+    function checkFlagAndLength () {
+        document.body.appendChild(anchor);
+        anchor.parentNode.removeChild(anchor);
+
+        ok(ShadowUI.isShadowContainerCollection(document.body.children));
+        strictEqual(document.body.children.length, childrenOriginLength - 1);
+    }
+
+    return window.wait(0)
+        .then(function () {
+            checkFlagAndLength();
+
+            return window.wait(5000);
+        })
+        .then(checkFlagAndLength);
+});
+
 test('add UI class and get UI element with selector', function () {
     var uiElem = document.createElement('div');
 
@@ -673,8 +695,8 @@ test('stylesheets are restored after the document is cleaned', function () {
     link1.id        = 'id1';
     link2.id        = 'id2';
 
-    document.head.insertBefore(link2, document.head.firstChild);
     document.head.insertBefore(link1, document.head.firstChild);
+    document.head.insertBefore(link2, document.head.firstChild);
 
     return createTestIframe()
         .then(function (iframe) {

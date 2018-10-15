@@ -228,7 +228,7 @@ export default class DocumentSandbox extends SandboxBase {
             getter: function () {
                 const styleSheets = nativeMethods.documentStyleSheetsGetter.call(this);
 
-                return documentSandbox.shadowUI._filterStyleSheetList(styleSheets);
+                return documentSandbox.shadowUI._filterStyleSheetList(styleSheets, styleSheets.length);
             }
         });
 
@@ -257,8 +257,9 @@ export default class DocumentSandbox extends SandboxBase {
         overrideDescriptor(documentScriptsPropOwnerPrototype, 'scripts', {
             getter: function () {
                 const scripts = nativeMethods.documentScriptsGetter.call(this);
+                const length  = nativeMethods.htmlCollectionLengthGetter.call(scripts);
 
-                return documentSandbox.shadowUI._filterNodeList(scripts);
+                return documentSandbox.shadowUI._filterNodeList(scripts, length);
             }
         });
     }

@@ -881,6 +881,8 @@ test("An object with the 'tagName' and 'nodeName' properties shouldn't be recogn
     notOk(domUtils.isHtmlElement({ tagName: 'html', nodeName: 'html' }), 'html');
     notOk(domUtils.isBodyElement({ tagName: 'body', nodeName: 'body' }), 'body');
     notOk(domUtils.isHeadElement({ tagName: 'head', nodeName: 'head' }), 'head');
+    notOk(domUtils.isHeadOrBodyElement({ tagName: 'body', nodeName: 'body' }), 'body');
+    notOk(domUtils.isHeadOrBodyElement({ tagName: 'head', nodeName: 'head' }), 'head');
     notOk(domUtils.isBaseElement({ tagName: 'base', nodeName: 'base' }), 'base');
     notOk(domUtils.isScriptElement({ tagName: 'script', nodeName: 'script' }), 'script');
     notOk(domUtils.isStyleElement({ tagName: 'style', nodeName: 'style' }), 'style');
@@ -903,6 +905,8 @@ test('inspect html elements', function () {
     ok(domUtils.isHtmlElement(nativeMethods.querySelector.call(document, 'html')), 'html');
     ok(domUtils.isBodyElement(nativeMethods.querySelector.call(document, 'body')), 'body');
     ok(domUtils.isHeadElement(nativeMethods.querySelector.call(document, 'head')), 'head');
+    ok(domUtils.isHeadOrBodyElement(nativeMethods.querySelector.call(document, 'body')), 'body');
+    ok(domUtils.isHeadOrBodyElement(nativeMethods.querySelector.call(document, 'head')), 'head');
     ok(domUtils.isBaseElement(nativeMethods.createElement.call(document, 'base')), 'base');
     ok(domUtils.isScriptElement(nativeMethods.querySelector.call(document, 'script')), 'script');
     ok(domUtils.isStyleElement(nativeMethods.createElement.call(document, 'style')), 'style');

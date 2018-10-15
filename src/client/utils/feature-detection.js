@@ -1,7 +1,8 @@
 import nativeMethods from '../sandbox/native-methods';
 import * as browserUtils from './browser';
 
-const form = nativeMethods.createElement.call(document, 'form');
+const form     = nativeMethods.createElement.call(document, 'form');
+const elements = nativeMethods.getElementsByName.call(document, '');
 
 // NOTE: In some browsers, elements without the url attribute return the location url
 // when accessing this attribute directly. See form.action in Edge 25 as an example.
@@ -25,3 +26,7 @@ export const hasDataTransfer = !!window.DataTransfer;
 // NOTE: In the Edge 17, the getNamedItem method of attributes object is not enumerable
 export const attrGetNamedItemIsNotEnumerable = nativeMethods.objectGetOwnPropertyDescriptor
     .call(window.Object, NamedNodeMap.prototype, 'getNamedItem');
+
+// Both IE and Edge return an HTMLCollection, not a NodeList
+export const getElementsByNameReturnsHTMLCollection = nativeMethods.objectGetPrototypeOf.call(window.Object, elements) ===
+                                                      nativeMethods.HTMLCollection.prototype;

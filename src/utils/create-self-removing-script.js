@@ -13,10 +13,11 @@ export default function (script) {
                 ${ script }
 
                 var currentScript = document.currentScript;
+                var scriptsLength;
+                var scripts;
 
                 /* NOTE: IE11 doesn't support the 'currentScript' property */
                 if (!currentScript) {
-                    var scripts;
                     var hammerhead;
 
                     try {
@@ -26,13 +27,17 @@ export default function (script) {
                         hammerhead = window["${ INTERNAL_PROPS.hammerhead }"];
                     }
                     
-                    try {
-                        scripts = hammerhead ? hammerhead.nativeMethods.documentScriptsGetter.call(document) : document.scripts;
-                    } catch (e) {
-                        scripts = document.scripts;
+                    if (hammerhead) {
+                        try {
+                            scripts       = hammerhead.nativeMethods.documentScriptsGetter.call(document);
+                            scriptsLength = hammerhead.nativeMethods.htmlCollectionLengthGetter.call(scripts);
+                        }
+                        catch (e) {}
                     }
 
-                    currentScript = scripts[scripts.length - 1];
+                    scripts       = scripts || document.scripts;
+                    scriptsLength = scriptsLength !== void 0 ? scriptsLength : scripts.length;
+                    currentScript = scripts[scriptsLength - 1];
                 }
 
                 currentScript.parentNode.removeChild(currentScript);

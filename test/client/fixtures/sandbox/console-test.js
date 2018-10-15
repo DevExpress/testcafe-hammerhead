@@ -2,13 +2,6 @@ var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 
-
-function wait (ms) {
-    return new Promise(function (resolve) {
-        window.setTimeout(resolve, ms);
-    });
-}
-
 if (window.console && typeof window.console.log !== 'undefined') {
     test('must convert `log`, `warn`, `error` and `info` methods arguments to string lines (GH-1750)', function () {
         var handledConsoleMethodLines = [];
@@ -141,7 +134,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
 
                     iframe.contentWindow.console.log('msg1');
 
-                    return wait(50);
+                    return window.wait(50);
                 })
                 .then(function () {
                     equal(lastLine, 'msg1');
@@ -150,7 +143,7 @@ if (window.console && typeof window.console.log !== 'undefined') {
                     testIframe.contentDocument.write('<div>dummy</div>');
                     testIframe.contentWindow.console.info('msg2');
 
-                    return wait(50);
+                    return window.wait(50);
                 })
                 .then(function () {
                     equal(lastLine, 'msg2');
