@@ -144,9 +144,9 @@ export default class ShadowUI extends SandboxBase {
     }
 
     _markShadowUIContainerAndCollections (containerEl) {
-        nativeMethods.objectDefineProperty.call(this.window.Object, containerEl, IS_SHADOW_CONTAINER_FLAG, { value: true });
+        ShadowUI._markAsShadowContainer(containerEl);
         ShadowUI.markAsShadowContainerCollection(containerEl.children);
-        nativeMethods.objectDefineProperty.call(this.window.Object, containerEl.childNodes, IS_SHADOW_CONTAINER_COLLECTION_FLAG, { value: true });
+        ShadowUI.markAsShadowContainerCollection(containerEl.childNodes);
     }
 
     markShadowUIContainers (head, body) {
@@ -602,6 +602,10 @@ export default class ShadowUI extends SandboxBase {
 
         for (const childElement of childElements)
             ShadowUI._markElementAsShadow(childElement);
+    }
+
+    static _markAsShadowContainer (container) {
+        nativeMethods.objectDefineProperty(container, IS_SHADOW_CONTAINER_FLAG, { value: true });
     }
 
     static markAsShadowContainerCollection (collection) {

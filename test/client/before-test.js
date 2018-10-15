@@ -8,8 +8,6 @@
     var hammerhead    = window['%hammerhead%'];
     var nativeMethods = hammerhead.nativeMethods;
 
-    var Promise = hammerhead.Promise;
-
     nativeMethods.winLocalStorageGetter.call(window).clear();
     nativeMethods.winSessionStorageGetter.call(window).clear();
 
@@ -22,6 +20,8 @@
     destLocation.forceLocation('http://localhost/sessionId/https://example.com/');
 
     window.wait = function (timeout) {
+        var Promise = hammerhead.Promise;
+
         return new Promise(function (resolve) {
             setTimeout(resolve, timeout);
         });
