@@ -20,9 +20,7 @@
     destLocation.forceLocation('http://localhost/sessionId/https://example.com/');
 
     window.wait = function (timeout) {
-        var Promise = hammerhead.Promise;
-
-        return new Promise(function (resolve) {
+        return new hammerhead.Promise(function (resolve) {
             setTimeout(resolve, timeout);
         });
     };
