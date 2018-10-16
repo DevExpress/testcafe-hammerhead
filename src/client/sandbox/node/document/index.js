@@ -4,7 +4,7 @@ import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import * as urlUtils from '../../../utils/url';
 import settings from '../../../settings';
-import { isIE, isFirefox } from '../../../utils/browser';
+import { isIE } from '../../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement, isImgElement, isShadowUIElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
@@ -211,7 +211,10 @@ export default class DocumentSandbox extends SandboxBase {
 
         DocumentSandbox._definePropertyDescriptor(docPrototype, htmlDocPrototype, 'URL', urlOverriddenDescriptor);
 
-        const domainPropertyOwner        = isFirefox ? htmlDocPrototype : docPrototype;
+        const domainPropertyOwner = nativeMethods.objectHasOwnProperty.call(docPrototype, 'domain')
+            ? docPrototype
+            : htmlDocPrototype;
+
         const domainOverriddenDescriptor = createOverriddenDescriptor(domainPropertyOwner, 'domain', {
             getter: () => {
                 // eslint-disable-next-line no-restricted-properties
