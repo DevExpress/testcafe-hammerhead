@@ -1,12 +1,12 @@
-import XHR_HEADERS from './xhr/headers';
-import AUTHORIZATION from './xhr/authorization';
-import * as urlUtils from '../utils/url';
+import XHR_HEADERS from '../xhr/headers';
+import AUTHORIZATION from '../xhr/authorization';
+import * as urlUtils from '../../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 import {
     formatSyncCookie,
     generateDeleteSyncCookieStr,
     isOutdatedSyncCookie
-} from '../utils/cookie';
+} from '../../utils/cookie';
 
 // Skipping transform
 function skip () {
@@ -127,7 +127,7 @@ export const requestTransforms = Object.assign({
     return obj;
 }, {}));
 
-export const requestForced = {
+export const forcedRequestTransforms = {
     'cookie': (src, ctx) => transformCookie(ctx.session.cookies.getHeader(ctx.dest.url) || void 0, ctx),
 
     // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
@@ -200,7 +200,7 @@ export const responseTransforms = {
     }
 };
 
-export const responseForced = {
+export const forcedResponseTransforms = {
     'set-cookie': (src, ctx) => {
         let parsedCookies;
 
@@ -213,24 +213,3 @@ export const responseForced = {
         return [];
     }
 };
-
-// Transformation routine
-export function transformHeaders (srcHeaders, ctx, transformList, forced) {
-    const destHeaders = {};
-
-    const applyTransform = function (headerName, headers, transforms) {
-        const src       = headers[headerName];
-        const transform = transforms[headerName];
-        const dest      = transform ? transform(src, ctx) : src;
-
-        if (dest !== void 0)
-            destHeaders[headerName] = dest;
-    };
-
-    Object.keys(srcHeaders).forEach(headerName => applyTransform(headerName, srcHeaders, transformList));
-
-    if (forced)
-        Object.keys(forced).forEach(headerName => applyTransform(headerName, destHeaders, forced));
-
-    return destHeaders;
-}

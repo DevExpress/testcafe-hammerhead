@@ -1,7 +1,7 @@
 import DestinationRequest from './destination-request';
 import FileRequest from './file-request';
 import RequestPipelineContext from './context';
-import * as headerTransforms from './header-transforms-api';
+import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';
 import connectionResetGuard from './connection-reset-guard';
