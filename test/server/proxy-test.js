@@ -2337,7 +2337,7 @@ describe('Proxy', () => {
                 });
         });
 
-        it('Should allow to modify response haders', () => {
+        it('Should allow to modify response headers', () => {
             const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
 
             session.addRequestEventListeners(rule, {
