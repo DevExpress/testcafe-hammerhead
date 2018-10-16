@@ -183,12 +183,20 @@ const stages = {
     },
 
     7: function sendProxyResponse (ctx) {
-        ctx.requestFilterRules.forEach(rule => callResponseEventCallbackForProcessedRequest(ctx, rule));
+        const configureResponseEvents = ctx.requestFilterRules.map(rule => {
+            const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
+
+            ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+            return configureResponseEvent;
+        });
+
         sendResponseHeaders(ctx);
 
         connectionResetGuard(() => {
             ctx.res.write(ctx.destResBody);
-            ctx.res.end();
+            ctx.res.end(() => {
+                configureResponseEvents.forEach(configureResponseEvent => callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent));
+            });
         });
     }
 };
@@ -258,16 +266,12 @@ function isDestResBodyMalformed (ctx) {
     return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
 }
 
-function callResponseEventCallbackForProcessedRequest (ctx, rule) {
-    const responseInfo           = requestEventInfo.createResponseInfo(ctx);
-    const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
-
-    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
-
+function callResponseEventCallbackForProcessedRequest (ctx, configureResponseEvent) {
+    const responseInfo         = requestEventInfo.createResponseInfo(ctx);
     const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureResponseEvent.opts);
-    const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
+    const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
 
-    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
 }
 
 function callOnRequestEventCallback (ctx, rule, reqInfo) {
