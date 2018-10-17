@@ -1,6 +1,7 @@
 var SHADOW_UI_CLASSNAME = hammerhead.get('./../shadow-ui/class-name');
 var ShadowUI            = hammerhead.get('./sandbox/shadow-ui');
 var INTERNAL_PROPS      = hammerhead.get('../processing/dom/internal-properties');
+var INTERNAL_ATTRS      = hammerhead.get('../processing/dom/internal-attributes');
 
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var domUtils      = hammerhead.utils.dom;
@@ -59,32 +60,6 @@ test('add UI class and get UI element with selector', function () {
     uiElem.parentNode.removeChild(uiElem);
 });
 
-if (window.MutationObserver) {
-    asyncTest('shadow MutationObserver', function () {
-        var uiEl         = document.createElement('div');
-        var el           = document.createElement('div');
-        var shadowUIRoot = shadowUI.getRoot();
-
-        shadowUI.addClass(uiEl, 'ui-elem-class');
-
-        var observer = new window.MutationObserver(function (mutations) {
-            strictEqual(mutations.length, 1);
-            strictEqual(mutations[0].addedNodes[0], el);
-            strictEqual(this, observer);
-            observer.disconnect();
-            uiEl.parentNode.removeChild(uiEl);
-            el.parentNode.removeChild(el);
-
-            start();
-        });
-
-        observer.observe(document.body, { childList: true });
-
-        shadowUIRoot.appendChild(uiEl);
-        document.body.appendChild(el);
-    });
-}
-
 test('get root', function () {
     var root = shadowUI.getRoot();
 
@@ -124,6 +99,195 @@ test('set innerHTML for root', function () {
 
     ok(domUtils.isShadowUIElement(root.childNodes[0]));
 });
+
+if (window.MutationObserver) {
+    module('MutationObserver', function () {
+        module('child list');
+
+        asyncTest('add node', function () {
+            var shadowUIEl   = document.createElement('div');
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            shadowUI.addClass(shadowUIEl, 'ui-elem-class');
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].addedNodes[0], el);
+                strictEqual(this, observer);
+                observer.disconnect();
+                shadowUIEl.parentNode.removeChild(shadowUIEl);
+                el.parentNode.removeChild(el);
+
+                start();
+            });
+
+            observer.observe(document.body, { childList: true });
+
+            shadowUIRoot.appendChild(shadowUIEl);
+            document.body.appendChild(el);
+        });
+
+        asyncTest('add nodes', function () {
+            var shadowUIEl   = document.createElement('div');
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            shadowUI.addClass(shadowUIEl, 'ui-elem-class');
+            shadowUIRoot.appendChild(shadowUIEl);
+            document.body.appendChild(el);
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].addedNodes[0].id, 'div1');
+                strictEqual(mutations[0].addedNodes[1].id, 'div2');
+                observer.disconnect();
+                shadowUIEl.parentNode.removeChild(shadowUIEl);
+                el.parentNode.removeChild(el);
+
+                start();
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+            shadowUIEl.innerHTML = '<div id="shadowUIDiv1"></div><div id="shadowUIDiv2"></div>';
+            el.innerHTML = '<div id="div1">1</div><div id="div2">2</div>';
+        });
+
+        asyncTest('remove node', function () {
+            var shadowUIEl   = document.createElement('div');
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            shadowUI.addClass(shadowUIEl, 'ui-elem-class');
+            shadowUIRoot.appendChild(shadowUIEl);
+            document.body.appendChild(el);
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].removedNodes[0], el);
+                observer.disconnect();
+
+                start();
+            });
+
+            observer.observe(document.body, { childList: true });
+            el.parentNode.removeChild(el);
+            shadowUIEl.parentNode.removeChild(shadowUIEl);
+        });
+
+        asyncTest('remove nodes', function () {
+            var shadowUIEl   = document.createElement('div');
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            shadowUI.addClass(shadowUIEl, 'ui-elem-class');
+            shadowUIRoot.appendChild(shadowUIEl);
+            document.body.appendChild(el);
+            shadowUIEl.innerHTML = '<div id="shadowUIDiv1"></div><div id="shadowUIDiv2"></div>';
+            el.innerHTML = '<div id="div1">1</div><div id="div2">2</div>';
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                // NOTE: The order of the removed nodes depends with browser
+                ok(mutations[0].removedNodes[0].id.indexOf('shadowUIDiv') === -1);
+                ok(mutations[0].removedNodes[1].id.indexOf('shadowUIDiv') === -1);
+                observer.disconnect();
+
+                start();
+            });
+
+            observer.observe(document.body, { childList: true, subtree: true });
+            shadowUIEl.innerHTML = '';
+            el.innerHTML = '';
+        });
+
+        module('attributes');
+
+        asyncTest('add', function () {
+            var el = document.createElement('div');
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].attributeName, 'test');
+                observer.disconnect();
+
+                start();
+            });
+
+            observer.observe(el, { attributes: true });
+            el.setAttribute('test', 'test');
+            el.setAttribute(INTERNAL_ATTRS.hoverPseudoClass, '');
+        });
+
+        asyncTest('remove', function () {
+            var el = document.createElement('div');
+
+            el.setAttribute('test', 'test');
+            el.setAttribute(INTERNAL_ATTRS.hoverPseudoClass, '');
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].attributeName, 'test');
+                observer.disconnect();
+
+                start();
+            });
+
+            observer.observe(el, { attributes: true });
+            el.removeAttribute('test');
+            el.removeAttribute(INTERNAL_ATTRS.hoverPseudoClass);
+        });
+
+        asyncTest('attribute of the ShadowUI element', function () {
+            var el           = document.createElement('div');
+            var shadowUIEl   = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            shadowUI.addClass(shadowUIEl, 'ui-elem-class');
+            shadowUIRoot.appendChild(shadowUIEl);
+            document.body.appendChild(el);
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].attributeName, 'test1');
+                observer.disconnect();
+                shadowUIEl.parentNode.removeChild(shadowUIEl);
+
+                start();
+            });
+
+            observer.observe(document.body, { attributes: true, subtree: true });
+            el.setAttribute('test1', 'test1');
+            shadowUIEl.setAttribute('test2', 'test2');
+        });
+
+        module('character data');
+
+        asyncTest('update', function () {
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+            var comment1     = document.createComment('comment1');
+            var comment2     = document.createComment('comment2');
+
+            shadowUIRoot.appendChild(comment1);
+            el.appendChild(comment2);
+            document.body.appendChild(el);
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].target.textContent, 'comment2_updated');
+                observer.disconnect();
+                el.parentNode.removeChild(el);
+
+                start();
+            });
+
+            observer.observe(document.body, { characterData: true, subtree: true });
+            comment1.textContent = 'comment1_updated';
+            comment2.textContent = 'comment2_updated';
+        });
+    });
+}
 
 module('childNodes', function () {
     module('length', function () {
