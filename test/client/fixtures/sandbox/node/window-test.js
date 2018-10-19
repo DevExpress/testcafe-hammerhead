@@ -610,6 +610,11 @@ if (canCreateBlobFromNumberArray) {
 if (window.Proxy) {
     module('Proxy');
 
+    test('methods', function () {
+        strictEqual(window.Proxy.toString(), nativeMethods.Proxy.toString());
+        strictEqual(window.Proxy.revocable, nativeMethods.Proxy.revocable);
+    });
+
     test('should correctly pass arguments', function () {
         var obj = { prop: 1 };
         var proxy = new Proxy(obj, {

@@ -500,6 +500,7 @@ export default class WindowSandbox extends SandboxBase {
                 return new nativeMethods.Proxy(target, handler);
             };
             window.Proxy.toString = () => nativeMethods.Proxy.toString();
+            window.Proxy.revocable = nativeMethods.Proxy.revocable;
         }
 
         if (nativeMethods.registerServiceWorker) {
