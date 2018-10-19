@@ -566,6 +566,7 @@ class NativeMethods {
         this.StorageEvent     = win.StorageEvent;
         this.MutationObserver = win.MutationObserver;
         this.EventSource      = win.EventSource;
+        this.Proxy            = win.Proxy;
         this.WebSocket        = win.WebSocket;
         this.HTMLCollection   = win.HTMLCollection;
         this.NodeList         = win.NodeList;

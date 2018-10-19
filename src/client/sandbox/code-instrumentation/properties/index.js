@@ -13,10 +13,10 @@ import nativeMethods from '../../native-methods';
 import { isJsProtocol, processJsAttrValue } from '../../../../processing/dom';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
-    constructor (elementSandbox) {
+    constructor (windowSandbox) {
         super();
 
-        this.elementSandbox = elementSandbox;
+        this.windowSandbox  = windowSandbox;
     }
 
     // NOTE: Isolate throw statements into a separate function because the
@@ -98,7 +98,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        const accessors = this._createPropertyAccessors(window, window.document);
+        const accessors     = this._createPropertyAccessors(window, window.document);
+        const windowSandbox = this.windowSandbox;
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
@@ -113,8 +114,12 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 const propertyValue = owner[propName];
 
+                windowSandbox.isInternalGetter = true;
+
                 if (propertyValue && domUtils.isShadowUIElement(propertyValue))
                     return void 0;
+
+                windowSandbox.isInternalGetter = false;
 
                 return propertyValue;
             },

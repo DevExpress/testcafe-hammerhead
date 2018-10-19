@@ -89,6 +89,8 @@ export default class WindowSandbox extends SandboxBase {
         this.UNCAUGHT_JS_ERROR_EVENT          = 'hammerhead|event|uncaught-js-error';
         this.UNHANDLED_REJECTION_EVENT        = 'hammerhead|event|unhandled-rejection';
         this.SANDBOX_DOM_TOKEN_LIST_UPDATE_FN = SANDBOX_DOM_TOKEN_LIST_UPDATE_FN;
+
+        this.isInternalGetter = false;
     }
 
     static _prepareStack (msg, stack) {
@@ -480,6 +482,24 @@ export default class WindowSandbox extends SandboxBase {
 
             window.MutationObserver.prototype = nativeMethods.MutationObserver.prototype;
             window.MutationObserver.toString  = () => nativeMethods.MutationObserver.toString();
+        }
+
+        if (window.Proxy) {
+            window.Proxy = function (target, handler) {
+                if (handler.get) {
+                    const storedGet = handler.get;
+
+                    handler.get = function (getterTarget, name, receiver) {
+                        if (windowSandbox.isInternalGetter)
+                            return getterTarget[name];
+
+                        return storedGet.call(this, getterTarget, name, receiver);
+                    };
+                }
+
+                return new nativeMethods.Proxy(target, handler);
+            };
+            window.Proxy.toString = () => nativeMethods.Proxy.toString();
         }
 
         if (nativeMethods.registerServiceWorker) {

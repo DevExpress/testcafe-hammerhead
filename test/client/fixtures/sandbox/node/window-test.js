@@ -606,3 +606,42 @@ if (canCreateBlobFromNumberArray) {
             });
     });
 }
+
+if (window.Proxy) {
+    module('Proxy');
+
+    test('should correctly pass arguments', function () {
+        var obj = { prop: 1 };
+        var proxy = new Proxy(obj, {
+            get: function (target, name, receiver) {
+                strictEqual(target, obj);
+                strictEqual(name, 'prop');
+                strictEqual(receiver, proxy);
+
+                return target[name];
+            }
+        });
+
+        strictEqual(proxy.prop, 1);
+    });
+
+    test('should not call a `get` handler during an internal property accessing', function () {
+        var handledWasCalled = false;
+
+        var obj = {
+            nestedObj: {
+                prop1: 1,
+                prop2: 2
+            }
+        };
+
+        obj.proxy = new Proxy(obj.nestedObj, {
+            get: function () {
+                handledWasCalled = true;
+            }
+        });
+
+        strictEqual(getProperty(obj, 'proxy'), obj.proxy);
+        notOk(handledWasCalled);
+    });
+}
