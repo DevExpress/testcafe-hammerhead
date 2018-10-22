@@ -156,7 +156,7 @@ export default class Sandbox extends SandboxBase {
                 // In this case, we need to inject Hammerhead.
 
                 // HACK: IE10 cleans up overridden methods after the document.write method call.
-                this.nativeMethods.restoreDocumentMeths(iframe.contentDocument);
+                this.nativeMethods.restoreDocumentMeths(iframe.contentDocument, iframe.contentWindow);
 
                 // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
                 // Inform IFrameSandbox about this, and it injects Hammerhead.
