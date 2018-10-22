@@ -504,18 +504,38 @@ export default class ShadowUI extends SandboxBase {
         return length - shadowUIElementCount;
     }
 
-    static isShadowUIMutation (mutation) {
-        if (mutation.removedNodes && mutation.removedNodes.length === 1) {
-            if (domUtils.isShadowUIElement(mutation.removedNodes[0]))
+    static _isShadowUIChildListMutation (mutation) {
+        for (const removedNode of mutation.removedNodes) {
+            if (domUtils.isShadowUIElement(removedNode))
                 return true;
         }
-
-        if (mutation.addedNodes && mutation.addedNodes.length === 1) {
-            if (domUtils.isShadowUIElement(mutation.addedNodes[0]))
+        for (const addedNode of mutation.addedNodes) {
+            if (domUtils.isShadowUIElement(addedNode))
                 return true;
         }
 
         return false;
+    }
+
+    static _isShadowUIAttributeMutation (mutation) {
+        return domUtils.isShadowUIElement(mutation.target) || domUtils.isHammerheadAttr(mutation.attributeName);
+    }
+
+    static _isShadowUICharacterDataMutation (mutation) {
+        return domUtils.isShadowUIElement(mutation.target);
+    }
+
+    static isShadowUIMutation (mutation) {
+        switch (mutation.type) {
+            case 'childList':
+                return ShadowUI._isShadowUIChildListMutation(mutation);
+            case 'attributes':
+                return ShadowUI._isShadowUIAttributeMutation(mutation);
+            case 'characterData':
+                return ShadowUI._isShadowUICharacterDataMutation(mutation);
+            default:
+                return false;
+        }
     }
 
     static removeSelfRemovingScripts (document) {
@@ -597,6 +617,10 @@ export default class ShadowUI extends SandboxBase {
 
     static markElementAndChildrenAsShadow (el) {
         ShadowUI._markElementAsShadow(el);
+
+        // NOTE: For Text, Comment and ProcessingInstruction nodes
+        if (!el.querySelectorAll)
+            return;
 
         const childElements = getNativeQuerySelectorAll(el).call(el, '*');
 
