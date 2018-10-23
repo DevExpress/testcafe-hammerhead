@@ -53,10 +53,6 @@ import replaceProxiedUrlsInStack from '../../utils/replace-proxied-urls-in-stack
 
 const nativeFunctionToString = nativeMethods.Function.toString();
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arrayConcat = Array.prototype.concat;
-
 const HTTP_PROTOCOL_RE = /^http/i;
 
 const ALLOWED_SERVICE_WORKER_PROTOCOLS  = ['https:', 'wss:', 'file:'];
@@ -370,7 +366,7 @@ export default class WindowSandbox extends SandboxBase {
                     }
                 }
                 else
-                    args = arrayConcat.call(args, sources);
+                    args = nativeMethods.arrayConcat.call(args, sources);
 
                 return nativeMethods.objectAssign.apply(this, args);
             };

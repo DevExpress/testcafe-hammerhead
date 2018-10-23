@@ -255,6 +255,13 @@ class NativeMethods {
         this.objectGetOwnPropertyNames      = win.Object.getOwnPropertyNames;
         this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
 
+        // Array
+        this.arraySlice  = Array.prototype.slice;
+        this.arrayConcat = Array.prototype.concat;
+        this.arrayFilter = Array.prototype.filter;
+        this.arrayMap    = Array.prototype.map;
+        this.arrayJoin   = Array.prototype.join;
+
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
         this.arrayBufferIsView = win.ArrayBuffer.prototype.constructor.isView;

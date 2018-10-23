@@ -1,8 +1,5 @@
 import { parseProxyUrl } from './url';
-
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arrayFilter = Array.prototype.filter;
+import nativeMethods from '../sandbox/native-methods';
 
 const STACK_FRAME_REG_EXPS = [
     /^\s*at .*\((\S+)\)/, // Chrome, IE (with function name)
@@ -46,7 +43,7 @@ export default function replaceProxiedUrlsInStack (stack) {
     for (let i = 0; i < stackFrames.length; i++) {
         const stackFrame = stackFrames[i];
 
-        const targetStackFrameRegExp = arrayFilter.call(STACK_FRAME_REG_EXPS, stackFrameRegExp => stackFrameRegExp.test(stackFrame))[0];
+        const targetStackFrameRegExp = nativeMethods.arrayFilter.call(STACK_FRAME_REG_EXPS, stackFrameRegExp => stackFrameRegExp.test(stackFrame))[0];
 
         stackFrames[i] = stackFrame.replace(targetStackFrameRegExp, replaceUrlWithProxied);
     }

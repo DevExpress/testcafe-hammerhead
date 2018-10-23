@@ -8,10 +8,6 @@ import { getProxyUrl } from '../../../utils/url';
 import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import createSelfRemovingScript from '../../../../utils/create-self-removing-script';
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arrayJoin = Array.prototype.join;
-
 const BEGIN_MARKER_TAG_NAME = 'hammerhead_write_marker_begin';
 const END_MARKER_TAG_NAME   = 'hammerhead_write_marker_end';
 const BEGIN_MARKER_MARKUP   = `<${ BEGIN_MARKER_TAG_NAME }></${ BEGIN_MARKER_TAG_NAME }>`;
@@ -284,7 +280,7 @@ export default class DocumentWriter {
     }
 
     write (args, ln, isDocumentCleaned) {
-        const htmlChunk = this._processHtmlChunk(arrayJoin.call(args, ''), isDocumentCleaned);
+        const htmlChunk = this._processHtmlChunk(nativeMethods.arrayJoin.call(args, ''), isDocumentCleaned);
 
         if (this.nonClosedEl && this.contentForProcessing) {
             let processedContent = this.contentForProcessing;

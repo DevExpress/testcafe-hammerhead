@@ -1,9 +1,6 @@
 import SandboxBase from './base';
 import { isCrossDomainWindows } from '../utils/dom';
-
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overridden by the client code. (GH-245)
-const arrayMap = Array.prototype.map;
+import nativeMethods from '../sandbox/native-methods';
 
 export default class ConsoleSandbox extends SandboxBase {
     constructor (messageSandbox) {
@@ -27,7 +24,7 @@ export default class ConsoleSandbox extends SandboxBase {
         this.window.console[meth] = (...args) => {
             if (!isCrossDomainWindows(window, window.top)) {
                 const sendToTopWindow = window !== window.top;
-                const line            = arrayMap.call(args, this._toString).join(' ');
+                const line            = nativeMethods.arrayMap.call(args, this._toString).join(' ');
 
                 if (sendToTopWindow) {
                     this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth, line, inIframe: true });

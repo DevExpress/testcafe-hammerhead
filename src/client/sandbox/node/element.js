@@ -28,10 +28,6 @@ const KEYWORD_TARGETS = ['_blank', '_self', '_parent', '_top'];
 
 const RESTRICTED_META_HTTP_EQUIV_VALUES = ['refresh', 'content-security-policy'];
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arraySlice = Array.prototype.slice;
-
 export default class ElementSandbox extends SandboxBase {
     constructor (nodeSandbox, uploadSandbox, iframeSandbox, shadowUI, eventSandbox) {
         super();
@@ -415,7 +411,7 @@ export default class ElementSandbox extends SandboxBase {
         let childNodes = null;
 
         if (domUtils.isDocumentFragmentNode(newNode))
-            childNodes = arraySlice.call(newNode.childNodes);
+            childNodes = nativeMethods.arraySlice.call(newNode.childNodes);
 
         // NOTE: Before the page's <body> is processed and added to DOM,
         // some javascript frameworks create their own body element, perform

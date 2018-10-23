@@ -1,6 +1,4 @@
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arraySlice = Array.prototype.slice;
+import nativeMethods from '../sandbox/native-methods';
 
 export default class EventEmitter {
     constructor () {
@@ -14,7 +12,7 @@ export default class EventEmitter {
             for (let i = 0; i < listeners.length; i++) {
                 try {
                     if (listeners[i])
-                        listeners[i].apply(this, arraySlice.apply(arguments, [1]));
+                        listeners[i].apply(this, nativeMethods.arraySlice.apply(arguments, [1]));
                 }
                 catch (e) {
                     // HACK: For IE: after calling document.write, the IFrameSandbox event handler throws the
