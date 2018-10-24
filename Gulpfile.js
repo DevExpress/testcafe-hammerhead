@@ -65,19 +65,19 @@ const CLIENT_TESTS_BROWSERS = [
     {
         browserName: 'safari',
         platform:    'macOS 10.13',
-        version:     '11.1'
+        version:     '12.0'
     },
     {
         browserName:     'Safari',
         deviceName:      'iPhone 7 Plus Simulator',
-        platformVersion: '10.3',
+        platformVersion: '11.3',
         platformName:    'iOS'
     },
     {
-        browserName: 'android',
-        platform:    'Linux',
-        version:     '6.0',
-        deviceName:  'Android Emulator'
+        deviceName:      'Android GoogleAPI Emulator',
+        browserName:     'Chrome',
+        platformVersion: '7.1',
+        platformName:    'Android'
     },
     {
         browserName: 'chrome',
