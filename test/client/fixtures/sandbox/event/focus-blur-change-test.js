@@ -836,8 +836,8 @@ asyncTest('check that scrolling does not happen when focus is set (after mouse e
     }, false, true);
 });
 
-asyncTest('focus() must not scroll to the element if "preventScrolling" argument is true', function () {
-    var div = document.createElement('input');
+asyncTest('focus() should not scroll to the element if "preventScrolling" argument is true', function () {
+    var div = document.createElement('div');
 
     $(div)
         .css({
@@ -856,7 +856,7 @@ asyncTest('focus() must not scroll to the element if "preventScrolling" argument
     focusBlur.focus(div, function () {
         var currentWindowScroll = styleUtil.getElementScroll(window);
 
-        deepEqual(currentWindowScroll, oldWindowScroll);
+        deepEqual(JSON.stringify(currentWindowScroll), JSON.stringify(oldWindowScroll));
 
         document.body.removeChild(div);
         start();
