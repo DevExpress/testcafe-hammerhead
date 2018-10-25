@@ -275,13 +275,13 @@ describe('Upload', () => {
         });
 
         it('Should return an error if storing or getting is impossible', () => {
-            const storage        = new UploadStorage(tmpDirObj.name);
+            const storage = new UploadStorage(tmpDirObj.name);
 
             return storage
-                .store(['file-to-upload?.txt'], [Buffer.from('123').toString('base64')])
+                .store(['file-to-/upload.txt'], [Buffer.from('123').toString('base64')])
                 .then(result => {
                     expect(result.length).eql(1);
-                    assertCorrectErr(result[0], getStoredFilePath('file-to-upload?.txt'));
+                    assertCorrectErr(result[0], getStoredFilePath('file-to-/upload.txt'));
 
                     return storage.get(['file-to-upload.txt']);
                 })
