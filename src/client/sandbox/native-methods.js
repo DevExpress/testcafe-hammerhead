@@ -256,11 +256,11 @@ class NativeMethods {
         this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
 
         // Array
-        this.arraySlice  = Array.prototype.slice;
-        this.arrayConcat = Array.prototype.concat;
-        this.arrayFilter = Array.prototype.filter;
-        this.arrayMap    = Array.prototype.map;
-        this.arrayJoin   = Array.prototype.join;
+        this.arraySlice  = win.Array.prototype.slice;
+        this.arrayConcat = win.Array.prototype.concat;
+        this.arrayFilter = win.Array.prototype.filter;
+        this.arrayMap    = win.Array.prototype.map;
+        this.arrayJoin   = win.Array.prototype.join;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
