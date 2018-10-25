@@ -240,7 +240,7 @@ describe('Upload', () => {
 
         function assertCorrectErr (errMsg, filePath) {
             expect(errMsg.err.indexOf('ENOENT')).not.eql(-1);
-            expect(errMsg.path).eql(filePath);
+            expect(errMsg.resolvedPath || errMsg.path).eql(filePath);
         }
 
         function assetCorrectFileInfo (fileInfo, fileName, filePath) {
@@ -251,13 +251,12 @@ describe('Upload', () => {
         }
 
         it('Should store and get file', () => {
-            const storage = new UploadStorage(tmpDirObj.name);
-
+            const storage        = new UploadStorage(tmpDirObj.name);
             const srcFilePath    = getSrcFilePath('file-to-upload.txt');
             const storedFilePath = getStoredFilePath('file-to-upload.txt');
 
             return storage
-                .store(['file-to-upload.txt'], [fs.readFileSync(srcFilePath)])
+                .store(['file-to-upload.txt'], [fs.readFileSync(srcFilePath).toString('base64')])
                 .then(result => {
                     expect(result.length).eql(1);
                     expect(result[0]).to.not.have.property('err');
@@ -276,27 +275,24 @@ describe('Upload', () => {
         });
 
         it('Should return an error if storing or getting is impossible', () => {
-            const storage        = new UploadStorage('this/path/will/not/exist/ever/');
-            const storedFilePath = path.resolve(path.join('this/path/will/not/exist/ever/', 'file-to-upload.txt'));
-            const filePath       = getSrcFilePath('file-to-upload.txt');
+            const storage        = new UploadStorage(tmpDirObj.name);
 
             return storage
-                .store(['file-to-upload.txt'], [filePath])
+                .store(['file-to-upload?.txt'], [Buffer.from('123').toString('base64')])
                 .then(result => {
                     expect(result.length).eql(1);
-                    assertCorrectErr(result[0], storedFilePath);
+                    assertCorrectErr(result[0], getStoredFilePath('file-to-upload?.txt'));
 
                     return storage.get(['file-to-upload.txt']);
                 })
                 .then(result => {
                     expect(result.length).eql(1);
-                    assertCorrectErr(result[0], storedFilePath);
+                    assertCorrectErr(result[0], getStoredFilePath('file-to-upload.txt'));
                 });
         });
 
         it('Should store and get multiple files', () => {
-            const storage = new UploadStorage(tmpDirObj.name);
-
+            const storage          = new UploadStorage(tmpDirObj.name);
             const file1Path        = getSrcFilePath('expected.formdata');
             const file2Path        = getSrcFilePath('src.formdata');
             const fakeFilePath     = getStoredFilePath('fake-file.txt');
@@ -304,7 +300,10 @@ describe('Upload', () => {
             const file2StoragePath = getStoredFilePath('src.formdata');
 
             return storage
-                .store(['expected.formdata', 'src.formdata'], [fs.readFileSync(file1Path), fs.readFileSync(file2Path)])
+                .store(
+                    ['expected.formdata', 'src.formdata'],
+                    [fs.readFileSync(file1Path).toString('base64'), fs.readFileSync(file2Path).toString('base64')]
+                )
                 .then(result => {
                     expect(result.length).eql(2);
                     assertFileExistence(file1StoragePath);
@@ -330,21 +329,99 @@ describe('Upload', () => {
             const storedFilePath = getStoredFilePath('file.txt');
 
             return storage
-                .store(['file.txt'], [Buffer.from('text')])
+                .store(['file.txt'], [Buffer.from('text').toString('base64')])
                 .then(result => {
                     expect(result.length).eql(1);
                     expect(result[0]).to.not.have.property('err');
                     expect(result[0].file).eql('file.txt');
                     expect(result[0].path).eql(storedFilePath);
 
-                    return storage.store(['file.txt'], [Buffer.from('text')]);
+                    return storage.store(['file.txt'], [Buffer.from('text').toString('base64')]);
                 })
                 .then(result => {
+                    const storedFilePath1 = storedFilePath.replace(/file\.txt/, 'file 1.txt');
+
                     expect(result.length).eql(1);
-                    expect(result[0].err.indexOf('EEXIST')).not.eql(-1);
-                    expect(result[0].path).eql(storedFilePath);
+                    expect(result[0]).to.not.have.property('err');
+                    expect(result[0].file).eql('file.txt');
+                    expect(result[0].path).eql(storedFilePath1);
 
                     fs.unlinkSync(storedFilePath);
+                    fs.unlinkSync(storedFilePath1);
+                });
+        });
+
+        it('Should create upload folder if it does not exists', () => {
+            const storage = new UploadStorage(tmpDirObj.name);
+
+            return storage
+                .ensureUploadsRoot()
+                .then(result => {
+                    expect(result).to.be.null;
+                    expect(fs.statSync(tmpDirObj.name).isDirectory()).to.be.true;
+
+                    fs.rmdirSync(tmpDirObj.name);
+
+                    return storage.ensureUploadsRoot();
+                })
+                .then(result => {
+                    expect(result).to.be.null;
+                    expect(fs.statSync(tmpDirObj.name).isDirectory()).to.be.true;
+
+                    fs.rmdirSync(tmpDirObj.name);
+
+                    return storage.store(['temp.txt'], [Buffer.from('temp').toString('base64')]);
+                })
+                .then(result => {
+                    const tempFilePath = getStoredFilePath('temp.txt');
+
+                    expect(result.length).eql(1);
+                    assertFileExistence(tempFilePath);
+                    expect(fs.statSync(tmpDirObj.name).isDirectory()).to.be.true;
+
+                    fs.unlinkSync(tempFilePath);
+                });
+        });
+
+        it('Should copy files to upload directory', () => {
+            const storage   = new UploadStorage(tmpDirObj.name);
+            const file1Path = getSrcFilePath('file-to-upload.txt');
+            const file2Path = getSrcFilePath('expected.formdata');
+            const file3Path = getSrcFilePath('file-does-not-exist');
+
+            return storage
+                .copy([
+                    { name: 'file-to-upload.txt', path: file1Path },
+                    { name: 'expected.formdata', path: file2Path },
+                    { name: 'file-does-not-exist', path: file3Path }
+                ])
+                .then(({ copiedFiles, errs }) => {
+                    const copiedFile1Path = getStoredFilePath('file-to-upload.txt');
+                    const copiedFile2Path = getStoredFilePath('expected.formdata');
+
+                    expect(copiedFiles).to.deep.equal([copiedFile1Path, copiedFile2Path]);
+                    assertFileExistence(copiedFile1Path);
+                    assertFileExistence(copiedFile2Path);
+                    assertFileContentsIdentical(copiedFile1Path, file1Path);
+                    assertFileContentsIdentical(copiedFile2Path, file2Path);
+
+                    expect(errs.length).eql(1);
+                    expect(errs[0].path).eql(file3Path);
+                    expect(errs[0].err.code).eql('ENOENT');
+
+                    return storage.copy([{ name: 'file-to-upload.txt', path: file1Path }]);
+                })
+                .then(({ copiedFiles, errs }) => {
+                    const copiedFilePath = getStoredFilePath('file-to-upload 1.txt');
+
+                    expect(copiedFiles).to.deep.equal([copiedFilePath]);
+                    assertFileExistence(copiedFilePath);
+                    assertFileContentsIdentical(copiedFilePath, file1Path);
+                    expect(errs.length).eql(0);
+
+                    fs.unlinkSync(getStoredFilePath('file-to-upload.txt'));
+                    fs.unlinkSync(getStoredFilePath('expected.formdata'));
+                    fs.unlinkSync(copiedFilePath);
                 });
         });
     });
