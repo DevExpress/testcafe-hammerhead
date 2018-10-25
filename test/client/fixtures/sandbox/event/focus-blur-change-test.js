@@ -856,7 +856,7 @@ asyncTest('focus() should not scroll to the element if "preventScrolling" argume
     focusBlur.focus(div, function () {
         var currentWindowScroll = styleUtil.getElementScroll(window);
 
-        deepEqual(JSON.stringify(currentWindowScroll), JSON.stringify(oldWindowScroll));
+        strictEqual(JSON.stringify(currentWindowScroll), JSON.stringify(oldWindowScroll));
 
         document.body.removeChild(div);
         start();
