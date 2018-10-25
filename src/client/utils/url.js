@@ -191,6 +191,16 @@ export function changeDestUrlPart (proxyUrl, nativePropSetter, value, resourceTy
     return proxyUrl;
 }
 
+export function getProxiedUrlOrigin (proxyUrl) {
+    const parsedProxyUrl = sharedUrlUtils.parseProxyUrl(proxyUrl);
+
+    /*eslint-disable no-restricted-properties*/
+    return parsedProxyUrl
+        ? parsedProxyUrl.destResourceInfo.protocol + '//' + parsedProxyUrl.destResourceInfo.host
+        : parsedProxyUrl;
+    /*eslint-enable no-restricted-properties*/
+}
+
 export function isValidWebSocketUrl (url) {
     const resolvedUrl = resolveUrlAsDest(url);
 

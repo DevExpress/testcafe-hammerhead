@@ -7,7 +7,8 @@ import {
     parseProxyUrl,
     parseResourceType,
     isChangedOnlyHash,
-    getCrossDomainProxyPort
+    getCrossDomainProxyPort,
+    getProxiedUrlOrigin
 } from '../../../utils/url';
 import {
     getDomain,
@@ -19,6 +20,8 @@ import {
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
 import { processJsAttrValue, isJsProtocol } from '../../../../processing/dom/index';
+import { isCrossDomainWindows, getParentWindowWithSrc } from '../../../utils/dom';
+import DOMStringListWrapper from './dom-string-list-wrapper';
 
 function getLocationUrl (window) {
     try {
@@ -134,6 +137,44 @@ export default class LocationWrapper extends EventEmitter {
                 return hash;
             }
         }));
+
+        if (window.location.ancestorOrigins) {
+            nativeMethods.objectDefineProperty.call(window.Object, this, 'ancestorOrigins', {
+                get: () => {
+                    const nativeAncestorOrigins       = window.location.ancestorOrigins;
+                    const nativeAncestorOriginsLength = nativeAncestorOrigins.length;
+                    let parentWindow                  = window;
+                    const ancestorOrigins             = [];
+
+                    if (!isCrossDomainWindows(window, window.top)) {
+                        for (let i = 0; i < nativeAncestorOriginsLength; i++) {
+                            parentWindow = parentWindow.parent;
+
+                            const parentLocationUrl = getLocationUrl(parentWindow);
+
+                            if (parentLocationUrl === 'about:blank') {
+                                const parentWindowWithSrc            = getParentWindowWithSrc(parentWindow);
+                                const parentWindowWithSrcLocationURL = getLocationUrl(parentWindowWithSrc);
+                                const parentWindowWithSrcOrigin      = getProxiedUrlOrigin(parentWindowWithSrcLocationURL);
+
+                                ancestorOrigins.push(parentWindowWithSrcOrigin);
+                            }
+                            else {
+                                const parentLocationOrigin = getProxiedUrlOrigin(parentLocationUrl);
+
+                                ancestorOrigins.push(parentLocationOrigin);
+                            }
+                        }
+                    }
+                    else {
+                        for (let i = 0; i < nativeAncestorOriginsLength; i++)
+                            ancestorOrigins.push('cross-domain-ancestor-chain');
+                    }
+
+                    return new DOMStringListWrapper(nativeAncestorOrigins, ancestorOrigins);
+                }
+            });
+        }
 
         const overrideProperty = (property, nativePropSetter) => {
             nativeMethods.objectDefineProperty.call(window.Object, this, property, createPropertyDesc({

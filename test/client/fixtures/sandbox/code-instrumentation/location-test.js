@@ -1,3 +1,4 @@
+var INSTRUCTION             = hammerhead.get('../processing/script/instruction');
 var CodeInstrumentation     = hammerhead.get('./sandbox/code-instrumentation');
 var LocationInstrumentation = hammerhead.get('./sandbox/code-instrumentation/location');
 var LocationWrapper         = hammerhead.get('./sandbox/code-instrumentation/location/wrapper');
@@ -158,6 +159,40 @@ test('get location origin', function () {
 
     strictEqual(locWrapper.origin, 'https://example.com');
 });
+
+// GH-1342
+if (window.location.ancestorOrigins) {
+    test('ancestorOrigins', function () {
+        // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
+        var src = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
+
+        return createTestIframe({ src: src })
+            .then(function (iframe) {
+                return createTestIframe({}, iframe.contentDocument.body);
+            })
+            .then(function (nestedIframe) {
+                var getLocation     = nestedIframe.contentWindow[INSTRUCTION.getLocation];
+                var locationWrapper = getLocation(nestedIframe.contentWindow.location);
+
+                nestedIframe.contentWindow.parent.parent = {
+                    location: {
+                        toString: function () {
+                            return destLocation.getLocation();
+                        }
+                    },
+                    frameElement: null
+                };
+
+                strictEqual(locationWrapper.ancestorOrigins.length, 2);
+
+                strictEqual(locationWrapper.ancestorOrigins[0], 'https://example.com');
+                strictEqual(locationWrapper.ancestorOrigins.item(0), 'https://example.com');
+
+                strictEqual(locationWrapper.ancestorOrigins[1], 'https://example.com');
+                strictEqual(locationWrapper.ancestorOrigins.item(1), 'https://example.com');
+            });
+    });
+}
 
 test('create location wrapper before iframe loading', function () {
     var iframe = document.createElement('iframe');
