@@ -4,6 +4,7 @@ const url                           = require('url');
 const expect                        = require('chai').expect;
 const ResponseMock                  = require('../../lib/request-pipeline/request-hooks/response-mock');
 const RequestFilterRule             = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
+const ConfigureResponseEvent        = require('../../lib/session/events/configure-response-event');
 const ConfigureResponseEventOptions = require('../../lib/session/events/configure-response-event-options');
 const noop                          = require('lodash').noop;
 
@@ -230,4 +231,32 @@ describe('RequestFilterRule', () => {
 it('Default configure options for onResponseEvent', () => {
     expect(ConfigureResponseEventOptions.DEFAULT.includeBody).eql(false);
     expect(ConfigureResponseEventOptions.DEFAULT.includeHeaders).eql(false);
+});
+
+describe('ConfigureResponseEvent', () => {
+    it('Remove header', () => {
+        const mockCtx = {
+            destRes: {
+                headers: {
+                    'my-header': 'value'
+                }
+            }
+        };
+        const configureResponseEvent = new ConfigureResponseEvent(mockCtx);
+
+        configureResponseEvent.removeHeader('My-Header');
+        expect(mockCtx.destRes.headers).to.not.have.property('my-header');
+    });
+
+    it('Set header', () => {
+        const mockCtx = {
+            destRes: {
+                headers: {}
+            }
+        };
+        const configureResponseEvent = new ConfigureResponseEvent(mockCtx);
+
+        configureResponseEvent.setHeader('My-Header', 'value');
+        expect(mockCtx.destRes.headers).to.have.property('my-header').that.equals('value');
+    });
 });

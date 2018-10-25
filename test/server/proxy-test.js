@@ -2337,6 +2337,30 @@ describe('Proxy', () => {
                 });
         });
 
+        it('Should allow to modify response headers', () => {
+            const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
+
+            session.addRequestEventListeners(rule, {
+                onConfigureResponse: e => {
+                    e.setHeader('My-Custom-Header', 'My Custom value');
+                    e.removeHeader('Content-Type');
+                }
+            });
+
+            const options = {
+                url:                     proxy.openSession('http://127.0.0.1:2000/page', session),
+                resolveWithFullResponse: true
+            };
+
+            return request(options)
+                .then(response => {
+                    expect(response.headers['my-custom-header']).eql('My Custom value');
+                    expect(response.headers).to.not.have.property('content-type');
+
+                    session.removeRequestEventListeners(rule);
+                });
+        });
+
         it('Should pass `forceProxySrcForImage` option in task script', () => {
             session._getPayloadScript       = () => 'PayloadScript';
             session._getIframePayloadScript = () => 'IframePayloadScript';

@@ -1,12 +1,12 @@
-import XHR_HEADERS from './xhr/headers';
-import AUTHORIZATION from './xhr/authorization';
-import * as urlUtils from '../utils/url';
+import XHR_HEADERS from '../xhr/headers';
+import AUTHORIZATION from '../xhr/authorization';
+import * as urlUtils from '../../utils/url';
 import { parse as parseUrl, resolve as resolveUrl } from 'url';
 import {
     formatSyncCookie,
     generateDeleteSyncCookieStr,
     isOutdatedSyncCookie
-} from '../utils/cookie';
+} from '../../utils/cookie';
 
 // Skipping transform
 function skip () {
@@ -109,7 +109,7 @@ function transformRefreshHeader (src, ctx) {
 }
 
 // Request headers
-const requestTransforms = Object.assign({
+export const requestTransforms = Object.assign({
     'host':                                (src, ctx) => ctx.dest.host,
     'referer':                             (src, ctx) => ctx.dest.referer || void 0,
     'origin':                              (src, ctx) => ctx.dest.reqOrigin || src,
@@ -127,7 +127,7 @@ const requestTransforms = Object.assign({
     return obj;
 }, {}));
 
-const requestForced = {
+export const forcedRequestTransforms = {
     'cookie': (src, ctx) => transformCookie(ctx.session.cookies.getHeader(ctx.dest.url) || void 0, ctx),
 
     // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
@@ -141,7 +141,7 @@ const requestForced = {
 
 
 // Response headers
-const responseTransforms = {
+export const responseTransforms = {
     // NOTE: Disable Content Security Policy (see http://en.wikipedia.org/wiki/Content_Security_Policy).
     'content-security-policy':               skip,
     'content-security-policy-report-only':   skip,
@@ -200,7 +200,7 @@ const responseTransforms = {
     }
 };
 
-const responseForced = {
+export const forcedResponseTransforms = {
     'set-cookie': (src, ctx) => {
         let parsedCookies;
 
@@ -213,56 +213,3 @@ const responseForced = {
         return [];
     }
 };
-
-// Transformation routine
-function transformHeaders (srcHeaders, ctx, transformList, forced) {
-    const destHeaders = {};
-
-    const applyTransform = function (headerName, headers, transforms) {
-        const src       = headers[headerName];
-        const transform = transforms[headerName];
-        const dest      = transform ? transform(src, ctx) : src;
-
-        if (dest !== void 0)
-            destHeaders[headerName] = dest;
-    };
-
-    Object.keys(srcHeaders).forEach(headerName => applyTransform(headerName, srcHeaders, transformList));
-
-    if (forced)
-        Object.keys(forced).forEach(headerName => applyTransform(headerName, destHeaders, forced));
-
-    return destHeaders;
-}
-
-// API
-export function forRequest (ctx) {
-    return transformHeaders(ctx.req.headers, ctx, requestTransforms, requestForced);
-}
-
-export function forResponse (ctx) {
-    return transformHeaders(ctx.destRes.headers, ctx, responseTransforms, responseForced);
-}
-
-export function transformHeadersCaseToRaw (headers, rawHeaders) {
-    const processedHeaders = {};
-    const headersNames     = Object.keys(headers);
-
-    for (let i = 0; i < rawHeaders.length; i += 2) {
-        const rawHeaderName = rawHeaders[i];
-        const headerName    = rawHeaderName.toLowerCase();
-        const headerIndex   = headersNames.indexOf(headerName);
-
-        if (headerIndex > -1) {
-            processedHeaders[rawHeaderName] = headers[headerName];
-            headersNames[headerIndex]       = void 0;
-        }
-    }
-
-    for (const headerName of headersNames) {
-        if (headerName !== void 0)
-            processedHeaders[headerName] = headers[headerName];
-    }
-
-    return processedHeaders;
-}

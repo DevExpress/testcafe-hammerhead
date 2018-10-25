@@ -82,7 +82,7 @@ const stages = {
 
         if (!ctx.isKeepSameOriginPolicy()) {
             ctx.requestFilterRules.forEach(rule => {
-                const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
+                const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
                 ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
                 callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, configureResponseEvent);
@@ -106,11 +106,9 @@ const stages = {
         }
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
         else if (!ctx.contentInfo.requireProcessing) {
-            sendResponseHeaders(ctx);
-
             if (!ctx.isSpecialPage) {
                 ctx.requestFilterRules.forEach(rule => {
-                    const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
+                    const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
                     ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
 
@@ -119,6 +117,8 @@ const stages = {
                     else
                         ctx.onResponseEventDataWithoutBody.push({ rule, opts: configureResponseEvent.opts });
                 });
+
+                sendResponseHeaders(ctx);
 
                 if (ctx.contentInfo.isNotModified)
                     ctx.res.end();
@@ -144,8 +144,10 @@ const stages = {
                     ctx.req.on('close', () => ctx.destRes.destroy());
                 }
             }
-            else
+            else {
+                sendResponseHeaders(ctx);
                 ctx.res.end();
+            }
 
             return;
         }
@@ -181,12 +183,19 @@ const stages = {
     },
 
     7: function sendProxyResponse (ctx) {
+        const configureResponseEvents = ctx.requestFilterRules.map(rule => {
+            const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
+
+            ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+            return configureResponseEvent;
+        });
+
         sendResponseHeaders(ctx);
 
         connectionResetGuard(() => {
             ctx.res.write(ctx.destResBody);
             ctx.res.end(() => {
-                ctx.requestFilterRules.forEach(rule => callResponseEventCallbackForProcessedRequest(ctx, rule));
+                configureResponseEvents.forEach(configureResponseEvent => callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent));
             });
         });
     }
@@ -257,16 +266,12 @@ function isDestResBodyMalformed (ctx) {
     return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
 }
 
-function callResponseEventCallbackForProcessedRequest (ctx, rule) {
-    const responseInfo           = requestEventInfo.createResponseInfo(ctx);
-    const configureResponseEvent = new ConfigureResponseEvent(rule, ConfigureResponseEventOptions.DEFAULT);
-
-    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
-
+function callResponseEventCallbackForProcessedRequest (ctx, configureResponseEvent) {
+    const responseInfo         = requestEventInfo.createResponseInfo(ctx);
     const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureResponseEvent.opts);
-    const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
+    const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
 
-    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
 }
 
 function callOnRequestEventCallback (ctx, rule, reqInfo) {
