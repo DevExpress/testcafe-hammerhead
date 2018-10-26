@@ -1,3 +1,4 @@
+import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
 import EventEmitter from '../../../utils/event-emitter';
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
@@ -7,8 +8,7 @@ import {
     parseProxyUrl,
     parseResourceType,
     isChangedOnlyHash,
-    getCrossDomainProxyPort,
-    getProxiedUrlOrigin
+    getCrossDomainProxyPort
 } from '../../../utils/url';
 import {
     getDomain,
@@ -141,33 +141,29 @@ export default class LocationWrapper extends EventEmitter {
         if (window.location.ancestorOrigins) {
             nativeMethods.objectDefineProperty.call(window.Object, this, 'ancestorOrigins', {
                 get: () => {
-                    const nativeAncestorOrigins       = window.location.ancestorOrigins;
-                    const nativeAncestorOriginsLength = nativeAncestorOrigins.length;
-                    let parentWindow                  = window;
-                    const ancestorOrigins             = [];
+                    const nativeAncestorOrigins = window.location.ancestorOrigins;
+                    let parentWindow            = window;
+                    const ancestorOrigins       = [];
 
                     if (!isCrossDomainWindows(window, window.top)) {
-                        for (let i = 0; i < nativeAncestorOriginsLength; i++) {
+                        for (let i = 0; i < nativeAncestorOrigins.length; i++) {
                             parentWindow = parentWindow.parent;
 
-                            const parentLocationUrl = getLocationUrl(parentWindow);
+                            const parentLocationUrl   = getLocationUrl(parentWindow);
+                            const parentWindowWithSrc = parentLocationUrl === 'about:blank'
+                                ? getParentWindowWithSrc(parentWindow)
+                                : parentWindow;
 
-                            if (parentLocationUrl === 'about:blank') {
-                                const parentWindowWithSrc            = getParentWindowWithSrc(parentWindow);
-                                const parentWindowWithSrcLocationURL = getLocationUrl(parentWindowWithSrc);
-                                const parentWindowWithSrcOrigin      = getProxiedUrlOrigin(parentWindowWithSrcLocationURL);
+                            // eslint-disable-next-line no-restricted-properties
+                            const parentLocationOrigin = LocationAccessorsInstrumentation.getLocationWrapper(parentWindowWithSrc).origin;
 
-                                ancestorOrigins.push(parentWindowWithSrcOrigin);
-                            }
-                            else {
-                                const parentLocationOrigin = getProxiedUrlOrigin(parentLocationUrl);
-
-                                ancestorOrigins.push(parentLocationOrigin);
-                            }
+                            ancestorOrigins.push(parentLocationOrigin);
                         }
                     }
                     else {
-                        for (let i = 0; i < nativeAncestorOriginsLength; i++)
+                        // NOTE: while we a trying to restore ancestorOrigns list using parent location,
+                        // we expect the following ancestorOrigins: ['cross-domain-ancestor-chain', ...]. (GH-1342)
+                        for (let i = 0; i < nativeAncestorOrigins.length; i++)
                             ancestorOrigins.push('cross-domain-ancestor-chain');
                     }
 

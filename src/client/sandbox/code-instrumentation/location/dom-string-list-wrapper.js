@@ -1,13 +1,11 @@
 import nativeMethods from '../../native-methods';
 
 export default function DOMStringListWrapper (nativeList, actualValuesList) {
-    const nativeListLength = nativeList.length;
-
     nativeMethods.objectDefineProperties.call(Object, this, {
-        _nativeListLength: { value: nativeListLength }
+        _length: { value: nativeList.length }
     });
 
-    for (let i = 0; i < nativeListLength; i++) {
+    for (let i = 0; i < nativeList.length; i++) {
         const nativeItem = Object.getOwnPropertyDescriptor(nativeList, i);
 
         // eslint-disable-next-line no-restricted-properties
@@ -23,10 +21,22 @@ DOMStringListWrapper.prototype.item = function (index) {
     return this[index];
 };
 
+DOMStringListWrapper.prototype.contains = function (string) {
+    if (typeof string !== 'string')
+        string = String(string);
+
+    for (let i = 0; i < this._length; i++) {
+        if (this[i] === string)
+            return true;
+    }
+
+    return false;
+};
+
 nativeMethods.objectDefineProperty.call(Object, DOMStringListWrapper.prototype, 'length', {
     configurable: true,
     enumerable:   true,
     get:          function () {
-        return this._nativeListLength;
+        return this._length;
     }
 });

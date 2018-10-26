@@ -160,40 +160,6 @@ test('get location origin', function () {
     strictEqual(locWrapper.origin, 'https://example.com');
 });
 
-// GH-1342
-if (window.location.ancestorOrigins) {
-    test('ancestorOrigins', function () {
-        // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
-        var src = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
-
-        return createTestIframe({ src: src })
-            .then(function (iframe) {
-                return createTestIframe({}, iframe.contentDocument.body);
-            })
-            .then(function (nestedIframe) {
-                var getLocation     = nestedIframe.contentWindow[INSTRUCTION.getLocation];
-                var locationWrapper = getLocation(nestedIframe.contentWindow.location);
-
-                nestedIframe.contentWindow.parent.parent = {
-                    location: {
-                        toString: function () {
-                            return destLocation.getLocation();
-                        }
-                    },
-                    frameElement: null
-                };
-
-                strictEqual(locationWrapper.ancestorOrigins.length, 2);
-
-                strictEqual(locationWrapper.ancestorOrigins[0], 'https://example.com');
-                strictEqual(locationWrapper.ancestorOrigins.item(0), 'https://example.com');
-
-                strictEqual(locationWrapper.ancestorOrigins[1], 'https://example.com');
-                strictEqual(locationWrapper.ancestorOrigins.item(1), 'https://example.com');
-            });
-    });
-}
-
 test('create location wrapper before iframe loading', function () {
     var iframe = document.createElement('iframe');
 
@@ -562,6 +528,70 @@ test('should omit the default port on page navigation', function () {
 
     hammerhead.win = storedWindow;
 });
+
+if (window.location.ancestorOrigins) {
+    module('ancestorOrigins');
+
+    test('same domain double-nested iframe (GH-1342)', function () {
+        // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
+        var src = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
+
+        return createTestIframe({ src: src })
+            .then(function (iframe) {
+                return createTestIframe({}, iframe.contentDocument.body);
+            })
+            .then(function (nestedIframe) {
+                var getLocation     = nestedIframe.contentWindow[INSTRUCTION.getLocation];
+                var locationWrapper = getLocation(nestedIframe.contentWindow.location);
+
+                nestedIframe.contentWindow.parent.parent = {
+                    location: {
+                        toString: function () {
+                            return destLocation.getLocation();
+                        }
+                    },
+                    'hammerhead|location-wrapper': locationWrapper,
+                    frameElement:                  null
+                };
+
+                strictEqual(locationWrapper.ancestorOrigins.length, 2);
+
+                strictEqual(locationWrapper.ancestorOrigins[0], 'https://example.com');
+                strictEqual(locationWrapper.ancestorOrigins.item(0), 'https://example.com');
+
+                strictEqual(locationWrapper.ancestorOrigins[1], 'https://example.com');
+                strictEqual(locationWrapper.ancestorOrigins.item(1), 'https://example.com');
+
+                ok(locationWrapper.ancestorOrigins.contains('https://example.com'));
+                ok(locationWrapper.ancestorOrigins.contains({
+                    toString: function () {
+                        return 'https://example.com';
+                    }
+                }));
+                ok(!locationWrapper.ancestorOrigins.contains('https://another-domain.com'));
+                ok(!locationWrapper.ancestorOrigins.contains({}));
+            });
+    });
+
+    // NOTE: while we a trying to restore ancestorOrigns list using parent location,
+    // we expect the following ancestorOrigins: ['cross-domain-ancestor-chain', ...]. (GH-1342)
+    test('cross domain iframe (GH-1342)', function () {
+        var onMessageHandler = function (evt) {
+            var messageData = evt.data;
+            var data        = typeof messageData === 'string' ? JSON.parse(messageData) : messageData;
+
+            strictEqual(data.msg, 'cross-domain-ancestor-chain');
+
+            window.removeEventListener('message', onMessageHandler);
+        };
+
+        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-ancestor-origin.html') })
+            .then(function (crossDomainIframe) {
+                window.addEventListener('message', onMessageHandler);
+                callMethod(crossDomainIframe.contentWindow, 'postMessage', ['get ancestorOrigin', '*']);
+            });
+    });
+}
 
 module('regression');
 
