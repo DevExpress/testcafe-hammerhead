@@ -133,7 +133,7 @@ test('batchUpdate - with stored messages', function () {
         });
 });
 
-if (!browserUtils.isWebKit) {
+if (!browserUtils.isWebKit && !browserUtils.isFirefox) {
     test('resend aborted async service msg', function () {
         var xhrCount = 0;
 
@@ -213,7 +213,7 @@ else {
     });
 }
 
-if (browserUtils.isWebKit) {
+if (browserUtils.isWebKit || browserUtils.isFirefox) {
     test('do not resend aborted async service msg if it contains "disableResending" flag (WebKit)', function () {
         settings.get().sessionId = '%%%testUid%%%';
 

@@ -2,7 +2,7 @@ import nativeMethods from './sandbox/native-methods';
 import settings from './settings';
 import XhrSandbox from './sandbox/xhr';
 import { stringify as stringifyJSON, parse as parseJSON } from './json';
-import { isWebKit } from './utils/browser';
+import { isWebKit, isFirefox } from './utils/browser';
 import createUnresolvablePromise from './utils/create-unresolvable-promise';
 import noop from './utils/noop';
 import Promise from 'pinkie';
@@ -75,7 +75,7 @@ class Transport {
                     return;
                 }
 
-                if (isWebKit) {
+                if (isWebKit || isFirefox) {
                     Transport._storeMessage(msg);
                     msgCallback.call(this);
                 }
