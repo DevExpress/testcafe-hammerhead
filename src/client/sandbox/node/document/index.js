@@ -102,6 +102,8 @@ export default class DocumentSandbox extends SandboxBase {
 
             const result = nativeMethods.documentOpen.apply(document, args);
 
+            nativeMethods.refresh();
+
             // NOTE: Chrome does not remove the "%hammerhead%" property from window
             // after document.open call
             const objectDefinePropertyFn = window[INTERNAL_PROPS.hammerhead]

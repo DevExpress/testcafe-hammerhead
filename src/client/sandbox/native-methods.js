@@ -3,9 +3,6 @@ class NativeMethods {
     constructor (doc, win) {
         win = win || window;
 
-        // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
-        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
-
         this.refreshDocumentMeths(doc, win);
         this.refreshElementMeths(doc, win);
         this.refreshWindowMeths(win);
@@ -160,6 +157,9 @@ class NativeMethods {
         win = win || window;
 
         const winProto = win.constructor.prototype;
+
+        // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
+        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
 
         // Dom
         this.eval                             = win.eval;
@@ -632,6 +632,12 @@ class NativeMethods {
         document.createEvent         = this.documentCreateEvent;
         document.createTouch         = this.documentCreateTouch;
         document.createTouchList     = this.documentCreateTouchList;
+    }
+
+    refresh (doc, win) {
+        this.refreshDocumentMeths(doc, win);
+        this.refreshElementMeths(doc, win);
+        this.refreshWindowMeths(win);
     }
 }
 
