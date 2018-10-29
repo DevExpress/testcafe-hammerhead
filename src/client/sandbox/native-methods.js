@@ -634,10 +634,43 @@ class NativeMethods {
         document.createTouchList     = this.documentCreateTouchList;
     }
 
-    refresh (doc, win) {
-        this.refreshDocumentMeths(doc, win);
-        this.refreshElementMeths(doc, win);
-        this.refreshWindowMeths(win);
+    refreshIfNecessary (doc, win) {
+        const tryToExecuteCode = func => {
+            try {
+                return func();
+            }
+            catch (e) {
+                return true;
+            }
+        };
+
+        const needToRefreshDocumentMethods = tryToExecuteCode(
+            () => !doc.createElement ||
+                  this.createElement.toString() === document.createElement.toString()
+        );
+
+        const needToRefreshElementMethods = tryToExecuteCode(() => {
+            const nativeElement = this.createElement.call(doc, 'div');
+
+            return nativeElement.getAttribute.toString() === this.getAttribute.toString();
+        });
+
+        const needToRefreshWindowMethods = tryToExecuteCode(() => {
+            this.setTimeout.call(win, () => void 0, 0);
+
+            return window.XMLHttpRequest.prototype.open.toString() === this.xhrOpen.toString();
+        });
+
+        // NOTE: T173709
+        if (needToRefreshDocumentMethods)
+            this.refreshDocumentMeths(doc, win);
+
+        if (needToRefreshElementMethods)
+            this.refreshElementMeths(doc, win);
+
+        // NOTE: T239109
+        if (needToRefreshWindowMethods)
+            this.refreshWindowMeths(win);
     }
 }
 

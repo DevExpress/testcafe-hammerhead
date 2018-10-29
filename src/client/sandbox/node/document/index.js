@@ -103,7 +103,7 @@ export default class DocumentSandbox extends SandboxBase {
             const result = nativeMethods.documentOpen.apply(document, args);
 
             if (isIE)
-                nativeMethods.refresh(document, window);
+                nativeMethods.refreshIfNecessary(document, window);
 
             // NOTE: Chrome does not remove the "%hammerhead%" property from window
             // after document.open call
