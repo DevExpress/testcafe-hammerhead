@@ -354,15 +354,15 @@ describe('Upload', () => {
         it('Should create upload folder if it does not exists', () => {
             const storage = new UploadStorage(tmpDirObj.name);
 
-            return storage
-                .ensureUploadsRoot()
+            return UploadStorage
+                .ensureUploadsRoot(tmpDirObj.name)
                 .then(result => {
                     expect(result).to.be.null;
                     expect(fs.statSync(tmpDirObj.name).isDirectory()).to.be.true;
 
                     fs.rmdirSync(tmpDirObj.name);
 
-                    return storage.ensureUploadsRoot();
+                    return UploadStorage.ensureUploadsRoot(tmpDirObj.name);
                 })
                 .then(result => {
                     expect(result).to.be.null;
@@ -384,13 +384,12 @@ describe('Upload', () => {
         });
 
         it('Should copy files to upload directory', () => {
-            const storage   = new UploadStorage(tmpDirObj.name);
             const file1Path = getSrcFilePath('file-to-upload.txt');
             const file2Path = getSrcFilePath('expected.formdata');
             const file3Path = getSrcFilePath('file-does-not-exist');
 
-            return storage
-                .copy([
+            return UploadStorage
+                .copy(tmpDirObj.name, [
                     { name: 'file-to-upload.txt', path: file1Path },
                     { name: 'expected.formdata', path: file2Path },
                     { name: 'file-does-not-exist', path: file3Path }
@@ -409,7 +408,7 @@ describe('Upload', () => {
                     expect(errs[0].path).eql(file3Path);
                     expect(errs[0].err.code).eql('ENOENT');
 
-                    return storage.copy([{ name: 'file-to-upload.txt', path: file1Path }]);
+                    return UploadStorage.copy(tmpDirObj.name, [{ name: 'file-to-upload.txt', path: file1Path }]);
                 })
                 .then(({ copiedFiles, errs }) => {
                     const copiedFilePath = getStoredFilePath('file-to-upload 1.txt');

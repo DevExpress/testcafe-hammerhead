@@ -46,9 +46,9 @@ export default class UploadStorage {
         return fileName;
     }
 
-    async _getExistingFiles () {
+    static async _getExistingFiles (uploadsRoot) {
         try {
-            return await readDir(this.uploadsRoot);
+            return await readDir(uploadsRoot);
         }
         catch (e) {
             return [];
@@ -57,12 +57,12 @@ export default class UploadStorage {
 
     async store (fileNames, data) {
         const storedFiles = [];
-        const err         = await this.ensureUploadsRoot();
+        const err         = await UploadStorage.ensureUploadsRoot(this.uploadsRoot);
 
         if (err)
             return [{ err: err.toString(), path: this.uploadsRoot }];
 
-        const existingFiles = await this._getExistingFiles(this.uploadsRoot);
+        const existingFiles = await UploadStorage._getExistingFiles(this.uploadsRoot);
 
         for (const fileName of fileNames) {
             const storedFileName = UploadStorage._generateName(existingFiles, fileName);
@@ -109,18 +109,18 @@ export default class UploadStorage {
         return result;
     }
 
-    async copy (files) {
+    static async copy (uploadsRoot, files) {
         const { filesToCopy, errs } = await UploadStorage._getFilesToCopy(files);
         const copiedFiles           = [];
 
         if (!filesToCopy.length)
             return { copiedFiles, errs };
 
-        const existingFiles = await this._getExistingFiles(this.uploadsRoot);
+        const existingFiles = await UploadStorage._getExistingFiles(uploadsRoot);
 
         for (const file of filesToCopy) {
             const copiedFileName = UploadStorage._generateName(existingFiles, file.name);
-            const copiedFilePath = path.join(this.uploadsRoot, copiedFileName);
+            const copiedFilePath = path.join(uploadsRoot, copiedFileName);
 
             try {
                 await writeFile(copiedFilePath, await readFile(file.path, null));
@@ -136,10 +136,10 @@ export default class UploadStorage {
         return { copiedFiles, errs };
     }
 
-    async ensureUploadsRoot () {
+    static async ensureUploadsRoot (uploadsRoot) {
         try {
-            if (!await exists(this.uploadsRoot))
-                await makeDir(this.uploadsRoot);
+            if (!await exists(uploadsRoot))
+                await makeDir(uploadsRoot);
 
             return null;
         }
