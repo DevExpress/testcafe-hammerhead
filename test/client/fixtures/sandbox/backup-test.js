@@ -1,21 +1,19 @@
 var backup = hammerhead.get('./sandbox/backup');
 
-var browserUtils  = hammerhead.utils.browser;
+test('backup.get should return the latest sandbox backup', function () {
+    var iframe = document.createElement('iframe');
 
-if (browserUtils.isIE) {
-    test('backup.get should return the latest sandbox backup', function () {
-        var iframe = document.createElement('iframe');
+    iframe.id = 'test';
+    document.body.appendChild(iframe);
 
-        iframe.id = 'test';
-        document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write('Hello!');
+    iframe.contentDocument.close();
 
-        iframe.contentDocument.open();
-        iframe.contentDocument.write('Hello!');
-        iframe.contentDocument.close();
+    strictEqual(backup.get(iframe.contentWindow), iframe.contentWindow['%hammerhead%'].sandbox);
 
-        strictEqual(backup.get(iframe.contentWindow), iframe.contentWindow['%hammerhead%'].sandbox);
-    });
-}
+    iframe.parentNode.removeChild(iframe);
+});
 
 module('regression');
 
