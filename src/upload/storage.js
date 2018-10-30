@@ -72,7 +72,7 @@ export default class UploadStorage {
                 await writeFile(storedFilePath, data[storedFiles.length], { encoding: 'base64' });
 
                 existingFiles.push(storedFileName);
-                storedFiles.push({ path: storedFilePath, file: fileName });
+                storedFiles.push({ path: storedFilePath, file: storedFileName });
             }
             catch (e) {
                 storedFiles.push({ err: e.toString(), path: storedFilePath, file: fileName });

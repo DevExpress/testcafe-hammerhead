@@ -343,7 +343,7 @@ describe('Upload', () => {
 
                     expect(result.length).eql(1);
                     expect(result[0]).to.not.have.property('err');
-                    expect(result[0].file).eql('file.txt');
+                    expect(result[0].file).eql('file 1.txt');
                     expect(result[0].path).eql(storedFilePath1);
 
                     fs.unlinkSync(storedFilePath);
@@ -392,7 +392,8 @@ describe('Upload', () => {
                 .copy(tmpDirObj.name, [
                     { name: 'file-to-upload.txt', path: file1Path },
                     { name: 'expected.formdata', path: file2Path },
-                    { name: 'file-does-not-exist', path: file3Path }
+                    { name: 'file-does-not-exist', path: file3Path },
+                    { name: path.basename(SRC_PATH), path: SRC_PATH }
                 ])
                 .then(({ copiedFiles, errs }) => {
                     const copiedFile1Path = getStoredFilePath('file-to-upload.txt');
