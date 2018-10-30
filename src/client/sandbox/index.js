@@ -79,45 +79,6 @@ export default class Sandbox extends SandboxBase {
         return true;
     }
 
-    _refreshNativeMethods (window, document) {
-        const tryToExecuteCode = func => {
-            try {
-                return func();
-            }
-            catch (e) {
-                return true;
-            }
-        };
-
-        const needToUpdateNativeDomMeths = tryToExecuteCode(
-            () => !document.createElement ||
-                  this.nativeMethods.createElement.toString() === document.createElement.toString()
-        );
-
-        const needToUpdateNativeElementMeths = tryToExecuteCode(() => {
-            const nativeElement = this.nativeMethods.createElement.call(document, 'div');
-
-            return nativeElement.getAttribute.toString() === this.nativeMethods.getAttribute.toString();
-        });
-
-        const needToUpdateNativeWindowMeths = tryToExecuteCode(() => {
-            this.nativeMethods.setTimeout.call(window, () => void 0, 0);
-
-            return window.XMLHttpRequest.prototype.open.toString() === this.nativeMethods.xhrOpen.toString();
-        });
-
-        // NOTE: T173709
-        if (needToUpdateNativeDomMeths)
-            this.nativeMethods.refreshDocumentMeths(document);
-
-        if (needToUpdateNativeElementMeths)
-            this.nativeMethods.refreshElementMeths(document);
-
-        // NOTE: T239109
-        if (needToUpdateNativeWindowMeths)
-            this.nativeMethods.refreshWindowMeths(window);
-    }
-
     _restoreDocumentMethodsFromProto (document) {
         const docProto = document.constructor.prototype;
 
@@ -167,8 +128,8 @@ export default class Sandbox extends SandboxBase {
 
     reattach (window, document) {
         // NOTE: Assign the existing sandbox to the cleared document.
-        if (isIE || isWebKit)
-            this._refreshNativeMethods(window, document);
+        if (isIE)
+            this.nativeMethods.refreshIfNecessary(document, window);
 
         urlResolver.init(document);
 

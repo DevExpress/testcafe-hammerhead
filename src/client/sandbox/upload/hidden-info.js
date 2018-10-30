@@ -2,10 +2,6 @@ import INTERNAL_ATTRS from '../../../processing/dom/internal-attributes';
 import nativeMethods from '../native-methods';
 import * as JSON from '../../json';
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arraySlice = Array.prototype.slice;
-
 function createInput (form) {
     const hiddenInput = nativeMethods.createElement.call(document, 'input');
 
@@ -39,7 +35,7 @@ export function addInputInfo (input, fileList, value) {
     if (formInfo) {
         const files = [];
 
-        fileList = arraySlice.call(fileList);
+        fileList = nativeMethods.arraySlice.call(fileList);
 
         for (let i = 0, len = fileList.length; i < len; i++) {
             const file = fileList[i];

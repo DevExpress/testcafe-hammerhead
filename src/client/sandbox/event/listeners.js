@@ -5,10 +5,6 @@ import * as listeningCtx from './listening-context';
 import { preventDefault, stopPropagation, DOM_EVENTS, isValidEventListener, callEventListener } from '../../utils/event';
 import { isWindow } from '../../utils/dom';
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arrayMap = Array.prototype.map;
-
 const LISTENED_EVENTS = [
     'click', 'mousedown', 'mouseup', 'dblclick', 'contextmenu', 'mousemove', 'mouseover', 'mouseout',
     'pointerdown', 'pointermove', 'pointerover', 'pointerout', 'pointerup',
@@ -320,6 +316,6 @@ export default class Listeners extends EventEmitter {
         if (!eventCtx)
             return null;
 
-        return arrayMap.call(eventCtx.outerHandlers, handler => handler.fn);
+        return nativeMethods.arrayMap.call(eventCtx.outerHandlers, handler => handler.fn);
     }
 }

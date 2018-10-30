@@ -3,9 +3,6 @@ class NativeMethods {
     constructor (doc, win) {
         win = win || window;
 
-        // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
-        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
-
         this.refreshDocumentMeths(doc, win);
         this.refreshElementMeths(doc, win);
         this.refreshWindowMeths(win);
@@ -254,6 +251,13 @@ class NativeMethods {
         this.objectHasOwnProperty           = win.Object.hasOwnProperty;
         this.objectGetOwnPropertyNames      = win.Object.getOwnPropertyNames;
         this.objectGetPrototypeOf           = win.Object.getPrototypeOf;
+
+        // Array
+        this.arraySlice  = win.Array.prototype.slice;
+        this.arrayConcat = win.Array.prototype.concat;
+        this.arrayFilter = win.Array.prototype.filter;
+        this.arrayMap    = win.Array.prototype.map;
+        this.arrayJoin   = win.Array.prototype.join;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
@@ -625,6 +629,45 @@ class NativeMethods {
         document.createEvent         = this.documentCreateEvent;
         document.createTouch         = this.documentCreateTouch;
         document.createTouchList     = this.documentCreateTouchList;
+    }
+
+    refreshIfNecessary (doc, win) {
+        const tryToExecuteCode = func => {
+            try {
+                return func();
+            }
+            catch (e) {
+                return true;
+            }
+        };
+
+        const needToRefreshDocumentMethods = tryToExecuteCode(
+            () => !doc.createElement ||
+                  this.createElement.toString() === document.createElement.toString()
+        );
+
+        const needToRefreshElementMethods = tryToExecuteCode(() => {
+            const nativeElement = this.createElement.call(doc, 'div');
+
+            return nativeElement.getAttribute.toString() === this.getAttribute.toString();
+        });
+
+        const needToRefreshWindowMethods = tryToExecuteCode(() => {
+            this.setTimeout.call(win, () => void 0, 0);
+
+            return window.XMLHttpRequest.prototype.open.toString() === this.xhrOpen.toString();
+        });
+
+        // NOTE: T173709
+        if (needToRefreshDocumentMethods)
+            this.refreshDocumentMeths(doc, win);
+
+        if (needToRefreshElementMethods)
+            this.refreshElementMeths(doc, win);
+
+        // NOTE: T239109
+        if (needToRefreshWindowMethods)
+            this.refreshWindowMeths(win);
     }
 }
 

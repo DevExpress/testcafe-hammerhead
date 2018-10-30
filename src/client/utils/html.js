@@ -34,13 +34,8 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arrayConcat = Array.prototype.concat;
-const arrayMap    = Array.prototype.map;
-
-const ATTRS_FOR_CLEANING      = arrayConcat.call(URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC);
-const ATTRS_DATA_FOR_CLEANING = arrayMap.call(ATTRS_FOR_CLEANING, attr => {
+const ATTRS_FOR_CLEANING      = nativeMethods.arrayConcat.call(URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC);
+const ATTRS_DATA_FOR_CLEANING = nativeMethods.arrayMap.call(ATTRS_FOR_CLEANING, attr => {
     return {
         attr,
         storedAttr: DomProcessor.getStoredAttrName(attr)

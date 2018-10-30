@@ -9,10 +9,6 @@ import { isFirefox, isWebKit, isIE, isMSEdge } from './browser';
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
-// NOTE: We should avoid using native object prototype methods,
-// since they can be overriden by the client code. (GH-245)
-const arraySlice = Array.prototype.slice;
-
 let scrollbarSize = null;
 
 const NATIVE_MAP_ELEMENT_STRINGS = [
@@ -195,7 +191,7 @@ export function getSelectParent (child) {
 export function getSelectVisibleChildren (select) {
     let children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
 
-    children = arraySlice.call(children);
+    children = nativeMethods.arraySlice.call(children);
 
     // NOTE: Firefox does not display groups without a label and with an empty label.
     if (isFirefox) {
