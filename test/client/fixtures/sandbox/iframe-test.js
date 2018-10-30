@@ -338,6 +338,8 @@ test('write "doctype" markup without head and body tags (GH-TC-2639)', function 
 });
 
 test('should not throw an exception if `Array.prototype.filter` was overriden (GH-1395)', function () {
+    expect(0);
+
     var storedArrayFilter = Array.prototype.filter;
 
     // eslint-disable-next-line no-extend-native
