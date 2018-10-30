@@ -158,9 +158,6 @@ class NativeMethods {
 
         const winProto = win.constructor.prototype;
 
-        // NOTE: The 'localStorage' and 'sessionStorage' properties is located in window prototype only in IE11
-        this.isStoragePropsLocatedInProto = win.Window.prototype.hasOwnProperty('localStorage');
-
         // Dom
         this.eval                             = win.eval;
         this.formSubmit                       = win.HTMLFormElement.prototype.submit;
