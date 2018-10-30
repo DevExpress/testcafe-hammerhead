@@ -318,7 +318,7 @@ test('self-removing script shouldn\'t throw an error (GH-TC-2469)', function () 
     iframeDocument.close();
 });
 
-test('write "doctype" markup without head and body tags (https://github.com/DevExpress/testcafe/issues/2639)', function () {
+test('write "doctype" markup without head and body tags (GH-TC-2639)', function () {
     var iframe = document.createElement('iframe');
 
     expect(0);
@@ -335,4 +335,19 @@ test('write "doctype" markup without head and body tags (https://github.com/DevE
 
     iframe.contentDocument.close();
     iframe.parentNode.removeChild(iframe);
+});
+
+test('should not throw an exception if `Array.prototype.filter` was overriden (GH-1395)', function () {
+    var storedArrayFilter = Array.prototype.filter;
+
+    // eslint-disable-next-line no-extend-native
+    Array.prototype.filter = function () {
+        throw new Error('Should not use the `Array.prototype.filter` method for internal purposes.');
+    };
+
+    return createTestIframe()
+        .then(function () {
+            // eslint-disable-next-line no-extend-native
+            Array.prototype.filter = storedArrayFilter;
+        });
 });

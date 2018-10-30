@@ -2,6 +2,7 @@
 // WARNING: this file is used by both the client and the server.
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
+
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
 import { isScriptProcessed, processScript } from '../script';
@@ -26,9 +27,7 @@ const SVG_XLINK_HREF_TAGS = [
 ];
 
 const INTEGRITY_ATTR_TAGS = ['script', 'link'];
-
-// eslint-disable-next-line hammerhead/proto-methods
-const IFRAME_FLAG_TAGS = TARGET_ATTR_TAGS.target.filter(tagName => tagName !== 'base').concat(TARGET_ATTR_TAGS.formtarget);
+const IFRAME_FLAG_TAGS    = ['a', 'form', 'area', 'input', 'button'];
 
 const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 
