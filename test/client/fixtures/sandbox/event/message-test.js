@@ -218,10 +218,12 @@ asyncTest('service message handler should not call other handlers', function () 
 
     createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/service-message-with-handlers.html') })
         .then(function (iframe) {
-            window.onmessage = windowMessageHandler;
-            window.addEventListener('message', windowMessageHandler);
-            messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
-            messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
+            window.setTimeout(function () {
+                window.onmessage = windowMessageHandler;
+                window.addEventListener('message', windowMessageHandler);
+                messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, serviceMsgHandler);
+                messageSandbox.sendServiceMsg('service_msg', iframe.contentWindow);
+            }, 100);
         });
 });
 
