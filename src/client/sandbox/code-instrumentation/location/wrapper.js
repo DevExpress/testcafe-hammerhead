@@ -1,4 +1,3 @@
-import LocationAccessorsInstrumentation from '../../code-instrumentation/location';
 import EventEmitter from '../../../utils/event-emitter';
 import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
@@ -20,8 +19,8 @@ import {
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
 import { processJsAttrValue, isJsProtocol } from '../../../../processing/dom/index';
-import { isCrossDomainWindows, getParentWindowWithSrc } from '../../../utils/dom';
-import DOMStringListWrapper from './dom-string-list-wrapper';
+import DOMStringListWrapper from './ancestor-origins-wrapper';
+import createIntegerIdGenerator from '../../../utils/integer-id-generator';
 
 function getLocationUrl (window) {
     try {
@@ -33,7 +32,7 @@ function getLocationUrl (window) {
 }
 
 export default class LocationWrapper extends EventEmitter {
-    constructor (window) {
+    constructor (window, messageSandbox) {
         super();
 
         this.CHANGED_EVENT = 'hammerhead|location-wrapper|changed';
@@ -139,37 +138,37 @@ export default class LocationWrapper extends EventEmitter {
         }));
 
         if (window.location.ancestorOrigins) {
-            nativeMethods.objectDefineProperty.call(window.Object, this, 'ancestorOrigins', {
-                get: () => {
-                    const nativeAncestorOrigins = window.location.ancestorOrigins;
-                    let parentWindow            = window;
-                    const ancestorOrigins       = [];
+            this.messageIdGenerator  = createIntegerIdGenerator();
+            this.GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
+            this.ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
 
-                    if (!isCrossDomainWindows(window, window.top)) {
-                        for (let i = 0; i < nativeAncestorOrigins.length; i++) {
-                            parentWindow = parentWindow.parent;
+            const cbs         = Object.create(null);
+            const idGenerator = createIntegerIdGenerator();
 
-                            const parentLocationUrl   = getLocationUrl(parentWindow);
-                            const parentWindowWithSrc = parentLocationUrl === 'about:blank'
-                                ? getParentWindowWithSrc(parentWindow)
-                                : parentWindow;
+            const getCrossDomainOrigin = (win, cb) => {
+                const id = idGenerator.increment();
 
-                            // eslint-disable-next-line no-restricted-properties
-                            const parentLocationOrigin = LocationAccessorsInstrumentation.getLocationWrapper(parentWindowWithSrc).origin;
+                cbs[id] = cb;
 
-                            ancestorOrigins.push(parentLocationOrigin);
-                        }
-                    }
-                    else {
-                        // NOTE: while we a trying to restore ancestorOrigns list using parent location,
-                        // we expect the following ancestorOrigins: ['cross-domain-ancestor-chain', ...]. (GH-1342)
-                        for (let i = 0; i < nativeAncestorOrigins.length; i++)
-                            ancestorOrigins.push('cross-domain-ancestor-chain');
-                    }
+                messageSandbox.sendServiceMsg({ id, cmd: this.GET_ORIGIN_CMD }, win);
+            };
 
-                    return new DOMStringListWrapper(nativeAncestorOrigins, ancestorOrigins);
+            messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
+                if (message.cmd === this.GET_ORIGIN_CMD)
+                // eslint-disable-next-line no-restricted-properties
+                    messageSandbox.sendServiceMsg({ id: message.id, cmd: this.ORIGIN_RECEIVED_CMD, origin: this.origin }, source);
+                else if (message.cmd === this.ORIGIN_RECEIVED_CMD) {
+                    const cb = cbs[message.id];
+
+                    if (cb)
+                    // eslint-disable-next-line no-restricted-properties
+                        cb(message.origin);
                 }
             });
+
+            const ancestorOrigins = new DOMStringListWrapper(window, getCrossDomainOrigin);
+
+            nativeMethods.objectDefineProperty.call(window.Object, this, 'ancestorOrigins', { get: () => ancestorOrigins });
         }
 
         const overrideProperty = (property, nativePropSetter) => {

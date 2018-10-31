@@ -12,6 +12,8 @@ var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
 
+var messageSandbox = hammerhead.sandbox.event.message;
+
 var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
         url:                   'http://example.com',
@@ -49,7 +51,7 @@ var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
 
 test('iframe with empty src', function () {
     function assert (iframe) {
-        new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
+        new CodeInstrumentation({}, {}, messageSandbox).attach(iframe.contentWindow);
 
         var anchor = iframe.contentDocument.createElement('a');
 
@@ -77,7 +79,7 @@ if (browserUtils.isWebKit) {
     test('iframe with "javascript:" src', function () {
         return createTestIframe({ src: 'javascript:void(0);' })
             .then(function (iframe) {
-                new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
+                new CodeInstrumentation({}, {}, messageSandbox).attach(iframe.contentWindow);
 
                 var anchor = iframe.contentDocument.createElement('a');
 
@@ -580,7 +582,7 @@ if (window.location.ancestorOrigins) {
             var messageData = evt.data;
             var data        = typeof messageData === 'string' ? JSON.parse(messageData) : messageData;
 
-            strictEqual(data.msg, 'cross-domain-ancestor-chain');
+            strictEqual(data.msg, 'https://example.com');
 
             window.onmessage = null;
             window.removeEventListener('message', onMessageHandler);
