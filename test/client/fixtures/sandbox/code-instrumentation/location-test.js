@@ -584,13 +584,11 @@ if (window.location.ancestorOrigins) {
 
             strictEqual(data.msg, 'https://example.com');
 
-            window.onmessage = null;
             window.removeEventListener('message', onMessageHandler);
         };
 
         return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-ancestor-origin.html') })
             .then(function (crossDomainIframe) {
-                window.onmessage = onMessageHandler;
                 window.addEventListener('message', onMessageHandler);
                 callMethod(crossDomainIframe.contentWindow, 'postMessage', ['get ancestorOrigin', '*']);
             });

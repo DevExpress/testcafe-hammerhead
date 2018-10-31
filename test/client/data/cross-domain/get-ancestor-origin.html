@@ -12,9 +12,8 @@
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
     hammerhead.start({ crossDomainProxyPort: 2000 });
 
-    var INSTRUCTION    = hammerhead.get('../processing/script/instruction');
-    var callMethod     = window[INSTRUCTION.callMethod];
-    var getPostMessage = window[INSTRUCTION.getPostMessage];
+    var INSTRUCTION = hammerhead.get('../processing/script/instruction');
+    var postMessage = hammerhead.sandbox.event.message.postMessage;
 
     var getLocation     = window[INSTRUCTION.getLocation];
     var locationWrapper = getLocation(window.location);
@@ -26,8 +25,7 @@
                 msg: ancestorOrigins[0]
             };
 
-            callMethod(top, 'postMessage', [data, '*']);
-            getPostMessage(top).call(top, data, '*');
+            postMessage(window.parent, [data, '*']);
         }
     };
 </script>
