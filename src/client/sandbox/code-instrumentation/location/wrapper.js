@@ -153,15 +153,15 @@ export default class LocationWrapper extends EventEmitter {
             };
 
             messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
-                if (message.cmd === GET_ORIGIN_CMD)
-                // eslint-disable-next-line no-restricted-properties
+                if (message.cmd === GET_ORIGIN_CMD) {
+                    // eslint-disable-next-line no-restricted-properties
                     messageSandbox.sendServiceMsg({ id: message.id, cmd: ORIGIN_RECEIVED_CMD, origin: this.origin }, source);
+                }
                 else if (message.cmd === ORIGIN_RECEIVED_CMD) {
                     const callback = callbacks[message.id];
 
                     if (callback)
-                    // eslint-disable-next-line no-restricted-properties
-                        callback(message.origin);
+                        callback(message.origin); // eslint-disable-line no-restricted-properties
                 }
             });
 

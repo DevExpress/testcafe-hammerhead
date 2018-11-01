@@ -5,7 +5,10 @@ export default function DOMStringListWrapper (window, getCrossDomainOrigin) {
     const nativeOrigins = window.location.ancestorOrigins;
     let parentWindow    = window;
 
-    this._nativeLength = nativeOrigins.length;
+    nativeMethods.objectDefineProperty(this, '_nativeLength', {
+        value:        nativeOrigins.length,
+        configurable: true
+    });
 
     for (let i = 0; i < this._nativeLength; i++) {
         parentWindow                = parentWindow.parent;
