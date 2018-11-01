@@ -308,13 +308,16 @@ export default class EventSimulator {
             });
         }
 
+        args.changedTouches = [args.touch];
+        // NOTE: T170088
+        args.touches        = args.type === 'touchend' ? [] : args.changedTouches;
+
         if (nativeMethods.documentCreateTouchList) {
-            args.changedTouches = nativeMethods.documentCreateTouchList.call(document, args.touch);
-            // NOTE: T170088
-            args.touches        = args.type ===
-                                  'touchend' ? nativeMethods.documentCreateTouchList.call(document) : args.changedTouches;
-            args.targetTouches  = args.touches;
+            args.changedTouches = nativeMethods.documentCreateTouchList.call(document, ...args.changedTouches);
+            args.touches        = nativeMethods.documentCreateTouchList.call(document, ...args.touches);
         }
+
+        args.targetTouches = args.touches;
 
         return args;
     }
