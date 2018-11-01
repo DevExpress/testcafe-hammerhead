@@ -23,25 +23,25 @@ export default function DOMStringListWrapper (window, getCrossDomainOrigin) {
     }
 }
 
-DOMStringListWrapper.prototype = nativeMethods.objectCreate.call(Object, DOMStringList.prototype);
+DOMStringListWrapper.prototype = nativeMethods.objectCreate(DOMStringList.prototype);
 
 DOMStringListWrapper.prototype.item = function (index) {
     return this[index];
 };
 
-DOMStringListWrapper.prototype.contains = function (string) {
-    if (typeof string !== 'string')
-        string = String(string);
+DOMStringListWrapper.prototype.contains = function (origin) {
+    if (typeof origin !== 'string')
+        origin = String(origin);
 
     for (let i = 0; i < this._nativeLength; i++) {
-        if (this.item(i) === string)
+        if (this[i] === origin)
             return true;
     }
 
     return false;
 };
 
-nativeMethods.objectDefineProperty.call(Object, DOMStringListWrapper.prototype, 'length', {
+nativeMethods.objectDefineProperty(DOMStringListWrapper.prototype, 'length', {
     configurable: true,
     enumerable:   true,
     get:          function () {
@@ -49,13 +49,12 @@ nativeMethods.objectDefineProperty.call(Object, DOMStringListWrapper.prototype, 
     }
 });
 
-function updateOrigin (wrapper, idx, newOrigin) {
-    wrapper[idx] = newOrigin;
+function updateOrigin (wrapper, index, newOrigin) {
+    wrapper[index] = newOrigin;
 
-    nativeMethods.objectDefineProperty.call(Object, wrapper, idx, {
+    nativeMethods.objectDefineProperty(wrapper, index, {
         value:        newOrigin,
         configurable: true,
-        enumerable:   true,
-        writable:     false
+        enumerable:   true
     });
 }

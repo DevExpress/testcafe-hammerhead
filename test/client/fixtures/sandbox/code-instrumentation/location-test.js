@@ -579,10 +579,11 @@ if (window.location.ancestorOrigins) {
     // we expect the following ancestorOrigins: ['cross-domain-ancestor-chain', ...]. (GH-1342)
     test('cross domain iframe (GH-1342)', function () {
         var onMessageHandler = function (evt) {
-            var messageData = evt.data;
-            var data        = typeof messageData === 'string' ? JSON.parse(messageData) : messageData;
+            var messageData     = evt.data.msg;
+            var ancestorOrigins = typeof messageData === 'string' ? JSON.parse(messageData) : messageData;
 
-            strictEqual(data.msg, 'https://example.com');
+            strictEqual(ancestorOrigins._nativeLength, 1);
+            strictEqual(ancestorOrigins[0], 'https://example.com');
 
             window.removeEventListener('message', onMessageHandler);
         };

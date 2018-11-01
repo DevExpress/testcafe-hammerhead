@@ -22,7 +22,7 @@
     window.onmessage = function (evt) {
         if (evt.data = 'get ancestorOrigin') {
             var data = {
-                msg: ancestorOrigins[0]
+                msg: JSON.stringify(ancestorOrigins)
             };
 
             postMessage(window.parent, [data, '*']);
