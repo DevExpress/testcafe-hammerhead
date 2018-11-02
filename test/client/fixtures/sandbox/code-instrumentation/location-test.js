@@ -545,6 +545,7 @@ if (window.location.ancestorOrigins) {
             .then(function (nestedIframe) {
                 var getLocation     = nestedIframe.contentWindow[INSTRUCTION.getLocation];
                 var locationWrapper = getLocation(nestedIframe.contentWindow.location);
+                var ancestorOrigins = locationWrapper.ancestorOrigins;
 
                 nestedIframe.contentWindow.parent.parent = {
                     location: {
@@ -556,22 +557,24 @@ if (window.location.ancestorOrigins) {
                     frameElement:                  null
                 };
 
-                strictEqual(locationWrapper.ancestorOrigins.length, 2);
+                ok(ancestorOrigins instanceof DOMStringList);
 
-                strictEqual(locationWrapper.ancestorOrigins[0], 'https://example.com');
-                strictEqual(locationWrapper.ancestorOrigins.item(0), 'https://example.com');
+                strictEqual(ancestorOrigins.length, 2);
 
-                strictEqual(locationWrapper.ancestorOrigins[1], 'https://example.com');
-                strictEqual(locationWrapper.ancestorOrigins.item(1), 'https://example.com');
+                strictEqual(ancestorOrigins[0], 'https://example.com');
+                strictEqual(ancestorOrigins.item(0), 'https://example.com');
 
-                ok(locationWrapper.ancestorOrigins.contains('https://example.com'));
-                ok(locationWrapper.ancestorOrigins.contains({
+                strictEqual(ancestorOrigins[1], 'https://example.com');
+                strictEqual(ancestorOrigins.item(1), 'https://example.com');
+
+                ok(ancestorOrigins.contains('https://example.com'));
+                ok(ancestorOrigins.contains({
                     toString: function () {
                         return 'https://example.com';
                     }
                 }));
-                ok(!locationWrapper.ancestorOrigins.contains('https://another-domain.com'));
-                ok(!locationWrapper.ancestorOrigins.contains({}));
+                ok(!ancestorOrigins.contains('https://another-domain.com'));
+                ok(!ancestorOrigins.contains({}));
             });
     });
 
