@@ -71,7 +71,7 @@ export const INIT_SCRIPT_FOR_IFRAME_TEMPLATE = createSelfRemovingScript(`
 `);
 
 let htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
-let htmlParser   = htmlDocument.createDocumentFragment();
+let htmlParser   = nativeMethods.createDocumentFragment.call(htmlDocument);
 
 htmlParser[HTML_PARSER_ELEMENT_FLAG] = true;
 
@@ -83,7 +83,7 @@ function getHtmlDocument () {
     }
     catch (e) {
         htmlDocument = nativeMethods.createHTMLDocument.call(document.implementation, 'title');
-        htmlParser   = htmlDocument.createDocumentFragment();
+        htmlParser   = nativeMethods.createDocumentFragment.call(htmlDocument);
 
         htmlParser[HTML_PARSER_ELEMENT_FLAG] = true;
     }
@@ -110,7 +110,7 @@ export function isPageHtml (html) {
 }
 
 function processHtmlInternal (html, process) {
-    const container = getHtmlDocument().createElement('div');
+    const container = nativeMethods.createElement.call(getHtmlDocument(), 'div');
 
     html = wrapHtmlText(html);
 

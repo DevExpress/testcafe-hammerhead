@@ -1077,6 +1077,7 @@ test('Url resolving in an instance of document.implementation (GH-1673)', functi
     strictEqual(anchorEl.href, 'https://example.com/');
 
     implementation.head.appendChild(baseEl);
+    implementation.body.appendChild(anchorEl);
 
     baseEl.href   = 'https://example.com';
     anchorEl.href = '';
