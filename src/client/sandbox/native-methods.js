@@ -523,6 +523,9 @@ class NativeMethods {
         this.winLocalStorageGetter   = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'localStorage').get;
         this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
 
+        // MutationRecord
+        this.mutationRecordNextSiblingGetter     = win.Object.getOwnPropertyDescriptor(win.MutationRecord.prototype, 'nextSibling').get;
+
         // Stylesheets
         this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
         this.styleSetProperty      = win.CSSStyleDeclaration.prototype.setProperty;

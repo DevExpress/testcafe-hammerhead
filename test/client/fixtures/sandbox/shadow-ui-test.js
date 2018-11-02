@@ -128,6 +128,50 @@ if (window.MutationObserver) {
             document.body.appendChild(el);
         });
 
+        asyncTest('add text node', function () {
+            var textNode     = document.createTextNode('text');
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].addedNodes[0], el);
+
+                observer.disconnect();
+                textNode.parentNode.removeChild(textNode);
+                el.parentNode.removeChild(el);
+
+                start();
+            });
+
+            observer.observe(document.body, { childList: true, characterData: true, subtree: true });
+            shadowUIRoot.appendChild(textNode);
+            document.body.appendChild(el);
+        });
+
+        asyncTest('nextSibling', function () {
+            var shadowUIEl   = document.createElement('div');
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            shadowUI.addClass(shadowUIEl, 'ui-elem-class');
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations[0].nextSibling, null);
+
+                observer.disconnect();
+                shadowUIEl.parentNode.removeChild(shadowUIEl);
+                el.parentNode.removeChild(el);
+
+                start();
+            });
+
+            observer.observe(document.body, { childList: true });
+
+            shadowUIRoot.appendChild(shadowUIEl);
+            document.body.appendChild(el);
+        });
+
         asyncTest('add nodes', function () {
             var shadowUIEl   = document.createElement('div');
             var el           = document.createElement('div');

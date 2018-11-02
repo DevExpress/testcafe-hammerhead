@@ -505,6 +505,9 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static _isShadowUIChildListMutation (mutation) {
+        if (domUtils.isShadowUIElement(mutation.target))
+            return true;
+
         for (const removedNode of mutation.removedNodes) {
             if (domUtils.isShadowUIElement(removedNode))
                 return true;

@@ -294,6 +294,7 @@ export default class WindowSandbox extends SandboxBase {
         const messageSandbox = this.messageSandbox;
         const nodeSandbox    = this.nodeSandbox;
         const windowSandbox  = this;
+        const shadowUI       = this.shadowUI;
 
         this._reattachHandler(window, 'unhandledrejection');
         this._reattachHandler(window, 'error');
@@ -1299,5 +1300,13 @@ export default class WindowSandbox extends SandboxBase {
 
             return doc;
         };
+
+        overrideDescriptor(window.MutationRecord.prototype, 'nextSibling', {
+            getter: function () {
+                const originNextSibling = nativeMethods.mutationRecordNextSiblingGetter.call(this);
+
+                return shadowUI.getNextSibling(originNextSibling);
+            }
+        });
     }
 }
