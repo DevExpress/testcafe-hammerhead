@@ -438,15 +438,23 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getNextSibling (el) {
-        while (el && domUtils.isShadowUIElement(el))
+        if (!el)
+            return el;
+
+        do
             el = nativeMethods.nodeNextSiblingGetter.call(el);
+        while (el && domUtils.isShadowUIElement(el));
 
         return el;
     }
 
     getPrevSibling (el) {
-        while (el && domUtils.isShadowUIElement(el))
+        if (!el)
+            return el;
+
+        do
             el = nativeMethods.nodePrevSiblingGetter.call(el);
+        while (el && domUtils.isShadowUIElement(el));
 
         return el;
     }
