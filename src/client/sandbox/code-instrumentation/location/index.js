@@ -7,10 +7,12 @@ import nativeMethods from '../../native-methods';
 const LOCATION_WRAPPER = 'hammerhead|location-wrapper';
 
 export default class LocationAccessorsInstrumentation extends SandboxBase {
-    constructor () {
+    constructor (messageSandbox) {
         super();
 
         this.LOCATION_CHANGED_EVENT = 'hammerhead|event|location-changed';
+
+        this.messageSandbox = messageSandbox;
     }
 
     static isLocationWrapper (obj) {
@@ -32,7 +34,7 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        const locationWrapper = new LocationWrapper(window);
+        const locationWrapper = new LocationWrapper(window, this.messageSandbox);
 
         locationWrapper.on(locationWrapper.CHANGED_EVENT, e => this.emit(this.LOCATION_CHANGED_EVENT, e));
 

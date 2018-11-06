@@ -19,6 +19,11 @@ import {
 import nativeMethods from '../../native-methods';
 import urlResolver from '../../../utils/url-resolver';
 import { processJsAttrValue, isJsProtocol } from '../../../../processing/dom/index';
+import DOMStringListWrapper from './ancestor-origins-wrapper';
+import createIntegerIdGenerator from '../../../utils/integer-id-generator';
+
+const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
+const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
 
 function getLocationUrl (window) {
     try {
@@ -30,7 +35,7 @@ function getLocationUrl (window) {
 }
 
 export default class LocationWrapper extends EventEmitter {
-    constructor (window) {
+    constructor (window, messageSandbox) {
         super();
 
         this.CHANGED_EVENT = 'hammerhead|location-wrapper|changed';
@@ -134,6 +139,36 @@ export default class LocationWrapper extends EventEmitter {
                 return hash;
             }
         }));
+
+        if (window.location.ancestorOrigins) {
+            const callbacks   = nativeMethods.objectCreate(null);
+            const idGenerator = createIntegerIdGenerator();
+
+            const getCrossDomainOrigin = (win, callback) => {
+                const id = idGenerator.increment();
+
+                callbacks[id] = callback;
+
+                messageSandbox.sendServiceMsg({ id, cmd: GET_ORIGIN_CMD }, win);
+            };
+
+            messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message, source }) => {
+                if (message.cmd === GET_ORIGIN_CMD) {
+                    // eslint-disable-next-line no-restricted-properties
+                    messageSandbox.sendServiceMsg({ id: message.id, cmd: ORIGIN_RECEIVED_CMD, origin: this.origin }, source);
+                }
+                else if (message.cmd === ORIGIN_RECEIVED_CMD) {
+                    const callback = callbacks[message.id];
+
+                    if (callback)
+                        callback(message.origin); // eslint-disable-line no-restricted-properties
+                }
+            });
+
+            const ancestorOrigins = new DOMStringListWrapper(window, getCrossDomainOrigin);
+
+            nativeMethods.objectDefineProperty(this, 'ancestorOrigins', { get: () => ancestorOrigins });
+        }
 
         const overrideProperty = (property, nativePropSetter) => {
             nativeMethods.objectDefineProperty.call(window.Object, this, property, createPropertyDesc({

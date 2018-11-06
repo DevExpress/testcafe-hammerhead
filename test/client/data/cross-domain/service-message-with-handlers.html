@@ -20,10 +20,12 @@
         windowHandlerExecuted = true;
     };
 
-    var serviceMsgHandler = function () {
-        window.setTimeout(function () {
-            messageSandbox.sendServiceMsg(windowHandlerExecuted ? 'failed' : 'successfully', window.top);
-        }, 100);
+    var serviceMsgHandler = function (evt) {
+        if (evt.message === 'service_msg') {
+            window.setTimeout(function () {
+                messageSandbox.sendServiceMsg(windowHandlerExecuted ? 'failed' : 'successfully', window.top);
+            }, 100);
+        }
     };
 
     window.onmessage = windowMessageHandler;

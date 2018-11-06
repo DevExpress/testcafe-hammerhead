@@ -8,11 +8,11 @@ import nativeMethods from '../../sandbox/native-methods';
 import { processHtml } from '../../utils/html';
 
 export default class CodeInstrumentation extends SandboxBase {
-    constructor (eventSandbox, windowSandbox) {
+    constructor (eventSandbox, windowSandbox, messageSandbox) {
         super();
 
         this.methodCallInstrumentation        = new MethodCallInstrumentation(eventSandbox.message);
-        this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation();
+        this.locationAccessorsInstrumentation = new LocationAccessorsInstrumentation(messageSandbox);
         this.propertyAccessorsInstrumentation = new PropertyAccessorsInstrumentation(windowSandbox);
     }
 

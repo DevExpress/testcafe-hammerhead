@@ -1,3 +1,4 @@
+var INSTRUCTION             = hammerhead.get('../processing/script/instruction');
 var CodeInstrumentation     = hammerhead.get('./sandbox/code-instrumentation');
 var LocationInstrumentation = hammerhead.get('./sandbox/code-instrumentation/location');
 var LocationWrapper         = hammerhead.get('./sandbox/code-instrumentation/location/wrapper');
@@ -10,6 +11,8 @@ var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
 var browserUtils  = hammerhead.utils.browser;
 var domUtils      = hammerhead.utils.dom;
+
+var messageSandbox = hammerhead.sandbox.event.message;
 
 var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
@@ -48,7 +51,7 @@ var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
 
 test('iframe with empty src', function () {
     function assert (iframe) {
-        new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
+        new CodeInstrumentation({}, {}, messageSandbox).attach(iframe.contentWindow);
 
         var anchor = iframe.contentDocument.createElement('a');
 
@@ -76,7 +79,7 @@ if (browserUtils.isWebKit) {
     test('iframe with "javascript:" src', function () {
         return createTestIframe({ src: 'javascript:void(0);' })
             .then(function (iframe) {
-                new CodeInstrumentation({}, {}).attach(iframe.contentWindow);
+                new CodeInstrumentation({}, {}, messageSandbox).attach(iframe.contentWindow);
 
                 var anchor = iframe.contentDocument.createElement('a');
 
@@ -527,6 +530,74 @@ test('should omit the default port on page navigation', function () {
 
     hammerhead.win = storedWindow;
 });
+
+if (window.location.ancestorOrigins) {
+    module('ancestorOrigins');
+
+    test('same domain double-nested iframe (GH-1342)', function () {
+        // NOTE: Firefox doesn't raise the 'load' event for double-nested iframes without src
+        var src = browserUtils.isFirefox ? 'javascript:"<html><body></body></html>"' : '';
+
+        return createTestIframe({ src: src })
+            .then(function (iframe) {
+                return createTestIframe({}, iframe.contentDocument.body);
+            })
+            .then(function (nestedIframe) {
+                var getLocation     = nestedIframe.contentWindow[INSTRUCTION.getLocation];
+                var locationWrapper = getLocation(nestedIframe.contentWindow.location);
+                var ancestorOrigins = locationWrapper.ancestorOrigins;
+
+                nestedIframe.contentWindow.parent.parent = {
+                    location: {
+                        toString: function () {
+                            return destLocation.getLocation();
+                        }
+                    },
+                    'hammerhead|location-wrapper': locationWrapper,
+                    frameElement:                  null
+                };
+
+                ok(ancestorOrigins instanceof DOMStringList);
+
+                strictEqual(ancestorOrigins.length, 2);
+
+                strictEqual(ancestorOrigins[0], 'https://example.com');
+                strictEqual(ancestorOrigins.item(0), 'https://example.com');
+
+                strictEqual(ancestorOrigins[1], 'https://example.com');
+                strictEqual(ancestorOrigins.item(1), 'https://example.com');
+
+                ok(ancestorOrigins.contains('https://example.com'));
+                ok(ancestorOrigins.contains({
+                    toString: function () {
+                        return 'https://example.com';
+                    }
+                }));
+                ok(!ancestorOrigins.contains('https://another-domain.com'));
+                ok(!ancestorOrigins.contains({}));
+            });
+    });
+
+    // NOTE: while we a trying to restore ancestorOrigns list using parent location,
+    // we expect the following ancestorOrigins: ['cross-domain-ancestor-chain', ...]. (GH-1342)
+    test('cross domain iframe (GH-1342)', function () {
+        var onMessageHandler = function (evt) {
+            var message = evt.data.msg;
+            var data    = JSON.parse(message);
+
+            strictEqual(data.ancestorOriginsLength, 1);
+            strictEqual(data.ancestorOrigins[0], 'https://example.com');
+
+            window.removeEventListener('message', onMessageHandler);
+        };
+
+        return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-ancestor-origin.html') })
+            .then(function (crossDomainIframe) {
+                window.addEventListener('message', onMessageHandler);
+                callMethod(crossDomainIframe.contentWindow, 'postMessage', ['get ancestorOrigin', '*']);
+            });
+    });
+}
 
 module('regression');
 
