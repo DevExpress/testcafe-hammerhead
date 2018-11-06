@@ -1308,5 +1308,13 @@ export default class WindowSandbox extends SandboxBase {
                 return shadowUI.getNextSibling(originNextSibling);
             }
         });
+
+        overrideDescriptor(window.MutationRecord.prototype, 'previousSibling', {
+            getter: function () {
+                const originPrevSibling = nativeMethods.mutationRecordPrevSiblingGetter.call(this);
+
+                return shadowUI.getPrevSibling(originPrevSibling);
+            }
+        });
     }
 }

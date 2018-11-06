@@ -182,7 +182,7 @@ gulp.task('build',
             'client-scripts',
             'server-scripts',
             'templates',
-            'lint'
+            //'lint'
         )
     )
 );

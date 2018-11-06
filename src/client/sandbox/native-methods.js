@@ -445,6 +445,7 @@ class NativeMethods {
         this.nodeFirstChildGetter            = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'firstChild').get;
         this.nodeLastChildGetter             = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'lastChild').get;
         this.nodeNextSiblingGetter           = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'nextSibling').get;
+        this.nodePrevSiblingGetter           = win.Object.getOwnPropertyDescriptor(win.Node.prototype, 'previousSibling').get;
         this.elementFirstElementChildGetter  = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'firstElementChild').get;
         this.elementLastElementChildGetter   = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'lastElementChild').get;
         this.elementNextElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'nextElementSibling').get;
@@ -524,7 +525,8 @@ class NativeMethods {
         this.winSessionStorageGetter = win.Object.getOwnPropertyDescriptor(storagesPropsOwner, 'sessionStorage').get;
 
         // MutationRecord
-        this.mutationRecordNextSiblingGetter     = win.Object.getOwnPropertyDescriptor(win.MutationRecord.prototype, 'nextSibling').get;
+        this.mutationRecordNextSiblingGetter = win.Object.getOwnPropertyDescriptor(win.MutationRecord.prototype, 'nextSibling').get;
+        this.mutationRecordPrevSiblingGetter = win.Object.getOwnPropertyDescriptor(win.MutationRecord.prototype, 'previousSibling').get;
 
         // Stylesheets
         this.styleGetPropertyValue = win.CSSStyleDeclaration.prototype.getPropertyValue;
