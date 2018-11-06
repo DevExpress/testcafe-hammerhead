@@ -27,6 +27,10 @@ export default class DocumentSandbox extends SandboxBase {
             element[INTERNAL_PROPS.forceProxySrcForImage] = true;
     }
 
+    static _isDocumentInDesignMode (doc) {
+        return doc.designMode === 'on';
+    }
+
     _isUninitializedIframeWithoutSrc (win) {
         const frameElement = getFrameElement(win);
 
@@ -46,7 +50,7 @@ export default class DocumentSandbox extends SandboxBase {
         return doc.readyState !== 'loading' && doc.readyState !== 'uninitialized';
     }
 
-    _overridedDocumentWrite (args, ln) {
+    _performDocumentWrite (args, ln) {
         const shouldEmitEvents = DocumentSandbox._shouldEmitDocumentCleanedEvents(this.document);
 
         if (shouldEmitEvents)
@@ -125,14 +129,14 @@ export default class DocumentSandbox extends SandboxBase {
         };
 
         document.close = (...args) => {
-            // NOTE: IE10 and IE9 raise the "load" event only when the document.close method is called. We need to
-            // restore the overrided document.open and document.write methods before Hammerhead injection, if the
+            // NOTE: IE11 raise the "load" event only when the document.close method is called. We need to
+            // restore the overriden document.open and document.write methods before Hammerhead injection, if the
             // window is not initialized.
             if (isIE && !IframeSandbox.isWindowInited(window))
                 nativeMethods.restoreDocumentMeths(document);
 
             // NOTE: IE doesn't run scripts in iframe if iframe.documentContent.designMode equals 'on' (GH-871)
-            if (typeof document.designMode === 'string' && document.designMode.toLowerCase() === 'on')
+            if (DocumentSandbox._isDocumentInDesignMode(document))
                 ShadowUI.removeSelfRemovingScripts(document);
 
             const result = nativeMethods.documentClose.apply(document, args);
@@ -164,11 +168,11 @@ export default class DocumentSandbox extends SandboxBase {
         };
 
         document.write = function () {
-            return documentSandbox._overridedDocumentWrite(arguments);
+            return documentSandbox._performDocumentWrite(arguments);
         };
 
         document.writeln = function () {
-            return documentSandbox._overridedDocumentWrite(arguments, true);
+            return documentSandbox._performDocumentWrite(arguments, true);
         };
 
         document.createDocumentFragment = (...args) => {
