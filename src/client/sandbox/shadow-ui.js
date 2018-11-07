@@ -467,6 +467,14 @@ export default class ShadowUI extends SandboxBase {
         return el;
     }
 
+    getPrevElementSibling (el) {
+        do
+            el = nativeMethods.elementPrevElementSiblingGetter.call(el);
+        while (el && domUtils.isShadowUIElement(el));
+
+        return el;
+    }
+
     // Utils
     static _checkElementsPosition (collection, length) {
         if (!length)

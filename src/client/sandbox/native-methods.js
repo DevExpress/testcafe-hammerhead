@@ -449,6 +449,7 @@ class NativeMethods {
         this.elementFirstElementChildGetter  = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'firstElementChild').get;
         this.elementLastElementChildGetter   = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'lastElementChild').get;
         this.elementNextElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'nextElementSibling').get;
+        this.elementPrevElementSiblingGetter = win.Object.getOwnPropertyDescriptor(win.Element.prototype, 'previousElementSibling').get;
 
         const anchorOriginDescriptor = win.Object.getOwnPropertyDescriptor(win.HTMLAnchorElement.prototype, 'origin');
 
