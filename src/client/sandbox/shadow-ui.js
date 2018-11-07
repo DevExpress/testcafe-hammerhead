@@ -38,6 +38,55 @@ export default class ShadowUI extends SandboxBase {
         this.lastActiveElement       = null;
         this.uiStyleSheetsHtmlBackup = null;
         this.wrapperCreators         = this._createWrapperCreators();
+
+        this._initEventCallbacks();
+    }
+
+    _initEventCallbacks () {
+        this.runTaskScriptEventCallback = e => {
+            const iframeHead = e.iframe.contentDocument.head;
+            const iframeBody = e.iframe.contentDocument.body;
+
+            this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());
+            this.markShadowUIContainers(iframeHead, iframeBody);
+        };
+
+        this.beforeDocumentCleanedEventCallback = () => {
+            this.uiStyleSheetsHtmlBackup = this._getUIStyleSheetsHtml();
+        };
+
+        this.documentCleanedEventCallback = e => {
+            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
+            this.uiStyleSheetsHtmlBackup = null;
+
+            this.markShadowUIContainers(this.document.head, this.document.body);
+        };
+
+        this.documentClosedEventCallback = e => {
+            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
+            this.uiStyleSheetsHtmlBackup = null;
+
+            this.markShadowUIContainers(e.document.head, e.document.body);
+        };
+
+        this.bodyContentChangedEventCallback = el => {
+            const elContextWindow = el[INTERNAL_PROPS.processedContext];
+
+            if (elContextWindow !== window) {
+                this.messageSandbox.sendServiceMsg({
+                    cmd: this.BODY_CONTENT_CHANGED_COMMAND
+                }, elContextWindow);
+            }
+            else
+                this.onBodyElementMutation();
+        };
+
+        this.serviceMsgReceivedEventCallback = e => {
+            if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
+                this.onBodyElementMutation();
+        };
+
+        this.bodyCreatedEventCallback = ({ body }) => this.markShadowUIContainers(this.document.head, body);
     }
 
     static _filterElement (el) {
@@ -341,52 +390,17 @@ export default class ShadowUI extends SandboxBase {
         this._overrideDocumentMethods(window.document);
         this._overrideElementMethods(window);
         this._markScriptsAndStylesAsShadowInHead(window.document.head);
+        this._initEvents();
+    }
 
-        this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT_EVENT, e => {
-            const iframeHead = e.iframe.contentDocument.head;
-            const iframeBody = e.iframe.contentDocument.body;
-
-            this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());
-            this.markShadowUIContainers(iframeHead, iframeBody);
-        });
-
-        this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, () => {
-            this.uiStyleSheetsHtmlBackup = this._getUIStyleSheetsHtml();
-        });
-
-        this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLEANED_EVENT, e => {
-            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
-            this.uiStyleSheetsHtmlBackup = null;
-
-            this.markShadowUIContainers(this.document.head, this.document.body);
-        });
-
-        this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, e => {
-            this._restoreUIStyleSheets(e.document.head, this.uiStyleSheetsHtmlBackup);
-            this.uiStyleSheetsHtmlBackup = null;
-
-            this.markShadowUIContainers(e.document.head, e.document.body);
-        });
-
-        this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, el => {
-            const elContextWindow = el[INTERNAL_PROPS.processedContext];
-
-            if (elContextWindow !== window) {
-                this.messageSandbox.sendServiceMsg({
-                    cmd: this.BODY_CONTENT_CHANGED_COMMAND
-                }, elContextWindow);
-            }
-            else
-                this.onBodyElementMutation();
-        });
-
-        this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, e => {
-            if (e.message.cmd === this.BODY_CONTENT_CHANGED_COMMAND)
-                this.onBodyElementMutation();
-        });
-
-        this.nodeMutation.on(this.nodeMutation.BODY_CREATED_EVENT, ({ body }) =>
-            this.markShadowUIContainers(this.document.head, body));
+    _initEvents () {
+        this.iframeSandbox.on(this.iframeSandbox.RUN_TASK_SCRIPT_EVENT, this.runTaskScriptEventCallback);
+        this.nodeMutation.on(this.nodeMutation.BEFORE_DOCUMENT_CLEANED_EVENT, this.beforeDocumentCleanedEventCallback);
+        this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLEANED_EVENT, this.documentCleanedEventCallback);
+        this.nodeMutation.on(this.nodeMutation.DOCUMENT_CLOSED_EVENT, this.documentClosedEventCallback);
+        this.nodeMutation.on(this.nodeMutation.BODY_CONTENT_CHANGED_EVENT, this.bodyContentChangedEventCallback);
+        this.messageSandbox.on(this.messageSandbox.SERVICE_MSG_RECEIVED_EVENT, this.serviceMsgReceivedEventCallback);
+        this.nodeMutation.on(this.nodeMutation.BODY_CREATED_EVENT, this.bodyCreatedEventCallback);
     }
 
     onBodyElementMutation () {
