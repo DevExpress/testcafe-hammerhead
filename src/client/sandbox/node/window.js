@@ -1088,9 +1088,21 @@ export default class WindowSandbox extends SandboxBase {
             }
         });
 
+        overrideDescriptor(window.Node.prototype, 'previousSibling', {
+            getter: function () {
+                return windowSandbox.shadowUI.getPrevSibling(this);
+            }
+        });
+
         overrideDescriptor(window.Element.prototype, 'nextElementSibling', {
             getter: function () {
                 return windowSandbox.shadowUI.getNextElementSibling(this);
+            }
+        });
+
+        overrideDescriptor(window.Element.prototype, 'previousElementSibling', {
+            getter: function () {
+                return windowSandbox.shadowUI.getPrevElementSibling(this);
             }
         });
 
@@ -1299,5 +1311,21 @@ export default class WindowSandbox extends SandboxBase {
 
             return doc;
         };
+
+        overrideDescriptor(window.MutationRecord.prototype, 'nextSibling', {
+            getter: function () {
+                const originNextSibling = nativeMethods.mutationRecordNextSiblingGetter.call(this);
+
+                return windowSandbox.shadowUI.getNextSibling(originNextSibling);
+            }
+        });
+
+        overrideDescriptor(window.MutationRecord.prototype, 'previousSibling', {
+            getter: function () {
+                const originPrevSibling = nativeMethods.mutationRecordPrevSiblingGetter.call(this);
+
+                return windowSandbox.shadowUI.getPrevSibling(originPrevSibling);
+            }
+        });
     }
 }

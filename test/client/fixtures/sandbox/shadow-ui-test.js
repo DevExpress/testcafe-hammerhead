@@ -128,6 +128,75 @@ if (window.MutationObserver) {
             document.body.appendChild(el);
         });
 
+        asyncTest('add text node', function () {
+            var textNode     = document.createTextNode('text');
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations.length, 1);
+                strictEqual(mutations[0].addedNodes[0], el);
+
+                observer.disconnect();
+                textNode.parentNode.removeChild(textNode);
+                el.parentNode.removeChild(el);
+
+                start();
+            });
+
+            observer.observe(document.body, { childList: true, characterData: true, subtree: true });
+            shadowUIRoot.appendChild(textNode);
+            document.body.appendChild(el);
+        });
+
+        asyncTest('nextSibling', function () {
+            var shadowUIEl   = document.createElement('div');
+            var el           = document.createElement('div');
+            var shadowUIRoot = shadowUI.getRoot();
+
+            shadowUI.addClass(shadowUIEl, 'ui-elem-class');
+
+            var observer = new window.MutationObserver(function (mutations) {
+                strictEqual(mutations[0].nextSibling, null);
+
+                observer.disconnect();
+                shadowUIEl.parentNode.removeChild(shadowUIEl);
+                el.parentNode.removeChild(el);
+
+                start();
+            });
+
+            observer.observe(document.body, { childList: true });
+
+            shadowUIRoot.appendChild(shadowUIEl);
+            document.body.appendChild(el);
+        });
+
+        asyncTest('prevSibling', function () {
+            createTestIframe()
+                .then(function (iframe) {
+                    var iframeDocument = iframe.contentDocument;
+
+                    ok(domUtils.isShadowUIElement(iframeDocument.head.childNodes[0]));
+
+                    var scriptEl = iframeDocument.createElement('script');
+
+                    var observer = new MutationObserver(function (mutations) {
+                        ok(domUtils.isShadowUIElement(iframeDocument.head.childNodes[0]));
+                        strictEqual(mutations[0].nextSibling, null);
+                        strictEqual(mutations[0].previousSibling, null);
+
+                        observer.disconnect();
+                        scriptEl.parentNode.removeChild(scriptEl);
+
+                        start();
+                    });
+
+                    observer.observe(iframeDocument.head, { childList: true });
+                    iframeDocument.head.insertBefore(scriptEl, iframeDocument.head.firstChild);
+                });
+        });
+
         asyncTest('add nodes', function () {
             var shadowUIEl   = document.createElement('div');
             var el           = document.createElement('div');
@@ -455,29 +524,7 @@ module('childNodes', function () {
     });
 });
 
-module('element methods');
-
-test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function () {
-    var input = document.createElement('input');
-
-    input.name = 'testInput';
-    document.body.appendChild(input);
-
-    var children             = nativeMethods.elementGetElementsByTagName.call(document.body, '*');
-    var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(children);
-    var wrappedChildren      = document.body.getElementsByTagName('*');
-
-    strictEqual(wrappedChildren.length, childrenOriginLength - 1);
-    strictEqual(wrappedChildren.item(0), children[0]);
-    ok(!wrappedChildren.item(-1));
-    ok(!wrappedChildren.item(10000));
-
-    // NOTE: Safari returns NodeList instead of HTMLCollection.
-    if (wrappedChildren.namedItem)
-        strictEqual(wrappedChildren.namedItem('testInput'), input);
-
-    input.parentNode.removeChild(input);
-});
+module('element properties');
 
 test('Node.nextSibling, NonDocumentTypeChildNode.nextElementSibling', function () {
     var bodyChildOriginCount = nativeMethods.nodeListLengthGetter.call(document.body.childNodes);
@@ -537,10 +584,52 @@ test('Node.nextSibling when Node is TEXT_NODE and nextSibling is null (GH-1469)'
     div.parentNode.removeChild(div);
 });
 
+asyncTest('Node.previousSibling, Element.previousElementSibling', function () {
+    createTestIframe()
+        .then(function (iframe) {
+            var iframeDocument = iframe.contentDocument;
+
+            ok(domUtils.isShadowUIElement(iframeDocument.head.childNodes[0]));
+
+            var scriptEl = iframeDocument.createElement('script');
+
+            iframeDocument.head.appendChild(scriptEl);
+
+            strictEqual(scriptEl.previousElementSibling, null);
+            strictEqual(scriptEl.previousSibling, null);
+
+            start();
+        });
+});
+
 test('Node.childElementCount', function () {
     var bodyChildCount = nativeMethods.elementChildElementCountGetter.call(document.body);
 
     strictEqual(document.body.childElementCount, bodyChildCount - 1);
+});
+
+module('element methods');
+
+test('HTMLCollection.item, HTMLCollection.namedItem methods emulation', function () {
+    var input = document.createElement('input');
+
+    input.name = 'testInput';
+    document.body.appendChild(input);
+
+    var children             = nativeMethods.elementGetElementsByTagName.call(document.body, '*');
+    var childrenOriginLength = nativeMethods.htmlCollectionLengthGetter.call(children);
+    var wrappedChildren      = document.body.getElementsByTagName('*');
+
+    strictEqual(wrappedChildren.length, childrenOriginLength - 1);
+    strictEqual(wrappedChildren.item(0), children[0]);
+    ok(!wrappedChildren.item(-1));
+    ok(!wrappedChildren.item(10000));
+
+    // NOTE: Safari returns NodeList instead of HTMLCollection.
+    if (wrappedChildren.namedItem)
+        strictEqual(wrappedChildren.namedItem('testInput'), input);
+
+    input.parentNode.removeChild(input);
 });
 
 test('body.getElementsByClassName', function () {

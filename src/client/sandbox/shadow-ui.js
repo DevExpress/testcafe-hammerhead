@@ -438,8 +438,22 @@ export default class ShadowUI extends SandboxBase {
     }
 
     getNextSibling (el) {
+        if (!el)
+            return el;
+
         do
             el = nativeMethods.nodeNextSiblingGetter.call(el);
+        while (el && domUtils.isShadowUIElement(el));
+
+        return el;
+    }
+
+    getPrevSibling (el) {
+        if (!el)
+            return el;
+
+        do
+            el = nativeMethods.nodePrevSiblingGetter.call(el);
         while (el && domUtils.isShadowUIElement(el));
 
         return el;
@@ -448,6 +462,14 @@ export default class ShadowUI extends SandboxBase {
     getNextElementSibling (el) {
         do
             el = nativeMethods.elementNextElementSiblingGetter.call(el);
+        while (el && domUtils.isShadowUIElement(el));
+
+        return el;
+    }
+
+    getPrevElementSibling (el) {
+        do
+            el = nativeMethods.elementPrevElementSiblingGetter.call(el);
         while (el && domUtils.isShadowUIElement(el));
 
         return el;
@@ -505,6 +527,9 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static _isShadowUIChildListMutation (mutation) {
+        if (domUtils.isShadowUIElement(mutation.target))
+            return true;
+
         for (const removedNode of mutation.removedNodes) {
             if (domUtils.isShadowUIElement(removedNode))
                 return true;
