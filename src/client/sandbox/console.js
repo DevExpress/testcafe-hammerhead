@@ -9,6 +9,11 @@ export default class ConsoleSandbox extends SandboxBase {
         this.CONSOLE_METH_CALLED_EVENT = 'hammerhead|event|console-meth-called';
 
         this.messageSandbox = messageSandbox;
+
+        this.serviceMsgReceivedEventCallback = ({ message }) => {
+            if (message.cmd === this.CONSOLE_METH_CALLED_EVENT)
+                this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth: message.meth, line: message.line });
+        };
     }
 
     _toString (obj) {
@@ -48,9 +53,6 @@ export default class ConsoleSandbox extends SandboxBase {
 
         const messageSandbox = this.messageSandbox;
 
-        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, ({ message }) => {
-            if (message.cmd === this.CONSOLE_METH_CALLED_EVENT)
-                this.emit(this.CONSOLE_METH_CALLED_EVENT, { meth: message.meth, line: message.line });
-        });
+        messageSandbox.on(messageSandbox.SERVICE_MSG_RECEIVED_EVENT, this.serviceMsgReceivedEventCallback);
     }
 }
