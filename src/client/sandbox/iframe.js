@@ -3,9 +3,8 @@ import SandboxBase from './base';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import { isJsProtocol } from '../../processing/dom';
-import { isShadowUIElement, isCrossDomainIframe, isElementInDocument, isIframeWithoutSrc } from '../utils/dom';
+import { isShadowUIElement, isIframeWithoutSrc } from '../utils/dom';
 import { isFirefox, isWebKit } from '../utils/browser';
-import { isSupportedProtocol } from '../utils/url';
 import * as JSON from '../json';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
@@ -135,47 +134,12 @@ export default class IframeSandbox extends SandboxBase {
         if (isShadowUIElement(el))
             return;
 
-        const src = this.nativeMethods.getAttribute.call(el, 'src');
+        if (el.contentWindow)
+            this._raiseReadyToInitEvent(el);
 
-        if (!src || !isSupportedProtocol(src)) {
-            if (el.contentWindow) {
-                this._raiseReadyToInitEvent(el);
-
-                const readyHandler = () => {
-                    if (el.contentWindow)
-                        this._raiseReadyToInitEvent(el);
-                };
-
-                this.nativeMethods.addEventListener.call(el, 'load', readyHandler);
-
-                if (isFirefox)
-                    this.nativeMethods.documentAddEventListener.call(el.contentDocument, 'ready', readyHandler);
-            }
-            else {
-                const handler = () => {
-                    if (isCrossDomainIframe(el))
-                        this.nativeMethods.removeEventListener.call(el, 'load', handler);
-                    else
-                        this._raiseReadyToInitEvent(el);
-                };
-
-                if (isElementInDocument(el))
-                    this._raiseReadyToInitEvent(el);
-
-                this.nativeMethods.addEventListener.call(el, 'load', handler);
-            }
-        }
-        else {
-            if (isElementInDocument(el))
-                this._raiseReadyToInitEvent(el);
-
-            this.nativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
-        }
-
-        if (!isWebKit && el.contentDocument) {
-            this.nativeMethods.documentAddEventListener.call(el.contentDocument, 'DOMContentLoaded', () => {
-                this._raiseReadyToInitEvent(el);
-            });
-        }
+        // NOTE: This handler exists for iframes without the src attribute. In some the browsers (e.g. Chrome)
+        // the load event is triggering immediately after an iframe added to DOM. In other browsers,
+        // the _raiseReadyToInitEvent function is calling in our function wrapper after an iframe added to DOM.
+        this.nativeMethods.addEventListener.call(el, 'load', () => this._raiseReadyToInitEvent(el));
     }
 }
