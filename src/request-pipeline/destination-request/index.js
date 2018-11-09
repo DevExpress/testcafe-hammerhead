@@ -179,6 +179,10 @@ export default class DestinationRequest extends EventEmitter {
         else
             this.emit('error');
     }
+
+    abort () {
+        this.req.abort();
+    }
 }
 
 // NOTE: Exposed for testing purposes.

@@ -622,6 +622,33 @@ describe('Proxy', () => {
 
             return Promise.all(specialPageProxyUrls.map(testSpecialPageRequest));
         });
+
+        it('Should abort all pending requests after `.closeSession` method call', done => {
+            const savedReqTimeout = DestinationRequest.TIMEOUT;
+
+            session.handlePageError = (ctx) => {
+                expect.fail('');
+
+                ctx.res.end();
+                DestinationRequest.TIMEOUT = savedReqTimeout;
+                done();
+            };
+
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/T224541/hang-forever', session),
+                headers: {
+                    accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*!/!*;q=0.8'
+                }
+            };
+
+            DestinationRequest.TIMEOUT = 200;
+
+            setTimeout(() => {
+                done();
+            }, DestinationRequest.TIMEOUT * 2);
+            request(options);
+            proxy.closeSession(session);
+        });
     });
 
     describe('Cookies', () => {

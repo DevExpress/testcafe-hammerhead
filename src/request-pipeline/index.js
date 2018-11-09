@@ -18,6 +18,7 @@ import ResponseEvent from '../session/events/response-event';
 import RequestEvent from '../session/events/request-event';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
+import { pull } from 'lodash';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -326,7 +327,11 @@ function setupMockIfNecessary (ctx, rule) {
 function sendRequest (ctx, next) {
     const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts) : new DestinationRequest(ctx.reqOpts);
 
+    ctx.session.pendingRequests.push(req);
+
     req.on('response', res => {
+        pull(ctx.session.pendingRequests, req);
+
         if (ctx.isBrowserConnectionReset) {
             res.destroy();
 
@@ -338,12 +343,22 @@ function sendRequest (ctx, next) {
     });
 
     req.on('error', () => {
+        pull(ctx.session.pendingRequests, req);
+
         ctx.hasDestReqErr = true;
     });
 
-    req.on('fatalError', err => error(ctx, err));
+    req.on('fatalError', err => {
+        pull(ctx.session.pendingRequests, req);
 
-    req.on('socketHangUp', () => ctx.req.socket.end());
+        error(ctx, err);
+    });
+
+    req.on('socketHangUp', () => {
+        pull(ctx.session.pendingRequests, req);
+
+        ctx.req.socket.end();
+    });
 }
 
 // API

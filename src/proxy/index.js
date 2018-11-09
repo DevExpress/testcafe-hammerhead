@@ -178,6 +178,7 @@ export default class Proxy extends Router {
     }
 
     closeSession (session) {
+        session.pendingRequests.forEach(pendingRequest => pendingRequest.abort());
         session.proxy = null;
         delete this.openSessions[session.id];
     }

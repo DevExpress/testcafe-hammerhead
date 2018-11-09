@@ -31,6 +31,7 @@ export default class Session extends EventEmitter {
 
         this.requestEventListeners = new Map();
         this.mocks                 = new Map();
+        this.pendingRequests       = [];
     }
 
     // State
