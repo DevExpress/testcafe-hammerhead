@@ -362,7 +362,7 @@ if (!browserUtils.isFirefox) {
                 var checkDublicatedEventListeners = function (sandbox) {
                     var eventListeners = sandbox.eventsListeners;
 
-                    Object.keys(eventListeners).forEach(event => {
+                    Object.keys(eventListeners).forEach(function (event) {
                         var listenersArr = eventListeners[event].map(function (item) {
                             return item.toString();
                         });
@@ -387,7 +387,9 @@ if (!browserUtils.isFirefox) {
                     iframeHammerhead.sandbox.codeInstrumentation.locationAccessorsInstrumentation
                 ];
 
-                testedSandboxes.forEach(sandbox => checkDublicatedEventListeners(sandbox));
+                testedSandboxes.forEach(function (sandbox) {
+                    checkDublicatedEventListeners(sandbox);
+                });
             });
     });
 }
