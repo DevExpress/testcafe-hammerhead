@@ -353,3 +353,39 @@ test('should not throw an exception if `Array.prototype.filter` was overriden (G
             Array.prototype.filter = storedArrayFilter;
         });
 });
+
+test('should not dublicate internal handlers after `Sandbox.reattach` call', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            var checkDublicatedEventListeners = function (sandbox) {
+                var eventListeners = sandbox.eventsListeners;
+
+                Object.keys(eventListeners).forEach(event => {
+                    var listenersArr = eventListeners[event].map(function (item) {
+                        return item.toString();
+                    });
+
+                    var uniqueListenerArr = listenersArr.filter(function (element, index, arr) {
+                        return arr.indexOf(element) === index;
+                    });
+
+                    strictEqual(listenersArr.length, uniqueListenerArr.length);
+                });
+            };
+
+            iframe.contentDocument.open();
+            iframe.contentDocument.write('Hello!');
+            iframe.contentDocument.close();
+
+            var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
+
+            var testedSandboxes = [
+                iframeHammerhead.shadowUI.iframeSandbox,
+                iframeHammerhead.shadowUI.nodeMutation,
+                iframeHammerhead.sandbox.codeInstrumentation.locationAccessorsInstrumentation
+            ];
+
+            testedSandboxes.forEach(sandbox => checkDublicatedEventListeners(sandbox));
+        });
+});
+
