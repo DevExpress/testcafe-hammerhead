@@ -7,7 +7,6 @@ const auth         = require('basic-auth');
 const request      = require('request-promise-native');
 const Proxy        = require('../../lib/proxy');
 const Session      = require('../../lib/session');
-const requestAgent = require('../../lib/request-pipeline/destination-request/agent');
 
 describe('Authentication', () => {
     let proxy   = null;
@@ -24,7 +23,6 @@ describe('Authentication', () => {
 
     afterEach(() => {
         proxy.close();
-        requestAgent.resetKeepAliveConnections();
     });
 
     describe('NTLM Authentication', () => {
