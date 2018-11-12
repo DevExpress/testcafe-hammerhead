@@ -50,6 +50,7 @@
     "body-parser": "^1.18.3",
     "chai": "^2.3.0",
     "del": "^3.0.0",
+    "del-cli": "^1.1.0",
     "endpoint-utils": "^1.0.1",
     "eslint": "4.17.0",
     "eslint-plugin-hammerhead": "0.1.10",
@@ -85,7 +86,7 @@
   ],
   "scripts": {
     "test": "gulp travis",
-    "publish-please": "publish-please",
+    "publish-please": "del-cli package-lock.json node_modules && npm i && publish-please",
     "prepublish": "publish-please guard"
   }
 }
