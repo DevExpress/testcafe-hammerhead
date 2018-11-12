@@ -20,7 +20,7 @@ import StorageSandbox from './storages';
 import ElectronSandbox from './electron';
 import ConsoleSandbox from './console';
 import StyleSandbox from './style';
-import { isIE, isWebKit, isElectron } from '../utils/browser';
+import { isIE, isElectron } from '../utils/browser';
 import { dispose as htmlUtilDispose } from '../utils/html';
 import { dispose as anchorCodeInstumentationDispose } from './code-instrumentation/properties/anchor';
 import { create as createSandboxBackup, get as getSandboxBackup } from './backup';
@@ -134,10 +134,6 @@ export default class Sandbox extends SandboxBase {
         urlResolver.init(document);
 
         this.event.initDocumentListening(document);
-
-        if (isWebKit && window.top === window)
-            this.event.listeners.restartElementListening(window);
-
         this.shadowUI.attach(window);
         // NOTE: T182337
         this.codeInstrumentation.attach(window);
