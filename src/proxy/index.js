@@ -6,6 +6,7 @@ import { readSync as read } from 'read-file-relative';
 import { respond500, respondWithJSON, fetchBody, preventCaching } from '../utils/http';
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
+import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -158,6 +159,7 @@ export default class Proxy extends Router {
         this.server1.close();
         this.server2.close();
         this._closeSockets();
+        resetKeepAliveConnections();
     }
 
     openSession (url, session, externalProxySettings) {

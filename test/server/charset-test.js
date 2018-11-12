@@ -8,7 +8,6 @@ const iconv               = require('iconv-lite');
 const noop                = require('lodash').noop;
 const Proxy               = require('../../lib/proxy');
 const Session             = require('../../lib/session');
-const requestAgent        = require('../../lib/request-pipeline/destination-request/agent');
 const Charset             = require('../../lib/processing/encoding/charset');
 const encodeContent       = require('../../lib/processing/encoding').encodeContent;
 const decodeContent       = require('../../lib/processing/encoding').decodeContent;
@@ -144,7 +143,6 @@ describe('Content charset', () => {
     after(() => {
         destServer.close();
         proxy.close();
-        requestAgent.resetKeepAliveConnections();
     });
 
     describe('Pages', () => {

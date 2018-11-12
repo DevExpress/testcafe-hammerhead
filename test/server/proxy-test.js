@@ -26,7 +26,6 @@ const ResponseMock                         = require('../../lib/request-pipeline
 const RequestFilterRule                    = require('../../lib/request-pipeline/request-hooks/request-filter-rule');
 const DestinationRequest                   = require('../../lib/request-pipeline/destination-request');
 const RequestPipelineContext               = require('../../lib/request-pipeline/context');
-const requestAgent                         = require('../../lib/request-pipeline/destination-request/agent');
 const scriptHeader                         = require('../../lib/processing/script/header');
 const resourceProcessor                    = require('../../lib/processing/resources/');
 const urlUtils                             = require('../../lib/utils/url');
@@ -449,7 +448,6 @@ describe('Proxy', () => {
 
     afterEach(() => {
         proxy.close();
-        requestAgent.resetKeepAliveConnections();
     });
 
     describe('Session', () => {
