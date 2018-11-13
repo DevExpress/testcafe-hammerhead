@@ -110,13 +110,11 @@ function processHtmlInternal (html, process) {
     html = wrapHtmlText(html);
 
     nativeMethods.appendChild.call(htmlParser, container);
-
     nativeMethods.elementInnerHTMLSetter.call(container, html);
 
     let processedHtml = process(container) ? nativeMethods.elementInnerHTMLGetter.call(container) : html;
 
-    container.parentNode.removeChild(container);
-
+    nativeMethods.removeChild.call(container.parentNode, container);
     processedHtml = unwrapHtmlText(processedHtml);
 
     // NOTE: hack for IE (GH-1083)

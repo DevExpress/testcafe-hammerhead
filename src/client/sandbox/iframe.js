@@ -42,7 +42,7 @@ export default class IframeSandbox extends SandboxBase {
         if (!this.iframeNativeMethodsBackup && this._shouldSaveIframeNativeMethods(iframe))
             this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
         else if (this.iframeNativeMethodsBackup) {
-            this.iframeNativeMethodsBackup.restoreDocumentMeths(contentDocument, contentWindow);
+            this.iframeNativeMethodsBackup.restoreDocumentMeths(contentWindow);
             this.iframeNativeMethodsBackup = null;
         }
     }
@@ -52,9 +52,7 @@ export default class IframeSandbox extends SandboxBase {
         const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
 
         if (iframeNativeMethods) {
-            const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
-
-            iframeNativeMethods.restoreDocumentMeths(contentDocument, contentWindow);
+            iframeNativeMethods.restoreDocumentMeths(contentWindow);
             delete contentWindow[INTERNAL_PROPS.iframeNativeMethods];
         }
     }
@@ -115,7 +113,7 @@ export default class IframeSandbox extends SandboxBase {
         const isFFIframeUninitialized = isFirefox && contentWindow.document.readyState === 'uninitialized';
 
         return !isFFIframeUninitialized && !!contentDocument.documentElement ||
-               isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
+            isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
     }
 
     static isWindowInited (window) {

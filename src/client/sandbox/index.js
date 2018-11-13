@@ -81,25 +81,27 @@ export default class Sandbox extends SandboxBase {
         return true;
     }
 
-    _restoreDocumentMethodsFromProto (document) {
-        const docProto = document.constructor.prototype;
+    _restoreDocumentMethodsFromProto (window, document) {
+        const docPrototype = window.Document.prototype;
 
-        document.createDocumentFragment = document.createDocumentFragment || docProto.createDocumentFragment;
-        document.createElement          = document.createElement || docProto.createElement;
-        document.createElementNS        = document.createElementNS || docProto.createElementNS;
-        document.open                   = document.open || docProto.open;
-        document.close                  = document.close || docProto.close;
-        document.write                  = document.write || docProto.write;
-        document.writeln                = document.writeln || docProto.writeln;
-        document.elementFromPoint       = document.elementFromPoint || docProto.elementFromPoint;
-        document.getElementById         = document.getElementById || docProto.getElementById;
-        document.getElementsByClassName = document.getElementsByClassName || docProto.getElementsByClassName;
-        document.getElementsByName      = document.getElementsByName || docProto.getElementsByName;
-        document.getElementsByTagName   = document.getElementsByTagName || docProto.getElementsByTagName;
-        document.querySelector          = document.querySelector || docProto.querySelector;
-        document.querySelectorAll       = document.querySelectorAll || docProto.querySelectorAll;
-        document.addEventListener       = document.addEventListener || docProto.addEventListener;
-        document.removeEventListener    = document.removeEventListener || docProto.removeEventListener;
+        document.createDocumentFragment = document.createDocumentFragment || docPrototype.createDocumentFragment;
+        document.createElement          = document.createElement || docPrototype.createElement;
+        document.createElementNS        = document.createElementNS || docPrototype.createElementNS;
+
+        document.open                   = document.open || window[nativeMethods.documentOpenPropOwnerName].prototype.open;
+        document.close                  = document.close || window[nativeMethods.documentClosePropOwnerName].prototype.close;
+        document.write                  = document.write || window[nativeMethods.documentWritePropOwnerName].prototype.write;
+        document.writeln                = document.writeln || window[nativeMethods.documentWriteLnPropOwnerName].prototype.writeln;
+
+        document.elementFromPoint       = document.elementFromPoint || docPrototype.elementFromPoint;
+        document.getElementById         = document.getElementById || docPrototype.getElementById;
+        document.getElementsByClassName = document.getElementsByClassName || docPrototype.getElementsByClassName;
+        document.getElementsByName      = document.getElementsByName || docPrototype.getElementsByName;
+        document.getElementsByTagName   = document.getElementsByTagName || docPrototype.getElementsByTagName;
+        document.querySelector          = document.querySelector || docPrototype.querySelector;
+        document.querySelectorAll       = document.querySelectorAll || docPrototype.querySelectorAll;
+        document.addEventListener       = document.addEventListener || docPrototype.addEventListener;
+        document.removeEventListener    = document.removeEventListener || docPrototype.removeEventListener;
     }
 
     onIframeDocumentRecreated (iframe) {
@@ -122,7 +124,7 @@ export default class Sandbox extends SandboxBase {
                 // In this case, we need to inject Hammerhead.
 
                 // HACK: IE10 cleans up overridden methods after the document.write method call.
-                this.nativeMethods.restoreDocumentMeths(contentDocument);
+                this.nativeMethods.restoreDocumentMeths(contentWindow);
 
                 // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
                 // Inform IFrameSandbox about this, and it injects Hammerhead.
@@ -145,7 +147,7 @@ export default class Sandbox extends SandboxBase {
         this.node.doc.attach(window, document);
         this.console.attach(window);
 
-        this._restoreDocumentMethodsFromProto(document);
+        this._restoreDocumentMethodsFromProto(window, document);
     }
 
     attach (window) {

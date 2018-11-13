@@ -192,7 +192,7 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
         var iframeDocument         = iframe.contentDocument;
         var nestedIframe           = iframeDocument.createElement('iframe');
         var checkXhrEventListeners = function () {
-            var xhr = new iframeHammerhead.sandbox.nativeMethods.XMLHttpRequest();
+            var xhr = new iframe.contentWindow.XMLHttpRequest();
 
             xhr.addEventListener('load', function () {
                 countXhrLoadEvents++;
@@ -214,9 +214,9 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
         };
 
         iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
-        iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, checkXhrEventListeners);
         iframeIframeSandbox.on(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, initIframeTestHandler);
 
+        checkXhrEventListeners();
         nestedIframe.id = 'test_nestedIframe_klshgfn111';
         nestedIframe.setAttribute('src', 'about:blank');
         window.QUnitGlobals.waitForIframe(nestedIframe)
