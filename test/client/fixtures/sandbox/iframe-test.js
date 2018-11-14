@@ -4,6 +4,33 @@ var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
 var browserUtils  = hammerhead.utils.browser;
 var shadowUI      = hammerhead.sandbox.shadowUI;
+var Promise       = hammerhead.Promise;
+
+test('should not miss the Hammerhead instance after the iframe.contentDocument.close function calling (GH-1821)', function () {
+    function checkIframe (iframe) {
+        iframe.contentDocument.open();
+        iframe.contentDocument.write('Hello!');
+        iframe.contentDocument.close();
+
+        var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
+
+        ok(iframeHammerhead);
+    }
+
+    return Promise.all([
+        createTestIframe(),
+        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe-with-iframe-task-script.html') })
+    ])
+        .then(function (iframes) {
+            var iframeWithoutSrc = iframes[0];
+            var iframeWithSrc    = iframes[1];
+
+            checkIframe(iframeWithoutSrc);
+
+            if (!browserUtils.isIE)
+                checkIframe(iframeWithSrc);
+        });
+});
 
 test('event should not raise before iframe is appended to DOM', function () {
     var eventRaised = false;

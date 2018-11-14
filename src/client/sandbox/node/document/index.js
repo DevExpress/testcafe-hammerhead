@@ -4,7 +4,7 @@ import nativeMethods from '../../native-methods';
 import domProcessor from '../../../dom-processor';
 import * as urlUtils from '../../../utils/url';
 import settings from '../../../settings';
-import { isIE } from '../../../utils/browser';
+import { isIE, isFirefox } from '../../../utils/browser';
 import { isIframeWithoutSrc, getFrameElement, isImgElement, isShadowUIElement } from '../../../utils/dom';
 import DocumentWriter from './writer';
 import ShadowUI from './../../shadow-ui';
@@ -143,6 +143,15 @@ export default class DocumentSandbox extends SandboxBase {
 
             if (!this._isUninitializedIframeWithoutSrc(window))
                 this._onDocumentClosed();
+
+            // Firefox misses the Hammerhead instance after the iframe.contentDocument.close function calling (GH-1821)
+            if (isFirefox) {
+                const iframe = getFrameElement(window);
+
+                if (iframe)
+                    this.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
+
+            }
 
             return result;
         };
