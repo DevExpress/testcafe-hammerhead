@@ -1,6 +1,7 @@
 import nativeMethods from '../sandbox/native-methods';
 import * as destLocation from '../utils/destination-location';
 import { ensureTrailingSlash, parseUrl } from '../../utils/url';
+import { isIframeWithoutSrc, getFrameElement } from '../utils/dom';
 
 const DOCUMENT_URL_RESOLVER = 'hammerhead|document-url-resolver';
 
@@ -53,8 +54,10 @@ export default {
             // NOTE: It looks like a Chrome bug: in a nested iframe without src (when an iframe is placed into another
             // iframe) you cannot set a relative link href while the iframe loading is not completed. So, we'll do it with
             // the parent's urlResolver Safari demonstrates similar behavior, but urlResolver.href has a relative URL value.
-            const needUseParentResolver = url && isIframeWithoutSrc && window.parent && window.parent.document &&
-                                          (!href || href.indexOf('/') === 0);
+            const isIframeWithUnresolvedUrl = url && window.parent && window.parent !== window &&
+                                              window.parent.document && (!href || href.indexOf('/') === 0);
+            const iframeElement             = isIframeWithUnresolvedUrl && getFrameElement(window);
+            const needUseParentResolver     = iframeElement && isIframeWithoutSrc(iframeElement);
 
             if (needUseParentResolver)
                 return this.resolve(url, window.parent.document);

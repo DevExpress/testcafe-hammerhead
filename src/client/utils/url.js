@@ -23,9 +23,17 @@ export function getProxyUrl (url, opts) {
         return url;
 
     /*eslint-disable no-restricted-properties*/
-    const proxyHostname       = opts && opts.proxyHostname || location.hostname;
-    const proxyPort           = opts && opts.proxyPort || location.port.toString();
-    const proxyServerProtocol = opts && opts.proxyProtocol || location.protocol;
+    let locationWindow = window;
+    let proxyLocation  = locationWindow.location;
+
+    while (!proxyLocation.hostname) {
+        locationWindow = locationWindow.parent;
+        proxyLocation  = locationWindow.location;
+    }
+
+    const proxyHostname       = opts && opts.proxyHostname || proxyLocation.hostname;
+    const proxyPort           = opts && opts.proxyPort || proxyLocation.port.toString();
+    const proxyServerProtocol = opts && opts.proxyProtocol || proxyLocation.protocol;
     /*eslint-enable no-restricted-properties*/
 
     const proxyProtocol = parsedResourceType.isWebSocket

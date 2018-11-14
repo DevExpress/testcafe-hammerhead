@@ -6,6 +6,7 @@ import { isWebKit, isFirefox } from './utils/browser';
 import createUnresolvablePromise from './utils/create-unresolvable-promise';
 import noop from './utils/noop';
 import Promise from 'pinkie';
+import { isIframeWithoutSrc, getFrameElement } from './utils/dom';
 
 const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
 
@@ -13,6 +14,10 @@ class Transport {
     constructor () {
         this.msgQueue                     = {};
         this.activeServiceMessagesCounter = 0;
+
+        const frameElement = getFrameElement(window);
+
+        this.shouldAddRefferer = frameElement && isIframeWithoutSrc(frameElement);
     }
 
     static _storeMessage (msg) {
@@ -47,7 +52,7 @@ class Transport {
     _performRequest (msg, callback) {
         msg.sessionId = settings.get().sessionId;
 
-        if (isIframeWithoutSrc)
+        if (this.shouldAddRefferer)
             msg.referer = settings.get().referer;
 
         const sendMsg = forced => {

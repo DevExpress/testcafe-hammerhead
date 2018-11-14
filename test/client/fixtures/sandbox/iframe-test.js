@@ -435,3 +435,14 @@ if (!browserUtils.isFirefox) {
     });
 }
 
+test('overridden functions should have the right prototype in an iframe without src', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            iframe.contentWindow.eval('Function.prototype.testFn = function () { return true; }');
+
+            ok(iframe.contentWindow.Function.testFn());
+            ok(iframe.contentWindow.Image.testFn());
+            ok(iframe.contentDocument.body.appendChild.testFn());
+            notOk(window.Function.testFn);
+        });
+});

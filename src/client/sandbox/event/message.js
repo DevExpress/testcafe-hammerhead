@@ -172,14 +172,6 @@ export default class MessageSandbox extends SandboxBase {
 
         args[0] = MessageSandbox._wrapMessage(MESSAGE_TYPE.user, args[0], targetUrl);
 
-        if (isIframeWithoutSrc) {
-            /*eslint-disable camelcase */
-            this.window.tc_cw_375fb9e7 = contentWindow;
-            this.window.tc_a_375fb9e7  = args;
-            /*eslint-disable camelcase */
-
-            return this.window.eval('this.window.tc_cw_375fb9e7.postMessage(this.window.tc_a_375fb9e7[0], this.window.tc_a_375fb9e7[1]); delete this.window.tc_cw_375fb9e7; delete this.window.tc_a_375fb9e7');
-        }
 
         return fastApply(contentWindow, 'postMessage', args);
     }

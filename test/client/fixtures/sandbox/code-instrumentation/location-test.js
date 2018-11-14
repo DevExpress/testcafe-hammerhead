@@ -557,7 +557,7 @@ if (window.location.ancestorOrigins) {
                     frameElement:                  null
                 };
 
-                ok(ancestorOrigins instanceof DOMStringList);
+                ok(ancestorOrigins instanceof nestedIframe.contentWindow.DOMStringList);
 
                 strictEqual(ancestorOrigins.length, 2);
 

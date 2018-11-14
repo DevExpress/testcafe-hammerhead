@@ -5,7 +5,6 @@
     "no-restricted-globals": [2, "Promise"]
   },
   "globals": {
-    "isIframeWithoutSrc": true,
     "initHammerheadClient": true
   },
   "env": {
