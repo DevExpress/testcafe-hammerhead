@@ -20,7 +20,7 @@ const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-coll
 const HTML_COLLECTION_WRAPPER             = 'hammerhead|shadow-ui|html-collection-wrapper';
 
 export default class ShadowUI extends SandboxBase {
-    constructor (nodeMutation, messageSandbox, iframeSandbox) {
+    constructor (nodeMutation, messageSandbox, iframeSandbox, debugSandbox) {
         super();
 
         this.BODY_CONTENT_CHANGED_COMMAND = 'hammerhead|command|body-content-changed';
@@ -30,9 +30,10 @@ export default class ShadowUI extends SandboxBase {
         this.HIDDEN_CLASS = 'hidden';
         this.BLIND_CLASS  = 'blind';
 
-        this.nodeMutation        = nodeMutation;
-        this.messageSandbox      = messageSandbox;
-        this.iframeSandbox       = iframeSandbox;
+        this.nodeMutation   = nodeMutation;
+        this.messageSandbox = messageSandbox;
+        this.iframeSandbox  = iframeSandbox;
+        this.debugSandbox   = debugSandbox;
 
         this.root                    = null;
         this.lastActiveElement       = null;
@@ -526,20 +527,6 @@ export default class ShadowUI extends SandboxBase {
         return ShadowUI._hasFlag(collection, IS_SHADOW_CONTAINER_COLLECTION_FLAG);
     }
 
-    static getShadowUICollectionLength (collection, length) {
-        let shadowUIElementCount = 0;
-
-        for (let i = 0; i < length; i++) {
-            if (domUtils.isShadowUIElement(collection[i]))
-                shadowUIElementCount++;
-        }
-
-        if (shadowUIElementCount)
-            ShadowUI._checkElementsPosition(collection, length);
-
-        return length - shadowUIElementCount;
-    }
-
     static _isShadowUIChildListMutation (mutation) {
         if (domUtils.isShadowUIElement(mutation.target))
             return true;
@@ -586,6 +573,20 @@ export default class ShadowUI extends SandboxBase {
     }
 
     // API
+    getShadowUICollectionLength (collection, length) {
+        let shadowUIElementCount = 0;
+
+        for (let i = 0; i < length; i++) {
+            if (domUtils.isShadowUIElement(collection[i]))
+                shadowUIElementCount++;
+        }
+
+        if (shadowUIElementCount && !this.debugSandbox.debuggerIsInitiator())
+            ShadowUI._checkElementsPosition(collection, length);
+
+        return length - shadowUIElementCount;
+    }
+
     // NOTE: this method cannot be static because it is a part of the public API
     addClass (el, value) {
         const patchedClass = ShadowUI.patchClassNames(value);
