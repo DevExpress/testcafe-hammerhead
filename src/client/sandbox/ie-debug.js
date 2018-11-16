@@ -1,25 +1,25 @@
 import SandboxBase from './base';
 import { isIE } from '../utils/browser';
 
-export default class DebugSandbox extends SandboxBase {
+export default class IEDebugSandbox extends SandboxBase {
     constructor () {
         super();
 
-        this._debuggerIsInitiator = false;
+        this._isDebuggerInitiator = false;
     }
 
     _createFuncWrapper (func) {
         if (typeof func === 'function') {
             return (fn, safeAssert) => {
-                const debugSandbox = this;
+                const ieDebugSandbox = this;
 
                 return function () { // eslint-disable-line consistent-return
-                    debugSandbox._debuggerIsInitiator = true;
+                    ieDebugSandbox._isDebuggerInitiator = true;
 
                     try {
                         const result = fn(arguments);
 
-                        debugSandbox._debuggerIsInitiator = false;
+                        ieDebugSandbox._isDebuggerInitiator = false;
 
                         return result;
                     }
@@ -27,7 +27,7 @@ export default class DebugSandbox extends SandboxBase {
                         safeAssert(e);
                     }
 
-                    debugSandbox._debuggerIsInitiator = false;
+                    ieDebugSandbox._isDebuggerInitiator = false;
                 };
             };
         }
@@ -35,8 +35,8 @@ export default class DebugSandbox extends SandboxBase {
         return func;
     }
 
-    debuggerIsInitiator () {
-        return this._debuggerIsInitiator;
+    isDebuggerInitiator () {
+        return this._isDebuggerInitiator;
     }
 
     attach (window) {

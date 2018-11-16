@@ -20,7 +20,7 @@ const IS_SHADOW_CONTAINER_COLLECTION_FLAG = 'hammerhead|shadow-ui|container-coll
 const HTML_COLLECTION_WRAPPER             = 'hammerhead|shadow-ui|html-collection-wrapper';
 
 export default class ShadowUI extends SandboxBase {
-    constructor (nodeMutation, messageSandbox, iframeSandbox, debugSandbox) {
+    constructor (nodeMutation, messageSandbox, iframeSandbox, ieDebugSandbox) {
         super();
 
         this.BODY_CONTENT_CHANGED_COMMAND = 'hammerhead|command|body-content-changed';
@@ -33,7 +33,7 @@ export default class ShadowUI extends SandboxBase {
         this.nodeMutation   = nodeMutation;
         this.messageSandbox = messageSandbox;
         this.iframeSandbox  = iframeSandbox;
-        this.debugSandbox   = debugSandbox;
+        this.ieDebugSandbox = ieDebugSandbox;
 
         this.root                    = null;
         this.lastActiveElement       = null;
@@ -581,7 +581,7 @@ export default class ShadowUI extends SandboxBase {
                 shadowUIElementCount++;
         }
 
-        if (shadowUIElementCount && !this.debugSandbox.debuggerIsInitiator())
+        if (shadowUIElementCount && !this.ieDebugSandbox.isDebuggerInitiator())
             ShadowUI._checkElementsPosition(collection, length);
 
         return length - shadowUIElementCount;

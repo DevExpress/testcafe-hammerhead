@@ -27,7 +27,7 @@ import { create as createSandboxBackup, get as getSandboxBackup } from './backup
 import urlResolver from '../utils/url-resolver';
 import * as windowStorage from './windows-storage';
 import nativeMethods from '../sandbox/native-methods';
-import DebugSandbox from './debug';
+import IEDebugSandbox from './ie-debug';
 
 export default class Sandbox extends SandboxBase {
     constructor () {
@@ -36,7 +36,7 @@ export default class Sandbox extends SandboxBase {
         createSandboxBackup(window, this);
         windowStorage.add(window);
 
-        const debugSandbox          = new DebugSandbox();
+        const ieDebugSandbox        = new IEDebugSandbox();
         const listeners             = new Listeners();
         const nodeMutation          = new NodeMutation();
         const unloadSandbox         = new UnloadSandbox(listeners);
@@ -47,13 +47,13 @@ export default class Sandbox extends SandboxBase {
         const cookieSandbox         = new CookieSandbox(messageSandbox);
 
         // API
-        this.debug               = debugSandbox;
+        this.ieDebug             = ieDebugSandbox;
         this.cookie              = cookieSandbox; // eslint-disable-line no-restricted-properties
         this.storageSandbox      = new StorageSandbox(listeners, unloadSandbox, eventSimulator);
         this.xhr                 = new XhrSandbox(cookieSandbox);
         this.fetch               = new FetchSandbox(cookieSandbox);
         this.iframe              = new IframeSandbox(nodeMutation, cookieSandbox);
-        this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe, debugSandbox);
+        this.shadowUI            = new ShadowUI(nodeMutation, messageSandbox, this.iframe, ieDebugSandbox);
         this.upload              = new UploadSandbox(listeners, eventSimulator, this.shadowUI);
         this.event               = new EventSandbox(listeners, eventSimulator, elementEditingWatcher, unloadSandbox, messageSandbox, this.shadowUI, timersSandbox);
         this.node                = new NodeSandbox(nodeMutation, this.iframe, this.event, this.upload, this.shadowUI, cookieSandbox);
@@ -156,7 +156,7 @@ export default class Sandbox extends SandboxBase {
         // NOTE: We need to reattach a sandbox to the recreated iframe document.
         this.node.mutation.on(this.node.mutation.DOCUMENT_CLEANED_EVENT, e => this.reattach(e.window, e.document));
 
-        this.debug.attach(window);
+        this.ieDebug.attach(window);
         this.iframe.attach(window);
         this.xhr.attach(window);
         this.fetch.attach(window);
