@@ -19,7 +19,7 @@ test('should not miss the Hammerhead instance after the iframe.contentDocument.c
 
     return Promise.all([
         createTestIframe(),
-        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe-with-iframe-task-script.html') })
+        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
     ])
         .then(function (iframes) {
             var iframeWithoutSrc = iframes[0];

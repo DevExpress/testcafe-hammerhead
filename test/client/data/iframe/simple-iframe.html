@@ -10,7 +10,11 @@
     var hammerhead = window['%hammerhead%'];
 
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/http://origin_iframe_host');
-    hammerhead.start({ crossDomainProxyPort: 2000 });
+    hammerhead.start({
+        crossDomainProxyPort:     2000,
+        iframeTaskScriptTemplate: 'window["%hammerhead%"].get("./utils/destination-location").forceLocation("http://localhost/sessionId/https://example.com");' +
+                                  'window["%hammerhead%"].start({ iframeTaskScriptTemplate: {{{iframeTaskScriptTemplate}}}});'
+    });
 </script>
 </body>
 </html>
