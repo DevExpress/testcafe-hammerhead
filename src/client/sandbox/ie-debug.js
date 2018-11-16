@@ -1,6 +1,8 @@
 import SandboxBase from './base';
 import { isIE } from '../utils/browser';
 
+const BROWSERTOOLS_CONSOLE_SAFEFUNC = '__BROWSERTOOLS_CONSOLE_SAFEFUNC';
+
 export default class IEDebugSandbox extends SandboxBase {
     constructor () {
         super();
@@ -43,14 +45,14 @@ export default class IEDebugSandbox extends SandboxBase {
         if (!isIE)
             return;
 
-        const descriptor = this.nativeMethods.objectGetOwnPropertyDescriptor(window, '__BROWSERTOOLS_CONSOLE_SAFEFUNC');
+        const descriptor = this.nativeMethods.objectGetOwnPropertyDescriptor(window, BROWSERTOOLS_CONSOLE_SAFEFUNC);
         let wrapper      = void 0;
 
         if (!descriptor || descriptor.value) { // eslint-disable-line no-restricted-properties
             if (descriptor)
                 wrapper = this._createFuncWrapper(descriptor.value); // eslint-disable-line no-restricted-properties
 
-            this.nativeMethods.objectDefineProperty(window, '__BROWSERTOOLS_CONSOLE_SAFEFUNC', {
+            this.nativeMethods.objectDefineProperty(window, BROWSERTOOLS_CONSOLE_SAFEFUNC, {
                 set: fn => {
                     wrapper = this._createFuncWrapper(fn);
                 },
