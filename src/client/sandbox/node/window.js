@@ -730,12 +730,12 @@ export default class WindowSandbox extends SandboxBase {
                 const length = nativeMethods.htmlCollectionLengthGetter.call(this);
 
                 if (ShadowUI.isShadowContainerCollection(this))
-                    return ShadowUI.getShadowUICollectionLength(this, length);
+                    return windowSandbox.shadowUI.getShadowUICollectionLength(this, length);
                 // IE11 and Edge have a strange behavior: shadow container collection flag may be lost (GH-1763)
                 else if (isIE && length && isHeadOrBodyElement(this[0].parentNode)) {
                     ShadowUI.markAsShadowContainerCollection(this);
 
-                    return ShadowUI.getShadowUICollectionLength(this, length);
+                    return windowSandbox.shadowUI.getShadowUICollectionLength(this, length);
                 }
 
                 return length;
@@ -747,7 +747,7 @@ export default class WindowSandbox extends SandboxBase {
                 const length = nativeMethods.nodeListLengthGetter.call(this);
 
                 if (ShadowUI.isShadowContainerCollection(this))
-                    return ShadowUI.getShadowUICollectionLength(this, length);
+                    return windowSandbox.shadowUI.getShadowUICollectionLength(this, length);
 
                 return length;
             }
@@ -758,7 +758,7 @@ export default class WindowSandbox extends SandboxBase {
                 if (ShadowUI.isShadowContainer(this)) {
                     const childrenLength = nativeMethods.htmlCollectionLengthGetter.call(this.children);
 
-                    return ShadowUI.getShadowUICollectionLength(this.children, childrenLength);
+                    return windowSandbox.shadowUI.getShadowUICollectionLength(this.children, childrenLength);
                 }
 
                 return nativeMethods.elementChildElementCountGetter.call(this);
