@@ -27,6 +27,7 @@ test('should not miss the Hammerhead instance after the iframe.contentDocument.c
 
             checkIframe(iframeWithoutSrc);
 
+            // NOTE: Both IE11 and Edge don't support this test scenario
             if (!browserUtils.isIE)
                 checkIframe(iframeWithSrc);
         });
