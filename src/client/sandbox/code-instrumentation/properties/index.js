@@ -27,7 +27,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
     static _safeIsShadowUIElement (el) {
         try {
-            return el && domUtils.isShadowUIElement(el);
+            return domUtils.isShadowUIElement(el);
         }
         catch (e) {
             return false;
@@ -125,7 +125,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 windowSandbox.isInternalGetter = true;
 
-                if (PropertyAccessorsInstrumentation._safeIsShadowUIElement(propertyValue))
+                if (propertyValue && PropertyAccessorsInstrumentation._safeIsShadowUIElement(propertyValue))
                     return void 0;
 
                 windowSandbox.isInternalGetter = false;
