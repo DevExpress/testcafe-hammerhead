@@ -435,7 +435,7 @@ if (!browserUtils.isFirefox) {
     });
 }
 
-test('overridden functions should have the right prototype in an iframe without src', function () {
+test('overridden functions should have the right prototype in an iframe without src (GH-1824)', function () {
     return createTestIframe()
         .then(function (iframe) {
             iframe.contentWindow.eval('Function.prototype.testFn = function () { return true; }');

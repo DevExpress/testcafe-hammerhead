@@ -152,7 +152,7 @@ export function cleanUpHtml (html) {
                     if (DomProcessor.isAddedAutocompleteAttr('autocomplete', storedAttrValue))
                         nativeMethods.removeAttribute.call(el, 'autocomplete');
                     else
-                        nativeMethods.setAttribute.call(el, urlAttr, storedAttrValue);
+                        nativeMethods.setAttribute.call(el, 'autocomplete', storedAttrValue);
 
                     nativeMethods.removeAttribute.call(el, storedAttr);
                 }
