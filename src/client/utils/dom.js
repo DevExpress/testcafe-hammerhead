@@ -482,8 +482,7 @@ export function isElementFocusable (el) {
 }
 
 export function isShadowUIElement (element) {
-    // NOTE: The first part of the condition is only required to check for a cross-domain window
-    return element && element.window !== element && !!element[INTERNAL_PROPS.shadowUIElement];
+    return !!element[INTERNAL_PROPS.shadowUIElement];
 }
 
 export function isWindow (instance) {

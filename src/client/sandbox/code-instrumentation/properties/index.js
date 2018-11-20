@@ -25,6 +25,15 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         throw new Error(msg);
     }
 
+    static _safeIsShadowUIElement (el) {
+        try {
+            return domUtils.isShadowUIElement(el);
+        }
+        catch (e) {
+            return false;
+        }
+    }
+
     _createPropertyAccessors (window, document) {
         return {
             href: {
@@ -116,7 +125,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
 
                 windowSandbox.isInternalGetter = true;
 
-                if (propertyValue && domUtils.isShadowUIElement(propertyValue))
+                if (propertyValue && PropertyAccessorsInstrumentation._safeIsShadowUIElement(propertyValue))
                     return void 0;
 
                 windowSandbox.isInternalGetter = false;
