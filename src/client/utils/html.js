@@ -34,16 +34,14 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
-const ATTRS_FOR_CLEANING      = nativeMethods.arrayConcat.call(URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC);
-const ATTRS_DATA_FOR_CLEANING = nativeMethods.arrayMap.call(ATTRS_FOR_CLEANING, attr => {
-    return { attr, storedAttr: DomProcessor.getStoredAttrName(attr) };
-});
-
 const STORED_ATTRS_SELECTOR = (() => {
     const storedAttrs = [];
 
-    for (const { storedAttr } of ATTRS_DATA_FOR_CLEANING)
-        storedAttrs.push(storedAttr);
+    for (const attr of URL_ATTRS)
+        storedAttrs.push(DomProcessor.getStoredAttrName(attr));
+
+    for (const attr of ATTRS_WITH_SPECIAL_PROXYING_LOGIC)
+        storedAttrs.push(DomProcessor.getStoredAttrName(attr));
 
     return '[' + storedAttrs.join('],[') + ']';
 })();
@@ -133,16 +131,58 @@ export function cleanUpHtml (html) {
         let changed = false;
 
         find(container, STORED_ATTRS_SELECTOR, el => {
-            for (const { attr, storedAttr } of ATTRS_DATA_FOR_CLEANING) {
-                const shouldCheckAttr = URL_ATTRS.indexOf(attr) !== -1 ? domProcessor.getUrlAttr(el) === attr : true;
+            const urlAttr = domProcessor.getUrlAttr(el);
+            const targetAttr = domProcessor.getTargetAttr(el);
 
-                if (shouldCheckAttr && nativeMethods.hasAttribute.call(el, attr) &&
-                    nativeMethods.hasAttribute.call(el, storedAttr))
-                    nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
-                else if (attr === 'autocomplete')
-                    nativeMethods.removeAttribute.call(el, attr);
+            if (urlAttr && nativeMethods.hasAttribute.call(el, urlAttr)) {
+                const storedAttr = DomProcessor.getStoredAttrName(urlAttr);
 
-                nativeMethods.removeAttribute.call(el, storedAttr);
+                if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+                    nativeMethods.setAttribute.call(el, urlAttr, nativeMethods.getAttribute.call(el, storedAttr));
+                    nativeMethods.removeAttribute.call(el, storedAttr);
+                }
+            }
+
+            if (nativeMethods.hasAttribute.call(el, 'autocomplete')) {
+                const storedAttr = DomProcessor.getStoredAttrName('autocomplete');
+
+                if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+                    const storedAttrValue = nativeMethods.getAttribute.call(el, storedAttr);
+
+                    if (DomProcessor.isAddedAutocompleteAttr('autocomplete', storedAttrValue))
+                        nativeMethods.removeAttribute.call(el, 'autocomplete');
+                    else
+                        nativeMethods.setAttribute.call(el, urlAttr, storedAttrValue);
+
+                    nativeMethods.removeAttribute.call(el, storedAttr);
+                }
+            }
+
+            if (targetAttr && nativeMethods.hasAttribute.call(el, targetAttr)) {
+                const storedAttr = DomProcessor.getStoredAttrName(targetAttr);
+
+                if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+                    nativeMethods.setAttribute.call(el, targetAttr, nativeMethods.getAttribute.call(el, storedAttr));
+                    nativeMethods.removeAttribute.call(el, storedAttr);
+                }
+            }
+
+            if (domProcessor.adapter.getTagName(el) === 'iframe' && nativeMethods.hasAttribute.call(el, 'sandbox')) {
+                const storedAttr = DomProcessor.getStoredAttrName('sandbox');
+
+                if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+                    nativeMethods.setAttribute.call(el, 'sandbox', nativeMethods.getAttribute.call(el, storedAttr));
+                    nativeMethods.removeAttribute.call(el, storedAttr);
+                }
+            }
+
+            if (nativeMethods.hasAttribute.call(el, 'style')) {
+                const storedAttr = DomProcessor.getStoredAttrName('style');
+
+                if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+                    nativeMethods.setAttribute.call(el, 'style', nativeMethods.getAttribute.call(el, storedAttr));
+                    nativeMethods.removeAttribute.call(el, storedAttr);
+                }
             }
 
             changed = true;
