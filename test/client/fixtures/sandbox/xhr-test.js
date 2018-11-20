@@ -233,8 +233,10 @@ test('send the origin header correctly (GH-284)', function () {
 
         iframe.contentDocument.body.appendChild(script);
 
+        var assertionMessage = iframe.src ? 'iframe with src' : 'iframe without src';
+
         if (!window.skipIframeCheck)
-            strictEqual(iframe.contentWindow.response, 'https://example.com', iframe.src ? 'iframe with src' : 'iframe without src');
+            strictEqual(iframe.contentWindow.response, 'https://example.com', assertionMessage);
 
         window.skipIframeCheck = false;
     }
@@ -254,11 +256,8 @@ test('send the origin header correctly (GH-284)', function () {
         createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
     ])
         .then(function (iframes) {
-            var iframeWithoutSrc = iframes[0];
-            var iframeWithSrc    = iframes[1];
-
-            checkIframe(iframeWithoutSrc);
-            checkIframe(iframeWithSrc);
+            checkIframe(iframes[0]);
+            checkIframe(iframes[1]);
         });
 });
 
