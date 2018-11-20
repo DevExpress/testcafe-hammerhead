@@ -208,14 +208,36 @@ asyncTest('xhr.responseURL', function () {
 });
 
 test('send the origin header correctly (GH-284)', function () {
-    var xhrTestFunc = function () {
+    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (iframe without src case) (GH-1837)
+    window.skipIframeCheck = false;
+
+    function xhrTestFunc () {
         var xhr = new XMLHttpRequest();
 
         xhr.open('POST', '/xhr-origin-header-test/', false);
-        xhr.send();
+        try {
+            xhr.send();
+        }
+        catch (e) {
+            if (e.name === 'NetworkError')
+                window.parent.skipIframeCheck = true;
+        }
 
         window.response = xhr.responseText;
-    };
+    }
+
+    function checkIframe (iframe, assertionMessage) {
+        var script = document.createElement('script');
+
+        nativeMethods.scriptTextSetter.call(script, '(' + xhrTestFunc.toString() + ')()');
+
+        iframe.contentDocument.body.appendChild(script);
+
+        if (!window.skipIframeCheck)
+            strictEqual(iframe.contentWindow.response, 'https://example.com', assertionMessage);
+
+        window.skipIframeCheck = false;
+    }
 
     xhrTestFunc();
     strictEqual(window.response, 'https://example.com', 'top window');
@@ -227,18 +249,13 @@ test('send the origin header correctly (GH-284)', function () {
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
-    return createTestIframe()
-        .then(function (iframe) {
-            // NOTE: iframe without src
-            iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
-
-            var script = document.createElement('script');
-
-            nativeMethods.scriptTextSetter.call(script, '(' + xhrTestFunc.toString() + ')()');
-
-            iframe.contentDocument.body.appendChild(script);
-
-            strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
+    return Promise.all([
+        createTestIframe(),
+        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
+    ])
+        .then(function (iframes) {
+            checkIframe(iframes[0], 'iframe without src');
+            checkIframe(iframes[1], 'iframe with src');
         });
 });
 

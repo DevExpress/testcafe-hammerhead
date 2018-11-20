@@ -4,6 +4,34 @@ var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
 var browserUtils  = hammerhead.utils.browser;
 var shadowUI      = hammerhead.sandbox.shadowUI;
+var Promise       = hammerhead.Promise;
+
+test('should not miss the Hammerhead instance after the iframe.contentDocument.close function calling (GH-1821)', function () {
+    function checkIframe (iframe) {
+        iframe.contentDocument.open();
+        iframe.contentDocument.write('Hello!');
+        iframe.contentDocument.close();
+
+        var iframeHammerhead = iframe.contentWindow['%hammerhead%'];
+
+        ok(iframeHammerhead);
+    }
+
+    return Promise.all([
+        createTestIframe(),
+        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
+    ])
+        .then(function (iframes) {
+            var iframeWithoutSrc = iframes[0];
+            var iframeWithSrc    = iframes[1];
+
+            checkIframe(iframeWithoutSrc);
+
+            // NOTE: Both IE11 and Edge don't support this test scenario
+            if (!browserUtils.isIE)
+                checkIframe(iframeWithSrc);
+        });
+});
 
 test('event should not raise before iframe is appended to DOM', function () {
     var eventRaised = false;
@@ -155,6 +183,9 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
     var countXhrLoadEvents             = 0;
     var validCountXhrLoadEvents        = browserUtils.isWebKit ? 2 : 1;
 
+    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (iframe without src case) (GH-1837)
+    var skipIframeCheck = false;
+
     iframe.id = 'test_iframe_id_96ljkls';
     iframe.setAttribute('src', 'javascript:"<html><body><h1>test</h1></body></html>"');
     iframe.addEventListener('load', function () {
@@ -173,7 +204,15 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
                 ok(false, 'error event must not be raised');
             });
             xhr.open('post', '/get-script/test', false);
-            xhr.send();
+            try {
+                xhr.send();
+            }
+            catch (e) {
+                if (e.name === 'NetworkError') {
+                    skipIframeCheck = true;
+                    expect(0);
+                }
+            }
         };
 
         iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
@@ -187,7 +226,9 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
                 countNestedIframeLoadEvents++;
 
                 if (countNestedIframeLoadEvents === maxCountNestedIframeLoadEvents) {
-                    strictEqual(countXhrLoadEvents, validCountXhrLoadEvents);
+                    if (!skipIframeCheck)
+                        strictEqual(countXhrLoadEvents, validCountXhrLoadEvents);
+
                     iframe.parentNode.removeChild(iframe);
                     start();
                 }

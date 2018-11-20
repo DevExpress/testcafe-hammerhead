@@ -144,6 +144,12 @@ export default class DocumentSandbox extends SandboxBase {
             if (!this._isUninitializedIframeWithoutSrc(window))
                 this._onDocumentClosed();
 
+            const iframe = getFrameElement(window);
+
+            // NOTE: Firefox misses the Hammerhead instance after the iframe.contentDocument.close function calling (GH-1821)
+            if (iframe)
+                this.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
+
             return result;
         };
 
