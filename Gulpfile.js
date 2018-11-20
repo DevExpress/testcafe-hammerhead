@@ -58,7 +58,7 @@ const CLIENT_TESTS_BROWSERS = [
         browserName: 'firefox'
     },
     {
-        platform:    'Windows 8.1',
+        platform:    'Windows 10',
         browserName: 'internet explorer',
         version:     '11.0'
     },

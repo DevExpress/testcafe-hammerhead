@@ -183,6 +183,9 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
     var countXhrLoadEvents             = 0;
     var validCountXhrLoadEvents        = browserUtils.isWebKit ? 2 : 1;
 
+    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (GH-1837)
+    var skipIframeCheck = false;
+
     iframe.id = 'test_iframe_id_96ljkls';
     iframe.setAttribute('src', 'javascript:"<html><body><h1>test</h1></body></html>"');
     iframe.addEventListener('load', function () {
@@ -201,7 +204,15 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
                 ok(false, 'error event must not be raised');
             });
             xhr.open('post', '/get-script/test', false);
-            xhr.send();
+            try {
+                xhr.send();
+            }
+            catch (e) {
+                if (e.name === 'NetworkError') {
+                    skipIframeCheck = true;
+                    expect(0);
+                }
+            }
         };
 
         iframeIframeSandbox.off(iframeIframeSandbox.RUN_TASK_SCRIPT_EVENT, iframeIframeSandbox.iframeReadyToInitHandler);
@@ -215,7 +226,9 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
                 countNestedIframeLoadEvents++;
 
                 if (countNestedIframeLoadEvents === maxCountNestedIframeLoadEvents) {
-                    strictEqual(countXhrLoadEvents, validCountXhrLoadEvents);
+                    if (!skipIframeCheck)
+                        strictEqual(countXhrLoadEvents, validCountXhrLoadEvents);
+
                     iframe.parentNode.removeChild(iframe);
                     start();
                 }
