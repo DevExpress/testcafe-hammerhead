@@ -183,7 +183,7 @@ asyncTest('an error occurs when proxing two nested iframes (a top iframe has src
     var countXhrLoadEvents             = 0;
     var validCountXhrLoadEvents        = browserUtils.isWebKit ? 2 : 1;
 
-    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (GH-1837)
+    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (iframe without src case) (GH-1837)
     var skipIframeCheck = false;
 
     iframe.id = 'test_iframe_id_96ljkls';

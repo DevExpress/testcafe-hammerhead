@@ -208,7 +208,7 @@ asyncTest('xhr.responseURL', function () {
 });
 
 test('send the origin header correctly (GH-284)', function () {
-    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (GH-1837)
+    // NOTE: NetworkError occurs in IE11 after some Windows 10 update (iframe without src case) (GH-1837)
     window.skipIframeCheck = false;
 
     function xhrTestFunc () {
@@ -226,6 +226,19 @@ test('send the origin header correctly (GH-284)', function () {
         window.response = xhr.responseText;
     }
 
+    function checkIframe (iframe) {
+        var script = document.createElement('script');
+
+        nativeMethods.scriptTextSetter.call(script, '(' + xhrTestFunc.toString() + ')()');
+
+        iframe.contentDocument.body.appendChild(script);
+
+        if (!window.skipIframeCheck)
+            strictEqual(iframe.contentWindow.response, 'https://example.com', iframe.src ? 'iframe with src' : 'iframe without src');
+
+        window.skipIframeCheck = false;
+    }
+
     xhrTestFunc();
     strictEqual(window.response, 'https://example.com', 'top window');
 
@@ -236,19 +249,16 @@ test('send the origin header correctly (GH-284)', function () {
 
     destLocation.forceLocation('http://localhost/sessionId/https://example.com');
 
-    return createTestIframe()
-        .then(function (iframe) {
-            // NOTE: iframe without src
-            iframe.contentWindow['%hammerhead%'].get('./utils/destination-location').forceLocation(null);
+    return Promise.all([
+        createTestIframe(),
+        createTestIframe({ src: getSameDomainPageUrl('../../data/iframe/simple-iframe.html') })
+    ])
+        .then(function (iframes) {
+            var iframeWithoutSrc = iframes[0];
+            var iframeWithSrc    = iframes[1];
 
-            var script = document.createElement('script');
-
-            nativeMethods.scriptTextSetter.call(script, '(' + xhrTestFunc.toString() + ')()');
-
-            iframe.contentDocument.body.appendChild(script);
-
-            if (!window.skipIframeCheck)
-                strictEqual(iframe.contentWindow.response, 'https://example.com', 'iframe');
+            checkIframe(iframeWithoutSrc);
+            checkIframe(iframeWithSrc);
         });
 });
 
