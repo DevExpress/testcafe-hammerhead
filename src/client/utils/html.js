@@ -36,10 +36,7 @@ const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:
 
 const ATTRS_FOR_CLEANING      = nativeMethods.arrayConcat.call(URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC);
 const ATTRS_DATA_FOR_CLEANING = nativeMethods.arrayMap.call(ATTRS_FOR_CLEANING, attr => {
-    return {
-        attr,
-        storedAttr: DomProcessor.getStoredAttrName(attr)
-    };
+    return { attr, storedAttr: DomProcessor.getStoredAttrName(attr) };
 });
 
 const STORED_ATTRS_SELECTOR = (() => {
@@ -137,7 +134,10 @@ export function cleanUpHtml (html) {
 
         find(container, STORED_ATTRS_SELECTOR, el => {
             for (const { attr, storedAttr } of ATTRS_DATA_FOR_CLEANING) {
-                if (el.hasAttribute(attr) && el.hasAttribute(storedAttr))
+                const shouldCheckAttr = URL_ATTRS.indexOf(attr) !== -1 ? domProcessor.getUrlAttr(el) === attr : true;
+
+                if (shouldCheckAttr && nativeMethods.hasAttribute.call(el, attr) &&
+                    nativeMethods.hasAttribute.call(el, storedAttr))
                     nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
                 else if (attr === 'autocomplete')
                     nativeMethods.removeAttribute.call(el, attr);

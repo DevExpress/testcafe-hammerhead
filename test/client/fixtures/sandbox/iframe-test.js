@@ -67,7 +67,7 @@ test('event should not raise if a cross-domain iframe is appended', function () 
 test('document.write', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.id = 'test10';
+    iframe.id = 'test' + Date.now();
     document.body.appendChild(iframe);
     iframe.contentDocument.write('<script>window.tempTestValue = !!__call$;<' + '/script>');
 

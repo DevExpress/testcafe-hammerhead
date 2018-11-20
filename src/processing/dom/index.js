@@ -22,7 +22,7 @@ const EXECUTABLE_SCRIPT_TYPES_REG_EX     = /^\s*(application\/(x-)?(ecma|java)sc
 const SVG_XLINK_HREF_TAGS = [
     'animate', 'animateColor', 'animateMotion', 'animateTransform', 'mpath', 'set', //animation elements
     'linearGradient', 'radialGradient', 'stop', //gradient elements
-    'a', 'altglyph', 'color-profile', 'cursor', 'feimage', 'filter', '<font-face-uri', 'glyphref', 'image',
+    'a', 'altglyph', 'color-profile', 'cursor', 'feimage', 'filter', 'font-face-uri', 'glyphref', 'image',
     'mpath', 'pattern', 'script', 'textpath', 'use', 'tref'
 ];
 
