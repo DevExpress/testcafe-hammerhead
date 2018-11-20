@@ -55,7 +55,7 @@ export default {
             // iframe) you cannot set a relative link href while the iframe loading is not completed. So, we'll do it with
             // the parent's urlResolver Safari demonstrates similar behavior, but urlResolver.href has a relative URL value.
             const isIframeWithUnresolvedUrl = url && window.parent && window.parent !== window &&
-                                              window.parent.document && (!href || href.indexOf('/') === 0);
+                                              (!href || href.indexOf('/') === 0);
             const iframeElement             = isIframeWithUnresolvedUrl && getFrameElement(window);
             const needUseParentResolver     = iframeElement && isIframeWithoutSrc(iframeElement);
 
