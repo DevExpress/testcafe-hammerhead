@@ -581,20 +581,25 @@ if (window.location.ancestorOrigins) {
     // NOTE: while we a trying to restore ancestorOrigns list using parent location,
     // we expect the following ancestorOrigins: ['cross-domain-ancestor-chain', ...]. (GH-1342)
     test('cross domain iframe (GH-1342)', function () {
-        var onMessageHandler = function (evt) {
-            var message = evt.data.msg;
-            var data    = JSON.parse(message);
-
-            strictEqual(data.ancestorOriginsLength, 1);
-            strictEqual(data.ancestorOrigins[0], 'https://example.com');
-
-            window.removeEventListener('message', onMessageHandler);
-        };
-
         return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-ancestor-origin.html') })
             .then(function (crossDomainIframe) {
-                window.addEventListener('message', onMessageHandler);
                 callMethod(crossDomainIframe.contentWindow, 'postMessage', ['get ancestorOrigin', '*']);
+
+                return new Promise(function (resolve) {
+                    window.addEventListener('message', function onMessageHandler (evt) {
+                        if (evt.data.id === 'GH-1342') {
+                            window.removeEventListener('message', onMessageHandler);
+                            resolve(evt);
+                        }
+                    });
+                });
+            })
+            .then(function (evt) {
+                var message = evt.data.msg;
+                var data    = JSON.parse(message);
+
+                strictEqual(data.ancestorOriginsLength, 1);
+                strictEqual(data.ancestorOrigins[0], 'https://example.com');
             });
     });
 }
