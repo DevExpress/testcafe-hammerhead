@@ -578,8 +578,6 @@ if (window.location.ancestorOrigins) {
             });
     });
 
-    // NOTE: while we a trying to restore ancestorOrigns list using parent location,
-    // we expect the following ancestorOrigins: ['cross-domain-ancestor-chain', ...]. (GH-1342)
     test('cross domain iframe (GH-1342)', function () {
         return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/get-ancestor-origin.html') })
             .then(function (crossDomainIframe) {
