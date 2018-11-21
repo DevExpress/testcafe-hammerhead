@@ -34,19 +34,14 @@ const UNWRAP_DOCTYPE_RE     = new RegExp(`<${ FAKE_DOCTYPE_TAG_NAME }>([\\S\\s]*
 const FIND_SVG_RE      = /<svg\s?[^>]*>/ig;
 const FIND_NS_ATTRS_RE = /\s(?:NS[0-9]+:[^"']+('|")[\S\s]*?\1|[^:]+:NS[0-9]+=(?:""|''))/g;
 
-const ATTRS_FOR_CLEANING      = nativeMethods.arrayConcat.call(URL_ATTRS, ATTRS_WITH_SPECIAL_PROXYING_LOGIC);
-const ATTRS_DATA_FOR_CLEANING = nativeMethods.arrayMap.call(ATTRS_FOR_CLEANING, attr => {
-    return {
-        attr,
-        storedAttr: DomProcessor.getStoredAttrName(attr)
-    };
-});
-
 const STORED_ATTRS_SELECTOR = (() => {
     const storedAttrs = [];
 
-    for (const { storedAttr } of ATTRS_DATA_FOR_CLEANING)
-        storedAttrs.push(storedAttr);
+    for (const attr of URL_ATTRS)
+        storedAttrs.push(DomProcessor.getStoredAttrName(attr));
+
+    for (const attr of ATTRS_WITH_SPECIAL_PROXYING_LOGIC)
+        storedAttrs.push(DomProcessor.getStoredAttrName(attr));
 
     return '[' + storedAttrs.join('],[') + ']';
 })();
@@ -131,19 +126,86 @@ function processHtmlInternal (html, process) {
     return processedHtml;
 }
 
+function cleanUpUrlAttr (el) {
+    const urlAttr = domProcessor.getUrlAttr(el);
+
+    if (!urlAttr || !nativeMethods.hasAttribute.call(el, urlAttr))
+        return;
+
+    const storedAttr = DomProcessor.getStoredAttrName(urlAttr);
+
+    if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+        nativeMethods.setAttribute.call(el, urlAttr, nativeMethods.getAttribute.call(el, storedAttr));
+        nativeMethods.removeAttribute.call(el, storedAttr);
+    }
+}
+
+function cleanUpAutocompleteAttr (el) {
+    if (!nativeMethods.hasAttribute.call(el, 'autocomplete'))
+        return;
+
+    const storedAttr = DomProcessor.getStoredAttrName('autocomplete');
+
+    if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+        const storedAttrValue = nativeMethods.getAttribute.call(el, storedAttr);
+
+        if (DomProcessor.isAddedAutocompleteAttr('autocomplete', storedAttrValue))
+            nativeMethods.removeAttribute.call(el, 'autocomplete');
+        else
+            nativeMethods.setAttribute.call(el, 'autocomplete', storedAttrValue);
+
+        nativeMethods.removeAttribute.call(el, storedAttr);
+    }
+}
+
+function cleanUpTargetAttr (el) {
+    const targetAttr = domProcessor.getTargetAttr(el);
+
+    if (!targetAttr || !nativeMethods.hasAttribute.call(el, targetAttr))
+        return;
+
+    const storedAttr = DomProcessor.getStoredAttrName(targetAttr);
+
+    if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+        nativeMethods.setAttribute.call(el, targetAttr, nativeMethods.getAttribute.call(el, storedAttr));
+        nativeMethods.removeAttribute.call(el, storedAttr);
+    }
+}
+
+function cleanUpSandboxAttr (el) {
+    if (domProcessor.adapter.getTagName(el) !== 'iframe' || !nativeMethods.hasAttribute.call(el, 'sandbox'))
+        return;
+
+    const storedAttr = DomProcessor.getStoredAttrName('sandbox');
+
+    if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+        nativeMethods.setAttribute.call(el, 'sandbox', nativeMethods.getAttribute.call(el, storedAttr));
+        nativeMethods.removeAttribute.call(el, storedAttr);
+    }
+}
+
+function cleanUpStyleAttr (el) {
+    if (!nativeMethods.hasAttribute.call(el, 'style'))
+        return;
+
+    const storedAttr = DomProcessor.getStoredAttrName('style');
+
+    if (nativeMethods.hasAttribute.call(el, storedAttr)) {
+        nativeMethods.setAttribute.call(el, 'style', nativeMethods.getAttribute.call(el, storedAttr));
+        nativeMethods.removeAttribute.call(el, storedAttr);
+    }
+}
+
 export function cleanUpHtml (html) {
     return processHtmlInternal(html, container => {
         let changed = false;
 
         find(container, STORED_ATTRS_SELECTOR, el => {
-            for (const { attr, storedAttr } of ATTRS_DATA_FOR_CLEANING) {
-                if (el.hasAttribute(attr) && el.hasAttribute(storedAttr))
-                    nativeMethods.setAttribute.call(el, attr, nativeMethods.getAttribute.call(el, storedAttr));
-                else if (attr === 'autocomplete')
-                    nativeMethods.removeAttribute.call(el, attr);
-
-                nativeMethods.removeAttribute.call(el, storedAttr);
-            }
+            cleanUpUrlAttr(el);
+            cleanUpAutocompleteAttr(el);
+            cleanUpTargetAttr(el);
+            cleanUpSandboxAttr(el);
+            cleanUpStyleAttr(el);
 
             changed = true;
         });

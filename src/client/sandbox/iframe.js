@@ -4,7 +4,7 @@ import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import { isJsProtocol } from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc } from '../utils/dom';
-import { isFirefox, isWebKit } from '../utils/browser';
+import { isFirefox, isWebKit, isIE } from '../utils/browser';
 import * as JSON from '../json';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
@@ -103,7 +103,8 @@ export default class IframeSandbox extends SandboxBase {
     static isIframeInitialized (iframe) {
         const isFFIframeUninitialized = isFirefox && iframe.contentWindow.document.readyState === 'uninitialized';
 
-        return !isFFIframeUninitialized && !!iframe.contentDocument.documentElement;
+        return !isFFIframeUninitialized && !!iframe.contentDocument.documentElement ||
+               isIE && iframe.contentWindow[INTERNAL_PROPS.documentWasCleaned];
     }
 
     static isWindowInited (window) {

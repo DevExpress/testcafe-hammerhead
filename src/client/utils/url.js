@@ -7,6 +7,26 @@ import settings from '../settings';
 const HASH_RE                          = /#[\S\s]*$/;
 const SUPPORTED_WEB_SOCKET_PROTOCOL_RE = /^wss?:/i;
 
+// NOTE: The window.location equals 'about:blank' in iframes without src
+// therefore we need to find a window with src to get the proxy settings
+const DEFAULT_PROXY_SETTINGS = (function () {
+    /*eslint-disable no-restricted-properties*/
+    let locationWindow = window;
+    let proxyLocation  = locationWindow.location;
+
+    while (!proxyLocation.hostname) {
+        locationWindow = locationWindow.parent;
+        proxyLocation  = locationWindow.location;
+    }
+
+    return {
+        hostname: proxyLocation.hostname,
+        port:     proxyLocation.port.toString(),
+        protocol: proxyLocation.protocol
+    };
+    /*eslint-enable no-restricted-properties*/
+})();
+
 export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = sharedUrlUtils.REQUEST_DESCRIPTOR_VALUES_SEPARATOR;
 
 export function getProxyUrl (url, opts) {
@@ -23,9 +43,9 @@ export function getProxyUrl (url, opts) {
         return url;
 
     /*eslint-disable no-restricted-properties*/
-    const proxyHostname       = opts && opts.proxyHostname || location.hostname;
-    const proxyPort           = opts && opts.proxyPort || location.port.toString();
-    const proxyServerProtocol = opts && opts.proxyProtocol || location.protocol;
+    const proxyHostname       = opts && opts.proxyHostname || DEFAULT_PROXY_SETTINGS.hostname;
+    const proxyPort           = opts && opts.proxyPort || DEFAULT_PROXY_SETTINGS.port;
+    const proxyServerProtocol = opts && opts.proxyProtocol || DEFAULT_PROXY_SETTINGS.protocol;
     /*eslint-enable no-restricted-properties*/
 
     const proxyProtocol = parsedResourceType.isWebSocket

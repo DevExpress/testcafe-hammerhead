@@ -67,7 +67,7 @@ test('event should not raise if a cross-domain iframe is appended', function () 
 test('document.write', function () {
     var iframe = document.createElement('iframe');
 
-    iframe.id = 'test10';
+    iframe.id = 'test' + Date.now();
     document.body.appendChild(iframe);
     iframe.contentDocument.write('<script>window.tempTestValue = !!__call$;<' + '/script>');
 
@@ -435,3 +435,14 @@ if (!browserUtils.isFirefox) {
     });
 }
 
+test('overridden functions should have the right prototype in an iframe without src (GH-1824)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            iframe.contentWindow.eval('Function.prototype.testFn = function () { return true; }');
+
+            ok(iframe.contentWindow.Function.testFn());
+            ok(iframe.contentWindow.Image.testFn());
+            ok(iframe.contentDocument.body.appendChild.testFn());
+            notOk(window.Function.testFn);
+        });
+});

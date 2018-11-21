@@ -298,6 +298,9 @@ export default class DocumentWriter {
         const nativeWriteMethod = ln ? nativeMethods.documentWriteLn : nativeMethods.documentWrite;
         const result            = nativeWriteMethod.call(this.document, htmlChunk);
 
+        if (isDocumentCleaned && isIE)
+            return result;
+
         if (!this.isEndMarkerInDOM && !this.isAddContentToEl) {
             let el = this.document.documentElement;
 

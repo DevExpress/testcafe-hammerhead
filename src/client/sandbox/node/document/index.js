@@ -47,6 +47,20 @@ export default class DocumentSandbox extends SandboxBase {
     }
 
     static _shouldEmitDocumentCleanedEvents (doc) {
+        if (isIE) {
+            if (doc.readyState !== 'loading')
+                return true;
+
+            const window = doc.defaultView;
+
+            if (window[INTERNAL_PROPS.documentWasCleaned])
+                return false;
+
+            const iframe = window && getFrameElement(window);
+
+            return iframe && isIframeWithoutSrc(iframe);
+        }
+
         return doc.readyState !== 'loading' && doc.readyState !== 'uninitialized';
     }
 
@@ -85,6 +99,18 @@ export default class DocumentSandbox extends SandboxBase {
             nativeMethods.objectDefineProperty.call(window.Object, owner, prop, overriddenDescriptor);
     }
 
+    iframeDocumentOpen (window, document, args) {
+        const iframe = window.frameElement;
+        const result = nativeMethods.documentOpen.apply(document, args);
+
+        nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
+
+        nativeMethods.restoreDocumentMeths(document);
+        this.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
+
+        return result;
+    }
+
     attach (window, document) {
         if (this._needToUpdateDocumentWriter(window, document)) {
             this.documentWriter = new DocumentWriter(window, document);
@@ -104,6 +130,9 @@ export default class DocumentSandbox extends SandboxBase {
             if (!isUninitializedIframe)
                 this._beforeDocumentCleaned();
 
+            if (isIE)
+                return parent[INTERNAL_PROPS.hammerhead].sandbox.node.doc.iframeDocumentOpen(window, document, args);
+
             const result = nativeMethods.documentOpen.apply(document, args);
 
             if (isIE)
@@ -115,8 +144,7 @@ export default class DocumentSandbox extends SandboxBase {
                 ? window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
                 : window.Object.defineProperty;
 
-            objectDefinePropertyFn
-                .call(window.Object, window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
+            objectDefinePropertyFn(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
 
             if (!isUninitializedIframe)
                 this.nodeSandbox.mutation.onDocumentCleaned({ window, document });

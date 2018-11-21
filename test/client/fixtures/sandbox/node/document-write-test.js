@@ -54,7 +54,7 @@ function testHTML () {
     var outerHTML = processedIframeForWrite.contentDocument.documentElement.outerHTML;
 
     // TODO: remove this condition after GH-1326 pull request
-    if (browserUtils.isFirefox || browserUtils.isIE) {
+    if (browserUtils.isFirefox) {
         innerHTML = htmlUtils.cleanUpHtml(innerHTML);
         outerHTML = htmlUtils.cleanUpHtml(outerHTML);
     }
