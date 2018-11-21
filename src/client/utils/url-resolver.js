@@ -32,6 +32,15 @@ export default {
         return doc[DOCUMENT_URL_RESOLVER];
     },
 
+    _isNestedIframeWithoutSrc (win) {
+        if (!win || !win.parent || win.parent === win || win.parent.parent === win.parent)
+            return false;
+
+        const iframeElement = getFrameElement(window);
+
+        return !!iframeElement && isIframeWithoutSrc(iframeElement);
+    },
+
     init (doc) {
         this.updateBase(destLocation.get(), doc);
     },
@@ -54,10 +63,8 @@ export default {
             // NOTE: It looks like a Chrome bug: in a nested iframe without src (when an iframe is placed into another
             // iframe) you cannot set a relative link href while the iframe loading is not completed. So, we'll do it with
             // the parent's urlResolver Safari demonstrates similar behavior, but urlResolver.href has a relative URL value.
-            const isIframeWithUnresolvedUrl = url && window.parent && window.parent !== window &&
-                                              (!href || href.indexOf('/') === 0);
-            const iframeElement             = isIframeWithUnresolvedUrl && getFrameElement(window);
-            const needUseParentResolver     = iframeElement && isIframeWithoutSrc(iframeElement);
+            const needUseParentResolver = url && (!href || href.charAt(0) === '/') &&
+                                          this._isNestedIframeWithoutSrc(doc.defaultView);
 
             if (needUseParentResolver)
                 return this.resolve(url, window.parent.document);
