@@ -127,9 +127,11 @@ export default class ShadowUI extends SandboxBase {
     }
 
     static _getFirstNonShadowElement (nodeList) {
-        for (const node of nodeList) {
-            if (ShadowUI._filterElement(node))
-                return node;
+        const length = nativeMethods.nodeListLengthGetter.call(nodeList);
+
+        for (let i = 0; i < length; i++) {
+            if (ShadowUI._filterElement(nodeList[i]))
+                return nodeList[i];
         }
 
         return null;
@@ -322,10 +324,11 @@ export default class ShadowUI extends SandboxBase {
     _getUIStyleSheetsHtml () {
         const stylesSelector = 'link.' + SHADOW_UI_CLASS_NAME.uiStylesheet;
         const stylesheets    = this.nativeMethods.querySelectorAll.call(this.document, stylesSelector);
+        const length         = this.nativeMethods.nodeListLengthGetter.call(stylesheets);
         let result           = '';
 
-        for (const stylesheet of stylesheets)
-            result += nativeMethods.elementOuterHTMLGetter.call(stylesheet);
+        for (let i = 0; i < length; i++)
+            result += nativeMethods.elementOuterHTMLGetter.call(stylesheets[i]);
 
         return result;
     }
@@ -352,7 +355,11 @@ export default class ShadowUI extends SandboxBase {
         if (!head)
             return;
 
-        for (const headChild of head.children) {
+        const length = nativeMethods.htmlCollectionLengthGetter.call(head.children);
+
+        for (let i = 0; i < length; i++) {
+            const headChild = head.children[i];
+
             if (ShadowUI.containsShadowUIClassPostfix(headChild))
                 ShadowUI._markElementAsShadow(headChild);
         }
@@ -532,12 +539,17 @@ export default class ShadowUI extends SandboxBase {
         if (domUtils.isShadowUIElement(mutation.target))
             return true;
 
-        for (const removedNode of mutation.removedNodes) {
-            if (domUtils.isShadowUIElement(removedNode))
+        const removedNodesLength = nativeMethods.nodeListLengthGetter.call(mutation.removedNodes);
+
+        for (let i = 0; i < removedNodesLength; i++) {
+            if (domUtils.isShadowUIElement(mutation.removedNodes[i]))
                 return true;
         }
-        for (const addedNode of mutation.addedNodes) {
-            if (domUtils.isShadowUIElement(addedNode))
+
+        const addedNodesLength = nativeMethods.nodeListLengthGetter.call(mutation.addedNodes);
+
+        for (let i = 0; i < addedNodesLength; i++) {
+            if (domUtils.isShadowUIElement(mutation.addedNodes[i]))
                 return true;
         }
 
@@ -568,9 +580,10 @@ export default class ShadowUI extends SandboxBase {
     static removeSelfRemovingScripts (document) {
         const selfRemovingScripts = nativeMethods.querySelectorAll.call(document,
             '.' + SHADOW_UI_CLASS_NAME.selfRemovingScript);
+        const length              = nativeMethods.nodeListLengthGetter.call(selfRemovingScripts);
 
-        for (const selfRemovingScript of selfRemovingScripts)
-            nativeMethods.removeChild.call(selfRemovingScript.parentNode, selfRemovingScript);
+        for (let i = 0; i < length; i++)
+            nativeMethods.removeChild.call(selfRemovingScripts[i].parentNode, selfRemovingScripts[i]);
     }
 
     // API
@@ -664,9 +677,10 @@ export default class ShadowUI extends SandboxBase {
             return;
 
         const childElements = getNativeQuerySelectorAll(el).call(el, '*');
+        const length        = nativeMethods.nodeListLengthGetter.call(childElements);
 
-        for (const childElement of childElements)
-            ShadowUI._markElementAsShadow(childElement);
+        for (let i = 0; i < length; i++)
+            ShadowUI._markElementAsShadow(childElements[i]);
     }
 
     static _markAsShadowContainer (container) {

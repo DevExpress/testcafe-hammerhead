@@ -84,9 +84,10 @@ export default class NodeSandbox extends SandboxBase {
             this._processElement(el);
 
             const children = getNativeQuerySelectorAll(el).call(el, '*');
+            const length   = nativeMethods.nodeListLengthGetter.call(children);
 
-            for (const child of children)
-                this._processElement(child);
+            for (let i = 0; i < length; i++)
+                this._processElement(children[i]);
         }
     }
 

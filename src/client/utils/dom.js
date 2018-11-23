@@ -189,23 +189,20 @@ export function getSelectParent (child) {
 }
 
 export function getSelectVisibleChildren (select) {
-    let children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
+    const children = nativeMethods.elementQuerySelectorAll.call(select, 'optgroup, option');
+    const result   = [];
+    const length   = nativeMethods.nodeListLengthGetter.call(children);
 
-    children = nativeMethods.arraySlice.call(children);
+    for (let i = 0; i < length; i++) {
+        const child     = children[i];
+        // NOTE: Firefox does not display groups without a label and with an empty label.
+        const shouldAdd = isFirefox ? getTagName(child) !== 'optgroup' || child.label : true;
 
-    // NOTE: Firefox does not display groups without a label and with an empty label.
-    if (isFirefox) {
-        const filtered = [];
-
-        for (const child of children) {
-            if (getTagName(child) !== 'optgroup' || !!child.label)
-                filtered.push(child);
-        }
-
-        children = filtered;
+        if (shouldAdd)
+            result.push(child);
     }
 
-    return children;
+    return result;
 }
 
 export function getTopSameDomainWindow (window) {
@@ -230,14 +227,16 @@ export function getTopSameDomainWindow (window) {
 }
 
 export function find (parent, selector, handler) {
-    const elms = getNativeQuerySelectorAll(parent).call(parent, selector);
+    const nodeList = getNativeQuerySelectorAll(parent).call(parent, selector);
 
     if (handler) {
-        for (const elm of elms)
-            handler(elm);
+        const length = nativeMethods.nodeListLengthGetter.call(nodeList);
+
+        for (let i = 0; i < length; i++)
+            handler(nodeList[i]);
     }
 
-    return elms;
+    return nodeList;
 }
 
 export function findDocument (el) {
@@ -720,14 +719,24 @@ export function getParents (el, selector) {
     return parents;
 }
 
+export function nodeListToArray (nodeList) {
+    const result = [];
+    const length = nativeMethods.nodeListLengthGetter.call(nodeList);
+
+    for (let i = 0; i < length; i++)
+        result.push(nodeList[i]);
+
+    return result;
+}
+
 export function getFileInputs (el) {
-    return isFileInput(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'input[type=file]');
+    return isFileInput(el) ? [el] : nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'input[type=file]'));
 }
 
 export function getIframes (el) {
-    return isIframeElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'iframe,frame');
+    return isIframeElement(el) ? [el] : nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'iframe,frame'));
 }
 
 export function getScripts (el) {
-    return isScriptElement(el) ? [el] : getNativeQuerySelectorAll(el).call(el, 'script');
+    return isScriptElement(el) ? [el] : nodeListToArray(getNativeQuerySelectorAll(el).call(el, 'script'));
 }

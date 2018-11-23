@@ -265,23 +265,25 @@ export function processHtml (html, { parentTag, prepareDom, processedContext } =
         let doctypeElement  = null;
         const htmlElements  = [];
         let children        = [];
+        let length          = 0;
         const storedBaseUrl = urlResolver.getBaseUrl(document);
 
         if (prepareDom)
             prepareDom(container);
 
-        // NOTE: We check this condition to avoid unnecessary calls of the querySelectorAll function.
-        if (container.children.length === 1 && container.children[0].children && !container.children[0].children.length)
-            children = [container.children[0]];
-        else if (container.children.length)
+        if (nativeMethods.htmlCollectionLengthGetter.call(container.children)) {
             children = nativeMethods.elementQuerySelectorAll.call(container, '*');
+            length   = nativeMethods.nodeListLengthGetter.call(children);
+        }
 
         const base = nativeMethods.elementQuerySelector.call(container, 'base');
 
         if (base)
             urlResolver.updateBase(nativeMethods.getAttribute.call(base, 'href'), document);
 
-        for (const child of children) {
+        for (let i = 0; i < length; i++) {
+            const child = children[i];
+
             if (isScriptElement(child)) {
                 const scriptContent = nativeMethods.nodeTextContentGetter.call(child);
 
