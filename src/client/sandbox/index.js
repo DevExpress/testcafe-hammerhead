@@ -185,8 +185,11 @@ export default class Sandbox extends SandboxBase {
         removeListeningElement(this.document);
 
         const childNodes = nativeMethods.querySelectorAll.call(this.document, '*');
+        const length     = nativeMethods.nodeListLengthGetter.call(childNodes);
 
-        for (const childNode of childNodes) {
+        for (let i = 0; i < length; i++) {
+            const childNode = childNodes[i];
+
             delete childNode[INTERNAL_PROPS.processedContext];
             removeListeningElement(childNode);
         }

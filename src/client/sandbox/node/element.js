@@ -407,11 +407,11 @@ export default class ElementSandbox extends SandboxBase {
 
         this._prepareNodeForInsertion(newNode, parentNode);
 
-        let result     = null;
-        let childNodes = null;
+        let result          = null;
+        let childNodesArray = null;
 
         if (domUtils.isDocumentFragmentNode(newNode))
-            childNodes = nativeMethods.arraySlice.call(newNode.childNodes);
+            childNodesArray = domUtils.nodeListToArray(newNode.childNodes);
 
         // NOTE: Before the page's <body> is processed and added to DOM,
         // some javascript frameworks create their own body element, perform
@@ -422,8 +422,8 @@ export default class ElementSandbox extends SandboxBase {
         else
             result = nativeFn.apply(parentNode, args);
 
-        if (childNodes) {
-            for (const child of childNodes)
+        if (childNodesArray) {
+            for (const child of childNodesArray)
                 this._onElementAdded(child);
         }
         else
@@ -690,7 +690,6 @@ export default class ElementSandbox extends SandboxBase {
 
         if (domUtils.isFileInput(el))
             ElementSandbox._removeFileInputInfo(el);
-
         else
             domUtils.find(el, 'input[type=file]', ElementSandbox._removeFileInputInfo);
     }
