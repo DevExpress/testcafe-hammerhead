@@ -3,6 +3,7 @@ var settings = hammerhead.get('./settings');
 var iframeSandbox = hammerhead.sandbox.iframe;
 var cookieSandbox = hammerhead.sandbox.cookie;
 var browserUtils  = hammerhead.utils.browser;
+var domUtils      = hammerhead.utils.dom;
 var shadowUI      = hammerhead.sandbox.shadowUI;
 var Promise       = hammerhead.Promise;
 
@@ -83,23 +84,20 @@ test('take sequences starting with "$" into account when generating task scripts
 
     var iframeTemplate = '$$ $& $` $\' $n $nn {{{cookie}}}{{{referer}}}{{{iframeTaskScriptTemplate}}}';
 
-    var evtMock = {
-        iframe: {
-            contentWindow: {
-                eval: function (processed) {
-                    strictEqual(processed, '$$ $& $` $\' $n $nn "' + cookieSandbox.getCookie() + '"' +
-                                           window.location.toString() + '"' + iframeTemplate + '"');
-                }
-            }
-        }
-    };
+    return createTestIframe()
+        .then(function (iframe) {
+            iframe.contentWindow.eval = function (processed) {
+                strictEqual(processed, '$$ $& $` $\' $n $nn "' + cookieSandbox.getCookie() + '"' +
+                                       window.location.toString() + '"' + iframeTemplate + '"');
+            };
 
-    var templateSettings = settings.get();
-    var storedTemplate   = templateSettings.iframeTaskScriptTemplate;
+            var templateSettings = settings.get();
+            var storedTemplate   = templateSettings.iframeTaskScriptTemplate;
 
-    templateSettings.iframeTaskScriptTemplate = iframeTemplate;
-    iframeSandbox.iframeReadyToInitHandler(evtMock);
-    templateSettings.iframeTaskScriptTemplate = storedTemplate;
+            templateSettings.iframeTaskScriptTemplate = iframeTemplate;
+            iframeSandbox.iframeReadyToInitHandler({ iframe: iframe });
+            templateSettings.iframeTaskScriptTemplate = storedTemplate;
+        });
 });
 
 test('ready to init event must not raise for added iframe(B239643)', function () {
@@ -444,5 +442,30 @@ test('overridden functions should have the right prototype in an iframe without 
             ok(iframe.contentWindow.Image.testFn());
             ok(iframe.contentDocument.body.appendChild.testFn());
             notOk(window.Function.testFn);
+        });
+});
+
+test('hammerhead should not use overridden contentWindow, contentDocument getters (GH-1850)', function () {
+    return createTestIframe()
+        .then(function (iframe) {
+            Object.defineProperties(iframe, {
+                contentWindow: {
+                    get: function () {
+                        ok('false', 'contentWindow');
+                    },
+                    enumerable:   true,
+                    configurable: true
+                },
+                contentDocument: {
+                    get: function () {
+                        ok('false', 'contentDocument');
+                    },
+                    enumerable:   true,
+                    configurable: true
+                }
+            });
+
+            ok(domUtils.isIframeWithoutSrc(iframe));
+            strictEqual(domUtils.getIframeLocation(iframe).documentLocation, 'about:blank');
         });
 });

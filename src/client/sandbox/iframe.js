@@ -3,7 +3,7 @@ import SandboxBase from './base';
 import settings from '../settings';
 import nativeMethods from '../sandbox/native-methods';
 import { isJsProtocol } from '../../processing/dom';
-import { isShadowUIElement, isIframeWithoutSrc } from '../utils/dom';
+import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
 import * as JSON from '../json';
 
@@ -36,20 +36,26 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     _ensureIframeNativeMethodsForChrome (iframe) {
+        const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
+
         if (!this.iframeNativeMethodsBackup && this._shouldSaveIframeNativeMethods(iframe))
-            this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(iframe.contentDocument, iframe.contentWindow);
+            this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
         else if (this.iframeNativeMethodsBackup) {
-            this.iframeNativeMethodsBackup.restoreDocumentMeths(iframe.contentDocument, iframe.contentWindow);
+            this.iframeNativeMethodsBackup.restoreDocumentMeths(contentDocument, contentWindow);
             this.iframeNativeMethodsBackup = null;
         }
     }
 
     _ensureIframeNativeMethodsForIE (iframe) {
-        const iframeNativeMethods = iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+        const contentWindow       = nativeMethods.contentWindowGetter.call(iframe);
+        const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
 
         if (iframeNativeMethods) {
-            iframeNativeMethods.restoreDocumentMeths(iframe.contentDocument, iframe.contentWindow);
-            delete iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+            const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
+
+            iframeNativeMethods.restoreDocumentMeths(contentDocument, contentWindow);
+            delete contentWindow[INTERNAL_PROPS.iframeNativeMethods];
         }
     }
 
@@ -81,30 +87,35 @@ export default class IframeSandbox extends SandboxBase {
         if (!isIframeWithoutSrc(iframe))
             return;
 
+        const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
+
         if (!IframeSandbox.isIframeInitialized(iframe)) {
             // NOTE: Even if iframe is not loaded (iframe.contentDocument.documentElement does not exist), we
             // still need to override the document.write method without initializing Hammerhead. This method can
             // be called before iframe is fully loaded, we should override it now.
-            if (iframe.contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
+            if (contentDocument.write.toString() === this.nativeMethods.documentWrite.toString())
                 this.emit(this.IFRAME_DOCUMENT_CREATED_EVENT, { iframe });
         }
-        else if (!iframe.contentWindow[IFRAME_WINDOW_INITED] && !iframe.contentWindow[INTERNAL_PROPS.hammerhead]) {
+        else if (!contentWindow[IFRAME_WINDOW_INITED] && !contentWindow[INTERNAL_PROPS.hammerhead]) {
             this._ensureIframeNativeMethods(iframe);
 
             // NOTE: Ok, the iframe is fully loaded now, but Hammerhead is not injected.
-            nativeMethods.objectDefineProperty.call(this.window.Object, iframe.contentWindow, IFRAME_WINDOW_INITED, { value: true });
+            nativeMethods.objectDefineProperty.call(this.window.Object, contentWindow, IFRAME_WINDOW_INITED, { value: true });
 
             this._emitEvents(iframe);
 
-            iframe.contentWindow[INTERNAL_PROPS.processDomMethodName]();
+            contentWindow[INTERNAL_PROPS.processDomMethodName]();
         }
     }
 
     static isIframeInitialized (iframe) {
-        const isFFIframeUninitialized = isFirefox && iframe.contentWindow.document.readyState === 'uninitialized';
+        const contentWindow           = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument         = nativeMethods.contentDocumentGetter.call(iframe);
+        const isFFIframeUninitialized = isFirefox && contentWindow.document.readyState === 'uninitialized';
 
-        return !isFFIframeUninitialized && !!iframe.contentDocument.documentElement ||
-               isIE && iframe.contentWindow[INTERNAL_PROPS.documentWasCleaned];
+        return !isFFIframeUninitialized && !!contentDocument.documentElement ||
+               isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
     }
 
     static isWindowInited (window) {
@@ -124,7 +135,9 @@ export default class IframeSandbox extends SandboxBase {
             .replace('{{{referer}}}', escapeStringPatterns(referer))
             .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
 
-        e.iframe.contentWindow.eval.call(e.iframe.contentWindow, taskScript);
+        const contentWindow = nativeMethods.contentWindowGetter.call(e.iframe);
+
+        contentWindow.eval.call(contentWindow, taskScript);
     }
 
     onIframeBeganToRun (iframe) {
@@ -135,7 +148,10 @@ export default class IframeSandbox extends SandboxBase {
         if (isShadowUIElement(el))
             return;
 
-        if (el.contentWindow)
+        const tagName = getTagName(el);
+
+        if (tagName === 'iframe' && nativeMethods.contentWindowGetter.call(el) ||
+            tagName === 'frame' && nativeMethods.frameContentWindowGetter.call(el))
             this._raiseReadyToInitEvent(el);
 
         // NOTE: This handler exists for iframes without the src attribute. In some the browsers (e.g. Chrome)

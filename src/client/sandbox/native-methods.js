@@ -434,6 +434,9 @@ class NativeMethods {
         this.inputFormActionGetter          = inputFormActionDescriptor.get;
         this.buttonFormActionGetter         = buttonFormActionDescriptor.get;
         this.iframeSandboxGetter            = iframeSandboxDescriptor.get;
+        this.contentWindowGetter            = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'contentWindow').get;
+        this.contentDocumentGetter          = win.Object.getOwnPropertyDescriptor(win.HTMLIFrameElement.prototype, 'contentDocument').get;
+        this.frameContentWindowGetter       = win.Object.getOwnPropertyDescriptor(win.HTMLFrameElement.prototype, 'contentWindow').get;
 
         this.nodeTextContentGetter      = nodeTextContentDescriptor.get;
         this.htmlElementInnerTextGetter = htmlElementInnerTextDescriptor.get;

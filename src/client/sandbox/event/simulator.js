@@ -333,7 +333,8 @@ export default class EventSimulator {
 
     _raiseNativeClick (el, originClick) {
         // NOTE: B254199
-        const curWindow       = domUtils.isElementInIframe(el) ? domUtils.getIframeByElement(el).contentWindow : window;
+        const iframe          = domUtils.isElementInIframe(el) && domUtils.getIframeByElement(el);
+        const curWindow       = iframe ? nativeMethods.contentWindowGetter.call(iframe) : window;
         const prevWindowEvent = curWindow.event;
 
         if (browserUtils.isIE11)
@@ -679,9 +680,8 @@ export default class EventSimulator {
     }
 
     _raiseDispatchEvent (el, ev) {
-        const isElementInIframe = domUtils.isElementInIframe(el);
-        const iframe            = isElementInIframe ? domUtils.getIframeByElement(el) : null;
-        const curWindow         = iframe ? iframe.contentWindow : window;
+        const iframe    = domUtils.isElementInIframe(el) && domUtils.getIframeByElement(el);
+        const curWindow = iframe ? nativeMethods.contentWindowGetter.call(iframe) : window;
 
         if (browserUtils.isIE11 && iframe && curWindow) {
             // NOTE: In IE, when we raise an event by using the dispatchEvent function, the window.event object is null.

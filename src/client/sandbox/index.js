@@ -104,22 +104,25 @@ export default class Sandbox extends SandboxBase {
 
     onIframeDocumentRecreated (iframe) {
         if (iframe) {
+            const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
+            const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
+
             // NOTE: Try to find an existing iframe sandbox.
-            const sandbox = getSandboxBackup(iframe.contentWindow);
+            const sandbox = getSandboxBackup(contentWindow);
 
             if (sandbox && Sandbox._canUseSandbox(sandbox))
             // NOTE: Inform the sandbox so that it restores communication with the recreated document.
-                sandbox.reattach(iframe.contentWindow, iframe.contentDocument);
+                sandbox.reattach(contentWindow, contentDocument);
             else {
                 // NOTE: Remove saved native methods for iframe
-                if (iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods])
-                    delete iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods];
+                if (contentWindow[INTERNAL_PROPS.iframeNativeMethods])
+                    delete contentWindow[INTERNAL_PROPS.iframeNativeMethods];
 
                 // NOTE: If the iframe sandbox is not found, this means that iframe is not initialized.
                 // In this case, we need to inject Hammerhead.
 
                 // HACK: IE10 cleans up overridden methods after the document.write method call.
-                this.nativeMethods.restoreDocumentMeths(iframe.contentDocument);
+                this.nativeMethods.restoreDocumentMeths(contentDocument);
 
                 // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
                 // Inform IFrameSandbox about this, and it injects Hammerhead.
@@ -152,7 +155,7 @@ export default class Sandbox extends SandboxBase {
 
         // NOTE: Eval Hammerhead code script.
         this.iframe.on(this.iframe.EVAL_HAMMERHEAD_SCRIPT_EVENT, e => {
-            e.iframe.contentWindow.eval(`(${ initHammerheadClient.toString() })();//# sourceURL=hammerhead.js`);
+            nativeMethods.contentWindowGetter.call(e.iframe).eval(`(${ initHammerheadClient.toString() })();//# sourceURL=hammerhead.js`);
         });
 
         // NOTE: We need to reattach a sandbox to the recreated iframe document.
