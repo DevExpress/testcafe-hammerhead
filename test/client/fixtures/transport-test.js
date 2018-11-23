@@ -346,3 +346,18 @@ test('hammerhead should remove service data from local storage on the first sess
 
     ok(!nativeLocalStorage.getItem(sessionId));
 });
+
+test('service messages with different from the 200 status code should process via an error handler (GH-1839)', function () {
+    var storedServiceMsgUrl = settings.get().serviceMsgUrl;
+
+    settings.get().serviceMsgUrl = '/service-msg-with-error';
+
+    return transport.asyncServiceMsg({ disableResending: true, allowRejecting: true })
+        .then(function () {
+            ok(false, 'Promise rejection expected');
+        })
+        .catch(function (error) {
+            strictEqual(error.message, 'XHR request failed, status: 500. Error message: An error occurred!!!');
+            settings.get().serviceMsgUrl = storedServiceMsgUrl;
+        });
+});
