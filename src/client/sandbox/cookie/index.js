@@ -45,34 +45,31 @@ export default class CookieSandbox extends SandboxBase {
     }
 
     static _updateClientCookieStr (cookieKey, newCookieStr) {
-        // eslint-disable-next-line no-restricted-properties
-        const cookieStr = settings.get().cookie;
-        const cookies   = cookieStr ? cookieStr.split(';') : [];
-        let replaced    = false;
-        const searchStr = cookieKey === '' ? null : cookieKey + '=';
+        const cookieStr      = settings.get().cookie; // eslint-disable-line no-restricted-properties
+        const cookies        = cookieStr ? cookieStr.split(';') : [];
+        const changedCookies = [];
+        let replaced         = false;
+        const searchStr      = cookieKey === '' ? null : cookieKey + '=';
 
         // NOTE: Replace a cookie if it already exists.
-        for (let i = 0; i < cookies.length; i++) {
-            cookies[i] = trim(cookies[i]);
+        for (let cookie of cookies) {
+            cookie = trim(cookie);
 
-            const isCookieExists = searchStr ? cookies[i].indexOf(searchStr) === 0 : cookies[i].indexOf('=') === -1;
+            const isCookieExists = searchStr ? cookie.indexOf(searchStr) === 0 : cookie.indexOf('=') === -1;
 
-            if (isCookieExists) {
-                // NOTE: Delete or update a cookie string.
-                if (newCookieStr === null)
-                    cookies.splice(i, 1);
-                else
-                    cookies[i] = newCookieStr;
+            if (!isCookieExists)
+                changedCookies.push(cookie);
+            else if (newCookieStr !== null) {
+                changedCookies.push(newCookieStr);
 
                 replaced = true;
             }
         }
 
         if (!replaced && newCookieStr !== null)
-            cookies.push(newCookieStr);
+            changedCookies.push(newCookieStr);
 
-        // eslint-disable-next-line no-restricted-properties
-        settings.get().cookie = cookies.join('; ');
+        settings.get().cookie = changedCookies.join('; '); // eslint-disable-line no-restricted-properties
     }
 
     getCookie () {
