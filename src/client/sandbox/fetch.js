@@ -20,22 +20,28 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _addSpecialHeadersToRequestInit (init) {
-        const headers            = init.headers || {};
+        const headers            = init.headers;
         const requestCredentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
         const originHeaderValue  = getOriginHeader();
 
         if (isFetchHeaders(headers)) {
             // eslint-disable-next-line no-restricted-properties
-            headers.set(XHR_HEADERS.origin, originHeaderValue);
-            headers.set(XHR_HEADERS.fetchRequestCredentials, requestCredentials);
+            nativeMethods.headersSet.call(headers, XHR_HEADERS.origin, originHeaderValue);
+            nativeMethods.headersSet.call(headers, XHR_HEADERS.fetchRequestCredentials, requestCredentials);
         }
         else {
-            // eslint-disable-next-line no-restricted-properties
-            headers[XHR_HEADERS.origin]                  = originHeaderValue;
-            headers[XHR_HEADERS.fetchRequestCredentials] = requestCredentials;
-        }
+            const transformedHeaders = {
+                [XHR_HEADERS.origin]:                  originHeaderValue, // eslint-disable-line no-restricted-properties
+                [XHR_HEADERS.fetchRequestCredentials]: requestCredentials
+            };
 
-        init.headers = headers;
+            if (headers) {
+                for (const header of nativeMethods.objectKeys(headers))
+                    transformedHeaders[header] = headers[header];
+            }
+
+            init.headers = transformedHeaders;
+        }
 
         return init;
     }
@@ -88,6 +94,44 @@ export default class FetchSandbox extends SandboxBase {
         return response.status === 0 ? 'opaque' : 'cors';
     }
 
+    static _entriesFilteredNext (iterator, nativeNext) {
+        const entry = nativeNext.apply(iterator);
+
+        if (entry.done)
+            return entry;
+
+        // eslint-disable-next-line no-restricted-properties
+        if (entry.value[0] === XHR_HEADERS.origin || entry.value[0] === XHR_HEADERS.fetchRequestCredentials)
+            return FetchSandbox._entriesFilteredNext(iterator, nativeNext);
+
+        return entry;
+    }
+
+    static _entriesWrapper (...args) {
+        const iterator   = nativeMethods.headersEntries.apply(this, args);
+        const nativeNext = iterator.next;
+
+        iterator.next = () => FetchSandbox._entriesFilteredNext(iterator, nativeNext);
+
+        return iterator;
+    }
+
+    static _valuesWrapper (...args) {
+        const iterator   = nativeMethods.headersEntries.apply(this, args);
+        const nativeNext = iterator.next;
+
+        iterator.next = () => {
+            const filteredEntry = FetchSandbox._entriesFilteredNext(iterator, nativeNext);
+
+            if (!filteredEntry.done)
+                filteredEntry.value = filteredEntry.value[1]; // eslint-disable-line no-restricted-properties
+
+            return filteredEntry;
+        };
+
+        return iterator;
+    }
+
     attach (window) {
         super.attach(window, window.document);
 
@@ -99,10 +143,15 @@ export default class FetchSandbox extends SandboxBase {
         window.Request           = function (...args) {
             FetchSandbox._processArguments(args);
 
-            if (args.length === 1)
-                return new nativeMethods.Request(args[0]);
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
 
-            return new nativeMethods.Request(args[0], args[1]);
+            const request = args.length === 1
+                ? new nativeMethods.Request(args[0])
+                : new nativeMethods.Request(args[0], args[1]);
+
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
+
+            return request;
         };
         window.Request.prototype = nativeMethods.Request.prototype;
 
@@ -121,7 +170,11 @@ export default class FetchSandbox extends SandboxBase {
             if (!FetchSandbox._sameOriginCheck(args))
                 return nativeMethods.promiseReject.call(sandbox.window.Promise, new TypeError());
 
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = nativeMethods.headersEntries;
+
             const fetchPromise = nativeMethods.fetch.apply(this, args);
+
+            window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
 
             sandbox.emit(sandbox.FETCH_REQUEST_SENT_EVENT, fetchPromise);
 
@@ -158,5 +211,23 @@ export default class FetchSandbox extends SandboxBase {
                 return parsedResponseUrl ? parsedResponseUrl.destUrl : responseUrl;
             }
         });
+
+        window.Headers.prototype.entries = window.Headers.prototype[Symbol.iterator] = FetchSandbox._entriesWrapper;
+
+        window.Headers.prototype.values = FetchSandbox._valuesWrapper;
+
+        window.Headers.prototype.forEach = function (...args) {
+            const callback = args[0];
+
+            if (typeof callback === 'function') {
+                args[0] = function (value, name) {
+                    // eslint-disable-next-line no-restricted-properties
+                    if (name !== XHR_HEADERS.origin && name !== XHR_HEADERS.fetchRequestCredentials)
+                        callback.apply(this, arguments);
+                };
+            }
+
+            return nativeMethods.headersForEach.apply(this, args);
+        };
     }
 }
