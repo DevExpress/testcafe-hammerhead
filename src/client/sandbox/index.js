@@ -104,8 +104,8 @@ export default class Sandbox extends SandboxBase {
 
     onIframeDocumentRecreated (iframe) {
         if (iframe) {
-            const contentWindow   = nativeMethods.iframeContentWindowGetter.call(iframe);
-            const contentDocument = nativeMethods.iframeContentDocumentGetter.call(iframe);
+            const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
+            const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
 
             // NOTE: Try to find an existing iframe sandbox.
             const sandbox = getSandboxBackup(contentWindow);
@@ -155,7 +155,7 @@ export default class Sandbox extends SandboxBase {
 
         // NOTE: Eval Hammerhead code script.
         this.iframe.on(this.iframe.EVAL_HAMMERHEAD_SCRIPT_EVENT, e => {
-            nativeMethods.iframeContentWindowGetter.call(e.iframe).eval(`(${ initHammerheadClient.toString() })();//# sourceURL=hammerhead.js`);
+            nativeMethods.contentWindowGetter.call(e.iframe).eval(`(${ initHammerheadClient.toString() })();//# sourceURL=hammerhead.js`);
         });
 
         // NOTE: We need to reattach a sandbox to the recreated iframe document.

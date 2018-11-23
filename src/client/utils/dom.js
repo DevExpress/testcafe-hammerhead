@@ -104,7 +104,7 @@ export function getIframeLocation (iframe) {
 
     try {
         // eslint-disable-next-line no-restricted-properties
-        documentLocation = nativeMethods.iframeContentDocumentGetter.call(iframe).location.href;
+        documentLocation = nativeMethods.contentDocumentGetter.call(iframe).location.href;
     }
     catch (e) {
         documentLocation = null;
@@ -344,7 +344,7 @@ export function isIframeWithoutSrc (iframe) {
 
     // NOTE: after 'document.write' or 'document.open' call for iframe with/without src
     // we will process it as iframe without src
-    if (nativeMethods.iframeContentWindowGetter.call(iframe)[INTERNAL_PROPS.documentWasCleaned])
+    if (nativeMethods.contentWindowGetter.call(iframe)[INTERNAL_PROPS.documentWasCleaned])
         return true;
 
     const iframeDocumentLocationHaveSupportedProtocol = urlUtils.isSupportedProtocol(iframeDocumentLocation);

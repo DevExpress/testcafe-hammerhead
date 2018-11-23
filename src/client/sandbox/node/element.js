@@ -697,7 +697,7 @@ export default class ElementSandbox extends SandboxBase {
 
     _onRemoveIframe (el) {
         if (domUtils.isDomElement(el) && domUtils.isIframeElement(el))
-            windowsStorage.remove(nativeMethods.iframeContentWindowGetter.call(el));
+            windowsStorage.remove(nativeMethods.contentWindowGetter.call(el));
     }
 
     _onElementAdded (el) {
@@ -709,7 +709,7 @@ export default class ElementSandbox extends SandboxBase {
 
             for (const iframe of iframes) {
                 this.onIframeAddedToDOM(iframe);
-                windowsStorage.add(nativeMethods.iframeContentWindowGetter.call(iframe));
+                windowsStorage.add(nativeMethods.contentWindowGetter.call(iframe));
             }
 
             const scripts = domUtils.getScripts(el);

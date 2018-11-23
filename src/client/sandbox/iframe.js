@@ -36,8 +36,8 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     _ensureIframeNativeMethodsForChrome (iframe) {
-        const contentWindow   = nativeMethods.iframeContentWindowGetter.call(iframe);
-        const contentDocument = nativeMethods.iframeContentDocumentGetter.call(iframe);
+        const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
 
         if (!this.iframeNativeMethodsBackup && this._shouldSaveIframeNativeMethods(iframe))
             this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
@@ -48,11 +48,12 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     _ensureIframeNativeMethodsForIE (iframe) {
-        const contentWindow       = nativeMethods.iframeContentWindowGetter.call(iframe);
-        const contentDocument     = nativeMethods.iframeContentDocumentGetter.call(iframe);
+        const contentWindow       = nativeMethods.contentWindowGetter.call(iframe);
         const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
 
         if (iframeNativeMethods) {
+            const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
+
             iframeNativeMethods.restoreDocumentMeths(contentDocument, contentWindow);
             delete contentWindow[INTERNAL_PROPS.iframeNativeMethods];
         }
@@ -86,8 +87,8 @@ export default class IframeSandbox extends SandboxBase {
         if (!isIframeWithoutSrc(iframe))
             return;
 
-        const contentWindow   = nativeMethods.iframeContentWindowGetter.call(iframe);
-        const contentDocument = nativeMethods.iframeContentDocumentGetter.call(iframe);
+        const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
 
         if (!IframeSandbox.isIframeInitialized(iframe)) {
             // NOTE: Even if iframe is not loaded (iframe.contentDocument.documentElement does not exist), we
@@ -109,8 +110,8 @@ export default class IframeSandbox extends SandboxBase {
     }
 
     static isIframeInitialized (iframe) {
-        const contentWindow           = nativeMethods.iframeContentWindowGetter.call(iframe);
-        const contentDocument         = nativeMethods.iframeContentDocumentGetter.call(iframe);
+        const contentWindow           = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument         = nativeMethods.contentDocumentGetter.call(iframe);
         const isFFIframeUninitialized = isFirefox && contentWindow.document.readyState === 'uninitialized';
 
         return !isFFIframeUninitialized && !!contentDocument.documentElement ||
@@ -134,7 +135,7 @@ export default class IframeSandbox extends SandboxBase {
             .replace('{{{referer}}}', escapeStringPatterns(referer))
             .replace('{{{iframeTaskScriptTemplate}}}', escapeStringPatterns(iframeTaskScriptTemplate));
 
-        const contentWindow = nativeMethods.iframeContentWindowGetter.call(e.iframe);
+        const contentWindow = nativeMethods.contentWindowGetter.call(e.iframe);
 
         contentWindow.eval.call(contentWindow, taskScript);
     }
@@ -149,7 +150,7 @@ export default class IframeSandbox extends SandboxBase {
 
         const tagName = getTagName(el);
 
-        if (tagName === 'iframe' && nativeMethods.iframeContentWindowGetter.call(el) ||
+        if (tagName === 'iframe' && nativeMethods.contentWindowGetter.call(el) ||
             tagName === 'frame' && nativeMethods.frameContentWindowGetter.call(el))
             this._raiseReadyToInitEvent(el);
 

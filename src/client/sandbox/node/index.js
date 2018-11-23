@@ -100,8 +100,8 @@ export default class NodeSandbox extends SandboxBase {
         super.attach(window, document);
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, ({ iframe }) => {
-            const contentWindow   = nativeMethods.iframeContentWindowGetter.call(iframe);
-            const contentDocument = nativeMethods.iframeContentDocumentGetter.call(iframe);
+            const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
+            const contentDocument = nativeMethods.contentDocumentGetter.call(iframe);
 
             // NOTE: Before overriding the iframe, we must restore native document methods.
             // Therefore, we save them before they are overridden.
