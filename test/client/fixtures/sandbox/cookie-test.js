@@ -303,7 +303,7 @@ test('same-domain frames', function () {
 
             embeddedIframe.contentDocument.cookie; // eslint-disable-line no-unused-expressions
 
-            checkCookies(' test=321');
+            checkCookies('test=321');
         });
 });
 
@@ -549,3 +549,27 @@ if (browserUtils.isIE) {
             });
     });
 }
+
+test('the client cookie string should not contains an extra spaces (GH-1843)', function () {
+    document.cookie = 'test1=test1';
+    document.cookie = 'test2=test2';
+    document.cookie = 'test3=test3';
+
+    strictEqual(document.cookie, 'test1=test1; test2=test2; test3=test3');
+
+    document.cookie = 'test2=; expires=' + new Date(0).toUTCString();
+
+    strictEqual(document.cookie, 'test1=test1; test3=test3');
+
+    document.cookie = 'test1=; expires=' + new Date(0).toUTCString();
+
+    strictEqual(document.cookie, 'test3=test3');
+
+    document.cookie = 'test4=test4';
+
+    strictEqual(document.cookie, 'test3=test3; test4=test4');
+
+    document.cookie = 'test4=; expires=' + new Date(0).toUTCString();
+
+    strictEqual(document.cookie, 'test3=test3');
+});
