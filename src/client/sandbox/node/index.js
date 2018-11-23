@@ -100,14 +100,17 @@ export default class NodeSandbox extends SandboxBase {
         super.attach(window, document);
 
         this.iframeSandbox.on(this.iframeSandbox.IFRAME_DOCUMENT_CREATED_EVENT, ({ iframe }) => {
+            const contentWindow   = nativeMethods.iframeContentWindowGetter.call(iframe);
+            const contentDocument = nativeMethods.iframeContentDocumentGetter.call(iframe);
+
             // NOTE: Before overriding the iframe, we must restore native document methods.
             // Therefore, we save them before they are overridden.
-            const iframeNativeMethods = new this.nativeMethods.constructor(iframe.contentDocument, iframe.contentWindow);
+            const iframeNativeMethods = new this.nativeMethods.constructor(contentDocument, contentWindow);
 
-            iframe.contentWindow[INTERNAL_PROPS.iframeNativeMethods] = iframeNativeMethods;
+            contentWindow[INTERNAL_PROPS.iframeNativeMethods] = iframeNativeMethods;
 
             // NOTE: Override only the document (in fact, we only need the 'write' and 'writeln' methods).
-            this.doc.attach(iframe.contentWindow, iframe.contentDocument);
+            this.doc.attach(contentWindow, contentDocument);
         });
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.

@@ -74,7 +74,7 @@ export function getElementScroll (el) {
         const currentIframe = domUtils.getIframeByElement(el);
 
         if (currentIframe)
-            currentWindow = currentIframe.contentWindow;
+            currentWindow = nativeMethods.iframeContentWindowGetter.call(currentIframe);
     }
 
     const targetEl = isHtmlElement ? currentWindow : el;

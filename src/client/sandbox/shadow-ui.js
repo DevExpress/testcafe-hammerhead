@@ -45,8 +45,9 @@ export default class ShadowUI extends SandboxBase {
 
     _initEventCallbacks () {
         this.runTaskScriptEventCallback = e => {
-            const iframeHead = e.iframe.contentDocument.head;
-            const iframeBody = e.iframe.contentDocument.body;
+            const contentDocument = nativeMethods.iframeContentDocumentGetter.call(e.iframe);
+            const iframeHead      = contentDocument.head;
+            const iframeBody      = contentDocument.body;
 
             this._restoreUIStyleSheets(iframeHead, this._getUIStyleSheetsHtml());
             this.markShadowUIContainers(iframeHead, iframeBody);

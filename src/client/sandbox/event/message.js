@@ -226,9 +226,9 @@ export default class MessageSandbox extends SandboxBase {
             let targetWindow = null;
 
             const sendPingRequest = () => {
-                if (targetIframe.contentWindow) {
-                    targetWindow = targetIframe.contentWindow;
+                targetWindow = nativeMethods.iframeContentWindowGetter.call(targetIframe);
 
+                if (targetWindow) {
                     this.sendServiceMsg({
                         cmd:           this.pingCmd,
                         isPingRequest: true
