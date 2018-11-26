@@ -80,10 +80,10 @@ class Transport {
                 if (msg.disableResending) {
                     transport.activeServiceMessagesCounter--;
 
-                    let errorMsg = `XHR request failed, status: ${request.status}`;
+                    let errorMsg = `XHR request failed with ${request.status} status code.`;
 
                     if (this.responseText)
-                        errorMsg += `. Error message: ${this.responseText}`;
+                        errorMsg += `\nError message: ${this.responseText}`;
 
                     callback(new Error(errorMsg));
 

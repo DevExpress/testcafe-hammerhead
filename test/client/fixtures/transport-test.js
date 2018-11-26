@@ -272,7 +272,7 @@ test('asyncServiceMessage - should reject if enableRejecting is true', function 
         })
         .catch(function (error) {
             strictEqual(xhrCount, 1);
-            strictEqual(error.message, 'XHR request failed, status: 0');
+            strictEqual(error.message, 'XHR request failed with 0 status code.');
 
             unregisterAfterAjaxSendHook();
         });
@@ -347,7 +347,7 @@ test('hammerhead should remove service data from local storage on the first sess
     ok(!nativeLocalStorage.getItem(sessionId));
 });
 
-test('service messages with different from the 200 status code should process via an error handler (GH-1839)', function () {
+test('failed service messages should respond via error handler (GH-1839)', function () {
     var storedServiceMsgUrl = settings.get().serviceMsgUrl;
 
     settings.get().serviceMsgUrl = '/service-msg-with-error';
@@ -357,7 +357,7 @@ test('service messages with different from the 200 status code should process vi
             ok(false, 'Promise rejection expected');
         })
         .catch(function (error) {
-            strictEqual(error.message, 'XHR request failed, status: 500. Error message: An error occurred!!!');
+            strictEqual(error.message, 'XHR request failed with 500 status code.\nError message: An error occurred!!!');
             settings.get().serviceMsgUrl = storedServiceMsgUrl;
         });
 });
