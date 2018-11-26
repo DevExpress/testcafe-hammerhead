@@ -212,7 +212,13 @@ class NativeMethods {
         // Fetch
         this.fetch   = win.fetch;
         this.Request = win.Request;
-        this.Headers = win.Headers;
+
+        if (win.Headers) {
+            this.Headers        = win.Headers;
+            this.headersSet     = win.Headers.prototype.set;
+            this.headersEntries = win.Headers.prototype.entries;
+            this.headersForEach = win.Headers.prototype.forEach;
+        }
 
         // Event
         this.windowAddEventListener    = win.addEventListener || winProto.addEventListener;

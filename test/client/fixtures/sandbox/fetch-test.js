@@ -207,6 +207,65 @@ if (window.fetch) {
     });
 
     module('special headers', function () {
+        test('an instance of window.Headers should not iterate internal headers', function () {
+            var testHeaders = new Headers();
+
+            testHeaders.append('Content-Type', 'application/json');
+            testHeaders.append('x-header', 'value');
+
+            return fetch('/echo-request-headers', { method: 'post', headers: testHeaders })
+                .then(function () {
+                    var entries = testHeaders.entries();
+                    var entry   = entries.next();
+                    var result  = [];
+
+                    while (!entry.done) {
+                        result = result.concat(entry.value);
+                        entry  = entries.next();
+                    }
+
+                    deepEqual(result, ['content-type', 'application/json', 'x-header', 'value']);
+
+                    var values = testHeaders.values();
+                    var value  = values.next();
+
+                    result = [];
+
+                    while (!value.done) {
+                        result = result.concat(value.value);
+                        value  = values.next();
+                    }
+
+                    deepEqual(result, ['application/json', 'value']);
+
+                    result = [];
+
+                    testHeaders.forEach(result.push.bind(result));
+
+                    deepEqual(result, ['application/json', 'content-type', testHeaders, 'value', 'x-header', testHeaders]);
+
+                    result = [];
+
+                    eval('for (const entry of testHeaders)' +
+                         '    result = result.concat(entry);');
+
+                    deepEqual(result, ['content-type', 'application/json', 'x-header', 'value']);
+                });
+        });
+
+        test('an headers object passed to the fetch should not be changed', function () {
+            var testHeaders = {
+                'Content-Type': 'application/json; charset=UTF-8',
+                'x-header':     'value'
+            };
+
+            return fetch('/echo-request-headers', { method: 'post', headers: testHeaders })
+                .then(function () {
+                    notOk(xhrHeaders.fetchRequestCredentials in testHeaders);
+                    notOk(xhrHeaders.origin in testHeaders);
+                });
+        });
+
         module('Fetch request credentials', function () {
             module('default values');
 
