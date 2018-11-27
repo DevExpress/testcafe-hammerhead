@@ -6,6 +6,7 @@ var styleUtil             = hammerhead.utils.style;
 var activeWindowTracker   = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var eventSimulator        = hammerhead.sandbox.event.eventSimulator;
 var focusBlur             = hammerhead.sandbox.event.focusBlur;
+var focusBlurSandbox      = hammerhead.eventSandbox.focusBlur;
 var nativeMethods         = hammerhead.nativeMethods;
 var elementEditingWatcher = hammerhead.sandbox.event.elementEditingWatcher;
 var iframeSandbox         = hammerhead.sandbox.iframe;
@@ -1320,3 +1321,51 @@ test('focus should not raise an error in IE11 when is called with element within
             ok(true);
         });
 });
+
+if (browserUtils.isChrome) {
+    asyncTest('Should not change active element after source element was focused on change', function () {
+        var firstInput            = document.createElement('input');
+        var secondInput           = document.createElement('input');
+        var callbackCalled        = false;
+        var changeCalled          = false;
+        var secondInputWasFocused = false;
+
+        var firstInputChangeHandler = function () {
+            changeCalled = true;
+
+            firstInput.focus();
+        };
+
+        var secondInputFocusHandler = function () {
+            secondInputWasFocused = true;
+        };
+
+        firstInput.className  = TEST_ELEMENT_CLASS;
+        secondInput.className = TEST_ELEMENT_CLASS;
+
+        firstInput.addEventListener('change', firstInputChangeHandler);
+        secondInput.addEventListener('focus', secondInputFocusHandler);
+
+        document.body.appendChild(firstInput);
+        document.body.appendChild(secondInput);
+
+        firstInput.focus();
+
+        firstInput.value = '1';
+
+        focusBlurSandbox.focus(secondInput, () => {
+            callbackCalled = true;
+        });
+
+        window.setTimeout(function () {
+            equal(document.activeElement, firstInput, 'active element');
+            equal(callbackCalled, true);
+            ok(changeCalled);
+            notOk(secondInputWasFocused);
+
+            removeTestElements();
+
+            startNext();
+        }, 100);
+    });
+}
