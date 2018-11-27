@@ -1,20 +1,22 @@
 import nativeMethods from '../sandbox/native-methods';
-import { isDocumentFragmentNode, isDocument, isShadowRoot } from './dom';
+import { isDocumentFragmentNode, isDomElement, isShadowRoot } from './dom';
 
 export function getNativeQuerySelector (el) {
-    if (isDocument(el))
-        return nativeMethods.querySelector;
+    if (isDomElement(el))
+        return nativeMethods.elementQuerySelector;
 
     return isDocumentFragmentNode(el) || isShadowRoot(el)
         ? nativeMethods.documentFragmentQuerySelector
-        : nativeMethods.elementQuerySelector;
+        : nativeMethods.querySelector;
 }
 
 export function getNativeQuerySelectorAll (el) {
-    if (isDocument(el))
-        return nativeMethods.querySelectorAll;
+    // NOTE: Do not return the isDocument function instead of the isDomElement
+    // it leads to the `Invalid calling object` error in some cases in IE11 (GH-1846)
+    if (isDomElement(el))
+        return nativeMethods.elementQuerySelectorAll;
 
     return isDocumentFragmentNode(el) || isShadowRoot(el)
         ? nativeMethods.documentFragmentQuerySelectorAll
-        : nativeMethods.elementQuerySelectorAll;
+        : nativeMethods.querySelectorAll;
 }

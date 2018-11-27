@@ -341,7 +341,9 @@ export default class ShadowUI extends SandboxBase {
 
         nativeMethods.elementInnerHTMLSetter.call(parser, uiStyleSheetsHtml);
 
-        for (let i = 0; i < parser.children.length; i++) {
+        const length = nativeMethods.htmlCollectionLengthGetter.call(parser.children);
+
+        for (let i = 0; i < length; i++) {
             const refNode = head.children[i] || null;
             const newNode = nativeMethods.cloneNode.call(parser.children[i]);
 

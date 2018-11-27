@@ -32,7 +32,6 @@ test('shadow container collection flag should not be lost (GH-1763)', function (
         document.body.appendChild(anchor);
         anchor.parentNode.removeChild(anchor);
 
-        ok(ShadowUI.isShadowContainerCollection(document.body.children));
         strictEqual(document.body.children.length, childrenOriginLength - 1);
     }
 
