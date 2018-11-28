@@ -66,6 +66,12 @@ module.exports = function (app) {
         }, delay);
     });
 
+    app.post('/service-msg-with-error', function (req, res) {
+        res
+            .status(500)
+            .send('An error occurred!!!');
+    });
+
     app.get('/xhr-test/:delay', function (req, res) {
         var delay = req.params.delay || 0;
 

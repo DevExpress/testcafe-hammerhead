@@ -65,6 +65,11 @@ class Transport {
             const msgCallback = function () {
                 transport.activeServiceMessagesCounter--;
 
+                if (nativeMethods.xhrStatusGetter.call(this) !== 200 && this.responseText) {
+                    errorHandler.call(this); // eslint-disable-line no-use-before-define
+                    return;
+                }
+
                 const response = this.responseText && parseJSON(this.responseText);
 
                 request = null;
@@ -75,7 +80,12 @@ class Transport {
                 if (msg.disableResending) {
                     transport.activeServiceMessagesCounter--;
 
-                    callback(new Error(`XHR request failed, status: ${request.status}`));
+                    let errorMsg = `XHR request failed with ${request.status} status code.`;
+
+                    if (this.responseText)
+                        errorMsg += `\nError message: ${this.responseText}`;
+
+                    callback(new Error(errorMsg));
 
                     return;
                 }
