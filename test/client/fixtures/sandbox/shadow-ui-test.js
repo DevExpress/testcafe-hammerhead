@@ -32,7 +32,6 @@ test('shadow container collection flag should not be lost (GH-1763)', function (
         document.body.appendChild(anchor);
         anchor.parentNode.removeChild(anchor);
 
-        ok(ShadowUI.isShadowContainerCollection(document.body.children));
         strictEqual(document.body.children.length, childrenOriginLength - 1);
     }
 
@@ -1197,4 +1196,20 @@ test('should not throw an error on access to Window.prototype object (GH-1828)',
     var prop            = 0;
 
     strictEqual(getProperty(arr, prop), windowPrototype);
+});
+
+test('the isBodyElementWithChildren method should use native length getter', function () {
+    var storedLengthDescriptor = Object.getOwnPropertyDescriptor(HTMLCollection.prototype, 'length');
+
+    Object.defineProperty(HTMLCollection.prototype, 'length', {
+        get: function () {
+            ok(false);
+        },
+
+        configurable: true
+    });
+
+    ok(domUtils.isBodyElementWithChildren(document.body));
+
+    Object.defineProperty(HTMLCollection.prototype, 'length', storedLengthDescriptor);
 });

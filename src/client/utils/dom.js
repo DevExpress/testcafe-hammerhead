@@ -430,7 +430,7 @@ export function isFileInput (el) {
 }
 
 export function isBodyElementWithChildren (el) {
-    return isBodyElement(el) && el.children.length;
+    return isBodyElement(el) && nativeMethods.htmlCollectionLengthGetter.call(el.children);
 }
 
 export function isMapElement (el) {
