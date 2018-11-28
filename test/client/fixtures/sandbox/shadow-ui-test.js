@@ -1197,3 +1197,19 @@ test('should not throw an error on access to Window.prototype object (GH-1828)',
 
     strictEqual(getProperty(arr, prop), windowPrototype);
 });
+
+test('the isBodyElementWithChildren method should use native length getter', function () {
+    var storedLengthDescriptor = Object.getOwnPropertyDescriptor(HTMLCollection.prototype, 'length');
+
+    Object.defineProperty(HTMLCollection.prototype, 'length', {
+        get: function () {
+            ok(false);
+        },
+
+        configurable: true
+    });
+
+    ok(domUtils.isBodyElementWithChildren(document.body));
+
+    Object.defineProperty(HTMLCollection.prototype, 'length', storedLengthDescriptor);
+});
