@@ -1353,7 +1353,7 @@ if (browserUtils.isChrome) {
 
         firstInput.value = '1';
 
-        focusBlurSandbox.focus(secondInput, () => {
+        focusBlurSandbox.focus(secondInput, function () {
             callbackCalled = true;
         });
 
