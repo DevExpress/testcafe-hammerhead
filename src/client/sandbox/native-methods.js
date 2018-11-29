@@ -20,7 +20,9 @@ class NativeMethods {
         doc = doc || document;
         win = win || window;
 
-        const docPrototype     = win.Document.prototype;
+        // NOTE: After document.open method call for iframe without src, 'window.Document' property equals undefined.
+        const safeProtoOwner = win.Document || win.constructor;
+        const docPrototype   = safeProtoOwner.prototype;
 
         // Dom
         this.createDocumentFragment = docPrototype.createDocumentFragment;

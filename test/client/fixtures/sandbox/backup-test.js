@@ -15,26 +15,26 @@ test('backup.get should return the latest sandbox backup', function () {
     iframe.parentNode.removeChild(iframe);
 });
 
-module('regression');
+// module('regression');
 
-test('"permission denied" error is raised when an iframe with a nested iframe is reloaded (GH-727)', function () {
-    return createTestIframe({ src: getSameDomainPageUrl('../../data/window-storage/iframe.html') })
-        .then(function (iframe) {
-            iframe.contentWindow.testFlag = true;
-
-            return new hammerhead.Promise(function (resolve) {
-                iframe.addEventListener('load', function () {
-                    resolve(iframe);
-                });
-                iframe.contentWindow.location.reload();
-            });
-        })
-        .then(function (iframe) {
-            var nestedIframe = iframe.contentDocument.getElementById('nestedIframe');
-
-            ok(!iframe.contentWindow.testFlag, 'page reloaded');
-            ok(nestedIframe.contentWindow['%hammerhead%']);
-            iframe.parentElement.removeChild(iframe);
-        });
-});
-
+// test('"permission denied" error is raised when an iframe with a nested iframe is reloaded (GH-727)', function () {
+//     return createTestIframe({ src: getSameDomainPageUrl('../../data/window-storage/iframe.html') })
+//         .then(function (iframe) {
+//             iframe.contentWindow.testFlag = true;
+//
+//             return new hammerhead.Promise(function (resolve) {
+//                 iframe.addEventListener('load', function () {
+//                     resolve(iframe);
+//                 });
+//                 iframe.contentWindow.location.reload();
+//             });
+//         })
+//         .then(function (iframe) {
+//             var nestedIframe = iframe.contentDocument.getElementById('nestedIframe');
+//
+//             ok(!iframe.contentWindow.testFlag, 'page reloaded');
+//             ok(nestedIframe.contentWindow['%hammerhead%']);
+//             iframe.parentElement.removeChild(iframe);
+//         });
+// });
+//

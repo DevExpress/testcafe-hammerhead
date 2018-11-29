@@ -105,7 +105,7 @@ export default class DocumentSandbox extends SandboxBase {
 
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
 
-        nativeMethods.restoreDocumentMeths(document);
+        nativeMethods.refreshIfNecessary(window, document);
         this.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
 
         return result;
@@ -132,7 +132,7 @@ export default class DocumentSandbox extends SandboxBase {
                 documentSandbox._beforeDocumentCleaned();
 
             if (isIE)
-                return parent[INTERNAL_PROPS.hammerhead].sandbox.node.doc.iframeDocumentOpen(window, this, args);
+                return window.parent[INTERNAL_PROPS.hammerhead].sandbox.node.doc.iframeDocumentOpen(window, this, args);
 
             const result = nativeMethods.documentOpen.apply(this, args);
 
