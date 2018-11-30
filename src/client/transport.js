@@ -63,12 +63,14 @@ class Transport {
             let request          = XhrSandbox.createNativeXHR();
 
             const msgCallback = function () {
-                transport.activeServiceMessagesCounter--;
-
-                if (nativeMethods.xhrStatusGetter.call(this) !== 200 && this.responseText) {
+                // NOTE: The 500 status code is returned by server when an error occurred into service message handler
+                if (nativeMethods.xhrStatusGetter.call(this) === 500 && this.responseText) {
+                    msg.disableResending = true;
                     errorHandler.call(this); // eslint-disable-line no-use-before-define
                     return;
                 }
+
+                transport.activeServiceMessagesCounter--;
 
                 const response = this.responseText && parseJSON(this.responseText);
 
