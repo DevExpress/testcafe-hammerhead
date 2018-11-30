@@ -9,7 +9,7 @@ import * as styleUtils from '../../utils/style';
 
 const INTERNAL_FOCUS_BLUR_FLAG_PREFIX = 'hammerhead|event|internal-';
 
-const preventFocusOnChange = browserUtils.isChrome;
+const PREVENT_FOCUS_ON_CHANGE = browserUtils.isChrome;
 
 const eventsMap = {
     bubbles: {
@@ -153,7 +153,7 @@ export default class FocusBlurSandbox extends SandboxBase {
                     this.eventSimulator[bubblesEventType](el, relatedTarget);
                 }
             }
-            else if (type === 'focus' && preventFocusOnChange) {
+            else if (type === 'focus' && PREVENT_FOCUS_ON_CHANGE) {
                 const preventFocus = (e, dispatched, preventEvent, cancelHandlers, stopEventPropagation) => {
                     cancelHandlers();
                     stopEventPropagation();
@@ -396,12 +396,12 @@ export default class FocusBlurSandbox extends SandboxBase {
                 focusedOnChange = e.target === el;
             };
 
-            if (preventFocusOnChange)
+            if (PREVENT_FOCUS_ON_CHANGE)
                 this.listeners.addInternalEventListener(window, ['focus'], focusOnChangeHandler);
 
             this.elementEditingWatcher.processElementChanging(el);
 
-            if (preventFocusOnChange)
+            if (PREVENT_FOCUS_ON_CHANGE)
                 this.listeners.removeInternalEventListener(window, ['focus'], focusOnChangeHandler);
 
             this.elementEditingWatcher.stopWatching(el);
