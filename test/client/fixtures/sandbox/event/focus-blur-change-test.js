@@ -6,6 +6,7 @@ var styleUtil             = hammerhead.utils.style;
 var activeWindowTracker   = hammerhead.sandbox.event.focusBlur.activeWindowTracker;
 var eventSimulator        = hammerhead.sandbox.event.eventSimulator;
 var focusBlur             = hammerhead.sandbox.event.focusBlur;
+var focusBlurSandbox      = hammerhead.eventSandbox.focusBlur;
 var nativeMethods         = hammerhead.nativeMethods;
 var elementEditingWatcher = hammerhead.sandbox.event.elementEditingWatcher;
 var iframeSandbox         = hammerhead.sandbox.iframe;
@@ -1320,3 +1321,107 @@ test('focus should not raise an error in IE11 when is called with element within
             ok(true);
         });
 });
+
+
+asyncTest('Should not change active element after source element was focused on change', function () {
+    var firstInput        = document.createElement('input');
+    var secondInput       = document.createElement('input');
+    var firstNativeInput  = nativeMethods.createElement.call(document, 'input');
+    var secondNativeInput = nativeMethods.createElement.call(document, 'input');
+
+    var callbackCalled              = false;
+    var changeCalled                = false;
+    var changeNativeCalled          = false;
+    var secondInputWasFocused       = false;
+    var secondNativeInputWasFocused = false;
+
+    var firstNativeInputChangeHandler = function () {
+        changeNativeCalled = true;
+
+        firstNativeInput.focus();
+    };
+
+    var firstInputChangeHandler = function () {
+        changeCalled = true;
+
+        firstInput.focus();
+    };
+
+    var secondInputFocusHandler = function () {
+        secondInputWasFocused = true;
+    };
+
+    var secondNativeInputFocusHandler = function () {
+        secondNativeInputWasFocused = true;
+    };
+
+    function nextTick () {
+        return new Promise(function (resolve) {
+            setTimeout(resolve, 100);
+        });
+    }
+
+    firstInput.className        = TEST_ELEMENT_CLASS;
+    secondInput.className       = TEST_ELEMENT_CLASS;
+    firstNativeInput.className  = TEST_ELEMENT_CLASS;
+    secondNativeInput.className = TEST_ELEMENT_CLASS;
+
+    firstInput.addEventListener('change', firstInputChangeHandler);
+    secondInput.addEventListener('focus', secondInputFocusHandler);
+
+    firstNativeInput.addEventListener('change', firstNativeInputChangeHandler);
+    secondNativeInput.addEventListener('focus', secondNativeInputFocusHandler);
+
+    document.body.appendChild(firstInput);
+    document.body.appendChild(secondInput);
+
+    document.body.appendChild(firstNativeInput);
+    document.body.appendChild(secondNativeInput);
+
+    var expectedNativeElement            = firstNativeInput;
+    var expectedElement                  = firstInput;
+    var expectedSecondNativeInputFocused = false;
+    var expectedSecondInputFocused       = false;
+
+    if (!browserUtils.isChrome) {
+        expectedNativeElement            = secondNativeInput;
+        expectedElement                  = secondInput;
+        expectedSecondNativeInputFocused = true;
+        expectedSecondInputFocused       = true;
+    }
+
+    firstNativeInput.focus();
+
+    firstNativeInput.value = '1';
+
+    secondNativeInput.focus();
+
+    return nextTick()
+        .then(function () {
+            ok(changeNativeCalled);
+            equal(document.activeElement, expectedNativeElement);
+            equal(secondNativeInputWasFocused, expectedSecondNativeInputFocused);
+
+            firstInput.focus();
+
+            firstInput.value = '1';
+
+            focusBlurSandbox.focus(secondInput, function () {
+                callbackCalled = true;
+            });
+        })
+        .then(function () {
+            return nextTick();
+        })
+        .then(function () {
+            ok(changeCalled);
+            equal(document.activeElement, expectedElement);
+            equal(secondInputWasFocused, expectedSecondInputFocused);
+            equal(callbackCalled, true);
+
+            removeTestElements();
+
+            startNext();
+        });
+});
+
