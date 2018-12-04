@@ -105,7 +105,7 @@ export default class DocumentSandbox extends SandboxBase {
 
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
 
-        nativeMethods.refreshIfNecessary(window, document);
+        nativeMethods.restoreDocumentMeths(window);
         this.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
 
         return result;
