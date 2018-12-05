@@ -597,9 +597,7 @@ export default class ShadowUI extends SandboxBase {
                 shadowUIElementCount++;
         }
 
-        const nowInConsole = '__BROWSERTOOLS_CONSOLE_SAFEFUNC' in window;
-
-        if (shadowUIElementCount && !this.ieDebugSandbox.isDebuggerInitiator() && !nowInConsole)
+        if (shadowUIElementCount && !this.ieDebugSandbox.isDebuggerInitiator())
             ShadowUI._checkElementsPosition(collection, length);
 
         return length - shadowUIElementCount;
