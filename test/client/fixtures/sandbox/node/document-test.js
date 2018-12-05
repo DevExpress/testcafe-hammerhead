@@ -79,7 +79,7 @@ if (!browserUtils.isFirefox) {
             ok(!document || !!document.getElementsByTagName('body'));
             ok(!!window.top.document.getElementsByTagName('body'));
 
-            //ok(result);
+            ok(result);
         };
 
         var checkWriteFunction = function () {
