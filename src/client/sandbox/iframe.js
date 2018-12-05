@@ -42,17 +42,18 @@ export default class IframeSandbox extends SandboxBase {
         if (!this.iframeNativeMethodsBackup && this._shouldSaveIframeNativeMethods(iframe))
             this.iframeNativeMethodsBackup = new this.nativeMethods.constructor(contentDocument, contentWindow);
         else if (this.iframeNativeMethodsBackup) {
-            this.iframeNativeMethodsBackup.restoreDocumentMeths(contentWindow);
+            this.iframeNativeMethodsBackup.restoreDocumentMeths(contentWindow, contentDocument);
             this.iframeNativeMethodsBackup = null;
         }
     }
 
     _ensureIframeNativeMethodsForIE (iframe) {
         const contentWindow       = nativeMethods.contentWindowGetter.call(iframe);
+        const contentDocument     = nativeMethods.contentDocumentGetter.call(iframe);
         const iframeNativeMethods = contentWindow[INTERNAL_PROPS.iframeNativeMethods];
 
         if (iframeNativeMethods) {
-            iframeNativeMethods.restoreDocumentMeths(contentWindow);
+            iframeNativeMethods.restoreDocumentMeths(contentWindow, contentDocument);
             delete contentWindow[INTERNAL_PROPS.iframeNativeMethods];
         }
     }
