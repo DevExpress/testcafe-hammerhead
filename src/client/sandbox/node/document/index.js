@@ -146,8 +146,7 @@ export default class DocumentSandbox extends SandboxBase {
                     ? window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
                     : window.Object.defineProperty;
 
-                objectDefinePropertyFn
-                    .call(window.Object, window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
+                objectDefinePropertyFn(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
 
                 if (!isUninitializedIframe)
                     documentSandbox.nodeSandbox.mutation.onDocumentCleaned({ window, document: this });

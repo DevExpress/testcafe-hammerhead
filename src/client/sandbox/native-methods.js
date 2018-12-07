@@ -27,15 +27,15 @@ class NativeMethods {
         this.createElement          = docPrototype.createElement;
         this.createElementNS        = docPrototype.createElementNS;
 
-        this.documentOpenPropOwnerName  = NativeMethods._getDocumentPropOwnerName(docPrototype, 'open');
-        this.documentClosePropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'close');
-        this.documentWritePropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'write');
+        this.documentOpenPropOwnerName    = NativeMethods._getDocumentPropOwnerName(docPrototype, 'open');
+        this.documentClosePropOwnerName   = NativeMethods._getDocumentPropOwnerName(docPrototype, 'close');
+        this.documentWritePropOwnerName   = NativeMethods._getDocumentPropOwnerName(docPrototype, 'write');
         this.documentWriteLnPropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'writeln');
 
-        this.documentOpen           = win[this.documentOpenPropOwnerName].prototype.open;
-        this.documentClose          = win[this.documentClosePropOwnerName].prototype.close;
-        this.documentWrite          = win[this.documentWritePropOwnerName].prototype.write;
-        this.documentWriteLn        = win[this.documentWriteLnPropOwnerName].prototype.writeln;
+        this.documentOpen    = win[this.documentOpenPropOwnerName].prototype.open;
+        this.documentClose   = win[this.documentClosePropOwnerName].prototype.close;
+        this.documentWrite   = win[this.documentWritePropOwnerName].prototype.write;
+        this.documentWriteLn = win[this.documentWriteLnPropOwnerName].prototype.writeln;
 
         this.elementFromPoint       = docPrototype.elementFromPoint;
         this.caretRangeFromPoint    = docPrototype.caretRangeFromPoint;

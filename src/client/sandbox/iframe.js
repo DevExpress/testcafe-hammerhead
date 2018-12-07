@@ -114,7 +114,7 @@ export default class IframeSandbox extends SandboxBase {
         const isFFIframeUninitialized = isFirefox && contentWindow.document.readyState === 'uninitialized';
 
         return !isFFIframeUninitialized && !!contentDocument.documentElement ||
-            isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
+               isIE && contentWindow[INTERNAL_PROPS.documentWasCleaned];
     }
 
     static isWindowInited (window) {
