@@ -20,42 +20,47 @@ class NativeMethods {
         doc = doc || document;
         win = win || window;
 
-        const docProto = doc.constructor.prototype;
+        const docPrototype = win.Document.prototype;
 
         // Dom
-        this.createDocumentFragment = doc.createDocumentFragment || docProto.createDocumentFragment;
-        this.createElement          = doc.createElement || docProto.createElement;
-        this.createElementNS        = doc.createElementNS || docProto.createElementNS;
-        this.documentOpen           = doc.open || docProto.open;
-        this.documentClose          = doc.close || docProto.close;
-        this.documentWrite          = doc.write || docProto.write;
-        this.documentWriteLn        = doc.writeln || docProto.writeln;
-        this.elementFromPoint       = doc.elementFromPoint || docProto.elementFromPoint;
-        this.caretRangeFromPoint    = doc.caretRangeFromPoint || docProto.caretRangeFromPoint;
-        this.caretPositionFromPoint = doc.caretPositionFromPoint || docProto.caretPositionFromPoint;
-        this.getElementById         = doc.getElementById || docProto.getElementById;
-        this.getElementsByClassName = doc.getElementsByClassName || docProto.getElementsByClassName;
-        this.getElementsByName      = doc.getElementsByName || docProto.getElementsByName;
+        this.createDocumentFragment = docPrototype.createDocumentFragment;
+        this.createElement          = docPrototype.createElement;
+        this.createElementNS        = docPrototype.createElementNS;
 
-        this.getElementsByTagName = doc.getElementsByTagName || docProto.getElementsByTagName;
-        this.querySelector        = doc.querySelector || docProto.querySelector;
-        this.querySelectorAll     = doc.querySelectorAll || docProto.querySelectorAll;
+        this.documentOpenPropOwnerName    = NativeMethods._getDocumentPropOwnerName(docPrototype, 'open');
+        this.documentClosePropOwnerName   = NativeMethods._getDocumentPropOwnerName(docPrototype, 'close');
+        this.documentWritePropOwnerName   = NativeMethods._getDocumentPropOwnerName(docPrototype, 'write');
+        this.documentWriteLnPropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'writeln');
+
+        this.documentOpen    = win[this.documentOpenPropOwnerName].prototype.open;
+        this.documentClose   = win[this.documentClosePropOwnerName].prototype.close;
+        this.documentWrite   = win[this.documentWritePropOwnerName].prototype.write;
+        this.documentWriteLn = win[this.documentWriteLnPropOwnerName].prototype.writeln;
+
+        this.elementFromPoint       = docPrototype.elementFromPoint;
+        this.caretRangeFromPoint    = docPrototype.caretRangeFromPoint;
+        this.caretPositionFromPoint = docPrototype.caretPositionFromPoint;
+        this.getElementById         = docPrototype.getElementById;
+        this.getElementsByClassName = docPrototype.getElementsByClassName;
+        this.getElementsByName      = docPrototype.getElementsByName;
+
+        this.getElementsByTagName = docPrototype.getElementsByTagName;
+        this.querySelector        = docPrototype.querySelector;
+        this.querySelectorAll     = docPrototype.querySelectorAll;
 
         this.createHTMLDocument = win.DOMImplementation.prototype.createHTMLDocument;
 
         if (doc.registerElement)
-            this.registerElement = doc.registerElement || docProto.registerElement;
+            this.registerElement = docPrototype.registerElement;
 
         // Event
-        this.documentAddEventListener    = doc.addEventListener || docProto.addEventListener;
-        this.documentRemoveEventListener = doc.removeEventListener || docProto.removeEventListener;
-        this.documentCreateEvent         = doc.createEvent || docProto.createEvent;
-        this.documentCreateTouch         = doc.createTouch || docProto.createTouch;
-        this.documentCreateTouchList     = doc.createTouchList || docProto.createTouchList;
+        this.documentAddEventListener    = docPrototype.addEventListener;
+        this.documentRemoveEventListener = docPrototype.removeEventListener;
+        this.documentCreateEvent         = docPrototype.createEvent;
+        this.documentCreateTouch         = docPrototype.createTouch;
+        this.documentCreateTouchList     = docPrototype.createTouchList;
 
         // getters/setters
-        const docPrototype = win.Document.prototype;
-
         this.documentCookiePropOwnerName  = NativeMethods._getDocumentPropOwnerName(docPrototype, 'cookie');
         this.documentScriptsPropOwnerName = NativeMethods._getDocumentPropOwnerName(docPrototype, 'scripts');
 
@@ -620,30 +625,40 @@ class NativeMethods {
         return true;
     }
 
-    restoreDocumentMeths (document) {
-        document.createDocumentFragment = this.createDocumentFragment;
-        document.createElement          = this.createElement;
-        document.createElementNS        = this.createElementNS;
-        document.open                   = this.documentOpen;
-        document.close                  = this.documentClose;
-        document.write                  = this.documentWrite;
-        document.writeln                = this.documentWriteLn;
-        document.elementFromPoint       = this.elementFromPoint;
-        document.caretRangeFromPoint    = this.caretRangeFromPoint;
-        document.caretPositionFromPoint = this.caretPositionFromPoint;
-        document.getElementById         = this.getElementById;
-        document.getElementsByClassName = this.getElementsByClassName;
-        document.getElementsByName      = this.getElementsByName;
-        document.getElementsByTagName   = this.getElementsByTagName;
-        document.querySelector          = this.querySelector;
-        document.querySelectorAll       = this.querySelectorAll;
+    static _ensureDocumentMethodRestore (document, prototype, methodName, savedNativeMethod) {
+        prototype[methodName] = savedNativeMethod;
+
+        if (document[methodName] !== prototype[methodName])
+            document[methodName] = savedNativeMethod;
+    }
+
+    restoreDocumentMeths (window, document) {
+        const docPrototype = window.Document.prototype;
+
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createDocumentFragment', this.createDocumentFragment);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createElement', this.createElement);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createElementNS', this.createElementNS);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'elementFromPoint', this.elementFromPoint);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'caretRangeFromPoint', this.caretRangeFromPoint);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'caretPositionFromPoint', this.caretPositionFromPoint);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'getElementById', this.getElementById);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'getElementsByClassName', this.getElementsByClassName);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'getElementsByName', this.getElementsByName);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'getElementsByTagName', this.getElementsByTagName);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'querySelector', this.querySelector);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'querySelectorAll', this.querySelectorAll);
 
         // Event
-        document.addEventListener    = this.documentAddEventListener;
-        document.removeEventListener = this.documentRemoveEventListener;
-        document.createEvent         = this.documentCreateEvent;
-        document.createTouch         = this.documentCreateTouch;
-        document.createTouchList     = this.documentCreateTouchList;
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'addEventListener', this.documentAddEventListener);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'removeEventListener', this.documentRemoveEventListener);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createEvent', this.documentCreateEvent);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createTouch', this.documentCreateTouch);
+        NativeMethods._ensureDocumentMethodRestore(document, docPrototype, 'createTouchList', this.documentCreateTouchList);
+
+        NativeMethods._ensureDocumentMethodRestore(document, window[this.documentOpenPropOwnerName].prototype, 'open', this.documentOpen);
+        NativeMethods._ensureDocumentMethodRestore(document, window[this.documentClosePropOwnerName].prototype, 'close', this.documentClose);
+        NativeMethods._ensureDocumentMethodRestore(document, window[this.documentWritePropOwnerName].prototype, 'write', this.documentWrite);
+        NativeMethods._ensureDocumentMethodRestore(document, window[this.documentWriteLnPropOwnerName].prototype, 'writeln', this.documentWriteLn);
     }
 
     refreshIfNecessary (doc, win) {

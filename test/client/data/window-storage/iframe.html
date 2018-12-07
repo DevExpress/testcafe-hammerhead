@@ -14,6 +14,8 @@ aaa
     hammerhead.get('./utils/destination-location').forceLocation('http://localhost/sessionId/https://example.com');
     hammerhead.sandbox.storageSandbox.attach = function () {
     };
+    hammerhead.sandbox.storageSandbox.dispose = function () {
+    };
     hammerhead.start({
         crossDomainProxyPort:     2000,
         iframeTaskScriptTemplate: window.top.getIframeTaskScript('', '/service-msg/100', 'http://localhost/sessionId/https://example.com')

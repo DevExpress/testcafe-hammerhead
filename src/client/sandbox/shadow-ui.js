@@ -238,9 +238,9 @@ export default class ShadowUI extends SandboxBase {
         }
     }
 
-    _overrideDocumentMethods (document) {
+    _overrideDocumentMethods (window, document) {
         const shadowUI = this;
-        const docProto = document.constructor.prototype;
+        const docProto = window.Document.prototype;
 
         docProto.elementFromPoint = function (...args) {
             // NOTE: T212974
@@ -398,7 +398,7 @@ export default class ShadowUI extends SandboxBase {
         super.attach(window, window.document);
 
         this.markShadowUIContainers(this.document.head, this.document.body);
-        this._overrideDocumentMethods(window.document);
+        this._overrideDocumentMethods(window, window.document);
         this._overrideElementMethods(window);
         this._markScriptsAndStylesAsShadowInHead(window.document.head);
         this._initEvents();

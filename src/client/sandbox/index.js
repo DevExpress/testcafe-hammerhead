@@ -81,27 +81,6 @@ export default class Sandbox extends SandboxBase {
         return true;
     }
 
-    _restoreDocumentMethodsFromProto (document) {
-        const docProto = document.constructor.prototype;
-
-        document.createDocumentFragment = document.createDocumentFragment || docProto.createDocumentFragment;
-        document.createElement          = document.createElement || docProto.createElement;
-        document.createElementNS        = document.createElementNS || docProto.createElementNS;
-        document.open                   = document.open || docProto.open;
-        document.close                  = document.close || docProto.close;
-        document.write                  = document.write || docProto.write;
-        document.writeln                = document.writeln || docProto.writeln;
-        document.elementFromPoint       = document.elementFromPoint || docProto.elementFromPoint;
-        document.getElementById         = document.getElementById || docProto.getElementById;
-        document.getElementsByClassName = document.getElementsByClassName || docProto.getElementsByClassName;
-        document.getElementsByName      = document.getElementsByName || docProto.getElementsByName;
-        document.getElementsByTagName   = document.getElementsByTagName || docProto.getElementsByTagName;
-        document.querySelector          = document.querySelector || docProto.querySelector;
-        document.querySelectorAll       = document.querySelectorAll || docProto.querySelectorAll;
-        document.addEventListener       = document.addEventListener || docProto.addEventListener;
-        document.removeEventListener    = document.removeEventListener || docProto.removeEventListener;
-    }
-
     onIframeDocumentRecreated (iframe) {
         if (iframe) {
             const contentWindow   = nativeMethods.contentWindowGetter.call(iframe);
@@ -122,7 +101,7 @@ export default class Sandbox extends SandboxBase {
                 // In this case, we need to inject Hammerhead.
 
                 // HACK: IE10 cleans up overridden methods after the document.write method call.
-                this.nativeMethods.restoreDocumentMeths(contentDocument);
+                this.nativeMethods.restoreDocumentMeths(contentWindow, contentDocument);
 
                 // NOTE: A sandbox for this iframe is not found (iframe is not yet initialized).
                 // Inform IFrameSandbox about this, and it injects Hammerhead.
@@ -144,8 +123,6 @@ export default class Sandbox extends SandboxBase {
         this.codeInstrumentation.attach(window);
         this.node.doc.attach(window, document);
         this.console.attach(window);
-
-        this._restoreDocumentMethodsFromProto(document);
     }
 
     attach (window) {

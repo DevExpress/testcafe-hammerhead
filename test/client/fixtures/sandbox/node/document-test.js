@@ -468,6 +468,20 @@ if (nativeMethods.nodeBaseURIGetter) {
     });
 }
 
+test('should override document methods on a prototype level (GH-1827)', function () {
+    expect(1);
+
+    var savedCreateElement = window.Document.prototype.createElement;
+
+    window.Document.prototype.createElement = function () {
+        window.Document.prototype.createElement = savedCreateElement;
+
+        ok(true);
+    };
+
+    document.createElement('div');
+});
+
 module('resgression');
 
 test('document.write for several tags in iframe (T215136)', function () {

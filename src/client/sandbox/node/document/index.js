@@ -104,11 +104,14 @@ export default class DocumentSandbox extends SandboxBase {
         const result = nativeMethods.documentOpen.apply(document, args);
 
         nativeMethods.objectDefineProperty(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
-
-        nativeMethods.restoreDocumentMeths(document);
         this.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
 
         return result;
+    }
+
+    static _ensureDocumentMethodOverride (document, overridenMethods, methodName) {
+        if (document[methodName] !== overridenMethods[methodName])
+            document[methodName] = overridenMethods[methodName];
     }
 
     attach (window, document) {
@@ -123,101 +126,113 @@ export default class DocumentSandbox extends SandboxBase {
         super.attach(window, document);
 
         const documentSandbox = this;
+        const docPrototype    = window.Document.prototype;
 
-        document.open = (...args) => {
-            const isUninitializedIframe = this._isUninitializedIframeWithoutSrc(window);
+        const overridenMethods = {
+            open: function (...args) {
+                const isUninitializedIframe = documentSandbox._isUninitializedIframeWithoutSrc(window);
 
-            if (!isUninitializedIframe)
-                this._beforeDocumentCleaned();
+                if (!isUninitializedIframe)
+                    documentSandbox._beforeDocumentCleaned();
 
-            if (isIE)
-                return parent[INTERNAL_PROPS.hammerhead].sandbox.node.doc.iframeDocumentOpen(window, document, args);
+                if (isIE)
+                    return window.parent[INTERNAL_PROPS.hammerhead].sandbox.node.doc.iframeDocumentOpen(window, this, args);
 
-            const result = nativeMethods.documentOpen.apply(document, args);
+                const result = nativeMethods.documentOpen.apply(this, args);
 
-            if (isIE)
-                nativeMethods.refreshIfNecessary(document, window);
+                // NOTE: Chrome does not remove the "%hammerhead%" property from window
+                // after document.open call
+                const objectDefinePropertyFn = window[INTERNAL_PROPS.hammerhead]
+                    ? window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
+                    : window.Object.defineProperty;
 
-            // NOTE: Chrome does not remove the "%hammerhead%" property from window
-            // after document.open call
-            const objectDefinePropertyFn = window[INTERNAL_PROPS.hammerhead]
-                ? window[INTERNAL_PROPS.hammerhead].nativeMethods.objectDefineProperty
-                : window.Object.defineProperty;
+                objectDefinePropertyFn(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
 
-            objectDefinePropertyFn(window, INTERNAL_PROPS.documentWasCleaned, { value: true, configurable: true });
+                if (!isUninitializedIframe)
+                    documentSandbox.nodeSandbox.mutation.onDocumentCleaned({ window, document: this });
+                else
+                // NOTE: If iframe initialization is in progress, we need to override the document.write and document.open
+                // methods once again, because they were cleaned after the native document.open method call.
+                    documentSandbox.attach(window, this);
 
-            if (!isUninitializedIframe)
-                this.nodeSandbox.mutation.onDocumentCleaned({ window, document });
-            else
-            // NOTE: If iframe initialization is in progress, we need to override the document.write and document.open
-            // methods once again, because they were cleaned after the native document.open method call.
-                this.attach(window, document);
+                return result;
+            },
 
-            return result;
+            close: function (...args) {
+                // NOTE: IE11 raise the "load" event only when the document.close method is called. We need to
+                // restore the overriden document.open and document.write methods before Hammerhead injection, if the
+                // window is not initialized.
+                if (isIE && !IframeSandbox.isWindowInited(window))
+                    nativeMethods.restoreDocumentMeths(window, this);
+
+                // NOTE: IE doesn't run scripts in iframe if iframe.documentContent.designMode equals 'on' (GH-871)
+                if (DocumentSandbox._isDocumentInDesignMode(this))
+                    ShadowUI.removeSelfRemovingScripts(this);
+
+                const result = nativeMethods.documentClose.apply(this, args);
+
+                if (!documentSandbox._isUninitializedIframeWithoutSrc(window))
+                    documentSandbox._onDocumentClosed();
+
+                const iframe = getFrameElement(window);
+
+                // NOTE: Firefox misses the Hammerhead instance after the iframe.contentDocument.close function calling (GH-1821)
+                if (iframe)
+                    documentSandbox.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
+
+                return result;
+            },
+
+            write: function () {
+                return documentSandbox._performDocumentWrite(arguments);
+            },
+
+            writeln: function () {
+                return documentSandbox._performDocumentWrite(arguments, true);
+            }
         };
 
-        document.close = (...args) => {
-            // NOTE: IE11 raise the "load" event only when the document.close method is called. We need to
-            // restore the overriden document.open and document.write methods before Hammerhead injection, if the
-            // window is not initialized.
-            if (isIE && !IframeSandbox.isWindowInited(window))
-                nativeMethods.restoreDocumentMeths(document);
+        window[nativeMethods.documentOpenPropOwnerName].prototype.open       = overridenMethods.open;
+        window[nativeMethods.documentClosePropOwnerName].prototype.close     = overridenMethods.close;
+        window[nativeMethods.documentWritePropOwnerName].prototype.write     = overridenMethods.write;
+        window[nativeMethods.documentWriteLnPropOwnerName].prototype.writeln = overridenMethods.writeln;
 
-            // NOTE: IE doesn't run scripts in iframe if iframe.documentContent.designMode equals 'on' (GH-871)
-            if (DocumentSandbox._isDocumentInDesignMode(document))
-                ShadowUI.removeSelfRemovingScripts(document);
+        DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'open');
+        DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'close');
+        DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'write');
+        DocumentSandbox._ensureDocumentMethodOverride(document, overridenMethods, 'writeln');
 
-            const result = nativeMethods.documentClose.apply(document, args);
+        if (document.open !== overridenMethods.open)
+            document.open = overridenMethods.open;
 
-            if (!this._isUninitializedIframeWithoutSrc(window))
-                this._onDocumentClosed();
-
-            const iframe = getFrameElement(window);
-
-            // NOTE: Firefox misses the Hammerhead instance after the iframe.contentDocument.close function calling (GH-1821)
-            if (iframe)
-                this.nodeSandbox.iframeSandbox.onIframeBeganToRun(iframe);
-
-            return result;
-        };
-
-        document.createElement = (...args) => {
-            const el = nativeMethods.createElement.apply(document, args);
+        docPrototype.createElement = function (...args) {
+            const el = nativeMethods.createElement.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
-            this.nodeSandbox.processNodes(el);
+            documentSandbox.nodeSandbox.processNodes(el);
 
             return el;
         };
 
-        document.createElementNS = (...args) => {
-            const el = nativeMethods.createElementNS.apply(document, args);
+        docPrototype.createElementNS = function (...args) {
+            const el = nativeMethods.createElementNS.apply(this, args);
 
             DocumentSandbox.forceProxySrcForImageIfNecessary(el);
             domProcessor.processElement(el, urlUtils.convertToProxyUrl);
-            this.nodeSandbox.processNodes(el);
+            documentSandbox.nodeSandbox.processNodes(el);
 
             return el;
         };
 
-        document.write = function () {
-            return documentSandbox._performDocumentWrite(arguments);
-        };
-
-        document.writeln = function () {
-            return documentSandbox._performDocumentWrite(arguments, true);
-        };
-
-        document.createDocumentFragment = (...args) => {
-            const fragment = nativeMethods.createDocumentFragment.apply(document, args);
+        docPrototype.createDocumentFragment = function (...args) {
+            const fragment = nativeMethods.createDocumentFragment.apply(this, args);
 
             documentSandbox.nodeSandbox.processNodes(fragment);
 
             return fragment;
         };
 
-        const docPrototype     = window.Document.prototype;
         const htmlDocPrototype = window.HTMLDocument.prototype;
         let storedDomain       = '';
 
