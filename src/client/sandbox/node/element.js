@@ -171,7 +171,7 @@ export default class ElementSandbox extends SandboxBase {
                 if (value !== '' && (!isSpecialPage || tagName === 'a')) {
                     const isIframe         = tagName === 'iframe' || tagName === 'frame';
                     const isScript         = tagName === 'script';
-                    const isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value);
+                    const isCrossDomainUrl = isSupportedProtocol && !sameOriginCheck(location.toString(), value, true);
                     let resourceType       = domProcessor.getElementResourceType(el);
                     const elCharset        = isScript && el.charset;
                     const currentDocument  = el.ownerDocument || this.document;

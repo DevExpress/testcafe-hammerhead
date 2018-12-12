@@ -11,6 +11,7 @@ import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
 import { isJsProtocol, processJsAttrValue } from '../../../../processing/dom';
+import settings from '../../../settings';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     constructor (windowSandbox) {
@@ -37,14 +38,20 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     _createPropertyAccessors (window, document) {
         return {
             href: {
-                condition: LocationAccessorsInstrumentation.isLocationWrapper,
+                condition: crossDomainLocation => domUtils.instanceToString(crossDomainLocation) === '[object Null]' &&
+                                                  'assign' in crossDomainLocation && 'replace' in crossDomainLocation,
 
                 // eslint-disable-next-line no-restricted-properties
-                get: locationWrapper => locationWrapper.href,
+                get: crossDomainLocation => crossDomainLocation.href,
 
-                set: (locationWrapper, value) => {
+                set: (crossDomainLocation, value) => {
+                    const resolvedUrl  = destLocation.resolveUrl(value, document);
+                    const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
+
                     // eslint-disable-next-line no-restricted-properties
-                    locationWrapper.href = destLocation.resolveUrl(value, document);
+                    crossDomainLocation.href = crossDomainLocation !== window.top.location
+                        ? urlUtils.getProxyUrl(resolvedUrl, { resourceType })
+                        : urlUtils.getProxyUrl(resolvedUrl, { proxyPort: settings.get().crossDomainProxyPort });
 
                     return value;
                 }
