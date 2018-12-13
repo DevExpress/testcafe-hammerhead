@@ -560,7 +560,7 @@ export default class DomProcessor {
                             resourceUrl = proxyUrlObj.destResourceInfo.protocol + resourceUrl;
 
                         // NOTE: Cross-domain iframe.
-                        if (!this.adapter.sameOriginCheck(destUrl, resourceUrl, true)) {
+                        if (!this.adapter.sameOriginCheck(destUrl, resourceUrl)) {
                             const proxyHostname      = urlUtils.parseUrl(location).hostname;
                             const proxyPort          = this.adapter.getCrossDomainPort();
                             const iframeResourceType = urlUtils.getResourceTypeString({ isIframe: true });

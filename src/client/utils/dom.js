@@ -292,7 +292,7 @@ export function isCrossDomainWindows (window1, window2) {
         if (!urlUtils.isSupportedProtocol(window1Location) || !urlUtils.isSupportedProtocol(window2Location))
             return false;
 
-        return !sameOriginCheck(window1Location, window2Location, true);
+        return !sameOriginCheck(window1Location, window2Location);
     }
     catch (e) {
         return true;

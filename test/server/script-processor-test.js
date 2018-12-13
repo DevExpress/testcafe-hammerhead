@@ -896,7 +896,7 @@ describe('Script processor', () => {
                     expected: 'const foo = new class { async bar() { async function t() {}; var t = async function () {}; return async () => { await t(__get$(obj, prop)); }; }}();'
                 },
                 {
-                    src:      'const y = { async [x] () { await 0; } }[x]', // (GH-1862
+                    src:      'const y = { async [x] () { await 0; } }[x]', // GH-1862
                     expected: 'const y = __get$({ async [x] () { await 0; } }, x)'
                 }
             ]);

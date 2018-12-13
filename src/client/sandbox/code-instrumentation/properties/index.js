@@ -2,7 +2,6 @@ import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
-import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
@@ -35,7 +34,30 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    _createPropertyAccessors (window, document) {
+    static _setCrossDomainLocation (location, value) {
+        let proxyUrl = '';
+
+        if (typeof value !== 'string')
+            value = String(value);
+
+        if (!isJsProtocol(value)) {
+            const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
+
+            value = prepareUrl(value);
+
+            proxyUrl = location !== window.top.location
+                ? urlUtils.getProxyUrl(value, { resourceType })
+                : urlUtils.getProxyUrl(value, { proxyPort: settings.get().crossDomainProxyPort });
+        }
+        else
+            proxyUrl = processJsAttrValue(location, { isJsProtocol: true, isEventAttr: false });
+
+        location.href = proxyUrl; // eslint-disable-line no-restricted-properties
+
+        return value;
+    }
+
+    _createPropertyAccessors () {
         return {
             href: {
                 condition: crossDomainLocation => domUtils.instanceToString(crossDomainLocation) === '[object Null]' &&
@@ -44,17 +66,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 // eslint-disable-next-line no-restricted-properties
                 get: crossDomainLocation => crossDomainLocation.href,
 
-                set: (crossDomainLocation, value) => {
-                    const resolvedUrl  = destLocation.resolveUrl(value, document);
-                    const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
-
-                    // eslint-disable-next-line no-restricted-properties
-                    crossDomainLocation.href = crossDomainLocation !== window.top.location
-                        ? urlUtils.getProxyUrl(resolvedUrl, { resourceType })
-                        : urlUtils.getProxyUrl(resolvedUrl, { proxyPort: settings.get().crossDomainProxyPort });
-
-                    return value;
-                }
+                set: PropertyAccessorsInstrumentation._setCrossDomainLocation
             },
 
             location: {
@@ -75,24 +87,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
                     const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
-                    if (!locationWrapper) {
-                        if (typeof location !== 'string')
-                            location = String(location);
-
-                        if (!isJsProtocol(location)) {
-                            const url          = prepareUrl(location);
-                            const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
-
-                            owner.location = destLocation.sameOriginCheck(location.toString(), url)
-                                ? urlUtils.getProxyUrl(url, { resourceType })
-                                : urlUtils.getCrossDomainIframeProxyUrl(url);
-                        }
-                        else
-                            owner.location = processJsAttrValue(location, { isJsProtocol: true, isEventAttr: false });
-                    }
+                    if (locationWrapper)
+                        locationWrapper.href = location; // eslint-disable-line no-restricted-properties
                     else
-                        // eslint-disable-next-line no-restricted-properties
-                        locationWrapper.href = location;
+                        PropertyAccessorsInstrumentation._setCrossDomainLocation(owner.location, location);
 
                     return location;
                 }

@@ -83,7 +83,7 @@ export default class LocationWrapper {
                     // eslint-disable-next-line no-restricted-properties
                     const parentProxyPort = parsedParentLocationUrl.proxy.port;
 
-                    proxyPort = sameOriginCheck(parentLocationUrl, href, true)
+                    proxyPort = sameOriginCheck(parentLocationUrl, href)
                         ? parentProxyPort
                         : getCrossDomainProxyPort(parentProxyPort);
                 }
