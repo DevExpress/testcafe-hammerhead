@@ -1437,7 +1437,12 @@ var ExprRawGen = {
                 _.js += keyJs;
 
             else if ($expr.method) {
-                _.js += $val.generator ? ('*' + keyJs) : keyJs;
+                if ($val.generator)
+                    keyJs = '*' + keyJs;
+                else if ($val.async)
+                    keyJs = 'async ' + keyJs;
+
+                _.js += keyJs;
                 generateFunctionBody($val)
             }
 
