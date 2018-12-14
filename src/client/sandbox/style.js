@@ -1,5 +1,5 @@
 import SandboxBase from './base';
-import { overrideDescriptor, createOverriddenDescriptor } from './../utils/property-overriding';
+import { overrideDescriptor } from './../utils/property-overriding';
 import styleProcessor from './../../processing/style';
 import { getProxyUrl, parseProxyUrl } from './../utils/url';
 
@@ -96,7 +96,7 @@ export default class StyleSandbox extends SandboxBase {
         const nativeMethods = this.nativeMethods;
         const dashedProp    = StyleSandbox._convertToDashed(prop);
 
-        const descriptor = createOverriddenDescriptor(style, prop, {
+        overrideDescriptor(style, prop, {
             getter: function () {
                 const value = nativeMethods.styleGetPropertyValue.call(this, dashedProp);
 
@@ -109,12 +109,6 @@ export default class StyleSandbox extends SandboxBase {
                 nativeMethods.styleSetProperty.call(this, dashedProp, value);
             }
         });
-
-        // eslint-disable-next-line no-restricted-properties
-        delete descriptor.value;
-        delete descriptor.writable;
-
-        nativeMethods.objectDefineProperty.call(window.Object, style, prop, descriptor);
     }
 
     _processStyleInstance (style) {

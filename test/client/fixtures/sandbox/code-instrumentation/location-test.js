@@ -14,6 +14,46 @@ var domUtils      = hammerhead.utils.dom;
 
 var messageSandbox = hammerhead.sandbox.event.message;
 
+var getWindowMock = function (opts) {
+    opts = opts || {};
+
+    var winMock = {
+        location: {
+            href:     opts.url || '',
+            search:   '',
+            origin:   '',
+            hash:     '',
+            port:     '',
+            host:     '',
+            hostname: '',
+            pathname: '',
+            protocol: '',
+            valueOf:  window.noop,
+            reload:   window.noop,
+
+            toString: function () {
+                return this.href;
+            },
+
+            assign: function (url) {
+                this.href = url;
+            },
+
+            replace: function (url) {
+                this.href = url;
+            }
+        },
+
+        Location: Location,
+        document: document
+    };
+
+    winMock.top = opts.isTop ? winMock : { document: document };
+
+
+    return winMock;
+};
+
 var ENSURE_URL_TRAILING_SLASH_TEST_CASES = [
     {
         url:                   'http://example.com',
@@ -93,35 +133,11 @@ if (browserUtils.isWebKit) {
 }
 
 test('iframe', function () {
-    var getWindowMock = function () {
-        return {
-            location: {
-                toString: function () {
-                    return this.val || urlUtils.getProxyUrl('http://domain.com:90/');
-                },
-
-                assign: function (url) {
-                    this.val = url;
-                },
-
-                replace: function (url) {
-                    this.val = url;
-                }
-            },
-
-            top: {
-                document: document
-            },
-
-            document: {}
-        };
-    };
-
     var getProxy = function (url) {
         return urlUtils.getProxyUrl(url, { resourceType: 'i' });
     };
 
-    var windowMock = getWindowMock();
+    var windowMock = getWindowMock({ url: urlUtils.getProxyUrl('http://domain.com:90/') });
 
     new CodeInstrumentation({}, {}).attach(windowMock);
 
@@ -145,7 +161,7 @@ test('iframe', function () {
     wrapper.search = '?param=value';
     strictEqual(windowMock.location, getProxy('https://domain.com:1222/index.html?param=value'));
 
-    windowMock = getWindowMock();
+    windowMock = getWindowMock({ url: urlUtils.getProxyUrl('http://domain.com:90/') });
     new CodeInstrumentation({}, {}).attach(windowMock);
     wrapper = LocationInstrumentation.getLocationWrapper(windowMock);
 
@@ -157,9 +173,7 @@ test('iframe', function () {
 });
 
 test('get location origin', function () {
-    var locWrapper = getLocation(location);
-
-    strictEqual(locWrapper.origin, 'https://example.com');
+    strictEqual(getLocation(location).origin, 'https://example.com');
 });
 
 test('create location wrapper before iframe loading', function () {
@@ -180,12 +194,7 @@ test('special pages (GH-339)', function () {
     sharedUrlUtils.SPECIAL_PAGES.forEach(function (specialPageUrl) {
         destLocation.forceLocation(urlUtils.getProxyUrl(specialPageUrl));
 
-        var windowMock = {
-            location: {},
-            document: document
-        };
-
-        var locationWrapper = new LocationWrapper(windowMock);
+        var locationWrapper = new LocationWrapper(getWindowMock(), null, window.noop);
 
         strictEqual(locationWrapper.href, specialPageUrl);
         strictEqual(locationWrapper.protocol, 'about:');
@@ -228,27 +237,8 @@ test('different url types for locationWrapper methods (href, replace, assign) (G
         });
     }
 
-    var windowMock = {
-        location: {
-            href: '',
-
-            replace: function (url) {
-                this.href = url;
-            },
-
-            assign: function (url) {
-                this.href = url;
-            },
-
-            toString: function () {
-                return urlUtils.getProxyUrl(this.location.href);
-            }
-        }
-    };
-
-    windowMock.top = windowMock;
-
-    var locationWrapper = new LocationWrapper(windowMock);
+    var windowMock      = getWindowMock({ isTop: true });
+    var locationWrapper = new LocationWrapper(windowMock, null, window.noop);
 
     testCases.map(function (testCase) {
         locationWrapper.href = testCase.url;
@@ -271,27 +261,8 @@ test('throwing errors on calling locationWrapper methods (href, replace, assign)
         }
     };
 
-    var windowMock = {
-        location: {
-            href: '',
-
-            replace: function (url) {
-                this.href = url;
-            },
-
-            assign: function (url) {
-                this.href = url;
-            },
-
-            toString: function () {
-                return urlUtils.getProxyUrl(this.location.href);
-            }
-        }
-    };
-
-    windowMock.top = windowMock;
-
-    var locationWrapper = new LocationWrapper(windowMock);
+    var windowMock      = getWindowMock({ isTop: true });
+    var locationWrapper = new LocationWrapper(windowMock, null, window.noop);
 
     try {
         locationWrapper.href = invalidUrlObject;
@@ -400,27 +371,8 @@ test('should ensure a trailing slash on page navigation using href setter, assig
         return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
     }
 
-    var windowMock = {
-        location: {
-            href: '',
-
-            replace: function (url) {
-                this.href = url;
-            },
-
-            assign: function (url) {
-                this.href = url;
-            },
-
-            toString: function () {
-                return urlUtils.getProxyUrl(this.location.href);
-            }
-        }
-    };
-
-    windowMock.top = windowMock;
-
-    var locationWrapper = new LocationWrapper(windowMock);
+    var windowMock      = getWindowMock({ isTop: true });
+    var locationWrapper = new LocationWrapper(windowMock, null, window.noop);
 
     function testAddingTrailingSlash (testCases) {
         testCases.forEach(function (testCase) {
@@ -447,11 +399,7 @@ test('should ensure a trailing slash on page navigation using hammerhead.navigat
         return proxiedUrl + (testCase.shoudAddTrailingSlash ? '/' : '');
     }
 
-    var windowMock = {
-        location: ''
-    };
-
-    hammerhead.win = windowMock;
+    hammerhead.win = getWindowMock();
 
     function testAddingTrailingSlash (testCases) {
         testCases.forEach(function (testCase) {
@@ -476,27 +424,8 @@ test('should omit the default port on page navigation', function () {
         return urlUtils.getProxyUrl(expectedUrl);
     }
 
-    var windowMock = {
-        location: {
-            href: '',
-
-            replace: function (url) {
-                this.href = url;
-            },
-
-            assign: function (url) {
-                this.href = url;
-            },
-
-            toString: function () {
-                return urlUtils.getProxyUrl(this.location.href);
-            }
-        }
-    };
-
-    windowMock.top = windowMock;
-
-    var locationWrapper = new LocationWrapper(windowMock);
+    var windowMock      = getWindowMock({ isTop: true });
+    var locationWrapper = new LocationWrapper(windowMock, null, window.noop);
 
     hammerhead.win = {
         location: ''
@@ -632,24 +561,9 @@ if (browserUtils.compareVersions([browserUtils.webkitVersion, '603.1.30']) === -
 }
 
 test('change hash for the iframe location', function () {
-    var setHref    = function (url) {
-        this.href = url;
-    };
-    var proxyUrl   = urlUtils.getProxyUrl('http://domain.com/index.html', { resourceType: 'if' });
-    var windowMock = {
-        location: {
-            replace:  setHref,
-            assign:   setHref,
-            toString: function () {
-                return proxyUrl;
-            }
-        },
-
-        top:      { document: document },
-        document: document
-    };
-
-    var locationWrapper = new LocationWrapper(windowMock);
+    var proxyUrl        = urlUtils.getProxyUrl('http://domain.com/index.html', { resourceType: 'if' });
+    var windowMock      = getWindowMock({ url: proxyUrl });
+    var locationWrapper = new LocationWrapper(windowMock, null, window.noop);
 
     var testLocation = function () {
         locationWrapper.href = 'http://domain.com/index.html#hash';
@@ -664,11 +578,9 @@ test('change hash for the iframe location', function () {
 
     testLocation();
 
-    proxyUrl            = urlUtils.getProxyUrl('http://domain.com/index.html');
-    windowMock.toString = function () {
-        return proxyUrl;
-    };
-    locationWrapper     = new LocationWrapper(windowMock);
+    proxyUrl                 = urlUtils.getProxyUrl('http://domain.com/index.html');
+    windowMock.location.href = proxyUrl;
+    locationWrapper          = new LocationWrapper(windowMock, null, window.noop);
 
     testLocation();
 
@@ -709,19 +621,6 @@ test('emulate a native browser behaviour related with trailing slashes for locat
         }
     ];
 
-    var createWindowMock = function (data) {
-        return {
-            location: {
-                toString: function () {
-                    return urlUtils.getProxyUrl(data.url);
-                }
-            },
-
-            top:      {},
-            document: {}
-        };
-    };
-
     var overrideGetResolverElement = function (resolvedHref) {
         urlResolver.getResolverElement = function () {
             var storedAnchorHrefGetter = nativeMethods.anchorHrefGetter;
@@ -739,11 +638,11 @@ test('emulate a native browser behaviour related with trailing slashes for locat
 
     for (var i = 0; i < testCases.length; i++) {
         var testCase   = testCases[i];
-        var windowMock = createWindowMock(testCase);
+        var windowMock = getWindowMock(testCase);
 
         destLocation.forceLocation(windowMock.location.toString());
 
-        var locationWrapper = new LocationWrapper(windowMock);
+        var locationWrapper = new LocationWrapper(windowMock, null, window.noop);
 
         overrideGetResolverElement(testCase.expectedLocation);
 
@@ -786,4 +685,8 @@ asyncTest('should set a proxy url to an iframe location if iframe is not initial
     document.body.appendChild(iframe);
 
     setProperty(iframe.contentWindow, 'location', src);
+});
+
+test('location wrapper should not contains internal enumerable properties (GH-1866)', function () {
+    deepEqual(Object.getOwnPropertyNames(getLocation(location)).sort(), Object.getOwnPropertyNames(location).sort());
 });

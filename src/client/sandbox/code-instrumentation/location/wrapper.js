@@ -1,5 +1,3 @@
-import EventEmitter from '../../../utils/event-emitter';
-import createPropertyDesc from '../../../utils/create-property-desc';
 import { get as getDestLocation, getParsed as getParsedDestLocation } from '../../../utils/destination-location';
 import {
     getProxyUrl,
@@ -21,6 +19,7 @@ import urlResolver from '../../../utils/url-resolver';
 import { processJsAttrValue, isJsProtocol } from '../../../../processing/dom/index';
 import DOMStringListWrapper from './ancestor-origins-wrapper';
 import createIntegerIdGenerator from '../../../utils/integer-id-generator';
+import { createOverriddenDescriptor } from '../../../utils/property-overriding';
 
 const GET_ORIGIN_CMD      = 'hammerhead|command|get-origin';
 const ORIGIN_RECEIVED_CMD = 'hammerhead|command|origin-received';
@@ -34,16 +33,15 @@ function getLocationUrl (window) {
     }
 }
 
-export default class LocationWrapper extends EventEmitter {
-    constructor (window, messageSandbox) {
-        super();
-
-        this.CHANGED_EVENT = 'hammerhead|location-wrapper|changed';
-
-        const onChanged            = value => this.emit(this.CHANGED_EVENT, value);
+export default class LocationWrapper {
+    constructor (window, messageSandbox, onChanged) {
         const parsedLocation       = parseProxyUrl(getLocationUrl(window));
         const locationResourceType = parsedLocation ? parsedLocation.resourceType : '';
         const parsedResourceType   = parseResourceType(locationResourceType);
+        const locationPropsOwner   = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href')
+            ? window.Location.prototype
+            : window.location;
+        const locationProps        = {};
 
         parsedResourceType.isIframe |= window !== window.top;
 
@@ -98,9 +96,10 @@ export default class LocationWrapper extends EventEmitter {
             return getProxyUrl(href, { resourceType: currentResourceType, proxyPort });
         };
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'href', createPropertyDesc({
-            get: getHref,
-            set: href => {
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.href = createOverriddenDescriptor(locationPropsOwner, 'href', {
+            getter: getHref,
+            setter: href => {
                 const proxiedHref = getProxiedHref(href);
 
                 // eslint-disable-next-line no-restricted-properties
@@ -110,13 +109,13 @@ export default class LocationWrapper extends EventEmitter {
 
                 return href;
             }
-        }));
+        });
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'search', createPropertyDesc({
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.search = createOverriddenDescriptor(locationPropsOwner, 'search', {
             // eslint-disable-next-line no-restricted-properties
-            get: () => window.location.search,
-
-            set: search => {
+            getter: () => window.location.search,
+            setter: search => {
                 const newLocation = changeDestUrlPart(window.location.toString(), nativeMethods.anchorSearchSetter, search, resourceType);
 
                 window.location = newLocation;
@@ -124,21 +123,22 @@ export default class LocationWrapper extends EventEmitter {
 
                 return search;
             }
-        }));
+        });
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'origin', createPropertyDesc({
-            get: () => getDomain(getParsedDestLocation()),
-            set: origin => origin
-        }));
+        // eslint-disable-next-line no-restricted-properties
+        locationProps.origin = createOverriddenDescriptor(locationPropsOwner, 'origin', {
+            getter: () => getDomain(getParsedDestLocation()),
+            setter: origin => origin
+        });
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'hash', createPropertyDesc({
-            get: () => window.location.hash,
-            set: hash => {
+        locationProps.hash = createOverriddenDescriptor(locationPropsOwner, 'hash', {
+            getter: () => window.location.hash,
+            setter: hash => {
                 window.location.hash = hash;
 
                 return hash;
             }
-        }));
+        });
 
         if (window.location.ancestorOrigins) {
             const callbacks   = nativeMethods.objectCreate(null);
@@ -167,13 +167,15 @@ export default class LocationWrapper extends EventEmitter {
 
             const ancestorOrigins = new DOMStringListWrapper(window, getCrossDomainOrigin);
 
-            nativeMethods.objectDefineProperty(this, 'ancestorOrigins', { get: () => ancestorOrigins });
+            locationProps.ancestorOrigins = createOverriddenDescriptor(locationPropsOwner, 'ancestorOrigins', {
+                getter: () => ancestorOrigins
+            });
         }
 
-        const overrideProperty = (property, nativePropSetter) => {
-            nativeMethods.objectDefineProperty.call(window.Object, this, property, createPropertyDesc({
-                get: () => getParsedDestLocation()[property],
-                set: value => {
+        const createLocationPropertyDesc = (property, nativePropSetter) => {
+            locationProps[property] = createOverriddenDescriptor(locationPropsOwner, property, {
+                getter: () => getParsedDestLocation()[property],
+                setter: value => {
                     const newLocation = changeDestUrlPart(window.location.toString(), nativePropSetter, value, resourceType);
 
                     window.location = newLocation;
@@ -181,41 +183,50 @@ export default class LocationWrapper extends EventEmitter {
 
                     return value;
                 }
-            }));
+            });
         };
 
-        overrideProperty('port', nativeMethods.anchorPortSetter);
-        overrideProperty('host', nativeMethods.anchorHostSetter);
-        overrideProperty('hostname', nativeMethods.anchorHostnameSetter);
-        overrideProperty('pathname', nativeMethods.anchorPathnameSetter);
-        overrideProperty('protocol', nativeMethods.anchorProtocolSetter);
+        createLocationPropertyDesc('port', nativeMethods.anchorPortSetter);
+        createLocationPropertyDesc('host', nativeMethods.anchorHostSetter);
+        createLocationPropertyDesc('hostname', nativeMethods.anchorHostnameSetter);
+        createLocationPropertyDesc('pathname', nativeMethods.anchorPathnameSetter);
+        createLocationPropertyDesc('protocol', nativeMethods.anchorProtocolSetter);
 
-        this.assign = url => {
-            const proxiedHref = getProxiedHref(url);
-            const result      = window.location.assign(proxiedHref);
+        locationProps.assign = createOverriddenDescriptor(locationPropsOwner, 'assign', {
+            value: url => {
+                const proxiedHref = getProxiedHref(url);
+                const result      = window.location.assign(proxiedHref);
 
-            onChanged(proxiedHref);
+                onChanged(proxiedHref);
 
-            return result;
-        };
+                return result;
+            }
+        });
 
-        this.replace = url => {
-            const proxiedHref = getProxiedHref(url);
-            const result      = window.location.replace(proxiedHref);
+        locationProps.replace = createOverriddenDescriptor(locationPropsOwner, 'replace', {
+            value: url => {
+                const proxiedHref = getProxiedHref(url);
+                const result      = window.location.replace(proxiedHref);
 
-            onChanged(proxiedHref);
+                onChanged(proxiedHref);
 
-            return result;
-        };
+                return result;
+            }
+        });
 
-        this.reload = forceget => {
-            const result = window.location.reload(forceget);
+        locationProps.reload = createOverriddenDescriptor(locationPropsOwner, 'reload', {
+            value: forcedReload => {
+                const result = window.location.reload(forcedReload);
 
-            onChanged(window.location.toString());
+                onChanged(window.location.toString());
 
-            return result;
-        };
+                return result;
+            }
+        });
 
-        this.toString = () => getHref();
+        locationProps.toString = createOverriddenDescriptor(locationPropsOwner, 'toString', { value: getHref });
+        locationProps.valueOf  = createOverriddenDescriptor(locationPropsOwner, 'valueOf', { value: () => this });
+
+        nativeMethods.objectDefineProperties(this, locationProps);
     }
 }
