@@ -35,13 +35,12 @@ function getLocationUrl (window) {
 
 export default class LocationWrapper {
     constructor (window, messageSandbox, onChanged) {
-        const parsedLocation       = parseProxyUrl(getLocationUrl(window));
-        const locationResourceType = parsedLocation ? parsedLocation.resourceType : '';
-        const parsedResourceType   = parseResourceType(locationResourceType);
-        const locationPropsOwner   = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href')
-            ? window.Location.prototype
-            : window.location;
-        const locationProps        = {};
+        const parsedLocation         = parseProxyUrl(getLocationUrl(window));
+        const locationResourceType   = parsedLocation ? parsedLocation.resourceType : '';
+        const parsedResourceType     = parseResourceType(locationResourceType);
+        const isLocationPropsInProto = nativeMethods.objectHasOwnProperty.call(window.Location.prototype, 'href');
+        const locationPropsOwner     = isLocationPropsInProto ? window.Location.prototype : window.location;
+        const locationProps          = {};
 
         parsedResourceType.isIframe |= window !== window.top;
 
@@ -225,7 +224,9 @@ export default class LocationWrapper {
         });
 
         locationProps.toString = createOverriddenDescriptor(locationPropsOwner, 'toString', { value: getHref });
-        locationProps.valueOf  = createOverriddenDescriptor(locationPropsOwner, 'valueOf', { value: () => this });
+
+        if (!isLocationPropsInProto)
+            locationProps.valueOf  = createOverriddenDescriptor(locationPropsOwner, 'valueOf', { value: () => this });
 
         nativeMethods.objectDefineProperties(this, locationProps);
     }

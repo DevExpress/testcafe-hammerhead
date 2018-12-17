@@ -17,7 +17,7 @@ export function createOverriddenDescriptor (obj, prop, { getter, setter, value }
         throw new Error('Cannot both specify accessors and a value or writable attribute.');
 
     if (value) {
-        if (!descriptor.hasOwnProperty('writable')) {
+        if (!nativeMethods.objectHasOwnProperty.call(descriptor, 'writable')) {
             descriptor.writable = !!descriptor.set;
 
             delete descriptor.get;
@@ -27,7 +27,7 @@ export function createOverriddenDescriptor (obj, prop, { getter, setter, value }
         descriptor.value = value; // eslint-disable-line no-restricted-properties
     }
     else {
-        if (descriptor.hasOwnProperty('writable')) {
+        if (nativeMethods.objectHasOwnProperty.call(descriptor, 'writable')) {
             delete descriptor.value; // eslint-disable-line no-restricted-properties
             delete descriptor.writable;
         }
