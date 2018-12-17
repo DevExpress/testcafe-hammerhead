@@ -36,9 +36,7 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
-        const locationWrapper = new LocationWrapper(window, this.messageSandbox);
-
-        locationWrapper.on(locationWrapper.CHANGED_EVENT, this.locationChangedEventCallback);
+        const locationWrapper = new LocationWrapper(window, this.messageSandbox, this.locationChangedEventCallback);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
