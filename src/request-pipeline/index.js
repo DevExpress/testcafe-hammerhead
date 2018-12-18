@@ -18,6 +18,7 @@ import ResponseEvent from '../session/events/response-event';
 import RequestEvent from '../session/events/request-event';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
+import promisifyStream from '../utils/promisify-stream';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -281,13 +282,10 @@ function callOnRequestEventCallback (ctx, rule, reqInfo) {
 }
 
 function callOnResponseEventCallbackWithCollectedBody (ctx, rule, configureOpts) {
-    const destResBodyCollectorStream = new PassThrough();
-    const chunks                     = [];
+    const destResBodyCollectorStream            = new PassThrough();
+    const promisifiedDestResBodyCollectorStream = promisifyStream(destResBodyCollectorStream);
 
-    destResBodyCollectorStream.on('data', chunk => chunks.push(chunk));
-    destResBodyCollectorStream.on('end', () => {
-        const data = Buffer.concat(chunks);
-
+    promisifiedDestResBodyCollectorStream.then(data => {
         ctx.saveNonProcessedDestResBody(data);
 
         const responseInfo         = requestEventInfo.createResponseInfo(ctx);

@@ -1,5 +1,5 @@
 import { defaultsDeep as defaultOptions } from 'lodash';
-
+import promisifyStream from '../utils/promisify-stream';
 
 const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
     maxAge:         30,
@@ -53,10 +53,5 @@ export function respondStatic (req, res, resource, cachingOptions = {}) {
 }
 
 export function fetchBody (r) {
-    return new Promise(resolve => {
-        const chunks = [];
-
-        r.on('data', chunk => chunks.push(chunk));
-        r.on('end', () => resolve(Buffer.concat(chunks)));
-    });
+    return promisifyStream(r);
 }
