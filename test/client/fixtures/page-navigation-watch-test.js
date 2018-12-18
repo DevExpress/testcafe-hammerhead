@@ -74,6 +74,13 @@ test('location = ...', function () {
         });
 });
 
+test('location = { href, assign }', function () {
+    return navigateIframe('location = { href: "./index.html", assign: function(){} };')
+        .then(function (url) {
+            strictEqual(url, iframeLocation + 'index.html');
+        });
+});
+
 test('window.location = ...', function () {
     return navigateIframe('window.location = "./index.html";')
         .then(function (url) {
