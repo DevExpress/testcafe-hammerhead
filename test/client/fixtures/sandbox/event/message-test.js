@@ -61,35 +61,6 @@ asyncTest('onmessage event', function () {
         });
 });
 
-asyncTest('cross-domain post messages between different windows', function () {
-    expect(0);
-
-    var iframe           = document.createElement('iframe');
-    var result           = 0;
-    var onMessageHandler = null;
-    var checkResult      = function () {
-        if (result === 4) {
-            iframe.parentNode.removeChild(iframe);
-            window.removeEventListener('message', onMessageHandler);
-            start();
-        }
-    };
-
-    iframe.id = 'test02';
-
-    onMessageHandler = function (e) {
-        if (parseInt(e.data, 10))
-            result++;
-
-        checkResult();
-    };
-
-    window.onmessage = onMessageHandler;
-
-    iframe.src = getCrossDomainPageUrl('../../../data/cross-domain/target-url.html');
-    document.body.appendChild(iframe);
-});
-
 test('message types', function () {
     var checkValue = function (value, test) {
         return new Promise(function (resove) {

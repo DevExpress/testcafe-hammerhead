@@ -466,10 +466,6 @@ test('destination URL part', function () {
 
 module('regression');
 
-test('sameOriginCheck for third-level domain (T106172)', function () {
-    ok(destLocation.sameOriginCheck('http://www.example.com', 'http://money.example.com'));
-});
-
 test('location.port must return the empty string (T262593)', function () {
     eval(processScript([
         // NOTE: From att.com, iframesrc === https://att.com:null/?IFRAME.

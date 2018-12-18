@@ -1,22 +1,31 @@
-asyncTest('cross domain messaging between windows', function () {
-    expect(4);
+var nativeMethods = hammerhead.nativeMethods;
 
+asyncTest('cross domain messaging between windows', function () {
     var iframe = document.createElement('iframe');
 
     iframe.src = getCrossDomainPageUrl('../data/cross-domain/target-url.html');
     document.body.appendChild(iframe);
 
-    var messageCounter = 0;
+    var results = [];
 
     window.onmessage = function (e) {
         strictEqual(e.origin, 'http://target_url');
 
-        messageCounter += parseInt(e.data, 10);
+        results.push(e.data.description);
+    };
 
-        if (messageCounter >= 4) {
+    var nativeMessageCounter = 0;
+
+    nativeMethods.windowAddEventListener.call(window, 'message', function nativeHandler (e) {
+        if (e.data.type === 'messaging test')
+            ++nativeMessageCounter;
+
+        if (nativeMessageCounter === 5) {
+            nativeMethods.windowRemoveEventListener.call(window, 'message', nativeHandler);
             iframe.parentNode.removeChild(iframe);
             window.onmessage = null;
+            deepEqual(results.sort(), ['*', 'same origin']);
             start();
         }
-    };
+    });
 });

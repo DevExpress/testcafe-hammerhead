@@ -7,7 +7,6 @@ import styleProcessor from '../../../processing/style';
 import * as destLocation from '../../utils/destination-location';
 import { cleanUpHtml, processHtml } from '../../utils/html';
 import {
-    isSubDomain,
     parseUrl,
     getProxyUrl,
     parseProxyUrl,
@@ -627,14 +626,13 @@ export default class WindowSandbox extends SandboxBase {
                 if (typeof args[urlIndex] === 'string') {
                     // eslint-disable-next-line no-restricted-properties
                     const destHostname = destLocation.getParsed().hostname;
-
-                    let isDestUrl = '';
+                    let isDestUrl      = '';
 
                     if (isFirefox) {
                         const parsedUrl = parseUrl(args[urlIndex]);
 
                         // eslint-disable-next-line no-restricted-properties
-                        isDestUrl = parsedUrl.hostname && isSubDomain(destHostname, parsedUrl.hostname);
+                        isDestUrl = parsedUrl.hostname && destHostname === parsedUrl.hostname;
                     }
                     else
                         isDestUrl = destLocation.sameOriginCheck(destLocation.get(), args[urlIndex]);

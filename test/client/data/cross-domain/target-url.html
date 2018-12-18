@@ -15,11 +15,11 @@
     var INSTRUCTION = hammerhead.get('../processing/script/instruction');
     var callMethod  = window[INSTRUCTION.callMethod];
 
-    callMethod(top, 'postMessage', ['1', 'https://example.com']);
-    callMethod(top, 'postMessage', ['1']);
-    callMethod(top, 'postMessage', ['0', 'http://example.com']);
-    callMethod(top, 'postMessage', ['1', 'https://sub.example.com']);
-    callMethod(top, 'postMessage', ['1', '*']);
+    callMethod(top, 'postMessage', [{ type: 'messaging test', description: 'same origin' }, 'https://example.com']);
+    callMethod(top, 'postMessage', [{ type: 'messaging test', description: 'without origin' }]);
+    callMethod(top, 'postMessage', [{ type: 'messaging test', description: 'different protocol' }, 'http://example.com']);
+    callMethod(top, 'postMessage', [{ type: 'messaging test', description: 'sub-domain' }, 'https://sub.example.com']);
+    callMethod(top, 'postMessage', [{ type: 'messaging test', description: '*' }, '*']);
 </script>
 </body>
 </html>
