@@ -225,7 +225,7 @@ export default class LocationWrapper {
 
         locationProps.toString = createOverriddenDescriptor(locationPropsOwner, 'toString', { value: getHref });
 
-        if (!isLocationPropsInProto)
+        if (!isLocationPropsInProto && nativeMethods.objectHasOwnProperty.call(window.location, 'valueOf'))
             locationProps.valueOf  = createOverriddenDescriptor(locationPropsOwner, 'valueOf', { value: () => this });
 
         nativeMethods.objectDefineProperties(this, locationProps);
