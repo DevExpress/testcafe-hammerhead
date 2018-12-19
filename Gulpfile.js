@@ -1,5 +1,6 @@
 const babel          = require('babel-core');
 const gulpBabel      = require('gulp-babel');
+const gulpTypeScript = require('gulp-typescript');
 const del            = require('del');
 const eslint         = require('gulp-eslint');
 const fs             = require('fs');
@@ -151,7 +152,10 @@ gulp.step('client-scripts-processing', () => {
 gulp.step('client-scripts', gulp.series('client-scripts-bundle', 'client-scripts-processing'));
 
 gulp.step('server-scripts', () => {
-    return gulp.src(['./src/**/*.js', '!./src/client/**/*.js'])
+    const tsProject = gulpTypeScript.createProject('tsconfig.json');
+
+    return gulp.src(['./src/**/*.ts', '!./src/client/**/*.ts'])
+        .pipe(tsProject())
         .pipe(gulpBabel())
         .pipe(gulp.dest('lib/'));
 });
@@ -179,10 +183,10 @@ gulp.task('build',
     gulp.series(
         'clean',
         gulp.parallel(
-            'client-scripts',
+            //'client-scripts',
             'server-scripts',
-            'templates',
-            'lint'
+            //'templates',
+            //'lint'
         )
     )
 );
