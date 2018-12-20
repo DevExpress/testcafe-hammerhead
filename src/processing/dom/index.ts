@@ -5,7 +5,7 @@
 
 import INTERNAL_ATTRS from '../../processing/dom/internal-attributes';
 import SHADOW_UI_CLASSNAME from '../../shadow-ui/class-name';
-import { isScriptProcessed, processScript } from '../script/index';
+import { isScriptProcessed, processScript } from '../script';
 import styleProcessor from '../../processing/style';
 import * as urlUtils from '../../utils/url';
 import trim from '../../utils/string-trim';
@@ -36,46 +36,39 @@ const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = 'hammerhead|autocomplete-attribute
 
 export default class DomProcessor {
     adapter: BaseDomAdapter;
-    SVG_XLINK_HREF_TAGS: string[];
-    AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string;
-    EVENTS: string[];
+    SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
+    AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     elementProcessorPatterns: any;
-    forceProxySrcForImage: boolean;
+    forceProxySrcForImage: boolean = false;
 
     constructor (adapter: any) {
         this.adapter = adapter;
         this.adapter.attachEventEmitter(this);
 
-        this.SVG_XLINK_HREF_TAGS                   = SVG_XLINK_HREF_TAGS;
-        this.AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
-
-        this.EVENTS = this.adapter.EVENTS;
-
         this.elementProcessorPatterns = this._createProcessorPatterns(this.adapter);
-        this.forceProxySrcForImage    = false;
     }
 
-    static isTagWithTargetAttr (tagName) {
+    static isTagWithTargetAttr (tagName: string) {
         return tagName && TARGET_ATTR_TAGS.target.indexOf(tagName) > -1;
     }
 
-    static isTagWithFormTargetAttr (tagName) {
+    static isTagWithFormTargetAttr (tagName: string) {
         return tagName && TARGET_ATTR_TAGS.formtarget.indexOf(tagName) > -1;
     }
 
-    static isTagWithIntegrityAttr (tagName) {
+    static isTagWithIntegrityAttr (tagName: string) {
         return tagName && INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
     }
 
-    static isIframeFlagTag (tagName) {
+    static isIframeFlagTag (tagName: string) {
         return tagName && IFRAME_FLAG_TAGS.indexOf(tagName) !== -1;
     }
 
-    static isAddedAutocompleteAttr (attrName, storedAttrValue) {
+    static isAddedAutocompleteAttr (attrName: string, storedAttrValue: string) {
         return attrName === 'autocomplete' && storedAttrValue === AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     }
 
-    static processJsAttrValue (value, { isJsProtocol, isEventAttr }) {
+    static processJsAttrValue (value: string, { isJsProtocol, isEventAttr }) {
         if (isJsProtocol)
             value = value.replace(JAVASCRIPT_PROTOCOL_REG_EX, '');
 
@@ -88,15 +81,15 @@ export default class DomProcessor {
         return value;
     }
 
-    static getStoredAttrName (attr) {
+    static getStoredAttrName (attr: string) {
         return attr + INTERNAL_ATTRS.storedAttrPostfix;
     }
 
-    static isJsProtocol (value) {
+    static isJsProtocol (value: string) {
         return JAVASCRIPT_PROTOCOL_REG_EX.test(value);
     }
 
-    static _isHtmlImportLink (tagName, relAttr) {
+    static _isHtmlImportLink (tagName: string, relAttr: string) {
         return tagName && relAttr && tagName === 'link' && relAttr === 'import';
     }
 
@@ -263,7 +256,7 @@ export default class DomProcessor {
         });
     }
 
-    isUrlAttr (el, attr, ns) {
+    isUrlAttr (el, attr: string, ns: string) {
         const tagName = this.adapter.getTagName(el);
 
         attr = attr ? attr.toLowerCase() : attr;
@@ -387,7 +380,7 @@ export default class DomProcessor {
         }
     }
 
-    _processJsAttr (el, attrName, { isJsProtocol, isEventAttr }) {
+    _processJsAttr (el, attrName: string, { isJsProtocol, isEventAttr }) {
         const storedUrlAttr  = DomProcessor.getStoredAttrName(attrName);
         const processed      = this.adapter.hasAttr(el, storedUrlAttr);
         const attrValue      = this.adapter.getAttr(el, processed ? storedUrlAttr : attrName);
