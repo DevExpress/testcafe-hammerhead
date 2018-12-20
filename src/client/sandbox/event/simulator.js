@@ -559,6 +559,9 @@ export default class EventSimulator {
     }
 
     _dispatchMouseEvent (el, args, dataTransfer) {
+        if (browserUtils.isMSEdge && el.disabled)
+            return null;
+
         let event = null;
 
         if (this.browserWithNewEventsStyle && nativeMethods.WindowMouseEvent) {

@@ -630,28 +630,30 @@ test('mouse event buttons properties', function () {
 });
 
 test('mouse events on disabled elements', function () {
-    var input            = document.createElement('button');
+    var button           = document.createElement('button');
     var mouseEventRaised = false;
 
-    document.body.appendChild(input);
+    document.body.appendChild(button);
 
     var mouseEventHandler = function () {
         mouseEventRaised = true;
     };
 
-    input.disabled = true;
+    button.disabled = true;
 
-    input.addEventListener('mousedown', mouseEventHandler);
-    input.addEventListener('mouseup', mouseEventHandler);
-    input.addEventListener('click', mouseEventHandler);
+    button.addEventListener('mousedown', mouseEventHandler);
+    button.addEventListener('mouseup', mouseEventHandler);
+    button.addEventListener('click', mouseEventHandler);
+    button.addEventListener('mouseover', mouseEventHandler);
+    button.addEventListener('mouseout', mouseEventHandler);
 
-    eventSimulator.mousedown(input);
-    eventSimulator.click(input);
-    eventSimulator.mouseup(input);
+    eventSimulator.mousedown(button);
+    eventSimulator.click(button);
+    eventSimulator.mouseup(button);
 
     notOk(mouseEventRaised);
 
-    document.body.removeChild(input);
+    document.body.removeChild(button);
 });
 
 module('regression');
