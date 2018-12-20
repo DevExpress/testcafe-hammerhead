@@ -19,15 +19,10 @@ const STYLESHEET_PROCESSING_COMMENTS_RE   = new RegExp(`\\s*${ reEscape(STYLESHE
                                                        `\n?${ reEscape(STYLESHEET_PROCESSING_END_COMMENT) }\\s*`, 'gi');
 
 class StyleProcessor {
-    STYLESHEET_PROCESSING_START_COMMENT: string;
-    STYLESHEET_PROCESSING_END_COMMENT: string;
+    STYLESHEET_PROCESSING_START_COMMENT: string = STYLESHEET_PROCESSING_START_COMMENT;
+    STYLESHEET_PROCESSING_END_COMMENT: string = STYLESHEET_PROCESSING_END_COMMENT;
 
-    constructor () {
-        this.STYLESHEET_PROCESSING_START_COMMENT = STYLESHEET_PROCESSING_START_COMMENT;
-        this.STYLESHEET_PROCESSING_END_COMMENT   = STYLESHEET_PROCESSING_END_COMMENT;
-    }
-
-    process (css, urlReplacer, isStylesheetTable) {
+    process (css, urlReplacer, isStylesheetTable: boolean) {
         if (!css || typeof css !== 'string' || IS_STYLE_SHEET_PROCESSED_RE.test(css))
             return css;
 

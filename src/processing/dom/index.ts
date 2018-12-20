@@ -40,11 +40,14 @@ export default class DomProcessor {
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     elementProcessorPatterns: any;
     forceProxySrcForImage: boolean = false;
+    // Refactor this, see BaseDomAdapter;
+    EVENTS: string[];
 
     constructor (adapter: any) {
         this.adapter = adapter;
         this.adapter.attachEventEmitter(this);
 
+        this.EVENTS = this.adapter.EVENTS;
         this.elementProcessorPatterns = this._createProcessorPatterns(this.adapter);
     }
 
@@ -99,21 +102,21 @@ export default class DomProcessor {
 
     _createProcessorPatterns (adapter) {
         const selectors = {
-            HAS_HREF_ATTR: el => this.isUrlAttr(el, 'href', false),
+            HAS_HREF_ATTR: el => this.isUrlAttr(el, 'href', void 0),
 
-            HAS_SRC_ATTR: el => this.isUrlAttr(el, 'src', false),
+            HAS_SRC_ATTR: el => this.isUrlAttr(el, 'src', void 0),
 
-            HAS_ACTION_ATTR: el => this.isUrlAttr(el, 'action', false),
+            HAS_ACTION_ATTR: el => this.isUrlAttr(el, 'action', void 0),
 
-            HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction', false),
+            HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction', void 0),
 
             HAS_FORMTARGET_ATTR: el => {
                 return DomProcessor.isTagWithFormTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'formtarget');
             },
 
-            HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest', false),
+            HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest', void 0),
 
-            HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data', false),
+            HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data', void 0),
 
             HTTP_EQUIV_META: el => {
                 const tagName = adapter.getTagName(el);

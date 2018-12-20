@@ -7,54 +7,41 @@ const META_CHARSET_RE = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
 // (see: http://www.w3.org/International/O-HTTP-charset.en.php).
 const DEFAULT_CHARSET = 'iso-8859-1';
 
-const CHARSET_BOM_LIST = [
+interface CharsetBOM {
+    charset: string,
+    bom: Buffer;
+}
+
+const CHARSET_BOM_LIST: Array<CharsetBOM> = [
     {
         charset: 'utf-8',
-        bom:     [0xEF, 0xBB, 0xBF]
+        bom:     Buffer.from([0xEF, 0xBB, 0xBF])
     },
 
     {
         charset: 'utf-16le',
-        bom:     [0xFF, 0xFE]
+        bom:     Buffer.from([0xFF, 0xFE])
     },
 
     {
         charset: 'utf-16be',
-        bom:     [0xFE, 0xFF]
+        bom:     Buffer.from([0xFE, 0xFF])
     }
 ];
 
-enum PRIORITY_LIST {
+enum CharsetPriority {
     BOM =          3,
     CONTENT_TYPE = 2,
     URL =          1,
     META =         1,
     DEFAULT =      0
-};
+}
 
-// Charset
 export default class Charset {
-    charset: string;
-    priority: PRIORITY_LIST;
+    charset: string           = DEFAULT_CHARSET;
+    priority: CharsetPriority = CharsetPriority.DEFAULT;
 
-    constructor () {
-        this.charset  = DEFAULT_CHARSET;
-        this.priority = PRIORITY_LIST.DEFAULT;
-    }
-
-    static _bufferStartsWithBOM (resBuf, bom) {
-        if (resBuf.length < bom.length)
-            return false;
-
-        for (let i = 0; i < bom.length; i++) {
-            if (resBuf[i] !== bom[i])
-                return false;
-        }
-
-        return true;
-    }
-
-    set (charset, priority) {
+    set (charset: string, priority: CharsetPriority) {
         if (charset && this.charset !== charset && this.priority <= priority) {
             this.charset  = charset;
             this.priority = priority;
@@ -70,32 +57,32 @@ export default class Charset {
     }
 
     isFromBOM () {
-        return this.priority === PRIORITY_LIST.BOM;
+        return this.priority === CharsetPriority.BOM;
     }
 
-    fromBOM (resBuf) {
+    fromBOM (resBuf: Buffer) {
         for (let i = 0; i < CHARSET_BOM_LIST.length; i++) {
-            if (Charset._bufferStartsWithBOM(resBuf, CHARSET_BOM_LIST[i].bom))
-                return this.set(CHARSET_BOM_LIST[i].charset, PRIORITY_LIST.BOM);
+            if (resBuf.includes(CHARSET_BOM_LIST[i].bom, 0))
+                return this.set(CHARSET_BOM_LIST[i].charset, CharsetPriority.BOM);
         }
 
         return false;
     }
 
-    fromContentType (contentTypeHeader) {
-        if (this.priority <= PRIORITY_LIST.CONTENT_TYPE) {
+    fromContentType (contentTypeHeader: string) {
+        if (this.priority <= CharsetPriority.CONTENT_TYPE) {
             const charsetMatch = contentTypeHeader && contentTypeHeader.match(CHARSET_RE);
             const charset      = charsetMatch && charsetMatch[1];
 
-            return this.set(getEncodingName(charset), PRIORITY_LIST.CONTENT_TYPE);
+            return this.set(getEncodingName(charset), CharsetPriority.CONTENT_TYPE);
         }
 
         return false;
     }
 
-    fromUrl (charsetFromUrl) {
-        if (charsetFromUrl && this.priority <= PRIORITY_LIST.URL)
-            return this.set(getEncodingName(charsetFromUrl), PRIORITY_LIST.URL);
+    fromUrl (charsetFromUrl: string) {
+        if (charsetFromUrl && this.priority <= CharsetPriority.URL)
+            return this.set(getEncodingName(charsetFromUrl), CharsetPriority.URL);
 
         return false;
     }
@@ -104,7 +91,7 @@ export default class Charset {
     // www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#determining-the-character-encoding
     // Each <meta> descriptor should contain values of the "http-equiv", "content" and "charset" attributes.
     fromMeta (metas) {
-        if (this.priority < PRIORITY_LIST.META && metas.length) {
+        if (this.priority < CharsetPriority.META && metas.length) {
             let needPragma = null;
             let charsetStr = null;
 
@@ -129,7 +116,7 @@ export default class Charset {
                 }
             });
 
-            return this.set(getEncodingName(charsetStr), PRIORITY_LIST.META);
+            return this.set(getEncodingName(charsetStr), CharsetPriority.META);
         }
 
         return false;
