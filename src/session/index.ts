@@ -130,9 +130,11 @@ export default abstract class Session extends EventEmitter {
         return taskScript;
     }
 
-    setExternalProxySettings (proxySettings: any = {}) {
+    setExternalProxySettings (proxySettings: any) {
         if (typeof proxySettings === 'string')
             proxySettings = { url: proxySettings };
+
+        proxySettings = proxySettings || {};
 
         const { url, bypassRules } = proxySettings;
         const parsedUrl            = typeof url === 'string' ? parseUrl('http://' + url) : null;
