@@ -719,6 +719,20 @@ export function getParents (el, selector) {
     return parents;
 }
 
+export function findParent (node, includeSelf = false, predicate) {
+    if (!includeSelf)
+        node = node.parentNode;
+
+    while (node) {
+        if (typeof predicate !== 'function' || predicate(node))
+            return node;
+
+        node = node.parentNode;
+    }
+
+    return null;
+}
+
 export function nodeListToArray (nodeList) {
     const result = [];
     const length = nativeMethods.nodeListLengthGetter.call(nodeList);

@@ -559,7 +559,9 @@ export default class EventSimulator {
     }
 
     _dispatchMouseEvent (el, args, dataTransfer) {
-        if (browserUtils.isMSEdge && el.disabled)
+        const disabledParent = domUtils.findParent(el, true, node => node.disabled);
+
+        if (disabledParent)
             return null;
 
         let event = null;
