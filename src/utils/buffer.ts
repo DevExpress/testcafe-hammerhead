@@ -6,7 +6,7 @@ const CRLF_LENGTH = 2;
 
 export const CRLF = Buffer.from([CR, LF]);
 
-export function createLineIterator (buffer) {
+export function createLineIterator (buffer: Buffer) {
     return {
         [Symbol.iterator]: function* () {
             const lastIdx = buffer.length - 1;
@@ -30,18 +30,6 @@ export function appendLine (lines, line) {
         lines.push(CRLF);
 
     lines.push(line);
-}
-
-export function equals (buffer1, buffer2) {
-    if (buffer1.length !== buffer2.length)
-        return false;
-
-    for (let i = 0; i < buffer1.length; i++) {
-        if (buffer1[i] !== buffer2[i])
-            return false;
-    }
-
-    return true;
 }
 
 export function toReadableStream (buffer) {

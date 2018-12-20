@@ -6,7 +6,7 @@
 import SHADOW_UI_CLASSNAME from '../shadow-ui/class-name';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 
-export default function (script) {
+export default function (script: string) {
     return `
         <script class="${ SHADOW_UI_CLASSNAME.selfRemovingScript }">
             (function () {

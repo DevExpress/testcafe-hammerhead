@@ -7,10 +7,11 @@ import { respond500, respondWithJSON, fetchBody, preventCaching } from '../utils
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
+import Session from "../session";
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
-function parseAsJson (msg) {
+function parseAsJson (msg: string) {
     msg = msg.toString();
 
     try {
@@ -21,7 +22,15 @@ function parseAsJson (msg) {
     }
 }
 
-function createServerInfo (hostname, port, crossDomainPort, protocol) {
+interface ServerInfo {
+    hostname: string,
+    port: string,
+    crossDomainPort: string,
+    protocol: string,
+    domain: string
+}
+
+function createServerInfo (hostname: string, port: string, crossDomainPort: string, protocol: string): ServerInfo {
     return {
         hostname:        hostname,
         port:            port,
@@ -33,13 +42,13 @@ function createServerInfo (hostname, port, crossDomainPort, protocol) {
 
 export default class Proxy extends Router {
     openSessions: any;
-    server1Info: any;
-    server2Info: any;
+    server1Info: ServerInfo;
+    server2Info: ServerInfo;
     server1: any;
     server2: any;
     sockets: Array<any>;
 
-    constructor (hostname, port1, port2, options: any = {}) {
+    constructor (hostname: string, port1: string, port2: string, options: any = {}) {
         super(options);
 
         const { ssl, developmentMode } = options;
@@ -101,7 +110,7 @@ export default class Proxy extends Router {
         this.GET('/iframe-task.js', (req, res, serverInfo) => this._onTaskScriptRequest(req, res, serverInfo, true));
     }
 
-    async _onServiceMessage (req, res, serverInfo) {
+    async _onServiceMessage (req, res, serverInfo: ServerInfo) {
         const body    = await fetchBody(req);
         const msg     = parseAsJson(body);
         const session = msg && this.openSessions[msg.sessionId];
@@ -120,7 +129,7 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    _onTaskScriptRequest (req, res, serverInfo, isIframe) {
+    _onTaskScriptRequest (req, res, serverInfo: ServerInfo, isIframe: boolean) {
         const referer     = req.headers['referer'];
         const refererDest = referer && urlUtils.parseProxyUrl(referer);
         const session     = refererDest && this.openSessions[refererDest.sessionId];
@@ -143,13 +152,13 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    _onRequest (req, res, serverInfo) {
+    _onRequest (req, res, serverInfo: ServerInfo) {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
             runRequestPipeline(req, res, serverInfo, this.openSessions);
     }
 
-    _onUpgradeRequest (req, socket, head, serverInfo) {
+    _onUpgradeRequest (req, socket, head, serverInfo: ServerInfo) {
         if (head && head.length)
             socket.unshift(head);
 
@@ -169,7 +178,7 @@ export default class Proxy extends Router {
         resetKeepAliveConnections();
     }
 
-    openSession (url, session, externalProxySettings) {
+    openSession (url: string, session: Session, externalProxySettings) {
         session.proxy                 = this;
         this.openSessions[session.id] = session;
 
@@ -186,7 +195,7 @@ export default class Proxy extends Router {
         });
     }
 
-    closeSession (session) {
+    closeSession (session: Session) {
         session.proxy = null;
         delete this.openSessions[session.id];
     }

@@ -7,6 +7,7 @@ import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 import {Map} from "gulp-typescript/release/utils";
+import RequestFilterRule from "../request-pipeline/request-hooks/request-filter-rule";
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -197,7 +198,7 @@ export default abstract class Session extends EventEmitter {
             await targetRequestEventCallback(eventData);
     }
 
-    setMock (requestFilterRule, mock) {
+    setMock (requestFilterRule: RequestFilterRule, mock) {
         this.mocks.set(requestFilterRule, mock);
     }
 

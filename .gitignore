@@ -4,4 +4,8 @@ node_modules
 .vscode
 lib
 package-lock.json
-
+**/*.js
+!src/client/**/*.js
+!src/processing/script/tools/**/*.js
+!src/test
+!src/Gulpfile.js

@@ -1,32 +1,33 @@
 import { defaultsDeep as defaultOptions } from 'lodash';
 import promisifyStream from '../utils/promisify-stream';
+import {IncomingMessage, ServerResponse} from "http";
 
 const STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS = {
     maxAge:         30,
     mustRevalidate: true
 };
 
-export function preventCaching (res) {
+export function preventCaching (res: ServerResponse) {
     res.setHeader('cache-control', 'no-cache, no-store, must-revalidate');
     res.setHeader('pragma', 'no-cache');
 }
 
-export function respond204 (res) {
+export function respond204 (res: ServerResponse) {
     res.statusCode = 204;
     res.end();
 }
 
-export function respond404 (res) {
+export function respond404 (res: ServerResponse) {
     res.statusCode = 404;
     res.end();
 }
 
-export function respond500 (res, err) {
+export function respond500 (res: ServerResponse, err) {
     res.statusCode = 500;
     res.end(err || '');
 }
 
-export function respondWithJSON (res, data, skipContentType) {
+export function respondWithJSON (res: ServerResponse, data: any, skipContentType: boolean) {
     if (!skipContentType)
         res.setHeader('content-type', 'application/json');
 
@@ -35,7 +36,7 @@ export function respondWithJSON (res, data, skipContentType) {
     res.end(data ? JSON.stringify(data) : '');
 }
 
-export function respondStatic (req, res, resource, cachingOptions: any = {}) {
+export function respondStatic (req: IncomingMessage, res: ServerResponse, resource: any, cachingOptions: any = {}) {
     cachingOptions = defaultOptions(cachingOptions, STATIC_RESOURCES_DEFAULT_CACHING_OPTIONS);
 
     if (resource.etag === req.headers['if-none-match']) {
@@ -52,6 +53,6 @@ export function respondStatic (req, res, resource, cachingOptions: any = {}) {
     }
 }
 
-export function fetchBody (r) {
+export function fetchBody (r): string {
     return promisifyStream(r);
 }

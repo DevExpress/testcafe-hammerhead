@@ -1,4 +1,3 @@
-// Const
 const MANIFEST_MIME = 'text/cache-manifest';
 const CSS_MIME      = 'text/css';
 
@@ -31,20 +30,18 @@ const SCRIPT_MIMES = [
     'text/x-javascript'
 ];
 
-
-// Content type
-export function isPage (header) {
+export function isPage (header: string) {
     header = header.toLowerCase();
 
     return PAGE_MIMES.some(mime => header.includes(mime));
 }
 
-export function isCSSResource (contentTypeHeader, acceptHeader) {
+export function isCSSResource (contentTypeHeader: string, acceptHeader: string) {
     return contentTypeHeader.toLowerCase().includes(CSS_MIME) ||
            acceptHeader.toLowerCase().includes(CSS_MIME);
 }
 
-export function isScriptResource (contentTypeHeader, acceptHeader) {
+export function isScriptResource (contentTypeHeader: string, acceptHeader: string) {
     contentTypeHeader = contentTypeHeader.toLowerCase();
     acceptHeader      = acceptHeader.toLowerCase();
 
@@ -52,7 +49,7 @@ export function isScriptResource (contentTypeHeader, acceptHeader) {
            SCRIPT_MIMES.includes(acceptHeader);
 }
 
-export function isManifest (contentTypeHeader) {
+export function isManifest (contentTypeHeader: string) {
     return contentTypeHeader.toLowerCase().includes(MANIFEST_MIME);
 }
 

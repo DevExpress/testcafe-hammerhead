@@ -50,11 +50,11 @@ export default class FormData {
     }
 
     _isBoundary (line) {
-        return bufferUtils.equals(this.boundary, line);
+        return this.boundary.equals(line);
     }
 
     _isBoundaryEnd (line) {
-        return bufferUtils.equals(this.boundaryEnd, line);
+        return this.boundaryEnd.equals(line);
     }
 
     getEntriesByName (name) {

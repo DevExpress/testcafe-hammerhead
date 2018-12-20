@@ -5,6 +5,6 @@
 /* eslint hammerhead/proto-methods: 2 */
 const STORAGE_WRAPPER_PREFIX = 'hammerhead|storage-wrapper|';
 
-export default function getStorageKey (sessionId, host) {
+export default function getStorageKey (sessionId: string, host: string) {
     return STORAGE_WRAPPER_PREFIX + sessionId + '|' + host;
 }

@@ -63,7 +63,7 @@ export function getResourceTypeString (resourceType) {
     ].join('');
 }
 
-export function isSubDomain (domain, subDomain) {
+export function isSubDomain (domain: string, subDomain: string) {
     domain    = domain.replace(/^www./i, '');
     subDomain = subDomain.replace(/^www./i, '');
 
@@ -75,7 +75,7 @@ export function isSubDomain (domain, subDomain) {
     return subDomain[index - 1] === '.' && subDomain.length === index + domain.length;
 }
 
-export function sameOriginCheck (location, checkedUrl) {
+export function sameOriginCheck (location: string, checkedUrl: string) {
     if (!checkedUrl)
         return true;
 
@@ -101,14 +101,14 @@ export function sameOriginCheck (location, checkedUrl) {
 }
 
 // NOTE: Convert the destination protocol and hostname to the lower case. (GH-1)
-function convertHostToLowerCase (url) {
+function convertHostToLowerCase (url: string) {
     const parsedUrl             = parseUrl(url);
     const protocolHostSeparator = parsedUrl.protocol === 'about:' ? '' : '//';
 
     return (parsedUrl.protocol + protocolHostSeparator + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
 }
 
-export function getURLString (url) {
+export function getURLString (url: string) {
     // TODO: fix it
     // eslint-disable-next-line no-undef
     if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
@@ -117,7 +117,7 @@ export function getURLString (url) {
     return String(url).replace(/\n|\t/g, '');
 }
 
-export function getProxyUrl (url, opts) {
+export function getProxyUrl (url: string, opts) {
     let params: any = [opts.sessionId];
 
     if (opts.resourceType)

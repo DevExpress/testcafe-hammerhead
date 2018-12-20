@@ -5,6 +5,6 @@
 /* eslint hammerhead/proto-methods: 2 */
 
 // NOTE: taken from https://github.com/benjamingr/RegExp.escape
-export default function (str) {
+export default function (str: string) {
     return str.replace(/[\\^$*+?.()|[\]{}]/g, '\\$&');
 }

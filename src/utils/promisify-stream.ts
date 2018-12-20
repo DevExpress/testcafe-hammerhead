@@ -1,4 +1,6 @@
-export default function (stream) {
+import * as Stream from 'stream';
+
+export default function (stream: Stream): any {
     return new Promise((resolve, reject) => {
         const chunks = [];
 
