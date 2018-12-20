@@ -63,8 +63,12 @@ var dispatchEvent = function (el, type) {
 var dispatchPointerEvent = function (el, type) {
     var pointEvent = browserUtils.isIE11 ? document.createEvent('PointerEvent') : document.createEvent('MSPointerEvent');
 
-    pointEvent.initPointerEvent(type, true, true, window, 0, 0,
-        0, 0, 0, false, false, false, false, 0, null, 0, 0, 0, 0, 0.5, 0, 0, 0, 1, 'mouse', Date.now(), true);
+    if (pointEvent.initPointerEvent) {
+        pointEvent.initPointerEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null,
+            0, 0, 0, 0, 0.5, 0, 0, 0, 1, 'mouse', Date.now(), true);
+    }
+    else
+        pointEvent.initMouseEvent(type, true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
 
     el.dispatchEvent(pointEvent);
 };
@@ -488,7 +492,7 @@ test('only one of several handlers must be called (element handlers) (T233158)',
     $container.off('click', clickHandler);
 });
 
-if (browserUtils.isIE && browserUtils.version >= 10) {
+if (browserUtils.isIE) {
     test('only one of several handlers must be called (MSPointerDown, pointerdown combination) (T233158)', function () {
         var events              = browserUtils.isMSEdge ? 'pointerdown MSPointerDown' : 'pointerdown';
         var eventHandlerCounter = 0;
@@ -504,13 +508,13 @@ if (browserUtils.isIE && browserUtils.version >= 10) {
 
         document.addEventListener('pointerdown', handler, true);
         document.addEventListener('pointerdown', handler, true);
-        dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
-        strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 1 : 0);
+        dispatchPointerEvent(container, 'pointerdown');
+        strictEqual(eventHandlerCounter, 1);
 
         document.addEventListener('pointerdown', handler, true);
         document.addEventListener('pointerdown', handler, false);
-        dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
-        strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 3 : 0);
+        dispatchPointerEvent(container, 'pointerdown');
+        strictEqual(eventHandlerCounter, 3);
         document.removeEventListener('pointerdown', handler, true);
         document.removeEventListener('pointerdown', handler, false);
 
@@ -518,66 +522,66 @@ if (browserUtils.isIE && browserUtils.version >= 10) {
 
         $document.bind('pointerdown', handler);
         $document.bind('pointerdown', handler);
-        dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
-        strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 5 : 0);
+        dispatchPointerEvent(container, 'pointerdown');
+        strictEqual(eventHandlerCounter, 5);
         $document.unbind('pointerdown', handler);
 
         $document.on('pointerdown', handler);
         $document.on('pointerdown', handler);
-        dispatchPointerEvent(container, browserUtils.version > 10 ? 'pointerdown' : 'MSPointerDown');
-        strictEqual(eventHandlerCounter, browserUtils.version > 10 ? 7 : 0);
+        dispatchPointerEvent(container, 'pointerdown');
+        strictEqual(eventHandlerCounter, 7);
         $document.off('pointerdown', handler);
 
-        if (browserUtils.version < 12) {
+        if (browserUtils.isIE11) {
             document.addEventListener('pointerdown', handler, true);
             document.addEventListener('MSPointerDown', handler, true);
-            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 8 : 1);
+            dispatchPointerEvent(container, 'pointerdown');
+            strictEqual(eventHandlerCounter, 8);
 
             document.removeEventListener('pointerdown', handler, true);
             document.addEventListener('MSPointerDown', handler, true);
-            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 9 : 2);
+            dispatchPointerEvent(container, 'pointerdown');
+            strictEqual(eventHandlerCounter, 9);
 
             document.removeEventListener('MSPointerDown', handler, true);
             document.addEventListener('MSPointerDown', handler, true);
             document.addEventListener('MSPointerDown', handler, false);
-            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 11 : 4);
+            dispatchPointerEvent(container, 'pointerdown');
+            strictEqual(eventHandlerCounter, 11);
             document.removeEventListener('MSPointerDown', handler, true);
             document.removeEventListener('MSPointerDown', handler, false);
 
             document.addEventListener('pointerdown', handler, true);
             document.addEventListener('MSPointerDown', handler, false);
-            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 13 : 5);
+            dispatchPointerEvent(container, 'pointerdown');
+            strictEqual(eventHandlerCounter, 13);
             document.removeEventListener('pointerdown', handler, true);
             document.removeEventListener('MSPointerDown', handler, false);
 
             $document.bind('pointerdown', handler);
             $document.bind('MSPointerDown', handler);
-            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 14 : 6);
+            dispatchPointerEvent(container, 'pointerdown');
+            strictEqual(eventHandlerCounter, 14);
             $document.unbind('pointerdown', handler);
             $document.unbind('MSPointerDown', handler);
 
             $document.bind('MSPointerDown', handler);
             $document.bind('MSPointerDown', handler);
-            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 14 : 8);
+            dispatchPointerEvent(container, 'pointerdown');
+            strictEqual(eventHandlerCounter, 14);
             $document.unbind('MSPointerDown', handler);
 
             $document.on('pointerdown', handler);
             $document.on('MSPointerDown', handler);
-            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 15 : 9);
+            dispatchPointerEvent(container, 'pointerdown');
+            strictEqual(eventHandlerCounter, 15);
             $document.off('pointerdown', handler);
             $document.off('MSPointerDown', handler);
 
             $document.on('MSPointerDown', handler);
             $document.on('MSPointerDown', handler);
-            dispatchPointerEvent(container, browserUtils.isIE11 ? 'pointerdown' : 'MSPointerDown');
-            strictEqual(eventHandlerCounter, browserUtils.isIE11 ? 15 : 11);
+            dispatchPointerEvent(container, 'pointerdown');
+            strictEqual(eventHandlerCounter, 15);
             $document.off('MSPointerDown', handler);
         }
     });
