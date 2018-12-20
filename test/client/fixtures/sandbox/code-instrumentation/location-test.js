@@ -472,9 +472,10 @@ if (window.location.ancestorOrigins) {
                 return createTestIframe({}, iframe.contentDocument.body);
             })
             .then(function (nestedIframe) {
-                var getLocation     = nestedIframe.contentWindow[INSTRUCTION.getLocation];
-                var locationWrapper = getLocation(nestedIframe.contentWindow.location);
-                var ancestorOrigins = locationWrapper.ancestorOrigins;
+                var getLocation           = nestedIframe.contentWindow[INSTRUCTION.getLocation];
+                var locationWrapper       = getLocation(nestedIframe.contentWindow.location);
+                var ancestorOrigins       = locationWrapper.ancestorOrigins;
+                var nativeAncestorOrigins = nestedIframe.contentWindow.location.ancestorOrigins;
 
                 nestedIframe.contentWindow.parent.parent = {
                     location: {
@@ -504,6 +505,8 @@ if (window.location.ancestorOrigins) {
                 }));
                 ok(!ancestorOrigins.contains('https://another-domain.com'));
                 ok(!ancestorOrigins.contains({}));
+                deepEqual(Object.getOwnPropertyNames(ancestorOrigins).sort(),
+                    Object.getOwnPropertyNames(nativeAncestorOrigins).sort());
             });
     });
 
