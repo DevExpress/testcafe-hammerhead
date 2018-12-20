@@ -77,7 +77,7 @@ export default class Selection {
 
                 // NOTE: In MSEdge, the 'selectionchange' event doesn't occur immediately (it occurs with a delay)
                 // So, we should raise it right after the 'setSelectionRange' method.
-                if (browserUtils.isIE && browserUtils.version > 11)
+                if (browserUtils.isMSEdge)
                     eventSimulator.selectionchange(el);
 
                 return res;
@@ -88,8 +88,8 @@ export default class Selection {
                 return selectionSetter();
             }
 
-            const needFocus = browserUtils.isIE11 ||
-                              browserUtils.isMSEdge && browserUtils.version > 16 && !curDocument.hasFocus();
+            const needFocus = browserUtils.isIE11 || browserUtils.isMSEdge &&
+                              (browserUtils.version === 17 && !curDocument.hasFocus() || browserUtils.version > 17);
 
             return selection.wrapSetterSelection(el, selectionSetter, needFocus);
         };
@@ -217,7 +217,7 @@ export default class Selection {
         if (needFocus) {
             activeElement = domUtils.getActiveElement(curDocument);
 
-            if (browserUtils.isWebKit && activeElement !== el) {
+            if (activeElement !== el && (browserUtils.isWebKit || browserUtils.isMSEdge && browserUtils.version > 17)) {
                 if (focusRaised)
                     el[FocusBlurSandbox.getInternalEventFlag('focus')] = true;
 
@@ -225,7 +225,7 @@ export default class Selection {
             }
 
             // NOTE: In MSEdge, focus and blur are sync.
-            if (browserUtils.isIE && browserUtils.version < 12) {
+            if (browserUtils.isIE11) {
                 this.timersSandbox.setTimeout.call(window, () => {
                     this.timersSandbox.setTimeout.call(window, () => {
                         this.listeners.removeInternalEventListener(document, ['focus'], focusHandler);
