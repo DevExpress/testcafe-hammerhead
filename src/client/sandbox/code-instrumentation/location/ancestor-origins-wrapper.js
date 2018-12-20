@@ -1,28 +1,27 @@
 import nativeMethods from '../../native-methods';
 import LocationAccessorsInstrumentation from './index';
+import { createOverriddenDescriptor } from '../../../utils/property-overriding';
+
+const lengthWeakMap = new WeakMap();
 
 export default function DOMStringListWrapper (window, getCrossDomainOrigin) {
     const nativeOrigins = window.location.ancestorOrigins;
-    let parentWindow    = window;
+    const length        = nativeOrigins.length;
+    let parentWindow    = window.parent;
 
-    nativeMethods.objectDefineProperty(this, '_nativeLength', {
-        value:        nativeOrigins.length,
-        configurable: true
-    });
+    lengthWeakMap.set(this, length);
 
-    for (let i = 0; i < this._nativeLength; i++) {
-        parentWindow                = parentWindow.parent;
+    for (let i = 0; i < length; i++) {
         const parentLocationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(parentWindow);
         const isCrossDomainParent   = parentLocationWrapper === parentWindow.location;
 
         // eslint-disable-next-line no-restricted-properties
-        updateOrigin(this, i, isCrossDomainParent ? '' : parentLocationWrapper.origin);
+        updateOrigin(nativeOrigins, this, i, isCrossDomainParent ? '' : parentLocationWrapper.origin);
 
-        if (isCrossDomainParent) {
-            getCrossDomainOrigin(parentWindow, origin => {
-                updateOrigin(this, i, origin);
-            });
-        }
+        if (isCrossDomainParent)
+            getCrossDomainOrigin(parentWindow, origin => updateOrigin(nativeOrigins, this, i, origin));
+
+        parentWindow = parentWindow.parent;
     }
 }
 
@@ -36,7 +35,9 @@ DOMStringListWrapper.prototype.contains = function (origin) {
     if (typeof origin !== 'string')
         origin = String(origin);
 
-    for (let i = 0; i < this._nativeLength; i++) {
+    const length = lengthWeakMap.get(this);
+
+    for (let i = 0; i < length; i++) {
         if (this[i] === origin)
             return true;
     }
@@ -44,20 +45,16 @@ DOMStringListWrapper.prototype.contains = function (origin) {
     return false;
 };
 
-nativeMethods.objectDefineProperty(DOMStringListWrapper.prototype, 'length', {
-    configurable: true,
-    enumerable:   true,
-    get:          function () {
-        return this._nativeLength;
+const lengthDescriptor = createOverriddenDescriptor(DOMStringList.prototype, 'length', {
+    getter: function () {
+        return lengthWeakMap.get(this);
     }
 });
 
-function updateOrigin (wrapper, index, newOrigin) {
-    wrapper[index] = newOrigin;
+nativeMethods.objectDefineProperty(DOMStringListWrapper.prototype, 'length', lengthDescriptor);
 
-    nativeMethods.objectDefineProperty(wrapper, index, {
-        value:        newOrigin,
-        configurable: true,
-        enumerable:   true
-    });
+function updateOrigin (ancestorOrigins, wrapper, index, origin) {
+    const descriptor = createOverriddenDescriptor(ancestorOrigins, index, { value: origin });
+
+    nativeMethods.objectDefineProperty(wrapper, index, descriptor);
 }
