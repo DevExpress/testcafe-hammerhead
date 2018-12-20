@@ -35,7 +35,6 @@
     "pify": "^2.3.0",
     "pinkie": "1.0.0",
     "read-file-relative": "^1.2.0",
-    "replace-ext": "^1.0.0",
     "semver": "5.5.0",
     "tough-cookie": "2.3.3",
     "tunnel-agent": "0.6.0",

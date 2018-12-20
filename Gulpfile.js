@@ -160,7 +160,7 @@ gulp.step('server-scripts', () => {
 });
 
 gulp.step('shared-scripts', () => {
-    // NOTE: It's a temporary solution. We just compile shared code files and leave them in the same folder
+    // NOTE: It's a temporary solution. We just compile the shared code files and leave them in the same folder
     const tsConfig = gulpTypeScript.createProject('tsconfig.json');
 
     const sharedFiles = [
