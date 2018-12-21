@@ -1,7 +1,7 @@
 import ResourceProcessorBase from './resource-processor-base';
 
 class ManifestProcessor extends ResourceProcessorBase {
-    processResource (manifest, ctx, charset, urlReplacer) {
+    processResource (manifest, _ctx, _charset, urlReplacer) {
         const lines = manifest.split('\n');
 
         for (let i = 0; i < lines.length; i++) {

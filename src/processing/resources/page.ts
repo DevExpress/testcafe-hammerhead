@@ -137,8 +137,8 @@ class PageProcessor extends ResourceProcessorBase {
                !ctx.contentInfo.isFileDownload;
     }
 
-    processResource (html, ctx, charset, urlReplacer, processingOpts) {
-        processingOpts = processingOpts || PageProcessor._getPageProcessingOptions(ctx, urlReplacer);
+    processResource (html, _ctx, _charset, urlReplacer, processingOpts) {
+        processingOpts = processingOpts || PageProcessor._getPageProcessingOptions(_ctx, urlReplacer);
 
         const bom = getBOM(html);
 
@@ -155,25 +155,25 @@ class PageProcessor extends ResourceProcessorBase {
         const head       = elements.head[0];
         const body       = elements.body ? elements.body[0] : elements.frameset[0];
 
-        if (metas && charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
+        if (metas && _charset.fromMeta(PageProcessor._getPageMetas(metas, domAdapter)))
             return this.RESTART_PROCESSING;
 
         const domProcessor = new DomProcessor(domAdapter);
         const replacer     = (resourceUrl, resourceType, charsetAttrValue) => urlReplacer(resourceUrl, resourceType, charsetAttrValue, baseUrl);
 
-        domProcessor.forceProxySrcForImage = ctx.session.hasRequestEventListeners();
+        domProcessor.forceProxySrcForImage = _ctx.session.hasRequestEventListeners();
         parse5Utils.walkElements(root, el => domProcessor.processElement(el, replacer));
 
-        if (!ctx.isHtmlImport) {
+        if (!_ctx.isHtmlImport) {
             PageProcessor._addPageResources(head, processingOpts);
             this._addBodyCreatedEventScript(body);
 
-            if (ctx.restoringStorages && !processingOpts.isIframe)
-                this._addRestoreStoragesScript(ctx, head);
+            if (_ctx.restoringStorages && !processingOpts.isIframe)
+                this._addRestoreStoragesScript(_ctx, head);
         }
 
         PageProcessor._changeMetas(metas, domAdapter);
-        PageProcessor._addCharsetInfo(head, charset.get());
+        PageProcessor._addCharsetInfo(head, _charset.get());
 
         return (bom || '') + this.serializer.serialize(root);
     }

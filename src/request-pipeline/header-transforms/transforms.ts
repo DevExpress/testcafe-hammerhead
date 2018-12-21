@@ -105,15 +105,15 @@ function resolveAndGetProxyUrl (url, ctx) {
 }
 
 function transformRefreshHeader (src, ctx) {
-    return src.replace(/(url=)(.*)$/i, (match, prefix, url) => prefix + resolveAndGetProxyUrl(url, ctx));
+    return src.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + resolveAndGetProxyUrl(url, ctx));
 }
 
 // Request headers
 export const requestTransforms = Object.assign({
-    'host':                                (src, ctx) => ctx.dest.host,
-    'referer':                             (src, ctx) => ctx.dest.referer || void 0,
+    'host':                                (_src, ctx) => ctx.dest.host,
+    'referer':                             (_src, ctx) => ctx.dest.referer || void 0,
     'origin':                              (src, ctx) => ctx.dest.reqOrigin || src,
-    'content-length':                      (src, ctx) => ctx.reqBody.length,
+    'content-length':                      (_src, ctx) => ctx.reqBody.length,
     'cookie':                              skip,
     'if-modified-since':                   skipIfStateSnapshotIsApplied,
     'if-none-match':                       skipIfStateSnapshotIsApplied,
@@ -128,7 +128,7 @@ export const requestTransforms = Object.assign({
 }, {}));
 
 export const forcedRequestTransforms = {
-    'cookie': (src, ctx) => transformCookie(ctx.session.cookies.getHeader(ctx.dest.url) || void 0, ctx),
+    'cookie': (_src, ctx) => transformCookie(ctx.session.cookies.getHeader(ctx.dest.url) || void 0, ctx),
 
     // NOTE: All browsers except Chrome don't send the 'Origin' header in case of the same domain XHR requests.
     // So, if the request is actually cross-domain, we need to force the 'Origin' header to support CORS. (B234325)

@@ -7,7 +7,6 @@ import { respond500, respondWithJSON, fetchBody, preventCaching } from '../utils
 import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
-import Session from "../session";
 
 const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
 
@@ -178,7 +177,7 @@ export default class Proxy extends Router {
         resetKeepAliveConnections();
     }
 
-    openSession (url: string, session: Session, externalProxySettings) {
+    openSession (url: string, session: any, externalProxySettings) {
         session.proxy                 = this;
         this.openSessions[session.id] = session;
 
@@ -195,7 +194,7 @@ export default class Proxy extends Router {
         });
     }
 
-    closeSession (session: Session) {
+    closeSession (session: any) {
         session.proxy = null;
         delete this.openSessions[session.id];
     }

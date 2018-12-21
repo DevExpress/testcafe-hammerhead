@@ -48,7 +48,6 @@ export default class FileRequest extends EventEmitter {
         this.emit('fatalError', getText(MESSAGE.cantReadFile, this.url, err.message));
     }
 
-
     _onOpen () {
         let stream = fs.createReadStream(this.path);
 

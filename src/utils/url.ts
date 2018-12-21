@@ -237,7 +237,7 @@ export function parseUrl (url): any {
     // Protocol
     let hasImplicitProtocol = false;
     const remainder         = url
-        .replace(PROTOCOL_RE, (str, protocol, strAfterProtocol) => {
+        .replace(PROTOCOL_RE, (_str, protocol, strAfterProtocol) => {
             parsed.protocol = protocol;
             return strAfterProtocol;
         })
@@ -254,13 +254,13 @@ export function parseUrl (url): any {
 
     // Host
     parsed.partAfterHost = remainder
-        .replace(HOST_RE, (str, host, restPartSeparator) => {
+        .replace(HOST_RE, (_str, host, restPartSeparator) => {
             parsed.host = host;
             parsed.port = '';
             return restPartSeparator;
         });
 
-    parsed.hostname = parsed.host ? parsed.host.replace(PORT_RE, (str, port) => {
+    parsed.hostname = parsed.host ? parsed.host.replace(PORT_RE, (_str, port) => {
         parsed.port = port;
         return '';
     }) : '';

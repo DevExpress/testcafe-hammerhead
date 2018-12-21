@@ -6,8 +6,6 @@ import Cookies from './cookies';
 import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
-import {Map} from "gulp-typescript/release/utils";
-import RequestFilterRule from "../request-pipeline/request-hooks/request-filter-rule";
 
 const TASK_TEMPLATE = read('../client/task.js.mustache');
 
@@ -21,8 +19,8 @@ export default abstract class Session extends EventEmitter {
     pageLoadCount: number;
     pendingStateSnapshot: any;
     injectable: any;
-    requestEventListeners: Map<any>;
-    mocks: Map<any>;
+    requestEventListeners: any;
+    mocks: any;
 
     constructor (uploadsRoot: string) {
         super();
@@ -198,7 +196,7 @@ export default abstract class Session extends EventEmitter {
             await targetRequestEventCallback(eventData);
     }
 
-    setMock (requestFilterRule: RequestFilterRule, mock) {
+    setMock (requestFilterRule: any, mock) {
         this.mocks.set(requestFilterRule, mock);
     }
 

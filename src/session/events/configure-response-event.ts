@@ -1,11 +1,9 @@
-import RequestFilterRule from "../../request-pipeline/request-hooks/request-filter-rule";
-
 export default class ConfigureResponseEvent {
     _requestContext: any;
-    _requestFilterRule: RequestFilterRule;
+    _requestFilterRule: any;
     opts: any;
 
-    constructor (requestContext: any, requestFilterRule: RequestFilterRule, opts: any) {
+    constructor (requestContext: any, requestFilterRule: any, opts: any) {
         this._requestContext    = requestContext;
         this._requestFilterRule = requestFilterRule;
         this.opts               = opts;

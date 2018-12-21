@@ -2,7 +2,7 @@ import ResourceProcessorBase from './resource-processor-base';
 import styleProcessor from '../style';
 
 class StylesheetProcessor extends ResourceProcessorBase {
-    processResource (stylesheet, ctx, charset, urlReplacer) {
+    processResource (stylesheet, _ctx, _charset, urlReplacer) {
         return styleProcessor.process(stylesheet, urlReplacer, false);
     }
 

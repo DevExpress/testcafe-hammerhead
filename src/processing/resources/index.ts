@@ -51,6 +51,7 @@ export async function process (ctx) {
     for (let i = 0; i < processors.length; i++) {
         if (processors[i].shouldProcessResource(ctx)) {
             const urlReplacer = getResourceUrlReplacer(ctx);
+            // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
             const processed   = processors[i].processResource(decoded, ctx, charset, urlReplacer, false);
 
             if (processed === pageProcessor.RESTART_PROCESSING)

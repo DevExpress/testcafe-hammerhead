@@ -225,7 +225,7 @@ gulp.step('templates', () => {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.task('lint', () => {
+gulp.step('lint-js', () => {
     return gulp
         .src([
             './src/client/**/*.js',
@@ -237,6 +237,15 @@ gulp.task('lint', () => {
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 });
+
+gulp.step('lint-ts', () => {
+    return gulp.src('./src/**/*.ts')
+        .pipe(eslint('.eslintrc-ts'))
+        .pipe(eslint.format())
+        .pipe(eslint.failAfterError());
+});
+
+gulp.task('lint', gulp.parallel('lint-js', 'lint-ts'));
 
 gulp.task('build',
     gulp.series(

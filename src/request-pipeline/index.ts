@@ -324,6 +324,7 @@ function setupMockIfNecessary (ctx, rule) {
 function sendRequest (ctx, next) {
     const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts) : new DestinationRequest(ctx.reqOpts);
 
+    // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
     req.on('response', res => {
         if (ctx.isBrowserConnectionReset) {
             res.destroy();
@@ -335,12 +336,15 @@ function sendRequest (ctx, next) {
         next();
     });
 
+    // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
     req.on('error', () => {
         ctx.hasDestReqErr = true;
     });
 
+    // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
     req.on('fatalError', err => error(ctx, err));
 
+    // @ts-ignore: Cannot invoke an expression whose type lacks a call signature
     req.on('socketHangUp', () => ctx.req.socket.end());
 }
 

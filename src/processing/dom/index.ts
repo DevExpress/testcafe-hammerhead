@@ -11,7 +11,6 @@ import * as urlUtils from '../../utils/url';
 import trim from '../../utils/string-trim';
 import { XML_NAMESPACE } from './namespaces';
 import { URL_ATTR_TAGS, URL_ATTRS, TARGET_ATTR_TAGS, TARGET_ATTRS } from './attributes';
-import BaseDomAdapter from "./base-dom-adapter";
 
 const CDATA_REG_EX                       = /^(\s)*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>(\s)*$/;
 const HTML_COMMENT_POSTFIX_REG_EX        = /(\/\/[^\n]*|\n\s*)-->[^\n]*([\n\s]*)?$/;
@@ -35,7 +34,7 @@ const ELEMENT_PROCESSED = 'hammerhead|element-processed';
 const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER = 'hammerhead|autocomplete-attribute-absence-marker';
 
 export default class DomProcessor {
-    adapter: BaseDomAdapter;
+    adapter: any;
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     elementProcessorPatterns: any;
@@ -366,7 +365,7 @@ export default class DomProcessor {
 
     // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
     // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
-    _processRelPrefetch (el, urlReplacer, pattern) {
+    _processRelPrefetch (el, _urlReplacer, pattern) {
         const storedRelAttr = DomProcessor.getStoredAttrName(pattern.relAttr);
         const processed     = this.adapter.hasAttr(el, storedRelAttr) && !this.adapter.hasAttr(el, pattern.relAttr);
         const attrValue     = this.adapter.getAttr(el, processed ? storedRelAttr : pattern.relAttr);
@@ -417,7 +416,7 @@ export default class DomProcessor {
         if (httpEquivAttrValue === 'refresh') {
             let attr = this.adapter.getAttr(el, pattern.urlAttr);
 
-            attr = attr.replace(/(url=)(.*)$/i, (match, prefix, url) => prefix + urlReplacer(url));
+            attr = attr.replace(/(url=)(.*)$/i, (_match, prefix, url) => prefix + urlReplacer(url));
 
             this.adapter.setAttr(el, pattern.urlAttr, attr);
         }
@@ -510,7 +509,7 @@ export default class DomProcessor {
         }
     }
 
-    _processTargetBlank (el, urlReplacer, pattern) {
+    _processTargetBlank (el, _urlReplacer, pattern) {
         const storedTargetAttr = DomProcessor.getStoredAttrName(pattern.targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
@@ -601,12 +600,12 @@ export default class DomProcessor {
         }
     }
 
-    _processUrlJsAttr (el, urlReplacer, pattern) {
+    _processUrlJsAttr (el, _urlReplacer, pattern) {
         if (DomProcessor.isJsProtocol(this.adapter.getAttr(el, pattern.urlAttr)))
             this._processJsAttr(el, pattern.urlAttr, { isJsProtocol: true, isEventAttr: false });
     }
 
-    _processSVGXLinkHrefAttr (el, urlReplacer, pattern) {
+    _processSVGXLinkHrefAttr (el, _urlReplacer, pattern) {
         const attrValue = this.adapter.getAttr(el, pattern.urlAttr);
 
         if (urlUtils.HASH_RE.test(attrValue)) {

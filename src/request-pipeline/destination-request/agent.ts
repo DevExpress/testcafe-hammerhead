@@ -40,6 +40,7 @@ function getAgent (type) {
     const agent = agents[type];
 
     if (!agent.instance) {
+        // @ts-ignore: Cannot use 'new' with an expression whose type lacks a call or construct signature.
         agent.instance = new agent.Ctor({
             keepAlive:      true,
             secureProtocol: agent.secureProtocol
