@@ -60,8 +60,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
     _createPropertyAccessors () {
         return {
             href: {
-                condition: crossDomainLocation => domUtils.instanceToString(crossDomainLocation) === '[object Null]' &&
-                                                  'assign' in crossDomainLocation && 'replace' in crossDomainLocation,
+                condition: domUtils.isLocation,
 
                 // eslint-disable-next-line no-restricted-properties
                 get: crossDomainLocation => crossDomainLocation.href,
@@ -87,10 +86,10 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
                     const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
-                    if (locationWrapper)
-                        locationWrapper.href = location; // eslint-disable-line no-restricted-properties
-                    else
+                    if (!locationWrapper || locationWrapper === owner.location)
                         PropertyAccessorsInstrumentation._setCrossDomainLocation(owner.location, location);
+                    else if (locationWrapper)
+                        locationWrapper.href = location; // eslint-disable-line no-restricted-properties
 
                     return location;
                 }

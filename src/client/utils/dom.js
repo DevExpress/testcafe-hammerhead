@@ -528,7 +528,8 @@ export function isBlob (instance) {
 }
 
 export function isLocation (instance) {
-    if (instance instanceof nativeMethods.locationClass)
+    if (instance instanceof nativeMethods.locationClass ||
+        nativeMethods.objectToString.call(instance) === '[object Location]')
         return true;
 
     try {

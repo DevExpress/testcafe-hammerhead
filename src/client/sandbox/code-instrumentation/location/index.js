@@ -36,23 +36,18 @@ export default class LocationAccessorsInstrumentation extends SandboxBase {
     attach (window) {
         super.attach(window);
 
+        const document        = window.document;
         const locationWrapper = new LocationWrapper(window, this.messageSandbox, this.locationChangedEventCallback);
 
         // NOTE: In Google Chrome, iframes whose src contains html code raise the 'load' event twice.
         // So, we need to define code instrumentation functions as 'configurable' so that they can be redefined.
-        nativeMethods.objectDefineProperty.call(window.Object, window, LOCATION_WRAPPER, {
-            value:        locationWrapper,
-            configurable: true
-        });
-        nativeMethods.objectDefineProperty.call(window.Object, window.document, LOCATION_WRAPPER, {
-            value:        locationWrapper,
-            configurable: true
-        });
-        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.getLocation, {
+        nativeMethods.objectDefineProperty(window, LOCATION_WRAPPER, { value: locationWrapper, configurable: true });
+        nativeMethods.objectDefineProperty(document, LOCATION_WRAPPER, { value: locationWrapper, configurable: true });
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.getLocation, {
             value:        location => isLocation(location) ? locationWrapper : location,
             configurable: true
         });
-        nativeMethods.objectDefineProperty.call(window.Object, window, INSTRUCTION.setLocation, {
+        nativeMethods.objectDefineProperty(window, INSTRUCTION.setLocation, {
             value: (location, value) => {
                 if (isLocation(location) && typeof value === 'string') {
                     // eslint-disable-next-line no-restricted-properties
