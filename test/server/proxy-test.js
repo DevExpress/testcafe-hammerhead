@@ -1566,7 +1566,7 @@ describe('Proxy', () => {
                 expect(err).contains([
                     'Failed to read a file at <a href="' + url + '">' + url + '</a> because of the error:',
                     '',
-                    'EISDIR'
+                    'The target of the operation is not a file'
                 ].join('\n'));
 
                 ctx.res.end();
@@ -2015,7 +2015,7 @@ describe('Proxy', () => {
                 const processedResourceContent = fs.readFileSync('test/server/data/script/expected.js').toString();
 
                 session.addRequestEventListeners(rule, {
-                    onRequest: e => {
+                    onRequest: async e => {
                         expect(e.isAjax).to.be.false;
 
                         expect(e._requestInfo.url).eql(url);
@@ -2028,14 +2028,14 @@ describe('Proxy', () => {
                         requestEventIsRaised = true;
                     },
 
-                    onConfigureResponse: e => {
+                    onConfigureResponse: async e => {
                         configureResponseEventIsRaised = true;
 
                         e.opts.includeHeaders = true;
                         e.opts.includeBody    = true;
                     },
 
-                    onResponse: e => {
+                    onResponse: async e => {
                         expect(e.statusCode).eql(200);
                         expect(e.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
                         expect(e.body.toString()).eql(resourceContent);
@@ -2071,7 +2071,7 @@ describe('Proxy', () => {
                 const rule = new RequestFilterRule(url);
 
                 session.addRequestEventListeners(rule, {
-                    onRequest: e => {
+                    onRequest: async e => {
                         expect(e.isAjax).to.be.false;
 
                         expect(e._requestInfo.url).eql('http://127.0.0.1:2000/json');
@@ -2084,14 +2084,14 @@ describe('Proxy', () => {
                         requestEventIsRaised = true;
                     },
 
-                    onConfigureResponse: e => {
+                    onConfigureResponse: async e => {
                         e.opts.includeBody    = true;
                         e.opts.includeHeaders = true;
 
                         configureResponseEventIsRaised = true;
                     },
 
-                    onResponse: e => {
+                    onResponse: async e => {
                         expect(e.statusCode).eql(200);
                         expect(JSON.parse(e.body.toString())).to.deep.eql(TEST_OBJ);
                         expect(e.headers).include({ 'content-type': 'application/json; charset=utf-8' });
@@ -2127,17 +2127,17 @@ describe('Proxy', () => {
                 const rule = new RequestFilterRule('http://127.0.0.1:2000/page/plain-text');
 
                 session.addRequestEventListeners(rule, {
-                    onRequest: e => {
+                    onRequest: async e => {
                         expect(e.isAjax).to.be.true;
 
                         requestEventIsRaised = true;
                     },
 
-                    onConfigureResponse: () => {
+                    onConfigureResponse: async () => {
                         configureResponseEventIsRaised = true;
                     },
 
-                    onResponse: e => {
+                    onResponse: async e => {
                         expect(e.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
                         responseEventIsRaised = true;
                     }
@@ -2173,7 +2173,7 @@ describe('Proxy', () => {
                     session.addRequestEventListeners(rule, {
                         onRequest:           noop,
                         onConfigureResponse: noop,
-                        onResponse:          e => {
+                        onResponse:          async e => {
                             expect(e.body).to.be.undefined;
                             expect(e.headers).to.be.undefined;
                             expect(e.statusCode).eql(200);
@@ -2204,11 +2204,11 @@ describe('Proxy', () => {
                 let responseWasSent = false;
 
                 session.addRequestEventListeners(rule, {
-                    onConfigureResponse: e => {
+                    onConfigureResponse: async e => {
                         e.opts.includeBody = true;
                     },
 
-                    onResponse: () => {
+                    onResponse: async () => {
                         responseWasSent = true;
                     }
                 });
@@ -2236,7 +2236,7 @@ describe('Proxy', () => {
                 const processedHtml = fs.readFileSync('test/server/data/empty-page/expected.html').toString();
 
                 session.addRequestEventListeners(rule, {
-                    onRequest: e => e.setMock(mock)
+                    onRequest: async e => e.setMock(mock)
                 });
 
                 const options = {
@@ -2260,7 +2260,7 @@ describe('Proxy', () => {
                 const rule = new RequestFilterRule(url);
 
                 session.addRequestEventListeners(rule, {
-                    onRequest: e => e.setMock(mock)
+                    onRequest: async e => e.setMock(mock)
                 });
 
                 const options = {
@@ -2289,7 +2289,7 @@ describe('Proxy', () => {
                 const rule          = new RequestFilterRule(url);
 
                 session.addRequestEventListeners(rule, {
-                    onRequest: e => e.setMock(mock)
+                    onRequest: async e => e.setMock(mock)
                 });
 
                 const options = {
@@ -2316,7 +2316,7 @@ describe('Proxy', () => {
             const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
 
             session.addRequestEventListeners(rule, {
-                onRequest: e => {
+                onRequest: async e => {
                     e.requestOptions.path = '/script';
                 }
             });
@@ -2339,7 +2339,7 @@ describe('Proxy', () => {
             const rule = new RequestFilterRule('http://127.0.0.1:2000/page');
 
             session.addRequestEventListeners(rule, {
-                onConfigureResponse: e => {
+                onConfigureResponse: async e => {
                     e.setHeader('My-Custom-Header', 'My Custom value');
                     e.removeHeader('Content-Type');
                 }

@@ -174,12 +174,12 @@ export default class Session extends EventEmitter {
         return rulesArray.filter(rule => rule.match(requestInfo));
     }
 
-    callRequestEventCallback (eventName, requestFilterRule, eventData) {
+    async callRequestEventCallback (eventName, requestFilterRule, eventData) {
         const eventListeners             = this.requestEventListeners.get(requestFilterRule);
         const targetRequestEventCallback = eventListeners[eventName];
 
         if (typeof targetRequestEventCallback === 'function')
-            targetRequestEventCallback(eventData);
+            await targetRequestEventCallback(eventData);
     }
 
     setMock (requestFilterRule, mock) {

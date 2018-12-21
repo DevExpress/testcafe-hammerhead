@@ -30,6 +30,7 @@ export default class RequestPipelineContext {
         this.isIframe      = false;
         this.isSpecialPage = false;
         this.contentInfo   = null;
+        this.goToNextStage = true;
 
         const acceptHeader = req.headers['accept'];
 
@@ -257,6 +258,8 @@ export default class RequestPipelineContext {
         }
         else
             this.res.end();
+
+        this.goToNextStage = false;
     }
 
     toProxyUrl (url, isCrossDomain, resourceType, charset) {
@@ -275,10 +278,14 @@ export default class RequestPipelineContext {
         });
     }
 
-    isKeepSameOriginPolicy () {
+    isPassSameOriginPolicy () {
         const isAjaxRequest          = this.isXhr || this.isFetch;
         const shouldPerformCORSCheck = isAjaxRequest && !this.contentInfo.isNotModified;
 
         return shouldPerformCORSCheck ? checkSameOriginPolicy(this) : true;
+    }
+
+    async forEachRequestFilterRule (fn) {
+        await Promise.all(this.requestFilterRules.map(fn));
     }
 }

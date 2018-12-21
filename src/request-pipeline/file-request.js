@@ -4,60 +4,66 @@ import { EventEmitter } from 'events';
 import { parse } from 'url';
 import { MESSAGE, getText } from '../messages';
 
-
 const DISK_RE = /^\/[A-Za-z]:/;
+
+const TARGET_IS_NOT_FILE = 'The target of the operation is not a file';
 
 export default class FileRequest extends EventEmitter {
     constructor (opts) {
         super();
 
-        const parsedUrl = parse(opts.url);
+        this.url  = opts.url;
+        this.path = FileRequest._getPath(opts.url);
+
+        this._initEvents();
+    }
+
+    _initEvents () {
+        fs.stat(this.path, (err, stats) => {
+            if (err) {
+                this._onError(err);
+
+                return;
+            }
+
+            if (!stats.isFile())
+                this._onError(new Error(TARGET_IS_NOT_FILE));
+            else {
+                fs.access(this.path, fs.constants.R_OK, e => {
+                    if (err)
+                        this._onError(e);
+                    else
+                        this._onOpen();
+                });
+            }
+        });
+    }
+
+    static _getPath (proxiedUrl) {
+        const parsedUrl = parse(proxiedUrl);
         let path        = decodeURIComponent(parsedUrl.pathname);
 
         if (DISK_RE.test(path))
             path = path.substr(1);
 
-        this.url      = opts.url;
-        this.stream   = fs.createReadStream(path);
-        this.headers  = {};
-        this.trailers = {};
-        this.path     = path;
-
-        this.stream.once('readable', () => this._onOpen());
-        this.stream.on('error', err => this._onError(err));
+        return path;
     }
 
     _onError (err) {
-        this.statusCode = 404;
         this.emit('fatalError', getText(MESSAGE.cantReadFile, this.url, err.message));
     }
 
     _onOpen () {
-        this.statusCode              = 200;
-        this.headers['content-type'] = mime.lookup(this.path);
+        let stream = fs.createReadStream(this.path);
 
-        this.emit('response', this);
-    }
-
-    on (type, handler) {
-        if (type === 'data' || type === 'end') {
-            if (this.statusCode !== 404) {
-                this.stream.on(type, handler);
-
-                if (type === 'end')
-                    this.stream.on(type, () => this.stream.close());
+        stream = Object.assign(stream, {
+            statusCode: 200,
+            trailers:   {},
+            headers:    {
+                'content-type': mime.lookup(this.path)
             }
-            else if (type === 'end')
-                handler.call(this);
-        }
-        else
-            super.on(type, handler);
-    }
+        });
 
-    pipe (res) {
-        if (this.statusCode === 404)
-            res.end('');
-        else
-            this.stream.pipe(res);
+        this.emit('response', stream);
     }
 }
