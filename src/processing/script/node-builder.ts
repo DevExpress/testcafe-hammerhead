@@ -42,7 +42,7 @@ export function createBlockExprStmt (children) {
     };
 }
 
-export function createVarDeclaration (identifier: any, init: any) {
+export function createVarDeclaration (identifier: any, init?: any) {
     return {
         type: Syntax.VariableDeclaration,
 
@@ -58,7 +58,7 @@ export function createVarDeclaration (identifier: any, init: any) {
     };
 }
 
-export function createProcessScriptMethCall (arg, isApply) {
+export function createProcessScriptMethCall (arg, isApply?: boolean) {
     const ast = {
         type: Syntax.CallExpression,
 

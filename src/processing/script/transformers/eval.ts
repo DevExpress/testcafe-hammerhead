@@ -29,7 +29,7 @@ export default {
     },
 
     run: node => {
-        const newArg = createProcessScriptMethCall(node.arguments[0], false);
+        const newArg = createProcessScriptMethCall(node.arguments[0]);
 
         replaceNode(node.arguments[0], newArg, node, 'arguments');
 

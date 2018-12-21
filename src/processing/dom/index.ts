@@ -101,21 +101,21 @@ export default class DomProcessor {
 
     _createProcessorPatterns (adapter) {
         const selectors = {
-            HAS_HREF_ATTR: el => this.isUrlAttr(el, 'href', void 0),
+            HAS_HREF_ATTR: el => this.isUrlAttr(el, 'href'),
 
-            HAS_SRC_ATTR: el => this.isUrlAttr(el, 'src', void 0),
+            HAS_SRC_ATTR: el => this.isUrlAttr(el, 'src'),
 
-            HAS_ACTION_ATTR: el => this.isUrlAttr(el, 'action', void 0),
+            HAS_ACTION_ATTR: el => this.isUrlAttr(el, 'action'),
 
-            HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction', void 0),
+            HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction'),
 
             HAS_FORMTARGET_ATTR: el => {
                 return DomProcessor.isTagWithFormTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'formtarget');
             },
 
-            HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest', void 0),
+            HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest'),
 
-            HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data', void 0),
+            HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data'),
 
             HTTP_EQUIV_META: el => {
                 const tagName = adapter.getTagName(el);
@@ -258,7 +258,7 @@ export default class DomProcessor {
         });
     }
 
-    isUrlAttr (el, attr: string, ns: string) {
+    isUrlAttr (el, attr: string, ns?: string) {
         const tagName = this.adapter.getTagName(el);
 
         attr = attr ? attr.toLowerCase() : attr;

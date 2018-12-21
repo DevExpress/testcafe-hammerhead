@@ -162,7 +162,7 @@ export function isScriptProcessed (code) {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src, withHeader, wrapLastExprWithProcessHtml) {
+export function processScript (src, withHeader, wrapLastExprWithProcessHtml?: boolean) {
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);
@@ -174,7 +174,7 @@ export function processScript (src, withHeader, wrapLastExprWithProcessHtml) {
 
     ast.wrapLastExprWithProcessHtml = wrapLastExprWithProcessHtml;
 
-    const changes = transform(ast, void 0, void 0, void 0, void 0, void 0);
+    const changes = transform(ast);
     let processed = changes.length ? applyChanges(withoutHtmlComments, changes, isObject) : preprocessed;
 
     processed = postprocess(processed, withHeader, bom, isStrictMode(ast));

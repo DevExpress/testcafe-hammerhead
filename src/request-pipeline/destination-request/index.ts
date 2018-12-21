@@ -59,10 +59,10 @@ export default class DestinationRequest extends EventEmitter {
         }
 
         requestAgent.assign(this.opts);
-        this._send(false);
+        this._send();
     }
 
-    _send (waitForData) {
+    _send (waitForData?: boolean) {
         connectionResetGuard(() => {
             const timeout       = this.opts.isXhr ? DestinationRequest.XHR_TIMEOUT : DestinationRequest.TIMEOUT;
             const storedHeaders = this.opts.headers;
@@ -132,11 +132,11 @@ export default class DestinationRequest extends EventEmitter {
         this._send(requiresResBody(res));
     }
 
-    _fatalError (msg, url) {
+    _fatalError (msg, url?: string) {
         if (!this.aborted) {
             this.aborted = true;
             this.req.abort();
-            this.emit('fatalError', getText(msg, url || this.opts.url, void 0));
+            this.emit('fatalError', getText(msg, url || this.opts.url));
         }
     }
 
@@ -161,7 +161,7 @@ export default class DestinationRequest extends EventEmitter {
         // NOTE: this handler is also called if we get an error response (for example, 404). So, we should check
         // for the response presence before raising the timeout error.
         if (!this.hasResponse)
-            this._fatalError(MESSAGE.destRequestTimeout, void 0);
+            this._fatalError(MESSAGE.destRequestTimeout);
     }
 
     _onError (err) {
@@ -170,7 +170,7 @@ export default class DestinationRequest extends EventEmitter {
 
         else if (requestAgent.shouldRegressHttps(err, this.opts)) {
             requestAgent.regressHttps(this.opts);
-            this._send(false);
+            this._send();
         }
 
         else if (this._isTunnelingErr(err)) {
@@ -184,7 +184,7 @@ export default class DestinationRequest extends EventEmitter {
             if (!this.isHttps && this.opts.proxy)
                 this._fatalError(MESSAGE.cantEstablishProxyConnection, this.opts.proxy.host);
             else
-                this._fatalError(MESSAGE.cantResolveUrl, void 0);
+                this._fatalError(MESSAGE.cantResolveUrl);
         }
 
         else

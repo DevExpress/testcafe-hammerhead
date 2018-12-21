@@ -25,7 +25,7 @@ export default {
 
     run: node => {
         const tempVarAst         = createTempVarIdentifier();
-        const varDeclaration     = createVarDeclaration(tempVarAst, void 0);
+        const varDeclaration     = createVarDeclaration(tempVarAst);
         const assignmentExprStmt = createAssignmentExprStmt(node.left, tempVarAst);
 
         if (node.body.type !== Syntax.BlockStatement)

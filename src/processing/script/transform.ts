@@ -46,10 +46,10 @@ function transformChildNodes (node, changes, state) {
 
             if (objectToString.call(childNode) === '[object Array]') {
                 for (let j = 0; j < childNode.length; j++)
-                    transform(childNode[j], node, key, changes, state, false);
+                    transform(childNode[j], node, key, changes, state);
             }
             else
-                transform(childNode, node, key, changes, state, false);
+                transform(childNode, node, key, changes, state);
         }
     }
 }
@@ -73,7 +73,7 @@ function addChangeForTransformedNode (state: any, changes, replacement, parent, 
     }
 }
 
-export default function transform (node, parent, key, changes, state, reTransform) {
+export default function transform (node, parent?: any, key?: any, changes?: any, state?: any, reTransform?: any) {
     state   = state || {};
     changes = changes || [];
 
