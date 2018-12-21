@@ -629,6 +629,35 @@ test('mouse event buttons properties', function () {
     });
 });
 
+test('mouse events on disabled elements', function () {
+    var button           = document.createElement('button');
+    var span             = document.createElement('span');
+    var mouseEventRaised = false;
+
+    document.body.appendChild(button);
+    button.appendChild(span);
+
+    var mouseEventHandler = function () {
+        mouseEventRaised = true;
+    };
+
+    button.disabled = true;
+
+    span.addEventListener('mousedown', mouseEventHandler);
+    span.addEventListener('mouseup', mouseEventHandler);
+    span.addEventListener('click', mouseEventHandler);
+    span.addEventListener('mouseover', mouseEventHandler);
+    span.addEventListener('mouseout', mouseEventHandler);
+
+    eventSimulator.mousedown(span);
+    eventSimulator.click(span);
+    eventSimulator.mouseup(span);
+
+    notOk(mouseEventRaised);
+
+    document.body.removeChild(button);
+});
+
 module('regression');
 
 if (browserUtils.isIE) {

@@ -559,6 +559,11 @@ export default class EventSimulator {
     }
 
     _dispatchMouseEvent (el, args, dataTransfer) {
+        const disabledParent = domUtils.findParent(el, true, node => node.disabled);
+
+        if (disabledParent)
+            return null;
+
         let event = null;
 
         if (this.browserWithNewEventsStyle && nativeMethods.WindowMouseEvent) {
