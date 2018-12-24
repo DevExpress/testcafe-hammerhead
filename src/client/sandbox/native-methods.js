@@ -269,6 +269,7 @@ class NativeMethods {
         this.arrayFilter = win.Array.prototype.filter;
         this.arrayMap    = win.Array.prototype.map;
         this.arrayJoin   = win.Array.prototype.join;
+        this.arraySplice = win.Array.prototype.splice;
 
         this.DOMParserParseFromString = win.DOMParser.prototype.parseFromString;
 
