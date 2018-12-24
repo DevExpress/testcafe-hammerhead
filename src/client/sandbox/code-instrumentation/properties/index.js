@@ -11,6 +11,7 @@ import { shouldInstrumentProperty } from '../../../../processing/script/instrume
 import nativeMethods from '../../native-methods';
 import { isJsProtocol, processJsAttrValue } from '../../../../processing/dom';
 import settings from '../../../settings';
+import { isIE } from '../../../utils/browser';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     constructor (windowSandbox) {
@@ -50,7 +51,7 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                 : urlUtils.getProxyUrl(value, { proxyPort: settings.get().crossDomainProxyPort });
         }
         else
-            proxyUrl = processJsAttrValue(location, { isJsProtocol: true, isEventAttr: false });
+            proxyUrl = processJsAttrValue(value, { isJsProtocol: true, isEventAttr: false });
 
         location.href = proxyUrl; // eslint-disable-line no-restricted-properties
 
@@ -86,7 +87,8 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
                     const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
-                    if (!locationWrapper || locationWrapper === owner.location)
+                    if (!locationWrapper || locationWrapper === owner.location ||
+                        isIE && domUtils.isCrossDomainWindows(window, ownerWindow))
                         PropertyAccessorsInstrumentation._setCrossDomainLocation(owner.location, location);
                     else if (locationWrapper)
                         locationWrapper.href = location; // eslint-disable-line no-restricted-properties
