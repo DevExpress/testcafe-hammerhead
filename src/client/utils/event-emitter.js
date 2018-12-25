@@ -1,4 +1,5 @@
 import nativeMethods from '../sandbox/native-methods';
+import { isIE } from './browser';
 
 export default class EventEmitter {
     constructor () {
@@ -11,19 +12,24 @@ export default class EventEmitter {
         if (!listeners)
             return;
 
-        for (let i = 0; i < listeners.length; i++) {
-            try {
-                listeners[i].apply(this, nativeMethods.arraySlice.apply(arguments, [1]));
+        const args = nativeMethods.arraySlice.call(arguments, 1);
+        let index  = 0;
+
+        while (listeners[index]) {
+            // HACK: For IE: after calling document.write, the IFrameSandbox event handler throws the
+            // 'Can't execute code from a freed script' exception because the document has been
+            // recreated.
+            if (isIE) {
+                try {
+                    listeners[index].toString();
+                }
+                catch (e) {
+                    nativeMethods.arraySplice.call(listeners, index, 1);
+                    continue;
+                }
             }
-            catch (e) {
-                // HACK: For IE: after calling document.write, the IFrameSandbox event handler throws the
-                // 'Can't execute code from a freed script' exception because the document has been
-                // recreated.
-                if (e.message && e.message.indexOf('freed script') > -1)
-                    listeners[i] = null;
-                else
-                    throw e;
-            }
+
+            listeners[index++].apply(this, args);
         }
     }
 
