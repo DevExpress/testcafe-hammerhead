@@ -6,6 +6,7 @@ var urlUtils                = hammerhead.get('./utils/url');
 var sharedUrlUtils          = hammerhead.get('../utils/url');
 var destLocation            = hammerhead.get('./utils/destination-location');
 var urlResolver             = hammerhead.get('./utils/url-resolver');
+var extend                  = hammerhead.get('./utils/extend');
 
 var Promise       = hammerhead.Promise;
 var nativeMethods = hammerhead.nativeMethods;
@@ -729,4 +730,17 @@ test('set a relative url to a cross-domain location', function () {
             checkLocation(iframes[0].contentWindow.location);
             checkLocation(iframes[1].contentWindow.location);
         });
+});
+
+test('"isLocation" for the cloned location object should not return the "true" value (GH-1863)', function () {
+    var getLocationCopyScript = processScript('(function getLocation () {' +
+                                              extend.toString() +
+                                              'var location = extend({}, window.location);' +
+                                              'return location;' +
+                                              '})();');
+
+    var locationCopy     = eval(getLocationCopyScript);
+    var locationCopyCtor = Object.getPrototypeOf(locationCopy).constructor;
+
+    strictEqual(locationCopyCtor.toString().indexOf('LocationWrapper'), -1, 'should not contains "LocationWrapper"');
 });

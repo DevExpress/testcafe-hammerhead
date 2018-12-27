@@ -528,19 +528,25 @@ export function isBlob (instance): boolean {
 }
 
 export function isLocation (instance): boolean {
+    if (!instance)
+        return false;
+
     if (instance instanceof nativeMethods.locationClass ||
         nativeMethods.objectToString.call(instance) === '[object Location]')
         return true;
 
     try {
-        // eslint-disable-next-line no-restricted-properties
-        return instance && typeof instance === 'object' && instance.href !== void 0 && instance.assign !== void 0;
+        // eslint-disable-next-line no-proto
+        if (instance.__proto__.constructor.toString().indexOf('Location') > -1)
+            return true;
     }
     catch (e) {
         // NOTE: Try to detect cross-domain window location.
         // A cross-domain location has no the "assign" function in Safari.
         return instance.replace && (isSafari || !!instance.assign);
     }
+
+    return false;
 }
 
 export function isSVGElement (instance): boolean {
