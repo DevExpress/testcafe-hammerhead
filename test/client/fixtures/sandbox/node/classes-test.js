@@ -536,7 +536,7 @@ if (navigator.registerProtocolHandler) {
         testUrl('http://example.com:233/?url=%s', !browserUtils.isFirefox, 'Another protocol');
         testUrl('https://xample.com:233/?url=%s', true, 'Another hostname');
         testUrl('https://example.com:934/?url=%s', !browserUtils.isFirefox, 'Another port');
-        testUrl('https://subdomain.example.com:233/?url=%s', false, 'Sub domain');
+        testUrl('https://subdomain.example.com:233/?url=%s', true, 'Sub domain');
 
         destLocation.get = savedGetOriginLocation;
     });

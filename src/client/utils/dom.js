@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE, isMSEdge } from './browser';
+import { isFirefox, isWebKit, isIE, isMSEdge, isSafari } from './browser';
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
@@ -528,7 +528,8 @@ export function isBlob (instance) {
 }
 
 export function isLocation (instance) {
-    if (instance instanceof nativeMethods.locationClass)
+    if (instance instanceof nativeMethods.locationClass ||
+        nativeMethods.objectToString.call(instance) === '[object Location]')
         return true;
 
     try {
@@ -537,7 +538,8 @@ export function isLocation (instance) {
     }
     catch (e) {
         // NOTE: Try to detect cross-domain window location.
-        return instance.replace && instance.assign;
+        // A cross-domain location has no the "assign" function in Safari.
+        return instance.replace && (isSafari || !!instance.assign);
     }
 }
 

@@ -693,3 +693,40 @@ asyncTest('should set a proxy url to an iframe location if iframe is not initial
 test('location wrapper should not contains internal enumerable properties (GH-1866)', function () {
     deepEqual(Object.getOwnPropertyNames(getLocation(location)).sort(), Object.getOwnPropertyNames(location).sort());
 });
+
+test('set a relative url to a cross-domain location', function () {
+    var crossDomainUrl = getCrossDomainPageUrl('../../../data/cross-domain/simple-page.html');
+    var relativeUrl    = window.QUnitGlobals.getResourceUrl('../../../data/iframe/simple-iframe.html');
+
+    return Promise.all([
+        createTestIframe({ src: crossDomainUrl }),
+        createTestIframe({ src: crossDomainUrl })
+    ])
+        .then(function (iframes) {
+            var waitForLoad = function (iframe) {
+                return new Promise(function (resolve) {
+                    iframe.addEventListener('load', function () {
+                        resolve(iframe);
+                    });
+                });
+            };
+            var promises    = [waitForLoad(iframes[0]), waitForLoad(iframes[1])];
+
+            setProperty(iframes[0].contentWindow, 'location', relativeUrl);
+            setProperty(iframes[1].contentWindow.location, 'href', relativeUrl);
+
+            return Promise.all(promises);
+        })
+        .then(function (iframes) {
+            var checkLocation = function (location) {
+                var parsedUrl = urlUtils.parseProxyUrl(location);
+
+                strictEqual(parsedUrl.proxy.port, '2000');
+                strictEqual(parsedUrl.resourceType, 'i');
+                strictEqual(parsedUrl.destUrl.indexOf(destLocation.getOriginHeader()), 0);
+            };
+
+            checkLocation(iframes[0].contentWindow.location);
+            checkLocation(iframes[1].contentWindow.location);
+        });
+});

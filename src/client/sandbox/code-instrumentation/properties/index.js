@@ -2,7 +2,6 @@ import INTERNAL_PROPS from '../../../../processing/dom/internal-properties';
 import LocationAccessorsInstrumentation from '../location';
 import LocationWrapper from '../location/wrapper';
 import SandboxBase from '../../base';
-import * as destLocation from '../../../utils/destination-location';
 import * as domUtils from '../../../utils/dom';
 import * as typeUtils from '../../../utils/types';
 import * as urlUtils from '../../../utils/url';
@@ -11,6 +10,8 @@ import INSTRUCTION from '../../../../processing/script/instruction';
 import { shouldInstrumentProperty } from '../../../../processing/script/instrumented';
 import nativeMethods from '../../native-methods';
 import { isJsProtocol, processJsAttrValue } from '../../../../processing/dom';
+import settings from '../../../settings';
+import { isIE } from '../../../utils/browser';
 
 export default class PropertyAccessorsInstrumentation extends SandboxBase {
     constructor (windowSandbox) {
@@ -34,20 +35,38 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
         }
     }
 
-    _createPropertyAccessors (window, document) {
+    static _setCrossDomainLocation (location, value) {
+        let proxyUrl = '';
+
+        if (typeof value !== 'string')
+            value = String(value);
+
+        if (!isJsProtocol(value)) {
+            const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
+
+            value = prepareUrl(value);
+
+            proxyUrl = location !== window.top.location
+                ? urlUtils.getProxyUrl(value, { resourceType })
+                : urlUtils.getProxyUrl(value, { proxyPort: settings.get().crossDomainProxyPort });
+        }
+        else
+            proxyUrl = processJsAttrValue(value, { isJsProtocol: true, isEventAttr: false });
+
+        location.href = proxyUrl; // eslint-disable-line no-restricted-properties
+
+        return value;
+    }
+
+    _createPropertyAccessors () {
         return {
             href: {
-                condition: LocationAccessorsInstrumentation.isLocationWrapper,
+                condition: domUtils.isLocation,
 
                 // eslint-disable-next-line no-restricted-properties
-                get: locationWrapper => locationWrapper.href,
+                get: crossDomainLocation => crossDomainLocation.href,
 
-                set: (locationWrapper, value) => {
-                    // eslint-disable-next-line no-restricted-properties
-                    locationWrapper.href = destLocation.resolveUrl(value, document);
-
-                    return value;
-                }
+                set: PropertyAccessorsInstrumentation._setCrossDomainLocation
             },
 
             location: {
@@ -68,24 +87,11 @@ export default class PropertyAccessorsInstrumentation extends SandboxBase {
                     const ownerWindow     = domUtils.isWindow(owner) ? owner : owner.defaultView;
                     const locationWrapper = LocationAccessorsInstrumentation.getLocationWrapper(ownerWindow);
 
-                    if (!locationWrapper) {
-                        if (typeof location !== 'string')
-                            location = String(location);
-
-                        if (!isJsProtocol(location)) {
-                            const url          = prepareUrl(location);
-                            const resourceType = urlUtils.stringifyResourceType({ isIframe: true });
-
-                            owner.location = destLocation.sameOriginCheck(location.toString(), url)
-                                ? urlUtils.getProxyUrl(url, { resourceType })
-                                : urlUtils.getCrossDomainIframeProxyUrl(url);
-                        }
-                        else
-                            owner.location = processJsAttrValue(location, { isJsProtocol: true, isEventAttr: false });
-                    }
-                    else
-                        // eslint-disable-next-line no-restricted-properties
-                        locationWrapper.href = location;
+                    if (!locationWrapper || locationWrapper === owner.location ||
+                        isIE && domUtils.isCrossDomainWindows(window, ownerWindow))
+                        PropertyAccessorsInstrumentation._setCrossDomainLocation(owner.location, location);
+                    else if (locationWrapper)
+                        locationWrapper.href = location; // eslint-disable-line no-restricted-properties
 
                     return location;
                 }

@@ -154,7 +154,7 @@ export default class MessageSandbox extends SandboxBase {
     }
 
     postMessage (contentWindow, args) {
-        const targetUrl = args[1];
+        const targetUrl = args[1] || destLocation.getOriginHeader();
 
         if (isCrossDomainWindows(this.window, contentWindow))
             args[1] = getCrossDomainProxyUrl();

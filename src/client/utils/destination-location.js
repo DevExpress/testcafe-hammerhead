@@ -27,11 +27,11 @@ export function forceLocation (url) {
     forcedLocation = url;
 }
 
-export function sameOriginCheck (location, checkedUrl, rejectForSubdomains) {
+export function sameOriginCheck (location, checkedUrl) {
     if (checkedUrl)
         checkedUrl = resolveUrl(checkedUrl);
 
-    return sharedUrlUtils.sameOriginCheck(location, checkedUrl, rejectForSubdomains);
+    return sharedUrlUtils.sameOriginCheck(location, checkedUrl);
 }
 
 export function resolveUrl (url, doc) {

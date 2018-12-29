@@ -77,7 +77,7 @@ export default class FetchSandbox extends SandboxBase {
         }
 
         if (requestMode === 'same-origin')
-            return sameOriginCheck(getDestLocation(), url, true);
+            return sameOriginCheck(getDestLocation(), url);
 
         return true;
     }
@@ -86,7 +86,7 @@ export default class FetchSandbox extends SandboxBase {
         const responseUrl       = nativeMethods.responseUrlGetter.call(response);
         const parsedResponseUrl = parseProxyUrl(responseUrl);
         const destUrl           = parsedResponseUrl && parsedResponseUrl.destUrl;
-        const isSameOrigin      = sameOriginCheck(getDestLocation(), destUrl, true);
+        const isSameOrigin      = sameOriginCheck(getDestLocation(), destUrl);
 
         if (isSameOrigin)
             return 'basic';
