@@ -539,7 +539,7 @@ export function isLocation (instance) {
     catch (e) {
         // NOTE: Try to detect cross-domain window location.
         // A cross-domain location has no the "assign" function in Safari.
-        return instance.replace && (isSafari ? true : instance.assign);
+        return instance.replace && (isSafari || !!instance.assign);
     }
 }
 
