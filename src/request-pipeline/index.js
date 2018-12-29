@@ -33,7 +33,7 @@ const stages = [
                 if (ctx.destRes)
                     ctx.destRes.destroy();
                 else
-                    ctx.shouldDestroyResponse = true;
+                    ctx.isWebSocketConnectionReset = true;
             }
             else
                 throw e;
@@ -321,7 +321,7 @@ function sendRequest (ctx) {
         ctx.goToNextStage = false;
 
         req.on('response', res => {
-            if (ctx.shouldDestroyResponse) {
+            if (ctx.isWebSocketConnectionReset) {
                 res.destroy();
 
                 resolve();
