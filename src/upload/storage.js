@@ -1,15 +1,7 @@
-import fs from 'fs';
 import mime from 'mime';
 import path from 'path';
 import { format } from 'util';
-import promisify from '../utils/promisify';
-
-const readFile  = promisify(fs.readFile);
-const stat      = promisify(fs.stat);
-const readDir   = promisify(fs.readdir);
-const makeDir   = promisify(fs.mkdir);
-const writeFile = promisify(fs.writeFile);
-const exists    = fsPath => stat(fsPath).then(() => true, () => false);
+import { readFile, stat, readDir, makeDir, writeFile, fsObjectExists } from '../utils/promisified-functions';
 
 export default class UploadStorage {
     constructor (uploadsRoot) {
@@ -138,7 +130,7 @@ export default class UploadStorage {
 
     static async ensureUploadsRoot (uploadsRoot) {
         try {
-            if (!await exists(uploadsRoot))
+            if (!await fsObjectExists(uploadsRoot))
                 await makeDir(uploadsRoot);
 
             return null;

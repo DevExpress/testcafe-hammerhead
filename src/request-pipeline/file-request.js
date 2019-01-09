@@ -3,6 +3,7 @@ import mime from 'mime';
 import { EventEmitter } from 'events';
 import { parse } from 'url';
 import { MESSAGE, getText } from '../messages';
+import { stat, access } from '../utils/promisified-functions';
 
 const DISK_RE = /^\/[A-Za-z]:/;
 
@@ -19,24 +20,18 @@ export default class FileRequest extends EventEmitter {
     }
 
     _initEvents () {
-        fs.stat(this.path, (err, stats) => {
-            if (err) {
-                this._onError(err);
-
-                return;
-            }
-
-            if (!stats.isFile())
-                this._onError(new Error(TARGET_IS_NOT_FILE));
-            else {
-                fs.access(this.path, fs.constants.R_OK, e => {
-                    if (err)
-                        this._onError(e);
-                    else
-                        this._onOpen();
-                });
-            }
-        });
+        stat(this.path)
+            .then(stats => {
+                if (!stats.isFile())
+                    throw new Error(TARGET_IS_NOT_FILE);
+            })
+            .then(() => {
+                return access(this.path, fs.constants.R_OK);
+            })
+            .then(() => {
+                this._onOpen();
+            })
+            .catch(err => this._onError(err));
     }
 
     static _getPath (proxiedUrl) {
