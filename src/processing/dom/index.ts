@@ -34,10 +34,10 @@ const ELEMENT_PROCESSED: string = 'hammerhead|element-processed';
 const AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = 'hammerhead|autocomplete-attribute-absence-marker';
 
 export default class DomProcessor {
-    adapter: any;
+    private readonly adapter: any;
     SVG_XLINK_HREF_TAGS: string[] = SVG_XLINK_HREF_TAGS;
     AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER: string = AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
-    elementProcessorPatterns: any;
+    private readonly elementProcessorPatterns: any;
     forceProxySrcForImage: boolean = false;
     // Refactor this, see BaseDomAdapter;
     EVENTS: string[];
@@ -258,7 +258,7 @@ export default class DomProcessor {
         });
     }
 
-    isUrlAttr (el, attr: string, ns?: string) {
+    isUrlAttr (el, attr: string, ns?: string): boolean {
         const tagName = this.adapter.getTagName(el);
 
         attr = attr ? attr.toLowerCase() : attr;
@@ -291,7 +291,7 @@ export default class DomProcessor {
         return null;
     }
 
-    _isOpenLinkInIframe (el) {
+    _isOpenLinkInIframe (el): boolean {
         const tagName    = this.adapter.getTagName(el);
         const targetAttr = this.getTargetAttr(el);
         const target     = this.adapter.getAttr(el, targetAttr);
@@ -312,7 +312,7 @@ export default class DomProcessor {
         return false;
     }
 
-    _isShadowElement (el) {
+    _isShadowElement (el): boolean {
         const className = this.adapter.getClassName(el);
 
         return typeof className === 'string' && className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
