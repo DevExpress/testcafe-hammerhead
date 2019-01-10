@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 /* eslint hammerhead/proto-methods: 2 */
-const STORAGE_WRAPPER_PREFIX = 'hammerhead|storage-wrapper|';
+const STORAGE_WRAPPER_PREFIX: string = 'hammerhead|storage-wrapper|';
 
 export default function getStorageKey (sessionId: string, host: string) {
     return STORAGE_WRAPPER_PREFIX + sessionId + '|' + host;

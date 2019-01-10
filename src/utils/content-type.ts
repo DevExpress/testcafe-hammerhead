@@ -1,9 +1,9 @@
 const MANIFEST_MIME = 'text/cache-manifest';
 const CSS_MIME      = 'text/css';
 
-export const JSON_MIME = 'application/json';
+export const JSON_MIME: string = 'application/json';
 
-const PAGE_MIMES = [
+const PAGE_MIMES: Array<string> = [
     'text/html',
     'text/xml',
     'application/xhtml+xml',
@@ -11,7 +11,7 @@ const PAGE_MIMES = [
     'application/x-ms-application'
 ];
 
-const SCRIPT_MIMES = [
+const SCRIPT_MIMES: Array<string> = [
     'application/ecmascript',
     'application/javascript',
     'application/x-ecmascript',

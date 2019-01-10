@@ -5,10 +5,10 @@
 
 import trim from './string-trim';
 
-const TIME_RADIX                            = 36;
-const CLEAR_COOKIE_VALUE_STR                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
-const CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT = 7;
-const KEY_VALUE_REGEX                       = /(?:^([^=]+)=([\s\S]*))?/;
+const TIME_RADIX: number                            = 36;
+const CLEAR_COOKIE_VALUE_STR: string                = '=;path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT';
+const CLIENT_COOKIE_SYNC_KEY_FRAGMENT_COUNT: number = 7;
+const KEY_VALUE_REGEX: RegExp                       = /(?:^([^=]+)=([\s\S]*))?/;
 
 export const SYNCHRONIZATION_TYPE = {
     server: 's',

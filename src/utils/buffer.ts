@@ -1,10 +1,10 @@
 import { Readable } from 'stream';
 
-const LF          = 0x0A;
-const CR          = 0x0D;
-const CRLF_LENGTH = 2;
+const LF: number          = 0x0A;
+const CR: number          = 0x0D;
+const CRLF_LENGTH: number = 2;
 
-export const CRLF = Buffer.from([CR, LF]);
+export const CRLF: Buffer = Buffer.from([CR, LF]);
 
 export function createLineIterator (buffer: Buffer) {
     return {
@@ -25,7 +25,7 @@ export function createLineIterator (buffer: Buffer) {
     };
 }
 
-export function appendLine (lines, line) {
+export function appendLine (lines: Array<any>, line: any) {
     if (lines.length)
         lines.push(CRLF);
 
