@@ -3,7 +3,6 @@
     "target": "es2016",
     "allowJs": true,
     "moduleResolution": "node",
-    "types": ["node"],
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true

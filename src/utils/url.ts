@@ -5,24 +5,23 @@
 
 import trim from './string-trim';
 
-//Const
-const PROTOCOL_RE        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
-const LEADING_SLASHES_RE = /^(\/\/)/;
-const HOST_RE            = /^(.*?)(\/|%|\?|;|#|$)/;
-const PORT_RE            = /:([0-9]*)$/;
-const QUERY_AND_HASH_RE  = /(\?.+|#[^#]*)$/;
-const PATH_AFTER_HOST_RE = /^\/([^/]+?)\/([\S\s]+)$/;
-const HTTP_RE            = /^(?:https?):/;
-const FILE_RE            = /^file:/i;
+const PROTOCOL_RE: RegExp        = /^([\w-]+?:)(\/\/|[^\\/]|$)/;
+const LEADING_SLASHES_RE: RegExp = /^(\/\/)/;
+const HOST_RE: RegExp            = /^(.*?)(\/|%|\?|;|#|$)/;
+const PORT_RE: RegExp            = /:([0-9]*)$/;
+const QUERY_AND_HASH_RE: RegExp  = /(\?.+|#[^#]*)$/;
+const PATH_AFTER_HOST_RE: RegExp = /^\/([^/]+?)\/([\S\s]+)$/;
+const HTTP_RE: RegExp            = /^(?:https?):/;
+const FILE_RE: RegExp            = /^file:/i;
 
-export const SUPPORTED_PROTOCOL_RE               = /^(?:https?|file):/i;
-export const HASH_RE                             = /^#/;
-export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR = '!';
-export const TRAILING_SLASH_RE                   = /\/$/;
-export const SPECIAL_PAGES                       = ['about:blank', 'about:error'];
+export const SUPPORTED_PROTOCOL_RE: RegExp               = /^(?:https?|file):/i;
+export const HASH_RE: RegExp                             = /^#/;
+export const REQUEST_DESCRIPTOR_VALUES_SEPARATOR: string = '!';
+export const TRAILING_SLASH_RE: RegExp                   = /\/$/;
+export const SPECIAL_PAGES: Array<string>                = ['about:blank', 'about:error'];
 
-export const HTTP_DEFAULT_PORT  = '80';
-export const HTTPS_DEFAULT_PORT = '443';
+export const HTTP_DEFAULT_PORT: string  = '80';
+export const HTTPS_DEFAULT_PORT: string = '443';
 
 export function parseResourceType (resourceType): any {
     if (!resourceType) {
@@ -325,7 +324,7 @@ export function formatUrl (parsedUrl) {
     return url;
 }
 
-export function correctMultipleSlashes (url, pageProtocol = '') {
+export function correctMultipleSlashes (url: string, pageProtocol: string = '') {
     // NOTE: Remove unnecessary slashes from the beginning of the url and after scheme.
     // For example:
     // "//////example.com" -> "//example.com" (scheme-less HTTP(S) URL)
@@ -343,11 +342,11 @@ export function correctMultipleSlashes (url, pageProtocol = '') {
     return url.replace(/^(https?:)?\/+(\/\/.*$)/i, '$1$2');
 }
 
-export function processSpecialChars (url) {
+export function processSpecialChars (url: string) {
     return correctMultipleSlashes(getURLString(url));
 }
 
-export function ensureTrailingSlash (srcUrl, processedUrl) {
+export function ensureTrailingSlash (srcUrl: string, processedUrl: string) {
     if (!isValidUrl(processedUrl))
         return processedUrl;
 
@@ -362,29 +361,29 @@ export function ensureTrailingSlash (srcUrl, processedUrl) {
     return processedUrl;
 }
 
-export function isSpecialPage (url) {
+export function isSpecialPage (url: string) {
     return SPECIAL_PAGES.indexOf(url) !== -1;
 }
 
-export function isRelativeUrl (url) {
+export function isRelativeUrl (url: string) {
     const parsedUrl = parseUrl(url);
 
     return parsedUrl.protocol !== 'file:' && !parsedUrl.host;
 }
 
-function isValidPort (port) {
+function isValidPort (port: string) {
     const parsedPort = parseInt(port, 10);
 
     return parsedPort > 0 && parsedPort <= 65535;
 }
 
-export function isValidUrl (url) {
+export function isValidUrl (url: string) {
     const parsedUrl = parseUrl(url);
 
     return parsedUrl.protocol === 'file:' || parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
 }
 
-export function ensureOriginTrailingSlash (url) {
+export function ensureOriginTrailingSlash (url: string) {
     // NOTE: If you request an url containing only port, host and protocol
     // then browser adds the trailing slash itself.
     const parsedUrl = parseUrl(url);
@@ -395,7 +394,7 @@ export function ensureOriginTrailingSlash (url) {
     return url;
 }
 
-export function omitDefaultPort (url) {
+export function omitDefaultPort (url: string) {
     // NOTE: If you request an url containing default port
     // then browser remove this one itself.
     const parsedUrl = parseUrl(url);
@@ -413,7 +412,7 @@ export function omitDefaultPort (url) {
     return url;
 }
 
-export function prepareUrl (url) {
+export function prepareUrl (url: string) {
     url = omitDefaultPort(url);
     url = ensureOriginTrailingSlash(url);
 

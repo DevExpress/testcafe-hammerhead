@@ -52,6 +52,6 @@ export function respondStatic (req: any, res: any, resource: any, cachingOptions
     }
 }
 
-export function fetchBody (r): string {
+export function fetchBody (r): any {
     return promisifyStream(r);
 }

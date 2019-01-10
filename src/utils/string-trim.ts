@@ -10,6 +10,6 @@
 // an iframe window. The client code may override this method in the top window before the
 // iframe is initialized, so that the iframe will lose access to the native method.
 
-export default function (str: string) {
+export default function (str: string): string {
     return typeof str === 'string' ? str.replace(/(^\s+)|(\s+$)/g, '') : str;
 }

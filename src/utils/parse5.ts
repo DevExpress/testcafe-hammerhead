@@ -1,6 +1,6 @@
 import { NAMESPACE_PREFIX_MAP } from '../processing/dom/namespaces';
 
-const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR = ':';
+const ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR: string = ':';
 
 function getAttrName (attr) {
     return attr.prefix ? attr.prefix + ATTR_NAMESPACE_LOCAL_NAME_SEPARATOR + attr.name : attr.name;
@@ -21,7 +21,7 @@ function parseAttrName (attr): any {
     };
 }
 
-function findAttr (el, name) {
+function findAttr (el, name: string) {
     for (let i = 0; i < el.attrs.length; i++) {
         if (getAttrName(el.attrs[i]) === name)
             return el.attrs[i];
@@ -29,7 +29,7 @@ function findAttr (el, name) {
     return null;
 }
 
-export function createElement (tagName, attrs) {
+export function createElement (tagName: string, attrs) {
     return {
         nodeName:   tagName,
         tagName:    tagName,
@@ -51,7 +51,7 @@ export function removeNode (node) {
     parent.childNodes.splice(elIndex, 1);
 }
 
-export function findElementsByTagNames (root, tagNames): any {
+export function findElementsByTagNames (root, tagNames: Array<string>): any {
     const elements = {};
 
     walkElements(root, el => {
@@ -81,7 +81,7 @@ export function createTextNode (content, parent) {
     };
 }
 
-export function removeAttr (el, name) {
+export function removeAttr (el, name: string) {
     for (let i = 0; i < el.attrs.length; i++) {
         if (getAttrName(el.attrs[i]) === name) {
             el.attrs.splice(i, 1);
@@ -91,13 +91,13 @@ export function removeAttr (el, name) {
     }
 }
 
-export function getAttr (el, name) {
+export function getAttr (el, name: string) {
     const attr = findAttr(el, name);
 
     return attr ? attr.value : null;
 }
 
-export function setAttr (el, name, value) {
+export function setAttr (el, name: string, value) {
     const attr = findAttr(el, name);
 
     if (attr) {

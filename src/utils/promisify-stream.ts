@@ -1,4 +1,4 @@
-export default function (stream: any): any {
+export default function (stream: any) {
     return new Promise((resolve, reject) => {
         const chunks = [];
 

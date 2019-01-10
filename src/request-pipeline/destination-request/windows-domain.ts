@@ -4,7 +4,7 @@ let cached = null;
 
 async function queryOSForCredential (cmd) {
     try {
-        const credential = await exec(cmd);
+        const credential:any = await exec(cmd);
 
         return credential.replace(/\s/g, '');
     }
