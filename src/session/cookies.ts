@@ -7,20 +7,20 @@ const LOCALHOST_DOMAIN: string = 'localhost';
 const LOCALHOST_IP: string     = '127.0.0.1';
 
 export default class Cookies {
-    cookieJar: any;
+    private cookieJar: any;
 
     constructor () {
         this.cookieJar = new CookieJar();
     }
 
-    static _hasLocalhostDomain (cookie) {
+    static _hasLocalhostDomain (cookie): boolean {
         if (cookie)
             return cookie.domain === LOCALHOST_DOMAIN || cookie.domain === LOCALHOST_IP;
 
         return false;
     }
 
-    _set (url, cookies, isClient) {
+    _set (url, cookies, isClient: boolean) {
         cookies = castArray(cookies);
 
         return cookies.reduce((resultCookies, cookieStr) => {
@@ -56,17 +56,17 @@ export default class Cookies {
         }, []);
     }
 
-    serializeJar () {
+    serializeJar (): string {
         return JSON.stringify(this.cookieJar.serializeSync());
     }
 
-    setJar (serializedJar) {
+    setJar (serializedJar): void {
         this.cookieJar = serializedJar
             ? CookieJar.deserializeSync(JSON.parse(serializedJar))
             : new CookieJar();
     }
 
-    setByServer (url, cookies) {
+    setByServer (url: string, cookies) {
         return this._set(url, cookies, false);
     }
 

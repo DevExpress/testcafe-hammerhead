@@ -9,11 +9,11 @@ export default class ConfigureResponseEvent {
         this.opts               = opts;
     }
 
-    setHeader (name, value) {
+    setHeader (name: string, value: string) {
         this._requestContext.destRes.headers[name.toLowerCase()] = value;
     }
 
-    removeHeader (name) {
+    removeHeader (name: string) {
         delete this._requestContext.destRes.headers[name.toLowerCase()];
     }
 }

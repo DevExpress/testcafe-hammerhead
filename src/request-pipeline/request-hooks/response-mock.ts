@@ -9,17 +9,15 @@ const INVALID_BODY_PARAMETER_TYPES: Array<string> = ['number', 'boolean'];
 const INVALID_STATUS_CODE_MESSAGE: string = 'Invalid status code. It should be a number that is greater than 100 and less than 999.';
 
 export default class ResponseMock {
-    body: any;
-    statusCode: string;
-    headers: any;
-    requestOptions: any;
+    private readonly body: any;
+    private readonly statusCode: string;
+    private readonly headers: any;
+    requestOptions: any = null;
 
     constructor (body, statusCode, headers) {
         this.body       = body;
         this.statusCode = statusCode;
         this.headers    = this._lowerCaseHeaderNames(headers);
-
-        this.requestOptions = null;
 
         this._validateParameters();
     }
@@ -74,18 +72,18 @@ export default class ResponseMock {
         this._validateHeaders();
     }
 
-    _getContentType () {
+    _getContentType (): string {
         if (this.body !== null && typeof this.body === 'object')
             return JSON_MIME;
 
         return PAGE_CONTENT_TYPE;
     }
 
-    setRequestOptions (opts) {
+    setRequestOptions (opts): void {
         this.requestOptions = opts;
     }
 
-    getResponse () {
+    getResponse (): IncomingMessageMock {
         let response: any = {
             headers: {
                 'content-type': this._getContentType()

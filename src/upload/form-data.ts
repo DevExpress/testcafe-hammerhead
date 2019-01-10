@@ -14,21 +14,13 @@ enum ParserState {
 /*eslint-enable no-unused-vars*/
 
 export default class FormData {
-    boundary: any;
-    boundaryEnd: any;
-    epilogue: any;
-    entries: Array<any>;
-    preamble: Array<any>;
+    boundary: Buffer = null;
+    private boundaryEnd: Buffer = null;
+    private epilogue: Array<any> = [];
+    private entries: Array<any> = [];
+    private preamble: Array<any> = [];
 
-    constructor () {
-        this.boundary    = null;
-        this.boundaryEnd = null;
-        this.epilogue    = [];
-        this.entries     = [];
-        this.preamble    = [];
-    }
-
-    _removeEntry (name) {
+    _removeEntry (name: string) {
         this.entries = this.entries.filter(entry => entry.name !== name);
     }
 
@@ -48,15 +40,15 @@ export default class FormData {
         }
     }
 
-    _isBoundary (line) {
+    _isBoundary (line: Buffer): boolean {
         return this.boundary.equals(line);
     }
 
-    _isBoundaryEnd (line) {
+    _isBoundaryEnd (line: Buffer): boolean {
         return this.boundaryEnd.equals(line);
     }
 
-    getEntriesByName (name) {
+    getEntriesByName (name: string) {
         return this.entries.reduce((found, entry) => {
             if (entry.name === name)
                 found.push(entry);
@@ -65,7 +57,7 @@ export default class FormData {
         }, []);
     }
 
-    expandUploads () {
+    expandUploads (): void {
         const uploadsEntry = this.getEntriesByName(INTERNAL_ATTRS.uploadInfoHiddenInputName)[0];
 
         if (uploadsEntry) {
@@ -77,7 +69,7 @@ export default class FormData {
         }
     }
 
-    parseContentTypeHeader (header) {
+    parseContentTypeHeader (header: string) {
         header = String(header);
 
         if (header.includes('multipart/form-data')) {
@@ -91,7 +83,7 @@ export default class FormData {
         }
     }
 
-    parseBody (body) {
+    parseBody (body: Buffer): void {
         let state        = ParserState.inPreamble;
         const lines      = bufferUtils.createLineIterator(body);
         let currentEntry = null;
@@ -131,7 +123,7 @@ export default class FormData {
         }
     }
 
-    toBuffer () {
+    toBuffer (): Buffer {
         let chunks = this.preamble;
 
         if (chunks.length)

@@ -4,9 +4,9 @@ import { format } from 'util';
 import { readFile, stat, readDir, makeDir, writeFile, fsObjectExists } from '../utils/promisified-functions';
 
 export default class UploadStorage {
-    uploadsRoot: string;
+    private uploadsRoot: string;
 
-    constructor (uploadsRoot) {
+    constructor (uploadsRoot: string) {
         this.uploadsRoot = uploadsRoot;
     }
 

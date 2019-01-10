@@ -5,19 +5,12 @@ const FILE_NAME_RE: RegExp  = /;\s*filename="([^"]*)"/i;
 const HEADER_RE: RegExp     = /^(.+?):\s*(.*)$/;
 
 export default class FormDataEntry {
-    body: Array<any>;
-    headers: any;
-    name: any;
-    fileName: any;
+    private body: Array<any> = [];
+    private headers: any = {};
+    name: any = null;
+    fileName: any = null;
 
-    constructor () {
-        this.body     = [];
-        this.headers  = {};
-        this.name     = null;
-        this.fileName = null;
-    }
-
-    _parseContentDisposition (contentDisposition) {
+    _parseContentDisposition (contentDisposition: string) {
         const inputNameMatch = contentDisposition.match(INPUT_NAME_RE);
         const fileNameMatch  = contentDisposition.match(FILE_NAME_RE);
 
@@ -25,7 +18,7 @@ export default class FormDataEntry {
         this.fileName = fileNameMatch && fileNameMatch[1];
     }
 
-    _setContentDisposition (name, fileName) {
+    _setContentDisposition (name: string, fileName: string) {
         this.name     = name;
         this.fileName = fileName;
 
@@ -42,7 +35,7 @@ export default class FormDataEntry {
         this.headers['Content-Type'] = file.type;
     }
 
-    setHeader (header, newValue) {
+    setHeader (header: string, newValue) {
         const headerMatch = header.match(HEADER_RE);
         const name        = headerMatch[1];
         const value       = newValue || headerMatch [2];
@@ -53,7 +46,7 @@ export default class FormDataEntry {
             this._parseContentDisposition(value);
     }
 
-    toBuffer () {
+    toBuffer (): Buffer {
         let chunks = [];
 
         Object.keys(this.headers).forEach(name => {

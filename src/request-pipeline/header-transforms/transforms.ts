@@ -42,7 +42,7 @@ function transformCookieForFetch (src, ctx) {
     }
 }
 
-function transformCookie (src, ctx) {
+function transformCookie (src, ctx): string {
     if (ctx.isXhr)
         return isCrossDomainXhrWithoutCredentials(ctx) ? void 0 : src;
     else if (ctx.isFetch)

@@ -2,7 +2,7 @@ export default class ConfigureResponseEventOptions {
     includeHeaders: boolean;
     includeBody: boolean;
 
-    constructor (includeHeaders, includeBody) {
+    constructor (includeHeaders: boolean, includeBody: boolean) {
         this.includeHeaders = includeHeaders;
         this.includeBody    = includeBody;
     }

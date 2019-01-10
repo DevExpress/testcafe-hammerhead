@@ -17,7 +17,7 @@ export default class RequestEvent {
         return this._requestContext.reqOpts;
     }
 
-    get isAjax () {
+    get isAjax (): boolean {
         return this._requestInfo.isAjax;
     }
 }

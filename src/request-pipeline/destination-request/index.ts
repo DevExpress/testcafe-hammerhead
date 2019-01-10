@@ -13,28 +13,26 @@ import { transformHeadersCaseToRaw } from '../header-transforms';
 // doesn't work (see: https://github.com/mikeal/request/issues/418).
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const TUNNELING_SOCKET_ERR_RE    = /tunneling socket could not be established/i;
-const TUNNELING_AUTHORIZE_ERR_RE = /statusCode=407/i;
-const SOCKET_HANG_UP_ERR_RE      = /socket hang up/i;
-const IS_DNS_ERR_MSG_RE          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
-const IS_DNS_ERR_CODE_RE         = /ECONNRESET/;
+const TUNNELING_SOCKET_ERR_RE: RegExp    = /tunneling socket could not be established/i;
+const TUNNELING_AUTHORIZE_ERR_RE: RegExp = /statusCode=407/i;
+const SOCKET_HANG_UP_ERR_RE: RegExp      = /socket hang up/i;
+const IS_DNS_ERR_MSG_RE: RegExp          = /ECONNREFUSED|ENOTFOUND|EPROTO/;
+const IS_DNS_ERR_CODE_RE: RegExp         = /ECONNRESET/;
 
 // NOTE: Starting from 8.6 version, Node.js changes behavior related with sending requests
 // to sites using SSL2 and SSL3 protocol versions. It affects the https core module
 // and can break a proxying of some sites. This is why, we are forced to use the special hack.
 // For details, see https://github.com/nodejs/node/issues/16196
-const IS_NODE_VERSION_GREATER_THAN_8_5 = semver.gt(process.version, '8.5.0');
+const IS_NODE_VERSION_GREATER_THAN_8_5: boolean = semver.gt(process.version, '8.5.0');
 
-
-// DestinationRequest
 export default class DestinationRequest extends EventEmitter {
-    req: any;
-    hasResponse: boolean;
-    credentialsSent: boolean;
-    aborted: boolean;
-    opts: any;
-    isHttps: boolean;
-    protocolInterface: any;
+    private req: any = null;
+    private hasResponse: boolean = false;
+    private credentialsSent: boolean = false;
+    private aborted: boolean = false;
+    private opts: any;
+    private isHttps: boolean;
+    private protocolInterface: any;
 
     static TIMEOUT: number = 25 * 1000;
     static XHR_TIMEOUT: number = 2 * 60 * 1000;
@@ -42,10 +40,6 @@ export default class DestinationRequest extends EventEmitter {
     constructor (opts) {
         super();
 
-        this.req               = null;
-        this.hasResponse       = false;
-        this.credentialsSent   = false;
-        this.aborted           = false;
         this.opts              = opts;
         this.isHttps           = opts.protocol === 'https:';
         this.protocolInterface = this.isHttps ? https : http;
@@ -132,7 +126,7 @@ export default class DestinationRequest extends EventEmitter {
         this._send(requiresResBody(res));
     }
 
-    _fatalError (msg, url?: string) {
+    _fatalError (msg: string, url?: string) {
         if (!this.aborted) {
             this.aborted = true;
             this.req.abort();
@@ -140,16 +134,16 @@ export default class DestinationRequest extends EventEmitter {
         }
     }
 
-    _isDNSErr (err) {
+    _isDNSErr (err): boolean {
         return err.message && IS_DNS_ERR_MSG_RE.test(err.message) ||
                !this.aborted && !this.hasResponse && err.code && IS_DNS_ERR_CODE_RE.test(err.code);
     }
 
-    _isTunnelingErr (err) {
+    _isTunnelingErr (err): boolean {
         return this.isHttps && this.opts.proxy && err.message && TUNNELING_SOCKET_ERR_RE.test(err.message);
     }
 
-    _isSocketHangUpErr (err) {
+    _isSocketHangUpErr (err): boolean {
         return err.message && SOCKET_HANG_UP_ERR_RE.test(err.message) &&
                // NOTE: Only for nodejs 4 error with a same message will be generated for different cases.
                // This is why, we filter a 'SocketHangUpErr' by stack.
@@ -157,14 +151,14 @@ export default class DestinationRequest extends EventEmitter {
                err.stack && err.stack.includes('createHangUpError');
     }
 
-    _onTimeout () {
+    _onTimeout (): void {
         // NOTE: this handler is also called if we get an error response (for example, 404). So, we should check
         // for the response presence before raising the timeout error.
         if (!this.hasResponse)
             this._fatalError(MESSAGE.destRequestTimeout);
     }
 
-    _onError (err) {
+    _onError (err): void {
         if (this._isSocketHangUpErr(err))
             this.emit('socketHangUp');
 

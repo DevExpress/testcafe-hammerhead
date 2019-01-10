@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 /* eslint hammerhead/proto-methods: 2 */
 
-const POSTFIX = '-hammerhead-shadow-ui';
+const POSTFIX: string = '-hammerhead-shadow-ui';
 
 export default {
     postfix:            POSTFIX,

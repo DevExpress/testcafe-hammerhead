@@ -47,13 +47,13 @@ function getAgent (type) {
     return agent.instance;
 }
 
-function isSSLProtocolErr (err) {
+function isSSLProtocolErr (err): boolean {
     return err.message && err.message.includes('SSL routines');
 }
 
 
 // API
-export function assign (reqOpts) {
+export function assign (reqOpts): void {
     const proxy = reqOpts.proxy;
 
     if (proxy && reqOpts.protocol === 'https:') {
@@ -80,14 +80,14 @@ export function shouldRegressHttps (reqErr, reqOpts): boolean {
     return reqOpts.agent === agents[TYPE.TLS] && isSSLProtocolErr(reqErr);
 }
 
-export function regressHttps (reqOpts) {
+export function regressHttps (reqOpts): void {
     ssl3HostCache.set(reqOpts.host, true);
     reqOpts.agent = getAgent(TYPE.SSL3);
 }
 
 // NOTE: Since our agents are keep-alive, we need to manually reset connections when we
 // switch between servers in tests.
-export function resetKeepAliveConnections () {
+export function resetKeepAliveConnections (): void {
     Object.keys(agents).forEach(type => {
         const agent = agents[type];
 

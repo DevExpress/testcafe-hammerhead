@@ -40,12 +40,12 @@ function createServerInfo (hostname: string, port: string, crossDomainPort: stri
 }
 
 export default class Proxy extends Router {
-    openSessions: any;
-    server1Info: ServerInfo;
-    server2Info: ServerInfo;
-    server1: any;
-    server2: any;
-    sockets: Array<any>;
+    private readonly openSessions: any;
+    private readonly server1Info: ServerInfo;
+    private readonly server2Info: ServerInfo;
+    private readonly server1: any;
+    private readonly server2: any;
+    private readonly sockets: Array<any>;
 
     constructor (hostname: string, port1: string, port2: string, options: any = {}) {
         super(options);
@@ -194,7 +194,7 @@ export default class Proxy extends Router {
         });
     }
 
-    closeSession (session: any) {
+    closeSession (session) {
         session.proxy = null;
         delete this.openSessions[session.id];
     }

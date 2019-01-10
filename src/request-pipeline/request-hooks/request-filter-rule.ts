@@ -12,7 +12,7 @@ const MATCH_ANY_REQUEST_REG_EX: RegExp = /.*/;
 const STRINGIFIED_FUNCTION_OPTIONS: string = '{ <predicate> }';
 
 export default class RequestFilterRule {
-    options: any;
+    private readonly options: any;
 
     constructor (options) {
         this.options = this._initializeOptions(options);
