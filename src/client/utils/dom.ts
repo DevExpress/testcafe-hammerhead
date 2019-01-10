@@ -537,16 +537,13 @@ export function isLocation (instance): boolean {
 
     try {
         // eslint-disable-next-line no-proto
-        if (instance.__proto__.constructor.toString().indexOf('Location') > -1)
-            return true;
+        return instance.__proto__.constructor.toString().indexOf('Location') > -1;
     }
     catch (e) {
         // NOTE: Try to detect cross-domain window location.
         // A cross-domain location has no the "assign" function in Safari.
         return instance.replace && (isSafari || !!instance.assign);
     }
-
-    return false;
 }
 
 export function isSVGElement (instance): boolean {
