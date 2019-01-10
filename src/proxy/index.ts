@@ -8,7 +8,7 @@ import { run as runRequestPipeline } from '../request-pipeline';
 import prepareShadowUIStylesheet from '../shadow-ui/create-shadow-stylesheet';
 import { resetKeepAliveConnections } from '../request-pipeline/destination-request/agent';
 
-const SESSION_IS_NOT_OPENED_ERR = 'Session is not opened in proxy';
+const SESSION_IS_NOT_OPENED_ERR: string = 'Session is not opened in proxy';
 
 function parseAsJson (msg: string) {
     msg = msg.toString();

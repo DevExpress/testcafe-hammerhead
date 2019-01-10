@@ -11,13 +11,13 @@ import { generate, Syntax } from 'esotope-hammerhead';
 import reEscape from '../../utils/regexp-escape';
 import getBOM from '../../utils/get-bom';
 
-const HTML_COMMENT_RE       = /(^|\n)\s*<!--[^\n]*(\n|$)/g;
-const OBJECT_RE             = /^\s*\{.*\}\s*$/;
-const TRAILING_SEMICOLON_RE = /;\s*$/;
-const OBJECT_WRAPPER_RE     = /^\s*\((.*)\);\s*$/;
-const SOURCEMAP_RE          = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)/gm;
+const HTML_COMMENT_RE: RegExp       = /(^|\n)\s*<!--[^\n]*(\n|$)/g;
+const OBJECT_RE: RegExp             = /^\s*\{.*\}\s*$/;
+const TRAILING_SEMICOLON_RE: RegExp = /;\s*$/;
+const OBJECT_WRAPPER_RE: RegExp     = /^\s*\((.*)\);\s*$/;
+const SOURCEMAP_RE: RegExp          = /(?:\/\/[@#][ \t]+sourceMappingURL=([^\s'"]+?)[ \t]*$)/gm;
 
-const PROCESSED_SCRIPT_RE = new RegExp([
+const PROCESSED_SCRIPT_RE: RegExp = new RegExp([
     reEscape(INSTRUCTION.getLocation),
     reEscape(INSTRUCTION.setLocation),
     reEscape(INSTRUCTION.getProperty),
@@ -28,13 +28,13 @@ const PROCESSED_SCRIPT_RE = new RegExp([
     reEscape(INSTRUCTION.getPostMessage)
 ].join('|'));
 
-const PARSER_OPTIONS = {
+const PARSER_OPTIONS: object = {
     allowReturnOutsideFunction: true,
     ecmaVersion:                8
 };
 
 // Code pre/post-processing
-function removeHtmlComments (code) {
+function removeHtmlComments (code: string) {
     // NOTE: The JS parser removes the line that follows'<!--'. (T226589)
     do
         code = code.replace(HTML_COMMENT_RE, '\n');
@@ -43,7 +43,7 @@ function removeHtmlComments (code) {
     return code;
 }
 
-function preprocess (code) {
+function preprocess (code: string) {
     const bom        = getBOM(code);
     let preprocessed = bom ? code.substring(bom.length) : code;
 
@@ -53,11 +53,11 @@ function preprocess (code) {
     return { bom, preprocessed };
 }
 
-function removeSourceMapIfNecessary (code) {
+function removeSourceMapIfNecessary (code: string) {
     return SOURCEMAP_RE.test(code) ? code.replace(SOURCEMAP_RE, '') : code;
 }
 
-function postprocess (processed, withHeader, bom, strictMode) {
+function postprocess (processed: string, withHeader: boolean, bom: string, strictMode: boolean) {
     // NOTE: If the 'use strict' directive is not in the beginning of the file, it is ignored.
     // As we insert our header in the beginning of the script, we must put a new 'use strict'
     // before the header, otherwise it will be ignored.
@@ -69,11 +69,11 @@ function postprocess (processed, withHeader, bom, strictMode) {
 
 
 // Parse/generate code
-function removeTrailingSemicolonIfNecessary (processed, src) {
+function removeTrailingSemicolonIfNecessary (processed: string, src: string) {
     return TRAILING_SEMICOLON_RE.test(src) ? processed : processed.replace(TRAILING_SEMICOLON_RE, '');
 }
 
-function getAst (src, isObject) {
+function getAst (src: string, isObject: boolean) {
     // NOTE: In case of objects (e.g.eval('{ 1: 2}')) without wrapping
     // object will be parsed as label. To avoid this we parenthesize src
     src = isObject ? `(${src})` : src;
@@ -86,7 +86,7 @@ function getAst (src, isObject) {
     }
 }
 
-function getCode (ast, src) {
+function getCode (ast: object, src: string) {
     const code = generate(ast, {
         format: {
             quotes:     'double',
@@ -100,7 +100,7 @@ function getCode (ast, src) {
 
 
 // Analyze code
-function analyze (code) {
+function analyze (code: string) {
     let isObject = OBJECT_RE.test(code);
     let ast      = getAst(code, isObject);
 
@@ -113,13 +113,13 @@ function analyze (code) {
     return { ast, isObject };
 }
 
-function isArrayDataScript (ast) {
+function isArrayDataScript (ast): boolean {
     return ast.body.length === 1 &&
            ast.body[0].type === Syntax.ExpressionStatement &&
            ast.body[0].expression.type === Syntax.ArrayExpression;
 }
 
-function isStrictMode (ast) {
+function isStrictMode (ast): boolean {
     if (ast.body.length) {
         const firstChild = ast.body[0];
 
@@ -130,7 +130,7 @@ function isStrictMode (ast) {
     return false;
 }
 
-function applyChanges (script, changes, isObject) {
+function applyChanges (script, changes, isObject: boolean) {
     const indexOffset = isObject ? -1 : 0;
     const chunks      = [];
     let index         = 0;
@@ -158,11 +158,11 @@ function applyChanges (script, changes, isObject) {
     return chunks.join('');
 }
 
-export function isScriptProcessed (code) {
+export function isScriptProcessed (code: string): boolean {
     return PROCESSED_SCRIPT_RE.test(code);
 }
 
-export function processScript (src, withHeader, wrapLastExprWithProcessHtml?: boolean) {
+export function processScript (src: string, withHeader: boolean, wrapLastExprWithProcessHtml?: boolean) {
     const { bom, preprocessed } = preprocess(src);
     const withoutHtmlComments   = removeHtmlComments(preprocessed);
     const { ast, isObject }     = analyze(withoutHtmlComments);

@@ -20,7 +20,7 @@ import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import promisifyStream from '../utils/promisify-stream';
 
-const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
+const EVENT_SOURCE_REQUEST_TIMEOUT: number = 60 * 60 * 1000;
 
 // Stages
 const stages = {

@@ -7,7 +7,7 @@ import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import { parseClientSyncCookieStr } from '../utils/cookie';
 import * as headerTransforms from './header-transforms';
 
-const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
+const REDIRECT_STATUS_CODES: Array<number> = [301, 302, 303, 307, 308];
 
 export default class RequestPipelineContext {
     serverInfo: any;

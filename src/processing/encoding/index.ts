@@ -2,13 +2,13 @@ import zlib from 'zlib';
 import { gzip, deflate, gunzip, inflate, inflateRaw } from '../../utils/promisified-functions';
 import charsetEncoder from 'iconv-lite';
 
-const GZIP_CONTENT_ENCODING    = 'gzip';
-const DEFLATE_CONTENT_ENCODING = 'deflate';
-const BROTLI_CONTENT_ENCODING  = 'br';
+const GZIP_CONTENT_ENCODING: string    = 'gzip';
+const DEFLATE_CONTENT_ENCODING: string = 'deflate';
+const BROTLI_CONTENT_ENCODING: string  = 'br';
 
 // NOTE: IIS has a bug when it sends 'raw deflate' compressed data for the 'Deflate' Accept-Encoding header.
 // (see: http://zoompf.com/2012/02/lose-the-wait-http-compression)
-async function inflateWithFallback (data) {
+async function inflateWithFallback (data: Buffer) {
     try {
         return await inflate(data);
     }

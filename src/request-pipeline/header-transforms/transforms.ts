@@ -8,7 +8,6 @@ import {
     isOutdatedSyncCookie
 } from '../../utils/cookie';
 
-// Skipping transform
 function skip () {
     return void 0;
 }
@@ -17,7 +16,7 @@ function skipIfStateSnapshotIsApplied (src, ctx) {
     return ctx.restoringStorages ? void 0 : src;
 }
 
-function isCrossDomainXhrWithoutCredentials (ctx) {
+function isCrossDomainXhrWithoutCredentials (ctx): boolean {
     return ctx.isXhr && !ctx.req.headers[XHR_HEADERS.withCredentials] && ctx.dest.reqOrigin !== ctx.dest.domain;
 }
 

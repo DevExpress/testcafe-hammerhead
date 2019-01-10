@@ -4,19 +4,19 @@
 // -------------------------------------------------------------
 
 // NOTE: constants are exported for the testing purposes
-export const METHODS = [
+export const METHODS: Array<string> = [
     'postMessage',
     'replace',
     'assign'
 ];
 
-export const PROPERTIES = [
+export const PROPERTIES: Array<string> = [
     'href',
     'location'
 ];
 
-const INSTRUMENTED_METHOD_RE   = new RegExp(`^(${METHODS.join('|')})$`);
-const INSTRUMENTED_PROPERTY_RE = new RegExp(`^(${PROPERTIES.join('|')})$`);
+const INSTRUMENTED_METHOD_RE: RegExp   = new RegExp(`^(${METHODS.join('|')})$`);
+const INSTRUMENTED_PROPERTY_RE: RegExp = new RegExp(`^(${PROPERTIES.join('|')})$`);
 
 // NOTE: Mootools framework contains code that removes the RegExp.prototype.test
 // method and restores it later.
@@ -32,10 +32,10 @@ const test = (regexp, str) => regexp.test ? regexp.test(str) : reTest.call(regex
 // cases like `WRAPPABLE_METHOD['toString']` will fail.
 // We could use the hasOwnProperty test, but it is
 // significantly slower than the regular expression test
-export function shouldInstrumentMethod (name) {
+export function shouldInstrumentMethod (name: string): boolean {
     return test(INSTRUMENTED_METHOD_RE, name);
 }
 
-export function shouldInstrumentProperty (name) {
+export function shouldInstrumentProperty (name: string): boolean {
     return test(INSTRUMENTED_PROPERTY_RE, name);
 }

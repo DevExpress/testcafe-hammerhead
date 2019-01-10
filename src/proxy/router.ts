@@ -2,10 +2,8 @@ import md5 from 'crypto-md5';
 import { getPathname } from '../utils/url';
 import { respondStatic } from '../utils/http';
 
-// Const
-const PARAM_RE = /^{(\S+)}$/;
+const PARAM_RE: RegExp = /^{(\S+)}$/;
 
-// Static
 function buildRouteParamsMap (routeMatch, paramNames) {
     return paramNames.reduce((params, paramName, i) => {
         params[paramName] = routeMatch[i + 1];
@@ -13,14 +11,12 @@ function buildRouteParamsMap (routeMatch, paramNames) {
     }, {});
 }
 
-
-// Router
 export default abstract class Router {
     options: any;
     routes: any;
     routesWithParams: Array<any>;
 
-    constructor (options = {}) {
+    protected constructor (options = {}) {
         this.options          = options;
         this.routes           = {};
         this.routesWithParams = [];

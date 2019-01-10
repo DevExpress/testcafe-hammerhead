@@ -9,7 +9,7 @@ import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import getStorageKey from '../../utils/get-storage-key';
 import createSelfRemovingScript from '../../utils/create-self-removing-script';
 
-const BODY_CREATED_EVENT_SCRIPT = createSelfRemovingScript(`
+const BODY_CREATED_EVENT_SCRIPT: string = createSelfRemovingScript(`
     if (window["${ INTERNAL_PROPS.hammerhead }"])
         window["${ INTERNAL_PROPS.hammerhead }"].sandbox.node.raiseBodyCreatedEvent();
 `);

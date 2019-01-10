@@ -7,9 +7,9 @@ const DEFAULT_OPTIONS = {
     isAjax: void 0
 };
 
-const MATCH_ANY_REQUEST_REG_EX = /.*/;
+const MATCH_ANY_REQUEST_REG_EX: RegExp = /.*/;
 
-const STRINGIFIED_FUNCTION_OPTIONS = '{ <predicate> }';
+const STRINGIFIED_FUNCTION_OPTIONS: string = '{ <predicate> }';
 
 export default class RequestFilterRule {
     options: any;

@@ -19,7 +19,7 @@ class ScriptResourceProcessor extends ResourceProcessorBase {
         });
     }
 
-    processResource (script) {
+    processResource (script: string) {
         if (!script)
             return script;
 

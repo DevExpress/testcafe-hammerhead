@@ -52,7 +52,7 @@ const LOOKUP_TABLE = Object.keys(ENCODING_LABELS).reduce((table, encoding) => {
     return table;
 }, {});
 
-export default function getEncodingName (label) {
+export default function getEncodingName (label: string) {
     if (label) {
         label = trim(label.toLowerCase());
 

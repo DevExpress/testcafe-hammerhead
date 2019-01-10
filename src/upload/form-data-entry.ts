@@ -1,12 +1,9 @@
 import * as bufferUtils from '../utils/buffer';
 
-// Const
-const INPUT_NAME_RE = /;\s*name="([^"]*)"/i;
-const FILE_NAME_RE  = /;\s*filename="([^"]*)"/i;
-const HEADER_RE     = /^(.+?):\s*(.*)$/;
+const INPUT_NAME_RE: RegExp = /;\s*name="([^"]*)"/i;
+const FILE_NAME_RE: RegExp  = /;\s*filename="([^"]*)"/i;
+const HEADER_RE: RegExp     = /^(.+?):\s*(.*)$/;
 
-
-// FormDataEntry
 export default class FormDataEntry {
     body: Array<any>;
     headers: any;

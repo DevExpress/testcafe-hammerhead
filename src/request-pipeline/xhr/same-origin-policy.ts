@@ -2,7 +2,7 @@ import XHR_HEADERS from './headers';
 import { castArray } from 'lodash';
 
 // NOTE: https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS
-export function check (ctx) {
+export function check (ctx): boolean {
     const reqOrigin = ctx.dest.reqOrigin;
 
     // PASSED: Same origin.
@@ -13,13 +13,12 @@ export function check (ctx) {
     if (ctx.req.method === 'OPTIONS')
         return true;
 
-    const withCredentials        = !!ctx.req.headers[XHR_HEADERS.withCredentials] ||
-                                   ctx.req.headers[XHR_HEADERS.fetchRequestCredentials] === 'include';
-    const allowOriginHeader      = ctx.destRes.headers['access-control-allow-origin'];
-    const allowCredentialsHeader = ctx.destRes.headers['access-control-allow-credentials'];
-    const allowCredentials       = String(allowCredentialsHeader).toLowerCase() === 'true';
-    const allowedOrigins         = castArray(allowOriginHeader);
-    const wildcardAllowed        = allowedOrigins.includes('*');
+    const withCredentials: boolean       = !!ctx.req.headers[XHR_HEADERS.withCredentials] || ctx.req.headers[XHR_HEADERS.fetchRequestCredentials] === 'include';
+    const allowOriginHeader: string      = ctx.destRes.headers['access-control-allow-origin'];
+    const allowCredentialsHeader: string = ctx.destRes.headers['access-control-allow-credentials'];
+    const allowCredentials: boolean      = String(allowCredentialsHeader).toLowerCase() === 'true';
+    const allowedOrigins: Array<string>  = castArray(allowOriginHeader);
+    const wildcardAllowed: boolean       = allowedOrigins.includes('*');
 
     // FAILED: Destination server doesn't provide the Access-Control-Allow-Origin header.
     // So cross-domain requests are denied

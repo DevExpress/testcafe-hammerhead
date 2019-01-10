@@ -5,7 +5,7 @@ import { parse } from 'url';
 import { MESSAGE, getText } from '../messages';
 import { stat, access } from '../utils/promisified-functions';
 
-const DISK_RE = /^\/[A-Za-z]:/;
+const DISK_RE: RegExp = /^\/[A-Za-z]:/;
 
 const TARGET_IS_NOT_FILE = 'The target of the operation is not a file';
 

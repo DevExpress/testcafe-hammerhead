@@ -1,6 +1,5 @@
 import FormData from './form-data';
 
-// API
 export function inject (contentTypeHeader, body) {
     const formData = new FormData();
 

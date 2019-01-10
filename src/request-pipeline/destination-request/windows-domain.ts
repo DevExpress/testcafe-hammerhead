@@ -2,9 +2,9 @@ import { exec } from '../../utils/promisified-functions';
 
 let cached = null;
 
-async function queryOSForCredential (cmd) {
+async function queryOSForCredential (cmd: string): Promise<string> {
     try {
-        const credential:any = await exec(cmd);
+        const credential: string = await exec(cmd);
 
         return credential.replace(/\s/g, '');
     }

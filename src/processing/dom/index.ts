@@ -70,7 +70,7 @@ export default class DomProcessor {
         return attrName === 'autocomplete' && storedAttrValue === AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     }
 
-    static processJsAttrValue (value: string, { isJsProtocol, isEventAttr }) {
+    static processJsAttrValue (value: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean, isEventAttr?: boolean}) {
         if (isJsProtocol)
             value = value.replace(JAVASCRIPT_PROTOCOL_REG_EX, '');
 
@@ -382,7 +382,7 @@ export default class DomProcessor {
         }
     }
 
-    _processJsAttr (el, attrName: string, { isJsProtocol, isEventAttr }) {
+    _processJsAttr (el, attrName: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean, isEventAttr?: boolean}) {
         const storedUrlAttr  = DomProcessor.getStoredAttrName(attrName);
         const processed      = this.adapter.hasAttr(el, storedUrlAttr);
         const attrValue      = this.adapter.getAttr(el, processed ? storedUrlAttr : attrName);

@@ -3,8 +3,7 @@ import https from 'https';
 import LRUCache from 'lru-cache';
 import tunnel from 'tunnel-agent';
 
-// Const
-const SSL3_HOST_CACHE_SIZE = 1000;
+const SSL3_HOST_CACHE_SIZE: number = 1000;
 
 const TYPE = {
     SSL3: 'SSL3',
@@ -12,8 +11,6 @@ const TYPE = {
     HTTP: 'HTTP'
 };
 
-
-// Static
 const ssl3HostCache = new LRUCache({ max: SSL3_HOST_CACHE_SIZE });
 
 const agents = {
@@ -79,7 +76,7 @@ export function assign (reqOpts) {
     reqOpts.agent = getAgent(type);
 }
 
-export function shouldRegressHttps (reqErr, reqOpts) {
+export function shouldRegressHttps (reqErr, reqOpts): boolean {
     return reqOpts.agent === agents[TYPE.TLS] && isSSLProtocolErr(reqErr);
 }
 

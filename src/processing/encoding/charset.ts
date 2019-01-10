@@ -1,11 +1,11 @@
 import getEncodingName from './labels';
 
-const CHARSET_RE      = /(?:^|;)\s*charset=(.+)(?:;|$)/i;
-const META_CHARSET_RE = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
+const CHARSET_RE: RegExp      = /(?:^|;)\s*charset=(.+)(?:;|$)/i;
+const META_CHARSET_RE: RegExp = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
 
 // NOTE: HTTP 1.1 specifies ISO-8859-1 as the default charset
 // (see: http://www.w3.org/International/O-HTTP-charset.en.php).
-const DEFAULT_CHARSET = 'iso-8859-1';
+const DEFAULT_CHARSET: string = 'iso-8859-1';
 
 interface CharsetBOM {
     charset: string,

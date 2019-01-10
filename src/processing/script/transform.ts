@@ -9,8 +9,8 @@ import { Syntax } from 'esotope-hammerhead';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)
-const objectToString       = Object.prototype.toString;
-const objectHasOwnProperty = Object.prototype.hasOwnProperty;
+const objectToString: Function       = Object.prototype.toString;
+const objectHasOwnProperty: Function = Object.prototype.hasOwnProperty;
 
 function getChange (node, parent, key) {
     return {

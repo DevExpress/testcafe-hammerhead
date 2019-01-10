@@ -7,13 +7,13 @@ import reEscape from '../../utils/regexp-escape';
 import INTERNAL_PROPS from '../../processing/dom/internal-properties';
 import INSTRUCTION from './instruction';
 
-export const SCRIPT_PROCESSING_START_COMMENT      = '/*hammerhead|script|start*/';
-export const SCRIPT_PROCESSING_END_COMMENT        = '/*hammerhead|script|end*/';
-export const SCRIPT_PROCESSING_END_HEADER_COMMENT = '/*hammerhead|script|processing-header-end*/';
+export const SCRIPT_PROCESSING_START_COMMENT: string      = '/*hammerhead|script|start*/';
+export const SCRIPT_PROCESSING_END_COMMENT: string        = '/*hammerhead|script|end*/';
+export const SCRIPT_PROCESSING_END_HEADER_COMMENT: string = '/*hammerhead|script|processing-header-end*/';
 
-const STRICT_MODE_PLACEHOLDER = '{strict-placeholder}';
+const STRICT_MODE_PLACEHOLDER: string = '{strict-placeholder}';
 
-const HEADER = [
+const HEADER: string = [
     SCRIPT_PROCESSING_START_COMMENT,
     STRICT_MODE_PLACEHOLDER,
     'if(typeof window!=="undefined"&&window){',
@@ -36,16 +36,16 @@ const HEADER = [
 
 // NOTE: IE removes trailing newlines in script.textContent,
 // so a trailing newline in RegExp is optional
-const HEADER_RE                 = new RegExp(`${reEscape(SCRIPT_PROCESSING_START_COMMENT)}[\\S\\s]+?${reEscape(SCRIPT_PROCESSING_END_HEADER_COMMENT)}\n?`, 'gi');
-const PROCESSING_END_COMMENT_RE = new RegExp(`\n?${ reEscape(SCRIPT_PROCESSING_END_COMMENT) }\\s*`, 'gi');
+const HEADER_RE: RegExp                 = new RegExp(`${reEscape(SCRIPT_PROCESSING_START_COMMENT)}[\\S\\s]+?${reEscape(SCRIPT_PROCESSING_END_HEADER_COMMENT)}\n?`, 'gi');
+const PROCESSING_END_COMMENT_RE: RegExp = new RegExp(`\n?${ reEscape(SCRIPT_PROCESSING_END_COMMENT) }\\s*`, 'gi');
 
-export function remove (code) {
+export function remove (code: string) {
     return code
         .replace(HEADER_RE, '')
         .replace(PROCESSING_END_COMMENT_RE, '');
 }
 
-export function add (code, isStrictMode) {
+export function add (code: string, isStrictMode: boolean) {
     const header = HEADER.replace(STRICT_MODE_PLACEHOLDER, isStrictMode ? '"use strict";' : '');
 
     return header + code + '\n' + SCRIPT_PROCESSING_END_COMMENT;

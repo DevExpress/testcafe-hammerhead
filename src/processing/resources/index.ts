@@ -7,11 +7,11 @@ import * as urlUtil from '../../utils/url';
 import { encodeContent, decodeContent } from '../encoding';
 import { platform } from 'os';
 
-const IS_WIN  = platform() === 'win32';
-const DISK_RE = /^[A-Za-z]:/;
+const IS_WIN: boolean = platform() === 'win32';
+const DISK_RE: RegExp = /^[A-Za-z]:/;
 
 function getResourceUrlReplacer (ctx) {
-    return function (resourceUrl, resourceType, charsetAttrValue, baseUrl) {
+    return function (resourceUrl: string, resourceType, charsetAttrValue, baseUrl: string) {
         if (!urlUtil.isSupportedProtocol(resourceUrl) && !urlUtil.isSpecialPage(resourceUrl))
             return resourceUrl;
 

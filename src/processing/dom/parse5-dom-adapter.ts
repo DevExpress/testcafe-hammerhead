@@ -10,18 +10,18 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
     isIframe: boolean;
     crossDomainPort: string;
 
-    constructor (isIframe, crossDomainPort) {
+    constructor (isIframe: boolean, crossDomainPort: string) {
         super();
 
         this.isIframe        = isIframe;
         this.crossDomainPort = crossDomainPort;
     }
 
-    removeAttr (el, attr) {
+    removeAttr (el, attr: string) {
         parse5Utils.removeAttr(el, attr);
     }
 
-    getAttr (el, attr) {
+    getAttr (el, attr: string) {
         return parse5Utils.getAttr(el, attr);
     }
 
@@ -29,7 +29,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return this.getAttr(el, 'class') || '';
     }
 
-    hasAttr (el, attr) {
+    hasAttr (el, attr: string) {
         return this.getAttr(el, attr) !== null;
     }
 
@@ -50,11 +50,11 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return (el.tagName || '').toLowerCase();
     }
 
-    setAttr (el, attr, value) {
+    setAttr (el, attr: string, value: string) {
         return parse5Utils.setAttr(el, attr, value);
     }
 
-    setScriptContent (script, content) {
+    setScriptContent (script, content: string) {
         script.childNodes = [parse5Utils.createTextNode(content, script)];
     }
 
@@ -66,7 +66,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return style.childNodes.length ? style.childNodes[0].value : '';
     }
 
-    setStyleContent (style, content) {
+    setStyleContent (style, content: string) {
         style.childNodes = [parse5Utils.createTextNode(content, style)];
     }
 
@@ -105,7 +105,7 @@ export default class Parse5DomAdapter extends BaseDomAdapter {
         return false;
     }
 
-    sameOriginCheck (location, checkedUrl) {
+    sameOriginCheck (location: string, checkedUrl: string) {
         return urlUtils.sameOriginCheck(location, checkedUrl);
     }
 

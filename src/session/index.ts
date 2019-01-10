@@ -7,7 +7,7 @@ import UploadStorage from '../upload/storage';
 import COMMAND from './command';
 import generateUniqueId from '../utils/generate-unique-id';
 
-const TASK_TEMPLATE = read('../client/task.js.mustache');
+const TASK_TEMPLATE: string = read('../client/task.js.mustache');
 
 export default abstract class Session extends EventEmitter {
     requireStateSwitch: boolean;
