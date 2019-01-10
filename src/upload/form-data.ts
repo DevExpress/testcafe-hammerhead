@@ -4,12 +4,14 @@ import * as bufferUtils from '../utils/buffer';
 
 const BOUNDARY_RE: RegExp = /;\s*boundary=([^;]*)/i;
 
-const PARSER_STATE = {
-    inPreamble: 'IN_PREAMBLE',
-    inHeaders:  'IN_HEADERS',
-    inBody:     'IN_BODY',
-    inEpilogue: 'IN_EPILOGUE'
-};
+/*eslint-disable no-unused-vars*/
+enum ParserState {
+    inPreamble,
+    inHeaders,
+    inBody,
+    inEpilogue
+}
+/*eslint-enable no-unused-vars*/
 
 export default class FormData {
     boundary: any;
@@ -90,7 +92,7 @@ export default class FormData {
     }
 
     parseBody (body) {
-        let state        = PARSER_STATE.inPreamble;
+        let state        = ParserState.inPreamble;
         const lines      = bufferUtils.createLineIterator(body);
         let currentEntry = null;
 
@@ -99,7 +101,7 @@ export default class FormData {
                 if (currentEntry)
                     this.entries.push(currentEntry);
 
-                state        = PARSER_STATE.inHeaders;
+                state        = ParserState.inHeaders;
                 currentEntry = new FormDataEntry();
             }
 
@@ -107,24 +109,24 @@ export default class FormData {
                 if (currentEntry)
                     this.entries.push(currentEntry);
 
-                state = PARSER_STATE.inEpilogue;
+                state = ParserState.inEpilogue;
             }
 
-            else if (state === PARSER_STATE.inPreamble)
+            else if (state === ParserState.inPreamble)
                 bufferUtils.appendLine(this.preamble, line);
 
-            else if (state === PARSER_STATE.inHeaders) {
+            else if (state === ParserState.inHeaders) {
                 if (line.length)
                     currentEntry.setHeader(line.toString());
 
                 else
-                    state = PARSER_STATE.inBody;
+                    state = ParserState.inBody;
             }
 
-            else if (state === PARSER_STATE.inEpilogue)
+            else if (state === ParserState.inEpilogue)
                 bufferUtils.appendLine(this.epilogue, line);
 
-            else if (state === PARSER_STATE.inBody)
+            else if (state === ParserState.inBody)
                 bufferUtils.appendLine(currentEntry.body, line);
         }
     }

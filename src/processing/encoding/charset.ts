@@ -29,19 +29,21 @@ const CHARSET_BOM_LIST: Array<CharsetBOM> = [
     }
 ];
 
-const CharsetPriority = {
-    BOM:          3,
-    CONTENT_TYPE: 2,
-    URL:          1,
-    META:         1,
-    DEFAULT:      0
-};
+/*eslint-disable no-unused-vars*/
+enum CharsetPriority {
+    BOM = 3,
+    CONTENT_TYPE = 2,
+    URL = 1,
+    META = 1,
+    DEFAULT = 0
+}
+/*eslint-disable no-unused-vars*/
 
 export default class Charset {
     charset: string = DEFAULT_CHARSET;
-    priority: any = CharsetPriority.DEFAULT;
+    priority: CharsetPriority = CharsetPriority.DEFAULT;
 
-    set (charset: string, priority: any) {
+    set (charset: string, priority: CharsetPriority) {
         if (charset && this.charset !== charset && this.priority <= priority) {
             this.charset  = charset;
             this.priority = priority;
