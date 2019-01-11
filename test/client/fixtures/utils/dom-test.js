@@ -1002,3 +1002,27 @@ if (window.HTMLElement.prototype.matches && window.HTMLElement.prototype.closest
         window.HTMLElement.prototype.matches = storedMatchesFn;
     });
 }
+
+test('hammerhead should use the native classList getter in addClass, removeClass and hasClass functions (GH-1890)', function () {
+    var div                           = document.createElement('div');
+    var elementClassListPropOwnerName = window.Element.prototype.hasOwnProperty('classList') ? 'Element' : 'HTMLElement';
+    var storedСlassListDescriptor     = Object.getOwnPropertyDescriptor(window[elementClassListPropOwnerName].prototype, 'classList');
+
+    Object.defineProperty(window[elementClassListPropOwnerName].prototype, 'classList', {
+        get: function () {
+            ok(false);
+        },
+
+        configurable: true
+    });
+
+    document.body.appendChild(div);
+
+    domUtils.addClass(div, 'test');
+    ok(domUtils.hasClass(div, 'test'));
+    domUtils.removeClass(div, 'test');
+
+    div.parentNode.removeChild(div);
+
+    Object.defineProperty(window[elementClassListPropOwnerName], 'classList', storedСlassListDescriptor);
+});
