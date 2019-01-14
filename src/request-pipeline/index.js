@@ -120,15 +120,15 @@ const stages = [
                     ctx.destRes.pipe(ctx.res);
 
                 if (ctx.onResponseEventDataWithoutBody.length) {
-                    ctx.res.on('finish', async () => {
+                    ctx.res.on('finish', () => {
                         const responseInfo = requestEventInfo.createResponseInfo(ctx);
 
-                        await Promise.all(ctx.onResponseEventDataWithoutBody.map(async item => {
+                        for (const item of ctx.onResponseEventDataWithoutBody) {
                             const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
                             const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
 
-                            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
-                        }));
+                            ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
+                        }
                     });
                 }
 
