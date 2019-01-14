@@ -107,7 +107,6 @@ class Hammerhead {
             style:            styleUtils,
             types:            typeUtils,
             trim:             trim,
-            isJQueryObj:      isJQueryObj,
             extend:           extend,
             html:             htmlUtils,
             url:              urlUtils,
