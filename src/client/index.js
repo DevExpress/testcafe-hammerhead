@@ -23,7 +23,6 @@ import {
     SCRIPT_PROCESSING_END_COMMENT
 } from '../processing/script/header';
 import { STYLESHEET_PROCESSING_START_COMMENT, STYLESHEET_PROCESSING_END_COMMENT } from '../processing/style';
-import isJQueryObj from 'is-jquery-obj';
 import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import PageNavigationWatch from './page-navigation-watch';
