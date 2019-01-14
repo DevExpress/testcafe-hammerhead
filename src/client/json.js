@@ -1,4 +1,4 @@
-import isJQueryObj from './utils/is-jquery-object';
+import isJQueryObj from 'is-jquery-obj';
 
 // NOTE: json2.js uses fallbacks to the existing JSON implementations. So we can't rely on it in our client code.
 // This is an isolated implementation of JSON that does not rely on any external stuff (prototypes, existing JSON
