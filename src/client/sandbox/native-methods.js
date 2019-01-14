@@ -401,6 +401,11 @@ class NativeMethods {
                 this.webSocketUrlGetter = urlPropDescriptor.get;
         }
 
+        // NOTE: the classList property is located in HTMLElement prototype in IE11
+        this.elementClassListPropOwnerName = win.Element.prototype.hasOwnProperty('classList') ? 'Element' : 'HTMLElement';
+
+        this.elementClassListGetter = win.Object.getOwnPropertyDescriptor(win[this.elementClassListPropOwnerName].prototype, 'classList').get;
+
         this.messageEventOriginGetter       = win.Object.getOwnPropertyDescriptor(win.MessageEvent.prototype, 'origin').get;
         this.htmlCollectionLengthGetter     = win.Object.getOwnPropertyDescriptor(win.HTMLCollection.prototype, 'length').get;
         this.nodeListLengthGetter           = win.Object.getOwnPropertyDescriptor(win.NodeList.prototype, 'length').get;
