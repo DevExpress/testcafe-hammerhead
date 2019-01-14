@@ -23,7 +23,7 @@ import promisifyStream from '../utils/promisify-stream';
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
 const stages = [
-    async function handleSocketError (ctx) {
+    function handleSocketError (ctx) {
         // NOTE: In some case on MacOS, browser reset connection with server and we need to catch this exception.
         if (!ctx.isWebSocket)
             return;
@@ -173,21 +173,19 @@ const stages = [
     },
 
     async function sendProxyResponse (ctx) {
-        const configureResponseEventPromises = ctx.requestFilterRules.map(async rule => {
+        const configureResponseEvents = await Promise.all(ctx.requestFilterRules.map(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
             await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
 
             return configureResponseEvent;
-        });
+        }));
 
         sendResponseHeaders(ctx);
 
         connectionResetGuard(() => {
             ctx.res.write(ctx.destResBody);
             ctx.res.end(async () => {
-                const configureResponseEvents = await Promise.all(configureResponseEventPromises);
-
                 await Promise.all(configureResponseEvents.map(async configureResponseEvent => {
                     await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
                 }));

@@ -45,16 +45,16 @@ export default class Proxy extends Router {
         this.server2Info = createServerInfo(hostname, port2, port1, protocol);
 
         if (ssl) {
-            this.server1 = https.createServer(ssl, async (req, res) => this._onRequest(req, res, this.server1Info));
-            this.server2 = https.createServer(ssl, async (req, res) => this._onRequest(req, res, this.server2Info));
+            this.server1 = https.createServer(ssl, (req, res) => this._onRequest(req, res, this.server1Info));
+            this.server2 = https.createServer(ssl, (req, res) => this._onRequest(req, res, this.server2Info));
         }
         else {
-            this.server1 = http.createServer(async (req, res) => this._onRequest(req, res, this.server1Info));
-            this.server2 = http.createServer(async (req, res) => this._onRequest(req, res, this.server2Info));
+            this.server1 = http.createServer((req, res) => this._onRequest(req, res, this.server1Info));
+            this.server2 = http.createServer((req, res) => this._onRequest(req, res, this.server2Info));
         }
 
-        this.server1.on('upgrade', async (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server1Info));
-        this.server2.on('upgrade', async (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server2Info));
+        this.server1.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server1Info));
+        this.server2.on('upgrade', (req, socket, head) => this._onUpgradeRequest(req, socket, head, this.server2Info));
 
         this.server1.listen(port1);
         this.server2.listen(port2);
@@ -136,17 +136,17 @@ export default class Proxy extends Router {
             respond500(res, SESSION_IS_NOT_OPENED_ERR);
     }
 
-    async _onRequest (req, res, serverInfo) {
+    _onRequest (req, res, serverInfo) {
         // NOTE: Not a service request, execute the proxy pipeline.
         if (!this._route(req, res, serverInfo))
-            await runRequestPipeline(req, res, serverInfo, this.openSessions);
+            runRequestPipeline(req, res, serverInfo, this.openSessions);
     }
 
-    async _onUpgradeRequest (req, socket, head, serverInfo) {
+    _onUpgradeRequest (req, socket, head, serverInfo) {
         if (head && head.length)
             socket.unshift(head);
 
-        await this._onRequest(req, socket, serverInfo);
+        this._onRequest(req, socket, serverInfo);
     }
 
     _processStaticContent (handler) {

@@ -24,13 +24,10 @@ export default class FileRequest extends EventEmitter {
             .then(stats => {
                 if (!stats.isFile())
                     throw new Error(TARGET_IS_NOT_FILE);
-            })
-            .then(() => {
+
                 return access(this.path, fs.constants.R_OK);
             })
-            .then(() => {
-                this._onOpen();
-            })
+            .then(() => this._onOpen())
             .catch(err => this._onError(err));
     }
 
