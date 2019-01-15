@@ -2017,41 +2017,47 @@ describe('Proxy', () => {
                 session.addRequestEventListeners(rule, {
                     onRequest: e => {
                         return new Promise(resolve => {
-                            expect(e.isAjax).to.be.false;
+                            setTimeout(() => {
+                                expect(e.isAjax).to.be.false;
 
-                            expect(e._requestInfo.url).eql(url);
-                            expect(e._requestInfo.method).eql('get');
-                            expect(e._requestInfo.requestId).to.be.not.empty;
-                            expect(e._requestInfo.sessionId).to.be.not.empty;
-                            expect(e._requestInfo.body.length).eql(0);
-                            expect(e._requestInfo.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
+                                expect(e._requestInfo.url).eql(url);
+                                expect(e._requestInfo.method).eql('get');
+                                expect(e._requestInfo.requestId).to.be.not.empty;
+                                expect(e._requestInfo.sessionId).to.be.not.empty;
+                                expect(e._requestInfo.body.length).eql(0);
+                                expect(e._requestInfo.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
 
-                            requestEventIsRaised = true;
+                                requestEventIsRaised = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     },
 
                     onConfigureResponse: e => {
                         return new Promise(resolve => {
-                            configureResponseEventIsRaised = true;
+                            setTimeout(() => {
+                                configureResponseEventIsRaised = true;
 
-                            e.opts.includeHeaders = true;
-                            e.opts.includeBody    = true;
+                                e.opts.includeHeaders = true;
+                                e.opts.includeBody    = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     },
 
                     onResponse: e => {
                         return new Promise(resolve => {
-                            expect(e.statusCode).eql(200);
-                            expect(e.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
-                            expect(e.body.toString()).eql(resourceContent);
+                            setTimeout(() => {
+                                expect(e.statusCode).eql(200);
+                                expect(e.headers).to.include({ 'content-type': 'application/javascript; charset=utf-8' });
+                                expect(e.body.toString()).eql(resourceContent);
 
-                            responseEventIsRaised = true;
+                                responseEventIsRaised = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     }
                 });
@@ -2066,9 +2072,9 @@ describe('Proxy', () => {
                 return request(options)
                     .then(body => {
                         expect(body).eql(processedResourceContent);
-                        expect(requestEventIsRaised).to.be.true;
-                        expect(configureResponseEventIsRaised).to.be.true;
-                        expect(responseEventIsRaised).to.be.true;
+                        expect(requestEventIsRaised, 'requestEventIsRaised').to.be.true;
+                        expect(configureResponseEventIsRaised, 'configureResponseEventIsRaised').to.be.true;
+                        expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
 
                         session.removeRequestEventListeners(rule);
                     });
@@ -2085,41 +2091,47 @@ describe('Proxy', () => {
                 session.addRequestEventListeners(rule, {
                     onRequest: e => {
                         return new Promise(resolve => {
-                            expect(e.isAjax).to.be.false;
+                            setTimeout(() => {
+                                expect(e.isAjax).to.be.false;
 
-                            expect(e._requestInfo.url).eql('http://127.0.0.1:2000/json');
-                            expect(e._requestInfo.method).eql('get');
-                            expect(e._requestInfo.requestId).to.be.not.empty;
-                            expect(e._requestInfo.sessionId).to.be.not.empty;
-                            expect(e._requestInfo.body.length).eql(0);
-                            expect(e._requestInfo.headers).include({ 'test-header': 'testValue' });
+                                expect(e._requestInfo.url).eql('http://127.0.0.1:2000/json');
+                                expect(e._requestInfo.method).eql('get');
+                                expect(e._requestInfo.requestId).to.be.not.empty;
+                                expect(e._requestInfo.sessionId).to.be.not.empty;
+                                expect(e._requestInfo.body.length).eql(0);
+                                expect(e._requestInfo.headers).include({ 'test-header': 'testValue' });
 
-                            requestEventIsRaised = true;
+                                requestEventIsRaised = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     },
 
                     onConfigureResponse: e => {
                         return new Promise(resolve => {
-                            e.opts.includeBody    = true;
-                            e.opts.includeHeaders = true;
+                            setTimeout(() => {
+                                e.opts.includeBody    = true;
+                                e.opts.includeHeaders = true;
 
-                            configureResponseEventIsRaised = true;
+                                configureResponseEventIsRaised = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     },
 
                     onResponse: e => {
                         return new Promise(resolve => {
-                            expect(e.statusCode).eql(200);
-                            expect(JSON.parse(e.body.toString())).to.deep.eql(TEST_OBJ);
-                            expect(e.headers).include({ 'content-type': 'application/json; charset=utf-8' });
+                            setTimeout(() => {
+                                expect(e.statusCode).eql(200);
+                                expect(JSON.parse(e.body.toString())).to.deep.eql(TEST_OBJ);
+                                expect(e.headers).include({ 'content-type': 'application/json; charset=utf-8' });
 
-                            responseEventIsRaised = true;
+                                responseEventIsRaised = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     }
                 });
@@ -2135,9 +2147,9 @@ describe('Proxy', () => {
                 return request(options)
                     .then(body => {
                         expect(body).to.deep.eql(TEST_OBJ);
-                        expect(requestEventIsRaised).to.be.true;
-                        expect(configureResponseEventIsRaised).to.be.true;
-                        expect(responseEventIsRaised).to.be.true;
+                        expect(requestEventIsRaised, 'requestEventIsRaised').to.be.true;
+                        expect(configureResponseEventIsRaised, 'configureResponseEventIsRaised').to.be.true;
+                        expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
 
                         session.removeRequestEventListeners(rule);
                     });
@@ -2153,29 +2165,35 @@ describe('Proxy', () => {
                 session.addRequestEventListeners(rule, {
                     onRequest: e => {
                         return new Promise(resolve => {
-                            expect(e.isAjax).to.be.true;
+                            setTimeout(() => {
+                                expect(e.isAjax).to.be.true;
 
-                            requestEventIsRaised = true;
+                                requestEventIsRaised = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     },
 
                     onConfigureResponse: () => {
                         return new Promise(resolve => {
-                            configureResponseEventIsRaised = true;
+                            setTimeout(() => {
+                                configureResponseEventIsRaised = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     },
 
                     onResponse: e => {
                         return new Promise(resolve => {
-                            expect(e.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+                            setTimeout(() => {
+                                expect(e.statusCode).eql(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
 
-                            responseEventIsRaised = true;
+                                responseEventIsRaised = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     }
                 });
@@ -2212,13 +2230,15 @@ describe('Proxy', () => {
                         onConfigureResponse: noop,
                         onResponse:          e => {
                             return new Promise(resolve => {
-                                expect(e.body).to.be.undefined;
-                                expect(e.headers).to.be.undefined;
-                                expect(e.statusCode).eql(200);
+                                setTimeout(() => {
+                                    expect(e.body).to.be.undefined;
+                                    expect(e.headers).to.be.undefined;
+                                    expect(e.statusCode).eql(200);
 
-                                countOnResponseEvents++;
+                                    countOnResponseEvents++;
 
-                                resolve();
+                                    resolve();
+                                }, 100);
                             });
                         }
                     });
@@ -2247,17 +2267,21 @@ describe('Proxy', () => {
                 session.addRequestEventListeners(rule, {
                     onConfigureResponse: e => {
                         return new Promise(resolve => {
-                            e.opts.includeBody = true;
+                            setTimeout(() => {
+                                e.opts.includeBody = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     },
 
                     onResponse: () => {
                         return new Promise(resolve => {
-                            responseWasSent = true;
+                            setTimeout(() => {
+                                responseWasSent = true;
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     }
                 });
@@ -2287,9 +2311,11 @@ describe('Proxy', () => {
                 session.addRequestEventListeners(rule, {
                     onRequest: e => {
                         return new Promise(resolve => {
-                            e.setMock(mock);
+                            setTimeout(() => {
+                                e.setMock(mock);
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     }
                 });
@@ -2317,9 +2343,11 @@ describe('Proxy', () => {
                 session.addRequestEventListeners(rule, {
                     onRequest: e => {
                         return new Promise(resolve => {
-                            e.setMock(mock);
+                            setTimeout(() => {
+                                e.setMock(mock);
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     }
                 });
@@ -2352,9 +2380,11 @@ describe('Proxy', () => {
                 session.addRequestEventListeners(rule, {
                     onRequest: e => {
                         return new Promise(resolve => {
-                            e.setMock(mock);
+                            setTimeout(() => {
+                                e.setMock(mock);
 
-                            resolve();
+                                resolve();
+                            }, 100);
                         });
                     }
                 });
@@ -2385,9 +2415,11 @@ describe('Proxy', () => {
             session.addRequestEventListeners(rule, {
                 onRequest: e => {
                     return new Promise(resolve => {
-                        e.requestOptions.path = '/script';
+                        setTimeout(() => {
+                            e.requestOptions.path = '/script';
 
-                        resolve();
+                            resolve();
+                        }, 100);
                     });
                 }
             });
@@ -2412,10 +2444,12 @@ describe('Proxy', () => {
             session.addRequestEventListeners(rule, {
                 onConfigureResponse: e => {
                     return new Promise(resolve => {
-                        e.setHeader('My-Custom-Header', 'My Custom value');
-                        e.removeHeader('Content-Type');
+                        setTimeout(() => {
+                            e.setHeader('My-Custom-Header', 'My Custom value');
+                            e.removeHeader('Content-Type');
 
-                        resolve();
+                            resolve();
+                        }, 100);
                     });
                 }
             });

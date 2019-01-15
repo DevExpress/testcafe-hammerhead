@@ -5,6 +5,7 @@ import * as contentTypeUtils from '../utils/content-type';
 import genearateUniqueId from '../utils/generate-unique-id';
 import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import { parseClientSyncCookieStr } from '../utils/cookie';
+import * as headerTransforms from './header-transforms';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
 
@@ -43,12 +44,13 @@ export default class RequestPipelineContext {
         this.requestId                      = genearateUniqueId();
         this.requestFilterRules             = [];
         this.onResponseEventDataWithoutBody = [];
-
-        this.isBrowserConnectionReset = false;
+        this.onResponseEventDataWithBody    = [];
 
         this.reqOpts = null;
 
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
+
+        this.nonProcessedDestResBody = null;
     }
 
     // TODO: Rewrite parseProxyUrl instead.
@@ -287,5 +289,24 @@ export default class RequestPipelineContext {
 
     async forEachRequestFilterRule (fn) {
         await Promise.all(this.requestFilterRules.map(fn));
+    }
+
+    sendResponseHeaders () {
+        const headers = headerTransforms.forResponse(this);
+
+        this.res.writeHead(this.destRes.statusCode, headers);
+        this.res.addTrailers(this.destRes.trailers);
+    }
+
+    mockResponse () {
+        this.mock.setRequestOptions(this.reqOpts);
+        this.destRes = this.mock.getResponse();
+    }
+
+    setupMockIfNecessary (rule) {
+        const mock = this.session.getMock(rule);
+
+        if (mock && !this.mock)
+            this.mock = mock;
     }
 }

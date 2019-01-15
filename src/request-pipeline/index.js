@@ -9,7 +9,7 @@ import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed
 import { fetchBody, respond404 } from '../utils/http';
 import { inject as injectUpload } from '../upload';
 import { respondOnWebSocket } from './websocket';
-import { PassThrough } from 'stream';
+import { PassThrough, Readable } from 'stream';
 import createSpecialPageResponse from './special-page';
 import matchUrl from 'match-url-wildcard';
 import * as requestEventInfo from '../session/events/info';
@@ -107,7 +107,7 @@ const stages = [
                     await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
 
                     if (configureResponseEvent.opts.includeBody)
-                        await callOnResponseEventCallbackWithCollectedBody(ctx, rule, configureResponseEvent.opts);
+                        ctx.onResponseEventDataWithBody.push({ rule, opts: configureResponseEvent.opts });
                     else
                         ctx.onResponseEventDataWithoutBody.push({ rule, opts: configureResponseEvent.opts });
                 });
@@ -116,20 +116,41 @@ const stages = [
 
                 if (ctx.contentInfo.isNotModified)
                     ctx.res.end();
-                else
-                    ctx.destRes.pipe(ctx.res);
+                else {
+                    if (ctx.onResponseEventDataWithBody.length) {
+                        const destResBodyCollectorStream = new PassThrough();
 
-                if (ctx.onResponseEventDataWithoutBody.length) {
-                    ctx.res.on('finish', () => {
+                        ctx.destRes.pipe(destResBodyCollectorStream);
+
+                        promisifyStream(destResBodyCollectorStream).then(async data => {
+                            ctx.saveNonProcessedDestResBody(data);
+
+                            const responseInfo = requestEventInfo.createResponseInfo(ctx);
+
+                            await Promise.all(ctx.onResponseEventDataWithBody.map(async ({ rule, opts }) => {
+                                const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, opts);
+                                const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
+
+                                await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+                            }));
+
+                            bufferToStream(data).pipe(ctx.res);
+                        });
+                    }
+                    else if (ctx.onResponseEventDataWithoutBody.length) {
                         const responseInfo = requestEventInfo.createResponseInfo(ctx);
 
-                        for (const item of ctx.onResponseEventDataWithoutBody) {
+                        await Promise.all(ctx.onResponseEventDataWithoutBody.map(async item => {
                             const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
                             const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
 
-                            ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
-                        }
-                    });
+                            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
+                        }));
+
+                        ctx.destRes.pipe(ctx.res);
+                    }
+                    else
+                        ctx.destRes.pipe(ctx.res);
                 }
 
                 // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
@@ -183,13 +204,13 @@ const stages = [
 
         sendResponseHeaders(ctx);
 
-        connectionResetGuard(() => {
+        connectionResetGuard(async () => {
+            await Promise.all(configureResponseEvents.map(async configureResponseEvent => {
+                await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
+            }));
+
             ctx.res.write(ctx.destResBody);
-            ctx.res.end(async () => {
-                await Promise.all(configureResponseEvents.map(async configureResponseEvent => {
-                    await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
-                }));
-            });
+            ctx.res.end();
         });
     }
 ];
@@ -259,6 +280,15 @@ function isDestResBodyMalformed (ctx) {
     return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
 }
 
+function bufferToStream (buffer) {
+    const stream = new Readable();
+
+    stream.push(buffer);
+    stream.push(null);
+
+    return stream;
+}
+
 async function callResponseEventCallbackForProcessedRequest (ctx, configureResponseEvent) {
     const responseInfo         = requestEventInfo.createResponseInfo(ctx);
     const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureResponseEvent.opts);
@@ -271,22 +301,6 @@ async function callOnRequestEventCallback (ctx, rule, reqInfo) {
     const requestEvent = new RequestEvent(ctx, rule, reqInfo);
 
     await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onRequest, rule, requestEvent);
-}
-
-async function callOnResponseEventCallbackWithCollectedBody (ctx, rule, configureOpts) {
-    const destResBodyCollectorStream = new PassThrough();
-
-    promisifyStream(destResBodyCollectorStream).then(async data => {
-        ctx.saveNonProcessedDestResBody(data);
-
-        const responseInfo         = requestEventInfo.createResponseInfo(ctx);
-        const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureOpts);
-        const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
-
-        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
-    });
-
-    ctx.destRes.pipe(destResBodyCollectorStream);
 }
 
 async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, configureOpts) {
