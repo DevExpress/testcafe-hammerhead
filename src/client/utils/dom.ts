@@ -531,19 +531,35 @@ export function isLocation (instance): boolean {
     if (!instance)
         return false;
 
-    if (instance instanceof nativeMethods.locationClass ||
-        nativeMethods.objectToString.call(instance) === '[object Location]')
-        return true;
+    if (isIE || isSafari) {
+        let instanceCtor = null;
 
-    try {
-        // eslint-disable-next-line no-proto
-        return instance.__proto__.constructor.toString().indexOf('Location') > -1;
+        try {
+            // eslint-disable-next-line no-proto
+            instanceCtor = instance.__proto__ && instance.__proto__.constructor;
+        }
+        catch (e) {
+            // NOTE: Try to detect cross-domain window location.
+            // A cross-domain location has no the "assign" function in Safari.
+            return instance.replace && (isSafari || !!instance.assign);
+        }
+
+        if (instanceCtor) {
+            let toStringMeth = null;
+
+            if (typeof instanceCtor === 'object')
+                toStringMeth = nativeMethods.objectToString;
+            else if (typeof instanceCtor === 'function')
+                toStringMeth = nativeMethods.functionToString;
+
+            return toStringMeth && toStringMeth.call(instanceCtor).indexOf('Location') > -1;
+        }
+
+        return false;
     }
-    catch (e) {
-        // NOTE: Try to detect cross-domain window location.
-        // A cross-domain location has no the "assign" function in Safari.
-        return instance.replace && (isSafari || !!instance.assign);
-    }
+
+    return instance instanceof nativeMethods.locationClass ||
+           nativeMethods.objectToString.call(instance) === '[object Location]';
 }
 
 export function isSVGElement (instance): boolean {
