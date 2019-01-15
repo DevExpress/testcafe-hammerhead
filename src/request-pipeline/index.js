@@ -61,12 +61,12 @@ const stages = [
             ctx.requestFilterRules = ctx.session.getRequestFilterRules(requestInfo);
             await ctx.forEachRequestFilterRule(async rule => {
                 await callOnRequestEventCallback(ctx, rule, requestInfo);
-                setupMockIfNecessary(ctx, rule);
+                ctx.setupMockIfNecessary(rule);
             });
         }
 
         if (ctx.mock)
-            mockResponse(ctx);
+            ctx.mockResponse();
         else
             await sendRequest(ctx);
     },
@@ -178,7 +178,7 @@ const stages = [
 
         // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
         // we can still process such requests. (B234324)
-        if (ctx.hasDestReqErr && isDestResBodyMalformed(ctx)) {
+        if (ctx.hasDestReqErr && ctx.isDestResBodyMalformed()) {
             error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url));
             ctx.goToNextStage = false;
         }
@@ -276,10 +276,6 @@ function error (ctx, err) {
         ctx.closeWithError(500, err.toString());
 }
 
-function isDestResBodyMalformed (ctx) {
-    return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
-}
-
 function bufferToStream (buffer) {
     const stream = new Readable();
 
@@ -312,18 +308,6 @@ async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, c
     const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
 
     await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
-}
-
-function mockResponse (ctx) {
-    ctx.mock.setRequestOptions(ctx.reqOpts);
-    ctx.destRes = ctx.mock.getResponse();
-}
-
-function setupMockIfNecessary (ctx, rule) {
-    const mock = ctx.session.getMock(rule);
-
-    if (mock && !ctx.mock)
-        ctx.mock = mock;
 }
 
 function sendRequest (ctx) {

@@ -309,4 +309,8 @@ export default class RequestPipelineContext {
         if (mock && !this.mock)
             this.mock = mock;
     }
+
+    isDestResBodyMalformed () {
+        return !this.destResBody || this.destResBody.length !== this.destRes.headers['content-length'];
+    }
 }
