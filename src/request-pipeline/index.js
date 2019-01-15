@@ -1,5 +1,4 @@
 import RequestPipelineContext from './context';
-import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';
 import connectionResetGuard from './connection-reset-guard';
@@ -98,54 +97,19 @@ const stages = [
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
         else if (!ctx.contentInfo.requireProcessing) {
             if (!ctx.isSpecialPage) {
-                await ctx.forEachRequestFilterRule(async rule => {
-                    const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
-
-                    await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
-
-                    if (configureResponseEvent.opts.includeBody)
-                        ctx.onResponseEventDataWithBody.push({ rule, opts: configureResponseEvent.opts });
-                    else
-                        ctx.onResponseEventDataWithoutBody.push({ rule, opts: configureResponseEvent.opts });
-                });
-
+                await callOnConfigureResponseEventForNonProcessedRequest(ctx);
                 ctx.sendResponseHeaders();
 
                 if (ctx.contentInfo.isNotModified)
                     ctx.res.end();
                 else {
-                    if (ctx.onResponseEventDataWithBody.length) {
-                        const destResBodyCollectorStream = new PassThrough();
+                    const onResponseEventDataWithBody    = ctx.getOnResponseEventData({ includeBody: true });
+                    const onResponseEventDataWithoutBody = ctx.getOnResponseEventData({ includeBody: false });
 
-                        ctx.destRes.pipe(destResBodyCollectorStream);
-
-                        promisifyStream(destResBodyCollectorStream).then(async data => {
-                            ctx.saveNonProcessedDestResBody(data);
-
-                            const responseInfo = requestEventInfo.createResponseInfo(ctx);
-
-                            await Promise.all(ctx.onResponseEventDataWithBody.map(async ({ rule, opts }) => {
-                                const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, opts);
-                                const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
-
-                                await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
-                            }));
-
-                            bufferToStream(data).pipe(ctx.res);
-                        });
-                    }
-                    else if (ctx.onResponseEventDataWithoutBody.length) {
-                        const responseInfo = requestEventInfo.createResponseInfo(ctx);
-
-                        await Promise.all(ctx.onResponseEventDataWithoutBody.map(async item => {
-                            const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
-                            const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
-
-                            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
-                        }));
-
-                        ctx.destRes.pipe(ctx.res);
-                    }
+                    if (onResponseEventDataWithBody.length)
+                        await callOnResponseEventCallbackWithBodyForNonProcessedRequest(ctx, onResponseEventDataWithBody);
+                    else if (onResponseEventDataWithoutBody.length)
+                        await callOnResponseEventCallbackWithoutBodyForNonProcessedResource(ctx, onResponseEventDataWithoutBody);
                     else
                         ctx.destRes.pipe(ctx.res);
                 }
@@ -246,6 +210,50 @@ async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, c
     const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
 
     await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+}
+
+async function callOnConfigureResponseEventForNonProcessedRequest (ctx) {
+    await ctx.forEachRequestFilterRule(async rule => {
+        const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
+
+        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+
+        ctx.onResponseEventData.push({ rule, opts: configureResponseEvent.opts });
+    });
+}
+
+async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx, onResponseEventDataWithBody) {
+    const destResBodyCollectorStream = new PassThrough();
+
+    ctx.destRes.pipe(destResBodyCollectorStream);
+
+    promisifyStream(destResBodyCollectorStream).then(async data => {
+        ctx.saveNonProcessedDestResBody(data);
+
+        const responseInfo = requestEventInfo.createResponseInfo(ctx);
+
+        await Promise.all(onResponseEventDataWithBody.map(async ({ rule, opts }) => {
+            const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, opts);
+            const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
+
+            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
+        }));
+
+        bufferToStream(data).pipe(ctx.res);
+    });
+}
+
+async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx, onResponseEventDataWithoutBody) {
+    const responseInfo = requestEventInfo.createResponseInfo(ctx);
+
+    await Promise.all(onResponseEventDataWithoutBody.map(async item => {
+        const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
+        const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
+
+        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
+    }));
+
+    ctx.destRes.pipe(ctx.res);
 }
 
 // API

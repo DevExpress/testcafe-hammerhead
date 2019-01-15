@@ -43,8 +43,7 @@ export default class RequestPipelineContext {
 
         this.requestId                      = genearateUniqueId();
         this.requestFilterRules             = [];
-        this.onResponseEventDataWithoutBody = [];
-        this.onResponseEventDataWithBody    = [];
+        this.onResponseEventData            = [];
 
         this.reqOpts = null;
 
@@ -312,5 +311,9 @@ export default class RequestPipelineContext {
 
     isDestResBodyMalformed () {
         return !this.destResBody || this.destResBody.length !== this.destRes.headers['content-length'];
+    }
+
+    getOnResponseEventData ({ includeBody }) {
+        return this.onResponseEventData.filter(({ rule, opts }) => opts.includeBody === includeBody); //eslint-disable-line no-unused-vars
     }
 }
