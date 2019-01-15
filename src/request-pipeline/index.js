@@ -1,5 +1,3 @@
-import DestinationRequest from './destination-request';
-import FileRequest from './file-request';
 import RequestPipelineContext from './context';
 import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
@@ -7,11 +5,9 @@ import { MESSAGE, getText } from '../messages';
 import connectionResetGuard from './connection-reset-guard';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 import { fetchBody, respond404 } from '../utils/http';
-import { inject as injectUpload } from '../upload';
 import { respondOnWebSocket } from './websocket';
 import { PassThrough, Readable } from 'stream';
 import createSpecialPageResponse from './special-page';
-import matchUrl from 'match-url-wildcard';
 import * as requestEventInfo from '../session/events/info';
 import REQUEST_EVENT_NAMES from '../session/events/names';
 import ResponseEvent from '../session/events/response-event';
@@ -19,6 +15,7 @@ import RequestEvent from '../session/events/request-event';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
 import promisifyStream from '../utils/promisify-stream';
+import { createReqOpts, sendRequest, error } from './utils';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -112,7 +109,7 @@ const stages = [
                         ctx.onResponseEventDataWithoutBody.push({ rule, opts: configureResponseEvent.opts });
                 });
 
-                sendResponseHeaders(ctx);
+                ctx.sendResponseHeaders();
 
                 if (ctx.contentInfo.isNotModified)
                     ctx.res.end();
@@ -160,7 +157,7 @@ const stages = [
                 }
             }
             else {
-                sendResponseHeaders(ctx);
+                ctx.sendResponseHeaders();
                 ctx.res.end();
             }
 
@@ -202,7 +199,7 @@ const stages = [
             return configureResponseEvent;
         }));
 
-        sendResponseHeaders(ctx);
+        ctx.sendResponseHeaders();
 
         connectionResetGuard(async () => {
             await Promise.all(configureResponseEvents.map(async configureResponseEvent => {
@@ -217,65 +214,6 @@ const stages = [
 
 
 // Utils
-function createReqOpts (ctx) {
-    const bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);
-
-    // NOTE: First, we should rewrite the request body, because the 'content-length' header will be built based on it.
-    if (bodyWithUploads)
-        ctx.reqBody = bodyWithUploads;
-
-    // NOTE: All headers, including 'content-length', are built here.
-    const headers = headerTransforms.forRequest(ctx);
-    const proxy   = ctx.session.externalProxySettings;
-    const options = {
-        url:         ctx.dest.url,
-        protocol:    ctx.dest.protocol,
-        hostname:    ctx.dest.hostname,
-        host:        ctx.dest.host,
-        port:        ctx.dest.port,
-        path:        ctx.dest.partAfterHost,
-        method:      ctx.req.method,
-        credentials: ctx.session.getAuthCredentials(),
-        body:        ctx.reqBody,
-        isXhr:       ctx.isXhr,
-        rawHeaders:  ctx.req.rawHeaders,
-
-        headers
-    };
-
-    if (proxy && !matchUrl(ctx.dest.url, proxy.bypassRules)) {
-        options.proxy = proxy;
-
-        if (ctx.dest.protocol === 'http:') {
-            options.path     = options.protocol + '//' + options.host + options.path;
-            options.host     = proxy.host;
-            options.hostname = proxy.hostname;
-            options.port     = proxy.port;
-
-            if (proxy.authHeader)
-                headers['proxy-authorization'] = proxy.authHeader;
-        }
-    }
-
-    return options;
-}
-
-function sendResponseHeaders (ctx) {
-    const headers = headerTransforms.forResponse(ctx);
-
-    ctx.res.writeHead(ctx.destRes.statusCode, headers);
-    ctx.res.addTrailers(ctx.destRes.trailers);
-}
-
-function error (ctx, err) {
-    if (ctx.isPage && !ctx.isIframe)
-        ctx.session.handlePageError(ctx, err);
-    else if (ctx.isFetch || ctx.isXhr)
-        ctx.req.destroy();
-    else
-        ctx.closeWithError(500, err.toString());
-}
-
 function bufferToStream (buffer) {
     const stream = new Readable();
 
@@ -308,42 +246,6 @@ async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, c
     const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
 
     await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
-}
-
-function sendRequest (ctx) {
-    return new Promise(resolve => {
-        const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts) : new DestinationRequest(ctx.reqOpts);
-
-        ctx.goToNextStage = false;
-
-        req.on('response', res => {
-            if (ctx.isWebSocketConnectionReset) {
-                res.destroy();
-
-                resolve();
-            }
-
-            ctx.destRes       = res;
-            ctx.goToNextStage = true;
-            resolve();
-        });
-
-        req.on('error', () => {
-            ctx.hasDestReqErr = true;
-            ctx.goToNextStage = true;
-            resolve();
-        });
-
-        req.on('fatalError', err => {
-            error(ctx, err);
-            resolve();
-        });
-
-        req.on('socketHangUp', () => {
-            ctx.req.socket.end();
-            resolve();
-        });
-    });
 }
 
 // API
