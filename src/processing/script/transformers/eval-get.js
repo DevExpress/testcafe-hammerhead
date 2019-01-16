@@ -5,7 +5,7 @@
 
 import INSTRUCTION from '../instruction';
 import { createGetEvalMethCall } from '../node-builder';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 
 // Transform:
 // const foo = eval; foo = eval; { _eval: eval }; return eval;

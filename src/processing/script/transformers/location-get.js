@@ -5,7 +5,7 @@
 
 import { createLocationGetWrapper } from '../node-builder';
 import INSTRUCTION from '../instruction';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 
 // Transform:
 // location -->

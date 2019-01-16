@@ -5,7 +5,7 @@
 
 import transformers from './transformers';
 import replaceNode from './transformers/replace-node';
-import { Syntax } from './tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 
 // NOTE: We should avoid using native object prototype methods,
 // since they can be overriden by the client code. (GH-245)

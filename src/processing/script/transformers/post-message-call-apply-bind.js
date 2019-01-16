@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 import { createGetPostMessageMethCall } from '../node-builder';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 import replaceNode from './replace-node';
 
 const INVOCATION_FUNC_NAME_RE = /^(call|apply|bind)$/;

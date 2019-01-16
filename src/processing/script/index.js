@@ -7,7 +7,7 @@ import transform from './transform';
 import INSTRUCTION from './instruction';
 import { add as addHeader, remove as removeHeader } from './header';
 import { parse } from './tools/acorn';
-import { generate, Syntax } from './tools/esotope';
+import { generate, Syntax } from 'esotope-hammerhead';
 import reEscape from '../../utils/regexp-escape';
 import getBOM from '../../utils/get-bom';
 
