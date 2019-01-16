@@ -742,5 +742,24 @@ test('"isLocation" for the cloned location object should not return the "true" v
     var locationCopy     = eval(getLocationCopyScript);
     var locationCopyCtor = Object.getPrototypeOf(locationCopy).constructor;
 
-    strictEqual(locationCopyCtor.toString().indexOf('LocationWrapper'), -1, 'should not contains "LocationWrapper"');
+    strictEqual(locationCopyCtor.toString().indexOf('LocationWrapper'), -1, 'should not contain "LocationWrapper"');
+});
+
+test('"isLocation" for the cross-domain iframe location (GH-1863)', function () {
+    return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/simple-page.html') })
+        .then(function (crossDomainIframe) {
+            window.testIframe = crossDomainIframe;
+
+            var getIframeLocationScript = processScript('(function getIframeLocation () {' +
+                                                        'var location = window.testIframe.contentWindow.location;' +
+                                                        'return location;' +
+                                                        '})();');
+
+            var locationWrapper     = eval(getIframeLocationScript);
+            var locationWrapperCtor = Object.getPrototypeOf(locationWrapper).constructor;
+
+            notEqual(locationWrapperCtor.toString().indexOf('LocationWrapper'), -1, 'should contain "LocationWrapper"');
+
+            delete window.testIframe;
+        });
 });
