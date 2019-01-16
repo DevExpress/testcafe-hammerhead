@@ -5,16 +5,22 @@ import connectionResetGuard from './connection-reset-guard';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 import { fetchBody, respond404 } from '../utils/http';
 import { respondOnWebSocket } from './websocket';
-import { PassThrough, Readable } from 'stream';
 import createSpecialPageResponse from './special-page';
 import * as requestEventInfo from '../session/events/info';
 import REQUEST_EVENT_NAMES from '../session/events/names';
-import ResponseEvent from '../session/events/response-event';
-import RequestEvent from '../session/events/request-event';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
-import promisifyStream from '../utils/promisify-stream';
-import { createReqOpts, sendRequest, error } from './utils';
+import {
+    createReqOpts,
+    sendRequest,
+    error,
+    callResponseEventCallbackForProcessedRequest,
+    callOnRequestEventCallback,
+    callOnResponseEventCallbackForFailedSameOriginCheck,
+    callOnConfigureResponseEventForNonProcessedRequest,
+    callOnResponseEventCallbackWithBodyForNonProcessedRequest,
+    callOnResponseEventCallbackWithoutBodyForNonProcessedResource
+} from './utils';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
@@ -175,86 +181,6 @@ const stages = [
         });
     }
 ];
-
-
-// Utils
-function bufferToStream (buffer) {
-    const stream = new Readable();
-
-    stream.push(buffer);
-    stream.push(null);
-
-    return stream;
-}
-
-async function callResponseEventCallbackForProcessedRequest (ctx, configureResponseEvent) {
-    const responseInfo         = requestEventInfo.createResponseInfo(ctx);
-    const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureResponseEvent.opts);
-    const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
-
-    await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
-}
-
-async function callOnRequestEventCallback (ctx, rule, reqInfo) {
-    const requestEvent = new RequestEvent(ctx, rule, reqInfo);
-
-    await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onRequest, rule, requestEvent);
-}
-
-async function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, configureOpts) {
-    const responseInfo = requestEventInfo.createResponseInfo(ctx);
-
-    responseInfo.statusCode = SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
-
-    const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureOpts);
-    const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
-
-    await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
-}
-
-async function callOnConfigureResponseEventForNonProcessedRequest (ctx) {
-    await ctx.forEachRequestFilterRule(async rule => {
-        const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
-
-        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
-
-        ctx.onResponseEventData.push({ rule, opts: configureResponseEvent.opts });
-    });
-}
-
-async function callOnResponseEventCallbackWithBodyForNonProcessedRequest (ctx, onResponseEventDataWithBody) {
-    const destResBodyCollectorStream = new PassThrough();
-
-    ctx.destRes.pipe(destResBodyCollectorStream);
-
-    promisifyStream(destResBodyCollectorStream).then(async data => {
-        ctx.saveNonProcessedDestResBody(data);
-
-        const responseInfo = requestEventInfo.createResponseInfo(ctx);
-
-        await Promise.all(onResponseEventDataWithBody.map(async ({ rule, opts }) => {
-            const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, opts);
-            const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
-
-            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
-        }));
-
-        bufferToStream(data).pipe(ctx.res);
-    });
-}
-
-async function callOnResponseEventCallbackWithoutBodyForNonProcessedResource (ctx, onResponseEventDataWithoutBody) {
-    const responseInfo = requestEventInfo.createResponseInfo(ctx);
-
-    await Promise.all(onResponseEventDataWithoutBody.map(async item => {
-        const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
-        const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
-
-        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
-    }));
-
-    ctx.destRes.pipe(ctx.res);
-}
 
 // API
 export async function run (req, res, serverInfo, openSessions) {

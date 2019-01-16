@@ -1,11 +1,11 @@
-// Const
+import { Readable } from 'stream';
+
 const LF          = 0x0A;
 const CR          = 0x0D;
 const CRLF_LENGTH = 2;
 
 export const CRLF = Buffer.from([CR, LF]);
 
-// API
 export function createLineIterator (buffer) {
     return {
         [Symbol.iterator]: function* () {
@@ -42,4 +42,13 @@ export function equals (buffer1, buffer2) {
     }
 
     return true;
+}
+
+export function toReadableStream (buffer) {
+    const stream = new Readable();
+
+    stream.push(buffer);
+    stream.push(null);
+
+    return stream;
 }
