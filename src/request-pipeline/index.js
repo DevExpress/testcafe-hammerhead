@@ -19,7 +19,8 @@ import {
     callOnResponseEventCallbackForFailedSameOriginCheck,
     callOnConfigureResponseEventForNonProcessedRequest,
     callOnResponseEventCallbackWithBodyForNonProcessedRequest,
-    callOnResponseEventCallbackWithoutBodyForNonProcessedResource
+    callOnResponseEventCallbackWithoutBodyForNonProcessedResource,
+    callOnResponseEventCallbackForMotModifiedResource
 } from './utils';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
@@ -107,7 +108,7 @@ const stages = [
                 ctx.sendResponseHeaders();
 
                 if (ctx.contentInfo.isNotModified)
-                    ctx.res.end();
+                    await callOnResponseEventCallbackForMotModifiedResource(ctx);
                 else {
                     const onResponseEventDataWithBody    = ctx.getOnResponseEventData({ includeBody: true });
                     const onResponseEventDataWithoutBody = ctx.getOnResponseEventData({ includeBody: false });
@@ -182,18 +183,16 @@ const stages = [
     }
 ];
 
-// API
 export async function run (req, res, serverInfo, openSessions) {
     const ctx = new RequestPipelineContext(req, res, serverInfo);
 
-    if (ctx.dispatch(openSessions)) {
-        for (let i = 0; i < stages.length; i++) {
-            await stages[i](ctx);
-
-            if (!ctx.goToNextStage)
-                return;
-        }
-    }
-    else
+    if (!ctx.dispatch(openSessions))
         respond404(res);
+
+    for (let i = 0; i < stages.length; i++) {
+        await stages[i](ctx);
+
+        if (!ctx.goToNextStage)
+            return;
+    }
 }

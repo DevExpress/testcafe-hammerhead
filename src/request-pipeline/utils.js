@@ -170,3 +170,16 @@ export async function callOnResponseEventCallbackWithoutBodyForNonProcessedResou
 
     ctx.destRes.pipe(ctx.res);
 }
+
+export async function callOnResponseEventCallbackForMotModifiedResource (ctx) {
+    const responseInfo = requestEventInfo.createResponseInfo(ctx);
+
+    await Promise.all(ctx.onResponseEventData.map(async item => {
+        const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
+        const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
+
+        await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
+    }));
+
+    ctx.res.end();
+}

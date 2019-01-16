@@ -2299,6 +2299,72 @@ describe('Proxy', () => {
                         session.removeRequestEventListeners(rule);
                     });
             });
+
+            it('Not modified resource', () => {
+                let requestEventIsRaised           = false;
+                let configureResponseEventIsRaised = false;
+                let responseEventIsRaised          = false;
+
+                const url  = 'http://127.0.0.1:2000/304';
+                const rule = new RequestFilterRule(url);
+
+                session.addRequestEventListeners(rule, {
+                    onRequest: () => {
+                        return new Promise(resolve => {
+                            setTimeout(() => {
+                                requestEventIsRaised = true;
+
+                                resolve();
+                            }, 100);
+                        });
+                    },
+
+                    onConfigureResponse: e => {
+                        return new Promise(resolve => {
+                            setTimeout(() => {
+                                configureResponseEventIsRaised = true;
+
+                                e.opts.includeHeaders = true;
+                                e.opts.includeBody    = true;
+
+                                resolve();
+                            }, 100);
+                        });
+                    },
+
+                    onResponse: e => {
+                        return new Promise(resolve => {
+                            setTimeout(() => {
+                                expect(e.statusCode).eql(304);
+
+                                responseEventIsRaised = true;
+
+                                resolve();
+                            }, 100);
+                        });
+                    }
+                });
+
+                const options = {
+                    url:     proxy.openSession(url, session),
+                    headers: {
+                        'content-type':      'application/javascript; charset=utf-8',
+                        'if-modified-since': 'Thu, 01 Aug 2013 18:31:48 GMT'
+                    }
+                };
+
+                return request(options)
+                    .then(() => {
+                        expect.fail('Request should raise an "304" error');
+                    })
+                    .catch(() => {
+                        expect(requestEventIsRaised, 'requestEventIsRaised').to.be.true;
+                        expect(configureResponseEventIsRaised, 'configureResponseEventIsRaised').to.be.true;
+                        expect(responseEventIsRaised, 'responseEventIsRaised').to.be.true;
+
+                        session.removeRequestEventListeners(rule);
+                    });
+            });
         });
 
         describe('Response mock', () => {
