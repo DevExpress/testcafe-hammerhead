@@ -1,7 +1,5 @@
-import childProcess from 'child_process';
-import promisify from '../../utils/promisify';
+import { exec } from '../../utils/promisified-functions';
 
-const exec = promisify(childProcess.exec);
 let cached = null;
 
 async function queryOSForCredential (cmd) {

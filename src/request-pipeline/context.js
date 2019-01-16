@@ -5,6 +5,7 @@ import * as contentTypeUtils from '../utils/content-type';
 import genearateUniqueId from '../utils/generate-unique-id';
 import { check as checkSameOriginPolicy } from './xhr/same-origin-policy';
 import { parseClientSyncCookieStr } from '../utils/cookie';
+import * as headerTransforms from './header-transforms';
 
 const REDIRECT_STATUS_CODES = [301, 302, 303, 307, 308];
 
@@ -30,6 +31,7 @@ export default class RequestPipelineContext {
         this.isIframe      = false;
         this.isSpecialPage = false;
         this.contentInfo   = null;
+        this.goToNextStage = true;
 
         const acceptHeader = req.headers['accept'];
 
@@ -41,13 +43,13 @@ export default class RequestPipelineContext {
 
         this.requestId                      = genearateUniqueId();
         this.requestFilterRules             = [];
-        this.onResponseEventDataWithoutBody = [];
-
-        this.isBrowserConnectionReset = false;
+        this.onResponseEventData            = [];
 
         this.reqOpts = null;
 
         this.parsedClientSyncCookie = req.headers.cookie && parseClientSyncCookieStr(req.headers.cookie);
+
+        this.nonProcessedDestResBody = null;
     }
 
     // TODO: Rewrite parseProxyUrl instead.
@@ -257,6 +259,8 @@ export default class RequestPipelineContext {
         }
         else
             this.res.end();
+
+        this.goToNextStage = false;
     }
 
     toProxyUrl (url, isCrossDomain, resourceType, charset) {
@@ -275,10 +279,41 @@ export default class RequestPipelineContext {
         });
     }
 
-    isKeepSameOriginPolicy () {
+    isPassSameOriginPolicy () {
         const isAjaxRequest          = this.isXhr || this.isFetch;
         const shouldPerformCORSCheck = isAjaxRequest && !this.contentInfo.isNotModified;
 
         return shouldPerformCORSCheck ? checkSameOriginPolicy(this) : true;
+    }
+
+    async forEachRequestFilterRule (fn) {
+        await Promise.all(this.requestFilterRules.map(fn));
+    }
+
+    sendResponseHeaders () {
+        const headers = headerTransforms.forResponse(this);
+
+        this.res.writeHead(this.destRes.statusCode, headers);
+        this.res.addTrailers(this.destRes.trailers);
+    }
+
+    mockResponse () {
+        this.mock.setRequestOptions(this.reqOpts);
+        this.destRes = this.mock.getResponse();
+    }
+
+    setupMockIfNecessary (rule) {
+        const mock = this.session.getMock(rule);
+
+        if (mock && !this.mock)
+            this.mock = mock;
+    }
+
+    isDestResBodyMalformed () {
+        return !this.destResBody || this.destResBody.length !== this.destRes.headers['content-length'];
+    }
+
+    getOnResponseEventData ({ includeBody }) {
+        return this.onResponseEventData.filter(({ rule, opts }) => opts.includeBody === includeBody); //eslint-disable-line no-unused-vars
     }
 }

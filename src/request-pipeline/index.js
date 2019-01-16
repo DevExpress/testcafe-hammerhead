@@ -1,142 +1,124 @@
-import DestinationRequest from './destination-request';
-import FileRequest from './file-request';
 import RequestPipelineContext from './context';
-import * as headerTransforms from './header-transforms';
 import { process as processResource } from '../processing/resources';
 import { MESSAGE, getText } from '../messages';
 import connectionResetGuard from './connection-reset-guard';
 import SAME_ORIGIN_CHECK_FAILED_STATUS_CODE from './xhr/same-origin-check-failed-status-code';
 import { fetchBody, respond404 } from '../utils/http';
-import { inject as injectUpload } from '../upload';
 import { respondOnWebSocket } from './websocket';
-import { PassThrough } from 'stream';
 import createSpecialPageResponse from './special-page';
-import matchUrl from 'match-url-wildcard';
 import * as requestEventInfo from '../session/events/info';
 import REQUEST_EVENT_NAMES from '../session/events/names';
-import ResponseEvent from '../session/events/response-event';
-import RequestEvent from '../session/events/request-event';
 import ConfigureResponseEvent from '../session/events/configure-response-event';
 import ConfigureResponseEventOptions from '../session/events/configure-response-event-options';
-import promisifyStream from '../utils/promisify-stream';
+import {
+    createReqOpts,
+    sendRequest,
+    error,
+    callResponseEventCallbackForProcessedRequest,
+    callOnRequestEventCallback,
+    callOnResponseEventCallbackForFailedSameOriginCheck,
+    callOnConfigureResponseEventForNonProcessedRequest,
+    callOnResponseEventCallbackWithBodyForNonProcessedRequest,
+    callOnResponseEventCallbackWithoutBodyForNonProcessedResource,
+    callOnResponseEventCallbackForMotModifiedResource
+} from './utils';
 
 const EVENT_SOURCE_REQUEST_TIMEOUT = 60 * 60 * 1000;
 
-// Stages
-const stages = {
-    0: function handleSocketError (ctx, next) {
+const stages = [
+    function handleSocketError (ctx) {
         // NOTE: In some case on MacOS, browser reset connection with server and we need to catch this exception.
-        if (ctx.isWebSocket) {
-            ctx.res.on('error', e => {
-                if (e.code === 'ECONNRESET' && !ctx.mock) {
-                    if (ctx.destRes)
-                        ctx.destRes.destroy();
-                    else
-                        ctx.isBrowserConnectionReset = true;
-                }
-                else
-                    throw e;
-            });
-        }
+        if (!ctx.isWebSocket)
+            return;
 
-        next();
+        ctx.res.on('error', e => {
+            if (e.code === 'ECONNRESET' && !ctx.mock) {
+                if (ctx.destRes)
+                    ctx.destRes.destroy();
+                else
+                    ctx.isWebSocketConnectionReset = true;
+            }
+            else
+                throw e;
+        });
     },
 
-    1: async function fetchProxyRequestBody (ctx, next) {
+    async function fetchProxyRequestBody (ctx) {
         if (ctx.isPage && !ctx.isIframe && !ctx.isHtmlImport)
             ctx.session.onPageRequest(ctx);
 
         ctx.reqBody = await fetchBody(ctx.req);
-
-        next();
     },
 
-    2: function sendDestinationRequest (ctx, next) {
+    async function sendDestinationRequest (ctx) {
         if (ctx.isSpecialPage) {
             ctx.destRes = createSpecialPageResponse();
-            next();
-        }
-        else {
-            ctx.reqOpts = createReqOpts(ctx);
-
-            if (ctx.session.hasRequestEventListeners()) {
-                const requestInfo = requestEventInfo.createRequestInfo(ctx, ctx.reqOpts);
-
-                ctx.requestFilterRules = ctx.session.getRequestFilterRules(requestInfo);
-                ctx.requestFilterRules.forEach(rule => {
-                    callOnRequestEventCallback(ctx, rule, requestInfo);
-                    setupMockIfNecessary(ctx, rule);
-                });
-            }
-
-            if (ctx.mock) {
-                mockResponse(ctx);
-                next();
-            }
-            else
-                sendRequest(ctx, next);
-        }
-    },
-
-    3: function checkSameOriginPolicyCompliance (ctx, next) {
-        ctx.buildContentInfo();
-
-        if (!ctx.isKeepSameOriginPolicy()) {
-            ctx.requestFilterRules.forEach(rule => {
-                const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
-
-                ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
-                callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, configureResponseEvent);
-            });
-            ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
-
             return;
         }
 
-        next();
+        ctx.reqOpts = createReqOpts(ctx);
+
+        if (ctx.session.hasRequestEventListeners()) {
+            const requestInfo = requestEventInfo.createRequestInfo(ctx, ctx.reqOpts);
+
+            ctx.requestFilterRules = ctx.session.getRequestFilterRules(requestInfo);
+            await ctx.forEachRequestFilterRule(async rule => {
+                await callOnRequestEventCallback(ctx, rule, requestInfo);
+                ctx.setupMockIfNecessary(rule);
+            });
+        }
+
+        if (ctx.mock)
+            ctx.mockResponse();
+        else
+            await sendRequest(ctx);
     },
 
-    4: function decideOnProcessingStrategy (ctx, next) {
-        if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
-            ctx.destRes.statusCode = 200;
+    async function checkSameOriginPolicyCompliance (ctx) {
+        ctx.buildContentInfo();
+
+        if (ctx.isPassSameOriginPolicy())
+            return;
+
+        await ctx.forEachRequestFilterRule(async rule => {
+            const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
+
+            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+            await callOnResponseEventCallbackForFailedSameOriginCheck(ctx, rule, configureResponseEvent);
+        });
+        ctx.closeWithError(SAME_ORIGIN_CHECK_FAILED_STATUS_CODE);
+    },
+
+    async function decideOnProcessingStrategy (ctx) {
+        ctx.goToNextStage = false;
 
         if (ctx.isWebSocket) {
             respondOnWebSocket(ctx);
 
             return;
         }
+
+        if (ctx.contentInfo.requireProcessing && ctx.destRes.statusCode === 204)
+            ctx.destRes.statusCode = 200;
+
         // NOTE: Just pipe the content body to the browser if we don't need to process it.
         else if (!ctx.contentInfo.requireProcessing) {
             if (!ctx.isSpecialPage) {
-                ctx.requestFilterRules.forEach(rule => {
-                    const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
-
-                    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
-
-                    if (configureResponseEvent.opts.includeBody)
-                        callOnResponseEventCallbackWithCollectedBody(ctx, rule, configureResponseEvent.opts);
-                    else
-                        ctx.onResponseEventDataWithoutBody.push({ rule, opts: configureResponseEvent.opts });
-                });
-
-                sendResponseHeaders(ctx);
+                await callOnConfigureResponseEventForNonProcessedRequest(ctx);
+                ctx.sendResponseHeaders();
 
                 if (ctx.contentInfo.isNotModified)
-                    ctx.res.end();
-                else
-                    ctx.destRes.pipe(ctx.res);
+                    await callOnResponseEventCallbackForMotModifiedResource(ctx);
+                else {
+                    const onResponseEventDataWithBody    = ctx.getOnResponseEventData({ includeBody: true });
+                    const onResponseEventDataWithoutBody = ctx.getOnResponseEventData({ includeBody: false });
 
-                if (ctx.onResponseEventDataWithoutBody.length) {
-                    ctx.res.on('finish', () => {
-                        const responseInfo = requestEventInfo.createResponseInfo(ctx);
-
-                        ctx.onResponseEventDataWithoutBody.forEach(item => {
-                            const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, item.opts);
-                            const responseEvent        = new ResponseEvent(item.rule, preparedResponseInfo);
-
-                            ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, item.rule, responseEvent);
-                        });
-                    });
+                    if (onResponseEventDataWithBody.length)
+                        await callOnResponseEventCallbackWithBodyForNonProcessedRequest(ctx, onResponseEventDataWithBody);
+                    else if (onResponseEventDataWithoutBody.length)
+                        await callOnResponseEventCallbackWithoutBodyForNonProcessedResource(ctx, onResponseEventDataWithoutBody);
+                    else
+                        ctx.destRes.pipe(ctx.res);
                 }
 
                 // NOTE: sets 60 minutes timeout for the "event source" requests instead of 2 minutes by default
@@ -146,17 +128,17 @@ const stages = {
                 }
             }
             else {
-                sendResponseHeaders(ctx);
+                ctx.sendResponseHeaders();
                 ctx.res.end();
             }
 
             return;
         }
 
-        next();
+        ctx.goToNextStage = true;
     },
 
-    5: async function fetchContent (ctx, next) {
+    async function fetchContent (ctx) {
         ctx.destResBody = await fetchBody(ctx.destRes);
 
         if (ctx.requestFilterRules.length)
@@ -164,196 +146,53 @@ const stages = {
 
         // NOTE: Sometimes the underlying socket emits an error event. But if we have a response body,
         // we can still process such requests. (B234324)
-        if (ctx.hasDestReqErr && isDestResBodyMalformed(ctx)) {
+        if (ctx.hasDestReqErr && ctx.isDestResBodyMalformed()) {
             error(ctx, getText(MESSAGE.destConnectionTerminated, ctx.dest.url));
-
-            return;
+            ctx.goToNextStage = false;
         }
-
-        next();
     },
 
-    6: async function processContent (ctx, next) {
+    async function processContent (ctx) {
         try {
             ctx.destResBody = await processResource(ctx);
-            next();
         }
         catch (err) {
             error(ctx, err);
         }
     },
 
-    7: function sendProxyResponse (ctx) {
-        const configureResponseEvents = ctx.requestFilterRules.map(rule => {
+    async function sendProxyResponse (ctx) {
+        const configureResponseEvents = await Promise.all(ctx.requestFilterRules.map(async rule => {
             const configureResponseEvent = new ConfigureResponseEvent(ctx, rule, ConfigureResponseEventOptions.DEFAULT);
 
-            ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+            await ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onConfigureResponse, rule, configureResponseEvent);
+
             return configureResponseEvent;
-        });
+        }));
 
-        sendResponseHeaders(ctx);
+        ctx.sendResponseHeaders();
 
-        connectionResetGuard(() => {
+        connectionResetGuard(async () => {
+            await Promise.all(configureResponseEvents.map(async configureResponseEvent => {
+                await callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent);
+            }));
+
             ctx.res.write(ctx.destResBody);
-            ctx.res.end(() => {
-                configureResponseEvents.forEach(configureResponseEvent => callResponseEventCallbackForProcessedRequest(ctx, configureResponseEvent));
-            });
+            ctx.res.end();
         });
     }
-};
+];
 
-
-// Utils
-function createReqOpts (ctx) {
-    const bodyWithUploads = injectUpload(ctx.req.headers['content-type'], ctx.reqBody);
-
-    // NOTE: First, we should rewrite the request body, because the 'content-length' header will be built based on it.
-    if (bodyWithUploads)
-        ctx.reqBody = bodyWithUploads;
-
-    // NOTE: All headers, including 'content-length', are built here.
-    const headers = headerTransforms.forRequest(ctx);
-    const proxy   = ctx.session.externalProxySettings;
-    const options = {
-        url:         ctx.dest.url,
-        protocol:    ctx.dest.protocol,
-        hostname:    ctx.dest.hostname,
-        host:        ctx.dest.host,
-        port:        ctx.dest.port,
-        path:        ctx.dest.partAfterHost,
-        method:      ctx.req.method,
-        credentials: ctx.session.getAuthCredentials(),
-        body:        ctx.reqBody,
-        isXhr:       ctx.isXhr,
-        rawHeaders:  ctx.req.rawHeaders,
-
-        headers
-    };
-
-    if (proxy && !matchUrl(ctx.dest.url, proxy.bypassRules)) {
-        options.proxy = proxy;
-
-        if (ctx.dest.protocol === 'http:') {
-            options.path     = options.protocol + '//' + options.host + options.path;
-            options.host     = proxy.host;
-            options.hostname = proxy.hostname;
-            options.port     = proxy.port;
-
-            if (proxy.authHeader)
-                headers['proxy-authorization'] = proxy.authHeader;
-        }
-    }
-
-    return options;
-}
-
-function sendResponseHeaders (ctx) {
-    const headers = headerTransforms.forResponse(ctx);
-
-    ctx.res.writeHead(ctx.destRes.statusCode, headers);
-    ctx.res.addTrailers(ctx.destRes.trailers);
-}
-
-function error (ctx, err) {
-    if (ctx.isPage && !ctx.isIframe)
-        ctx.session.handlePageError(ctx, err);
-    else if (ctx.isFetch || ctx.isXhr)
-        ctx.req.destroy();
-    else
-        ctx.closeWithError(500, err.toString());
-}
-
-function isDestResBodyMalformed (ctx) {
-    return !ctx.destResBody || ctx.destResBody.length !== ctx.destRes.headers['content-length'];
-}
-
-function callResponseEventCallbackForProcessedRequest (ctx, configureResponseEvent) {
-    const responseInfo         = requestEventInfo.createResponseInfo(ctx);
-    const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureResponseEvent.opts);
-    const responseEvent        = new ResponseEvent(configureResponseEvent._requestFilterRule, preparedResponseInfo);
-
-    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, configureResponseEvent._requestFilterRule, responseEvent);
-}
-
-function callOnRequestEventCallback (ctx, rule, reqInfo) {
-    const requestEvent = new RequestEvent(ctx, rule, reqInfo);
-
-    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onRequest, rule, requestEvent);
-}
-
-function callOnResponseEventCallbackWithCollectedBody (ctx, rule, configureOpts) {
-    const destResBodyCollectorStream            = new PassThrough();
-    const promisifiedDestResBodyCollectorStream = promisifyStream(destResBodyCollectorStream);
-
-    promisifiedDestResBodyCollectorStream.then(data => {
-        ctx.saveNonProcessedDestResBody(data);
-
-        const responseInfo         = requestEventInfo.createResponseInfo(ctx);
-        const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureOpts);
-        const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
-
-        ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
-    });
-
-    ctx.destRes.pipe(destResBodyCollectorStream);
-}
-
-function callOnResponseEventCallbackForFailedSameOriginCheck (ctx, rule, configureOpts) {
-    const responseInfo = requestEventInfo.createResponseInfo(ctx);
-
-    responseInfo.statusCode = SAME_ORIGIN_CHECK_FAILED_STATUS_CODE;
-
-    const preparedResponseInfo = requestEventInfo.prepareEventData(responseInfo, configureOpts);
-    const responseEvent        = new ResponseEvent(rule, preparedResponseInfo);
-
-    ctx.session.callRequestEventCallback(REQUEST_EVENT_NAMES.onResponse, rule, responseEvent);
-}
-
-function mockResponse (ctx) {
-    ctx.mock.setRequestOptions(ctx.reqOpts);
-    ctx.destRes = ctx.mock.getResponse();
-}
-
-function setupMockIfNecessary (ctx, rule) {
-    const mock = ctx.session.getMock(rule);
-
-    if (mock && !ctx.mock)
-        ctx.mock = mock;
-}
-
-function sendRequest (ctx, next) {
-    const req = ctx.isFileProtocol ? new FileRequest(ctx.reqOpts) : new DestinationRequest(ctx.reqOpts);
-
-    req.on('response', res => {
-        if (ctx.isBrowserConnectionReset) {
-            res.destroy();
-
-            return;
-        }
-
-        ctx.destRes = res;
-        next();
-    });
-
-    req.on('error', () => {
-        ctx.hasDestReqErr = true;
-    });
-
-    req.on('fatalError', err => error(ctx, err));
-
-    req.on('socketHangUp', () => ctx.req.socket.end());
-}
-
-// API
-export function run (req, res, serverInfo, openSessions) {
+export async function run (req, res, serverInfo, openSessions) {
     const ctx = new RequestPipelineContext(req, res, serverInfo);
 
-    if (ctx.dispatch(openSessions)) {
-        let stageIdx = 0;
-        const next   = () => stages[++stageIdx](ctx, next);
-
-        stages[0](ctx, next);
-    }
-    else
+    if (!ctx.dispatch(openSessions))
         respond404(res);
+
+    for (let i = 0; i < stages.length; i++) {
+        await stages[i](ctx);
+
+        if (!ctx.goToNextStage)
+            return;
+    }
 }
