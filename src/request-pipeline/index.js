@@ -186,8 +186,11 @@ const stages = [
 export async function run (req, res, serverInfo, openSessions) {
     const ctx = new RequestPipelineContext(req, res, serverInfo);
 
-    if (!ctx.dispatch(openSessions))
+    if (!ctx.dispatch(openSessions)) {
         respond404(res);
+
+        return;
+    }
 
     for (let i = 0; i < stages.length; i++) {
         await stages[i](ctx);
