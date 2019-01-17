@@ -77,7 +77,6 @@ export function sendRequest (ctx) {
 
         req.on('error', () => {
             ctx.hasDestReqErr = true;
-            ctx.goToNextStage = true;
             resolve();
         });
 
