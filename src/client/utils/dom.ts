@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import * as urlUtils from './url';
 import { get as getStyle } from './style';
 import { sameOriginCheck } from './destination-location';
-import { isFirefox, isWebKit, isIE, isMSEdge, isSafari } from './browser';
+import { isFirefox, isWebKit, isIE, isMSEdge } from './browser';
 import { getNativeQuerySelectorAll } from './query-selector';
 import { instanceAndPrototypeToStringAreEqual } from '../utils/feature-detection';
 
@@ -531,7 +531,7 @@ export function isLocation (instance): boolean {
     if (!instance)
         return false;
 
-    if (isIE || isSafari) {
+    if (isIE) {
         let instanceCtor = null;
 
         try {
@@ -540,8 +540,7 @@ export function isLocation (instance): boolean {
         }
         catch (e) {
             // NOTE: Try to detect cross-domain window location.
-            // A cross-domain location has no the "assign" function in Safari.
-            return instance.replace && (isSafari || !!instance.assign);
+            return instance.replace && !!instance.assign;
         }
 
         if (instanceCtor) {
