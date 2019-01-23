@@ -779,10 +779,6 @@ export default class ElementSandbox extends SandboxBase {
 
         this._createOverridedMethods();
 
-        window.Element.prototype.insertBefore              = this.overriddenMethods.insertBefore;
-        window.Element.prototype.appendChild               = this.overriddenMethods.appendChild;
-        window.Element.prototype.replaceChild              = this.overriddenMethods.replaceChild;
-        window.Element.prototype.removeChild               = this.overriddenMethods.removeChild;
         window.Element.prototype.setAttribute              = this.overriddenMethods.setAttribute;
         window.Element.prototype.setAttributeNS            = this.overriddenMethods.setAttributeNS;
         window.Element.prototype.getAttribute              = this.overriddenMethods.getAttribute;

@@ -482,6 +482,26 @@ test('should override document methods on a prototype level (GH-1827)', function
     document.createElement('div');
 });
 
+test('GH-1874', function () {
+    expect(3);
+
+    strictEqual(window.Node.prototype.appendChild, window.HTMLBodyElement.prototype.appendChild);
+
+    var savedAppendChild = window.Node.prototype.appendChild;
+
+    window.Node.prototype.appendChild = function () {
+        window.Node.prototype.appendChild = savedAppendChild;
+
+        ok(true);
+    };
+
+    var div = document.createElement('div');
+
+    document.body.appendChild(div);
+
+    strictEqual(window.Node.prototype.appendChild, window.HTMLBodyElement.prototype.appendChild);
+});
+
 module('resgression');
 
 test('document.write for several tags in iframe (T215136)', function () {
