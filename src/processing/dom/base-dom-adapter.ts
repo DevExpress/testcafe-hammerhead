@@ -15,25 +15,25 @@ export default abstract class BaseDomAdapter {
         'onmspointerout', 'onmspointerenter', 'onmspointerleave', 'onmsgotpointercapture', 'onmslostpointercapture'
     ];
 
-    abstract removeAttr (el: any, attr: string): void;
-    abstract getAttr (el:any, attr:string) : string;
-    abstract hasAttr (el:any, attr: string) : boolean;
-    abstract isSVGElement (el:any): boolean;
-    abstract hasEventHandler (el: any): boolean;
-    abstract getTagName (el:any): string;
-    abstract setAttr (el: any, attr: string, value: string) : void;
-    abstract setScriptContent (el: any, content: string): void;
-    abstract getScriptContent (el: any): string;
-    abstract getStyleContent (el: any): string;
-    abstract setStyleContent (el: any, content: string): void;
-    abstract needToProcessContent (el: any): boolean;
+    abstract removeAttr (el: HTMLElement, attr: string): void;
+    abstract getAttr (el:HTMLElement, attr:string) : string;
+    abstract hasAttr (el:HTMLElement, attr: string) : boolean;
+    abstract isSVGElement (el:HTMLElement): boolean;
+    abstract hasEventHandler (el: HTMLElement): boolean;
+    abstract getTagName (el:HTMLElement): string;
+    abstract setAttr (el: HTMLElement, attr: string, value: string) : void;
+    abstract setScriptContent (el: HTMLElement, content: string): void;
+    abstract getScriptContent (el: HTMLElement): string;
+    abstract getStyleContent (el: HTMLElement): string;
+    abstract setStyleContent (el: HTMLElement, content: string): void;
+    abstract needToProcessContent (el: HTMLElement): boolean;
     abstract needToProcessUrl (tagName: string, target: string): boolean;
     abstract attachEventEmitter (domProcessor: any): void;
-    abstract hasIframeParent (el: any) : boolean;
+    abstract hasIframeParent (el: HTMLElement) : boolean;
     abstract getCrossDomainPort (): string;
     abstract getProxyUrl (resourceUrl: string, opts: object): string;
-    abstract isTopParentIframe (el: any): boolean;
+    abstract isTopParentIframe (el: HTMLElement): boolean;
     abstract sameOriginCheck (destUrl: string, resourceUrl: string): boolean;
-    abstract getClassName (el: any): string;
+    abstract getClassName (el: HTMLElement): string;
     abstract isExistingTarget (target: string): boolean;
 }
