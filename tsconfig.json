@@ -5,7 +5,9 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "newLine": "lf"
   },
   "exclude": [
     "node_modules"
