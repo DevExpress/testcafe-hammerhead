@@ -36,6 +36,7 @@ export function createReqOpts (ctx) {
         body:        ctx.reqBody,
         isXhr:       ctx.isXhr,
         rawHeaders:  ctx.req.rawHeaders,
+        proxy:       void 0,
 
         headers
     };

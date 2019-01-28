@@ -345,6 +345,6 @@ export default class RequestPipelineContext {
     }
 
     getOnResponseEventData ({ includeBody }) {
-        return this.onResponseEventData.filter(({ rule, opts }) => opts.includeBody === includeBody); //eslint-disable-line no-unused-vars
+        return this.onResponseEventData.filter(eventData => eventData.opts.includeBody === includeBody);
     }
 }
