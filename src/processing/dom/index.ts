@@ -50,27 +50,27 @@ export default class DomProcessor {
         this.elementProcessorPatterns = this._createProcessorPatterns(this.adapter);
     }
 
-    static isTagWithTargetAttr (tagName: string) {
+    static isTagWithTargetAttr (tagName: string): boolean {
         return tagName && TARGET_ATTR_TAGS.target.indexOf(tagName) > -1;
     }
 
-    static isTagWithFormTargetAttr (tagName: string) {
+    static isTagWithFormTargetAttr (tagName: string): boolean {
         return tagName && TARGET_ATTR_TAGS.formtarget.indexOf(tagName) > -1;
     }
 
-    static isTagWithIntegrityAttr (tagName: string) {
+    static isTagWithIntegrityAttr (tagName: string): boolean {
         return tagName && INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
     }
 
-    static isIframeFlagTag (tagName: string) {
+    static isIframeFlagTag (tagName: string): boolean {
         return tagName && IFRAME_FLAG_TAGS.indexOf(tagName) !== -1;
     }
 
-    static isAddedAutocompleteAttr (attrName: string, storedAttrValue: string) {
+    static isAddedAutocompleteAttr (attrName: string, storedAttrValue: string): boolean {
         return attrName === 'autocomplete' && storedAttrValue === AUTOCOMPLETE_ATTRIBUTE_ABSENCE_MARKER;
     }
 
-    static processJsAttrValue (value: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean, isEventAttr?: boolean}) {
+    static processJsAttrValue (value: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean, isEventAttr?: boolean}): string {
         if (isJsProtocol)
             value = value.replace(JAVASCRIPT_PROTOCOL_REG_EX, '');
 
@@ -83,41 +83,41 @@ export default class DomProcessor {
         return value;
     }
 
-    static getStoredAttrName (attr: string) {
+    static getStoredAttrName (attr: string): string {
         return attr + INTERNAL_ATTRS.storedAttrPostfix;
     }
 
-    static isJsProtocol (value: string) {
+    static isJsProtocol (value: string): boolean {
         return JAVASCRIPT_PROTOCOL_REG_EX.test(value);
     }
 
-    static _isHtmlImportLink (tagName: string, relAttr: string) {
+    static _isHtmlImportLink (tagName: string, relAttr: string): boolean {
         return tagName && relAttr && tagName === 'link' && relAttr === 'import';
     }
 
-    _getRelAttribute (el) {
+    _getRelAttribute (el: HTMLElement): string {
         return String(this.adapter.getAttr(el, 'rel')).toLocaleLowerCase();
     }
 
-    _createProcessorPatterns (adapter) {
+    _createProcessorPatterns (adapter: any) {
         const selectors = {
-            HAS_HREF_ATTR: el => this.isUrlAttr(el, 'href'),
+            HAS_HREF_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'href'),
 
-            HAS_SRC_ATTR: el => this.isUrlAttr(el, 'src'),
+            HAS_SRC_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'src'),
 
-            HAS_ACTION_ATTR: el => this.isUrlAttr(el, 'action'),
+            HAS_ACTION_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'action'),
 
-            HAS_FORMACTION_ATTR: el => this.isUrlAttr(el, 'formaction'),
+            HAS_FORMACTION_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'formaction'),
 
-            HAS_FORMTARGET_ATTR: el => {
+            HAS_FORMTARGET_ATTR: (el: HTMLElement) => {
                 return DomProcessor.isTagWithFormTargetAttr(adapter.getTagName(el)) && adapter.hasAttr(el, 'formtarget');
             },
 
-            HAS_MANIFEST_ATTR: el => this.isUrlAttr(el, 'manifest'),
+            HAS_MANIFEST_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'manifest'),
 
-            HAS_DATA_ATTR: el => this.isUrlAttr(el, 'data'),
+            HAS_DATA_ATTR: (el: HTMLElement) => this.isUrlAttr(el, 'data'),
 
-            HTTP_EQUIV_META: el => {
+            HTTP_EQUIV_META: (el: HTMLElement) => {
                 const tagName = adapter.getTagName(el);
 
                 return tagName === 'meta' && adapter.hasAttr(el, 'http-equiv');
@@ -125,35 +125,35 @@ export default class DomProcessor {
 
             ALL: () => true,
 
-            IS_SCRIPT: el => adapter.getTagName(el) === 'script',
+            IS_SCRIPT: (el: HTMLElement) => adapter.getTagName(el) === 'script',
 
-            IS_LINK: el => adapter.getTagName(el) === 'link',
+            IS_LINK: (el: HTMLElement) => adapter.getTagName(el) === 'link',
 
-            IS_INPUT: el => adapter.getTagName(el) === 'input',
+            IS_INPUT: (el: HTMLElement) => adapter.getTagName(el) === 'input',
 
-            IS_FILE_INPUT: el => {
+            IS_FILE_INPUT: (el: HTMLElement) => {
                 return adapter.getTagName(el) === 'input' &&
                        adapter.hasAttr(el, 'type') &&
                        adapter.getAttr(el, 'type').toLowerCase() === 'file';
             },
 
-            IS_STYLE: el => adapter.getTagName(el) === 'style',
+            IS_STYLE: (el: HTMLElement) => adapter.getTagName(el) === 'style',
 
-            HAS_EVENT_HANDLER: el => adapter.hasEventHandler(el),
+            HAS_EVENT_HANDLER: (el: HTMLElement) => adapter.hasEventHandler(el),
 
-            IS_SANDBOXED_IFRAME: el => {
+            IS_SANDBOXED_IFRAME: (el: HTMLElement) => {
                 const tagName = adapter.getTagName(el);
 
                 return (tagName === 'iframe' || tagName === 'frame') && adapter.hasAttr(el, 'sandbox');
             },
 
-            IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR: el => {
+            IS_SVG_ELEMENT_WITH_XLINK_HREF_ATTR: (el: HTMLElement) => {
                 return adapter.isSVGElement(el) &&
                        adapter.hasAttr(el, 'xlink:href') &&
                        SVG_XLINK_HREF_TAGS.indexOf(adapter.getTagName(el)) !== -1;
             },
 
-            IS_SVG_ELEMENT_WITH_XML_BASE_ATTR: el => adapter.isSVGElement(el) && adapter.hasAttr(el, 'xml:base')
+            IS_SVG_ELEMENT_WITH_XML_BASE_ATTR: (el: HTMLElement) => adapter.isSVGElement(el) && adapter.hasAttr(el, 'xml:base')
         };
 
         return [
@@ -231,7 +231,7 @@ export default class DomProcessor {
     }
 
     // API
-    processElement (el, urlReplacer) {
+    processElement (el, urlReplacer: object): void {
         if (el[ELEMENT_PROCESSED])
             return;
 
@@ -247,7 +247,7 @@ export default class DomProcessor {
     }
 
     // Utils
-    getElementResourceType (el) {
+    getElementResourceType (el: HTMLElement) {
         const tagName = this.adapter.getTagName(el);
 
         return urlUtils.getResourceTypeString({
@@ -258,7 +258,7 @@ export default class DomProcessor {
         });
     }
 
-    isUrlAttr (el, attr: string, ns?: string): boolean {
+    isUrlAttr (el: HTMLElement, attr: string, ns?: string): boolean {
         const tagName = this.adapter.getTagName(el);
 
         attr = attr ? attr.toLowerCase() : attr;
@@ -269,7 +269,7 @@ export default class DomProcessor {
         return this.adapter.isSVGElement(el) && (attr === 'xml:base' || attr === 'base' && ns === XML_NAMESPACE);
     }
 
-    getUrlAttr (el) {
+    getUrlAttr (el: HTMLElement): string {
         const tagName = this.adapter.getTagName(el);
 
         for (const urlAttr of URL_ATTRS) {
@@ -280,7 +280,7 @@ export default class DomProcessor {
         return null;
     }
 
-    getTargetAttr (el) {
+    getTargetAttr (el: HTMLElement): string {
         const tagName = this.adapter.getTagName(el);
 
         for (const targetAttr of TARGET_ATTRS) {
@@ -291,7 +291,7 @@ export default class DomProcessor {
         return null;
     }
 
-    _isOpenLinkInIframe (el): boolean {
+    _isOpenLinkInIframe (el: HTMLElement): boolean {
         const tagName    = this.adapter.getTagName(el);
         const targetAttr = this.getTargetAttr(el);
         const target     = this.adapter.getAttr(el, targetAttr);
@@ -312,14 +312,14 @@ export default class DomProcessor {
         return false;
     }
 
-    _isShadowElement (el): boolean {
+    _isShadowElement (el: HTMLElement): boolean {
         const className = this.adapter.getClassName(el);
 
         return typeof className === 'string' && className.indexOf(SHADOW_UI_CLASSNAME.postfix) > -1;
     }
 
     // Element processors
-    _processAutoComplete (el) {
+    _processAutoComplete (el: HTMLElement): void {
         const storedUrlAttr = DomProcessor.getStoredAttrName('autocomplete');
         const processed     = this.adapter.hasAttr(el, storedUrlAttr);
         const attrValue     = this.adapter.getAttr(el, processed ? storedUrlAttr : 'autocomplete');
@@ -334,7 +334,7 @@ export default class DomProcessor {
         this.adapter.setAttr(el, 'autocomplete', 'off');
     }
 
-    _processRequired (el) {
+    _processRequired (el: HTMLElement): void {
         const storedRequired  = DomProcessor.getStoredAttrName('required');
         const hasRequiredAttr = this.adapter.hasAttr(el, 'required');
         const processed       = this.adapter.hasAttr(el, storedRequired) && !hasRequiredAttr;
@@ -351,7 +351,7 @@ export default class DomProcessor {
     // content changes (http://www.w3.org/TR/SRI/). If this causes problems in the future, we will need to generate
     // the correct SHA for the changed script.
     // In addition, we create stored 'integrity' attribute with the current 'integrity' attribute value. (GH-235)
-    _processIntegrityAttr (el) {
+    _processIntegrityAttr (el: HTMLElement): void {
         const storedIntegrityAttr = DomProcessor.getStoredAttrName('integrity');
         const processed           = this.adapter.hasAttr(el, storedIntegrityAttr) && !this.adapter.hasAttr(el, 'integrity');
         const attrValue           = this.adapter.getAttr(el, processed ? storedIntegrityAttr : 'integrity');
@@ -365,7 +365,7 @@ export default class DomProcessor {
 
     // NOTE: We simply remove the 'rel' attribute if rel='prefetch' and use stored 'rel' attribute, because the prefetch
     // resource type is unknown. https://github.com/DevExpress/testcafe/issues/2528
-    _processRelPrefetch (el, _urlReplacer, pattern) {
+    _processRelPrefetch (el: HTMLElement, _urlReplacer: object, pattern): void {
         const storedRelAttr = DomProcessor.getStoredAttrName(pattern.relAttr);
         const processed     = this.adapter.hasAttr(el, storedRelAttr) && !this.adapter.hasAttr(el, pattern.relAttr);
         const attrValue     = this.adapter.getAttr(el, processed ? storedRelAttr : pattern.relAttr);
@@ -382,7 +382,7 @@ export default class DomProcessor {
         }
     }
 
-    _processJsAttr (el, attrName: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean, isEventAttr?: boolean}) {
+    _processJsAttr (el, attrName: string, { isJsProtocol, isEventAttr }: { isJsProtocol?: boolean, isEventAttr?: boolean}): void {
         const storedUrlAttr  = DomProcessor.getStoredAttrName(attrName);
         const processed      = this.adapter.hasAttr(el, storedUrlAttr);
         const attrValue      = this.adapter.getAttr(el, processed ? storedUrlAttr : attrName);
@@ -395,7 +395,7 @@ export default class DomProcessor {
         }
     }
 
-    _processEvtAttr (el) {
+    _processEvtAttr (el: HTMLElement): void {
         const events = this.adapter.EVENTS;
 
         for (let i = 0; i < events.length; i++) {
@@ -410,7 +410,7 @@ export default class DomProcessor {
         }
     }
 
-    _processMetaElement (el, urlReplacer, pattern) {
+    _processMetaElement (el: HTMLElement, urlReplacer, pattern): void {
         const httpEquivAttrValue = this.adapter.getAttr(el, 'http-equiv').toLowerCase();
 
         if (httpEquivAttrValue === 'refresh') {
@@ -427,7 +427,7 @@ export default class DomProcessor {
         }
     }
 
-    _processSandboxedIframe (el) {
+    _processSandboxedIframe (el: HTMLElement): void {
         let attrValue         = this.adapter.getAttr(el, 'sandbox');
         const allowSameOrigin = attrValue.indexOf('allow-same-origin') !== -1;
         const allowScripts    = attrValue.indexOf('allow-scripts') !== -1;
@@ -443,7 +443,7 @@ export default class DomProcessor {
         this.adapter.setAttr(el, 'sandbox', attrValue);
     }
 
-    _processScriptElement (script) {
+    _processScriptElement (script: HTMLElement): void {
         const scriptContent = this.adapter.getScriptContent(script);
 
         if (!scriptContent || !this.adapter.needToProcessContent(script))
@@ -492,14 +492,14 @@ export default class DomProcessor {
         }
     }
 
-    _processStyleAttr (el, urlReplacer) {
+    _processStyleAttr (el: HTMLElement, urlReplacer): void {
         const style = this.adapter.getAttr(el, 'style');
 
         if (style)
             this.adapter.setAttr(el, 'style', styleProcessor.process(style, urlReplacer, false));
     }
 
-    _processStylesheetElement (el, urlReplacer) {
+    _processStylesheetElement (el: HTMLElement, urlReplacer): void {
         let content = this.adapter.getStyleContent(el);
 
         if (content && urlReplacer && this.adapter.needToProcessContent(el)) {
@@ -509,7 +509,7 @@ export default class DomProcessor {
         }
     }
 
-    _processTargetBlank (el, _urlReplacer, pattern) {
+    _processTargetBlank (el: HTMLElement, _urlReplacer, pattern): void {
         const storedTargetAttr = DomProcessor.getStoredAttrName(pattern.targetAttr);
         const processed        = this.adapter.hasAttr(el, storedTargetAttr);
 
@@ -526,7 +526,7 @@ export default class DomProcessor {
         }
     }
 
-    _processUrlAttrs (el, urlReplacer, pattern) {
+    _processUrlAttrs (el: HTMLElement, urlReplacer, pattern): void {
         if (urlReplacer && pattern.urlAttr) {
             const storedUrlAttr     = DomProcessor.getStoredAttrName(pattern.urlAttr);
             let resourceUrl         = this.adapter.getAttr(el, pattern.urlAttr);
@@ -600,12 +600,12 @@ export default class DomProcessor {
         }
     }
 
-    _processUrlJsAttr (el, _urlReplacer, pattern) {
+    _processUrlJsAttr (el: HTMLElement, _urlReplacer, pattern): void {
         if (DomProcessor.isJsProtocol(this.adapter.getAttr(el, pattern.urlAttr)))
             this._processJsAttr(el, pattern.urlAttr, { isJsProtocol: true, isEventAttr: false });
     }
 
-    _processSVGXLinkHrefAttr (el, _urlReplacer, pattern) {
+    _processSVGXLinkHrefAttr (el: HTMLElement, _urlReplacer, pattern): void {
         const attrValue = this.adapter.getAttr(el, pattern.urlAttr);
 
         if (urlUtils.HASH_RE.test(attrValue)) {
