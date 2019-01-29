@@ -22,7 +22,7 @@ class StyleProcessor {
     STYLESHEET_PROCESSING_START_COMMENT: string = STYLESHEET_PROCESSING_START_COMMENT;
     STYLESHEET_PROCESSING_END_COMMENT: string = STYLESHEET_PROCESSING_END_COMMENT;
 
-    process (css, urlReplacer, isStylesheetTable?: boolean) {
+    process (css: string, urlReplacer: object, isStylesheetTable?: boolean): string {
         if (!css || typeof css !== 'string' || IS_STYLE_SHEET_PROCESSED_RE.test(css))
             return css;
 
@@ -39,7 +39,7 @@ class StyleProcessor {
         return prefix + this._replaceStylsheetUrls(css, urlReplacer) + postfix;
     }
 
-    cleanUp (css, parseProxyUrl) {
+    cleanUp (css: string, parseProxyUrl): string {
         if (typeof css !== 'string')
             return css;
 
@@ -47,14 +47,14 @@ class StyleProcessor {
             .replace(PSEUDO_CLASS_RE, ':hover$1')
             .replace(STYLESHEET_PROCESSING_COMMENTS_RE, '');
 
-        return this._replaceStylsheetUrls(css, url => {
+        return this._replaceStylsheetUrls(css, (url: string) => {
             const parsedProxyUrl = parseProxyUrl(url);
 
             return parsedProxyUrl ? parsedProxyUrl.destUrl : url;
         });
     }
 
-    _replaceStylsheetUrls (css, processor) {
+    _replaceStylsheetUrls (css: string, processor): string {
         return css.replace(
             CSS_URL_PROPERTY_VALUE_PATTERN,
             (match, prefix1, openQuote1, url1, closeQuote1, openQuote2, url2, closeQuote2, url3, postfix,

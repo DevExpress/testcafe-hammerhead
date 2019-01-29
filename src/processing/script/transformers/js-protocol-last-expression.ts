@@ -15,7 +15,7 @@ export default {
 
     nodeTypes: [Syntax.ExpressionStatement],
 
-    condition: (node, parent) => parent.wrapLastExprWithProcessHtml && parent.body[parent.body.length - 1] === node,
+    condition: (node: HTMLElement, parent) => parent.wrapLastExprWithProcessHtml && parent.body[parent.body.length - 1] === node,
 
     run: (node, parent) => {
         parent.wrapLastExprWithProcessHtml = false;

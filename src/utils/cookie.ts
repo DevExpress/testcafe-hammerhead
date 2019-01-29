@@ -96,7 +96,7 @@ export function formatSyncCookie (cookie) {
     return `${formatSyncCookieKey(cookie)}=${cookie.value};path=/`;
 }
 
-export function parseSyncCookie (cookieStr) {
+export function parseSyncCookie (cookieStr: string) {
     const [, key, value] = KEY_VALUE_REGEX.exec(cookieStr);
     const parsedKey      = key !== void 0 && value !== void 0 && key.split('|');
 

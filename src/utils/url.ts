@@ -23,7 +23,26 @@ export const SPECIAL_PAGES: Array<string>                = ['about:blank', 'abou
 export const HTTP_DEFAULT_PORT: string  = '80';
 export const HTTPS_DEFAULT_PORT: string = '443';
 
-export function parseResourceType (resourceType): any {
+interface ResourceType {
+    isIframe: boolean;
+    isForm?: boolean;
+    isScript?: boolean;
+    isEventSource?: boolean;
+    isHtmlImport?: boolean;
+    isWebSocket?: boolean;
+}
+
+interface ParsedUrl {
+    protocol: string;
+    host: string;
+    hostname: string;
+    port: string;
+    partAfterHost?: string;
+    username?: string;
+    password?: string;
+}
+
+export function parseResourceType (resourceType: string): ResourceType {
     if (!resourceType) {
         return {
             isIframe:      false,
@@ -45,8 +64,9 @@ export function parseResourceType (resourceType): any {
     };
 }
 
-export function getResourceTypeString (resourceType) {
-    resourceType = resourceType || {};
+export function getResourceTypeString (resourceType: ResourceType): string | null {
+    if (!resourceType)
+        return null;
 
     if (!resourceType.isIframe && !resourceType.isForm && !resourceType.isScript && !resourceType.isEventSource &&
         !resourceType.isHtmlImport && !resourceType.isWebSocket)
@@ -62,7 +82,7 @@ export function getResourceTypeString (resourceType) {
     ].join('');
 }
 
-export function isSubDomain (domain: string, subDomain: string) {
+export function isSubDomain (domain: string, subDomain: string): boolean {
     domain    = domain.replace(/^www./i, '');
     subDomain = subDomain.replace(/^www./i, '');
 
@@ -74,7 +94,7 @@ export function isSubDomain (domain: string, subDomain: string) {
     return subDomain[index - 1] === '.' && subDomain.length === index + domain.length;
 }
 
-export function sameOriginCheck (location: string, checkedUrl: string) {
+export function sameOriginCheck (location: string, checkedUrl: string): boolean {
     if (!checkedUrl)
         return true;
 
@@ -92,7 +112,7 @@ export function sameOriginCheck (location: string, checkedUrl: string) {
         const portsEq = !parsedDestUrl.port && !parsedCheckedUrl.port ||
                         parsedDestUrl.port && parsedDestUrl.port.toString() === parsedCheckedUrl.port;
 
-        return parsedDestUrl.protocol === parsedCheckedUrl.protocol && portsEq &&
+        return parsedDestUrl.protocol === parsedCheckedUrl.protocol && !!portsEq &&
                parsedDestUrl.hostname === parsedCheckedUrl.hostname;
     }
 
@@ -100,14 +120,14 @@ export function sameOriginCheck (location: string, checkedUrl: string) {
 }
 
 // NOTE: Convert the destination protocol and hostname to the lower case. (GH-1)
-function convertHostToLowerCase (url: string) {
+function convertHostToLowerCase (url: string): string {
     const parsedUrl             = parseUrl(url);
     const protocolHostSeparator = parsedUrl.protocol === 'about:' ? '' : '//';
 
     return (parsedUrl.protocol + protocolHostSeparator + parsedUrl.host).toLowerCase() + parsedUrl.partAfterHost;
 }
 
-export function getURLString (url: string) {
+export function getURLString (url: string): string {
     // TODO: fix it
     // eslint-disable-next-line no-undef
     if (url === null && /iPad|iPhone/i.test(window.navigator.userAgent))
@@ -136,7 +156,7 @@ export function getProxyUrl (url: string, opts) {
            convertHostToLowerCase(url);
 }
 
-export function getDomain (parsed) {
+export function getDomain (parsed: ParsedUrl) {
     return formatUrl({
         protocol: parsed.protocol,
         host:     parsed.host,
@@ -168,7 +188,7 @@ function parseRequestDescriptor (desc) {
     return parsedDesc;
 }
 
-export function parseProxyUrl (proxyUrl) {
+export function parseProxyUrl (proxyUrl: string) {
     // TODO: Remove it.
     const parsedUrl = parseUrl(proxyUrl);
 
@@ -219,11 +239,11 @@ export function parseProxyUrl (proxyUrl) {
     };
 }
 
-export function getPathname (path) {
+export function getPathname (path: string) {
     return path.replace(QUERY_AND_HASH_RE, '');
 }
 
-export function parseUrl (url): any {
+export function parseUrl (url: string): ParsedUrl {
     const parsed: any = {};
 
     url = processSpecialChars(url);
@@ -259,7 +279,7 @@ export function parseUrl (url): any {
             return restPartSeparator;
         });
 
-    parsed.hostname = parsed.host ? parsed.host.replace(PORT_RE, (_str, port) => {
+    parsed.hostname = parsed.host ? parsed.host.replace(PORT_RE, (_str: string, port: string) => {
         parsed.port = port;
         return '';
     }) : '';
@@ -267,7 +287,7 @@ export function parseUrl (url): any {
     return parsed;
 }
 
-export function isSupportedProtocol (url) {
+export function isSupportedProtocol (url: string): boolean {
     url = trim(url || '');
 
     const isHash = HASH_RE.test(url);
@@ -283,7 +303,7 @@ export function isSupportedProtocol (url) {
     return SUPPORTED_PROTOCOL_RE.test(protocol[0]);
 }
 
-export function resolveUrlAsDest (url, getProxyUrlMeth) {
+export function resolveUrlAsDest (url: string, getProxyUrlMeth) {
     getProxyUrlMeth = getProxyUrlMeth || getProxyUrl;
 
     if (isSupportedProtocol(url)) {
@@ -296,7 +316,7 @@ export function resolveUrlAsDest (url, getProxyUrlMeth) {
     return url;
 }
 
-export function formatUrl (parsedUrl) {
+export function formatUrl (parsedUrl: ParsedUrl): string {
     // NOTE: the URL is relative.
     if (parsedUrl.protocol !== 'file:' && !parsedUrl.host && (!parsedUrl.hostname || !parsedUrl.port))
         return parsedUrl.partAfterHost;
@@ -324,7 +344,7 @@ export function formatUrl (parsedUrl) {
     return url;
 }
 
-export function correctMultipleSlashes (url: string, pageProtocol: string = '') {
+export function correctMultipleSlashes (url: string, pageProtocol: string = ''): string {
     // NOTE: Remove unnecessary slashes from the beginning of the url and after scheme.
     // For example:
     // "//////example.com" -> "//example.com" (scheme-less HTTP(S) URL)
@@ -342,11 +362,11 @@ export function correctMultipleSlashes (url: string, pageProtocol: string = '') 
     return url.replace(/^(https?:)?\/+(\/\/.*$)/i, '$1$2');
 }
 
-export function processSpecialChars (url: string) {
+export function processSpecialChars (url: string): string {
     return correctMultipleSlashes(getURLString(url));
 }
 
-export function ensureTrailingSlash (srcUrl: string, processedUrl: string) {
+export function ensureTrailingSlash (srcUrl: string, processedUrl: string): string {
     if (!isValidUrl(processedUrl))
         return processedUrl;
 
@@ -365,25 +385,25 @@ export function isSpecialPage (url: string) {
     return SPECIAL_PAGES.indexOf(url) !== -1;
 }
 
-export function isRelativeUrl (url: string) {
+export function isRelativeUrl (url: string): boolean {
     const parsedUrl = parseUrl(url);
 
     return parsedUrl.protocol !== 'file:' && !parsedUrl.host;
 }
 
-function isValidPort (port: string) {
+function isValidPort (port: string): boolean {
     const parsedPort = parseInt(port, 10);
 
     return parsedPort > 0 && parsedPort <= 65535;
 }
 
-export function isValidUrl (url: string) {
+export function isValidUrl (url: string): boolean {
     const parsedUrl = parseUrl(url);
 
-    return parsedUrl.protocol === 'file:' || parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
+    return parsedUrl.protocol === 'file:' || !!parsedUrl.hostname && (!parsedUrl.port || isValidPort(parsedUrl.port));
 }
 
-export function ensureOriginTrailingSlash (url: string) {
+export function ensureOriginTrailingSlash (url: string): string {
     // NOTE: If you request an url containing only port, host and protocol
     // then browser adds the trailing slash itself.
     const parsedUrl = parseUrl(url);
@@ -394,7 +414,7 @@ export function ensureOriginTrailingSlash (url: string) {
     return url;
 }
 
-export function omitDefaultPort (url: string) {
+export function omitDefaultPort (url: string): string {
     // NOTE: If you request an url containing default port
     // then browser remove this one itself.
     const parsedUrl = parseUrl(url);
@@ -412,7 +432,7 @@ export function omitDefaultPort (url: string) {
     return url;
 }
 
-export function prepareUrl (url: string) {
+export function prepareUrl (url: string): string {
     url = omitDefaultPort(url);
     url = ensureOriginTrailingSlash(url);
 

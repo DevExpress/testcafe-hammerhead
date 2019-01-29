@@ -51,19 +51,19 @@ export default class DomProcessor {
     }
 
     static isTagWithTargetAttr (tagName: string): boolean {
-        return tagName && TARGET_ATTR_TAGS.target.indexOf(tagName) > -1;
+        return !!tagName && TARGET_ATTR_TAGS.target.indexOf(tagName) > -1;
     }
 
     static isTagWithFormTargetAttr (tagName: string): boolean {
-        return tagName && TARGET_ATTR_TAGS.formtarget.indexOf(tagName) > -1;
+        return !!tagName && TARGET_ATTR_TAGS.formtarget.indexOf(tagName) > -1;
     }
 
     static isTagWithIntegrityAttr (tagName: string): boolean {
-        return tagName && INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
+        return !!tagName && INTEGRITY_ATTR_TAGS.indexOf(tagName) !== -1;
     }
 
     static isIframeFlagTag (tagName: string): boolean {
-        return tagName && IFRAME_FLAG_TAGS.indexOf(tagName) !== -1;
+        return !!tagName && IFRAME_FLAG_TAGS.indexOf(tagName) !== -1;
     }
 
     static isAddedAutocompleteAttr (attrName: string, storedAttrValue: string): boolean {
@@ -92,7 +92,7 @@ export default class DomProcessor {
     }
 
     static _isHtmlImportLink (tagName: string, relAttr: string): boolean {
-        return tagName && relAttr && tagName === 'link' && relAttr === 'import';
+        return !!tagName && !!relAttr && tagName === 'link' && relAttr === 'import';
     }
 
     _getRelAttribute (el: HTMLElement): string {
@@ -247,7 +247,7 @@ export default class DomProcessor {
     }
 
     // Utils
-    getElementResourceType (el: HTMLElement) {
+    getElementResourceType (el: HTMLElement): string {
         const tagName = this.adapter.getTagName(el);
 
         return urlUtils.getResourceTypeString({
@@ -600,12 +600,12 @@ export default class DomProcessor {
         }
     }
 
-    _processUrlJsAttr (el: HTMLElement, _urlReplacer, pattern): void {
+    _processUrlJsAttr (el: HTMLElement, _urlReplacer: object, pattern): void {
         if (DomProcessor.isJsProtocol(this.adapter.getAttr(el, pattern.urlAttr)))
             this._processJsAttr(el, pattern.urlAttr, { isJsProtocol: true, isEventAttr: false });
     }
 
-    _processSVGXLinkHrefAttr (el: HTMLElement, _urlReplacer, pattern): void {
+    _processSVGXLinkHrefAttr (el: HTMLElement, _urlReplacer: object, pattern): void {
         const attrValue = this.adapter.getAttr(el, pattern.urlAttr);
 
         if (urlUtils.HASH_RE.test(attrValue)) {

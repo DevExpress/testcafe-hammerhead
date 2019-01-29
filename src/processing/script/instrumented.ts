@@ -26,7 +26,7 @@ const INSTRUMENTED_PROPERTY_RE: RegExp = new RegExp(`^(${PROPERTIES.join('|')})$
 const reTest = RegExp.prototype.test;
 // NOTE: The Function.prototype.call method can also be removed.
 // But only one of the methods can be removed at a time.
-const test = (regexp, str) => regexp.test ? regexp.test(str) : reTest.call(regexp, str);
+const test = (regexp, str: string) => regexp.test ? regexp.test(str) : reTest.call(regexp, str);
 
 // NOTE: we can't use the map approach here, because
 // cases like `WRAPPABLE_METHOD['toString']` will fail.
