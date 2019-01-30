@@ -32,6 +32,18 @@ export function appendLine (lines: Array<any>, line: any) {
     lines.push(line);
 }
 
+export function startsWith (buffer: Buffer, searchBuffer: Buffer) {
+    if (buffer.length < searchBuffer.length)
+        return false;
+
+    for (let i = 0; i < searchBuffer.length; i++) {
+        if (buffer[i] !== searchBuffer[i])
+            return false;
+    }
+
+    return true;
+}
+
 export function toReadableStream (buffer) {
     const stream = new Readable();
 

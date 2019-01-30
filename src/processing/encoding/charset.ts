@@ -1,4 +1,5 @@
 import getEncodingName from './labels';
+import { startsWith } from '../../utils/buffer';
 
 const CHARSET_RE: RegExp      = /(?:^|;)\s*charset=(.+)(?:;|$)/i;
 const META_CHARSET_RE: RegExp = /charset ?= ?['"]?([^ ;"']*)['"]?/i;
@@ -64,7 +65,7 @@ export default class Charset {
 
     fromBOM (resBuf: Buffer) {
         for (let i = 0; i < CHARSET_BOM_LIST.length; i++) {
-            if (resBuf.includes(CHARSET_BOM_LIST[i].bom, 0))
+            if (startsWith(resBuf, CHARSET_BOM_LIST[i].bom))
                 return this.set(CHARSET_BOM_LIST[i].charset, CharsetPriority.BOM);
         }
 
