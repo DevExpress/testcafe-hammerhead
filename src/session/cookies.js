@@ -29,6 +29,9 @@ export default class Cookies {
                     return resultCookies;
 
                 cookie = Cookie.parse(cookieStr, { loose: true });
+
+                if (!cookie)
+                    return resultCookies;
             }
             else
                 cookie = cookieStr;

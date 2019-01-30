@@ -635,6 +635,16 @@ describe('Proxy', () => {
                 });
         });
 
+        it('Should ignore invalid cookies', () => {
+            session.cookies.setByServer('http://example.com', [
+                'test1=test1',
+                'test2=te\u0001st2',
+                'test3=te\x02st3'
+            ]);
+
+            expect(session.cookies.getClientString('http://example.com')).eql('test1=test1');
+        });
+
         describe('Server synchronization with client', () => {
             function replaceLastAccessedTime (cookie) {
                 return cookie.replace(/[a-z0-9]+=/, '%lastAccessed%=');
