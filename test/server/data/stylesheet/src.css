@@ -1,3 +1,4 @@
+/* # sourceMappingURL=test.css.map */
 span {
     background: url('http://some.url') no-repeat -6px -52px;
     width: 18px;
@@ -5,6 +6,7 @@ span {
     float: left;
     margin-top: 8px;
 }
+/* @ sourceMappingURL = test.css.map  */
 
 .content {
     margin: 0 auto;
@@ -30,3 +32,5 @@ select {
 #item {
     background-image:url('about:blank');
 }
+// # sourceMappingURL=test.css.map
+// @ sourceMappingURL = test.css.map
