@@ -8,7 +8,7 @@ import reEscape from '../utils/regexp-escape';
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import { isSpecialPage } from '../utils/url';
 
-const SOURCE_MAP_RE                       = /(\/\*+[\s\S]*?sourceMappingURL\s*=[\s\S]*?\*\/)|(\/\/.*?sourceMappingURL\s*=.*?[\r\n])/ig;
+const SOURCE_MAP_RE                       = /(?:\/\*[\s\S]*?sourceMappingURL\s*=[\s\S]*?\*\/)|(?:\/\/.*?sourceMappingURL\s*=.*?[\r\n])/ig;
 const CSS_URL_PROPERTY_VALUE_PATTERN      = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
 const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
 const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
