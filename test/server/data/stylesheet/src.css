@@ -1,4 +1,9 @@
-/* # sourceMappingURL=test.css.map */
+/*
+#
+    sourceMappingURL
+    =
+    test.css.map
+*/
 span {
     background: url('http://some.url') no-repeat -6px -52px;
     width: 18px;
@@ -6,13 +11,13 @@ span {
     float: left;
     margin-top: 8px;
 }
-/* @ sourceMappingURL = test.css.map  */
 
 .content {
     margin: 0 auto;
     color: #ffffff;
     font-family: Helvetica, Tahoma, Geneva, sans-serif;
 }
+/* @ sourceMappingURL=*/
 
 .copyright {
     padding-top: 26px;
@@ -32,5 +37,5 @@ select {
 #item {
     background-image:url('about:blank');
 }
-// # sourceMappingURL=test.css.map
-// @ sourceMappingURL = test.css.map
+// # sourceMappingURL = test.css.map
+//  @  sourceMappingURL=
