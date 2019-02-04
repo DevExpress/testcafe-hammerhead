@@ -2,7 +2,7 @@
 #
     sourceMappingURL
     =
-    test.css.map
+    https://example.com/test.css.map
 */
 span {
     background: url('http://some.url') no-repeat -6px -52px;
@@ -37,5 +37,5 @@ select {
 #item {
     background-image:url('about:blank');
 }
-// # sourceMappingURL = test.css.map
+// # sourceMappingURL = https://example.com/test.css.map
 //  @  sourceMappingURL=
