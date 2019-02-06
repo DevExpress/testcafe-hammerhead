@@ -28,6 +28,7 @@ const DestinationRequest                   = require('../../lib/request-pipeline
 const RequestPipelineContext               = require('../../lib/request-pipeline/context');
 const scriptHeader                         = require('../../lib/processing/script/header');
 const resourceProcessor                    = require('../../lib/processing/resources/');
+const gzip                                 = require('../../lib/utils/promisified-functions').gzip;
 const urlUtils                             = require('../../lib/utils/url');
 
 const EMPTY_PAGE_MARKUP = '<html></html>';
@@ -400,6 +401,17 @@ describe('Proxy', () => {
             }
 
             res.json(result);
+        });
+
+        app.get('/GH-1915', (req, res) => {
+            gzip('<h1>Compressible response content.</h1>')
+                .then(data => {
+                    res
+                        .status(200)
+                        .set('content-type', 'text/html')
+                        .set('content-encoding', 'gzip')
+                        .end(data.slice(0, data.length - 8));
+                });
         });
 
         destServer = app.listen(2000);
@@ -3703,6 +3715,21 @@ describe('Proxy', () => {
                     expect(res.headers).to.not.have.property('x-frame-options');
                     expect(res.headers).to.not.have.property('content-security-policy');
                     expect(res.headers).to.have.property('content-type');
+                });
+        });
+
+        it('More lenient gzip decompression (GH-1915)', () => {
+            const options = {
+                url:     proxy.openSession('http://127.0.0.1:2000/GH-1915', session),
+                gzip:    true,
+                headers: { accept: 'text/html' }
+            };
+
+            session.handlePageError = (ctx, err) => expect(err).eql(null);
+
+            return request(options)
+                .then(body => {
+                    expect(body).contains('<h1>Compressible response content.</h1>');
                 });
         });
     });

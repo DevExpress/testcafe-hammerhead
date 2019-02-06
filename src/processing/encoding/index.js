@@ -1,3 +1,4 @@
+import zlib from 'zlib';
 import { gzip, deflate, gunzip, inflate, inflateRaw } from '../../utils/promisified-functions';
 import charsetEncoder from 'iconv-lite';
 
@@ -20,8 +21,15 @@ async function inflateWithFallback (data) {
 }
 
 export async function decodeContent (content, encoding, charset) {
-    if (encoding === GZIP_CONTENT_ENCODING)
-        content = await gunzip(content);
+    if (encoding === GZIP_CONTENT_ENCODING) {
+        // NOTE: https://github.com/request/request/pull/2492/files
+        // Be more lenient with decoding compressed responses, since (very rarely)
+        // servers send slightly invalid gzip responses that are still accepted
+        // by common browsers.
+        // Always using Z_SYNC_FLUSH is what cURL does.
+        // GH-1915
+        content = await gunzip(content, { flush: zlib.Z_SYNC_FLUSH, finishFlush: zlib.Z_SYNC_FLUSH });
+    }
 
     else if (encoding === DEFLATE_CONTENT_ENCODING)
         content = await inflateWithFallback(content);
