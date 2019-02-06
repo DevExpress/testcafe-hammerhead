@@ -55,6 +55,18 @@ test('cssText', function () {
     strictEqual(div.style.cssText.indexOf(proxyUrl), -1);
 });
 
+test('insertRule', function () {
+    var style    = document.createElement('style');
+    var url      = '/image.png';
+    var proxyUrl = urlUtils.getProxyUrl(url);
+
+    document.head.appendChild(style);
+
+    document.styleSheets[0].insertRule('div { background-image:url("' + url + '"); }');
+
+    strictEqual(document.styleSheets[0].rules[0].cssText, 'div { background-image: ' + 'url("' + proxyUrl + '")' + '; }');
+});
+
 test('url properties', function () {
     var div      = document.createElement('div');
     var url      = 'http://some.domain.com/image.png';
