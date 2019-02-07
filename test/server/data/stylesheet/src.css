@@ -1,3 +1,9 @@
+/*
+#
+    sourceMappingURL
+    =
+    https://example.com/test.css.map
+*/
 span {
     background: url('http://some.url') no-repeat -6px -52px;
     width: 18px;
@@ -11,6 +17,7 @@ span {
     color: #ffffff;
     font-family: Helvetica, Tahoma, Geneva, sans-serif;
 }
+/* @ sourceMappingURL=*/
 
 .copyright {
     padding-top: 26px;
@@ -30,3 +37,5 @@ select {
 #item {
     background-image:url('about:blank');
 }
+// # sourceMappingURL = https://example.com/test.css.map
+//  @  sourceMappingURL=

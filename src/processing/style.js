@@ -8,7 +8,7 @@ import reEscape from '../utils/regexp-escape';
 import INTERNAL_ATTRS from '../processing/dom/internal-attributes';
 import { isSpecialPage } from '../utils/url';
 
-const SOURCE_MAP_RE                       = /#\s*sourceMappingURL\s*=\s*[^\s]+(\s|\*\/)/i;
+const SOURCE_MAP_RE                       = /(?:\/\*\s*(?:#|@)\s*sourceMappingURL\s*=[\s\S]*?\*\/)|(?:\/\/[\t ]*(?:#|@)[\t ]*sourceMappingURL[\t ]*=.*)/ig;
 const CSS_URL_PROPERTY_VALUE_PATTERN      = /(url\s*\(\s*)(?:(')([^\s']*)(')|(")([^\s"]*)(")|([^\s)]*))(\s*\))|(@import\s+)(?:(')([^\s']*)(')|(")([^\s"]*)("))/g;
 const STYLESHEET_PROCESSING_START_COMMENT = '/*hammerhead|stylesheet|start*/';
 const STYLESHEET_PROCESSING_END_COMMENT   = '/*hammerhead|stylesheet|end*/';
@@ -34,8 +34,8 @@ class StyleProcessor {
         // NOTE: Replace the :hover pseudo-class.
         css = css.replace(HOVER_PSEUDO_CLASS_RE, '[' + INTERNAL_ATTRS.hoverPseudoClass + ']$1');
 
-        // NOTE: Remove the ‘source map’ directive.
-        css = css.replace(SOURCE_MAP_RE, '$1');
+        // NOTE: Remove all 'source map' directives.
+        css = css.replace(SOURCE_MAP_RE, '');
 
         // NOTE: Replace URLs in CSS rules with proxy URLs.
         return prefix + this._replaceStylsheetUrls(css, urlReplacer) + postfix;
