@@ -4,7 +4,7 @@ import EventEmitter from './utils/event-emitter';
 import XhrSandbox from './sandbox/xhr';
 import settings from './settings';
 import transport from './transport';
-import * as JSON from './json';
+import * as JSON from 'json-hammerhead';
 import * as browserUtils from './utils/browser';
 import * as domUtils from './utils/dom';
 import * as eventUtils from './utils/event';
@@ -23,7 +23,6 @@ import {
     SCRIPT_PROCESSING_END_COMMENT
 } from '../processing/script/header';
 import { STYLESHEET_PROCESSING_START_COMMENT, STYLESHEET_PROCESSING_END_COMMENT } from '../processing/style';
-import isJQueryObj from './utils/is-jquery-object';
 import extend from './utils/extend';
 import INTERNAL_PROPS from '../processing/dom/internal-properties';
 import PageNavigationWatch from './page-navigation-watch';
@@ -107,7 +106,6 @@ class Hammerhead {
             style:            styleUtils,
             types:            typeUtils,
             trim:             trim,
-            isJQueryObj:      isJQueryObj,
             extend:           extend,
             html:             htmlUtils,
             url:              urlUtils,

@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 import { createComputedPropertySetWrapper } from '../node-builder';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 import { shouldInstrumentProperty } from '../instrumented';
 
 // Transform:

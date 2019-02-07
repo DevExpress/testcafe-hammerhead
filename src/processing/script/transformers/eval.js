@@ -5,7 +5,7 @@
 
 import { createProcessScriptMethCall } from '../node-builder';
 import replaceNode from './replace-node';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 
 // Transform:
 // eval(script); --> eval(__proc$Script(script));

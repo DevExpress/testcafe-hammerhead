@@ -3,7 +3,7 @@
 // Do not use any browser or node-specific API!
 // -------------------------------------------------------------
 
-import { Syntax } from './tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 import INTERNAL_LITERAL from './internal-literal';
 import INSTRUCTION from './instruction';
 

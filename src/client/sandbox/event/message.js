@@ -3,7 +3,7 @@ import SandboxBase from '../base';
 import nativeMethods from '../native-methods';
 import * as destLocation from '../../utils/destination-location';
 import { formatUrl, getCrossDomainProxyUrl, isSupportedProtocol } from '../../utils/url';
-import { parse as parseJSON, stringify as stringifyJSON } from '../../json';
+import { parse as parseJSON, stringify as stringifyJSON } from 'json-hammerhead';
 import { isCrossDomainWindows, getTopSameDomainWindow, isWindow, isMessageEvent } from '../../utils/dom';
 import { callEventListener } from '../../utils/event';
 import fastApply from '../../utils/fast-apply';

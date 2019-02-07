@@ -2,7 +2,7 @@ import EventEmitter from '../../utils/event-emitter';
 import { isIE } from '../../utils/browser';
 import { parseProxyUrl } from '../../utils/url';
 import * as destLocation from '../../utils/destination-location';
-import * as JSON from '../../json';
+import * as JSON from 'json-hammerhead';
 import nativeMethods from '../native-methods';
 
 const STORAGES_SANDBOX_TEMP = 'hammerhead|storages-sandbox-temp';

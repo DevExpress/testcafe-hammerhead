@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 import { createStringLiteral, createMethCallWrapper } from '../node-builder';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 import { shouldInstrumentMethod } from '../instrumented';
 
 // Transform:

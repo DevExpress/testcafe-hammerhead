@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 import { createExpandedConcatOperation } from '../node-builder';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 
 // Transform:
 // val1 += val2

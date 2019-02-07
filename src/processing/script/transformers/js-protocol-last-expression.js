@@ -4,7 +4,7 @@
 // -------------------------------------------------------------
 
 import { createHtmlProcessorWrapper } from '../node-builder';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 
 // Transform:
 // x = 5; "hello" --> x = 5; parent.__proc$Html(window, "hello")

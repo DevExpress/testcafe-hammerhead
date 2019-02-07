@@ -5,7 +5,7 @@ import nativeMethods from '../sandbox/native-methods';
 import { isJsProtocol } from '../../processing/dom';
 import { isShadowUIElement, isIframeWithoutSrc, getTagName } from '../utils/dom';
 import { isFirefox, isWebKit, isIE } from '../utils/browser';
-import * as JSON from '../json';
+import * as JSON from 'json-hammerhead';
 
 const IFRAME_WINDOW_INITED = 'hammerhead|iframe-window-inited';
 

@@ -5,7 +5,7 @@
 
 import INSTRUCTION from '../instruction';
 import { createGetPostMessageMethCall } from '../node-builder';
-import { Syntax } from '../tools/esotope';
+import { Syntax } from 'esotope-hammerhead';
 
 // Transform:
 // const foo = postMessage; foo = postMessage; { _postMessage: postMessage }; return postMessage;
