@@ -41,6 +41,7 @@
     "webauth": "^1.1.0"
   },
   "devDependencies": {
+    "@types/node": "^10.12.18",
     "babel-core": "^6.4.0",
     "babel-eslint": "8.2.1",
     "babel-plugin-add-module-exports": "^0.1.2",
@@ -55,6 +56,7 @@
     "endpoint-utils": "^1.0.1",
     "eslint": "4.17.0",
     "eslint-plugin-hammerhead": "0.2.0",
+    "eslint-plugin-typescript": "^0.14.0",
     "express": "4.16.3",
     "express-ntlm": "2.1.5",
     "gulp": "^4.0.0",
@@ -68,6 +70,7 @@
     "gulp-rename": "^1.2.2",
     "gulp-run-command": "0.0.9",
     "gulp-step": "^1.0.1",
+    "gulp-typescript": "^5.0.0",
     "gulp-uglify": "^1.0.0",
     "gulp-util": "3.0.6",
     "gulp-webmake": "0.0.4",
@@ -77,6 +80,8 @@
     "request": "^2.34.0",
     "request-promise-native": "^1.0.5",
     "tmp": "0.0.26",
+    "typescript": "~3.1.1",
+    "typescript-eslint-parser": "^21.0.2",
     "webmake": "0.3.42",
     "ws": "^5.2.0"
   },

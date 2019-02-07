@@ -5,3 +5,9 @@ node_modules
 lib
 package-lock.json
 
+# Temporary (TypeScript migration)
+**/*.js
+!src/client/**/*.js
+!src/processing/script/tools/**/*.js
+!src/test
+!src/Gulpfile.js

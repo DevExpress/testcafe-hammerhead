@@ -1,5 +1,6 @@
 const babel          = require('babel-core');
 const gulpBabel      = require('gulp-babel');
+const gulpTypeScript = require('gulp-typescript');
 const del            = require('del');
 const eslint         = require('gulp-eslint');
 const fs             = require('fs');
@@ -17,8 +18,6 @@ const gulpRunCommand = require('gulp-run-command').default;
 const clone          = require('gulp-clone');
 const mergeStreams   = require('merge-stream');
 const path           = require('path');
-
-const selfSignedCertificate = require('openssl-self-signed-certificate');
 
 gulpStep.install();
 
@@ -151,9 +150,73 @@ gulp.step('client-scripts-processing', () => {
 gulp.step('client-scripts', gulp.series('client-scripts-bundle', 'client-scripts-processing'));
 
 gulp.step('server-scripts', () => {
-    return gulp.src(['./src/**/*.js', '!./src/client/**/*.js'])
+    const tsConfig = gulpTypeScript.createProject('tsconfig.json');
+    const tsFiles  = gulp.src(['./src/**/*.ts']).pipe(tsConfig());
+    const jsTools  = gulp.src(['./src/**/*.js', '!./src/client/**/*.js']);
+
+    return mergeStreams(tsFiles, jsTools)
         .pipe(gulpBabel())
         .pipe(gulp.dest('lib/'));
+});
+
+gulp.step('shared-scripts', () => {
+    // NOTE: It's a temporary solution. We just compile the shared code files and leave them in the same folder
+    const tsConfig = gulpTypeScript.createProject('tsconfig.json');
+
+    const sharedFiles = [
+        './src/utils/string-trim.ts',
+        './src/processing/script/header.ts',
+        './src/processing/style.ts',
+        './src/processing/script/index.ts',
+        './src/processing/dom/internal-properties.ts',
+        './src/request-pipeline/xhr/headers.ts',
+        './src/request-pipeline/xhr/authorization.ts',
+        './src/request-pipeline/xhr/same-origin-check-failed-status-code.ts',
+        './src/utils/regexp-escape.ts',
+        './src/processing/script/instruction.ts',
+        './src/processing/dom/internal-attributes.ts',
+        './src/utils/url.ts',
+        './src/shadow-ui/class-name.ts',
+        './src/processing/dom/attributes.ts',
+        './src/utils/create-self-removing-script.ts',
+        './src/processing/dom/index.ts',
+        './src/processing/script/transform.ts',
+        './src/utils/get-bom.ts',
+        './src/processing/script/transformers/replace-node.ts',
+        './src/processing/dom/base-dom-adapter.ts',
+        './src/processing/dom/namespaces.ts',
+        './src/processing/script/transformers/index.ts',
+        './src/utils/get-storage-key.ts',
+        './src/session/cookie-limit.ts',
+        './src/utils/cookie.ts',
+        './src/processing/script/instrumented.ts',
+        './src/session/command.ts',
+        './src/processing/script/transformers/computed-property-get.ts',
+        './src/processing/script/transformers/computed-property-set.ts',
+        './src/processing/script/transformers/concat-operator.ts',
+        './src/processing/script/transformers/eval.ts',
+        './src/processing/script/transformers/eval-bind.ts',
+        './src/processing/script/transformers/eval-call-apply.ts',
+        './src/processing/script/transformers/eval-get.ts',
+        './src/processing/script/transformers/window-eval-get.ts',
+        './src/processing/script/transformers/post-message-get.ts',
+        './src/processing/script/transformers/window-post-message-get.ts',
+        './src/processing/script/transformers/post-message-call-apply-bind.ts',
+        './src/processing/script/transformers/for-in.ts',
+        './src/processing/script/transformers/location-get.ts',
+        './src/processing/script/transformers/location-property-get.ts',
+        './src/processing/script/transformers/location-set.ts',
+        './src/processing/script/transformers/property-get.ts',
+        './src/processing/script/transformers/property-set.ts',
+        './src/processing/script/transformers/method-call.ts',
+        './src/processing/script/transformers/js-protocol-last-expression.ts',
+        './src/processing/script/node-builder.ts',
+        './src/processing/script/internal-literal.ts'
+    ];
+
+    return gulp.src(sharedFiles)
+        .pipe(tsConfig())
+        .pipe(gulp.dest(file => file.base));
 });
 
 gulp.step('templates', () => {
@@ -162,10 +225,10 @@ gulp.step('templates', () => {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.task('lint', () => {
+gulp.step('lint-js', () => {
     return gulp
         .src([
-            './src/**/*.js',
+            './src/client/**/*.js',
             './test/server/*.js',
             './test/client/fixtures/**/*.js',
             'Gulpfile.js'
@@ -175,9 +238,19 @@ gulp.task('lint', () => {
         .pipe(eslint.failAfterError());
 });
 
+gulp.step('lint-ts', () => {
+    return gulp.src('./src/**/*.ts')
+        .pipe(eslint('.eslintrc-ts'))
+        .pipe(eslint.format())
+        .pipe(eslint.failAfterError());
+});
+
+gulp.task('lint', gulp.parallel('lint-js', 'lint-ts'));
+
 gulp.task('build',
     gulp.series(
         'clean',
+        'shared-scripts',
         gulp.parallel(
             'client-scripts',
             'server-scripts',
@@ -233,6 +306,8 @@ gulp.step('http-playground-server', () => {
 gulp.task('http-playground', gulp.series('build', 'http-playground-server'));
 
 gulp.step('https-playground-server', () => {
+    const selfSignedCertificate = require('openssl-self-signed-certificate');
+
     require('./test/playground/server.js').start({
         key:  selfSignedCertificate.key,
         cert: selfSignedCertificate.cert
