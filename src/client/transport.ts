@@ -8,9 +8,13 @@ import noop from './utils/noop';
 import Promise from 'pinkie';
 import { isIframeWithoutSrc, getFrameElement } from './utils/dom';
 
-const SERVICE_MESSAGES_WAITING_INTERVAL = 50;
+const SERVICE_MESSAGES_WAITING_INTERVAL: number = 50;
 
 class Transport {
+    msgQueue: any;
+    activeServiceMessagesCounter: number;
+    shouldAddRefferer: boolean;
+
     constructor () {
         this.msgQueue                     = {};
         this.activeServiceMessagesCounter = 0;
@@ -20,7 +24,7 @@ class Transport {
         this.shouldAddRefferer = frameElement && isIframeWithoutSrc(frameElement);
     }
 
-    static _storeMessage (msg) {
+    static _storeMessage (msg): void {
         const storedMessages = Transport._getStoredMessages();
 
         storedMessages.push(msg);
@@ -28,13 +32,13 @@ class Transport {
         nativeMethods.winLocalStorageGetter.call(window).setItem(settings.get().sessionId, stringifyJSON(storedMessages));
     }
 
-    static _getStoredMessages () {
+    static _getStoredMessages (): Array<any> {
         const storedMessagesStr = nativeMethods.winLocalStorageGetter.call(window).getItem(settings.get().sessionId);
 
         return storedMessagesStr ? parseJSON(storedMessagesStr) : [];
     }
 
-    static _removeMessageFromStore (cmd) {
+    static _removeMessageFromStore (cmd): void {
         const messages = Transport._getStoredMessages();
 
         for (let i = 0; i < messages.length; i++) {
@@ -49,13 +53,13 @@ class Transport {
     }
 
     // TODO: Rewrite this using Promise after getting rid of syncServiceMsg.
-    _performRequest (msg, callback) {
+    _performRequest (msg, callback): void {
         msg.sessionId = settings.get().sessionId;
 
         if (this.shouldAddRefferer)
             msg.referer = settings.get().referer;
 
-        const sendMsg = forced => {
+        const sendMsg = (forced?: boolean) => {
             this.activeServiceMessagesCounter++;
 
             const isAsyncRequest = !forced;
@@ -124,7 +128,7 @@ class Transport {
         sendMsg();
     }
 
-    waitForServiceMessagesCompleted (timeout) {
+    waitForServiceMessagesCompleted (timeout: number): Promise<void> {
         return new Promise(resolve => {
             if (!this.activeServiceMessagesCounter) {
                 resolve();
@@ -147,7 +151,7 @@ class Transport {
         });
     }
 
-    asyncServiceMsg (msg) {
+    asyncServiceMsg (msg): Promise<any> {
         return new Promise((resolve, reject) => {
             this._performRequest(msg, (err, data) => {
                 if (!err)
@@ -158,7 +162,7 @@ class Transport {
         });
     }
 
-    batchUpdate () {
+    batchUpdate (): Promise<any> {
         const storedMessages = Transport._getStoredMessages();
 
         if (storedMessages.length) {
@@ -174,7 +178,7 @@ class Transport {
         return Promise.resolve();
     }
 
-    queuedAsyncServiceMsg (msg) {
+    queuedAsyncServiceMsg (msg): Promise<any> {
         if (!this.msgQueue[msg.cmd])
             this.msgQueue[msg.cmd] = Promise.resolve();
 

@@ -109,6 +109,14 @@ gulp.task('clean', () => {
     return del(['./lib']);
 });
 
+gulp.step('client-scripts-transpile', () => {
+    const tsConfig = gulpTypeScript.createProject('tsconfig.json');
+
+    return gulp.src(['./src/client/**/*.ts'])
+        .pipe(tsConfig())
+        .pipe(gulp.dest(file => file.base));
+});
+
 gulp.step('client-scripts-bundle', () => {
     return gulp.src('./src/client/index.js')
         .pipe(webmake({
@@ -147,7 +155,7 @@ gulp.step('client-scripts-processing', () => {
         .pipe(gulp.dest('./lib/client'));
 });
 
-gulp.step('client-scripts', gulp.series('client-scripts-bundle', 'client-scripts-processing'));
+gulp.step('client-scripts', gulp.series('client-scripts-transpile', 'client-scripts-bundle', 'client-scripts-processing'));
 
 gulp.step('server-scripts', () => {
     const tsConfig = gulpTypeScript.createProject('tsconfig.json');
@@ -226,13 +234,20 @@ gulp.step('templates', () => {
 });
 
 gulp.step('lint-js', () => {
+    // NOTE: remove this after migration will be completed
+    const migratedToTypeScriptClientFiles = [
+        '!./src/client/transport.js',
+        '!./src/client/page-navigation-watch.js',
+        '!./src/client/settings.js'
+    ];
+
     return gulp
         .src([
             './src/client/**/*.js',
             './test/server/*.js',
             './test/client/fixtures/**/*.js',
             'Gulpfile.js'
-        ])
+        ].concat(migratedToTypeScriptClientFiles))
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
