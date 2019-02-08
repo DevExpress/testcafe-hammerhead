@@ -3,11 +3,21 @@ import { parseProxyUrl } from '../utils/url';
 import { isChangedOnlyHash } from './utils/url';
 import { isShadowUIElement, isAnchorElement, isFormElement, closest } from './utils/dom';
 import * as windowsStorage from './sandbox/windows-storage';
-import { getStoredAttrName, isJsProtocol } from '../processing/dom';
+import DomProcessor from '../processing/dom';
 import nextTick from './utils/next-tick';
 import nativeMethods from './sandbox/native-methods';
+import INTERNAL_PROPS from '../processing/dom/internal-properties';
+
 
 export default class PageNavigationWatch extends EventEmiter {
+    PAGE_NAVIGATION_TRIGGERED_EVENT: string = 'hammerhead|event|page-navigation-triggered';
+
+    lastLocationValue: string;
+
+    codeInstrumentation: any;
+    eventSandbox: any;
+    elementSandbox: any;
+
     constructor (eventSandbox, codeInstrumentation, elementSandbox) {
         super();
 
@@ -20,7 +30,7 @@ export default class PageNavigationWatch extends EventEmiter {
         this.elementSandbox      = elementSandbox;
     }
 
-    _formWatch (elementSandbox, eventSandbox) {
+    _formWatch (elementSandbox, eventSandbox): void {
         const onFormSubmit = form => {
             const targetWindow = PageNavigationWatch._getTargetWindow(form);
 
@@ -56,8 +66,8 @@ export default class PageNavigationWatch extends EventEmiter {
         });
     }
 
-    static _getTargetWindow (el) {
-        const target = nativeMethods.getAttribute.call(el, getStoredAttrName('target')) ||
+    static _getTargetWindow (el): Window {
+        const target = nativeMethods.getAttribute.call(el, DomProcessor.getStoredAttrName('target')) ||
                        nativeMethods.getAttribute.call(el, 'target') ||
                        '_self';
 
@@ -73,7 +83,7 @@ export default class PageNavigationWatch extends EventEmiter {
         }
     }
 
-    _linkWatch (eventSandbox) {
+    _linkWatch (eventSandbox): void {
         eventSandbox.listeners.initElementListening(window, ['click']);
         eventSandbox.listeners.addInternalEventListener(window, ['click'], e => {
             const link = isAnchorElement(e.target) ? e.target : closest(e.target, 'a');
@@ -102,36 +112,35 @@ export default class PageNavigationWatch extends EventEmiter {
         });
     }
 
-    _locationWatch (codeInstrumentation) {
+    _locationWatch (codeInstrumentation): void {
         const locationAccessorsInstrumentation = codeInstrumentation.locationAccessorsInstrumentation;
         const locationChangedHandler           = newLocation => this.onNavigationTriggered(newLocation);
 
         locationAccessorsInstrumentation.on(locationAccessorsInstrumentation.LOCATION_CHANGED_EVENT, locationChangedHandler);
     }
 
-    static _onNavigationTriggeredInWindow (win, url) {
-
+    static _onNavigationTriggeredInWindow (win: Window, url: string): void {
         try {
-            win['%hammerhead%'].pageNavigationWatch.onNavigationTriggered(url);
+            win[INTERNAL_PROPS.hammerhead].pageNavigationWatch.onNavigationTriggered(url);
         }
         // eslint-disable-next-line no-empty
         catch (e) {
         }
     }
 
-    onNavigationTriggered (url) {
+    onNavigationTriggered (url: string): void {
         const currentLocation = this.lastLocationValue;
 
         this.lastLocationValue = window.location.toString();
 
         if (url !== currentLocation && (url.charAt(0) === '#' || isChangedOnlyHash(currentLocation, url)) ||
-            isJsProtocol(url))
+            DomProcessor.isJsProtocol(url))
             return;
 
         this.emit(this.PAGE_NAVIGATION_TRIGGERED_EVENT, parseProxyUrl(url).destUrl);
     }
 
-    start () {
+    start (): void {
         this._locationWatch(this.codeInstrumentation);
         this._linkWatch(this.eventSandbox);
         this._formWatch(this.elementSandbox, this.eventSandbox);
