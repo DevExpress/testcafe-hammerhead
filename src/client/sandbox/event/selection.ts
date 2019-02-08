@@ -8,6 +8,13 @@ import INTERNAL_PROPS from '../../../processing/dom/internal-properties';
 const browserResetInputSelection = browserUtils.isFirefox && browserUtils.version > 50;
 
 export default class Selection {
+    focusBlurSandbox: any;
+    timersSandbox: any;
+    listeners: any;
+    eventSimulator: any;
+    setSelectionRangeWrapper: any;
+    selectWrapper: any;
+
     constructor (eventSandbox) {
         this.focusBlurSandbox = eventSandbox.focusBlur;
         this.timersSandbox    = eventSandbox.timers;
@@ -186,7 +193,7 @@ export default class Selection {
         return selection;
     }
 
-    wrapSetterSelection (el, selectionSetter, needFocus, isContentEditable) {
+    wrapSetterSelection (el, selectionSetter, needFocus, isContentEditable?: boolean) {
         const curDocument = domUtils.findDocument(el);
         let activeElement = domUtils.getActiveElement(curDocument);
         let result        = null;

@@ -6,6 +6,12 @@ const SYNC_COOKIE_START_CMD = 'hammerhead|command|sync-cookie-start';
 const SYNC_COOKIE_DONE_CMD  = 'hammerhead|command|sync-cookie-done';
 
 export default class WindowSync {
+    win: any;
+    cookieSandbox: any;
+    messageSandbox: any;
+    messageIdGenerator: any;
+    resolversMap: any;
+
     constructor (win, cookieSandbox, messageSandbox) {
         this.win            = win;
         this.cookieSandbox  = cookieSandbox;

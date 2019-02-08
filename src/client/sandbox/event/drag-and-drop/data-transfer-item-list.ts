@@ -33,6 +33,8 @@ function processFormat (format) {
 
 // https://html.spec.whatwg.org/multipage/interaction.html#datatransferitemlist
 export default class DataTransferItemList {
+    getAndHideInternalMethods: any;
+
     constructor (dataStore) {
         // Internals
         let items     = [];
@@ -53,7 +55,7 @@ export default class DataTransferItemList {
             while (items[idx] !== void 0 || this[idx] !== void 0) {
                 const item = items[idx];
 
-                nativeMethods.objectDefineProperty.call(window.Object, this, idx, {
+                nativeMethods.objectDefineProperty(this, idx, {
                     enumerable:   item !== void 0,
                     configurable: true,
                     value:        item
@@ -133,13 +135,13 @@ export default class DataTransferItemList {
         };
 
         // API
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'length', {
+        nativeMethods.objectDefineProperty(this, 'length', {
             enumerable: true,
 
             get: () => items.length
         });
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'remove', {
+        nativeMethods.objectDefineProperty(this, 'remove', {
             configurable: true,
             enumerable:   true,
 
@@ -155,7 +157,7 @@ export default class DataTransferItemList {
             }
         });
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'clear', {
+        nativeMethods.objectDefineProperty(this, 'clear', {
             configurable: true,
             enumerable:   true,
 
@@ -171,7 +173,7 @@ export default class DataTransferItemList {
             }
         });
 
-        nativeMethods.objectDefineProperty.call(window.Object, this, 'add', {
+        nativeMethods.objectDefineProperty(this, 'add', {
             configurable: true,
             enumerable:   true,
 

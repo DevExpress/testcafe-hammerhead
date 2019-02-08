@@ -5,12 +5,19 @@ import { isFirefox, isIOS } from '../../utils/browser';
 import { overrideDescriptor } from '../../utils/property-overriding';
 
 export default class UnloadSandbox extends SandboxBase {
+    BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-unload';
+    BEFORE_BEFORE_UNLOAD_EVENT: string = 'hammerhead|event|before-before-unload';
+    UNLOAD_EVENT: string = 'hammerhead|event|unload';
+
+    listeners: any;
+
+    storedBeforeUnloadReturnValue: string;
+    prevented: boolean;
+    storedBeforeUnloadHandler: any;
+    beforeUnloadEventName: string;
+
     constructor (listeners) {
         super();
-
-        this.BEFORE_UNLOAD_EVENT        = 'hammerhead|event|before-unload';
-        this.BEFORE_BEFORE_UNLOAD_EVENT = 'hammerhead|event|before-before-unload';
-        this.UNLOAD_EVENT               = 'hammerhead|event|unload';
 
         this.listeners = listeners;
 
@@ -20,18 +27,24 @@ export default class UnloadSandbox extends SandboxBase {
 
         // NOTE: the ios devices do not support beforeunload event
         // https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW5
-        this.beforeUnloadEventName = isIOS ? 'pagehide' : 'beforeunload';
+        this.beforeUnloadEventName = UnloadSandbox._getBeforeUnloadEventName();
+    }
+
+    static _getBeforeUnloadEventName (): string {
+        // NOTE: the ios devices do not support beforeunload event
+        // https://developer.apple.com/library/ios/documentation/AppleApplications/Reference/SafariWebContent/HandlingEvents/HandlingEvents.html#//apple_ref/doc/uid/TP40006511-SW5
+        return isIOS ? 'pagehide' : 'beforeunload';
     }
 
     // NOTE: This handler has to be called after others.
-    _emitBeforeUnloadEvent () {
+    _emitBeforeUnloadEvent (): void {
         this.emit(this.BEFORE_UNLOAD_EVENT, {
             returnValue: this.storedBeforeUnloadReturnValue,
             prevented:   this.prevented
         });
     }
 
-    _onBeforeUnloadHandler (e, originListener) {
+    _onBeforeUnloadHandler (e, originListener): void {
         let eventObj = e;
 
         // NOTE: 'window.event' required for safari 9.0 because it calls the handler without 'e' (GH-698)
@@ -40,7 +53,7 @@ export default class UnloadSandbox extends SandboxBase {
 
         if (eventObj) {
             // NOTE: Overriding the returnValue property to prevent a native dialog.
-            nativeMethods.objectDefineProperty.call(this.window.Object, eventObj, 'returnValue', createPropertyDesc({
+            nativeMethods.objectDefineProperty(eventObj, 'returnValue', createPropertyDesc({
                 get: () => this.storedBeforeUnloadReturnValue,
                 set: value => {
                     // NOTE: In all browsers, if the property is set to any value, unload is prevented. In FireFox,
@@ -51,7 +64,7 @@ export default class UnloadSandbox extends SandboxBase {
                 }
             }));
 
-            nativeMethods.objectDefineProperty.call(this.window.Object, eventObj, 'preventDefault', createPropertyDesc({
+            nativeMethods.objectDefineProperty(eventObj, 'preventDefault', createPropertyDesc({
                 get: () => () => {
                     this.prevented = true;
 

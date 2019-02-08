@@ -4,6 +4,12 @@ const WINDOW_ACTIVATED_EVENT   = 'hammerhead|event|window-activated';
 const WINDOW_DEACTIVATED_EVENT = 'hammerhead|event|window-deactivated';
 
 export default class ActiveWindowTracker extends SandboxBase {
+    messageSandbox: any;
+
+    isIframeWindow: boolean;
+    activeWindow: Window;
+    isActive: boolean;
+
     constructor (messageSandbox) {
         super();
 
@@ -14,7 +20,7 @@ export default class ActiveWindowTracker extends SandboxBase {
         this.isActive       = null;
     }
 
-    _notifyPrevActiveWindow () {
+    _notifyPrevActiveWindow (): void {
         try {
             if (this.activeWindow.top && this.activeWindow !== this.activeWindow.top) {
                 this.messageSandbox.sendServiceMsg({
@@ -27,7 +33,7 @@ export default class ActiveWindowTracker extends SandboxBase {
         }
     }
 
-    attach (window) {
+    attach (window): void {
         super.attach(window);
 
         this.isIframeWindow = window !== window.top;
@@ -46,11 +52,11 @@ export default class ActiveWindowTracker extends SandboxBase {
         });
     }
 
-    isCurrentWindowActive () {
+    isCurrentWindowActive (): boolean {
         return this.isActive;
     }
 
-    makeCurrentWindowActive () {
+    makeCurrentWindowActive (): void {
         this.isActive = true;
 
         if (!this.isIframeWindow) {
