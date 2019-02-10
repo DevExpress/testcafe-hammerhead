@@ -62,9 +62,11 @@ test('insertRule', function () {
 
     document.head.appendChild(style);
 
-    document.styleSheets[0].insertRule('div { background-image:url("' + url + '"); }');
+    var actualRuleIndex = document.styleSheets[0].insertRule('div { background-image:url("' + url + '"); }');
+    var actualRule = document.styleSheets[0].rules[0].cssText;
 
-    strictEqual(document.styleSheets[0].rules[0].cssText, 'div { background-image: ' + 'url("' + proxyUrl + '")' + '; }');
+    strictEqual(actualRuleIndex, 0);
+    strictEqual(actualRule, 'div { background-image: ' + 'url("' + proxyUrl + '")' + '; }');
 });
 
 test('url properties', function () {

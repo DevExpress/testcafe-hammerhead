@@ -225,9 +225,10 @@ export default class StyleSandbox extends SandboxBase {
             }
         });
 
-        window.CSSStyleSheet.prototype.insertRule = function (value, index) {
-            value = styleProcessor.process(value, getProxyUrl);
-            nativeMethods.styleSheetsInsertRule.call(this, value, index);
+        window.CSSStyleSheet.prototype.insertRule = function (rule, index) {
+            const newRule = styleProcessor.process(rule, getProxyUrl);
+
+            return nativeMethods.styleSheetInsertRule.call(this, newRule, index);
         };
 
         window.CSSStyleDeclaration.prototype.getPropertyValue = function (...args) {
