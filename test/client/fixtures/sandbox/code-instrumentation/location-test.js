@@ -461,6 +461,33 @@ test('should omit the default port on page navigation', function () {
     hammerhead.win = storedWindow;
 });
 
+test('"isLocation" for window.location and iframe.contentWindow.location', function () {
+    var getLocationScript = processScript('(function getLocation () {' +
+        'var location = window.location;' +
+        'return location;' +
+        '})();');
+
+    var windowLocation = eval(getLocationScript);
+
+    ok(windowLocation instanceof LocationWrapper);
+
+    return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/simple-page.html') })
+        .then(function (crossDomainIframe) {
+            window.testIframeLocation = crossDomainIframe.contentWindow.location;
+
+            var getIframeLocationScript = processScript('(function getIframeLocation () {' +
+                'var location = window.testIframeLocation;' +
+                'return location;' +
+                '})();');
+
+            var iframeLocation = eval(getIframeLocationScript);
+
+            ok(iframeLocation instanceof LocationWrapper);
+
+            delete window.testIframeLocation;
+        });
+});
+
 if (window.location.ancestorOrigins) {
     module('ancestorOrigins');
 
@@ -743,31 +770,4 @@ test('"isLocation" for the cloned location object should not return the "true" v
     var locationCopyCtor = Object.getPrototypeOf(locationCopy).constructor;
 
     strictEqual(locationCopyCtor.toString().indexOf('LocationWrapper'), -1, 'should not contain "LocationWrapper"');
-});
-
-test('"isLocation" for window.location and iframe.contentWindow.location', function () {
-    var getLocationScript = processScript('(function getLocation () {' +
-        'var location = window.location;' +
-        'return location;' +
-        '})();');
-
-    var windowLocation = eval(getLocationScript);
-
-    ok(windowLocation instanceof LocationWrapper);
-
-    return createTestIframe({ src: getCrossDomainPageUrl('../../../data/cross-domain/simple-page.html') })
-        .then(function (crossDomainIframe) {
-            window.testIframeLocation = crossDomainIframe.contentWindow.location;
-
-            var getIframeLocationScript = processScript('(function getIframeLocation () {' +
-                'var location = window.testIframeLocation;' +
-                'return location;' +
-                '})();');
-
-            var iframeLocation = eval(getIframeLocationScript);
-
-            ok(iframeLocation instanceof LocationWrapper);
-
-            delete window.testIframeLocation;
-        });
 });
