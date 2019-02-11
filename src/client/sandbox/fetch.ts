@@ -22,28 +22,15 @@ export default class FetchSandbox extends SandboxBase {
     }
 
     static _addSpecialHeadersToRequestInit (init) {
-        const headers            = init.headers;
-        const requestCredentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
-        const originHeaderValue  = getOriginHeader();
+        const credentials = init.credentials || DEFAULT_REQUEST_CREDENTIALS;
+        let headers       = init.headers;
 
-        if (isFetchHeaders(headers)) {
-            // eslint-disable-next-line no-restricted-properties
-            nativeMethods.headersSet.call(headers, XHR_HEADERS.origin, originHeaderValue);
-            nativeMethods.headersSet.call(headers, XHR_HEADERS.fetchRequestCredentials, requestCredentials);
-        }
-        else {
-            const transformedHeaders = {
-                [XHR_HEADERS.origin]:                  originHeaderValue, // eslint-disable-line no-restricted-properties
-                [XHR_HEADERS.fetchRequestCredentials]: requestCredentials
-            };
+        if (!isFetchHeaders(headers))
+            headers = init.headers = new nativeMethods.Headers(headers);
 
-            if (headers) {
-                for (const header of nativeMethods.objectKeys(headers))
-                    transformedHeaders[header] = headers[header];
-            }
-
-            init.headers = transformedHeaders;
-        }
+        // eslint-disable-next-line no-restricted-properties
+        nativeMethods.headersSet.call(headers, XHR_HEADERS.origin, getOriginHeader());
+        nativeMethods.headersSet.call(headers, XHR_HEADERS.fetchRequestCredentials, credentials);
 
         return init;
     }
