@@ -280,7 +280,7 @@ gulp.step('mocha', () => {
 gulp.task('test-server', gulp.series('build', 'mocha'));
 
 gulp.step('qunit', () => {
-    gulp.watch('./src/**', gulp.series('build'));
+    gulp.watch('./src/**/*.ts', gulp.series('build'));
 
     return gulp
         .src('./test/client/fixtures/**/*-test.js')
